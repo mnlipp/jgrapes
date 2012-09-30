@@ -21,24 +21,27 @@ import java.util.Collections;
 import java.util.List;
 
 import org.jdrupes.Component;
+import org.jdrupes.ComponentRef;
 import org.jdrupes.Manager;
 
 /**
  * @author mnl
  *
  */
-public class ComponentNode {
+public class ComponentNode implements ComponentRef {
 
+	private Manager manager;
 	private Component component;
 	private ComponentNode parent = null;
 	private List<ComponentNode> children = new ArrayList<ComponentNode>();
 	
 	public ComponentNode (Manager manager, Component component) {
 		this.component = component;
-		setManager(manager);
+		setManagerForNode(manager);
 	}
 
-	public void setManager (Manager manager) {
+	public void setManagerForNode (Manager manager) {
+		this.manager = manager;
 		try {
 			Field field = component.getClass().getDeclaredField("manager");
 			if (!field.isAccessible()) {
@@ -57,9 +60,22 @@ public class ComponentNode {
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void setManagerForTree (Manager manager) {
+		setManagerForNode (manager);
 		for (ComponentNode node: children) {
-			node.setManager(manager);
+			node.setManagerForTree(manager);
 		}
+	}
+
+	/**
+	 * Return the manager this node belongs to.
+	 * 
+	 * @return
+	 */
+	public Manager getManager() {
+		return manager;
 	}
 	
 	/**

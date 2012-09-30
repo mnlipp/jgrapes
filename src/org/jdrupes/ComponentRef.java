@@ -13,50 +13,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.jdrupes.test.basic;
-
-import org.jdrupes.Component;
-import org.jdrupes.Handler;
-import org.jdrupes.Manager;
-import org.jdrupes.events.Started;
+package org.jdrupes;
 
 /**
  * @author mnl
  *
  */
-public class TestComponent implements Component {
+public interface ComponentRef {
 
-	private String name = "Unknown";
-	private Manager manager = null;
+	/**
+	 * Return the referenced component.
+	 * 
+	 * @return the component
+	 */
+	Component getComponent();
 	
-	public TestComponent() {
-	}
-	
-	public TestComponent(String name) {
-		this.name = name;
-	}
-	
-	public Manager getManager() {
-		return manager;
-	}
-	
-	@Handler(event=Started.class)
-	public void handler1() {
-		return;
-	}
-	
-	@Handler(event=Started.class, channel="test")
-	public void handler2() {
-		return;
-	}
-	
-	@Handler(event=Started.class, channel={"test", "other"})
-	public void handler3() {
-		return;
-	}
-	
-	@Override
-	public String toString() {
-		return name;
-	}
 }
