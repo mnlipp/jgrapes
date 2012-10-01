@@ -20,127 +20,95 @@ import static org.junit.Assert.*;
 import java.util.Iterator;
 
 import org.jdrupes.Component;
-import org.jdrupes.ComponentRef;
 import org.jdrupes.Manager;
+import org.jdrupes.Utils;
 import org.junit.Test;
 
 public class StructureTest {
 
-	private ComponentRef subtree1(Manager manager, int offset) {
-		ComponentRef sub = manager.attach
-				(manager.detach(new TestComponent("node " + offset)),
-				 new TestComponent("node " + (offset + 1)));
-		manager.attach(sub, new TestComponent("node " + (offset + 2)));
+	private TestComponent subtree1(int offset) {
+		TestComponent sub = new TestComponent("node " + offset);
+		Utils.manager(sub).addChild
+			(new TestComponent("node " + (offset + 1)))
+			.addChild(new TestComponent("node " + (offset + 2)));
 		return sub;
 	}
 	
 	@Test
 	public void testRoot() {
-		Manager manager = new Manager();
-		assertEquals(manager.getTrees().size(), 0);
 		TestComponent c = new TestComponent("root");
-		manager.attach(c);
-		assertEquals(manager.getTrees().size(), 1);
-		assertTrue(manager.getTrees().iterator().next() == c);
-		assertTrue(c.getManager() == manager);
-		manager.detach(c);
-		assertEquals(manager.getTrees().size(), 0);
-		assertTrue(c.getManager() == null);
+		assertNull(c.getManager());
+		Manager manager = Utils.manager(c);
+		assertNotNull(manager);
+		assertEquals(manager, c.getManager());
+		assertEquals(c.getManager().getRoot(), c);
 	}
 
 	@Test
-	public void testDetachedBuild() {
-		Manager manager = new Manager();
-		assertEquals(manager.getTrees().size(), 0);
+	public void testBuild() {
 		TestComponent c = new TestComponent("root");
+		assertEquals(0, Utils.manager(c).getChildren().size());
 		TestComponent c1 = new TestComponent("sub1");
 		TestComponent c2 = new TestComponent("sub2");
-		ComponentRef root = manager.attach(manager.detach(c), c1);
-		manager.attach(root, c2);
-		assertEquals(manager.getTrees().size(), 0);
-		manager.attach(root);
-		assertEquals(manager.getTrees().iterator().next(), c);
-		assertEquals(manager.getParent(c), null);
-		assertEquals(manager.getParent(c1), c);
-		assertEquals(manager.getParent(c2), c);
-		Iterator<Component> iter = manager.getChildren(c).iterator();
+		c.getManager().addChild(c1).addChild(c2);
+		assertEquals(2, c.getManager().getChildren().size());
+		Iterator<Component> iter = c.getManager().getChildren().iterator();
 		assertTrue(iter.next() == c1);
 		assertTrue(iter.next() == c2);
-		assertEquals(c.getManager(), manager);
-		assertEquals(c1.getManager(), manager);
-		assertEquals(c2.getManager(), manager);
+		assertEquals(c1.getManager().getParent(), c);
+		assertEquals(c2.getManager().getParent(), c);
+		assertEquals(c1.getManager().getRoot(), c);
+		assertEquals(c2.getManager().getRoot(), c);
 	}
 	
 	public void testDetach() {
-		Manager manager = new Manager();
-		assertEquals(manager.getTrees().size(), 0);
 		TestComponent c = new TestComponent("root");
 		TestComponent c1 = new TestComponent("sub1");
 		TestComponent c2 = new TestComponent("sub2");
-		manager.attach(c);
-		manager.attach(c1);
-		manager.attach(c2);
-		ComponentRef root = manager.detach(c);
-		manager.attach(root, c1);
-		manager.attach(root, c2);
-		assertEquals(manager.getParent(c), null);
-		assertEquals(manager.getParent(c1), c);
-		assertEquals(manager.getParent(c2), c);
-		Iterator<Component> iter = manager.getChildren(c).iterator();
-		assertTrue(iter.next() == c1);
-		assertTrue(iter.next() == c2);
-		manager.detach(c);
-		assertEquals(manager.getTrees().size(), 0);
-		assertEquals(c.getManager(), null);
-		assertEquals(c1.getManager(), null);
-		assertEquals(c2.getManager(), null);
+		Utils.manager(c).addChild(c1).addChild(c2);
+		c1.getManager().detach();
+		assertNull(c1.getManager().getParent());
+		assertEquals(c1, c1.getManager().getRoot());
+		assertEquals(1, c.getManager().getChildren().size());
+		c2.getManager().detach();
+		assertNull(c2.getManager().getParent());
+		assertEquals(c2, c2.getManager().getRoot());
+		assertEquals(0, c.getManager().getChildren().size());
 	}
 	
 	@Test
 	public void testMove() {
-		System.gc();
-		Manager manager = new Manager();
-		assertEquals(0, manager.getTrees().size());
 		TestComponent c = new TestComponent("root");
-		manager.attach(c);
-		ComponentRef st1 = subtree1(manager, 1);
-		ComponentRef st2 = subtree1(manager, 4);
-		assertEquals(1, manager.getTrees().size());
-		manager.attach(c, st1);
-		manager.attach(c, st2);
-		manager.detach (st1.getComponent());
-		manager.attach(c, st1);
-		Iterator<Component> iter = manager.getChildren(c).iterator();
+		Utils.manager(c).addChild(subtree1(1)).addChild(subtree1(4));
+		Iterator<Component> iter = c.getManager().getChildren().iterator();
+		assertEquals("node 1", iter.next().toString());
+		assertEquals("node 4", iter.next().toString());
+		TestComponent sub1 = (TestComponent)
+				c.getManager().getChildren().iterator().next();
+		sub1.getManager().detach();
+		assertNull(sub1.getManager().getParent());
+		assertEquals(2, sub1.getManager().getChildren().size());
+		c.getManager().addChild(sub1);
+		iter = c.getManager().getChildren().iterator();
 		assertEquals("node 4", iter.next().toString());
 		assertEquals("node 1", iter.next().toString());
 	}
 
 	@Test
-	public void testChildren() {
-		Manager manager = new Manager();
-		assertEquals(manager.getTrees().size(), 0);
-		TestComponent c = new TestComponent("root");
-		TestComponent c1 = new TestComponent("sub1");
-		TestComponent c2 = new TestComponent("sub2");
-		manager.attach(c);
-		manager.attach(c, c1);
-		manager.attach(c, c2);
-		assertEquals(manager.getParent(c), null);
-		assertEquals(manager.getParent(c1), c);
-		assertEquals(manager.getParent(c2), c);
-		assertTrue(manager.getChildren(c).size() == 2);
-		Iterator<Component> iter = manager.getChildren(c).iterator();
-		assertTrue(iter.next() == c1);
-		assertTrue(iter.next() == c2);
-		assertTrue(c.getManager() == manager);
-		assertTrue(c1.getManager() == manager);
-		assertTrue(c2.getManager() == manager);
-		manager.detach(c2);
-		assertTrue(c2.getManager() == null);
-		assertTrue(manager.getChildren(c).size() == 1);
-		manager.detach(c);
-		assertTrue(c.getManager() == null);
-		assertTrue(c1.getManager() == null);
+	public void testIterator() {
+		TestComponent c = subtree1(0);
+		Iterator<Component> iter = c.getManager().getChildren().iterator();
+		((TestComponent)iter.next()).getManager().addChild(subtree1(3));
+		((TestComponent)iter.next()).getManager().addChild(subtree1(6));
+		iter = c.getManager().iterator();
+		assertEquals("node 0", iter.next().toString());
+		assertEquals("node 1", iter.next().toString());
+		assertEquals("node 3", iter.next().toString());
+		assertEquals("node 4", iter.next().toString());
+		assertEquals("node 5", iter.next().toString());
+		assertEquals("node 2", iter.next().toString());
+		assertEquals("node 6", iter.next().toString());
+		assertEquals("node 7", iter.next().toString());
+		assertEquals("node 8", iter.next().toString());
 	}
-
 }
