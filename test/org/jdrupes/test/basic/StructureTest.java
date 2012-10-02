@@ -28,7 +28,7 @@ public class StructureTest {
 
 	private TestComponent subtree1(int offset) {
 		TestComponent sub = new TestComponent("node " + offset);
-		Utils.manager(sub).addChild
+		Utils.ensureManager(sub).addChild
 			(new TestComponent("node " + (offset + 1)))
 			.addChild(new TestComponent("node " + (offset + 2)));
 		return sub;
@@ -38,7 +38,7 @@ public class StructureTest {
 	public void testRoot() {
 		TestComponent c = new TestComponent("root");
 		assertNull(c.getManager());
-		Manager manager = Utils.manager(c);
+		Manager manager = Utils.ensureManager(c);
 		assertNotNull(manager);
 		assertEquals(manager, c.getManager());
 		assertEquals(c.getManager().getRoot(), c);
@@ -47,7 +47,7 @@ public class StructureTest {
 	@Test
 	public void testBuild() {
 		TestComponent c = new TestComponent("root");
-		assertEquals(0, Utils.manager(c).getChildren().size());
+		assertEquals(0, Utils.ensureManager(c).getChildren().size());
 		TestComponent c1 = new TestComponent("sub1");
 		TestComponent c2 = new TestComponent("sub2");
 		c.getManager().addChild(c1).addChild(c2);
@@ -65,7 +65,7 @@ public class StructureTest {
 		TestComponent c = new TestComponent("root");
 		TestComponent c1 = new TestComponent("sub1");
 		TestComponent c2 = new TestComponent("sub2");
-		Utils.manager(c).addChild(c1).addChild(c2);
+		Utils.ensureManager(c).addChild(c1).addChild(c2);
 		c1.getManager().detach();
 		assertNull(c1.getManager().getParent());
 		assertEquals(c1, c1.getManager().getRoot());
@@ -79,7 +79,7 @@ public class StructureTest {
 	@Test
 	public void testMove() {
 		TestComponent c = new TestComponent("root");
-		Utils.manager(c).addChild(subtree1(1)).addChild(subtree1(4));
+		Utils.ensureManager(c).addChild(subtree1(1)).addChild(subtree1(4));
 		Iterator<Component> iter = c.getManager().getChildren().iterator();
 		assertEquals("node 1", iter.next().toString());
 		assertEquals("node 4", iter.next().toString());

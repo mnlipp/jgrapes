@@ -39,7 +39,7 @@ public class Utils {
 	 * @param component the component tree to detach
 	 * @return the component with its manager attribute set
 	 */
-	public static Manager manager (Component component) {
+	public static Manager ensureManager (Component component) {
 		Manager componentManager = ComponentManager.getManager(component);
 		if (componentManager != null) {
 			componentManager.detach();
