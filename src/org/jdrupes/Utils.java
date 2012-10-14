@@ -40,13 +40,11 @@ public class Utils {
 	 * @return the component with its manager attribute set
 	 */
 	public static Manager ensureManager (Component component) {
-		Manager componentManager = ComponentManager.getManager(component);
-		if (componentManager != null) {
-			componentManager.detach();
-		} else {
-			componentManager = new ComponentManager(component);
+		Manager manager = ComponentManager.getComponentBase(component);
+		if (manager != null) {
+			return manager;
 		}
-		return componentManager;
+		return new ComponentManager(component);
 	}
 	
 }

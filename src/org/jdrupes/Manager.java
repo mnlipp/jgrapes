@@ -18,8 +18,8 @@ package org.jdrupes;
 import java.util.List;
 
 /**
- * @author mnl
- *
+ * The manager interface provides methods for manipulating the
+ * component hierarchy and for firing events. 
  */
 public interface Manager extends Iterable<Component> {
 
@@ -37,21 +37,21 @@ public interface Manager extends Iterable<Component> {
 	 * @param child the component to add
 	 * @return the component's manager, for comfortable chaining
 	 */
-	public Manager addChild (Component child);
+	Manager addChild (Component child);
 	
 	/**
 	 * Remove the given component from the set of children.
 	 * 
 	 *  @param child the component to be removed
 	 */
-	public void removeChild(Component child);
+	void removeChild(Component child);
 	
 	/**
 	 * Return the child components of this component as unmodifiable list.
 	 * 
 	 * @return the child components
 	 */
-	public List<Component> getChildren();
+	List<Component> getChildren();
 
 	/**
 	 * Return the component's parent.
@@ -59,13 +59,13 @@ public interface Manager extends Iterable<Component> {
 	 * @return the parent component or <code>null</code> if the
 	 * component is not registered with another component
 	 */
-	public Component getParent();
+	Component getParent();
 	
 	/**
 	 * Return the root of the tree the component belongs to.
 	 * 
 	 * @return the root
 	 */
-	public Component getRoot();
+	Component getRoot();
 	
 }

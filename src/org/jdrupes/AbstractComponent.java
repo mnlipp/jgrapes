@@ -15,18 +15,21 @@
  */
 package org.jdrupes;
 
+import org.jdrupes.internal.ComponentBase;
+
 /**
- * This interface marks a class as a component. Implementing this 
- * interface is an alternative to deriving a component from 
- * {@link AbstractComponent} (usually because there is some other
- * preferential inheritance relationship). Components aren't required to
- * implement specific methods. They must, however, declare a private field
- * named <code>manager</code> of type {@link Manager}.
- * 
- * The implementation of the component can use the value in the field
- * to get access to the component hierarchy. The field is initialized
- * when the component is added to the component hierarchy or when
- * calling {@link Utils#ensureManager(Component)}.
+ * This is the base class for a new component. Components can be
+ * created by deriving from this class or by implementing 
+ * the interface {@link Component}.
  */
-public interface Component {	
+public class AbstractComponent extends ComponentBase implements Component {
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.internal.ComponentBase#getComponent()
+	 */
+	@Override
+	public Component getComponent() {
+		return this;
+	}
+
 }
