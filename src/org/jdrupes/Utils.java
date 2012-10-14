@@ -28,15 +28,18 @@ public class Utils {
 	
 	/**
 	 * Make sure that the given component has a manager. Newly created
-	 * components haven't their manager attribute set yet. The
-	 * manager attribute is automatically set when the component is 
-	 * attached to another component, but the root component of a tree
-	 * must have its manager attribute set explicitly using this method.
+	 * components that implement {@link Component} haven't their manager
+	 * attribute set yet. The manager attribute is automatically set 
+	 * when the component is attached to another component, but the root 
+	 * component of a tree must have its manager attribute set explicitly 
+	 * using this method.
 	 * 
 	 * If the method is invoked for a component that already has
-	 * a manager, it simply return the value of the manager attribute.
+	 * a manager, it simply returns the value of the manager attribute.
+	 * If it is called for a component that extends {@link AbstractComponent},
+	 * it returns the component itself.
 	 * 
-	 * @param component the component tree to detach
+	 * @param component the component
 	 * @return the component with its manager attribute set
 	 */
 	public static Manager ensureManager (Component component) {
