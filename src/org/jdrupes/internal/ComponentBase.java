@@ -58,14 +58,6 @@ public abstract class ComponentBase
 		}
 	}
 	
-	public void addChild (ComponentBase child) {
-		child.detach();
-		children.add(child);
-		child.parent = this;
-		child.setRoot(root);
-		return;
-	}
-	
 	public List<Component> getChildren() {
 		List<Component> children = new ArrayList<Component>();
 		for (ComponentBase child: this.children) {
@@ -158,7 +150,10 @@ public abstract class ComponentBase
 		if (childBase == null) {
 			childBase = new ComponentManager(child);
 		}
-		addChild(childBase);
+		childBase.detach();
+		children.add(childBase);
+		childBase.parent = this;
+		childBase.setRoot(root);
 		return this;
 	}
 	

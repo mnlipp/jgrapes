@@ -15,48 +15,33 @@
  */
 package org.jdrupes.test.basic;
 
-import org.jdrupes.Component;
-import org.jdrupes.Handler;
-import org.jdrupes.Manager;
-import org.jdrupes.events.Started;
+import org.jdrupes.AbstractComponent;
 
 /**
  * @author mnl
  *
  */
-public class TestComponent implements Component {
-
+public class TestComponent2 extends AbstractComponent {
 	private String name = "Unknown";
-	private Manager manager = null;
-	
-	public TestComponent() {
-	}
-	
-	public TestComponent(String name) {
+
+	/**
+	 * @param name
+	 */
+	public TestComponent2(String name) {
 		this.name = name;
 	}
-	
-	public Manager getManager() {
-		return manager;
-	}
-	
-	@Handler(event=Started.class)
-	public void handler1() {
-		return;
-	}
-	
-	@Handler(event=Started.class, channel="test")
-	public void handler2() {
-		return;
-	}
-	
-	@Handler(event=Started.class, channel={"test", "other"})
-	public void handler3() {
-		return;
-	}
-	
-	@Override
-	public String toString() {
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
 		return name;
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
 	}
 }

@@ -30,7 +30,7 @@ public class AnnotationTest {
 
 	@Test
 	public void testAnnotations() {
-		Object o = new TestComponent();
+		Object o = new TestComponent1();
 		Map<String, Annotation> found = new HashMap<String, Annotation>();
 		for (Method m: o.getClass().getMethods()) {
 			Annotation a = m.getAnnotation(Handler.class);
@@ -38,7 +38,7 @@ public class AnnotationTest {
 				found.put(m.getName(), a);
 			}
 		}
-		assertTrue(found.size() == 3);
+		assertEquals(found.size(), 3);
 		assertTrue(found.containsKey("handler1"));
 		assertTrue(found.containsKey("handler2"));
 		assertTrue(found.containsKey("handler3"));

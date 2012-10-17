@@ -18,6 +18,7 @@ package org.jdrupes.test.basic;
 import static org.junit.Assert.*;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.jdrupes.Component;
 import org.jdrupes.Manager;
@@ -26,51 +27,55 @@ import org.junit.Test;
 
 public class StructureTest {
 
-	private TestComponent subtree1(int offset) {
-		TestComponent sub = new TestComponent("node " + offset);
+	private TestComponent1 subtree1(int offset) {
+		TestComponent1 sub = new TestComponent1("node " + offset);
 		Utils.ensureManager(sub).addChild
-			(new TestComponent("node " + (offset + 1)))
-			.addChild(new TestComponent("node " + (offset + 2)));
+			(new TestComponent1("node " + (offset + 1)))
+			.addChild(new TestComponent1("node " + (offset + 2)));
 		return sub;
 	}
 	
 	@Test
 	public void testRoot() {
-		TestComponent c = new TestComponent("root");
+		TestComponent1 c = new TestComponent1("root");
 		assertNull(c.getManager());
+		// Set manager
 		Manager manager = Utils.ensureManager(c);
 		assertNotNull(manager);
 		assertEquals(manager, c.getManager());
+		// Retrieve existing manager
+		assertEquals(manager, Utils.ensureManager(c));
 		assertEquals(c.getManager().getRoot(), c);
 	}
 
 	@Test
 	public void testBuild() {
-		TestComponent c = new TestComponent("root");
+		TestComponent1 c = new TestComponent1("root");
 		assertEquals(0, Utils.ensureManager(c).getChildren().size());
-		TestComponent c1 = new TestComponent("sub1");
-		TestComponent c2 = new TestComponent("sub2");
+		TestComponent1 c1 = new TestComponent1("sub1");
+		TestComponent1 c2 = new TestComponent1("sub2");
 		c.getManager().addChild(c1).addChild(c2);
 		assertEquals(2, c.getManager().getChildren().size());
 		Iterator<Component> iter = c.getManager().getChildren().iterator();
-		assertTrue(iter.next() == c1);
-		assertTrue(iter.next() == c2);
+		assertSame(iter.next(), c1);
+		assertSame(iter.next(), c2);
 		assertEquals(c1.getManager().getParent(), c);
 		assertEquals(c2.getManager().getParent(), c);
 		assertEquals(c1.getManager().getRoot(), c);
 		assertEquals(c2.getManager().getRoot(), c);
 	}
 	
+	@Test
 	public void testDetach() {
-		TestComponent c = new TestComponent("root");
-		TestComponent c1 = new TestComponent("sub1");
-		TestComponent c2 = new TestComponent("sub2");
+		TestComponent1 c = new TestComponent1("root");
+		TestComponent1 c1 = new TestComponent1("sub1");
+		TestComponent1 c2 = new TestComponent1("sub2");
 		Utils.ensureManager(c).addChild(c1).addChild(c2);
 		c1.getManager().detach();
 		assertNull(c1.getManager().getParent());
 		assertEquals(c1, c1.getManager().getRoot());
 		assertEquals(1, c.getManager().getChildren().size());
-		c2.getManager().detach();
+		c.getManager().removeChild(c2);
 		assertNull(c2.getManager().getParent());
 		assertEquals(c2, c2.getManager().getRoot());
 		assertEquals(0, c.getManager().getChildren().size());
@@ -78,12 +83,12 @@ public class StructureTest {
 	
 	@Test
 	public void testMove() {
-		TestComponent c = new TestComponent("root");
+		TestComponent1 c = new TestComponent1("root");
 		Utils.ensureManager(c).addChild(subtree1(1)).addChild(subtree1(4));
 		Iterator<Component> iter = c.getManager().getChildren().iterator();
 		assertEquals("node 1", iter.next().toString());
 		assertEquals("node 4", iter.next().toString());
-		TestComponent sub1 = (TestComponent)
+		TestComponent1 sub1 = (TestComponent1)
 				c.getManager().getChildren().iterator().next();
 		sub1.getManager().detach();
 		assertNull(sub1.getManager().getParent());
@@ -96,19 +101,54 @@ public class StructureTest {
 
 	@Test
 	public void testIterator() {
-		TestComponent c = subtree1(0);
+		TestComponent1 c = subtree1(0);
 		Iterator<Component> iter = c.getManager().getChildren().iterator();
-		((TestComponent)iter.next()).getManager().addChild(subtree1(3));
-		((TestComponent)iter.next()).getManager().addChild(subtree1(6));
+		((TestComponent1)iter.next()).getManager().addChild(subtree1(3));
+		((TestComponent1)iter.next()).getManager().addChild(subtree1(6));
 		iter = c.getManager().iterator();
+		assertTrue(iter.hasNext());
+		boolean gotIt = false;
+		try {
+			iter.remove();
+		} catch (UnsupportedOperationException e) {
+			gotIt = true;
+		}
+		assertTrue(gotIt);
 		assertEquals("node 0", iter.next().toString());
+		assertTrue(iter.hasNext());
 		assertEquals("node 1", iter.next().toString());
+		assertTrue(iter.hasNext());
 		assertEquals("node 3", iter.next().toString());
+		assertTrue(iter.hasNext());
 		assertEquals("node 4", iter.next().toString());
+		assertTrue(iter.hasNext());
 		assertEquals("node 5", iter.next().toString());
+		assertTrue(iter.hasNext());
 		assertEquals("node 2", iter.next().toString());
+		assertTrue(iter.hasNext());
 		assertEquals("node 6", iter.next().toString());
+		assertTrue(iter.hasNext());
 		assertEquals("node 7", iter.next().toString());
+		assertTrue(iter.hasNext());
 		assertEquals("node 8", iter.next().toString());
+		assertFalse(iter.hasNext());
+		gotIt = false;
+		try {
+			iter.next();
+		} catch (NoSuchElementException e) {
+			gotIt = true;
+		}
+		assertTrue(gotIt);
+	}
+	
+	@Test
+	public void testDerived() {
+		TestComponent2 c = new TestComponent2("root");
+		TestComponent2 c1 = new TestComponent2("sub1");
+		TestComponent2 c2 = new TestComponent2("sub2");
+		c.addChild(c1).addChild(c2);
+		Iterator<Component> iter = c.getChildren().iterator();
+		assertSame(iter.next(), c1);
+		assertSame(iter.next(), c2);
 	}
 }
