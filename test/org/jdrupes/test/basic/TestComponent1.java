@@ -27,6 +27,7 @@ import org.jdrupes.events.Started;
 public class TestComponent1 implements Component {
 
 	private String name = "Unknown";
+	@Manager.Slot
 	private Manager manager = null;
 	
 	public TestComponent1() {

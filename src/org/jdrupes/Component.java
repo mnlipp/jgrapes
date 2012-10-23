@@ -20,8 +20,9 @@ package org.jdrupes;
  * interface is an alternative to deriving a component from 
  * {@link AbstractComponent} (usually because there is some other
  * preferential inheritance relationship). Components aren't required to
- * implement specific methods. They must, however, declare a private field
- * named <code>manager</code> of type {@link Manager}.
+ * implement specific methods. They must, however, declare a field
+ * for an associated manager. This field must be of type 
+ * {@link Manager} and annotated as {@link Manager.Slot}.
  * 
  * The implementation of the component can use the value in the field
  * to get access to the component hierarchy. The field is initialized

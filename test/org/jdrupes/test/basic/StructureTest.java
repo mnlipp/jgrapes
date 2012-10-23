@@ -151,4 +151,14 @@ public class StructureTest {
 		assertSame(iter.next(), c1);
 		assertSame(iter.next(), c2);
 	}
+	
+	public static class TCD extends TestComponent1 {		
+	}
+	
+	@Test
+	public void testInheritedManager () {
+		TCD c = new TCD();
+		Manager mgr = Utils.ensureManager(c);
+		assertNotNull(mgr);
+	}
 }

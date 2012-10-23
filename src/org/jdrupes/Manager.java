@@ -15,6 +15,11 @@
  */
 package org.jdrupes;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.List;
 
 /**
@@ -23,6 +28,17 @@ import java.util.List;
  */
 public interface Manager extends Iterable<Component> {
 
+	/**
+	 * This annotation marks a component's attribute as a slot for the
+	 * manager automatically associated with the component 
+	 * (see {@link Component}).  
+	 */
+	@Documented
+	@Retention(value=RetentionPolicy.RUNTIME)
+	@Target(value=ElementType.FIELD)
+	public @interface Slot {
+	}
+	
 	/**
 	 * Detached the component managed by this manager (and its children,
 	 * if any) from the component tree that it currently belongs to.
@@ -68,4 +84,10 @@ public interface Manager extends Iterable<Component> {
 	 */
 	Component getRoot();
 	
+	/**
+	 * Fire the given event.
+	 * 
+	 * @param event the event to fire
+	 */
+//	void fire(Event event);
 }

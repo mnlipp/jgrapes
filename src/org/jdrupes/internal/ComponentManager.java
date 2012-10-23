@@ -18,6 +18,7 @@ package org.jdrupes.internal;
 import java.lang.reflect.Field;
 
 import org.jdrupes.Component;
+import org.jdrupes.Manager;
 
 /**
  * @author mnl
@@ -27,10 +28,33 @@ public class ComponentManager extends ComponentBase {
 
 	private Component component = null;
 	
+	private static Field getManagerField(Class<?> clazz) {
+		try {
+			while (true) {
+				for (Field field: clazz.getDeclaredFields()) {
+					if (field.getAnnotation(Manager.Slot.class) != null) {
+						return field;
+					}
+				}
+				clazz = clazz.getSuperclass();
+				if (clazz == null) {
+					throw new IllegalArgumentException
+						("Components must have a manager attribute");
+				}
+			}
+		} catch (SecurityException e) {
+			throw new IllegalArgumentException
+				("Cannot access component's manager attribute");
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException
+				("Cannot access component's manager attribute");
+		}
+	}
+	
 	public ComponentManager(Component component) {
 		this.component = component;
 		try {
-			Field field = component.getClass().getDeclaredField("manager");
+			Field field = getManagerField(component.getClass());
 			if (!field.isAccessible()) {
 				field.setAccessible(true);
 				field.set(component, this);
@@ -41,9 +65,6 @@ public class ComponentManager extends ComponentBase {
 		} catch (SecurityException e) {
 			throw new IllegalArgumentException
 				("Cannot access component's manager attribute");
-		} catch (NoSuchFieldException e) {
-			throw new IllegalArgumentException
-				("Components must have a manager attribute");
 		} catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException
 				("Cannot access component's manager attribute");
@@ -59,7 +80,7 @@ public class ComponentManager extends ComponentBase {
 		}
 		ComponentManager componentBase = null;
 		try {
-			Field field = component.getClass().getDeclaredField("manager");
+			Field field = getManagerField(component.getClass());
 			if (!field.isAccessible()) {
 				field.setAccessible(true);
 				componentBase = (ComponentManager)field.get(component);
@@ -68,7 +89,6 @@ public class ComponentManager extends ComponentBase {
 				componentBase = (ComponentManager)field.get(component);
 			}
 		} catch (SecurityException e) {
-		} catch (NoSuchFieldException e) {
 		} catch (IllegalArgumentException e) {
 		} catch (IllegalAccessException e) {
 		}
