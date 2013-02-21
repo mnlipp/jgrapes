@@ -15,6 +15,7 @@
  */
 package org.jdrupes;
 
+import org.jdrupes.internal.ComponentNode;
 import org.jdrupes.internal.ComponentProxy;
 
 /**
@@ -43,7 +44,7 @@ public class Utils {
 	 * @return the component with its manager attribute set
 	 */
 	public static Manager ensureManager (Component component) {
-		Manager manager = ComponentProxy.getComponentNode(component);
+		Manager manager = ComponentNode.getComponentNode(component);
 		if (manager != null) {
 			return manager;
 		}
