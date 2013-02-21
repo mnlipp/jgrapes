@@ -27,41 +27,79 @@ import org.jdrupes.Event;
 import org.jdrupes.Manager;
 
 /**
+ * ComponentNode is the base class for all nodes in the tree of components.
+ * Actual components either extend the ComponentNode or are referenced
+ * by a ComponentProxy that extends the ComponentNode. 
+ * 
  * @author mnl
- *
  */
-public abstract class ComponentBase 
-	implements Manager, Iterable<Component> {
+public abstract class ComponentNode implements Manager {
 
-	private ComponentBase root = null;
-	private ComponentBase parent = null;
-	private List<ComponentBase> children = new ArrayList<ComponentBase>();
+	/** Reference to the root node of the tree. */
+	private ComponentNode root = null;
+	/** Reference to the parent node. */
+	private ComponentNode parent = null;
+	/** All the node's children */
+	private List<ComponentNode> children = new ArrayList<ComponentNode>();
+	/** The event manager that we delegate to. */
+	private ThreadLocal<EventManager> eventManager;
 
-	protected ComponentBase() {
-		root = this;
+	/** 
+	 * Initialize the ComponentNode. By default it forms a stand-alone
+	 * tree, i.e. the root is set to the component itself.
+	 */
+	protected ComponentNode() {
+		setRoot(this);
 	}
-	
+
+	/**
+	 * Return the component represented by this node in the tree.
+	 * 
+	 * @return the component
+	 */
 	public abstract Component getComponent();
-	
+
+	/**
+	 * Return the component node for a given component.
+	 * 
+	 * @param component the component
+	 * @return the node representing the component in the tree
+	 */
+	public static ComponentNode getComponentNode (Component component) {
+		if (component instanceof ComponentNode) {
+			return (ComponentNode)component;
+		}
+		return ComponentProxy.getComponentProxy(component);
+	}
+
+	/**
+	 * Remove the component from the tree, making it a stand-alone tree.
+	 */
 	public Component detach() {
 		if (parent != null) {
 			parent.children.remove(this);
 			parent = null;
-			setRoot(this);
+			setRoot(this); // implies setting children's root
 		}
 		return getComponent();
 	}
 
-	private void setRoot(ComponentBase comp) {
+	/**
+	 * Set the root of this component and all its children to the
+	 * given component.
+	 * 
+	 * @param comp the new root
+	 */
+	private void setRoot(ComponentNode comp) {
 		root = comp;
-		for (ComponentBase child: children) {
+		for (ComponentNode child: children) {
 			child.setRoot(comp);
 		}
 	}
-	
+
 	public List<Component> getChildren() {
 		List<Component> children = new ArrayList<Component>();
-		for (ComponentBase child: this.children) {
+		for (ComponentNode child: this.children) {
 			children.add(child.getComponent());
 		}
 		return Collections.unmodifiableList(children);
@@ -78,6 +116,27 @@ public abstract class ComponentBase
 		return root.getComponent();
 	}
 
+	public Manager addChild (Component child) {
+		ComponentNode childBase = getComponentNode(child);
+		if (childBase == null) {
+			childBase = new ComponentProxy(child);
+		}
+		childBase.detach();
+		children.add(childBase);
+		childBase.parent = this;
+		childBase.setRoot(root);
+		return this;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.jdrupes.Manager#removeChild(Component child)
+	 */
+	@Override
+	public void removeChild(Component child) {
+		ComponentNode childBase = getComponentNode(child);
+		childBase.detach();
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */
@@ -89,9 +148,9 @@ public abstract class ComponentBase
 	public class TreeIterator implements Iterator<Component> {
 
 		private class Pos {
-			public ComponentBase current;
+			public ComponentNode current;
 			public int childIndex;
-			public Pos(ComponentBase cm) {
+			public Pos(ComponentNode cm) {
 				current = cm;
 				childIndex = -1;
 			}
@@ -99,7 +158,7 @@ public abstract class ComponentBase
 		
 		private Stack<Pos> stack = new Stack<Pos>();
 		
-		public TreeIterator(ComponentBase root) {
+		public TreeIterator(ComponentNode root) {
 			stack.push(new Pos(root));
 		}
 
@@ -120,7 +179,7 @@ public abstract class ComponentBase
 				throw new NoSuchElementException();
 			}
 			Pos pos = stack.peek();
-			ComponentBase res = pos.current;
+			ComponentNode res = pos.current;
 			while (true) {
 				if (pos.current.children.size() > ++pos.childIndex) {
 					stack.push(new Pos
@@ -144,28 +203,12 @@ public abstract class ComponentBase
 			throw new UnsupportedOperationException();
 		}
 	}
-	
-	public Manager addChild (Component child) {
-		ComponentBase childBase 
-			= (ComponentBase)ComponentManager.getComponentBase(child);
-		if (childBase == null) {
-			childBase = new ComponentManager(child);
-		}
-		childBase.detach();
-		children.add(childBase);
-		childBase.parent = this;
-		childBase.setRoot(root);
-		return this;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.jdrupes.Manager#removeChild(Component child)
-	 */
-	@Override
-	public void removeChild(Component child) {
-		ComponentBase childBase 
-			= (ComponentBase)ComponentManager.getComponentBase(child);
-		childBase.detach();
-	}
 
+	/**
+	 * @param event
+	 * @see org.jdrupes.internal.EventManager#fire(org.jdrupes.Event)
+	 */
+	public void fire(Event event) {
+		eventManager.get().fire(event);
+	}
 }

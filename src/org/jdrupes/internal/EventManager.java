@@ -13,23 +13,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.jdrupes;
+package org.jdrupes.internal;
 
-import org.jdrupes.internal.ComponentNode;
+import org.jdrupes.Event;
 
 /**
- * This is the base class for a new component. Components can be
- * created by deriving from this class or by implementing 
- * the interface {@link Component}.
+ * @author mnl
+ *
  */
-public class AbstractComponent extends ComponentNode implements Component {
+public interface EventManager {
 
-	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.ComponentBase#getComponent()
+	/**
+	 * Fire the given event.
+	 * 
+	 * @param event the event to fire
 	 */
-	@Override
-	public Component getComponent() {
-		return this;
-	}
-
+	void fire(Event event);
 }

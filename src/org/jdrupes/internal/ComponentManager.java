@@ -15,7 +15,7 @@
  */
 package org.jdrupes.internal;
 
-import java.lang.reflect.Field;
+import java.util.List;
 
 import org.jdrupes.Component;
 import org.jdrupes.Manager;
@@ -24,79 +24,51 @@ import org.jdrupes.Manager;
  * @author mnl
  *
  */
-public class ComponentManager extends ComponentBase {
+public interface ComponentManager extends Iterable<Component> {
 
-	private Component component = null;
+	/**
+	 * Detached the component managed by this manager (and its children,
+	 * if any) from the component tree that it currently belongs to.
+	 * 
+	 * @return the component, for comfortable chaining
+	 */
+	Component detach ();
+
+	/**
+	 * Adds the given component node as a child.
+	 * 
+	 * @param child the component to add
+	 * @return the component's manager, for comfortable chaining
+	 */
+	Manager addChild (Component child);
 	
-	private static Field getManagerField(Class<?> clazz) {
-		try {
-			while (true) {
-				for (Field field: clazz.getDeclaredFields()) {
-					if (field.getAnnotation(Manager.Slot.class) != null) {
-						return field;
-					}
-				}
-				clazz = clazz.getSuperclass();
-				if (clazz == null) {
-					throw new IllegalArgumentException
-						("Components must have a manager attribute");
-				}
-			}
-		} catch (SecurityException e) {
-			throw new IllegalArgumentException
-				("Cannot access component's manager attribute");
-		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException
-				("Cannot access component's manager attribute");
-		}
-	}
+	/**
+	 * Remove the given component from the set of children.
+	 * 
+	 *  @param child the component to be removed
+	 */
+	void removeChild(Component child);
 	
-	public ComponentManager(Component component) {
-		this.component = component;
-		try {
-			Field field = getManagerField(component.getClass());
-			if (!field.isAccessible()) {
-				field.setAccessible(true);
-				field.set(component, this);
-				field.setAccessible(false);
-			} else {
-				field.set(component, this);
-			}
-		} catch (SecurityException e) {
-			throw new IllegalArgumentException
-				("Cannot access component's manager attribute");
-		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException
-				("Cannot access component's manager attribute");
-		} catch (IllegalAccessException e) {
-			throw new IllegalArgumentException
-				("Cannot access component's manager attribute");
-		}
-	}
+	/**
+	 * Return the child components of this component as unmodifiable list.
+	 * 
+	 * @return the child components
+	 */
+	List<Component> getChildren();
 
-	public static ComponentBase getComponentBase (Component component) {
-		if (component instanceof ComponentBase) {
-			return (ComponentBase)component;
-		}
-		ComponentManager componentBase = null;
-		try {
-			Field field = getManagerField(component.getClass());
-			if (!field.isAccessible()) {
-				field.setAccessible(true);
-				componentBase = (ComponentManager)field.get(component);
-				field.setAccessible(false);
-			} else {
-				componentBase = (ComponentManager)field.get(component);
-			}
-		} catch (SecurityException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (IllegalAccessException e) {
-		}
-		return componentBase;
-	}
-
-	public Component getComponent() {
-		return component;
-	}
+	/**
+	 * Return the component's parent.
+	 * 
+	 * @return the parent component or <code>null</code> if the
+	 * component is not registered with another component
+	 */
+	Component getParent();
+	
+	/**
+	 * Return the root of the tree the component belongs to.
+	 * 
+	 * @return the root
+	 */
+	Component getRoot();
 	
 }

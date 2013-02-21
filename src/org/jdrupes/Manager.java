@@ -20,13 +20,15 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.List;
+
+import org.jdrupes.internal.ComponentManager;
+import org.jdrupes.internal.EventManager;
 
 /**
  * The manager interface provides methods for manipulating the
  * component hierarchy and for firing events. 
  */
-public interface Manager extends Iterable<Component> {
+public interface Manager extends ComponentManager, EventManager {
 
 	/**
 	 * This annotation marks a component's attribute as a slot for the
@@ -39,55 +41,4 @@ public interface Manager extends Iterable<Component> {
 	public @interface Slot {
 	}
 	
-	/**
-	 * Detached the component managed by this manager (and its children,
-	 * if any) from the component tree that it currently belongs to.
-	 * 
-	 * @return the component, for comfortable chaining
-	 */
-	Component detach ();
-
-	/**
-	 * Adds the given component node as a child.
-	 * 
-	 * @param child the component to add
-	 * @return the component's manager, for comfortable chaining
-	 */
-	Manager addChild (Component child);
-	
-	/**
-	 * Remove the given component from the set of children.
-	 * 
-	 *  @param child the component to be removed
-	 */
-	void removeChild(Component child);
-	
-	/**
-	 * Return the child components of this component as unmodifiable list.
-	 * 
-	 * @return the child components
-	 */
-	List<Component> getChildren();
-
-	/**
-	 * Return the component's parent.
-	 * 
-	 * @return the parent component or <code>null</code> if the
-	 * component is not registered with another component
-	 */
-	Component getParent();
-	
-	/**
-	 * Return the root of the tree the component belongs to.
-	 * 
-	 * @return the root
-	 */
-	Component getRoot();
-	
-	/**
-	 * Fire the given event.
-	 * 
-	 * @param event the event to fire
-	 */
-//	void fire(Event event);
 }
