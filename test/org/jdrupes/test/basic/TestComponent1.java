@@ -16,8 +16,8 @@
 package org.jdrupes.test.basic;
 
 import org.jdrupes.Component;
-import org.jdrupes.Handler;
 import org.jdrupes.Manager;
+import org.jdrupes.annotation.Handler;
 import org.jdrupes.events.Started;
 
 /**
@@ -41,17 +41,17 @@ public class TestComponent1 implements Component {
 		return manager;
 	}
 	
-	@Handler(event=Started.class)
+	@Handler(events=Started.class)
 	public void handler1() {
 		return;
 	}
-	
-	@Handler(event=Started.class, channel="test")
+
+	@Handler(events=Started.class, namedChannels="test")
 	public void handler2() {
 		return;
 	}
 	
-	@Handler(event=Started.class, channel={"test", "other"})
+	@Handler(events=Started.class, namedChannels={"test", "other"})
 	public void handler3() {
 		return;
 	}

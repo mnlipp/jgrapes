@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jdrupes.Event;
-import org.jdrupes.Handler;
+import org.jdrupes.annotation.Handler;
 
 /**
  * @author mnl

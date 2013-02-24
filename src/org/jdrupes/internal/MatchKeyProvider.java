@@ -13,22 +13,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.jdrupes;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.jdrupes.internal;
 
 /**
  * @author mnl
  *
  */
-@Documented
-@Retention(value=RetentionPolicy.RUNTIME)
-@Target(value=ElementType.METHOD)
-public @interface Handler {
-	Class<? extends Event>[] event();
-	String[] channel() default "*";
+public interface MatchKeyProvider {
+
+	/**
+	 * Returns the key used for matching. 
+	 * 
+	 * @return the key which usually is a String, a Class or an instance
+	 * of Component (for channels only)
+	 */
+	Object getMatchKey();
+	
 }

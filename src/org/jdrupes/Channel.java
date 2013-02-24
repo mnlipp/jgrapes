@@ -21,7 +21,7 @@ import org.jdrupes.internal.MatchKeyProvider;
  * @author mnl
  *
  */
-public class Event implements MatchKeyProvider {
+public class Channel implements MatchKeyProvider {
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
@@ -30,5 +30,5 @@ public class Event implements MatchKeyProvider {
 	public Object getMatchKey() {
 		return getClass();
 	}
-	
+
 }

@@ -15,14 +15,17 @@
  */
 package org.jdrupes.internal;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 import org.jdrupes.Component;
 import org.jdrupes.Manager;
 
 /**
+ * The ComponentManager interface defines the methods for managing
+ * a component and its handlers within the component tree. 
+ * 
  * @author mnl
- *
  */
 public interface ComponentManager extends Iterable<Component> {
 
@@ -71,4 +74,14 @@ public interface ComponentManager extends Iterable<Component> {
 	 */
 	Component getRoot();
 	
+	/**
+	 * Add a handler for a specific event and channel.
+	 * 
+	 * @param eventKey the event key that should be used for matching
+	 * this handler with an event
+	 * @param channelKey the channel key that should be used for matching
+	 * this handler with an event
+	 * @param method the method that implements the handler
+	 */
+	void addHandler(Object eventKey, Object channelKey, Method method);
 }

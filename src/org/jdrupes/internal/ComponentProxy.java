@@ -21,8 +21,11 @@ import org.jdrupes.Component;
 import org.jdrupes.Manager;
 
 /**
+ * The ComponentProxy is a special ComponentNode that references the
+ * object implementing the Component interface (instead of being
+ * its base class).
+ * 
  * @author mnl
- *
  */
 public class ComponentProxy extends ComponentNode {
 

@@ -15,20 +15,28 @@
  */
 package org.jdrupes;
 
-import org.jdrupes.internal.MatchKeyProvider;
-
 /**
  * @author mnl
  *
  */
-public class Event implements MatchKeyProvider {
+public class NamedEvent extends Event {
+
+	private String name;
+	
+	/**
+	 * @param name
+	 */
+	public NamedEvent(String name) {
+		super();
+		this.name = name;
+	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
+	 * @see org.jdrupes.Event#getMatchKey()
 	 */
 	@Override
 	public Object getMatchKey() {
-		return getClass();
+		return name;
 	}
-	
+
 }

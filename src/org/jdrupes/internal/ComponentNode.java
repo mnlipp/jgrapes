@@ -15,6 +15,7 @@
  */
 package org.jdrupes.internal;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -27,9 +28,12 @@ import org.jdrupes.Event;
 import org.jdrupes.Manager;
 
 /**
- * ComponentNode is the base class for all nodes in the tree of components.
- * Actual components either extend the ComponentNode or are referenced
- * by a ComponentProxy that extends the ComponentNode. 
+ * ComponentNode is the base class for all nodes in the component tree.
+ * ComponentNode is extended by {@link org.jdrupes.AbstractComponent}
+ * for the use as base class for component implementations. As an 
+ * alternative for implementing components with an independent base class,
+ * the derived class {@link org.jdrupes.internal.ComponentProxy} can be
+ * used. 
  * 
  * @author mnl
  */
@@ -41,6 +45,9 @@ public abstract class ComponentNode implements Manager {
 	private ComponentNode parent = null;
 	/** All the node's children */
 	private List<ComponentNode> children = new ArrayList<ComponentNode>();
+	/** The handlers provided by this component. */
+	private List<HandlerReference> handlers = new ArrayList<HandlerReference>();
+	
 	/** The event manager that we delegate to. */
 	private ThreadLocal<EventManager> eventManager;
 
@@ -202,6 +209,16 @@ public abstract class ComponentNode implements Manager {
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.internal.ComponentManager#addHandler(java.lang.Object, java.lang.Object, org.jdrupes.Component, java.lang.reflect.Method)
+	 */
+	@Override
+	public void addHandler(Object eventKey, Object channelKey,
+			Method method) {
+		handlers.add(new HandlerReference(eventKey, channelKey, 
+			getComponent(), method));
 	}
 
 	/**
