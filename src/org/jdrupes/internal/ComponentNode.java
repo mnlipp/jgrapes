@@ -39,8 +39,8 @@ import org.jdrupes.Manager;
  */
 public abstract class ComponentNode implements Manager {
 
-	/** Reference to the root node of the tree. */
-	private ComponentNode root = null;
+	/** Reference to the common properties of the tree nodes. */
+	private ComponentCommon common = null;
 	/** Reference to the parent node. */
 	private ComponentNode parent = null;
 	/** All the node's children */
@@ -56,7 +56,7 @@ public abstract class ComponentNode implements Manager {
 	 * tree, i.e. the root is set to the component itself.
 	 */
 	protected ComponentNode() {
-		setRoot(this);
+		common = new ComponentCommon(this);
 	}
 
 	/**
@@ -86,21 +86,21 @@ public abstract class ComponentNode implements Manager {
 		if (parent != null) {
 			parent.children.remove(this);
 			parent = null;
-			setRoot(this); // implies setting children's root
+			setCommon(new ComponentCommon(this));
 		}
 		return getComponent();
 	}
 
 	/**
-	 * Set the root of this component and all its children to the
-	 * given component.
+	 * Set the reference to the common properties of this component 
+	 * and all its children to the given value.
 	 * 
 	 * @param comp the new root
 	 */
-	private void setRoot(ComponentNode comp) {
-		root = comp;
+	private void setCommon(ComponentCommon common) {
+		this.common = common;
 		for (ComponentNode child: children) {
-			child.setRoot(comp);
+			child.setCommon(common);
 		}
 	}
 
@@ -120,18 +120,20 @@ public abstract class ComponentNode implements Manager {
 	}
 	
 	public Component getRoot() {
-		return root.getComponent();
+		return common.root.getComponent();
 	}
 
 	public Manager addChild (Component child) {
-		ComponentNode childBase = getComponentNode(child);
-		if (childBase == null) {
-			childBase = new ComponentProxy(child);
+		ComponentNode childNode = getComponentNode(child);
+		if (childNode == null) {
+			childNode = new ComponentProxy(child);
 		}
-		childBase.detach();
-		children.add(childBase);
-		childBase.parent = this;
-		childBase.setRoot(root);
+		if (childNode.parent != null) {
+			childNode.parent.children.remove(this);
+		}
+		childNode.parent = this;
+		childNode.setCommon(common);
+		children.add(childNode);
 		return this;
 	}
 	
