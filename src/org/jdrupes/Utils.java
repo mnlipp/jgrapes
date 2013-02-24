@@ -28,22 +28,22 @@ public class Utils {
 	}
 	
 	/**
-	 * Make sure that the given component has a manager. Newly created
-	 * components that implement {@link Component} haven't their manager
-	 * attribute set yet. The manager attribute is automatically set 
-	 * when the component is attached to another component, but the root 
-	 * component of a tree must have its manager attribute set explicitly 
-	 * using this method.
+	 * Return a component's manager. Components that inherit
+	 * from {@link org.jdrupes.AbstractComponent} will simply return
+	 * the component as they are their own managers.
 	 * 
-	 * If the method is invoked for a component that already has
-	 * a manager, it simply returns the value of the manager attribute.
-	 * If it is called for a component that extends {@link AbstractComponent},
-	 * it returns the component itself.
+	 * Components that implement {@link Component} but don't inherit from 
+	 * {@link org.jdrupes.AbstractComponent} return the value of the
+	 * attribute marked as manager slot. A value is automatically assigned
+	 * to this attribute when a component is attached to the component tree.
+	 * When this method is invoked for such a component that hasn't been 
+	 * attached to a component tree yet, it makes the component the root
+	 * of a new tree and returns its manager.
 	 * 
 	 * @param component the component
 	 * @return the component with its manager attribute set
 	 */
-	public static Manager ensureManager (Component component) {
+	public static Manager manager (Component component) {
 		Manager manager = ComponentNode.getComponentNode(component);
 		if (manager != null) {
 			return manager;

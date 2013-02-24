@@ -20,6 +20,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
 import org.jdrupes.Component;
+import org.jdrupes.Event;
 
 /**
  * @author mnl
@@ -43,7 +44,7 @@ public class HandlerReference {
 		this.channelKey = channelKey;
 		try {
 			this.method = MethodHandles.lookup().unreflect(method);
-			this.method.bindTo(component);
+			this.method = this.method.bindTo(component);
 		} catch (IllegalAccessException e) {
 			throw (RuntimeException)
 				(new IllegalArgumentException()).initCause(e);
@@ -62,5 +63,15 @@ public class HandlerReference {
 		return channelKey;
 	}
 	
-	
+	/**
+	 * Invoke the handler with the given event as parameter. 
+	 * 
+	 * @param event the event
+	 */
+	public void invoke(Event event) {
+		try {
+			method.invoke(event);
+		} catch (Throwable e) {
+		}
+	}
 }

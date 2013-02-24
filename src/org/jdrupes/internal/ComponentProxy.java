@@ -57,6 +57,7 @@ public class ComponentProxy extends ComponentNode {
 	
 	public ComponentProxy(Component component) {
 		this.component = component;
+		initHandlers();
 		try {
 			Field field = getManagerField(component.getClass());
 			if (!field.isAccessible()) {

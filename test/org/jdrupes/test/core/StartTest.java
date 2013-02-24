@@ -13,32 +13,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.jdrupes;
+package org.jdrupes.test.core;
 
-import org.jdrupes.internal.MatchKeyProvider;
+import static org.junit.Assert.*;
+
+import org.jdrupes.Utils;
+import org.jdrupes.events.Started;
+import org.jdrupes.test.core.components.StartReporter;
+import org.junit.Test;
 
 /**
  * @author mnl
+ *
  */
-public class Channel implements MatchKeyProvider {
+public class StartTest {
 
-	public static final Channel BROADCAST_CHANNEL = new Channel() {
-
-		/* (non-Javadoc)
-		 * @see org.jdrupes.Channel#getMatchKey()
-		 */
-		@Override
-		public Object getMatchKey() {
-			return Channel.class;
-		}
-	};
-	
-	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
-	 */
-	@Override
-	public Object getMatchKey() {
-		return getClass();
+	@Test
+	public void test() {
+		StartReporter app = new StartReporter();
+		Utils.manager(app).fire(new Started());
+		assertTrue(app.started);
 	}
 
 }

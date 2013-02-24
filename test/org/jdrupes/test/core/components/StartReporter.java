@@ -13,32 +13,24 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.jdrupes;
+package org.jdrupes.test.core.components;
 
-import org.jdrupes.internal.MatchKeyProvider;
+import org.jdrupes.AbstractComponent;
+import org.jdrupes.annotation.Handler;
+import org.jdrupes.events.Started;
 
 /**
  * @author mnl
+ *
  */
-public class Channel implements MatchKeyProvider {
+public class StartReporter extends AbstractComponent {
 
-	public static final Channel BROADCAST_CHANNEL = new Channel() {
-
-		/* (non-Javadoc)
-		 * @see org.jdrupes.Channel#getMatchKey()
-		 */
-		@Override
-		public Object getMatchKey() {
-			return Channel.class;
-		}
-	};
+	public boolean started = false;
 	
-	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
-	 */
-	@Override
-	public Object getMatchKey() {
-		return getClass();
+	@Handler(events=Started.class)
+	public void onStart(Started event) {
+		System.out.println("Started");
+		started = true;
 	}
-
+	
 }

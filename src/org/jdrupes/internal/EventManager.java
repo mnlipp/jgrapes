@@ -15,6 +15,7 @@
  */
 package org.jdrupes.internal;
 
+import org.jdrupes.Channel;
 import org.jdrupes.Event;
 
 /**
@@ -24,9 +25,9 @@ import org.jdrupes.Event;
 public interface EventManager {
 
 	/**
-	 * Fire the given event.
+	 * Fire the given event on the given channel.
 	 * 
 	 * @param event the event to fire
 	 */
-	void fire(Event event);
+	void fire(Event event, Channel channel);
 }

@@ -13,41 +13,29 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.jdrupes.internal;
-
-import java.util.LinkedList;
-import java.util.Queue;
-
-import org.jdrupes.Channel;
-import org.jdrupes.Event;
+package org.jdrupes;
 
 /**
  * @author mnl
  *
  */
-public class EventManagerImpl implements EventManager {
+public class NamedChannel extends Channel {
 
-	private boolean processing = false;
-	private ComponentNode componentTree;
-	private Queue<Event> queue = new LinkedList<Event>();
-	
-	public EventManagerImpl (ComponentNode componentTree) {
-		this.componentTree = componentTree;
+	private String name;
+
+	/**
+	 * @param name
+	 */
+	public NamedChannel(String name) {
+		super();
+		this.name = name;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.EventManager#fire(org.jdrupes.Event, org.jdrupes.Channel)
+	 * @see org.jdrupes.Channel#getMatchKey()
 	 */
 	@Override
-	public void fire(Event event, Channel channel) {
-		boolean firstEvent = false;
-		firstEvent = (queue.size() == 0 && !processing);
-		queue.add(event);
-		if (firstEvent) {
-			while (queue.size() > 0) {
-				Event nextEvent = queue.remove();
-				componentTree.dispatch(nextEvent);
-			}
-		}
+	public Object getMatchKey() {
+		return name;
 	}
 }

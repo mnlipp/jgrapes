@@ -29,7 +29,7 @@ public class StructureTest {
 
 	private TestComponent1 subtree1(int offset) {
 		TestComponent1 sub = new TestComponent1("node " + offset);
-		Utils.ensureManager(sub).addChild
+		Utils.manager(sub).addChild
 			(new TestComponent1("node " + (offset + 1)))
 			.addChild(new TestComponent1("node " + (offset + 2)));
 		return sub;
@@ -40,18 +40,18 @@ public class StructureTest {
 		TestComponent1 c = new TestComponent1("root");
 		assertNull(c.getManager());
 		// Set manager
-		Manager manager = Utils.ensureManager(c);
+		Manager manager = Utils.manager(c);
 		assertNotNull(manager);
 		assertEquals(manager, c.getManager());
 		// Retrieve existing manager
-		assertEquals(manager, Utils.ensureManager(c));
+		assertEquals(manager, Utils.manager(c));
 		assertEquals(c.getManager().getRoot(), c);
 	}
 
 	@Test
 	public void testBuild() {
 		TestComponent1 c = new TestComponent1("root");
-		assertEquals(0, Utils.ensureManager(c).getChildren().size());
+		assertEquals(0, Utils.manager(c).getChildren().size());
 		TestComponent1 c1 = new TestComponent1("sub1");
 		TestComponent1 c2 = new TestComponent1("sub2");
 		c.getManager().addChild(c1).addChild(c2);
@@ -70,7 +70,7 @@ public class StructureTest {
 		TestComponent1 c = new TestComponent1("root");
 		TestComponent1 c1 = new TestComponent1("sub1");
 		TestComponent1 c2 = new TestComponent1("sub2");
-		Utils.ensureManager(c).addChild(c1).addChild(c2);
+		Utils.manager(c).addChild(c1).addChild(c2);
 		c1.getManager().detach();
 		assertNull(c1.getManager().getParent());
 		assertEquals(c1, c1.getManager().getRoot());
@@ -84,7 +84,7 @@ public class StructureTest {
 	@Test
 	public void testMove() {
 		TestComponent1 c = new TestComponent1("root");
-		Utils.ensureManager(c).addChild(subtree1(1)).addChild(subtree1(4));
+		Utils.manager(c).addChild(subtree1(1)).addChild(subtree1(4));
 		Iterator<Component> iter = c.getManager().getChildren().iterator();
 		assertEquals("node 1", iter.next().toString());
 		assertEquals("node 4", iter.next().toString());
@@ -158,7 +158,7 @@ public class StructureTest {
 	@Test
 	public void testInheritedManager () {
 		TCD c = new TCD();
-		Manager mgr = Utils.ensureManager(c);
+		Manager mgr = Utils.manager(c);
 		assertNotNull(mgr);
 	}
 }

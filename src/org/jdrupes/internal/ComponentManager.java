@@ -18,7 +18,9 @@ package org.jdrupes.internal;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import org.jdrupes.Channel;
 import org.jdrupes.Component;
+import org.jdrupes.Event;
 import org.jdrupes.Manager;
 
 /**
@@ -84,4 +86,12 @@ public interface ComponentManager extends Iterable<Component> {
 	 * @param method the method that implements the handler
 	 */
 	void addHandler(Object eventKey, Object channelKey, Method method);
+	
+	/**
+	 * Fire the given event on the component's channel.
+	 * 
+	 * @param event the event to fire
+	 */
+	void fire(Event event);
+	
 }

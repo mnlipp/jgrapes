@@ -17,15 +17,18 @@ package org.jdrupes.internal;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Stack;
 
+import org.jdrupes.Channel;
 import org.jdrupes.Component;
 import org.jdrupes.Event;
 import org.jdrupes.Manager;
+import org.jdrupes.annotation.Handler;
 
 /**
  * ComponentNode is the base class for all nodes in the component tree.
@@ -49,7 +52,8 @@ public abstract class ComponentNode implements Manager {
 	private List<HandlerReference> handlers = new ArrayList<HandlerReference>();
 	
 	/** The event manager that we delegate to. */
-	private ThreadLocal<EventManager> eventManager;
+	private ThreadLocal<EventManager> eventManager
+		= new ThreadLocal<EventManager>();
 
 	/** 
 	 * Initialize the ComponentNode. By default it forms a stand-alone
@@ -57,6 +61,44 @@ public abstract class ComponentNode implements Manager {
 	 */
 	protected ComponentNode() {
 		common = new ComponentCommon(this);
+	}
+
+	/**
+	 * Initialize the handler list. May only be called when
+	 * {@link #getComponent()} can be relied on to return the
+	 * correct value.
+	 */
+	protected void initHandlers() {
+		for (Method m : getComponent().getClass().getMethods()) {
+			Handler handlerAnnotation = m.getAnnotation(Handler.class);
+			if (handlerAnnotation == null) {
+				continue;
+			}
+			List<Object> eventKeys = new ArrayList<Object>();
+			if (handlerAnnotation.events()[0] != Handler.NO_EVENT.class) {
+				eventKeys.addAll(Arrays.asList(handlerAnnotation.events()));
+			}
+			if (!handlerAnnotation.namedEvents()[0].equals("")) {
+				eventKeys.addAll
+					(Arrays.asList(handlerAnnotation.namedEvents()));
+			}
+			List<Object> channelKeys = new ArrayList<Object>();
+			if (handlerAnnotation.channels()[0] != Handler.NO_CHANNEL.class) {
+				channelKeys.addAll(Arrays.asList(handlerAnnotation.channels()));
+			}
+			if (!handlerAnnotation.namedChannels()[0].equals("")) {
+				channelKeys.addAll
+					(Arrays.asList(handlerAnnotation.namedChannels()));
+			}
+			if (channelKeys.size() == 0) {
+				channelKeys.add(getComponent().getChannel());
+			}
+			for (Object eventKey : eventKeys) {
+				for (Object channelKey : channelKeys) {
+					addHandler(eventKey, channelKey, m);
+				}
+			}
+		}
 	}
 
 	/**
@@ -223,11 +265,108 @@ public abstract class ComponentNode implements Manager {
 			getComponent(), method));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jdrupes.internal.EventManager#fire(org.jdrupes.Event, org.jdrupes.Channel)
+	 */
+	@Override
+	public void fire(Event event, Channel channel) {
+		EventManager em = eventManager.get();
+		if (em == null) {
+			em = new EventManagerImpl(common.root);
+		}
+		em.fire(event, channel);
+	}
+
 	/**
 	 * @param event
 	 * @see org.jdrupes.internal.EventManager#fire(org.jdrupes.Event)
 	 */
 	public void fire(Event event) {
-		eventManager.get().fire(event);
+		fire(event, getComponent().getChannel());
+	}
+	
+	private void addHandlers
+		(List<HandlerReference> hdlrs, Event event, Channel channel) {
+		for (HandlerReference hdlr: handlers) {
+			Object eventKey = hdlr.getEventKey();
+			if (Class.class.isInstance(eventKey)) {
+				if (!((Class<?>)eventKey).isAssignableFrom(event.getClass())) {
+					continue;
+				}
+			} else {
+				if (!eventKey.equals(event.getMatchKey())) {
+					continue;
+				}
+			}
+			Object channelKey = hdlr.getChannelKey();
+			if (channel != null) {
+				if (Class.class.isInstance(channelKey)) {
+					if (!((Class<?>) channelKey).isAssignableFrom(channel
+							.getClass())) {
+						continue;
+					}
+				} else {
+					if (!channelKey.equals(channel.getMatchKey())) {
+						continue;
+					}
+				}
+			}
+			hdlrs.add(hdlr);
+		}
+		for (ComponentNode child: children) {
+			child.addHandlers(hdlrs, event, channel);
+		}
+	}
+	
+	void dispatch(Event event) {
+		List<HandlerReference> hdlrs = new ArrayList<HandlerReference>();
+		addHandlers(hdlrs, event, null);
+		for (HandlerReference hdlr: hdlrs) {
+			hdlr.invoke(event);
+		}
+	}
+	
+	private static class HandlerKey {
+		public Class<Event> eventType;		
+		public String channel;
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((channel == null) ? 0 : channel.hashCode());
+			result = prime * result
+					+ ((eventType == null) ? 0 : eventType.hashCode());
+			return result;
+		}
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			HandlerKey other = (HandlerKey) obj;
+			if (channel == null) {
+				if (other.channel != null)
+					return false;
+			} else if (!channel.equals(other.channel))
+				return false;
+			if (eventType == null) {
+				if (other.eventType != null)
+					return false;
+			} else if (!eventType.equals(other.eventType))
+				return false;
+			return true;
+		}
+		
 	}
 }

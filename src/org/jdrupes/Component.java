@@ -27,7 +27,9 @@ package org.jdrupes;
  * The implementation of the component can use the value in the field
  * to get access to the component hierarchy. The field is initialized
  * when the component is added to the component hierarchy or when
- * calling {@link Utils#ensureManager(Component)}.
+ * calling {@link Utils#manager(Component)}.
  */
-public interface Component {	
+public interface Component {
+	
+	Channel getChannel();
 }
