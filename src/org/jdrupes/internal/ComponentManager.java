@@ -18,6 +18,7 @@ package org.jdrupes.internal;
 import java.util.List;
 
 import org.jdrupes.Channel;
+import org.jdrupes.ChannelMatchable;
 import org.jdrupes.Component;
 import org.jdrupes.Event;
 import org.jdrupes.Manager;
@@ -79,13 +80,21 @@ public interface ComponentManager extends Iterable<Component> {
 	 * Add a handler for a specific event and channel. The method
 	 * with the given name must have a single argument of type
 	 * {@link Event} (or a derived type as appropriate for the
-	 * events to be handled).
+	 * event type to be handled).
 	 * 
 	 * @param eventKey the event key that should be used for matching
-	 * this handler with an event
+	 * this handler with an event. This is equivalent to an 
+	 * <code>events</code>/<code>namedEvents</code> parameter
+	 * used with a single value in the handler annotation, but here 
+	 * all kinds of Objects are allowed as key values.
 	 * @param channelKey the channel key that should be used for matching
-	 * this handler with an event
-	 * @param method the method that implements the handler
+	 * this handler with a channel. This is equivalent to a 
+	 * <code>channels</code>/<code>namedChannels</code> parameter
+	 * used with a single value in the handler annotation, but here 
+	 * all kinds of Objects are allowed as key values. If the
+	 * actual object provided is a {@link ChannelMatchable}, its
+	 * match key is used for matching.
+	 * @param method the name of the method that implements the handler
 	 */
 	void addHandler(Object eventKey, Object channelKey, String method);
 	

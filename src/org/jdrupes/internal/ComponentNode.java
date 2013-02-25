@@ -264,7 +264,7 @@ public abstract class ComponentNode implements Manager {
 	 */
 	@Override
 	public void addHandler(Object eventKey, Object channelKey, String method) {
-		if (channelKey instanceof Matchable) {
+		if (channelKey instanceof ChannelMatchable) {
 			channelKey = ((Matchable)channelKey).getMatchKey();
 		}
 		try {
