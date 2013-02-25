@@ -15,13 +15,13 @@
  */
 package org.jdrupes;
 
-import org.jdrupes.internal.MatchKeyProvider;
+import org.jdrupes.internal.Matchable;
 
 /**
  * @author mnl
  *
  */
-public class Event implements MatchKeyProvider {
+public class Event implements Matchable {
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
@@ -30,5 +30,13 @@ public class Event implements MatchKeyProvider {
 	public Object getMatchKey() {
 		return getClass();
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.internal.Matchable#matches(java.lang.Object)
+	 */
+	@Override
+	public boolean matches(Object handlerKey) {
+		return Class.class.isInstance(handlerKey)
+				&& ((Class<?>)handlerKey).isAssignableFrom(getClass());
+	}
 }

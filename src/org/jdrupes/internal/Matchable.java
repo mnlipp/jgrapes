@@ -19,7 +19,7 @@ package org.jdrupes.internal;
  * @author mnl
  *
  */
-public interface MatchKeyProvider {
+public interface Matchable {
 
 	/**
 	 * Returns the key used for matching. 
@@ -29,4 +29,11 @@ public interface MatchKeyProvider {
 	 */
 	Object getMatchKey();
 	
+	/**
+	 * Returns <code>true</code> if this Matchable matches the
+	 * key used as filter by a handler.
+	 * 
+	 * @param handlerKey the key used by the handler
+	 */
+	boolean matches(Object handlerKey);
 }

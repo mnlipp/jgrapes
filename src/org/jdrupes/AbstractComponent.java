@@ -15,14 +15,7 @@
  */
 package org.jdrupes;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.jdrupes.annotation.Handler;
 import org.jdrupes.internal.ComponentNode;
-import org.jdrupes.internal.MatchKeyProvider;
 
 /**
  * This is the base class for a new component. Components can be
@@ -30,14 +23,14 @@ import org.jdrupes.internal.MatchKeyProvider;
  * the interface {@link Component}.
  */
 public class AbstractComponent extends ComponentNode 
-	implements Component, MatchKeyProvider {
+	implements Component {
 
 	/**
 	 * 
 	 */
 	public AbstractComponent() {
 		super();
-		initHandlers();
+		initComponentsHandlers();
 	}
 
 	/* (non-Javadoc)
@@ -45,14 +38,6 @@ public class AbstractComponent extends ComponentNode
 	 */
 	@Override
 	public Component getComponent() {
-		return this;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
-	 */
-	@Override
-	public Object getMatchKey() {
 		return this;
 	}
 

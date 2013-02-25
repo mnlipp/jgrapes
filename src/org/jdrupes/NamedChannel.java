@@ -19,7 +19,7 @@ package org.jdrupes;
  * @author mnl
  *
  */
-public class NamedChannel extends Channel {
+final public class NamedChannel extends Channel {
 
 	private String name;
 
@@ -37,5 +37,13 @@ public class NamedChannel extends Channel {
 	@Override
 	public Object getMatchKey() {
 		return name;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.internal.Matchable#matches(java.lang.Object)
+	 */
+	@Override
+	public boolean matches(Object handlerKey) {
+		return handlerKey.equals(Channel.class) || handlerKey.equals(name);
 	}
 }

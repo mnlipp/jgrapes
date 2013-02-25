@@ -64,11 +64,11 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/**
-	 * Initialize the handler list. May only be called when
-	 * {@link #getComponent()} can be relied on to return the
+	 * Initialize the handler list of this component. May only be called
+	 * when {@link #getComponent()} can be relied on to return the
 	 * correct value.
 	 */
-	protected void initHandlers() {
+	protected void initComponentsHandlers() {
 		for (Method m : getComponent().getClass().getMethods()) {
 			Handler handlerAnnotation = m.getAnnotation(Handler.class);
 			if (handlerAnnotation == null) {
@@ -91,7 +91,7 @@ public abstract class ComponentNode implements Manager {
 					(Arrays.asList(handlerAnnotation.namedChannels()));
 			}
 			if (channelKeys.size() == 0) {
-				channelKeys.add(getComponent().getChannel());
+				channelKeys.add(getComponent().getChannel().getMatchKey());
 			}
 			for (Object eventKey : eventKeys) {
 				for (Object channelKey : channelKeys) {
@@ -269,7 +269,7 @@ public abstract class ComponentNode implements Manager {
 	 * @see org.jdrupes.internal.EventManager#fire(org.jdrupes.Event, org.jdrupes.Channel)
 	 */
 	@Override
-	public void fire(Event event, Channel channel) {
+	public void fire(Event event, Channel... channel) {
 		EventManager em = eventManager.get();
 		if (em == null) {
 			em = new EventManagerImpl(common.root);
@@ -286,41 +286,32 @@ public abstract class ComponentNode implements Manager {
 	}
 	
 	private void addHandlers
-		(List<HandlerReference> hdlrs, Event event, Channel channel) {
+		(List<HandlerReference> hdlrs, Event event, Channel[] channels) {
 		for (HandlerReference hdlr: handlers) {
-			Object eventKey = hdlr.getEventKey();
-			if (Class.class.isInstance(eventKey)) {
-				if (!((Class<?>)eventKey).isAssignableFrom(event.getClass())) {
-					continue;
-				}
-			} else {
-				if (!eventKey.equals(event.getMatchKey())) {
-					continue;
+			if (!event.matches(hdlr.getEventKey())) {
+				continue;
+			}
+			// Channel.class as handler's channel matches everything
+			boolean match = false;
+			for (Channel channel : channels) {
+				if (channel.matches(hdlr.getChannelKey())) {
+					match = true;
+					break;
 				}
 			}
-			Object channelKey = hdlr.getChannelKey();
-			if (channel != null) {
-				if (Class.class.isInstance(channelKey)) {
-					if (!((Class<?>) channelKey).isAssignableFrom(channel
-							.getClass())) {
-						continue;
-					}
-				} else {
-					if (!channelKey.equals(channel.getMatchKey())) {
-						continue;
-					}
-				}
+			if (!match) {
+				continue;
 			}
 			hdlrs.add(hdlr);
 		}
 		for (ComponentNode child: children) {
-			child.addHandlers(hdlrs, event, channel);
+			child.addHandlers(hdlrs, event, channels);
 		}
 	}
 	
-	void dispatch(Event event) {
+	void dispatch(Event event, Channel[] channels) {
 		List<HandlerReference> hdlrs = new ArrayList<HandlerReference>();
-		addHandlers(hdlrs, event, null);
+		addHandlers(hdlrs, event, channels);
 		for (HandlerReference hdlr: hdlrs) {
 			hdlr.invoke(event);
 		}

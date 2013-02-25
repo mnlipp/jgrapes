@@ -20,7 +20,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({StartTest.class})
+@SuiteClasses({MatchTest.class})
 public class AllTests {
 
 }

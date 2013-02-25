@@ -19,7 +19,7 @@ package org.jdrupes;
  * @author mnl
  *
  */
-public class NamedEvent extends Event {
+final public class NamedEvent extends Event {
 
 	private String name;
 	
@@ -39,4 +39,11 @@ public class NamedEvent extends Event {
 		return name;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jdrupes.internal.Matchable#matches(java.lang.Object)
+	 */
+	@Override
+	public boolean matches(Object handlerKey) {
+		return handlerKey.equals(Event.class) || handlerKey.equals(name);
+	}
 }

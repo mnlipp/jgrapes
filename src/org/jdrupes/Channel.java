@@ -15,12 +15,12 @@
  */
 package org.jdrupes;
 
-import org.jdrupes.internal.MatchKeyProvider;
+import org.jdrupes.internal.Matchable;
 
 /**
  * @author mnl
  */
-public class Channel implements MatchKeyProvider {
+public class Channel implements Matchable {
 
 	public static final Channel BROADCAST_CHANNEL = new Channel() {
 
@@ -41,4 +41,12 @@ public class Channel implements MatchKeyProvider {
 		return getClass();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jdrupes.internal.Matchable#matches(java.lang.Object)
+	 */
+	@Override
+	public boolean matches(Object handlerKey) {
+		return Class.class.isInstance(handlerKey)
+				&& ((Class<?>)handlerKey).isAssignableFrom(getClass());
+	}
 }

@@ -28,6 +28,7 @@ public interface EventManager {
 	 * Fire the given event on the given channel.
 	 * 
 	 * @param event the event to fire
+	 * @param channels the channels to fire the event on
 	 */
-	void fire(Event event, Channel channel);
+	void fire(Event event, Channel... channels);
 }

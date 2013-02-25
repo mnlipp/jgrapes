@@ -27,26 +27,32 @@ import org.jdrupes.Event;
  */
 public class EventManagerImpl implements EventManager {
 
+	private static class QueueEntry {
+		public Event event;
+		public Channel[] channels;
+		public QueueEntry(Event event, Channel... channels) {
+			this.event = event;
+			this.channels = channels;
+		}
+	}
+	
 	private boolean processing = false;
 	private ComponentNode componentTree;
-	private Queue<Event> queue = new LinkedList<Event>();
+	private Queue<QueueEntry> queue = new LinkedList<QueueEntry>();
 	
 	public EventManagerImpl (ComponentNode componentTree) {
 		this.componentTree = componentTree;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.EventManager#fire(org.jdrupes.Event, org.jdrupes.Channel)
-	 */
 	@Override
-	public void fire(Event event, Channel channel) {
+	public void fire(Event event, Channel... channels) {
 		boolean firstEvent = false;
 		firstEvent = (queue.size() == 0 && !processing);
-		queue.add(event);
+		queue.add(new QueueEntry(event, channels));
 		if (firstEvent) {
 			while (queue.size() > 0) {
-				Event nextEvent = queue.remove();
-				componentTree.dispatch(nextEvent);
+				QueueEntry next = queue.remove();
+				componentTree.dispatch(next.event, next.channels);
 			}
 		}
 	}
