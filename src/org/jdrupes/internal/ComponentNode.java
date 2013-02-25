@@ -19,9 +19,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.Stack;
 
 import org.jdrupes.ChannelMatchable;
@@ -298,7 +300,7 @@ public abstract class ComponentNode implements Manager {
 		fire(event, getComponent().getChannel());
 	}
 	
-	private void addHandlers (List<HandlerReference> hdlrs, 
+	private void addHandlers (Set<HandlerReference> hdlrs, 
 			Event event, ChannelMatchable[] channels) {
 		for (HandlerReference hdlr: handlers) {
 			if (!event.matches(hdlr.getEventKey())) {
@@ -323,7 +325,7 @@ public abstract class ComponentNode implements Manager {
 	}
 	
 	void dispatch(Event event, ChannelMatchable[] channels) {
-		List<HandlerReference> hdlrs = new ArrayList<HandlerReference>();
+		Set<HandlerReference> hdlrs = new HashSet<HandlerReference>();
 		addHandlers(hdlrs, event, channels);
 		for (HandlerReference hdlr: hdlrs) {
 			hdlr.invoke(event);

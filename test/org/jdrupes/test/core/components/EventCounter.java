@@ -15,8 +15,6 @@
  */
 package org.jdrupes.test.core.components;
 
-import java.lang.reflect.Method;
-
 import org.jdrupes.AbstractComponent;
 import org.jdrupes.Channel;
 import org.jdrupes.Event;
