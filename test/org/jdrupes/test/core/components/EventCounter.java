@@ -44,7 +44,7 @@ public class EventCounter extends AbstractComponent {
 		addHandler(Started.class, this, "onStartedComponent");
 	}
 
-	public void onStartedComponent(Event event) {
+	public void onStartedComponent(Started event) {
 		startedComponent += 1;
 	}
 	

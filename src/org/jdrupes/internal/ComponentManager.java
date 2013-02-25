@@ -76,7 +76,10 @@ public interface ComponentManager extends Iterable<Component> {
 	Component getRoot();
 	
 	/**
-	 * Add a handler for a specific event and channel.
+	 * Add a handler for a specific event and channel. The method
+	 * with the given name must have a single argument of type
+	 * {@link Event} (or a derived type as appropriate for the
+	 * events to be handled).
 	 * 
 	 * @param eventKey the event key that should be used for matching
 	 * this handler with an event

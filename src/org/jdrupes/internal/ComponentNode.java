@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Stack;
 
-import org.jdrupes.Channel;
 import org.jdrupes.ChannelMatchable;
 import org.jdrupes.Component;
 import org.jdrupes.Event;
@@ -262,13 +261,20 @@ public abstract class ComponentNode implements Manager {
 	 */
 	@Override
 	public void addHandler(Object eventKey, Object channelKey, String method) {
-		Method m;
 		try {
-			m = getComponent().getClass().getMethod(method, Event.class);
-			handlers.add(new HandlerReference(eventKey, channelKey, 
-					getComponent(), m));
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw (RuntimeException)(new IllegalAccessError().initCause(e));
+			for (Method m: getComponent().getClass().getMethods()) {
+				if (m.getName().equals(method)
+					&& m.getParameterTypes().length == 1
+					&& Event.class.isAssignableFrom(m.getParameterTypes()[0])) {
+					handlers.add(new HandlerReference(eventKey, channelKey, 
+							getComponent(), m));
+					return;
+				}
+			}
+			throw new IllegalArgumentException("No matching method");
+		} catch (SecurityException e) {
+			throw (RuntimeException)
+				(new IllegalArgumentException().initCause(e));
 		}
 	}
 
