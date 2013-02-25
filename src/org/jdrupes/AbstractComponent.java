@@ -23,7 +23,7 @@ import org.jdrupes.internal.ComponentNode;
  * the interface {@link Component}.
  */
 public class AbstractComponent extends ComponentNode 
-	implements Component {
+	implements Component, ChannelMatchable {
 
 	/**
 	 * 
@@ -47,6 +47,22 @@ public class AbstractComponent extends ComponentNode
 	@Override
 	public Channel getChannel() {
 		return Channel.BROADCAST_CHANNEL;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.internal.Matchable#getMatchKey()
+	 */
+	@Override
+	public Object getMatchKey() {
+		return this;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.internal.Matchable#matches(java.lang.Object)
+	 */
+	@Override
+	public boolean matches(Object handlerKey) {
+		return handlerKey.equals(Channel.class) || handlerKey == this;
 	}
 
 }

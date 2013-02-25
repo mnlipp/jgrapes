@@ -15,36 +15,14 @@
  */
 package org.jdrupes;
 
+import org.jdrupes.internal.Matchable;
+
 /**
+ * A ChannelMatchable is anything that can be used to match
+ * a handler's channel.
+ * 
  * @author mnl
  */
-public class Channel implements ChannelMatchable {
+public interface ChannelMatchable extends Matchable {
 
-	public static final Channel BROADCAST_CHANNEL = new Channel() {
-
-		/* (non-Javadoc)
-		 * @see org.jdrupes.Channel#getMatchKey()
-		 */
-		@Override
-		public Object getMatchKey() {
-			return Channel.class;
-		}
-	};
-	
-	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
-	 */
-	@Override
-	public Object getMatchKey() {
-		return getClass();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.Matchable#matches(java.lang.Object)
-	 */
-	@Override
-	public boolean matches(Object handlerKey) {
-		return Class.class.isInstance(handlerKey)
-				&& ((Class<?>)handlerKey).isAssignableFrom(getClass());
-	}
 }

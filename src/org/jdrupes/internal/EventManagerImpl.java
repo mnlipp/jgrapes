@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import org.jdrupes.Channel;
+import org.jdrupes.ChannelMatchable;
 import org.jdrupes.Event;
 
 /**
@@ -29,8 +30,8 @@ public class EventManagerImpl implements EventManager {
 
 	private static class QueueEntry {
 		public Event event;
-		public Channel[] channels;
-		public QueueEntry(Event event, Channel... channels) {
+		public ChannelMatchable[] channels;
+		public QueueEntry(Event event, ChannelMatchable... channels) {
 			this.event = event;
 			this.channels = channels;
 		}
@@ -45,7 +46,7 @@ public class EventManagerImpl implements EventManager {
 	}
 
 	@Override
-	public void fire(Event event, Channel... channels) {
+	public void fire(Event event, ChannelMatchable... channels) {
 		boolean firstEvent = false;
 		firstEvent = (queue.size() == 0 && !processing);
 		queue.add(new QueueEntry(event, channels));

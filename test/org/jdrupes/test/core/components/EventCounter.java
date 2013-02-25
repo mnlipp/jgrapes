@@ -15,6 +15,8 @@
  */
 package org.jdrupes.test.core.components;
 
+import java.lang.reflect.Method;
+
 import org.jdrupes.AbstractComponent;
 import org.jdrupes.Channel;
 import org.jdrupes.Event;
@@ -32,6 +34,19 @@ public class EventCounter extends AbstractComponent {
 	public int startedTest1 = 0;
 	public int named1Global = 0;
 	public int named1Test1 = 0;
+	public int startedComponent = 0;
+
+	/**
+	 * 
+	 */
+	public EventCounter() {
+		super();
+		addHandler(Started.class, this, "onStartedComponent");
+	}
+
+	public void onStartedComponent(Event event) {
+		startedComponent += 1;
+	}
 	
 	@Handler(events=Event.class, channels=Channel.class)
 	public void onAll(Event event) {

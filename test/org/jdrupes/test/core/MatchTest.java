@@ -38,18 +38,21 @@ public class MatchTest {
 		assertEquals(0, app.startedTest1);
 		assertEquals(0, app.named1Global);
 		assertEquals(0, app.named1Test1);
+		assertEquals(0, app.startedComponent);
 		assertEquals(1, app.all);
 		Utils.manager(app).fire(new Started(), new NamedChannel("test1"));
 		assertEquals(2, app.startedGlobal);
 		assertEquals(1, app.startedTest1);
 		assertEquals(0, app.named1Global);
 		assertEquals(0, app.named1Test1);
+		assertEquals(0, app.startedComponent);
 		assertEquals(2, app.all);
 		Utils.manager(app).fire(new NamedEvent("named1"));
 		assertEquals(2, app.startedGlobal);
 		assertEquals(1, app.startedTest1);
 		assertEquals(1, app.named1Global);
 		assertEquals(0, app.named1Test1);
+		assertEquals(0, app.startedComponent);
 		assertEquals(3, app.all);
 		Utils.manager(app).fire(new NamedEvent("named1"), 
 				new NamedChannel("test1"));
@@ -57,7 +60,15 @@ public class MatchTest {
 		assertEquals(1, app.startedTest1);
 		assertEquals(2, app.named1Global);
 		assertEquals(1, app.named1Test1);
+		assertEquals(0, app.startedComponent);
 		assertEquals(4, app.all);
+		Utils.manager(app).fire(new Started(), app);
+		assertEquals(3, app.startedGlobal);
+		assertEquals(1, app.startedTest1);
+		assertEquals(2, app.named1Global);
+		assertEquals(1, app.named1Test1);
+		assertEquals(1, app.startedComponent);
+		assertEquals(5, app.all);
 	}
 
 }
