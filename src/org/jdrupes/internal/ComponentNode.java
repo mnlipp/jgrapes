@@ -19,7 +19,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -130,6 +129,7 @@ public abstract class ComponentNode implements Manager {
 	public Component detach() {
 		if (parent != null) {
 			parent.children.remove(this);
+			parent.common.handlerCache.clear();
 			parent = null;
 			setCommon(new ComponentCommon(this));
 		}
@@ -179,6 +179,7 @@ public abstract class ComponentNode implements Manager {
 		childNode.parent = this;
 		childNode.setCommon(common);
 		children.add(childNode);
+		common.handlerCache.clear();
 		return this;
 	}
 	
@@ -259,10 +260,13 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.ComponentManager#addHandler(java.lang.Object, java.lang.Object, org.jdrupes.Component, java.lang.reflect.Method)
+	 * @see org.jdrupes.internal.ComponentManager#addHandler
 	 */
 	@Override
 	public void addHandler(Object eventKey, Object channelKey, String method) {
+		if (channelKey instanceof Matchable) {
+			channelKey = ((Matchable)channelKey).getMatchKey();
+		}
 		try {
 			for (Method m: getComponent().getClass().getMethods()) {
 				if (m.getName().equals(method)
@@ -300,7 +304,14 @@ public abstract class ComponentNode implements Manager {
 		fire(event, getComponent().getChannel());
 	}
 	
-	private void addHandlers (Set<HandlerReference> hdlrs, 
+	void dispatch(Event event, ChannelMatchable[] channels) {
+		Set<HandlerReference> hdlrs = common.getHandlers(event, channels);
+		for (HandlerReference hdlr: hdlrs) {
+			hdlr.invoke(event);
+		}
+	}
+	
+	void addHandlers (Set<HandlerReference> hdlrs, 
 			Event event, ChannelMatchable[] channels) {
 		for (HandlerReference hdlr: handlers) {
 			if (!event.matches(hdlr.getEventKey())) {
@@ -324,55 +335,4 @@ public abstract class ComponentNode implements Manager {
 		}
 	}
 	
-	void dispatch(Event event, ChannelMatchable[] channels) {
-		Set<HandlerReference> hdlrs = new HashSet<HandlerReference>();
-		addHandlers(hdlrs, event, channels);
-		for (HandlerReference hdlr: hdlrs) {
-			hdlr.invoke(event);
-		}
-	}
-	
-	private static class HandlerKey {
-		public Class<Event> eventType;		
-		public String channel;
-		
-		/* (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result
-					+ ((channel == null) ? 0 : channel.hashCode());
-			result = prime * result
-					+ ((eventType == null) ? 0 : eventType.hashCode());
-			return result;
-		}
-		/* (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			HandlerKey other = (HandlerKey) obj;
-			if (channel == null) {
-				if (other.channel != null)
-					return false;
-			} else if (!channel.equals(other.channel))
-				return false;
-			if (eventType == null) {
-				if (other.eventType != null)
-					return false;
-			} else if (!eventType.equals(other.eventType))
-				return false;
-			return true;
-		}
-		
-	}
 }

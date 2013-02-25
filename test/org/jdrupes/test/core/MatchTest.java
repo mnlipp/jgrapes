@@ -69,6 +69,13 @@ public class MatchTest {
 		assertEquals(1, app.named1Test1);
 		assertEquals(1, app.startedComponent);
 		assertEquals(5, app.all);
+		Utils.manager(app).fire(new Started(), app);
+		assertEquals(4, app.startedGlobal);
+		assertEquals(1, app.startedTest1);
+		assertEquals(2, app.named1Global);
+		assertEquals(1, app.named1Test1);
+		assertEquals(2, app.startedComponent);
+		assertEquals(6, app.all);
 	}
 
 }

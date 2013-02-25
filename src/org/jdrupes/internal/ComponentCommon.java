@@ -15,6 +15,15 @@
  */
 package org.jdrupes.internal;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.jdrupes.ChannelMatchable;
+import org.jdrupes.Event;
+
 /**
  * This class hold all properties that are common to all nodes
  * of a component tree.
@@ -24,6 +33,8 @@ package org.jdrupes.internal;
 class ComponentCommon {
 
 	public ComponentNode root;
+	public Map<EventChannelTuple,Set<HandlerReference>> handlerCache
+		= new HashMap<EventChannelTuple,Set<HandlerReference>>();
 
 	/**
 	 * @param root
@@ -32,5 +43,66 @@ class ComponentCommon {
 		super();
 		this.root = root;
 	}
-	
+
+	public Set<HandlerReference> getHandlers
+		(Event event, ChannelMatchable[] channels) {
+		EventChannelTuple key = new EventChannelTuple(event, channels);
+		Set<HandlerReference> hdlrs = handlerCache.get(key);
+		if (hdlrs != null) {
+			return hdlrs;
+		}
+		hdlrs = new HashSet<>();
+		root.addHandlers(hdlrs, event, channels);
+		handlerCache.put(key, hdlrs);
+		return hdlrs;
+	}
+
+	private static class EventChannelTuple {
+		public Event event;		
+		public ChannelMatchable[] channels;
+		
+		/**
+		 * @param event
+		 * @param channels
+		 */
+		public EventChannelTuple(Event event, ChannelMatchable[] channels) {
+			super();
+			this.event = event;
+			this.channels = channels;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + Arrays.hashCode(channels);
+			result = prime * result + ((event == null) ? 0 : event.hashCode());
+			return result;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			EventChannelTuple other = (EventChannelTuple) obj;
+			if (!Arrays.equals(channels, other.channels))
+				return false;
+			if (event == null) {
+				if (other.event != null)
+					return false;
+			} else if (!event.equals(other.event))
+				return false;
+			return true;
+		}
+	}
 }

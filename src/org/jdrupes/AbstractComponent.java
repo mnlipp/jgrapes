@@ -25,6 +25,10 @@ import org.jdrupes.internal.ComponentNode;
 public class AbstractComponent extends ComponentNode 
 	implements Component, ChannelMatchable {
 
+	// Don't use "this" to prevent overridden equals in derived classes
+	// from causing trouble
+	private Object matchKey = new Object();
+	
 	/**
 	 * 
 	 */
@@ -54,7 +58,7 @@ public class AbstractComponent extends ComponentNode
 	 */
 	@Override
 	public Object getMatchKey() {
-		return this;
+		return matchKey;
 	}
 
 	/* (non-Javadoc)
@@ -62,7 +66,7 @@ public class AbstractComponent extends ComponentNode
 	 */
 	@Override
 	public boolean matches(Object handlerKey) {
-		return handlerKey.equals(Channel.class) || handlerKey == this;
+		return handlerKey.equals(Channel.class) || handlerKey == matchKey;
 	}
 
 }

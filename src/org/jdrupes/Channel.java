@@ -47,4 +47,32 @@ public class Channel implements ChannelMatchable {
 		return Class.class.isInstance(handlerKey)
 				&& ((Class<?>)handlerKey).isAssignableFrom(getClass());
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return getMatchKey().hashCode();
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Channel other = (Channel) obj;
+		if (getMatchKey() == null) {
+			if (other.getMatchKey() != null)
+				return false;
+		} else if (!getMatchKey().equals(other.getMatchKey()))
+			return false;
+		return true;
+	}
 }
