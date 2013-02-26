@@ -15,7 +15,7 @@
  */
 package org.jdrupes.internal;
 
-import org.jdrupes.ChannelMatchable;
+import org.jdrupes.Channel;
 import org.jdrupes.Event;
 
 /**
@@ -30,5 +30,5 @@ public interface EventManager {
 	 * @param event the event to fire
 	 * @param channels the channels to fire the event on
 	 */
-	void fire(Event event, ChannelMatchable... channels);
+	void fire(Event event, Channel... channels);
 }

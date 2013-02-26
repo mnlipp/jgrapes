@@ -15,36 +15,36 @@
  */
 package org.jdrupes;
 
-import org.jdrupes.internal.Matchable;
-
 /**
- * The base class for all events. Events form a hierarchy and by default
- * their class is used for matching, i.e. a handler is invoked if
- * its event class is equal to or a base class of the class of the
- * event to be handled. 
- * 
- * This default behavior may be changed by overriding the methods
- * from {@link Matchable}. See {@link NamedEvent} as an example.
+ * The root base class for channels that use their class as key
+ * for matching channels with handlers.
  * 
  * @author mnl
  */
-public class Event implements Matchable {
+public class ClassChannel implements Channel {
 
-	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
+	/**
+	 * Return the class of this channel as its key.
+	 * 
+	 * @return the class of this channel
+	 * 
+	 * @see org.jdrupes.internal.Matchable#getMatchKey()
 	 */
 	@Override
 	public Object getMatchKey() {
 		return getClass();
 	}
 
-	/* (non-Javadoc)
+	/**
+	 * Returns <code>true</code> if the <code>handlerKey</code>
+	 * is the same class or a base class of this channel's class.
+	 * 
 	 * @see org.jdrupes.internal.Matchable#matches(java.lang.Object)
 	 */
 	@Override
 	public boolean matches(Object handlerKey) {
-		return Class.class.isInstance(handlerKey)
-				&& ((Class<?>)handlerKey).isAssignableFrom(getClass());
+		return Class.class.isInstance(handlerKey) && ((Class<?>)handlerKey)
+				.isAssignableFrom((Class<?>)getMatchKey());
 	}
 
 	/* (non-Javadoc)
@@ -66,7 +66,7 @@ public class Event implements Matchable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Event other = (Event) obj;
+		ClassChannel other = (ClassChannel) obj;
 		if (getMatchKey() == null) {
 			if (other.getMatchKey() != null)
 				return false;

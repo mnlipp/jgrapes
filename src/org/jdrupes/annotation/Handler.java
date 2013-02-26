@@ -22,6 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.jdrupes.Channel;
+import org.jdrupes.ClassChannel;
 import org.jdrupes.Event;
 
 /**
@@ -36,11 +37,11 @@ public @interface Handler {
 	final public static class NO_EVENT extends Event {
 	}
 	
-	final public static class NO_CHANNEL extends Channel {
+	final public static class NO_CHANNEL extends ClassChannel {
 	}
 	
-	String[] namedEvents() default "";
 	Class<? extends Event>[] events() default NO_EVENT.class;
-	String[] namedChannels() default "";
+	String[] namedEvents() default "";
 	Class<? extends Channel>[] channels() default NO_CHANNEL.class;
+	String[] namedChannels() default "";
 }

@@ -16,8 +16,10 @@
 package org.jdrupes;
 
 /**
+ * Support for named events. Instances of this class represent events
+ * that use their name for matching events and handlers.
+ * 
  * @author mnl
- *
  */
 final public class NamedEvent extends Event {
 

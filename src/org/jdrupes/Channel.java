@@ -15,64 +15,37 @@
  */
 package org.jdrupes;
 
+import org.jdrupes.internal.Matchable;
+
 /**
+ * Represents a communication bus for sending events between components.
+ * 
+ * Implementations of this interface must make sure that their
+ * {@link Matchable#matches(Object)} returns
+ * <code>true</code> if called with <code>Channel.class</code>
+ * as parameter.
+ * 
  * @author mnl
+ * @see Channel#BROADCAST
  */
-public class Channel implements ChannelMatchable {
+public interface Channel extends Matchable {
 
-	public static final Channel BROADCAST_CHANNEL = new Channel() {
+	/**
+	 * A special channel that can be used to send events to
+	 * all components.
+	 */
+	public static final Channel BROADCAST = new ClassChannel() {
 
-		/* (non-Javadoc)
-		 * @see org.jdrupes.Channel#getMatchKey()
+		/**
+		 * @return <code>Channel.class</code>
+		 * 
+		 * @see org.jdrupes.ClassChannel#getMatchKey()
 		 */
 		@Override
 		public Object getMatchKey() {
 			return Channel.class;
 		}
+		
 	};
-	
-	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
-	 */
-	@Override
-	public Object getMatchKey() {
-		return getClass();
-	}
 
-	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.Matchable#matches(java.lang.Object)
-	 */
-	@Override
-	public boolean matches(Object handlerKey) {
-		return Class.class.isInstance(handlerKey)
-				&& ((Class<?>)handlerKey).isAssignableFrom(getClass());
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return getMatchKey().hashCode();
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Channel other = (Channel) obj;
-		if (getMatchKey() == null) {
-			if (other.getMatchKey() != null)
-				return false;
-		} else if (!getMatchKey().equals(other.getMatchKey()))
-			return false;
-		return true;
-	}
 }

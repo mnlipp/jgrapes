@@ -25,7 +25,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Stack;
 
-import org.jdrupes.ChannelMatchable;
+import org.jdrupes.Channel;
 import org.jdrupes.Component;
 import org.jdrupes.Event;
 import org.jdrupes.Manager;
@@ -92,7 +92,7 @@ public abstract class ComponentNode implements Manager {
 					(Arrays.asList(handlerAnnotation.namedChannels()));
 			}
 			if (channelKeys.size() == 0) {
-				channelKeys.add(getComponent().getChannel().getMatchKey());
+				channelKeys.add(getChannel().getMatchKey());
 			}
 			for (Object eventKey : eventKeys) {
 				for (Object channelKey : channelKeys) {
@@ -108,7 +108,7 @@ public abstract class ComponentNode implements Manager {
 	 * 
 	 * @return the component
 	 */
-	public abstract Component getComponent();
+	protected abstract Component getComponent();
 
 	/**
 	 * Return the component node for a given component.
@@ -264,7 +264,7 @@ public abstract class ComponentNode implements Manager {
 	 */
 	@Override
 	public void addHandler(Object eventKey, Object channelKey, String method) {
-		if (channelKey instanceof ChannelMatchable) {
+		if (channelKey instanceof Channel) {
 			channelKey = ((Matchable)channelKey).getMatchKey();
 		}
 		try {
@@ -288,7 +288,7 @@ public abstract class ComponentNode implements Manager {
 	 * @see org.jdrupes.internal.EventManager#fire(org.jdrupes.Event, org.jdrupes.Channel)
 	 */
 	@Override
-	public void fire(Event event, ChannelMatchable... channel) {
+	public void fire(Event event, Channel... channel) {
 		EventManager em = eventManager.get();
 		if (em == null) {
 			em = new EventManagerImpl(common.root);
@@ -298,13 +298,14 @@ public abstract class ComponentNode implements Manager {
 
 	/**
 	 * @param event
-	 * @see org.jdrupes.internal.EventManager#fire(org.jdrupes.Event)
+	 * @see org.jdrupes.Manager#fire(org.jdrupes.Event)
 	 */
+	@Override
 	public void fire(Event event) {
-		fire(event, getComponent().getChannel());
+		fire(event, getChannel());
 	}
 	
-	void dispatch(Event event, ChannelMatchable[] channels) {
+	void dispatch(Event event, Channel[] channels) {
 		Set<HandlerReference> hdlrs = common.getHandlers(event, channels);
 		for (HandlerReference hdlr: hdlrs) {
 			hdlr.invoke(event);
@@ -312,14 +313,14 @@ public abstract class ComponentNode implements Manager {
 	}
 	
 	void addHandlers (Set<HandlerReference> hdlrs, 
-			Event event, ChannelMatchable[] channels) {
+			Event event, Channel[] channels) {
 		for (HandlerReference hdlr: handlers) {
 			if (!event.matches(hdlr.getEventKey())) {
 				continue;
 			}
 			// Channel.class as handler's channel matches everything
 			boolean match = false;
-			for (ChannelMatchable channel : channels) {
+			for (Channel channel : channels) {
 				if (channel.matches(hdlr.getChannelKey())) {
 					match = true;
 					break;

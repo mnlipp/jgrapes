@@ -17,8 +17,11 @@ package org.jdrupes.internal;
 
 import java.lang.reflect.Field;
 
+import org.jdrupes.Channel;
 import org.jdrupes.Component;
-import org.jdrupes.Manager;
+import org.jdrupes.NamedChannel;
+import org.jdrupes.annotation.ComponentManager;
+import org.jdrupes.annotation.Handler;
 
 /**
  * The ComponentProxy is a special ComponentNode that references the
@@ -31,12 +34,14 @@ public class ComponentProxy extends ComponentNode {
 
 	/** The reference to the actual component. */
 	private Component component = null;
+	/** The referenced component's channel. */
+	private Channel componentChannel = Channel.BROADCAST;
 	
 	private static Field getManagerField(Class<?> clazz) {
 		try {
 			while (true) {
 				for (Field field: clazz.getDeclaredFields()) {
-					if (field.getAnnotation(Manager.Slot.class) != null) {
+					if (field.getAnnotation(ComponentManager.class) != null) {
 						return field;
 					}
 				}
@@ -54,10 +59,29 @@ public class ComponentProxy extends ComponentNode {
 				("Cannot access component's manager attribute");
 		}
 	}
+
+	private static Channel getComponentChannel(Field field) {
+		ComponentManager cma = field.getAnnotation(ComponentManager.class);
+		if (cma == null) {
+			return Channel.BROADCAST;
+		}
+		if (cma.channel() != Handler.NO_CHANNEL.class) {
+			if (cma.channel() != Channel.BROADCAST.getMatchKey()) {
+				try {
+					return cma.channel().newInstance();
+				} catch (InstantiationException | IllegalAccessException e) {
+				}
+			}
+			return Channel.BROADCAST;
+		}
+		if (!cma.namedChannel().equals("")) {
+			return new NamedChannel(cma.namedChannel());
+		}
+		return Channel.BROADCAST;
+	}
 	
 	public ComponentProxy(Component component) {
 		this.component = component;
-		initComponentsHandlers();
 		try {
 			Field field = getManagerField(component.getClass());
 			if (!field.isAccessible()) {
@@ -67,6 +91,8 @@ public class ComponentProxy extends ComponentNode {
 			} else {
 				field.set(component, this);
 			}
+			componentChannel = getComponentChannel(field);
+			initComponentsHandlers();
 		} catch (SecurityException e) {
 			throw new IllegalArgumentException
 				("Cannot access component's manager attribute");
@@ -107,5 +133,12 @@ public class ComponentProxy extends ComponentNode {
 	public Component getComponent() {
 		return component;
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.Manager#getChannel()
+	 */
+	@Override
+	public Channel getChannel() {
+		return componentChannel;
+	}
 }

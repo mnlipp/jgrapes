@@ -21,7 +21,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.jdrupes.ChannelMatchable;
+import org.jdrupes.Channel;
 import org.jdrupes.Event;
 
 /**
@@ -45,7 +45,7 @@ class ComponentCommon {
 	}
 
 	public Set<HandlerReference> getHandlers
-		(Event event, ChannelMatchable[] channels) {
+		(Event event, Channel[] channels) {
 		EventChannelTuple key = new EventChannelTuple(event, channels);
 		Set<HandlerReference> hdlrs = handlerCache.get(key);
 		if (hdlrs != null) {
@@ -59,13 +59,13 @@ class ComponentCommon {
 
 	private static class EventChannelTuple {
 		public Event event;		
-		public ChannelMatchable[] channels;
+		public Channel[] channels;
 		
 		/**
 		 * @param event
 		 * @param channels
 		 */
-		public EventChannelTuple(Event event, ChannelMatchable[] channels) {
+		public EventChannelTuple(Event event, Channel[] channels) {
 			super();
 			this.event = event;
 			this.channels = channels;

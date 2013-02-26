@@ -15,10 +15,9 @@
  */
 package org.jdrupes.test.basic;
 
-import org.jdrupes.Channel;
 import org.jdrupes.Component;
 import org.jdrupes.Manager;
-import org.jdrupes.NamedChannel;
+import org.jdrupes.annotation.ComponentManager;
 import org.jdrupes.annotation.Handler;
 import org.jdrupes.events.Started;
 
@@ -29,7 +28,7 @@ import org.jdrupes.events.Started;
 public class TestComponent1 implements Component {
 
 	private String name = "Unknown";
-	@Manager.Slot
+	@ComponentManager(namedChannel="Test")
 	private Manager manager = null;
 	
 	public TestComponent1() {
@@ -39,14 +38,6 @@ public class TestComponent1 implements Component {
 		this.name = name;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.jdrupes.Component#getChannel()
-	 */
-	@Override
-	public Channel getChannel() {
-		return new NamedChannel("Test");
-	}
-
 	public Manager getManager() {
 		return manager;
 	}

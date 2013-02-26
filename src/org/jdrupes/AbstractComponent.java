@@ -18,22 +18,44 @@ package org.jdrupes;
 import org.jdrupes.internal.ComponentNode;
 
 /**
- * This is the base class for a new component. Components can be
- * created by deriving from this class or by implementing 
- * the interface {@link Component}.
+ * A convenience base class for new components. In general, components can 
+ * be created by deriving from this class or by implementing 
+ * the interface {@link Component}. By deriving from this class,
+ * a component implementation gets direct access to the methods of the
+ * {@link Manager} interface and doesn't have to access the
+ * manager using a manager attribute.
+ * 
+ * @see Component
  */
 public class AbstractComponent extends ComponentNode 
-	implements Component, ChannelMatchable {
+	implements Component, Channel {
 
 	// Don't use "this" to prevent overridden "equals" in derived classes
 	// from causing trouble
 	private Object matchKey = new Object();
 	
+	private Channel componentChannel = BROADCAST;
+	
 	/**
-	 * Create the new component base.
+	 * Create the new component base with its channel set to
+	 * the broadcast channel.
 	 */
 	public AbstractComponent() {
 		super();
+		initComponentsHandlers();
+	}
+
+	/**
+	 * Create the new component base with its channel set to
+	 * the given channel.
+	 * 
+	 * @param componentChannel the channel that the component's 
+	 * handlers listen on by default and that 
+	 * {@link Manager#fire(Event)} sends the event to 
+	 */
+	public AbstractComponent(Channel componentChannel) {
+		super();
+		this.componentChannel = componentChannel;
 		initComponentsHandlers();
 	}
 
@@ -41,21 +63,21 @@ public class AbstractComponent extends ComponentNode
 	 * @see org.jdrupes.internal.ComponentNode#getComponent()
 	 */
 	@Override
-	public Component getComponent() {
+	protected Component getComponent() {
 		return this;
 	}
 
 	/**
-	 * Returns the <code>BROADCAST_CHANNEL</code> from 
-	 * {@link Channel} as channel associated with the component.
+	 * Returns the channel associated with the component.
 	 * 
-	 * @return <code>BROADCAST_CHANNEL</code>
+	 * @return the channel passed to the constructor
+	 * or <code>BROADCAST_CHANNEL</code>
 	 * 
-	 * @see org.jdrupes.Component#getChannel()
+	 * @see org.jdrupes.Manager#getChannel()
 	 */
 	@Override
 	public Channel getChannel() {
-		return Channel.BROADCAST_CHANNEL;
+		return componentChannel;
 	}
 
 	/* (non-Javadoc)

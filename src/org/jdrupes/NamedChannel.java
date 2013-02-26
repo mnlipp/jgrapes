@@ -16,22 +16,30 @@
 package org.jdrupes;
 
 /**
+ * Support for named channels. Instances of this class represent channels
+ * that use their name as key for matching channels with handlers.
+ * 
  * @author mnl
- *
  */
-final public class NamedChannel extends Channel {
+final public class NamedChannel implements Channel {
 
 	private String name;
 
 	/**
-	 * @param name
+	 * Create a new named channel with the given name.
+	 * 
+	 * @param name the channel's name
 	 */
 	public NamedChannel(String name) {
 		super();
 		this.name = name;
 	}
 
-	/* (non-Javadoc)
+	/**
+	 * Return the name of the channel as its key.
+	 * 
+	 * @return the name
+	 * 
 	 * @see org.jdrupes.Channel#getMatchKey()
 	 */
 	@Override
@@ -39,11 +47,16 @@ final public class NamedChannel extends Channel {
 		return name;
 	}
 
-	/* (non-Javadoc)
+	/**
+	 * Returns <code>true</code> if the <code>handlerKey</code>
+	 * is the broadcast channel's key or matches the name
+	 * of this channel.
+	 * 
 	 * @see org.jdrupes.internal.Matchable#matches(java.lang.Object)
 	 */
 	@Override
 	public boolean matches(Object handlerKey) {
-		return handlerKey.equals(Channel.class) || handlerKey.equals(name);
+		return handlerKey.equals(BROADCAST.getMatchKey())
+				|| handlerKey.equals(name);
 	}
 }
