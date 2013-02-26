@@ -20,7 +20,9 @@ import org.jdrupes.internal.ComponentNode;
 /**
  * A convenience base class for new components. In general, components can 
  * be created by deriving from this class or by implementing 
- * the interface {@link Component}. By deriving from this class,
+ * the interface {@link Component}. 
+ * <P>
+ * By deriving from this class,
  * a component implementation gets direct access to the methods of the
  * {@link Manager} interface and doesn't have to access the
  * manager using a manager attribute.
