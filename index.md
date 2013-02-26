@@ -7,5 +7,5 @@ Welcome to jdrupes
 ==================
 
 JDrupes is an event driven component framework. See the
-framework's [Javadoc](javadoc/index.html) for a detailed
-description.
+framework's <a href="javadoc/index.html" target="_top">Javadoc</a>
+for a detailed description.
