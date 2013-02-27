@@ -52,19 +52,13 @@ public class ComponentProxy extends ComponentNode {
 				}
 			}
 		} catch (SecurityException e) {
-			throw new IllegalArgumentException
-				("Cannot access component's manager attribute");
-		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException
-				("Cannot access component's manager attribute");
+			throw (RuntimeException)(new IllegalArgumentException
+				("Cannot access component's manager attribute")).initCause(e);
 		}
 	}
 
 	private static Channel getComponentChannel(Field field) {
 		ComponentManager cma = field.getAnnotation(ComponentManager.class);
-		if (cma == null) {
-			return Channel.BROADCAST;
-		}
 		if (cma.channel() != Handler.NO_CHANNEL.class) {
 			if (cma.channel() != Channel.BROADCAST.getMatchKey()) {
 				try {
@@ -93,15 +87,9 @@ public class ComponentProxy extends ComponentNode {
 			}
 			componentChannel = getComponentChannel(field);
 			initComponentsHandlers();
-		} catch (SecurityException e) {
-			throw new IllegalArgumentException
-				("Cannot access component's manager attribute");
-		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException
-				("Cannot access component's manager attribute");
-		} catch (IllegalAccessException e) {
-			throw new IllegalArgumentException
-				("Cannot access component's manager attribute");
+		} catch (SecurityException | IllegalAccessException e) {
+			throw (RuntimeException)(new IllegalArgumentException
+				("Cannot access component's manager attribute")).initCause(e);
 		}
 	}
 
@@ -123,9 +111,9 @@ public class ComponentProxy extends ComponentNode {
 			} else {
 				componentProxy = (ComponentProxy)field.get(component);
 			}
-		} catch (SecurityException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (IllegalAccessException e) {
+		} catch (SecurityException | IllegalAccessException e) {
+			throw (RuntimeException)(new IllegalArgumentException
+				("Cannot access component's manager attribute")).initCause(e);
 		}
 		return componentProxy;
 	}

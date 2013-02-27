@@ -21,6 +21,9 @@ import org.jdrupes.NamedChannel;
 import org.jdrupes.NamedEvent;
 import org.jdrupes.Utils;
 import org.jdrupes.events.Started;
+import org.jdrupes.test.core.components.ComponentWOChannel;
+import org.jdrupes.test.core.components.ComponentWithBroadcastChannel;
+import org.jdrupes.test.core.components.ComponentWithClassChannel;
 import org.jdrupes.test.core.components.EventCounter;
 import org.junit.Test;
 
@@ -31,7 +34,7 @@ import org.junit.Test;
 public class MatchTest {
 
 	@Test
-	public void test() {
+	public void testEventCounter() {
 		EventCounter app = new EventCounter();
 		Utils.manager(app).fire(new Started());
 		assertEquals(1, app.startedGlobal);
@@ -78,4 +81,24 @@ public class MatchTest {
 		assertEquals(6, app.all);
 	}
 
+	@Test
+	public void testWOChannel() {
+		ComponentWOChannel app = new ComponentWOChannel();
+		Utils.manager(app).fire(new Started());
+		assertEquals(1, app.count);
+	}
+	
+	@Test
+	public void testClassChannel() {
+		ComponentWithClassChannel app = new ComponentWithClassChannel();
+		Utils.manager(app).fire(new Started(), 
+				new ComponentWithClassChannel.MyChannel());
+	}
+	
+	@Test
+	public void testBroadcastChannel() {
+		ComponentWithBroadcastChannel app = new ComponentWithBroadcastChannel();
+		Utils.manager(app).fire(new Started(), 
+				new ComponentWithClassChannel.MyChannel());
+	}
 }

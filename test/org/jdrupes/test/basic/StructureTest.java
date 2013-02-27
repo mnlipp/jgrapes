@@ -76,6 +76,10 @@ public class StructureTest {
 		assertNull(c1.getManager().getParent());
 		assertEquals(c1, c1.getManager().getRoot());
 		assertEquals(1, c.getManager().getChildren().size());
+		c1.getManager().detach(); // detach again, nothing may change
+		assertNull(c1.getManager().getParent());
+		assertEquals(c1, c1.getManager().getRoot());
+		assertEquals(1, c.getManager().getChildren().size());
 		c.getManager().removeChild(c2);
 		assertNull(c2.getManager().getParent());
 		assertEquals(c2, c2.getManager().getRoot());
@@ -91,9 +95,6 @@ public class StructureTest {
 		assertEquals("node 4", iter.next().toString());
 		TestComponent1 sub1 = (TestComponent1)
 				c.getManager().getChildren().iterator().next();
-		sub1.getManager().detach();
-		assertNull(sub1.getManager().getParent());
-		assertEquals(2, sub1.getManager().getChildren().size());
 		c.getManager().addChild(sub1);
 		iter = c.getManager().getChildren().iterator();
 		assertEquals("node 4", iter.next().toString());
@@ -108,13 +109,11 @@ public class StructureTest {
 		((TestComponent1)iter.next()).getManager().addChild(subtree1(6));
 		iter = c.getManager().iterator();
 		assertTrue(iter.hasNext());
-		boolean gotIt = false;
 		try {
 			iter.remove();
+			fail();
 		} catch (UnsupportedOperationException e) {
-			gotIt = true;
 		}
-		assertTrue(gotIt);
 		assertEquals("node 0", iter.next().toString());
 		assertTrue(iter.hasNext());
 		assertEquals("node 1", iter.next().toString());
@@ -133,13 +132,11 @@ public class StructureTest {
 		assertTrue(iter.hasNext());
 		assertEquals("node 8", iter.next().toString());
 		assertFalse(iter.hasNext());
-		gotIt = false;
 		try {
 			iter.next();
+			fail();
 		} catch (NoSuchElementException e) {
-			gotIt = true;
 		}
-		assertTrue(gotIt);
 	}
 	
 	@Test
@@ -161,5 +158,10 @@ public class StructureTest {
 		TCD c = new TCD();
 		Manager mgr = Utils.manager(c);
 		assertNotNull(mgr);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testIllegalComponent() {
+		Utils.manager(new IllegalComponent());
 	}
 }

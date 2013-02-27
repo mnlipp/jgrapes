@@ -48,7 +48,8 @@ public abstract class ComponentNode implements Manager {
 	/** Reference to the parent node. */
 	private ComponentNode parent = null;
 	/** All the node's children */
-	private List<ComponentNode> children = new ArrayList<ComponentNode>();
+	private List<ComponentNode> children 
+		= Collections.synchronizedList(new ArrayList<ComponentNode>());
 	/** The handlers provided by this component. */
 	private List<HandlerReference> handlers = new ArrayList<HandlerReference>();
 	
@@ -101,6 +102,7 @@ public abstract class ComponentNode implements Manager {
 				}
 			}
 		}
+		handlers = Collections.synchronizedList(handlers);
 	}
 
 	/**
@@ -124,18 +126,24 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/**
-	 * Remove the component from the tree, making it a stand-alone tree.
+	 * Lock the tree that the given node belongs to. This cannot
+	 * be done by simply synchronizing on "common" because the
+	 * common may no longer be the nodes "common" when we actually
+	 * get the lock. 
 	 */
-	public Component detach() {
-		if (parent != null) {
-			parent.children.remove(this);
-			parent.common.handlerCache.clear();
-			parent = null;
-			setCommon(new ComponentCommon(this));
+	private void lockAndRun (ComponentNode node, Runnable runnable) {
+		while (true) {
+			ComponentCommon common = node.common;
+			synchronized (common) {
+				if (node.common != common) {
+					continue;
+				}
+				runnable.run();
+				break;
+			}
 		}
-		return getComponent();
 	}
-
+	
 	/**
 	 * Set the reference to the common properties of this component 
 	 * and all its children to the given value.
@@ -147,6 +155,28 @@ public abstract class ComponentNode implements Manager {
 		for (ComponentNode child: children) {
 			child.setCommon(common);
 		}
+	}
+
+	/**
+	 * Remove the component from the tree, making it a stand-alone tree.
+	 */
+	public Component detach() {
+		if (parent != null) {
+			lockAndRun(this, new Runnable() {
+				@Override
+				public void run() {
+					parent.children.remove(ComponentNode.this);
+					parent.common.handlerCache.clear();
+					parent = null;
+					ComponentCommon newCommon 
+						= new ComponentCommon(ComponentNode.this);
+					synchronized (newCommon) {
+						setCommon(newCommon);
+					}
+				}
+			});
+		}
+		return getComponent();
 	}
 
 	public List<Component> getChildren() {
@@ -173,12 +203,23 @@ public abstract class ComponentNode implements Manager {
 		if (childNode == null) {
 			childNode = new ComponentProxy(child);
 		}
-		if (childNode.parent != null) {
-			childNode.parent.children.remove(this);
-		}
-		childNode.parent = this;
-		childNode.setCommon(common);
-		children.add(childNode);
+		final ComponentNode cn = childNode;
+		lockAndRun(this, new Runnable() {
+			@Override
+			public void run() {
+				lockAndRun(cn, new Runnable() {
+					@Override
+					public void run() {
+						if (cn.parent != null) {
+							cn.parent.children.remove(cn);
+						}
+						cn.parent = ComponentNode.this;
+						cn.setCommon(common);
+						children.add(cn);
+					}
+				});
+			}
+		});
 		common.handlerCache.clear();
 		return this;
 	}
