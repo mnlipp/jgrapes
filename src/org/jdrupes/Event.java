@@ -15,6 +15,7 @@
  */
 package org.jdrupes;
 
+import org.jdrupes.internal.EventBase;
 import org.jdrupes.internal.Matchable;
 
 /**
@@ -28,7 +29,7 @@ import org.jdrupes.internal.Matchable;
  * 
  * @author mnl
  */
-public class Event implements Matchable {
+public class Event extends EventBase implements Matchable {
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()

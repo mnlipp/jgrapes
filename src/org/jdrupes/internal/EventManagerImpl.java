@@ -36,9 +36,9 @@ public class EventManagerImpl implements EventManager {
 		}
 	}
 	
-	private boolean processing = false;
 	private ComponentNode componentTree;
 	private Queue<QueueEntry> queue = new LinkedList<QueueEntry>();
+	private EventBase currentlyHandling = null;
 	
 	public EventManagerImpl (ComponentNode componentTree) {
 		this.componentTree = componentTree;
@@ -46,14 +46,21 @@ public class EventManagerImpl implements EventManager {
 
 	@Override
 	public void fire(Event event, Channel... channels) {
-		boolean firstEvent = false;
-		firstEvent = (queue.size() == 0 && !processing);
+		boolean firstEvent = (queue.size() == 0);
+		if (currentlyHandling == null) {
+			event.setCausedBy(event);
+		} else {
+			event.setCausedBy(currentlyHandling);
+		}
 		queue.add(new QueueEntry(event, channels));
 		if (firstEvent) {
 			while (queue.size() > 0) {
 				QueueEntry next = queue.remove();
+				currentlyHandling = next.event;
 				componentTree.dispatch(next.event, next.channels);
+				next.event.decrementOpen(this);
 			}
+			currentlyHandling = null;
 		}
 	}
 }
