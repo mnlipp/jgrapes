@@ -24,24 +24,53 @@ import java.lang.annotation.Target;
 import org.jdrupes.Channel;
 import org.jdrupes.ClassChannel;
 import org.jdrupes.Event;
+import org.jdrupes.NamedChannel;
+import org.jdrupes.NamedEvent;
 
 /**
+ * Marks a method as handler for events. The method is invoked for
+ * events that have a type (or name) matching the given events
+ * (or namedEvents) parameter and that are fired on the given
+ * channels (or namedChannels). 
+ * 
  * @author mnl
- *
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
 @Target(value=ElementType.METHOD)
 public @interface Handler {
 	
+	/** Default value for the <code>events</code> parameter of
+	 * the annotation. Indicates that the parameter is not used. */
 	final public static class NO_EVENT extends Event {
 	}
 	
+	/** Default value for the <code>channels</code> parameter of
+	 * the annotation. Indicates that the parameter is not used. */
 	final public static class NO_CHANNEL extends ClassChannel {
 	}
 	
+	/**
+	 * The <code>events</code> parameter specifies classes of events 
+	 * that the handler is to receive.
+	 */
 	Class<? extends Event>[] events() default NO_EVENT.class;
+	
+	/**
+	 * The <code>namedEvents</code> parameter specifies names of  
+	 * {@link NamedEvent}s that the handler is to receive.
+	 */
 	String[] namedEvents() default "";
+	
+	/**
+	 * The <code>channels</code> parameter specifies classes of channels 
+	 * that the handler listens on.
+	 */
 	Class<? extends Channel>[] channels() default NO_CHANNEL.class;
+
+	/**
+	 * The <code>namedChannels</code> parameter specifies names of  
+	 * {@link NamedChannel}s that the handler listens on.
+	 */
 	String[] namedChannels() default "";
 }
