@@ -19,7 +19,7 @@ import org.jdrupes.AbstractComponent;
 import org.jdrupes.Channel;
 import org.jdrupes.Event;
 import org.jdrupes.annotation.Handler;
-import org.jdrupes.events.Started;
+import org.jdrupes.events.Start;
 
 /**
  * @author mnl
@@ -39,10 +39,10 @@ public class EventCounter extends AbstractComponent {
 	 */
 	public EventCounter() {
 		super();
-		addHandler(Started.class, this, "onStartedComponent");
+		addHandler(Start.class, this, "onStartedComponent");
 	}
 
-	public void onStartedComponent(Started event) {
+	public void onStartedComponent(Start event) {
 		startedComponent += 1;
 	}
 	
@@ -51,13 +51,13 @@ public class EventCounter extends AbstractComponent {
 		all += 1;
 	}
 
-	@Handler(events=Started.class)
-	public void onStart(Started event) {
+	@Handler(events=Start.class)
+	public void onStart(Start event) {
 		startedGlobal += 1;
 	}
 
-	@Handler(events=Started.class, namedChannels="test1")
-	public void onStartTest1(Started event) {
+	@Handler(events=Start.class, namedChannels="test1")
+	public void onStartTest1(Start event) {
 		startedTest1 += 1;
 	}
 

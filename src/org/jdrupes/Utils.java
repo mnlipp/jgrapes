@@ -15,6 +15,8 @@
  */
 package org.jdrupes;
 
+import org.jdrupes.events.Start;
+import org.jdrupes.events.Started;
 import org.jdrupes.internal.ComponentNode;
 import org.jdrupes.internal.ComponentProxy;
 
@@ -49,6 +51,19 @@ public class Utils {
 			return manager;
 		}
 		return new ComponentProxy(component);
+	}
+
+	/**
+	 * Fires a {@link Start} event with an associated
+	 * {@link Started} completion event on the broadcast channel
+	 * of the given application. 
+	 * 
+	 * @param application the application to start
+	 */
+	public static void start(Component application) {
+		manager(application).fire
+			((new Start()).addCompletedEvent(Started.class),
+			 Channel.BROADCAST);
 	}
 	
 }

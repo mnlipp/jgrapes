@@ -13,33 +13,17 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.jdrupes.test.core.components;
+package org.jdrupes.events;
 
-import org.jdrupes.Channel;
-import org.jdrupes.ClassChannel;
-import org.jdrupes.Component;
 import org.jdrupes.Event;
-import org.jdrupes.Manager;
-import org.jdrupes.annotation.ComponentManager;
-import org.jdrupes.annotation.Handler;
-import org.jdrupes.events.Start;
 
 /**
+ * The event that signals the start of the application.
+ * This event must be fired in order to start the dispatching of
+ * events to components.
+ * 
  * @author mnl
- *
  */
-public class ComponentWithBroadcastChannel implements Component {
+public class Start extends Event {
 
-	public static class MyChannel extends ClassChannel {
-	}
-	
-	@ComponentManager(channel=Channel.class)
-	private Manager manager;
-	
-	public int count = 0;
-	
-	@Handler(events=Start.class)
-	public void onStarted(Event event) {
-		count += 1;
-	}
 }

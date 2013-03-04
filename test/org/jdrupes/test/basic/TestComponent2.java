@@ -17,7 +17,7 @@ package org.jdrupes.test.basic;
 
 import org.jdrupes.AbstractComponent;
 import org.jdrupes.annotation.Handler;
-import org.jdrupes.events.Started;
+import org.jdrupes.events.Start;
 
 /**
  * @author mnl
@@ -47,7 +47,7 @@ public class TestComponent2 extends AbstractComponent {
 		this.name = name;
 	}
 
-	@Handler(events=Started.class)
+	@Handler(events=Start.class)
 	public void handler1() {
 		return;
 	}

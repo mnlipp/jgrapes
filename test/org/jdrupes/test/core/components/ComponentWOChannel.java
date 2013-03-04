@@ -20,7 +20,7 @@ import org.jdrupes.Event;
 import org.jdrupes.Manager;
 import org.jdrupes.annotation.ComponentManager;
 import org.jdrupes.annotation.Handler;
-import org.jdrupes.events.Started;
+import org.jdrupes.events.Start;
 
 /**
  * @author mnl
@@ -33,7 +33,7 @@ public class ComponentWOChannel implements Component {
 	
 	public int count = 0;
 	
-	@Handler(events=Started.class)
+	@Handler(events=Start.class)
 	public void onStarted(Event event) {
 		count += 1;
 	}

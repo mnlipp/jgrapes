@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jdrupes.annotation.Handler;
-import org.jdrupes.events.Started;
+import org.jdrupes.events.Start;
 import org.junit.Test;
 
 public class AnnotationTest {
@@ -43,7 +43,7 @@ public class AnnotationTest {
 		assertTrue(found.containsKey("handler2"));
 		assertTrue(found.containsKey("handler3"));
 		assertTrue(((Handler)found.get("handler1"))
-				   .events()[0].equals(Started.class));
+				   .events()[0].equals(Start.class));
 		assertTrue(((Handler)found.get("handler2"))
 				   .namedChannels()[0].equals("test"));
 		assertTrue(((Handler)found.get("handler3"))

@@ -13,33 +13,33 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.jdrupes.test.core.components;
+package org.jdrupes.events;
 
-import org.jdrupes.Channel;
-import org.jdrupes.ClassChannel;
-import org.jdrupes.Component;
 import org.jdrupes.Event;
-import org.jdrupes.Manager;
-import org.jdrupes.annotation.ComponentManager;
-import org.jdrupes.annotation.Handler;
-import org.jdrupes.events.Start;
 
 /**
+ * A utility class for implementing completed events.
+ * Completed events should provide the event that has been completed
+ * as attribute. This class handles this attribute and can be used as
+ * a convenient base class.
+ * 
  * @author mnl
- *
  */
-public class ComponentWithBroadcastChannel implements Component {
+public abstract class AbstractCompletedEvent extends Event {
+	private Event completedEvent;
 
-	public static class MyChannel extends ClassChannel {
+	/**
+	 * @param completedEvent
+	 */
+	protected AbstractCompletedEvent(Event completedEvent) {
+		super();
+		this.completedEvent = completedEvent;
 	}
-	
-	@ComponentManager(channel=Channel.class)
-	private Manager manager;
-	
-	public int count = 0;
-	
-	@Handler(events=Start.class)
-	public void onStarted(Event event) {
-		count += 1;
+
+	/**
+	 * @return the completedEvent
+	 */
+	public Event getCompletedEvent() {
+		return completedEvent;
 	}
 }

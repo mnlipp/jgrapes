@@ -15,7 +15,6 @@
  */
 package org.jdrupes.internal;
 
-import java.util.LinkedList;
 import java.util.Queue;
 
 import org.jdrupes.Channel;
@@ -27,40 +26,45 @@ import org.jdrupes.Event;
  */
 public class EventManagerImpl implements EventManager {
 
-	private static class QueueEntry {
-		public Event event;
-		public Channel[] channels;
-		public QueueEntry(Event event, Channel... channels) {
-			this.event = event;
-			this.channels = channels;
-		}
-	}
-	
-	private ComponentNode componentTree;
-	private Queue<QueueEntry> queue = new LinkedList<QueueEntry>();
+	private ComponentCommon componentCommon;
+	private Queue<EventChannelsTuple> queue = null;
 	private EventBase currentlyHandling = null;
 	
-	public EventManagerImpl (ComponentNode componentTree) {
-		this.componentTree = componentTree;
+	public EventManagerImpl (ComponentCommon common) {
+		this.componentCommon = common;
 	}
 
 	@Override
 	public void fire(Event event, Channel... channels) {
-		boolean firstEvent = (queue.size() == 0);
-		if (currentlyHandling == null) {
-			event.setCausedBy(event);
-		} else {
-			event.setCausedBy(currentlyHandling);
+		if (event.getChannels() == null) {
+			event.setChannels(channels);
 		}
-		queue.add(new QueueEntry(event, channels));
-		if (firstEvent) {
-			while (queue.size() > 0) {
-				QueueEntry next = queue.remove();
-				currentlyHandling = next.event;
-				componentTree.dispatch(next.event, next.channels);
-				next.event.decrementOpen(this);
+		if (currentlyHandling != null) {
+			((EventBase)event).setCausedBy(currentlyHandling);
+		}
+		if (queue != null) {
+			// the application is running
+			queue.add(new EventChannelsTuple(event, channels));
+			if (queue.size() > 1) {
+				// this is a "nested" event (fired while processing an event)
+				return;
 			}
-			currentlyHandling = null;
+		} else {
+			// the application hasn't been started yet. Maybe we start it.
+			queue = componentCommon.toBeProcessed
+					(new EventChannelsTuple(event, channels));
+			if (queue == null) {
+				return;
+			}
 		}
+		// it's up to us to process the events on the queue
+		while (queue.size() > 0) {
+			EventChannelsTuple next = queue.peek();
+			currentlyHandling = next.event;
+			componentCommon.dispatch(currentlyHandling, next.channels);
+			currentlyHandling.decrementOpen(this);
+			queue.remove();
+		}
+		currentlyHandling = null;
 	}
 }

@@ -15,14 +15,18 @@
  */
 package org.jdrupes.internal;
 
+import org.jdrupes.Channel;
 import org.jdrupes.Event;
 
 /**
  * @author mnl
  *
  */
-public class EventBase {
+public abstract class EventBase implements Matchable {
 
+	/** The channels that this event is to be fired on if no
+	 * channels are specified explicitly when firing. */
+	private Channel[] channels = null;
 	/** The event that caused this event. */
 	private EventBase causedBy = null;
 	/** Number of events that have to be dispatched until completion.
@@ -33,16 +37,30 @@ public class EventBase {
 	private Event completedEvent = null;
 	
 	/**
+	 * @return the channels
+	 */
+	public Channel[] getChannels() {
+		return channels;
+	}
+
+	/**
+	 * @param channels the channels to set
+	 */
+	public void setChannels(Channel[] channels) {
+		this.channels = channels;
+	}
+
+	/**
 	 * @return the causedBy
 	 */
-	public EventBase getCausedBy() {
+	EventBase getCausedBy() {
 		return causedBy;
 	}
 	
 	/**
 	 * @param causedBy the causedBy to set
 	 */
-	public void setCausedBy(EventBase causedBy) {
+	void setCausedBy(EventBase causedBy) {
 		this.causedBy = causedBy;
 		causedBy.openCount += 1;
 	}
@@ -53,7 +71,16 @@ public class EventBase {
 	public void decrementOpen(EventManagerImpl mgr) {
 		openCount -= 1;
 		if (openCount == 0) {
-			causedBy.decrementOpen(mgr);
+			if (completedEvent != null) {
+				Channel[] completeChannels = completedEvent.getChannels();
+				if (completeChannels == null) {
+					completeChannels = channels;
+				}
+				mgr.fire(completedEvent, completeChannels);
+			}
+			if (causedBy != null) {
+				causedBy.decrementOpen(mgr);
+			}
 		}
 	}
 
@@ -70,5 +97,4 @@ public class EventBase {
 	public void setCompletedEvent(Event completedEvent) {
 		this.completedEvent = completedEvent;
 	}
-	
 }

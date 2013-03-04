@@ -47,7 +47,10 @@ public class HandlerReference {
 			this.method = this.method.bindTo(component);
 		} catch (IllegalAccessException e) {
 			throw (RuntimeException)
-				(new IllegalArgumentException()).initCause(e);
+				(new IllegalArgumentException
+						("Method annotated as handler has wrong signature"
+						 + " or class is not accessible"))
+						.initCause(e);
 		}
 	}
 	/**
@@ -68,7 +71,7 @@ public class HandlerReference {
 	 * 
 	 * @param event the event
 	 */
-	public void invoke(Event event) {
+	public void invoke(EventBase event) {
 		try {
 			method.invoke(event);
 		} catch (Throwable e) {

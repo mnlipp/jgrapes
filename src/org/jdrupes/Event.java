@@ -15,6 +15,10 @@
  */
 package org.jdrupes;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
+import org.jdrupes.events.AbstractCompletedEvent;
 import org.jdrupes.internal.EventBase;
 import org.jdrupes.internal.Matchable;
 
@@ -29,7 +33,7 @@ import org.jdrupes.internal.Matchable;
  * 
  * @author mnl
  */
-public class Event extends EventBase implements Matchable {
+public class Event extends EventBase {
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
@@ -48,6 +52,28 @@ public class Event extends EventBase implements Matchable {
 				&& ((Class<?>)handlerKey).isAssignableFrom(getClass());
 	}
 
+	public Event addCompletedEvent
+		(Class<? extends AbstractCompletedEvent> clazz) {
+		try {
+			for (Constructor<?> c: clazz.getConstructors()) {
+				if (c.getParameterTypes().length != 1) {
+					continue;
+				}
+				if (!Event.class.isAssignableFrom(c.getParameterTypes()[0])) {
+					continue;
+				}
+				setCompletedEvent ((Event)c.newInstance(this));
+				return this;
+			}
+			throw new IllegalArgumentException
+				("Class " + clazz.getName() + " has no <init>(Event)");
+		} catch (InstantiationException | IllegalAccessException
+				| InvocationTargetException | SecurityException e) {
+			throw (RuntimeException)
+				(new IllegalArgumentException()).initCause(e);
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */

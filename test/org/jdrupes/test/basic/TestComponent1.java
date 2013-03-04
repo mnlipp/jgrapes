@@ -19,7 +19,7 @@ import org.jdrupes.Component;
 import org.jdrupes.Manager;
 import org.jdrupes.annotation.ComponentManager;
 import org.jdrupes.annotation.Handler;
-import org.jdrupes.events.Started;
+import org.jdrupes.events.Start;
 
 /**
  * @author mnl
@@ -42,17 +42,17 @@ public class TestComponent1 implements Component {
 		return manager;
 	}
 	
-	@Handler(events=Started.class)
+	@Handler(events=Start.class)
 	public void handler1() {
 		return;
 	}
 
-	@Handler(events=Started.class, namedChannels="test")
+	@Handler(events=Start.class, namedChannels="test")
 	public void handler2() {
 		return;
 	}
 	
-	@Handler(events=Started.class, namedChannels={"test", "other"})
+	@Handler(events=Start.class, namedChannels={"test", "other"})
 	public void handler3() {
 		return;
 	}

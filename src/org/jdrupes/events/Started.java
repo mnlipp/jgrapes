@@ -15,12 +15,20 @@
  */
 package org.jdrupes.events;
 
-import org.jdrupes.Event;
-
 /**
+ * 
+ * 
  * @author mnl
- *
  */
-public class Started extends Event {
+public class Started extends AbstractCompletedEvent {
+
+	/**
+	 * An event for signaling the completion of the application start.
+	 * 
+	 * @param completedEvent
+	 */
+	public Started(Start completedEvent) {
+		super(completedEvent);
+	}
 
 }

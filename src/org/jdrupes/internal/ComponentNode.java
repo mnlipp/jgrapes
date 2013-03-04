@@ -166,7 +166,7 @@ public abstract class ComponentNode implements Manager {
 				@Override
 				public void run() {
 					parent.children.remove(ComponentNode.this);
-					parent.common.handlerCache.clear();
+					parent.common.clearHandlerCache();
 					parent = null;
 					ComponentCommon newCommon 
 						= new ComponentCommon(ComponentNode.this);
@@ -179,6 +179,10 @@ public abstract class ComponentNode implements Manager {
 		return getComponent();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jdrupes.Manager#getChildren()
+	 */
+	@Override
 	public List<Component> getChildren() {
 		List<Component> children = new ArrayList<Component>();
 		for (ComponentNode child: this.children) {
@@ -187,17 +191,29 @@ public abstract class ComponentNode implements Manager {
 		return Collections.unmodifiableList(children);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jdrupes.Manager#getParent()
+	 */
+	@Override
 	public Component getParent() {
 		if (parent == null) {
 			return null;
 		}
 		return parent.getComponent();
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.Manager#getRoot()
+	 */
+	@Override
 	public Component getRoot() {
-		return common.root.getComponent();
+		return common.getRoot().getComponent();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jdrupes.Manager#addChild(Component)
+	 */
+	@Override
 	public Manager addChild (Component child) {
 		ComponentNode childNode = getComponentNode(child);
 		if (childNode == null) {
@@ -220,7 +236,7 @@ public abstract class ComponentNode implements Manager {
 				});
 			}
 		});
-		common.handlerCache.clear();
+		common.clearHandlerCache();
 		return this;
 	}
 	
@@ -241,7 +257,10 @@ public abstract class ComponentNode implements Manager {
 		return new TreeIterator(this);
 	}
 	
-	public class TreeIterator implements Iterator<Component> {
+	/**
+	 * An iterator for getting all nodes of the tree.
+	 */
+	private static class TreeIterator implements Iterator<Component> {
 
 		private class Pos {
 			public ComponentNode current;
@@ -326,13 +345,14 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.EventManager#fire(org.jdrupes.Event, org.jdrupes.Channel)
+	 * @see org.jdrupes.internal.EventManager#fire
+	 * (org.jdrupes.Event, org.jdrupes.Channel)
 	 */
 	@Override
 	public void fire(Event event, Channel... channel) {
 		EventManager em = eventManager.get();
 		if (em == null) {
-			em = new EventManagerImpl(common.root);
+			em = new EventManagerImpl(common);
 		}
 		em.fire(event, channel);
 	}
@@ -346,15 +366,17 @@ public abstract class ComponentNode implements Manager {
 		fire(event, getChannel());
 	}
 	
-	void dispatch(Event event, Channel[] channels) {
-		Set<HandlerReference> hdlrs = common.getHandlers(event, channels);
-		for (HandlerReference hdlr: hdlrs) {
-			hdlr.invoke(event);
-		}
-	}
-	
-	void addHandlers (Set<HandlerReference> hdlrs, 
-			Event event, Channel[] channels) {
+	/**
+	 * Collects all handler. Iterates over the tree with this object
+	 * as root and for all components adds the matching handlers to
+	 * the result set.
+	 * 
+	 * @param hdlrs the result set
+	 * @param event the event to match
+	 * @param channels the channels to match
+	 */
+	void collectHandlers (Set<HandlerReference> hdlrs, 
+			EventBase event, Channel[] channels) {
 		for (HandlerReference hdlr: handlers) {
 			if (!event.matches(hdlr.getEventKey())) {
 				continue;
@@ -373,7 +395,7 @@ public abstract class ComponentNode implements Manager {
 			hdlrs.add(hdlr);
 		}
 		for (ComponentNode child: children) {
-			child.addHandlers(hdlrs, event, channels);
+			child.collectHandlers(hdlrs, event, channels);
 		}
 	}
 	
