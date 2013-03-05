@@ -22,10 +22,13 @@ import org.jdrupes.internal.ComponentNode;
  * be created by deriving from this class or by implementing 
  * the interface {@link Component}. 
  * <P>
- * By deriving from this class,
- * a component implementation gets direct access to the methods of the
+ * When deriving from this class,
+ * a component implementation can directly use the methods of the
  * {@link Manager} interface and doesn't have to access the
  * manager using a manager attribute.
+ * <P>
+ * The class also implements the <code>Channel<code> interface.
+ * This allows instances to be used as targets for events. 
  * 
  * @see Component
  */
@@ -39,7 +42,7 @@ public class AbstractComponent extends ComponentNode
 	private Channel componentChannel = BROADCAST;
 	
 	/**
-	 * Create the new component base with its channel set to
+	 * Creates a new component base with its channel set to
 	 * the broadcast channel.
 	 */
 	public AbstractComponent() {
@@ -48,12 +51,12 @@ public class AbstractComponent extends ComponentNode
 	}
 
 	/**
-	 * Create the new component base with its channel set to
+	 * Creates a new component base with its channel set to
 	 * the given channel.
 	 * 
 	 * @param componentChannel the channel that the component's 
 	 * handlers listen on by default and that 
-	 * {@link Manager#fire(Event)} sends the event to 
+	 * {@link Manager#fire(Event, Channel...)} sends the event to 
 	 */
 	public AbstractComponent(Channel componentChannel) {
 		super();

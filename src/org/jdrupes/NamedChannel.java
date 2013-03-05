@@ -16,7 +16,8 @@
 package org.jdrupes;
 
 /**
- * Support for named channels. Instances of this class represent channels
+ * A class for channels identified by a name (<code>string</code>).
+ * Instances of this class represent channels
  * that use their name as key for matching channels with handlers.
  * 
  * @author mnl
@@ -26,7 +27,7 @@ final public class NamedChannel implements Channel {
 	private String name;
 
 	/**
-	 * Create a new named channel with the given name.
+	 * Creates a new named channel with the given name.
 	 * 
 	 * @param name the channel's name
 	 */
@@ -36,7 +37,7 @@ final public class NamedChannel implements Channel {
 	}
 
 	/**
-	 * Return the name of the channel as its key.
+	 * Returns the name of the channel as its key.
 	 * 
 	 * @return the name
 	 * 
@@ -58,5 +59,13 @@ final public class NamedChannel implements Channel {
 	public boolean matches(Object handlerKey) {
 		return handlerKey.equals(BROADCAST.getMatchKey())
 				|| handlerKey.equals(name);
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "NamedChannel [name=" + name + "]";
 	}
 }

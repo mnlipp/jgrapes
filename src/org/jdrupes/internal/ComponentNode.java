@@ -106,7 +106,7 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/**
-	 * Return the component represented by this node in the tree.
+	 * Returns the component represented by this node in the tree.
 	 * 
 	 * @return the component
 	 */
@@ -349,23 +349,21 @@ public abstract class ComponentNode implements Manager {
 	 * (org.jdrupes.Event, org.jdrupes.Channel)
 	 */
 	@Override
-	public void fire(Event event, Channel... channel) {
+	public void fire(Event event, Channel... channels) {
 		EventManager em = eventManager.get();
 		if (em == null) {
 			em = new EventManagerImpl(common);
 		}
-		em.fire(event, channel);
+		if (channels.length == 0) {
+			channels = event.getChannels();
+			if (channels == null || channels.length == 0) {
+				channels = new Channel[] { getChannel() };
+			}
+		}
+		event.setChannels(channels);
+		em.fire(event, channels);
 	}
 
-	/**
-	 * @param event
-	 * @see org.jdrupes.Manager#fire(org.jdrupes.Event)
-	 */
-	@Override
-	public void fire(Event event) {
-		fire(event, getChannel());
-	}
-	
 	/**
 	 * Collects all handler. Iterates over the tree with this object
 	 * as root and for all components adds the matching handlers to

@@ -16,7 +16,7 @@
 package org.jdrupes;
 
 /**
- * The root base class for channels that use their class as key
+ * The root base class for channels that use their class (type) as key
  * for matching channels with handlers.
  * 
  * @author mnl
@@ -73,5 +73,14 @@ public class ClassChannel implements Channel {
 		} else if (!getMatchKey().equals(other.getMatchKey()))
 			return false;
 		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() 
+				+ " [matchKey=" + getMatchKey() + "]";
 	}
 }

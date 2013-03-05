@@ -19,11 +19,14 @@ import org.jdrupes.internal.Matchable;
 
 /**
  * Represents a communication bus for sending events between components.
- * 
- * Implementations of this interface must make sure that their
- * {@link Matchable#matches(Object)} returns
+ * <P>
+ * For ordinary usage, the implementing classes {@link ClassChannel}
+ * and {@link NamedChannel} should be sufficient. If another type of
+ * <code>Channel</code> is needed, its implementation of this interface 
+ * must make sure that {@link Matchable#matches(Object)} returns
  * <code>true</code> if called with <code>Channel.class</code>
- * as parameter.
+ * as parameter, else channels of the new type will not participate
+ * in broadcasts.
  * 
  * @author mnl
  * @see Channel#BROADCAST

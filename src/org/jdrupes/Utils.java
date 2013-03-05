@@ -30,20 +30,18 @@ public class Utils {
 	}
 	
 	/**
-	 * Return a component's manager. Components that inherit
-	 * from {@link org.jdrupes.AbstractComponent} will simply return
-	 * the component as they are their own managers.
+	 * Returns a component's manager. For a component that inherits
+	 * from {@link org.jdrupes.AbstractComponent} this method simply returns
+	 * the component as it is its own manager.
 	 * 
-	 * Components that implement {@link Component} but don't inherit from 
-	 * {@link org.jdrupes.AbstractComponent} return the value of the
-	 * attribute marked as manager slot. A value is automatically assigned
-	 * to this attribute when a component is attached to the component tree.
-	 * When this method is invoked for such a component that hasn't been 
-	 * attached to a component tree yet, it makes the component the root
+	 * For components that implement {@link Component} but don't inherit from 
+	 * {@link org.jdrupes.AbstractComponent} the method returns the value of 
+	 * the attribute annotated as manager slot. If the attribute is still
+	 * empty, this method makes the component the root
 	 * of a new tree and returns its manager.
 	 * 
 	 * @param component the component
-	 * @return the component with its manager attribute set
+	 * @return the component (with its manager attribute set)
 	 */
 	public static Manager manager (Component component) {
 		Manager manager = ComponentNode.getComponentNode(component);

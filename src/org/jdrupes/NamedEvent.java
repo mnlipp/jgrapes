@@ -16,8 +16,9 @@
 package org.jdrupes;
 
 /**
- * Support for named events. Instances of this class represent events
- * that use their name for matching events and handlers.
+ * A class for events identified by name. Instances of this class 
+ * represent events that use their name for matching 
+ * events with handlers.
  * 
  * @author mnl
  */
@@ -26,7 +27,9 @@ final public class NamedEvent extends Event {
 	private String name;
 	
 	/**
-	 * @param name
+	 * Creates a new named event with the given name.
+	 * 
+	 * @param name the event's name
 	 */
 	public NamedEvent(String name) {
 		super();
@@ -47,5 +50,13 @@ final public class NamedEvent extends Event {
 	@Override
 	public boolean matches(Object handlerKey) {
 		return handlerKey.equals(Event.class) || handlerKey.equals(name);
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "NamedEvent [name=" + name + "]";
 	}
 }

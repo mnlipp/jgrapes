@@ -18,15 +18,16 @@ package org.jdrupes;
 import org.jdrupes.annotation.ComponentManager;
 
 /**
- * This interface marks a class as a component. Implementing this 
+ * Marks a class as a component. Implementing this 
  * interface is an alternative to deriving a component from 
  * {@link AbstractComponent} (usually because there is some other
- * preferential inheritance relationship). Components aren't required to
+ * preferential inheritance relationship). 
+ * <P>
+ * Components aren't required to
  * implement specific methods. They must, however, declare a field
  * for an associated manager. This field must be of type 
  * {@link Manager} and annotated as {@link ComponentManager}.
- * 
- * The implementation of the component can use the value in the field
+ * The implementation of the component can use the value in this field
  * to get access to the component hierarchy. The field is initialized
  * when the component is added to the component hierarchy or when
  * calling {@link Utils#manager(Component)}.

@@ -14,9 +14,9 @@ import org.jdrupes.annotation.Handler.NO_CHANNEL;
 
 /**
  * This annotation marks a component's attribute of type 
- * {@link Manager} as a slot for the
- * manager automatically associated with the component 
- * (see {@link Component}).
+ * {@link Manager} as a slot for its manager. A value is automatically 
+ * assigned to such an attribute when a component is attached to the 
+ * component tree or by {@link org.jdrupes.Utils#manager(Component)}.
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)

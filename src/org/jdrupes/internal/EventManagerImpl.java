@@ -36,12 +36,7 @@ public class EventManagerImpl implements EventManager {
 
 	@Override
 	public void fire(Event event, Channel... channels) {
-		if (event.getChannels() == null) {
-			event.setChannels(channels);
-		}
-		if (currentlyHandling != null) {
-			((EventBase)event).setCausedBy(currentlyHandling);
-		}
+		((EventBase)event).enqueued(currentlyHandling);
 		if (queue != null) {
 			// the application is running
 			queue.add(new EventChannelsTuple(event, channels));

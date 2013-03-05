@@ -26,43 +26,34 @@ public abstract class EventBase implements Matchable {
 
 	/** The channels that this event is to be fired on if no
 	 * channels are specified explicitly when firing. */
-	private Channel[] channels = null;
+	protected Channel[] channels = null;
 	/** The event that caused this event. */
-	private EventBase causedBy = null;
+	private EventBase generatedBy = null;
 	/** Number of events that have to be dispatched until completion.
 	 * This is one for the event itself and one more for each event
 	 * that has this event as its cause. */
-	private int openCount = 1;
+	private int openCount = 0;
 	/** The event to be fired upon completion. */
 	private Event completedEvent = null;
 	
 	/**
-	 * @return the channels
+	 * Returns <code>true</code> if the event is currently being handled.
+	 * 
+	 * @return the result
 	 */
-	public Channel[] getChannels() {
-		return channels;
-	}
-
-	/**
-	 * @param channels the channels to set
-	 */
-	public void setChannels(Channel[] channels) {
-		this.channels = channels;
-	}
-
-	/**
-	 * @return the causedBy
-	 */
-	EventBase getCausedBy() {
-		return causedBy;
+	protected boolean currentlyHandled() {
+		return openCount > 0;
 	}
 	
 	/**
-	 * @param causedBy the causedBy to set
+	 * @param generatedBy the causedBy to set
 	 */
-	void setCausedBy(EventBase causedBy) {
-		this.causedBy = causedBy;
-		causedBy.openCount += 1;
+	void enqueued(EventBase generatedBy) {
+		openCount += 1;
+		this.generatedBy = generatedBy;
+		if (generatedBy != null) {
+			generatedBy.openCount += 1;
+		}
 	}
 
 	/**
@@ -78,8 +69,8 @@ public abstract class EventBase implements Matchable {
 				}
 				mgr.fire(completedEvent, completeChannels);
 			}
-			if (causedBy != null) {
-				causedBy.decrementOpen(mgr);
+			if (generatedBy != null) {
+				generatedBy.decrementOpen(mgr);
 			}
 		}
 	}

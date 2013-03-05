@@ -18,43 +18,53 @@ package org.jdrupes;
 import java.util.List;
 
 /**
- * The manager interface provides methods for manipulating the
- * component hierarchy and for firing events. 
+ * Provides methods for manipulating the
+ * component hierarchy and for firing events. Every component has
+ * access to a manager implementation that manages the component.
+ * <P>
+ * The <code>Manager</code> for a component that extends from 
+ * {@link AbstractComponent} is provided by the base class itself.
+ * Components that only implement the {@link Component} interface
+ * get an associated <code>Manager</code> assigned to their annotated 
+ * attribute.
  */
 public interface Manager extends Iterable<Component> {
 
 	/**
-	 * Detached the component managed by this manager (and its children,
+	 * Detaches the component managed by this manager (and its children,
 	 * if any) from the component tree that it currently belongs to.
 	 * 
-	 * @return the component, for comfortable chaining
+	 * @return the component (for comfortable chaining)
 	 */
 	Component detach ();
 
 	/**
-	 * Adds the given component node as a child.
+	 * Adds the given component node as a child to the component
+	 * managed by this manager.
 	 * 
 	 * @param child the component to add
-	 * @return the component's manager, for comfortable chaining
+	 * @return the component's manager (for comfortable chaining)
 	 */
 	Manager addChild (Component child);
 	
 	/**
-	 * Remove the given component from the set of children.
+	 * Removes the given component from the set of children of
+	 * the component managed by this manager.
 	 * 
 	 *  @param child the component to be removed
 	 */
 	void removeChild(Component child);
 	
 	/**
-	 * Return the child components of this component as unmodifiable list.
+	 * Returns the child components of the component managed by 
+	 * this manager as unmodifiable list.
 	 * 
 	 * @return the child components
 	 */
 	List<Component> getChildren();
 
 	/**
-	 * Return the component's parent.
+	 * Returns the parent of the component managed by this manager.
 	 * 
 	 * @return the parent component or <code>null</code> if the
 	 * component is not registered with another component
@@ -62,31 +72,30 @@ public interface Manager extends Iterable<Component> {
 	Component getParent();
 	
 	/**
-	 * Return the root of the tree the component belongs to.
+	 * Returns the root of the tree the component 
+	 * managed by this manager belongs to.
 	 * 
 	 * @return the root
 	 */
 	Component getRoot();
 	
 	/**
-	 * Return the component's channel.
+	 * Returns the channel if the component managed by this manager.
 	 * 
 	 * @return the channel that the component's 
 	 * handlers listen on by default and that 
-	 * {@link Manager#fire(Event)} sends the event to 
+	 * {@link Manager#fire(Event, Channel...)} sends the event to 
 	 */
 	Channel getChannel();
 	
 	/**
-	 * Fire the given event on the component's channel.
-	 * This is a shortcut for <code>fire(event, getChannel())</code>.
-	 * 
-	 * @param event the event to fire
-	 */
-	void fire(Event event);
-	
-	/**
-	 * Fire the given event on the given channel.
+	 * Fires the given event on the given channel. If no channels are
+	 * specified as parameters, the event is fired on the event's 
+	 * channel (see {@link Event#getChannels()}). If the event doesn't
+	 * specify channels either, the event is fired on the 
+	 * channel of the component managed by this manager 
+	 * (see {@link #getChannel()}). As last resort, the
+	 * event is fired on the broadcast channel. 
 	 * 
 	 * @param event the event to fire
 	 * @param channels the channels to fire the event on
@@ -94,7 +103,8 @@ public interface Manager extends Iterable<Component> {
 	void fire(Event event, Channel... channels);
 
 	/**
-	 * Add a handler for a specific event and channel. The method
+	 * Adds a method of the component managed by this manager as a 
+	 * handler for a specific event and channel. The method
 	 * with the given name must have a single argument of type
 	 * {@link Event} (or a derived type as appropriate for the
 	 * event type to be handled).

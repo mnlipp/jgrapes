@@ -17,23 +17,57 @@ package org.jdrupes;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 
 import org.jdrupes.events.AbstractCompletedEvent;
 import org.jdrupes.internal.EventBase;
 import org.jdrupes.internal.Matchable;
 
 /**
- * The base class for all events. Events form a hierarchy and by default
- * their class is used for matching, i.e. a handler is invoked if
- * its event class is equal to or a base class of the class of the
- * event to be handled. 
- * 
- * This default behavior may be changed by overriding the methods
+ * The base class for all events. Event classes form a hierarchy.
+ * By default (i.e. as implemented by this class), the event's class 
+ * (type) is used for matching. A handler is invoked if its event 
+ * class is equal to or a base class of the class of the event 
+ * to be handled. 
+ * <P>
+ * This default behavior can be changed by overriding the methods
  * from {@link Matchable}. See {@link NamedEvent} as an example.
  * 
  * @author mnl
  */
 public class Event extends EventBase {
+
+	/**
+	 * Returns the channels associated with the event. Before an
+	 * event has been fired, this returns the channels set with
+	 * {@link #setChannels(Channel[])}. After an event has been
+	 * fired, this returns the channels that the event has
+	 * effectively been fired on 
+	 * (see {@link Manager#fire(Event, Channel...)}).
+	 * 
+	 * @return the channels
+	 */
+	public Channel[] getChannels() {
+		return channels;
+	}
+
+	/**
+	 * Sets the channels that the event is fired on if no channels
+	 * are specified explicitly when firing the event
+	 * (see {@link org.jdrupes.Manager#fire(Event, Channel...)}).
+	 * 
+	 * @param channels the channels to set
+	 * 
+	 * @throws IllegalStateException if the method is called after
+	 * this event has been fired
+	 */
+	public void setChannels(Channel[] channels) {
+		if (currentlyHandled()) {
+			throw new IllegalStateException
+				("Channels cannot be changed after fire");
+		}
+		this.channels = channels;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
@@ -101,4 +135,17 @@ public class Event extends EventBase {
 			return false;
 		return true;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() 
+				+ " [matchKey=" + getMatchKey() + ", channels="
+				+ Arrays.toString(getChannels()) + ", completedEvent="
+				+ getCompletedEvent() + "]";
+	}
+	
+	
 }
