@@ -16,8 +16,12 @@
 package org.jdrupes.internal;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -34,8 +38,8 @@ import org.jdrupes.events.Start;
 class ComponentCommon {
 
 	private ComponentNode root;
-	private Map<EventChannelsTuple,Set<HandlerReference>> handlerCache
-		= new HashMap<EventChannelsTuple,Set<HandlerReference>>();
+	private Map<EventChannelsTuple,List<HandlerReference>> handlerCache
+		= new HashMap<EventChannelsTuple,List<HandlerReference>>();
 	private Queue<EventChannelsTuple> eventBuffer = new ArrayDeque<>();
 
 	/**
@@ -57,7 +61,7 @@ class ComponentCommon {
 	 * @param channels the channels the event is sent to
 	 */
 	void dispatch(EventManager mgr, EventBase event, Channel[] channels) {
-		Set<HandlerReference> hdlrs = getHandlers(event, channels);
+		List<HandlerReference> hdlrs = getHandlers(event, channels);
 		for (HandlerReference hdlr: hdlrs) {
 			try {
 				hdlr.invoke(event);
@@ -67,15 +71,21 @@ class ComponentCommon {
 		}
 	}
 	
-	private Set<HandlerReference> getHandlers
+	private List<HandlerReference> getHandlers
 		(EventBase event, Channel[] channels) {
 		EventChannelsTuple key = new EventChannelsTuple(event, channels);
-		Set<HandlerReference> hdlrs = handlerCache.get(key);
+		List<HandlerReference> hdlrs = handlerCache.get(key);
 		if (hdlrs != null) {
 			return hdlrs;
 		}
-		hdlrs = new HashSet<>();
+		hdlrs = new ArrayList<>();
 		root.collectHandlers(hdlrs, event, channels);
+		Collections.sort(hdlrs, new Comparator<HandlerReference>() {
+			@Override
+			public int compare(HandlerReference hr1, HandlerReference hr2) {
+				return hr2.getPriority() - hr1.getPriority();
+			}
+		});
 		handlerCache.put(key, hdlrs);
 		return hdlrs;
 	}

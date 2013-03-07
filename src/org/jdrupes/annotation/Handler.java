@@ -40,37 +40,39 @@ import org.jdrupes.NamedEvent;
 @Target(value=ElementType.METHOD)
 public @interface Handler {
 	
-	/** Default value for the <code>events</code> parameter of
+	/** The default value for the <code>events</code> parameter of
 	 * the annotation. Indicates that the parameter is not used. */
 	final public static class NO_EVENT extends Event {
 	}
 	
-	/** Default value for the <code>channels</code> parameter of
+	/** The default value for the <code>channels</code> parameter of
 	 * the annotation. Indicates that the parameter is not used. */
 	final public static class NO_CHANNEL extends ClassChannel {
 	}
 	
 	/**
-	 * The <code>events</code> parameter specifies classes of events 
-	 * that the handler is to receive.
+	 * Specifies classes of events that the handler is to receive.
 	 */
 	Class<? extends Event>[] events() default NO_EVENT.class;
 	
 	/**
-	 * The <code>namedEvents</code> parameter specifies names of  
-	 * {@link NamedEvent}s that the handler is to receive.
+	 * Specifies names of {@link NamedEvent}s that the handler is to receive.
 	 */
 	String[] namedEvents() default "";
 	
 	/**
-	 * The <code>channels</code> parameter specifies classes of channels 
-	 * that the handler listens on.
+	 * Specifies classes of channels that the handler listens on.
 	 */
 	Class<? extends Channel>[] channels() default NO_CHANNEL.class;
 
 	/**
-	 * The <code>namedChannels</code> parameter specifies names of  
-	 * {@link NamedChannel}s that the handler listens on.
+	 * Specifies names of {@link NamedChannel}s that the handler listens on.
 	 */
 	String[] namedChannels() default "";
+	
+	/**
+	 * Specifies a priority. The value is used to sort handlers.
+	 * Handlers with higher priority are invokes first.
+	 */
+	int priority() default 0;
 }

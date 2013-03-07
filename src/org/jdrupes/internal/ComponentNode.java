@@ -18,11 +18,11 @@ package org.jdrupes.internal;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.Stack;
 
 import org.jdrupes.Channel;
@@ -98,7 +98,8 @@ public abstract class ComponentNode implements Manager {
 			for (Object eventKey : eventKeys) {
 				for (Object channelKey : channelKeys) {
 					handlers.add(new HandlerReference
-							(eventKey, channelKey, getComponent(), m));
+							(eventKey, channelKey, getComponent(), m,
+							 handlerAnnotation.priority()));
 				}
 			}
 		}
@@ -320,10 +321,11 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.ComponentManager#addHandler
+	 * @see org.jdrupes.Manager#addHandler
 	 */
 	@Override
-	public void addHandler(Object eventKey, Object channelKey, String method) {
+	public void addHandler(Object eventKey, Object channelKey, 
+			String method, int priority) {
 		if (channelKey instanceof Channel) {
 			channelKey = ((Matchable)channelKey).getMatchKey();
 		}
@@ -333,7 +335,7 @@ public abstract class ComponentNode implements Manager {
 					&& m.getParameterTypes().length == 1
 					&& Event.class.isAssignableFrom(m.getParameterTypes()[0])) {
 					handlers.add(new HandlerReference(eventKey, channelKey, 
-							getComponent(), m));
+							getComponent(), m, priority));
 					return;
 				}
 			}
@@ -342,6 +344,14 @@ public abstract class ComponentNode implements Manager {
 			throw (RuntimeException)
 				(new IllegalArgumentException().initCause(e));
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.Manager#addHandler
+	 */
+	@Override
+	public void addHandler(Object eventKey, Object channelKey, String method) {
+		addHandler(eventKey, channelKey, method, 0);
 	}
 
 	/* (non-Javadoc)
@@ -373,7 +383,7 @@ public abstract class ComponentNode implements Manager {
 	 * @param event the event to match
 	 * @param channels the channels to match
 	 */
-	void collectHandlers (Set<HandlerReference> hdlrs, 
+	void collectHandlers (Collection<HandlerReference> hdlrs, 
 			EventBase event, Channel[] channels) {
 		for (HandlerReference hdlr: handlers) {
 			if (!event.matches(hdlr.getEventKey())) {

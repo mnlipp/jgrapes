@@ -122,7 +122,14 @@ public interface Manager extends Iterable<Component> {
 	 * actual object provided is a {@link Channel}, its
 	 * match key is used for matching.
 	 * @param method the name of the method that implements the handler
+	 * @param priority the priority of the handler
 	 */
-	void addHandler(Object eventKey, Object channelKey, String method);
+	void addHandler(Object eventKey, Object channelKey, 
+			String method, int priority);
 	
+	/**
+	 * A shortcut for invoking {@link #addHandler(Object, Object, String, int)}
+	 * with priority 0.
+	 */
+	void addHandler(Object eventKey, Object channelKey,	String method);
 }

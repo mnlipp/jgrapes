@@ -20,7 +20,8 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({MatchTest.class, EventTest.class, ErrorTest.class})
+@SuiteClasses({MatchTest.class, EventTest.class, ErrorTest.class,
+			   PriorityTest.class})
 public class AllTests {
 
 }
