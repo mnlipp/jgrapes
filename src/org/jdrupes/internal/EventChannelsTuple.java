@@ -18,7 +18,6 @@ package org.jdrupes.internal;
 import java.util.Arrays;
 
 import org.jdrupes.Channel;
-import org.jdrupes.Event;
 
 public class EventChannelsTuple {
 	public EventBase event;		
