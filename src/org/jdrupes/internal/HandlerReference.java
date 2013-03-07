@@ -20,7 +20,6 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
 import org.jdrupes.Component;
-import org.jdrupes.Event;
 
 /**
  * @author mnl
@@ -71,11 +70,8 @@ public class HandlerReference {
 	 * 
 	 * @param event the event
 	 */
-	public void invoke(EventBase event) {
-		try {
-			method.invoke(event);
-		} catch (Throwable e) {
-		}
+	public void invoke(EventBase event) throws Throwable {
+		method.invoke(event);
 	}
 	
 	/* (non-Javadoc)

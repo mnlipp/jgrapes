@@ -46,6 +46,15 @@ public abstract class EventBase implements Matchable {
 	}
 	
 	/**
+	 * Invoked when an exception occurs while invoking a handler for an event.
+	 * 
+	 * @param mgr the manager that has invoked the handler
+	 * @param throwable the exception that has been thrown by the handler
+	 */
+	protected abstract void handlingError
+		(EventManager mgr, Throwable throwable);
+	
+	/**
 	 * @param generatedBy the causedBy to set
 	 */
 	void enqueued(EventBase generatedBy) {

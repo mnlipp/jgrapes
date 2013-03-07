@@ -20,7 +20,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
 import org.jdrupes.events.AbstractCompletedEvent;
+import org.jdrupes.events.HandlingError;
 import org.jdrupes.internal.EventBase;
+import org.jdrupes.internal.EventManager;
 import org.jdrupes.internal.Matchable;
 
 /**
@@ -108,6 +110,18 @@ public class Event extends EventBase {
 		}
 	}
 	
+	/**
+	 * Implements the default behavior for handling events thrown
+	 * by handler. Fires a {@link HandlingError handling error} event
+	 * for this event and the given throwable.
+	 * 
+	 * @see HandlingError
+	 */
+	@Override
+	protected void handlingError(EventManager mgr, Throwable throwable) {
+		mgr.fire(new HandlingError(this, throwable), getChannels());
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */

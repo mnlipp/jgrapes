@@ -56,10 +56,14 @@ class ComponentCommon {
 	 * @param event the event
 	 * @param channels the channels the event is sent to
 	 */
-	void dispatch(EventBase event, Channel[] channels) {
+	void dispatch(EventManager mgr, EventBase event, Channel[] channels) {
 		Set<HandlerReference> hdlrs = getHandlers(event, channels);
 		for (HandlerReference hdlr: hdlrs) {
-			hdlr.invoke(event);
+			try {
+				hdlr.invoke(event);
+			} catch (Throwable t) {
+				event.handlingError(mgr, t);
+			}
 		}
 	}
 	

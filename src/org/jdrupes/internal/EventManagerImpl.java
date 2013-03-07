@@ -56,7 +56,8 @@ public class EventManagerImpl implements EventManager {
 		while (queue.size() > 0) {
 			EventChannelsTuple next = queue.peek();
 			currentlyHandling = next.event;
-			componentCommon.dispatch(currentlyHandling, next.channels);
+			componentCommon.dispatch
+				(this, currentlyHandling, next.channels);
 			currentlyHandling.decrementOpen(this);
 			queue.remove();
 		}
