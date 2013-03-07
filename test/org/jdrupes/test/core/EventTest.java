@@ -2,7 +2,6 @@ package org.jdrupes.test.core;
 
 import org.jdrupes.AbstractComponent;
 import org.jdrupes.Channel;
-import org.jdrupes.Component;
 import org.jdrupes.Event;
 import org.jdrupes.Utils;
 import org.jdrupes.annotation.Handler;
