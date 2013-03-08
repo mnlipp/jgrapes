@@ -39,13 +39,13 @@ public interface Manager extends Iterable<Component> {
 	Component detach ();
 
 	/**
-	 * Adds the given component node as a child to the component
+	 * Attaches the given component node as a child to the component
 	 * managed by this manager.
 	 * 
 	 * @param child the component to add
 	 * @return the component's manager (for comfortable chaining)
 	 */
-	Manager addChild (Component child);
+	Manager attach (Component child);
 	
 	/**
 	 * Removes the given component from the set of children of

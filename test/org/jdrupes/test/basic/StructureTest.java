@@ -29,9 +29,9 @@ public class StructureTest {
 
 	private TestComponent1 subtree1(int offset) {
 		TestComponent1 sub = new TestComponent1("node " + offset);
-		Utils.manager(sub).addChild
+		Utils.manager(sub).attach
 			(new TestComponent1("node " + (offset + 1)))
-			.addChild(new TestComponent1("node " + (offset + 2)));
+			.attach(new TestComponent1("node " + (offset + 2)));
 		return sub;
 	}
 	
@@ -55,7 +55,7 @@ public class StructureTest {
 		assertEquals(0, Utils.manager(c).getChildren().size());
 		TestComponent1 c1 = new TestComponent1("sub1");
 		TestComponent1 c2 = new TestComponent1("sub2");
-		c.getManager().addChild(c1).addChild(c2);
+		c.getManager().attach(c1).attach(c2);
 		assertEquals(2, c.getManager().getChildren().size());
 		Iterator<Component> iter = c.getManager().getChildren().iterator();
 		assertSame(iter.next(), c1);
@@ -71,7 +71,7 @@ public class StructureTest {
 		TestComponent1 c = new TestComponent1("root");
 		TestComponent1 c1 = new TestComponent1("sub1");
 		TestComponent1 c2 = new TestComponent1("sub2");
-		Utils.manager(c).addChild(c1).addChild(c2);
+		Utils.manager(c).attach(c1).attach(c2);
 		c1.getManager().detach();
 		assertNull(c1.getManager().getParent());
 		assertEquals(c1, c1.getManager().getRoot());
@@ -89,13 +89,13 @@ public class StructureTest {
 	@Test
 	public void testMove() {
 		TestComponent1 c = new TestComponent1("root");
-		Utils.manager(c).addChild(subtree1(1)).addChild(subtree1(4));
+		Utils.manager(c).attach(subtree1(1)).attach(subtree1(4));
 		Iterator<Component> iter = c.getManager().getChildren().iterator();
 		assertEquals("node 1", iter.next().toString());
 		assertEquals("node 4", iter.next().toString());
 		TestComponent1 sub1 = (TestComponent1)
 				c.getManager().getChildren().iterator().next();
-		c.getManager().addChild(sub1);
+		c.getManager().attach(sub1);
 		iter = c.getManager().getChildren().iterator();
 		assertEquals("node 4", iter.next().toString());
 		assertEquals("node 1", iter.next().toString());
@@ -105,8 +105,8 @@ public class StructureTest {
 	public void testIterator() {
 		TestComponent1 c = subtree1(0);
 		Iterator<Component> iter = c.getManager().getChildren().iterator();
-		((TestComponent1)iter.next()).getManager().addChild(subtree1(3));
-		((TestComponent1)iter.next()).getManager().addChild(subtree1(6));
+		((TestComponent1)iter.next()).getManager().attach(subtree1(3));
+		((TestComponent1)iter.next()).getManager().attach(subtree1(6));
 		iter = c.getManager().iterator();
 		assertTrue(iter.hasNext());
 		try {
@@ -144,7 +144,7 @@ public class StructureTest {
 		TestComponent2 c = new TestComponent2("root");
 		TestComponent2 c1 = new TestComponent2("sub1");
 		TestComponent2 c2 = new TestComponent2("sub2");
-		c.addChild(c1).addChild(c2);
+		c.attach(c1).attach(c2);
 		Iterator<Component> iter = c.getChildren().iterator();
 		assertSame(iter.next(), c1);
 		assertSame(iter.next(), c2);

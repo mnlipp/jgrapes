@@ -215,7 +215,7 @@ public abstract class ComponentNode implements Manager {
 	 * @see org.jdrupes.Manager#addChild(Component)
 	 */
 	@Override
-	public Manager addChild (Component child) {
+	public Manager attach (Component child) {
 		ComponentNode childNode = getComponentNode(child);
 		if (childNode == null) {
 			childNode = new ComponentProxy(child);
