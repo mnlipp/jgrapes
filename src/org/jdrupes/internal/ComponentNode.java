@@ -375,9 +375,9 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/**
-	 * Collects all handler. Iterates over the tree with this object
-	 * as root and for all components adds the matching handlers to
-	 * the result set.
+	 * Collects all handlers. Iterates over the tree with this object
+	 * as root and for all child components adds the matching handlers to
+	 * the result set recursively.
 	 * 
 	 * @param hdlrs the result set
 	 * @param event the event to match
