@@ -31,7 +31,7 @@ import java.util.List;
 public interface Manager extends Iterable<Component> {
 
 	/**
-	 * Detaches the component managed by this manager (and its children,
+	 * Detaches the component managed by this manager (with its children,
 	 * if any) from the component tree that it currently belongs to.
 	 * 
 	 * @return the component (for comfortable chaining)
@@ -46,14 +46,6 @@ public interface Manager extends Iterable<Component> {
 	 * @return the component's manager (for comfortable chaining)
 	 */
 	Manager attach (Component child);
-	
-	/**
-	 * Removes the given component from the set of children of
-	 * the component managed by this manager.
-	 * 
-	 *  @param child the component to be removed
-	 */
-	void removeChild(Component child);
 	
 	/**
 	 * Returns the child components of the component managed by 

@@ -242,15 +242,6 @@ public abstract class ComponentNode implements Manager {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.jdrupes.Manager#removeChild(Component child)
-	 */
-	@Override
-	public void removeChild(Component child) {
-		ComponentNode childBase = getComponentNode(child);
-		childBase.detach();
-	}
-
-	/* (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */
 	@Override

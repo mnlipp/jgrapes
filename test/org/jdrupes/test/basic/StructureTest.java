@@ -80,7 +80,7 @@ public class StructureTest {
 		assertNull(c1.getManager().getParent());
 		assertEquals(c1, c1.getManager().getRoot());
 		assertEquals(1, c.getManager().getChildren().size());
-		c.getManager().removeChild(c2);
+		c2.getManager().detach();
 		assertNull(c2.getManager().getParent());
 		assertEquals(c2, c2.getManager().getRoot());
 		assertEquals(0, c.getManager().getChildren().size());
