@@ -53,10 +53,6 @@ public abstract class ComponentNode implements Manager {
 	/** The handlers provided by this component. */
 	private List<HandlerReference> handlers = new ArrayList<HandlerReference>();
 	
-	/** The event manager that we delegate to. */
-	private ThreadLocal<EventManager> eventManager
-		= new ThreadLocal<EventManager>();
-
 	/** 
 	 * Initialize the ComponentNode. By default it forms a stand-alone
 	 * tree, i.e. the root is set to the component itself.
@@ -351,10 +347,6 @@ public abstract class ComponentNode implements Manager {
 	 */
 	@Override
 	public void fire(Event event, Channel... channels) {
-		EventManager em = eventManager.get();
-		if (em == null) {
-			em = new EventManagerImpl(common);
-		}
 		if (channels.length == 0) {
 			channels = event.getChannels();
 			if (channels == null || channels.length == 0) {
@@ -362,7 +354,7 @@ public abstract class ComponentNode implements Manager {
 			}
 		}
 		event.setChannels(channels);
-		em.fire(event, channels);
+		common.fire(event, channels);
 	}
 
 	/**

@@ -18,7 +18,6 @@ package org.jdrupes.internal;
 import java.util.Queue;
 
 import org.jdrupes.Channel;
-import org.jdrupes.Event;
 
 /**
  * @author mnl
@@ -35,7 +34,7 @@ public class EventManagerImpl implements EventManager {
 	}
 
 	@Override
-	public void fire(Event event, Channel... channels) {
+	public void fire(EventBase event, Channel... channels) {
 		((EventBase)event).enqueued(currentlyHandling);
 		if (queue != null) {
 			// the application is running

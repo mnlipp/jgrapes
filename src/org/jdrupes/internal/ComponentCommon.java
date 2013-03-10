@@ -40,6 +40,10 @@ class ComponentCommon {
 		= new HashMap<EventChannelsTuple,List<HandlerReference>>();
 	private Queue<EventChannelsTuple> eventBuffer = new ArrayDeque<>();
 
+	/** The event manager that we delegate to. */
+	private ThreadLocal<EventManager> eventManager
+		= new ThreadLocal<EventManager>();
+
 	/**
 	 * @param root
 	 */
@@ -51,7 +55,21 @@ class ComponentCommon {
 	ComponentNode getRoot() {
 		return root;
 	}
-	
+
+	/**
+	 * Forward to the thread's event manager.
+	 * 
+	 * @param event
+	 * @param channels
+	 */
+	public void fire(EventBase event, Channel[] channels) {
+		EventManager em = eventManager.get();
+		if (em == null) {
+			em = new EventManagerImpl(this);
+		}
+		em.fire(event, channels);
+	}
+
 	/**
 	 * Send the event to all matching handlers.
 	 * 
