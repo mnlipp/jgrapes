@@ -24,7 +24,7 @@ package org.jdrupes;
  */
 final public class NamedChannel implements Channel {
 
-	private String name;
+	private final String name;
 
 	/**
 	 * Creates a new named channel with the given name.

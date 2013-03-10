@@ -27,6 +27,8 @@ import org.jdrupes.internal.Matchable;
  * <code>true</code> if called with <code>Channel.class</code>
  * as parameter, else channels of the new type will not participate
  * in broadcasts.
+ * <P>
+ * Objects of type <code>Channel</code> must be immutable.
  * 
  * @author mnl
  * @see Channel#BROADCAST
