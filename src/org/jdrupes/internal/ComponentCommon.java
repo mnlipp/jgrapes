@@ -92,6 +92,24 @@ class ComponentCommon {
 		handlerCache.clear();
 	}
 
+	/**
+	 * Invoked to check whether event processing should start
+	 * for the component tree with this common object.
+	 * <P>
+	 * If event processing has been started, this method returns
+	 * a <code>Queue</code> with the <code>queueItem</code> as
+	 * single entry.
+	 * If event processing hasn't been started
+	 * yet for the tree and the <code>queueItem</code>
+	 * contains a {@link de.jdrupes.events.Started} event 
+	 * this method returns a queue with all previously buffered items
+	 * and the given <code>queueItem</code>. 
+	 * Else, this method bufferes the <code>queueItem</code>
+	 * and returns <code>null</code>.
+	 * 
+	 * @param queueItem
+	 * @return
+	 */
 	synchronized Queue<EventChannelsTuple> 
 		toBeProcessed (EventChannelsTuple queueItem) {
 		if (eventBuffer == null) {
