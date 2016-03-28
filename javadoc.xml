@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="javadoc">
     
-    <property name="docdir" value="../jdrupes-site/javadoc"/>
+    <property name="docdir" value="../jgrapes.gh-pages/javadoc"/>
     
     <target name="javadoc">
     	<delete>
@@ -11,19 +11,19 @@
             additionalparam=" -encoding UTF-8" 
             author="true" 
             destdir="${docdir}" 
-            doctitle="JDrupes Documentation" 
+            doctitle="JGrapes Documentation" 
             nodeprecated="false" 
             nodeprecatedlist="false" 
             noindex="false" 
             nonavbar="false" 
             notree="false"
-        	overview="src/org/jdrupes/overview.html"
+        	overview="src/org/jgrapes/overview.html"
             source="1.7" 
             splitindex="true" 
             use="true" 
             version="true">
             <packageset dir="src">
-            	<exclude name="org/jdrupes/internal/**"/>
+            	<exclude name="org/jgrapes/internal/**"/>
         	</packageset>
         	<bottom><![CDATA[<!-- Piwik --> 
 <script type="text/javascript">
