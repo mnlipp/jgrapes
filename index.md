@@ -1,11 +1,11 @@
 ---
 layout: index
-title: jdrupes by mnlipp
+title: JGrapes by mnlipp
 ---
 
-Welcome to jdrupes
+Welcome to JGrapes
 ==================
 
-JDrupes is an event driven component framework. See the
+JGrapes is an event driven component framework. See the
 framework's <a href="javadoc/index.html" target="_top">Javadoc</a>
 for a detailed description.

@@ -1,3 +1,4 @@
-org.jdrupes
-org.jdrupes.annotation
-org.jdrupes.events
+org.jgrapes.core
+org.jgrapes.core.annotation
+org.jgrapes.core.events
+org.jgrapes.core.internal
