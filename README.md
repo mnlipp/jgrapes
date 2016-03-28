@@ -1,4 +1,4 @@
-jdrupes
+JGrapes
 =======
 
-See the [project's home page](http://www.jdrupes.org).
+See the [project's home page](http://mnlipp.github.io/jgrapes/).
