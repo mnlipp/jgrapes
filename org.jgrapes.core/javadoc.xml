@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="javadoc">
     
-    <property name="docdir" value="../jgrapes.gh-pages/javadoc"/>
+    <property name="docdir" value="../../jgrapes.gh-pages/javadoc"/>
     
     <target name="javadoc">
     	<delete>
@@ -17,7 +17,7 @@
             noindex="false" 
             nonavbar="false" 
             notree="false"
-        	overview="src/org/jgrapes/overview.html"
+        	overview="src/org/jgrapes/core/overview.html"
             source="1.7" 
             splitindex="true" 
             use="true" 
