@@ -1,17 +1,19 @@
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * JGrapes Event Driven Framework
+ * Copyright (C) 2016  Michael N. Lipp
+ * 
+ * This program is free software; you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation; either version 3 of the License, or 
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * 
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ * for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along 
+ * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 package org.jgrapes.core.internal;
 
@@ -28,16 +30,16 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.events.Start;
 
 /**
- * This class hold all properties that are common to all nodes
- * of a component tree.
+ * This class represents the component tree. It holds all properties that 
+ * are common to all nodes of a component tree (the {@link ComponentNode}s.
  * 
- * @author mnl
+ * @author Michael N. Lipp
  */
-class ComponentCommon {
+class ComponentTree {
 
 	private ComponentNode root;
-	private Map<EventChannelsTuple,List<HandlerReference>> handlerCache
-		= new HashMap<EventChannelsTuple,List<HandlerReference>>();
+	private Map<EventChannelsTuple,EventPipeline> handlerCache
+		= new HashMap<EventChannelsTuple,EventPipeline>();
 	/** A non-null value indicates that no Started event has been 
 	 * received yet. */
 	private Queue<EventChannelsTuple> eventBuffer;
@@ -50,7 +52,7 @@ class ComponentCommon {
 	 * 
 	 * @param root
 	 */
-	ComponentCommon(ComponentNode root) {
+	ComponentTree(ComponentNode root) {
 		super();
 		this.root = root;
 		// Check whether common is created due to detach
@@ -104,7 +106,7 @@ class ComponentCommon {
 	 * 
 	 * @param source
 	 */
-	void mergeEvents(ComponentCommon source) {
+	void mergeEvents(ComponentTree source) {
 		if (eventBuffer != null && source.eventBuffer != null) {
 			eventBuffer.addAll(source.eventBuffer);
 			return;
@@ -118,31 +120,20 @@ class ComponentCommon {
 	 * @param channels the channels the event is sent to
 	 */
 	void dispatch(EventManager mgr, EventBase event, Channel[] channels) {
-		List<HandlerReference> hdlrs = getHandlers(event, channels);
-		for (HandlerReference hdlr: hdlrs) {
-			try {
-				hdlr.invoke(event);
-			} catch (Throwable t) {
-				event.handlingError(mgr, t);
-			}
-		}
+		EventPipeline pipeline = getEventPipeline(event, channels);
+		pipeline.process(mgr, event);
 	}
 	
-	private List<HandlerReference> getHandlers
+	private EventPipeline getEventPipeline
 		(EventBase event, Channel[] channels) {
 		EventChannelsTuple key = new EventChannelsTuple(event, channels);
-		List<HandlerReference> hdlrs = handlerCache.get(key);
+		EventPipeline hdlrs = handlerCache.get(key);
 		if (hdlrs != null) {
 			return hdlrs;
 		}
-		hdlrs = new ArrayList<>();
+		hdlrs = new EventPipeline();
 		root.collectHandlers(hdlrs, event, channels);
-		Collections.sort(hdlrs, new Comparator<HandlerReference>() {
-			@Override
-			public int compare(HandlerReference hr1, HandlerReference hr2) {
-				return hr2.getPriority() - hr1.getPriority();
-			}
-		});
+		Collections.sort(hdlrs);
 		handlerCache.put(key, hdlrs);
 		return hdlrs;
 	}

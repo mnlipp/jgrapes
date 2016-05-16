@@ -25,11 +25,11 @@ import org.jgrapes.core.Channel;
  */
 public class EventManagerImpl implements EventManager {
 
-	private ComponentCommon componentCommon;
+	private ComponentTree componentCommon;
 	private Queue<EventChannelsTuple> queue = null;
 	private EventBase currentlyHandling = null;
 	
-	public EventManagerImpl (ComponentCommon common) {
+	public EventManagerImpl (ComponentTree common) {
 		this.componentCommon = common;
 	}
 

@@ -18,6 +18,7 @@ package org.jgrapes.core.internal;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.util.Comparator;
 
 import org.jgrapes.core.Component;
 
@@ -25,7 +26,7 @@ import org.jgrapes.core.Component;
  * @author mnl
  *
  */
-public class HandlerReference {
+public class HandlerReference implements Comparable<HandlerReference> {
 
 	private Object eventKey;
 	private Object channelKey;
@@ -55,7 +56,12 @@ public class HandlerReference {
 						.initCause(e);
 		}
 	}
-	
+
+	@Override
+	public int compareTo(HandlerReference o) {
+		return getPriority() - o.getPriority();
+	}
+
 	/**
 	 * @return the eventKey
 	 */

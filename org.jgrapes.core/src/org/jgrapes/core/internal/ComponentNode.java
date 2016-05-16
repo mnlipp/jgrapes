@@ -46,7 +46,7 @@ import org.jgrapes.core.events.Detached;
 public abstract class ComponentNode implements Manager {
 
 	/** Reference to the common properties of the tree nodes. */
-	private ComponentCommon common = null;
+	private ComponentTree common = null;
 	/** Reference to the parent node. */
 	private ComponentNode parent = null;
 	/** All the node's children */
@@ -60,7 +60,7 @@ public abstract class ComponentNode implements Manager {
 	 * tree, i.e. the root is set to the component itself.
 	 */
 	protected ComponentNode() {
-		common = new ComponentCommon(this);
+		common = new ComponentTree(this);
 	}
 
 	/**
@@ -110,7 +110,7 @@ public abstract class ComponentNode implements Manager {
 		handlers = Collections.synchronizedList(handlers);
 	}
 
-	ComponentCommon getCommon() {
+	ComponentTree getCommon() {
 		return common;
 	}
 	
@@ -142,7 +142,7 @@ public abstract class ComponentNode implements Manager {
 	 */
 	private void lockAndRun (ComponentNode node, Runnable runnable) {
 		while (true) {
-			ComponentCommon common = node.common;
+			ComponentTree common = node.common;
 			synchronized (common) {
 				if (node.common != common) {
 					continue;
@@ -159,7 +159,7 @@ public abstract class ComponentNode implements Manager {
 	 * 
 	 * @param comp the new root
 	 */
-	private void setCommon(ComponentCommon common) {
+	private void setCommon(ComponentTree common) {
 		this.common = common;
 		for (ComponentNode child: children) {
 			child.setCommon(common);
@@ -178,8 +178,8 @@ public abstract class ComponentNode implements Manager {
 					parent.children.remove(ComponentNode.this);
 					parent.common.clearHandlerCache();
 					parent = null;
-					ComponentCommon newCommon 
-						= new ComponentCommon(ComponentNode.this);
+					ComponentTree newCommon 
+						= new ComponentTree(ComponentNode.this);
 					synchronized (newCommon) {
 						setCommon(newCommon);
 					}
@@ -249,7 +249,7 @@ public abstract class ComponentNode implements Manager {
 								("Cannot attach started subtree");
 						}
 						cn.parent = ComponentNode.this;
-						ComponentCommon childCommon = cn.getCommon();
+						ComponentTree childCommon = cn.getCommon();
 						cn.setCommon(common);
 						children.add(cn);
 						common.mergeEvents(childCommon);
