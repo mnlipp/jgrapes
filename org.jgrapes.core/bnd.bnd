@@ -7,3 +7,6 @@ Export-Package: \
 	org.jgrapes.core.annotation,\
 	org.jgrapes.core
 Bundle-Version: 1.0.0.alpha1
+-buildpath: \
+	junit;version=4.11,\
+	hamcrest-core;version=1.3
