@@ -1,11 +1,11 @@
 Bundle-Name: org.jgrapes.core
 Bundle-Copyright: Michael N. Lipp (c) 2016
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
-Private-Package: org.jgrapes.core.internal
 Export-Package: \
 	org.jgrapes.core.events,\
 	org.jgrapes.core.annotation,\
-	org.jgrapes.core
+	org.jgrapes.core,\
+	org.jgrapes.core.internal
 Bundle-Version: 1.0.0.alpha1
 -buildpath: \
 	junit;version=4.11,\
