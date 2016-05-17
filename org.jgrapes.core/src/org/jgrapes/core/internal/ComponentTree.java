@@ -38,8 +38,8 @@ import org.jgrapes.core.events.Start;
 class ComponentTree {
 
 	private ComponentNode root;
-	private Map<EventChannelsTuple,EventPipeline> handlerCache
-		= new HashMap<EventChannelsTuple,EventPipeline>();
+	private Map<EventChannelsTuple,HandlerList> handlerCache
+		= new HashMap<EventChannelsTuple,HandlerList>();
 	/** A non-null value indicates that no Started event has been 
 	 * received yet. */
 	private Queue<EventChannelsTuple> eventBuffer;
@@ -120,18 +120,18 @@ class ComponentTree {
 	 * @param channels the channels the event is sent to
 	 */
 	void dispatch(EventManager mgr, EventBase event, Channel[] channels) {
-		EventPipeline pipeline = getEventPipeline(event, channels);
+		HandlerList pipeline = getEventPipeline(event, channels);
 		pipeline.process(mgr, event);
 	}
 	
-	private EventPipeline getEventPipeline
+	private HandlerList getEventPipeline
 		(EventBase event, Channel[] channels) {
 		EventChannelsTuple key = new EventChannelsTuple(event, channels);
-		EventPipeline hdlrs = handlerCache.get(key);
+		HandlerList hdlrs = handlerCache.get(key);
 		if (hdlrs != null) {
 			return hdlrs;
 		}
-		hdlrs = new EventPipeline();
+		hdlrs = new HandlerList();
 		root.collectHandlers(hdlrs, event, channels);
 		Collections.sort(hdlrs);
 		handlerCache.put(key, hdlrs);

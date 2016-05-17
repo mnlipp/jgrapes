@@ -23,7 +23,8 @@ import java.util.ArrayList;
  * @author Michael N. Lipp
  *
  */
-public class EventPipeline extends ArrayList<HandlerReference> {
+@SuppressWarnings("serial")
+public class HandlerList extends ArrayList<HandlerReference> {
 
 	public void process(EventManager mgr, EventBase event) {
 		for (HandlerReference hdlr: this) {
