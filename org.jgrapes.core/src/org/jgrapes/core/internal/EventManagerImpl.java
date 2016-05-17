@@ -26,7 +26,7 @@ import org.jgrapes.core.Channel;
 public class EventManagerImpl implements EventManager {
 
 	private ComponentTree componentCommon;
-	private Queue<EventChannelsTuple> queue = null;
+	private EventPipeline pipeline = null;
 	private EventBase currentlyHandling = null;
 	
 	public EventManagerImpl (ComponentTree common) {
@@ -37,11 +37,11 @@ public class EventManagerImpl implements EventManager {
 	public void fire(EventBase event, Channel... channels) {
 		// Note the event currently being processed (if any) as cause
 		((EventBase)event).generatedBy(currentlyHandling);
-		if (queue != null) {
+		if (pipeline != null) {
 			// We have a queue, so the application has been started.
 			// Simply add the event and the channels to the queue.
-			queue.add(new EventChannelsTuple(event, channels));
-			if (queue.size() > 1) {
+			pipeline.add(new EventChannelsTuple(event, channels));
+			if (pipeline.size() > 1) {
 				// This is a "nested" event (fired while processing an event).
 				// It will be processed by the same thread that fired
 				// the event which is currently being handled.
@@ -49,9 +49,9 @@ public class EventManagerImpl implements EventManager {
 			}
 		} else {
 			// The application hasn't been started yet. Maybe we start it.
-			queue = componentCommon.toBeProcessed
+			pipeline = componentCommon.toBeProcessed
 					(new EventChannelsTuple(event, channels));
-			if (queue == null) {
+			if (pipeline == null) {
 				// We don't start it, i.e. the event fired is not the
 				// StartEvent.
 				return;
@@ -60,13 +60,13 @@ public class EventManagerImpl implements EventManager {
 		// The event fired is either the StartEvent for a component tree,
 		// or an arbitrary event and there has been a StartEvent before.
 		// It's up to us to process the events on the queue
-		while (queue.size() > 0) {
-			EventChannelsTuple next = queue.peek();
+		while (pipeline.size() > 0) {
+			EventChannelsTuple next = pipeline.peek();
 			currentlyHandling = next.event;
 			componentCommon.dispatch
 				(this, currentlyHandling, next.channels);
 			currentlyHandling.decrementOpen(this);
-			queue.remove();
+			pipeline.remove();
 		}
 		currentlyHandling = null;
 	}

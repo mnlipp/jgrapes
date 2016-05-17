@@ -17,14 +17,9 @@
  */
 package org.jgrapes.core.internal;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.events.Start;
@@ -42,7 +37,7 @@ class ComponentTree {
 		= new HashMap<EventChannelsTuple,HandlerList>();
 	/** A non-null value indicates that no Started event has been 
 	 * received yet. */
-	private Queue<EventChannelsTuple> eventBuffer;
+	private EventPipeline preStartEvents;
 	/** The event manager that we delegate to. */
 	private ThreadLocal<EventManager> eventManager
 		= new ThreadLocal<EventManager>();
@@ -58,11 +53,11 @@ class ComponentTree {
 		// Check whether common is created due to detach
 		if (root.getCommon() == null) {
 			// Newly created node
-			eventBuffer = new ArrayDeque<>();
+			preStartEvents = new EventPipeline();
 			return;
 		}
 		// Node already has common, so it is being detached from a tree
-		if (root.getCommon().eventBuffer != null) {
+		if (root.getCommon().preStartEvents != null) {
 			// Tree has an event buffer, so it hasn't been started yet
 			throw new IllegalStateException
 				("Components may not be detached from a tree before"
@@ -70,7 +65,7 @@ class ComponentTree {
 		}
 		// Detaching from a tree that has been started. Detached
 		// node or subtree keeps that started state.
-		eventBuffer = null;
+		preStartEvents = null;
 	}
 
 	ComponentNode getRoot() {
@@ -78,7 +73,7 @@ class ComponentTree {
 	}
 
 	boolean isStarted() {
-		return eventBuffer == null;
+		return preStartEvents == null;
 	}
 	
 	/**
@@ -107,8 +102,8 @@ class ComponentTree {
 	 * @param source
 	 */
 	void mergeEvents(ComponentTree source) {
-		if (eventBuffer != null && source.eventBuffer != null) {
-			eventBuffer.addAll(source.eventBuffer);
+		if (preStartEvents != null && source.preStartEvents != null) {
+			preStartEvents.addAll(source.preStartEvents);
 			return;
 		}
 	}
@@ -160,20 +155,20 @@ class ComponentTree {
 	 * @param queueItem
 	 * @return
 	 */
-	synchronized Queue<EventChannelsTuple> 
+	synchronized EventPipeline 
 		toBeProcessed (EventChannelsTuple queueItem) {
-		if (eventBuffer == null) {
-			Queue<EventChannelsTuple> queue = new ArrayDeque<>();
-			queue.add(queueItem);
-			return queue;
+		if (preStartEvents == null) {
+			EventPipeline pipeline = new EventPipeline();
+			pipeline.add(queueItem);
+			return pipeline;
 		}
 		if (queueItem.event instanceof Start) {
-			Queue<EventChannelsTuple> queue = eventBuffer;
-			eventBuffer = null;
-			queue.add(queueItem);
-			return queue;
+			EventPipeline pipeline = preStartEvents;
+			preStartEvents = null;
+			pipeline.add(queueItem);
+			return pipeline;
 		}
-		eventBuffer.add(queueItem);
+		preStartEvents.add(queueItem);
 		return null;
 	}
 }
