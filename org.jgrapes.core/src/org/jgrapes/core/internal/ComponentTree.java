@@ -51,13 +51,13 @@ class ComponentTree {
 		super();
 		this.root = root;
 		// Check whether common is created due to detach
-		if (root.getCommon() == null) {
+		if (root.getTree() == null) {
 			// Newly created node
 			preStartEvents = new EventPipeline();
 			return;
 		}
 		// Node already has common, so it is being detached from a tree
-		if (root.getCommon().preStartEvents != null) {
+		if (root.getTree().preStartEvents != null) {
 			// Tree has an event buffer, so it hasn't been started yet
 			throw new IllegalStateException
 				("Components may not be detached from a tree before"

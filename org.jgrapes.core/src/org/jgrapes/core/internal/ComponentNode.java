@@ -46,7 +46,7 @@ import org.jgrapes.core.events.Detached;
 public abstract class ComponentNode implements Manager {
 
 	/** Reference to the common properties of the tree nodes. */
-	private ComponentTree common = null;
+	private ComponentTree tree = null;
 	/** Reference to the parent node. */
 	private ComponentNode parent = null;
 	/** All the node's children */
@@ -60,7 +60,7 @@ public abstract class ComponentNode implements Manager {
 	 * tree, i.e. the root is set to the component itself.
 	 */
 	protected ComponentNode() {
-		common = new ComponentTree(this);
+		tree = new ComponentTree(this);
 	}
 
 	/**
@@ -110,8 +110,8 @@ public abstract class ComponentNode implements Manager {
 		handlers = Collections.synchronizedList(handlers);
 	}
 
-	ComponentTree getCommon() {
-		return common;
+	ComponentTree getTree() {
+		return tree;
 	}
 	
 	/**
@@ -142,9 +142,9 @@ public abstract class ComponentNode implements Manager {
 	 */
 	private void lockAndRun (ComponentNode node, Runnable runnable) {
 		while (true) {
-			ComponentTree common = node.common;
+			ComponentTree common = node.tree;
 			synchronized (common) {
-				if (node.common != common) {
+				if (node.tree != common) {
 					continue;
 				}
 				runnable.run();
@@ -159,10 +159,10 @@ public abstract class ComponentNode implements Manager {
 	 * 
 	 * @param comp the new root
 	 */
-	private void setCommon(ComponentTree common) {
-		this.common = common;
+	private void setTree(ComponentTree tree) {
+		this.tree = tree;
 		for (ComponentNode child: children) {
-			child.setCommon(common);
+			child.setTree(tree);
 		}
 	}
 
@@ -176,12 +176,12 @@ public abstract class ComponentNode implements Manager {
 				@Override
 				public void run() {
 					parent.children.remove(ComponentNode.this);
-					parent.common.clearHandlerCache();
+					parent.tree.clearHandlerCache();
 					parent = null;
-					ComponentTree newCommon 
+					ComponentTree newTree 
 						= new ComponentTree(ComponentNode.this);
-					synchronized (newCommon) {
-						setCommon(newCommon);
+					synchronized (newTree) {
+						setTree(newTree);
 					}
 				}
 			});
@@ -221,7 +221,7 @@ public abstract class ComponentNode implements Manager {
 	 */
 	@Override
 	public Component getRoot() {
-		return common.getRoot().getComponent();
+		return tree.getRoot().getComponent();
 	}
 
 	/* (non-Javadoc)
@@ -244,15 +244,15 @@ public abstract class ComponentNode implements Manager {
 							throw new IllegalStateException
 								("Cannot attach node with parent");
 						}
-						if (cn.common.isStarted()) {
+						if (cn.tree.isStarted()) {
 							throw new IllegalStateException
 								("Cannot attach started subtree");
 						}
 						cn.parent = ComponentNode.this;
-						ComponentTree childCommon = cn.getCommon();
-						cn.setCommon(common);
+						ComponentTree childTree = cn.getTree();
+						cn.setTree(tree);
 						children.add(cn);
-						common.mergeEvents(childCommon);
+						tree.mergeEvents(childTree);
 					}
 				});
 			}
@@ -394,7 +394,7 @@ public abstract class ComponentNode implements Manager {
 			}
 		}
 		event.setChannels(channels);
-		common.fire(event, channels);
+		tree.fire(event, channels);
 	}
 
 	/**
