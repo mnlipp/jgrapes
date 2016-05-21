@@ -72,7 +72,7 @@ public @interface Handler {
 	
 	/**
 	 * Specifies a priority. The value is used to sort handlers.
-	 * Handlers with higher priority are invokes first.
+	 * Handlers with higher priority are invoked first.
 	 */
 	int priority() default 0;
 }
