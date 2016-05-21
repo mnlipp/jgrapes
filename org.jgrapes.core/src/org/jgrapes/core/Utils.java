@@ -44,11 +44,7 @@ public class Utils {
 	 * @return the component (with its manager attribute set)
 	 */
 	public static Manager manager (Component component) {
-		Manager manager = ComponentNode.getComponentNode(component);
-		if (manager != null) {
-			return manager;
-		}
-		return new ComponentProxy(component);
+		return ComponentNode.getComponentNode(component);
 	}
 
 	/**

@@ -50,8 +50,7 @@ public abstract class ComponentNode implements Manager {
 	/** Reference to the parent node. */
 	private ComponentNode parent = null;
 	/** All the node's children */
-	private List<ComponentNode> children 
-		= Collections.synchronizedList(new ArrayList<ComponentNode>());
+	private List<ComponentNode> children = new ArrayList<>();
 	/** The handlers provided by this component. */
 	private List<HandlerReference> handlers = new ArrayList<HandlerReference>();
 	
@@ -110,6 +109,11 @@ public abstract class ComponentNode implements Manager {
 		handlers = Collections.synchronizedList(handlers);
 	}
 
+	/**
+	 * Return the tree that this node belongs to.
+	 * 
+	 * @return the tree
+	 */
 	ComponentTree getTree() {
 		return tree;
 	}
@@ -135,31 +139,12 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/**
-	 * Lock the tree that the given node belongs to. This cannot
-	 * be done by simply synchronizing on "common" because the
-	 * common may no longer be the nodes "common" when we actually
-	 * get the lock. 
-	 */
-	private void lockAndRun (ComponentNode node, Runnable runnable) {
-		while (true) {
-			ComponentTree common = node.tree;
-			synchronized (common) {
-				if (node.tree != common) {
-					continue;
-				}
-				runnable.run();
-				break;
-			}
-		}
-	}
-	
-	/**
 	 * Set the reference to the common properties of this component 
 	 * and all its children to the given value.
 	 * 
 	 * @param comp the new root
 	 */
-	private void setTree(ComponentTree tree) {
+	synchronized private void setTree(ComponentTree tree) {
 		this.tree = tree;
 		for (ComponentNode child: children) {
 			child.setTree(tree);
@@ -169,22 +154,19 @@ public abstract class ComponentNode implements Manager {
 	/**
 	 * Remove the component from the tree, making it a stand-alone tree.
 	 */
-	public Component detach() {
+	synchronized public Component detach() {
 		if (parent != null) {
 			ComponentNode oldParent = parent;
-			lockAndRun(this, new Runnable() {
-				@Override
-				public void run() {
+			synchronized (tree) {
+				synchronized (oldParent) {
 					parent.children.remove(ComponentNode.this);
 					parent.tree.clearHandlerCache();
-					parent = null;
-					ComponentTree newTree 
-						= new ComponentTree(ComponentNode.this);
-					synchronized (newTree) {
-						setTree(newTree);
-					}
+					parent = null;					
 				}
-			});
+				ComponentTree newTree 
+					= new ComponentTree(ComponentNode.this);
+				setTree(newTree);
+			}
 			Event e = new Detached(oldParent.getComponent(), getComponent());
 			oldParent.fire(e);
 			e = new Detached(oldParent.getComponent(), getComponent());
@@ -197,7 +179,7 @@ public abstract class ComponentNode implements Manager {
 	 * @see org.jdrupes.Manager#getChildren()
 	 */
 	@Override
-	public List<Component> getChildren() {
+	synchronized public List<Component> getChildren() {
 		List<Component> children = new ArrayList<Component>();
 		for (ComponentNode child: this.children) {
 			children.add(child.getComponent());
@@ -209,7 +191,7 @@ public abstract class ComponentNode implements Manager {
 	 * @see org.jdrupes.Manager#getParent()
 	 */
 	@Override
-	public Component getParent() {
+	synchronized public Component getParent() {
 		if (parent == null) {
 			return null;
 		}
@@ -228,35 +210,27 @@ public abstract class ComponentNode implements Manager {
 	 * @see org.jdrupes.Manager#addChild(Component)
 	 */
 	@Override
-	public Manager attach (Component child) {
+	synchronized public Manager attach (Component child) {
 		ComponentNode childNode = getComponentNode(child);
-		if (childNode == null) {
-			childNode = new ComponentProxy(child);
-		}
-		final ComponentNode cn = childNode;
-		lockAndRun(this, new Runnable() {
-			@Override
-			public void run() {
-				lockAndRun(cn, new Runnable() {
-					@Override
-					public void run() {
-						if (cn.parent != null) {
-							throw new IllegalStateException
-								("Cannot attach node with parent");
-						}
-						if (cn.tree.isStarted()) {
-							throw new IllegalStateException
-								("Cannot attach started subtree");
-						}
-						cn.parent = ComponentNode.this;
-						ComponentTree childTree = cn.getTree();
-						cn.setTree(tree);
-						children.add(cn);
-						tree.mergeEvents(childTree);
+		synchronized (childNode) {
+			synchronized (tree) {
+				synchronized (childNode.tree) {
+					if (childNode.parent != null) {
+						throw new IllegalStateException
+							("Cannot attach node with parent");
 					}
-				});
+					if (childNode.tree.isStarted()) {
+						throw new IllegalStateException
+							("Cannot attach started subtree");
+					}
+					childNode.parent = ComponentNode.this;
+					ComponentTree childCommon = childNode.getTree();
+					childNode.setTree(tree);
+					children.add(childNode);
+					tree.mergeEvents(childCommon);
+				}
 			}
-		});
+		}
 		Channel pChan = getChannel();
 		if (pChan == null) {
 			pChan = Channel.BROADCAST;

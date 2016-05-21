@@ -74,17 +74,17 @@ public class ComponentProxy extends ComponentNode {
 		return Channel.BROADCAST;
 	}
 	
-	public ComponentProxy(Component component) {
+	/**
+	 * Create a new component proxy for the component and assign it to 
+	 * the specified field which must be of type {@link Manager}.
+	 * 
+	 * @param field the field that gets the proxy assigned
+	 * @param component the component
+	 */
+	private ComponentProxy(Field field, Component component) {
 		this.component = component;
 		try {
-			Field field = getManagerField(component.getClass());
-			if (!field.isAccessible()) {
-				field.setAccessible(true);
-				field.set(component, this);
-				field.setAccessible(false);
-			} else {
-				field.set(component, this);
-			}
+			field.set(component, this);
 			componentChannel = getComponentChannel(field);
 			initComponentsHandlers();
 		} catch (SecurityException | IllegalAccessException e) {
@@ -104,12 +104,20 @@ public class ComponentProxy extends ComponentNode {
 		ComponentProxy componentProxy = null;
 		try {
 			Field field = getManagerField(component.getClass());
-			if (!field.isAccessible()) {
-				field.setAccessible(true);
-				componentProxy = (ComponentProxy)field.get(component);
-				field.setAccessible(false);
-			} else {
-				componentProxy = (ComponentProxy)field.get(component);
+			synchronized (component) {
+				if (!field.isAccessible()) {
+					field.setAccessible(true);
+					componentProxy = (ComponentProxy)field.get(component);
+					if (componentProxy == null) {
+						componentProxy = new ComponentProxy(field, component);
+					}
+					field.setAccessible(false);
+				} else {
+					componentProxy = (ComponentProxy)field.get(component);
+					if (componentProxy == null) {
+						componentProxy = new ComponentProxy(field, component);
+					}
+				}
 			}
 		} catch (SecurityException | IllegalAccessException e) {
 			throw (RuntimeException)(new IllegalArgumentException
