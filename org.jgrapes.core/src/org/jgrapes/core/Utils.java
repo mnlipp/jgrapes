@@ -18,7 +18,6 @@ package org.jgrapes.core;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
 import org.jgrapes.core.internal.ComponentNode;
-import org.jgrapes.core.internal.ComponentProxy;
 
 /**
  * @author mnl
