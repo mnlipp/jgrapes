@@ -59,7 +59,7 @@ public class HandlerReference implements Comparable<HandlerReference> {
 
 	@Override
 	public int compareTo(HandlerReference o) {
-		return getPriority() - o.getPriority();
+		return o.getPriority() - getPriority();
 	}
 
 	/**
