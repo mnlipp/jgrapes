@@ -43,7 +43,7 @@ public class PriorityTest {
 	}
 	
 	@Test
-	public void testComplete() {
+	public void testComplete() throws InterruptedException {
 		PrioritisedHandlers app = new PrioritisedHandlers();
 		Utils.start(app);
 		assertTrue(app.result.equals("Hello"));

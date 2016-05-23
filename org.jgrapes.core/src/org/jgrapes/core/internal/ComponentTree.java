@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.events.Start;
 
 /**
  * This class represents the component tree. It holds all properties that 
@@ -35,12 +34,7 @@ class ComponentTree {
 	private ComponentNode root;
 	private Map<EventChannelsTuple,HandlerList> handlerCache
 		= new HashMap<EventChannelsTuple,HandlerList>();
-	/** A non-null value indicates that no Started event has been 
-	 * received yet. */
-	private EventPipeline preStartEvents;
-	/** The event manager that we delegate to. */
-	private ThreadLocal<EventManager> eventManager
-		= new ThreadLocal<EventManager>();
+	private EventPipeline eventPipeline;
 
 	/**
 	 * Creates a new common object for the given mode or tree.
@@ -50,30 +44,32 @@ class ComponentTree {
 	ComponentTree(ComponentNode root) {
 		super();
 		this.root = root;
-		// Check whether common is created due to detach
+		// Check whether tree is created due to detach
 		if (root.getTree() == null) {
 			// Newly created node
-			preStartEvents = new EventPipeline();
+			eventPipeline = new EventBuffer(this);
 			return;
 		}
-		// Node already has common, so it is being detached from a tree
-		if (root.getTree().preStartEvents != null) {
-			// Tree has an event buffer, so it hasn't been started yet
+		// Node already has a tree. Creating a new tree for it means that
+		// it is being detached from a tree.
+		if (!root.getTree().isStarted()) {
 			throw new IllegalStateException
 				("Components may not be detached from a tree before"
 				 + " a Start event has been fired on it.");
 		}
-		// Detaching from a tree that has been started. Detached
-		// node or subtree keeps that started state.
-		preStartEvents = null;
+		eventPipeline = new EventProcessor(this);
 	}
 
 	ComponentNode getRoot() {
 		return root;
 	}
-
+	
 	boolean isStarted() {
-		return preStartEvents == null;
+		return !(eventPipeline instanceof EventBuffer);
+	}
+
+	void setEventPipeline(EventPipeline pipeline) {
+		eventPipeline = pipeline;
 	}
 	
 	/**
@@ -83,29 +79,18 @@ class ComponentTree {
 	 * @param channels
 	 */
 	public void fire(EventBase event, Channel[] channels) {
-		EventManager em = eventManager.get();
-		if (em == null) {
-			em = new EventManagerImpl(this);
-			eventManager.set(em);
-		}
-		em.fire(event, channels);
+		eventPipeline.add(event, channels);
 	}
 
 	/**
 	 * Merge all events stored with <code>source</code> with our own.
 	 * This is invoked if a component (or component tree) is attached 
 	 * to another tree (that uses this component common).
-	 * <P>
-	 * If both trees have not been started yet, events are simply
-	 * appended to our queue.
 	 * 
 	 * @param source
 	 */
 	void mergeEvents(ComponentTree source) {
-		if (preStartEvents != null && source.preStartEvents != null) {
-			preStartEvents.addAll(source.preStartEvents);
-			return;
-		}
+		eventPipeline.merge(source.eventPipeline);
 	}
 	
 	/**
@@ -114,12 +99,12 @@ class ComponentTree {
 	 * @param event the event
 	 * @param channels the channels the event is sent to
 	 */
-	void dispatch(EventManager mgr, EventBase event, Channel[] channels) {
-		HandlerList pipeline = getEventPipeline(event, channels);
-		pipeline.process(mgr, event);
+	void dispatch(EventPipeline pipeline, EventBase event, Channel[] channels) {
+		HandlerList handlers = getEventHandlers(event, channels);
+		handlers.process(pipeline, event);
 	}
 	
-	private HandlerList getEventPipeline
+	private HandlerList getEventHandlers
 		(EventBase event, Channel[] channels) {
 		EventChannelsTuple key = new EventChannelsTuple(event, channels);
 		HandlerList hdlrs = handlerCache.get(key);
@@ -137,38 +122,4 @@ class ComponentTree {
 		handlerCache.clear();
 	}
 
-	/**
-	 * Invoked to check whether event processing should start
-	 * for the component tree with this common object.
-	 * <P>
-	 * If event processing has been started, this method returns
-	 * a <code>Queue</code> with the <code>queueItem</code> as
-	 * single entry.
-	 * If event processing hasn't been started
-	 * yet for the tree and the <code>queueItem</code>
-	 * contains a {@link de.jdrupes.events.Started} event 
-	 * this method returns a queue with all previously buffered items
-	 * and the given <code>queueItem</code>. 
-	 * Else, this method bufferes the <code>queueItem</code>
-	 * and returns <code>null</code>.
-	 * 
-	 * @param queueItem
-	 * @return
-	 */
-	synchronized EventPipeline 
-		toBeProcessed (EventChannelsTuple queueItem) {
-		if (preStartEvents == null) {
-			EventPipeline pipeline = new EventPipeline();
-			pipeline.add(queueItem);
-			return pipeline;
-		}
-		if (queueItem.event instanceof Start) {
-			EventPipeline pipeline = preStartEvents;
-			preStartEvents = null;
-			pipeline.add(queueItem);
-			return pipeline;
-		}
-		preStartEvents.add(queueItem);
-		return null;
-	}
 }

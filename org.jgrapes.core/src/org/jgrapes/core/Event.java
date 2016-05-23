@@ -15,14 +15,11 @@
  */
 package org.jgrapes.core;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
-import org.jgrapes.core.events.AbstractCompletedEvent;
 import org.jgrapes.core.events.HandlingError;
 import org.jgrapes.core.internal.EventBase;
-import org.jgrapes.core.internal.EventManager;
+import org.jgrapes.core.internal.EventPipeline;
 import org.jgrapes.core.internal.Matchable;
 
 /**
@@ -88,38 +85,17 @@ public class Event extends EventBase {
 				&& ((Class<?>)handlerKey).isAssignableFrom(getClass());
 	}
 
-	public Event addCompletedEvent
-		(Class<? extends AbstractCompletedEvent> clazz) {
-		try {
-			for (Constructor<?> c: clazz.getConstructors()) {
-				if (c.getParameterTypes().length != 1) {
-					continue;
-				}
-				if (!Event.class.isAssignableFrom(c.getParameterTypes()[0])) {
-					continue;
-				}
-				setCompletedEvent ((Event)c.newInstance(this));
-				return this;
-			}
-			throw new IllegalArgumentException
-				("Class " + clazz.getName() + " has no <init>(Event)");
-		} catch (InstantiationException | IllegalAccessException
-				| InvocationTargetException | SecurityException e) {
-			throw (RuntimeException)
-				(new IllegalArgumentException()).initCause(e);
-		}
-	}
-	
 	/**
 	 * Implements the default behavior for handling events thrown
-	 * by handler. Fires a {@link HandlingError handling error} event
+	 * by a handler. Fires a {@link HandlingError handling error} event
 	 * for this event and the given throwable.
 	 * 
 	 * @see HandlingError
 	 */
 	@Override
-	protected void handlingError(EventManager mgr, Throwable throwable) {
-		mgr.fire(new HandlingError(this, throwable), getChannels());
+	protected void handlingError
+		(EventPipeline eventProcessor, Throwable throwable) {
+		eventProcessor.add(new HandlingError(this, throwable), getChannels());
 	}
 
 	/* (non-Javadoc)

@@ -35,7 +35,7 @@ public class EventTest {
 	}
 	
 	@Test
-	public void testComplete() {
+	public void testComplete() throws InterruptedException {
 		CompleteCatcher app = new CompleteCatcher();
 		Utils.start(app);
 		assertTrue(app.caughtStart);

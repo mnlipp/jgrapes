@@ -15,6 +15,9 @@
  */
 package org.jgrapes.core.events;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 import org.jgrapes.core.Event;
 
 /**
@@ -28,6 +31,36 @@ import org.jgrapes.core.Event;
 public abstract class AbstractCompletedEvent extends Event {
 	private Event completedEvent;
 
+	/**
+	 * Convenience method that creates a completed event for the given
+	 * event with the given type. 
+	 * 
+	 * @param event the event
+	 * @param clazz the type of the completed event
+	 * @return the event passed in as parameter (for method chaining)
+	 */
+	public static Event setCompletedEvent
+		(Event event, Class<? extends AbstractCompletedEvent> clazz) {
+		try {
+			for (Constructor<?> c: clazz.getConstructors()) {
+				if (c.getParameterTypes().length != 1) {
+					continue;
+				}
+				if (!Event.class.isAssignableFrom(c.getParameterTypes()[0])) {
+					continue;
+				}
+				event.setCompletedEvent ((Event)c.newInstance(event));
+				return event;
+			}
+			throw new IllegalArgumentException
+				("Class " + clazz.getName() + " has no <init>(Event)");
+		} catch (InstantiationException | IllegalAccessException
+				| InvocationTargetException | SecurityException e) {
+			throw (RuntimeException)
+				(new IllegalArgumentException()).initCause(e);
+		}
+	}
+		
 	/**
 	 * @param completedEvent
 	 */

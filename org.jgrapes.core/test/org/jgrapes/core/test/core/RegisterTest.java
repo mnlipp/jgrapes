@@ -33,7 +33,7 @@ public class RegisterTest {
 	}
 	
 	@Test
-	public void testPostStart() {
+	public void testPostStart() throws InterruptedException {
 		RegisterCatcher c1 = new RegisterCatcher();
 		RegisterCatcher c2 = new RegisterCatcher();
 		c1.attach(c2);

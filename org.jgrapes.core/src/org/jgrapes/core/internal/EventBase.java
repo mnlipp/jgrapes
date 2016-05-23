@@ -35,6 +35,8 @@ public abstract class EventBase implements Matchable {
 	private int openCount = 0;
 	/** The event to be fired upon completion. */
 	private Event completedEvent = null;
+	/** Set when the event has been completed. */
+	private boolean completed = false;
 	
 	/**
 	 * Returns <code>true</code> if the event is currently being handled.
@@ -48,11 +50,11 @@ public abstract class EventBase implements Matchable {
 	/**
 	 * Invoked when an exception occurs while invoking a handler for an event.
 	 * 
-	 * @param mgr the manager that has invoked the handler
+	 * @param eventProcessor the manager that has invoked the handler
 	 * @param throwable the exception that has been thrown by the handler
 	 */
 	protected abstract void handlingError
-		(EventManager mgr, Throwable throwable);
+		(EventPipeline eventProcessor, Throwable throwable);
 	
 	/**
 	 * If an event is fired while processing another event, note
@@ -71,25 +73,32 @@ public abstract class EventBase implements Matchable {
 	}
 
 	/**
-	 * @param mgr
+	 * @param pipeline
 	 */
-	public void decrementOpen(EventManagerImpl mgr) {
+	public void decrementOpen(EventPipeline pipeline) {
 		openCount -= 1;
 		if (openCount == 0) {
 			if (completedEvent != null) {
+				synchronized (completedEvent) {
+					completed = true;
+					completedEvent.notifyAll();
+				}
 				Channel[] completeChannels = completedEvent.getChannels();
 				if (completeChannels == null) {
 					completeChannels = channels;
 				}
-				mgr.fire(completedEvent, completeChannels);
+				pipeline.add(completedEvent, completeChannels);
 			}
 			if (generatedBy != null) {
-				generatedBy.decrementOpen(mgr);
+				generatedBy.decrementOpen(pipeline);
 			}
 		}
 	}
 
 	/**
+	 * Returns the event to be thrown when this event and all events caused
+	 * by it have been handled.
+	 * 
 	 * @return the completedEvent
 	 */
 	public Event getCompletedEvent() {
@@ -97,9 +106,61 @@ public abstract class EventBase implements Matchable {
 	}
 
 	/**
+	 * Sets the event to be thrown when this event and all events caused
+	 * by it have been handled.
+	 * 
 	 * @param completedEvent the completedEvent to set
+	 * @throws IllegalStateException if a completed event has already been set
 	 */
 	public void setCompletedEvent(Event completedEvent) {
+		// The completed event may not be changed because other threads
+		// may be waiting on it (see awaitCompleted).
+		if (this.completedEvent != null) {
+			throw new IllegalStateException
+				("The completed event may not be changed.");
+		}
 		this.completedEvent = completedEvent;
+	}
+
+	/**
+	 * Check if this event has been completed.
+	 * 
+	 * @return the completed state
+	 */
+	public boolean isCompleted() {
+		return completed;
+	}
+
+	/**
+	 * Similar to calling <code>awaitComplted(0)</code>.
+	 * 
+	 * @throws IllegalStateException
+	 * @throws InterruptedException
+	 */
+	public void awaitCompleted() 
+			throws IllegalStateException, InterruptedException {
+		awaitCompleted(0);
+	}
+
+	/**
+	 * Causes the invoking thread to wait until the processing of the 
+	 * event has been completed or given timeout has expired. 
+	 *  
+	 * @param timeout the maximum time to wait; if 0, wait forever
+	 * @throws IllegalStateException if no completed event has been set
+	 * @throws InterruptedException if the calling thread is interrupted
+	 */
+	public void awaitCompleted(long timeout) 
+			throws IllegalStateException, InterruptedException {
+		if (completedEvent == null) {
+			throw new IllegalStateException
+				("Cannot await completion without completed event.");
+		}
+		synchronized (completedEvent) {
+			if (completed) {
+				return;
+			}
+			completedEvent.wait();
+		}
 	}
 }

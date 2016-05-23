@@ -31,7 +31,7 @@ public class ErrorTest {
 	}
 	
 	@Test
-	public void testComplete() {
+	public void testComplete() throws InterruptedException {
 		BuggyComponent app = new BuggyComponent();
 		Utils.start(app);
 		assertTrue(app.caughtError);

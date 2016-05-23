@@ -17,26 +17,28 @@
  */
 package org.jgrapes.core.internal;
 
+import java.util.ArrayDeque;
+
 import org.jgrapes.core.Channel;
 
 /**
+ * This class provides a queue for events and the channels that they have
+ * been fired on.
+ * 
  * @author Michael N. Lipp
  */
-public interface EventPipeline {
+@SuppressWarnings("serial")
+class EventQueue extends ArrayDeque<EventChannelsTuple> {
 
 	/**
-	 * Send the given event to components listening for such events on
-	 * the given channels.
+	 * Convenience method that creates a {@link EventChannelsTuple}
+	 * from the parameters and adds it to the queue.
 	 * 
-	 * @param event the event to process
-	 * @param channels the channels that the event was fired on
+	 * @param event the event
+	 * @param channels the channels
 	 */
-	void add(EventBase event, Channel... channels);
-
-	/**
-	 * Merge the events from the other event pipeline into this one.
-	 * 
-	 * @param other the other event pipeline
-	 */
-	void merge (EventPipeline other);	
+	public void add (EventBase event, Channel[] channels) {
+		add (new EventChannelsTuple(event, channels));
+	}
+	
 }

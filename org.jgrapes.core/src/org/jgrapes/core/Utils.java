@@ -15,6 +15,7 @@
  */
 package org.jgrapes.core;
 
+import org.jgrapes.core.events.AbstractCompletedEvent;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
 import org.jgrapes.core.internal.ComponentNode;
@@ -49,14 +50,17 @@ public class Utils {
 	/**
 	 * Fires a {@link Start} event with an associated
 	 * {@link Started} completion event on the broadcast channel
-	 * of the given application. 
+	 * of the given application and wait for the completion of the
+	 * <code>Start</code> event.
 	 * 
 	 * @param application the application to start
 	 */
-	public static void start(Component application) {
-		manager(application).fire
-			((new Start()).addCompletedEvent(Started.class),
-			 Channel.BROADCAST);
+	public static void start(Component application) 
+			throws InterruptedException {
+		Event event = AbstractCompletedEvent
+				.setCompletedEvent(new Start(), Started.class);
+		manager(application).fire(event , Channel.BROADCAST);
+		event.awaitCompleted();
 	}
 	
 }

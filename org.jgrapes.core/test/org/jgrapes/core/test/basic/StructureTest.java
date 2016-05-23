@@ -67,7 +67,7 @@ public class StructureTest {
 	}
 	
 	@Test
-	public void testDetach() {
+	public void testDetach() throws InterruptedException {
 		TestComponent1 c = new TestComponent1("root");
 		Utils.start(c);
 		TestComponent1 c1 = new TestComponent1("sub1");
@@ -88,7 +88,7 @@ public class StructureTest {
 	}
 	
 	@Test
-	public void testMove() {
+	public void testMove() throws InterruptedException {
 		TestComponent1 c = new TestComponent1("root");
 		Utils.start(c);
 		Utils.manager(c).attach(subtree1(1)).attach(subtree1(4));

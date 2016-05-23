@@ -24,14 +24,20 @@ import java.util.ArrayList;
  *
  */
 @SuppressWarnings("serial")
-public class HandlerList extends ArrayList<HandlerReference> {
+class HandlerList extends ArrayList<HandlerReference> {
 
-	public void process(EventManager mgr, EventBase event) {
+	/**
+	 * Invoke all handlers with the given event as parameter.
+	 * 
+	 * @param eventProcessor
+	 * @param event the event
+	 */
+	public void process(EventPipeline eventPipeline, EventBase event) {
 		for (HandlerReference hdlr: this) {
 			try {
 				hdlr.invoke(event);
 			} catch (Throwable t) {
-				event.handlingError(mgr, t);
+				event.handlingError(eventPipeline, t);
 			}
 		}
 	}
