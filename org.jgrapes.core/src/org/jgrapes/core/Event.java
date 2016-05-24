@@ -62,7 +62,7 @@ public class Event extends EventBase {
 	 * this event has been fired
 	 */
 	public void setChannels(Channel[] channels) {
-		if (currentlyHandled()) {
+		if (enqueued()) {
 			throw new IllegalStateException
 				("Channels cannot be changed after fire");
 		}
