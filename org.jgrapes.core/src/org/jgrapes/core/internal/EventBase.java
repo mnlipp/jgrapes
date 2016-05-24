@@ -42,11 +42,11 @@ public abstract class EventBase implements Matchable {
 	private boolean completed = false;
 	
 	/**
-	 * Returns <code>true</code> if the event is currently being handled.
+	 * Returns <code>true</code> if the event has been enqueued in a pipeline.
 	 * 
 	 * @return the result
 	 */
-	protected boolean currentlyHandled() {
+	protected boolean enqueued() {
 		return openCount > 0;
 	}
 	
@@ -104,7 +104,7 @@ public abstract class EventBase implements Matchable {
 	 * 
 	 * @return the completedEvent
 	 */
-	public Event getInitialEvent() {
+	public Event getCompletedEvent() {
 		return completedEvent;
 	}
 
