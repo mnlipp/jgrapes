@@ -59,6 +59,8 @@ public class EventBuffer implements MergingEventPipeline {
 			processor.add(event, channels);
 			return;
 		}
+		// Event gets enqueued (increments reference count).
+		((EventBase)event).generatedBy(null);
 		buffered.add(event, channels);
 		if (event instanceof Start) {
 			processor = new EventProcessor(componentTree);

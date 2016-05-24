@@ -46,15 +46,21 @@ public class EventProcessor implements MergingEventPipeline, Runnable {
 	@Override
 	public void add(EventBase event, Channel... channels) {
 		EventProcessor pipeline = currentPipeline.get();
-		if (pipeline != null) {
-			// If there is a pipeline, associated with the current thread, 
+		if (pipeline == this) {
+			// If this pipeline is associated with the current thread, 
 			// the event has been fired while processing some previous 
-			// (triggering) event. Simply add the new event at the end of 
-			// the queue, noting the event currently being processed 
-			// (if any) as cause. 
+			// (triggering) event from this pipeline. Simply add the 
+			// new event at the end of the queue, noting the event currently
+			// being processed (if any) as cause. 
 			((EventBase)event).generatedBy(currentlyHandling);
-			pipeline.queue.add(event, channels);
+			synchronized (queue) {
+				queue.add(event, channels);
+			}
+			return;
 		}
+		// Event is being added from a thread that is not the thread
+		// running this pipeline (if any).
+		((EventBase)event).generatedBy(null);
 		synchronized (queue) {
 			boolean wasEmpty = queue.isEmpty();
 			queue.add(event, channels);
