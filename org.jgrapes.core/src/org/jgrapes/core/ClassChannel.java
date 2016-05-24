@@ -83,6 +83,10 @@ public class ClassChannel implements Channel {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName()
-				+ " [matchKey=" + getMatchKey() + "]";
+				+ " [matchKey=" 
+				+ ((getMatchKey() instanceof Class)
+					?  ((Class<?>)getMatchKey()).getSimpleName()
+					: getMatchKey())
+				+ "]";
 	}
 }

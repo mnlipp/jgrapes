@@ -119,4 +119,22 @@ public class EventProcessor implements MergingEventPipeline, Runnable {
 			currentPipeline.set(null);
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("EventProcessor [");
+		if (queue != null) {
+			builder.append("queue=");
+			builder.append(queue);
+			builder.append(", ");
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+	
+	
 }

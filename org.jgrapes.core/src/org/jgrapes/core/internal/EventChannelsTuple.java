@@ -76,4 +76,26 @@ public class EventChannelsTuple {
 			return false;
 		return true;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("EventChannelsTuple [");
+		if (event != null) {
+			builder.append("event=");
+			builder.append(event);
+			builder.append(", ");
+		}
+		if (channels != null) {
+			builder.append("channels=");
+			builder.append(Arrays.toString(channels));
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+	
+	
 }

@@ -74,4 +74,19 @@ public class EventBuffer implements MergingEventPipeline {
 		buffered = new EventQueue();
 		return old;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("EventBuffer [");
+		if (buffered != null) {
+			builder.append("buffered=");
+			builder.append(buffered);
+		}
+		builder.append("]");
+		return builder.toString();
+	}
 }

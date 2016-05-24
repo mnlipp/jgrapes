@@ -134,12 +134,12 @@ public class Event extends EventBase {
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append(getClass().getSimpleName() + " [");
-		result.append("matchKey=" + getMatchKey());
+		result.append("matchKey="
+				+ ((getMatchKey() instanceof Class)
+						?  ((Class<?>)getMatchKey()).getSimpleName()
+						: getMatchKey()));
 		if (getChannels() != null) {
 			result.append(", " + "channels=" + Arrays.toString(getChannels())); 
-		}
-		if (getCompletedEvent() != null) {
-			result.append(", " + "completedEvent=" + getCompletedEvent());
 		}
 		result.append("]");
 		return result.toString();

@@ -18,6 +18,8 @@
 package org.jgrapes.core.internal;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collections;
 
 import org.jgrapes.core.Channel;
 
@@ -40,5 +42,14 @@ class EventQueue extends ArrayDeque<EventChannelsTuple> {
 	public void add (EventBase event, Channel[] channels) {
 		add (new EventChannelsTuple(event, channels));
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return Arrays.toString(toArray());
+	}
+	
 	
 }

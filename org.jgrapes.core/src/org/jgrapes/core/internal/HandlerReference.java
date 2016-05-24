@@ -144,4 +144,34 @@ public class HandlerReference implements Comparable<HandlerReference> {
 			return false;
 		return true;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("HandlerReference [");
+		if (method != null) {
+			builder.append("method=");
+			builder.append(method);
+			builder.append(", ");
+		}
+		if (eventKey != null) {
+			builder.append("eventKey=");
+			builder.append(eventKey);
+			builder.append(", ");
+		}
+		if (channelKey != null) {
+			builder.append("channelKey=");
+			builder.append(channelKey);
+			builder.append(", ");
+		}
+		builder.append("priority=");
+		builder.append(priority);
+		builder.append("]");
+		return builder.toString();
+	}
+	
+	
 }
