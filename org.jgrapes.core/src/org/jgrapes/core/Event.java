@@ -70,7 +70,7 @@ public class Event extends EventBase {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.MatchKeyProvider#getMatchKey()
+	 * @see org.jdrupes.core.internal.Matchable#getMatchKey()
 	 */
 	@Override
 	public Object getMatchKey() {
@@ -132,11 +132,16 @@ public class Event extends EventBase {
 	 */
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() 
-				+ " [matchKey=" + getMatchKey() + ", channels="
-				+ Arrays.toString(getChannels()) + ", completedEvent="
-				+ getInitialEvent() + "]";
-	}
-	
-	
+		StringBuffer result = new StringBuffer();
+		result.append(getClass().getSimpleName() + "[");
+		result.append("matchKey=" + getMatchKey());
+		if (getChannels() != null) {
+			result.append(", " + "channels=" + Arrays.toString(getChannels())); 
+		}
+		if (getCompletedEvent() != null) {
+			result.append(", " + "completedEvent=" + getCompletedEvent());
+		}
+		result.append("]");
+		return result.toString();
+	}	
 }

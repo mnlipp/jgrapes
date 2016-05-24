@@ -52,7 +52,14 @@ public interface Channel extends Matchable {
 		public Object getMatchKey() {
 			return Channel.class;
 		}
-		
+
+		/* (non-Javadoc)
+		 * @see org.jgrapes.core.ClassChannel#toString()
+		 */
+		@Override
+		public String toString() {
+			return "BROADCAST";
+		}
 	};
 
 }

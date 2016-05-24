@@ -68,7 +68,7 @@ final public class NamedChannel implements Channel {
 	 */
 	@Override
 	public String toString() {
-		return "NamedChannel [name=" + name + "]";
+		return "NamedChannel[name=" + name + "]";
 	}
 
 	/* (non-Javadoc)
