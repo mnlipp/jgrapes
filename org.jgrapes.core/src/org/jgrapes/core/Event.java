@@ -19,7 +19,6 @@ import java.util.Arrays;
 
 import org.jgrapes.core.events.HandlingError;
 import org.jgrapes.core.internal.EventBase;
-import org.jgrapes.core.internal.EventPipeline;
 import org.jgrapes.core.internal.Matchable;
 
 /**

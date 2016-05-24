@@ -21,11 +21,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.EventPipeline;
 
 /**
  * @author Michael N. Lipp
  */
-public class EventProcessor implements EventPipeline, Runnable {
+public class EventProcessor implements MergingEventPipeline, Runnable {
 
 	private static ExecutorService executorService 
 		= Executors.newCachedThreadPool();

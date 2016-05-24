@@ -15,33 +15,21 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.core.internal;
+package org.jgrapes.core;
 
-import java.util.ArrayList;
-
-import org.jgrapes.core.EventPipeline;
+import org.jgrapes.core.internal.EventBase;
 
 /**
  * @author Michael N. Lipp
- *
  */
-@SuppressWarnings("serial")
-class HandlerList extends ArrayList<HandlerReference> {
+public interface EventPipeline {
 
 	/**
-	 * Invoke all handlers with the given event as parameter.
+	 * Send the given event to components listening for such events on
+	 * the given channels.
 	 * 
-	 * @param eventProcessor
-	 * @param event the event
+	 * @param event the event to process
+	 * @param channels the channels that the event was fired on
 	 */
-	public void process(EventPipeline eventPipeline, EventBase event) {
-		for (HandlerReference hdlr: this) {
-			try {
-				hdlr.invoke(event);
-			} catch (Throwable t) {
-				event.handlingError(eventPipeline, t);
-			}
-		}
-	}
-
+	void add(EventBase event, Channel... channels);
 }

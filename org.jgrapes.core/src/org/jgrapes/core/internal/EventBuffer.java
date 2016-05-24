@@ -18,6 +18,7 @@
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.events.Start;
 
 /**
@@ -26,7 +27,7 @@ import org.jgrapes.core.events.Start;
  * 
  * @author Michael N. Lipp
  */
-public class EventBuffer implements EventPipeline {
+public class EventBuffer implements MergingEventPipeline {
 	
 	private ComponentTree componentTree;
 	/** Buffered events. */

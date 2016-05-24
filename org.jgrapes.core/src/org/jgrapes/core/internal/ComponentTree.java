@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.EventPipeline;
 
 /**
  * This class represents the component tree. It holds all properties that 
@@ -34,7 +35,7 @@ class ComponentTree {
 	private ComponentNode root;
 	private Map<EventChannelsTuple,HandlerList> handlerCache
 		= new HashMap<EventChannelsTuple,HandlerList>();
-	private EventPipeline eventPipeline;
+	private MergingEventPipeline eventPipeline;
 
 	/**
 	 * Creates a new common object for the given mode or tree.
@@ -68,7 +69,7 @@ class ComponentTree {
 		return !(eventPipeline instanceof EventBuffer);
 	}
 
-	void setEventPipeline(EventPipeline pipeline) {
+	void setEventPipeline(MergingEventPipeline pipeline) {
 		eventPipeline = pipeline;
 	}
 	

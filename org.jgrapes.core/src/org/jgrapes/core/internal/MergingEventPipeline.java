@@ -17,21 +17,15 @@
  */
 package org.jgrapes.core.internal;
 
-import org.jgrapes.core.Channel;
+import org.jgrapes.core.EventPipeline;
 
 /**
+ * Implemented by event pipelines that can merge the events from another
+ * event pipeline.
+ * 
  * @author Michael N. Lipp
  */
-public interface EventPipeline {
-
-	/**
-	 * Send the given event to components listening for such events on
-	 * the given channels.
-	 * 
-	 * @param event the event to process
-	 * @param channels the channels that the event was fired on
-	 */
-	void add(EventBase event, Channel... channels);
+interface MergingEventPipeline extends EventPipeline {
 
 	/**
 	 * Merge the events from the other event pipeline into this one.
@@ -39,4 +33,5 @@ public interface EventPipeline {
 	 * @param other the other event pipeline
 	 */
 	void merge (EventPipeline other);	
+
 }

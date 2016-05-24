@@ -17,6 +17,7 @@ package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.EventPipeline;
 
 /**
  * @author mnl
