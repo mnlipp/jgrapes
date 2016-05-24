@@ -1,17 +1,19 @@
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * JGrapes Event Driven Framework
+ * Copyright (C) 2016  Michael N. Lipp
+ * 
+ * This program is free software; you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation; either version 3 of the License, or 
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * 
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ * for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along 
+ * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 package org.jgrapes.core;
 
@@ -27,6 +29,9 @@ import java.util.List;
  * Components that only implement the {@link Component} interface
  * get an associated <code>Manager</code> assigned to their annotated 
  * attribute.
+ * 
+ * @author Michael N. Lipp
+ * @see Component
  */
 public interface Manager extends Iterable<Component> {
 
@@ -96,7 +101,12 @@ public interface Manager extends Iterable<Component> {
 	 * specify channels either, the event is fired on the 
 	 * channel of the component managed by this manager 
 	 * (see {@link #getChannel()}). As last resort, the
-	 * event is fired on the broadcast channel. 
+	 * event is fired on the broadcast channel.
+	 * <P>
+	 * If an event is fired inside an event handler, it is added to the
+	 * {@link EventPipeline} that has invoked the handler. If an event is fired
+	 * by some other thread (not associated with a pipeline), a new pipeline
+	 * is created for handling the event (and any events triggered by it). 
 	 * 
 	 * @param event the event to fire
 	 * @param channels the channels to fire the event on

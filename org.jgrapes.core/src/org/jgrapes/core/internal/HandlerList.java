@@ -22,8 +22,9 @@ import java.util.ArrayList;
 import org.jgrapes.core.EventPipeline;
 
 /**
+ * A list of handlers for a given event type and set of channels.
+ * 
  * @author Michael N. Lipp
- *
  */
 @SuppressWarnings("serial")
 class HandlerList extends ArrayList<HandlerReference> {

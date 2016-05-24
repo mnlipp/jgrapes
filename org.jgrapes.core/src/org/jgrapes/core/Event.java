@@ -1,17 +1,19 @@
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * JGrapes Event Driven Framework
+ * Copyright (C) 2016  Michael N. Lipp
+ * 
+ * This program is free software; you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation; either version 3 of the License, or 
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * 
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ * for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along 
+ * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 package org.jgrapes.core;
 
@@ -24,14 +26,14 @@ import org.jgrapes.core.internal.Matchable;
 /**
  * The base class for all events. Event classes form a hierarchy.
  * By default (i.e. as implemented by this class), the event's class 
- * (type) is used for matching. A handler is invoked if its event 
- * class is equal to or a base class of the class of the event 
+ * (type) is used for matching. A handler is invoked if the class of the
+ * event handled by it is equal to or a base class of the class of the event 
  * to be handled. 
  * <P>
  * This default behavior can be changed by overriding the methods
  * from {@link Matchable}. See {@link NamedEvent} as an example.
  * 
- * @author mnl
+ * @author Michael N. Lipp
  */
 public class Event extends EventBase {
 
@@ -133,7 +135,7 @@ public class Event extends EventBase {
 		return getClass().getSimpleName() 
 				+ " [matchKey=" + getMatchKey() + ", channels="
 				+ Arrays.toString(getChannels()) + ", completedEvent="
-				+ getCompletedEvent() + "]";
+				+ getInitialEvent() + "]";
 	}
 	
 	

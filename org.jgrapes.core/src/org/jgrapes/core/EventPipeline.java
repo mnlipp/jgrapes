@@ -20,13 +20,21 @@ package org.jgrapes.core;
 import org.jgrapes.core.internal.EventBase;
 
 /**
+ * An event pipeline is a queue of events that are sent to the components
+ * of the associated tree. Any events fired by the components while handling
+ * an event from the pipeline are added at the end of the pipeline.
+ * <P>
+ * An event pipeline is run by a single thread from a thread pool. Adding
+ * several events to the same pipeline therefore ensures that they are executed
+ * in sequence.
+ * 
  * @author Michael N. Lipp
  */
 public interface EventPipeline {
 
 	/**
-	 * Send the given event to components listening for such events on
-	 * the given channels.
+	 * Add an event to be sent to components listening for such events on
+	 * the given channels to the end of the queue.
 	 * 
 	 * @param event the event to process
 	 * @param channels the channels that the event was fired on

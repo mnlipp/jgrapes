@@ -1,17 +1,19 @@
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * JGrapes Event Driven Framework
+ * Copyright (C) 2016  Michael N. Lipp
+ * 
+ * This program is free software; you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation; either version 3 of the License, or 
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * 
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ * for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along 
+ * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 package org.jgrapes.core.events;
 
@@ -26,14 +28,14 @@ import org.jgrapes.core.Event;
  * as attribute. This class handles this attribute and can be used as
  * a convenient base class.
  * 
- * @author mnl
+ * @author Michael N. Lipp
  */
 public abstract class AbstractCompletedEvent extends Event {
-	private Event completedEvent;
+	private Event initialEvent;
 
 	/**
-	 * Convenience method that creates a completed event for the given
-	 * event with the given type. 
+	 * Convenience method that creates ans sets a completed event for the given
+	 * event with the given type.
 	 * 
 	 * @param event the event
 	 * @param clazz the type of the completed event
@@ -62,17 +64,20 @@ public abstract class AbstractCompletedEvent extends Event {
 	}
 		
 	/**
-	 * @param completedEvent
+	 * Create a new event that is to be fired upon the completion of the
+	 * given (initial) event.
+	 * 
+	 * @param initialEvent
 	 */
-	protected AbstractCompletedEvent(Event completedEvent) {
+	protected AbstractCompletedEvent(Event initialEvent) {
 		super();
-		this.completedEvent = completedEvent;
+		this.initialEvent = initialEvent;
 	}
 
 	/**
-	 * @return the completedEvent
+	 * @return the initialEvent
 	 */
-	public Event getCompletedEvent() {
-		return completedEvent;
+	public Event getInitialEvent() {
+		return initialEvent;
 	}
 }

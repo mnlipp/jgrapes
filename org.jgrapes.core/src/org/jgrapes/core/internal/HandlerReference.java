@@ -24,8 +24,9 @@ import java.lang.reflect.Method;
 import org.jgrapes.core.Component;
 
 /**
+ * A reference to a method that handles an event.
+ * 
  * @author Michael N. Lipp
- *
  */
 public class HandlerReference implements Comparable<HandlerReference> {
 
@@ -35,10 +36,13 @@ public class HandlerReference implements Comparable<HandlerReference> {
 	private int priority;
 	
 	/**
-	 * @param eventKey
-	 * @param channelKey
-	 * @param method
-	 * @param priority
+	 * Create a new handler reference to a component's method that 
+	 * handles the given kind of event on the given channel.
+	 * 
+	 * @param eventKey the kind of event handled
+	 * @param channelKey the channel listening to
+	 * @param method the method to be invoked
+	 * @param priority the handler's priority
 	 */
 	public HandlerReference(Object eventKey, Object channelKey,	
 			Component component, Method method, int priority) {

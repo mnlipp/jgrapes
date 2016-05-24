@@ -24,6 +24,8 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 
 /**
+ * This class provides the default implementation of an {@link EventPipeline}.
+ * 
  * @author Michael N. Lipp
  */
 public class EventProcessor implements MergingEventPipeline, Runnable {
