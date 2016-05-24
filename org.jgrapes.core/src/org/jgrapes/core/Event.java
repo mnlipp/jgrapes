@@ -132,7 +132,7 @@ public class Event extends EventBase {
 	 */
 	@Override
 	public String toString() {
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		result.append(getClass().getSimpleName() + " [");
 		result.append("matchKey=" + getMatchKey());
 		if (getChannels() != null) {
