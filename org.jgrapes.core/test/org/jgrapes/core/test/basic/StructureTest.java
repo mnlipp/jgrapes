@@ -88,23 +88,6 @@ public class StructureTest {
 	}
 	
 	@Test
-	public void testMove() throws InterruptedException {
-		TestComponent1 c = new TestComponent1("root");
-		Utils.start(c);
-		Utils.manager(c).attach(subtree1(1)).attach(subtree1(4));
-		Iterator<Component> iter = c.getManager().getChildren().iterator();
-		assertEquals("node 1", iter.next().toString());
-		assertEquals("node 4", iter.next().toString());
-		TestComponent1 sub1 = (TestComponent1)
-				c.getManager().getChildren().iterator().next();
-		Utils.manager(sub1).detach();
-		c.getManager().attach(sub1);
-		iter = c.getManager().getChildren().iterator();
-		assertEquals("node 4", iter.next().toString());
-		assertEquals("node 1", iter.next().toString());
-	}
-
-	@Test
 	public void testIterator() {
 		TestComponent1 c = subtree1(0);
 		Iterator<Component> iter = c.getManager().getChildren().iterator();

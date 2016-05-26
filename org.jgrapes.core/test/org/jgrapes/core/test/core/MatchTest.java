@@ -17,6 +17,8 @@ package org.jgrapes.core.test.core;
 
 import static org.junit.Assert.*;
 
+import org.jgrapes.core.Event;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.Utils;
@@ -34,57 +36,57 @@ import org.junit.Test;
 public class MatchTest {
 
 	@Test
-	public void testEventCounter() {
+	public void testEventCounter() throws InterruptedException {
 		EventCounter app = new EventCounter();
-		Utils.manager(app).fire(new Start());
+		EventPipeline pipeline = Utils.manager(app).newSyncEventPipeline();
+		pipeline.add(new Start());
 		assertEquals(1, app.startedGlobal);
 		assertEquals(0, app.startedTest1);
 		assertEquals(0, app.named1Global);
 		assertEquals(0, app.named1Test1);
 		assertEquals(0, app.startedComponent);
-		assertEquals(1, app.all);
-		Utils.manager(app).fire(new Start(), new NamedChannel("test1"));
+		assertEquals(2, app.all); // Start and Started
+		pipeline.add(new Start(), new NamedChannel("test1"));
 		assertEquals(2, app.startedGlobal);
 		assertEquals(1, app.startedTest1);
 		assertEquals(0, app.named1Global);
 		assertEquals(0, app.named1Test1);
 		assertEquals(0, app.startedComponent);
-		assertEquals(2, app.all);
-		Utils.manager(app).fire(new NamedEvent("named1"));
+		assertEquals(4, app.all);	// Start and Started
+		pipeline.add(new NamedEvent("named1"));
 		assertEquals(2, app.startedGlobal);
 		assertEquals(1, app.startedTest1);
 		assertEquals(1, app.named1Global);
 		assertEquals(0, app.named1Test1);
 		assertEquals(0, app.startedComponent);
-		assertEquals(3, app.all);
-		Utils.manager(app).fire(new NamedEvent("named1"), 
-				new NamedChannel("test1"));
+		assertEquals(5, app.all);	// NamedEvent
+		pipeline.add(new NamedEvent("named1"), new NamedChannel("test1"));
 		assertEquals(2, app.startedGlobal);
 		assertEquals(1, app.startedTest1);
 		assertEquals(2, app.named1Global);
 		assertEquals(1, app.named1Test1);
 		assertEquals(0, app.startedComponent);
-		assertEquals(4, app.all);
-		Utils.manager(app).fire(new Start(), app);
+		assertEquals(6, app.all);	// NamedEvent
+		pipeline.add(new Start(), app);
 		assertEquals(3, app.startedGlobal);
 		assertEquals(1, app.startedTest1);
 		assertEquals(2, app.named1Global);
 		assertEquals(1, app.named1Test1);
 		assertEquals(1, app.startedComponent);
-		assertEquals(5, app.all);
-		Utils.manager(app).fire(new Start(), app);
+		assertEquals(8, app.all);	// Start and Started
+		pipeline.add(new Start(), app);
 		assertEquals(4, app.startedGlobal);
 		assertEquals(1, app.startedTest1);
 		assertEquals(2, app.named1Global);
 		assertEquals(1, app.named1Test1);
 		assertEquals(2, app.startedComponent);
-		assertEquals(6, app.all);
+		assertEquals(10, app.all);	// Start and Started
 	}
 
 	@Test
-	public void testWOChannel() {
+	public void testWOChannel() throws InterruptedException {
 		ComponentWOChannel app = new ComponentWOChannel();
-		Utils.manager(app).fire(new Start());
+		Utils.start(app);
 		assertEquals(1, app.count);
 	}
 	

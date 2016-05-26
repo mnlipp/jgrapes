@@ -37,38 +37,6 @@ import org.jgrapes.core.internal.Matchable;
  */
 public class Event extends EventBase {
 
-	/**
-	 * Returns the channels associated with the event. Before an
-	 * event has been fired, this returns the channels set with
-	 * {@link #setChannels(Channel[])}. After an event has been
-	 * fired, this returns the channels that the event has
-	 * effectively been fired on 
-	 * (see {@link Manager#fire(Event, Channel...)}).
-	 * 
-	 * @return the channels
-	 */
-	public Channel[] getChannels() {
-		return channels;
-	}
-
-	/**
-	 * Sets the channels that the event is fired on if no channels
-	 * are specified explicitly when firing the event
-	 * (see {@link org.jgrapes.core.Manager#fire(Event, Channel...)}).
-	 * 
-	 * @param channels the channels to set
-	 * 
-	 * @throws IllegalStateException if the method is called after
-	 * this event has been fired
-	 */
-	public void setChannels(Channel[] channels) {
-		if (enqueued()) {
-			throw new IllegalStateException
-				("Channels cannot be changed after fire");
-		}
-		this.channels = channels;
-	}
-
 	/* (non-Javadoc)
 	 * @see org.jdrupes.core.internal.Matchable#getMatchKey()
 	 */

@@ -33,11 +33,9 @@ public class EventProcessor implements MergingEventPipeline, Runnable {
 	private static ExecutorService executorService 
 		= Executors.newCachedThreadPool();
 	
-	private static ThreadLocal<EventProcessor> 
-		currentPipeline = new ThreadLocal<>();
 	private ComponentTree componentTree;
-	private EventQueue queue = new EventQueue();
-	private EventBase currentlyHandling = null;
+	protected EventQueue queue = new EventQueue();
+	protected EventBase currentlyHandling = null;
 	
 	EventProcessor (ComponentTree tree) {
 		this.componentTree = tree;
@@ -45,22 +43,7 @@ public class EventProcessor implements MergingEventPipeline, Runnable {
 
 	@Override
 	public void add(EventBase event, Channel... channels) {
-		EventProcessor pipeline = currentPipeline.get();
-		if (pipeline == this) {
-			// If this pipeline is associated with the current thread, 
-			// the event has been fired while processing some previous 
-			// (triggering) event from this pipeline. Simply add the 
-			// new event at the end of the queue, noting the event currently
-			// being processed (if any) as cause. 
-			((EventBase)event).generatedBy(currentlyHandling);
-			synchronized (queue) {
-				queue.add(event, channels);
-			}
-			return;
-		}
-		// Event is being added from a thread that is not the thread
-		// running this pipeline (if any).
-		((EventBase)event).generatedBy(null);
+		((EventBase)event).generatedBy(currentlyHandling);
 		synchronized (queue) {
 			boolean wasEmpty = queue.isEmpty();
 			queue.add(event, channels);
@@ -72,19 +55,14 @@ public class EventProcessor implements MergingEventPipeline, Runnable {
 
 	@Override
 	public void merge(EventPipeline other) {
-		if (other instanceof EventBuffer) {
-			add(((EventBuffer) other).retrieveEvents());
+		if (!(other instanceof EventBuffer)) {
+			throw new IllegalArgumentException
+				("Can only merge events from an EventBuffer.");
 		}
-		throw new IllegalArgumentException
-			("Can only merge events from an EventBuffer.");
+		add(((EventBuffer) other).retrieveEvents());
 	}
 
 	void add(EventQueue source) {
-		EventProcessor pipeline = currentPipeline.get();
-		if (pipeline != null) {
-			pipeline.queue.addAll(source);
-			source.clear();
-		}
 		synchronized (queue) {
 			boolean wasEmpty = queue.isEmpty();
 			queue.addAll(source);
@@ -101,7 +79,7 @@ public class EventProcessor implements MergingEventPipeline, Runnable {
 			return;
 		}
 		try {
-			currentPipeline.set(this);
+			FeedBackPipelineFilter.setAssociatedPipeline(this);
 			while (true) {
 				EventChannelsTuple next = queue.peek();
 				currentlyHandling = next.event;
@@ -116,7 +94,7 @@ public class EventProcessor implements MergingEventPipeline, Runnable {
 			}
 		} finally {
 			currentlyHandling = null;
-			currentPipeline.set(null);
+			FeedBackPipelineFilter.setAssociatedPipeline(null);
 		}
 	}
 

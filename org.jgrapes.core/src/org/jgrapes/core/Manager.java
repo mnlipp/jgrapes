@@ -143,4 +143,25 @@ public interface Manager extends Iterable<Component> {
 	 * with priority 0.
 	 */
 	void addHandler(Object eventKey, Object channelKey,	String method);
+	
+	/**
+	 * Return a new {@link EventPipeline} that processes the added events
+	 * using a thread from a thread pool.
+	 * 
+	 * @return the pipeline
+	 */
+	EventPipeline newEventPipeline();
+	
+	/**
+	 * Return a new {@link EventPipeline} that processes an added event
+	 * (and all events caused by it) before returning from the
+	 * {@link EventPipeline#add} method.
+	 * <P>
+	 * The returned event pipeline is not thread-safe, i.e. no other thread
+	 * may call <code>add</code> while an invocation of <code>add</code>
+	 * is being processed.
+	 * 
+	 * @return the pipeline
+	 */
+	EventPipeline newSyncEventPipeline();
 }

@@ -17,38 +17,34 @@
  */
 package org.jgrapes.core.internal;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
-
 import org.jgrapes.core.Channel;
 
 /**
- * This class provides a queue for events and the channels that they have
- * been fired on.
- * 
  * @author Michael N. Lipp
+ *
  */
-@SuppressWarnings("serial")
-class EventQueue extends ArrayDeque<EventChannelsTuple> {
+class SynchronousEventProcessor extends EventProcessor {
 
-	/**
-	 * Convenience method that creates a {@link EventChannelsTuple}
-	 * from the parameters and adds it to the queue.
-	 * 
-	 * @param event the event
-	 * @param channels the channels
-	 */
-	public void add (EventBase event, Channel[] channels) {
-		add (new EventChannelsTuple(event, channels));
+	private boolean isRunning = false;
+	
+	public SynchronousEventProcessor(ComponentTree tree) {
+		super(tree);
 	}
 
 	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
+	 * @see org.jgrapes.core.internal.EventProcessor#add(org.jgrapes.core.internal.EventBase, org.jgrapes.core.Channel[])
 	 */
 	@Override
-	public String toString() {
-		return Arrays.toString(toArray());
+	public void add(EventBase event, Channel... channels) {
+		((EventBase)event).generatedBy(currentlyHandling);
+		queue.add(event, channels);
+		if (isRunning) {
+			return;
+		}
+		isRunning = true;
+		run();
+		isRunning = false;			
 	}
-	
+
 	
 }

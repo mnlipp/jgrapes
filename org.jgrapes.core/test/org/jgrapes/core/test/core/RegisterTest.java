@@ -2,6 +2,7 @@ package org.jgrapes.core.test.core;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Attached;
@@ -43,6 +44,8 @@ public class RegisterTest {
 		assertEquals(c1, c2.attachParent);
 		assertEquals(c2, c2.attachChild);
 		c2.detach();
+		Utils.fireAndAwait(c1, new Event());
+		Utils.fireAndAwait(c2, new Event());
 		assertEquals(c1, c1.detachParent);
 		assertEquals(c2, c1.detachChild);
 		assertEquals(c1, c2.detachParent);

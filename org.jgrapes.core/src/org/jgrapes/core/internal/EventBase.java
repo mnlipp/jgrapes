@@ -20,6 +20,7 @@ package org.jgrapes.core.internal;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.core.Manager;
 
 /**
  * @author mnl
@@ -41,6 +42,38 @@ public abstract class EventBase implements Matchable {
 	/** Set when the event has been completed. */
 	private boolean completed = false;
 	
+	/**
+	 * Returns the channels associated with the event. Before an
+	 * event has been fired, this returns the channels set with
+	 * {@link #setChannels(Channel[])}. After an event has been
+	 * fired, this returns the channels that the event has
+	 * effectively been fired on 
+	 * (see {@link Manager#fire(Event, Channel...)}).
+	 * 
+	 * @return the channels
+	 */
+	public Channel[] getChannels() {
+		return channels;
+	}
+
+	/**
+	 * Sets the channels that the event is fired on if no channels
+	 * are specified explicitly when firing the event
+	 * (see {@link org.jgrapes.core.Manager#fire(Event, Channel...)}).
+	 * 
+	 * @param channels the channels to set
+	 * 
+	 * @throws IllegalStateException if the method is called after
+	 * this event has been fired
+	 */
+	public void setChannels(Channel[] channels) {
+		if (enqueued()) {
+			throw new IllegalStateException
+				("Channels cannot be changed after fire");
+		}
+		this.channels = channels;
+	}
+
 	/**
 	 * Returns <code>true</code> if the event has been enqueued in a pipeline.
 	 * 
@@ -80,12 +113,12 @@ public abstract class EventBase implements Matchable {
 	 */
 	public void decrementOpen(EventPipeline pipeline) {
 		openCount -= 1;
-		if (openCount == 0) {
+		if (openCount == 0 && !completed) {
+			synchronized (this) {
+				completed = true;
+				notifyAll();
+			}
 			if (completedEvent != null) {
-				synchronized (completedEvent) {
-					completed = true;
-					completedEvent.notifyAll();
-				}
 				Channel[] completeChannels = completedEvent.getChannels();
 				if (completeChannels == null) {
 					completeChannels = channels;
@@ -113,15 +146,8 @@ public abstract class EventBase implements Matchable {
 	 * by it have been handled.
 	 * 
 	 * @param completedEvent the completedEvent to set
-	 * @throws IllegalStateException if a completed event has already been set
 	 */
 	public void setCompletedEvent(Event completedEvent) {
-		// The completed event may not be changed because other threads
-		// may be waiting on it (see awaitCompleted).
-		if (this.completedEvent != null) {
-			throw new IllegalStateException
-				("The completed event may not be changed.");
-		}
 		this.completedEvent = completedEvent;
 	}
 
@@ -150,20 +176,17 @@ public abstract class EventBase implements Matchable {
 	 * event has been completed or given timeout has expired. 
 	 *  
 	 * @param timeout the maximum time to wait; if 0, wait forever
-	 * @throws IllegalStateException if no completed event has been set
 	 * @throws InterruptedException if the calling thread is interrupted
 	 */
 	public void awaitCompleted(long timeout) 
 			throws IllegalStateException, InterruptedException {
-		if (completedEvent == null) {
-			throw new IllegalStateException
-				("Cannot await completion without completed event.");
-		}
-		synchronized (completedEvent) {
-			if (completed) {
-				return;
+		while (true) {
+			synchronized(this) {
+				if (completed) {
+					return;
+				}
+				wait();
 			}
-			completedEvent.wait();
 		}
 	}
 }

@@ -34,7 +34,7 @@ public class EventBuffer implements MergingEventPipeline {
 	private EventQueue buffered = new EventQueue();
 	/** The event pipeline that we delegate to after the start
 	 * event has been detected. */
-	private EventProcessor processor = null;
+	private MergingEventPipeline activePipeline = null;
 	
 	EventBuffer(ComponentTree componentTree) {
 		super();
@@ -43,11 +43,11 @@ public class EventBuffer implements MergingEventPipeline {
 
 	@Override
 	synchronized public void merge(EventPipeline other) {
-		if (other instanceof EventBuffer) {
-			buffered.addAll(((EventBuffer) other).retrieveEvents());
+		if (!(other instanceof EventBuffer)) {
+			throw new IllegalArgumentException
+				("Can only merge events from an EventBuffer.");
 		}
-		throw new IllegalArgumentException
-			("Can only merge events from an EventBuffer.");
+		buffered.addAll(((EventBuffer) other).retrieveEvents());
 	}
 
 	@Override
@@ -55,17 +55,21 @@ public class EventBuffer implements MergingEventPipeline {
 		// If thread1 adds the start event and thread2 gets here before we
 		// have changed the event processor for the tree, forward the
 		// event to the event processor that should already have been used.
-		if (processor != null) {
-			processor.add(event, channels);
+		if (activePipeline != null) {
+			activePipeline.add(event, channels);
 			return;
 		}
 		// Event gets enqueued (increments reference count).
 		((EventBase)event).generatedBy(null);
 		buffered.add(event, channels);
 		if (event instanceof Start) {
-			processor = new EventProcessor(componentTree);
+			// Merge all events into an "standard" event processor
+			// and set it as default processor for the tree (with
+			// any thread specific pipelines taking precedence).
+			EventProcessor processor = new EventProcessor(componentTree);
+			activePipeline = new FeedBackPipelineFilter(processor);
+			componentTree.setEventPipeline(activePipeline);
 			processor.add(buffered);
-			componentTree.setEventPipeline(processor);
 		}
 	}
 

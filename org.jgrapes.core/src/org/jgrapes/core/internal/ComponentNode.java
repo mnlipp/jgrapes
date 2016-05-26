@@ -30,6 +30,7 @@ import java.util.Stack;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Attached;
@@ -163,7 +164,7 @@ public abstract class ComponentNode implements Manager {
 				synchronized (oldParent) {
 					parent.children.remove(ComponentNode.this);
 					parent.tree.clearHandlerCache();
-					parent = null;					
+					parent = null;
 				}
 				ComponentTree newTree 
 					= new ComponentTree(ComponentNode.this);
@@ -358,7 +359,7 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.EventManager#fire
+	 * @see org.jdrupes.core.Manager#fire
 	 * (org.jdrupes.Event, org.jdrupes.Channel)
 	 */
 	@Override
@@ -404,6 +405,23 @@ public abstract class ComponentNode implements Manager {
 		for (ComponentNode child: children) {
 			child.collectHandlers(hdlrs, event, channels);
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#newSynchronousPipeline()
+	 */
+	@Override
+	public EventPipeline newSyncEventPipeline() {
+		return new CheckingPipelineFilter
+				(new SynchronousEventProcessor(getTree()));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#newEventPipeline()
+	 */
+	@Override
+	public EventPipeline newEventPipeline() {
+		return new CheckingPipelineFilter(new EventProcessor(getTree()));
 	}
 	
 }
