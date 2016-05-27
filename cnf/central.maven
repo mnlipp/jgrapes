@@ -1,0 +1,4 @@
+org.osgi:org.osgi.core:6.0.0
+org.osgi:osgi.annotation:6.0.1
+junit:junit:4.12
+org.hamcrest:hamcrest-all:1.3
