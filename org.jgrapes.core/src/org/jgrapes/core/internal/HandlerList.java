@@ -39,6 +39,9 @@ class HandlerList extends ArrayList<HandlerReference> {
 		for (HandlerReference hdlr: this) {
 			try {
 				hdlr.invoke(event);
+				if (event.isStopped()) {
+					break;
+				}
 			} catch (Throwable t) {
 				event.handlingError(eventPipeline, t);
 			}

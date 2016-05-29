@@ -42,8 +42,8 @@ public abstract class EventBase implements Matchable {
 	private Event completedEvent = null;
 	/** Set when the event has been completed. */
 	private boolean completed = false;
-	/** The pipeline that executes the event. */
-	private EventPipeline executor;
+	/** Indicates that the event should not processed further. */
+	private boolean stopped = false;
 	
 	/**
 	 * Returns the channels associated with the event. Before an
@@ -94,6 +94,24 @@ public abstract class EventBase implements Matchable {
 	 */
 	protected abstract void handlingError
 		(EventPipeline eventProcessor, Throwable throwable);
+
+	/**
+	 * Can be called during the execution of an event handler to indicate
+	 * that the event should not be processed further. All remaining 
+	 * handlers for this event will be skipped.
+	 */
+	public void stop() {
+		stopped = true;
+	}
+
+	/**
+	 * Returns <code>true</code> if {@link stop} has been called.
+	 * 
+	 * @return the stopped state
+	 */
+	boolean isStopped() {
+		return stopped;
+	}
 	
 	/**
 	 * If an event is fired while processing another event, note
@@ -191,15 +209,6 @@ public abstract class EventBase implements Matchable {
 				wait();
 			}
 		}
-	}
-	
-	/**
-	 * Sets the pipeline that executes this event.
-	 * 
-	 * @param pipeline
-	 */
-	protected void setExecutor(EventPipeline pipeline) {
-		executor = pipeline;
 	}
 	
 	/**
