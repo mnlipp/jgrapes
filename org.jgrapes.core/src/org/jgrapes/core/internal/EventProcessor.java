@@ -17,10 +17,12 @@
  */
 package org.jgrapes.core.internal;
 
+import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.EventPipeline;
 
 /**
@@ -28,7 +30,7 @@ import org.jgrapes.core.EventPipeline;
  * 
  * @author Michael N. Lipp
  */
-public class EventProcessor implements MergingEventPipeline, Runnable {
+public class EventProcessor implements ExecutingEventPipeline, Runnable {
 
 	private static ExecutorService executorService 
 		= Executors.newCachedThreadPool();
@@ -36,6 +38,8 @@ public class EventProcessor implements MergingEventPipeline, Runnable {
 	private ComponentTree componentTree;
 	protected EventQueue queue = new EventQueue();
 	protected EventBase currentlyHandling = null;
+	private WeakHashMap<Component, Object> componentContext 
+		= new WeakHashMap<>();
 	
 	EventProcessor (ComponentTree tree) {
 		this.componentTree = tree;
@@ -113,6 +117,20 @@ public class EventProcessor implements MergingEventPipeline, Runnable {
 		builder.append("]");
 		return builder.toString();
 	}
-	
-	
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.EventPipeline#setContext(org.jgrapes.core.Component, java.lang.Object)
+	 */
+	@Override
+	public void setComponentContext(Component component, Object data) {
+		componentContext.put(component, data);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.EventPipeline#getContext(org.jgrapes.core.Component)
+	 */
+	@Override
+	public Object getComponentContext(Component component) {
+		return componentContext.get(component);
+	}
 }

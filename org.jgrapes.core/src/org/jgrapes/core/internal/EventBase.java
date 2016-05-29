@@ -18,6 +18,7 @@
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
@@ -41,6 +42,8 @@ public abstract class EventBase implements Matchable {
 	private Event completedEvent = null;
 	/** Set when the event has been completed. */
 	private boolean completed = false;
+	/** The pipeline that executes the event. */
+	private EventPipeline executor;
 	
 	/**
 	 * Returns the channels associated with the event. Before an
@@ -188,5 +191,36 @@ public abstract class EventBase implements Matchable {
 				wait();
 			}
 		}
+	}
+	
+	/**
+	 * Sets the pipeline that executes this event.
+	 * 
+	 * @param pipeline
+	 */
+	protected void setExecutor(EventPipeline pipeline) {
+		executor = pipeline;
+	}
+	
+	/**
+	 * Sets the data that is stored in the executing pipeline for
+	 * the given component.
+	 * 
+	 * @param component the component
+	 * @param data the data
+	 */
+	public void setComponentContext(Component component, Object data) {
+		FeedBackPipelineFilter.setComponentContext(component, data);
+	}
+	
+	/**
+	 * Gets the data that is stored in the executing pipeline for
+	 * the given component.
+	 * 
+	 * @param component the component
+	 * @return the data
+	 */
+	public Object getComponentContext(Component component) {
+		return FeedBackPipelineFilter.getComponentContext(component);
 	}
 }

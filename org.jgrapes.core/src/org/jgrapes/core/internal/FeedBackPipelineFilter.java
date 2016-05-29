@@ -18,6 +18,7 @@
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.EventPipeline;
 
 /**
@@ -29,7 +30,7 @@ import org.jgrapes.core.EventPipeline;
  */
 class FeedBackPipelineFilter implements MergingEventPipeline {
 
-	protected static ThreadLocal<MergingEventPipeline> 
+	protected static ThreadLocal<ExecutingEventPipeline> 
 		currentPipeline = new ThreadLocal<>();
 	private MergingEventPipeline fallback;
 	
@@ -49,10 +50,10 @@ class FeedBackPipelineFilter implements MergingEventPipeline {
 	 * 
 	 * @param pipeline the pipeline
 	 */
-	public static void setAssociatedPipeline(MergingEventPipeline pipeline) {
+	public static void setAssociatedPipeline(ExecutingEventPipeline pipeline) {
 		currentPipeline.set(pipeline);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.jgrapes.core.EventPipeline#add(org.jgrapes.core.internal.EventBase, org.jgrapes.core.Channel[])
 	 */
@@ -78,5 +79,38 @@ class FeedBackPipelineFilter implements MergingEventPipeline {
 			fallback.merge(other);
 		}
 	}
+
+	/**
+	 * Set the data stored for a given {@link Component} in the context
+	 * of this pipeline.
+	 * 
+	 * @param component the component
+	 * @param data the data
+	 */
+	static void setComponentContext(Component component, Object data) {
+		ExecutingEventPipeline pipeline = currentPipeline.get();
+		if (pipeline == null) {
+			throw new IllegalStateException
+				("setComponentContext may only be called in handler.");
+		}
+		pipeline.setComponentContext(component, data);
+	}
+
+	/**
+	 * Get the data stored for a given {@link Component} in the context
+	 * of this pipeline.
+	 * 
+	 * @param component the component
+	 * @return the data
+	 */
+	static Object getComponentContext(Component component) {
+		ExecutingEventPipeline pipeline = currentPipeline.get();
+		if (pipeline == null) {
+			throw new IllegalStateException
+				("getComponentContext may only be called in handler.");
+		}
+		return pipeline.getComponentContext(component);
+	}
+	
 	
 }
