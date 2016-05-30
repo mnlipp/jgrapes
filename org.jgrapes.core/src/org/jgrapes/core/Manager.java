@@ -86,7 +86,7 @@ public interface Manager extends Iterable<Component> {
 	Component getRoot();
 	
 	/**
-	 * Returns the channel if the component managed by this manager.
+	 * Returns the channel of the component managed by this manager.
 	 * 
 	 * @return the channel that the component's 
 	 * handlers listen on by default and that 
