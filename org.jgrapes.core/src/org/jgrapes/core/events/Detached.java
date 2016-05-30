@@ -21,26 +21,33 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 
 /**
- * Signals the removal of a child component from its parent.
- * This event is fired on both the parent's and the child's
+ * Signals the removal of a component from the component tree.
+ * This event is fired on both the node's and the parent's
  * channels.
  * 
  * @author Michael N. Lipp
  */
 public class Detached extends Event {
 
+	private Component node;
 	private Component parent;
-	private Component child;
 	
 	/**
 	 * Creates a new event.
 	 * 
-	 * @param parent the component that the child is removed from
-	 * @param child the component being removed
+	 * @param node the component being removed
+	 * @param parent the component that the node is removed from
 	 */
-	public Detached(Component parent, Component child) {
+	public Detached(Component node, Component parent) {
 		this.parent = parent;
-		this.child = child;
+		this.node = node;
+	}
+
+	/**
+	 * @return the node
+	 */
+	public Component getNode() {
+		return node;
 	}
 
 	/**
@@ -48,13 +55,6 @@ public class Detached extends Event {
 	 */
 	public Component getParent() {
 		return parent;
-	}
-
-	/**
-	 * @return the child
-	 */
-	public Component getChild() {
-		return child;
 	}
 
 }

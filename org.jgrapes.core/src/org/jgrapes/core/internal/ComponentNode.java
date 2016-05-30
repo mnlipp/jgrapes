@@ -62,7 +62,6 @@ public abstract class ComponentNode implements Manager {
 	 * tree, i.e. the root is set to the component itself.
 	 */
 	protected ComponentNode() {
-		tree = new ComponentTree(this);
 	}
 
 	/**
@@ -113,11 +112,18 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/**
-	 * Return the tree that this node belongs to.
+	 * Return the tree that this node belongs to. If the node does not
+	 * belong to a tree yet, a tree is automatically created.
 	 * 
 	 * @return the tree
 	 */
 	ComponentTree getTree() {
+		if (tree != null) {
+			return tree;
+		}
+		tree = new ComponentTree(this);
+		tree.setEventPipeline(new EventBuffer(tree));
+		fire(new Attached(getComponent(), null), getChannel());
 		return tree;
 	}
 	
@@ -161,6 +167,11 @@ public abstract class ComponentNode implements Manager {
 		if (parent != null) {
 			ComponentNode oldParent = parent;
 			synchronized (tree) {
+				if (!tree.isStarted()) {
+					throw new IllegalStateException
+						("Components may not be detached from a tree before"
+						 + " a Start event has been fired on it.");
+				}
 				synchronized (oldParent) {
 					parent.children.remove(ComponentNode.this);
 					parent.tree.clearHandlerCache();
@@ -168,11 +179,12 @@ public abstract class ComponentNode implements Manager {
 				}
 				ComponentTree newTree 
 					= new ComponentTree(ComponentNode.this);
+				newTree.setEventPipeline(new EventProcessor(newTree));
 				setTree(newTree);
 			}
-			Event e = new Detached(oldParent.getComponent(), getComponent());
+			Event e = new Detached(getComponent(), oldParent.getComponent());
 			oldParent.fire(e);
-			e = new Detached(oldParent.getComponent(), getComponent());
+			e = new Detached(getComponent(), oldParent.getComponent());
 			fire(e);
 		}
 		return getComponent();
@@ -206,7 +218,7 @@ public abstract class ComponentNode implements Manager {
 	 */
 	@Override
 	public Component getRoot() {
-		return tree.getRoot().getComponent();
+		return getTree().getRoot().getComponent();
 	}
 
 	/* (non-Javadoc)
@@ -216,21 +228,29 @@ public abstract class ComponentNode implements Manager {
 	synchronized public Manager attach (Component child) {
 		ComponentNode childNode = getComponentNode(child);
 		synchronized (childNode) {
-			synchronized (tree) {
-				synchronized (childNode.tree) {
-					if (childNode.parent != null) {
-						throw new IllegalStateException
-							("Cannot attach node with parent");
-					}
-					if (childNode.tree.isStarted()) {
-						throw new IllegalStateException
-							("Cannot attach started subtree");
-					}
+			synchronized (getTree()) {
+				if (childNode.tree == null) { 
+					// Newly created, stand-alone child node
 					childNode.parent = ComponentNode.this;
-					ComponentTree childCommon = childNode.getTree();
 					childNode.setTree(tree);
 					children.add(childNode);
-					tree.mergeEvents(childCommon);
+				} else {
+					// Attaching a tree...
+					synchronized (childNode.tree) {
+						if (childNode.parent != null) {
+							throw new IllegalStateException
+								("Cannot attach a node with a parent.");
+						}
+						if (childNode.tree.isStarted()) {
+							throw new IllegalStateException
+								("Cannot attach a started subtree.");
+						}
+						childNode.parent = ComponentNode.this;
+						ComponentTree childTree = childNode.tree;
+						childNode.setTree(tree);
+						children.add(childNode);
+						tree.mergeEvents(childTree);
+					}
 				}
 			}
 		}
@@ -242,7 +262,7 @@ public abstract class ComponentNode implements Manager {
 		if (cChan == null) {
 			pChan = Channel.BROADCAST;
 		}
-		Event e = new Attached(getComponent(), childNode.getComponent());
+		Event e = new Attached(childNode.getComponent(), getComponent());
 		if (pChan.equals(Channel.BROADCAST) 
 			|| cChan.equals(Channel.BROADCAST)) {
 			fire(e, Channel.BROADCAST);
@@ -371,7 +391,7 @@ public abstract class ComponentNode implements Manager {
 			}
 		}
 		event.setChannels(channels);
-		tree.fire(event, channels);
+		getTree().fire(event, channels);
 	}
 
 	/**

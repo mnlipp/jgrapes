@@ -21,43 +21,47 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 
 /**
- * Signals the addition of a component (or subtree) as child
- * of another component.
+ * Signals the addition of a component (or subtree) to the component tree.
  * 
  * @author Michael N. Lipp
  */
 public class Attached extends Event {
 
+	private Component node;
 	private Component parent;
-	private Component child;
 	
 	/**
 	 * Creates a new event. The event is fired on both the
-	 * parent's and the child's channel. If the channels are
+	 * node's and the parent's channel. If the channels are
 	 * equal, the event is sent only once. If either component
 	 * doesn't have a channel, the event is sent on the
 	 * broadcast channel.
 	 * 
-	 * @param parent the component that the child is attached to
-	 * @param child the component being attached
+	 * @param node the component being attached
+	 * @param parent the component that the node is attached to
 	 */
-	public Attached(Component parent, Component child) {
+	public Attached(Component node, Component parent) {
+		this.node = node;
 		this.parent = parent;
-		this.child = child;
 	}
 
 	/**
-	 * @return the parent
+	 * Return the node that has been attached.
+	 * 
+	 * @return the node
+	 */
+	public Component getNode() {
+		return node;
+	}
+
+	/**
+	 * Return the parent component. When the root node is added to the 
+	 * component tree, the parent is <code>null</code>.
+	 * 
+	 * @return the parent or <code>null</code>
 	 */
 	public Component getParent() {
 		return parent;
-	}
-
-	/**
-	 * @return the child
-	 */
-	public Component getChild() {
-		return child;
 	}
 
 }

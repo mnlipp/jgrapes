@@ -38,27 +38,13 @@ class ComponentTree {
 	private MergingEventPipeline eventPipeline;
 
 	/**
-	 * Creates a new common object for the given mode or tree.
+	 * Creates a new tree for the given node or sub tree.
 	 * 
-	 * @param root
+	 * @param root the root node of the new tree
 	 */
 	ComponentTree(ComponentNode root) {
 		super();
 		this.root = root;
-		// Check whether tree is created due to detach
-		if (root.getTree() == null) {
-			// Newly created node
-			eventPipeline = new EventBuffer(this);
-			return;
-		}
-		// Node already has a tree. Creating a new tree for it means that
-		// it is being detached from a tree.
-		if (!root.getTree().isStarted()) {
-			throw new IllegalStateException
-				("Components may not be detached from a tree before"
-				 + " a Start event has been fired on it.");
-		}
-		eventPipeline = new EventProcessor(this);
 	}
 
 	ComponentNode getRoot() {
