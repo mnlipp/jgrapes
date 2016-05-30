@@ -112,29 +112,6 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/**
-	 * Return the tree that this node belongs to. If the node does not
-	 * belong to a tree yet, a tree is automatically created.
-	 * 
-	 * @return the tree
-	 */
-	ComponentTree getTree() {
-		if (tree != null) {
-			return tree;
-		}
-		tree = new ComponentTree(this);
-		tree.setEventPipeline(new EventBuffer(tree));
-		fire(new Attached(getComponent(), null), getChannel());
-		return tree;
-	}
-	
-	/**
-	 * Returns the component represented by this node in the tree.
-	 * 
-	 * @return the component
-	 */
-	protected abstract Component getComponent();
-
-	/**
 	 * Return the component node for a given component.
 	 * 
 	 * @param component the component
@@ -148,47 +125,11 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/**
-	 * Set the reference to the common properties of this component 
-	 * and all its children to the given value.
+	 * Returns the component represented by this node in the tree.
 	 * 
-	 * @param comp the new root
+	 * @return the component
 	 */
-	synchronized private void setTree(ComponentTree tree) {
-		this.tree = tree;
-		for (ComponentNode child: children) {
-			child.setTree(tree);
-		}
-	}
-
-	/**
-	 * Remove the component from the tree, making it a stand-alone tree.
-	 */
-	synchronized public Component detach() {
-		if (parent != null) {
-			ComponentNode oldParent = parent;
-			synchronized (tree) {
-				if (!tree.isStarted()) {
-					throw new IllegalStateException
-						("Components may not be detached from a tree before"
-						 + " a Start event has been fired on it.");
-				}
-				synchronized (oldParent) {
-					parent.children.remove(ComponentNode.this);
-					parent.tree.clearHandlerCache();
-					parent = null;
-				}
-				ComponentTree newTree 
-					= new ComponentTree(ComponentNode.this);
-				newTree.setEventPipeline(new EventProcessor(newTree));
-				setTree(newTree);
-			}
-			Event e = new Detached(getComponent(), oldParent.getComponent());
-			oldParent.fire(e);
-			e = new Detached(getComponent(), oldParent.getComponent());
-			fire(e);
-		}
-		return getComponent();
-	}
+	protected abstract Component getComponent();
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.Manager#getChildren()
@@ -219,6 +160,35 @@ public abstract class ComponentNode implements Manager {
 	@Override
 	public Component getRoot() {
 		return getTree().getRoot().getComponent();
+	}
+
+	/**
+	 * Return the tree that this node belongs to. If the node does not
+	 * belong to a tree yet, a tree is automatically created.
+	 * 
+	 * @return the tree
+	 */
+	ComponentTree getTree() {
+		if (tree != null) {
+			return tree;
+		}
+		tree = new ComponentTree(this);
+		tree.setEventPipeline(new EventBuffer(tree));
+		fire(new Attached(getComponent(), null), getChannel());
+		return tree;
+	}
+	
+	/**
+	 * Set the reference to the common properties of this component 
+	 * and all its children to the given value.
+	 * 
+	 * @param comp the new root
+	 */
+	synchronized private void setTree(ComponentTree tree) {
+		this.tree = tree;
+		for (ComponentNode child: children) {
+			child.setTree(tree);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -274,6 +244,36 @@ public abstract class ComponentNode implements Manager {
 		return this;
 	}
 	
+	/**
+	 * Remove the component from the tree, making it a stand-alone tree.
+	 */
+	synchronized public Component detach() {
+		if (parent != null) {
+			ComponentNode oldParent = parent;
+			synchronized (tree) {
+				if (!tree.isStarted()) {
+					throw new IllegalStateException
+						("Components may not be detached from a tree before"
+						 + " a Start event has been fired on it.");
+				}
+				synchronized (oldParent) {
+					parent.children.remove(ComponentNode.this);
+					parent.tree.clearHandlerCache();
+					parent = null;
+				}
+				ComponentTree newTree 
+					= new ComponentTree(ComponentNode.this);
+				newTree.setEventPipeline(new EventProcessor(newTree));
+				setTree(newTree);
+			}
+			Event e = new Detached(getComponent(), oldParent.getComponent());
+			oldParent.fire(e);
+			e = new Detached(getComponent(), oldParent.getComponent());
+			fire(e);
+		}
+		return getComponent();
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */
