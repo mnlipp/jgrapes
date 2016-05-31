@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -289,16 +290,18 @@ public abstract class ComponentNode implements Manager {
 
 		private class Pos {
 			public ComponentNode current;
-			public int childIndex;
+			public Iterator<ComponentNode> childIter;
 			public Pos(ComponentNode cm) {
 				current = cm;
-				childIndex = -1;
+				childIter = current.children.iterator();
 			}
 		}
 		
 		private Stack<Pos> stack = new Stack<Pos>();
+		private ComponentTree tree;
 		
 		public TreeIterator(ComponentNode root) {
+			tree = root.getTree();
 			stack.push(new Pos(root));
 		}
 
@@ -321,16 +324,20 @@ public abstract class ComponentNode implements Manager {
 			Pos pos = stack.peek();
 			ComponentNode res = pos.current;
 			while (true) {
-				if (pos.current.children.size() > ++pos.childIndex) {
-					stack.push(new Pos
-							   (pos.current.children.get(pos.childIndex)));
-					return res.getComponent();
+				synchronized (pos.current) {
+					if (pos.current.tree != tree) {
+						throw new ConcurrentModificationException();
+					}
+					if (pos.childIter.hasNext()) {
+						stack.push(new Pos(pos.childIter.next()));
+						break;
+					}
 				}
 				stack.pop();
 				if (stack.empty()) {
 					break;
 				}
-				pos = stack.peek();	
+				pos = stack.peek();
 			}
 			return res.getComponent();
 		}
