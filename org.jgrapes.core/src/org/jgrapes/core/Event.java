@@ -104,7 +104,7 @@ public class Event extends EventBase {
 		result.append(getClass().getSimpleName() + " [");
 		result.append("matchKey="
 				+ ((getMatchKey() instanceof Class)
-						?  ((Class<?>)getMatchKey()).getSimpleName()
+						?  ((Class<?>)getMatchKey()).getSimpleName() + ".class"
 						: getMatchKey()));
 		if (getChannels() != null) {
 			result.append(", " + "channels=" + Arrays.toString(getChannels())); 
