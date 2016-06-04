@@ -88,6 +88,15 @@ public abstract class ComponentNode implements Manager {
 				eventKeys.addAll
 					(Arrays.asList(handlerAnnotation.namedEvents()));
 			}
+			// If no event types are given, try first parameter.
+			if (eventKeys.isEmpty()) {
+				Class<?>[] paramTypes = m.getParameterTypes();
+				if (paramTypes.length > 0) {
+					if (Event.class.isAssignableFrom(paramTypes[0])) {
+						eventKeys.add(paramTypes[0]);
+					}
+				}
+			}
 			// Get channel keys from the annotation.
 			List<Object> channelKeys = new ArrayList<Object>();
 			if (handlerAnnotation.channels()[0] != Handler.NO_CHANNEL.class) {

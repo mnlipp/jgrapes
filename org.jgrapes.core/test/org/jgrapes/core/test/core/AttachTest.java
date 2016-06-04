@@ -21,7 +21,7 @@ public class AttachTest {
 		public Component detachParent = null;
 		public Component detachChild = null;
 		
-		@Handler(events=Attached.class)
+		@Handler
 		public void onAttached(Attached evt) {
 			if (evt.getParent() == null) {
 				attachRoot = evt.getNode();
@@ -30,7 +30,7 @@ public class AttachTest {
 			attachChild = evt.getNode();
 		}
 		
-		@Handler(events=Detached.class)
+		@Handler
 		public void onDetached(Detached evt) {
 			detachParent = evt.getParent();
 			detachChild = evt.getNode();
