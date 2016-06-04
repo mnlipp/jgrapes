@@ -41,45 +41,45 @@ public class MatchTest {
 		EventPipeline pipeline = Utils.manager(app).newSyncEventPipeline();
 		pipeline.add(new Start());
 		assertEquals(1, app.startedGlobal);
-		assertEquals(0, app.startedTest1);
+		assertEquals(1, app.startedTest1);
 		assertEquals(0, app.named1Global);
 		assertEquals(0, app.named1Test1);
-		assertEquals(0, app.startedComponent);
+		assertEquals(1, app.startedComponent);
 		assertEquals(2, app.all); // Start and Started
 		pipeline.add(new Start(), new NamedChannel("test1"));
 		assertEquals(2, app.startedGlobal);
-		assertEquals(1, app.startedTest1);
+		assertEquals(2, app.startedTest1);
 		assertEquals(0, app.named1Global);
 		assertEquals(0, app.named1Test1);
-		assertEquals(0, app.startedComponent);
+		assertEquals(1, app.startedComponent);
 		assertEquals(4, app.all);	// Start and Started
 		pipeline.add(new NamedEvent("named1"));
 		assertEquals(2, app.startedGlobal);
-		assertEquals(1, app.startedTest1);
+		assertEquals(2, app.startedTest1);
 		assertEquals(1, app.named1Global);
-		assertEquals(0, app.named1Test1);
-		assertEquals(0, app.startedComponent);
+		assertEquals(1, app.named1Test1);
+		assertEquals(1, app.startedComponent);
 		assertEquals(5, app.all);	// NamedEvent
 		pipeline.add(new NamedEvent("named1"), new NamedChannel("test1"));
 		assertEquals(2, app.startedGlobal);
-		assertEquals(1, app.startedTest1);
+		assertEquals(2, app.startedTest1);
 		assertEquals(2, app.named1Global);
-		assertEquals(1, app.named1Test1);
-		assertEquals(0, app.startedComponent);
+		assertEquals(2, app.named1Test1);
+		assertEquals(1, app.startedComponent);
 		assertEquals(6, app.all);	// NamedEvent
 		pipeline.add(new Start(), app);
 		assertEquals(3, app.startedGlobal);
-		assertEquals(1, app.startedTest1);
+		assertEquals(2, app.startedTest1);
 		assertEquals(2, app.named1Global);
-		assertEquals(1, app.named1Test1);
-		assertEquals(1, app.startedComponent);
+		assertEquals(2, app.named1Test1);
+		assertEquals(2, app.startedComponent);
 		assertEquals(8, app.all);	// Start and Started
 		pipeline.add(new Start(), app);
 		assertEquals(4, app.startedGlobal);
-		assertEquals(1, app.startedTest1);
+		assertEquals(2, app.startedTest1);
 		assertEquals(2, app.named1Global);
-		assertEquals(1, app.named1Test1);
-		assertEquals(2, app.startedComponent);
+		assertEquals(2, app.named1Test1);
+		assertEquals(3, app.startedComponent);
 		assertEquals(10, app.all);	// Start and Started
 	}
 

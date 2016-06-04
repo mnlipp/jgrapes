@@ -51,16 +51,16 @@ final public class NamedChannel implements Channel {
 	}
 
 	/**
-	 * Returns <code>true</code> if the <code>handlerKey</code>
+	 * Returns <code>true</code> if the <code>criterion</code>
 	 * is the broadcast channel's key or matches the name
 	 * of this channel.
 	 * 
 	 * @see org.jgrapes.core.internal.Matchable#matches(java.lang.Object)
 	 */
 	@Override
-	public boolean matches(Object handlerKey) {
-		return handlerKey.equals(BROADCAST.getMatchKey())
-				|| handlerKey.equals(name);
+	public boolean matches(Object criterion) {
+		return criterion.equals(BROADCAST.getMatchKey())
+				|| criterion.equals(name);
 	}
 
 	/* (non-Javadoc)

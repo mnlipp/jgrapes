@@ -32,10 +32,10 @@ public interface Matchable {
 	Object getMatchKey();
 	
 	/**
-	 * Returns <code>true</code> if this Matchable matches the
-	 * key used as filter by a handler.
+	 * Returns <code>true</code> if this Matchable's key matches the
+	 * criterion provided by a handler.
 	 * 
-	 * @param handlerKey the key used by the handler
+	 * @param criterion the criterion provided by the handler
 	 */
-	boolean matches(Object handlerKey);
+	boolean matches(Object criterion);
 }

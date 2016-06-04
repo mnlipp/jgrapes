@@ -69,7 +69,7 @@ public abstract class EventBase implements Matchable {
 	 * @throws IllegalStateException if the method is called after
 	 * this event has been fired
 	 */
-	public void setChannels(Channel[] channels) {
+	public void setChannels(Channel... channels) {
 		if (enqueued()) {
 			throw new IllegalStateException
 				("Channels cannot be changed after fire");

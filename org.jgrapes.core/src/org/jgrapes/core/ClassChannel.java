@@ -38,15 +38,16 @@ public class ClassChannel implements Channel {
 	}
 
 	/**
-	 * Returns <code>true</code> if the <code>handlerKey</code>
+	 * Returns <code>true</code> if the <code>criterion</code>
 	 * is the same class or a base class of this channel's class.
 	 * 
 	 * @see org.jgrapes.core.internal.Matchable#matches(java.lang.Object)
 	 */
 	@Override
-	public boolean matches(Object handlerKey) {
-		return Class.class.isInstance(handlerKey) && ((Class<?>)handlerKey)
-				.isAssignableFrom((Class<?>)getMatchKey());
+	public boolean matches(Object criterion) {
+		return Class.class.isInstance(criterion) 
+				&& ((Class<?>)criterion)
+					.isAssignableFrom((Class<?>)getMatchKey());
 	}
 
 	/* (non-Javadoc)

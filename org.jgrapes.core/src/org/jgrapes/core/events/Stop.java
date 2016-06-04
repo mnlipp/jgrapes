@@ -17,6 +17,7 @@
  */
 package org.jgrapes.core.events;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 
 /**
@@ -26,5 +27,14 @@ import org.jgrapes.core.Event;
  * @author Michael N. Lipp
  */
 public class Stop extends Event {
+
+	/**
+	 * Create a new stop event with the event's channels set to 
+	 * {@link Channel#BROADCAST}.
+	 */
+	public Stop() {
+		super();
+		setChannels(Channel.BROADCAST);
+	}
 	
 }
