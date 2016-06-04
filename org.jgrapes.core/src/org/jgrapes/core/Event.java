@@ -100,16 +100,15 @@ public class Event extends EventBase {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder result = new StringBuilder();
-		result.append(getClass().getSimpleName() + " [");
-		result.append("matchKey="
-				+ ((getMatchKey() instanceof Class)
-						?  ((Class<?>)getMatchKey()).getSimpleName() + ".class"
-						: getMatchKey()));
-		if (getChannels() != null) {
-			result.append(", " + "channels=" + Arrays.toString(getChannels())); 
+		StringBuilder builder = new StringBuilder();
+		builder.append(getClass().getSimpleName());
+		builder.append(" [");
+		if (channels != null) {
+			builder.append("channels=");
+			builder.append(Arrays.toString(channels));
 		}
-		result.append("]");
-		return result.toString();
-	}	
+		builder.append("]");
+		return builder.toString();
+	}
+
 }

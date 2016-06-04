@@ -17,6 +17,8 @@
  */
 package org.jgrapes.core;
 
+import java.util.Arrays;
+
 /**
  * A class for events identified by name. Instances of this class 
  * represent events that use their name for matching 
@@ -59,6 +61,13 @@ final public class NamedEvent extends Event {
 	 */
 	@Override
 	public String toString() {
-		return "NamedEvent [name=" + name + "]";
+		StringBuilder result = new StringBuilder();
+		result.append("NamedEvent [name=");
+		result.append(name);
+		if (getChannels() != null) {
+			result.append(", " + "channels=" + Arrays.toString(getChannels())); 
+		}
+		result.append("]");
+		return result.toString();
 	}
 }
