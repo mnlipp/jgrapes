@@ -459,5 +459,16 @@ public abstract class ComponentNode implements Manager {
 	public EventPipeline newEventPipeline() {
 		return new CheckingPipelineFilter(new EventProcessor(getTree()));
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(getClass().getSimpleName());
+		return builder.toString();
+	}
+	
 	
 }
