@@ -23,6 +23,8 @@ import java.util.Map;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.core.HandlingErrorPrinter;
+import org.jgrapes.core.events.HandlingError;
 
 /**
  * This class represents the component tree. It holds all properties that 
@@ -36,6 +38,8 @@ class ComponentTree {
 	private Map<EventChannelsTuple,HandlerList> handlerCache
 		= new HashMap<EventChannelsTuple,HandlerList>();
 	private MergingEventPipeline eventPipeline;
+	private static HandlingErrorPrinter fallbackErrorHandler 
+		= new HandlingErrorPrinter(); 
 
 	/**
 	 * Creates a new tree for the given node or sub tree.
@@ -100,6 +104,11 @@ class ComponentTree {
 		}
 		hdlrs = new HandlerList();
 		root.collectHandlers(hdlrs, event, channels);
+		// Make sure that errors are reported.
+		if (hdlrs.isEmpty() && event instanceof HandlingError) {
+			((ComponentNode)fallbackErrorHandler)
+				.collectHandlers(hdlrs, event, channels);
+		}
 		Collections.sort(hdlrs);
 		handlerCache.put(key, hdlrs);
 		return hdlrs;
