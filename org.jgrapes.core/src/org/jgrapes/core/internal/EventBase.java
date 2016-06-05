@@ -99,11 +99,27 @@ public abstract class EventBase implements Matchable {
 	 * Can be called during the execution of an event handler to indicate
 	 * that the event should not be processed further. All remaining 
 	 * handlers for this event will be skipped.
+	 * <P>
+	 * This method will be called automatically after all handlers for the
+	 * event have been invoked.
 	 */
 	public void stop() {
-		stopped = true;
+		if (!stopped) {
+			stopped = true;
+			stopped();
+		}
 	}
 
+	/**
+	 * Invoked when {@#stop()} is called for the first time. May be overridden
+	 * by derived classes to cause some immediate effect (instead of e.g.
+	 * waiting for the completion event). The default implementation does
+	 * nothing. This method is invoked by the event handler thread and
+	 * must not block.
+	 */
+	protected void stopped() {
+	}
+	
 	/**
 	 * Returns <code>true</code> if {@link stop} has been called.
 	 * 
