@@ -17,7 +17,6 @@
  */
 package org.jgrapes.core;
 
-import org.jgrapes.core.events.AbstractCompletedEvent;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
 import org.jgrapes.core.internal.ComponentNode;
