@@ -60,9 +60,7 @@ public class Utils {
 	 */
 	public static void start(Component application) 
 			throws InterruptedException {
-		Event event = new Start();
-		manager(application).fire(event, Channel.BROADCAST);
-		event.awaitCompleted();
+		fireAndAwait(application, new Start(), Channel.BROADCAST);
 	}
 
 	/**
