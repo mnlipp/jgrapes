@@ -88,9 +88,10 @@ public abstract class ComponentNode implements Manager {
 				eventKeys.addAll
 					(Arrays.asList(handlerAnnotation.namedEvents()));
 			}
+			// Get parameter types
+			Class<?>[] paramTypes = m.getParameterTypes();
 			// If no event types are given, try first parameter.
 			if (eventKeys.isEmpty()) {
-				Class<?>[] paramTypes = m.getParameterTypes();
 				if (paramTypes.length > 0) {
 					if (Event.class.isAssignableFrom(paramTypes[0])) {
 						eventKeys.add(paramTypes[0]);
@@ -114,6 +115,7 @@ public abstract class ComponentNode implements Manager {
 				for (Object channelKey : channelKeys) {
 					handlers.add(new HandlerReference
 							(eventKey, channelKey, getComponent(), m,
+							 paramTypes.length == 0 ? false : true,
 							 handlerAnnotation.priority()));
 				}
 			}
@@ -371,12 +373,20 @@ public abstract class ComponentNode implements Manager {
 		}
 		try {
 			for (Method m: getComponent().getClass().getMethods()) {
-				if (m.getName().equals(method)
-					&& m.getParameterTypes().length == 1
-					&& Event.class.isAssignableFrom(m.getParameterTypes()[0])) {
-					handlers.add(new HandlerReference(eventKey, channelKey, 
-							getComponent(), m, priority));
-					return;
+				if (m.getName().equals(method)) {
+					if (m.getParameterTypes().length == 1
+							&& Event.class.isAssignableFrom
+								(m.getParameterTypes()[0])) {
+						handlers.add(new HandlerReference
+								(eventKey, channelKey, getComponent(), 
+								 m, true, priority));
+						return;
+					} else if (m.getParameterTypes().length == 0) {
+						handlers.add(new HandlerReference
+								(eventKey, channelKey, getComponent(), 
+								 m, false, priority));
+						return;
+					}
 				}
 			}
 			throw new IllegalArgumentException("No matching method");

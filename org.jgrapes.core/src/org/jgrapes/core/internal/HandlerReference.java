@@ -33,6 +33,7 @@ public class HandlerReference implements Comparable<HandlerReference> {
 	private Object eventKey;
 	private Object channelKey;
 	private MethodHandle method;
+	private boolean hasEventParam;
 	private int priority;
 	
 	/**
@@ -42,13 +43,16 @@ public class HandlerReference implements Comparable<HandlerReference> {
 	 * @param eventKey the kind of event handled
 	 * @param channelKey the channel listening to
 	 * @param method the method to be invoked
+	 * @param eventParam {@code true} if the handler has an event parameter
 	 * @param priority the handler's priority
 	 */
 	public HandlerReference(Object eventKey, Object channelKey,	
-			Component component, Method method, int priority) {
+			Component component, Method method, boolean eventParam, 
+			int priority) {
 		super();
 		this.eventKey = eventKey;
 		this.channelKey = channelKey;
+		this.hasEventParam = eventParam;
 		this.priority = priority;
 		try {
 			this.method = MethodHandles.lookup().unreflect(method);
@@ -94,7 +98,11 @@ public class HandlerReference implements Comparable<HandlerReference> {
 	 * @param event the event
 	 */
 	public void invoke(EventBase event) throws Throwable {
-		method.invoke(event);
+		if (hasEventParam) {
+			method.invoke(event);
+		} else {
+			method.invoke();
+		}
 	}
 
 	/* (non-Javadoc)
