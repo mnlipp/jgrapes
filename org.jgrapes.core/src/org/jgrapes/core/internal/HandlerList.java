@@ -47,6 +47,11 @@ class HandlerList extends ArrayList<HandlerReference> {
 			}
 		}
 		event.stop();
+		try {
+			event.stopped();
+		} catch (Throwable t) {
+			event.handlingError(eventPipeline, t);
+		}
 	}
 
 }

@@ -104,18 +104,15 @@ public abstract class EventBase implements Matchable {
 	 * event have been invoked.
 	 */
 	public void stop() {
-		if (!stopped) {
-			stopped = true;
-			stopped();
-		}
+		stopped = true;
 	}
 
 	/**
-	 * Invoked when {@#stop()} is called for the first time. May be overridden
-	 * by derived classes to cause some immediate effect (instead of e.g.
-	 * waiting for the completion event). The default implementation does
-	 * nothing. This method is invoked by the event handler thread and
-	 * must not block.
+	 * Invoked after all handlers for the event have been executed. 
+	 * May be overridden by derived classes to cause some immediate effect
+	 * (instead of e.g. waiting for the completion event). The default 
+	 * implementation does nothing. This method is invoked by the event 
+	 * handler thread and must not block.
 	 */
 	protected void stopped() {
 	}
