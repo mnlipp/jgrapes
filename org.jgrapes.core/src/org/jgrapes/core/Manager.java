@@ -164,4 +164,14 @@ public interface Manager extends Iterable<Component> {
 	 * @return the pipeline
 	 */
 	EventPipeline newSyncEventPipeline();
+
+	/**
+	 * Register the managed component as a running generator. 
+	 */
+	void registerAsGenerator();
+
+	/**
+	 * Unregister the managed component as a running generator.
+	 */
+	void unregisterAsGenerator();
 }

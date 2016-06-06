@@ -20,6 +20,7 @@ package org.jgrapes.core;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
 import org.jgrapes.core.internal.ComponentNode;
+import org.jgrapes.core.internal.GeneratorRegistry;
 
 /**
  * This class provides some utility functions.
@@ -81,5 +82,16 @@ public class Utils {
 		event.awaitCompleted();
 		return event;
 	}
-	
+
+	/**
+	 * Wait until all generators and event queues are exhausted. When this
+	 * stage is reached, nothing can happen anymore unless a new event is
+	 * sent from an external thread.
+	 * 
+	 * @throws InterruptedException 
+	 */
+	public static void awaitExhaustion() throws InterruptedException {
+		GeneratorRegistry.getInstance().awaitExhaustion();
+	}
+
 }

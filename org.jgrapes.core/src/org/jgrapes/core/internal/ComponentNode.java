@@ -480,5 +480,20 @@ public abstract class ComponentNode implements Manager {
 		return builder.toString();
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#registerAsGenerator()
+	 */
+	@Override
+	public void registerAsGenerator() {
+		GeneratorRegistry.getInstance().add(getComponent());
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#unregisterAsGenerator()
+	 */
+	@Override
+	public void unregisterAsGenerator() {
+		GeneratorRegistry.getInstance().remove(getComponent());
+	}
 	
 }

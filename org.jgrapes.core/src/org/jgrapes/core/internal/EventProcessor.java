@@ -52,6 +52,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 			boolean wasEmpty = queue.isEmpty();
 			queue.add(event, channels);
 			if (wasEmpty) {
+				GeneratorRegistry.getInstance().add(this);
 				executorService.submit(this);
 			}
 		}
@@ -72,6 +73,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 			queue.addAll(source);
 			source.clear();
 			if (wasEmpty) {
+				GeneratorRegistry.getInstance().add(this);
 				executorService.submit(this);
 			}
 		}
@@ -97,6 +99,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 				}
 			}
 		} finally {
+			GeneratorRegistry.getInstance().remove(this);
 			currentlyHandling = null;
 			FeedBackPipelineFilter.setAssociatedPipeline(null);
 		}
