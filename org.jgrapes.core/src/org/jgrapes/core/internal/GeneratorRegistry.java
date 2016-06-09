@@ -58,7 +58,7 @@ public class GeneratorRegistry {
 	synchronized public void remove(Object obj) {
 		running -= 1;
 		if (running == 0) {
-			notifyAll();
+			keepAlive.interrupt();
 		}
 	}
 	
