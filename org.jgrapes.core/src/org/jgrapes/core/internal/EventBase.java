@@ -219,7 +219,7 @@ public abstract class EventBase implements Matchable {
 				if (completed) {
 					return;
 				}
-				wait();
+				wait(timeout);
 			}
 		}
 	}
