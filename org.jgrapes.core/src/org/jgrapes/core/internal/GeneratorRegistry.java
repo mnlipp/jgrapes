@@ -59,6 +59,7 @@ public class GeneratorRegistry {
 		running -= 1;
 		if (running == 0) {
 			keepAlive.interrupt();
+			notifyAll();
 		}
 	}
 	
