@@ -27,35 +27,12 @@ import org.jgrapes.core.Event;
  * 
  * @author Michael N. Lipp
  */
-public class HandlingError extends Event {
+public class HandlingError extends Error {
 
-	private Event event;
-	private Throwable throwable;
-	
 	/**
 	 * Creates a new event caused by the given throwable.
 	 */
 	public HandlingError(Event event, Throwable throwable) {
-		this.event = event;
-		this.throwable = throwable;
-	}
-
-	/**
-	 * Returns the event that was dispatched when the error
-	 * occurred.
-	 * 
-	 * @return the event
-	 */
-	public Event getEvent() {
-		return event;
-	}
-
-	/**
-	 * Returns the throwable that caused the generation of this event.
-	 * 
-	 * @return the throwable
-	 */
-	public Throwable getThrowable() {
-		return throwable;
+		super (event, throwable);
 	}
 }
