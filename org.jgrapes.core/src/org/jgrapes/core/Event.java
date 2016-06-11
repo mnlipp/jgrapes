@@ -20,6 +20,7 @@ package org.jgrapes.core;
 import java.util.Arrays;
 
 import org.jgrapes.core.events.HandlingError;
+import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.internal.EventBase;
 import org.jgrapes.core.internal.Matchable;
 
@@ -101,7 +102,7 @@ public class Event extends EventBase {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(getClass().getSimpleName());
+		builder.append(Common.classToString(getClass()));
 		builder.append(" [");
 		if (channels != null) {
 			builder.append("channels=");

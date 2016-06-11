@@ -32,9 +32,6 @@ import org.jgrapes.core.Component;
  */
 class VerboseHandlerReference extends HandlerReference {
 
-	private static final Logger log 
-		= Logger.getLogger(HandlerReference.class.getName());
-	
 	private String handlerName;
 	
 	/**
@@ -49,13 +46,8 @@ class VerboseHandlerReference extends HandlerReference {
 	        Component component, Method method, boolean eventParam,
 	        int priority) {
 		super(eventKey, channelKey, component, method, eventParam, priority);
-		if (log.isLoggable(Level.FINER)) {
-			handlerName = component.getClass().getName()
+		handlerName = Common.classToString(component.getClass())
 				+ "#" + method.getName();
-		} else {
-			handlerName = component.getClass().getSimpleName()
-				+ "#" + method.getName();
-		}
 	}
 
 	/**
@@ -68,39 +60,10 @@ class VerboseHandlerReference extends HandlerReference {
 		handlerTracking.fine(event + " --> " + this);
 		super.invoke(event);
 	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+
 	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Handler [");
-		builder.append("method=");
-		builder.append(handlerName);
-		builder.append(", ");
-		if (getEventKey() != null) {
-			builder.append("event=");
-			if (getEventKey() instanceof Class) {
-				builder.append(((Class<?>) getEventKey()).getSimpleName());
-			} else {
-				builder.append(getEventKey());
-			}
-			builder.append(", ");
-		}
-		if (getChannelKey() != null) {
-			builder.append("channel=");
-			if (getChannelKey() instanceof Class) {
-				builder.append(((Class<?>) getChannelKey()).getSimpleName());
-			} else {
-				builder.append(getChannelKey());
-			}
-			builder.append(", ");
-		}
-		builder.append("priority=");
-		builder.append(getPriority());
-		builder.append("]");
-		return builder.toString();
+	protected String methodToString() {
+		return handlerName;
 	}
-	
+
 }

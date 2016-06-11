@@ -17,6 +17,8 @@
  */
 package org.jgrapes.core;
 
+import org.jgrapes.core.internal.Common;
+
 /**
  * The root base class for channels that use their class (type) as key
  * for matching channels with handlers.
@@ -83,10 +85,10 @@ public class ClassChannel implements Channel {
 	 */
 	@Override
 	public String toString() {
-		return getClass().getSimpleName()
+		return Common.classToString(getClass())
 				+ " [matchKey=" 
 				+ ((getMatchKey() instanceof Class)
-					?  ((Class<?>)getMatchKey()).getSimpleName()
+					?  Common.classToString((Class<?>)getMatchKey())
 					: getMatchKey())
 				+ "]";
 	}

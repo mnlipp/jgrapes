@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 
 /**
@@ -159,6 +160,10 @@ class HandlerReference implements Comparable<HandlerReference> {
 		return true;
 	}
 	
+	protected String methodToString() {
+		return method.toString();
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -168,13 +173,13 @@ class HandlerReference implements Comparable<HandlerReference> {
 		builder.append("Handler [");
 		if (method != null) {
 			builder.append("method=");
-			builder.append(method);
+			builder.append(methodToString());
 			builder.append(", ");
 		}
 		if (eventKey != null) {
 			builder.append("event=");
 			if (eventKey instanceof Class) {
-				builder.append(((Class<?>) eventKey).getSimpleName());
+				builder.append(Common.classToString((Class<?>) eventKey));
 			} else {
 				builder.append(eventKey);
 			}
@@ -183,7 +188,11 @@ class HandlerReference implements Comparable<HandlerReference> {
 		if (channelKey != null) {
 			builder.append("channel=");
 			if (channelKey instanceof Class) {
-				builder.append(((Class<?>) channelKey).getSimpleName());
+				if (channelKey == Channel.class) {
+					builder.append("BROADCAST");
+				} else {
+					builder.append(Common.classToString((Class<?>) channelKey));
+				}
 			} else {
 				builder.append(channelKey);
 			}
