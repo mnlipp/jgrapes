@@ -113,7 +113,7 @@ public abstract class ComponentNode implements Manager {
 			}
 			for (Object eventKey : eventKeys) {
 				for (Object channelKey : channelKeys) {
-					handlers.add(new HandlerReference
+					handlers.add(HandlerReference.newRef
 							(eventKey, channelKey, getComponent(), m,
 							 paramTypes.length == 0 ? false : true,
 							 handlerAnnotation.priority()));
@@ -377,12 +377,12 @@ public abstract class ComponentNode implements Manager {
 					if (m.getParameterTypes().length == 1
 							&& Event.class.isAssignableFrom
 								(m.getParameterTypes()[0])) {
-						handlers.add(new HandlerReference
+						handlers.add(HandlerReference.newRef
 								(eventKey, channelKey, getComponent(), 
 								 m, true, priority));
 						return;
 					} else if (m.getParameterTypes().length == 0) {
-						handlers.add(new HandlerReference
+						handlers.add(HandlerReference.newRef
 								(eventKey, channelKey, getComponent(), 
 								 m, false, priority));
 						return;
@@ -435,7 +435,6 @@ public abstract class ComponentNode implements Manager {
 			if (!event.matches(hdlr.getEventKey())) {
 				continue;
 			}
-			// Channel.class as handler's channel matches everything
 			boolean match = false;
 			for (Channel channel : channels) {
 				if (channel.matches(hdlr.getChannelKey())) {

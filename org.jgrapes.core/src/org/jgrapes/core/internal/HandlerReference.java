@@ -20,6 +20,8 @@ package org.jgrapes.core.internal;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jgrapes.core.Component;
 
@@ -28,8 +30,12 @@ import org.jgrapes.core.Component;
  * 
  * @author Michael N. Lipp
  */
-public class HandlerReference implements Comparable<HandlerReference> {
+class HandlerReference implements Comparable<HandlerReference> {
 
+	protected static final Logger handlerTracking 
+		= Logger.getLogger(Component.class.getPackage().getName() 
+			+ ".handlerTracking");
+	
 	private Object eventKey;
 	private Object channelKey;
 	private MethodHandle method;
@@ -46,7 +52,7 @@ public class HandlerReference implements Comparable<HandlerReference> {
 	 * @param eventParam {@code true} if the handler has an event parameter
 	 * @param priority the handler's priority
 	 */
-	public HandlerReference(Object eventKey, Object channelKey,	
+	protected HandlerReference(Object eventKey, Object channelKey,	
 			Component component, Method method, boolean eventParam, 
 			int priority) {
 		super();
@@ -152,27 +158,35 @@ public class HandlerReference implements Comparable<HandlerReference> {
 			return false;
 		return true;
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("HandlerReference [");
+		builder.append("Handler [");
 		if (method != null) {
 			builder.append("method=");
 			builder.append(method);
 			builder.append(", ");
 		}
 		if (eventKey != null) {
-			builder.append("eventKey=");
-			builder.append(eventKey);
+			builder.append("event=");
+			if (eventKey instanceof Class) {
+				builder.append(((Class<?>) eventKey).getSimpleName());
+			} else {
+				builder.append(eventKey);
+			}
 			builder.append(", ");
 		}
 		if (channelKey != null) {
-			builder.append("channelKey=");
-			builder.append(channelKey);
+			builder.append("channel=");
+			if (channelKey instanceof Class) {
+				builder.append(((Class<?>) channelKey).getSimpleName());
+			} else {
+				builder.append(channelKey);
+			}
 			builder.append(", ");
 		}
 		builder.append("priority=");
@@ -181,5 +195,46 @@ public class HandlerReference implements Comparable<HandlerReference> {
 		return builder.toString();
 	}
 	
-	
+	static abstract class HandlerRefFactory {
+		abstract HandlerReference createHandlerRef
+			(Object eventKey, Object channelKey,	
+			 Component component, Method method, boolean eventParam, 
+			 int priority);
+	}
+
+    private static class Holder {
+    	public static HandlerRefFactory FACTORY;
+    	static {
+			if (handlerTracking.isLoggable(Level.FINE)) {
+				FACTORY = new HandlerRefFactory() {
+					@Override
+					HandlerReference createHandlerRef(Object eventKey,
+				            Object channelKey,
+				            Component component, Method method,
+				            boolean eventParam, int priority) {
+						return new VerboseHandlerReference(eventKey, channelKey,
+				                component, method, eventParam, priority);
+					}
+				};
+			} else {
+				FACTORY = new HandlerRefFactory() {
+					@Override
+					HandlerReference createHandlerRef(Object eventKey,
+				            Object channelKey,
+				            Component component, Method method,
+				            boolean eventParam, int priority) {
+						return new HandlerReference(eventKey, channelKey,
+				                component, method, eventParam, priority);
+					}
+				};
+			}
+    	}
+    }
+
+    public static HandlerReference newRef(Object eventKey, Object channelKey,	
+			Component component, Method method, boolean eventParam, 
+			int priority) {
+    	return Holder.FACTORY.createHandlerRef(eventKey, channelKey,	
+    			component, method, eventParam, priority);
+    }
 }
