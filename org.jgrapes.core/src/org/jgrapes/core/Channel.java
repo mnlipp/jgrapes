@@ -38,6 +38,14 @@ import org.jgrapes.core.internal.Matchable;
 public interface Channel extends Matchable {
 
 	/**
+	 * A special channel object that can be passed to the constructor
+	 * of {@link AbstractComponent#AbstractComponent(Channel)}.
+	 * 
+	 * @see AbstractComponent#AbstractComponent(Channel)
+	 */
+	public static final Channel SELF = new ClassChannel();
+	
+	/**
 	 * A special channel that can be used to send events to
 	 * all components.
 	 */
