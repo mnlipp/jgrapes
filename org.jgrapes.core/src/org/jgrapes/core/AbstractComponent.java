@@ -38,10 +38,6 @@ import org.jgrapes.core.internal.ComponentNode;
 public class AbstractComponent extends ComponentNode 
 	implements Component, Channel {
 
-	// Don't use "this" to prevent overridden "equals" in derived classes
-	// from causing trouble
-	private Object matchKey = new Object();
-	
 	private Channel componentChannel = BROADCAST;
 	
 	/**
@@ -93,7 +89,7 @@ public class AbstractComponent extends ComponentNode
 	 */
 	@Override
 	public Object getMatchKey() {
-		return matchKey;
+		return this;
 	}
 
 	/* (non-Javadoc)
@@ -101,7 +97,7 @@ public class AbstractComponent extends ComponentNode
 	 */
 	@Override
 	public boolean matches(Object handlerKey) {
-		return handlerKey.equals(Channel.class) || handlerKey == matchKey;
+		return handlerKey.equals(Channel.class) || handlerKey == getMatchKey();
 	}
 
 }
