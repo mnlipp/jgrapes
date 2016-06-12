@@ -30,7 +30,7 @@ import org.jgrapes.core.Event;
 public class Start extends Event {
 	
 	/**
-	 * Create a new start event and set its completion event to {@Started}.
+	 * Create a new start event and set its completion event to {@link Started}.
 	 * The completion event may not be changed. The event's channels
 	 * are set to {@link Channel#BROADCAST}.
 	 */
