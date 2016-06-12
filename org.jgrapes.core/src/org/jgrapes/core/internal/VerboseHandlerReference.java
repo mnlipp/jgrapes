@@ -20,6 +20,7 @@ package org.jgrapes.core.internal;
 import java.lang.reflect.Method;
 
 import org.jgrapes.core.Component;
+import org.jgrapes.core.EventPipeline;
 
 /**
  * An variant of handler reference that provides better debug information
@@ -57,11 +58,18 @@ class VerboseHandlerReference extends HandlerReference {
 	 */
 	@Override
 	public void invoke(EventBase event) throws Throwable {
+		StringBuilder builder = new StringBuilder();
+		builder.append("P");
+		builder.append(Common.getId(EventPipeline.class, 
+				FeedBackPipelineFilter.getAssociatedPipeline()));
+		builder.append(": ");
+		builder.append(event);
 		if (component == ComponentTree.DUMMY_HANDLER) {
-			handlerTracking.fine(event + " (unhandled)");
+			builder.append(" (unhandled)");
 		} else {
-			handlerTracking.fine(event + " --> " + this);
+			builder.append(" --> " + this);
 		}
+		handlerTracking.fine(builder.toString());
 		super.invoke(event);
 	}
 

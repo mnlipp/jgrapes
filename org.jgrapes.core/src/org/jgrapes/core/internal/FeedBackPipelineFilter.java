@@ -54,6 +54,15 @@ class FeedBackPipelineFilter implements MergingEventPipeline {
 		currentPipeline.set(pipeline);
 	}
 
+	/**
+	 * Get the pipeline associated with the invoking thread.
+	 * 
+	 * @return the pipeline or {@code null}
+	 */
+	public static ExecutingEventPipeline getAssociatedPipeline() {
+		return currentPipeline.get();
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.jgrapes.core.EventPipeline#add(org.jgrapes.core.internal.EventBase, org.jgrapes.core.Channel[])
 	 */

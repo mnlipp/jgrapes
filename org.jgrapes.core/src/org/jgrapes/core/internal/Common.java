@@ -17,6 +17,9 @@
  */
 package org.jgrapes.core.internal;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,4 +45,21 @@ public class Common {
 			return clazz.getSimpleName();
 		}
 	}
+
+	private static Map<Object, String> objectIds = new WeakHashMap<>();
+	private static Map<Class<?>, AtomicLong> idCounters = new WeakHashMap<>();
+
+	static String getId(Class<?> clazz, Object object) {
+		if (object == null) {
+			return "?";
+		}
+		synchronized (objectIds) {
+			return objectIds.computeIfAbsent
+				(object, k -> Long.toString
+					(idCounters.computeIfAbsent(clazz, l -> new AtomicLong())
+							.incrementAndGet()));
+			
+		}
+}
+
 }
