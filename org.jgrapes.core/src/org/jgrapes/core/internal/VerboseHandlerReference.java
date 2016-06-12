@@ -67,7 +67,7 @@ class VerboseHandlerReference extends HandlerReference {
 		if (component == ComponentTree.DUMMY_HANDLER) {
 			builder.append(" (unhandled)");
 		} else {
-			builder.append(" --> " + this);
+			builder.append(" >> " + this);
 		}
 		handlerTracking.fine(builder.toString());
 		super.invoke(event);
