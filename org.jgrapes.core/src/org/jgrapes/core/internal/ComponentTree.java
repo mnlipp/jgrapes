@@ -20,10 +20,16 @@ package org.jgrapes.core.internal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.HandlingErrorPrinter;
+import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.HandlingError;
 
 /**
@@ -34,12 +40,22 @@ import org.jgrapes.core.events.HandlingError;
  */
 class ComponentTree {
 
+	private static final Logger handlerTracking 
+		= Logger.getLogger(Component.class.getPackage().getName() 
+				+ ".handlerTracking");	
+	
 	private ComponentNode root;
 	private Map<EventChannelsTuple,HandlerList> handlerCache
 		= new HashMap<EventChannelsTuple,HandlerList>();
 	private MergingEventPipeline eventPipeline;
 	private static HandlingErrorPrinter fallbackErrorHandler 
 		= new HandlingErrorPrinter(); 
+	public final static ComponentNode DUMMY_HANDLER 
+		= new AbstractComponent(Channel.SELF) {
+			@Handler(channels={Channel.class})
+			public void noop(Event event) {
+			}
+	};
 
 	/**
 	 * Creates a new tree for the given node or sub tree.
@@ -105,9 +121,15 @@ class ComponentTree {
 		hdlrs = new HandlerList();
 		root.collectHandlers(hdlrs, event, channels);
 		// Make sure that errors are reported.
-		if (hdlrs.isEmpty() && event instanceof HandlingError) {
-			((ComponentNode)fallbackErrorHandler)
-				.collectHandlers(hdlrs, event, channels);
+		if (hdlrs.isEmpty()) {
+			if (event instanceof HandlingError) {
+				((ComponentNode)fallbackErrorHandler)
+					.collectHandlers(hdlrs, event, channels);
+			} else {
+				if (handlerTracking.isLoggable(Level.FINER)) {
+					DUMMY_HANDLER.collectHandlers(hdlrs, event, channels);
+				}
+			}
 		}
 		Collections.sort(hdlrs);
 		handlerCache.put(key, hdlrs);

@@ -18,8 +18,6 @@
 package org.jgrapes.core.internal;
 
 import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jgrapes.core.Component;
 
@@ -32,6 +30,7 @@ import org.jgrapes.core.Component;
  */
 class VerboseHandlerReference extends HandlerReference {
 
+	private Component component;
 	private String handlerName;
 	
 	/**
@@ -46,6 +45,7 @@ class VerboseHandlerReference extends HandlerReference {
 	        Component component, Method method, boolean eventParam,
 	        int priority) {
 		super(eventKey, channelKey, component, method, eventParam, priority);
+		this.component = component;
 		handlerName = Common.classToString(component.getClass())
 				+ "#" + method.getName();
 	}
@@ -57,7 +57,11 @@ class VerboseHandlerReference extends HandlerReference {
 	 */
 	@Override
 	public void invoke(EventBase event) throws Throwable {
-		handlerTracking.fine(event + " --> " + this);
+		if (component == ComponentTree.DUMMY_HANDLER) {
+			handlerTracking.fine(event + " (unhandled)");
+		} else {
+			handlerTracking.fine(event + " --> " + this);
+		}
 		super.invoke(event);
 	}
 
