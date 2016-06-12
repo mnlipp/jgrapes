@@ -17,8 +17,11 @@
  */
 package org.jgrapes.core.events;
 
+import java.util.Arrays;
+
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.internal.Common;
 
 /**
  * Signals the addition of a component (or subtree) to the component tree.
@@ -64,4 +67,28 @@ public class Attached extends Event {
 		return parent;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Common.classToString(getClass()));
+		builder.append(" [");
+		if (parent == null) {
+			builder.append("ROOT");
+		} else {
+			builder.append(parent);
+		}
+		builder.append(" <―― ");
+		builder.append(node);
+		builder.append(", ");
+		if (channels != null) {
+			builder.append("channels=");
+			builder.append(Arrays.toString(channels));
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+	
 }
