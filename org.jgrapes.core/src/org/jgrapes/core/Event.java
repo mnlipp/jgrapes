@@ -47,7 +47,7 @@ public class Event extends EventBase {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.Matchable#matches(java.lang.Object)
+	 * @see org.jgrapes.core.internal.Matchable#matches(java.lang.Object)
 	 */
 	@Override
 	public boolean matches(Object handlerKey) {

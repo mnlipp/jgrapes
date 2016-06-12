@@ -72,7 +72,7 @@ public class AbstractComponent extends ComponentNode
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.ComponentNode#getComponent()
+	 * @see org.jgrapes.core.internal.ComponentNode#getComponent()
 	 */
 	@Override
 	protected Component getComponent() {
@@ -93,7 +93,7 @@ public class AbstractComponent extends ComponentNode
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.Matchable#getMatchKey()
+	 * @see org.jgrapes.core.internal.Matchable#getMatchKey()
 	 */
 	@Override
 	public Object getMatchKey() {
@@ -101,7 +101,7 @@ public class AbstractComponent extends ComponentNode
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.internal.Matchable#matches(java.lang.Object)
+	 * @see org.jgrapes.core.internal.Matchable#matches(java.lang.Object)
 	 */
 	@Override
 	public boolean matches(Object handlerKey) {

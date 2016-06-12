@@ -144,7 +144,7 @@ public abstract class ComponentNode implements Manager {
 	protected abstract Component getComponent();
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.Manager#getChildren()
+	 * @see org.jgrapes.core.Manager#getChildren()
 	 */
 	@Override
 	synchronized public List<Component> getChildren() {
@@ -156,7 +156,7 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.Manager#getParent()
+	 * @see org.jgrapes.core.Manager#getParent()
 	 */
 	@Override
 	synchronized public Component getParent() {
@@ -167,7 +167,7 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.Manager#getRoot()
+	 * @see org.jgrapes.core.Manager#getRoot()
 	 */
 	@Override
 	public Component getRoot() {
@@ -204,7 +204,7 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.Manager#addChild(Component)
+	 * @see org.jgrapes.core.Manager#addChild(Component)
 	 */
 	@Override
 	synchronized public Manager attach (Component child) {
@@ -363,7 +363,7 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.Manager#addHandler
+	 * @see org.jgrapes.core.Manager#addHandler
 	 */
 	@Override
 	public void addHandler(Object eventKey, Object channelKey, 
@@ -397,7 +397,7 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.Manager#addHandler
+	 * @see org.jgrapes.core.Manager#addHandler
 	 */
 	@Override
 	public void addHandler(Object eventKey, Object channelKey, String method) {
@@ -405,8 +405,8 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.core.Manager#fire
-	 * (org.jdrupes.Event, org.jdrupes.Channel)
+	 * @see org.jgrapes.core.core.Manager#fire
+	 * (org.jgrapes.core.Event, org.jgrapes.core.Channel)
 	 */
 	@Override
 	public void fire(Event event, Channel... channels) {

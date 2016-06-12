@@ -133,7 +133,7 @@ public class ComponentProxy extends ComponentNode {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.Manager#getChannel()
+	 * @see org.jgrapes.core.Manager#getChannel()
 	 */
 	@Override
 	public Channel getChannel() {
