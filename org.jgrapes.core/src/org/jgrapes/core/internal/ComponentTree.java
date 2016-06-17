@@ -89,7 +89,7 @@ class ComponentTree {
 	 * @param event
 	 * @param channels
 	 */
-	public void fire(EventBase<?> event, Channel[] channels) {
+	public void fire(Event<?> event, Channel[] channels) {
 		eventPipeline.add(event, channels);
 	}
 

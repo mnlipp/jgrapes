@@ -18,14 +18,13 @@
 package org.jgrapes.core.events;
 
 import org.jgrapes.core.Event;
-import org.jgrapes.core.internal.EventBase;
 
 /**
  * This event signals that an error occurred while processing an event.
  * 
  * @author Michael N. Lipp
  */
-public class Error<T extends EventBase<?>> extends Event<Void> {
+public class Error<T extends Event<?>> extends Event<Void> {
 
 	private T event;
 	private String message;

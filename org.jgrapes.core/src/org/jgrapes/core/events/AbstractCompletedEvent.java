@@ -21,7 +21,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.jgrapes.core.Event;
-import org.jgrapes.core.internal.EventBase;
 
 /**
  * A utility class for implementing completed events.
@@ -30,7 +29,7 @@ import org.jgrapes.core.internal.EventBase;
  * 
  * @author Michael N. Lipp
  */
-public abstract class AbstractCompletedEvent<T extends EventBase<?>>
+public abstract class AbstractCompletedEvent<T extends Event<?>>
 		extends Event<T> {
 
 	private T initialEvent;
@@ -45,15 +44,15 @@ public abstract class AbstractCompletedEvent<T extends EventBase<?>>
 	 */
 	public static <T> Event<T> setCompletedEvent
 		(Event<T> event, Class<? extends AbstractCompletedEvent
-				<? extends EventBase<T>>> clazz) {
+				<? extends Event<T>>> clazz) {
 		try {
 			@SuppressWarnings("unchecked")
 			Constructor<? extends AbstractCompletedEvent
-					<? extends EventBase<T>>>[] constrs
+					<? extends Event<T>>>[] constrs
 					= (Constructor<? extends AbstractCompletedEvent
-							<? extends EventBase<T>>>[])clazz.getConstructors();
+							<? extends Event<T>>>[])clazz.getConstructors();
 			for (Constructor<? extends AbstractCompletedEvent
-					<? extends EventBase<T>>> c: constrs) {
+					<? extends Event<T>>> c: constrs) {
 				if (c.getParameterTypes().length != 1) {
 					continue;
 				}

@@ -44,7 +44,7 @@ public @interface Handler {
 	
 	/** The default value for the <code>events</code> parameter of
 	 * the annotation. Indicates that the parameter is not used. */
-	final public static class NO_EVENT extends Event {
+	final public static class NO_EVENT extends Event<Void> {
 	}
 	
 	/** The default value for the <code>channels</code> parameter of
@@ -55,6 +55,7 @@ public @interface Handler {
 	/**
 	 * Specifies classes of events that the handler is to receive.
 	 */
+	@SuppressWarnings("rawtypes")
 	Class<? extends Event>[] events() default NO_EVENT.class;
 	
 	/**
