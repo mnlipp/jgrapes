@@ -81,10 +81,10 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	
 	@Override
 	synchronized public void run() {
-		if (queue.isEmpty()) {
-			return;
-		}
 		try {
+			if (queue.isEmpty()) {
+				return;
+			}
 			FeedBackPipelineFilter.setAssociatedPipeline(this);
 			while (true) {
 				EventChannelsTuple next = queue.peek();
