@@ -21,6 +21,7 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 import org.jgrapes.core.Event;
+import org.jgrapes.io.File;
 
 /**
  * Signals a {@link File} component that it should start working with
