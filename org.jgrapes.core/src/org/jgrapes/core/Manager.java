@@ -145,6 +145,14 @@ public interface Manager extends Iterable<Component> {
 	void addHandler(Object eventKey, Object channelKey,	String method);
 	
 	/**
+	 * Returns the pipeline used when firing an event.
+	 * 
+	 * @return the event pipeline
+	 * @see #fire(Event, Channel...) 
+	 */
+	EventPipeline activeEventPipeline();
+	
+	/**
 	 * Return a new {@link EventPipeline} that processes the added events
 	 * using a thread from a thread pool.
 	 * 

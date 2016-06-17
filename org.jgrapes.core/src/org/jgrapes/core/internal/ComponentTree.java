@@ -79,6 +79,10 @@ class ComponentTree {
 		eventPipeline = pipeline;
 	}
 	
+	EventPipeline getEventPipeline() {
+		return eventPipeline;
+	}
+	
 	/**
 	 * Forward to the thread's event manager.
 	 * 

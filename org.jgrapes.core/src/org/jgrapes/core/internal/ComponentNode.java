@@ -453,6 +453,14 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#activeEventPipeline()
+	 */
+	@Override
+	public EventPipeline activeEventPipeline() {
+		return getTree().getEventPipeline();
+	}
+
+	/* (non-Javadoc)
 	 * @see org.jgrapes.core.Manager#newSynchronousPipeline()
 	 */
 	@Override
