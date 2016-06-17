@@ -24,9 +24,9 @@ import org.jgrapes.core.Event;
  * 
  * @author Michael N. Lipp
  */
-public class Error<T extends Event<?>> extends Event<Void> {
+public class Error extends Event<Void> {
 
-	private T event;
+	private Event<?> event;
 	private String message;
 	private Throwable throwable;
 	
@@ -36,7 +36,7 @@ public class Error<T extends Event<?>> extends Event<Void> {
 	 * @param event the event being processed when the problem occurred
 	 * @param message the message
 	 */
-	public Error(T event, String message) {
+	public Error(Event<?> event, String message) {
 		this.event = event;
 		this.message = message;
 	}
@@ -48,7 +48,7 @@ public class Error<T extends Event<?>> extends Event<Void> {
 	 * @param message the message
 	 * @param throwable the throwable
 	 */
-	public Error(T event, String message, Throwable throwable) {
+	public Error(Event<?> event, String message, Throwable throwable) {
 		this.event = event;
 		this.message = message;
 		this.throwable = throwable;
@@ -61,7 +61,7 @@ public class Error<T extends Event<?>> extends Event<Void> {
 	 * @param event the event being processed when the problem occurred
 	 * @param throwable the throwable
 	 */
-	public Error(T event, Throwable throwable) {
+	public Error(Event<?> event, Throwable throwable) {
 		this.event = event;
 		this.message = throwable.getMessage();
 		this.throwable = throwable;
@@ -72,7 +72,7 @@ public class Error<T extends Event<?>> extends Event<Void> {
 	 * 
 	 * @return the event
 	 */
-	public T getEvent() {
+	public Event<?> getEvent() {
 		return event;
 	}
 	

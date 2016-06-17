@@ -27,12 +27,12 @@ import org.jgrapes.core.Event;
  * 
  * @author Michael N. Lipp
  */
-public class HandlingError<T extends Event<?>> extends Error<T> {
+public class HandlingError extends Error {
 
 	/**
 	 * Creates a new event caused by the given throwable.
 	 */
-	public HandlingError(T event, Throwable throwable) {
+	public HandlingError(Event<?> event, Throwable throwable) {
 		super (event, throwable);
 	}
 }

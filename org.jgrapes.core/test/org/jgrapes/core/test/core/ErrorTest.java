@@ -23,7 +23,7 @@ public class ErrorTest {
 		}
 		
 		@Handler(events=HandlingError.class, channels=Channel.class)
-		public void onError(HandlingError<?> evt) {
+		public void onError(HandlingError evt) {
 			if (evt.getThrowable().getClass() == IllegalStateException.class) {
 				caughtError = true;
 			}
