@@ -19,7 +19,7 @@ public class EventTest {
 		public boolean caughtStarted = false;
 		
 		@Handler(events=Start.class)
-		public void onStart(Event evt) {
+		public void onStart(Event<?> evt) {
 			caughtStart = true;
 			try {
 				evt.setChannels(new Channel[] { Channel.BROADCAST });
@@ -29,7 +29,7 @@ public class EventTest {
 		}
 		
 		@Handler(events=Started.class)
-		public void onStarted(Event evt) {
+		public void onStarted(Event<?> evt) {
 			caughtStarted = true;
 		}
 	}

@@ -38,7 +38,8 @@ public class AttachTest {
 	}
 	
 	@Test
-	public void testPostStart() throws InterruptedException {
+	public void testPostStart() 
+			throws InterruptedException {
 		AttachCatcher c1 = new AttachCatcher();
 		AttachCatcher c2 = new AttachCatcher();
 		c1.attach(c2);
@@ -50,8 +51,8 @@ public class AttachTest {
 		assertEquals(c1, c2.attachParent);
 		assertEquals(c2, c2.attachChild);
 		c2.detach();
-		Utils.fireAndAwait(c1, new Event());
-		Utils.fireAndAwait(c2, new Event());
+		c1.fire(new Event<Void>()).get();
+		c2.fire(new Event<Void>()).get();
 		assertEquals(c1, c1.detachParent);
 		assertEquals(c2, c1.detachChild);
 		assertEquals(c1, c2.detachParent);

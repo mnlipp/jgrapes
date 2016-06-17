@@ -244,7 +244,7 @@ public abstract class ComponentNode implements Manager {
 		if (cChan == null) {
 			pChan = Channel.BROADCAST;
 		}
-		Event e = new Attached(childNode.getComponent(), getComponent());
+		Attached e = new Attached(childNode.getComponent(), getComponent());
 		if (pChan.equals(Channel.BROADCAST) 
 			|| cChan.equals(Channel.BROADCAST)) {
 			fire(e, Channel.BROADCAST);
@@ -278,7 +278,7 @@ public abstract class ComponentNode implements Manager {
 				newTree.setEventPipeline(new EventProcessor(newTree));
 				setTree(newTree);
 			}
-			Event e = new Detached(getComponent(), oldParent.getComponent());
+			Detached e = new Detached(getComponent(), oldParent.getComponent());
 			oldParent.fire(e);
 			e = new Detached(getComponent(), oldParent.getComponent());
 			fire(e);
@@ -409,7 +409,7 @@ public abstract class ComponentNode implements Manager {
 	 * (org.jgrapes.core.Event, org.jgrapes.core.Channel)
 	 */
 	@Override
-	public void fire(Event event, Channel... channels) {
+	public <T> Event<T> fire(Event<T> event, Channel... channels) {
 		if (channels.length == 0) {
 			channels = event.getChannels();
 			if (channels == null || channels.length == 0) {
@@ -418,6 +418,7 @@ public abstract class ComponentNode implements Manager {
 		}
 		event.setChannels(channels);
 		getTree().fire(event, channels);
+		return event;
 	}
 
 	/**
@@ -430,7 +431,7 @@ public abstract class ComponentNode implements Manager {
 	 * @param channels the channels to match
 	 */
 	void collectHandlers (Collection<HandlerReference> hdlrs, 
-			EventBase event, Channel[] channels) {
+			EventBase<?> event, Channel[] channels) {
 		for (HandlerReference hdlr: handlers) {
 			if (!event.matches(hdlr.getEventKey())) {
 				continue;

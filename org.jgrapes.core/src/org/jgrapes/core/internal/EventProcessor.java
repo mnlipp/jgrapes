@@ -37,7 +37,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	
 	private ComponentTree componentTree;
 	protected EventQueue queue = new EventQueue();
-	protected EventBase currentlyHandling = null;
+	protected EventBase<?> currentlyHandling = null;
 	private WeakHashMap<Component, Object> componentContext 
 		= new WeakHashMap<>();
 	
@@ -46,8 +46,8 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	}
 
 	@Override
-	public void add(EventBase event, Channel... channels) {
-		((EventBase)event).generatedBy(currentlyHandling);
+	public void add(EventBase<?> event, Channel... channels) {
+		event.generatedBy(currentlyHandling);
 		synchronized (queue) {
 			boolean wasEmpty = queue.isEmpty();
 			queue.add(event, channels);

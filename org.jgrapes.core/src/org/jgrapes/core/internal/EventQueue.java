@@ -38,7 +38,7 @@ class EventQueue extends ArrayDeque<EventChannelsTuple> {
 	 * @param event the event
 	 * @param channels the channels
 	 */
-	public void add (EventBase event, Channel[] channels) {
+	public void add (EventBase<?> event, Channel[] channels) {
 		add (new EventChannelsTuple(event, channels));
 	}
 

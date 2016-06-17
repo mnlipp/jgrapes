@@ -104,7 +104,7 @@ class HandlerReference implements Comparable<HandlerReference> {
 	 * 
 	 * @param event the event
 	 */
-	public void invoke(EventBase event) throws Throwable {
+	public void invoke(EventBase<?> event) throws Throwable {
 		if (hasEventParam) {
 			method.invoke(event);
 		} else {

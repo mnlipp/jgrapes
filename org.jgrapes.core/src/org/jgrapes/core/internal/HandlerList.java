@@ -35,7 +35,7 @@ class HandlerList extends ArrayList<HandlerReference> {
 	 * @param eventProcessor
 	 * @param event the event
 	 */
-	public void process(EventPipeline eventPipeline, EventBase event) {
+	public void process(EventPipeline eventPipeline, EventBase<?> event) {
 		for (HandlerReference hdlr: this) {
 			try {
 				hdlr.invoke(event);
@@ -46,9 +46,8 @@ class HandlerList extends ArrayList<HandlerReference> {
 				event.handlingError(eventPipeline, t);
 			}
 		}
-		event.stop();
 		try {
-			event.stopped();
+			event.done();
 		} catch (Throwable t) {
 			event.handlingError(eventPipeline, t);
 		}

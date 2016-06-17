@@ -17,6 +17,10 @@
  */
 package org.jgrapes.core.internal;
 
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
@@ -24,26 +28,30 @@ import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 
 /**
- * @author mnl
- *
+ * @param <T> the result type of the event. Use {@link Void} if handling
+ * the event does not produce a result
+ * 
+ * @author Michael N. Lipp
  */
-public abstract class EventBase implements Matchable {
+public abstract class EventBase<T> implements Matchable, Future<T> {
 
 	/** The channels that this event is to be fired on if no
 	 * channels are specified explicitly when firing. */
 	protected Channel[] channels = null;
 	/** The event that caused this event. */
-	private EventBase generatedBy = null;
+	private EventBase<?> generatedBy = null;
 	/** Number of events that have to be dispatched until completion.
 	 * This is one for the event itself and one more for each event
 	 * that has this event as its cause. */
 	private int openCount = 0;
 	/** The event to be fired upon completion. */
-	private Event completedEvent = null;
+	private Event<?> completedEvent = null;
 	/** Set when the event has been completed. */
 	private boolean completed = false;
 	/** Indicates that the event should not processed further. */
 	private boolean stopped = false;
+	/** The result of handling the event (if any). */
+	private T result;
 	
 	/**
 	 * Returns the channels associated with the event. Before an
@@ -85,6 +93,15 @@ public abstract class EventBase implements Matchable {
 	protected boolean enqueued() {
 		return openCount > 0;
 	}
+
+	/**
+	 * Sets the result of handling this event.
+	 * 
+	 * @param result
+	 */
+	public void setResult(T result) {
+		this.result = result;
+	}
 	
 	/**
 	 * Invoked when an exception occurs while invoking a handler for an event.
@@ -99,24 +116,11 @@ public abstract class EventBase implements Matchable {
 	 * Can be called during the execution of an event handler to indicate
 	 * that the event should not be processed further. All remaining 
 	 * handlers for this event will be skipped.
-	 * <P>
-	 * This method will be called automatically after all handlers for the
-	 * event have been invoked.
 	 */
 	public void stop() {
 		stopped = true;
 	}
 
-	/**
-	 * Invoked after all handlers for the event have been executed. 
-	 * May be overridden by derived classes to cause some immediate effect
-	 * (instead of e.g. waiting for the completion event). The default 
-	 * implementation does nothing. This method is invoked by the event 
-	 * handler thread and must not block.
-	 */
-	protected void stopped() {
-	}
-	
 	/**
 	 * Returns <code>true</code> if {@link stop} has been called.
 	 * 
@@ -134,7 +138,7 @@ public abstract class EventBase implements Matchable {
 	 * 
 	 * @param causingEvent the causing event to set
 	 */
-	void generatedBy(EventBase causingEvent) {
+	void generatedBy(EventBase<?> causingEvent) {
 		openCount += 1;
 		this.generatedBy = causingEvent;
 		if (causingEvent != null) {
@@ -171,7 +175,7 @@ public abstract class EventBase implements Matchable {
 	 * 
 	 * @return the completedEvent
 	 */
-	public Event getCompletedEvent() {
+	public Event<?> getCompletedEvent() {
 		return completedEvent;
 	}
 
@@ -181,7 +185,7 @@ public abstract class EventBase implements Matchable {
 	 * 
 	 * @param completedEvent the completedEvent to set
 	 */
-	public void setCompletedEvent(Event completedEvent) {
+	public void setCompletedEvent(Event<?> completedEvent) {
 		this.completedEvent = completedEvent;
 	}
 
@@ -190,40 +194,80 @@ public abstract class EventBase implements Matchable {
 	 * 
 	 * @return the completed state
 	 */
-	public boolean isCompleted() {
+	@Override
+	public boolean isDone() {
 		return completed;
 	}
 
 	/**
-	 * Similar to calling <code>awaitComplted(0)</code>.
-	 * 
-	 * @throws IllegalStateException
-	 * @throws InterruptedException
+	 * Invoked after all handlers for the event have been executed. 
+	 * May be overridden by derived classes to cause some immediate effect
+	 * (instead of e.g. waiting for the completion event). The default 
+	 * implementation does nothing. This method is invoked by the event 
+	 * handler thread and must not block.
 	 */
-	public void awaitCompleted() 
-			throws IllegalStateException, InterruptedException {
-		awaitCompleted(0);
+	protected void done() {
+	}
+	
+	/**
+	 * The cancel semantics of {@link Future}s do not apply to events.
+	 * 
+	 * @param mayInterruptIfRunning ignored
+	 * @return always {@code false} as event processing cannot be cancelled
+	 * @see java.util.concurrent.Future#cancel(boolean)
+	 */
+	@Override
+	public boolean cancel(boolean mayInterruptIfRunning) {
+		return false;
+	}
+
+	/**
+	 * The cancel semantics of {@link Future}s do not apply to events.
+	 * 
+	 * @return always {@code false} as event processing cannot be cancelled
+	 * @see java.util.concurrent.Future#isCancelled()
+	 */
+	@Override
+	public boolean isCancelled() {
+		return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.util.concurrent.Future#get()
+	 */
+	@Override
+	public T get() throws InterruptedException {
+		while (true) {
+			synchronized(this) {
+				if (completed) {
+					return result;
+				}
+				wait();
+			}
+		}
 	}
 
 	/**
 	 * Causes the invoking thread to wait until the processing of the 
 	 * event has been completed or given timeout has expired. 
-	 *  
-	 * @param timeout the maximum time to wait; if 0, wait forever
-	 * @throws InterruptedException if the calling thread is interrupted
+	 * 
+	 * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)
 	 */
-	public void awaitCompleted(long timeout) 
-			throws IllegalStateException, InterruptedException {
-		while (true) {
-			synchronized(this) {
-				if (completed) {
-					return;
-				}
-				wait(timeout);
+	@Override
+	public T get(long timeout, TimeUnit unit)
+	        throws InterruptedException, TimeoutException {
+		synchronized(this) {
+			if (completed) {
+				return result;
 			}
+			wait(unit.toMillis(timeout));
 		}
+		if (completed) {
+			return result;
+		}
+		throw new TimeoutException();
 	}
-	
+
 	/**
 	 * Sets the data that is stored in the executing pipeline for
 	 * the given component.

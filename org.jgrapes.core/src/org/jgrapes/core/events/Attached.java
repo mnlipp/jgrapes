@@ -28,7 +28,7 @@ import org.jgrapes.core.internal.Common;
  * 
  * @author Michael N. Lipp
  */
-public class Attached extends Event {
+public class Attached extends Event<Void> {
 
 	private Component node;
 	private Component parent;

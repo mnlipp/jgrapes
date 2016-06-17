@@ -27,7 +27,7 @@ import org.jgrapes.core.Event;
  * 
  * @author Michael N. Lipp
  */
-public class Start extends Event {
+public class Start extends Event<Void> {
 	
 	/**
 	 * Create a new start event and set its completion event to {@link Started}.

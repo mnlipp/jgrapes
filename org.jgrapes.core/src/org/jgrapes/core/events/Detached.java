@@ -30,7 +30,7 @@ import org.jgrapes.core.internal.Common;
  * 
  * @author Michael N. Lipp
  */
-public class Detached extends Event {
+public class Detached extends Event<Void> {
 
 	private Component node;
 	private Component parent;

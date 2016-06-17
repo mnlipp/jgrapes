@@ -110,8 +110,9 @@ public interface Manager extends Iterable<Component> {
 	 * 
 	 * @param event the event to fire
 	 * @param channels the channels to fire the event on
+	 * @return the event (for easy chaining)
 	 */
-	void fire(Event event, Channel... channels);
+	<T> Event<T> fire(Event<T> event, Channel... channels);
 
 	/**
 	 * Adds a method of the component managed by this manager as a 

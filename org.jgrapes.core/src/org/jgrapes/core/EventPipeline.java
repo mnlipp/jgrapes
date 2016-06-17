@@ -39,5 +39,5 @@ public interface EventPipeline {
 	 * @param event the event to process
 	 * @param channels the channels that the event was fired on
 	 */
-	void add(EventBase event, Channel... channels);
+	void add(EventBase<?> event, Channel... channels);
 }

@@ -18,6 +18,7 @@
 package org.jgrapes.core.events;
 
 import org.jgrapes.core.Event;
+import org.jgrapes.core.internal.EventBase;
 
 /**
  * This event signals that a throwable occurred while
@@ -27,12 +28,12 @@ import org.jgrapes.core.Event;
  * 
  * @author Michael N. Lipp
  */
-public class HandlingError extends Error {
+public class HandlingError<T extends EventBase<?>> extends Error<T> {
 
 	/**
 	 * Creates a new event caused by the given throwable.
 	 */
-	public HandlingError(Event event, Throwable throwable) {
+	public HandlingError(T event, Throwable throwable) {
 		super (event, throwable);
 	}
 }

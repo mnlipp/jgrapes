@@ -38,7 +38,7 @@ public class ComponentWithClassChannel implements Component {
 	public int count = 0;
 	
 	@Handler(events=Start.class)
-	public void onStarted(Event event) {
+	public void onStarted(Event<?> event) {
 		count += 1;
 	}
 }

@@ -57,7 +57,7 @@ class VerboseHandlerReference extends HandlerReference {
 	 * @param event the event
 	 */
 	@Override
-	public void invoke(EventBase event) throws Throwable {
+	public void invoke(EventBase<?> event) throws Throwable {
 		StringBuilder builder = new StringBuilder();
 		builder.append("P");
 		builder.append(Common.getId(EventPipeline.class, 

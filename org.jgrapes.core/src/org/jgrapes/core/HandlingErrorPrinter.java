@@ -23,7 +23,7 @@ import org.jgrapes.core.events.HandlingError;
 public class HandlingErrorPrinter extends AbstractComponent {
 
 	@Handler
-	public void printError(HandlingError event) {
+	public void printError(HandlingError<?> event) {
 		System.err.println("Error handling " + event.getEvent());
 		event.getThrowable().printStackTrace();
 	}

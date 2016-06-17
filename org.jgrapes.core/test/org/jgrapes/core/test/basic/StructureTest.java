@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutionException;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Manager;
@@ -67,7 +68,7 @@ public class StructureTest {
 	}
 	
 	@Test
-	public void testDetach() throws InterruptedException {
+	public void testDetach() throws InterruptedException, ExecutionException {
 		TestComponent1 c = new TestComponent1("root");
 		Utils.start(c);
 		TestComponent1 c1 = new TestComponent1("sub1");

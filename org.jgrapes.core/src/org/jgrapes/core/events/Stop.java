@@ -26,7 +26,7 @@ import org.jgrapes.core.Event;
  * 
  * @author Michael N. Lipp
  */
-public class Stop extends Event {
+public class Stop extends Event<Void> {
 
 	/**
 	 * Create a new stop event with the event's channels set to 

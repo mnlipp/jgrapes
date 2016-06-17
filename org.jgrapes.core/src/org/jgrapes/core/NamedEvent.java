@@ -26,7 +26,7 @@ import java.util.Arrays;
  * 
  * @author Michael N. Lipp
  */
-final public class NamedEvent extends Event {
+final public class NamedEvent<T> extends Event<T> {
 
 	private String name;
 	

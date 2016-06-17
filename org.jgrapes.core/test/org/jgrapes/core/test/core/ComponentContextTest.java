@@ -18,10 +18,8 @@
 package org.jgrapes.core.test.core;
 
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import org.jgrapes.core.AbstractComponent;
-import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
@@ -40,12 +38,12 @@ public class ComponentContextTest {
 		public String result;
 		
 		@Handler(events=Start.class)
-		public void onStart(Event evt) {
+		public void onStart(Event<?> evt) {
 			evt.setComponentContext(this, new String("Hello!"));
 		}
 		
 		@Handler(events=Started.class)
-		public void onStarted(Event evt) {
+		public void onStarted(Event<?> evt) {
 			result = (String)evt.getComponentContext(this);
 		}
 	}

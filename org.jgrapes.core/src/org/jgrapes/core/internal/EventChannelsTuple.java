@@ -30,14 +30,14 @@ import org.jgrapes.core.Channel;
  * @author Michael N. Lipp
  */
 public class EventChannelsTuple {
-	public EventBase event;		
+	public EventBase<?> event;		
 	public Channel[] channels;
 	
 	/**
 	 * @param event
 	 * @param channels
 	 */
-	public EventChannelsTuple(EventBase event, Channel[] channels) {
+	public EventChannelsTuple(EventBase<?> event, Channel[] channels) {
 		super();
 		this.event = event;
 		this.channels = channels;

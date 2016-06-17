@@ -22,7 +22,7 @@ package org.jgrapes.core.events;
  * 
  * @author Michael N. Lipp
  */
-public class Started extends AbstractCompletedEvent {
+public class Started extends AbstractCompletedEvent<Start> {
 
 	/**
 	 * An event for signaling the completion of the application start.

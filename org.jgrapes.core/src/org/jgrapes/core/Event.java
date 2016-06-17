@@ -29,14 +29,15 @@ import org.jgrapes.core.internal.Matchable;
  * By default (i.e. as implemented by this class), the event's class 
  * (type) is used for matching. A handler is invoked if the class of the
  * event handled by it is equal to or a base class of the class of the event 
- * to be handled. 
- * <P>
- * This default behavior can be changed by overriding the methods
+ * to be handled. This default behavior can be changed by overriding the methods
  * from {@link Matchable}. See {@link NamedEvent} as an example.
+ * 
+ * @param <T> the result type of the event. Use {@link Void} if handling
+ * the event does not produce a result
  * 
  * @author Michael N. Lipp
  */
-public class Event extends EventBase {
+public class Event<T> extends EventBase<T> {
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.core.internal.Matchable#getMatchKey()
@@ -65,7 +66,8 @@ public class Event extends EventBase {
 	@Override
 	protected void handlingError
 		(EventPipeline eventProcessor, Throwable throwable) {
-		eventProcessor.add(new HandlingError(this, throwable), getChannels());
+		eventProcessor.add
+			(new HandlingError<Event<T>>(this, throwable), getChannels());
 	}
 
 	/* (non-Javadoc)
@@ -87,7 +89,7 @@ public class Event extends EventBase {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Event other = (Event) obj;
+		Event<?> other = (Event<?>) obj;
 		if (getMatchKey() == null) {
 			if (other.getMatchKey() != null)
 				return false;

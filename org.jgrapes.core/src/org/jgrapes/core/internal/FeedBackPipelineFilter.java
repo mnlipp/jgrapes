@@ -67,7 +67,7 @@ class FeedBackPipelineFilter implements MergingEventPipeline {
 	 * @see org.jgrapes.core.EventPipeline#add(org.jgrapes.core.internal.EventBase, org.jgrapes.core.Channel[])
 	 */
 	@Override
-	public void add(EventBase event, Channel... channels) {
+	public void add(EventBase<?> event, Channel... channels) {
 		EventPipeline pipeline = currentPipeline.get();
 		if (pipeline != null) {
 			pipeline.add(event, channels);

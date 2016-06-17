@@ -60,27 +60,7 @@ public class Utils {
 	 */
 	public static void start(Component application) 
 			throws InterruptedException {
-		fireAndAwait(application, new Start(), Channel.BROADCAST);
-	}
-
-	/**
-	 * Fire the given event from the given component (usually the application)
-	 * and await its completion.
-	 * 
-	 * @param application the component (used to get the channels if none
-	 * are specified in the event or as parameters)
-	 * @param event the event
-	 * @param channels the channels on which the event is fired
-	 * @return the event (for easy method chaining
-	 * @throws InterruptedException if waiting is interrupted
-	 * @see Manager#fire(Event, Channel...)
-	 */
-	public static Event fireAndAwait
-			(Component application, Event event, Channel... channels) 
-			throws InterruptedException {
-		manager(application).fire(event , channels);
-		event.awaitCompleted();
-		return event;
+		manager(application).fire(new Start() , Channel.BROADCAST).get();
 	}
 
 	/**

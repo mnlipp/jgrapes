@@ -18,15 +18,16 @@
 package org.jgrapes.core.events;
 
 import org.jgrapes.core.Event;
+import org.jgrapes.core.internal.EventBase;
 
 /**
  * This event signals that an error occurred while processing an event.
  * 
  * @author Michael N. Lipp
  */
-public class Error extends Event {
+public class Error<T extends EventBase<?>> extends Event<Void> {
 
-	private Event event;
+	private T event;
 	private String message;
 	private Throwable throwable;
 	
@@ -36,7 +37,7 @@ public class Error extends Event {
 	 * @param event the event being processed when the problem occurred
 	 * @param message the message
 	 */
-	public Error(Event event, String message) {
+	public Error(T event, String message) {
 		this.event = event;
 		this.message = message;
 	}
@@ -48,7 +49,7 @@ public class Error extends Event {
 	 * @param message the message
 	 * @param throwable the throwable
 	 */
-	public Error(Event event, String message, Throwable throwable) {
+	public Error(T event, String message, Throwable throwable) {
 		this.event = event;
 		this.message = message;
 		this.throwable = throwable;
@@ -61,7 +62,7 @@ public class Error extends Event {
 	 * @param event the event being processed when the problem occurred
 	 * @param throwable the throwable
 	 */
-	public Error(Event event, Throwable throwable) {
+	public Error(T event, Throwable throwable) {
 		this.event = event;
 		this.message = throwable.getMessage();
 		this.throwable = throwable;
@@ -72,7 +73,7 @@ public class Error extends Event {
 	 * 
 	 * @return the event
 	 */
-	public Event getEvent() {
+	public T getEvent() {
 		return event;
 	}
 	

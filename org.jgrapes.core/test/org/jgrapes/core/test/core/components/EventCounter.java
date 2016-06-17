@@ -47,7 +47,7 @@ public class EventCounter extends AbstractComponent {
 	}
 	
 	@Handler(events=Event.class, channels=Channel.class)
-	public void onAll(Event event) {
+	public void onAll(Event<?> event) {
 		all += 1;
 	}
 
@@ -62,12 +62,12 @@ public class EventCounter extends AbstractComponent {
 	}
 
 	@Handler(namedEvents="named1")
-	public void onNamed1(Event event) {
+	public void onNamed1(Event<?> event) {
 		named1Global += 1;
 	}
 	
 	@Handler(namedEvents="named1", namedChannels="test1")
-	public void onNamed1Test1(Event event) {
+	public void onNamed1Test1(Event<?> event) {
 		named1Test1 += 1;
 	}
 }

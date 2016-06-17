@@ -19,8 +19,6 @@ package org.jgrapes.core.test.basic;
 
 import static org.junit.Assert.assertTrue;
 
-import java.nio.channels.Channel;
-
 import org.jgrapes.core.ClassChannel;
 import org.junit.Test;
 

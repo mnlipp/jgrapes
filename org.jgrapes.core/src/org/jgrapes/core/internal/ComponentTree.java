@@ -53,7 +53,7 @@ class ComponentTree {
 	public final static ComponentNode DUMMY_HANDLER 
 		= new AbstractComponent(Channel.SELF) {
 			@Handler(channels={Channel.class})
-			public void noop(Event event) {
+			public void noop(Event<?> event) {
 			}
 	};
 
@@ -89,7 +89,7 @@ class ComponentTree {
 	 * @param event
 	 * @param channels
 	 */
-	public void fire(EventBase event, Channel[] channels) {
+	public void fire(EventBase<?> event, Channel[] channels) {
 		eventPipeline.add(event, channels);
 	}
 
@@ -110,13 +110,14 @@ class ComponentTree {
 	 * @param event the event
 	 * @param channels the channels the event is sent to
 	 */
-	void dispatch(EventPipeline pipeline, EventBase event, Channel[] channels) {
+	void dispatch(EventPipeline pipeline, 
+			EventBase<?> event, Channel[] channels) {
 		HandlerList handlers = getEventHandlers(event, channels);
 		handlers.process(pipeline, event);
 	}
 	
 	private HandlerList getEventHandlers
-		(EventBase event, Channel[] channels) {
+		(EventBase<?> event, Channel[] channels) {
 		EventChannelsTuple key = new EventChannelsTuple(event, channels);
 		HandlerList hdlrs = handlerCache.get(key);
 		if (hdlrs != null) {

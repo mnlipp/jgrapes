@@ -17,7 +17,6 @@ package org.jgrapes.core.test.core;
 
 import static org.junit.Assert.*;
 
-import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
@@ -53,14 +52,14 @@ public class MatchTest {
 		assertEquals(0, app.named1Test1);
 		assertEquals(1, app.startedComponent);
 		assertEquals(4, app.all);	// Start and Started
-		pipeline.add(new NamedEvent("named1"));
+		pipeline.add(new NamedEvent<Void>("named1"));
 		assertEquals(2, app.startedGlobal);
 		assertEquals(2, app.startedTest1);
 		assertEquals(1, app.named1Global);
 		assertEquals(1, app.named1Test1);
 		assertEquals(1, app.startedComponent);
 		assertEquals(5, app.all);	// NamedEvent
-		pipeline.add(new NamedEvent("named1"), new NamedChannel("test1"));
+		pipeline.add(new NamedEvent<Void>("named1"), new NamedChannel("test1"));
 		assertEquals(2, app.startedGlobal);
 		assertEquals(2, app.startedTest1);
 		assertEquals(2, app.named1Global);

@@ -21,37 +21,46 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.jgrapes.core.Event;
+import org.jgrapes.core.internal.EventBase;
 
 /**
  * A utility class for implementing completed events.
  * Completed events should provide the event that has been completed
- * as attribute. This class handles this attribute and can be used as
- * a convenient base class.
+ * as result.
  * 
  * @author Michael N. Lipp
  */
-public abstract class AbstractCompletedEvent extends Event {
-	private Event initialEvent;
+public abstract class AbstractCompletedEvent<T extends EventBase<?>>
+		extends Event<T> {
 
+	private T initialEvent;
+	
 	/**
-	 * Convenience method that creates ans sets a completed event for the given
+	 * Convenience method that creates and sets a completed event for the given
 	 * event with the given type.
 	 * 
 	 * @param event the event
 	 * @param clazz the type of the completed event
 	 * @return the event passed in as parameter (for method chaining)
 	 */
-	public static Event setCompletedEvent
-		(Event event, Class<? extends AbstractCompletedEvent> clazz) {
+	public static <T> Event<T> setCompletedEvent
+		(Event<T> event, Class<? extends AbstractCompletedEvent
+				<? extends EventBase<T>>> clazz) {
 		try {
-			for (Constructor<?> c: clazz.getConstructors()) {
+			@SuppressWarnings("unchecked")
+			Constructor<? extends AbstractCompletedEvent
+					<? extends EventBase<T>>>[] constrs
+					= (Constructor<? extends AbstractCompletedEvent
+							<? extends EventBase<T>>>[])clazz.getConstructors();
+			for (Constructor<? extends AbstractCompletedEvent
+					<? extends EventBase<T>>> c: constrs) {
 				if (c.getParameterTypes().length != 1) {
 					continue;
 				}
 				if (!Event.class.isAssignableFrom(c.getParameterTypes()[0])) {
 					continue;
 				}
-				event.setCompletedEvent ((Event)c.newInstance(event));
+				event.setCompletedEvent (c.newInstance(event));
 				return event;
 			}
 			throw new IllegalArgumentException
@@ -69,15 +78,16 @@ public abstract class AbstractCompletedEvent extends Event {
 	 * 
 	 * @param initialEvent
 	 */
-	protected AbstractCompletedEvent(Event initialEvent) {
+	protected AbstractCompletedEvent(T initialEvent) {
 		super();
 		this.initialEvent = initialEvent;
+		setResult(initialEvent);
 	}
 
 	/**
 	 * @return the initialEvent
 	 */
-	public Event getInitialEvent() {
+	public T getInitialEvent() {
 		return initialEvent;
 	}
 }
