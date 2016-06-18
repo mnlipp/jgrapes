@@ -66,6 +66,8 @@ public class Detached extends Event<Void> {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Common.classToString(getClass()));
+		builder.append('#');
+		builder.append(Common.getId(getClass(), this));
 		builder.append(" [");
 		builder.append(parent);
 		builder.append(" <―/― ");

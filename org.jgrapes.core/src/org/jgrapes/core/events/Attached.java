@@ -73,6 +73,8 @@ public class Attached extends Event<Void> {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Common.classToString(getClass()));
+		builder.append('#');
+		builder.append(Common.getId(getClass(), this));
 		builder.append(" [");
 		if (parent == null) {
 			builder.append("ROOT");
