@@ -29,7 +29,7 @@ import org.jgrapes.core.internal.ComponentNode;
  * {@link Manager} interface and doesn't have to access the
  * manager using a manager attribute.
  * <P>
- * The class also implements the <code>Channel<code> interface.
+ * The class also implements the {@code Channel} interface.
  * This allows instances to be used as targets for events. 
  * 
  * @author Michael N. Lipp
