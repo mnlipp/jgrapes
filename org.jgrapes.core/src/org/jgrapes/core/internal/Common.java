@@ -47,6 +47,22 @@ public class Common {
 		}
 	}
 
+	public static String channelsToString(Channel[] channels) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("[");
+		boolean first = true;
+		for (Channel c: channels) {
+			if (!first) {
+				builder.append(", ");
+			}
+			builder.append(channelKeyToString(c.getMatchKey()));
+			first = false;
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+
+	
 	public static String channelKeyToString(Object channelKey) {
 		StringBuilder builder = new StringBuilder();
 		if (channelKey instanceof Class) {

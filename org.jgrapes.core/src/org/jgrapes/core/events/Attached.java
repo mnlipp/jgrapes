@@ -72,9 +72,7 @@ public class Attached extends Event<Void> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Common.classToString(getClass()));
-		builder.append('#');
-		builder.append(Common.getId(getClass(), this));
+		builder.append(objectName());
 		builder.append(" [");
 		if (parent == null) {
 			builder.append("ROOT");
@@ -85,16 +83,8 @@ public class Attached extends Event<Void> {
 		builder.append(node);
 		builder.append(", ");
 		if (channels != null) {
-			builder.append("channels=[");
-			boolean first = true;
-			for (Channel c: channels) {
-				if (!first) {
-					builder.append(", ");
-				}
-				builder.append(Common.channelKeyToString(c.getMatchKey()));
-				first = false;
-			}
-			builder.append("]");
+			builder.append("channels=");
+			builder.append(Common.channelsToString(channels));
 		}
 		builder.append("]");
 		return builder.toString();

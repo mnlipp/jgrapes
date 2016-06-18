@@ -65,25 +65,15 @@ public class Detached extends Event<Void> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Common.classToString(getClass()));
-		builder.append('#');
-		builder.append(Common.getId(getClass(), this));
+		builder.append(objectName());
 		builder.append(" [");
 		builder.append(parent);
 		builder.append(" <―/― ");
 		builder.append(node);
 		builder.append(", ");
 		if (channels != null) {
-			builder.append("channels=[");
-			boolean first = true;
-			for (Channel c: channels) {
-				if (!first) {
-					builder.append(", ");
-				}
-				builder.append(Common.channelKeyToString(c.getMatchKey()));
-				first = false;
-			}
-			builder.append("]");
+			builder.append("channels=");
+			builder.append(Common.channelsToString(channels));
 		}
 		builder.append("]");
 		return builder.toString();

@@ -254,7 +254,8 @@ public class File extends AbstractComponent {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("File [");
+		builder.append(objectName());
+		builder.append(" [");
 		if (isOpen() && path != null) {
 			builder.append("path=");
 			builder.append(path);

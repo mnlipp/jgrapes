@@ -68,27 +68,31 @@ public class Event<T> extends EventBase<T> {
 			(new HandlingError(this, throwable), getChannels());
 	}
 
+	/**
+	 * Returns the class of the object together with a unique id.
+	 * May be used to implement {@code toString()};
+	 * 
+	 * @return the object's name
+	 */
+	protected String objectName() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Common.classToString(getClass()));
+		builder.append('#');
+		builder.append(Common.getId(getClass(), this));
+		return builder.toString();
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Common.classToString(getClass()));
-		builder.append('#');
-		builder.append(Common.getId(getClass(), this));
+		builder.append(objectName());
 		builder.append(" [");
 		if (channels != null) {
-			builder.append("channels=[");
-			boolean first = true;
-			for (Channel c: channels) {
-				if (!first) {
-					builder.append(", ");
-				}
-				builder.append(Common.channelKeyToString(c.getMatchKey()));
-				first = false;
-			}
-			builder.append("]");
+			builder.append("channels=");
+			builder.append(Common.channelsToString(channels));
 		}
 		builder.append("]");
 		return builder.toString();
