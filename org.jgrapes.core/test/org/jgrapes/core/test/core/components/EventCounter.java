@@ -38,7 +38,7 @@ public class EventCounter extends AbstractComponent {
 	 * 
 	 */
 	public EventCounter() {
-		super();
+		super(Channel.BROADCAST);
 		addHandler(Start.class, this, "onStartedComponent");
 	}
 

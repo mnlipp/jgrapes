@@ -71,10 +71,14 @@ public class FileTestRead {
 	}
 
 	public static class StateChecker extends AbstractComponent {
-
+		
 		public enum State { NEW, CLOSED, OPENED, READING, EOF, CLOSING };
 		public State state = State.NEW;
 
+		public StateChecker() {
+			super(Channel.BROADCAST);
+		}
+		
 		@Handler
 		public void opened(Opened event) {
 			assertTrue(state == State.NEW);

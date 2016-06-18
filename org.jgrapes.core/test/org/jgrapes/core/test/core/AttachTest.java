@@ -1,6 +1,7 @@
 package org.jgrapes.core.test.core;
 
 import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Utils;
@@ -15,6 +16,10 @@ public class AttachTest {
 
 	public static class AttachCatcher extends AbstractComponent {
 
+		public AttachCatcher() {
+			super(Channel.BROADCAST);
+		}
+		
 		public Component attachRoot = null;
 		public Component attachParent = null;
 		public Component attachChild = null;

@@ -38,14 +38,15 @@ import org.jgrapes.core.internal.ComponentNode;
 public class AbstractComponent extends ComponentNode 
 	implements Component, Channel {
 
-	private Channel componentChannel = BROADCAST;
+	private Channel componentChannel;
 	
 	/**
 	 * Creates a new component base with its channel set to
-	 * the broadcast channel.
+	 * itself.
 	 */
 	public AbstractComponent() {
 		super();
+		componentChannel = this;
 		initComponentsHandlers();
 	}
 
