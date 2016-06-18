@@ -494,6 +494,8 @@ public abstract class ComponentNode implements Manager {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Common.classToString(getClass()));
+		builder.append('#');
+		builder.append(Common.getId(getClass(), this));
 		return builder.toString();
 	}
 	
