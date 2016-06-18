@@ -17,8 +17,7 @@
  */
 package org.jgrapes.core.events;
 
-import java.util.Arrays;
-
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.internal.Common;
@@ -84,8 +83,16 @@ public class Attached extends Event<Void> {
 		builder.append(node);
 		builder.append(", ");
 		if (channels != null) {
-			builder.append("channels=");
-			builder.append(Arrays.toString(channels));
+			builder.append("channels=[");
+			boolean first = true;
+			for (Channel c: channels) {
+				if (!first) {
+					builder.append(", ");
+				}
+				builder.append(Common.channelKeyToString(c.getMatchKey()));
+				first = false;
+			}
+			builder.append("]");
 		}
 		builder.append("]");
 		return builder.toString();

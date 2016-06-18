@@ -17,8 +17,6 @@
  */
 package org.jgrapes.core;
 
-import java.util.Arrays;
-
 import org.jgrapes.core.events.HandlingError;
 import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.internal.EventBase;
@@ -107,8 +105,16 @@ public class Event<T> extends EventBase<T> {
 		builder.append(Common.classToString(getClass()));
 		builder.append(" [");
 		if (channels != null) {
-			builder.append("channels=");
-			builder.append(Arrays.toString(channels));
+			builder.append("channels=[");
+			boolean first = true;
+			for (Channel c: channels) {
+				if (!first) {
+					builder.append(", ");
+				}
+				builder.append(Common.channelKeyToString(c.getMatchKey()));
+				first = false;
+			}
+			builder.append("]");
 		}
 		builder.append("]");
 		return builder.toString();

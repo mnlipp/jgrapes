@@ -48,7 +48,8 @@ class VerboseHandlerReference extends HandlerReference {
 		super(eventKey, channelKey, component, method, eventParam, priority);
 		this.component = component;
 		handlerName = Common.classToString(component.getClass())
-				+ "#" + method.getName();
+				+ "#" + Common.getId(Component.class, component)
+				+ "." + method.getName();
 	}
 
 	/**

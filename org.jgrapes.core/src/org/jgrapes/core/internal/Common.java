@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 
 /**
@@ -46,10 +48,30 @@ public class Common {
 		}
 	}
 
+	public static String channelKeyToString(Object channelKey) {
+		StringBuilder builder = new StringBuilder();
+		if (channelKey instanceof Class) {
+			if (channelKey == Channel.class) {
+				builder.append("BROADCAST");
+			} else {
+				builder.append(Common.classToString((Class<?>) channelKey));
+			}
+		} else {
+			if (channelKey instanceof AbstractComponent) {
+				builder.append(channelKey);
+				builder.append('#');
+				builder.append(Common.getId(Component.class, channelKey));
+			} else {
+				builder.append(channelKey);
+			}
+		}
+		return builder.toString();
+	}
+	
 	private static Map<Object, String> objectIds = new WeakHashMap<>();
 	private static Map<Class<?>, AtomicLong> idCounters = new WeakHashMap<>();
 
-	static String getId(Class<?> clazz, Object object) {
+	public static String getId(Class<?> clazz, Object object) {
 		if (object == null) {
 			return "?";
 		}
