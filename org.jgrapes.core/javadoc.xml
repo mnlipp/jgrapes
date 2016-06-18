@@ -25,6 +25,8 @@
             <packageset dir="src">
             	<exclude name="org/jgrapes/internal/**"/>
         	</packageset>
+            <packageset dir="../org.jgrapes.io/src">
+            </packageset>
         	<bottom><![CDATA[<!-- Piwik --> 
 <script type="text/javascript">
 var pkBaseURL = (("https:" == document.location.protocol) ? "https://piwik.mnl.de/" : "http://piwik.mnl.de/");

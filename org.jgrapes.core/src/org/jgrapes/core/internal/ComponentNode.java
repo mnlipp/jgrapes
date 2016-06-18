@@ -36,6 +36,7 @@ import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Attached;
 import org.jgrapes.core.events.Detached;
+import org.jgrapes.core.events.Start;
 
 /**
  * ComponentNode is the base class for all nodes in the component tree.
@@ -252,6 +253,14 @@ public abstract class ComponentNode implements Manager {
 			fire(e, pChan);
 		} else {
 			fire(e, pChan, cChan);
+		}
+		if (getTree().isStarted()) {
+			for (Component tbs: childNode) {
+				ComponentNode tbsNode = getComponentNode(tbs);
+				if (tbsNode instanceof Channel) {
+					tbsNode.fire(new Start(), (Channel)tbsNode);
+				}
+			}
 		}
 		return this;
 	}

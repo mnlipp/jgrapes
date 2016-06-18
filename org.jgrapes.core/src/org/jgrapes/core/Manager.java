@@ -53,8 +53,12 @@ public interface Manager extends Iterable<Component> {
 	Component detach ();
 
 	/**
-	 * Attaches the given component node as a child to the component
-	 * managed by this manager.
+	 * Attaches the given component node (or complete tree) as a child 
+	 * to the component managed by this manager. The node or tree may not
+	 * have been started. If the component managed by this manager belongs
+	 * to a tree that has already been started, all attached components
+	 * will automatically be sent a {@link Start} event (using the
+	 * component as channel).
 	 * 
 	 * @param child the component to add
 	 * @return the component's manager (for comfortable chaining)
