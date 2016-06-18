@@ -32,6 +32,7 @@ import java.util.concurrent.BlockingQueue;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.events.Close;
@@ -254,7 +255,7 @@ public class File extends AbstractComponent {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(objectName());
+		builder.append(Utils.objectName(this));
 		builder.append(" [");
 		if (isOpen() && path != null) {
 			builder.append("path=");

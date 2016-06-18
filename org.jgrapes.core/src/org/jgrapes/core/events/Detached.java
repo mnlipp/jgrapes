@@ -17,9 +17,9 @@
  */
 package org.jgrapes.core.events;
 
-import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.Utils;
 import org.jgrapes.core.internal.Common;
 
 /**
@@ -65,7 +65,7 @@ public class Detached extends Event<Void> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(objectName());
+		builder.append(Utils.objectName(this));
 		builder.append(" [");
 		builder.append(parent);
 		builder.append(" <―/― ");

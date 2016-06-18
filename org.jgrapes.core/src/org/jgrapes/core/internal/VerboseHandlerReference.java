@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.core.Utils;
 
 /**
  * An variant of handler reference that provides better debug information
@@ -47,8 +48,7 @@ class VerboseHandlerReference extends HandlerReference {
 	        int priority) {
 		super(eventKey, channelKey, component, method, eventParam, priority);
 		this.component = component;
-		handlerName = Common.classToString(component.getClass())
-				+ "#" + Common.getId(component.getClass(), component)
+		handlerName = Utils.objectName(component)
 				+ "." + method.getName();
 	}
 

@@ -33,6 +33,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
+import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Attached;
 import org.jgrapes.core.events.Detached;
@@ -487,26 +488,12 @@ public abstract class ComponentNode implements Manager {
 		return new CheckingPipelineFilter(new EventProcessor(getTree()));
 	}
 
-	/**
-	 * Returns the class of the object together with a unique id.
-	 * May be used to implement {@code toString()};
-	 * 
-	 * @return the object's name
-	 */
-	protected String objectName() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Common.classToString(getClass()));
-		builder.append('#');
-		builder.append(Common.getId(getClass(), this));
-		return builder.toString();
-	}
-	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return objectName();
+		return Utils.objectName(this);
 	}
 	
 	/* (non-Javadoc)

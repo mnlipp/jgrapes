@@ -19,6 +19,7 @@ package org.jgrapes.core;
 
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
+import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.internal.ComponentNode;
 import org.jgrapes.core.internal.GeneratorRegistry;
 
@@ -72,6 +73,22 @@ public class Utils {
 	 */
 	public static void awaitExhaustion() throws InterruptedException {
 		GeneratorRegistry.getInstance().awaitExhaustion();
+	}
+
+	/**
+	 * Returns the class of the object together with a unique id.
+	 * May be used to implement {@code toString()} with identifiable
+	 * objects.
+	 * 
+	 * @param object the object
+	 * @return the object's name
+	 */
+	public static String objectName(Object object) {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Common.classToString(object.getClass()));
+		builder.append('#');
+		builder.append(Common.getId(object.getClass(), object));
+		return builder.toString();
 	}
 
 }
