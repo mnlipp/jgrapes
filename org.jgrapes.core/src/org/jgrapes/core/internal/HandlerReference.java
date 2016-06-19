@@ -65,8 +65,10 @@ class HandlerReference implements Comparable<HandlerReference> {
 			this.method = this.method.bindTo(component);
 		} catch (IllegalAccessException e) {
 			throw (RuntimeException)
-				(new IllegalArgumentException
-						("Method annotated as handler has wrong signature"
+				(new IllegalArgumentException("Method "
+						+ component.getClass().getName() 
+						+ "." + method.getName()
+						+ " annotated as handler has wrong signature"
 						 + " or class is not accessible"))
 						.initCause(e);
 		}
