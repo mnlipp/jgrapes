@@ -21,6 +21,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.jgrapes.core.Event;
+import org.jgrapes.core.Utils;
+import org.jgrapes.core.internal.Common;
 
 /**
  * A utility class for implementing completed events.
@@ -88,5 +90,24 @@ public abstract class AbstractCompletedEvent<T extends Event<?>>
 	 */
 	public T getInitialEvent() {
 		return initialEvent;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Common.classToString(getClass()));
+		builder.append("(");
+		builder.append(Utils.objectName(initialEvent));
+		builder.append(")");
+		builder.append(" [");
+		if (channels != null) {
+			builder.append("channels=");
+			builder.append(Common.channelsToString(channels));
+		}
+		builder.append("]");
+		return builder.toString();
 	}
 }
