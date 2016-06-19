@@ -19,7 +19,7 @@ package org.jgrapes.io.events;
 
 import java.nio.Buffer;
 
-import org.jgrapes.core.Event;
+import org.jgrapes.io.Connection;
 
 /**
  * This event signals that a new chunk of data is to be forwarded to the
@@ -27,16 +27,19 @@ import org.jgrapes.core.Event;
  * 
  * @author Michael N. Lipp
  */
-public class Write<T extends Buffer> extends Event<Void> {
+public class Write<T extends Buffer> 
+	extends ConnectionEvent<Void, Connection<T>> {
 
 	private T buffer;
 	
 	/**
 	 * Create a new event with the given buffer.
 	 * 
+	 * @param the connection to write the data to
 	 * @param buffer the buffer with the data
 	 */
-	public Write(T buffer) {
+	public Write(Connection<T> connection, T buffer) {
+		super(connection);
 		this.buffer = buffer;
 	}
 

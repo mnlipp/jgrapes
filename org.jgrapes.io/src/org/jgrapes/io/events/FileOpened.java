@@ -20,28 +20,23 @@ package org.jgrapes.io.events;
 import java.nio.Buffer;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.util.concurrent.BlockingQueue;
+
+import org.jgrapes.io.Connection;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class FileOpened<T extends Buffer> extends Opened {
+public class FileOpened<T extends Buffer> extends Opened<Connection<T>> {
 
 	private Path path;
 	private OpenOption[] options;
-	private BlockingQueue<T> buffers;
 	
-	public FileOpened(Path path, OpenOption[] options, 
-			BlockingQueue<T> buffers) {
-		super();
+	public FileOpened
+			(Connection<T> connection, Path path, OpenOption[] options) {
+		super(connection);
 		this.path = path;
 		this.options = options;
-		this.buffers = buffers;
-	}
-
-	public FileOpened(Path path, OpenOption[] options) {
-		this(path, options, null);
 	}
 
 	/**
@@ -58,11 +53,4 @@ public class FileOpened<T extends Buffer> extends Opened {
 		return options;
 	}
 
-	/**
-	 * @return the buffers
-	 */
-	public BlockingQueue<T> getBuffers() {
-		return buffers;
-	}
-	
 }

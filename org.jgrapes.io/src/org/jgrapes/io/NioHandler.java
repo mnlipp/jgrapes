@@ -15,20 +15,24 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io.events;
+package org.jgrapes.io;
 
-import org.jgrapes.io.Connection;
+import java.nio.channels.SelectionKey;
 
 /**
- * This event signals that an I/O connection has been closed.
+ * Defines the contract between a component using non blocking I/O
+ * and the {@link NioDispatcher}.
  * 
  * @author Michael N. Lipp
  */
-public class Closed<C extends Connection<?>> extends ConnectionEvent<Void, C> {
+public interface NioHandler {
 
-	public Closed(C connection) {
-		super(connection);
-	}
-
+	/**
+	 * Invoked by the {@link NioDispatcher} when operations are pending.
+	 * 
+	 * @param ops the pending operations as or'ed constants defined
+	 * by {@link SelectionKey}
+	 */
+	void handleOps(int ops);
 	
 }

@@ -17,18 +17,32 @@
  */
 package org.jgrapes.io.events;
 
+import org.jgrapes.core.Event;
 import org.jgrapes.io.Connection;
 
 /**
- * This event signals that an I/O connection has been closed.
+ * Base class for events related to a {@link Connection}.
  * 
  * @author Michael N. Lipp
  */
-public class Closed<C extends Connection<?>> extends ConnectionEvent<Void, C> {
+public abstract class 
+	ConnectionEvent<T, C extends Connection<?>> extends Event<T> {
+	
+	private C connection;
 
-	public Closed(C connection) {
-		super(connection);
+	/**
+	 * @param connection
+	 */
+	public ConnectionEvent(C connection) {
+		super();
+		this.connection = connection;
 	}
 
+	/**
+	 * @return the connection
+	 */
+	public C getConnection() {
+		return connection;
+	}
 	
 }

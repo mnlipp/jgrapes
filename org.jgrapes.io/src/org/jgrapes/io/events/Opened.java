@@ -17,7 +17,7 @@
  */
 package org.jgrapes.io.events;
 
-import org.jgrapes.core.Event;
+import org.jgrapes.io.Connection;
 
 /**
  * This event signals that an I/O resource has successfully been opened
@@ -25,6 +25,10 @@ import org.jgrapes.core.Event;
  * 
  * @author Michael N. Lipp
  */
-public class Opened extends Event<Void> {
+public class Opened<C extends Connection<?>> extends ConnectionEvent<Void, C> {
+
+	public Opened(C connection) {
+		super(connection);
+	}
 
 }

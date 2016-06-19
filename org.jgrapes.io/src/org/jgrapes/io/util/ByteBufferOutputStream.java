@@ -21,10 +21,9 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.concurrent.BlockingQueue;
 
-import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Write;
 
@@ -38,9 +37,8 @@ import org.jgrapes.io.events.Write;
  */
 public class ByteBufferOutputStream extends OutputStream {
 
-	private BlockingQueue<ByteBuffer> buffers;
+	private Connection<ByteBuffer> connection;
 	private EventPipeline pipeline;
-	private Channel[] channels;
 	private ByteBuffer buffer;
 	
 	/**
@@ -48,18 +46,15 @@ public class ByteBufferOutputStream extends OutputStream {
 	 * 
 	 * @param buffers the queue providing the byte buffers
 	 * @param pipeline the pipeline to be used to send the events
-	 * @param channels the channels to send the events to
 	 * @throws InterruptedException if the current is interrupted
 	 * while trying to get a new buffer from the queue
 	 */
-	public ByteBufferOutputStream(BlockingQueue<ByteBuffer> buffers,
-	        EventPipeline pipeline, Channel... channels)
-	        		throws InterruptedException {
+	public ByteBufferOutputStream(Connection<ByteBuffer> connection,
+			EventPipeline pipeline)	throws InterruptedException {
 		super();
-		this.buffers = buffers;
+		this.connection = connection;
 		this.pipeline = pipeline;
-		this.channels = channels;
-		buffer = buffers.take();
+		buffer = connection.acquireWriteBuffer();
 	}
 
 	/* (non-Javadoc)
@@ -102,9 +97,10 @@ public class ByteBufferOutputStream extends OutputStream {
 	 */
 	@Override
 	public void flush() throws IOException {
-		pipeline.add(new Write<ByteBuffer>(buffer), channels);
+		pipeline.add(new Write<ByteBuffer>(connection, buffer), 
+				connection.getChannel());
 		try {
-			buffer = buffers.take();
+			buffer = connection.acquireWriteBuffer();
 		} catch (InterruptedException e) {
 			throw new InterruptedIOException(e.getMessage());
 		}
@@ -116,7 +112,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	@Override
 	public void close() throws IOException {
 		flush();
-		pipeline.add(new Close(), channels);
+		pipeline.add(new Close<>(connection), connection.getChannel());
 	}
 
 }

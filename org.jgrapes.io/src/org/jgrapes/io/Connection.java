@@ -15,20 +15,40 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io.events;
+package org.jgrapes.io;
 
-import org.jgrapes.io.Connection;
+import java.nio.Buffer;
+
+import org.jgrapes.core.Channel;
 
 /**
- * This event signals that an I/O connection has been closed.
+ * Represents an I/O connection.
  * 
  * @author Michael N. Lipp
  */
-public class Closed<C extends Connection<?>> extends ConnectionEvent<Void, C> {
+public interface Connection<T extends Buffer> {
 
-	public Closed(C connection) {
-		super(connection);
-	}
+	/**
+	 * A channel that can be used to send connection related events to.
+	 * 
+	 * @return the channel
+	 */
+	Channel getChannel();
 
-	
+	/**
+	 * Get a buffer suitable to be passed to {@link Write} events.
+	 * 
+	 * @return the buffer
+	 * @throws InterruptedException if the invoking thread is interrupted
+	 * while waiting for a buffer
+	 */
+	T acquireWriteBuffer() throws InterruptedException;
+
+	/**
+	 * Releases a buffer used by a {@link Read} event. This method is invoked
+	 * automatically upon the completion of a {@link Read} event.
+	 * 
+	 * @param buffer
+	 */
+	void releaseReadBuffer(T buffer);
 }

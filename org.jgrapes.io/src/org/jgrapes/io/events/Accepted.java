@@ -20,15 +20,18 @@ package org.jgrapes.io.events;
 import org.jgrapes.io.Connection;
 
 /**
- * This event signals that an I/O connection has been closed.
+ * This event signals that a new connection has been made by a client.
  * 
  * @author Michael N. Lipp
  */
-public class Closed<C extends Connection<?>> extends ConnectionEvent<Void, C> {
+public class Accepted<C extends Connection<?>> 
+	extends ConnectionEvent<Void, C> {
 
-	public Closed(C connection) {
+	/**
+	 * @param connection
+	 */
+	public Accepted(C connection) {
 		super(connection);
 	}
 
-	
 }

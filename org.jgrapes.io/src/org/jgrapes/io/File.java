@@ -50,7 +50,7 @@ import org.jgrapes.io.events.Write;
  * 
  * @author Michael N. Lipp
  */
-public class File extends AbstractComponent {
+public class File extends AbstractComponent implements Connection<ByteBuffer> {
 
 	private class Context {
 		public ByteBuffer buf;
@@ -96,6 +96,22 @@ public class File extends AbstractComponent {
 	public File(Channel channel) {
 		this(channel, 4096);
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.jgrapes.io.Connection#getBuffer()
+	 */
+	@Override
+	public ByteBuffer acquireWriteBuffer() throws InterruptedException {
+		return ioBuffers.take();
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.jgrapes.io.Connection#releaseReadBuffer(java.nio.Buffer)
+	 */
+	@Override
+	public void releaseReadBuffer(ByteBuffer buffer) {
+		ioBuffers.add(buffer);
+	}
 
 	public boolean isOpen() {
 		return ioChannel != null && ioChannel.isOpen();
@@ -120,15 +136,15 @@ public class File extends AbstractComponent {
 				.contains(StandardOpenOption.WRITE)) {
 			// Writing to file
 			reading = false;
-			pipeline.add(new FileOpened<ByteBuffer>(event.getPath(), 
-				event.getOptions(), ioBuffers), getChannel());
+			pipeline.add(new FileOpened<>(this, event.getPath(), 
+				event.getOptions()), getChannel());
 		} else {
 			// Reading from file
 			reading = true;
 			ByteBuffer buffer = ioBuffers.take();
 			registerAsGenerator();
-			pipeline.add(new FileOpened<ByteBuffer>
-				(event.getPath(), event.getOptions()), getChannel());
+			pipeline.add(new FileOpened<>
+				(this, event.getPath(), event.getOptions()), getChannel());
 			ioChannel.read(buffer, offset, 
 					new Context(buffer, offset), readCompletionHandler);
 			synchronized (ioChannel) {
@@ -169,12 +185,13 @@ public class File extends AbstractComponent {
 					return;
 				}
 				if (result == -1) {
-					pipeline.add(new Eof(), getChannel());
-					pipeline.add(new Close(), getChannel());
+					pipeline.add(new Eof<>(File.this), getChannel());
+					pipeline.add(new Close<>(File.this), getChannel());
 					return;
 				}
-				pipeline.add(new Read<ByteBuffer>(context.buf, ioBuffers),
-				        getChannel());
+				context.buf.flip();
+				pipeline.add(new Read<>
+					(File.this, context.buf, ioBuffers), getChannel());
 				offset += result;
 				try {
 					ByteBuffer nextBuffer = ioBuffers.take();
@@ -229,7 +246,7 @@ public class File extends AbstractComponent {
 	}
 
 	@Handler(events={Close.class, Stop.class})
-	public void close(Close event) throws InterruptedException {
+	public void close(Close<Connection<?>> event) throws InterruptedException {
 		if (isOpen()) {
 			try {
 				synchronized (ioChannel) {
@@ -238,7 +255,7 @@ public class File extends AbstractComponent {
 					}
 					ioChannel.close();
 				}
-				pipeline.add(new Closed(), getChannel());
+				pipeline.add(new Closed<>(this), getChannel());
 			} catch (ClosedChannelException e) {
 			} catch (IOException e) {
 				pipeline.add(new IOError(event, e), getChannel());

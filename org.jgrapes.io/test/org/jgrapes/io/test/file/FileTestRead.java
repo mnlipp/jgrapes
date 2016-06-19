@@ -29,6 +29,7 @@ import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.io.Connection;
 import org.jgrapes.io.File;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
@@ -60,8 +61,7 @@ public class FileTestRead {
 		@Handler
 		public void dataRead(Read<ByteBuffer> event) 
 				throws UnsupportedEncodingException {
-			int length = event.getBuffer().position();
-			event.getBuffer().rewind();
+			int length = event.getBuffer().limit();
 			collected += length;
 			byte[] bytes = new byte[length];
 			event.getBuffer().get(bytes);
@@ -80,7 +80,7 @@ public class FileTestRead {
 		}
 		
 		@Handler
-		public void opened(Opened event) {
+		public void opened(Opened<Connection<?>> event) {
 			assertTrue(state == State.NEW);
 			state = State.OPENED;
 		}
@@ -92,19 +92,19 @@ public class FileTestRead {
 		}
 
 		@Handler
-		public void eof(Eof event) {
+		public void eof(Eof<Connection<?>> event) {
 			assertTrue(state == State.READING);
 			state = State.EOF;
 		}
 
 		@Handler
-		public void closing(Close event) {
+		public void closing(Close<Connection<?>> event) {
 			assertTrue(state == State.EOF);
 			state = State.CLOSING;
 		}
 
 		@Handler
-		public void closed(Closed event) {
+		public void closed(Closed<Connection<?>> event) {
 			assertTrue(state == State.CLOSING);
 			state = State.CLOSED;
 		}

@@ -15,20 +15,8 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io.events;
-
-import org.jgrapes.io.Connection;
-
 /**
- * This event signals that an I/O connection has been closed.
- * 
  * @author Michael N. Lipp
+ *
  */
-public class Closed<C extends Connection<?>> extends ConnectionEvent<Void, C> {
-
-	public Closed(C connection) {
-		super(connection);
-	}
-
-	
-}
+package org.jgrapes.io.demo.tcpecho;

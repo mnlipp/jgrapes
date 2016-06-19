@@ -17,19 +17,19 @@
  */
 package org.jgrapes.io.events;
 
-import org.jgrapes.core.Event;
+import org.jgrapes.io.Connection;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class Close extends Event<Void> {
+public class Close<C extends Connection<?>> extends ConnectionEvent<Void, C> {
 
 	/**
 	 * An event that causes the receiving I/O resource to close.
 	 */
-	public Close() {
-		// TODO Auto-generated constructor stub
+	public Close(C connection) {
+		super(connection);
 	}
 
 }

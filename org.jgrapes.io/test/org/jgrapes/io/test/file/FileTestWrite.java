@@ -51,7 +51,7 @@ public class FileTestWrite {
 				throws InterruptedException, IOException {
 			EventPipeline pipeline = newEventPipeline();
 			try (ByteBufferOutputStream out = new ByteBufferOutputStream
-					(event.getBuffers(), pipeline, this)) {
+					(event.getConnection(), pipeline)) {
 				for (int i = 1; i <= 10000; i++) {
 					out.write(new String(i + ": Hello World!\n").getBytes());
 				}
