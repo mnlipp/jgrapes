@@ -51,7 +51,7 @@ class ComponentTree {
 	private static HandlingErrorPrinter fallbackErrorHandler 
 		= new HandlingErrorPrinter(); 
 	public final static ComponentNode DUMMY_HANDLER 
-		= new AbstractComponent(Channel.SELF) {
+		= new AbstractComponent(Channel.THIS) {
 			@Handler(channels={Channel.class})
 			public void noop(Event<?> event) {
 			}
