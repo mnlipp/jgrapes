@@ -33,6 +33,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
+import org.jgrapes.core.This;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Attached;
@@ -103,7 +104,21 @@ public abstract class ComponentNode implements Manager {
 			// Get channel keys from the annotation.
 			List<Object> channelKeys = new ArrayList<Object>();
 			if (handlerAnnotation.channels()[0] != Handler.NO_CHANNEL.class) {
-				channelKeys.addAll(Arrays.asList(handlerAnnotation.channels()));
+				for (Class<?> c: handlerAnnotation.channels()) {
+					if (c == This.class) {
+						if (this instanceof Channel) {
+							channelKeys.add(((Channel)this).getMatchKey());
+						} else {
+							throw new IllegalArgumentException
+								("Canot use channel This.class in annotation"
+								 + " of " + m + " because " 
+								 + getClass().getName() 
+								 + " does not implement Channel.");
+						}
+					} else {
+						channelKeys.add(c);
+					}
+				}
 			}
 			// Get named channels from annotation and add to channel keys.
 			if (!handlerAnnotation.namedChannels()[0].equals("")) {
