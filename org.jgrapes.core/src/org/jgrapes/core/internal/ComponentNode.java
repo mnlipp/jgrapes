@@ -270,14 +270,6 @@ public abstract class ComponentNode implements Manager {
 		} else {
 			fire(e, pChan, cChan);
 		}
-		if (getTree().isStarted()) {
-			for (Component tbs: childNode) {
-				ComponentNode tbsNode = getComponentNode(tbs);
-				if (tbsNode instanceof Channel) {
-					tbsNode.fire(new Start(), (Channel)tbsNode);
-				}
-			}
-		}
 		return this;
 	}
 	
