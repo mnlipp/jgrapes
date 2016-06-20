@@ -174,6 +174,7 @@ public class Server extends AbstractComponent implements NioHandler {
 		 */
 		@Override
 		public void releaseReadBuffer(ByteBuffer buffer) {
+			buffer.clear();
 			readBuffers.add(buffer);
 		}
 
@@ -200,10 +201,12 @@ public class Server extends AbstractComponent implements NioHandler {
 		}
 
 		public void write(Write<ByteBuffer> event) throws IOException {
+			ByteBuffer buffer = event.getBuffer();
 			if (!nioChannel.isOpen()) {
+				buffer.clear();
+				writeBuffers.add(buffer);
 				return;
 			}
-			ByteBuffer buffer = event.getBuffer();
 			buffer.flip();
 			synchronized(pendingWrites) {
 				if (!pendingWrites.isEmpty()) {

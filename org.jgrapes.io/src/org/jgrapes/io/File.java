@@ -110,6 +110,7 @@ public class File extends AbstractComponent implements Connection<ByteBuffer> {
 	 */
 	@Override
 	public void releaseReadBuffer(ByteBuffer buffer) {
+		buffer.clear();
 		ioBuffers.add(buffer);
 	}
 
