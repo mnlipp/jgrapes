@@ -38,7 +38,6 @@ import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Attached;
 import org.jgrapes.core.events.Detached;
-import org.jgrapes.core.events.Start;
 
 /**
  * ComponentNode is the base class for all nodes in the component tree.
