@@ -2,12 +2,8 @@ package org.jgrapes.core.test.core;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
-import org.jgrapes.core.Event;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.core.events.Attached;
-import org.jgrapes.core.events.Detached;
 import org.jgrapes.core.events.Start;
 import org.junit.Test;
 

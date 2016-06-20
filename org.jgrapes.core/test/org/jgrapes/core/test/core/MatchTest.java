@@ -17,15 +17,15 @@ package org.jgrapes.core.test.core;
 
 import static org.junit.Assert.*;
 
+import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Channel;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.Utils;
+import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
-import org.jgrapes.core.test.core.components.ComponentWOChannel;
-import org.jgrapes.core.test.core.components.ComponentWithBroadcastChannel;
-import org.jgrapes.core.test.core.components.ComponentWithClassChannel;
-import org.jgrapes.core.test.core.components.EventCounter;
 import org.junit.Test;
 
 /**
@@ -33,6 +33,53 @@ import org.junit.Test;
  *
  */
 public class MatchTest {
+
+	public class EventCounter extends AbstractComponent {
+
+		public int all = 0;
+		public int startedGlobal = 0;
+		public int startedTest1 = 0;
+		public int named1Global = 0;
+		public int named1Test1 = 0;
+		public int startedComponent = 0;
+
+		/**
+		 * 
+		 */
+		public EventCounter() {
+			super(Channel.BROADCAST);
+			addHandler(Start.class, this, "onStartedComponent");
+		}
+
+		public void onStartedComponent(Start event) {
+			startedComponent += 1;
+		}
+		
+		@Handler(events=Event.class, channels=Channel.class)
+		public void onAll(Event<?> event) {
+			all += 1;
+		}
+
+		@Handler(events=Start.class)
+		public void onStart(Start event) {
+			startedGlobal += 1;
+		}
+
+		@Handler(events=Start.class, namedChannels="test1")
+		public void onStartTest1(Start event) {
+			startedTest1 += 1;
+		}
+
+		@Handler(namedEvents="named1")
+		public void onNamed1(Event<?> event) {
+			named1Global += 1;
+		}
+		
+		@Handler(namedEvents="named1", namedChannels="test1")
+		public void onNamed1Test1(Event<?> event) {
+			named1Test1 += 1;
+		}
+	}
 
 	@Test
 	public void testEventCounter() throws InterruptedException {
@@ -80,26 +127,5 @@ public class MatchTest {
 		assertEquals(2, app.named1Test1);
 		assertEquals(3, app.startedComponent);
 		assertEquals(10, app.all);	// Start and Started
-	}
-
-	@Test
-	public void testWOChannel() throws InterruptedException {
-		ComponentWOChannel app = new ComponentWOChannel();
-		Utils.start(app);
-		assertEquals(1, app.count);
-	}
-	
-	@Test
-	public void testClassChannel() {
-		ComponentWithClassChannel app = new ComponentWithClassChannel();
-		Utils.manager(app).fire(new Start(), 
-				new ComponentWithClassChannel.MyChannel());
-	}
-	
-	@Test
-	public void testBroadcastChannel() {
-		ComponentWithBroadcastChannel app = new ComponentWithBroadcastChannel();
-		Utils.manager(app).fire(new Start(), 
-				new ComponentWithClassChannel.MyChannel());
 	}
 }
