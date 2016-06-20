@@ -15,42 +15,31 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io.events;
+package org.jgrapes.io;
 
 import java.nio.Buffer;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-
-import org.jgrapes.io.DataConnection;
 
 /**
+ * Represents an I/O connection that is used to transfer data.
+ * 
  * @author Michael N. Lipp
- *
  */
-public class FileOpened<T extends Buffer> extends Opened<DataConnection<T>> {
-
-	private Path path;
-	private OpenOption[] options;
-	
-	public FileOpened
-		(DataConnection<T> connection, Path path, OpenOption[] options) {
-		super(connection);
-		this.path = path;
-		this.options = options;
-	}
+public interface DataConnection<T extends Buffer> extends Connection {
 
 	/**
-	 * @return the path
+	 * Get a buffer suitable to be passed to {@link Write} events.
+	 * 
+	 * @return the buffer
+	 * @throws InterruptedException if the invoking thread is interrupted
+	 * while waiting for a buffer
 	 */
-	public Path getPath() {
-		return path;
-	}
+	T acquireWriteBuffer() throws InterruptedException;
 
 	/**
-	 * @return the options
+	 * Releases a buffer used by a {@link Read} event. This method is invoked
+	 * automatically upon the completion of a {@link Read} event.
+	 * 
+	 * @param buffer
 	 */
-	public OpenOption[] getOptions() {
-		return options;
-	}
-
+	void releaseReadBuffer(T buffer);
 }

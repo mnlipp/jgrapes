@@ -20,7 +20,7 @@ package org.jgrapes.io.events;
 import java.nio.Buffer;
 import java.util.Collection;
 
-import org.jgrapes.io.Connection;
+import org.jgrapes.io.DataConnection;
 
 /**
  * This event signals that a new chunk of data has successfully been obtained
@@ -31,7 +31,7 @@ import org.jgrapes.io.Connection;
  * @author Michael N. Lipp
  */
 public class Read<T extends Buffer> 
-	extends ConnectionEvent<Void, Connection<T>> {
+	extends ConnectionEvent<Void, DataConnection<T>> {
 
 	private T buffer;
 	
@@ -43,7 +43,7 @@ public class Read<T extends Buffer>
 	 * @param buffer the buffer with the data
 	 * @param bufferPool the pool
 	 */
-	public Read(Connection<T> connection, T buffer, Collection<T> bufferPool) {
+	public Read(DataConnection<T> connection, T buffer, Collection<T> bufferPool) {
 		super(connection);
 		this.buffer = buffer;
 	}
@@ -55,7 +55,7 @@ public class Read<T extends Buffer>
 	 * and that can be used for sending {@link Write} events as replies
 	 * @param buffer the buffer with the data
 	 */
-	public Read(Connection<T> connection, T buffer) {
+	public Read(DataConnection<T> connection, T buffer) {
 		this(connection, buffer, null);
 	}
 

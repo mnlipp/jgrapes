@@ -17,8 +17,6 @@
  */
 package org.jgrapes.io;
 
-import java.nio.Buffer;
-
 import org.jgrapes.core.Channel;
 
 /**
@@ -26,7 +24,7 @@ import org.jgrapes.core.Channel;
  * 
  * @author Michael N. Lipp
  */
-public interface Connection<T extends Buffer> {
+public interface Connection {
 
 	/**
 	 * A channel that can be used to send connection related events to.
@@ -35,20 +33,4 @@ public interface Connection<T extends Buffer> {
 	 */
 	Channel getChannel();
 
-	/**
-	 * Get a buffer suitable to be passed to {@link Write} events.
-	 * 
-	 * @return the buffer
-	 * @throws InterruptedException if the invoking thread is interrupted
-	 * while waiting for a buffer
-	 */
-	T acquireWriteBuffer() throws InterruptedException;
-
-	/**
-	 * Releases a buffer used by a {@link Read} event. This method is invoked
-	 * automatically upon the completion of a {@link Read} event.
-	 * 
-	 * @param buffer
-	 */
-	void releaseReadBuffer(T buffer);
 }

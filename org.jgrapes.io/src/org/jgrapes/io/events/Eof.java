@@ -24,9 +24,9 @@ import org.jgrapes.io.Connection;
  * 
  * @author Michael N. Lipp
  */
-public class Eof<C extends Connection<?>> extends ConnectionEvent<Void, C> {
+public class Eof extends ConnectionEvent<Void, Connection> {
 
-	public Eof(C connection) {
+	public Eof(Connection connection) {
 		super(connection);
 	}
 

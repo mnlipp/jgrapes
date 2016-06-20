@@ -27,25 +27,24 @@ import org.jgrapes.io.NioHandler;
 /**
  * @author Michael N. Lipp
  */
-public class NioRegistration<T extends NioHandler>
-	extends Event<NioRegistration.Registration> {
+public class NioRegistration extends Event<NioRegistration.Registration> {
 
 	static public abstract class Registration {
 		public abstract void updateInterested(int ops);
 	}
 	
-	public class Completed extends AbstractCompletedEvent<NioRegistration<T>> {
+	public class Completed extends AbstractCompletedEvent<NioRegistration> {
 
 		/**
 		 * @param initialEvent
 		 */
-		public Completed(NioRegistration<T> initialEvent, Channel target) {
+		public Completed(NioRegistration initialEvent, Channel target) {
 			super(initialEvent);
 			setChannels(target);
 		}
 	}
 	
-	private T handler;
+	private NioHandler handler;
 	private SelectableChannel ioChannel;
 	private int ops;
 	
@@ -54,7 +53,7 @@ public class NioRegistration<T extends NioHandler>
 	 * @param channel
 	 * @param ops
 	 */
-	public NioRegistration(T handler, SelectableChannel ioChannel,
+	public NioRegistration(NioHandler handler, SelectableChannel ioChannel,
 	        int ops, Channel completedTarget) {
 		super();
 		this.handler = handler;
@@ -66,7 +65,7 @@ public class NioRegistration<T extends NioHandler>
 	/**
 	 * @return the handler
 	 */
-	public T getHandler() {
+	public NioHandler getHandler() {
 		return handler;
 	}
 

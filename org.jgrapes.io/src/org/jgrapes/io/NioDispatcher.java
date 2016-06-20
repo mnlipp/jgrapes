@@ -100,7 +100,7 @@ public class NioDispatcher extends AbstractComponent implements Runnable {
 	}
 
 	@Handler
-	public void onNioRegistration(NioRegistration<? extends NioHandler> event)
+	public void onNioRegistration(NioRegistration event)
 			throws IOException {
 		SelectableChannel channel = event.getIoChannel();
 		channel.configureBlocking(false);

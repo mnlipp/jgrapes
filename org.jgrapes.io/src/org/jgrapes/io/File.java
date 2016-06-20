@@ -50,7 +50,7 @@ import org.jgrapes.io.events.Write;
  * 
  * @author Michael N. Lipp
  */
-public class File extends AbstractComponent implements Connection<ByteBuffer> {
+public class File extends AbstractComponent implements DataConnection<ByteBuffer> {
 
 	private class Context {
 		public ByteBuffer buf;
@@ -186,7 +186,7 @@ public class File extends AbstractComponent implements Connection<ByteBuffer> {
 					return;
 				}
 				if (result == -1) {
-					pipeline.add(new Eof<>(File.this), getChannel());
+					pipeline.add(new Eof(File.this), getChannel());
 					pipeline.add(new Close<>(File.this), getChannel());
 					return;
 				}
@@ -247,7 +247,7 @@ public class File extends AbstractComponent implements Connection<ByteBuffer> {
 	}
 
 	@Handler(events={Close.class, Stop.class})
-	public void close(Close<Connection<?>> event) throws InterruptedException {
+	public void close(Close<DataConnection<?>> event) throws InterruptedException {
 		if (isOpen()) {
 			try {
 				synchronized (ioChannel) {

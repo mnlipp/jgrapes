@@ -23,7 +23,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import org.jgrapes.core.EventPipeline;
-import org.jgrapes.io.Connection;
+import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Write;
 
@@ -37,7 +37,7 @@ import org.jgrapes.io.events.Write;
  */
 public class ByteBufferOutputStream extends OutputStream {
 
-	private Connection<ByteBuffer> connection;
+	private DataConnection<ByteBuffer> connection;
 	private EventPipeline pipeline;
 	private ByteBuffer buffer;
 	
@@ -49,7 +49,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	 * @throws InterruptedException if the current is interrupted
 	 * while trying to get a new buffer from the queue
 	 */
-	public ByteBufferOutputStream(Connection<ByteBuffer> connection,
+	public ByteBufferOutputStream(DataConnection<ByteBuffer> connection,
 			EventPipeline pipeline)	throws InterruptedException {
 		super();
 		this.connection = connection;

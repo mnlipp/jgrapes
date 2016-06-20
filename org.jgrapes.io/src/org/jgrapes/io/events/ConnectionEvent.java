@@ -19,14 +19,15 @@ package org.jgrapes.io.events;
 
 import org.jgrapes.core.Event;
 import org.jgrapes.io.Connection;
+import org.jgrapes.io.DataConnection;
 
 /**
- * Base class for events related to a {@link Connection}.
+ * Base class for events related to a {@link DataConnection}.
  * 
  * @author Michael N. Lipp
  */
-public abstract class 
-	ConnectionEvent<T, C extends Connection<?>> extends Event<T> {
+public abstract class ConnectionEvent<T, C extends Connection> 
+	extends Event<T> {
 	
 	private C connection;
 

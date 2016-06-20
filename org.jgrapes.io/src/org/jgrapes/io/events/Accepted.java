@@ -17,20 +17,21 @@
  */
 package org.jgrapes.io.events;
 
-import org.jgrapes.io.Connection;
+import java.nio.Buffer;
+
+import org.jgrapes.io.DataConnection;
 
 /**
  * This event signals that a new connection has been made by a client.
  * 
  * @author Michael N. Lipp
  */
-public class Accepted<C extends Connection<?>> 
-	extends ConnectionEvent<Void, C> {
+public class Accepted<T extends Buffer> extends Opened<DataConnection<T>> {
 
 	/**
 	 * @param connection
 	 */
-	public Accepted(C connection) {
+	public Accepted(DataConnection<T> connection) {
 		super(connection);
 	}
 

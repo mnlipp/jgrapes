@@ -17,40 +17,16 @@
  */
 package org.jgrapes.io.events;
 
-import java.nio.Buffer;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class FileOpened<T extends Buffer> extends Opened<DataConnection<T>> {
+public class Ready extends Opened<Connection> {
 
-	private Path path;
-	private OpenOption[] options;
-	
-	public FileOpened
-		(DataConnection<T> connection, Path path, OpenOption[] options) {
+	public Ready(Connection connection) {
 		super(connection);
-		this.path = path;
-		this.options = options;
-	}
-
-	/**
-	 * @return the path
-	 */
-	public Path getPath() {
-		return path;
-	}
-
-	/**
-	 * @return the options
-	 */
-	public OpenOption[] getOptions() {
-		return options;
 	}
 
 }

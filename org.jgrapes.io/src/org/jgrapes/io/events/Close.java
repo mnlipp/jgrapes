@@ -23,7 +23,7 @@ import org.jgrapes.io.Connection;
  * @author Michael N. Lipp
  *
  */
-public class Close<C extends Connection<?>> extends ConnectionEvent<Void, C> {
+public class Close<C extends Connection> extends ConnectionEvent<Void, C> {
 
 	/**
 	 * An event that causes the receiving I/O resource to close.

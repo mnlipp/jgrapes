@@ -29,7 +29,7 @@ import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.io.Connection;
+import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.File;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
@@ -55,7 +55,7 @@ public class FileTestRead {
 	public static class Consumer extends AbstractComponent {
 		
 		public Consumer() {
-			super(Channel.SELF);
+			super(Channel.THIS);
 		}
 		
 		@Handler
@@ -80,7 +80,7 @@ public class FileTestRead {
 		}
 		
 		@Handler
-		public void opened(Opened<Connection<?>> event) {
+		public void opened(Opened<?> event) {
 			assertTrue(state == State.NEW);
 			state = State.OPENED;
 		}
@@ -92,19 +92,19 @@ public class FileTestRead {
 		}
 
 		@Handler
-		public void eof(Eof<Connection<?>> event) {
+		public void eof(Eof event) {
 			assertTrue(state == State.READING);
 			state = State.EOF;
 		}
 
 		@Handler
-		public void closing(Close<Connection<?>> event) {
+		public void closing(Close<DataConnection<?>> event) {
 			assertTrue(state == State.EOF);
 			state = State.CLOSING;
 		}
 
 		@Handler
-		public void closed(Closed<Connection<?>> event) {
+		public void closed(Closed<DataConnection<?>> event) {
 			assertTrue(state == State.CLOSING);
 			state = State.CLOSED;
 		}
