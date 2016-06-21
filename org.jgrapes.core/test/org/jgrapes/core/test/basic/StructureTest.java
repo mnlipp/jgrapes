@@ -31,8 +31,8 @@ public class StructureTest {
 	private TestComponent1 subtree1(int offset) {
 		TestComponent1 sub = new TestComponent1("node " + offset);
 		Utils.manager(sub).attach
-			(new TestComponent1("node " + (offset + 1)))
-			.attach(new TestComponent1("node " + (offset + 2)));
+			(new TestComponent1("node " + (offset + 1)));
+		Utils.manager(sub).attach(new TestComponent1("node " + (offset + 2)));
 		return sub;
 	}
 	
@@ -54,9 +54,8 @@ public class StructureTest {
 	public void testBuild() {
 		TestComponent1 c = new TestComponent1("root");
 		assertEquals(0, Utils.manager(c).getChildren().size());
-		TestComponent1 c1 = new TestComponent1("sub1");
-		TestComponent1 c2 = new TestComponent1("sub2");
-		c.getManager().attach(c1).attach(c2);
+		TestComponent1 c1 = c.getManager().attach(new TestComponent1("sub1"));
+		TestComponent1 c2 = c.getManager().attach(new TestComponent1("sub2"));
 		assertEquals(2, c.getManager().getChildren().size());
 		Iterator<Component> iter = c.getManager().getChildren().iterator();
 		assertSame(iter.next(), c1);
@@ -71,9 +70,8 @@ public class StructureTest {
 	public void testDetach() throws InterruptedException, ExecutionException {
 		TestComponent1 c = new TestComponent1("root");
 		Utils.start(c);
-		TestComponent1 c1 = new TestComponent1("sub1");
-		TestComponent1 c2 = new TestComponent1("sub2");
-		Utils.manager(c).attach(c1).attach(c2);
+		TestComponent1 c1 = Utils.manager(c).attach(new TestComponent1("sub1"));
+		TestComponent1 c2 = Utils.manager(c).attach(new TestComponent1("sub2"));
 		c1.getManager().detach();
 		assertNull(c1.getManager().getParent());
 		assertEquals(c1, c1.getManager().getRoot());
@@ -129,9 +127,8 @@ public class StructureTest {
 	@Test
 	public void testDerived() {
 		TestComponent2 c = new TestComponent2("root");
-		TestComponent2 c1 = new TestComponent2("sub1");
-		TestComponent2 c2 = new TestComponent2("sub2");
-		c.attach(c1).attach(c2);
+		TestComponent2 c1 = c.attach(new TestComponent2("sub1"));
+		TestComponent2 c2 = c.attach(new TestComponent2("sub2"));
 		Iterator<Component> iter = c.getChildren().iterator();
 		assertSame(iter.next(), c1);
 		assertSame(iter.next(), c2);

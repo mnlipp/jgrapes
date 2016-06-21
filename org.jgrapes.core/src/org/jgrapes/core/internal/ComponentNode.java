@@ -220,10 +220,10 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jgrapes.core.Manager#addChild(Component)
+	 * @see org.jgrapes.core.Manager#attach(Component)
 	 */
 	@Override
-	synchronized public Manager attach (Component child) {
+	synchronized public <T extends Component> T attach (T child) {
 		ComponentNode childNode = getComponentNode(child);
 		synchronized (childNode) {
 			synchronized (getTree()) {
@@ -269,7 +269,7 @@ public abstract class ComponentNode implements Manager {
 		} else {
 			fire(e, pChan, cChan);
 		}
-		return this;
+		return child;
 	}
 	
 	/**

@@ -58,9 +58,9 @@ public interface Manager extends Iterable<Component> {
 	 * have been started.
 	 * 
 	 * @param child the component to add
-	 * @return the component's manager (for comfortable chaining)
+	 * @return the added component (for comfortable chaining)
 	 */
-	Manager attach (Component child);
+	<T extends Component> T attach (T child);
 	
 	/**
 	 * Returns the child components of the component managed by 
