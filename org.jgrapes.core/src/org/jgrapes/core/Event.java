@@ -37,6 +37,20 @@ import org.jgrapes.core.internal.Matchable;
  */
 public class Event<T> extends EventBase<T> {
 
+	/**
+	 * Creates a new event. Passing channels is equivalent to first
+	 * creating the event and then callsing {@link #setChannels(Channel...)}
+	 * with the given channels.
+	 * 
+	 * @param channels the channels to set
+	 */
+	public Event(Channel... channels) {
+		super();
+		if (channels.length > 0) {
+			setChannels(channels);
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see org.jdrupes.core.internal.Matchable#getMatchKey()
 	 */

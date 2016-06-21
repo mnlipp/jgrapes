@@ -33,8 +33,7 @@ public class Stop extends Event<Void> {
 	 * {@link Channel#BROADCAST}.
 	 */
 	public Stop() {
-		super();
-		setChannels(Channel.BROADCAST);
+		super(Channel.BROADCAST);
 	}
 	
 }
