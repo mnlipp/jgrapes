@@ -111,11 +111,13 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("EventProcessor [");
+		builder.append(Common.classToString(getClass()));
+		builder.append('#');
+		builder.append(Common.getId(EventPipeline.class, this));
+		builder.append(" [");
 		if (queue != null) {
 			builder.append("queue=");
 			builder.append(queue);
-			builder.append(", ");
 		}
 		builder.append("]");
 		return builder.toString();
