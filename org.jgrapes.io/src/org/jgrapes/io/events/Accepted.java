@@ -17,8 +17,11 @@
  */
 package org.jgrapes.io.events;
 
+import java.net.SocketAddress;
 import java.nio.Buffer;
 
+import org.jgrapes.core.Utils;
+import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.DataConnection;
 
 /**
@@ -28,11 +31,50 @@ import org.jgrapes.io.DataConnection;
  */
 public class Accepted<T extends Buffer> extends Opened<DataConnection<T>> {
 
+	private SocketAddress localAddress;
+	private SocketAddress remoteAddress;
+	
 	/**
 	 * @param connection
 	 */
-	public Accepted(DataConnection<T> connection) {
+	public Accepted(DataConnection<T> connection, SocketAddress localAddress, 
+			SocketAddress remoteAddress) {
 		super(connection);
+		this.localAddress = localAddress;
+		this.remoteAddress = remoteAddress;
 	}
 
+	/**
+	 * @return the localAddress
+	 */
+	public SocketAddress getLocalAddress() {
+		return localAddress;
+	}
+
+	/**
+	 * @return the remoteAddress
+	 */
+	public SocketAddress getRemoteAddress() {
+		return remoteAddress;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Utils.objectName(this));
+		builder.append(" [");
+		builder.append(localAddress);
+		builder.append(" <― ");
+		builder.append(remoteAddress);
+		builder.append(", ");
+		if (channels != null) {
+			builder.append("channels=");
+			builder.append(Common.channelsToString(channels));
+		}
+		builder.append("]");
+		return builder.toString();
+	}
 }

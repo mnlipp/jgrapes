@@ -22,16 +22,12 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import org.jgrapes.core.AbstractComponent;
-import org.jgrapes.core.EventPipeline;
-import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.Server;
-import org.jgrapes.io.events.Accepted;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
-import org.jgrapes.io.util.ByteBufferOutputStream;
 
 /**
  * @author Michael N. Lipp
@@ -48,18 +44,17 @@ public class EchoServer extends AbstractComponent {
 		attach(new Server(new InetSocketAddress(8888), 120000));
 	}
 
-	@Handler
-	public void onAcctepted(Accepted<ByteBuffer> event) 
-			throws IOException, InterruptedException {
-		EventPipeline pipeline = newEventPipeline();
-		try (ByteBufferOutputStream out = new ByteBufferOutputStream
-				(event.getConnection(), pipeline)) {
-			for (int i = 1; i <= 10000; i++) {
-				out.write(new String(i + ": Hello World!\n").getBytes());
-			}
-		}
-		
-	}
+//	@Handler
+//	public void onAcctepted(Accepted<ByteBuffer> event) 
+//			throws IOException, InterruptedException {
+//		EventPipeline pipeline = newEventPipeline();
+//		try (ByteBufferOutputStream out = new ByteBufferOutputStream
+//				(event.getConnection(), pipeline)) {
+//			for (int i = 1; i <= 10000; i++) {
+//				out.write(new String(i + ": Hello World!\n").getBytes());
+//			}
+//		}
+//	}
 	
 	@Handler
 	public void onRead(Read<ByteBuffer> event) throws InterruptedException {

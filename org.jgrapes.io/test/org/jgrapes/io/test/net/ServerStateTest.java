@@ -15,29 +15,33 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io.test.file;
+package org.jgrapes.io.test.net;
 
 import static org.junit.Assert.*;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Manager;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.Connection;
+import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.Server;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Ready;
+import org.jgrapes.io.test.WaitFor;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ServerStateTest {
 
-	public Connection serverConnection = null;
-	
 	public enum State { NEW, READY, CLOSING, CLOSED };
 	
 	public class StateChecker extends AbstractComponent {
+		
+		public Connection serverConnection = null;
 		
 		public State state = State.NEW;
 
@@ -65,31 +69,36 @@ public class ServerStateTest {
 		}
 	}
 	
+	Server app;
+	StateChecker checker;
+
+	@Before
+	public void setUp() throws Exception {
+		NioDispatcher root = new NioDispatcher();
+		app = root.attach(new Server(null));
+		checker = new StateChecker();
+		app.attach(checker);
+		WaitFor wf = new WaitFor(app, Ready.class, Channel.class);
+		Utils.start(app);
+		wf.get();
+	}
+	
 	@Test
 	public void testStartClose() throws InterruptedException {
-		Server app = new Server(null);
-		StateChecker checker = new StateChecker();
-		app.attach(checker);
-		Utils.start(app);
-		Utils.awaitExhaustion();
 		assertEquals(State.READY, checker.state);
 		Utils.manager(app).fire
-			(new Close<>(serverConnection), Channel.BROADCAST);
+			(new Close<>(checker.serverConnection), app.getChannel()).get();
+		assertEquals(State.CLOSED, checker.state);
+		Utils.manager(app).fire(new Stop(), Channel.BROADCAST);
+		Utils.awaitExhaustion();
+	}
+
+	@Test
+	public void testStartStop() throws InterruptedException {
+		assertEquals(State.READY, checker.state);
+		Utils.manager(app).fire(new Stop(), Channel.BROADCAST);
 		Utils.awaitExhaustion();
 		assertEquals(State.CLOSED, checker.state);
 	}
-
-//	@Test
-//	public void testStartStop() throws InterruptedException {
-//		Server app = new Server(null);
-//		StateChecker checker = new StateChecker();
-//		app.attach(checker);
-//		Utils.start(app);
-//		Utils.awaitExhaustion();
-//		assertEquals(State.READY, checker.state);
-//		Utils.manager(app).fire(new Stop(), Channel.BROADCAST);
-//		Utils.awaitExhaustion();
-//		assertEquals(State.CLOSED, checker.state);
-//	}
 
 }

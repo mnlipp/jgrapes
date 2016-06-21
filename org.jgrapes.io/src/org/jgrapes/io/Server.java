@@ -37,6 +37,7 @@ import org.jgrapes.core.This;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
+import org.jgrapes.core.events.Error;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Accepted;
@@ -130,7 +131,12 @@ public class Server extends AbstractComponent
 			throws InterruptedException, IOException {
 		NioHandler handler = event.getInitialEvent().getHandler(); 
 		if (handler == this) {
-			fire(new Ready(this));
+			if (event.getInitialEvent().get() == null) {
+				fire(new Error(event, 
+						"Registration failed, no NioDispatcher?"));
+				return;
+			}
+			fire(new Ready(this, serverSocketChannel.getLocalAddress()));
 			return;
 		}
 		if (handler instanceof SocketConnection) {
@@ -177,6 +183,9 @@ public class Server extends AbstractComponent
 	@Handler
 	public void onClose(Close<? extends Connection> event) throws IOException {
 		if (event.getConnection() == this) {
+			if (!serverSocketChannel.isOpen()) {
+				return;
+			}
 			serverSocketChannel.close();
 			fire(new Closed<>(this));
 		} else if (event.getConnection() instanceof SocketConnection) {
@@ -191,11 +200,7 @@ public class Server extends AbstractComponent
 	 */
 	@Handler
 	public void onStop(Stop event) {
-		try {
-			serverSocketChannel.close();
-			newSyncEventPipeline().add(new Close<>(this), getChannel());
-		} catch (IOException e) {
-		}
+		newSyncEventPipeline().add(new Close<>(this), getChannel());
 	}
 
 	/**
@@ -264,11 +269,13 @@ public class Server extends AbstractComponent
 		 * 
 		 * @param event the completed event
 		 * @throws InterruptedException
+		 * @throws IOException 
 		 */
 		public void registrationComplete(NioRegistration event)
-		        throws InterruptedException {
+		        throws InterruptedException, IOException {
 			registration = event.get();
-			pipeline.add(new Accepted<>(this), getChannel());
+			pipeline.add(new Accepted<>(this, nioChannel.getLocalAddress(),
+					nioChannel.getRemoteAddress()), getChannel());
 
 		}
 
