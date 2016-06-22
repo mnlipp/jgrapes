@@ -102,6 +102,16 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	public void setResult(T result) {
 		this.result = result;
 	}
+
+	/**
+	 * Allows access to the intermediate result before the 
+	 * completion of the event. 
+	 * 
+	 * @return the intermediate result
+	 */
+	protected T getResult() {
+		return result;
+	}
 	
 	/**
 	 * Invoked when an exception occurs while invoking a handler for an event.

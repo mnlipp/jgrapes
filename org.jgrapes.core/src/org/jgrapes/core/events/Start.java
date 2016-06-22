@@ -35,8 +35,7 @@ public class Start extends Event<Void> {
 	 * are set to {@link Channel#BROADCAST}.
 	 */
 	public Start() {
-		super(Channel.BROADCAST);
-		setCompletedEvent(new Started(this));
+		super(new Started(), Channel.BROADCAST);
 	}
 
 }

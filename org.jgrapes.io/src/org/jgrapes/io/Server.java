@@ -129,9 +129,9 @@ public class Server extends AbstractComponent
 	@Handler(channels=This.class)
 	public void onRegistered(NioRegistration.Completed event) 
 			throws InterruptedException, IOException {
-		NioHandler handler = event.getInitialEvent().getHandler(); 
+		NioHandler handler = event.getCompleted().getHandler(); 
 		if (handler == this) {
-			if (event.getInitialEvent().get() == null) {
+			if (event.getCompleted().get() == null) {
 				fire(new Error(event, 
 						"Registration failed, no NioDispatcher?"));
 				return;
@@ -141,7 +141,7 @@ public class Server extends AbstractComponent
 		}
 		if (handler instanceof SocketConnection) {
 			((SocketConnection)handler)
-				.registrationComplete(event.getInitialEvent());
+				.registrationComplete(event.getCompleted());
 		}
 	}
 

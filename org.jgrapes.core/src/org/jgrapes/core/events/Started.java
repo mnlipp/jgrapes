@@ -17,23 +17,13 @@
  */
 package org.jgrapes.core.events;
 
+import org.jgrapes.core.CompletedEvent;
+
 /**
  * The event that signals the completion of the {@link Start} event.
  * 
  * @author Michael N. Lipp
  */
-public class Started extends AbstractCompletedEvent<Start> {
-
-	/**
-	 * An event for signaling the completion of the application start.
-	 * <P>
-	 * This event should be used by all components that autonomously
-	 * (i.e. outside an event handler) produce events to begin their work.
-	 * 
-	 * @param completedEvent
-	 */
-	public Started(Start completedEvent) {
-		super(completedEvent);
-	}
+public class Started extends CompletedEvent<Start> {
 
 }

@@ -51,6 +51,27 @@ public class Event<T> extends EventBase<T> {
 		}
 	}
 
+	/**
+	 * Creates a new event. Sets the associated completed event to the
+	 * event passed as parameter and sets this event as result of
+	 * the completed event.
+	 * <P>
+	 * The channels are handled as in {@link Event#Event(Channel...)}.
+	 * 
+	 * @param channels the channels to set
+	 */
+	public Event(CompletedEvent<? extends Event<T>> completedEvent,
+			Channel... channels) {
+		super();
+		@SuppressWarnings("unchecked")
+		Event<Event<T>> ce = (Event<Event<T>>)completedEvent;
+		ce.setResult(this);
+		setCompletedEvent(completedEvent);
+		if (channels.length > 0) {
+			setChannels(channels);
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see org.jdrupes.core.internal.Matchable#getMatchKey()
 	 */
