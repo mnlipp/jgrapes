@@ -76,6 +76,19 @@ public class Utils {
 	}
 
 	/**
+	 * Wait until all generators and event queues are exhausted or
+	 * the maximum wait time has expired.
+	 * 
+	 * @return {@code true} if exhaustion state was reached
+	 * @throws InterruptedException 
+	 * @see #awaitExhaustion()
+	 */
+	public static boolean awaitExhaustion(long timeout) 
+			throws InterruptedException {
+		return GeneratorRegistry.getInstance().awaitExhaustion(timeout);
+	}
+
+	/**
 	 * Returns the class of the object together with a unique id.
 	 * May be used to implement {@code toString()} with identifiable
 	 * objects.
