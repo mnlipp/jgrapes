@@ -75,9 +75,10 @@ public class GeneratorRegistry {
 	
 	synchronized public boolean awaitExhaustion(long timeout) 
 			throws InterruptedException {
-		while (running > 0) {
-			wait(timeout);
+		if (isExhausted()) {
+			return true;
 		}
-		return running == 0;
+		wait(timeout);
+		return isExhausted();
 	}
 }
