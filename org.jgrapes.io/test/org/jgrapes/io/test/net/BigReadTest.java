@@ -27,6 +27,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
@@ -54,6 +55,15 @@ public class BigReadTest {
 			attach(new Server(null));
 		}
 
+		/**
+		 * Sends a lot of data to make sure that the data cannot be sent
+		 * with a single write. Only then will the selector generate write
+		 * the ops that we want to test here. 
+		 * 
+		 * @param event
+		 * @throws IOException
+		 * @throws InterruptedException
+		 */
 		@Handler
 		public void onAcctepted(Accepted<ByteBuffer> event) 
 				throws IOException, InterruptedException {
@@ -65,7 +75,6 @@ public class BigReadTest {
 				}
 			}
 		}
-		
 	}
 
 	@Test
@@ -82,23 +91,35 @@ public class BigReadTest {
 		}
 		InetSocketAddress serverAddr 
 			= ((InetSocketAddress)readyEvent.getListenAddress());
-		try (Socket client = new Socket(serverAddr.getAddress(),
-		        serverAddr.getPort())) {
-			InputStream fromServer = client.getInputStream();
-			BufferedReader in = new BufferedReader(
-			        new InputStreamReader(fromServer, "ascii"));
-			int expected = 0;
-			while (expected < 1000000) {
-				String line = in.readLine();
-				String[] parts = line.split(":");
-				assertEquals(expected, Integer.parseInt(parts[0]));
-				assertEquals("Hello World!", parts[1]);
-				expected += 1;
+		
+		AtomicInteger expected = new AtomicInteger(0);
+		Thread receiver = new Thread() {
+			@Override
+			public void run() {
+				try (Socket client = new Socket(serverAddr.getAddress(),
+				        serverAddr.getPort())) {
+					InputStream fromServer = client.getInputStream();
+					BufferedReader in = new BufferedReader(
+					        new InputStreamReader(fromServer, "ascii"));
+					while (expected.get() < 1000000) {
+						String line = in.readLine();
+						String[] parts = line.split(":");
+						assertEquals(expected.get(),
+									Integer.parseInt(parts[0]));
+						assertEquals("Hello World!", parts[1]);
+						expected.incrementAndGet();
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
-		}
-	
+		};
+		receiver.start();
+		receiver.join(2000);
+		assertEquals(1000000, expected.get());
+		
 		Utils.manager(app).fire(new Stop(), Channel.BROADCAST);
-		Utils.awaitExhaustion();
+		assertTrue(Utils.awaitExhaustion(3000));
 	}
 
 }
