@@ -21,7 +21,6 @@ import static org.junit.Assert.*;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Manager;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
