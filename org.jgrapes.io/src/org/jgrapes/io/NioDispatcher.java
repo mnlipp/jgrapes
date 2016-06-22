@@ -18,6 +18,7 @@
 package org.jgrapes.io;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -39,6 +40,7 @@ public class NioDispatcher extends AbstractComponent implements Runnable {
 
 	private Selector selector = null;
 	private Thread runner = null;
+	private boolean running = false;
 	private Object selectorGate = new Object();
 	
 	/**
@@ -54,9 +56,10 @@ public class NioDispatcher extends AbstractComponent implements Runnable {
 	 * Starts this dispatcher. A dispatcher has an associated thread that
 	 * keeps it running.
 	 */
-	@Handler(events=Start.class)
-	public void start() {
-		runner = new Thread(this);
+	@Handler
+	public void onStart(Start event) {
+		running = true;
+		runner = new Thread(this, "NioDispatcher");
 		runner.start();
 	}
 
@@ -65,9 +68,15 @@ public class NioDispatcher extends AbstractComponent implements Runnable {
 	 * 
 	 * @throws InterruptedException
 	 */
-	@Handler(events=Stop.class)
-	public void stop() throws InterruptedException {
-		runner.interrupt();
+	@Handler
+	public void onStop() throws InterruptedException {
+		if (runner == null) {
+			return;
+		}
+		synchronized(runner) {
+			running = false;
+			selector.wakeup();
+		}
 		runner.join();
 	}
 
@@ -79,9 +88,14 @@ public class NioDispatcher extends AbstractComponent implements Runnable {
 	public void run() {
 		try {
 			registerAsGenerator();
-			while (!Thread.interrupted()) {
+			while (true) {
 				try {
-					selector.select();
+					synchronized (this) {
+						if (!running) {
+							break;
+						}
+						selector.select();
+					}
 					Set<SelectionKey> selected = selector.selectedKeys();
 					for (SelectionKey key: selected) {
 						((NioHandler)key.attachment())
@@ -91,6 +105,8 @@ public class NioDispatcher extends AbstractComponent implements Runnable {
 					synchronized (selectorGate) {
 						// Delay next iteration if another thread has the lock
 					}
+				} catch (InterruptedIOException e) {
+					break;
 				} catch (IOException e) {
 				}
 			}
