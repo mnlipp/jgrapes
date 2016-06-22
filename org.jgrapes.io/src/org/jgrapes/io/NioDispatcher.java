@@ -69,7 +69,7 @@ public class NioDispatcher extends AbstractComponent implements Runnable {
 	 * @throws InterruptedException
 	 */
 	@Handler
-	public void onStop() throws InterruptedException {
+	public void onStop(Stop event) throws InterruptedException {
 		if (runner == null) {
 			return;
 		}
