@@ -40,7 +40,7 @@ public class GeneratorRegistry {
 	synchronized public void add(Object obj) {
 		running += 1;
 		if (running == 1) {
-			keepAlive = new Thread() {
+			keepAlive = new Thread("GeneratorRegistry") {
 				@Override
 				public void run() {
 					try {
@@ -73,10 +73,11 @@ public class GeneratorRegistry {
 		}
 	}
 	
-	synchronized public void awaitExhaustion(long timeout) 
+	synchronized public boolean awaitExhaustion(long timeout) 
 			throws InterruptedException {
 		while (running > 0) {
 			wait(timeout);
 		}
+		return running == 0;
 	}
 }
