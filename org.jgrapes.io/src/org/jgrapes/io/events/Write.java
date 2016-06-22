@@ -98,7 +98,7 @@ public class Write<T extends Buffer>
 	 * Releases the buffer, unless locked.
 	 */
 	@Override
-	synchronized protected void done() {
+	synchronized protected void handled() {
 		handled = true;
 		if (lockCount == 0) {
 			getConnection().releaseWriteBuffer(buffer);

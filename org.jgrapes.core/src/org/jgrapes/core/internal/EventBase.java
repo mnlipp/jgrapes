@@ -206,7 +206,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * implementation does nothing. This method is invoked by the event 
 	 * handler thread and must not block.
 	 */
-	protected void done() {
+	protected void handled() {
 	}
 	
 	/**

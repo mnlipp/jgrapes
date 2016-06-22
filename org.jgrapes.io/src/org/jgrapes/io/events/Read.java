@@ -72,7 +72,7 @@ public class Read<T extends Buffer>
 	 * @see org.jgrapes.core.internal.EventBase#stopped()
 	 */
 	@Override
-	protected void done() {
+	protected void handled() {
 		getConnection().releaseReadBuffer(buffer);
 	}
 	
