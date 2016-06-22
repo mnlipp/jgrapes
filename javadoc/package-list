@@ -2,3 +2,6 @@ org.jgrapes.core
 org.jgrapes.core.annotation
 org.jgrapes.core.events
 org.jgrapes.core.internal
+org.jgrapes.io
+org.jgrapes.io.events
+org.jgrapes.io.util
