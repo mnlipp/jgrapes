@@ -23,7 +23,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -31,18 +30,19 @@ import java.util.concurrent.ExecutionException;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.Server;
-import org.jgrapes.io.events.Read;
+import org.jgrapes.io.events.Accepted;
 import org.jgrapes.io.events.Ready;
-import org.jgrapes.io.events.Write;
 import org.jgrapes.io.test.WaitFor;
+import org.jgrapes.io.util.ByteBufferOutputStream;
 import org.junit.Test;
 
-public class EchoTest {
+public class BigReadTest {
 
 	public class EchoServer extends AbstractComponent {
 
@@ -55,11 +55,17 @@ public class EchoTest {
 		}
 
 		@Handler
-		public void onRead(Read<ByteBuffer> event) throws InterruptedException {
-			ByteBuffer out = event.getConnection().acquireWriteBuffer();
-			out.put(event.getBuffer());
-			fire(new Write<>(event.getConnection(), out));
+		public void onAcctepted(Accepted<ByteBuffer> event) 
+				throws IOException, InterruptedException {
+			EventPipeline pipeline = newEventPipeline();
+			try (ByteBufferOutputStream out = new ByteBufferOutputStream
+					(event.getConnection(), pipeline)) {
+				for (int i = 0; i < 1000000; i++) {
+					out.write(new String(i + ":Hello World!\n").getBytes());
+				}
+			}
 		}
+		
 	}
 
 	@Test
@@ -78,34 +84,11 @@ public class EchoTest {
 			= ((InetSocketAddress)readyEvent.getListenAddress());
 		try (Socket client = new Socket(serverAddr.getAddress(),
 		        serverAddr.getPort())) {
-			Thread sender = new Thread() {
-				@Override
-				public void run() {
-					try {
-						OutputStream toServer = client.getOutputStream();
-						for (int i = 0; i < 16; i++) {
-							String line = i + ":Hello World!\n";
-							toServer.write(line.getBytes("ascii"));
-							toServer.flush();
-							try {
-								// If we're too fast, data will be appended
-								// tp previous, not yet flushed out chunk
-								Thread.sleep(5);
-							} catch (InterruptedException e) {
-							}
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			};
-			sender.start();
-
 			InputStream fromServer = client.getInputStream();
 			BufferedReader in = new BufferedReader(
 			        new InputStreamReader(fromServer, "ascii"));
 			int expected = 0;
-			while (expected < 16) {
+			while (expected < 1000000) {
 				String line = in.readLine();
 				String[] parts = line.split(":");
 				assertEquals(expected, Integer.parseInt(parts[0]));

@@ -27,6 +27,14 @@ import java.nio.Buffer;
 public interface DataConnection<T extends Buffer> extends Connection {
 
 	/**
+	 * Releases a buffer used by a {@link Read} event. This method is invoked
+	 * automatically upon the completion of a {@link Read} event.
+	 * 
+	 * @param buffer
+	 */
+	void releaseReadBuffer(T buffer);
+
+	/**
 	 * Get a buffer suitable to be passed to {@link Write} events.
 	 * 
 	 * @return the buffer
@@ -36,10 +44,11 @@ public interface DataConnection<T extends Buffer> extends Connection {
 	T acquireWriteBuffer() throws InterruptedException;
 
 	/**
-	 * Releases a buffer used by a {@link Read} event. This method is invoked
-	 * automatically upon the completion of a {@link Read} event.
+	 * Releases a buffer used by a {@link Write} event. This method is invoked
+	 * automatically upon the completion of a {@link Write} event.
 	 * 
 	 * @param buffer
 	 */
-	void releaseReadBuffer(T buffer);
+	void releaseWriteBuffer(T buffer);
+
 }

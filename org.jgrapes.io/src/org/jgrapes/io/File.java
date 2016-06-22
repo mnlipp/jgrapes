@@ -50,13 +50,14 @@ import org.jgrapes.io.events.Write;
  * 
  * @author Michael N. Lipp
  */
-public class File extends AbstractComponent implements DataConnection<ByteBuffer> {
+public class File extends AbstractComponent 
+	implements DataConnection<ByteBuffer> {
 
-	private class Context {
-		public ByteBuffer buf;
+	private class WriteContext {
+		public Write<ByteBuffer> event;
 		public long pos;
-		public Context(ByteBuffer buf, long pos) {
-			this.buf = buf;
+		public WriteContext(Write<ByteBuffer> event, long pos) {
+			this.event = event;
 			this.pos = pos;
 		}
 	}
@@ -66,9 +67,9 @@ public class File extends AbstractComponent implements DataConnection<ByteBuffer
 	private AsynchronousFileChannel ioChannel = null;
 	private BlockingQueue<ByteBuffer> ioBuffers = new ArrayBlockingQueue<>(2);
 	private long offset = 0;
-	private CompletionHandler<Integer, Context> 
+	private CompletionHandler<Integer, ByteBuffer> 
 		readCompletionHandler = new ReadCompletionHandler();
-	private CompletionHandler<Integer, Context> 
+	private CompletionHandler<Integer, WriteContext> 
 		writeCompletionHandler = new WriteCompletionHandler();
 	private int outstandingAsyncs = 0;
 	private boolean reading = false;
@@ -114,6 +115,15 @@ public class File extends AbstractComponent implements DataConnection<ByteBuffer
 		ioBuffers.add(buffer);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jgrapes.io.DataConnection#releaseWriteBuffer(java.nio.Buffer)
+	 */
+	@Override
+	public void releaseWriteBuffer(ByteBuffer buffer) {
+		buffer.clear();
+		ioBuffers.add(buffer);
+	}
+
 	public boolean isOpen() {
 		return ioChannel != null && ioChannel.isOpen();
 	}
@@ -146,19 +156,18 @@ public class File extends AbstractComponent implements DataConnection<ByteBuffer
 			registerAsGenerator();
 			pipeline.add(new FileOpened<>
 				(this, event.getPath(), event.getOptions()), getChannel());
-			ioChannel.read(buffer, offset, 
-					new Context(buffer, offset), readCompletionHandler);
+			ioChannel.read(buffer, offset, buffer, readCompletionHandler);
 			synchronized (ioChannel) {
 				outstandingAsyncs += 1;
 			}
 		}
 	}
 
-	private abstract class BaseCompletionHandler 
-		implements CompletionHandler<Integer, Context> {
+	private abstract class BaseCompletionHandler<C> 
+		implements CompletionHandler<Integer, C> {
 		
 		@Override
-		public void failed(Throwable exc, Context buffer) {
+		public void failed(Throwable exc, C context) {
 			try {
 				if (!(exc instanceof AsynchronousCloseException)) {
 					pipeline.add(new IOError(null, exc), getChannel());
@@ -177,10 +186,11 @@ public class File extends AbstractComponent implements DataConnection<ByteBuffer
 		}
 	}
 	
-	private class ReadCompletionHandler extends BaseCompletionHandler {
+	private class ReadCompletionHandler 
+		extends BaseCompletionHandler<ByteBuffer> {
 		
 		@Override
-		public void completed(Integer result, Context context) {
+		public void completed(Integer result, ByteBuffer buffer) {
 			try {
 				if (!isOpen()) {
 					return;
@@ -190,15 +200,14 @@ public class File extends AbstractComponent implements DataConnection<ByteBuffer
 					pipeline.add(new Close<>(File.this), getChannel());
 					return;
 				}
-				context.buf.flip();
+				buffer.flip();
 				pipeline.add(new Read<>
-					(File.this, context.buf, ioBuffers), getChannel());
+					(File.this, buffer, ioBuffers), getChannel());
 				offset += result;
 				try {
 					ByteBuffer nextBuffer = ioBuffers.take();
 					nextBuffer.clear();
-					ioChannel.read(nextBuffer, offset,
-					        new Context(nextBuffer, offset),
+					ioChannel.read(nextBuffer, offset, nextBuffer,
 					        readCompletionHandler);
 					synchronized (ioChannel) {
 						outstandingAsyncs += 1;
@@ -213,34 +222,34 @@ public class File extends AbstractComponent implements DataConnection<ByteBuffer
 	}
 	
 	@Handler
-	public void write(Write<ByteBuffer> event) {
+	public void onWrite(Write<ByteBuffer> event) {
 		ByteBuffer buffer = event.getBuffer();
-		buffer.flip();
 		int written = buffer.remaining();
 		if (written == 0) {
 			return;
 		}
+		event.lockBuffer();
 		synchronized (ioChannel) {
 			ioChannel.write(event.getBuffer(), offset, 
-					new Context(buffer,offset), writeCompletionHandler);
+					new WriteContext(event, offset), writeCompletionHandler);
 			outstandingAsyncs += 1;
 		}
 		offset += written;
 	}
 	
-	private class WriteCompletionHandler extends BaseCompletionHandler {
+	private class WriteCompletionHandler 
+		extends BaseCompletionHandler<WriteContext> {
 
 		@Override
-		public void completed(Integer result, Context context) {
-			if (context.buf.hasRemaining()) {
-				ioChannel.write(context.buf, 
-						context.pos + context.buf.position(),
+		public void completed(Integer result, WriteContext context) {
+			ByteBuffer buffer = context.event.getBuffer();
+			if (buffer.hasRemaining()) {
+				ioChannel.write(buffer, 
+						context.pos + buffer.position(),
 						context, writeCompletionHandler);
-				handled();
 				return;
 			}
-			context.buf.clear();
-			ioBuffers.add(context.buf);
+			context.event.unlockBuffer();
 			handled();
 		}
 

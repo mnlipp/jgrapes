@@ -44,18 +44,6 @@ public class EchoServer extends AbstractComponent {
 		attach(new Server(new InetSocketAddress(8888), 120000));
 	}
 
-//	@Handler
-//	public void onAcctepted(Accepted<ByteBuffer> event) 
-//			throws IOException, InterruptedException {
-//		EventPipeline pipeline = newEventPipeline();
-//		try (ByteBufferOutputStream out = new ByteBufferOutputStream
-//				(event.getConnection(), pipeline)) {
-//			for (int i = 1; i <= 10000; i++) {
-//				out.write(new String(i + ": Hello World!\n").getBytes());
-//			}
-//		}
-//	}
-	
 	@Handler
 	public void onRead(Read<ByteBuffer> event) throws InterruptedException {
 		ByteBuffer out = event.getConnection().acquireWriteBuffer();

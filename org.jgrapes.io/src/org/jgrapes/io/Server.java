@@ -217,7 +217,7 @@ public class Server extends AbstractComponent
 		private BlockingQueue<ByteBuffer> readBuffers;
 		private BlockingQueue<ByteBuffer> writeBuffers;
 		private Registration registration = null;
-		private Queue<ByteBuffer> pendingWrites = new ArrayDeque<>();
+		private Queue<Write<ByteBuffer>> pendingWrites = new ArrayDeque<>();
 		private boolean pendingClose = false;
 		
 		/**
@@ -253,6 +253,15 @@ public class Server extends AbstractComponent
 		@Override
 		public ByteBuffer acquireWriteBuffer() throws InterruptedException {
 			return writeBuffers.take();
+		}
+
+		/* (non-Javadoc)
+		 * @see org.jgrapes.io.DataConnection#releaseWriteBuffer(java.nio.Buffer)
+		 */
+		@Override
+		public void releaseWriteBuffer(ByteBuffer buffer) {
+			buffer.clear();
+			writeBuffers.add(buffer);
 		}
 
 		/* (non-Javadoc)
@@ -296,25 +305,23 @@ public class Server extends AbstractComponent
 		public void write(Write<ByteBuffer> event) throws IOException {
 			ByteBuffer buffer = event.getBuffer();
 			if (!nioChannel.isOpen()) {
-				buffer.clear();
-				writeBuffers.add(buffer);
 				return;
 			}
-			buffer.flip();
 			synchronized(pendingWrites) {
 				if (!pendingWrites.isEmpty()) {
-					pendingWrites.add(buffer);
+					event.lockBuffer();
+					pendingWrites.add(event);
 					return;
 				}
 			}
 			nioChannel.write(buffer);
 			if (!buffer.hasRemaining()) {
 				buffer.clear();
-				writeBuffers.add(buffer);
 				return;
 			}
 			synchronized(pendingWrites) {
-				pendingWrites.add(buffer);
+				event.lockBuffer();
+				pendingWrites.add(event);
 				if (pendingWrites.size() == 1) {
 					registration.updateInterested
 						(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
@@ -371,7 +378,7 @@ public class Server extends AbstractComponent
 		 */
 		private void handleWriteOp() throws IOException {
 			while (true) {
-				ByteBuffer head = null;
+				Write<ByteBuffer> head = null;
 				synchronized (pendingWrites) {
 					if (pendingWrites.isEmpty()) {
 						// Nothing left to write, stop getting ops
@@ -384,15 +391,15 @@ public class Server extends AbstractComponent
 						break; // Nothing left to do
 					}
 					head = pendingWrites.peek();
-					if (!head.hasRemaining()) {
+					if (!head.getBuffer().hasRemaining()) {
 						// Nothing left in head buffer, try next
-						head = pendingWrites.remove();
-						head.clear();
-						writeBuffers.add(head);
+						head.getBuffer().clear();
+						head.unlockBuffer();
+						pendingWrites.remove();
 						continue;
 					}
 				}
-				nioChannel.write(head); // write...
+				nioChannel.write(head.getBuffer()); // write...
 				break; // ... and wait for next op
 			}
 		}
