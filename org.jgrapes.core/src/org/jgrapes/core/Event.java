@@ -39,7 +39,7 @@ public class Event<T> extends EventBase<T> {
 
 	/**
 	 * Creates a new event. Passing channels is equivalent to first
-	 * creating the event and then callsing {@link #setChannels(Channel...)}
+	 * creating the event and then calling {@link #setChannels(Channel...)}
 	 * with the given channels.
 	 * 
 	 * @param channels the channels to set
