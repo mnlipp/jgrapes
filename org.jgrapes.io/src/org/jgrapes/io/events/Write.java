@@ -41,7 +41,7 @@ public class Write<T extends Buffer>
 	 * flips the buffer as it is assumed to be used for reading by
 	 * the handlers(s) from now on.
 	 * 
-	 * @param the connection to write the data to
+	 * @param connection the connection to write the data to
 	 * @param buffer the buffer with the data
 	 */
 	public Write(DataConnection<T> connection, T buffer) {

@@ -44,7 +44,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	/**
 	 * Creates a new instance.
 	 * 
-	 * @param buffers the queue providing the byte buffers
+	 * @param connection the connection to send on
 	 * @param pipeline the pipeline to be used to send the events
 	 * @throws InterruptedException if the current is interrupted
 	 * while trying to get a new buffer from the queue

@@ -47,11 +47,16 @@ public class NioRegistration extends Event<NioRegistration.Registration> {
 	private NioHandler handler;
 	private SelectableChannel ioChannel;
 	private int ops;
-	
+
 	/**
-	 * @param handler
-	 * @param channel
-	 * @param ops
+	 * Creates a new registration event for the given handler, using the given
+	 * NIO channel and handling the given operations. The completed event
+	 * for this event is to be sent to the given channel. 
+	 * 
+	 * @param handler the handler
+	 * @param ioChannel the NIO channel
+	 * @param ops the supported operations
+	 * @param completedTarget where to send the completed event to
 	 */
 	public NioRegistration(NioHandler handler, SelectableChannel ioChannel,
 	        int ops, Channel completedTarget) {

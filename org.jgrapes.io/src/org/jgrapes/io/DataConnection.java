@@ -19,6 +19,9 @@ package org.jgrapes.io;
 
 import java.nio.Buffer;
 
+import org.jgrapes.io.events.Read;
+import org.jgrapes.io.events.Write;
+
 /**
  * Represents an I/O connection that is used to transfer data.
  * 
