@@ -200,6 +200,9 @@ public class Server extends AbstractComponent
 	 */
 	@Handler
 	public void onStop(Stop event) {
+		if (!serverSocketChannel.isOpen()) {
+			return;
+		}
 		newSyncEventPipeline().add(new Close<>(this), getChannel());
 	}
 
