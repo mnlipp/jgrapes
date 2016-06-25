@@ -43,11 +43,17 @@ class HandlerList extends ArrayList<HandlerReference> {
 					break;
 				}
 			} catch (Throwable t) {
+				if (t instanceof AssertionError) {
+					Common.setAssertionError((AssertionError)t);
+				}
 				event.handlingError(eventPipeline, t);
 			}
 		}
 		try {
 			event.handled();
+		} catch (AssertionError t) {
+			Common.setAssertionError(t);
+			event.handlingError(eventPipeline, t);
 		} catch (Throwable t) {
 			event.handlingError(eventPipeline, t);
 		}
