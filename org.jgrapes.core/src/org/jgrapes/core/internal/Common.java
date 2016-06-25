@@ -35,6 +35,22 @@ public class Common {
 	private Common() {
 	}
 	
+	private static AssertionError assertionError = null;
+	
+	static void setAssertionError (AssertionError error) {
+		if (assertionError == null) {
+			assertionError = error;
+		}
+	}
+
+	static public void checkAssertions() {
+		if (assertionError != null) {
+			AssertionError error = assertionError;
+			assertionError = null;
+			throw error;
+		}
+	}
+	
 	public static final Logger classNames 
 		= Logger.getLogger(Component.class.getPackage().getName() 
 			+ ".classNames");	
@@ -91,6 +107,6 @@ public class Common {
 							.incrementAndGet()));
 			
 		}
-}
+	}
 
 }

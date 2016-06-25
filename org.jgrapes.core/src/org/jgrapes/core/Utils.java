@@ -69,7 +69,8 @@ public class Utils {
 	 * stage is reached, nothing can happen anymore unless a new event is
 	 * sent from an external thread.
 	 * 
-	 * @throws InterruptedException 
+	 * @throws InterruptedException if the current thread was interrupted
+	 * while waiting
 	 */
 	public static void awaitExhaustion() throws InterruptedException {
 		GeneratorRegistry.getInstance().awaitExhaustion();
@@ -88,6 +89,21 @@ public class Utils {
 		return GeneratorRegistry.getInstance().awaitExhaustion(timeout);
 	}
 
+	/**
+	 * Utility method that checks if an assertion error has occurred
+	 * while executing handlers. If so, the error is thrown and
+	 * the assertion error store is reset.
+	 * <P>
+	 * This method is intended for junit tests. It enables easy propagation
+	 * of assertion failures to the main thread.
+	 * 
+	 * @throws AssertionError if an assertion error occurred while
+	 * executing the application
+	 */
+	public static void checkAssertions() {
+		Common.checkAssertions();
+	}
+	
 	/**
 	 * Returns the class of the object together with a unique id.
 	 * May be used to implement {@code toString()} with identifiable
