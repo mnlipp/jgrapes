@@ -66,6 +66,7 @@ public class ServerStateTest {
 			assertTrue(state == State.CLOSING);
 			state = State.CLOSED;
 		}
+
 	}
 	
 	Server app;
@@ -90,6 +91,7 @@ public class ServerStateTest {
 		assertEquals(State.CLOSED, checker.state);
 		Utils.manager(app).fire(new Stop(), Channel.BROADCAST);
 		Utils.awaitExhaustion();
+		Utils.checkAssertions();
 	}
 
 	@Test
@@ -98,6 +100,7 @@ public class ServerStateTest {
 		Utils.manager(app).fire(new Stop(), Channel.BROADCAST);
 		Utils.awaitExhaustion();
 		assertEquals(State.CLOSED, checker.state);
+		Utils.checkAssertions();
 	}
 
 }
