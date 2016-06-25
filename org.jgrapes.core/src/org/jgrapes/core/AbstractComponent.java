@@ -83,8 +83,7 @@ public class AbstractComponent extends ComponentNode
 	/**
 	 * Returns the channel associated with the component.
 	 * 
-	 * @return the channel passed to the constructor
-	 * or <code>BROADCAST_CHANNEL</code>
+	 * @return the channel as assigned by the constructor.
 	 * 
 	 * @see org.jgrapes.core.Manager#getChannel()
 	 */
