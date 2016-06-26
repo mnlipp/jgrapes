@@ -20,6 +20,7 @@ package org.jgrapes.core.internal;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -51,7 +52,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	/** Indicates that the event should not processed further. */
 	private boolean stopped = false;
 	/** The result of handling the event (if any). */
-	private T result;
+	private AtomicReference<T> result;
 	
 	/**
 	 * Returns the channels associated with the event. Before an
@@ -73,16 +74,18 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * (see {@link org.jgrapes.core.Manager#fire(Event, Channel...)}).
 	 * 
 	 * @param channels the channels to set
+	 * @return the object for easy chaining
 	 * 
 	 * @throws IllegalStateException if the method is called after
 	 * this event has been fired
 	 */
-	public void setChannels(Channel... channels) {
+	public EventBase<T> setChannels(Channel... channels) {
 		if (enqueued()) {
 			throw new IllegalStateException
 				("Channels cannot be changed after fire");
 		}
 		this.channels = channels;
+		return this;
 	}
 
 	/**
@@ -98,9 +101,15 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * Sets the result of handling this event.
 	 * 
 	 * @param result
+	 * @return the object for easy chaining
 	 */
-	public void setResult(T result) {
-		this.result = result;
+	public EventBase<T> setResult(T result) {
+		if (this.result == null) {
+			this.result = new AtomicReference<T>(result);
+			return this;
+		}
+		this.result.set(result);
+		return this;
 	}
 
 	/**
@@ -110,7 +119,27 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @return the intermediate result
 	 */
 	protected T getResult() {
-		return result;
+		return result == null ? null : result.get();
+	}
+	
+	/**
+	 * Tie the result of this event to the result of the other event.
+	 * Changes of either event's results will subsequently be applied
+	 * to both events.
+	 * <P>
+	 * This is useful when an event is replaced by another event during
+	 * handling like:
+	 * {@code fire((new Event()).tieTo(oldEvent.stop()))}  
+	 * 
+	 * @param other
+	 * @return the object for easy chaining
+	 */
+	public EventBase<T> tieTo(EventBase<T> other) {
+		if (other.result == null) {
+			other.result = new AtomicReference<T>(null);
+		}
+		result = other.result;
+		return this;
 	}
 	
 	/**
@@ -126,9 +155,12 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * Can be called during the execution of an event handler to indicate
 	 * that the event should not be processed further. All remaining 
 	 * handlers for this event will be skipped.
+	 * 
+	 * @return the object for easy chaining
 	 */
-	public void stop() {
+	public EventBase<T> stop() {
 		stopped = true;
+		return this;
 	}
 
 	/**
@@ -159,7 +191,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	/**
 	 * @param pipeline
 	 */
-	public void decrementOpen(EventPipeline pipeline) {
+	void decrementOpen(EventPipeline pipeline) {
 		openCount -= 1;
 		if (openCount == 0 && !completed) {
 			synchronized (this) {
@@ -194,9 +226,11 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * by it have been handled.
 	 * 
 	 * @param completedEvent the completedEvent to set
+	 * @return the object for easy chaining
 	 */
-	public void setCompletedEvent(Event<?> completedEvent) {
+	public EventBase<T> setCompletedEvent(Event<?> completedEvent) {
 		this.completedEvent = completedEvent;
+		return this;
 	}
 
 	/**
@@ -250,7 +284,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 		while (true) {
 			synchronized(this) {
 				if (completed) {
-					return result;
+					return result == null ? null : result.get();
 				}
 				wait();
 			}
@@ -268,12 +302,12 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	        throws InterruptedException, TimeoutException {
 		synchronized(this) {
 			if (completed) {
-				return result;
+				return result == null ? null : result.get();
 			}
 			wait(unit.toMillis(timeout));
 		}
 		if (completed) {
-			return result;
+			return result == null ? null : result.get();
 		}
 		throw new TimeoutException();
 	}
@@ -284,9 +318,11 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * 
 	 * @param component the component
 	 * @param data the data
+	 * @return the object for easy chaining
 	 */
-	public void setComponentContext(Component component, Object data) {
+	public EventBase<T> setComponentContext(Component component, Object data) {
 		FeedBackPipelineFilter.setComponentContext(component, data);
+		return this;
 	}
 	
 	/**
