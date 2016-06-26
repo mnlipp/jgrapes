@@ -66,7 +66,7 @@ public class Event<T> extends EventBase<T> {
 		@SuppressWarnings("unchecked")
 		Event<Event<T>> ce = (Event<Event<T>>)completedEvent;
 		ce.setResult(this);
-		setCompletedEvent(completedEvent);
+		addCompletedEvent(ce);
 		if (channels.length > 0) {
 			setChannels(channels);
 		}

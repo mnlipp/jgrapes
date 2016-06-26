@@ -17,9 +17,13 @@
  */
 package org.jgrapes.core.internal;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.jgrapes.core.Channel;
@@ -44,9 +48,9 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	/** Number of events that have to be dispatched until completion.
 	 * This is one for the event itself and one more for each event
 	 * that has this event as its cause. */
-	private int openCount = 0;
+	private AtomicInteger openCount = new AtomicInteger(0);
 	/** The event to be fired upon completion. */
-	private Event<?> completedEvent = null;
+	private Set<Event<?>> completedEvents = null;
 	/** Set when the event has been completed. */
 	private boolean completed = false;
 	/** Indicates that the event should not processed further. */
@@ -94,7 +98,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @return the result
 	 */
 	protected boolean enqueued() {
-		return openCount > 0;
+		return openCount.get() > 0;
 	}
 
 	/**
@@ -171,7 +175,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	boolean isStopped() {
 		return stopped;
 	}
-	
+
 	/**
 	 * If an event is fired while processing another event, note
 	 * the event being processed. This allows us to track the cause
@@ -181,10 +185,10 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @param causingEvent the causing event to set
 	 */
 	void generatedBy(EventBase<?> causingEvent) {
-		openCount += 1;
-		this.generatedBy = causingEvent;
+		openCount.incrementAndGet();
+		generatedBy = causingEvent;
 		if (causingEvent != null) {
-			causingEvent.openCount += 1;
+			causingEvent.openCount.incrementAndGet();
 		}
 	}
 
@@ -192,18 +196,19 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @param pipeline
 	 */
 	void decrementOpen(EventPipeline pipeline) {
-		openCount -= 1;
-		if (openCount == 0 && !completed) {
+		if (openCount.decrementAndGet() == 0 && !completed) {
 			synchronized (this) {
 				completed = true;
 				notifyAll();
 			}
-			if (completedEvent != null) {
-				Channel[] completeChannels = completedEvent.getChannels();
-				if (completeChannels == null) {
-					completeChannels = channels;
+			if (completedEvents != null) {
+				for (Event<?> e: completedEvents) {
+					Channel[] completeChannels = e.getChannels();
+					if (completeChannels == null) {
+						completeChannels = channels;
+					}
+					pipeline.add(e, completeChannels);
 				}
-				pipeline.add(completedEvent, completeChannels);
 			}
 			if (generatedBy != null) {
 				generatedBy.decrementOpen(pipeline);
@@ -212,24 +217,29 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	}
 
 	/**
-	 * Returns the event to be thrown when this event and all events caused
+	 * Returns the events to be thrown when this event and all events caused
 	 * by it have been handled.
 	 * 
-	 * @return the completedEvent
+	 * @return the completed events
 	 */
-	public Event<?> getCompletedEvent() {
-		return completedEvent;
+	@SuppressWarnings("unchecked")
+	public Set<Event<?>> getCompletedEvents() {
+		return completedEvents == null ? (Set<Event<?>>)Collections.EMPTY_SET
+				: Collections.unmodifiableSet(completedEvents);
 	}
 
 	/**
-	 * Sets the event to be thrown when this event and all events caused
-	 * by it have been handled.
+	 * Adds the event to the events to be thrown when this event and all 
+	 * events caused by it have been handled.
 	 * 
-	 * @param completedEvent the completedEvent to set
+	 * @param completedEvent the completedEvent to add
 	 * @return the object for easy chaining
 	 */
-	public EventBase<T> setCompletedEvent(Event<?> completedEvent) {
-		this.completedEvent = completedEvent;
+	public EventBase<T> addCompletedEvent(Event<?> completedEvent) {
+		if (completedEvents == null) {
+			completedEvents = new HashSet<>();
+		}
+		completedEvents.add(completedEvent);
 		return this;
 	}
 
