@@ -33,6 +33,11 @@ import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 
 /**
+ * Provides the implementations of methods to class {@link Event} that
+ * need access to classes or methods that are visible in the implementation
+ * package only. The class is not intended to be used as base class
+ * for any other class.
+ * 
  * @param <T> the result type of the event. Use {@link Void} if handling
  * the event does not produce a result
  * 
@@ -83,13 +88,13 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @throws IllegalStateException if the method is called after
 	 * this event has been fired
 	 */
-	public EventBase<T> setChannels(Channel... channels) {
+	public Event<T> setChannels(Channel... channels) {
 		if (enqueued()) {
 			throw new IllegalStateException
 				("Channels cannot be changed after fire");
 		}
 		this.channels = channels;
-		return this;
+		return (Event<T>)this;
 	}
 
 	/**
@@ -107,13 +112,13 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @param result
 	 * @return the object for easy chaining
 	 */
-	public EventBase<T> setResult(T result) {
+	public Event<T> setResult(T result) {
 		if (this.result == null) {
 			this.result = new AtomicReference<T>(result);
-			return this;
+			return (Event<T>)this;
 		}
 		this.result.set(result);
-		return this;
+		return (Event<T>)this;
 	}
 
 	/**
@@ -138,12 +143,12 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @param other
 	 * @return the object for easy chaining
 	 */
-	public EventBase<T> tieTo(EventBase<T> other) {
+	public Event<T> tieTo(EventBase<T> other) {
 		if (other.result == null) {
 			other.result = new AtomicReference<T>(null);
 		}
 		result = other.result;
-		return this;
+		return (Event<T>)this;
 	}
 	
 	/**
@@ -162,9 +167,9 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * 
 	 * @return the object for easy chaining
 	 */
-	public EventBase<T> stop() {
+	public Event<T> stop() {
 		stopped = true;
-		return this;
+		return (Event<T>)this;
 	}
 
 	/**
@@ -235,12 +240,12 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @param completedEvent the completedEvent to add
 	 * @return the object for easy chaining
 	 */
-	public EventBase<T> addCompletedEvent(Event<?> completedEvent) {
+	public Event<T> addCompletedEvent(Event<?> completedEvent) {
 		if (completedEvents == null) {
 			completedEvents = new HashSet<>();
 		}
 		completedEvents.add(completedEvent);
-		return this;
+		return (Event<T>)this;
 	}
 
 	/**
@@ -330,9 +335,9 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @param data the data
 	 * @return the object for easy chaining
 	 */
-	public EventBase<T> setComponentContext(Component component, Object data) {
+	public Event<T> setComponentContext(Component component, Object data) {
 		FeedBackPipelineFilter.setComponentContext(component, data);
-		return this;
+		return (Event<T>)this;
 	}
 	
 	/**
