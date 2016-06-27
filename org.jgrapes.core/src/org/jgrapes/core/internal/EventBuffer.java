@@ -18,6 +18,7 @@
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.events.Start;
 
@@ -51,7 +52,7 @@ public class EventBuffer implements MergingEventPipeline {
 	}
 
 	@Override
-	synchronized public void add(EventBase<?> event, Channel... channels) {
+	synchronized public void add(Event<?> event, Channel... channels) {
 		// If thread1 adds the start event and thread2 gets here before we
 		// have changed the event processor for the tree, forward the
 		// event to the event processor that should already have been used.
@@ -60,7 +61,7 @@ public class EventBuffer implements MergingEventPipeline {
 			return;
 		}
 		// Event gets enqueued (increments reference count).
-		event.generatedBy(null);
+		((EventBase<?>)event).generatedBy(null);
 		buffered.add(event, channels);
 		if (event instanceof Start) {
 			// Merge all events into an "standard" event processor

@@ -18,6 +18,7 @@
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 
 /**
@@ -47,7 +48,7 @@ class CheckingPipelineFilter implements EventPipeline {
 	 * @see org.jgrapes.core.EventPipeline#add(org.jgrapes.core.internal.EventBase, org.jgrapes.core.Channel[])
 	 */
 	@Override
-	public void add(EventBase<?> event, Channel... channels) {
+	public void add(Event<?> event, Channel... channels) {
 		if (channels.length == 0) {
 			channels = event.getChannels();
 			if (channels == null || channels.length == 0) {

@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 
 /**
@@ -46,8 +47,8 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	}
 
 	@Override
-	public void add(EventBase<?> event, Channel... channels) {
-		event.generatedBy(currentlyHandling);
+	public void add(Event<?> event, Channel... channels) {
+		((EventBase<?>)event).generatedBy(currentlyHandling);
 		synchronized (queue) {
 			boolean wasEmpty = queue.isEmpty();
 			queue.add(event, channels);

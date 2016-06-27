@@ -18,6 +18,7 @@
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Event;
 
 /**
  * @author Michael N. Lipp
@@ -35,8 +36,8 @@ class SynchronousEventProcessor extends EventProcessor {
 	 * @see org.jgrapes.core.internal.EventProcessor#add(org.jgrapes.core.internal.EventBase, org.jgrapes.core.Channel[])
 	 */
 	@Override
-	public void add(EventBase<?> event, Channel... channels) {
-		event.generatedBy(currentlyHandling);
+	public void add(Event<?> event, Channel... channels) {
+		((EventBase<?>)event).generatedBy(currentlyHandling);
 		queue.add(event, channels);
 		if (isRunning) {
 			return;
