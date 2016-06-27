@@ -23,7 +23,7 @@ import org.jgrapes.core.Component;
  * @author Michael N. Lipp
  *
  */
-public interface ExecutingEventPipeline extends MergingEventPipeline {
+public interface ExecutingEventPipeline extends InternalEventPipeline {
 
 	/**
 	 * Set the data stored for a given {@link Component} in the context

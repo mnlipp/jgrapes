@@ -28,14 +28,14 @@ import org.jgrapes.core.events.Start;
  * 
  * @author Michael N. Lipp
  */
-public class EventBuffer implements MergingEventPipeline {
+public class EventBuffer implements InternalEventPipeline {
 	
 	private ComponentTree componentTree;
 	/** Buffered events. */
 	private EventQueue buffered = new EventQueue();
 	/** The event pipeline that we delegate to after the start
 	 * event has been detected. */
-	private MergingEventPipeline activePipeline = null;
+	private InternalEventPipeline activePipeline = null;
 	
 	EventBuffer(ComponentTree componentTree) {
 		super();
@@ -43,7 +43,7 @@ public class EventBuffer implements MergingEventPipeline {
 	}
 
 	@Override
-	synchronized public void merge(EventPipeline other) {
+	synchronized public void merge(InternalEventPipeline other) {
 		if (!(other instanceof EventBuffer)) {
 			throw new IllegalArgumentException
 				("Can only merge events from an EventBuffer.");

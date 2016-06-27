@@ -37,6 +37,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 		= Executors.newCachedThreadPool();
 	
 	private ComponentTree componentTree;
+	private EventPipeline asEventPipeline;
 	protected EventQueue queue = new EventQueue();
 	protected EventBase<?> currentlyHandling = null;
 	private WeakHashMap<Component, Object> componentContext 
@@ -44,6 +45,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	
 	EventProcessor (ComponentTree tree) {
 		this.componentTree = tree;
+		asEventPipeline = new CheckingPipelineFilter(this);
 	}
 
 	@Override
@@ -60,7 +62,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	}
 
 	@Override
-	public void merge(EventPipeline other) {
+	public void merge(InternalEventPipeline other) {
 		if (!(other instanceof EventBuffer)) {
 			throw new IllegalArgumentException
 				("Can only merge events from an EventBuffer.");
@@ -90,7 +92,8 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 			while (true) {
 				EventChannelsTuple next = queue.peek();
 				currentlyHandling = next.event;
-				componentTree.dispatch(this, next.event, next.channels);
+				componentTree.dispatch
+					(asEventPipeline, next.event, next.channels);
 				currentlyHandling.decrementOpen(this);
 				synchronized (queue) {
 					queue.remove();

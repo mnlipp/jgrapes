@@ -32,7 +32,10 @@ public interface EventPipeline {
 
 	/**
 	 * Add an event to be sent to components listening for such events on
-	 * the given channels to the end of the queue.
+	 * the given channels to the end of the queue. If no channels are
+	 * specified as parameters, the event is fired on the event's 
+	 * channel (see {@link Event#getChannels()}). If the event doesn't
+	 * specify channels either, the event is fired on the broadcast channel.
 	 * 
 	 * @param event the event to process
 	 * @param channels the channels that the event was fired on

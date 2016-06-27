@@ -200,7 +200,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	/**
 	 * @param pipeline
 	 */
-	void decrementOpen(EventPipeline pipeline) {
+	void decrementOpen(InternalEventPipeline pipeline) {
 		if (openCount.decrementAndGet() == 0 && !completed) {
 			synchronized (this) {
 				completed = true;
@@ -210,7 +210,11 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 				for (Event<?> e: completedEvents) {
 					Channel[] completeChannels = e.getChannels();
 					if (completeChannels == null) {
+						// Note that channels cannot be null, as it is set
+						// when firing the event and an event is never fired
+						// on no channels.
 						completeChannels = channels;
+						e.setChannels(completeChannels);
 					}
 					pipeline.add(e, completeChannels);
 				}

@@ -47,7 +47,7 @@ class ComponentTree {
 	private ComponentNode root;
 	private Map<EventChannelsTuple,HandlerList> handlerCache
 		= new HashMap<EventChannelsTuple,HandlerList>();
-	private MergingEventPipeline eventPipeline;
+	private InternalEventPipeline eventPipeline;
 	private static HandlingErrorPrinter fallbackErrorHandler 
 		= new HandlingErrorPrinter(); 
 	public final static ComponentNode DUMMY_HANDLER 
@@ -75,11 +75,11 @@ class ComponentTree {
 		return !(eventPipeline instanceof EventBuffer);
 	}
 
-	void setEventPipeline(MergingEventPipeline pipeline) {
+	void setEventPipeline(InternalEventPipeline pipeline) {
 		eventPipeline = pipeline;
 	}
 	
-	EventPipeline getEventPipeline() {
+	InternalEventPipeline getEventPipeline() {
 		return eventPipeline;
 	}
 	

@@ -29,11 +29,11 @@ import org.jgrapes.core.EventPipeline;
  * 
  * @author Michael N. Lipp
  */
-class FeedBackPipelineFilter implements MergingEventPipeline {
+class FeedBackPipelineFilter implements InternalEventPipeline {
 
 	protected static ThreadLocal<ExecutingEventPipeline> 
 		currentPipeline = new ThreadLocal<>();
-	private MergingEventPipeline fallback;
+	private InternalEventPipeline fallback;
 	
 	/**
 	 * Create a new instance that forwards events added from different threads
@@ -41,7 +41,7 @@ class FeedBackPipelineFilter implements MergingEventPipeline {
 	 * 
 	 * @param fallback
 	 */
-	public FeedBackPipelineFilter(MergingEventPipeline fallback) {
+	public FeedBackPipelineFilter(InternalEventPipeline fallback) {
 		super();
 		this.fallback = fallback;
 	}
@@ -64,12 +64,9 @@ class FeedBackPipelineFilter implements MergingEventPipeline {
 		return currentPipeline.get();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.EventPipeline#add(org.jgrapes.core.internal.EventBase, org.jgrapes.core.Channel[])
-	 */
 	@Override
 	public void add(Event<?> event, Channel... channels) {
-		EventPipeline pipeline = currentPipeline.get();
+		InternalEventPipeline pipeline = currentPipeline.get();
 		if (pipeline != null) {
 			pipeline.add(event, channels);
 		} else {
@@ -81,8 +78,8 @@ class FeedBackPipelineFilter implements MergingEventPipeline {
 	 * @see org.jgrapes.core.internal.MergingEventPipeline#merge(org.jgrapes.core.EventPipeline)
 	 */
 	@Override
-	public void merge(EventPipeline other) {
-		MergingEventPipeline pipeline = currentPipeline.get();
+	public void merge(InternalEventPipeline other) {
+		InternalEventPipeline pipeline = currentPipeline.get();
 		if (pipeline != null) {
 			pipeline.merge(other);
 		} else {

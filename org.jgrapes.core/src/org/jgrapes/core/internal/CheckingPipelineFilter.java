@@ -31,7 +31,7 @@ import org.jgrapes.core.EventPipeline;
  */
 class CheckingPipelineFilter implements EventPipeline {
 
-	private EventPipeline sink;
+	private InternalEventPipeline sink;
 
 	/**
 	 * Create a new instance that forwards the events to the given
@@ -39,7 +39,7 @@ class CheckingPipelineFilter implements EventPipeline {
 	 * 
 	 * @param sink
 	 */
-	public CheckingPipelineFilter(EventPipeline sink) {
+	public CheckingPipelineFilter(InternalEventPipeline sink) {
 		super();
 		this.sink = sink;
 	}

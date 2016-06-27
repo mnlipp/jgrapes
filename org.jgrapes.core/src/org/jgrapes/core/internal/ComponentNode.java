@@ -474,7 +474,8 @@ public abstract class ComponentNode implements Manager {
 	 */
 	@Override
 	public EventPipeline activeEventPipeline() {
-		return getTree().getEventPipeline();
+		return new CheckingPipelineFilter
+				(getTree().getEventPipeline());
 	}
 
 	/* (non-Javadoc)
