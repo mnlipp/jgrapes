@@ -3,49 +3,26 @@ package org.jgrapes.io.test.http;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.concurrent.ExecutionException;
 
-import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.http.HttpServer;
-import org.jgrapes.io.NioDispatcher;
-import org.jgrapes.io.test.WaitFor;
-import org.jgrapes.net.events.Ready;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class Basic {
+public class UnsupportedProtocol {
 
-	static private TestServer server;
-	
-	public static class TestServer extends AbstractComponent {
-		public InetSocketAddress addr;
-
-		public TestServer() throws IOException, InterruptedException, 
-				ExecutionException {
-			attach(new NioDispatcher());
-			attach(new HttpServer(getChannel(), null));
-			WaitFor wf = new WaitFor
-				(this, Ready.class, getChannel().getMatchKey());
-			Utils.start(this);
-			Ready readyEvent = (Ready) wf.get();
-			if (!(readyEvent.getListenAddress() instanceof InetSocketAddress)) {
-				fail();
-			}
-			addr = ((InetSocketAddress)readyEvent.getListenAddress());
-		}
-	}
+	static private BasicTestServer server;
 	
 	@BeforeClass
 	static public void startServer() throws IOException, InterruptedException, 
 			ExecutionException {
-		server = new TestServer();
+		server = new BasicTestServer();
+		Utils.start(server);
 	}
 	
 	@AfterClass
@@ -56,9 +33,10 @@ public class Basic {
 	}
 	
 	@Test
-	public void testGetRoot() throws IOException, InterruptedException {
-		URL url = new URL("http", server.addr.getAddress().getHostAddress(), 
-				server.addr.getPort(), "/");
+	public void testGetRoot() 
+			throws IOException, InterruptedException, ExecutionException {
+		URL url = new URL("http", server.getAddress().getHostAddress(), 
+				server.getPort(), "/");
 		Thread reader = Thread.currentThread();
 		(new Thread() {
 			@Override
