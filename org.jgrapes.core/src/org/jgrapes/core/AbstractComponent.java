@@ -52,7 +52,7 @@ public class AbstractComponent extends ComponentNode
 
 	/**
 	 * Creates a new component base with its channel set to the given 
-	 * channel. As a special case {@link Channel#THIS} can be
+	 * channel. As a special case {@link Channel#SELF} can be
 	 * passed to the constructor to make the component use itself
 	 * as channel. The special value is necessary as you 
 	 * obviously cannot pass an object to be constructed to its 
@@ -64,7 +64,7 @@ public class AbstractComponent extends ComponentNode
 	 */
 	public AbstractComponent(Channel componentChannel) {
 		super();
-		if (componentChannel == THIS) {
+		if (componentChannel == SELF) {
 			this.componentChannel = this;
 		} else {
 			this.componentChannel = componentChannel;

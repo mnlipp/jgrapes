@@ -23,6 +23,6 @@ package org.jgrapes.core;
  * 
  * @author Michael N. Lipp
  */
-public interface This extends Channel {
+public interface Self extends Channel {
 
 }

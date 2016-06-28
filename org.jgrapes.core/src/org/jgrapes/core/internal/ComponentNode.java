@@ -33,7 +33,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.This;
+import org.jgrapes.core.Self;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Attached;
@@ -104,7 +104,7 @@ public abstract class ComponentNode implements Manager {
 			List<Object> channelKeys = new ArrayList<Object>();
 			if (handlerAnnotation.channels()[0] != Handler.NO_CHANNEL.class) {
 				for (Class<?> c: handlerAnnotation.channels()) {
-					if (c == This.class) {
+					if (c == Self.class) {
 						if (this instanceof Channel) {
 							channelKeys.add(((Channel)this).getMatchKey());
 						} else {

@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.NamedChannel;
-import org.jgrapes.core.This;
+import org.jgrapes.core.Self;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
@@ -45,7 +45,7 @@ public class ThisTest {
 		}
 
 
-		@Handler(channels=This.class)
+		@Handler(channels=Self.class)
 		public void onStarted(Start event) {
 			count += 1;
 		}

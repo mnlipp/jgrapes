@@ -82,7 +82,7 @@ public class HttpServer extends AbstractComponent {
 	 */
 	public HttpServer(Channel componentChannel, SocketAddress serverAddress) {
 		super(componentChannel);
-		Server server = new Server(Channel.THIS, serverAddress);
+		Server server = new Server(Channel.SELF, serverAddress);
 		networkChannel = server;
 		attach(server);
 		addHandler(Accepted.class, networkChannel.getMatchKey(), "onAccepted");

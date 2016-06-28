@@ -33,7 +33,7 @@ import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
-import org.jgrapes.core.This;
+import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
@@ -129,7 +129,7 @@ public class Server extends AbstractComponent
 				SelectionKey.OP_ACCEPT, this), Channel.BROADCAST);
 	}
 
-	@Handler(channels=This.class)
+	@Handler(channels=Self.class)
 	public void onRegistered(NioRegistration.Completed event) 
 			throws InterruptedException, IOException {
 		NioHandler handler = event.getCompleted().getHandler(); 

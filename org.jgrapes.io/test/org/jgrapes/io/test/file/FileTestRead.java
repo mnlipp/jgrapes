@@ -55,7 +55,7 @@ public class FileTestRead {
 	public static class Consumer extends AbstractComponent {
 		
 		public Consumer() {
-			super(Channel.THIS);
+			super(Channel.SELF);
 		}
 		
 		@Handler

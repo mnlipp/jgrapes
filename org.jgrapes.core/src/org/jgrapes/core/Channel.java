@@ -43,7 +43,7 @@ public interface Channel extends Matchable {
 	 * 
 	 * @see AbstractComponent#AbstractComponent(Channel)
 	 */
-	public static final Channel THIS = new ClassChannel();
+	public static final Channel SELF = new ClassChannel();
 	
 	/**
 	 * A special channel that can be used to send events to
