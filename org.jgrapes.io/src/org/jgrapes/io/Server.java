@@ -245,8 +245,7 @@ public class Server extends AbstractComponent
 			readBuffers.add(ByteBuffer.allocate(readBufferSize));
 			
 			// Register with dispatcher
-			fire(new NioRegistration
-					(this, nioChannel, SelectionKey.OP_READ, Server.this),
+			fire(new NioRegistration (this, nioChannel, 0, Server.this),
 					Channel.BROADCAST);
 		}
 
@@ -288,6 +287,7 @@ public class Server extends AbstractComponent
 			registration = event.get();
 			pipeline.add(new Accepted<>(this, nioChannel.getLocalAddress(),
 					nioChannel.getRemoteAddress()), getChannel());
+			registration.updateInterested(SelectionKey.OP_READ);
 
 		}
 
