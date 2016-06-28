@@ -19,6 +19,8 @@ package org.jgrapes.core;
 
 import java.util.List;
 
+import org.jgrapes.core.annotation.DynamicHandler;
+
 /**
  * Provides methods for manipulating the
  * component hierarchy and for firing events. Every component has
@@ -118,10 +120,11 @@ public interface Manager extends Iterable<Component> {
 	/**
 	 * Adds a method of the component managed by this manager as a 
 	 * handler for a specific event and channel. The method
-	 * with the given name must have a single argument of type
+	 * with the given name must be annotated as {@link DynamicHandler}
+	 * and must have a single argument of type
 	 * {@link Event} (or a derived type as appropriate for the
 	 * event type to be handled).
-	 * 
+	 * @param method the name of the method that implements the handler
 	 * @param eventKey the event key that should be used for matching
 	 * this handler with an event. This is equivalent to an 
 	 * <code>events</code>/<code>namedEvents</code> parameter
@@ -134,17 +137,16 @@ public interface Manager extends Iterable<Component> {
 	 * all kinds of Objects are allowed as key values. If the
 	 * actual object provided is a {@link Channel}, its
 	 * match key is used for matching.
-	 * @param method the name of the method that implements the handler
 	 * @param priority the priority of the handler
 	 */
-	void addHandler(Object eventKey, Object channelKey, 
-			String method, int priority);
+	void addHandler(String method, Object eventKey, 
+			Object channelKey, int priority);
 	
 	/**
-	 * A shortcut for invoking {@link #addHandler(Object, Object, String, int)}
-	 * with priority 0.
+	 * add a handler like {@link #addHandler(String, Object, Object, int)}
+	 * but take the values for event and priority from the annotation.
 	 */
-	void addHandler(Object eventKey, Object channelKey,	String method);
+	void addHandler(String method, Object channelKey);
 	
 	/**
 	 * Returns the pipeline used when firing an event.

@@ -26,6 +26,7 @@ import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Utils;
+import org.jgrapes.core.annotation.DynamicHandler;
 
 /**
  * A helper component that can be used to wait for the occurrence of 
@@ -43,7 +44,7 @@ public class WaitFor extends AbstractComponent implements Future<Event<?>> {
 	 * the given channel. 
 	 */
 	public WaitFor(Component app, Object eventKey, Object channelKey) {
-		addHandler(eventKey, channelKey, "onEvent", Integer.MIN_VALUE);
+		addHandler("onEvent", eventKey, channelKey, Integer.MIN_VALUE);
 		Utils.manager(app).attach(this);
 	}
 
@@ -52,6 +53,7 @@ public class WaitFor extends AbstractComponent implements Future<Event<?>> {
 	 * 
 	 * @param event
 	 */
+	@DynamicHandler
 	public void onEvent(Event<?> event) {
 		synchronized (this) {
 			this.result = event;

@@ -35,6 +35,7 @@ import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.Utils;
+import org.jgrapes.core.annotation.DynamicHandler;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Attached;
 import org.jgrapes.core.events.Detached;
@@ -75,68 +76,71 @@ public abstract class ComponentNode implements Manager {
 	protected void initComponentsHandlers() {
 		// Have a look at all methods.
 		for (Method m : getComponent().getClass().getMethods()) {
-			Handler handlerAnnotation = m.getAnnotation(Handler.class);
-			// Methods without handler annotation are ignored
-			if (handlerAnnotation == null) {
-				continue;
-			}
-			// Get all event keys from the handler annotation.
-			List<Object> eventKeys = new ArrayList<Object>();
-			if (handlerAnnotation.events()[0] != Handler.NO_EVENT.class) {
-				eventKeys.addAll(Arrays.asList(handlerAnnotation.events()));
-			}
-			// Get all named events from the annotation and add to event keys.
-			if (!handlerAnnotation.namedEvents()[0].equals("")) {
-				eventKeys.addAll
-					(Arrays.asList(handlerAnnotation.namedEvents()));
-			}
-			// Get parameter types
-			Class<?>[] paramTypes = m.getParameterTypes();
-			// If no event types are given, try first parameter.
-			if (eventKeys.isEmpty()) {
-				if (paramTypes.length > 0) {
-					if (Event.class.isAssignableFrom(paramTypes[0])) {
-						eventKeys.add(paramTypes[0]);
-					}
-				}
-			}
-			// Get channel keys from the annotation.
-			List<Object> channelKeys = new ArrayList<Object>();
-			if (handlerAnnotation.channels()[0] != Handler.NO_CHANNEL.class) {
-				for (Class<?> c: handlerAnnotation.channels()) {
-					if (c == Self.class) {
-						if (this instanceof Channel) {
-							channelKeys.add(((Channel)this).getMatchKey());
-						} else {
-							throw new IllegalArgumentException
-								("Canot use channel This.class in annotation"
-								 + " of " + m + " because " 
-								 + getClass().getName() 
-								 + " does not implement Channel.");
-						}
-					} else {
-						channelKeys.add(c);
-					}
-				}
-			}
-			// Get named channels from annotation and add to channel keys.
-			if (!handlerAnnotation.namedChannels()[0].equals("")) {
-				channelKeys.addAll
-					(Arrays.asList(handlerAnnotation.namedChannels()));
-			}
-			if (channelKeys.size() == 0) {
-				channelKeys.add(getChannel().getMatchKey());
-			}
-			for (Object eventKey : eventKeys) {
-				for (Object channelKey : channelKeys) {
-					handlers.add(HandlerReference.newRef
-							(eventKey, channelKey, getComponent(), m,
-							 paramTypes.length == 0 ? false : true,
-							 handlerAnnotation.priority()));
+			maybeAddHandler(m);
+		}
+		handlers = Collections.synchronizedList(handlers);
+	}
+
+	private void maybeAddHandler(Method m) {
+		Handler handlerAnnotation = m.getAnnotation(Handler.class);
+		// Methods without handler annotation are ignored
+		if (handlerAnnotation == null) {
+			return;
+		}
+		// Get all event keys from the handler annotation.
+		List<Object> eventKeys = new ArrayList<Object>();
+		if (handlerAnnotation.events()[0] != Handler.NO_EVENT.class) {
+			eventKeys.addAll(Arrays.asList(handlerAnnotation.events()));
+		}
+		// Get all named events from the annotation and add to event keys.
+		if (!handlerAnnotation.namedEvents()[0].equals("")) {
+			eventKeys.addAll
+				(Arrays.asList(handlerAnnotation.namedEvents()));
+		}
+		Class<?>[] paramTypes = m.getParameterTypes();
+		// If no event types are given, try first parameter.
+		if (eventKeys.isEmpty()) {
+			if (paramTypes.length > 0) {
+				if (Event.class.isAssignableFrom(paramTypes[0])) {
+					eventKeys.add(paramTypes[0]);
 				}
 			}
 		}
-		handlers = Collections.synchronizedList(handlers);
+		// Get channel keys from the annotation.
+		List<Object> channelKeys = new ArrayList<Object>();
+		if (handlerAnnotation.channels()[0] != Handler.NO_CHANNEL.class) {
+			for (Class<?> c: handlerAnnotation.channels()) {
+				if (c == Self.class) {
+					if (this instanceof Channel) {
+						channelKeys.add(((Channel)this).getMatchKey());
+					} else {
+						throw new IllegalArgumentException
+							("Canot use channel This.class in annotation"
+							 + " of " + m + " because " 
+							 + getClass().getName() 
+							 + " does not implement Channel.");
+					}
+				} else {
+					channelKeys.add(c);
+				}
+			}
+		}
+		// Get named channels from annotation and add to channel keys.
+		if (!handlerAnnotation.namedChannels()[0].equals("")) {
+			channelKeys.addAll
+				(Arrays.asList(handlerAnnotation.namedChannels()));
+		}
+		if (channelKeys.size() == 0) {
+			channelKeys.add(getChannel().getMatchKey());
+		}
+		for (Object eventKey : eventKeys) {
+			for (Object channelKey : channelKeys) {
+				handlers.add(HandlerReference.newRef
+						(eventKey, channelKey, getComponent(), m,
+						 paramTypes.length == 0 ? false : true,
+						 handlerAnnotation.priority()));
+			}
+		}
 	}
 
 	/**
@@ -382,14 +386,15 @@ public abstract class ComponentNode implements Manager {
 	 * @see org.jgrapes.core.Manager#addHandler
 	 */
 	@Override
-	public void addHandler(Object eventKey, Object channelKey, 
-			String method, int priority) {
+	public void addHandler(String method, Object eventKey, 
+			Object channelKey, int priority) {
 		if (channelKey instanceof Channel) {
 			channelKey = ((Matchable)channelKey).getMatchKey();
 		}
 		try {
 			for (Method m: getComponent().getClass().getMethods()) {
-				if (m.getName().equals(method)) {
+				if (m.getName().equals(method) 
+						&& m.getAnnotation(DynamicHandler.class) != null) {
 					if (m.getParameterTypes().length == 1
 							&& Event.class.isAssignableFrom
 								(m.getParameterTypes()[0])) {
@@ -405,7 +410,9 @@ public abstract class ComponentNode implements Manager {
 					}
 				}
 			}
-			throw new IllegalArgumentException("No matching method");
+			throw new IllegalArgumentException
+				("No method named \"" + method + "\" with DynamicHandler"
+						+ " annotation and correct parameter list.");
 		} catch (SecurityException e) {
 			throw (RuntimeException)
 				(new IllegalArgumentException().initCause(e));
@@ -413,11 +420,63 @@ public abstract class ComponentNode implements Manager {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jgrapes.core.Manager#addHandler
+	 * @see org.jgrapes.core.Manager#addHandler(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public void addHandler(Object eventKey, Object channelKey, String method) {
-		addHandler(eventKey, channelKey, method, 0);
+	public void addHandler(String method, Object channelKey) {
+		if (channelKey instanceof Channel) {
+			channelKey = ((Matchable)channelKey).getMatchKey();
+		}
+		try {
+			for (Method m: getComponent().getClass().getMethods()) {
+				if (!m.getName().equals(method)) {
+					continue;
+				}
+				if (maybeAddDynamicHandler(m, channelKey)) {
+					return;
+				}
+			}
+			throw new IllegalArgumentException
+				("No method named \"" + method + "\" with DynamicHandler"
+						+ " annotation and correct parameter list.");
+		} catch (SecurityException e) {
+			throw (RuntimeException)
+				(new IllegalArgumentException().initCause(e));
+		}
+	}
+
+	private boolean maybeAddDynamicHandler(Method m, Object channelKey) {
+		DynamicHandler handlerAnnotation = m
+		        .getAnnotation(DynamicHandler.class);
+		if (handlerAnnotation == null) {
+			return false;
+		}
+		// Get all event keys from the handler annotation.
+		List<Object> eventKeys = new ArrayList<Object>();
+		if (handlerAnnotation.events()[0] != Handler.NO_EVENT.class) {
+			eventKeys.addAll(Arrays.asList(handlerAnnotation.events()));
+		}
+		// Get all named events
+		if (!handlerAnnotation.namedEvents()[0].equals("")) {
+			eventKeys.addAll(Arrays.asList(handlerAnnotation.namedEvents()));
+		}
+		// Get parameter types
+		Class<?>[] paramTypes = m.getParameterTypes();
+		// If no event types are given, try first parameter.
+		if (eventKeys.isEmpty()) {
+			if (paramTypes.length > 0) {
+				if (Event.class.isAssignableFrom(paramTypes[0])) {
+					eventKeys.add(paramTypes[0]);
+				}
+			}
+		}
+		for (Object eventKey : eventKeys) {
+			handlers.add(HandlerReference.newRef(eventKey, channelKey,
+			        getComponent(), m,
+			        paramTypes.length == 0 ? false : true,
+			        handlerAnnotation.priority()));
+		}
+		return true;
 	}
 
 	/* (non-Javadoc)

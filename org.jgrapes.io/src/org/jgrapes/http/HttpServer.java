@@ -31,6 +31,7 @@ import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.core.annotation.DynamicHandler;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.ConnectRequest;
 import org.jgrapes.http.events.DeleteRequest;
@@ -70,8 +71,8 @@ public class HttpServer extends AbstractComponent {
 	public HttpServer(Channel componentChannel, Channel networkChannel) {
 		super(componentChannel);
 		this.networkChannel = networkChannel;
-		addHandler(Accepted.class, networkChannel.getMatchKey(), "onAccepted");
-		addHandler(Read.class, networkChannel.getMatchKey(), "onRead");
+		addHandler("onAccepted", networkChannel.getMatchKey());
+		addHandler("onRead", networkChannel.getMatchKey());
 	}
 	
 	/**
@@ -85,17 +86,17 @@ public class HttpServer extends AbstractComponent {
 		Server server = new Server(Channel.SELF, serverAddress);
 		networkChannel = server;
 		attach(server);
-		addHandler(Accepted.class, networkChannel.getMatchKey(), "onAccepted");
-		addHandler(Read.class, networkChannel.getMatchKey(), "onRead");
+		addHandler("onAccepted", networkChannel.getMatchKey());
+		addHandler("onRead", networkChannel.getMatchKey());
 	}
 
-	// @Handler
+	@DynamicHandler
 	public void onAccepted(Accepted<ByteBuffer> event) {
 		decoders.put(event.getConnection(), new HttpRequestDecoder());
 		encoders.put(event.getConnection(), new HttpResponseEncoder());
 	}
 	
-	// @Handler
+	@DynamicHandler
 	public void onRead(Read<ByteBuffer> event) {
 		try {
 			HttpRequestDecoder httpDecoder 
