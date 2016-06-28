@@ -18,26 +18,40 @@
 package org.jdrupes.httpcodec;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 
 /**
+ * Represents a complte HTTP request with all received header data.
+ * 
  * @author Michael N. Lipp
- *
  */
 public class HttpRequest {
 
+	public static final URI ASTERISK_REQUEST 
+		= createUri("http://127.0.0.1/");
+	private static URI createUri(String uri) {
+		try {
+			return new URI(uri);
+		} catch (URISyntaxException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+	
 	private HttpProtocol httpProtocol;
 	private String method;
 	private URI requestUri;
 	private Map<String,String> headers = new HashMap<>();
 	
 	/**
-	 * @param method
-	 * @param requestUri
-	 * @param httpProtocol
+	 * Creates a new request with basic data.
+	 * 
+	 * @param method the method
+	 * @param requestUri the requested resource
+	 * @param httpProtocol the HTTP protocol version
 	 */
 	public HttpRequest(String method, URI requestUri, 
 			HttpProtocol httpProtocol) {
@@ -45,6 +59,24 @@ public class HttpRequest {
 		this.method = method;
 		this.requestUri = requestUri;
 		this.httpProtocol = httpProtocol;
+	}
+
+	/**
+	 * Return the method.
+	 * 
+	 * @return the method
+	 */
+	public String getMethod() {
+		return method;
+	}
+
+	/**
+	 * Return the URI of the requested resource.
+	 * 
+	 * @return the requestUri
+	 */
+	public URI getRequestUri() {
+		return requestUri;
 	}
 
 	/**
@@ -56,9 +88,12 @@ public class HttpRequest {
 		return httpProtocol;
 	}
 
-
-
-
+	/**
+	 * Add another header to the request data.
+	 * 
+	 * @param key the header's key
+	 * @param value the header's value
+	 */
 	void addHeader(String key, String value) {
 		
 	}

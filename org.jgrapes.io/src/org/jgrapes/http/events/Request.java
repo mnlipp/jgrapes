@@ -17,6 +17,7 @@
  */
 package org.jgrapes.http.events;
 
+import java.net.URI;
 import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.HttpRequest;
@@ -32,7 +33,7 @@ import org.jgrapes.io.DataConnection;
 public class Request extends Event<Request.HandlingResult> {
 
 	public static enum HandlingResult { UNHANDLED, RESOURCE_NOT_FOUND,
-		RESOURCE_FOUND };
+		RESPONDED };
 	
 	public static class Completed extends CompletedEvent<Request> {
 	}
@@ -52,11 +53,16 @@ public class Request extends Event<Request.HandlingResult> {
 		this.request = request;
 	}
 
-	/**
-	 * @return the request
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.internal.EventBase#setResult(java.lang.Object)
 	 */
-	public HttpRequest getRequest() {
-		return request;
+	@Override
+	public Event<HandlingResult> setResult(HandlingResult result) {
+		if (getResult() == HandlingResult.UNHANDLED
+				|| result == HandlingResult.RESPONDED) {
+			return super.setResult(result);
+		}
+		return this;
 	}
 
 	/**
@@ -66,16 +72,19 @@ public class Request extends Event<Request.HandlingResult> {
 		return connection;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.EventBase#setResult(java.lang.Object)
+	/**
+	 * @return the request
 	 */
-	@Override
-	public Event<HandlingResult> setResult(HandlingResult result) {
-		if (getResult() == HandlingResult.UNHANDLED
-				|| result == HandlingResult.RESOURCE_FOUND) {
-			return super.setResult(result);
-		}
-		return this;
+	public HttpRequest getRequest() {
+		return request;
 	}
 
+	/**
+	 * Shortcut for getting the request URI from the request. 
+	 * 
+	 * @return the request URI
+	 */
+	public URI getRequestUri() {
+		return getRequest().getRequestUri();
+	}
 }
