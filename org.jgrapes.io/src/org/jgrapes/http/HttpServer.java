@@ -65,13 +65,13 @@ public class HttpServer extends AbstractComponent {
 	 * network level I/O. 
 	 * 
 	 * @param componentChannel this component's channel
-	 * @param serverChannel the channel for network level I/O
+	 * @param networkChannel the channel for network level I/O
 	 */
-	public HttpServer(Channel componentChannel, Channel serverChannel) {
+	public HttpServer(Channel componentChannel, Channel networkChannel) {
 		super(componentChannel);
-		this.networkChannel = serverChannel;
-		addHandler(Accepted.class, serverChannel.getMatchKey(), "onAccepted");
-		addHandler(Read.class, serverChannel.getMatchKey(), "onRead");
+		this.networkChannel = networkChannel;
+		addHandler(Accepted.class, networkChannel.getMatchKey(), "onAccepted");
+		addHandler(Read.class, networkChannel.getMatchKey(), "onRead");
 	}
 	
 	/**
