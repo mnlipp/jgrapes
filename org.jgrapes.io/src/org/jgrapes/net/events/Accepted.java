@@ -15,44 +15,50 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io.events;
+package org.jgrapes.net.events;
 
 import java.net.SocketAddress;
+import java.nio.Buffer;
 
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.internal.Common;
-import org.jgrapes.io.Connection;
+import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.events.Opened;
 
 /**
- * Signals that a server has bound to a socket address and
- * is ready to accept connections.
+ * This event signals that a new connection has been made by a client.
  * 
  * @author Michael N. Lipp
  */
-public class Ready extends Opened<Connection> {
+public class Accepted<T extends Buffer> extends Opened<DataConnection<T>> {
 
-	private SocketAddress listenAddress;
-
-	/**
-	 * Creates a new event.
-	 * 
-	 * @param connection
-	 * @param socketAddress
-	 */
-	public Ready(Connection connection, SocketAddress socketAddress) {
-		super(connection);
-		this.listenAddress = socketAddress;
-	}
-
-	/**
-	 * The address that the server has bound to.
-	 * 
-	 * @return the address
-	 */
-	public SocketAddress getListenAddress() {
-		return listenAddress;
-	}
+	private SocketAddress localAddress;
+	private SocketAddress remoteAddress;
 	
+	/**
+	 * @param connection
+	 */
+	public Accepted(DataConnection<T> connection, SocketAddress localAddress, 
+			SocketAddress remoteAddress) {
+		super(connection);
+		this.localAddress = localAddress;
+		this.remoteAddress = remoteAddress;
+	}
+
+	/**
+	 * @return the localAddress
+	 */
+	public SocketAddress getLocalAddress() {
+		return localAddress;
+	}
+
+	/**
+	 * @return the remoteAddress
+	 */
+	public SocketAddress getRemoteAddress() {
+		return remoteAddress;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -61,7 +67,9 @@ public class Ready extends Opened<Connection> {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Utils.objectName(this));
 		builder.append(" [");
-		builder.append(listenAddress);
+		builder.append(localAddress);
+		builder.append(" <― ");
+		builder.append(remoteAddress);
 		builder.append(", ");
 		if (channels != null) {
 			builder.append("channels=");

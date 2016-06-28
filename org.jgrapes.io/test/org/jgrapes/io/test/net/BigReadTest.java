@@ -36,11 +36,11 @@ import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.NioDispatcher;
-import org.jgrapes.io.Server;
-import org.jgrapes.io.events.Accepted;
-import org.jgrapes.io.events.Ready;
 import org.jgrapes.io.test.WaitFor;
 import org.jgrapes.io.util.ByteBufferOutputStream;
+import org.jgrapes.net.Server;
+import org.jgrapes.net.events.Accepted;
+import org.jgrapes.net.events.Ready;
 import org.junit.Test;
 
 public class BigReadTest {

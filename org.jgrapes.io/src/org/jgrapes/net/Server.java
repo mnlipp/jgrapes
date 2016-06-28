@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io;
+package org.jgrapes.net;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -40,14 +40,17 @@ import org.jgrapes.core.events.Stop;
 import org.jgrapes.core.events.Error;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
-import org.jgrapes.io.events.Accepted;
+import org.jgrapes.io.Connection;
+import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Read;
-import org.jgrapes.io.events.Ready;
 import org.jgrapes.io.events.Write;
 import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.NioRegistration.Registration;
+import org.jgrapes.net.events.Accepted;
+import org.jgrapes.net.events.Ready;
 
 /**
  * Provides a TCP server. The server binds to the given address. If the

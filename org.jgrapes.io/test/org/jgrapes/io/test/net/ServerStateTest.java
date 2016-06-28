@@ -26,11 +26,11 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.Connection;
 import org.jgrapes.io.NioDispatcher;
-import org.jgrapes.io.Server;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
-import org.jgrapes.io.events.Ready;
 import org.jgrapes.io.test.WaitFor;
+import org.jgrapes.net.Server;
+import org.jgrapes.net.events.Ready;
 import org.junit.Before;
 import org.junit.Test;
 

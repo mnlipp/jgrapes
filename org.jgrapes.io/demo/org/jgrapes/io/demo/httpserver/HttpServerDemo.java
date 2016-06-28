@@ -15,53 +15,34 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io.demo.tcpecho;
+package org.jgrapes.io.demo.httpserver;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Utils;
-import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.HttpServer;
 import org.jgrapes.io.NioDispatcher;
-import org.jgrapes.io.events.Read;
-import org.jgrapes.io.events.Write;
-import org.jgrapes.net.Server;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class EchoServer extends AbstractComponent {
-
-	/**
-	 * @throws IOException 
-	 */
-	public EchoServer() throws IOException {
-		super(Server.DEFAULT_CHANNEL);
-		attach(new NioDispatcher());
-		attach(new Server(new InetSocketAddress(8888), 120000));
-	}
-
-	@Handler
-	public void onRead(Read<ByteBuffer> event) throws InterruptedException {
-		ByteBuffer out = event.getConnection().acquireWriteBuffer();
-		out.put(event.getBuffer());
-		fire(new Write<>(event.getConnection(), out));
-	}
+public class HttpServerDemo extends AbstractComponent {
 
 	/**
 	 * @param args
+	 * @throws IOException 
+	 * @throws InterruptedException 
 	 */
-	public static void main(String[] args) {
-		try {
-			EchoServer app = new EchoServer();
-			Utils.start(app);
-			Utils.awaitExhaustion();
-		} catch (InterruptedException | IOException e) {
-			e.printStackTrace();
-		}
+	public static void main(String[] args) 
+			throws IOException, InterruptedException {
+		HttpServerDemo app = new HttpServerDemo();
+		app.attach(new NioDispatcher());
+		app.attach(new HttpServer(app.getChannel(), 
+				new InetSocketAddress(8888)));
+		Utils.start(app);
 	}
 
 }

@@ -36,11 +36,11 @@ import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.NioDispatcher;
-import org.jgrapes.io.Server;
 import org.jgrapes.io.events.Read;
-import org.jgrapes.io.events.Ready;
 import org.jgrapes.io.events.Write;
 import org.jgrapes.io.test.WaitFor;
+import org.jgrapes.net.Server;
+import org.jgrapes.net.events.Ready;
 import org.junit.Test;
 
 public class EchoTest {
