@@ -93,7 +93,7 @@ public class HttpRequestDecoder extends HttpCodec {
 				}
 				startNewRequest();
 				states.pop();
-				headerLine = "";
+				headerLine = null;
 				states.push(State.GETTING_HEADERS);
 				states.push(State.AWAIT_CR);
 				continue;
