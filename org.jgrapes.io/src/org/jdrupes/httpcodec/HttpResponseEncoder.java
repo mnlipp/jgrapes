@@ -42,12 +42,12 @@ public class HttpResponseEncoder {
 		}
 	}
 	
-	public boolean encode (HttpResponse response, ByteBuffer buffer) {
+	public boolean encode (HttpResponse response, ByteBuffer out) {
 		try {
 			if (this.response != null && this.response != response) {
 				throw new IllegalStateException();
 			}
-			outStream.useBuffer(buffer);
+			outStream.useBuffer(out);
 			if (this.response == null) {
 				this.response = response;
 				writer.write(response.getProtocol().toString());
@@ -64,4 +64,8 @@ public class HttpResponseEncoder {
 		return outStream.remaining() < 0;
 	}
 	
+	public boolean encode 
+		(HttpResponse response, ByteBuffer in, ByteBuffer out) {
+		return false;
+	}
 }
