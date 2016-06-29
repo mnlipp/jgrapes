@@ -145,7 +145,9 @@ public class HttpRequestDecoder extends HttpCodec {
 				(protocolVersion, HttpStatus.HTTP_VERSION_NOT_SUPPORTED);
 		}
 		URI uri = null;
-		if (!uriGroup.equals("*")) {
+		if (uriGroup.equals("*")) {
+			uri = HttpRequest.ASTERISK_REQUEST;
+		} else {
 			try {
 				uri = new URI(uriGroup);
 			} catch (URISyntaxException e) {
