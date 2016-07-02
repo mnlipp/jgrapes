@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 public class HttpRequestDecoder extends HttpCodec {
 
 	final private static String TOKEN 
-		= "[!#\\$%&'\\*\\+-\\.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		= "[!#\\$%&'\\*\\+-\\.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 			+ "\\^`abcdefghijklmnopqrstuvwxyz\\|~]+";
 	final private static String SP = "[ \\t]+";
 	final private static String HTTP_VERSION = "HTTP/\\d+\\.\\d";
