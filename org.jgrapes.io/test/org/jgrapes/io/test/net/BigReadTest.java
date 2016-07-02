@@ -115,7 +115,7 @@ public class BigReadTest {
 			}
 		};
 		receiver.start();
-		receiver.join(2000);
+		receiver.join(5000);
 		assertEquals(1000000, expected.get());
 		
 		Utils.manager(app).fire(new Stop(), Channel.BROADCAST);

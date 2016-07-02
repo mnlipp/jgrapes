@@ -124,7 +124,7 @@ public class EchoTest {
 				}
 			};
 			receiver.start();
-			receiver.join(1000);
+			receiver.join(5000);
 			assertEquals(16, expected.get());
 		}
 	
