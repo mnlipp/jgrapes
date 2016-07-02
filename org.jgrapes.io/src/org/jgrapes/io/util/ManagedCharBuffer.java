@@ -23,8 +23,11 @@ import java.nio.CharBuffer;
 import java.util.stream.IntStream;
 
 /**
- * @author Michael N. Lipp
+ * A specialized {@code ManagedBuffer<CharBuffer>} that provides
+ * the same methods as {@code CharBuffer} by delegating to the
+ * backing buffer.
  *
+ * @author Michael N. Lipp
  */
 public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 
@@ -33,8 +36,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param c
-	 * @return
 	 * @see java.nio.CharBuffer#append(char)
 	 */
 	public CharBuffer append(char c) {
@@ -42,10 +43,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param csq
-	 * @param start
-	 * @param end
-	 * @return
 	 * @see java.nio.CharBuffer#append(java.lang.CharSequence, int, int)
 	 */
 	public CharBuffer append(CharSequence csq, int start, int end) {
@@ -53,8 +50,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param csq
-	 * @return
 	 * @see java.nio.CharBuffer#append(java.lang.CharSequence)
 	 */
 	public CharBuffer append(CharSequence csq) {
@@ -62,7 +57,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#array()
 	 */
 	@Override
@@ -71,7 +65,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#arrayOffset()
 	 */
 	public final int arrayOffset() {
@@ -79,7 +72,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#asReadOnlyBuffer()
 	 */
 	public CharBuffer asReadOnlyBuffer() {
@@ -87,8 +79,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param index
-	 * @return
 	 * @see java.nio.CharBuffer#charAt(int)
 	 */
 	public final char charAt(int index) {
@@ -96,7 +86,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#chars()
 	 */
 	public IntStream chars() {
@@ -104,7 +93,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#compact()
 	 */
 	public CharBuffer compact() {
@@ -112,8 +100,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param that
-	 * @return
 	 * @see java.nio.CharBuffer#compareTo(java.nio.CharBuffer)
 	 */
 	public int compareTo(CharBuffer that) {
@@ -121,7 +107,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#duplicate()
 	 */
 	public CharBuffer duplicate() {
@@ -129,7 +114,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#get()
 	 */
 	public char get() {
@@ -137,10 +121,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param dst
-	 * @param offset
-	 * @param length
-	 * @return
 	 * @see java.nio.CharBuffer#get(char[], int, int)
 	 */
 	public CharBuffer get(char[] dst, int offset, int length) {
@@ -148,8 +128,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param dst
-	 * @return
 	 * @see java.nio.CharBuffer#get(char[])
 	 */
 	public CharBuffer get(char[] dst) {
@@ -157,8 +135,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param index
-	 * @return
 	 * @see java.nio.CharBuffer#get(int)
 	 */
 	public char get(int index) {
@@ -166,7 +142,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#hasArray()
 	 */
 	public final boolean hasArray() {
@@ -174,7 +149,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#isDirect()
 	 */
 	public boolean isDirect() {
@@ -182,7 +156,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.Buffer#isReadOnly()
 	 */
 	public boolean isReadOnly() {
@@ -190,7 +163,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#length()
 	 */
 	public final int length() {
@@ -198,7 +170,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#order()
 	 */
 	public ByteOrder order() {
@@ -206,8 +177,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param c
-	 * @return
 	 * @see java.nio.CharBuffer#put(char)
 	 */
 	public CharBuffer put(char c) {
@@ -215,10 +184,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param src
-	 * @param offset
-	 * @param length
-	 * @return
 	 * @see java.nio.CharBuffer#put(char[], int, int)
 	 */
 	public CharBuffer put(char[] src, int offset, int length) {
@@ -226,8 +191,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param src
-	 * @return
 	 * @see java.nio.CharBuffer#put(char[])
 	 */
 	public final CharBuffer put(char[] src) {
@@ -235,8 +198,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param src
-	 * @return
 	 * @see java.nio.CharBuffer#put(java.nio.CharBuffer)
 	 */
 	public CharBuffer put(CharBuffer src) {
@@ -244,8 +205,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param src
-	 * @return
 	 * @see java.nio.CharBuffer#put(java.nio.CharBuffer)
 	 */
 	public CharBuffer put(ManagedCharBuffer src) {
@@ -253,9 +212,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param index
-	 * @param c
-	 * @return
 	 * @see java.nio.CharBuffer#put(int, char)
 	 */
 	public CharBuffer put(int index, char c) {
@@ -263,10 +219,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param src
-	 * @param start
-	 * @param end
-	 * @return
 	 * @see java.nio.CharBuffer#put(java.lang.String, int, int)
 	 */
 	public CharBuffer put(String src, int start, int end) {
@@ -274,8 +226,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param src
-	 * @return
 	 * @see java.nio.CharBuffer#put(java.lang.String)
 	 */
 	public final CharBuffer put(String src) {
@@ -283,9 +233,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param target
-	 * @return
-	 * @throws IOException
 	 * @see java.nio.CharBuffer#read(java.nio.CharBuffer)
 	 */
 	public int read(CharBuffer target) throws IOException {
@@ -293,7 +240,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#slice()
 	 */
 	public CharBuffer slice() {
@@ -301,9 +247,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param start
-	 * @param end
-	 * @return
 	 * @see java.nio.CharBuffer#subSequence(int, int)
 	 */
 	public CharBuffer subSequence(int start, int end) {
@@ -311,7 +254,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @return
 	 * @see java.nio.CharBuffer#toString()
 	 */
 	public String toString() {

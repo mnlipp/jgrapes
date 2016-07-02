@@ -17,6 +17,7 @@
  */
 package org.jgrapes.io;
 
+import org.jgrapes.io.events.Write;
 import org.jgrapes.io.util.ManagedBuffer;
 
 /**
