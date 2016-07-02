@@ -30,9 +30,23 @@ subprojects {
   def bndProject = bndWorkspace.getProject(name)
   if (bndProject != null) {
     plugins.apply 'biz.aQute.bnd'
-  }
+    
+    test {
+      testLogging {
+        // set options for log level LIFECYCLE
+        events "failed"
+        exceptionFormat "full"
+
+        showExceptions true
+        showStackTraces true
+        showCauses true
+      }
+    }
+    
+  }  
 }
 
 task wrapper(type: Wrapper) {
   jarFile = rootProject.file('.gradle-wrapper/gradle-wrapper.jar')
 }
+
