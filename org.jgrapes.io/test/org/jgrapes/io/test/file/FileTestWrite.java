@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -36,6 +35,7 @@ import org.jgrapes.io.File;
 import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.OpenFile;
 import org.jgrapes.io.util.ByteBufferOutputStream;
+import org.jgrapes.io.util.ManagedByteBuffer;
 import org.junit.Test;
 
 /**
@@ -47,7 +47,7 @@ public class FileTestWrite {
 	public static class Producer extends AbstractComponent {
 		
 		@Handler
-		public void opened(FileOpened<ByteBuffer> event) 
+		public void opened(FileOpened<ManagedByteBuffer> event) 
 				throws InterruptedException, IOException {
 			EventPipeline pipeline = newEventPipeline();
 			try (ByteBufferOutputStream out = new ByteBufferOutputStream

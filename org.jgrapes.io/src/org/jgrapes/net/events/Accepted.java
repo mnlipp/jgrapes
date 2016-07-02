@@ -18,19 +18,20 @@
 package org.jgrapes.net.events;
 
 import java.net.SocketAddress;
-import java.nio.Buffer;
 
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.events.Opened;
+import org.jgrapes.io.util.ManagedBuffer;
 
 /**
  * This event signals that a new connection has been made by a client.
  * 
  * @author Michael N. Lipp
  */
-public class Accepted<T extends Buffer> extends Opened<DataConnection<T>> {
+public class Accepted<T extends ManagedBuffer<?>>
+	extends Opened<DataConnection<T>> {
 
 	private SocketAddress localAddress;
 	private SocketAddress remoteAddress;

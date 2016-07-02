@@ -26,8 +26,6 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
@@ -47,6 +45,8 @@ import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
+import org.jgrapes.io.util.ManagedBufferQueue;
+import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.NioRegistration.Registration;
 import org.jgrapes.net.events.Accepted;
@@ -57,7 +57,6 @@ import org.jgrapes.net.events.Ready;
  * address is {@code null}, address and port are automatically assigned.
  * 
  * @author Michael N. Lipp
- *
  */
 public class Server extends AbstractComponent 
 	implements NioHandler, Connection {
@@ -170,7 +169,7 @@ public class Server extends AbstractComponent
 	 * @throws IOException if an error occurs
 	 */
 	@Handler
-	public void onWrite(Write<ByteBuffer> event) throws IOException {
+	public void onWrite(Write<ManagedByteBuffer> event) throws IOException {
 		if (!(event.getConnection() instanceof SocketConnection)) {
 			return;
 		}
@@ -216,14 +215,14 @@ public class Server extends AbstractComponent
 	 *
 	 */
 	public class SocketConnection 
-		implements NioHandler, DataConnection<ByteBuffer> {
+		implements NioHandler, DataConnection<ManagedByteBuffer> {
 
 		private SocketChannel nioChannel;
 		private EventPipeline pipeline;
-		private BlockingQueue<ByteBuffer> readBuffers;
-		private BlockingQueue<ByteBuffer> writeBuffers;
+		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> readBuffers;
+		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> writeBuffers;
 		private Registration registration = null;
-		private Queue<Write<ByteBuffer>> pendingWrites = new ArrayDeque<>();
+		private Queue<ManagedByteBuffer> pendingWrites = new ArrayDeque<>();
 		private boolean pendingClose = false;
 		
 		/**
@@ -237,15 +236,15 @@ public class Server extends AbstractComponent
 
 			int writeBufferSize = bufferSize == 0 
 					? nioChannel.socket().getSendBufferSize() : bufferSize;
-			writeBuffers = new ArrayBlockingQueue<>(2);
-			writeBuffers.add(ByteBuffer.allocate(writeBufferSize));
-			writeBuffers.add(ByteBuffer.allocate(writeBufferSize));
+			writeBuffers = new ManagedBufferQueue<>(ManagedByteBuffer.class, 
+					ByteBuffer.allocate(writeBufferSize),
+					ByteBuffer.allocate(writeBufferSize));
 			
 			int readBufferSize = bufferSize == 0 
 					? nioChannel.socket().getReceiveBufferSize() : bufferSize;
-			readBuffers = new ArrayBlockingQueue<>(2);
-			readBuffers.add(ByteBuffer.allocate(readBufferSize));
-			readBuffers.add(ByteBuffer.allocate(readBufferSize));
+			readBuffers = new ManagedBufferQueue<>(ManagedByteBuffer.class,
+					ByteBuffer.allocate(readBufferSize),
+					ByteBuffer.allocate(readBufferSize));
 			
 			// Register with dispatcher
 			fire(new NioRegistration (this, nioChannel, 0, Server.this),
@@ -256,26 +255,8 @@ public class Server extends AbstractComponent
 		 * @see org.jgrapes.io.Connection#getBuffer()
 		 */
 		@Override
-		public ByteBuffer acquireWriteBuffer() throws InterruptedException {
-			return writeBuffers.take();
-		}
-
-		/* (non-Javadoc)
-		 * @see org.jgrapes.io.DataConnection#releaseWriteBuffer(java.nio.Buffer)
-		 */
-		@Override
-		public void releaseWriteBuffer(ByteBuffer buffer) {
-			buffer.clear();
-			writeBuffers.add(buffer);
-		}
-
-		/* (non-Javadoc)
-		 * @see org.jgrapes.io.Connection#releaseReadBuffer(java.nio.Buffer)
-		 */
-		@Override
-		public void releaseReadBuffer(ByteBuffer buffer) {
-			buffer.clear();
-			readBuffers.add(buffer);
+		public ManagedByteBuffer acquireWriteBuffer() throws InterruptedException {
+			return writeBuffers.acquire();
 		}
 
 		/**
@@ -308,26 +289,26 @@ public class Server extends AbstractComponent
 		 * @param event the event
 		 * @throws IOException if an error occurs
 		 */
-		public void write(Write<ByteBuffer> event) throws IOException {
-			ByteBuffer buffer = event.getBuffer();
+		public void write(Write<ManagedByteBuffer> event) throws IOException {
+			ManagedByteBuffer buffer = event.getBuffer();
 			if (!nioChannel.isOpen()) {
 				return;
 			}
 			synchronized(pendingWrites) {
 				if (!pendingWrites.isEmpty()) {
-					event.lockBuffer();
-					pendingWrites.add(event);
+					buffer.lockBuffer();
+					pendingWrites.add(buffer);
 					return;
 				}
 			}
-			nioChannel.write(buffer);
+			nioChannel.write(buffer.getBuffer());
 			if (!buffer.hasRemaining()) {
 				buffer.clear();
 				return;
 			}
 			synchronized(pendingWrites) {
-				event.lockBuffer();
-				pendingWrites.add(event);
+				buffer.lockBuffer();
+				pendingWrites.add(buffer);
 				if (pendingWrites.size() == 1) {
 					registration.updateInterested
 						(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
@@ -357,18 +338,17 @@ public class Server extends AbstractComponent
 		 * @throws IOException
 		 */
 		private void handleReadOp() throws InterruptedException, IOException {
-			ByteBuffer buffer;
-			buffer = readBuffers.take();
-			int bytes = nioChannel.read(buffer);
+			ManagedByteBuffer buffer;
+			buffer = readBuffers.acquire();
+			int bytes = nioChannel.read(buffer.getBuffer());
 			if (bytes == 0) {
-				buffer.clear();
-				readBuffers.add(buffer);
+				buffer.unlockBuffer();
 				return;
 			}
 			if (bytes > 0) {
 				buffer.flip();
-				pipeline.add(new Read<ByteBuffer>
-					(this, buffer, readBuffers), getChannel());
+				pipeline.add(new Read<ManagedByteBuffer>(this, buffer),
+						getChannel());
 				return;
 			}
 			pipeline.add(new Eof(this), getChannel());
@@ -384,7 +364,7 @@ public class Server extends AbstractComponent
 		 */
 		private void handleWriteOp() throws IOException {
 			while (true) {
-				Write<ByteBuffer> head = null;
+				ManagedByteBuffer head = null;
 				synchronized (pendingWrites) {
 					if (pendingWrites.isEmpty()) {
 						// Nothing left to write, stop getting ops
@@ -397,9 +377,9 @@ public class Server extends AbstractComponent
 						break; // Nothing left to do
 					}
 					head = pendingWrites.peek();
-					if (!head.getBuffer().hasRemaining()) {
+					if (!head.hasRemaining()) {
 						// Nothing left in head buffer, try next
-						head.getBuffer().clear();
+						head.clear();
 						head.unlockBuffer();
 						pendingWrites.remove();
 						continue;

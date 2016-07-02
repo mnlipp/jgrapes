@@ -26,8 +26,6 @@ import java.nio.channels.CompletionHandler;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
@@ -43,6 +41,8 @@ import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.OpenFile;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
+import org.jgrapes.io.util.ManagedBufferQueue;
+import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
  * A component that reads from or writes to a file. Read events generated
@@ -51,13 +51,13 @@ import org.jgrapes.io.events.Write;
  * @author Michael N. Lipp
  */
 public class File extends AbstractComponent 
-	implements DataConnection<ByteBuffer> {
+		implements DataConnection<ManagedByteBuffer> {
 
 	private class WriteContext {
-		public Write<ByteBuffer> event;
+		public ManagedByteBuffer buffer;
 		public long pos;
-		public WriteContext(Write<ByteBuffer> event, long pos) {
-			this.event = event;
+		public WriteContext(ManagedByteBuffer buffer, long pos) {
+			this.buffer = buffer;
 			this.pos = pos;
 		}
 	}
@@ -65,9 +65,9 @@ public class File extends AbstractComponent
 	private EventPipeline pipeline;
 	private Path path;
 	private AsynchronousFileChannel ioChannel = null;
-	private BlockingQueue<ByteBuffer> ioBuffers = new ArrayBlockingQueue<>(2);
+	private ManagedBufferQueue<ManagedByteBuffer,ByteBuffer> ioBuffers;
 	private long offset = 0;
-	private CompletionHandler<Integer, ByteBuffer> 
+	private CompletionHandler<Integer, ManagedByteBuffer> 
 		readCompletionHandler = new ReadCompletionHandler();
 	private CompletionHandler<Integer, WriteContext> 
 		writeCompletionHandler = new WriteCompletionHandler();
@@ -84,8 +84,9 @@ public class File extends AbstractComponent
 	public File(Channel channel, int bufferSize) {
 		super (channel);
 		pipeline = newEventPipeline();
-		ioBuffers.add(ByteBuffer.allocateDirect(bufferSize));
-		ioBuffers.add(ByteBuffer.allocateDirect(bufferSize));
+		ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer.class,
+			ByteBuffer.allocateDirect(bufferSize), 
+			ByteBuffer.allocateDirect(bufferSize));
 	}
 
 	/**
@@ -102,28 +103,10 @@ public class File extends AbstractComponent
 	 * @see org.jgrapes.io.Connection#getBuffer()
 	 */
 	@Override
-	public ByteBuffer acquireWriteBuffer() throws InterruptedException {
-		return ioBuffers.take();
+	public ManagedByteBuffer acquireWriteBuffer() throws InterruptedException {
+		return ioBuffers.acquire();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.jgrapes.io.Connection#releaseReadBuffer(java.nio.Buffer)
-	 */
-	@Override
-	public void releaseReadBuffer(ByteBuffer buffer) {
-		buffer.clear();
-		ioBuffers.add(buffer);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jgrapes.io.DataConnection#releaseWriteBuffer(java.nio.Buffer)
-	 */
-	@Override
-	public void releaseWriteBuffer(ByteBuffer buffer) {
-		buffer.clear();
-		ioBuffers.add(buffer);
-	}
-
 	public boolean isOpen() {
 		return ioChannel != null && ioChannel.isOpen();
 	}
@@ -152,11 +135,12 @@ public class File extends AbstractComponent
 		} else {
 			// Reading from file
 			reading = true;
-			ByteBuffer buffer = ioBuffers.take();
+			ManagedByteBuffer buffer = ioBuffers.acquire();
 			registerAsGenerator();
 			pipeline.add(new FileOpened<>
 				(this, event.getPath(), event.getOptions()), getChannel());
-			ioChannel.read(buffer, offset, buffer, readCompletionHandler);
+			ioChannel.read
+				(buffer.getBuffer(), offset, buffer, readCompletionHandler);
 			synchronized (ioChannel) {
 				outstandingAsyncs += 1;
 			}
@@ -187,10 +171,10 @@ public class File extends AbstractComponent
 	}
 	
 	private class ReadCompletionHandler 
-		extends BaseCompletionHandler<ByteBuffer> {
+		extends BaseCompletionHandler<ManagedByteBuffer> {
 		
 		@Override
-		public void completed(Integer result, ByteBuffer buffer) {
+		public void completed(Integer result, ManagedByteBuffer buffer) {
 			try {
 				if (!isOpen()) {
 					return;
@@ -201,13 +185,12 @@ public class File extends AbstractComponent
 					return;
 				}
 				buffer.flip();
-				pipeline.add(new Read<>
-					(File.this, buffer, ioBuffers), getChannel());
+				pipeline.add(new Read<>(File.this, buffer), getChannel());
 				offset += result;
 				try {
-					ByteBuffer nextBuffer = ioBuffers.take();
+					ManagedByteBuffer nextBuffer = ioBuffers.acquire();
 					nextBuffer.clear();
-					ioChannel.read(nextBuffer, offset, nextBuffer,
+					ioChannel.read(nextBuffer.getBuffer(), offset, nextBuffer,
 					        readCompletionHandler);
 					synchronized (ioChannel) {
 						outstandingAsyncs += 1;
@@ -222,16 +205,16 @@ public class File extends AbstractComponent
 	}
 	
 	@Handler
-	public void onWrite(Write<ByteBuffer> event) {
-		ByteBuffer buffer = event.getBuffer();
+	public void onWrite(Write<ManagedByteBuffer> event) {
+		ManagedByteBuffer buffer = event.getBuffer();
 		int written = buffer.remaining();
 		if (written == 0) {
 			return;
 		}
-		event.lockBuffer();
+		buffer.lockBuffer();
 		synchronized (ioChannel) {
-			ioChannel.write(event.getBuffer(), offset, 
-					new WriteContext(event, offset), writeCompletionHandler);
+			ioChannel.write(buffer.getBuffer(), offset, 
+					new WriteContext(buffer, offset), writeCompletionHandler);
 			outstandingAsyncs += 1;
 		}
 		offset += written;
@@ -242,14 +225,14 @@ public class File extends AbstractComponent
 
 		@Override
 		public void completed(Integer result, WriteContext context) {
-			ByteBuffer buffer = context.event.getBuffer();
+			ManagedByteBuffer buffer = context.buffer;
 			if (buffer.hasRemaining()) {
-				ioChannel.write(buffer, 
+				ioChannel.write(buffer.getBuffer(), 
 						context.pos + buffer.position(),
 						context, writeCompletionHandler);
 				return;
 			}
-			context.event.unlockBuffer();
+			buffer.unlockBuffer();
 			handled();
 		}
 
@@ -293,6 +276,5 @@ public class File extends AbstractComponent
 		builder.append("]");
 		return builder.toString();
 	}
-	
 	
 }

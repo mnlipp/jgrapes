@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -38,6 +37,7 @@ import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.test.WaitFor;
 import org.jgrapes.io.util.ByteBufferOutputStream;
+import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
@@ -65,7 +65,7 @@ public class BigReadTest {
 		 * @throws InterruptedException
 		 */
 		@Handler
-		public void onAcctepted(Accepted<ByteBuffer> event) 
+		public void onAcctepted(Accepted<ManagedByteBuffer> event) 
 				throws IOException, InterruptedException {
 			EventPipeline pipeline = newEventPipeline();
 			try (ByteBufferOutputStream out = new ByteBufferOutputStream

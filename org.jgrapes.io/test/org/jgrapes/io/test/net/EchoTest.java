@@ -26,7 +26,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,6 +38,7 @@ import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
 import org.jgrapes.io.test.WaitFor;
+import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Ready;
 import org.junit.Test;
@@ -56,8 +56,9 @@ public class EchoTest {
 		}
 
 		@Handler
-		public void onRead(Read<ByteBuffer> event) throws InterruptedException {
-			ByteBuffer out = event.getConnection().acquireWriteBuffer();
+		public void onRead(Read<ManagedByteBuffer> event)
+				throws InterruptedException {
+			ManagedByteBuffer out = event.getConnection().acquireWriteBuffer();
 			out.put(event.getBuffer());
 			fire(new Write<>(event.getConnection(), out));
 		}

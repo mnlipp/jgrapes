@@ -17,25 +17,14 @@
  */
 package org.jgrapes.io;
 
-import java.nio.Buffer;
-
-import org.jgrapes.io.events.Read;
-import org.jgrapes.io.events.Write;
+import org.jgrapes.io.util.ManagedBuffer;
 
 /**
  * Represents an I/O connection that is used to transfer data.
  * 
  * @author Michael N. Lipp
  */
-public interface DataConnection<T extends Buffer> extends Connection {
-
-	/**
-	 * Releases a buffer used by a {@link Read} event. This method is invoked
-	 * automatically upon the completion of a {@link Read} event.
-	 * 
-	 * @param buffer
-	 */
-	void releaseReadBuffer(T buffer);
+public interface DataConnection<T extends ManagedBuffer<?>> extends Connection {
 
 	/**
 	 * Get a buffer suitable to be passed to {@link Write} events.
@@ -45,13 +34,5 @@ public interface DataConnection<T extends Buffer> extends Connection {
 	 * while waiting for a buffer
 	 */
 	T acquireWriteBuffer() throws InterruptedException;
-
-	/**
-	 * Releases a buffer used by a {@link Write} event. This method is invoked
-	 * automatically upon the completion of a {@link Write} event.
-	 * 
-	 * @param buffer
-	 */
-	void releaseWriteBuffer(T buffer);
 
 }

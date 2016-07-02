@@ -18,7 +18,6 @@
 package org.jgrapes.http;
 
 import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -48,6 +47,7 @@ import org.jgrapes.io.Connection;
 import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
+import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Accepted;
 
@@ -91,20 +91,20 @@ public class HttpServer extends AbstractComponent {
 	}
 
 	@DynamicHandler
-	public void onAccepted(Accepted<ByteBuffer> event) {
+	public void onAccepted(Accepted<ManagedByteBuffer> event) {
 		decoders.put(event.getConnection(), new HttpRequestDecoder());
 		encoders.put(event.getConnection(), new HttpResponseEncoder());
 	}
 	
 	@DynamicHandler
-	public void onRead(Read<ByteBuffer> event) {
+	public void onRead(Read<ManagedByteBuffer> event) {
 		try {
 			HttpRequestDecoder httpDecoder 
 				= decoders.get(event.getConnection());
 			if (httpDecoder == null) {
 				System.out.println("");
 			}
-			httpDecoder.decode(event.getBuffer());
+			httpDecoder.decode(event.getBuffer().getBuffer());
 			HttpRequest request = httpDecoder.decodedRequest();
 			if (request != null) {
 				Request req;
@@ -151,7 +151,8 @@ public class HttpServer extends AbstractComponent {
 	public void onRequestCompleted(Request.Completed event) 
 			throws InterruptedException {
 		Request requestEvent = event.getCompleted();
-		DataConnection<ByteBuffer> connection = requestEvent.getConnection();
+		DataConnection<ManagedByteBuffer> connection 
+			= requestEvent.getConnection();
 
 		HttpResponse response = null;
 		switch (requestEvent.get()) {
@@ -173,14 +174,14 @@ public class HttpServer extends AbstractComponent {
 	
 	@Handler
 	public void onResponse(Response event) throws InterruptedException {
-		DataConnection<ByteBuffer> connection = event.getConnection();
+		DataConnection<ManagedByteBuffer> connection = event.getConnection();
 		HttpResponse response = event.getResponse();
 		HttpResponseEncoder encoder = encoders.get(connection);
 		EventPipeline pipeline = newEventPipeline();
 		
 		while (true) {
-			ByteBuffer buffer = connection.acquireWriteBuffer();
-			boolean more = encoder.encode(response, buffer);
+			ManagedByteBuffer buffer = connection.acquireWriteBuffer();
+			boolean more = encoder.encode(response, buffer.getBuffer());
 			pipeline.add(new Write<>(connection, buffer), networkChannel);
 			if (!more) {
 				break;

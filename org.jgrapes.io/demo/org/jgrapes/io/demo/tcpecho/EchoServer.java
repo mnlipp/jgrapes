@@ -19,7 +19,6 @@ package org.jgrapes.io.demo.tcpecho;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Utils;
@@ -27,6 +26,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
+import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
 
 /**
@@ -45,8 +45,9 @@ public class EchoServer extends AbstractComponent {
 	}
 
 	@Handler
-	public void onRead(Read<ByteBuffer> event) throws InterruptedException {
-		ByteBuffer out = event.getConnection().acquireWriteBuffer();
+	public void onRead(Read<ManagedByteBuffer> event)
+			throws InterruptedException {
+		ManagedByteBuffer out = event.getConnection().acquireWriteBuffer();
 		out.put(event.getBuffer());
 		fire(new Write<>(event.getConnection(), out));
 	}

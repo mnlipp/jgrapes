@@ -17,11 +17,10 @@
  */
 package org.jgrapes.http.events;
 
-import java.nio.ByteBuffer;
-
 import org.jdrupes.httpcodec.HttpResponse;
 import org.jgrapes.core.Event;
 import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
  * @author Michael N. Lipp
@@ -29,10 +28,10 @@ import org.jgrapes.io.DataConnection;
  */
 public class Response extends Event<Void> {
 
-	private DataConnection<ByteBuffer> connection;
+	private DataConnection<ManagedByteBuffer> connection;
 	private HttpResponse response;
 	
-	public Response(DataConnection<ByteBuffer> connection, 
+	public Response(DataConnection<ManagedByteBuffer> connection, 
 			HttpResponse response) {
 		this.connection = connection;
 		this.response = response;
@@ -41,7 +40,7 @@ public class Response extends Event<Void> {
 	/**
 	 * @return the connection
 	 */
-	public DataConnection<ByteBuffer> getConnection() {
+	public DataConnection<ManagedByteBuffer> getConnection() {
 		return connection;
 	}
 

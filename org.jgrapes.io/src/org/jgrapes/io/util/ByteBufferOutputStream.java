@@ -37,9 +37,9 @@ import org.jgrapes.io.events.Write;
  */
 public class ByteBufferOutputStream extends OutputStream {
 
-	private DataConnection<ByteBuffer> connection;
+	private DataConnection<ManagedByteBuffer> connection;
 	private EventPipeline pipeline;
-	private ByteBuffer buffer;
+	private ManagedByteBuffer buffer;
 	
 	/**
 	 * Creates a new instance.
@@ -49,7 +49,8 @@ public class ByteBufferOutputStream extends OutputStream {
 	 * @throws InterruptedException if the current is interrupted
 	 * while trying to get a new buffer from the queue
 	 */
-	public ByteBufferOutputStream(DataConnection<ByteBuffer> connection,
+	public ByteBufferOutputStream
+		(DataConnection<ManagedByteBuffer> connection,
 			EventPipeline pipeline)	throws InterruptedException {
 		super();
 		this.connection = connection;
@@ -97,7 +98,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	 */
 	@Override
 	public void flush() throws IOException {
-		pipeline.add(new Write<ByteBuffer>(connection, buffer), 
+		pipeline.add(new Write<ManagedByteBuffer>(connection, buffer), 
 				connection.getChannel());
 		try {
 			buffer = connection.acquireWriteBuffer();

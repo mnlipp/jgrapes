@@ -17,11 +17,10 @@
  */
 package org.jgrapes.http.events;
 
-import java.nio.ByteBuffer;
-
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jgrapes.core.Channel;
 import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
  * @author Michael N. Lipp
@@ -37,7 +36,7 @@ public class GetRequest extends Request {
 	 * @param channels the channels on which the event is to be 
 	 * fired (optional)
 	 */
-	public GetRequest(DataConnection<ByteBuffer> connection,
+	public GetRequest(DataConnection<ManagedByteBuffer> connection,
 	        HttpRequest request, Channel... channels) {
 		super(connection, request, channels);
 	}

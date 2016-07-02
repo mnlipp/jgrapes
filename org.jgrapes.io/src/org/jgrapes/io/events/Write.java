@@ -17,9 +17,8 @@
  */
 package org.jgrapes.io.events;
 
-import java.nio.Buffer;
-
 import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.util.ManagedBuffer;
 
 /**
  * This event signals that a new chunk of data is to be forwarded to the
@@ -27,12 +26,10 @@ import org.jgrapes.io.DataConnection;
  * 
  * @author Michael N. Lipp
  */
-public class Write<T extends Buffer> 
+public class Write<T extends ManagedBuffer<?>> 
 	extends ConnectionEvent<Void, DataConnection<T>> {
 
 	private T buffer;
-	private int lockCount = 0;
-	private boolean handled = false;
 	
 	/**
 	 * Create a new event with the given buffer that must have been
@@ -60,50 +57,11 @@ public class Write<T extends Buffer>
 	}
 
 	/**
-	 * Increases the buffer's lock count. If the buffer is needed
-	 * for some asynchronously running operation after the event has
-	 * completed, it must be locked in order to prevent it from being
-	 * released prematurely.
-	 * 
-	 * @throws IllegalStateException if the buffer has been released already
-	 */
-	synchronized public void lockBuffer() throws IllegalStateException {
-		if (buffer == null) {
-			throw new IllegalStateException("Buffer released already.");
-		}
-		lockCount += 1;
-	}
-
-	/**
-	 * Decreases the buffer's lock count. If the lock count reached
-	 * zero and the event has been handled by all handlers, the buffer
-	 * is released. 
-	 * 
-	 * @throws IllegalStateException if the buffer is not locked or 
-	 * has been released already
-	 */
-	synchronized public void unlockBuffer() throws IllegalStateException {
-		if (buffer == null || lockCount == 0) {
-			throw new IllegalStateException
-				("Buffer not locked or released already.");
-		}
-		lockCount -= 1;
-		if (handled && lockCount == 0) {
-			getConnection().releaseWriteBuffer(buffer);
-			buffer = null;
-		}
-	}
-	
-	/**
 	 * Releases the buffer, unless locked.
 	 */
 	@Override
 	synchronized protected void handled() {
-		handled = true;
-		if (lockCount == 0) {
-			getConnection().releaseWriteBuffer(buffer);
-			buffer = null;
-		}
+		buffer.unlockBuffer();
 	}
 	
 }

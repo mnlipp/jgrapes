@@ -17,10 +17,8 @@
  */
 package org.jgrapes.io.events;
 
-import java.nio.Buffer;
-import java.util.Collection;
-
 import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.util.ManagedBuffer;
 
 /**
  * This event signals that a new chunk of data has successfully been obtained
@@ -30,24 +28,11 @@ import org.jgrapes.io.DataConnection;
  * 
  * @author Michael N. Lipp
  */
-public class Read<T extends Buffer> 
+public class Read<T extends ManagedBuffer<?>> 
 	extends ConnectionEvent<Void, DataConnection<T>> {
 
 	private T buffer;
 	
-	/**
-	 * Create a new event with the given pool and buffer.
-	 * 
-	 * @param connection the connection that this data was received on
-	 * and that can be used for sending {@link Write} events as replies
-	 * @param buffer the buffer with the data
-	 * @param bufferPool the pool
-	 */
-	public Read(DataConnection<T> connection, T buffer, Collection<T> bufferPool) {
-		super(connection);
-		this.buffer = buffer;
-	}
-
 	/**
 	 * Create a new event with the given buffer.
 	 * 
@@ -56,7 +41,8 @@ public class Read<T extends Buffer>
 	 * @param buffer the buffer with the data
 	 */
 	public Read(DataConnection<T> connection, T buffer) {
-		this(connection, buffer, null);
+		super(connection);
+		this.buffer = buffer;
 	}
 
 	/**
@@ -73,7 +59,7 @@ public class Read<T extends Buffer>
 	 */
 	@Override
 	protected void handled() {
-		getConnection().releaseReadBuffer(buffer);
+		buffer.unlockBuffer();
 	}
 	
 }

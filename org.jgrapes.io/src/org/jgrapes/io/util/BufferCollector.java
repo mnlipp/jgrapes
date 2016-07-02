@@ -15,30 +15,13 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.http.events;
-
-import org.jdrupes.httpcodec.HttpRequest;
-import org.jgrapes.core.Channel;
-import org.jgrapes.io.DataConnection;
-import org.jgrapes.io.util.ManagedByteBuffer;
+package org.jgrapes.io.util;
 
 /**
  * @author Michael N. Lipp
- *
  */
-public class HeadRequest extends Request {
+public interface BufferCollector {
 
-	/**
-	 * Create a new event.
-	 * 
-	 * @param connection the connection on which the event was received
-	 * @param request the request
-	 * @param channels the channels on which the event is to be 
-	 * fired (optional)
-	 */
-	public HeadRequest(DataConnection<ManagedByteBuffer> connection,
-	        HttpRequest request, Channel... channels) {
-		super(connection, request, channels);
-	}
-
+	void recollect (ManagedBuffer<?> buffer);
+	
 }
