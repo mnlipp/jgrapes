@@ -22,7 +22,10 @@ import java.net.InetSocketAddress;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Utils;
+import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.HttpServer;
+import org.jgrapes.http.events.GetRequest;
+import org.jgrapes.http.events.Request.HandlingResult;
 import org.jgrapes.io.NioDispatcher;
 
 /**
@@ -31,6 +34,11 @@ import org.jgrapes.io.NioDispatcher;
  */
 public class HttpServerDemo extends AbstractComponent {
 
+	@Handler
+	public void onGet(GetRequest event) {
+		event.setResult(HandlingResult.RESOURCE_NOT_FOUND);
+	}
+	
 	/**
 	 * @param args
 	 * @throws IOException 

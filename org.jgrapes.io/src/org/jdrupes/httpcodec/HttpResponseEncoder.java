@@ -52,9 +52,9 @@ public class HttpResponseEncoder {
 				this.response = response;
 				writer.write(response.getProtocol().toString());
 				writer.write(" ");
-				writer.write(Integer.toString(response.getResponseCode()));
+				writer.write(Integer.toString(response.getStatusCode()));
 				writer.write(" ");
-				writer.write(response.getResponseMessage());
+				writer.write(response.getReasonPhrase());
 				writer.write("\r\n");
 				writer.write("\r\n");
 				writer.flush();

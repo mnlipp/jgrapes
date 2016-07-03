@@ -30,23 +30,27 @@ public class ProtocolException extends Exception {
 
 	private HttpProtocol httpProtocol;
 	private int statusCode;
+	private String reasonPhrase;
 
 	/**
 	 * @param httpProtocol
 	 * @param statusCode
-	 * @param message
+	 * @param reasonPhrase
 	 */
 	public ProtocolException(HttpProtocol httpProtocol, int statusCode,
-	        String message) {
-		super(String.format("%03d %s", statusCode, message));
+	        String reasonPhrase) {
+		super(String.format("%03d %s", statusCode, reasonPhrase));
 		this.httpProtocol = httpProtocol;
 		this.statusCode = statusCode;
+		this.reasonPhrase = reasonPhrase;
 	}
 
 	public ProtocolException(HttpProtocol httpProtocol, HttpStatus status) {
-		super(String.format("%03d %s", status.getCode(), status.getMessage()));
+		super(String.format("%03d %s", status.getStatusCode(),
+				status.getReasonPhrase()));
 		this.httpProtocol = httpProtocol;
-		this.statusCode = status.getCode();
+		this.statusCode = status.getStatusCode();
+		this.reasonPhrase = status.getReasonPhrase();
 	}
 	
 	/**
@@ -61,6 +65,13 @@ public class ProtocolException extends Exception {
 	 */
 	public int getStatusCode() {
 		return statusCode;
+	}
+
+	/**
+	 * @return the reasonPhrase
+	 */
+	public String getReasonPhrase() {
+		return reasonPhrase;
 	}
 	
 }

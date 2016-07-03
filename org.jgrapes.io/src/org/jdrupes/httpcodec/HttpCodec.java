@@ -78,25 +78,25 @@ public class HttpCodec {
     	GATEWAY_TIME_OUT(504, "Gateway Time-out"),
     	HTTP_VERSION_NOT_SUPPORTED(505, "HTTP Version not supported");
     	
-    	private int code;
-    	private String message;
+    	private int statusCode;
+    	private String reasonPhrase;
     	
-    	HttpStatus(int code, String message) {
-    		this.code = code;
-    		this.message = message;
+    	HttpStatus(int statusCode, String reasonPhrase) {
+    		this.statusCode = statusCode;
+    		this.reasonPhrase = reasonPhrase;
     	}
 		/**
-		 * @return the code
+		 * @return the status code
 		 */
-		public int getCode() {
-			return code;
+		public int getStatusCode() {
+			return statusCode;
 		}
 
 		/**
-		 * @return the message
+		 * @return the reason phrase
 		 */
-		public String getMessage() {
-			return message;
+		public String getReasonPhrase() {
+			return reasonPhrase;
 		}
     }
 }

@@ -18,6 +18,7 @@
 package org.jgrapes.http;
 
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -25,7 +26,7 @@ import org.jdrupes.httpcodec.HttpRequest;
 import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.HttpResponseEncoder;
-import org.jdrupes.httpcodec.ProtocolException;
+import org.jdrupes.httpcodec.DecoderResult;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
@@ -45,6 +46,7 @@ import org.jgrapes.http.events.TraceRequest;
 import org.jgrapes.http.events.Request.HandlingResult;
 import org.jgrapes.io.Connection;
 import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
 import org.jgrapes.io.util.ManagedByteBuffer;
@@ -98,55 +100,62 @@ public class HttpServer extends AbstractComponent {
 	
 	@DynamicHandler
 	public void onRead(Read<ManagedByteBuffer> event) {
-		try {
-			HttpRequestDecoder httpDecoder 
-				= decoders.get(event.getConnection());
-			if (httpDecoder == null) {
-				System.out.println("");
+		HttpRequestDecoder httpDecoder = decoders.get(event.getConnection());
+		if (httpDecoder == null) {
+			throw new IllegalStateException(
+			        "Read event for unknown connection.");
+		}
+		ByteBuffer buffer = event.getBuffer().getBuffer();
+		while (buffer.hasRemaining()) {
+			DecoderResult result = httpDecoder.decode(buffer);
+			if (result.hasRequest()) {
+				fireRequest(event.getConnection(), result.getRequest());
 			}
-			httpDecoder.decode(event.getBuffer().getBuffer());
-			HttpRequest request = httpDecoder.decodedRequest();
-			if (request != null) {
-				Request req;
-				switch(request.getMethod()) {
-				case "OPTIONS":
-					req = new OptionsRequest(event.getConnection(), request);
-					break;
-				case "GET":
-					req = new GetRequest(event.getConnection(), request);
-					break;
-				case "HEAD":
-					req = new HeadRequest(event.getConnection(), request);
-					break;
-				case "POST":
-					req = new PostRequest(event.getConnection(), request);
-					break;
-				case "PUT":
-					req = new PutRequest(event.getConnection(), request);
-					break;
-				case "DELETE":
-					req = new DeleteRequest(event.getConnection(), request);
-					break;
-				case "TRACE":
-					req = new TraceRequest(event.getConnection(), request);
-					break;
-				case "CONNECT":
-					req = new ConnectRequest(event.getConnection(), request);
-					break;
-				default:
-					req = new Request(event.getConnection(), request);
-					break;
-				}
-				fire(req);
+			if (result.hasResponse()) {
+				fire (new Response(event.getConnection(), 
+						result.getResponse()));
 			}
-		} catch (ProtocolException e) {
-			HttpResponse response = new HttpResponse(e.getHttpVersion());
-			response.setResponseCode(HttpStatus.BAD_REQUEST.getCode());
-			response.setResponseMessage(e.getMessage());
-			fire (new Response(event.getConnection(), response));
+			if (result.mustBeClosed()) {
+				fire (new Close<>(event.getConnection()), networkChannel);
+			}
 		}
 	}
-	
+
+	private void fireRequest(DataConnection<ManagedByteBuffer> connection,
+			HttpRequest request) {
+		Request req;
+		switch (request.getMethod()) {
+		case "OPTIONS":
+			req = new OptionsRequest(connection, request);
+			break;
+		case "GET":
+			req = new GetRequest(connection, request);
+			break;
+		case "HEAD":
+			req = new HeadRequest(connection, request);
+			break;
+		case "POST":
+			req = new PostRequest(connection, request);
+			break;
+		case "PUT":
+			req = new PutRequest(connection, request);
+			break;
+		case "DELETE":
+			req = new DeleteRequest(connection, request);
+			break;
+		case "TRACE":
+			req = new TraceRequest(connection, request);
+			break;
+		case "CONNECT":
+			req = new ConnectRequest(connection, request);
+			break;
+		default:
+			req = new Request(connection, request);
+			break;
+		}
+		fire(req);
+	}
+
 	@Handler
 	public void onRequestCompleted(Request.Completed event) 
 			throws InterruptedException {
@@ -159,12 +168,12 @@ public class HttpServer extends AbstractComponent {
 		case UNHANDLED:
 			response = new HttpResponse
 				(requestEvent.getRequest().getProtocol());
-			response.setResponseStatus(HttpStatus.NOT_IMPLEMENTED);
+			response.setStatus(HttpStatus.NOT_IMPLEMENTED);
 			break;
 		case RESOURCE_NOT_FOUND:
 			response = new HttpResponse
 				(requestEvent.getRequest().getProtocol());
-			response.setResponseStatus(HttpStatus.NOT_FOUND);
+			response.setStatus(HttpStatus.NOT_FOUND);
 			break;
 		case RESPONDED:
 			return;
@@ -189,6 +198,7 @@ public class HttpServer extends AbstractComponent {
 		}
 	}
 
+	@Handler
 	public void onOptions(OptionsRequest event) {
 		if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {
 			event.setResult(HandlingResult.RESPONDED);

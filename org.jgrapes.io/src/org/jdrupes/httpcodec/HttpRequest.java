@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
+import org.jdrupes.httpcodec.util.HttpFieldValue;
 
 /**
  * Represents a complte HTTP request with all received header data.
@@ -44,7 +45,9 @@ public class HttpRequest {
 	private HttpProtocol httpProtocol;
 	private String method;
 	private URI requestUri;
-	private Map<String,String> headers = new HashMap<>();
+	private Map<String,HttpFieldValue> headers = new HashMap<>();
+	private String host;
+	private int port;
 	
 	/**
 	 * Creates a new request with basic data.
@@ -91,13 +94,38 @@ public class HttpRequest {
 	/**
 	 * Add another header to the request data.
 	 * 
-	 * @param key the header's key
-	 * @param value the header's value
+	 * @param name the header field's name
+	 * @param value the header field's value
 	 */
-	void addHeader(String key, String value) {
-		
+	void addHeader(String name, HttpFieldValue value) {
+		headers.put(name, value);
 	}
-	
+
+	/**
+	 * Set the host and port attributes.
+	 * 
+	 * @param host the host
+	 * @param port the port
+	 */
+	void setHostAndPort (String host, int port) {
+		this.host = host;
+		this.port = port;
+	}
+
+	/**
+	 * @return the host
+	 */
+	public String getHost() {
+		return host;
+	}
+
+	/**
+	 * @return the port
+	 */
+	public int getPort() {
+		return port;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

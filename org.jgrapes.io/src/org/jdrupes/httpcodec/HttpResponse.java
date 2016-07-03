@@ -26,8 +26,8 @@ import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 public class HttpResponse {
 
 	private HttpProtocol httpProtocol;
-	private int responseCode = -1;
-	private String responseMessage;
+	private int statusCode = -1;
+	private String reasonPhrase;
 	
 	public HttpResponse(HttpProtocol protocol) {
 		httpProtocol = protocol;
@@ -43,40 +43,46 @@ public class HttpResponse {
 	}
 
 	boolean isComplete() {
-		return responseCode >= 0;
+		return statusCode >= 0;
 	}
 	
 	/**
 	 * @return the responseCode
 	 */
-	public int getResponseCode() {
-		return responseCode;
+	public int getStatusCode() {
+		return statusCode;
 	}
 
 	/**
-	 * @param responseCode the responseCode to set
+	 * @param statusCode the responseCode to set
 	 */
-	public void setResponseCode(int responseCode) {
-		this.responseCode = responseCode;
+	public void setStatusCode(int statusCode) {
+		this.statusCode = statusCode;
 	}
 
 	/**
-	 * @return the responseMessage
+	 * @return the reason phrase
 	 */
-	public String getResponseMessage() {
-		return responseMessage;
+	public String getReasonPhrase() {
+		return reasonPhrase;
 	}
 
 	/**
-	 * @param responseMessage the responseMessage to set
+	 * @param reasonPhrase the reason phrase to set
 	 */
-	public void setResponseMessage(String responseMessage) {
-		this.responseMessage = responseMessage;
+	public void setReasonPhrase(String reasonPhrase) {
+		this.reasonPhrase = reasonPhrase;
 	}
 
-	public void setResponseStatus(HttpStatus status) {
-		responseCode = status.getCode();
-		responseMessage = status.getMessage();
+	/**
+	 * Sets both status code and reason phrase from the given 
+	 * http status value.
+	 * 
+	 * @param status the status value
+	 */
+	public void setStatus(HttpStatus status) {
+		statusCode = status.getStatusCode();
+		reasonPhrase = status.getReasonPhrase();
 	}
 	
 }
