@@ -91,31 +91,39 @@ public class BigReadTest {
 		}
 		InetSocketAddress serverAddr 
 			= ((InetSocketAddress)readyEvent.getListenAddress());
-		
-		AtomicInteger expected = new AtomicInteger(0);
-		Thread receiver = new Thread() {
+
+		// Watchdog
+		final Thread mainTread = Thread.currentThread();
+		(new Thread() {
 			@Override
 			public void run() {
-				try (Socket client = new Socket(serverAddr.getAddress(),
-				        serverAddr.getPort())) {
-					InputStream fromServer = client.getInputStream();
-					BufferedReader in = new BufferedReader(
-					        new InputStreamReader(fromServer, "ascii"));
-					while (expected.get() < 1000000) {
-						String line = in.readLine();
-						String[] parts = line.split(":");
-						assertEquals(expected.get(),
-									Integer.parseInt(parts[0]));
-						assertEquals("Hello World!", parts[1]);
-						expected.incrementAndGet();
+				try {
+					mainTread.join(5000);
+					if (mainTread.isAlive()) {
+						mainTread.interrupt();
 					}
-				} catch (IOException e) {
-					e.printStackTrace();
+				} catch (InterruptedException e) {
 				}
 			}
-		};
-		receiver.start();
-		receiver.join(5000);
+		}).start();
+		
+		AtomicInteger expected = new AtomicInteger(0);
+		try (Socket client = new Socket(serverAddr.getAddress(),
+		        serverAddr.getPort())) {
+			InputStream fromServer = client.getInputStream();
+			BufferedReader in = new BufferedReader(
+			        new InputStreamReader(fromServer, "ascii"));
+			while (expected.get() < 1000000) {
+				String line = in.readLine();
+				String[] parts = line.split(":");
+				assertEquals(expected.get(),
+				        Integer.parseInt(parts[0]));
+				assertEquals("Hello World!", parts[1]);
+				expected.incrementAndGet();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		assertEquals(1000000, expected.get());
 		
 		Utils.manager(app).fire(new Stop(), Channel.BROADCAST);
