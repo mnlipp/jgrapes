@@ -48,5 +48,21 @@ class SynchronousEventProcessor extends EventProcessor {
 		isRunning = false;			
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.internal.EventProcessor#run()
+	 */
+	@Override
+	synchronized public void run() {
+		// Save current event pipeline because a SynchronousEventPipeline
+		// can be called while handling an event (from another event 
+		// processor).
+		ExecutingEventPipeline currentPipeline 
+			= FeedBackPipelineFilter.getAssociatedPipeline();
+		try {
+			super.run();
+		} finally {
+			FeedBackPipelineFilter.setAssociatedPipeline(currentPipeline);;
+		}
+	}
 	
 }
