@@ -91,10 +91,10 @@ public class NioDispatcher extends AbstractComponent implements Runnable {
 			while (true) {
 				try {
 					synchronized (this) {
+						selector.select();
 						if (!running) {
 							break;
 						}
-						selector.select();
 					}
 					Set<SelectionKey> selected = selector.selectedKeys();
 					for (SelectionKey key: selected) {
