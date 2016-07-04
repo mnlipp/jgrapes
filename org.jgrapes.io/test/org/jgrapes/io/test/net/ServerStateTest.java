@@ -28,7 +28,7 @@ import org.jgrapes.io.Connection;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
-import org.jgrapes.io.test.WaitFor;
+import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Ready;
 import org.junit.Before;
@@ -78,7 +78,7 @@ public class ServerStateTest {
 		app = root.attach(new Server(null));
 		checker = new StateChecker();
 		app.attach(checker);
-		WaitFor wf = new WaitFor(app, Ready.class, Channel.class);
+		WaitForTests wf = new WaitForTests(app, Ready.class, Channel.class);
 		Utils.start(app);
 		wf.get();
 	}

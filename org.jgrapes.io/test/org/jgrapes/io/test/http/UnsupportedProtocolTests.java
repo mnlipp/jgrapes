@@ -14,7 +14,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class UnsupportedProtocol {
+public class UnsupportedProtocolTests {
 
 	static private BasicTestServer server;
 	

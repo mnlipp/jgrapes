@@ -34,7 +34,7 @@ import org.jgrapes.core.annotation.DynamicHandler;
  * 
  * @author Michael N. Lipp
  */
-public class WaitFor extends AbstractComponent implements Future<Event<?>> {
+public class WaitForTests extends AbstractComponent implements Future<Event<?>> {
 
 	Event<?> result = null;
 	
@@ -43,7 +43,7 @@ public class WaitFor extends AbstractComponent implements Future<Event<?>> {
 	 * waits for the occurrence of an event of the given type on
 	 * the given channel. 
 	 */
-	public WaitFor(Component app, Object eventKey, Object channelKey) {
+	public WaitForTests(Component app, Object eventKey, Object channelKey) {
 		addHandler("onEvent", eventKey, channelKey, Integer.MIN_VALUE);
 		Utils.manager(app).attach(this);
 	}

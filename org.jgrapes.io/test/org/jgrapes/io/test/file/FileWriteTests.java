@@ -42,7 +42,7 @@ import org.junit.Test;
  * @author Michael N. Lipp
  *
  */
-public class FileTestWrite {
+public class FileWriteTests {
 
 	public static class Producer extends AbstractComponent {
 		

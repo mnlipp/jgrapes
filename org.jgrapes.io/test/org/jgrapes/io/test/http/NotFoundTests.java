@@ -18,7 +18,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class NotFound {
+public class NotFoundTests {
 
 	public static class TestServer extends BasicTestServer {
 

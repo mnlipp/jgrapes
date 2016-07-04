@@ -37,7 +37,7 @@ import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
-import org.jgrapes.io.test.WaitFor;
+import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Ready;
@@ -69,7 +69,7 @@ public class EchoTest {
 			ExecutionException {
 		EchoServer app = new EchoServer();
 		app.attach(new NioDispatcher());
-		WaitFor wf = new WaitFor
+		WaitForTests wf = new WaitForTests
 				(app, Ready.class, Server.DEFAULT_CHANNEL.getMatchKey());
 		Utils.start(app);
 		Ready readyEvent = (Ready) wf.get();

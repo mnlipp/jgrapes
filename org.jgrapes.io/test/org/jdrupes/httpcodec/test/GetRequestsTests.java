@@ -8,7 +8,7 @@ import org.jdrupes.httpcodec.DecoderResult;
 import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.junit.Test;
 
-public class GetRequests {
+public class GetRequestsTests {
 
 	@Test
 	public void testSplit() {

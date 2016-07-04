@@ -35,7 +35,7 @@ import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.NioDispatcher;
-import org.jgrapes.io.test.WaitFor;
+import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ByteBufferOutputStream;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
@@ -82,7 +82,7 @@ public class BigReadTest {
 			ExecutionException {
 		EchoServer app = new EchoServer();
 		app.attach(new NioDispatcher());
-		WaitFor wf = new WaitFor
+		WaitForTests wf = new WaitForTests
 				(app, Ready.class, Server.DEFAULT_CHANNEL.getMatchKey());
 		Utils.start(app);
 		Ready readyEvent = (Ready) wf.get();

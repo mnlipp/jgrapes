@@ -45,7 +45,7 @@ import static org.junit.Assert.*;
  * @author Michael N. Lipp
  *
  */
-public class FileTestRead {
+public class FileReadTests {
 
 	public static int msgCount = 0;
 	

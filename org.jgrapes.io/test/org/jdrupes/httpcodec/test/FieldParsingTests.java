@@ -29,7 +29,7 @@ import org.junit.Test;
  * @author Michael N. Lipp
  *
  */
-public class FieldParsing {
+public class FieldParsingTests {
 
 	@Test
 	public void testSingle() throws ParseException {

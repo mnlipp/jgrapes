@@ -29,7 +29,7 @@ import org.junit.Test;
  * @author Michael N. Lipp
  *
  */
-public class FieldValues {
+public class FieldValuesTests {
 
 	@Test
 	public void testStringList() throws ParseException {
