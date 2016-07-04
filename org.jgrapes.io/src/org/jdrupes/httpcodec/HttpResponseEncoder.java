@@ -47,7 +47,7 @@ public class HttpResponseEncoder {
 			if (this.response != null && this.response != response) {
 				throw new IllegalStateException();
 			}
-			outStream.useBuffer(out);
+			outStream.assignBuffer(out);
 			if (this.response == null) {
 				this.response = response;
 				writer.write(response.getProtocol().toString());

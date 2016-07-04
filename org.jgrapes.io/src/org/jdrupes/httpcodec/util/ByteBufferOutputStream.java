@@ -41,28 +41,54 @@ public class ByteBufferOutputStream extends OutputStream {
 
 	private ByteBuffer assignedBuffer = null;
 	private Queue<ByteBuffer> overflows = new ArrayDeque<>();
-	private ByteBuffer current;
+	private ByteBuffer current = null;
 	
 	/**
 	 * Creates a new instance.
-	 * 
 	 */
 	public ByteBufferOutputStream()	{
 		super();
 	}
 
-	public void useBuffer(ByteBuffer buffer) {
+	/**
+	 * Assign a new buffer to this output stream. If the previously
+	 * used buffer had become full and intermediate storage was allocated,
+	 * the data from the intermediate storage is copied to the new buffer
+	 * first. Then, the new buffer is used for all subsequent write
+	 * operations.
+	 * 
+	 * @param buffer the buffer to use
+	 */
+	public void assignBuffer(ByteBuffer buffer) {
 		assignedBuffer = buffer;
-		// Move any overflow to new buffer
+		// Move any overflow to the new buffer
 		while (!overflows.isEmpty()) {
-			if (overflows.peek().position() > assignedBuffer.remaining()) {
-				break;
+			ByteBuffer head = overflows.peek();
+			// Do a "flip with position to mark"
+			int writePos = head.position(); // Save position
+			head.reset();
+			head.limit(writePos);
+			if (head.remaining() > assignedBuffer.remaining()) {
+				// Cannot transfer everything, do what's possible
+				head.limit(head.position() + assignedBuffer.remaining());
+				assignedBuffer.put(head);
+				// Advance mark and restore head for writing
+				head.mark();
+				head.limit(head.capacity());
+				head.position(writePos);
+				return;
 			}
-			ByteBuffer head = overflows.remove();
-			head.flip();
 			assignedBuffer.put(head);
+			overflows.remove();
 		}
 		current = assignedBuffer;
+	}
+	
+	private void allocateOverflowBuffer() {
+		current = ByteBuffer.allocate
+				(assignedBuffer == null ? 4096 : assignedBuffer.capacity() / 4);
+		current.mark();
+		overflows.add(current);
 	}
 	
 	/* (non-Javadoc)
@@ -70,9 +96,8 @@ public class ByteBufferOutputStream extends OutputStream {
 	 */
 	@Override
 	public void write(int b) throws IOException {
-		if (current.remaining() == 0) {
-			current = ByteBuffer.allocate(assignedBuffer.capacity() / 4);
-			overflows.add(current);
+		if (current == null || current.remaining() == 0) {
+			allocateOverflowBuffer();
 		}
 		current.put((byte)b);
 	}
@@ -82,10 +107,13 @@ public class ByteBufferOutputStream extends OutputStream {
 	 */
 	@Override
 	public void write(byte[] b, int offset, int length) throws IOException {
+		if (current == null) {
+			allocateOverflowBuffer();
+		}
 		while (true) {
 			if (current.remaining() >= length) {
 				current.put(b, offset, length);
-				break;
+				return;
 			}
 			if (current.remaining() > 0) {
 				int processed = current.remaining();
@@ -93,11 +121,17 @@ public class ByteBufferOutputStream extends OutputStream {
 				offset += processed;
 				length -= processed;
 			}
-			current = ByteBuffer.allocate(assignedBuffer.capacity() / 4);
-			overflows.add(current);
+			allocateOverflowBuffer();
 		}
 	}
 
+	/**
+	 * Returns the number of bytes remaining in the assigned buffer.
+	 * A negative value indicates that the assigned buffer is full
+	 * and an overflow buffer is being used. 
+	 * 
+	 * @return the bytes remaining or -1
+	 */
 	public int remaining() {
 		if (!overflows.isEmpty()) {
 			return -1;
