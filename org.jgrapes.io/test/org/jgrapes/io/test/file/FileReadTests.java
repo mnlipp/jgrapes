@@ -98,13 +98,13 @@ public class FileReadTests {
 		}
 
 		@Handler
-		public void closing(Close<DataConnection<?>> event) {
+		public void closing(Close<DataConnection> event) {
 			assertTrue(state == State.EOF);
 			state = State.CLOSING;
 		}
 
 		@Handler
-		public void closed(Closed<DataConnection<?>> event) {
+		public void closed(Closed<DataConnection> event) {
 			assertTrue(state == State.CLOSING);
 			state = State.CLOSED;
 		}

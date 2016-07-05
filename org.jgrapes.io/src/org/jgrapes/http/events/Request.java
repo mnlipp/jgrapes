@@ -24,7 +24,6 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletedEvent;
 import org.jgrapes.core.Event;
 import org.jgrapes.io.DataConnection;
-import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
  * @author Michael N. Lipp
@@ -39,13 +38,13 @@ public class Request extends Event<Request.HandlingResult> {
 	}
 	
 	private HttpRequest request;
-	private DataConnection<ManagedByteBuffer> connection;
+	private DataConnection connection;
 	
 	/**
 	 * @param request the request data
 	 * @param channels the channels associated with this event
 	 */
-	public Request(DataConnection<ManagedByteBuffer> connection, 
+	public Request(DataConnection connection, 
 			HttpRequest request, Channel... channels) {
 		super(new Completed(), channels);
 		super.setResult(HandlingResult.UNHANDLED);
@@ -68,7 +67,7 @@ public class Request extends Event<Request.HandlingResult> {
 	/**
 	 * @return the connection
 	 */
-	public DataConnection<ManagedByteBuffer> getConnection() {
+	public DataConnection getConnection() {
 		return connection;
 	}
 

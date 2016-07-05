@@ -19,11 +19,12 @@ package org.jdrupes.httpcodec;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
-import org.jdrupes.httpcodec.util.HttpFieldValue;
+import org.jdrupes.httpcodec.util.HttpUtils;
 
 /**
  * Represents a complte HTTP request with all received header data.
@@ -45,7 +46,8 @@ public class HttpRequest {
 	private HttpProtocol httpProtocol;
 	private String method;
 	private URI requestUri;
-	private Map<String,HttpFieldValue> headers = new HashMap<>();
+	private Map<String,HttpFieldValue> headers 
+		= HttpUtils.caseInsensitiveMap(new HashMap<>());
 	private String host;
 	private int port;
 	
@@ -92,15 +94,24 @@ public class HttpRequest {
 	}
 
 	/**
-	 * Add another header to the request data.
+	 * Set a header for the request.
 	 * 
 	 * @param name the header field's name
 	 * @param value the header field's value
 	 */
-	void addHeader(String name, HttpFieldValue value) {
+	void setHeader(String name, HttpFieldValue value) {
 		headers.put(name, value);
 	}
 
+	/**
+	 * Returns all headers as unmodifiable map.
+	 * 
+	 * @return the headers
+	 */
+	public Map<String, HttpFieldValue> headers() {
+		return Collections.unmodifiableMap(headers);
+	}
+	
 	/**
 	 * Set the host and port attributes.
 	 * 

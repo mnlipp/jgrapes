@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.sql.DatabaseMetaData;
 import java.util.Random;
 
 import org.jdrupes.httpcodec.util.ByteBufferOutputStream;

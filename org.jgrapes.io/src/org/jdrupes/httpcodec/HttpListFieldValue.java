@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.util;
+package org.jdrupes.httpcodec;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import java.util.ListIterator;
  * 
  * @author Michael N. Lipp
  */
-public class HttpStringListFieldValue extends HttpFieldValue
+public class HttpListFieldValue extends HttpFieldValue
 	implements List<String> {
 
 	private List<String> elements = new ArrayList<>();
@@ -42,7 +42,7 @@ public class HttpStringListFieldValue extends HttpFieldValue
 	 * @param value the value
 	 * @throws ParseException 
 	 */
-	public HttpStringListFieldValue(String value) throws ParseException {
+	public HttpListFieldValue(String value) throws ParseException {
 		super(value);
 		while (true) {
 			String element = nextElement();
@@ -70,8 +70,6 @@ public class HttpStringListFieldValue extends HttpFieldValue
 		}
 		return result.toString();
 	}
-
-
 
 	/**
 	 * @see java.util.List#add(int, java.lang.Object)

@@ -19,6 +19,7 @@ package org.jgrapes.io.events;
 
 import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.util.ManagedBuffer;
+import org.jgrapes.io.util.ManagedCharBuffer;
 
 /**
  * This event signals that a new chunk of data is to be forwarded to the
@@ -27,7 +28,7 @@ import org.jgrapes.io.util.ManagedBuffer;
  * @author Michael N. Lipp
  */
 public class Write<T extends ManagedBuffer<?>> 
-	extends ConnectionEvent<Void, DataConnection<T>> {
+	extends ConnectionEvent<Void, DataConnection> {
 
 	private T buffer;
 	
@@ -41,12 +42,25 @@ public class Write<T extends ManagedBuffer<?>>
 	 * @param connection the connection to write the data to
 	 * @param buffer the buffer with the data
 	 */
-	public Write(DataConnection<T> connection, T buffer) {
+	public Write(DataConnection connection, T buffer) {
 		super(connection);
 		this.buffer = buffer;
 		buffer.flip();
 	}
 
+	/**
+	 * Convenience method that wraps a String in a 
+	 * {@code Write<ManagedCharBuffer} event.
+	 * 
+	 * @param connection the connection to write the data to
+	 * @param data the string to wrap
+	 * @return the event
+	 */
+	public static Write<ManagedCharBuffer> 
+			wrap(DataConnection connection, String data) {
+		return new Write<>(connection, new ManagedCharBuffer(data));
+	}
+	
 	/**
 	 * Get the buffer with the data from this event.
 	 * 

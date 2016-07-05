@@ -21,8 +21,10 @@ import static org.junit.Assert.*;
 
 import java.text.ParseException;
 
-import org.jdrupes.httpcodec.util.HttpFieldValue;
-import org.jdrupes.httpcodec.util.HttpStringFieldValue;
+import org.jdrupes.httpcodec.HttpFieldValue;
+import org.jdrupes.httpcodec.HttpStringFieldValue;
+import org.jdrupes.httpcodec.HttpListFieldValue;
+import org.jdrupes.httpcodec.HttpMediaTypeFieldValue;
 import org.junit.Test;
 
 /**
@@ -32,32 +34,31 @@ import org.junit.Test;
 public class FieldParsingTests {
 
 	@Test
-	public void testSingle() throws ParseException {
+	public void testString() throws ParseException {
 		HttpFieldValue fv = new HttpStringFieldValue("Hello");
-		assertEquals("Hello", fv.nextElement());
-		assertNull(fv.nextElement());
+		assertEquals("Hello", fv.asString());
 	}
 
 	@Test
-	public void testSeveral() throws ParseException {
-		HttpFieldValue fv = new HttpStringFieldValue(
+	public void testStringList() throws ParseException {
+		HttpListFieldValue fv = new HttpListFieldValue(
 		        "How, are,you,  out, there");
-		assertEquals("How", fv.nextElement());
-		assertEquals("are", fv.nextElement());
-		assertEquals("you", fv.nextElement());
-		assertEquals("out", fv.nextElement());
-		assertEquals("there", fv.nextElement());
-		assertNull(fv.nextElement());
+		assertEquals("How", fv.get(0));
+		assertEquals("are", fv.get(1));
+		assertEquals("you", fv.get(2));
+		assertEquals("out", fv.get(3));
+		assertEquals("there", fv.get(4));
+		assertEquals(5, fv.size());
 	}
 
 	@Test
 	public void testQuoted() throws ParseException {
-		HttpFieldValue fv = new HttpStringFieldValue
+		HttpListFieldValue fv = new HttpListFieldValue
 				("\"How \\\"are\",you,  \"out, there\"");
-		assertEquals("\"How \\\"are\"", fv.nextElement());
-		assertEquals("you", fv.nextElement());
-		assertEquals("\"out, there\"", fv.nextElement());
-		assertNull(fv.nextElement());
+		assertEquals("How \"are", fv.get(0));
+		assertEquals("you", fv.get(1));
+		assertEquals("out, there", fv.get(2));
+		assertEquals(3, fv.size());
 	}
 
 	@Test
@@ -66,5 +67,18 @@ public class FieldParsingTests {
 		assertEquals("How are you?", fv.unquote());
 		fv = new HttpStringFieldValue("\"How \\\"are\"");
 		assertEquals("How \"are", fv.unquote());
+	}
+	
+	@Test
+	public void testMediaType() throws ParseException {
+		HttpMediaTypeFieldValue 
+			mt = new HttpMediaTypeFieldValue("text/html;charset=utf-8");
+		assertEquals("text/html;charset=utf-8", mt.asString());
+		mt = new HttpMediaTypeFieldValue("text/html;charset=UTF-8");
+		assertEquals("text/html;charset=utf-8", mt.asString());
+		mt = new HttpMediaTypeFieldValue("Text/HTML;Charset=\"utf-8\"");
+		assertEquals("text/html;charset=utf-8", mt.asString());
+		mt = new HttpMediaTypeFieldValue("text/html; charset=\"utf-8\"");
+		assertEquals("text/html;charset=utf-8", mt.asString());
 	}
 }

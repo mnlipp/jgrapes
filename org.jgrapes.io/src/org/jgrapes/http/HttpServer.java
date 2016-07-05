@@ -18,7 +18,10 @@
 package org.jgrapes.http;
 
 import java.net.SocketAddress;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.text.ParseException;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -27,6 +30,8 @@ import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.HttpResponseEncoder;
 import org.jdrupes.httpcodec.DecoderResult;
+import org.jdrupes.httpcodec.EncoderResult;
+import org.jdrupes.httpcodec.HttpMediaTypeFieldValue;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
@@ -47,9 +52,12 @@ import org.jgrapes.http.events.Request.HandlingResult;
 import org.jgrapes.io.Connection;
 import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.events.Close;
+import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
+import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedByteBuffer;
+import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Accepted;
 
@@ -121,7 +129,7 @@ public class HttpServer extends AbstractComponent {
 		}
 	}
 
-	private void fireRequest(DataConnection<ManagedByteBuffer> connection,
+	private void fireRequest(DataConnection connection,
 			HttpRequest request) {
 		Request req;
 		switch (request.getMethod()) {
@@ -158,43 +166,54 @@ public class HttpServer extends AbstractComponent {
 
 	@Handler
 	public void onRequestCompleted(Request.Completed event) 
-			throws InterruptedException {
+			throws InterruptedException, ParseException {
 		Request requestEvent = event.getCompleted();
-		DataConnection<ManagedByteBuffer> connection 
-			= requestEvent.getConnection();
+		DataConnection connection = requestEvent.getConnection();
 
 		HttpResponse response = null;
 		switch (requestEvent.get()) {
 		case UNHANDLED:
 			response = new HttpResponse
-				(requestEvent.getRequest().getProtocol());
-			response.setStatus(HttpStatus.NOT_IMPLEMENTED);
+				(requestEvent.getRequest().getProtocol(), 
+						HttpStatus.NOT_IMPLEMENTED, false);
+			fire (new Response(connection, response));
 			break;
 		case RESOURCE_NOT_FOUND:
-			response = new HttpResponse
-				(requestEvent.getRequest().getProtocol());
-			response.setStatus(HttpStatus.NOT_FOUND);
+			response = new HttpResponse(requestEvent.getRequest().getProtocol(),
+					HttpStatus.NOT_FOUND, true);
+			response.setContentType("text", "plain");
+			fire (new Response(connection, response));
+			fire (Write.wrap(connection, "Not Found"));
+			fire (new Eof(connection));
 			break;
-		case RESPONDED:
-			return;
+		default:
+			break;
 		}
-		fire (new Response(connection, response));
 	}
 	
 	@Handler
 	public void onResponse(Response event) throws InterruptedException {
-		DataConnection<ManagedByteBuffer> connection = event.getConnection();
+		DataConnection connection = event.getConnection();
 		HttpResponse response = event.getResponse();
 		HttpResponseEncoder encoder = encoders.get(connection);
 		EventPipeline pipeline = newEventPipeline();
 		
+		// Send response
 		while (true) {
-			ManagedByteBuffer buffer = connection.acquireWriteBuffer();
-			boolean more = encoder.encode(response, buffer.getBuffer());
+			ManagedByteBuffer buffer = connection.acquireByteBuffer();
+			EncoderResult result = encoder.encode(response, buffer.getBuffer());
 			pipeline.add(new Write<>(connection, buffer), networkChannel);
-			if (!more) {
+			if (!result.isOverflow()) {
 				break;
 			}
+		}
+	}
+	
+	@Handler
+	public void onWrite(Write<ManagedBuffer<?>> event) {
+		Buffer buffer = event.getBuffer().getBuffer();
+		if (buffer instanceof CharBuffer) {
+			
 		}
 	}
 

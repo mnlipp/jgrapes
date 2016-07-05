@@ -21,20 +21,18 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 import org.jgrapes.io.DataConnection;
-import org.jgrapes.io.util.ManagedBuffer;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class FileOpened<T extends ManagedBuffer<?>> 
-	extends Opened<DataConnection<T>> {
+public class FileOpened extends Opened<DataConnection> {
 
 	private Path path;
 	private OpenOption[] options;
 	
 	public FileOpened
-		(DataConnection<T> connection, Path path, OpenOption[] options) {
+		(DataConnection connection, Path path, OpenOption[] options) {
 		super(connection);
 		this.path = path;
 		this.options = options;

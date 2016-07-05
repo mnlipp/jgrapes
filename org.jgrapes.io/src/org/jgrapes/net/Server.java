@@ -214,8 +214,7 @@ public class Server extends AbstractComponent
 	 * @author Michael N. Lipp
 	 *
 	 */
-	public class SocketConnection 
-		implements NioHandler, DataConnection<ManagedByteBuffer> {
+	public class SocketConnection implements NioHandler, DataConnection {
 
 		private SocketChannel nioChannel;
 		private EventPipeline pipeline;
@@ -255,7 +254,8 @@ public class Server extends AbstractComponent
 		 * @see org.jgrapes.io.Connection#getBuffer()
 		 */
 		@Override
-		public ManagedByteBuffer acquireWriteBuffer() throws InterruptedException {
+		public ManagedByteBuffer acquireByteBuffer()
+				throws InterruptedException {
 			return writeBuffers.acquire();
 		}
 

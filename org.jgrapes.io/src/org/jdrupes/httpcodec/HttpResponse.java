@@ -17,8 +17,14 @@
  */
 package org.jdrupes.httpcodec;
 
+import java.text.ParseException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.util.HttpUtils;
 
 /**
  * @author Michael N. Lipp
@@ -26,11 +32,21 @@ import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 public class HttpResponse {
 
 	private HttpProtocol httpProtocol;
+	private boolean hasBody;
 	private int statusCode = -1;
 	private String reasonPhrase;
+	private Map<String,HttpFieldValue> headers 
+		= HttpUtils.caseInsensitiveMap(new HashMap<>());
 	
-	public HttpResponse(HttpProtocol protocol) {
+	public HttpResponse(HttpProtocol protocol, boolean hasBody) {
 		httpProtocol = protocol;
+		this.hasBody = hasBody;
+	}
+
+	public HttpResponse(HttpProtocol protocol,
+			HttpStatus status, boolean hasBody) {
+		this(protocol, hasBody);
+		setStatus(status);
 	}
 
 	/**
@@ -42,10 +58,16 @@ public class HttpResponse {
 		return httpProtocol;
 	}
 
-	boolean isComplete() {
-		return statusCode >= 0;
+	/**
+	 * Returns true if body data will be delivered to the encoder
+	 * after the header.
+	 * 
+	 * @return {@code true} if body data follows
+	 */
+	public boolean hasBody() {
+		return hasBody;
 	}
-	
+
 	/**
 	 * @return the responseCode
 	 */
@@ -85,4 +107,49 @@ public class HttpResponse {
 		reasonPhrase = status.getReasonPhrase();
 	}
 	
+	/**
+	 * Set a header for the response data.
+	 * 
+	 * @param name the header field's name
+	 * @param value the header field's value
+	 */
+	void setHeader(String name, HttpFieldValue value) {
+		headers.put(name, value);
+	}
+
+	/**
+	 * Returns all headers as unmodifiable map.
+	 * 
+	 * @return the headers
+	 */
+	public Map<String, HttpFieldValue> headers() {
+		return Collections.unmodifiableMap(headers);
+	}
+	
+	/**
+	 * A convenience method for setting the "Content-Type" header.
+	 * 
+	 * @param type the type
+	 * @param subtype the subtype
+	 * @throws ParseException
+	 */
+	public void setContentType(String type, String subtype) 
+			throws ParseException {
+		setHeader("Content-Type", new HttpMediaTypeFieldValue(type, subtype));
+	}
+
+	/**
+	 * A convenience method for setting the "Content-Type" header (usually
+	 * of type "text") together with its charset parameter.
+	 * 
+	 * @param type the type
+	 * @param subtype the subtype
+	 * @param charset the charset
+	 * @throws ParseException
+	 */
+	public void setContentType(String type, String subtype,
+			String charset) throws ParseException {
+		HttpMediaTypeFieldValue mt = new HttpMediaTypeFieldValue(type, subtype);
+		mt.setParameter("charset", charset);
+	}
 }

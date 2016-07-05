@@ -50,8 +50,7 @@ import org.jgrapes.io.util.ManagedByteBuffer;
  * 
  * @author Michael N. Lipp
  */
-public class File extends AbstractComponent 
-		implements DataConnection<ManagedByteBuffer> {
+public class File extends AbstractComponent implements DataConnection {
 
 	private class WriteContext {
 		public ManagedByteBuffer buffer;
@@ -100,10 +99,10 @@ public class File extends AbstractComponent
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.jgrapes.io.Connection#getBuffer()
+	 * @see org.jgrapes.io.DataConnection#getByteBuffer()
 	 */
 	@Override
-	public ManagedByteBuffer acquireWriteBuffer() throws InterruptedException {
+	public ManagedByteBuffer acquireByteBuffer() throws InterruptedException {
 		return ioBuffers.acquire();
 	}
 	
@@ -130,14 +129,14 @@ public class File extends AbstractComponent
 				.contains(StandardOpenOption.WRITE)) {
 			// Writing to file
 			reading = false;
-			pipeline.add(new FileOpened<>(this, event.getPath(), 
+			pipeline.add(new FileOpened(this, event.getPath(), 
 				event.getOptions()), getChannel());
 		} else {
 			// Reading from file
 			reading = true;
 			ManagedByteBuffer buffer = ioBuffers.acquire();
 			registerAsGenerator();
-			pipeline.add(new FileOpened<>
+			pipeline.add(new FileOpened
 				(this, event.getPath(), event.getOptions()), getChannel());
 			ioChannel.read
 				(buffer.getBuffer(), offset, buffer, readCompletionHandler);
@@ -239,7 +238,7 @@ public class File extends AbstractComponent
 	}
 
 	@Handler(events={Close.class, Stop.class})
-	public void close(Close<DataConnection<?>> event) throws InterruptedException {
+	public void close(Close<DataConnection> event) throws InterruptedException {
 		if (isOpen()) {
 			try {
 				synchronized (ioChannel) {

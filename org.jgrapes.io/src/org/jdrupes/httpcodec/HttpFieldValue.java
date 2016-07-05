@@ -15,9 +15,11 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.util;
+package org.jdrupes.httpcodec;
 
 import java.text.ParseException;
+
+import org.jdrupes.httpcodec.util.HttpUtils;
 
 /**
  * A base class for all kinds of field values.
@@ -51,7 +53,7 @@ public abstract class HttpFieldValue {
 	/**
 	 * Reset the parsing state.
 	 */
-	public void reset() {
+	protected void reset() {
 		position = 0;
 	}
 	
@@ -62,7 +64,7 @@ public abstract class HttpFieldValue {
 	 * @return the next element or {@code null} if no elements remain
 	 * @throws ParseException 
 	 */
-	public String nextElement() throws ParseException {
+	protected String nextElement() throws ParseException {
 		boolean inDquote = false;
 		int startPosition = position;
 		try {
@@ -177,7 +179,7 @@ public abstract class HttpFieldValue {
 		result.append('"');
 		while (position < value.length()) {
 			char ch = value.charAt(position++);
-			if (!needsQuoting && HttpConsts.TCHARS.indexOf(ch) < 0) {
+			if (!needsQuoting && HttpUtils.TCHARS.indexOf(ch) < 0) {
 				needsQuoting = true;
 			}
 			switch(ch) {
@@ -193,6 +195,15 @@ public abstract class HttpFieldValue {
 			return result.toString();
 		}
 		return value;
+	}
+
+	public static HttpFieldValue parseFieldValue
+		(String fieldName, String fieldValue) {
+		switch (fieldName.toLowerCase()) {
+		case "content-type":
+			
+		}
+		return new HttpStringFieldValue(fieldValue);
 	}
 	
 	/**

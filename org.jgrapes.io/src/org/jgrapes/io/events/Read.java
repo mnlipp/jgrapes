@@ -29,7 +29,7 @@ import org.jgrapes.io.util.ManagedBuffer;
  * @author Michael N. Lipp
  */
 public class Read<T extends ManagedBuffer<?>> 
-	extends ConnectionEvent<Void, DataConnection<T>> {
+	extends ConnectionEvent<Void, DataConnection> {
 
 	private T buffer;
 	
@@ -40,7 +40,7 @@ public class Read<T extends ManagedBuffer<?>>
 	 * and that can be used for sending {@link Write} events as replies
 	 * @param buffer the buffer with the data
 	 */
-	public Read(DataConnection<T> connection, T buffer) {
+	public Read(DataConnection connection, T buffer) {
 		super(connection);
 		this.buffer = buffer;
 	}

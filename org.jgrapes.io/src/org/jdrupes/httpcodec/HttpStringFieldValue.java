@@ -15,19 +15,30 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.util;
+package org.jdrupes.httpcodec;
 
 /**
+ * Represents a header field's value and provides methods for interpreting
+ * that value.
+ * 
  * @author Michael N. Lipp
- *
  */
-public class HttpConsts {
+public class HttpStringFieldValue extends HttpFieldValue {
 
-	private HttpConsts() {
+	/**
+	 * Creates a new representation of a field value.
+	 * 
+	 * @param value
+	 */
+	public HttpStringFieldValue(String value) {
+		super(value);
 	}
 
-	final public static String TCHARS 
-		= "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
-				+ "^`abcdefghijklmnopqrstuvwxyz|~";
-
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.util.HttpFieldValue#asString()
+	 */
+	@Override
+	public String asString() {
+		return quoteIfNecessary(rawValue());
+	}
 }

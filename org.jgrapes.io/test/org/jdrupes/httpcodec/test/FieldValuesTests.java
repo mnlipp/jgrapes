@@ -22,7 +22,7 @@ import static org.junit.Assert.*;
 import java.text.ParseException;
 import java.util.Iterator;
 
-import org.jdrupes.httpcodec.util.HttpStringListFieldValue;
+import org.jdrupes.httpcodec.HttpListFieldValue;
 import org.junit.Test;
 
 /**
@@ -33,7 +33,7 @@ public class FieldValuesTests {
 
 	@Test
 	public void testStringList() throws ParseException {
-		HttpStringListFieldValue fv = new HttpStringListFieldValue(
+		HttpListFieldValue fv = new HttpListFieldValue(
 		        "How, are,you,  \"out there\"");
 		Iterator<String> iter = fv.iterator();
 		assertEquals("How", iter.next());

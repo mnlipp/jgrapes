@@ -47,7 +47,7 @@ public class FileWriteTests {
 	public static class Producer extends AbstractComponent {
 		
 		@Handler
-		public void opened(FileOpened<ManagedByteBuffer> event) 
+		public void opened(FileOpened event) 
 				throws InterruptedException, IOException {
 			EventPipeline pipeline = newEventPipeline();
 			try (ByteBufferOutputStream out = new ByteBufferOutputStream

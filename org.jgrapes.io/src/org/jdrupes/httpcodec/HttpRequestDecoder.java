@@ -27,10 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jdrupes.httpcodec.util.DynamicByteArray;
-import org.jdrupes.httpcodec.util.HttpConsts;
-import org.jdrupes.httpcodec.util.HttpIntFieldValue;
-import org.jdrupes.httpcodec.util.HttpStringFieldValue;
-import org.jdrupes.httpcodec.util.HttpStringListFieldValue;
+import org.jdrupes.httpcodec.util.HttpUtils;
 
 /**
  * A decoder for HTTP requests that accepts data from a sequence of
@@ -41,7 +38,7 @@ import org.jdrupes.httpcodec.util.HttpStringListFieldValue;
 public class HttpRequestDecoder extends HttpCodec {
 
 	final private static String TOKEN 
-		= "[" + Pattern.quote(HttpConsts.TCHARS) + "]+";
+		= "[" + Pattern.quote(HttpUtils.TCHARS) + "]+";
 	final private static String SP = "[ \\t]+";
 	final private static String HTTP_VERSION = "HTTP/\\d+\\.\\d";
 	
@@ -179,7 +176,7 @@ public class HttpRequestDecoder extends HttpCodec {
 				        "Maximum header size exceeded");
 			}
 		} catch (ProtocolException e) {
-			HttpResponse response = new HttpResponse(e.getHttpVersion());
+			HttpResponse response = new HttpResponse(e.getHttpVersion(), false);
 			response.setStatusCode(e.getStatusCode());
 			response.setReasonPhrase(e.getReasonPhrase());
 			return new DecoderResult(null, response, true, false, false);
@@ -245,17 +242,17 @@ public class HttpRequestDecoder extends HttpCodec {
 				} catch (NumberFormatException e) {
 					throw new ParseException(fieldValue, 0);
 				}
-				building.addHeader
+				building.setHeader
 					(fieldName, new HttpStringFieldValue(fieldValue));
 				break;
 			case "Transfer-Encoding":
 				hasBody = true;
-				building.addHeader
-					(fieldName, new HttpStringListFieldValue(fieldValue));
+				building.setHeader
+					(fieldName, new HttpListFieldValue(fieldValue));
 				break;
 			case "Content-Length":
 				hasBody = true;
-				building.addHeader
+				building.setHeader
 					(fieldName, new HttpIntFieldValue(fieldValue));
 				break;
 			}

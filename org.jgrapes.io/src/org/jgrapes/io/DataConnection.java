@@ -17,23 +17,25 @@
  */
 package org.jgrapes.io;
 
+import java.nio.ByteBuffer;
+
 import org.jgrapes.io.events.Write;
-import org.jgrapes.io.util.ManagedBuffer;
+import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
  * Represents an I/O connection that is used to transfer data.
  * 
  * @author Michael N. Lipp
  */
-public interface DataConnection<T extends ManagedBuffer<?>> extends Connection {
+public interface DataConnection extends Connection {
 
 	/**
-	 * Get a buffer suitable to be passed to {@link Write} events.
+	 * Get a {@link ByteBuffer} suitable to be passed to {@link Write} events.
 	 * 
 	 * @return the buffer
 	 * @throws InterruptedException if the invoking thread is interrupted
 	 * while waiting for a buffer
 	 */
-	T acquireWriteBuffer() throws InterruptedException;
+	ManagedByteBuffer acquireByteBuffer() throws InterruptedException;
 
 }

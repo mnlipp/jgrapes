@@ -20,7 +20,6 @@ package org.jgrapes.http.events;
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jgrapes.core.Channel;
 import org.jgrapes.io.DataConnection;
-import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
  * @author Michael N. Lipp
@@ -36,7 +35,7 @@ public class PutRequest extends Request {
 	 * @param channels the channels on which the event is to be 
 	 * fired (optional)
 	 */
-	public PutRequest(DataConnection<ManagedByteBuffer> connection,
+	public PutRequest(DataConnection connection,
 	        HttpRequest request, Channel... channels) {
 		super(connection, request, channels);
 	}

@@ -58,7 +58,7 @@ public class EchoTest {
 		@Handler
 		public void onRead(Read<ManagedByteBuffer> event)
 				throws InterruptedException {
-			ManagedByteBuffer out = event.getConnection().acquireWriteBuffer();
+			ManagedByteBuffer out = event.getConnection().acquireByteBuffer();
 			out.put(event.getBuffer());
 			fire(new Write<>(event.getConnection(), out));
 		}

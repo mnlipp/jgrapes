@@ -31,10 +31,33 @@ import java.util.stream.IntStream;
  */
 public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 
+	/**
+	 * Creates new managed buffer that is backed by the given buffer
+	 * and uses the given manager to release the buffer if it is no longer
+	 * locked.
+	 * 
+	 * @param buffer
+	 * @param manager
+	 */
 	public ManagedCharBuffer(CharBuffer buffer, BufferCollector manager) {
 		super(buffer, manager);
 	}
 
+	/**
+	 * Creates a new managed buffer that is backed by the given
+	 * char sequence. The manager for this instance does nothing
+	 * when the buffer is released.
+	 * 
+	 * @param backing
+	 */
+	public ManagedCharBuffer(CharSequence backing) {
+		super(CharBuffer.wrap(backing), new BufferCollector() {
+			@Override
+			public void recollect(ManagedBuffer<?> buffer) {
+			}
+		});
+	}
+	
 	/**
 	 * @see java.nio.CharBuffer#append(char)
 	 */

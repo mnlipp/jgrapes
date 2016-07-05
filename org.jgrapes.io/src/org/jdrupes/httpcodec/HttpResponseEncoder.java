@@ -22,6 +22,8 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.jdrupes.httpcodec.util.ByteBufferOutputStream;
 
@@ -33,6 +35,7 @@ public class HttpResponseEncoder {
 	private ByteBufferOutputStream outStream;
 	private Writer writer;
 	private HttpResponse response = null;
+	private Iterator<Map.Entry<String,HttpFieldValue>> headerIter = null;
 
 	public HttpResponseEncoder() {
 		outStream = new ByteBufferOutputStream();
@@ -42,28 +45,82 @@ public class HttpResponseEncoder {
 		}
 	}
 	
-	public boolean encode (HttpResponse response, ByteBuffer out) {
+	public EncoderResult encode (HttpResponse response, ByteBuffer out) {
+		outStream.assignBuffer(out);
 		try {
-			if (this.response != null && this.response != response) {
+			if (this.response == null) {
+				newResponse(response);
+			}
+			// Sanity check
+			if (this.response != response) {
 				throw new IllegalStateException();
 			}
-			outStream.assignBuffer(out);
-			if (this.response == null) {
-				this.response = response;
-				writer.write(response.getProtocol().toString());
-				writer.write(" ");
-				writer.write(Integer.toString(response.getStatusCode()));
-				writer.write(" ");
-				writer.write(response.getReasonPhrase());
-				writer.write("\r\n");
-				writer.write("\r\n");
-				writer.flush();
+			// If headers remain (new request or buffers full) write them
+			if (headerIter != null) {
+				continueHeaders();
+				if (headerIter != null) {
+					return new EncoderResult(true, false);
+				}
 			}
 		} catch (IOException e) {
 		}
-		return outStream.remaining() < 0;
+		return new EncoderResult(false, false);
+	}
+
+	/**
+	 * Called when encode is invoked with a new response (initial state).
+	 * 
+	 * @param response
+	 * @throws IOException 
+	 */
+	private void newResponse(HttpResponse response) throws IOException {
+		// Invocation with new response
+		this.response = response;
+		
+		// Complete content type
+		HttpMediaTypeFieldValue contentType 
+			= (HttpMediaTypeFieldValue) response.headers().get("content-type");
+		String charset = null;
+		if (contentType != null) {
+			charset = contentType.getParameter("charset");
+			if (charset == null) {
+				charset = "utf-8";
+				contentType.setParameter("charset", charset);
+			}
+		}
+		
+		// Write status line
+		writer.write(response.getProtocol().toString());
+		writer.write(" ");
+		writer.write(Integer.toString(response.getStatusCode()));
+		writer.write(" ");
+		writer.write(response.getReasonPhrase());
+		writer.write("\r\n");
+		
+		// Start headers
+		headerIter = response.headers().entrySet().iterator();
 	}
 	
+	private void continueHeaders() throws IOException {
+		while (true) {
+			if (!headerIter.hasNext()) {
+				writer.write("\r\n");
+				writer.flush();
+				headerIter = null;
+				return;
+			}
+			Map.Entry<String, HttpFieldValue> header = headerIter.next();
+			writer.write(header.getKey());
+			writer.write(": ");
+			writer.write(header.getValue().asString());
+			writer.write("\r\n");
+			writer.flush();
+			if (outStream.remaining() < 80) {
+				return;
+			}
+		}
+	}
+
 	public boolean encode 
 		(HttpResponse response, ByteBuffer in, ByteBuffer out) {
 		return false;
