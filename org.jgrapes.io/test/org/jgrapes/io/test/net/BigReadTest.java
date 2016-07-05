@@ -27,6 +27,11 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
@@ -41,10 +46,35 @@ import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class BigReadTest {
 
+	@BeforeClass
+	public static void enableLogging() {
+		System.setProperty("java.util.logging.SimpleFormatter.format",
+				"%1$tY-%1$tm-%1$td %5$s%n");
+		java.util.logging.Handler consoleHandler = new ConsoleHandler();
+		consoleHandler.setLevel(Level.FINEST);
+		consoleHandler.setFormatter(new SimpleFormatter());
+		Logger logger = Logger.getLogger("org.jgrapes");
+		logger.addHandler(consoleHandler);
+		logger.setLevel(Level.FINEST);
+		
+//		handlers=java.util.logging.ConsoleHandler
+//
+//				org.jgrapes.level=FINE
+//				org.jgrapes.core.handlerTracking.level=FINER
+//
+//
+//				java.util.logging.ConsoleHandler.level=ALL
+//				java.util.logging.ConsoleHandler.formatter=java.util.logging.SimpleFormatter
+//				java.util.logging.SimpleFormatter.format=%1$tY-%1$tm-%1$td %5$s%n
+//		System.setProperty("java.util.logging.config.file",
+//		        "jul-debug.properties");
+	}
+	
 	public class EchoServer extends AbstractComponent {
 
 		/**
