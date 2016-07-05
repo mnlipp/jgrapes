@@ -42,12 +42,28 @@ public class ByteBufferOutputStream extends OutputStream {
 	private ByteBuffer assignedBuffer = null;
 	private Queue<ByteBuffer> overflows = new ArrayDeque<>();
 	private ByteBuffer current = null;
-	
+	private int overflowBufferSize = 0;
+
 	/**
-	 * Creates a new instance.
+	 * Returns the size of the buffers that will be allocated
+	 * as overflow buffers.
+	 *
+	 * @return the allocation size for the overflow buffers
 	 */
-	public ByteBufferOutputStream()	{
-		super();
+	public int getOverflowBufferSize() {
+		return overflowBufferSize;
+	}
+
+	/**
+	 * The size of the buffers that are allocated if the assigned buffer
+	 * overflows. If not set, buffers are allocated with one fourth of
+	 * the size of the assigned buffer or 4096 if no buffer has been
+	 * assigned yet.
+	 * 
+	 * @param overflowBufferSize the size
+	 */
+	public void setOverflowBufferSize(int overflowBufferSize) {
+		this.overflowBufferSize = overflowBufferSize;
 	}
 
 	/**
@@ -85,8 +101,10 @@ public class ByteBufferOutputStream extends OutputStream {
 	}
 	
 	private void allocateOverflowBuffer() {
-		current = ByteBuffer.allocate
-				(assignedBuffer == null ? 4096 : assignedBuffer.capacity() / 4);
+		current = ByteBuffer.allocate(overflowBufferSize != 0
+		        ? overflowBufferSize
+		        : (assignedBuffer == null
+		                ? 4096 : assignedBuffer.capacity() / 4));
 		current.mark();
 		overflows.add(current);
 	}
@@ -137,5 +155,39 @@ public class ByteBufferOutputStream extends OutputStream {
 			return -1;
 		}
 		return assignedBuffer.remaining();
+	}
+
+	/**
+	 * Does not have any effect. May be called for consistent usage
+	 * of the output stream.
+	 * 
+	 * @throws IOException if there is still data in intermediate storage
+	 * @see java.io.OutputStream#close()
+	 */
+	@Override
+	public void close() throws IOException {
+		// TODO Auto-generated method stub
+		super.close();
+	}
+	
+	/**
+	 * The sum of all bytes written. This is includes the bytes in
+	 * the assigned buffer plus the sum of all bytes in all allocated
+	 * overflow buffers.
+	 * 
+	 * @return the bytes buffer
+	 */
+	public long buffered() {
+		long sum = 0;
+		if (assignedBuffer != null) {
+			sum += assignedBuffer.position();
+		}
+		for (ByteBuffer b: overflows) {
+			int curPos = b.position(); // Save position
+			b.reset();
+			sum += curPos - b.position();
+			b.position(curPos);
+		}
+		return sum;
 	}
 }
