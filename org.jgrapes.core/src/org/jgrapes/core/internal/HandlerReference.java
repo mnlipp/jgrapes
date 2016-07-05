@@ -210,39 +210,15 @@ class HandlerReference implements Comparable<HandlerReference> {
 			 int priority);
 	}
 
-    private static class Holder {
-    	public static HandlerRefFactory FACTORY;
-    	static {
-			if (handlerTracking.isLoggable(Level.FINE)) {
-				FACTORY = new HandlerRefFactory() {
-					@Override
-					HandlerReference createHandlerRef(Object eventKey,
-				            Object channelKey,
-				            Component component, Method method,
-				            boolean eventParam, int priority) {
-						return new VerboseHandlerReference(eventKey, channelKey,
-				                component, method, eventParam, priority);
-					}
-				};
-			} else {
-				FACTORY = new HandlerRefFactory() {
-					@Override
-					HandlerReference createHandlerRef(Object eventKey,
-				            Object channelKey,
-				            Component component, Method method,
-				            boolean eventParam, int priority) {
-						return new HandlerReference(eventKey, channelKey,
-				                component, method, eventParam, priority);
-					}
-				};
-			}
-    	}
-    }
-
     public static HandlerReference newRef(Object eventKey, Object channelKey,	
 			Component component, Method method, boolean eventParam, 
 			int priority) {
-    	return Holder.FACTORY.createHandlerRef(eventKey, channelKey,	
-    			component, method, eventParam, priority);
+    	if (handlerTracking.isLoggable(Level.FINE)) {
+			return new VerboseHandlerReference(eventKey, channelKey,
+	                component, method, eventParam, priority);
+    	} else {
+			return new HandlerReference(eventKey, channelKey,
+	                component, method, eventParam, priority);
+    	}
     }
 }
