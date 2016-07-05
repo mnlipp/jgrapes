@@ -20,6 +20,8 @@ package org.jgrapes.io.test.net;
 import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -32,6 +34,9 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import java.util.logging.StreamHandler;
+
+import javax.xml.ws.handler.HandlerResolver;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
@@ -39,6 +44,7 @@ import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Utils;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
+import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ByteBufferOutputStream;
@@ -46,33 +52,23 @@ import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class BigReadTest {
 
 	@BeforeClass
-	public static void enableLogging() {
+	public static void enableLogging() throws FileNotFoundException {
 		System.setProperty("java.util.logging.SimpleFormatter.format",
 				"%1$tY-%1$tm-%1$td %5$s%n");
-		java.util.logging.Handler consoleHandler = new ConsoleHandler();
-		consoleHandler.setLevel(Level.FINEST);
-		consoleHandler.setFormatter(new SimpleFormatter());
+		java.util.logging.Handler handler = new ConsoleHandler();
+		handler.setLevel(Level.FINEST);
+		handler.setFormatter(new SimpleFormatter());
 		Logger logger = Logger.getLogger("org.jgrapes");
-		logger.addHandler(consoleHandler);
+		logger.addHandler(handler);
+		logger.setUseParentHandlers(false);
 		logger.setLevel(Level.FINEST);
-		
-//		handlers=java.util.logging.ConsoleHandler
-//
-//				org.jgrapes.level=FINE
-//				org.jgrapes.core.handlerTracking.level=FINER
-//
-//
-//				java.util.logging.ConsoleHandler.level=ALL
-//				java.util.logging.ConsoleHandler.formatter=java.util.logging.SimpleFormatter
-//				java.util.logging.SimpleFormatter.format=%1$tY-%1$tm-%1$td %5$s%n
-//		System.setProperty("java.util.logging.config.file",
-//		        "jul-debug.properties");
 	}
 	
 	public class EchoServer extends AbstractComponent {

@@ -7,6 +7,8 @@
 
 import aQute.bnd.build.Workspace
 import aQute.bnd.osgi.Constants
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 /* Add bnd gradle plugin as a script dependency */
 buildscript {
@@ -34,12 +36,17 @@ subprojects {
     test {
       testLogging {
         // set options for log level LIFECYCLE
-        events "failed"
-        exceptionFormat "full"
+        events TestLogEvent.FAILED,
+               TestLogEvent.SKIPPED,
+               TestLogEvent.STANDARD_ERROR,
+               TestLogEvent.STANDARD_OUT
 
-        showExceptions true
-        showStackTraces true
-        showCauses true
+        exceptionFormat TestExceptionFormat.FULL
+
+	showStandardStreams = true
+        showExceptions = true
+        showStackTraces = true
+        showCauses = true
       }
     }
     
