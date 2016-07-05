@@ -38,6 +38,7 @@ subprojects {
         // set options for log level LIFECYCLE
         events TestLogEvent.FAILED,
                TestLogEvent.SKIPPED,
+               TestLogEvent.PASSED,
                TestLogEvent.STANDARD_ERROR,
                TestLogEvent.STANDARD_OUT
 

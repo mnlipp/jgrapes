@@ -60,15 +60,15 @@ public class BigReadTest {
 
 	@BeforeClass
 	public static void enableLogging() throws FileNotFoundException {
-		System.setProperty("java.util.logging.SimpleFormatter.format",
-				"%1$tY-%1$tm-%1$td %5$s%n");
-		java.util.logging.Handler handler = new ConsoleHandler();
-		handler.setLevel(Level.FINEST);
-		handler.setFormatter(new SimpleFormatter());
-		Logger logger = Logger.getLogger("org.jgrapes");
-		logger.addHandler(handler);
-		logger.setUseParentHandlers(false);
-		logger.setLevel(Level.FINEST);
+//		System.setProperty("java.util.logging.SimpleFormatter.format",
+//				"%1$tY-%1$tm-%1$td %5$s%n");
+//		java.util.logging.Handler handler = new ConsoleHandler();
+//		handler.setLevel(Level.FINEST);
+//		handler.setFormatter(new SimpleFormatter());
+//		Logger logger = Logger.getLogger("org.jgrapes");
+//		logger.addHandler(handler);
+//		logger.setUseParentHandlers(false);
+//		logger.setLevel(Level.FINEST);
 	}
 	
 	public class EchoServer extends AbstractComponent {
