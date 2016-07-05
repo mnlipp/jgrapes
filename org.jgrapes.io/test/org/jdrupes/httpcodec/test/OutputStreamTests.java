@@ -72,9 +72,7 @@ public class OutputStreamTests {
 		os.write(dataSource.get());
 		assertEquals(sink.position() + assignedBuf.position(), 
 				dataSource.position());
-		while (dataSource.hasRemaining()) {
-			os.write(dataSource.get());
-		}
+		os.write(dataSource);
 		assignedBuf.flip();
 		sink.put(assignedBuf);
 		os.close();

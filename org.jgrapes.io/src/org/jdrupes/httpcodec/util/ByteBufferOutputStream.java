@@ -144,6 +144,29 @@ public class ByteBufferOutputStream extends OutputStream {
 	}
 
 	/**
+	 * Copies the data from the given buffer to this output stream.
+	 * 
+	 * @param b
+	 */
+	public void write(ByteBuffer b) {
+		if (current == null) {
+			allocateOverflowBuffer();
+		}
+		while (true) {
+			if (current.remaining() >= b.remaining()) {
+				current.put(b);
+				return;
+			}
+			if (current.remaining() > 0) {
+				int oldLimit = b.limit();
+				b.limit(b.position() + current.remaining());
+				b.limit(oldLimit);
+			}
+			allocateOverflowBuffer();
+		}
+	}
+	
+	/**
 	 * Returns the number of bytes remaining in the assigned buffer.
 	 * A negative value indicates that the assigned buffer is full
 	 * and an overflow buffer is being used. 
