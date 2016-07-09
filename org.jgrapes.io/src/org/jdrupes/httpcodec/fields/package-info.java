@@ -15,30 +15,8 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
-
 /**
- * Represents a header field's value and provides methods for interpreting
- * that value.
- * 
  * @author Michael N. Lipp
+ *
  */
-public class HttpStringFieldValue extends HttpFieldValue {
-
-	/**
-	 * Creates a new representation of a field value.
-	 * 
-	 * @param value
-	 */
-	public HttpStringFieldValue(String value) {
-		super(value);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.util.HttpFieldValue#asString()
-	 */
-	@Override
-	public String asString() {
-		return quoteIfNecessary(rawValue());
-	}
-}
+package org.jdrupes.httpcodec.fields;

@@ -26,6 +26,10 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpIntField;
+import org.jdrupes.httpcodec.fields.HttpStringListField;
+import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.jdrupes.httpcodec.util.DynamicByteArray;
 import org.jdrupes.httpcodec.util.HttpUtils;
 
@@ -176,7 +180,8 @@ public class HttpRequestDecoder extends HttpCodec {
 				        "Maximum header size exceeded");
 			}
 		} catch (ProtocolException e) {
-			HttpResponse response = new HttpResponse(e.getHttpVersion(), false);
+			HttpResponse response = new HttpResponse(e.getHttpVersion(), 
+					HttpStatus.BAD_REQUEST, false);
 			response.setStatusCode(e.getStatusCode());
 			response.setReasonPhrase(e.getReasonPhrase());
 			return new DecoderResult(null, response, true, false, false);
@@ -234,7 +239,7 @@ public class HttpRequestDecoder extends HttpCodec {
 		String fieldValue = m.group(2).trim();
 		try {
 			switch (fieldName) {
-			case "Host":
+			case HttpField.HOST:
 				String[] hostPort = fieldValue.split(":");
 				try {
 					building.setHostAndPort(hostPort[0], 
@@ -243,17 +248,17 @@ public class HttpRequestDecoder extends HttpCodec {
 					throw new ParseException(fieldValue, 0);
 				}
 				building.setHeader
-					(fieldName, new HttpStringFieldValue(fieldValue));
+					(fieldName, new HttpStringField(fieldName, fieldValue));
 				break;
-			case "Transfer-Encoding":
+			case HttpField.TRANSFER_ENCODING:
 				hasBody = true;
 				building.setHeader
-					(fieldName, new HttpListFieldValue(fieldValue));
+					(fieldName, new HttpStringListField(fieldName, fieldValue));
 				break;
-			case "Content-Length":
+			case HttpField.CONTENT_LENGTH:
 				hasBody = true;
 				building.setHeader
-					(fieldName, new HttpIntFieldValue(fieldValue));
+					(fieldName, new HttpIntField(fieldName, fieldValue));
 				break;
 			}
 		} catch (ParseException e) {

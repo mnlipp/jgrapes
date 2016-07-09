@@ -21,10 +21,10 @@ import static org.junit.Assert.*;
 
 import java.text.ParseException;
 
-import org.jdrupes.httpcodec.HttpFieldValue;
-import org.jdrupes.httpcodec.HttpStringFieldValue;
-import org.jdrupes.httpcodec.HttpListFieldValue;
-import org.jdrupes.httpcodec.HttpMediaTypeFieldValue;
+import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpStringListField;
+import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.junit.Test;
 
 /**
@@ -35,13 +35,13 @@ public class FieldParsingTests {
 
 	@Test
 	public void testString() throws ParseException {
-		HttpFieldValue fv = new HttpStringFieldValue("Hello");
-		assertEquals("Hello", fv.asString());
+		HttpField<?> fv = new HttpStringField("Test", "Hello");
+		assertEquals("Hello", fv.getValue());
 	}
 
 	@Test
 	public void testStringList() throws ParseException {
-		HttpListFieldValue fv = new HttpListFieldValue(
+		HttpStringListField fv = new HttpStringListField("Test",
 		        "How, are,you,  out, there");
 		assertEquals("How", fv.get(0));
 		assertEquals("are", fv.get(1));
@@ -53,8 +53,8 @@ public class FieldParsingTests {
 
 	@Test
 	public void testQuoted() throws ParseException {
-		HttpListFieldValue fv = new HttpListFieldValue
-				("\"How \\\"are\",you,  \"out, there\"");
+		HttpStringListField fv = new HttpStringListField("Test",
+				"\"How \\\"are\",you,  \"out, there\"");
 		assertEquals("How \"are", fv.get(0));
 		assertEquals("you", fv.get(1));
 		assertEquals("out, there", fv.get(2));
@@ -63,22 +63,20 @@ public class FieldParsingTests {
 
 	@Test
 	public void testUnquote() throws ParseException {
-		HttpFieldValue fv = new HttpStringFieldValue("How are you?");
+		HttpField<?> fv = new HttpStringField("Test", "How are you?");
 		assertEquals("How are you?", fv.unquote());
-		fv = new HttpStringFieldValue("\"How \\\"are\"");
+		fv = new HttpStringField("Test", "\"How \\\"are\"");
 		assertEquals("How \"are", fv.unquote());
 	}
 	
 	@Test
 	public void testMediaType() throws ParseException {
-		HttpMediaTypeFieldValue 
-			mt = new HttpMediaTypeFieldValue("text/html;charset=utf-8");
-		assertEquals("text/html;charset=utf-8", mt.asString());
-		mt = new HttpMediaTypeFieldValue("text/html;charset=UTF-8");
-		assertEquals("text/html;charset=utf-8", mt.asString());
-		mt = new HttpMediaTypeFieldValue("Text/HTML;Charset=\"utf-8\"");
-		assertEquals("text/html;charset=utf-8", mt.asString());
-		mt = new HttpMediaTypeFieldValue("text/html; charset=\"utf-8\"");
-		assertEquals("text/html;charset=utf-8", mt.asString());
+		HttpMediaTypeField 
+			mt = new HttpMediaTypeField("Test", "text/html;charset=utf-8");
+		assertEquals("text/html; charset=utf-8", mt.valueToString());
+		mt = new HttpMediaTypeField("Test", "Text/HTML;Charset=\"utf-8\"");
+		assertEquals("text/html; charset=utf-8", mt.valueToString());
+		mt = new HttpMediaTypeField("Test", "text/html; charset=\"utf-8\"");
+		assertEquals("text/html; charset=utf-8", mt.valueToString());
 	}
 }

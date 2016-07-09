@@ -23,32 +23,110 @@ package org.jdrupes.httpcodec;
  */
 public class EncoderResult {
 
+	public final static EncoderResult 
+		OVERFLOW = new EncoderResult(true, false, false);
+	public final static EncoderResult 
+		UNDERFLOW = new EncoderResult(false, true, false);
+	public final static EncoderResult 
+		SEND_CLOSE = new EncoderResult(false, false, true);
+	public final static EncoderResult 
+		PROCEED = new EncoderResult(false, false, false);
+	
 	private boolean overflow;
-	private boolean mustBeClosed;
+	private boolean underflow;
+	private boolean sendClose;
 	
 	/**
 	 * @param overflow
 	 * @param mustBeClosed
 	 */
-	public EncoderResult(boolean overflow, boolean mustBeClosed) {
+	public EncoderResult(boolean overflow, boolean underflow, 
+			boolean mustBeClosed) {
 		super();
-		this.mustBeClosed = mustBeClosed;
+		this.sendClose = mustBeClosed;
 		this.overflow = overflow;
 	}
 
 	/**
-	 * @return the overflow
+	 * Indicates that the data didn't fit in the out buffer. The encoding 
+	 * method that has returned this result should be re-invoked with 
+	 * the same parameters except for a new (or cleared) output buffer.
+	 * 
+	 * @return {@code true} if overflow occurred
 	 */
 	public boolean isOverflow() {
 		return overflow;
 	}
 
 	/**
-	 * @return the mustBeClosed
+	 * Indicates that more data is expected. The encoding 
+	 * method that has returned this result should be re-invoked with 
+	 * the same parameters except for an input buffer with additional data.
+	 * 
+	 * @return {@code true} if underflow occurred
 	 */
-	public boolean mustBeClosed() {
-		return mustBeClosed;
+	public boolean isUnderflow() {
+		return underflow;
 	}
 
+	/**
+	 * Indicates that the connection to the receiver of the response
+	 * must be closed to complete the encoding of the response. 
+	 * 
+	 * @return the mustBeClosed
+	 */
+	public boolean sendClose() {
+		return sendClose;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (overflow ? 1231 : 1237);
+		result = prime * result + (sendClose ? 1231 : 1237);
+		result = prime * result + (underflow ? 1231 : 1237);
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		EncoderResult other = (EncoderResult) obj;
+		if (overflow != other.overflow)
+			return false;
+		if (sendClose != other.sendClose)
+			return false;
+		if (underflow != other.underflow)
+			return false;
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("EncoderResult [overflow=");
+		builder.append(overflow);
+		builder.append(", underflow=");
+		builder.append(underflow);
+		builder.append(", sendClose=");
+		builder.append(sendClose);
+		builder.append("]");
+		return builder.toString();
+	}
 	
 }

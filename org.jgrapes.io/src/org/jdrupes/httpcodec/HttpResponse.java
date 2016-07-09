@@ -19,12 +19,14 @@ package org.jdrupes.httpcodec;
 
 import java.text.ParseException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
-import org.jdrupes.httpcodec.util.HttpUtils;
+import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.fields.HttpStringListField;
 
 /**
  * @author Michael N. Lipp
@@ -35,18 +37,28 @@ public class HttpResponse {
 	private boolean hasBody;
 	private int statusCode = -1;
 	private String reasonPhrase;
-	private Map<String,HttpFieldValue> headers 
-		= HttpUtils.caseInsensitiveMap(new HashMap<>());
+	private Map<String,HttpField<?>> headers 
+		= new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 	
-	public HttpResponse(HttpProtocol protocol, boolean hasBody) {
-		httpProtocol = protocol;
-		this.hasBody = hasBody;
-	}
-
 	public HttpResponse(HttpProtocol protocol,
 			HttpStatus status, boolean hasBody) {
-		this(protocol, hasBody);
+		httpProtocol = protocol;
 		setStatus(status);
+		this.hasBody = hasBody;
+	}
+	
+	public HttpResponse(HttpRequest request,
+			HttpStatus status, boolean hasBody) throws ParseException {
+		httpProtocol = request.getProtocol();
+		HttpStringListField conField = request
+		        .getHeader(HttpStringListField.class, HttpField.CONNECTION);
+		if (conField != null && conField.containsIgnoreCase("close")) {
+			conField = new HttpStringListField
+					(HttpField.CONNECTION, "close");
+			setHeader(conField);
+		}
+		setStatus(status);
+		this.hasBody = hasBody;
 	}
 
 	/**
@@ -113,16 +125,28 @@ public class HttpResponse {
 	 * @param name the header field's name
 	 * @param value the header field's value
 	 */
-	void setHeader(String name, HttpFieldValue value) {
-		headers.put(name, value);
+	public void setHeader(HttpField<?> field) {
+		headers.put(field.getName(), field);
 	}
 
+	/**
+	 * Returns the header field with the given type and name or {@code null}
+	 * if no such header is set.
+	 * 
+	 * @param type the header field type
+	 * @param name the field name
+	 * @return the header field or {@code null}
+	 */
+	public <T extends HttpField<?>> T getHeader(Class<T> type, String name) {
+		return type.cast(headers.get(name));
+	}
+	
 	/**
 	 * Returns all headers as unmodifiable map.
 	 * 
 	 * @return the headers
 	 */
-	public Map<String, HttpFieldValue> headers() {
+	public Map<String, HttpField<?>> headers() {
 		return Collections.unmodifiableMap(headers);
 	}
 	
@@ -135,7 +159,8 @@ public class HttpResponse {
 	 */
 	public void setContentType(String type, String subtype) 
 			throws ParseException {
-		setHeader("Content-Type", new HttpMediaTypeFieldValue(type, subtype));
+		setHeader(new HttpMediaTypeField
+				(HttpField.CONTENT_TYPE, type, subtype));
 	}
 
 	/**
@@ -149,7 +174,7 @@ public class HttpResponse {
 	 */
 	public void setContentType(String type, String subtype,
 			String charset) throws ParseException {
-		HttpMediaTypeFieldValue mt = new HttpMediaTypeFieldValue(type, subtype);
+		HttpMediaTypeField mt = new HttpMediaTypeField(type, subtype);
 		mt.setParameter("charset", charset);
 	}
 }

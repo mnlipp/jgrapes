@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.fields;
 
 import java.text.ParseException;
 
@@ -26,19 +26,35 @@ import org.jdrupes.httpcodec.util.HttpUtils;
  * 
  * @author Michael N. Lipp
  */
-public abstract class HttpFieldValue {
+public abstract class HttpField<T> {
 
+	final public static String CONNECTION = "Connection";
+	final public static String CONTENT_LENGTH = "Content-Length";
+	final public static String CONTENT_TYPE = "Content-Type";
+	final public static String HOST = "Host";
+	final public static String TRANSFER_ENCODING = "Transfer-Encoding";
+
+	final private String name;
 	private String value;
-	private int position;
 	
 	/**
 	 * Creates a new representation of a field value.
 	 * 
-	 * @param value
+	 * @param name the field name
+	 * @param value the field value
 	 */
-	public HttpFieldValue(String value) {
+	public HttpField(String name, String value) {
+		this.name = name;
 		this.value = value.trim();
-		reset();
+	}
+
+	/**
+	 * Returns the field name.
+	 * 
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
 	}
 
 	/**
@@ -46,71 +62,31 @@ public abstract class HttpFieldValue {
 	 * 
 	 * @return the value
 	 */
-	public String rawValue() {
+	protected String rawValue() {
 		return value;
 	}
-	
+
 	/**
-	 * Reset the parsing state.
-	 */
-	protected void reset() {
-		position = 0;
-	}
-	
-	/**
-	 * Returns the next element from a field value that is formated as a
-	 * comma separated list of elements.
+	 * Returns the header field's value.
 	 * 
-	 * @return the next element or {@code null} if no elements remain
-	 * @throws ParseException 
+	 * @return
 	 */
-	protected String nextElement() throws ParseException {
-		boolean inDquote = false;
-		int startPosition = position;
-		try {
-			while (true) {
-				if (inDquote) {
-					char ch = value.charAt(position);
-					switch (ch) {
-					 case '\\':
-						 position += 2;
-						 continue;
-					 case '\"':
-						 inDquote = false;
-					 default:
-						 position += 1;
-						 continue;
-					}
-				}
-				if (position == value.length()) {
-					if (position == startPosition) {
-						return null;
-					}
-					return value.substring(startPosition, position);
-				}
-				char ch = value.charAt(position);
-				switch (ch) {
-				case ',':
-					String result = value.substring(startPosition, position);
-					position += 1; // Skip comma
-					while (true) { // Skip optional white space
-						ch = value.charAt(position);
-						if (ch != ' ' && ch != '\t') {
-							break;
-						}
-						position += 1;
-					}
-					return result;
-				case '\"':
-					inDquote = true;
-				default:
-					position += 1;
-					continue;
-				}
-			}
-		} catch (IndexOutOfBoundsException e) {
-			throw new ParseException(value, position);
-		}
+	public abstract T getValue();
+	
+	/**
+	 * Returns the string representation of this field's value.
+	 * 
+	 * @return the field value as string
+	 */
+	public abstract String valueToString();
+	
+	/**
+	 * Returns the string representation of this field.
+	 * 
+	 * @return the field as it occurs in a header
+	 */
+	public String toString() {
+		return getName() + ": " + valueToString();
 	}
 	
 	/**
@@ -197,36 +173,13 @@ public abstract class HttpFieldValue {
 		return value;
 	}
 
-	public static HttpFieldValue parseFieldValue
+	public static HttpField<?> parseFieldValue
 		(String fieldName, String fieldValue) {
 		switch (fieldName.toLowerCase()) {
-		case "content-type":
+		case HttpField.CONTENT_TYPE:
 			
 		}
-		return new HttpStringFieldValue(fieldValue);
+		return new HttpStringField(fieldName, fieldValue);
 	}
-	
-	/**
-	 * Returns the string representation of this fiel value.
-	 * 
-	 * @return
-	 */
-	public abstract String asString();
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("HttpFieldValue [");
-		if (value != null) {
-			builder.append("value=");
-			builder.append(asString());
-		}
-		builder.append("]");
-		return builder.toString();
-	}
-	
 	
 }

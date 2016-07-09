@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.fields;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -31,42 +31,112 @@ import java.util.ListIterator;
  * 
  * @author Michael N. Lipp
  */
-public class HttpListFieldValue extends HttpFieldValue
-	implements List<String> {
+public abstract class HttpListField<T> extends HttpField<List<T>>
+	implements List<T> {
 
-	private List<String> elements = new ArrayList<>();
+	private int position;
+	private List<T> elements = new ArrayList<>();
 	
 	/**
 	 * Creates the new object from the given value.
 	 * 
-	 * @param value the value
+	 * @param name the field name
+	 * @param value the field value
 	 * @throws ParseException 
 	 */
-	public HttpListFieldValue(String value) throws ParseException {
-		super(value);
-		while (true) {
-			String element = nextElement();
-			if (element == null) {
-				break;
+	public HttpListField(String name, String value) throws ParseException {
+		super(name, value);
+		reset();
+	}
+
+	/**
+	 * Reset the parsing state.
+	 */
+	protected void reset() {
+		position = 0;
+	}
+	
+	/**
+	 * Returns the next element from a field value that is formated as a
+	 * comma separated list of elements.
+	 * 
+	 * @return the next element or {@code null} if no elements remain
+	 * @throws ParseException 
+	 */
+	protected String nextElement() throws ParseException {
+		boolean inDquote = false;
+		int startPosition = position;
+		String value = rawValue();
+		try {
+			while (true) {
+				if (inDquote) {
+					char ch = value.charAt(position);
+					switch (ch) {
+					 case '\\':
+						 position += 2;
+						 continue;
+					 case '\"':
+						 inDquote = false;
+					 default:
+						 position += 1;
+						 continue;
+					}
+				}
+				if (position == value.length()) {
+					if (position == startPosition) {
+						return null;
+					}
+					return value.substring(startPosition, position);
+				}
+				char ch = value.charAt(position);
+				switch (ch) {
+				case ',':
+					String result = value.substring(startPosition, position);
+					position += 1; // Skip comma
+					while (true) { // Skip optional white space
+						ch = value.charAt(position);
+						if (ch != ' ' && ch != '\t') {
+							break;
+						}
+						position += 1;
+					}
+					return result;
+				case '\"':
+					inDquote = true;
+				default:
+					position += 1;
+					continue;
+				}
 			}
-			elements.add(HttpFieldValue.unquote(element));
+		} catch (IndexOutOfBoundsException e) {
+			throw new ParseException(value, position);
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.fields.HttpField#getValue()
+	 */
+	@Override
+	public List<T> getValue() {
+		return this;
+	}
+
+	protected abstract String elementToString(T element);
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.util.HttpFieldValue#asString()
 	 */
 	@Override
-	public String asString() {
+	public String valueToString() {
 		boolean first = true;
 		StringBuilder result = new StringBuilder();
-		for (String s: this) {
+		for (T e: this) {
 			if (first) {
 				first = false;
 			} else {
 				result.append(", ");
 			}
-			result.append(quoteIfNecessary(s));
+			result.append(elementToString(e));
 		}
 		return result.toString();
 	}
@@ -74,36 +144,36 @@ public class HttpListFieldValue extends HttpFieldValue
 	/**
 	 * @see java.util.List#add(int, java.lang.Object)
 	 */
-	public void add(int index, String element) {
-		throw new UnsupportedOperationException();
+	public void add(int index, T element) {
+		elements.add(index, element);
 	}
 
 	/**
 	 * @see java.util.List#add(java.lang.Object)
 	 */
-	public boolean add(String e) {
-		throw new UnsupportedOperationException();
+	public boolean add(T e) {
+		return elements.add(e);
 	}
 
 	/**
 	 * @see java.util.List#addAll(java.util.Collection)
 	 */
-	public boolean addAll(Collection<? extends String> c) {
-		throw new UnsupportedOperationException();
+	public boolean addAll(Collection<? extends T> c) {
+		return elements.addAll(c);
 	}
 
 	/**
 	 * @see java.util.List#addAll(int, java.util.Collection)
 	 */
-	public boolean addAll(int index, Collection<? extends String> c) {
-		throw new UnsupportedOperationException();
+	public boolean addAll(int index, Collection<? extends T> c) {
+		return elements.addAll(index, c);
 	}
 
 	/**
 	 * @see java.util.List#clear()
 	 */
 	public void clear() {
-		throw new UnsupportedOperationException();
+		elements.clear();
 	}
 
 	/**
@@ -123,7 +193,7 @@ public class HttpListFieldValue extends HttpFieldValue
 	/**
 	 * @see java.util.List#get(int)
 	 */
-	public String get(int index) {
+	public T get(int index) {
 		return elements.get(index);
 	}
 
@@ -144,7 +214,7 @@ public class HttpListFieldValue extends HttpFieldValue
 	/**
 	 * @see java.util.List#iterator()
 	 */
-	public Iterator<String> iterator() {
+	public Iterator<T> iterator() {
 		return elements.iterator();
 	}
 
@@ -158,50 +228,50 @@ public class HttpListFieldValue extends HttpFieldValue
 	/**
 	 * @see java.util.List#listIterator()
 	 */
-	public ListIterator<String> listIterator() {
+	public ListIterator<T> listIterator() {
 		return elements.listIterator();
 	}
 
 	/**
 	 * @see java.util.List#listIterator(int)
 	 */
-	public ListIterator<String> listIterator(int index) {
+	public ListIterator<T> listIterator(int index) {
 		return elements.listIterator(index);
 	}
 
 	/**
 	 * @see java.util.List#remove(int)
 	 */
-	public String remove(int index) {
-		throw new UnsupportedOperationException();
+	public T remove(int index) {
+		return elements.remove(index);
 	}
 
 	/**
 	 * @see java.util.List#remove(java.lang.Object)
 	 */
 	public boolean remove(Object o) {
-		throw new UnsupportedOperationException();
+		return elements.remove(o);
 	}
 
 	/**
 	 * @see java.util.List#removeAll(java.util.Collection)
 	 */
 	public boolean removeAll(Collection<?> c) {
-		throw new UnsupportedOperationException();
+		return elements.removeAll(c);
 	}
 
 	/**
 	 * @see java.util.List#retainAll(java.util.Collection)
 	 */
 	public boolean retainAll(Collection<?> c) {
-		throw new UnsupportedOperationException();
+		return elements.retainAll(c);
 	}
 
 	/**
 	 * @see java.util.List#set(int, java.lang.Object)
 	 */
-	public String set(int index, String element) {
-		throw new UnsupportedOperationException();
+	public T set(int index, T element) {
+		return elements.set(index, element);
 	}
 
 	/**
@@ -214,7 +284,7 @@ public class HttpListFieldValue extends HttpFieldValue
 	/**
 	 * @see java.util.List#subList(int, int)
 	 */
-	public List<String> subList(int fromIndex, int toIndex) {
+	public List<T> subList(int fromIndex, int toIndex) {
 		return elements.subList(fromIndex, toIndex);
 	}
 
@@ -228,7 +298,7 @@ public class HttpListFieldValue extends HttpFieldValue
 	/**
 	 * @see java.util.List#toArray(java.lang.Object[])
 	 */
-	public <T> T[] toArray(T[] a) {
+	public <U> U[] toArray(U[] a) {
 		return elements.toArray(a);
 	}
 	

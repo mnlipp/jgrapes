@@ -11,6 +11,26 @@ import org.junit.Test;
 
 public class OutputStreamTests {
 
+	public void testPutAsMuch() {
+		StringBuilder s = new StringBuilder();
+		
+		ByteBuffer src = ByteBuffer.allocate(1000);
+		src.put("Hello World!".getBytes());
+		ByteBuffer dest = ByteBuffer.allocate(5);
+		ByteBufferOutputStream.putAsMuchAsPossible(dest, src);
+		assertEquals(5, dest.position());
+		assertEquals(7, src.remaining());
+		byte[] b = new byte[dest.remaining()];
+		dest.get(b);
+		s.append(b);
+		dest = ByteBuffer.allocate(100);
+		ByteBufferOutputStream.putAsMuchAsPossible(dest, src);
+		b = new byte[dest.remaining()];
+		dest.get(b);
+		s.append(b);
+		assertEquals("Hello World!", s.toString());
+	}
+	
 	@Test
 	public void testOverflow() throws IOException {
 		ByteBuffer dataSource = ByteBuffer.allocate(2048);
@@ -80,4 +100,5 @@ public class OutputStreamTests {
 		assertEquals(dataSource, sink);
 	}
 
+	
 }

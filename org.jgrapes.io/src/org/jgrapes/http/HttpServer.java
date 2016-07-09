@@ -31,8 +31,10 @@ import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.HttpResponseEncoder;
 import org.jdrupes.httpcodec.DecoderResult;
 import org.jdrupes.httpcodec.EncoderResult;
-import org.jdrupes.httpcodec.HttpMediaTypeFieldValue;
+import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpIntField;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
@@ -57,7 +59,6 @@ import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedByteBuffer;
-import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Accepted;
 
@@ -179,7 +180,7 @@ public class HttpServer extends AbstractComponent {
 			fire (new Response(connection, response));
 			break;
 		case RESOURCE_NOT_FOUND:
-			response = new HttpResponse(requestEvent.getRequest().getProtocol(),
+			response = new HttpResponse(requestEvent.getRequest(),
 					HttpStatus.NOT_FOUND, true);
 			response.setContentType("text", "plain");
 			fire (new Response(connection, response));
@@ -199,10 +200,13 @@ public class HttpServer extends AbstractComponent {
 		EventPipeline pipeline = newEventPipeline();
 		
 		// Send response
+		encoder.encode(response);
 		while (true) {
 			ManagedByteBuffer buffer = connection.acquireByteBuffer();
-			EncoderResult result = encoder.encode(response, buffer.getBuffer());
-			pipeline.add(new Write<>(connection, buffer), networkChannel);
+			EncoderResult result = encoder.encode(buffer.getBuffer());
+			if (buffer.position() > 0) {
+				pipeline.add(new Write<>(connection, buffer), networkChannel);
+			}
 			if (!result.isOverflow()) {
 				break;
 			}
@@ -218,9 +222,32 @@ public class HttpServer extends AbstractComponent {
 	}
 
 	@Handler
-	public void onOptions(OptionsRequest event) {
+	public void onEof(Eof event) throws InterruptedException {
+		DataConnection connection = event.getConnection();
+		HttpResponseEncoder encoder = encoders.get(connection);
+		EventPipeline pipeline = newEventPipeline();
+		
+		// Send remaining data
+		while (true) {
+			ManagedByteBuffer buffer = connection.acquireByteBuffer();
+			EncoderResult result = encoder.encode(null, buffer.getBuffer());
+			if (buffer.position() > 0) {
+				pipeline.add(new Write<>(connection, buffer), networkChannel);
+			}
+			if (!result.isOverflow()) {
+				break;
+			}
+		}
+	}
+
+	@Handler
+	public void onOptions(OptionsRequest event) throws ParseException {
 		if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {
 			event.setResult(HandlingResult.RESPONDED);
+			HttpResponse response = new HttpResponse
+					(event.getRequest(), HttpStatus.OK, false);
+			response.setHeader(new HttpIntField(HttpField.CONTENT_LENGTH, 0));
+			fire (new Response(event.getConnection(), response));
 		}
 	}
 }

@@ -20,11 +20,11 @@ package org.jdrupes.httpcodec;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
-import org.jdrupes.httpcodec.util.HttpUtils;
+import org.jdrupes.httpcodec.fields.HttpField;
 
 /**
  * Represents a complte HTTP request with all received header data.
@@ -46,8 +46,8 @@ public class HttpRequest {
 	private HttpProtocol httpProtocol;
 	private String method;
 	private URI requestUri;
-	private Map<String,HttpFieldValue> headers 
-		= HttpUtils.caseInsensitiveMap(new HashMap<>());
+	private Map<String,HttpField<?>> headers 
+		= new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 	private String host;
 	private int port;
 	
@@ -99,7 +99,7 @@ public class HttpRequest {
 	 * @param name the header field's name
 	 * @param value the header field's value
 	 */
-	void setHeader(String name, HttpFieldValue value) {
+	public void setHeader(String name, HttpField<?> value) {
 		headers.put(name, value);
 	}
 
@@ -108,8 +108,20 @@ public class HttpRequest {
 	 * 
 	 * @return the headers
 	 */
-	public Map<String, HttpFieldValue> headers() {
+	public Map<String, HttpField<?>> headers() {
 		return Collections.unmodifiableMap(headers);
+	}
+	
+	/**
+	 * Returns the header field with the given type and name or {@code null}
+	 * if no such header is set.
+	 * 
+	 * @param type the header field type
+	 * @param name the field name
+	 * @return the header field or {@code null}
+	 */
+	public <T extends HttpField<?>> T getHeader(Class<T> type, String name) {
+		return type.cast(headers.get(name));
 	}
 	
 	/**

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.fields;
 
 import java.text.ParseException;
 
@@ -24,18 +24,19 @@ import java.text.ParseException;
  * 
  * @author Michael N. Lipp
  */
-public class HttpIntFieldValue extends HttpFieldValue {
+public class HttpIntField extends HttpField<Long> {
 
 	private long parsedValue;
 	
 	/**
 	 * Creates the object and parses the value.
 	 * 
-	 * @param value the field's value (as string)
+	 * @param name the field name
+	 * @param value the field value
 	 * @throws ParseException 
 	 */
-	public HttpIntFieldValue(String value) throws ParseException {
-		super(value);
+	public HttpIntField(String name, String value) throws ParseException {
+		super(name, value);
 		try {
 			parsedValue = Long.parseLong(value);
 		} catch (NumberFormatException e) {
@@ -44,12 +45,25 @@ public class HttpIntFieldValue extends HttpFieldValue {
 	}
 
 	/**
+	 * Creates the object with the given value.
+	 * 
+	 * @param name the field name
+	 * @param value the field value
+	 * @throws ParseException 
+	 */
+	public HttpIntField(String name, long value) {
+		super(name, Long.toString(value));
+		parsedValue = value;
+	}
+
+	/**
 	 * Returns the value.
 	 * 
 	 * @return the value
 	 */
-	public int asInteger() {
-		return (int)parsedValue;
+	@Override
+	public Long getValue() {
+		return parsedValue;
 	}
 	
 	/**
@@ -57,15 +71,15 @@ public class HttpIntFieldValue extends HttpFieldValue {
 	 * 
 	 * @return the value
 	 */
-	public long asLong() {
-		return parsedValue;
+	public int asInt() {
+		return (int)parsedValue;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.util.HttpFieldValue#asString()
 	 */
 	@Override
-	public String asString() {
+	public String valueToString() {
 		return Long.toString(parsedValue);
 	}
 	

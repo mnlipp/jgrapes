@@ -45,6 +45,23 @@ public class ByteBufferOutputStream extends OutputStream {
 	private int overflowBufferSize = 0;
 
 	/**
+	 * Creates a new instance with an unset overflow buffer size.
+	 */
+	public ByteBufferOutputStream() {
+		super();
+	}
+
+	/**
+	 * Creates a new instance with the given overflow buffer size.
+	 * 
+	 * @param overflowBufferSize the overflow buffer size to use
+	 */
+	public ByteBufferOutputStream(int overflowBufferSize) {
+		super();
+		this.overflowBufferSize = overflowBufferSize;
+	}
+
+	/**
 	 * Returns the size of the buffers that will be allocated
 	 * as overflow buffers.
 	 *
@@ -67,6 +84,13 @@ public class ByteBufferOutputStream extends OutputStream {
 	}
 
 	/**
+	 * Clear any buffered data.
+	 */
+	public void clear() {
+		overflows.clear();
+	}
+	
+	/**
 	 * Assign a new buffer to this output stream. If the previously
 	 * used buffer had become full and intermediate storage was allocated,
 	 * the data from the intermediate storage is copied to the new buffer
@@ -84,17 +108,13 @@ public class ByteBufferOutputStream extends OutputStream {
 			int writePos = head.position(); // Save position
 			head.reset();
 			head.limit(writePos);
-			if (head.remaining() > assignedBuffer.remaining()) {
-				// Cannot transfer everything, do what's possible
-				head.limit(head.position() + assignedBuffer.remaining());
-				assignedBuffer.put(head);
-				// Advance mark and restore head for writing
-				head.mark();
+			if (!putAsMuchAsPossible(assignedBuffer, head)) {
+				// Cannot transfer everything, done what's possible
+				head.mark(); // new position for next put
 				head.limit(head.capacity());
 				head.position(writePos);
 				return;
 			}
-			assignedBuffer.put(head);
 			overflows.remove();
 		}
 		current = assignedBuffer;
@@ -153,17 +173,50 @@ public class ByteBufferOutputStream extends OutputStream {
 			allocateOverflowBuffer();
 		}
 		while (true) {
-			if (current.remaining() >= b.remaining()) {
-				current.put(b);
+			if (putAsMuchAsPossible(current, b)) {
 				return;
-			}
-			if (current.remaining() > 0) {
-				int oldLimit = b.limit();
-				b.limit(b.position() + current.remaining());
-				b.limit(oldLimit);
 			}
 			allocateOverflowBuffer();
 		}
+	}
+
+	/**
+	 * Copies length bytes from the given buffer to this output stream.
+	 * 
+	 * @param b
+	 * @param length
+	 */
+	public void write(ByteBuffer b, int length) {
+		if (b.remaining() <= length) {
+			write(b);
+		}
+		int savedLimit = b.limit();
+		b.limit(b.position() + length);
+		write (b);
+		b.limit(savedLimit);
+	}
+
+	/**
+	 * Put as many bytes as possible from the src buffer into the 
+	 * destination buffer.
+	 * 
+	 * @param dest the destination buffer
+	 * @param src the source buffer
+	 * @return {@code true} if {@code src.remaining() == 0}
+	 */
+	public static boolean putAsMuchAsPossible
+			(ByteBuffer dest, ByteBuffer src) {
+		if (dest.remaining() >= src.remaining()) {
+			dest.put(src);
+			return true;
+		}
+		if (dest.remaining() > 0) {
+			int oldLimit = src.limit();
+			src.limit(src.position() + dest.remaining());
+			dest.put(src);
+			src.limit(oldLimit);
+		}
+		return false;
 	}
 	
 	/**

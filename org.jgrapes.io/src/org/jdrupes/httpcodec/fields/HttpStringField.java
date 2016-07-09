@@ -15,19 +15,40 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io.events;
-
-import org.jgrapes.io.DataConnection;
+package org.jdrupes.httpcodec.fields;
 
 /**
- * This event signals the end of data from a stream.
+ * Represents a header field's value and provides methods for interpreting
+ * that value.
  * 
  * @author Michael N. Lipp
  */
-public class Eof extends ConnectionEvent<Void, DataConnection> {
+public class HttpStringField extends HttpField<String> {
 
-	public Eof(DataConnection connection) {
-		super(connection);
+	/**
+	 * Creates a new representation of a field value.
+	 * 
+	 * @param name the field name
+	 * @param value the field value
+	 */
+	public HttpStringField(String name, String value) {
+		super(name, value);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.fields.HttpField#getValue()
+	 */
+	@Override
+	public String getValue() {
+		// TODO Auto-generated method stub
+		return rawValue();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.util.HttpFieldValue#asString()
+	 */
+	@Override
+	public String valueToString() {
+		return quoteIfNecessary(rawValue());
+	}
 }
