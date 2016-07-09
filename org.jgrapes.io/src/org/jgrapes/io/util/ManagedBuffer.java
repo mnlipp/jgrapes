@@ -29,6 +29,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class ManagedBuffer<T extends Buffer> {
 
+	/**
+	 * A buffer collector that does nothiong when the managed buffer
+	 * is no longer used.
+	 */
+	public static final BufferCollector NOOP_COLLECTOR 
+		= new BufferCollector() {
+			@Override
+			public void recollect(ManagedBuffer<?> buffer) {
+			}
+		};
+
 	protected T buffer;
 	private BufferCollector manager;
 	private AtomicInteger lockCount = new AtomicInteger(1);
@@ -81,6 +92,27 @@ public abstract class ManagedBuffer<T extends Buffer> {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(getClass().getSimpleName());
+		builder.append(" [");
+		if (buffer != null) {
+			builder.append("buffer=");
+			builder.append(buffer);
+			builder.append(", ");
+		}
+		if (lockCount != null) {
+			builder.append("lockCount=");
+			builder.append(lockCount);
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+
 	/**
 	 * @see java.nio.Buffer#array()
 	 */
@@ -217,10 +249,4 @@ public abstract class ManagedBuffer<T extends Buffer> {
 		return buffer.rewind();
 	}
 
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		return buffer.toString();
-	}
 }

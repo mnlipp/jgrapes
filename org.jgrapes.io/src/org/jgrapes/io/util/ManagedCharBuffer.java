@@ -51,11 +51,7 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	 * @param backing
 	 */
 	public ManagedCharBuffer(CharSequence backing) {
-		super(CharBuffer.wrap(backing), new BufferCollector() {
-			@Override
-			public void recollect(ManagedBuffer<?> buffer) {
-			}
-		});
+		super(CharBuffer.wrap(backing), NOOP_COLLECTOR);
 	}
 	
 	/**
@@ -276,11 +272,4 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 		return buffer.subSequence(start, end);
 	}
 
-	/**
-	 * @see java.nio.CharBuffer#toString()
-	 */
-	public String toString() {
-		return buffer.toString();
-	}
-	
 }

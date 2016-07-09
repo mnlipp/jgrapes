@@ -35,10 +35,39 @@ import java.nio.ShortBuffer;
  */
 public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 
+	/**
+	 * Creates new managed buffer that is backed by the given buffer
+	 * and managed by the given manager. 
+	 * 
+	 * @param buffer the backing buffer
+	 * @param manager the manager
+	 */
 	public ManagedByteBuffer(ByteBuffer buffer, BufferCollector manager) {
 		super(buffer, manager);
 	}
 
+	/**
+	 * Creates new managed buffer that is backed by a {@link ByteBuffer}
+	 * that wraps the given array.
+	 * 
+	 * @param array the byte array
+	 */
+	public ManagedByteBuffer(byte[] array) {
+		super(ByteBuffer.wrap(array), NOOP_COLLECTOR);
+	}
+	
+	/**
+	 * Creates new managed buffer that is backed by a {@link ByteBuffer}
+	 * that wraps the given sub array.
+	 * 
+	 * @param array the byte array
+	 * @param offset the offset of the sub array to be wrapped
+	 * @param length the length of the sub array to be wrapped
+	 */
+	public ManagedByteBuffer(byte[] array, int offset, int length) {
+		super(ByteBuffer.wrap(array, offset, length), NOOP_COLLECTOR);
+	}
+	
 	/**
 	 * @see java.nio.ByteBuffer#array()
 	 */
@@ -376,11 +405,4 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 		return buffer.slice();
 	}
 
-	/**
-	 * @see java.nio.ByteBuffer#toString()
-	 */
-	public String toString() {
-		return buffer.toString();
-	}
-	
 }
