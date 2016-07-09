@@ -23,22 +23,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * A wrapper around a {@link Buffer} that maintains a lock count for that
  * buffer. All methods known from {@code Buffer} are provided and
- * delegate to the backing buffer.
+ * delegate to the backing buffer. Managed buffers can be used to maintain
+ * pools of buffers. Buffers are locked when retrieved from the pool
+ * and can automatically be returned when the last lock is released. 
  * 
  * @author Michael N. Lipp
  */
 public abstract class ManagedBuffer<T extends Buffer> {
-
-	/**
-	 * A buffer collector that does nothiong when the managed buffer
-	 * is no longer used.
-	 */
-	public static final BufferCollector NOOP_COLLECTOR 
-		= new BufferCollector() {
-			@Override
-			public void recollect(ManagedBuffer<?> buffer) {
-			}
-		};
 
 	protected T buffer;
 	private BufferCollector manager;

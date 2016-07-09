@@ -51,7 +51,7 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	 * @param backing
 	 */
 	public ManagedCharBuffer(CharSequence backing) {
-		super(CharBuffer.wrap(backing), NOOP_COLLECTOR);
+		super(CharBuffer.wrap(backing), BufferCollector.NOOP_COLLECTOR);
 	}
 	
 	/**

@@ -53,7 +53,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	 * @param array the byte array
 	 */
 	public ManagedByteBuffer(byte[] array) {
-		super(ByteBuffer.wrap(array), NOOP_COLLECTOR);
+		super(ByteBuffer.wrap(array), BufferCollector.NOOP_COLLECTOR);
 	}
 	
 	/**
@@ -65,7 +65,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	 * @param length the length of the sub array to be wrapped
 	 */
 	public ManagedByteBuffer(byte[] array, int offset, int length) {
-		super(ByteBuffer.wrap(array, offset, length), NOOP_COLLECTOR);
+		super(ByteBuffer.wrap(array, offset, length), BufferCollector.NOOP_COLLECTOR);
 	}
 	
 	/**

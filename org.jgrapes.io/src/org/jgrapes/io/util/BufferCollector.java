@@ -18,10 +18,31 @@
 package org.jgrapes.io.util;
 
 /**
+ * Defines the method of a buffer collector.
+ * 
  * @author Michael N. Lipp
  */
 public interface BufferCollector {
 
+	/**
+	 * A predefined buffer collector that does nothing when the managed buffer
+	 * is no longer used. Using this collector with a managed buffer
+	 * effectively make it unmanaged buffer.
+	 */
+	BufferCollector NOOP_COLLECTOR 
+		= new BufferCollector() {
+			@Override
+			public void recollect(ManagedBuffer<?> buffer) {
+			}
+		};
+
+	/**
+	 * Recollect the buffer. Invoked after all locks to a managed buffer
+	 * have been released. Usually, the implementation of a buffer collector
+	 * returns the buffer into some kind of pool when this method is invoked.
+	 * 
+	 * @param buffer
+	 */
 	void recollect (ManagedBuffer<?> buffer);
 	
 }
