@@ -189,6 +189,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	public void write(ByteBuffer b, int length) {
 		if (b.remaining() <= length) {
 			write(b);
+			return;
 		}
 		int savedLimit = b.limit();
 		b.limit(b.position() + length);
