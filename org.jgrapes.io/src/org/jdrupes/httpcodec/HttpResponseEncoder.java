@@ -207,7 +207,7 @@ public class HttpResponseEncoder {
 				if (result.isOverflow()) {
 					return result;
 				}
-				break;
+				return EncoderResult.PROCEED;
 				
 			case DONE:
 				// Was called with in == null and everything is written
@@ -375,24 +375,23 @@ public class HttpResponseEncoder {
 	private EncoderResult writeChunk(ByteBuffer in) {
 		try {
 			if (in == null) {
-				writer.write("0\r\n\r\n");
-				writer.flush();
+				outStream.write("0\r\n\r\n".getBytes("ascii"));
 				states.pop();
 				return EncoderResult.PROCEED;
 			}
 			// We may loose some bytes here, but else we need an elaborate
 			// calculation
-			if (outStream.remaining() < 11) {
-				// max 8 digits chunk size + CRLF + 1 octet = 11
+			if (outStream.remaining() < 13) {
+				// max 8 digits chunk size + CRLF + 1 octet + CRLF = 13
 				return EncoderResult.OVERFLOW;
 			}
-			int length = Math.min(outStream.remaining() - 11, in.remaining());
-			writer.write(Integer.toHexString(length));
-			writer.write("\r\n");
-			writer.flush();
+			int length = Math.min(outStream.remaining() - 13, in.remaining());
+			outStream.write(Integer.toHexString(length).getBytes("ascii"));
+			outStream.write("\r\n".getBytes("ascii"));
 			outStream.write(in, length);
+			outStream.write("\r\n".getBytes("ascii"));
 		} catch (IOException e) {
-			// Formally thrown by writer, cannot happen.
+			// Formally thrown by outStream, cannot happen.
 		}
 		return in.remaining() > 0 
 				? EncoderResult.OVERFLOW : EncoderResult.PROCEED;

@@ -17,10 +17,10 @@
  */
 package org.jgrapes.http;
 
+import java.io.UnsupportedEncodingException;
 import java.net.SocketAddress;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.text.ParseException;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -31,10 +31,10 @@ import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.HttpResponseEncoder;
 import org.jdrupes.httpcodec.DecoderResult;
 import org.jdrupes.httpcodec.EncoderResult;
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpIntField;
+import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
@@ -182,9 +182,15 @@ public class HttpServer extends AbstractComponent {
 		case RESOURCE_NOT_FOUND:
 			response = new HttpResponse(requestEvent.getRequest(),
 					HttpStatus.NOT_FOUND, true);
-			response.setContentType("text", "plain");
+			HttpMediaTypeField media = new HttpMediaTypeField
+					(HttpField.CONTENT_TYPE, "text", "plain");
+			media.setParameter("charset", "utf-8");
+			response.setHeader(media);
 			fire (new Response(connection, response));
-			fire (Write.wrap(connection, "Not Found"));
+			try {
+				fire (Write.wrap(connection, "Not Found".getBytes("utf-8")));
+			} catch (UnsupportedEncodingException e) {
+			}
 			fire (new Eof(connection));
 			break;
 		default:
@@ -214,10 +220,25 @@ public class HttpServer extends AbstractComponent {
 	}
 	
 	@Handler
-	public void onWrite(Write<ManagedBuffer<?>> event) {
-		Buffer buffer = event.getBuffer().getBuffer();
-		if (buffer instanceof CharBuffer) {
-			
+	public void onWrite(Write<ManagedBuffer<?>> event) 
+			throws InterruptedException {
+		DataConnection connection = event.getConnection();
+		HttpResponseEncoder encoder = encoders.get(connection);
+		EventPipeline pipeline = newEventPipeline();
+
+		while (true) {
+			ManagedByteBuffer buffer = connection.acquireByteBuffer();
+			EncoderResult result = null; 
+			Buffer in = event.getBuffer().getBuffer();
+			if (in instanceof ByteBuffer) {
+				result = encoder.encode((ByteBuffer)in, buffer.getBuffer());
+			}
+			if (buffer.position() > 0) {
+				pipeline.add(new Write<>(connection, buffer), networkChannel);
+			}
+			if (!result.isOverflow()) {
+				break;
+			}
 		}
 	}
 
