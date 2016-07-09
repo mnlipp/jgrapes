@@ -33,6 +33,15 @@ public class Write<T extends ManagedBuffer<?>>
 
 	private T buffer;
 
+	/**
+	 * Create a new write event with the given buffer and optionally flips
+	 * it. Used internally for constructor ("super(...)") invocations that 
+	 * don't flip the buffer.
+	 * 
+	 * @param connection
+	 * @param buffer
+	 * @param flip
+	 */
 	private Write(DataConnection connection, T buffer, boolean flip) {
 		super(connection);
 		this.buffer = buffer;
@@ -42,9 +51,7 @@ public class Write<T extends ManagedBuffer<?>>
 	}
 	
 	/**
-	 * Create a new event with the given buffer that must have been
-	 * obtained from the connection's 
-	 * {@link DataConnection#acquireWriteBuffer()}. Creating the event
+	 * Create a new event with the given buffer. Creating the event
 	 * flips the buffer as it is assumed to be used for reading by
 	 * the handlers(s) from now on.
 	 * 
