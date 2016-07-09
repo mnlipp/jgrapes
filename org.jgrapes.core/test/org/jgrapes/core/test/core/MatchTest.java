@@ -23,7 +23,7 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.DynamicHandler;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
@@ -87,7 +87,7 @@ public class MatchTest {
 	@Test
 	public void testEventCounter() throws InterruptedException {
 		EventCounter app = new EventCounter();
-		EventPipeline pipeline = Utils.manager(app).newSyncEventPipeline();
+		EventPipeline pipeline = Components.manager(app).newSyncEventPipeline();
 		pipeline.add(new Start());
 		assertEquals(1, app.startedGlobal);
 		assertEquals(1, app.startedTest1);

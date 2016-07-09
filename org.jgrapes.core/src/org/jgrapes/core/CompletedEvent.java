@@ -50,7 +50,7 @@ public abstract class CompletedEvent<T extends Event<?>>
 		StringBuilder builder = new StringBuilder();
 		builder.append(Common.classToString(getClass()));
 		builder.append("(");
-		builder.append(Utils.objectName(getResult()));
+		builder.append(Components.objectName(getResult()));
 		builder.append(")");
 		builder.append(" [");
 		if (channels != null) {

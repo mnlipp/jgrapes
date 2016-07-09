@@ -109,7 +109,7 @@ public class Event<T> extends EventBase<T> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Utils.objectName(this));
+		builder.append(Components.objectName(this));
 		builder.append(" [");
 		if (channels != null) {
 			builder.append("channels=");

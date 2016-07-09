@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.EventPipeline;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.File;
 import org.jgrapes.io.events.FileOpened;
@@ -68,9 +68,9 @@ public class FileWriteTests {
 		Producer producer = new Producer();
 		File app = new File(producer, 512);
 		app.attach(producer);
-		Utils.start(app);
+		Components.start(app);
 		app.fire(new OpenFile(filePath, StandardOpenOption.WRITE), producer);
-		Utils.awaitExhaustion();
+		Components.awaitExhaustion();
 		try (BufferedReader br = new BufferedReader
 				(new FileReader(filePath.toFile()))) {
 			int expect  = 1;

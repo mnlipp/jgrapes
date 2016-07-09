@@ -23,16 +23,16 @@ import java.util.concurrent.ExecutionException;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.junit.Test;
 
 public class StructureTest {
 
 	private TestComponent1 subtree1(int offset) {
 		TestComponent1 sub = new TestComponent1("node " + offset);
-		Utils.manager(sub).attach
+		Components.manager(sub).attach
 			(new TestComponent1("node " + (offset + 1)));
-		Utils.manager(sub).attach(new TestComponent1("node " + (offset + 2)));
+		Components.manager(sub).attach(new TestComponent1("node " + (offset + 2)));
 		return sub;
 	}
 	
@@ -41,11 +41,11 @@ public class StructureTest {
 		TestComponent1 c = new TestComponent1("root");
 		assertNull(c.getManager());
 		// Set manager
-		Manager manager = Utils.manager(c);
+		Manager manager = Components.manager(c);
 		assertNotNull(manager);
 		assertEquals(manager, c.getManager());
 		// Retrieve existing manager
-		assertEquals(manager, Utils.manager(c));
+		assertEquals(manager, Components.manager(c));
 		assertEquals(c.getManager().getRoot(), c);
 		assertEquals("Test", manager.getChannel().getMatchKey());
 	}
@@ -53,7 +53,7 @@ public class StructureTest {
 	@Test
 	public void testBuild() {
 		TestComponent1 c = new TestComponent1("root");
-		assertEquals(0, Utils.manager(c).getChildren().size());
+		assertEquals(0, Components.manager(c).getChildren().size());
 		TestComponent1 c1 = c.getManager().attach(new TestComponent1("sub1"));
 		TestComponent1 c2 = c.getManager().attach(new TestComponent1("sub2"));
 		assertEquals(2, c.getManager().getChildren().size());
@@ -69,9 +69,9 @@ public class StructureTest {
 	@Test
 	public void testDetach() throws InterruptedException, ExecutionException {
 		TestComponent1 c = new TestComponent1("root");
-		Utils.start(c);
-		TestComponent1 c1 = Utils.manager(c).attach(new TestComponent1("sub1"));
-		TestComponent1 c2 = Utils.manager(c).attach(new TestComponent1("sub2"));
+		Components.start(c);
+		TestComponent1 c1 = Components.manager(c).attach(new TestComponent1("sub1"));
+		TestComponent1 c2 = Components.manager(c).attach(new TestComponent1("sub2"));
 		c1.getManager().detach();
 		assertNull(c1.getManager().getParent());
 		assertEquals(c1, c1.getManager().getRoot());
@@ -140,12 +140,12 @@ public class StructureTest {
 	@Test
 	public void testInheritedManager () {
 		TCD c = new TCD();
-		Manager mgr = Utils.manager(c);
+		Manager mgr = Components.manager(c);
 		assertNotNull(mgr);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testIllegalComponent() {
-		Utils.manager(new IllegalComponent());
+		Components.manager(new IllegalComponent());
 	}
 }

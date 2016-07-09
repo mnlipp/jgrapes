@@ -22,7 +22,7 @@ import static org.junit.Assert.*;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.Self;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.junit.Test;
@@ -54,7 +54,7 @@ public class ThisTest {
 	@Test
 	public void testStarted() throws InterruptedException {
 		Component app = new Component();
-		Utils.manager(app).newSyncEventPipeline().add(new Start(), app);
+		Components.manager(app).newSyncEventPipeline().add(new Start(), app);
 		assertEquals(1, app.count);
 	}
 

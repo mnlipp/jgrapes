@@ -41,7 +41,7 @@ import javax.xml.ws.handler.HandlerResolver;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.core.internal.Common;
@@ -110,7 +110,7 @@ public class BigReadTest {
 		app.attach(new NioDispatcher());
 		WaitForTests wf = new WaitForTests
 				(app, Ready.class, Server.DEFAULT_CHANNEL.getMatchKey());
-		Utils.start(app);
+		Components.start(app);
 		Ready readyEvent = (Ready) wf.get();
 		if (!(readyEvent.getListenAddress() instanceof InetSocketAddress)) {
 			fail();
@@ -152,8 +152,8 @@ public class BigReadTest {
 		}
 		assertEquals(1000000, expected.get());
 		
-		Utils.manager(app).fire(new Stop(), Channel.BROADCAST);
-		assertTrue(Utils.awaitExhaustion(3000));
+		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
+		assertTrue(Components.awaitExhaustion(3000));
 	}
 
 }

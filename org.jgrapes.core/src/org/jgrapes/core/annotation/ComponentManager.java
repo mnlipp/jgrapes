@@ -33,7 +33,7 @@ import org.jgrapes.core.annotation.Handler.NO_CHANNEL;
  * This annotation marks a component's attribute of type 
  * {@link Manager} as a slot for its manager. A value is automatically 
  * assigned to such an attribute when a component is attached to the 
- * component tree or by {@link org.jgrapes.core.Utils#manager(Component)}.
+ * component tree or by {@link org.jgrapes.core.Components#manager(Component)}.
  * 
  * @author Michael N. Lipp
  */

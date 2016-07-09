@@ -32,7 +32,7 @@ import org.jgrapes.core.annotation.ComponentManager;
  * The implementation of the component can use the value in this field
  * to get access to the component hierarchy. The field is initialized
  * when the component is added to the component hierarchy or when
- * calling {@link Utils#manager(Component)}.
+ * calling {@link Components#manager(Component)}.
  * 
  * @author Michael N. Lipp
  */

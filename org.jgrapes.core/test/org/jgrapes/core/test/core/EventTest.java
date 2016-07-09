@@ -3,7 +3,7 @@ package org.jgrapes.core.test.core;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
@@ -37,7 +37,7 @@ public class EventTest {
 	@Test
 	public void testComplete() throws InterruptedException {
 		CompleteCatcher app = new CompleteCatcher();
-		Utils.manager(app).newSyncEventPipeline().add(new Start());
+		Components.manager(app).newSyncEventPipeline().add(new Start());
 		assertTrue(app.caughtStart);
 		assertTrue(app.caughtStarted);
 	}

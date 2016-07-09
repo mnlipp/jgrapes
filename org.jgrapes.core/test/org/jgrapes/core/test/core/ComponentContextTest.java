@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
@@ -51,7 +51,7 @@ public class ComponentContextTest {
 	@Test
 	public void testComplete() throws InterruptedException {
 		Component app = new Component();
-		Utils.manager(app).newSyncEventPipeline().add(new Start());
+		Components.manager(app).newSyncEventPipeline().add(new Start());
 		assertTrue(app.result.equals("Hello!"));
 	}
 

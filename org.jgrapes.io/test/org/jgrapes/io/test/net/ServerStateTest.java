@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.Connection;
@@ -79,28 +79,28 @@ public class ServerStateTest {
 		checker = new StateChecker();
 		app.attach(checker);
 		WaitForTests wf = new WaitForTests(app, Ready.class, Channel.class);
-		Utils.start(app);
+		Components.start(app);
 		wf.get();
 	}
 	
 	@Test
 	public void testStartClose() throws InterruptedException {
 		assertEquals(State.READY, checker.state);
-		Utils.manager(app).fire
+		Components.manager(app).fire
 			(new Close<>(checker.serverConnection), app.getChannel()).get();
 		assertEquals(State.CLOSED, checker.state);
-		Utils.manager(app).fire(new Stop(), Channel.BROADCAST);
-		Utils.awaitExhaustion();
-		Utils.checkAssertions();
+		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
+		Components.awaitExhaustion();
+		Components.checkAssertions();
 	}
 
 	@Test
 	public void testStartStop() throws InterruptedException {
 		assertEquals(State.READY, checker.state);
-		Utils.manager(app).fire(new Stop(), Channel.BROADCAST);
-		Utils.awaitExhaustion();
+		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
+		Components.awaitExhaustion();
 		assertEquals(State.CLOSED, checker.state);
-		Utils.checkAssertions();
+		Components.checkAssertions();
 	}
 
 }

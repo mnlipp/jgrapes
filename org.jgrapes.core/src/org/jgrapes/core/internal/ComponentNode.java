@@ -34,7 +34,7 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Self;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.DynamicHandler;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Attached;
@@ -559,7 +559,7 @@ public abstract class ComponentNode implements Manager {
 	 */
 	@Override
 	public String toString() {
-		return Utils.objectName(this);
+		return Components.objectName(this);
 	}
 	
 	/* (non-Javadoc)

@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.File;
@@ -120,10 +120,10 @@ public class FileReadTests {
 		app.attach(consumer);
 		StateChecker sc = new StateChecker();
 		app.attach(sc);
-		Utils.start(app);
+		Components.start(app);
 		app.fire
 			(new OpenFile(filePath, StandardOpenOption.READ), consumer).get();
-		Utils.awaitExhaustion();
+		Components.awaitExhaustion();
 		assertEquals(fileSize, collected);
 		assertEquals(StateChecker.State.CLOSED, sc.state);
 	}

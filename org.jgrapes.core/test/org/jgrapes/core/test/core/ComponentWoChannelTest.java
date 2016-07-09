@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
@@ -48,7 +48,7 @@ public class ComponentWoChannelTest {
 	@Test
 	public void testWOChannel() throws InterruptedException {
 		ComponentWOChannel app = new ComponentWOChannel();
-		Utils.start(app);
+		Components.start(app);
 		assertEquals(1, app.count);
 	}
 	

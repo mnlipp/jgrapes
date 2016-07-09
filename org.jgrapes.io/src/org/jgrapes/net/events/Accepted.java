@@ -19,7 +19,7 @@ package org.jgrapes.net.events;
 
 import java.net.SocketAddress;
 
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.events.Opened;
@@ -66,7 +66,7 @@ public class Accepted<T extends ManagedBuffer<?>>
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Utils.objectName(this));
+		builder.append(Components.objectName(this));
 		builder.append(" [");
 		builder.append(localAddress);
 		builder.append(" <― ");

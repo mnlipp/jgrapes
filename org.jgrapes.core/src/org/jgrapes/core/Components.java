@@ -28,9 +28,9 @@ import org.jgrapes.core.internal.GeneratorRegistry;
  * 
  * @author Michael N. Lipp
  */
-public class Utils {
+public class Components {
 
-	private Utils() {
+	private Components() {
 	}
 	
 	/**

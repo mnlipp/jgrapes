@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import org.jgrapes.core.AbstractComponent;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Read;
@@ -58,8 +58,8 @@ public class EchoServer extends AbstractComponent {
 	public static void main(String[] args) {
 		try {
 			EchoServer app = new EchoServer();
-			Utils.start(app);
-			Utils.awaitExhaustion();
+			Components.start(app);
+			Components.awaitExhaustion();
 		} catch (InterruptedException | IOException e) {
 			e.printStackTrace();
 		}

@@ -21,7 +21,7 @@ import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
@@ -52,7 +52,7 @@ public class ComponentClassChannelTest {
 	@Test
 	public void testClassChannel() throws InterruptedException {
 		ComponentWithClassChannel app = new ComponentWithClassChannel();
-		Utils.manager(app).fire(new Start(), new MyChannel()).get();
+		Components.manager(app).fire(new Start(), new MyChannel()).get();
 		assertEquals(1, app.count);
 	}
 	

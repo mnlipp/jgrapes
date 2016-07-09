@@ -3,7 +3,7 @@ package org.jgrapes.core.test.core;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.HandlingError;
 import org.jgrapes.core.events.Start;
@@ -33,7 +33,7 @@ public class ErrorTest {
 	@Test
 	public void testComplete() throws InterruptedException {
 		BuggyComponent app = new BuggyComponent();
-		Utils.start(app);
+		Components.start(app);
 		assertTrue(app.caughtError);
 	}
 

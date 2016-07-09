@@ -22,7 +22,7 @@ import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
@@ -53,7 +53,7 @@ public class ComponentBroadcastTest {
 	@Test
 	public void testBroadcastChannel() throws InterruptedException {
 		ComponentWithBroadcastChannel app = new ComponentWithBroadcastChannel();
-		Utils.manager(app).fire(new Start(), 
+		Components.manager(app).fire(new Start(), 
 				new ComponentWithBroadcastChannel.MyChannel()).get();
 		assertEquals(1, app.count);
 	}

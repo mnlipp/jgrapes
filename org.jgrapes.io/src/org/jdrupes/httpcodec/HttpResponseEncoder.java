@@ -167,6 +167,7 @@ public class HttpResponseEncoder {
 				break;
 				
 			case STREAM_COLLECTED:
+				// Output collected body
 				if (pendingBodyData.buffered() > 0) {
 					pendingBodyData.assignBuffer(out);
 					break;
@@ -198,6 +199,7 @@ public class HttpResponseEncoder {
 				return EncoderResult.PROCEED;
 
 			case CHUNK_BODY:
+				// Send in data as chunk
 				if (in == EMPTY_IN) {
 					return EncoderResult.PROCEED;
 				}
@@ -208,6 +210,7 @@ public class HttpResponseEncoder {
 				break;
 				
 			case DONE:
+				// Was called with in == null and everything is written
 				states.pop();
 				if (closeAfterBody) {
 					return EncoderResult.SEND_CLOSE;
@@ -335,6 +338,11 @@ public class HttpResponseEncoder {
 		}
 	}
 
+	/**
+	 * Handle the input as appropriate for the collect-body mode.
+	 * 
+	 * @param in
+	 */
 	private void collectBody(ByteBuffer in) {
 		if (in == null) {
 			// End of body, found content length!
@@ -358,6 +366,12 @@ public class HttpResponseEncoder {
 		states.push(State.HEADERS);
 	}
 
+	/**
+	 * Handle the input as appropriate for the chunked-body mode.
+	 * 
+	 * @param in
+	 * @return
+	 */
 	private EncoderResult writeChunk(ByteBuffer in) {
 		try {
 			if (in == null) {

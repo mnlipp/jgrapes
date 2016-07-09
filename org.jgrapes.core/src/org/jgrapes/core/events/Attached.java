@@ -19,7 +19,7 @@ package org.jgrapes.core.events;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.internal.Common;
 
 /**
@@ -72,7 +72,7 @@ public class Attached extends Event<Void> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Utils.objectName(this));
+		builder.append(Components.objectName(this));
 		builder.append(" [");
 		if (parent == null) {
 			builder.append("ROOT");

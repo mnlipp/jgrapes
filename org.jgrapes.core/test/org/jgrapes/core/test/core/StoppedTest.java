@@ -2,7 +2,7 @@ package org.jgrapes.core.test.core;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class StoppedTest {
 	@Test
 	public void testComplete() throws InterruptedException {
 		PrioritisedHandlers app = new PrioritisedHandlers();
-		Utils.start(app);
+		Components.start(app);
 		assertTrue(app.result.equals("Hel"));
 	}
 

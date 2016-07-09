@@ -30,7 +30,7 @@ import java.util.Arrays;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.events.Close;
@@ -264,7 +264,7 @@ public class File extends AbstractComponent implements DataConnection {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Utils.objectName(this));
+		builder.append(Components.objectName(this));
 		builder.append(" [");
 		if (isOpen() && path != null) {
 			builder.append("path=");

@@ -19,7 +19,7 @@ package org.jgrapes.net.events;
 
 import java.net.SocketAddress;
 
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.Opened;
@@ -60,7 +60,7 @@ public class Ready extends Opened<Connection> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Utils.objectName(this));
+		builder.append(Components.objectName(this));
 		builder.append(" [");
 		builder.append(listenAddress);
 		builder.append(", ");

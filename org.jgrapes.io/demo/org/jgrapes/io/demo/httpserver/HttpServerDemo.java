@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import org.jgrapes.core.AbstractComponent;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.events.GetRequest;
@@ -50,7 +50,7 @@ public class HttpServerDemo extends AbstractComponent {
 		app.attach(new NioDispatcher());
 		app.attach(new HttpServer(app.getChannel(), 
 				new InetSocketAddress(8888)));
-		Utils.start(app);
+		Components.start(app);
 	}
 
 }

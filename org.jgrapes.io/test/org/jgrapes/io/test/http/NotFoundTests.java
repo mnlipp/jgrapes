@@ -9,7 +9,7 @@ import java.net.URLConnection;
 import java.util.concurrent.ExecutionException;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Utils;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.http.events.GetRequest;
@@ -40,14 +40,14 @@ public class NotFoundTests {
 	static public void startServer() throws IOException, InterruptedException, 
 			ExecutionException {
 		server = new TestServer();
-		Utils.start(server);
+		Components.start(server);
 	}
 	
 	@AfterClass
 	static public void stopServer() throws InterruptedException {
 		server.fire(new Stop(), Channel.BROADCAST);
-		Utils.awaitExhaustion();
-		Utils.checkAssertions();
+		Components.awaitExhaustion();
+		Components.checkAssertions();
 	}
 	
 	@Test
