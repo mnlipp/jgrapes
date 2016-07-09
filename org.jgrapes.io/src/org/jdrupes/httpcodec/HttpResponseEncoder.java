@@ -156,7 +156,7 @@ public class HttpResponseEncoder {
 				}
 				if (in.remaining() == 0) {
 					// Has probably been invoked with a dummy buffer.
-					return EncoderResult.UNDERFLOW;
+					return EncoderResult.PROCEED;
 				}
 				pendingBodyData = new ByteBufferOutputStream(in.capacity());
 				states.pop();
