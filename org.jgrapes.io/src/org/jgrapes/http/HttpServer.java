@@ -33,7 +33,6 @@ import org.jdrupes.httpcodec.DecoderResult;
 import org.jdrupes.httpcodec.EncoderResult;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpIntField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
@@ -201,7 +200,6 @@ public class HttpServer extends AbstractComponent {
 		DataConnection connection = event.getConnection();
 		HttpResponse response = event.getResponse();
 		HttpResponseEncoder encoder = encoders.get(connection);
-		EventPipeline pipeline = newEventPipeline();
 		
 		// Send response
 		encoder.encode(response);
@@ -209,7 +207,8 @@ public class HttpServer extends AbstractComponent {
 			ManagedByteBuffer buffer = connection.acquireByteBuffer();
 			EncoderResult result = encoder.encode(buffer.getBuffer());
 			if (buffer.position() > 0) {
-				pipeline.add(new Write<>(connection, buffer), networkChannel);
+				connection.getPipeline().add(new Write<>(connection, buffer),
+				        networkChannel);
 			}
 			if (!result.isOverflow()) {
 				break;
@@ -222,7 +221,6 @@ public class HttpServer extends AbstractComponent {
 			throws InterruptedException {
 		DataConnection connection = event.getConnection();
 		HttpResponseEncoder encoder = encoders.get(connection);
-		EventPipeline pipeline = newEventPipeline();
 
 		while (true) {
 			ManagedByteBuffer buffer = connection.acquireByteBuffer();
@@ -232,7 +230,8 @@ public class HttpServer extends AbstractComponent {
 				result = encoder.encode((ByteBuffer)in, buffer.getBuffer());
 			}
 			if (buffer.position() > 0) {
-				pipeline.add(new Write<>(connection, buffer), networkChannel);
+				connection.getPipeline().add(new Write<>(connection, buffer),
+				        networkChannel);
 			}
 			if (!result.isOverflow()) {
 				break;
@@ -244,14 +243,14 @@ public class HttpServer extends AbstractComponent {
 	public void onEof(Eof event) throws InterruptedException {
 		DataConnection connection = event.getConnection();
 		HttpResponseEncoder encoder = encoders.get(connection);
-		EventPipeline pipeline = newEventPipeline();
 		
 		// Send remaining data
 		while (true) {
 			ManagedByteBuffer buffer = connection.acquireByteBuffer();
 			EncoderResult result = encoder.encode(null, buffer.getBuffer());
 			if (buffer.position() > 0) {
-				pipeline.add(new Write<>(connection, buffer), networkChannel);
+				connection.getPipeline().add(new Write<>(connection, buffer),
+				        networkChannel);
 			}
 			if (!result.isOverflow()) {
 				break;

@@ -22,7 +22,6 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.nio.ByteBuffer;
-import java.text.ParseException;
 import java.util.Iterator;
 import java.util.Stack;
 
@@ -131,7 +130,11 @@ public class HttpResponseEncoder {
 	 */
 	public EncoderResult encode (ByteBuffer in, ByteBuffer out) {
 		outStream.assignBuffer(out);
+		EncoderResult result = EncoderResult.PROCEED;
 		while (true) {
+			if (result.isOverflow() || result.isUnderflow()) {
+				return result;
+			}
 			if (out.remaining() == 0) {
 				return EncoderResult.OVERFLOW;
 			}
@@ -155,15 +158,16 @@ public class HttpResponseEncoder {
 					break;
 				}
 				if (in.remaining() == 0) {
-					// Has probably been invoked with a dummy buffer.
-					return EncoderResult.PROCEED;
+					// Has probably been invoked with a dummy buffer,
+					// cannot be used to create pending body buffer.
+					return EncoderResult.UNDERFLOW;
 				}
 				pendingBodyData = new ByteBufferOutputStream(in.capacity());
 				states.pop();
 				states.push(State.COLLECT_BODY);
 				// fall through (no write occurred)
 			case COLLECT_BODY:
-				collectBody(in);
+				result = collectBody(in);
 				break;
 				
 			case STREAM_COLLECTED:
@@ -182,32 +186,19 @@ public class HttpResponseEncoder {
 					states.pop();
 				}
 				// More data
-				int chunkSize = in.remaining();
 				if (!ByteBufferOutputStream.putAsMuchAsPossible(out, in)) {
 					return EncoderResult.OVERFLOW; // Shortcut
 				}
-				// Everything written
-				if (contentLength > 0) {
-					// We have an expected content-length
-					contentLength -= chunkSize;
-					if (contentLength > 0) {
-						// Expecting more
-						return EncoderResult.UNDERFLOW;
-					}
-				}
-				// Waiting for more data or end of data
-				return EncoderResult.PROCEED;
+				// Everything written, waiting for more data or end of data
+				return EncoderResult.UNDERFLOW;
 
 			case CHUNK_BODY:
 				// Send in data as chunk
 				if (in == EMPTY_IN) {
-					return EncoderResult.PROCEED;
+					return EncoderResult.UNDERFLOW;
 				}
-				EncoderResult result = writeChunk(in);
-				if (result.isOverflow()) {
-					return result;
-				}
-				return EncoderResult.PROCEED;
+				result = writeChunk(in);
+				break;
 				
 			case DONE:
 				// Was called with in == null and everything is written
@@ -340,7 +331,7 @@ public class HttpResponseEncoder {
 	 * 
 	 * @param in
 	 */
-	private void collectBody(ByteBuffer in) {
+	private EncoderResult collectBody(ByteBuffer in) {
 		if (in == null) {
 			// End of body, found content length!
 			response.setHeader(new HttpContentLengthField(
@@ -348,12 +339,12 @@ public class HttpResponseEncoder {
 			states.pop();
 			states.push(State.STREAM_COLLECTED);
 			states.push(State.HEADERS);
-			return;
+			return EncoderResult.PROCEED;
 		}
 		if (pendingBodyData.buffered() + in.remaining() < pendingLimit) {
 			// Space left, collect
 			pendingBodyData.write(in);
-			return; 
+			return EncoderResult.UNDERFLOW; 
 		}
 		// No space left, output headers, collected and rest (and then close)
 		states.pop();
@@ -361,6 +352,7 @@ public class HttpResponseEncoder {
 		states.push(State.STREAM_BODY);
 		states.push(State.STREAM_COLLECTED);
 		states.push(State.HEADERS);
+		return EncoderResult.UNDERFLOW;
 	}
 
 	/**
@@ -391,7 +383,7 @@ public class HttpResponseEncoder {
 			// Formally thrown by outStream, cannot happen.
 		}
 		return in.remaining() > 0 
-				? EncoderResult.OVERFLOW : EncoderResult.PROCEED;
+				? EncoderResult.OVERFLOW : EncoderResult.UNDERFLOW;
 	}
 
 }

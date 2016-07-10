@@ -166,6 +166,9 @@ public class HttpRequestDecoder extends HttpCodec {
 						states.pop();
 						if (hasBody) {
 							states.push(State.RECEIVING_BODY);
+						} else {
+					    	states.push(State.AWAIT_REQUEST);
+					    	states.push(State.AWAIT_CR);
 						}
 						return result;
 					}
