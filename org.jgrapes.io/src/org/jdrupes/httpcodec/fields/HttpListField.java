@@ -17,7 +17,6 @@
  */
 package org.jdrupes.httpcodec.fields;
 
-import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
