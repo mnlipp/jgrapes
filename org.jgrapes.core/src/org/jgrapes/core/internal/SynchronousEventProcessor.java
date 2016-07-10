@@ -37,7 +37,7 @@ class SynchronousEventProcessor extends EventProcessor {
 	 */
 	@Override
 	public void add(Event<?> event, Channel... channels) {
-		((EventBase<?>)event).generatedBy(currentlyHandling);
+		((EventBase<?>)event).generatedBy(currentlyHandling.get());
 		queue.add(event, channels);
 		if (isRunning) {
 			return;

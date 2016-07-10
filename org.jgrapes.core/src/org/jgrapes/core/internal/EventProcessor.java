@@ -36,10 +36,12 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	private static ExecutorService executorService 
 		= Executors.newCachedThreadPool();
 	
+	protected static ThreadLocal<EventBase<?>> 
+		currentlyHandling = new ThreadLocal<>();
+	
 	private ComponentTree componentTree;
 	private EventPipeline asEventPipeline;
 	protected EventQueue queue = new EventQueue();
-	protected EventBase<?> currentlyHandling = null;
 	private WeakHashMap<Component, Object> componentContext 
 		= new WeakHashMap<>();
 	
@@ -50,7 +52,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 
 	@Override
 	public void add(Event<?> event, Channel... channels) {
-		((EventBase<?>)event).generatedBy(currentlyHandling);
+		((EventBase<?>)event).generatedBy(currentlyHandling.get());
 		synchronized (queue) {
 			boolean wasEmpty = queue.isEmpty();
 			queue.add(event, channels);
@@ -91,10 +93,10 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 			FeedBackPipelineFilter.setAssociatedPipeline(this);
 			while (true) {
 				EventChannelsTuple next = queue.peek();
-				currentlyHandling = next.event;
+				currentlyHandling.set(next.event);
 				componentTree.dispatch
 					(asEventPipeline, next.event, next.channels);
-				currentlyHandling.decrementOpen(this);
+				currentlyHandling.get().decrementOpen(this);
 				synchronized (queue) {
 					queue.remove();
 					if (queue.isEmpty()) {
@@ -104,7 +106,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 			}
 		} finally {
 			GeneratorRegistry.getInstance().remove(this);
-			currentlyHandling = null;
+			currentlyHandling.set(null);;
 			FeedBackPipelineFilter.setAssociatedPipeline(null);
 		}
 	}

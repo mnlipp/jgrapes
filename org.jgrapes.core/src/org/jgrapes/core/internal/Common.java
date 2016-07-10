@@ -34,7 +34,7 @@ public class Common {
 
 	private Common() {
 	}
-	
+
 	private static AssertionError assertionError = null;
 	
 	static void setAssertionError (AssertionError error) {
