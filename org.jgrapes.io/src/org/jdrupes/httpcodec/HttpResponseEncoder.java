@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.Stack;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
+import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpIntField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
@@ -148,8 +149,7 @@ public class HttpResponseEncoder {
 				// Start collecting
 				if (in == null) {
 					// Empty body
-					response.setHeader(
-					        new HttpIntField(HttpField.CONTENT_LENGTH, 0));
+					response.setHeader(new HttpContentLengthField(0));
 					states.pop();
 					states.push(State.HEADERS);
 					break;
@@ -213,7 +213,7 @@ public class HttpResponseEncoder {
 				// Was called with in == null and everything is written
 				states.pop();
 				if (closeAfterBody) {
-					return EncoderResult.SEND_CLOSE;
+					return EncoderResult.CLOSE_CONNECTION;
 				}
 				return EncoderResult.PROCEED;
 				
@@ -278,11 +278,8 @@ public class HttpResponseEncoder {
 			HttpStringListField transEnc = response.getHeader(
 			        HttpStringListField.class, HttpField.TRANSFER_ENCODING);
 			if (transEnc == null) {
-				try {
-					response.setHeader(new HttpStringListField(
-					        HttpField.TRANSFER_ENCODING, "chunked"));
-				} catch (ParseException e) {
-				}
+				response.setHeader(new HttpStringListField(
+				        HttpField.TRANSFER_ENCODING, "chunked"));
 			} else {
 				transEnc.remove("chunked");
 				transEnc.add("chunked");
@@ -346,7 +343,7 @@ public class HttpResponseEncoder {
 	private void collectBody(ByteBuffer in) {
 		if (in == null) {
 			// End of body, found content length!
-			response.setHeader(new HttpIntField(HttpField.CONTENT_LENGTH,
+			response.setHeader(new HttpContentLengthField(
 					pendingBodyData.buffered()));
 			states.pop();
 			states.push(State.STREAM_COLLECTED);

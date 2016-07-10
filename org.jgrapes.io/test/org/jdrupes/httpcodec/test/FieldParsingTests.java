@@ -35,13 +35,13 @@ public class FieldParsingTests {
 
 	@Test
 	public void testString() throws ParseException {
-		HttpField<?> fv = new HttpStringField("Test", "Hello");
+		HttpField<?> fv = HttpStringField.fromString("Test", "Hello");
 		assertEquals("Hello", fv.getValue());
 	}
 
 	@Test
 	public void testStringList() throws ParseException {
-		HttpStringListField fv = new HttpStringListField("Test",
+		HttpStringListField fv = HttpStringListField.fromString("Test",
 		        "How, are,you,  out, there");
 		assertEquals("How", fv.get(0));
 		assertEquals("are", fv.get(1));
@@ -53,7 +53,7 @@ public class FieldParsingTests {
 
 	@Test
 	public void testQuoted() throws ParseException {
-		HttpStringListField fv = new HttpStringListField("Test",
+		HttpStringListField fv = HttpStringListField.fromString("Test",
 				"\"How \\\"are\",you,  \"out, there\"");
 		assertEquals("How \"are", fv.get(0));
 		assertEquals("you", fv.get(1));
@@ -63,20 +63,22 @@ public class FieldParsingTests {
 
 	@Test
 	public void testUnquote() throws ParseException {
-		HttpField<?> fv = new HttpStringField("Test", "How are you?");
-		assertEquals("How are you?", fv.unquote());
-		fv = new HttpStringField("Test", "\"How \\\"are\"");
-		assertEquals("How \"are", fv.unquote());
+		HttpField<?> fv = HttpStringField.fromString("Test", "How are you?");
+		assertEquals("How are you?", fv.getValue());
+		fv = HttpStringField.fromString("Test", "\"How \\\"are\"");
+		assertEquals("How \"are", fv.getValue());
 	}
 	
 	@Test
 	public void testMediaType() throws ParseException {
-		HttpMediaTypeField 
-			mt = new HttpMediaTypeField("Test", "text/html;charset=utf-8");
+		HttpMediaTypeField mt = HttpMediaTypeField.fromString("Test",
+		        "text/html;charset=utf-8");
 		assertEquals("text/html; charset=utf-8", mt.valueToString());
-		mt = new HttpMediaTypeField("Test", "Text/HTML;Charset=\"utf-8\"");
+		mt = HttpMediaTypeField.fromString("Test",
+		        "Text/HTML;Charset=\"utf-8\"");
 		assertEquals("text/html; charset=utf-8", mt.valueToString());
-		mt = new HttpMediaTypeField("Test", "text/html; charset=\"utf-8\"");
+		mt = HttpMediaTypeField.fromString("Test",
+		        "text/html; charset=\"utf-8\"");
 		assertEquals("text/html; charset=utf-8", mt.valueToString());
 	}
 }

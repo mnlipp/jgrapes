@@ -123,9 +123,9 @@ public class HttpServer extends AbstractComponent {
 			if (result.hasResponse()) {
 				fire (new Response(event.getConnection(), 
 						result.getResponse()));
-			}
-			if (result.mustBeClosed()) {
-				fire (new Close<>(event.getConnection()), networkChannel);
+				if (result.getCloseConnection()) {
+					fire (new Close<>(event.getConnection()), networkChannel);
+				}
 			}
 		}
 	}
@@ -171,17 +171,15 @@ public class HttpServer extends AbstractComponent {
 		Request requestEvent = event.getCompleted();
 		DataConnection connection = requestEvent.getConnection();
 
-		HttpResponse response = null;
+		HttpResponse response = requestEvent.getRequest().getResponse();
 		switch (requestEvent.get()) {
 		case UNHANDLED:
-			response = new HttpResponse
-				(requestEvent.getRequest().getProtocol(), 
-						HttpStatus.NOT_IMPLEMENTED, false);
+			response.setStatus(HttpStatus.NOT_IMPLEMENTED);
 			fire (new Response(connection, response));
 			break;
 		case RESOURCE_NOT_FOUND:
-			response = new HttpResponse(requestEvent.getRequest(),
-					HttpStatus.NOT_FOUND, true);
+			response.setStatus(HttpStatus.NOT_FOUND);
+			response.setHasBody(true);
 			HttpMediaTypeField media = new HttpMediaTypeField
 					(HttpField.CONTENT_TYPE, "text", "plain");
 			media.setParameter("charset", "utf-8");
@@ -265,9 +263,8 @@ public class HttpServer extends AbstractComponent {
 	public void onOptions(OptionsRequest event) throws ParseException {
 		if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {
 			event.setResult(HandlingResult.RESPONDED);
-			HttpResponse response = new HttpResponse
-					(event.getRequest(), HttpStatus.OK, false);
-			response.setHeader(new HttpIntField(HttpField.CONTENT_LENGTH, 0));
+			HttpResponse response = event.getRequest().getResponse();
+			response.setStatus(HttpStatus.OK);
 			fire (new Response(event.getConnection(), response));
 		}
 	}

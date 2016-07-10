@@ -28,22 +28,25 @@ public class EncoderResult {
 	public final static EncoderResult 
 		UNDERFLOW = new EncoderResult(false, true, false);
 	public final static EncoderResult 
-		SEND_CLOSE = new EncoderResult(false, false, true);
+		CLOSE_CONNECTION = new EncoderResult(false, false, true);
 	public final static EncoderResult 
 		PROCEED = new EncoderResult(false, false, false);
 	
 	private boolean overflow;
 	private boolean underflow;
-	private boolean sendClose;
+	private boolean closeConnection;
 	
 	/**
+	 * Creates a new result with the given values.
+	 * 
 	 * @param overflow
-	 * @param mustBeClosed
+	 * @param underflow
+	 * @param closeConnection
 	 */
-	public EncoderResult(boolean overflow, boolean underflow, 
-			boolean mustBeClosed) {
+	EncoderResult(boolean overflow, boolean underflow, 
+			boolean closeConnection) {
 		super();
-		this.sendClose = mustBeClosed;
+		this.closeConnection = closeConnection;
 		this.overflow = overflow;
 	}
 
@@ -73,10 +76,10 @@ public class EncoderResult {
 	 * Indicates that the connection to the receiver of the response
 	 * must be closed to complete the encoding of the response. 
 	 * 
-	 * @return the mustBeClosed
+	 * @return the value
 	 */
-	public boolean sendClose() {
-		return sendClose;
+	public boolean getCloseConnection() {
+		return closeConnection;
 	}
 
 	/* (non-Javadoc)
@@ -87,7 +90,7 @@ public class EncoderResult {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + (overflow ? 1231 : 1237);
-		result = prime * result + (sendClose ? 1231 : 1237);
+		result = prime * result + (closeConnection ? 1231 : 1237);
 		result = prime * result + (underflow ? 1231 : 1237);
 		return result;
 	}
@@ -106,7 +109,7 @@ public class EncoderResult {
 		EncoderResult other = (EncoderResult) obj;
 		if (overflow != other.overflow)
 			return false;
-		if (sendClose != other.sendClose)
+		if (closeConnection != other.closeConnection)
 			return false;
 		if (underflow != other.underflow)
 			return false;
@@ -124,7 +127,7 @@ public class EncoderResult {
 		builder.append(", underflow=");
 		builder.append(underflow);
 		builder.append(", sendClose=");
-		builder.append(sendClose);
+		builder.append(closeConnection);
 		builder.append("]");
 		return builder.toString();
 	}

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
+import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 
 /**
@@ -50,6 +51,7 @@ public class HttpRequest {
 		= new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 	private String host;
 	private int port;
+	private HttpResponse response;
 	
 	/**
 	 * Creates a new request with basic data.
@@ -64,6 +66,8 @@ public class HttpRequest {
 		this.method = method;
 		this.requestUri = requestUri;
 		this.httpProtocol = httpProtocol;
+		response = new HttpResponse(httpProtocol,
+		        HttpStatus.INTERNAL_SERVER_ERROR, false);
 	}
 
 	/**
@@ -96,11 +100,10 @@ public class HttpRequest {
 	/**
 	 * Set a header for the request.
 	 * 
-	 * @param name the header field's name
 	 * @param value the header field's value
 	 */
-	public void setHeader(String name, HttpField<?> value) {
-		headers.put(name, value);
+	public void setHeader(HttpField<?> value) {
+		headers.put(value.getName(), value);
 	}
 
 	/**
@@ -149,6 +152,15 @@ public class HttpRequest {
 		return port;
 	}
 
+	/**
+	 * Returns the prepared response.
+	 * 
+	 * @return the prepared response
+	 */
+	public HttpResponse getResponse() {
+		return response;
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

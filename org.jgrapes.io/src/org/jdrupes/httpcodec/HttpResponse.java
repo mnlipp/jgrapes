@@ -26,7 +26,6 @@ import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
-import org.jdrupes.httpcodec.fields.HttpStringListField;
 
 /**
  * @author Michael N. Lipp
@@ -47,20 +46,6 @@ public class HttpResponse {
 		this.hasBody = hasBody;
 	}
 	
-	public HttpResponse(HttpRequest request,
-			HttpStatus status, boolean hasBody) throws ParseException {
-		httpProtocol = request.getProtocol();
-		HttpStringListField conField = request
-		        .getHeader(HttpStringListField.class, HttpField.CONNECTION);
-		if (conField != null && conField.containsIgnoreCase("close")) {
-			conField = new HttpStringListField
-					(HttpField.CONNECTION, "close");
-			setHeader(conField);
-		}
-		setStatus(status);
-		this.hasBody = hasBody;
-	}
-
 	/**
 	 * Return the protocol.
 	 * 
@@ -70,6 +55,15 @@ public class HttpResponse {
 		return httpProtocol;
 	}
 
+	/**
+	 * Set the flag that indicates whether this response has a body.
+	 * 
+	 * @param hasBody new value
+	 */
+	public void setHasBody(boolean hasBody) {
+		this.hasBody = hasBody;
+	}
+	
 	/**
 	 * Returns true if body data will be delivered to the encoder
 	 * after the header.
@@ -174,7 +168,8 @@ public class HttpResponse {
 	 */
 	public void setContentType(String type, String subtype,
 			String charset) throws ParseException {
-		HttpMediaTypeField mt = new HttpMediaTypeField(type, subtype);
+		HttpMediaTypeField mt = new HttpMediaTypeField(HttpField.CONTENT_TYPE,
+		        type, subtype);
 		mt.setParameter("charset", charset);
 	}
 }

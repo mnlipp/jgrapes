@@ -24,7 +24,7 @@ public class GetRequestsTests {
 		assertFalse(result.hasResponse());
 		assertFalse(result.hasPayloadBytes());
 		assertFalse(result.hasPayloadChars());
-		assertFalse(result.mustBeClosed());
+		assertFalse(result.getCloseConnection());
 		reqText 
 			= "host:8888\r\n"
 			+ "\r\n";
@@ -36,7 +36,7 @@ public class GetRequestsTests {
 		assertFalse(result.hasResponse());
 		assertFalse(result.hasPayloadBytes());
 		assertFalse(result.hasPayloadChars());
-		assertFalse(result.mustBeClosed());
+		assertFalse(result.getCloseConnection());
 		assertEquals("GET", result.getRequest().getMethod());
 		assertEquals("localhost", result.getRequest().getHost());
 		assertEquals(8888, result.getRequest().getPort());
@@ -66,7 +66,7 @@ public class GetRequestsTests {
 		assertFalse(result.hasResponse());
 		assertFalse(result.hasPayloadBytes());
 		assertFalse(result.hasPayloadChars());
-		assertFalse(result.mustBeClosed());
+		assertFalse(result.getCloseConnection());
 		assertEquals("GET", result.getRequest().getMethod());
 		assertEquals("localhost", result.getRequest().getHost());
 		assertEquals(8888, result.getRequest().getPort());

@@ -27,9 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpIntField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
-import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.jdrupes.httpcodec.util.DynamicByteArray;
 import org.jdrupes.httpcodec.util.HttpUtils;
 
@@ -163,10 +161,12 @@ public class HttpRequestDecoder extends HttpCodec {
 					}
 					if (receivedLine.isEmpty()) {
 						// last header, body starts
-						DecoderResult result = new DecoderResult
-								(building, null, false, hasBody, false);
+						DecoderResult result = new DecoderResult(building,
+						        hasBody, false, null, false);						
 						states.pop();
-						states.push(State.RECEIVING_BODY);
+						if (hasBody) {
+							states.push(State.RECEIVING_BODY);
+						}
 						return result;
 					}
 					headerLine = receivedLine;
@@ -184,9 +184,11 @@ public class HttpRequestDecoder extends HttpCodec {
 					HttpStatus.BAD_REQUEST, false);
 			response.setStatusCode(e.getStatusCode());
 			response.setReasonPhrase(e.getReasonPhrase());
-			return new DecoderResult(null, response, true, false, false);
+			response.setHeader(
+			        new HttpStringListField(HttpField.CONNECTION, "close"));
+			return new DecoderResult(null, false, false, response, true);
 		}
-		return new DecoderResult(null, null, false, false, false);
+		return new DecoderResult(null, false, false, null, false);
 	}
 
 	private void startNewRequest() throws ProtocolException {
@@ -238,7 +240,9 @@ public class HttpRequestDecoder extends HttpCodec {
 		String fieldName = m.group(1);
 		String fieldValue = m.group(2).trim();
 		try {
-			switch (fieldName) {
+			HttpField<?> field = HttpField.fromString(fieldName, fieldValue);
+			// Use normalized field name for switch
+			switch (field.getName()) {
 			case HttpField.HOST:
 				String[] hostPort = fieldValue.split(":");
 				try {
@@ -247,20 +251,21 @@ public class HttpRequestDecoder extends HttpCodec {
 				} catch (NumberFormatException e) {
 					throw new ParseException(fieldValue, 0);
 				}
-				building.setHeader
-					(fieldName, new HttpStringField(fieldName, fieldValue));
 				break;
 			case HttpField.TRANSFER_ENCODING:
 				hasBody = true;
-				building.setHeader
-					(fieldName, new HttpStringListField(fieldName, fieldValue));
 				break;
 			case HttpField.CONTENT_LENGTH:
 				hasBody = true;
-				building.setHeader
-					(fieldName, new HttpIntField(fieldName, fieldValue));
+				break;
+			case HttpField.CONNECTION:
+				if (((HttpStringListField)field).containsIgnoreCase("close")) {
+					building.getResponse().setHeader(new HttpStringListField(
+					        HttpField.CONNECTION, "close"));
+				}
 				break;
 			}
+			building.setHeader(field);
 		} catch (ParseException e) {
 			throw new ProtocolException(protocolVersion, 
 					HttpStatus.BAD_REQUEST.getStatusCode(), e.getMessage());

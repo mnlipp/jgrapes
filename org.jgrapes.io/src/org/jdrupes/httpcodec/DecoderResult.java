@@ -18,36 +18,41 @@
 package org.jdrupes.httpcodec;
 
 /**
+ * The result of invoking the request decoder. Used to inform the
+ * invoker about what to do next.
+ * 
  * @author Michael N. Lipp
- *
  */
 public class DecoderResult {
 
 	private HttpRequest request;
-	private HttpResponse response;
-	private boolean mustBeClosed;
 	private boolean payloadBytes;
 	private boolean payloadChars;
+	private HttpResponse response;
+	private boolean closeConnection;
 
 	/**
-	 * @param request
-	 * @param response
-	 * @param closed
-	 * @param payloadBytes
-	 * @param payloadChars
+	 * Creates a new result.
+	 * 
+	 * @param request the decoded request
+	 * @param response a response to send because an error occurred
+	 * that must be signaled back to the client
+	 * @param payloadBytes {@code true} if the request has a body with octets
+	 * @param payloadChars {@code true} if the request has a body with text
 	 */
-	public DecoderResult(HttpRequest request, HttpResponse response,
-	        boolean needsClose, boolean payloadBytes, boolean payloadChars) {
+	DecoderResult(HttpRequest request, boolean payloadBytes, 
+			boolean payloadChars, HttpResponse response, 
+			boolean closeConnection) {
 		super();
 		this.request = request;
 		this.response = response;
-		this.mustBeClosed = needsClose;
 		this.payloadBytes = payloadBytes;
 		this.payloadChars = payloadChars;
+		this.closeConnection = closeConnection;
 	}
 
 	/**
-	 * Returns {@code true} if the result includes a request.
+	 * Returns {@code true} if the result includes a request. 
 	 * 
 	 * @return the result
 	 */
@@ -63,7 +68,23 @@ public class DecoderResult {
 	}
 
 	/**
-	 * Returns {@code true} if the result includes a response.
+	 * @return the payloadBytes
+	 */
+	public boolean hasPayloadBytes() {
+		return payloadBytes;
+	}
+
+	/**
+	 * @return the payloadChars
+	 */
+	public boolean hasPayloadChars() {
+		return payloadChars;
+	}
+	
+	/**
+	 * Returns {@code true} if the result includes a response. A response in
+	 * the decoder result indicates that some problem occurred that
+	 * must be signaled back to the client.
 	 * 
 	 * @return the result
 	 */
@@ -79,23 +100,13 @@ public class DecoderResult {
 	}
 
 	/**
-	 * @return the closed
+	 * Returns {@code true} if the connection should be closed. If the
+	 * result has a response, that response must be sent before
+	 * closing the connection.
+	 * 
+	 * @return the result
 	 */
-	public boolean mustBeClosed() {
-		return mustBeClosed;
-	}
-
-	/**
-	 * @return the payloadBytes
-	 */
-	public boolean hasPayloadBytes() {
-		return payloadBytes;
-	}
-
-	/**
-	 * @return the payloadChars
-	 */
-	public boolean hasPayloadChars() {
-		return payloadChars;
+	public boolean getCloseConnection() {
+		return closeConnection;
 	}
 }

@@ -15,33 +15,36 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.test;
-
-import static org.junit.Assert.*;
+package org.jdrupes.httpcodec.fields;
 
 import java.text.ParseException;
-import java.util.Iterator;
-
-import org.jdrupes.httpcodec.fields.HttpStringListField;
-import org.junit.Test;
 
 /**
+ * A specialization of {@link HttpIntField} that represents the
+ * content-length.
+ * 
  * @author Michael N. Lipp
- *
  */
-public class FieldValuesTests {
+public class HttpContentLengthField extends HttpIntField {
 
-	@Test
-	public void testStringList() throws ParseException {
-		HttpStringListField fv = HttpStringListField.fromString("Test", 
-		        "How, are,you,  \"out there\"");
-		Iterator<String> iter = fv.iterator();
-		assertEquals("How", iter.next());
-		assertEquals("are", iter.next());
-		assertEquals("you", iter.next());
-		assertEquals("out there", iter.next());
-		assertFalse(iter.hasNext());
-		assertEquals("How, are, you, \"out there\"", fv.valueToString());;
+	/**
+	 * Creates a new content-length field with the given value.
+	 * 
+	 * @param value the value
+	 */
+	public HttpContentLengthField(long value) {
+		super(CONTENT_LENGTH, value);
 	}
 
+	/**
+	 * Creates a new object with a value obtained by parsing the given
+	 * String.
+	 * 
+	 * @param s the string to parse
+	 * @throws ParseException 
+	 */
+	public static HttpContentLengthField fromString(String s)
+			throws ParseException {
+		return fromString(HttpContentLengthField.class, CONTENT_LENGTH, s);
+	}
 }
