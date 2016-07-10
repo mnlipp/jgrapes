@@ -28,14 +28,12 @@ import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutionException;
 
 import org.jgrapes.core.AbstractComponent;
-import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.File;
 import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.OpenFile;
 import org.jgrapes.io.util.ByteBufferOutputStream;
-import org.jgrapes.io.util.ManagedByteBuffer;
 import org.junit.Test;
 
 /**
@@ -49,9 +47,8 @@ public class FileWriteTests {
 		@Handler
 		public void opened(FileOpened event) 
 				throws InterruptedException, IOException {
-			EventPipeline pipeline = newEventPipeline();
 			try (ByteBufferOutputStream out = new ByteBufferOutputStream
-					(event.getConnection(), pipeline)) {
+					(event.getConnection())) {
 				for (int i = 1; i <= 10000; i++) {
 					out.write(new String(i + ": Hello World!\n").getBytes());
 				}

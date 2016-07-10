@@ -93,9 +93,8 @@ public class BigReadTest {
 		@Handler
 		public void onAcctepted(Accepted<ManagedByteBuffer> event) 
 				throws IOException, InterruptedException {
-			EventPipeline pipeline = newEventPipeline();
-			try (ByteBufferOutputStream out = new ByteBufferOutputStream
-					(event.getConnection(), pipeline)) {
+			try (ByteBufferOutputStream out = new ByteBufferOutputStream(
+			        event.getConnection())) {
 				for (int i = 0; i < 1000000; i++) {
 					out.write(new String(i + ":Hello World!\n").getBytes());
 				}

@@ -19,6 +19,7 @@ package org.jgrapes.io;
 
 import java.nio.ByteBuffer;
 
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.events.Write;
 import org.jgrapes.io.util.ManagedByteBuffer;
 
@@ -38,4 +39,11 @@ public interface DataConnection extends Connection {
 	 */
 	ManagedByteBuffer acquireByteBuffer() throws InterruptedException;
 
+	/**
+	 * Get an {@link EventPipeline} that can be used to write events.
+	 * Using the event pipeline associated with the connection
+	 * ensures that the events are written in proper sequence.
+	 */
+	EventPipeline getPipeline();
+	
 }

@@ -22,7 +22,6 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
-import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Write;
@@ -38,22 +37,19 @@ import org.jgrapes.io.events.Write;
 public class ByteBufferOutputStream extends OutputStream {
 
 	private DataConnection connection;
-	private EventPipeline pipeline;
 	private ManagedByteBuffer buffer;
 	
 	/**
 	 * Creates a new instance.
 	 * 
 	 * @param connection the connection to send on
-	 * @param pipeline the pipeline to be used to send the events
 	 * @throws InterruptedException if the current is interrupted
 	 * while trying to get a new buffer from the queue
 	 */
-	public ByteBufferOutputStream (DataConnection connection,
-			EventPipeline pipeline)	throws InterruptedException {
+	public ByteBufferOutputStream (DataConnection connection)
+			throws InterruptedException {
 		super();
 		this.connection = connection;
-		this.pipeline = pipeline;
 		buffer = connection.acquireByteBuffer();
 	}
 
@@ -97,8 +93,9 @@ public class ByteBufferOutputStream extends OutputStream {
 	 */
 	@Override
 	public void flush() throws IOException {
-		pipeline.add(new Write<ManagedByteBuffer>(connection, buffer), 
-				connection.getChannel());
+		connection.getPipeline().add(
+		        new Write<ManagedByteBuffer>(connection, buffer),
+		        connection.getChannel());
 		try {
 			buffer = connection.acquireByteBuffer();
 		} catch (InterruptedException e) {
@@ -112,7 +109,8 @@ public class ByteBufferOutputStream extends OutputStream {
 	@Override
 	public void close() throws IOException {
 		flush();
-		pipeline.add(new Close<>(connection), connection.getChannel());
+		connection.getPipeline().add(new Close<>(connection),
+		        connection.getChannel());
 	}
 
 }

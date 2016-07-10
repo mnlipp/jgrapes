@@ -217,7 +217,8 @@ public class Server extends AbstractComponent
 	public class SocketConnection implements NioHandler, DataConnection {
 
 		private SocketChannel nioChannel;
-		private EventPipeline pipeline;
+		private EventPipeline downPipeline;
+		private EventPipeline upPipeline;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> readBuffers;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> writeBuffers;
 		private Registration registration = null;
@@ -231,7 +232,8 @@ public class Server extends AbstractComponent
 		public SocketConnection(SocketChannel nioChannel)
 				throws SocketException {
 			this.nioChannel = nioChannel;
-			pipeline = newEventPipeline();
+			downPipeline = newEventPipeline();
+			upPipeline = newEventPipeline();
 
 			int writeBufferSize = bufferSize == 0 
 					? nioChannel.socket().getSendBufferSize() : bufferSize;
@@ -258,6 +260,14 @@ public class Server extends AbstractComponent
 				throws InterruptedException {
 			return writeBuffers.acquire();
 		}
+		
+		/* (non-Javadoc)
+		 * @see org.jgrapes.io.DataConnection#getPipeline()
+		 */
+		@Override
+		public EventPipeline getPipeline() {
+			return upPipeline;
+		}
 
 		/**
 		 * Invoked when registration has completed.
@@ -269,7 +279,7 @@ public class Server extends AbstractComponent
 		public void registrationComplete(NioRegistration event)
 		        throws InterruptedException, IOException {
 			registration = event.get();
-			pipeline.add(new Accepted<>(this, nioChannel.getLocalAddress(),
+			downPipeline.add(new Accepted<>(this, nioChannel.getLocalAddress(),
 					nioChannel.getRemoteAddress()), getChannel());
 			registration.updateInterested(SelectionKey.OP_READ);
 
@@ -326,7 +336,7 @@ public class Server extends AbstractComponent
 					handleWriteOp();
 				}
 			} catch (InterruptedException | IOException e) {
-				pipeline.add(new IOError(null, e), getChannel());
+				downPipeline.add(new IOError(null, e), getChannel());
 			}
 		}
 
@@ -347,11 +357,11 @@ public class Server extends AbstractComponent
 			}
 			if (bytes > 0) {
 				buffer.flip();
-				pipeline.add(new Read<ManagedByteBuffer>(this, buffer),
+				downPipeline.add(new Read<ManagedByteBuffer>(this, buffer),
 						getChannel());
 				return;
 			}
-			pipeline.add(new Eof(this), getChannel());
+			downPipeline.add(new Eof(this), getChannel());
 			close();
 		}
 		
@@ -406,7 +416,7 @@ public class Server extends AbstractComponent
 				}
 			}
 			nioChannel.close();
-			pipeline.add(new Closed<>(this), getChannel());
+			downPipeline.add(new Closed<>(this), getChannel());
 		}
 
 	}
