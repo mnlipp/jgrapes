@@ -46,8 +46,9 @@ public class EncoderResult {
 	EncoderResult(boolean overflow, boolean underflow, 
 			boolean closeConnection) {
 		super();
-		this.closeConnection = closeConnection;
 		this.overflow = overflow;
+		this.underflow = underflow;
+		this.closeConnection = closeConnection;
 	}
 
 	/**
@@ -64,7 +65,8 @@ public class EncoderResult {
 	/**
 	 * Indicates that more data is expected. The encoding 
 	 * method that has returned this result should be re-invoked with 
-	 * the same parameters except for an input buffer with additional data.
+	 * the same parameters except for an input buffer with additional 
+	 * information.
 	 * 
 	 * @return {@code true} if underflow occurred
 	 */
