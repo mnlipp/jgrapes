@@ -17,6 +17,7 @@
  */
 package org.jdrupes.httpcodec.fields;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,19 +35,28 @@ import java.util.ListIterator;
 public abstract class HttpListField<T> extends HttpField<List<T>>
 	implements List<T> {
 
+	private String unparsedValue;
 	private int position;
 	private List<T> elements = new ArrayList<>();
 	
 	/**
-	 * Creates the new object from the given value.
+	 * Creates a new object with the given field name and no elements.
 	 * 
 	 * @param name the field name
-	 * @param value the field value
-	 * @throws ParseException 
 	 */
-	public HttpListField(String name, String value) throws ParseException {
-		super(name, value);
+	protected HttpListField(String name) {
+		super(name);
 		reset();
+	}
+
+	/**
+	 * Creates a new object with the given field name and unparsed value.
+	 * 
+	 * @param name the field name
+	 */
+	protected HttpListField(String name, String unparsedValue) {
+		this(name);
+		this.unparsedValue = unparsedValue;
 	}
 
 	/**
@@ -57,8 +67,7 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	}
 	
 	/**
-	 * Returns the next element from a field value that is formated as a
-	 * comma separated list of elements.
+	 * Returns the next element from the unparsed value.
 	 * 
 	 * @return the next element or {@code null} if no elements remain
 	 * @throws ParseException 
@@ -66,11 +75,10 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	protected String nextElement() throws ParseException {
 		boolean inDquote = false;
 		int startPosition = position;
-		String value = rawValue();
 		try {
 			while (true) {
 				if (inDquote) {
-					char ch = value.charAt(position);
+					char ch = unparsedValue.charAt(position);
 					switch (ch) {
 					 case '\\':
 						 position += 2;
@@ -82,19 +90,20 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 						 continue;
 					}
 				}
-				if (position == value.length()) {
+				if (position == unparsedValue.length()) {
 					if (position == startPosition) {
 						return null;
 					}
-					return value.substring(startPosition, position);
+					return unparsedValue.substring(startPosition, position);
 				}
-				char ch = value.charAt(position);
+				char ch = unparsedValue.charAt(position);
 				switch (ch) {
 				case ',':
-					String result = value.substring(startPosition, position);
+					String result = unparsedValue
+						.substring(startPosition, position);
 					position += 1; // Skip comma
 					while (true) { // Skip optional white space
-						ch = value.charAt(position);
+						ch = unparsedValue.charAt(position);
 						if (ch != ' ' && ch != '\t') {
 							break;
 						}
@@ -109,7 +118,7 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 				}
 			}
 		} catch (IndexOutOfBoundsException e) {
-			throw new ParseException(value, position);
+			throw new ParseException(unparsedValue, position);
 		}
 	}
 	

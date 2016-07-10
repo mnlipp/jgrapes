@@ -17,6 +17,8 @@
  */
 package org.jdrupes.httpcodec.fields;
 
+import java.text.ParseException;
+
 /**
  * Represents a header field's value and provides methods for interpreting
  * that value.
@@ -25,6 +27,8 @@ package org.jdrupes.httpcodec.fields;
  */
 public class HttpStringField extends HttpField<String> {
 
+	private String value;
+	
 	/**
 	 * Creates a new representation of a field value.
 	 * 
@@ -32,7 +36,22 @@ public class HttpStringField extends HttpField<String> {
 	 * @param value the field value
 	 */
 	public HttpStringField(String name, String value) {
-		super(name, value);
+		super(name);
+		this.value = value.trim();
+	}
+
+	/**
+	 * Creates a new object with a value obtained by parsing the given
+	 * String. Parsing in this case means that the string will be unquoted
+	 * if it is quoted.
+	 * 
+	 * @param name the field name
+	 * @param s the string to parse
+	 * @throws ParseException 
+	 */
+	public static HttpStringField fromString(String name, String s)
+			throws ParseException {
+		return new HttpStringField(name, unquote(s.trim()));
 	}
 
 	/* (non-Javadoc)
@@ -40,8 +59,7 @@ public class HttpStringField extends HttpField<String> {
 	 */
 	@Override
 	public String getValue() {
-		// TODO Auto-generated method stub
-		return rawValue();
+		return value;
 	}
 
 	/* (non-Javadoc)
@@ -49,6 +67,6 @@ public class HttpStringField extends HttpField<String> {
 	 */
 	@Override
 	public String valueToString() {
-		return quoteIfNecessary(rawValue());
+		return quoteIfNecessary(value);
 	}
 }

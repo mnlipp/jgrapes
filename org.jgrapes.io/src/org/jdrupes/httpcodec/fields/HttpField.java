@@ -18,6 +18,8 @@
 package org.jdrupes.httpcodec.fields;
 
 import java.text.ParseException;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.jdrupes.httpcodec.util.HttpUtils;
 
@@ -34,18 +36,57 @@ public abstract class HttpField<T> {
 	final public static String HOST = "Host";
 	final public static String TRANSFER_ENCODING = "Transfer-Encoding";
 
-	final private String name;
-	private String value;
+	private static Map<String, String> fieldNameMap = new TreeMap<>(
+	        String.CASE_INSENSITIVE_ORDER);
+	static {
+		fieldNameMap.put(CONNECTION, CONNECTION);
+		fieldNameMap.put(CONTENT_LENGTH, CONTENT_LENGTH);
+		fieldNameMap.put(CONTENT_TYPE, CONTENT_TYPE);
+		fieldNameMap.put(HOST, HOST);
+		fieldNameMap.put(TRANSFER_ENCODING, TRANSFER_ENCODING);
+	}
 	
 	/**
-	 * Creates a new representation of a field value.
+	 * Returns an HttpField that represents the given header field,
+	 * using the best matching derived class in this package. Works
+	 * for all well known field names, i.e. the field names defined
+	 * as constants in this class. If the field name is unknown,
+	 * the result will be of type {@link HttpStringField}.
+	 * 
+	 * @param fieldName the field name
+	 * @param fieldValue the field value
+	 * @return a typed representation
+	 * @throws ParseException
+	 */
+	public static HttpField<?> fromString(String fieldName,
+	        String fieldValue) throws ParseException {
+		String normalizedFieldName = fieldNameMap
+				.getOrDefault(fieldName, fieldName);
+		switch (normalizedFieldName) {
+		case HttpField.CONNECTION:
+			return HttpStringListField.fromString(fieldName, fieldValue);
+		case HttpField.CONTENT_LENGTH:
+			return HttpContentLengthField.fromString(fieldName, fieldValue);
+		case HttpField.CONTENT_TYPE:
+			return HttpMediaTypeField.fromString(fieldName, fieldValue);
+		case HttpField.TRANSFER_ENCODING:
+			return HttpStringListField.fromString(fieldName, fieldValue);
+		default:
+			return HttpStringField.fromString(fieldName, fieldValue);
+		}
+	}
+	
+	final private String name;
+	
+	/**
+	 * Creates a new representation of a field value. For fields with
+	 * a constant definition in this class, the name is normalized.
 	 * 
 	 * @param name the field name
 	 * @param value the field value
 	 */
-	public HttpField(String name, String value) {
-		this.name = name;
-		this.value = value.trim();
+	protected HttpField(String name) {
+		this.name = fieldNameMap.getOrDefault(name, name);
 	}
 
 	/**
@@ -55,15 +96,6 @@ public abstract class HttpField<T> {
 	 */
 	public String getName() {
 		return name;
-	}
-
-	/**
-	 * Returns the unparsed value passed to the constructor.
-	 * 
-	 * @return the value
-	 */
-	protected String rawValue() {
-		return value;
 	}
 
 	/**
@@ -132,17 +164,6 @@ public abstract class HttpField<T> {
 	}
 
 	/**
-	 * If the value is double quoted, remove the quotes and escape
-	 * characters.
-	 * 
-	 * @return the unquoted value
-	 * @throws ParseException 
-	 */
-	public String unquote() throws ParseException {
-		return unquote (value);
-	}
-
-	/**
 	 * Returns the given string as double quoted string if necessary.
 	 * 
 	 * @param value the value to quote if necessary
@@ -173,13 +194,4 @@ public abstract class HttpField<T> {
 		return value;
 	}
 
-	public static HttpField<?> parseFieldValue
-		(String fieldName, String fieldValue) {
-		switch (fieldName.toLowerCase()) {
-		case HttpField.CONTENT_TYPE:
-			
-		}
-		return new HttpStringField(fieldName, fieldValue);
-	}
-	
 }

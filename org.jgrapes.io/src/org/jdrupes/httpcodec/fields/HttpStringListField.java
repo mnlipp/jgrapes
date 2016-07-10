@@ -18,6 +18,7 @@
 package org.jdrupes.httpcodec.fields;
 
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -30,23 +31,62 @@ import java.util.Iterator;
 public class HttpStringListField extends HttpListField<String> {
 
 	/**
-	 * Creates the new object from the given value.
+	 * Creates a new object with the given field name.
 	 * 
 	 * @param name the field name
-	 * @param value the field value
+	 */
+	protected HttpStringListField(String name) {
+		super(name);
+	}
+
+	/**
+	 * Creates the new object from the given values.
+	 * 
+	 * @param name the field name
+	 * @param value the first value
+	 * @param values more values
+	 */
+	public HttpStringListField(String name, String value, String... values) {
+		super(name);
+		add(value);
+		addAll(Arrays.asList(values));
+	}
+
+	/**
+	 * Creates a new object with the given field name and unparsed value.
+	 * 
+	 * @param name the field name
+	 * @param unparsedValue the unparsed value
+	 * @param unparsed used to distinguish constructors
+	 */
+	protected HttpStringListField(String name, String unparsedValue, 
+			boolean unparsed) {
+		super(name, unparsedValue);
+	}
+
+	/**
+	 * Creates a new object with the elements obtained by parsing the given
+	 * String.
+	 * 
+	 * @param name the field name
+	 * @param s the string to parse
 	 * @throws ParseException 
 	 */
-	public HttpStringListField(String name, String value) throws ParseException {
-		super(name, value);
+	
+	public static HttpStringListField fromString(String name, String s) 
+			throws ParseException {
+		HttpStringListField result = new HttpStringListField(name, s, true);
 		while (true) {
-			String element = nextElement();
+			String element = result.nextElement();
 			if (element == null) {
 				break;
 			}
-			add(HttpField.unquote(element));
+			result.add(unquote(element));
 		}
+		return result;
 	}
 
+	
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.fields.HttpListField#elementAsString(java.lang.Object)
 	 */

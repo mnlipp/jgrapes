@@ -34,43 +34,38 @@ import javax.activation.MimeTypeParseException;
 public class HttpMediaTypeField extends HttpField<MimeType> {
 
 	private MimeType value;
-	
-	/**
-	 * Creates a new representation of a media type field value.
-	 * 
-	 * @param name the field name
-	 * @param value the field value
-	 * @throws ParseException 
-	 */
-	public HttpMediaTypeField(String name, String value) throws ParseException {
-		super(name, value);
-		try {
-			this.value = new MimeType(value) {
 
-				@Override
-				public void readExternal(ObjectInput in)
-				        throws IOException, ClassNotFoundException {
-					throw new UnsupportedOperationException();
-				}
+	private class RestrictedMimeType extends MimeType {
+		
+		public RestrictedMimeType(String primary, String sub)
+		        throws MimeTypeParseException {
+			super(primary, sub);
+		}
 
-				@Override
-				public void setPrimaryType(String primary)
-				        throws MimeTypeParseException {
-					throw new UnsupportedOperationException();
-				}
+		public RestrictedMimeType(String rawdata)
+		        throws MimeTypeParseException {
+			super(rawdata);
+		}
 
-				@Override
-				public void setSubType(String sub)
-				        throws MimeTypeParseException {
-					throw new UnsupportedOperationException();
-				}
-				
-			};
-		} catch (MimeTypeParseException e) {
-			throw new ParseException(e.getMessage(), 0);
+		@Override
+		public void readExternal(ObjectInput in)
+		        throws IOException, ClassNotFoundException {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void setPrimaryType(String primary)
+		        throws MimeTypeParseException {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void setSubType(String sub)
+		        throws MimeTypeParseException {
+			throw new UnsupportedOperationException();
 		}
 	}
-
+	
 	/**
 	 * Creates new object with the given type and subtype and no parameters.
 	 * 
@@ -81,9 +76,36 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	 */
 	public HttpMediaTypeField(String name, String type, String subtype) 
 			throws ParseException {
-		this(name, type + "/" + subtype);
+		super(name);
+		try {
+			this.value = new RestrictedMimeType(type, subtype);
+		} catch (MimeTypeParseException e) {
+			throw new ParseException(e.getMessage(), 0);
+		}
 	}
 
+	private HttpMediaTypeField(String name, String value)
+	        throws ParseException {
+		super(name);
+		try {
+			this.value = new RestrictedMimeType(value);
+		} catch (MimeTypeParseException e) {
+			throw new ParseException(e.getMessage(), 0);
+		}
+	}
+	
+	/**
+	 * Creates a new representation of a media type field value.
+	 * 
+	 * @param name the field name
+	 * @param value the field value
+	 * @throws ParseException 
+	 */
+	public static HttpMediaTypeField fromString(String name, String value)
+	        throws ParseException {
+		return new HttpMediaTypeField(name, value);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.fields.HttpField#getValue()
 	 */
@@ -162,6 +184,4 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	public void setParameter(String name, String value) {
 		this.value.setParameter(name, value);
 	}
-
-	
 }

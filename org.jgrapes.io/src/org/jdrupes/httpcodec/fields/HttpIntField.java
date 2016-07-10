@@ -17,6 +17,7 @@
  */
 package org.jdrupes.httpcodec.fields;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 
 /**
@@ -26,24 +27,8 @@ import java.text.ParseException;
  */
 public class HttpIntField extends HttpField<Long> {
 
-	private long parsedValue;
+	private long value;
 	
-	/**
-	 * Creates the object and parses the value.
-	 * 
-	 * @param name the field name
-	 * @param value the field value
-	 * @throws ParseException 
-	 */
-	public HttpIntField(String name, String value) throws ParseException {
-		super(name, value);
-		try {
-			parsedValue = Long.parseLong(value);
-		} catch (NumberFormatException e) {
-			throw new ParseException(value, 0);
-		}
-	}
-
 	/**
 	 * Creates the object with the given value.
 	 * 
@@ -52,8 +37,39 @@ public class HttpIntField extends HttpField<Long> {
 	 * @throws ParseException 
 	 */
 	public HttpIntField(String name, long value) {
-		super(name, Long.toString(value));
-		parsedValue = value;
+		super(name);
+		this.value = value;
+	}
+
+	protected static <T extends HttpIntField> T fromString
+		(Class<T> type, String name, String s) throws ParseException {
+		try {
+			T result = type.getConstructor(String.class, Long.class)
+			        .newInstance(name, 0);
+			try {
+				((HttpIntField)result).value = Long.parseLong(unquote(s));
+			} catch (NumberFormatException e) {
+				throw new ParseException(s, 0);
+			}
+			return result;
+		} catch (InstantiationException | IllegalAccessException
+		        | IllegalArgumentException | InvocationTargetException
+		        | NoSuchMethodException | SecurityException e) {
+			throw new IllegalArgumentException();
+		}
+	}
+	
+	/**
+	 * Creates a new object with a value obtained by parsing the given
+	 * String.
+	 * 
+	 * @param name the field name
+	 * @param s the string to parse
+	 * @throws ParseException 
+	 */
+	public static HttpIntField fromString(String name, String s)
+			throws ParseException {
+		return fromString(HttpIntField.class, name, s);
 	}
 
 	/**
@@ -63,7 +79,7 @@ public class HttpIntField extends HttpField<Long> {
 	 */
 	@Override
 	public Long getValue() {
-		return parsedValue;
+		return value;
 	}
 	
 	/**
@@ -72,7 +88,7 @@ public class HttpIntField extends HttpField<Long> {
 	 * @return the value
 	 */
 	public int asInt() {
-		return (int)parsedValue;
+		return (int)value;
 	}
 
 	/* (non-Javadoc)
@@ -80,7 +96,7 @@ public class HttpIntField extends HttpField<Long> {
 	 */
 	@Override
 	public String valueToString() {
-		return Long.toString(parsedValue);
+		return Long.toString(value);
 	}
 	
 	
