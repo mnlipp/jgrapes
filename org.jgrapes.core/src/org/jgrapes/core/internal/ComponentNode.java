@@ -492,7 +492,11 @@ public abstract class ComponentNode implements Manager {
 			}
 		}
 		event.setChannels(channels);
-		getTree().fire(event, channels);
+		if (event.getPipeline() != null) {
+			event.getPipeline().add(event, channels);
+		} else {
+			getTree().fire(event, channels);
+		}
 		return event;
 	}
 

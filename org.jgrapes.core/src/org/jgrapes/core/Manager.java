@@ -106,10 +106,13 @@ public interface Manager extends Iterable<Component> {
 	 * (see {@link #getChannel()}). As last resort, the
 	 * event is fired on the broadcast channel.
 	 * <P>
-	 * If an event is fired inside an event handler, it is added to the
-	 * {@link EventPipeline} that has invoked the handler. If an event is fired
-	 * by some other thread (not associated with a pipeline), a new pipeline
-	 * is created for handling the event (and any events triggered by it). 
+	 * If an event is fired inside an event handler, it is 
+	 * added to the {@link EventPipeline} that has invoked the handler. 
+	 * If an event is fired by some other thread (not associated with a 
+	 * pipeline), a new pipeline is created for handling the event 
+	 * (and any events triggered by it). This default behavior is overridden
+	 * if the event has its "pipeline" attribute set. In this case, the
+	 * pipeline from the property is used.
 	 * 
 	 * @param event the event to fire
 	 * @param channels the channels to fire the event on

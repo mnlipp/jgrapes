@@ -48,6 +48,8 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	/** The channels that this event is to be fired on if no
 	 * channels are specified explicitly when firing. */
 	protected Channel[] channels = null;
+	/** The pipeline that will be used for firing the event. */
+	protected EventPipeline pipeline = null;
 	/** The event that caused this event. */
 	private EventBase<?> generatedBy = null;
 	/** Number of events that have to be dispatched until completion.
@@ -95,6 +97,27 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 		}
 		this.channels = channels;
 		return (Event<T>)this;
+	}
+
+	/**
+	 * Get the pipeline that is to be used to fire the event
+	 * (see {@link org.jgrapes.core.Manager#fire(Event, Channel...)}).
+	 * 
+	 * @return the pipeline
+	 */
+	public EventPipeline getPipeline() {
+		return pipeline;
+	}
+
+	/**
+	 * Set the pipeline that is to be used to fire this event. This
+	 * optional property can be used to override the default behavior
+	 * as described in {@link Manager#fire(Event, Channel...)}.
+	 * 
+	 * @param pipeline the pipeline to set
+	 */
+	public void setPipeline(EventPipeline pipeline) {
+		this.pipeline = pipeline;
 	}
 
 	/**
