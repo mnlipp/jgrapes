@@ -51,7 +51,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	}
 
 	@Override
-	public void add(Event<?> event, Channel... channels) {
+	public <T> Event<T> add(Event<T> event, Channel... channels) {
 		((EventBase<?>)event).generatedBy(currentlyHandling.get());
 		synchronized (queue) {
 			boolean wasEmpty = queue.isEmpty();
@@ -61,6 +61,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 				executorService.submit(this);
 			}
 		}
+		return event;
 	}
 
 	@Override

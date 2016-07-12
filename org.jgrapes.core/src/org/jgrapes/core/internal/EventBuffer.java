@@ -51,13 +51,13 @@ public class EventBuffer implements InternalEventPipeline {
 	}
 
 	@Override
-	synchronized public void add(Event<?> event, Channel... channels) {
+	synchronized public <T> Event<T> add(Event<T> event, Channel... channels) {
 		// If thread1 adds the start event and thread2 gets here before we
 		// have changed the event processor for the tree, forward the
 		// event to the event processor that should already have been used.
 		if (activePipeline != null) {
 			activePipeline.add(event, channels);
-			return;
+			return event;
 		}
 		// Event gets enqueued (increments reference count).
 		((EventBase<?>)event).generatedBy(null);
@@ -71,6 +71,7 @@ public class EventBuffer implements InternalEventPipeline {
 			componentTree.setEventPipeline(activePipeline);
 			processor.add(buffered);
 		}
+		return event;
 	}
 
 	synchronized EventQueue retrieveEvents() {

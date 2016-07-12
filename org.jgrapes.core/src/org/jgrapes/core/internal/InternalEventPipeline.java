@@ -39,8 +39,9 @@ interface InternalEventPipeline {
 	 * 
 	 * @param event the event to process
 	 * @param channels the channels that the event was fired on
+	 * @return the event (for easy chaining)
 	 */
-	void add(Event<?> event, Channel... channels);
+	<T> Event<T> add(Event<T> event, Channel... channels);
 
 	/**
 	 * Merge the events from the other event pipeline into this one.
