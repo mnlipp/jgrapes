@@ -207,7 +207,7 @@ public class HttpServer extends AbstractComponent {
 			ManagedByteBuffer buffer = connection.acquireByteBuffer();
 			EncoderResult result = encoder.encode(buffer.getBuffer());
 			if (buffer.position() > 0) {
-				connection.getPipeline().add(new Write<>(connection, buffer),
+				connection.getResponsePipeline().add(new Write<>(connection, buffer),
 				        networkChannel);
 			}
 			if (!result.isOverflow()) {
@@ -230,7 +230,7 @@ public class HttpServer extends AbstractComponent {
 				result = encoder.encode((ByteBuffer)in, buffer.getBuffer());
 			}
 			if (buffer.position() > 0) {
-				connection.getPipeline().add(new Write<>(connection, buffer),
+				connection.getResponsePipeline().add(new Write<>(connection, buffer),
 				        networkChannel);
 			}
 			if (!result.isOverflow()) {
@@ -249,7 +249,7 @@ public class HttpServer extends AbstractComponent {
 			ManagedByteBuffer buffer = connection.acquireByteBuffer();
 			EncoderResult result = encoder.encode(null, buffer.getBuffer());
 			if (buffer.position() > 0) {
-				connection.getPipeline().add(new Write<>(connection, buffer),
+				connection.getResponsePipeline().add(new Write<>(connection, buffer),
 				        networkChannel);
 			}
 			if (!result.isOverflow()) {

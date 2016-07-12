@@ -44,6 +44,6 @@ public interface DataConnection extends Connection {
 	 * Using the event pipeline associated with the connection
 	 * ensures that the events are written in proper sequence.
 	 */
-	EventPipeline getPipeline();
+	EventPipeline getResponsePipeline();
 	
 }

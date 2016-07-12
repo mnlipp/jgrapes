@@ -112,7 +112,7 @@ public class File extends AbstractComponent implements DataConnection {
 	 * @see org.jgrapes.io.DataConnection#getPipeline()
 	 */
 	@Override
-	public EventPipeline getPipeline() {
+	public EventPipeline getResponsePipeline() {
 		return upPipeline;
 	}
 
