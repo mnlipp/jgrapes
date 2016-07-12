@@ -36,7 +36,6 @@ import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.DynamicHandler;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.ConnectRequest;
@@ -72,7 +71,7 @@ public class HttpServer extends AbstractComponent {
 	private Map<Connection, HttpResponseEncoder> encoders = new WeakHashMap<>();
 
 	/**
-	 * Create a new server that uses the {@code serverChannel} for
+	 * Create a new server that uses the {@code networkChannel} for
 	 * network level I/O. 
 	 * 
 	 * @param componentChannel this component's channel
