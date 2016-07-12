@@ -36,7 +36,7 @@ class SynchronousEventProcessor extends EventProcessor {
 	 * @see org.jgrapes.core.internal.EventProcessor#add(org.jgrapes.core.internal.EventBase, org.jgrapes.core.Channel[])
 	 */
 	@Override
-	public <T> Event<T> add(Event<T> event, Channel... channels) {
+	public <T extends Event<?>> T add(T event, Channel... channels) {
 		((EventBase<?>)event).generatedBy(currentlyHandling.get());
 		queue.add(event, channels);
 		if (isRunning) {

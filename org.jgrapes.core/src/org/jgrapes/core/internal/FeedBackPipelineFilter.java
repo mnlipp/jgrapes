@@ -64,7 +64,7 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 	}
 	
 	@Override
-	public <T> Event<T> add(Event<T> event, Channel... channels) {
+	public <T extends Event<?>> T add(T event, Channel... channels) {
 		InternalEventPipeline pipeline = currentPipeline.get();
 		if (pipeline != null) {
 			return pipeline.add(event, channels);

@@ -51,7 +51,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	}
 
 	@Override
-	public <T> Event<T> add(Event<T> event, Channel... channels) {
+	public <T extends Event<?>> T add(T event, Channel... channels) {
 		((EventBase<?>)event).generatedBy(currentlyHandling.get());
 		synchronized (queue) {
 			boolean wasEmpty = queue.isEmpty();
