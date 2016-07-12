@@ -134,7 +134,7 @@ public class HttpServer extends AbstractComponent {
 			throw new IllegalStateException(
 			        "Read event for unknown connection.");
 		}
-		ByteBuffer buffer = event.getBuffer().getBuffer();
+		ByteBuffer buffer = event.getBuffer().getBacking();
 		while (buffer.hasRemaining()) {
 			DecoderResult result = httpDecoder.decode(buffer);
 			if (result.hasRequest()) {
@@ -197,7 +197,7 @@ public class HttpServer extends AbstractComponent {
 		while (true) {
 			connData.outBuffer = netConn.acquireByteBuffer();
 			final ManagedByteBuffer buffer = connData.outBuffer;
-			EncoderResult result = encoder.encode(buffer.getBuffer());
+			EncoderResult result = encoder.encode(buffer.getBacking());
 			if (!result.isOverflow()) {
 				if (!response.hasBody()) {
 					if (buffer.position() > 0) {
@@ -221,12 +221,12 @@ public class HttpServer extends AbstractComponent {
 		final ConnectionAttachments connData = connectionData.get(netConn);
 		final HttpResponseEncoder encoder = connData.encoder;
 
-		Buffer in = event.getBuffer().getBuffer();
+		Buffer in = event.getBuffer().getBacking();
 		while (true) {
 			EncoderResult result = null;
 			if (in instanceof ByteBuffer) {
 				result = encoder.encode((ByteBuffer) in,
-				        connData.outBuffer.getBuffer());
+				        connData.outBuffer.getBacking());
 			}
 			if (!result.isOverflow()) {
 				break;
@@ -246,7 +246,7 @@ public class HttpServer extends AbstractComponent {
 		// Send remaining data
 		while (true) {
 			final ManagedByteBuffer buffer = connData.outBuffer;
-			EncoderResult result = encoder.encode(null, buffer.getBuffer());
+			EncoderResult result = encoder.encode(null, buffer.getBacking());
 			if (!result.isOverflow()) {
 				if (buffer.position() > 0) {
 					(new Write<>(netConn, buffer)).fire();

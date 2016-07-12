@@ -58,21 +58,21 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	 * @see java.nio.CharBuffer#append(char)
 	 */
 	public CharBuffer append(char c) {
-		return buffer.append(c);
+		return backing.append(c);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#append(java.lang.CharSequence, int, int)
 	 */
 	public CharBuffer append(CharSequence csq, int start, int end) {
-		return buffer.append(csq, start, end);
+		return backing.append(csq, start, end);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#append(java.lang.CharSequence)
 	 */
 	public CharBuffer append(CharSequence csq) {
-		return buffer.append(csq);
+		return backing.append(csq);
 	}
 
 	/**
@@ -80,196 +80,196 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	 */
 	@Override
 	public final char[] array() {
-		return buffer.array();
+		return backing.array();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#arrayOffset()
 	 */
 	public final int arrayOffset() {
-		return buffer.arrayOffset();
+		return backing.arrayOffset();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#asReadOnlyBuffer()
 	 */
 	public CharBuffer asReadOnlyBuffer() {
-		return buffer.asReadOnlyBuffer();
+		return backing.asReadOnlyBuffer();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#charAt(int)
 	 */
 	public final char charAt(int index) {
-		return buffer.charAt(index);
+		return backing.charAt(index);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#chars()
 	 */
 	public IntStream chars() {
-		return buffer.chars();
+		return backing.chars();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#compact()
 	 */
 	public CharBuffer compact() {
-		return buffer.compact();
+		return backing.compact();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#compareTo(java.nio.CharBuffer)
 	 */
 	public int compareTo(CharBuffer that) {
-		return buffer.compareTo(that);
+		return backing.compareTo(that);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#duplicate()
 	 */
 	public CharBuffer duplicate() {
-		return buffer.duplicate();
+		return backing.duplicate();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#get()
 	 */
 	public char get() {
-		return buffer.get();
+		return backing.get();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#get(char[], int, int)
 	 */
 	public CharBuffer get(char[] dst, int offset, int length) {
-		return buffer.get(dst, offset, length);
+		return backing.get(dst, offset, length);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#get(char[])
 	 */
 	public CharBuffer get(char[] dst) {
-		return buffer.get(dst);
+		return backing.get(dst);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#get(int)
 	 */
 	public char get(int index) {
-		return buffer.get(index);
+		return backing.get(index);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#hasArray()
 	 */
 	public final boolean hasArray() {
-		return buffer.hasArray();
+		return backing.hasArray();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#isDirect()
 	 */
 	public boolean isDirect() {
-		return buffer.isDirect();
+		return backing.isDirect();
 	}
 
 	/**
 	 * @see java.nio.Buffer#isReadOnly()
 	 */
 	public boolean isReadOnly() {
-		return buffer.isReadOnly();
+		return backing.isReadOnly();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#length()
 	 */
 	public final int length() {
-		return buffer.length();
+		return backing.length();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#order()
 	 */
 	public ByteOrder order() {
-		return buffer.order();
+		return backing.order();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#put(char)
 	 */
 	public CharBuffer put(char c) {
-		return buffer.put(c);
+		return backing.put(c);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#put(char[], int, int)
 	 */
 	public CharBuffer put(char[] src, int offset, int length) {
-		return buffer.put(src, offset, length);
+		return backing.put(src, offset, length);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#put(char[])
 	 */
 	public final CharBuffer put(char[] src) {
-		return buffer.put(src);
+		return backing.put(src);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#put(java.nio.CharBuffer)
 	 */
 	public CharBuffer put(CharBuffer src) {
-		return buffer.put(src);
+		return backing.put(src);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#put(java.nio.CharBuffer)
 	 */
 	public CharBuffer put(ManagedCharBuffer src) {
-		return buffer.put(src.getBuffer());
+		return backing.put(src.getBacking());
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#put(int, char)
 	 */
 	public CharBuffer put(int index, char c) {
-		return buffer.put(index, c);
+		return backing.put(index, c);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#put(java.lang.String, int, int)
 	 */
 	public CharBuffer put(String src, int start, int end) {
-		return buffer.put(src, start, end);
+		return backing.put(src, start, end);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#put(java.lang.String)
 	 */
 	public final CharBuffer put(String src) {
-		return buffer.put(src);
+		return backing.put(src);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#read(java.nio.CharBuffer)
 	 */
 	public int read(CharBuffer target) throws IOException {
-		return buffer.read(target);
+		return backing.read(target);
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#slice()
 	 */
 	public CharBuffer slice() {
-		return buffer.slice();
+		return backing.slice();
 	}
 
 	/**
 	 * @see java.nio.CharBuffer#subSequence(int, int)
 	 */
 	public CharBuffer subSequence(int start, int end) {
-		return buffer.subSequence(start, end);
+		return backing.subSequence(start, end);
 	}
 
 }

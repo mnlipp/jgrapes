@@ -149,7 +149,7 @@ public class File extends AbstractComponent implements DataConnection {
 			downPipeline.add(new FileOpened
 				(this, event.getPath(), event.getOptions()), getChannel());
 			ioChannel.read
-				(buffer.getBuffer(), offset, buffer, readCompletionHandler);
+				(buffer.getBacking(), offset, buffer, readCompletionHandler);
 			synchronized (ioChannel) {
 				outstandingAsyncs += 1;
 			}
@@ -199,7 +199,7 @@ public class File extends AbstractComponent implements DataConnection {
 				try {
 					ManagedByteBuffer nextBuffer = ioBuffers.acquire();
 					nextBuffer.clear();
-					ioChannel.read(nextBuffer.getBuffer(), offset, nextBuffer,
+					ioChannel.read(nextBuffer.getBacking(), offset, nextBuffer,
 					        readCompletionHandler);
 					synchronized (ioChannel) {
 						outstandingAsyncs += 1;
@@ -222,7 +222,7 @@ public class File extends AbstractComponent implements DataConnection {
 		}
 		buffer.lockBuffer();
 		synchronized (ioChannel) {
-			ioChannel.write(buffer.getBuffer(), offset, 
+			ioChannel.write(buffer.getBacking(), offset, 
 					new WriteContext(buffer, offset), writeCompletionHandler);
 			outstandingAsyncs += 1;
 		}
@@ -236,7 +236,7 @@ public class File extends AbstractComponent implements DataConnection {
 		public void completed(Integer result, WriteContext context) {
 			ManagedByteBuffer buffer = context.buffer;
 			if (buffer.hasRemaining()) {
-				ioChannel.write(buffer.getBuffer(), 
+				ioChannel.write(buffer.getBacking(), 
 						context.pos + buffer.position(),
 						context, writeCompletionHandler);
 				return;

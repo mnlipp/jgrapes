@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class ManagedBuffer<T extends Buffer> {
 
-	protected T buffer;
+	protected T backing;
 	private BufferCollector manager;
 	private AtomicInteger lockCount = new AtomicInteger(1);
 	
@@ -44,7 +44,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	 * count reaches zero
 	 */
 	public ManagedBuffer(T buffer, BufferCollector manager) {
-		this.buffer = buffer;
+		this.backing = buffer;
 		this.manager = manager;
 	}
 
@@ -53,8 +53,8 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	 * 
 	 * @return the buffer
 	 */
-	public T getBuffer() {
-		return buffer;
+	public T getBacking() {
+		return backing;
 	}
 
 	/**
@@ -91,9 +91,9 @@ public abstract class ManagedBuffer<T extends Buffer> {
 		StringBuilder builder = new StringBuilder();
 		builder.append(getClass().getSimpleName());
 		builder.append(" [");
-		if (buffer != null) {
+		if (backing != null) {
 			builder.append("buffer=");
-			builder.append(buffer);
+			builder.append(backing);
 			builder.append(", ");
 		}
 		if (lockCount != null) {
@@ -108,28 +108,28 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	 * @see java.nio.Buffer#array()
 	 */
 	public Object array() {
-		return buffer.array();
+		return backing.array();
 	}
 
 	/**
 	 * @see java.nio.Buffer#arrayOffset()
 	 */
 	public int arrayOffset() {
-		return buffer.arrayOffset();
+		return backing.arrayOffset();
 	}
 
 	/**
 	 * @see java.nio.Buffer#capacity()
 	 */
 	public final int capacity() {
-		return buffer.capacity();
+		return backing.capacity();
 	}
 
 	/**
 	 * @see java.nio.Buffer#clear()
 	 */
 	public final Buffer clear() {
-		return buffer.clear();
+		return backing.clear();
 	}
 
 	/**
@@ -139,105 +139,105 @@ public abstract class ManagedBuffer<T extends Buffer> {
 		if (!(obj instanceof ManagedBuffer)) {
 			return false;
 		}
-		return buffer.equals(((ManagedBuffer<?>)obj).getBuffer());
+		return backing.equals(((ManagedBuffer<?>)obj).getBacking());
 	}
 
 	/**
 	 * @see java.nio.Buffer#flip()
 	 */
 	public final Buffer flip() {
-		return buffer.flip();
+		return backing.flip();
 	}
 
 	/**
 	 * @see java.nio.Buffer#hasArray()
 	 */
 	public boolean hasArray() {
-		return buffer.hasArray();
+		return backing.hasArray();
 	}
 
 	/**
 	 * @see java.nio.Buffer#hasRemaining()
 	 */
 	public final boolean hasRemaining() {
-		return buffer.hasRemaining();
+		return backing.hasRemaining();
 	}
 
 	/**
 	 * @see java.lang.Object#hashCode()
 	 */
 	public int hashCode() {
-		return buffer.hashCode();
+		return backing.hashCode();
 	}
 
 	/**
 	 * @see java.nio.Buffer#isDirect()
 	 */
 	public boolean isDirect() {
-		return buffer.isDirect();
+		return backing.isDirect();
 	}
 
 	/**
 	 * @see java.nio.Buffer#isReadOnly()
 	 */
 	public boolean isReadOnly() {
-		return buffer.isReadOnly();
+		return backing.isReadOnly();
 	}
 
 	/**
 	 * @see java.nio.Buffer#limit()
 	 */
 	public final int limit() {
-		return buffer.limit();
+		return backing.limit();
 	}
 
 	/**
 	 * @see java.nio.Buffer#limit(int)
 	 */
 	public final Buffer limit(int newLimit) {
-		return buffer.limit(newLimit);
+		return backing.limit(newLimit);
 	}
 
 	/**
 	 * @see java.nio.Buffer#mark()
 	 */
 	public final Buffer mark() {
-		return buffer.mark();
+		return backing.mark();
 	}
 
 	/**
 	 * @see java.nio.Buffer#position()
 	 */
 	public final int position() {
-		return buffer.position();
+		return backing.position();
 	}
 
 	/**
 	 * @see java.nio.Buffer#position(int)
 	 */
 	public final Buffer position(int newPosition) {
-		return buffer.position(newPosition);
+		return backing.position(newPosition);
 	}
 
 	/**
 	 * @see java.nio.Buffer#remaining()
 	 */
 	public final int remaining() {
-		return buffer.remaining();
+		return backing.remaining();
 	}
 
 	/**
 	 * @see java.nio.Buffer#reset()
 	 */
 	public final Buffer reset() {
-		return buffer.reset();
+		return backing.reset();
 	}
 
 	/**
 	 * @see java.nio.Buffer#rewind()
 	 */
 	public final Buffer rewind() {
-		return buffer.rewind();
+		return backing.rewind();
 	}
 
 }

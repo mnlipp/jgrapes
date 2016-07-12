@@ -73,336 +73,336 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	 */
 	@Override
 	public final byte[] array() {
-		return buffer.array();
+		return backing.array();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#asCharBuffer()
 	 */
 	public CharBuffer asCharBuffer() {
-		return buffer.asCharBuffer();
+		return backing.asCharBuffer();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#asDoubleBuffer()
 	 */
 	public DoubleBuffer asDoubleBuffer() {
-		return buffer.asDoubleBuffer();
+		return backing.asDoubleBuffer();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#asFloatBuffer()
 	 */
 	public FloatBuffer asFloatBuffer() {
-		return buffer.asFloatBuffer();
+		return backing.asFloatBuffer();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#asIntBuffer()
 	 */
 	public IntBuffer asIntBuffer() {
-		return buffer.asIntBuffer();
+		return backing.asIntBuffer();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#asLongBuffer()
 	 */
 	public LongBuffer asLongBuffer() {
-		return buffer.asLongBuffer();
+		return backing.asLongBuffer();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#asReadOnlyBuffer()
 	 */
 	public ByteBuffer asReadOnlyBuffer() {
-		return buffer.asReadOnlyBuffer();
+		return backing.asReadOnlyBuffer();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#asShortBuffer()
 	 */
 	public ShortBuffer asShortBuffer() {
-		return buffer.asShortBuffer();
+		return backing.asShortBuffer();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#compact()
 	 */
 	public ByteBuffer compact() {
-		return buffer.compact();
+		return backing.compact();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#compareTo(java.nio.ByteBuffer)
 	 */
 	public int compareTo(ByteBuffer that) {
-		return buffer.compareTo(that);
+		return backing.compareTo(that);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#duplicate()
 	 */
 	public ByteBuffer duplicate() {
-		return buffer.duplicate();
+		return backing.duplicate();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#get()
 	 */
 	public byte get() {
-		return buffer.get();
+		return backing.get();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#get(byte[], int, int)
 	 */
 	public ByteBuffer get(byte[] dst, int offset, int length) {
-		return buffer.get(dst, offset, length);
+		return backing.get(dst, offset, length);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#get(byte[])
 	 */
 	public ByteBuffer get(byte[] dst) {
-		return buffer.get(dst);
+		return backing.get(dst);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#get(int)
 	 */
 	public byte get(int index) {
-		return buffer.get(index);
+		return backing.get(index);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getChar()
 	 */
 	public char getChar() {
-		return buffer.getChar();
+		return backing.getChar();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getChar(int)
 	 */
 	public char getChar(int index) {
-		return buffer.getChar(index);
+		return backing.getChar(index);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getDouble()
 	 */
 	public double getDouble() {
-		return buffer.getDouble();
+		return backing.getDouble();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getDouble(int)
 	 */
 	public double getDouble(int index) {
-		return buffer.getDouble(index);
+		return backing.getDouble(index);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getFloat()
 	 */
 	public float getFloat() {
-		return buffer.getFloat();
+		return backing.getFloat();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getFloat(int)
 	 */
 	public float getFloat(int index) {
-		return buffer.getFloat(index);
+		return backing.getFloat(index);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getInt()
 	 */
 	public int getInt() {
-		return buffer.getInt();
+		return backing.getInt();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getInt(int)
 	 */
 	public int getInt(int index) {
-		return buffer.getInt(index);
+		return backing.getInt(index);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getLong()
 	 */
 	public long getLong() {
-		return buffer.getLong();
+		return backing.getLong();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getLong(int)
 	 */
 	public long getLong(int index) {
-		return buffer.getLong(index);
+		return backing.getLong(index);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getShort()
 	 */
 	public short getShort() {
-		return buffer.getShort();
+		return backing.getShort();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#getShort(int)
 	 */
 	public short getShort(int index) {
-		return buffer.getShort(index);
+		return backing.getShort(index);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#order()
 	 */
 	public final ByteOrder order() {
-		return buffer.order();
+		return backing.order();
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#order(java.nio.ByteOrder)
 	 */
 	public final ByteBuffer order(ByteOrder bo) {
-		return buffer.order(bo);
+		return backing.order(bo);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#put(byte)
 	 */
 	public ByteBuffer put(byte b) {
-		return buffer.put(b);
+		return backing.put(b);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#put(byte[], int, int)
 	 */
 	public ByteBuffer put(byte[] src, int offset, int length) {
-		return buffer.put(src, offset, length);
+		return backing.put(src, offset, length);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#put(byte[])
 	 */
 	public final ByteBuffer put(byte[] src) {
-		return buffer.put(src);
+		return backing.put(src);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#put(java.nio.ByteBuffer)
 	 */
 	public ByteBuffer put(ByteBuffer src) {
-		return buffer.put(src);
+		return backing.put(src);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#put(java.nio.ByteBuffer)
 	 */
 	public ByteBuffer put(ManagedByteBuffer src) {
-		return buffer.put(src.getBuffer());
+		return backing.put(src.getBacking());
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#put(int, byte)
 	 */
 	public ByteBuffer put(int index, byte b) {
-		return buffer.put(index, b);
+		return backing.put(index, b);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putChar(char)
 	 */
 	public ByteBuffer putChar(char value) {
-		return buffer.putChar(value);
+		return backing.putChar(value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putChar(int, char)
 	 */
 	public ByteBuffer putChar(int index, char value) {
-		return buffer.putChar(index, value);
+		return backing.putChar(index, value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putDouble(double)
 	 */
 	public ByteBuffer putDouble(double value) {
-		return buffer.putDouble(value);
+		return backing.putDouble(value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putDouble(int, double)
 	 */
 	public ByteBuffer putDouble(int index, double value) {
-		return buffer.putDouble(index, value);
+		return backing.putDouble(index, value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putFloat(float)
 	 */
 	public ByteBuffer putFloat(float value) {
-		return buffer.putFloat(value);
+		return backing.putFloat(value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putFloat(int, float)
 	 */
 	public ByteBuffer putFloat(int index, float value) {
-		return buffer.putFloat(index, value);
+		return backing.putFloat(index, value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putInt(int, int)
 	 */
 	public ByteBuffer putInt(int index, int value) {
-		return buffer.putInt(index, value);
+		return backing.putInt(index, value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putInt(int)
 	 */
 	public ByteBuffer putInt(int value) {
-		return buffer.putInt(value);
+		return backing.putInt(value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putLong(int, long)
 	 */
 	public ByteBuffer putLong(int index, long value) {
-		return buffer.putLong(index, value);
+		return backing.putLong(index, value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putLong(long)
 	 */
 	public ByteBuffer putLong(long value) {
-		return buffer.putLong(value);
+		return backing.putLong(value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putShort(int, short)
 	 */
 	public ByteBuffer putShort(int index, short value) {
-		return buffer.putShort(index, value);
+		return backing.putShort(index, value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#putShort(short)
 	 */
 	public ByteBuffer putShort(short value) {
-		return buffer.putShort(value);
+		return backing.putShort(value);
 	}
 
 	/**
 	 * @see java.nio.ByteBuffer#slice()
 	 */
 	public ByteBuffer slice() {
-		return buffer.slice();
+		return backing.slice();
 	}
 
 }

@@ -321,7 +321,7 @@ public class Server extends AbstractComponent
 					return;
 				}
 			}
-			nioChannel.write(buffer.getBuffer());
+			nioChannel.write(buffer.getBacking());
 			if (!buffer.hasRemaining()) {
 				buffer.clear();
 				return;
@@ -360,7 +360,7 @@ public class Server extends AbstractComponent
 		private void handleReadOp() throws InterruptedException, IOException {
 			ManagedByteBuffer buffer;
 			buffer = readBuffers.acquire();
-			int bytes = nioChannel.read(buffer.getBuffer());
+			int bytes = nioChannel.read(buffer.getBacking());
 			if (bytes == 0) {
 				buffer.unlockBuffer();
 				return;
@@ -405,7 +405,7 @@ public class Server extends AbstractComponent
 						continue;
 					}
 				}
-				nioChannel.write(head.getBuffer()); // write...
+				nioChannel.write(head.getBacking()); // write...
 				break; // ... and wait for next op
 			}
 		}
