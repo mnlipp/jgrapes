@@ -123,7 +123,7 @@ public class HttpServer extends AbstractComponent {
 				fire (new Response(event.getConnection(), 
 						result.getResponse()));
 				if (result.getCloseConnection()) {
-					fire (new Close<>(event.getConnection()), networkChannel);
+					fire (new Close<>(event.getConnection()));
 				}
 			}
 		}
@@ -164,6 +164,11 @@ public class HttpServer extends AbstractComponent {
 		fire(req);
 	}
 
+	@Handler
+	public void onClose(Close<?> event) {
+		fire (new Close<>(event.getConnection()), networkChannel);
+	}
+	
 	@Handler
 	public void onRequestCompleted(Request.Completed event) 
 			throws InterruptedException, ParseException {

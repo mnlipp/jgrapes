@@ -67,6 +67,7 @@ public class Server extends AbstractComponent
 	private SocketAddress serverAddress;
 	private ServerSocketChannel serverSocketChannel;
 	private int bufferSize;
+	private EventPipeline upstreamPipeline;
 	
 	/**
 	 * Creates a new server listening on the given address. 
@@ -112,6 +113,15 @@ public class Server extends AbstractComponent
 		super(componentChannel);
 		this.serverAddress = serverAddress;
 		this.bufferSize = bufferSize;
+		upstreamPipeline = newEventPipeline();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.io.Connection#getResponsePipeline()
+	 */
+	@Override
+	public EventPipeline getResponsePipeline() {
+		return upstreamPipeline;
 	}
 
 	/**

@@ -93,9 +93,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	 */
 	@Override
 	public void flush() throws IOException {
-		connection.getResponsePipeline().add(
-		        new Write<ManagedByteBuffer>(connection, buffer),
-		        connection.getChannel());
+		connection.respond(new Write<ManagedByteBuffer>(connection, buffer));
 		try {
 			buffer = connection.acquireByteBuffer();
 		} catch (InterruptedException e) {
@@ -109,8 +107,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	@Override
 	public void close() throws IOException {
 		flush();
-		connection.getResponsePipeline().add(new Close<>(connection),
-		        connection.getChannel());
+		connection.respond(new Close<>(connection));
 	}
 
 }
