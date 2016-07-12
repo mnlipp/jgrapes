@@ -88,42 +88,42 @@ public class MatchTest {
 	public void testEventCounter() throws InterruptedException {
 		EventCounter app = new EventCounter();
 		EventPipeline pipeline = Components.manager(app).newSyncEventPipeline();
-		pipeline.add(new Start());
+		pipeline.fire(new Start());
 		assertEquals(1, app.startedGlobal);
 		assertEquals(1, app.startedTest1);
 		assertEquals(0, app.named1Global);
 		assertEquals(0, app.named1Test1);
 		assertEquals(1, app.startedComponent);
 		assertEquals(2, app.all); // Start and Started
-		pipeline.add(new Start(), new NamedChannel("test1"));
+		pipeline.fire(new Start(), new NamedChannel("test1"));
 		assertEquals(2, app.startedGlobal);
 		assertEquals(2, app.startedTest1);
 		assertEquals(0, app.named1Global);
 		assertEquals(0, app.named1Test1);
 		assertEquals(1, app.startedComponent);
 		assertEquals(4, app.all);	// Start and Started
-		pipeline.add(new NamedEvent<Void>("named1"));
+		pipeline.fire(new NamedEvent<Void>("named1"));
 		assertEquals(2, app.startedGlobal);
 		assertEquals(2, app.startedTest1);
 		assertEquals(1, app.named1Global);
 		assertEquals(1, app.named1Test1);
 		assertEquals(1, app.startedComponent);
 		assertEquals(5, app.all);	// NamedEvent
-		pipeline.add(new NamedEvent<Void>("named1"), new NamedChannel("test1"));
+		pipeline.fire(new NamedEvent<Void>("named1"), new NamedChannel("test1"));
 		assertEquals(2, app.startedGlobal);
 		assertEquals(2, app.startedTest1);
 		assertEquals(2, app.named1Global);
 		assertEquals(2, app.named1Test1);
 		assertEquals(1, app.startedComponent);
 		assertEquals(6, app.all);	// NamedEvent
-		pipeline.add(new Start(), app);
+		pipeline.fire(new Start(), app);
 		assertEquals(3, app.startedGlobal);
 		assertEquals(2, app.startedTest1);
 		assertEquals(2, app.named1Global);
 		assertEquals(2, app.named1Test1);
 		assertEquals(2, app.startedComponent);
 		assertEquals(8, app.all);	// Start and Started
-		pipeline.add(new Start(), app);
+		pipeline.fire(new Start(), app);
 		assertEquals(4, app.startedGlobal);
 		assertEquals(2, app.startedTest1);
 		assertEquals(2, app.named1Global);

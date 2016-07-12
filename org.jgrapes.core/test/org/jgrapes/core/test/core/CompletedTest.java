@@ -40,7 +40,7 @@ public class CompletedTest {
 		
 		@Handler
 		public void onTest1(TestEvent1 evt) {
-			newEventPipeline().add(new TestEvent2());
+			newEventPipeline().fire(new TestEvent2());
 		}
 
 		@Handler

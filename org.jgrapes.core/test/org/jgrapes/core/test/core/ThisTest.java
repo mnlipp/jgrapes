@@ -54,7 +54,7 @@ public class ThisTest {
 	@Test
 	public void testStarted() throws InterruptedException {
 		Component app = new Component();
-		Components.manager(app).newSyncEventPipeline().add(new Start(), app);
+		Components.manager(app).newSyncEventPipeline().fire(new Start(), app);
 		assertEquals(1, app.count);
 	}
 

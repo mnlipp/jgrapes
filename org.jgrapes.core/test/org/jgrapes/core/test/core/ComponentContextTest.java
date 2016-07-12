@@ -51,7 +51,7 @@ public class ComponentContextTest {
 	@Test
 	public void testComplete() throws InterruptedException {
 		Component app = new Component();
-		Components.manager(app).newSyncEventPipeline().add(new Start());
+		Components.manager(app).newSyncEventPipeline().fire(new Start());
 		assertTrue(app.result.equals("Hello!"));
 	}
 

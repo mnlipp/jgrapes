@@ -99,7 +99,7 @@ public class Event<T> extends EventBase<T> {
 	@Override
 	protected void handlingError
 		(EventPipeline eventProcessor, Throwable throwable) {
-		eventProcessor.add
+		eventProcessor.fire
 			(new HandlingError(this, throwable), getChannels());
 	}
 

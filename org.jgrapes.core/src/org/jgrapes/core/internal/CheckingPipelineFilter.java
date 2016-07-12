@@ -48,7 +48,7 @@ class CheckingPipelineFilter implements EventPipeline {
 	 * @see org.jgrapes.core.EventPipeline#add(org.jgrapes.core.internal.EventBase, org.jgrapes.core.Channel[])
 	 */
 	@Override
-	public <T extends Event<?>> T add(T event, Channel... channels) {
+	public <T extends Event<?>> T fire(T event, Channel... channels) {
 		if (channels.length == 0) {
 			channels = event.getChannels();
 			if (channels == null || channels.length == 0) {

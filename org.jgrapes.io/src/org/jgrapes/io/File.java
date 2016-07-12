@@ -123,7 +123,7 @@ public class File extends AbstractComponent implements DataConnection {
 	@Handler
 	public void open(OpenFile event) throws InterruptedException {
 		if (isOpen()) {
-			downPipeline.add(new IOError(event, 
+			downPipeline.fire(new IOError(event, 
 					new IllegalStateException("File is already open.")), 
 					getChannel());
 		}
@@ -132,21 +132,21 @@ public class File extends AbstractComponent implements DataConnection {
 			ioChannel = AsynchronousFileChannel
 					.open(event.getPath(), event.getOptions());
 		} catch (IOException e) {
-			downPipeline.add(new IOError(event, e), getChannel());
+			downPipeline.fire(new IOError(event, e), getChannel());
 		}
 		offset = 0;
 		if (Arrays.asList(event.getOptions())
 				.contains(StandardOpenOption.WRITE)) {
 			// Writing to file
 			reading = false;
-			downPipeline.add(new FileOpened(this, event.getPath(), 
+			downPipeline.fire(new FileOpened(this, event.getPath(), 
 				event.getOptions()), getChannel());
 		} else {
 			// Reading from file
 			reading = true;
 			ManagedByteBuffer buffer = ioBuffers.acquire();
 			registerAsGenerator();
-			downPipeline.add(new FileOpened
+			downPipeline.fire(new FileOpened
 				(this, event.getPath(), event.getOptions()), getChannel());
 			ioChannel.read
 				(buffer.getBacking(), offset, buffer, readCompletionHandler);
@@ -163,7 +163,7 @@ public class File extends AbstractComponent implements DataConnection {
 		public void failed(Throwable exc, C context) {
 			try {
 				if (!(exc instanceof AsynchronousCloseException)) {
-					downPipeline.add(new IOError(null, exc), getChannel());
+					downPipeline.fire(new IOError(null, exc), getChannel());
 				}
 			} finally {
 				handled();
@@ -189,12 +189,12 @@ public class File extends AbstractComponent implements DataConnection {
 					return;
 				}
 				if (result == -1) {
-					downPipeline.add(new Eof(File.this), getChannel());
-					downPipeline.add(new Close<>(File.this), getChannel());
+					downPipeline.fire(new Eof(File.this), getChannel());
+					downPipeline.fire(new Close<>(File.this), getChannel());
 					return;
 				}
 				buffer.flip();
-				downPipeline.add(new Read<>(File.this, buffer), getChannel());
+				downPipeline.fire(new Read<>(File.this, buffer), getChannel());
 				offset += result;
 				try {
 					ManagedByteBuffer nextBuffer = ioBuffers.acquire();
@@ -257,10 +257,10 @@ public class File extends AbstractComponent implements DataConnection {
 					}
 					ioChannel.close();
 				}
-				downPipeline.add(new Closed<>(this), getChannel());
+				downPipeline.fire(new Closed<>(this), getChannel());
 			} catch (ClosedChannelException e) {
 			} catch (IOException e) {
-				downPipeline.add(new IOError(event, e), getChannel());
+				downPipeline.fire(new IOError(event, e), getChannel());
 			}
 			if (reading) {
 				unregisterAsGenerator();

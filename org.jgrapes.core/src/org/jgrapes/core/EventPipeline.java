@@ -41,5 +41,5 @@ public interface EventPipeline {
 	 * @param channels the channels that the event was fired on
 	 * @return the event (for easy chaining)
 	 */
-	<T extends Event<?>> T add(T event, Channel... channels);
+	<T extends Event<?>> T fire(T event, Channel... channels);
 }

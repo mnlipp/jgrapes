@@ -215,7 +215,7 @@ public class Server extends AbstractComponent
 		if (!serverSocketChannel.isOpen()) {
 			return;
 		}
-		newSyncEventPipeline().add(new Close<>(this), getChannel());
+		newSyncEventPipeline().fire(new Close<>(this), getChannel());
 	}
 
 	/**
@@ -289,7 +289,7 @@ public class Server extends AbstractComponent
 		public void registrationComplete(NioRegistration event)
 		        throws InterruptedException, IOException {
 			registration = event.get();
-			downPipeline.add(new Accepted<>(this, nioChannel.getLocalAddress(),
+			downPipeline.fire(new Accepted<>(this, nioChannel.getLocalAddress(),
 					nioChannel.getRemoteAddress()), getChannel());
 			registration.updateInterested(SelectionKey.OP_READ);
 
@@ -346,7 +346,7 @@ public class Server extends AbstractComponent
 					handleWriteOp();
 				}
 			} catch (InterruptedException | IOException e) {
-				downPipeline.add(new IOError(null, e), getChannel());
+				downPipeline.fire(new IOError(null, e), getChannel());
 			}
 		}
 
@@ -367,11 +367,11 @@ public class Server extends AbstractComponent
 			}
 			if (bytes > 0) {
 				buffer.flip();
-				downPipeline.add(new Read<ManagedByteBuffer>(this, buffer),
+				downPipeline.fire(new Read<ManagedByteBuffer>(this, buffer),
 						getChannel());
 				return;
 			}
-			downPipeline.add(new Eof(this), getChannel());
+			downPipeline.fire(new Eof(this), getChannel());
 			close();
 		}
 		
@@ -426,7 +426,7 @@ public class Server extends AbstractComponent
 				}
 			}
 			nioChannel.close();
-			downPipeline.add(new Closed<>(this), getChannel());
+			downPipeline.fire(new Closed<>(this), getChannel());
 		}
 
 	}

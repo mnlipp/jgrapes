@@ -71,6 +71,6 @@ public interface Connection {
 	 * @return the event (for easy chaining)
 	 */
 	default <T extends Event<?>> T respond(T event) {
-		return getResponsePipeline().add(event, getChannel());
+		return getResponsePipeline().fire(event, getChannel());
 	}
 }
