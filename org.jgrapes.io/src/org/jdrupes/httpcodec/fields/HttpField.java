@@ -83,7 +83,6 @@ public abstract class HttpField<T> {
 	 * a constant definition in this class, the name is normalized.
 	 * 
 	 * @param name the field name
-	 * @param value the field value
 	 */
 	protected HttpField(String name) {
 		this.name = fieldNameMap.getOrDefault(name, name);
@@ -101,7 +100,7 @@ public abstract class HttpField<T> {
 	/**
 	 * Returns the header field's value.
 	 * 
-	 * @return
+	 * @return the field's value
 	 */
 	public abstract T getValue();
 	

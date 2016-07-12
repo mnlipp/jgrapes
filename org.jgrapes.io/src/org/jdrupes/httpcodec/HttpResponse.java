@@ -116,8 +116,7 @@ public class HttpResponse {
 	/**
 	 * Set a header for the response data.
 	 * 
-	 * @param name the header field's name
-	 * @param value the header field's value
+	 * @param field the header field
 	 */
 	public void setHeader(HttpField<?> field) {
 		headers.put(field.getName(), field);

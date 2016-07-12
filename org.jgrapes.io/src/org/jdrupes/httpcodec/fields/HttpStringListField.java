@@ -120,7 +120,6 @@ public class HttpStringListField extends HttpListField<String> {
 	 * differences in the cases of the letters.
 	 * 
 	 * @param value the value to compare with
-	 * @return the result
 	 */
 	public void removeAllIgnoreCase(String value) {
 		for (Iterator<String> iter = getValue().iterator(); iter.hasNext();) {

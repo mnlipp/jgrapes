@@ -167,7 +167,7 @@ public interface Manager extends Iterable<Component> {
 	/**
 	 * Return a new {@link EventPipeline} that processes an added event
 	 * (and all events caused by it) before returning from the
-	 * {@link EventPipeline#add} method.
+	 * {@link EventPipeline#fire} method.
 	 * <P>
 	 * The returned event pipeline is not thread-safe, i.e. no other thread
 	 * may call <code>add</code> while an invocation of <code>add</code>
