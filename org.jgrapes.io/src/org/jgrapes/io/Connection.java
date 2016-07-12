@@ -34,7 +34,7 @@ import org.jgrapes.core.EventPipeline;
  * from responder to initiator. Of course, any pipeline could be used to 
  * send events to the initiator component. However, using arbitrary 
  * pipelines holds the risk that events aren't delivered in the intended 
- * order.  
+ * order.
  * 
  * @author Michael N. Lipp
  */
@@ -70,7 +70,7 @@ public interface Connection {
 	 * @param event the event to fire
 	 * @return the event (for easy chaining)
 	 */
-	default <T> Event<T> respond(Event<T> event) {
+	default <T extends Event<?>> T respond(T event) {
 		return getResponsePipeline().add(event, getChannel());
 	}
 }

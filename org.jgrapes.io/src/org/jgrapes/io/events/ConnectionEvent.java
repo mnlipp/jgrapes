@@ -45,5 +45,11 @@ public abstract class ConnectionEvent<T, C extends Connection>
 	public C getConnection() {
 		return connection;
 	}
-	
+
+	/**
+	 * Fires the event as a response on its connection.
+	 */
+	public ConnectionEvent<T, C> fire() {
+		return connection.respond(this);
+	}
 }
