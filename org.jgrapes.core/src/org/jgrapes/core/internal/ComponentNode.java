@@ -534,7 +534,7 @@ public abstract class ComponentNode implements Manager {
 	@Override
 	public EventPipeline activeEventPipeline() {
 		return new CheckingPipelineFilter
-				(getTree().getEventPipeline());
+				(getTree().getEventPipeline(), getChannel());
 	}
 
 	/* (non-Javadoc)
@@ -543,7 +543,7 @@ public abstract class ComponentNode implements Manager {
 	@Override
 	public EventPipeline newSyncEventPipeline() {
 		return new CheckingPipelineFilter
-				(new SynchronousEventProcessor(getTree()));
+				(new SynchronousEventProcessor(getTree()), getChannel());
 	}
 
 	/* (non-Javadoc)
@@ -551,7 +551,8 @@ public abstract class ComponentNode implements Manager {
 	 */
 	@Override
 	public EventPipeline newEventPipeline() {
-		return new CheckingPipelineFilter(new EventProcessor(getTree()));
+		return new CheckingPipelineFilter(new EventProcessor(getTree()),
+		        getChannel());
 	}
 
 	/* (non-Javadoc)

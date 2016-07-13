@@ -32,6 +32,19 @@ import org.jgrapes.core.EventPipeline;
 class CheckingPipelineFilter implements EventPipeline {
 
 	private InternalEventPipeline sink;
+	private Channel channel;
+
+	/**
+	 * Create a new instance that forwards the events to the given
+	 * pipeline with the given channel after checking.
+	 * 
+	 * @param sink
+	 */
+	public CheckingPipelineFilter(InternalEventPipeline sink, Channel channel) {
+		super();
+		this.sink = sink;
+		this.channel = channel;
+	}
 
 	/**
 	 * Create a new instance that forwards the events to the given
@@ -40,8 +53,7 @@ class CheckingPipelineFilter implements EventPipeline {
 	 * @param sink
 	 */
 	public CheckingPipelineFilter(InternalEventPipeline sink) {
-		super();
-		this.sink = sink;
+		this(sink, null);
 	}
 
 	/* (non-Javadoc)
@@ -52,7 +64,11 @@ class CheckingPipelineFilter implements EventPipeline {
 		if (channels.length == 0) {
 			channels = event.getChannels();
 			if (channels == null || channels.length == 0) {
-				channels = new Channel[] { Channel.BROADCAST };
+				if (channel != null) {
+					channels = new Channel[] { channel };
+				} else {
+					channels = new Channel[] { Channel.BROADCAST };
+				}
 			}
 		}
 		event.setChannels(channels);

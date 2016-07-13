@@ -103,8 +103,7 @@ public interface Manager extends Iterable<Component> {
 	 * channel (see {@link Event#getChannels()}). If the event doesn't
 	 * specify channels either, the event is fired on the 
 	 * channel of the component managed by this manager 
-	 * (see {@link #getChannel()}). As last resort, the
-	 * event is fired on the broadcast channel.
+	 * (see {@link #getChannel()}).
 	 * <P>
 	 * If an event is fired inside an event handler, it is added to the
 	 * {@link EventPipeline} that has invoked the handler. If an event is fired

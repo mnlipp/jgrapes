@@ -35,7 +35,9 @@ public interface EventPipeline {
 	 * the given channels to the end of the queue. If no channels are
 	 * specified as parameters, the event is fired on the event's 
 	 * channel (see {@link Event#getChannels()}). If the event doesn't
-	 * specify channels either, the event is fired on the broadcast channel.
+	 * specify channels either, the channel depends on how the
+	 * event pipeline was obtained. Event pipelines obtained from a
+	 * component's manager use the component's channel as fall back.
 	 * 
 	 * @param event the event to process
 	 * @param channels the channels that the event was fired on

@@ -211,7 +211,7 @@ public class Server extends AbstractComponent
 			EventPipeline ep = newEventPipeline();
 			synchronized (connections) {
 				for (SocketConnection conn: connections) {
-					ep.fire(new Close<>(conn), getChannel());
+					ep.fire(new Close<>(conn));
 				}
 				while (connections.size() > 0) {
 					connections.wait();
@@ -310,7 +310,7 @@ public class Server extends AbstractComponent
 		        throws InterruptedException, IOException {
 			registration = event.get();
 			downPipeline.fire(new Accepted<>(this, nioChannel.getLocalAddress(),
-					nioChannel.getRemoteAddress()), getChannel());
+					nioChannel.getRemoteAddress()));
 			registration.updateInterested(SelectionKey.OP_READ);
 
 		}
@@ -366,7 +366,7 @@ public class Server extends AbstractComponent
 					handleWriteOp();
 				}
 			} catch (InterruptedException | IOException e) {
-				downPipeline.fire(new IOError(null, e), getChannel());
+				downPipeline.fire(new IOError(null, e));
 			}
 		}
 
@@ -387,11 +387,10 @@ public class Server extends AbstractComponent
 			}
 			if (bytes > 0) {
 				buffer.flip();
-				downPipeline.fire(new Read<ManagedByteBuffer>(this, buffer),
-						getChannel());
+				downPipeline.fire(new Read<ManagedByteBuffer>(this, buffer));
 				return;
 			}
-			downPipeline.fire(new Eof(this), getChannel());
+			downPipeline.fire(new Eof(this));
 			close();
 		}
 		
@@ -448,7 +447,7 @@ public class Server extends AbstractComponent
 			// Fail safe
 			synchronized (connections) {
 				if(connections.remove(this)) {
-					downPipeline.fire(new Closed<>(this), getChannel());
+					downPipeline.fire(new Closed<>(this));
 				}
 				// In case the server is shutting down
 				connections.notifyAll();
