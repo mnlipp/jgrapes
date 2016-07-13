@@ -122,7 +122,7 @@ public class BigReadTest {
 		}
 	}
 
-	@Test
+	@Test(timeout=5000)
 	public void test() throws IOException, InterruptedException, 
 			ExecutionException {
 		EchoServer app = new EchoServer();
@@ -137,21 +137,6 @@ public class BigReadTest {
 		InetSocketAddress serverAddr 
 			= ((InetSocketAddress)readyEvent.getListenAddress());
 
-		// Watchdog
-		final Thread mainTread = Thread.currentThread();
-		(new Thread() {
-			@Override
-			public void run() {
-				try {
-					mainTread.join(5000);
-					if (mainTread.isAlive()) {
-						mainTread.interrupt();
-					}
-				} catch (InterruptedException e) {
-				}
-			}
-		}).start();
-		
 		AtomicInteger expected = new AtomicInteger(0);
 		try (Socket client = new Socket(serverAddr.getAddress(),
 		        serverAddr.getPort())) {
@@ -166,13 +151,11 @@ public class BigReadTest {
 				assertEquals("Hello World!", parts[1]);
 				expected.incrementAndGet();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 		assertEquals(1000000, expected.get());
 		
 		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
-		assertTrue(Components.awaitExhaustion(3000));
+		Components.awaitExhaustion();
 	}
 
 }
