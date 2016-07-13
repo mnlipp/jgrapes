@@ -84,7 +84,6 @@ class VerboseHandlerReference extends HandlerReference {
 		super.invoke(event);
 		if (handlerTracking.isLoggable(Level.FINEST)) {
 			builder.setLength(0);
-			invocation = invocationCounter.getAndIncrement();
 			builder.append("Result [");
 			builder.append(Long.toString(invocation));
 			builder.append("]: " + (event.getResult() == null ? "null"
