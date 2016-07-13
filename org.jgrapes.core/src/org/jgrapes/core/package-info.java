@@ -25,7 +25,8 @@
  *   <dt>{@code org.jgrapes.core.handlerTracking.level}</dt>
  *   <dd>If set to {@code FINE}, causes events and their handlers to be logged
  *   before the handler is invoked. If set to {@code FINER} additionally 
- *   causes events without any handler to be logged 
+ *   causes events without any handler to be logged and if set to {@code
+ *   FINEST} also logs the result of invoking a handler
  *   (the additional logging is done with log level
  *   {@code FINE}, just as the logging of the invocations). Enabling the
  *   invocation logging involves some performance penalty because additional

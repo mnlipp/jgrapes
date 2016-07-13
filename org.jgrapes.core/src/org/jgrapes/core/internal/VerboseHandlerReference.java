@@ -18,6 +18,8 @@
 package org.jgrapes.core.internal;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.EventPipeline;
@@ -32,6 +34,7 @@ import org.jgrapes.core.Components;
  */
 class VerboseHandlerReference extends HandlerReference {
 
+	private static AtomicLong invocationCounter = new AtomicLong(1);
 	private Component component;
 	private String handlerName;
 	
@@ -60,6 +63,13 @@ class VerboseHandlerReference extends HandlerReference {
 	@Override
 	public void invoke(EventBase<?> event) throws Throwable {
 		StringBuilder builder = new StringBuilder();
+		long invocation = 0;
+		if (handlerTracking.isLoggable(Level.FINEST)) {
+			invocation = invocationCounter.getAndIncrement();
+			builder.append('[');
+			builder.append(Long.toString(invocation));
+			builder.append("] ");
+		}
 		builder.append("P");
 		builder.append(Common.getId(EventPipeline.class, 
 				FeedBackPipelineFilter.getAssociatedPipeline()));
@@ -72,6 +82,15 @@ class VerboseHandlerReference extends HandlerReference {
 		}
 		handlerTracking.fine(builder.toString());
 		super.invoke(event);
+		if (handlerTracking.isLoggable(Level.FINEST)) {
+			builder.setLength(0);
+			invocation = invocationCounter.getAndIncrement();
+			builder.append("Result [");
+			builder.append(Long.toString(invocation));
+			builder.append("]: " + (event.getResult() == null ? "null"
+			        : event.getResult()));
+			handlerTracking.fine(builder.toString());
+		}
 	}
 
 	@Override
