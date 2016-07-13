@@ -27,7 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Components;
@@ -50,7 +50,7 @@ import org.jgrapes.io.util.ManagedByteBuffer;
  * 
  * @author Michael N. Lipp
  */
-public class File extends AbstractComponent implements DataConnection {
+public class File extends Component implements DataConnection {
 
 	private class WriteContext {
 		public ManagedByteBuffer buffer;

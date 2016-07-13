@@ -19,7 +19,7 @@ package org.jgrapes.core.test.core;
 
 import static org.junit.Assert.*;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.Components;
@@ -33,14 +33,14 @@ import org.junit.Test;
  */
 public class ThisTest {
 
-	public static class Component extends AbstractComponent {
+	public static class TestComponent extends Component {
 
 		public int count = 0;
 
 		/**
 		 * @param componentChannel
 		 */
-		public Component() {
+		public TestComponent() {
 			super(new NamedChannel("test"));
 		}
 
@@ -53,7 +53,7 @@ public class ThisTest {
 	
 	@Test
 	public void testStarted() throws InterruptedException {
-		Component app = new Component();
+		TestComponent app = new TestComponent();
 		Components.manager(app).newSyncEventPipeline().fire(new Start(), app);
 		assertEquals(1, app.count);
 	}

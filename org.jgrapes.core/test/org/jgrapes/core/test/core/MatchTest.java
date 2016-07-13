@@ -17,7 +17,7 @@ package org.jgrapes.core.test.core;
 
 import static org.junit.Assert.*;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
@@ -35,7 +35,7 @@ import org.junit.Test;
  */
 public class MatchTest {
 
-	public class EventCounter extends AbstractComponent {
+	public class EventCounter extends Component {
 
 		public int all = 0;
 		public int startedGlobal = 0;

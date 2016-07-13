@@ -18,7 +18,7 @@ package org.jgrapes.core.test.core;
 import static org.junit.Assert.*;
 
 import org.jgrapes.core.ClassChannel;
-import org.jgrapes.core.Component;
+import org.jgrapes.core.ComponentNode;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Components;
@@ -36,7 +36,7 @@ public class ComponentClassChannelTest {
 	public static class MyChannel extends ClassChannel {
 	}
 	
-	public static class ComponentWithClassChannel implements Component {
+	public static class ComponentWithClassChannel implements ComponentNode {
 
 		@ComponentManager(channel=MyChannel.class)
 		private Manager manager;

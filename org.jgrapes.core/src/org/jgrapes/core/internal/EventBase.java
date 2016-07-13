@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
+import org.jgrapes.core.ComponentNode;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
@@ -339,7 +339,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @param data the data
 	 * @return the object for easy chaining
 	 */
-	public Event<T> setComponentContext(Component component, Object data) {
+	public Event<T> setComponentContext(ComponentNode component, Object data) {
 		FeedBackPipelineFilter.setComponentContext(component, data);
 		return (Event<T>)this;
 	}
@@ -351,7 +351,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @param component the component
 	 * @return the data
 	 */
-	public Object getComponentContext(Component component) {
+	public Object getComponentContext(ComponentNode component) {
 		return FeedBackPipelineFilter.getComponentContext(component);
 	}
 }

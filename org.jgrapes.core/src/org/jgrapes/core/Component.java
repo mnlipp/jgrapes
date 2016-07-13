@@ -17,25 +17,95 @@
  */
 package org.jgrapes.core;
 
-import org.jgrapes.core.annotation.ComponentManager;
+import org.jgrapes.core.internal.ComponentVertex;
 
 /**
- * Marks a class as a component. Implementing this 
- * interface is an alternative to deriving a component from 
- * {@link AbstractComponent} (usually because there is some other
- * preferential inheritance relationship). 
+ * A convenience base class for new components. In general, components can 
+ * be created by deriving from this class or by implementing 
+ * the interface {@link ComponentNode}. 
  * <P>
- * Components aren't required to
- * implement specific methods. They must, however, declare a field
- * for an associated manager. This field must be of type 
- * {@link Manager} and annotated as {@link ComponentManager}.
- * The implementation of the component can use the value in this field
- * to get access to the component hierarchy. The field is initialized
- * when the component is added to the component hierarchy or when
- * calling {@link Components#manager(Component)}.
+ * When deriving from this class,
+ * a component implementation can directly use the methods of the
+ * {@link Manager} interface and doesn't have to access the
+ * manager using a manager attribute.
+ * <P>
+ * The class also implements the {@code Channel} interface.
+ * This allows instances to be used as targets for events. 
  * 
  * @author Michael N. Lipp
+ * @see ComponentNode
  */
-public interface Component {
+public class Component extends ComponentVertex 
+	implements ComponentNode, Channel {
+
+	private Channel componentChannel;
 	
+	/**
+	 * Creates a new component base with its channel set to
+	 * itself.
+	 */
+	public Component() {
+		super();
+		componentChannel = this;
+		initComponentsHandlers();
+	}
+
+	/**
+	 * Creates a new component base with its channel set to the given 
+	 * channel. As a special case {@link Channel#SELF} can be
+	 * passed to the constructor to make the component use itself
+	 * as channel. The special value is necessary as you 
+	 * obviously cannot pass an object to be constructed to its 
+	 * constructor.
+	 * 
+	 * @param componentChannel the channel that the component's 
+	 * handlers listen on by default and that 
+	 * {@link Manager#fire(Event, Channel...)} sends the event to 
+	 */
+	public Component(Channel componentChannel) {
+		super();
+		if (componentChannel == SELF) {
+			this.componentChannel = this;
+		} else {
+			this.componentChannel = componentChannel;
+		}
+		initComponentsHandlers();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.internal.ComponentVertex#getComponent()
+	 */
+	@Override
+	protected ComponentNode getComponent() {
+		return this;
+	}
+
+	/**
+	 * Returns the channel associated with the component.
+	 * 
+	 * @return the channel as assigned by the constructor.
+	 * 
+	 * @see org.jgrapes.core.Manager#getChannel()
+	 */
+	@Override
+	public Channel getChannel() {
+		return componentChannel;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.internal.Matchable#getMatchKey()
+	 */
+	@Override
+	public Object getMatchKey() {
+		return this;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.internal.Matchable#matches(java.lang.Object)
+	 */
+	@Override
+	public boolean matches(Object handlerKey) {
+		return handlerKey.equals(Channel.class) || handlerKey == getMatchKey();
+	}
+
 }

@@ -19,7 +19,7 @@ package org.jgrapes.core.test.core;
 
 import static org.junit.Assert.assertTrue;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
@@ -33,7 +33,7 @@ import org.junit.Test;
  */
 public class ComponentContextTest {
 
-	public static class Component extends AbstractComponent {
+	public static class TestComponent extends Component {
 
 		public String result;
 		
@@ -50,7 +50,7 @@ public class ComponentContextTest {
 	
 	@Test
 	public void testComplete() throws InterruptedException {
-		Component app = new Component();
+		TestComponent app = new TestComponent();
 		Components.manager(app).newSyncEventPipeline().fire(new Start());
 		assertTrue(app.result.equals("Hello!"));
 	}

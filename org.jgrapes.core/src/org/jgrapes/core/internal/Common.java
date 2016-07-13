@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
+import org.jgrapes.core.ComponentNode;
 
 /**
  * @author Michael N. Lipp
@@ -52,7 +52,7 @@ public class Common {
 	}
 	
 	public static final Logger classNames 
-		= Logger.getLogger(Component.class.getPackage().getName() 
+		= Logger.getLogger(ComponentNode.class.getPackage().getName() 
 			+ ".classNames");	
 
 	public static String classToString(Class<?> clazz) {

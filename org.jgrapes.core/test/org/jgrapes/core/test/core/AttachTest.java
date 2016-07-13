@@ -1,8 +1,8 @@
 package org.jgrapes.core.test.core;
 
-import org.jgrapes.core.AbstractComponent;
-import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Channel;
+import org.jgrapes.core.ComponentNode;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
@@ -14,17 +14,17 @@ import static org.junit.Assert.*;
 
 public class AttachTest {
 
-	public static class AttachCatcher extends AbstractComponent {
+	public static class AttachCatcher extends Component {
 
 		public AttachCatcher() {
 			super(Channel.BROADCAST);
 		}
 		
-		public Component attachRoot = null;
-		public Component attachParent = null;
-		public Component attachChild = null;
-		public Component detachParent = null;
-		public Component detachChild = null;
+		public ComponentNode attachRoot = null;
+		public ComponentNode attachParent = null;
+		public ComponentNode attachChild = null;
+		public ComponentNode detachParent = null;
+		public ComponentNode detachChild = null;
 		
 		@Handler
 		public void onAttached(Attached evt) {

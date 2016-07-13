@@ -22,8 +22,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.ComponentNode;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.DynamicHandler;
@@ -34,7 +34,7 @@ import org.jgrapes.core.annotation.DynamicHandler;
  * 
  * @author Michael N. Lipp
  */
-public class WaitForTests extends AbstractComponent implements Future<Event<?>> {
+public class WaitForTests extends Component implements Future<Event<?>> {
 
 	Event<?> result = null;
 	
@@ -43,7 +43,7 @@ public class WaitForTests extends AbstractComponent implements Future<Event<?>> 
 	 * waits for the occurrence of an event of the given type on
 	 * the given channel. 
 	 */
-	public WaitForTests(Component app, Object eventKey, Object channelKey) {
+	public WaitForTests(ComponentNode app, Object eventKey, Object channelKey) {
 		addHandler("onEvent", eventKey, channelKey, Integer.MIN_VALUE);
 		Components.manager(app).attach(this);
 	}

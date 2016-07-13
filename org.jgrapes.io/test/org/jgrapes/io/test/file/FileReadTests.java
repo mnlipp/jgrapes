@@ -24,7 +24,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutionException;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
@@ -52,7 +52,7 @@ public class FileReadTests {
 	static long collected = 0;
 	static StringBuilder collectedText = new StringBuilder();
 	
-	public static class Consumer extends AbstractComponent {
+	public static class Consumer extends Component {
 		
 		public Consumer() {
 			super(Channel.SELF);
@@ -70,7 +70,7 @@ public class FileReadTests {
 		
 	}
 
-	public static class StateChecker extends AbstractComponent {
+	public static class StateChecker extends Component {
 		
 		public enum State { NEW, CLOSED, OPENED, READING, EOF, CLOSING };
 		public State state = State.NEW;

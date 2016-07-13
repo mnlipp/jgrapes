@@ -20,22 +20,22 @@ package org.jgrapes.core.internal;
 import java.lang.reflect.Field;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
+import org.jgrapes.core.ComponentNode;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.annotation.Handler;
 
 /**
- * The ComponentProxy is a special ComponentNode that references the
+ * The ComponentProxy is a special ComponentVertex that references the
  * object implementing the Component interface (instead of being
  * its base class).
  * 
  * @author Michael N. Lipp
  */
-public class ComponentProxy extends ComponentNode {
+public class ComponentProxy extends ComponentVertex {
 
 	/** The reference to the actual component. */
-	private Component component = null;
+	private ComponentNode component = null;
 	/** The referenced component's channel. */
 	private Channel componentChannel = Channel.BROADCAST;
 	
@@ -83,7 +83,7 @@ public class ComponentProxy extends ComponentNode {
 	 * @param field the field that gets the proxy assigned
 	 * @param component the component
 	 */
-	private ComponentProxy(Field field, Component component) {
+	private ComponentProxy(Field field, ComponentNode component) {
 		this.component = component;
 		try {
 			field.set(component, this);
@@ -102,7 +102,7 @@ public class ComponentProxy extends ComponentNode {
 	 * @param component the component
 	 * @return the node representing the component in the tree
 	 */
-	static ComponentNode getComponentProxy (Component component) {
+	static ComponentVertex getComponentProxy (ComponentNode component) {
 		ComponentProxy componentProxy = null;
 		try {
 			Field field = getManagerField(component.getClass());
@@ -128,7 +128,7 @@ public class ComponentProxy extends ComponentNode {
 		return componentProxy;
 	}
 
-	public Component getComponent() {
+	public ComponentNode getComponent() {
 		return component;
 	}
 

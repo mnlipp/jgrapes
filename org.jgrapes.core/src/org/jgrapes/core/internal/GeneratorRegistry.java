@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jgrapes.core.Component;
+import org.jgrapes.core.ComponentNode;
 
 /**
  * @author Michael N. Lipp
@@ -31,7 +31,7 @@ import org.jgrapes.core.Component;
 public class GeneratorRegistry {
 
 	private static final Logger generatorTracking 
-		= Logger.getLogger(Component.class.getPackage().getName() 
+		= Logger.getLogger(ComponentNode.class.getPackage().getName() 
 		+ ".generatorTracking");
 
 	private static final class InstanceHolder {

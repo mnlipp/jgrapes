@@ -27,15 +27,15 @@ import org.jgrapes.core.annotation.DynamicHandler;
  * access to a manager implementation that manages the component.
  * <P>
  * The <code>Manager</code> for a component that extends from 
- * {@link AbstractComponent} is provided by the base class itself.
- * Components that only implement the {@link Component} interface
+ * {@link Component} is provided by the base class itself.
+ * Components that only implement the {@link ComponentNode} interface
  * get an associated <code>Manager</code> assigned to their annotated 
  * attribute.
  * 
  * @author Michael N. Lipp
- * @see Component
+ * @see ComponentNode
  */
-public interface Manager extends Iterable<Component> {
+public interface Manager extends Iterable<ComponentNode> {
 
 	/**
 	 * Detaches the component managed by this manager (with its children,
@@ -52,7 +52,7 @@ public interface Manager extends Iterable<Component> {
 	 * @throws IllegalStateException if invoked before a <code>Start</code>
 	 * event
 	 */
-	Component detach ();
+	ComponentNode detach ();
 
 	/**
 	 * Attaches the given component node (or complete tree) as a child 
@@ -62,7 +62,7 @@ public interface Manager extends Iterable<Component> {
 	 * @param child the component to add
 	 * @return the added component (for comfortable chaining)
 	 */
-	<T extends Component> T attach (T child);
+	<T extends ComponentNode> T attach (T child);
 	
 	/**
 	 * Returns the child components of the component managed by 
@@ -70,7 +70,7 @@ public interface Manager extends Iterable<Component> {
 	 * 
 	 * @return the child components
 	 */
-	List<Component> getChildren();
+	List<ComponentNode> getChildren();
 
 	/**
 	 * Returns the parent of the component managed by this manager.
@@ -78,7 +78,7 @@ public interface Manager extends Iterable<Component> {
 	 * @return the parent component or <code>null</code> if the
 	 * component is not registered with another component
 	 */
-	Component getParent();
+	ComponentNode getParent();
 	
 	/**
 	 * Returns the root of the tree the component 
@@ -86,7 +86,7 @@ public interface Manager extends Iterable<Component> {
 	 * 
 	 * @return the root
 	 */
-	Component getRoot();
+	ComponentNode getRoot();
 	
 	/**
 	 * Returns the channel of the component managed by this manager.

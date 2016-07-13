@@ -20,7 +20,7 @@ package org.jgrapes.io.demo.tcpecho;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.NioDispatcher;
@@ -33,7 +33,7 @@ import org.jgrapes.net.Server;
  * @author Michael N. Lipp
  *
  */
-public class EchoServer extends AbstractComponent {
+public class EchoServer extends Component {
 
 	/**
 	 * @throws IOException 

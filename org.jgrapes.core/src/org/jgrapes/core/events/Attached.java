@@ -17,7 +17,7 @@
  */
 package org.jgrapes.core.events;
 
-import org.jgrapes.core.Component;
+import org.jgrapes.core.ComponentNode;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.internal.Common;
@@ -29,8 +29,8 @@ import org.jgrapes.core.internal.Common;
  */
 public class Attached extends Event<Void> {
 
-	private Component node;
-	private Component parent;
+	private ComponentNode node;
+	private ComponentNode parent;
 	
 	/**
 	 * Creates a new event. The event is fired on both the
@@ -42,7 +42,7 @@ public class Attached extends Event<Void> {
 	 * @param node the component being attached
 	 * @param parent the component that the node is attached to
 	 */
-	public Attached(Component node, Component parent) {
+	public Attached(ComponentNode node, ComponentNode parent) {
 		this.node = node;
 		this.parent = parent;
 	}
@@ -52,7 +52,7 @@ public class Attached extends Event<Void> {
 	 * 
 	 * @return the node
 	 */
-	public Component getNode() {
+	public ComponentNode getNode() {
 		return node;
 	}
 
@@ -62,7 +62,7 @@ public class Attached extends Event<Void> {
 	 * 
 	 * @return the parent or <code>null</code>
 	 */
-	public Component getParent() {
+	public ComponentNode getParent() {
 		return parent;
 	}
 

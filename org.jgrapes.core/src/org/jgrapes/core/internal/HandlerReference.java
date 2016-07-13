@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jgrapes.core.Component;
+import org.jgrapes.core.ComponentNode;
 
 /**
  * A reference to a method that handles an event.
@@ -33,7 +33,7 @@ import org.jgrapes.core.Component;
 class HandlerReference implements Comparable<HandlerReference> {
 
 	protected static final Logger handlerTracking 
-		= Logger.getLogger(Component.class.getPackage().getName() 
+		= Logger.getLogger(ComponentNode.class.getPackage().getName() 
 			+ ".handlerTracking");
 	
 	private Object eventKey;
@@ -53,7 +53,7 @@ class HandlerReference implements Comparable<HandlerReference> {
 	 * @param priority the handler's priority
 	 */
 	protected HandlerReference(Object eventKey, Object channelKey,	
-			Component component, Method method, boolean eventParam, 
+			ComponentNode component, Method method, boolean eventParam, 
 			int priority) {
 		super();
 		this.eventKey = eventKey;
@@ -206,12 +206,12 @@ class HandlerReference implements Comparable<HandlerReference> {
 	static abstract class HandlerRefFactory {
 		abstract HandlerReference createHandlerRef
 			(Object eventKey, Object channelKey,	
-			 Component component, Method method, boolean eventParam, 
+			 ComponentNode component, Method method, boolean eventParam, 
 			 int priority);
 	}
 
     public static HandlerReference newRef(Object eventKey, Object channelKey,	
-			Component component, Method method, boolean eventParam, 
+			ComponentNode component, Method method, boolean eventParam, 
 			int priority) {
     	if (handlerTracking.isLoggable(Level.FINE)) {
 			return new VerboseHandlerReference(eventKey, channelKey,

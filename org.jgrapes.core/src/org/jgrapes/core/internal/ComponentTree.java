@@ -23,9 +23,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jgrapes.core.AbstractComponent;
-import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Channel;
+import org.jgrapes.core.ComponentNode;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.HandlingErrorPrinter;
@@ -34,24 +34,24 @@ import org.jgrapes.core.events.HandlingError;
 
 /**
  * This class represents the component tree. It holds all properties that 
- * are common to all nodes of a component tree (the {@link ComponentNode}s.
+ * are common to all nodes of a component tree (the {@link ComponentVertex}s.
  * 
  * @author Michael N. Lipp
  */
 class ComponentTree {
 
 	private static final Logger handlerTracking 
-		= Logger.getLogger(Component.class.getPackage().getName() 
+		= Logger.getLogger(ComponentNode.class.getPackage().getName() 
 				+ ".handlerTracking");	
 	
-	private ComponentNode root;
+	private ComponentVertex root;
 	private Map<EventChannelsTuple,HandlerList> handlerCache
 		= new HashMap<EventChannelsTuple,HandlerList>();
 	private InternalEventPipeline eventPipeline;
 	private static HandlingErrorPrinter fallbackErrorHandler 
 		= new HandlingErrorPrinter(); 
-	public final static ComponentNode DUMMY_HANDLER 
-		= new AbstractComponent(Channel.SELF) {
+	public final static ComponentVertex DUMMY_HANDLER 
+		= new Component(Channel.SELF) {
 			@Handler(channels={Channel.class})
 			public void noop(Event<?> event) {
 			}
@@ -62,12 +62,12 @@ class ComponentTree {
 	 * 
 	 * @param root the root node of the new tree
 	 */
-	ComponentTree(ComponentNode root) {
+	ComponentTree(ComponentVertex root) {
 		super();
 		this.root = root;
 	}
 
-	ComponentNode getRoot() {
+	ComponentVertex getRoot() {
 		return root;
 	}
 	
@@ -128,7 +128,7 @@ class ComponentTree {
 		// Make sure that errors are reported.
 		if (hdlrs.isEmpty()) {
 			if (event instanceof HandlingError) {
-				((ComponentNode)fallbackErrorHandler)
+				((ComponentVertex)fallbackErrorHandler)
 					.collectHandlers(hdlrs, event, channels);
 			} else {
 				if (handlerTracking.isLoggable(Level.FINER)) {

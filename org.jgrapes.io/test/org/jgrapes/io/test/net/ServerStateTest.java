@@ -19,7 +19,7 @@ package org.jgrapes.io.test.net;
 
 import static org.junit.Assert.*;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
@@ -38,7 +38,7 @@ public class ServerStateTest {
 
 	public enum State { NEW, READY, CLOSING, CLOSED };
 	
-	public class StateChecker extends AbstractComponent {
+	public class StateChecker extends Component {
 		
 		public Connection serverConnection = null;
 		

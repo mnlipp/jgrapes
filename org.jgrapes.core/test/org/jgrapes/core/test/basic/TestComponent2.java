@@ -15,7 +15,7 @@
  */
 package org.jgrapes.core.test.basic;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 
@@ -23,7 +23,7 @@ import org.jgrapes.core.events.Start;
  * @author mnl
  *
  */
-public class TestComponent2 extends AbstractComponent {
+public class TestComponent2 extends Component {
 	private String name = "Unknown";
 
 	/**

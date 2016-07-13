@@ -38,7 +38,7 @@ import java.util.logging.StreamHandler;
 
 import javax.xml.ws.handler.HandlerResolver;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Components;
@@ -91,7 +91,7 @@ public class BigReadTest {
 		localLogging = false;		
 	}
 	
-	public class EchoServer extends AbstractComponent {
+	public class EchoServer extends Component {
 
 		/**
 		 * @throws IOException 

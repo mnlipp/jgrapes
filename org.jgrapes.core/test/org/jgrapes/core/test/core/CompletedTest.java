@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
@@ -33,7 +33,7 @@ public class CompletedTest {
 	public static class TestEvent2 extends Event<Integer> {
 	}
 	
-	public static class TestClass extends AbstractComponent {
+	public static class TestClass extends Component {
 		
 		public AtomicInteger counter = new AtomicInteger(100);
 		public boolean testDone = false;

@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
@@ -60,7 +60,7 @@ import org.jgrapes.net.events.Ready;
  * 
  * @author Michael N. Lipp
  */
-public class Server extends AbstractComponent 
+public class Server extends Component 
 	implements NioHandler, Connection {
 
 	public final static NamedChannel 

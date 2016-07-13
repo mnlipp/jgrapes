@@ -29,7 +29,7 @@ import java.util.NoSuchElementException;
 import java.util.Stack;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
+import org.jgrapes.core.ComponentNode;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
@@ -41,8 +41,8 @@ import org.jgrapes.core.events.Attached;
 import org.jgrapes.core.events.Detached;
 
 /**
- * ComponentNode is the base class for all nodes in the component tree.
- * ComponentNode is extended by {@link org.jgrapes.core.AbstractComponent}
+ * ComponentVertex is the base class for all nodes in the component tree.
+ * ComponentVertex is extended by {@link org.jgrapes.core.Component}
  * for the use as base class for component implementations. As an 
  * alternative for implementing components with an independent base class,
  * the derived class {@link org.jgrapes.core.internal.ComponentProxy} can be
@@ -50,22 +50,22 @@ import org.jgrapes.core.events.Detached;
  * 
  * @author Michael N. Lipp
  */
-public abstract class ComponentNode implements Manager {
+public abstract class ComponentVertex implements Manager {
 
 	/** Reference to the common properties of the tree nodes. */
 	private ComponentTree tree = null;
 	/** Reference to the parent node. */
-	private ComponentNode parent = null;
+	private ComponentVertex parent = null;
 	/** All the node's children */
-	private List<ComponentNode> children = new ArrayList<>();
+	private List<ComponentVertex> children = new ArrayList<>();
 	/** The handlers provided by this component. */
 	private List<HandlerReference> handlers = new ArrayList<HandlerReference>();
 	
 	/** 
-	 * Initialize the ComponentNode. By default it forms a stand-alone
+	 * Initialize the ComponentVertex. By default it forms a stand-alone
 	 * tree, i.e. the root is set to the component itself.
 	 */
-	protected ComponentNode() {
+	protected ComponentVertex() {
 	}
 
 	/**
@@ -149,9 +149,9 @@ public abstract class ComponentNode implements Manager {
 	 * @param component the component
 	 * @return the node representing the component in the tree
 	 */
-	public static ComponentNode getComponentNode (Component component) {
-		if (component instanceof ComponentNode) {
-			return (ComponentNode)component;
+	public static ComponentVertex getComponentVertex (ComponentNode component) {
+		if (component instanceof ComponentVertex) {
+			return (ComponentVertex)component;
 		}
 		return ComponentProxy.getComponentProxy(component);
 	}
@@ -161,15 +161,15 @@ public abstract class ComponentNode implements Manager {
 	 * 
 	 * @return the component
 	 */
-	protected abstract Component getComponent();
+	protected abstract ComponentNode getComponent();
 
 	/* (non-Javadoc)
 	 * @see org.jgrapes.core.Manager#getChildren()
 	 */
 	@Override
-	synchronized public List<Component> getChildren() {
-		List<Component> children = new ArrayList<Component>();
-		for (ComponentNode child: this.children) {
+	synchronized public List<ComponentNode> getChildren() {
+		List<ComponentNode> children = new ArrayList<ComponentNode>();
+		for (ComponentVertex child: this.children) {
 			children.add(child.getComponent());
 		}
 		return Collections.unmodifiableList(children);
@@ -179,7 +179,7 @@ public abstract class ComponentNode implements Manager {
 	 * @see org.jgrapes.core.Manager#getParent()
 	 */
 	@Override
-	synchronized public Component getParent() {
+	synchronized public ComponentNode getParent() {
 		if (parent == null) {
 			return null;
 		}
@@ -190,7 +190,7 @@ public abstract class ComponentNode implements Manager {
 	 * @see org.jgrapes.core.Manager#getRoot()
 	 */
 	@Override
-	public Component getRoot() {
+	public ComponentNode getRoot() {
 		return getTree().getRoot().getComponent();
 	}
 
@@ -218,7 +218,7 @@ public abstract class ComponentNode implements Manager {
 	 */
 	synchronized private void setTree(ComponentTree tree) {
 		this.tree = tree;
-		for (ComponentNode child: children) {
+		for (ComponentVertex child: children) {
 			child.setTree(tree);
 		}
 	}
@@ -227,13 +227,13 @@ public abstract class ComponentNode implements Manager {
 	 * @see org.jgrapes.core.Manager#attach(Component)
 	 */
 	@Override
-	synchronized public <T extends Component> T attach (T child) {
-		ComponentNode childNode = getComponentNode(child);
+	synchronized public <T extends ComponentNode> T attach (T child) {
+		ComponentVertex childNode = getComponentVertex(child);
 		synchronized (childNode) {
 			synchronized (getTree()) {
 				if (childNode.tree == null) { 
 					// Newly created, stand-alone child node
-					childNode.parent = ComponentNode.this;
+					childNode.parent = ComponentVertex.this;
 					childNode.setTree(tree);
 					children.add(childNode);
 				} else {
@@ -247,7 +247,7 @@ public abstract class ComponentNode implements Manager {
 							throw new IllegalStateException
 								("Cannot attach a started subtree.");
 						}
-						childNode.parent = ComponentNode.this;
+						childNode.parent = ComponentVertex.this;
 						ComponentTree childTree = childNode.tree;
 						childNode.setTree(tree);
 						children.add(childNode);
@@ -279,9 +279,9 @@ public abstract class ComponentNode implements Manager {
 	/**
 	 * Remove the component from the tree, making it a stand-alone tree.
 	 */
-	synchronized public Component detach() {
+	synchronized public ComponentNode detach() {
 		if (parent != null) {
-			ComponentNode oldParent = parent;
+			ComponentVertex oldParent = parent;
 			synchronized (tree) {
 				if (!tree.isStarted()) {
 					throw new IllegalStateException
@@ -289,12 +289,12 @@ public abstract class ComponentNode implements Manager {
 						 + " a Start event has been fired on it.");
 				}
 				synchronized (oldParent) {
-					parent.children.remove(ComponentNode.this);
+					parent.children.remove(ComponentVertex.this);
 					parent.tree.clearHandlerCache();
 					parent = null;
 				}
 				ComponentTree newTree 
-					= new ComponentTree(ComponentNode.this);
+					= new ComponentTree(ComponentVertex.this);
 				newTree.setEventPipeline(new EventProcessor(newTree));
 				setTree(newTree);
 			}
@@ -310,19 +310,19 @@ public abstract class ComponentNode implements Manager {
 	 * @see java.lang.Iterable#iterator()
 	 */
 	@Override
-	public Iterator<Component> iterator() {
+	public Iterator<ComponentNode> iterator() {
 		return new TreeIterator(this);
 	}
 	
 	/**
 	 * An iterator for getting all nodes of the tree.
 	 */
-	private static class TreeIterator implements Iterator<Component> {
+	private static class TreeIterator implements Iterator<ComponentNode> {
 
 		private class Pos {
-			public ComponentNode current;
-			public Iterator<ComponentNode> childIter;
-			public Pos(ComponentNode cm) {
+			public ComponentVertex current;
+			public Iterator<ComponentVertex> childIter;
+			public Pos(ComponentVertex cm) {
 				current = cm;
 				childIter = current.children.iterator();
 			}
@@ -331,7 +331,7 @@ public abstract class ComponentNode implements Manager {
 		private Stack<Pos> stack = new Stack<Pos>();
 		private ComponentTree tree;
 		
-		public TreeIterator(ComponentNode root) {
+		public TreeIterator(ComponentVertex root) {
 			tree = root.getTree();
 			stack.push(new Pos(root));
 		}
@@ -348,12 +348,12 @@ public abstract class ComponentNode implements Manager {
 		 * @see java.util.Iterator#next()
 		 */
 		@Override
-		public Component next() {
+		public ComponentNode next() {
 			if (stack.empty()) {
 				throw new NoSuchElementException();
 			}
 			Pos pos = stack.peek();
-			ComponentNode res = pos.current;
+			ComponentVertex res = pos.current;
 			while (true) {
 				synchronized (pos.current) {
 					if (pos.current.tree != tree) {
@@ -523,7 +523,7 @@ public abstract class ComponentNode implements Manager {
 			}
 			hdlrs.add(hdlr);
 		}
-		for (ComponentNode child: children) {
+		for (ComponentVertex child: children) {
 			child.collectHandlers(hdlrs, event, channels);
 		}
 	}

@@ -29,7 +29,7 @@ import java.net.Socket;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
@@ -45,7 +45,7 @@ import org.junit.Test;
 
 public class EchoTest {
 
-	public class EchoServer extends AbstractComponent {
+	public class EchoServer extends Component {
 
 		/**
 		 * @throws IOException 

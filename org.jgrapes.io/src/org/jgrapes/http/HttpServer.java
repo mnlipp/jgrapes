@@ -34,7 +34,7 @@ import org.jdrupes.httpcodec.EncoderResult;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.annotation.DynamicHandler;
 import org.jgrapes.core.annotation.Handler;
@@ -65,7 +65,7 @@ import org.jgrapes.net.events.Accepted;
  * @author Michael N. Lipp
  *
  */
-public class HttpServer extends AbstractComponent {
+public class HttpServer extends Component {
 
 	private Channel networkChannel;
 

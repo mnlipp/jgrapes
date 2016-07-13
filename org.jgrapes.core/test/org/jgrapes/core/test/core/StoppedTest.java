@@ -1,6 +1,6 @@
 package org.jgrapes.core.test.core;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 
 public class StoppedTest {
 
-	public static class PrioritisedHandlers extends AbstractComponent {
+	public static class PrioritisedHandlers extends Component {
 
 		public String result = "";
 		

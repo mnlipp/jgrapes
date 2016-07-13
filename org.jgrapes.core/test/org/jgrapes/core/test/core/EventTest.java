@@ -1,6 +1,6 @@
 package org.jgrapes.core.test.core;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Components;
@@ -13,7 +13,7 @@ import static org.junit.Assert.*;
 
 public class EventTest {
 
-	public static class CompleteCatcher extends AbstractComponent {
+	public static class CompleteCatcher extends Component {
 		
 		public boolean caughtStart = false;
 		public boolean caughtStarted = false;

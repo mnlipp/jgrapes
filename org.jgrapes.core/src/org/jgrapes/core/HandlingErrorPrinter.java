@@ -20,7 +20,7 @@ package org.jgrapes.core;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.HandlingError;
 
-public class HandlingErrorPrinter extends AbstractComponent {
+public class HandlingErrorPrinter extends Component {
 
 	@Handler(channels=Channel.class)
 	public void printError(HandlingError event) {

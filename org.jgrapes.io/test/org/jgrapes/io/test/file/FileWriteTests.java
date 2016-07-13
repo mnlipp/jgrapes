@@ -27,7 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutionException;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.File;
@@ -42,7 +42,7 @@ import org.junit.Test;
  */
 public class FileWriteTests {
 
-	public static class Producer extends AbstractComponent {
+	public static class Producer extends Component {
 		
 		@Handler
 		public void opened(FileOpened event) 

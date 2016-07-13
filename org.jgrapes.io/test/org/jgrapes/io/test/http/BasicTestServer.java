@@ -24,7 +24,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
 
-import org.jgrapes.core.AbstractComponent;
+import org.jgrapes.core.Component;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.test.WaitForTests;
@@ -35,7 +35,7 @@ import org.jgrapes.net.events.Ready;
  * @author Michael N. Lipp
  *
  */
-public class BasicTestServer extends AbstractComponent {
+public class BasicTestServer extends Component {
 	private InetSocketAddress addr;
 	private WaitForTests readyMonitor;
 

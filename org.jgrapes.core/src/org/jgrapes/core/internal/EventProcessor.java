@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
+import org.jgrapes.core.ComponentNode;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 
@@ -42,7 +42,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	private ComponentTree componentTree;
 	private EventPipeline asEventPipeline;
 	protected EventQueue queue = new EventQueue();
-	private WeakHashMap<Component, Object> componentContext 
+	private WeakHashMap<ComponentNode, Object> componentContext 
 		= new WeakHashMap<>();
 	
 	EventProcessor (ComponentTree tree) {
@@ -134,7 +134,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	 * @see org.jgrapes.core.EventPipeline#setContext(org.jgrapes.core.Component, java.lang.Object)
 	 */
 	@Override
-	public void setComponentContext(Component component, Object data) {
+	public void setComponentContext(ComponentNode component, Object data) {
 		componentContext.put(component, data);
 	}
 
@@ -142,7 +142,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	 * @see org.jgrapes.core.EventPipeline#getContext(org.jgrapes.core.Component)
 	 */
 	@Override
-	public Object getComponentContext(Component component) {
+	public Object getComponentContext(ComponentNode component) {
 		return componentContext.get(component);
 	}
 }

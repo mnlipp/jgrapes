@@ -39,9 +39,9 @@ public interface Channel extends Matchable {
 
 	/**
 	 * A special channel object that can be passed to the constructor
-	 * of {@link AbstractComponent#AbstractComponent(Channel)}.
+	 * of {@link Component#Component(Channel)}.
 	 * 
-	 * @see AbstractComponent#AbstractComponent(Channel)
+	 * @see Component#Component(Channel)
 	 */
 	public static final Channel SELF = new ClassChannel();
 	

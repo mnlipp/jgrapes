@@ -20,7 +20,7 @@ package org.jgrapes.core;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
 import org.jgrapes.core.internal.Common;
-import org.jgrapes.core.internal.ComponentNode;
+import org.jgrapes.core.internal.ComponentVertex;
 import org.jgrapes.core.internal.GeneratorRegistry;
 
 /**
@@ -35,11 +35,11 @@ public class Components {
 	
 	/**
 	 * Returns a component's manager. For a component that inherits
-	 * from {@link org.jgrapes.core.AbstractComponent} this method simply returns
+	 * from {@link org.jgrapes.core.Component} this method simply returns
 	 * the component as it is its own manager.
 	 * 
-	 * For components that implement {@link Component} but don't inherit from 
-	 * {@link org.jgrapes.core.AbstractComponent} the method returns the value of 
+	 * For components that implement {@link ComponentNode} but don't inherit from 
+	 * {@link org.jgrapes.core.Component} the method returns the value of 
 	 * the attribute annotated as manager slot. If the attribute is still
 	 * empty, this method makes the component the root
 	 * of a new tree and returns its manager.
@@ -47,8 +47,8 @@ public class Components {
 	 * @param component the component
 	 * @return the component (with its manager attribute set)
 	 */
-	public static Manager manager (Component component) {
-		return ComponentNode.getComponentNode(component);
+	public static Manager manager (ComponentNode component) {
+		return ComponentVertex.getComponentVertex(component);
 	}
 
 	/**
@@ -59,7 +59,7 @@ public class Components {
 	 * 
 	 * @param application the application to start
 	 */
-	public static void start(Component application) 
+	public static void start(ComponentNode application) 
 			throws InterruptedException {
 		manager(application).fire(new Start() , Channel.BROADCAST).get();
 	}
