@@ -143,8 +143,9 @@ public class BigReadTest {
 			@Override
 			public void run() {
 				try {
-					mainTread.join(5000);
+					mainTread.join(10000);
 					if (mainTread.isAlive()) {
+						System.err.println("Watchdog kills main thread.");
 						mainTread.interrupt();
 					}
 				} catch (InterruptedException e) {
