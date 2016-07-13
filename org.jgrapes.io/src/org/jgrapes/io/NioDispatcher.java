@@ -68,7 +68,7 @@ public class NioDispatcher extends AbstractComponent implements Runnable {
 	 * 
 	 * @throws InterruptedException
 	 */
-	@Handler
+	@Handler(priority=-10000)
 	public void onStop(Stop event) throws InterruptedException {
 		if (runner == null) {
 			return;

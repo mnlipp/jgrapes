@@ -25,7 +25,9 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
+import java.util.HashSet;
 import java.util.Queue;
+import java.util.Set;
 
 import org.jgrapes.core.AbstractComponent;
 import org.jgrapes.core.Channel;
@@ -68,6 +70,8 @@ public class Server extends AbstractComponent
 	private ServerSocketChannel serverSocketChannel;
 	private int bufferSize;
 	private EventPipeline upstreamPipeline;
+	private Set<SocketConnection> connections = new HashSet<>();
+	private boolean closing = false;
 	
 	/**
 	 * Creates a new server listening on the given address. 
@@ -132,6 +136,7 @@ public class Server extends AbstractComponent
 	 */
 	@Handler
 	public void onStart(Start event) throws IOException {
+		closing = false;
 		serverSocketChannel = ServerSocketChannel.open();
 		serverSocketChannel.bind(serverAddress);
 		fire(new NioRegistration(this, serverSocketChannel, 
@@ -162,10 +167,12 @@ public class Server extends AbstractComponent
 	 */
 	@Override
 	public void handleOps(int ops) {
-		if ((ops & SelectionKey.OP_ACCEPT) != 0) {
+		if ((ops & SelectionKey.OP_ACCEPT) != 0 && !closing) {
 			try {
 				SocketChannel socketChannel = serverSocketChannel.accept();
-				new SocketConnection(socketChannel);
+				synchronized(connections) {
+					connections.add(new SocketConnection(socketChannel));
+				}
 			} catch (IOException e) {
 				fire(new IOError(null, e));
 			}
@@ -191,14 +198,27 @@ public class Server extends AbstractComponent
 	 * 
 	 * @param event the event
 	 * @throws IOException if an error occurs
+	 * @throws InterruptedException 
 	 */
 	@Handler
-	public void onClose(Close<? extends Connection> event) throws IOException {
+	public void onClose(Close<? extends Connection> event) 
+			throws IOException, InterruptedException {
 		if (event.getConnection() == this) {
 			if (!serverSocketChannel.isOpen()) {
 				return;
 			}
+			closing = true;
+			EventPipeline ep = newEventPipeline();
+			synchronized (connections) {
+				for (SocketConnection conn: connections) {
+					ep.fire(new Close<>(conn), getChannel());
+				}
+				while (connections.size() > 0) {
+					connections.wait();
+				}
+			}
 			serverSocketChannel.close();
+			closing = false;
 			fire(new Closed<>(this));
 		} else if (event.getConnection() instanceof SocketConnection) {
 			((SocketConnection)event.getConnection()).close();
@@ -212,7 +232,7 @@ public class Server extends AbstractComponent
 	 */
 	@Handler
 	public void onStop(Stop event) {
-		if (!serverSocketChannel.isOpen()) {
+		if (closing || !serverSocketChannel.isOpen()) {
 			return;
 		}
 		newSyncEventPipeline().fire(new Close<>(this), getChannel());
@@ -416,17 +436,23 @@ public class Server extends AbstractComponent
 		 * @throws IOException if an error occurs
 		 */
 		public void close() throws IOException {
-			if (!nioChannel.isOpen()) {
-				return;
-			}
-			synchronized (pendingWrites) {
-				if (!pendingWrites.isEmpty()) {
-					pendingClose = true;
-					return;
+			if (nioChannel.isOpen()) {
+				synchronized (pendingWrites) {
+					if (!pendingWrites.isEmpty()) {
+						pendingClose = true;
+						return;
+					}
 				}
+				nioChannel.close();
 			}
-			nioChannel.close();
-			downPipeline.fire(new Closed<>(this), getChannel());
+			// Fail safe
+			synchronized (connections) {
+				if(connections.remove(this)) {
+					downPipeline.fire(new Closed<>(this), getChannel());
+				}
+				// In case the server is shutting down
+				connections.notifyAll();
+			}
 		}
 
 	}
