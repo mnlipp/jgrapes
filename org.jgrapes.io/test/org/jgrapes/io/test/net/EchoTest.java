@@ -91,7 +91,7 @@ public class EchoTest {
 							toServer.flush();
 							try {
 								// If we're too fast, data will be appended
-								// tp previous, not yet flushed out chunk
+								// to previous, not yet flushed out chunk
 								Thread.sleep(5);
 							} catch (InterruptedException e) {
 							}
