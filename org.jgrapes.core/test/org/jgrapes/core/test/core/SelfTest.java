@@ -31,7 +31,7 @@ import org.junit.Test;
  * @author Michael N. Lipp
  *
  */
-public class ThisTest {
+public class SelfTest {
 
 	public static class TestComponent extends Component {
 
