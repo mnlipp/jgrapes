@@ -20,22 +20,23 @@ package org.jgrapes.core;
 import org.jgrapes.core.annotation.ComponentManager;
 
 /**
- * Marks a class as a component. Implementing this 
- * interface is an alternative to deriving a component from 
- * {@link Component} (usually because there is some other
- * preferential inheritance relationship). 
+ * Marks a class as a component. Implementing this interface is an 
+ * alternative to deriving from {@link Component} (usually because 
+ * there is some other preferential inheritance relationship). 
+ * Attached components are not directly part of the component tree. 
+ * They are represented in the tree by a proxy. 
  * <P>
- * Classes that implement {@code ComponentNode} aren't required to
+ * Classes that implement {@code AttachedComponent} aren't required to
  * implement specific methods. They must, however, declare a field
- * for an associated manager. This field must be of type 
+ * for a component manager. This field must be of type 
  * {@link Manager} and annotated as {@link ComponentManager}.
- * The implementation of the component can use the value in this field
- * to get access to the component hierarchy. The field is initialized
+ * The implementation of the attached component can use the value in this 
+ * field to get access to the component hierarchy. The field is initialized
  * when the component is added to the component hierarchy or when
- * calling {@link Components#manager(ComponentNode)}.
+ * calling {@link Components#manager(AttachedComponent)}.
  * 
  * @author Michael N. Lipp
  */
-public interface ComponentNode {
+public interface AttachedComponent {
 	
 }

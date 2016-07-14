@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.ComponentNode;
+import org.jgrapes.core.AttachedComponent;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.HandlingErrorPrinter;
@@ -41,7 +41,7 @@ import org.jgrapes.core.events.HandlingError;
 class ComponentTree {
 
 	private static final Logger handlerTracking 
-		= Logger.getLogger(ComponentNode.class.getPackage().getName() 
+		= Logger.getLogger(AttachedComponent.class.getPackage().getName() 
 				+ ".handlerTracking");	
 	
 	private ComponentVertex root;

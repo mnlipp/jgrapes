@@ -22,7 +22,7 @@ import org.jgrapes.core.internal.ComponentVertex;
 /**
  * A convenience base class for new components. In general, components can 
  * be created by deriving from this class or by implementing 
- * the interface {@link ComponentNode}. 
+ * the interface {@link AttachedComponent}. 
  * <P>
  * When deriving from this class,
  * a component implementation can directly use the methods of the
@@ -33,10 +33,10 @@ import org.jgrapes.core.internal.ComponentVertex;
  * This allows instances to be used as targets for events. 
  * 
  * @author Michael N. Lipp
- * @see ComponentNode
+ * @see AttachedComponent
  */
 public class Component extends ComponentVertex 
-	implements ComponentNode, Channel {
+	implements AttachedComponent, Channel {
 
 	private Channel componentChannel;
 	
@@ -76,7 +76,7 @@ public class Component extends ComponentVertex
 	 * @see org.jgrapes.core.internal.ComponentVertex#getComponent()
 	 */
 	@Override
-	protected ComponentNode getComponent() {
+	protected AttachedComponent getComponent() {
 		return this;
 	}
 

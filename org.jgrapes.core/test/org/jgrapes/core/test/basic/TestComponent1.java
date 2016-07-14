@@ -15,7 +15,7 @@
  */
 package org.jgrapes.core.test.basic;
 
-import org.jgrapes.core.ComponentNode;
+import org.jgrapes.core.AttachedComponent;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.annotation.Handler;
@@ -25,7 +25,7 @@ import org.jgrapes.core.events.Start;
  * @author mnl
  *
  */
-public class TestComponent1 implements ComponentNode {
+public class TestComponent1 implements AttachedComponent {
 
 	private String name = "Unknown";
 	@ComponentManager(namedChannel="Test")

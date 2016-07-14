@@ -15,12 +15,12 @@
  */
 package org.jgrapes.core.test.basic;
 
-import org.jgrapes.core.ComponentNode;
+import org.jgrapes.core.AttachedComponent;
 
 /**
  * @author mnl
  *
  */
-public class IllegalComponent implements ComponentNode {
+public class IllegalComponent implements AttachedComponent {
 
 }

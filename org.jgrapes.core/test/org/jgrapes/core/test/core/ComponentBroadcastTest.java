@@ -19,7 +19,7 @@ import static org.junit.Assert.*;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ClassChannel;
-import org.jgrapes.core.ComponentNode;
+import org.jgrapes.core.AttachedComponent;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Components;
@@ -34,7 +34,7 @@ import org.junit.Test;
  */
 public class ComponentBroadcastTest {
 
-	public static class ComponentWithBroadcastChannel implements ComponentNode {
+	public static class ComponentWithBroadcastChannel implements AttachedComponent {
 
 		public static class MyChannel extends ClassChannel {
 		}

@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 
-import org.jgrapes.core.ComponentNode;
+import org.jgrapes.core.AttachedComponent;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Components;
 import org.junit.Test;
@@ -57,7 +57,7 @@ public class StructureTest {
 		TestComponent1 c1 = c.getManager().attach(new TestComponent1("sub1"));
 		TestComponent1 c2 = c.getManager().attach(new TestComponent1("sub2"));
 		assertEquals(2, c.getManager().getChildren().size());
-		Iterator<ComponentNode> iter = c.getManager().getChildren().iterator();
+		Iterator<AttachedComponent> iter = c.getManager().getChildren().iterator();
 		assertSame(iter.next(), c1);
 		assertSame(iter.next(), c2);
 		assertEquals(c1.getManager().getParent(), c);
@@ -89,7 +89,7 @@ public class StructureTest {
 	@Test
 	public void testIterator() {
 		TestComponent1 c = subtree1(0);
-		Iterator<ComponentNode> iter = c.getManager().getChildren().iterator();
+		Iterator<AttachedComponent> iter = c.getManager().getChildren().iterator();
 		((TestComponent1)iter.next()).getManager().attach(subtree1(3));
 		((TestComponent1)iter.next()).getManager().attach(subtree1(6));
 		iter = c.getManager().iterator();
@@ -129,7 +129,7 @@ public class StructureTest {
 		TestComponent2 c = new TestComponent2("root");
 		TestComponent2 c1 = c.attach(new TestComponent2("sub1"));
 		TestComponent2 c2 = c.attach(new TestComponent2("sub2"));
-		Iterator<ComponentNode> iter = c.getChildren().iterator();
+		Iterator<AttachedComponent> iter = c.getChildren().iterator();
 		assertSame(iter.next(), c1);
 		assertSame(iter.next(), c2);
 	}

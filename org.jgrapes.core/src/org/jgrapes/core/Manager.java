@@ -28,14 +28,14 @@ import org.jgrapes.core.annotation.DynamicHandler;
  * <P>
  * The <code>Manager</code> for a component that extends from 
  * {@link Component} is provided by the base class itself.
- * Components that only implement the {@link ComponentNode} interface
+ * Components that only implement the {@link AttachedComponent} interface
  * get an associated <code>Manager</code> assigned to their annotated 
  * attribute.
  * 
  * @author Michael N. Lipp
- * @see ComponentNode
+ * @see AttachedComponent
  */
-public interface Manager extends Iterable<ComponentNode> {
+public interface Manager extends Iterable<AttachedComponent> {
 
 	/**
 	 * Detaches the component managed by this manager (with its children,
@@ -52,7 +52,7 @@ public interface Manager extends Iterable<ComponentNode> {
 	 * @throws IllegalStateException if invoked before a <code>Start</code>
 	 * event
 	 */
-	ComponentNode detach ();
+	AttachedComponent detach ();
 
 	/**
 	 * Attaches the given component node (or complete tree) as a child 
@@ -62,7 +62,7 @@ public interface Manager extends Iterable<ComponentNode> {
 	 * @param child the component to add
 	 * @return the added component (for comfortable chaining)
 	 */
-	<T extends ComponentNode> T attach (T child);
+	<T extends AttachedComponent> T attach (T child);
 	
 	/**
 	 * Returns the child components of the component managed by 
@@ -70,7 +70,7 @@ public interface Manager extends Iterable<ComponentNode> {
 	 * 
 	 * @return the child components
 	 */
-	List<ComponentNode> getChildren();
+	List<AttachedComponent> getChildren();
 
 	/**
 	 * Returns the parent of the component managed by this manager.
@@ -78,7 +78,7 @@ public interface Manager extends Iterable<ComponentNode> {
 	 * @return the parent component or <code>null</code> if the
 	 * component is not registered with another component
 	 */
-	ComponentNode getParent();
+	AttachedComponent getParent();
 	
 	/**
 	 * Returns the root of the tree the component 
@@ -86,7 +86,7 @@ public interface Manager extends Iterable<ComponentNode> {
 	 * 
 	 * @return the root
 	 */
-	ComponentNode getRoot();
+	AttachedComponent getRoot();
 	
 	/**
 	 * Returns the channel of the component managed by this manager.

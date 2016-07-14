@@ -2,7 +2,7 @@ package org.jgrapes.core.test.core;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.ComponentNode;
+import org.jgrapes.core.AttachedComponent;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
@@ -20,11 +20,11 @@ public class AttachTest {
 			super(Channel.BROADCAST);
 		}
 		
-		public ComponentNode attachRoot = null;
-		public ComponentNode attachParent = null;
-		public ComponentNode attachChild = null;
-		public ComponentNode detachParent = null;
-		public ComponentNode detachChild = null;
+		public AttachedComponent attachRoot = null;
+		public AttachedComponent attachParent = null;
+		public AttachedComponent attachChild = null;
+		public AttachedComponent detachParent = null;
+		public AttachedComponent detachChild = null;
 		
 		@Handler
 		public void onAttached(Attached evt) {
