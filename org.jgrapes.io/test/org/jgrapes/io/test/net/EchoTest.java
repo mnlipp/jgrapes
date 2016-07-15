@@ -129,7 +129,19 @@ public class EchoTest {
 		}
 	
 		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
-		assertTrue(Components.awaitExhaustion(3000));
+		long waitEnd = System.nanoTime() + 3000;
+		while (true) {
+			long waitTime = waitEnd - System.nanoTime();
+			if (waitTime <= 0) {
+				fail();
+			}
+			try {
+				assertTrue(Components.awaitExhaustion(waitTime));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			break;
+		}
 	}
 
 }
