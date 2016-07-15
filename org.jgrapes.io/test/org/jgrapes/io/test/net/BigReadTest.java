@@ -139,7 +139,7 @@ public class BigReadTest {
 
 		// Watchdog
 		final Thread mainTread = Thread.currentThread();
-		(new Thread() {
+		final Thread watchdog = new Thread() {
 			@Override
 			public void run() {
 				try {
@@ -151,7 +151,8 @@ public class BigReadTest {
 				} catch (InterruptedException e) {
 				}
 			}
-		}).start();
+		};
+		watchdog.start();
 		
 		AtomicInteger expected = new AtomicInteger(0);
 		try (Socket client = new Socket(serverAddr.getAddress(),
@@ -170,6 +171,7 @@ public class BigReadTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		watchdog.interrupt();
 		assertEquals(1000000, expected.get());
 		
 		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
