@@ -56,7 +56,7 @@ public class NotFoundTests {
 		URL url = new URL("http", server.getAddress().getHostAddress(), 
 				server.getPort(), "/");
 		Thread reader = Thread.currentThread();
-		(new Thread() {
+		final Thread watchdog = new Thread() {
 			@Override
 			public void run() {
 				try {
@@ -67,14 +67,17 @@ public class NotFoundTests {
 				} catch (InterruptedException e) {
 				}
 			}
-		}).start();
-		URLConnection conn = url.openConnection();
-		conn.setConnectTimeout(1000);
-		conn.setReadTimeout(1000);
+		};
 		try {
+			watchdog.start();
+			URLConnection conn = url.openConnection();
+			conn.setConnectTimeout(1000);
+			conn.setReadTimeout(1000);
 			conn.getInputStream();
 			fail();
 		} catch (FileNotFoundException e) {
+		} finally {
+			watchdog.interrupt();
 		}
 	}
 

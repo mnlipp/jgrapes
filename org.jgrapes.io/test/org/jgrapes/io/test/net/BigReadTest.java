@@ -152,11 +152,11 @@ public class BigReadTest {
 				}
 			}
 		};
-		watchdog.start();
 		
 		AtomicInteger expected = new AtomicInteger(0);
 		try (Socket client = new Socket(serverAddr.getAddress(),
 		        serverAddr.getPort())) {
+			watchdog.start();
 			InputStream fromServer = client.getInputStream();
 			BufferedReader in = new BufferedReader(
 			        new InputStreamReader(fromServer, "ascii"));
@@ -170,8 +170,9 @@ public class BigReadTest {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			watchdog.interrupt();
 		}
-		watchdog.interrupt();
 		assertEquals(1000000, expected.get());
 		
 		Components.manager(app).fire(new Stop(), Channel.BROADCAST);

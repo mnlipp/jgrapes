@@ -38,7 +38,7 @@ public class UnsupportedProtocolTests {
 		URL url = new URL("http", server.getAddress().getHostAddress(), 
 				server.getPort(), "/");
 		Thread reader = Thread.currentThread();
-		(new Thread() {
+		Thread watchdog = new Thread() {
 			@Override
 			public void run() {
 				try {
@@ -49,15 +49,18 @@ public class UnsupportedProtocolTests {
 				} catch (InterruptedException e) {
 				}
 			}
-		}).start();
-		URLConnection conn = url.openConnection();
-		conn.setConnectTimeout(1000);
-		conn.setReadTimeout(1000);
+		};
 		try {
+			watchdog.start();
+			URLConnection conn = url.openConnection();
+			conn.setConnectTimeout(1000);
+			conn.setReadTimeout(1000);
 			conn.getInputStream();
 			fail();
 		} catch (IOException e) {
 			assertTrue(e.getMessage().indexOf(" 501 ") > 0);
+		} finally {
+			watchdog.interrupt();
 		}
 	}
 
