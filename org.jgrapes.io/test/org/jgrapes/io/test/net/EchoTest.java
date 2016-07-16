@@ -80,6 +80,28 @@ public class EchoTest {
 			= ((InetSocketAddress)readyEvent.getListenAddress());
 		try (Socket client = new Socket(serverAddr.getAddress(),
 		        serverAddr.getPort())) {
+			final AtomicInteger expected = new AtomicInteger(0);
+			Thread receiver = new Thread() {
+				public void run() {
+					InputStream fromServer;
+					try {
+						fromServer = client.getInputStream();
+						BufferedReader in = new BufferedReader(
+						        new InputStreamReader(fromServer, "ascii"));
+						while (expected.get() < 16) {
+							String line = in.readLine();
+							String[] parts = line.split(":");
+							assertEquals(expected.get(), 
+										Integer.parseInt(parts[0]));
+							assertEquals("Hello World!", parts[1]);
+							expected.incrementAndGet();
+						}
+					} catch (IOException e) {
+					}
+				}
+			};
+			receiver.start();
+
 			Thread sender = new Thread() {
 				@Override
 				public void run() {
@@ -103,27 +125,6 @@ public class EchoTest {
 			};
 			sender.start();
 
-			final AtomicInteger expected = new AtomicInteger(0);
-			Thread receiver = new Thread() {
-				public void run() {
-					InputStream fromServer;
-					try {
-						fromServer = client.getInputStream();
-						BufferedReader in = new BufferedReader(
-						        new InputStreamReader(fromServer, "ascii"));
-						while (expected.get() < 16) {
-							String line = in.readLine();
-							String[] parts = line.split(":");
-							assertEquals(expected.get(), 
-										Integer.parseInt(parts[0]));
-							assertEquals("Hello World!", parts[1]);
-							expected.incrementAndGet();
-						}
-					} catch (IOException e) {
-					}
-				}
-			};
-			receiver.start();
 			receiver.join(5000);
 			assertEquals(16, expected.get());
 		}
