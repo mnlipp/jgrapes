@@ -12,8 +12,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 subprojects {
 
-    apply plugin: 'java'
-    // apply plugin: 'biz.aQute.bnd.builder'
+    // apply plugin: 'java'
+    apply plugin: 'biz.aQute.bnd.builder'
 
     repositories {
         jcenter()
