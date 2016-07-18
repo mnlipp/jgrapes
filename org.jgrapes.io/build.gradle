@@ -1,6 +1,7 @@
 dependencies {
 
     compile project(':org.jgrapes.core')
+    compile project(':org.jdrupes.httpcodec')
 
     sourceSets {
         test {
