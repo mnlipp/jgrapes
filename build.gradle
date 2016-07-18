@@ -1,60 +1,65 @@
-/*
- * Master Gradle build script
- *
- * Depends on bndPlugin property set by settings.gradle.
- * and bnd_* values from gradle.properties.
- */
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:3.2.0'
+    }
+}
 
-import aQute.bnd.build.Workspace
-import aQute.bnd.osgi.Constants
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
-/* Add bnd gradle plugin as a script dependency */
-buildscript {
-  dependencies {
-    classpath bndPlugin
-  }
-}
-
-/* Initialize the bnd workspace */
-Workspace.setDriver(Constants.BNDDRIVER_GRADLE)
-Workspace.addGestalt(Constants.GESTALT_BATCH, null)
-ext.bndWorkspace = new Workspace(rootDir, bnd_cnf)
-if (bndWorkspace == null) {
-  throw new GradleException("Unable to load workspace ${rootDir}/${bnd_cnf}")
-}
-
-ext.cnf = rootProject.project(bnd_cnf)
-
-/* Configure the subprojects */
 subprojects {
-  def bndProject = bndWorkspace.getProject(name)
-  if (bndProject != null) {
-    plugins.apply 'biz.aQute.bnd'
-    
-    test {
-      testLogging {
-        // set options for log level LIFECYCLE
-        events TestLogEvent.FAILED,
-               TestLogEvent.SKIPPED,
-               TestLogEvent.PASSED,
-               TestLogEvent.STANDARD_ERROR,
-               TestLogEvent.STANDARD_OUT
 
-        exceptionFormat TestExceptionFormat.FULL
+    apply plugin: 'java'
+    // apply plugin: 'biz.aQute.bnd.builder'
 
-	showStandardStreams = true
-        showExceptions = true
-        showStackTraces = true
-        showCauses = true
-      }
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        compile 'junit:junit:4.12'
+        testCompile 'junit:junit:4.12'
+    }
+
+    // Configure sensible layout
+    sourceSets {
+        main {
+            java {
+                srcDir 'src'
+            }
+            resources {
+                srcDir 'resources'
+            }
+        }
+
+        test {
+            java {
+                srcDir 'test'
+            }
+            resources {
+                srcDir 'resources'
+            }
+        }
     }
     
-  }  
-}
+    test {
+        testLogging {
+            events TestLogEvent.FAILED,
+                   TestLogEvent.SKIPPED,
+                   TestLogEvent.PASSED,
+                   TestLogEvent.STANDARD_ERROR,
+                   TestLogEvent.STANDARD_OUT
 
-task wrapper(type: Wrapper) {
-  jarFile = rootProject.file('.gradle-wrapper/gradle-wrapper.jar')
+            exceptionFormat TestExceptionFormat.FULL
+
+            showStandardStreams = true
+            showExceptions = true
+            showStackTraces = true
+            showCauses = true
+        }
+    }
 }
 

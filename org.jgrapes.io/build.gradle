@@ -1,0 +1,13 @@
+dependencies {
+
+    compile project(':org.jgrapes.core')
+
+    sourceSets {
+        test {
+            resources {
+                srcDir 'test'
+            }
+        }
+    }
+
+}

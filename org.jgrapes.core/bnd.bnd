@@ -9,7 +9,3 @@ Export-Package: \
 	org.jgrapes.core,\
 	org.jgrapes.core.internal
 api_version = 0.1.0.${tstamp}
--buildpath: \
-	junit:junit;version=4.12
--testpath: junit:junit;version=4.12,\
-    org.hamcrest:hamcrest-all;version=1.3
