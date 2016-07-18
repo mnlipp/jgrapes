@@ -1,9 +1,9 @@
-Bundle-Name: org.jgrapes.core
+Bundle-Name: org.jdrupes.httpcodec
 bundle_version = 0.9.0.${tstamp}
 Bundle-Version: ${bundle_version}
 Bundle-Copyright: Michael N. Lipp (c) 2016
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 Export-Package: \
-    org.jdrupes.httpcodec \
+    org.jdrupes.httpcodec, \
     org.jdrupes.httpcodec.*
 api_version = 0.1.0.${tstamp}
