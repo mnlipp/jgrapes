@@ -20,8 +20,6 @@ package org.jgrapes.io.test.net;
 import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,22 +27,12 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.StreamHandler;
-
-import javax.xml.ws.handler.HandlerResolver;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ByteBufferOutputStream;
@@ -52,44 +40,41 @@ import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class BigReadTest {
 
-	private static boolean localLogging = false;
-	
-	@BeforeClass
-	public static void enableLogging() throws FileNotFoundException {
-		Logger logger = Logger.getLogger("org.jgrapes");
-		if (logger.isLoggable(Level.FINE)) {
-			// Loggin already enabled
-			return;
-		}
-		localLogging = true;
-		System.setProperty("java.util.logging.SimpleFormatter.format",
-				"%1$tY-%1$tm-%1$td %5$s%n");
-		java.util.logging.Handler handler = new ConsoleHandler();
-		handler.setLevel(Level.FINEST);
-		handler.setFormatter(new SimpleFormatter());
-		logger.addHandler(handler);
-		logger.setUseParentHandlers(false);
-		logger.setLevel(Level.FINEST);
-	}
-
-	@AfterClass
-	public static void disableLogging() {
-		if (!localLogging) {
-			return;
-		}
-		System.setProperty("java.util.logging.SimpleFormatter.format",
-				"%1$tY-%1$tm-%1$td %5$s%n");
-		Logger logger = Logger.getLogger("org.jgrapes");
-		logger.setLevel(Level.INFO);
-		localLogging = false;		
-	}
+//	private static boolean localLogging = false;
+//	
+//	@BeforeClass
+//	public static void enableLogging() throws FileNotFoundException {
+//		Logger logger = Logger.getLogger("org.jgrapes");
+//		if (logger.isLoggable(Level.FINE)) {
+//			// Loggin already enabled
+//			return;
+//		}
+//		localLogging = true;
+//		System.setProperty("java.util.logging.SimpleFormatter.format",
+//				"%1$tY-%1$tm-%1$td %5$s%n");
+//		java.util.logging.Handler handler = new ConsoleHandler();
+//		handler.setLevel(Level.FINEST);
+//		handler.setFormatter(new SimpleFormatter());
+//		logger.addHandler(handler);
+//		logger.setUseParentHandlers(false);
+//		logger.setLevel(Level.FINEST);
+//	}
+//
+//	@AfterClass
+//	public static void disableLogging() {
+//		if (!localLogging) {
+//			return;
+//		}
+//		System.setProperty("java.util.logging.SimpleFormatter.format",
+//				"%1$tY-%1$tm-%1$td %5$s%n");
+//		Logger logger = Logger.getLogger("org.jgrapes");
+//		logger.setLevel(Level.INFO);
+//		localLogging = false;		
+//	}
 	
 	public class EchoServer extends Component {
 
