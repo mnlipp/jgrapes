@@ -62,12 +62,21 @@ abstract class HttpMessage {
 	}
 	
 	/**
-	 * Set a header for the request.
+	 * Set a header for the message.
 	 * 
 	 * @param value the header field's value
 	 */
 	public void setHeader(HttpField<?> value) {
 		headers.put(value.getName(), value);
+	}
+
+	/**
+	 * Removes a header from the message.
+	 * 
+	 * @param value the header field's value
+	 */
+	public void removeHeader(String name) {
+		headers.remove(name);
 	}
 
 	/**

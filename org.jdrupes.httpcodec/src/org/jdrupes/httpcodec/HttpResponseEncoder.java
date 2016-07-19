@@ -111,7 +111,7 @@ public class HttpResponseEncoder extends HttpEncoder {
 		this.response = response;
 		
 		// Make sure we have a Date, RFC 7231 7.1.1.2
-		if (response.getHeader(HttpDateField.class, HttpField.DATE) == null) {
+		if (!response.headers().containsKey(HttpField.DATE)) {
 			response.setHeader(new HttpDateField());
 		}
 	}

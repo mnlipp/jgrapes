@@ -38,6 +38,13 @@ public class HttpResponse extends HttpMessage {
 		setStatus(status);
 	}
 	
+	public HttpResponse(HttpProtocol protocol,
+			int statusCode, String reasonPhrase, boolean hasBody) {
+		super(protocol, hasBody);
+		setStatusCode(statusCode);
+		setReasonPhrase(reasonPhrase);
+	}
+	
 	/**
 	 * @return the responseCode
 	 */

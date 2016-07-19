@@ -32,7 +32,7 @@ import java.util.ListIterator;
  * @author Michael N. Lipp
  */
 public abstract class HttpListField<T> extends HttpField<List<T>>
-	implements List<T> {
+	implements List<T>, Cloneable {
 
 	private String unparsedValue;
 	private int position;
@@ -56,6 +56,16 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	protected HttpListField(String name, String unparsedValue) {
 		this(name);
 		this.unparsedValue = unparsedValue;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	public HttpListField<T> clone() {
+		HttpListField<T> result = (HttpListField<T>)super.clone();
+		result.elements = new ArrayList<>(elements);
+		return result;
 	}
 
 	/**

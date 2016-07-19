@@ -28,7 +28,7 @@ import org.jdrupes.httpcodec.util.HttpUtils;
  * 
  * @author Michael N. Lipp
  */
-public abstract class HttpField<T> {
+public abstract class HttpField<T> implements Cloneable {
 
 	final public static String CONNECTION = "Connection";
 	final public static String CONTENT_LENGTH = "Content-Length";
@@ -90,6 +90,19 @@ public abstract class HttpField<T> {
 	 */
 	protected HttpField(String name) {
 		this.name = fieldNameMap.getOrDefault(name, name);
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public HttpField<T> clone() {
+		try {
+			return (HttpField<T>)super.clone();
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
 	}
 
 	/**

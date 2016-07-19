@@ -28,7 +28,8 @@ import java.util.Iterator;
  * 
  * @author Michael N. Lipp
  */
-public class HttpStringListField extends HttpListField<String> {
+public class HttpStringListField extends HttpListField<String>
+	implements Cloneable {
 
 	/**
 	 * Creates a new object with the given field name.
@@ -86,7 +87,14 @@ public class HttpStringListField extends HttpListField<String> {
 		return result;
 	}
 
-	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	public HttpStringListField clone() {
+		return (HttpStringListField)super.clone();
+	}
+
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.fields.HttpListField#elementAsString(java.lang.Object)
 	 */
@@ -121,11 +129,7 @@ public class HttpStringListField extends HttpListField<String> {
 	 * 
 	 * @param value the value to compare with
 	 */
-	public void removeAllIgnoreCase(String value) {
-		for (Iterator<String> iter = getValue().iterator(); iter.hasNext();) {
-			if (iter.next().equalsIgnoreCase(value)) {
-				iter.remove();
-			}
-		}
+	public void removeIgnoreCase(String value) {
+		removeIf(s -> s.equalsIgnoreCase(value));
 	}
 }

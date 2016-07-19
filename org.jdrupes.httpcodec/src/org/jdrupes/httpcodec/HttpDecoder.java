@@ -242,15 +242,6 @@ abstract class HttpDecoder<T extends HttpMessage> {
 		String fieldValue = m.group(2).trim();
 		try {
 			HttpField<?> field = HttpField.fromString(fieldName, fieldValue);
-			// Use normalized field name for switch
-			switch (field.getName()) {
-			case HttpField.TRANSFER_ENCODING:
-				hasBody = true;
-				break;
-			case HttpField.CONTENT_LENGTH:
-				hasBody = true;
-				break;
-			}
 			newField(field);
 			HttpField<?> existing = building.headers().get(field.getName());
 			// RFC 7230 3.2.2

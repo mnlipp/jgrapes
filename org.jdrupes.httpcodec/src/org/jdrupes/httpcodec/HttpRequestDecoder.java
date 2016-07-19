@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
@@ -61,9 +62,7 @@ public class HttpRequestDecoder extends HttpDecoder<HttpRequest> {
 			return (RequestResult) super.decode(buffer);
 		} catch (ProtocolException e) {
 			HttpResponse response = new HttpResponse(e.getHttpVersion(), 
-					HttpStatus.BAD_REQUEST, false);
-			response.setStatusCode(e.getStatusCode());
-			response.setReasonPhrase(e.getReasonPhrase());
+					e.getStatusCode(), e.getReasonPhrase(), false);
 			response.setHeader(
 			        new HttpStringListField(HttpField.CONNECTION, "close"));
 			return new RequestResult(null, false, false, response, true);
@@ -109,6 +108,43 @@ public class HttpRequestDecoder extends HttpDecoder<HttpRequest> {
 	protected void newField(HttpField<?> field)
 			throws ProtocolException, ParseException {
 		switch (field.getName()) {
+		case HttpField.CONTENT_LENGTH:
+			// RFC 7230 3.3.3 (3.)
+			if (getBuilding().headers()
+			        .containsKey(HttpField.TRANSFER_ENCODING)) {
+				break;
+			}
+			// RFC 7230 3.3.3 (4.)
+			HttpContentLengthField existing = getBuilding().getHeader(
+			        HttpContentLengthField.class, HttpField.CONTENT_LENGTH);
+			if (existing != null && !existing.getValue()
+			        .equals(((HttpContentLengthField) field).getValue())) {
+				throw new ProtocolException(protocolVersion,
+				        HttpStatus.BAD_REQUEST);
+			}
+			// RFC 7230 3.3
+			getBuilding().setHasBody(true);
+			break;
+		case HttpField.TRANSFER_ENCODING:
+			HttpStringListField transEncs = (HttpStringListField)field;
+			// RFC 7230 3.3.3 (3.)
+			if (!transEncs.get(transEncs.size() - 1)
+			        .equalsIgnoreCase("chunked")) {
+				throw new ProtocolException(protocolVersion,
+				        HttpStatus.BAD_REQUEST);
+			}
+			// RFC 7230 3.3.1
+			transEncs = ((HttpStringListField)field).clone();
+			transEncs.removeIgnoreCase("chunked");
+			if (transEncs.size() > 0) {
+				throw new ProtocolException(protocolVersion,
+				        HttpStatus.NOT_IMPLEMENTED);
+			}
+			// RFC 7230 3.3.3 (3.)
+			getBuilding().removeHeader(HttpField.CONTENT_LENGTH);
+			// RFC 7230 3.3
+			getBuilding().setHasBody(true);
+			break;
 		case HttpField.HOST:
 			String[] hostPort = ((HttpStringField)field).getValue().split(":");
 			try {
