@@ -20,7 +20,12 @@ package org.jdrupes.httpcodec.test.fields;
 import static org.junit.Assert.*;
 
 import java.text.ParseException;
+import java.time.Instant;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
+import org.jdrupes.httpcodec.fields.HttpDateField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
@@ -80,5 +85,20 @@ public class FieldParsingTests {
 		mt = HttpMediaTypeField.fromString("Test",
 		        "text/html; charset=\"utf-8\"");
 		assertEquals("text/html; charset=utf-8", mt.valueToString());
+	}
+	
+	@Test
+	public void testParseDateType() throws ParseException {
+		String dateTime = "Tue, 15 Nov 1994 08:12:31 GMT";
+		HttpDateField field = HttpDateField.fromString("Date", dateTime);
+		ZonedDateTime value = field.getValue().atZone(ZoneId.of("GMT"));
+		assertEquals(15, value.getDayOfMonth());
+		assertEquals(Month.NOVEMBER, value.getMonth());
+		assertEquals(1994, value.getYear());
+		assertEquals(8, value.getHour());
+		assertEquals(12, value.getMinute());
+		assertEquals(31, value.getSecond());
+		HttpDateField back = new HttpDateField("Date", value.toInstant());
+		assertEquals(dateTime, back.valueToString());
 	}
 }

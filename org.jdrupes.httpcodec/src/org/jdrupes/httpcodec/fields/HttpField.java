@@ -33,6 +33,7 @@ public abstract class HttpField<T> {
 	final public static String CONNECTION = "Connection";
 	final public static String CONTENT_LENGTH = "Content-Length";
 	final public static String CONTENT_TYPE = "Content-Type";
+	final public static String DATE = "Date";
 	final public static String HOST = "Host";
 	final public static String TRANSFER_ENCODING = "Transfer-Encoding";
 
@@ -42,6 +43,7 @@ public abstract class HttpField<T> {
 		fieldNameMap.put(CONNECTION, CONNECTION);
 		fieldNameMap.put(CONTENT_LENGTH, CONTENT_LENGTH);
 		fieldNameMap.put(CONTENT_TYPE, CONTENT_TYPE);
+		fieldNameMap.put(DATE, DATE);
 		fieldNameMap.put(HOST, HOST);
 		fieldNameMap.put(TRANSFER_ENCODING, TRANSFER_ENCODING);
 	}
@@ -69,6 +71,8 @@ public abstract class HttpField<T> {
 			return HttpContentLengthField.fromString(fieldName, fieldValue);
 		case HttpField.CONTENT_TYPE:
 			return HttpMediaTypeField.fromString(fieldName, fieldValue);
+		case HttpField.DATE:
+			return HttpDateField.fromString(fieldName, fieldValue);
 		case HttpField.TRANSFER_ENCODING:
 			return HttpStringListField.fromString(fieldName, fieldValue);
 		default:
