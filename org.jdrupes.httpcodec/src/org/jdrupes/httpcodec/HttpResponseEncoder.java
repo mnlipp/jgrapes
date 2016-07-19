@@ -27,6 +27,7 @@ import java.util.Stack;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
+import org.jdrupes.httpcodec.fields.HttpDateField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpIntField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
@@ -36,7 +37,7 @@ import org.jdrupes.httpcodec.util.ByteBufferOutputStream;
 /**
  * @author Michael N. Lipp
  */
-public class HttpResponseEncoder {
+public class HttpResponseEncoder extends HttpEncoder {
 
 	private enum State { INITIAL, HEADERS, CHUNK_BODY, START_COLLECT_BODY,
 		COLLECT_BODY, STREAM_COLLECTED, STREAM_BODY, DONE
@@ -103,10 +104,16 @@ public class HttpResponseEncoder {
 	 * @param response the response
 	 */
 	public void encode (HttpResponse response) {
+		super.encode(response);
 		if (states.peek() != State.INITIAL) {
 			throw new IllegalStateException();
 		}
 		this.response = response;
+		
+		// Make sure we have a Date, RFC 7231 7.1.1.2
+		if (response.getHeader(HttpDateField.class, HttpField.DATE) == null) {
+			response.setHeader(new HttpDateField());
+		}
 	}
 
 	/**
