@@ -46,9 +46,9 @@ import org.jgrapes.http.events.OptionsRequest;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.http.events.PutRequest;
 import org.jgrapes.http.events.Request;
+import org.jgrapes.http.events.Request.Result;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.TraceRequest;
-import org.jgrapes.http.events.Request.HandlingResult;
 import org.jgrapes.io.Connection;
 import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.Extension;
@@ -84,7 +84,8 @@ public class HttpServer extends Component {
 		}
 	}
 
-	private Map<Connection, ConnectionAttachments> connectionData = new WeakHashMap<>();
+	private Map<Connection, ConnectionAttachments> 
+		connectionData = new WeakHashMap<>();
 
 	/**
 	 * Create a new server that uses the {@code networkChannel} for network
@@ -117,6 +118,13 @@ public class HttpServer extends Component {
 		addHandler("onRead", networkChannel.getMatchKey());
 	}
 
+	/**
+	 * Handles a new client connection. Creates a new downstream connection
+	 * as {@link Extension} of the network connection, a 
+	 * {@link HttpRequestDecoder} and a {@link HttpResponseEncoder}.
+	 * 
+	 * @param event the accepted event
+	 */
 	@DynamicHandler
 	public void onAccepted(Accepted<ManagedByteBuffer> event) {
 		connectionData.put(event.getConnection(), new ConnectionAttachments(
@@ -124,16 +132,26 @@ public class HttpServer extends Component {
 		        new HttpRequestDecoder(), new HttpResponseEncoder()));
 	}
 
+	/**
+	 * Handles data from the client. The data is send through the 
+	 * {@link HttpRequestDecoder} and events are sent downstream
+	 * according to the decoding results.
+	 * 
+	 * @param event
+	 */
 	@DynamicHandler
 	public void onRead(Read<ManagedByteBuffer> event) {
 		final ConnectionAttachments conData = connectionData
 		        .get(event.getConnection());
+		// Get data associated with the channel
 		final HttpRequestDecoder httpDecoder = conData.decoder;
 		final DataConnection downConn = conData.downStreamConnection;
 		if (httpDecoder == null) {
 			throw new IllegalStateException(
 			        "Read event for unknown connection.");
 		}
+	
+		// Send the data from the event through the decoder. 
 		ByteBuffer buffer = event.getBuffer().getBacking();
 		while (buffer.hasRemaining()) {
 			DecoderResult result = httpDecoder.decode(buffer);
@@ -149,6 +167,13 @@ public class HttpServer extends Component {
 		}
 	}
 
+	/**
+	 * Creates a specific request event as appropriate for the request
+	 * and fires it.
+	 * 
+	 * @param connection the downstream connection
+	 * @param request the decoded request
+	 */
 	private void fireRequest(DataConnection connection,
 	        HttpRequest request) {
 		Request req;
@@ -184,6 +209,17 @@ public class HttpServer extends Component {
 		fire(req);
 	}
 
+	/**
+	 * Handles a response event from downstream by sending it through an
+	 * {@link HttpResponseEncoder} that generates the data (encoded
+	 * information) and sends it upstream with {@link Write} events. 
+	 * Depending on the response data, subsequent {@link Write} events 
+	 * and an {@link Eof} event targeted at the {@link HttpServer} can 
+	 * follow.
+	 * 
+	 * @param event the repsonse event
+	 * @throws InterruptedException
+	 */
 	@Handler
 	public void onResponse(Response event) throws InterruptedException {
 		final DataConnection netConn 
@@ -192,27 +228,37 @@ public class HttpServer extends Component {
 		final HttpResponseEncoder encoder = connData.encoder;
 		final HttpResponse response = event.getResponse();
 
-		// Send response
+		// Start sending the response
 		encoder.encode(response);
 		while (true) {
 			connData.outBuffer = netConn.acquireByteBuffer();
 			final ManagedByteBuffer buffer = connData.outBuffer;
 			EncoderResult result = encoder.encode(buffer.getBacking());
-			if (!result.isOverflow()) {
-				if (!response.hasBody()) {
-					if (buffer.position() > 0) {
-						(new Write<>(netConn, buffer)).fire();
-					} else {
-						buffer.unlockBuffer();
-					}
-					connData.outBuffer = null;
-				}
-				break;
+			if (result.isOverflow()) {
+				(new Write<>(netConn, buffer)).fire();
+				continue;
 			}
-			(new Write<>(netConn, buffer)).fire();
+			if (!response.hasBody()) {
+				if (buffer.position() > 0) {
+					(new Write<>(netConn, buffer)).fire();
+				} else {
+					buffer.unlockBuffer();
+				}
+				connData.outBuffer = null;
+			}
+			break;
 		}
 	}
 
+	/**
+	 * Received the message body. A {@link Response} event that has a
+	 * message body can be followed by one or more {@link Write} events
+	 * from downstream that contain the data. An {@link Eof} event signals
+	 * the end of the message body.
+	 * 
+	 * @param event the event with the data
+	 * @throws InterruptedException
+	 */
 	@Handler
 	public void onWrite(Write<ManagedBuffer<?>> event)
 	        throws InterruptedException {
@@ -236,10 +282,42 @@ public class HttpServer extends Component {
 		}
 	}
 
+	/**
+	 * Signals the end of a message body.
+	 * 
+	 * @param event the event
+	 * @throws InterruptedException
+	 */
 	@Handler
 	public void onEof(Eof event) throws InterruptedException {
 		final DataConnection netConn 
 			= ((Extension)event.getConnection()).getUpstreamConnection();
+		flush(netConn);
+	}
+
+	/**
+	 * Handles a close event from downstream by flushing any remaining
+	 * data and sending a {@link Close} event upstream.
+	 * 
+	 * @param event the close event
+	 * @throws InterruptedException 
+	 */
+	@Handler
+	public void onClose(Close<?> event) throws InterruptedException {
+		final DataConnection netConn 
+			= ((Extension)event.getConnection()).getUpstreamConnection();
+		flush(netConn);
+		(new Close<>(netConn)).fire();
+	}
+
+	/**
+	 * Sends any data still remaining in the out buffer upstream.
+	 * 
+	 * @param netConn
+	 * @throws InterruptedException
+	 */
+	private void flush(final DataConnection netConn)
+	        throws InterruptedException {
 		final ConnectionAttachments connData = connectionData.get(netConn);
 		final HttpResponseEncoder encoder = connData.encoder;
 
@@ -261,18 +339,12 @@ public class HttpServer extends Component {
 		}
 	}
 
-	@Handler
-	public void onClose(Close<?> event) {
-		final DataConnection netConn 
-			= ((Extension)event.getConnection()).getUpstreamConnection();
-		final ConnectionAttachments connData = connectionData.get(netConn);
-		if (connData.outBuffer != null) {
-			connData.outBuffer.unlockBuffer();
-			connData.outBuffer = null;
-		}
-		(new Close<>(netConn)).fire();
-	}
-
+	/**
+	 * Checks whether a response has been generated for a request.
+	 * If not, sends a "Not implemented" to the client.
+	 * 
+	 * @param event the request completed event
+	 */
 	@Handler
 	public void onRequestCompleted(Request.Completed event)
 	        throws InterruptedException, ParseException {
@@ -280,38 +352,38 @@ public class HttpServer extends Component {
 		final HttpResponse response = requestEvent.getRequest().getResponse();
 		final DataConnection connection = requestEvent.getConnection();
 
-		switch (requestEvent.get()) {
-		case UNHANDLED:
+		if (requestEvent.get() == Result.NONE) {
 			response.setStatus(HttpStatus.NOT_IMPLEMENTED);
 			(new Response(connection, response)).fire();
-			break;
-		case RESOURCE_NOT_FOUND:
-			response.setStatus(HttpStatus.NOT_FOUND);
-			response.setHasBody(true);
-			HttpMediaTypeField media = new HttpMediaTypeField(
-			        HttpField.CONTENT_TYPE, "text", "plain");
-			media.setParameter("charset", "utf-8");
-			response.setHeader(media);
-			(new Response(connection, response)).fire();
-			try {
-				Write.wrap(connection,
-				        "Not Found".getBytes("utf-8")).fire();
-			} catch (UnsupportedEncodingException e) {
-			}
-			(new Eof(connection)).fire();
-			break;
-		default:
-			break;
 		}
 	}
 
 	@Handler
 	public void onOptions(OptionsRequest event) throws ParseException {
 		if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {
-			event.setResult(HandlingResult.RESPONDED);
 			HttpResponse response = event.getRequest().getResponse();
 			response.setStatus(HttpStatus.OK);
 			fire(new Response(event.getConnection(), response));
 		}
+	}
+
+	@Handler(priority=Integer.MIN_VALUE)
+	public void onGet(GetRequest event) throws ParseException {
+		final HttpResponse response = event.getRequest().getResponse();
+		final DataConnection connection = event.getConnection();
+		response.setStatus(HttpStatus.NOT_FOUND);
+		response.setHasBody(true);
+		HttpMediaTypeField media = new HttpMediaTypeField(
+		        HttpField.CONTENT_TYPE, "text", "plain");
+		media.setParameter("charset", "utf-8");
+		response.setHeader(media);
+		(new Response(connection, response)).fire();
+		try {
+			Write.wrap(connection,
+			        "Not Found".getBytes("utf-8")).fire();
+		} catch (UnsupportedEncodingException e) {
+		}
+		(new Eof(connection)).fire();
+		event.stop();
 	}
 }

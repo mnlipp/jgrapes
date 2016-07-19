@@ -54,7 +54,10 @@ public class HttpRequest {
 	private HttpResponse response;
 	
 	/**
-	 * Creates a new request with basic data.
+	 * Creates a new request with basic data. The request provides
+	 * a preliminary {@link HttpResponse} that is already initialized 
+	 * with the basic information that can be derived from the request
+	 * (e.g. by default the HTTP version is copied).
 	 * 
 	 * @param method the method
 	 * @param requestUri the requested resource
@@ -67,7 +70,7 @@ public class HttpRequest {
 		this.requestUri = requestUri;
 		this.httpProtocol = httpProtocol;
 		response = new HttpResponse(httpProtocol,
-		        HttpStatus.INTERNAL_SERVER_ERROR, false);
+		        HttpStatus.NOT_IMPLEMENTED, false);
 	}
 
 	/**

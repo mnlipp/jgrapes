@@ -29,10 +29,9 @@ import org.jgrapes.io.DataConnection;
  * @author Michael N. Lipp
  *
  */
-public class Request extends Event<Request.HandlingResult> {
+public class Request extends Event<Request.Result> {
 
-	public static enum HandlingResult { UNHANDLED, RESOURCE_NOT_FOUND,
-		RESPONDED };
+	public static enum Result { NONE, RESPONDED };
 	
 	public static class Completed extends CompletedEvent<Request> {
 	}
@@ -41,13 +40,17 @@ public class Request extends Event<Request.HandlingResult> {
 	private DataConnection connection;
 	
 	/**
+	 * Creates a new request event with the associated {@link Completed}
+	 * event and the result {@code NONE}.
+	 * 
+	 * @param connection the connection the request is associated with
 	 * @param request the request data
 	 * @param channels the channels associated with this event
 	 */
 	public Request(DataConnection connection, 
 			HttpRequest request, Channel... channels) {
 		super(new Completed(), channels);
-		super.setResult(HandlingResult.UNHANDLED);
+		super.setResult(Result.NONE);
 		this.connection = connection;
 		this.request = request;
 	}
@@ -56,15 +59,18 @@ public class Request extends Event<Request.HandlingResult> {
 	 * @see org.jgrapes.core.internal.EventBase#setResult(java.lang.Object)
 	 */
 	@Override
-	public Event<HandlingResult> setResult(HandlingResult result) {
-		if (getResult() == HandlingResult.UNHANDLED
-				|| result == HandlingResult.RESPONDED) {
-			return super.setResult(result);
+	public Event<Result> setResult(Result result) {
+		if (getResult() != Result.NONE
+				&& result == Result.NONE) {
+			throw new IllegalArgumentException
+				("Result may not be reset to NONE.");
 		}
-		return this;
+		return super.setResult(result);
 	}
 
 	/**
+	 * Returns the connection.
+	 * 
 	 * @return the connection
 	 */
 	public DataConnection getConnection() {
@@ -72,6 +78,8 @@ public class Request extends Event<Request.HandlingResult> {
 	}
 
 	/**
+	 * Returns the request.
+	 * 
 	 * @return the request
 	 */
 	public HttpRequest getRequest() {

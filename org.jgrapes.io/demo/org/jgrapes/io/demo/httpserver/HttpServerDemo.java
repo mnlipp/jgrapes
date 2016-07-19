@@ -25,7 +25,6 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.events.GetRequest;
-import org.jgrapes.http.events.Request.HandlingResult;
 import org.jgrapes.io.NioDispatcher;
 
 /**
@@ -36,7 +35,7 @@ public class HttpServerDemo extends Component {
 
 	@Handler
 	public void onGet(GetRequest event) {
-		event.setResult(HandlingResult.RESOURCE_NOT_FOUND);
+		// event.setResult(HandlingResult.RESOURCE_NOT_FOUND);
 	}
 	
 	/**

@@ -10,10 +10,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.http.events.GetRequest;
-import org.jgrapes.http.events.Request.HandlingResult;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -27,11 +24,6 @@ public class NotFoundTests {
 			super();
 		}
 
-		@Handler
-		public void onGet(GetRequest event) {
-			event.setResult(HandlingResult.RESOURCE_NOT_FOUND);
-		}
-		
 	}
 	
 	static private TestServer server;
