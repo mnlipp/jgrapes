@@ -31,7 +31,7 @@ import org.jdrupes.httpcodec.HttpRequest;
 import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.HttpResponseEncoder;
-import org.jdrupes.httpcodec.DecoderResult;
+import org.jdrupes.httpcodec.RequestResult;
 import org.jdrupes.httpcodec.EncoderResult;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
@@ -162,9 +162,9 @@ public class HttpServer extends Component {
 		// Send the data from the event through the decoder. 
 		ByteBuffer buffer = event.getBuffer().getBacking();
 		while (buffer.hasRemaining()) {
-			DecoderResult result = httpDecoder.decode(buffer);
-			if (result.hasRequest()) {
-				fireRequest(downConn, result.getRequest());
+			RequestResult result = httpDecoder.decode(buffer);
+			if (result.hasMessage()) {
+				fireRequest(downConn, result.getMessage());
 			}
 			if (result.hasResponse()) {
 				fire(new Response(downConn, result.getResponse()));

@@ -19,20 +19,16 @@ package org.jdrupes.httpcodec;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
-import org.jdrupes.httpcodec.fields.HttpField;
 
 /**
  * Represents a complte HTTP request with all received header data.
  * 
  * @author Michael N. Lipp
  */
-public class HttpRequest {
+public class HttpRequest extends HttpMessage {
 
 	public static final URI ASTERISK_REQUEST 
 		= createUri("http://127.0.0.1/");
@@ -44,11 +40,8 @@ public class HttpRequest {
 		}
 	}
 	
-	private HttpProtocol httpProtocol;
 	private String method;
 	private URI requestUri;
-	private Map<String,HttpField<?>> headers 
-		= new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 	private String host;
 	private int port;
 	private HttpResponse response;
@@ -61,11 +54,10 @@ public class HttpRequest {
 	 * @param httpProtocol the HTTP protocol version
 	 */
 	public HttpRequest(String method, URI requestUri, 
-			HttpProtocol httpProtocol) {
-		super();
+			HttpProtocol httpProtocol, boolean hasBody) {
+		super(httpProtocol, hasBody);
 		this.method = method;
 		this.requestUri = requestUri;
-		this.httpProtocol = httpProtocol;
 		response = new HttpResponse(httpProtocol,
 		        HttpStatus.NOT_IMPLEMENTED, false);
 	}
@@ -88,45 +80,6 @@ public class HttpRequest {
 		return requestUri;
 	}
 
-	/**
-	 * Return the protocol.
-	 * 
-	 * @return the HTTP protocol
-	 */
-	public HttpProtocol getProtocol() {
-		return httpProtocol;
-	}
-
-	/**
-	 * Set a header for the request.
-	 * 
-	 * @param value the header field's value
-	 */
-	public void setHeader(HttpField<?> value) {
-		headers.put(value.getName(), value);
-	}
-
-	/**
-	 * Returns all headers as unmodifiable map.
-	 * 
-	 * @return the headers
-	 */
-	public Map<String, HttpField<?>> headers() {
-		return Collections.unmodifiableMap(headers);
-	}
-	
-	/**
-	 * Returns the header field with the given type and name or {@code null}
-	 * if no such header is set.
-	 * 
-	 * @param type the header field type
-	 * @param name the field name
-	 * @return the header field or {@code null}
-	 */
-	public <T extends HttpField<?>> T getHeader(Class<T> type, String name) {
-		return type.cast(headers.get(name));
-	}
-	
 	/**
 	 * Set the host and port attributes.
 	 * 
@@ -185,9 +138,9 @@ public class HttpRequest {
 			builder.append(requestUri);
 			builder.append(", ");
 		}
-		if (httpProtocol != null) {
+		if (getProtocol() != null) {
 			builder.append("httpVersion=");
-			builder.append(httpProtocol);
+			builder.append(getProtocol());
 		}
 		builder.append("]");
 		return builder.toString();

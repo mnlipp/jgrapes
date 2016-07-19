@@ -4,45 +4,12 @@ import static org.junit.Assert.*;
 
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.DecoderResult;
 import org.jdrupes.httpcodec.HttpRequestDecoder;
+import org.jdrupes.httpcodec.RequestResult;
 import org.junit.Test;
 
 public class GetRequestsTests {
 
-	@Test
-	public void testSplit() {
-		String reqText 
-			= "GET /test HTTP/1.1\r\n"
-			+ "Host: local";
-		ByteBuffer buffer = ByteBuffer.allocate(8192);
-		buffer.put(reqText.getBytes());
-		buffer.flip();
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		DecoderResult result = decoder.decode(buffer);
-		assertFalse(result.hasRequest());
-		assertFalse(result.hasResponse());
-		assertFalse(result.hasPayloadBytes());
-		assertFalse(result.hasPayloadChars());
-		assertFalse(result.getCloseConnection());
-		reqText 
-			= "host:8888\r\n"
-			+ "\r\n";
-		buffer.clear();
-		buffer.put(reqText.getBytes());
-		buffer.flip();
-		result = decoder.decode(buffer);
-		assertTrue(result.hasRequest());
-		assertFalse(result.hasResponse());
-		assertFalse(result.hasPayloadBytes());
-		assertFalse(result.hasPayloadChars());
-		assertFalse(result.getCloseConnection());
-		assertEquals("GET", result.getRequest().getMethod());
-		assertEquals("localhost", result.getRequest().getHost());
-		assertEquals(8888, result.getRequest().getPort());
-		assertEquals("/test", result.getRequest().getRequestUri().getPath());
-	}
-	
 	@Test
 	public void testGetRequest() {
 		String reqText 
@@ -61,16 +28,16 @@ public class GetRequestsTests {
 		buffer.put(reqText.getBytes());
 		buffer.flip();
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		DecoderResult result = decoder.decode(buffer);
-		assertTrue(result.hasRequest());
+		RequestResult result = decoder.decode(buffer);
+		assertTrue(result.hasMessage());
 		assertFalse(result.hasResponse());
 		assertFalse(result.hasPayloadBytes());
 		assertFalse(result.hasPayloadChars());
 		assertFalse(result.getCloseConnection());
-		assertEquals("GET", result.getRequest().getMethod());
-		assertEquals("localhost", result.getRequest().getHost());
-		assertEquals(8888, result.getRequest().getPort());
-		assertEquals("/test", result.getRequest().getRequestUri().getPath());
+		assertEquals("GET", result.getMessage().getMethod());
+		assertEquals("localhost", result.getMessage().getHost());
+		assertEquals(8888, result.getMessage().getPort());
+		assertEquals("/test", result.getMessage().getRequestUri().getPath());
 	}
 
 }

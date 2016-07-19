@@ -23,29 +23,26 @@ package org.jdrupes.httpcodec;
  * 
  * @author Michael N. Lipp
  */
-public class DecoderResult {
+public abstract class DecoderResult<T extends HttpMessage> {
 
-	private HttpRequest request;
+	private T message;
 	private boolean payloadBytes;
 	private boolean payloadChars;
-	private HttpResponse response;
 	private boolean closeConnection;
 
 	/**
 	 * Creates a new result.
 	 * 
-	 * @param request the decoded request
+	 * @param message the decoded message
 	 * @param response a response to send because an error occurred
 	 * that must be signaled back to the client
 	 * @param payloadBytes {@code true} if the request has a body with octets
 	 * @param payloadChars {@code true} if the request has a body with text
 	 */
-	DecoderResult(HttpRequest request, boolean payloadBytes, 
-			boolean payloadChars, HttpResponse response, 
-			boolean closeConnection) {
+	DecoderResult(T message, boolean payloadBytes, 
+			boolean payloadChars, boolean closeConnection) {
 		super();
-		this.request = request;
-		this.response = response;
+		this.message = message;
 		this.payloadBytes = payloadBytes;
 		this.payloadChars = payloadChars;
 		this.closeConnection = closeConnection;
@@ -56,15 +53,15 @@ public class DecoderResult {
 	 * 
 	 * @return the result
 	 */
-	public boolean hasRequest() {
-		return request != null;
+	public boolean hasMessage() {
+		return message != null;
 	}
 	
 	/**
-	 * @return the request
+	 * @return the message
 	 */
-	public HttpRequest getRequest() {
-		return request;
+	protected T getMessage() {
+		return message;
 	}
 
 	/**
@@ -81,24 +78,6 @@ public class DecoderResult {
 		return payloadChars;
 	}
 	
-	/**
-	 * Returns {@code true} if the result includes a response. A response in
-	 * the decoder result indicates that some problem occurred that
-	 * must be signaled back to the client.
-	 * 
-	 * @return the result
-	 */
-	public boolean hasResponse() {
-		return response != null;
-	}
-	
-	/**
-	 * @return the response
-	 */
-	public HttpResponse getResponse() {
-		return response;
-	}
-
 	/**
 	 * Returns {@code true} if the connection should be closed. If the
 	 * result has a response, that response must be sent before

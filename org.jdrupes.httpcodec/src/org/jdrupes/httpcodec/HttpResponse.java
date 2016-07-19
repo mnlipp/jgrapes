@@ -18,9 +18,6 @@
 package org.jdrupes.httpcodec;
 
 import java.text.ParseException;
-import java.util.Collections;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
@@ -30,50 +27,17 @@ import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 /**
  * @author Michael N. Lipp
  */
-public class HttpResponse {
+public class HttpResponse extends HttpMessage {
 
-	private HttpProtocol httpProtocol;
-	private boolean hasBody;
 	private int statusCode = -1;
 	private String reasonPhrase;
-	private Map<String,HttpField<?>> headers 
-		= new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 	
 	public HttpResponse(HttpProtocol protocol,
 			HttpStatus status, boolean hasBody) {
-		httpProtocol = protocol;
+		super(protocol, hasBody);
 		setStatus(status);
-		this.hasBody = hasBody;
 	}
 	
-	/**
-	 * Return the protocol.
-	 * 
-	 * @return the HTTP protocol
-	 */
-	public HttpProtocol getProtocol() {
-		return httpProtocol;
-	}
-
-	/**
-	 * Set the flag that indicates whether this response has a body.
-	 * 
-	 * @param hasBody new value
-	 */
-	public void setHasBody(boolean hasBody) {
-		this.hasBody = hasBody;
-	}
-	
-	/**
-	 * Returns true if body data will be delivered to the encoder
-	 * after the header.
-	 * 
-	 * @return {@code true} if body data follows
-	 */
-	public boolean hasBody() {
-		return hasBody;
-	}
-
 	/**
 	 * @return the responseCode
 	 */
@@ -111,36 +75,6 @@ public class HttpResponse {
 	public void setStatus(HttpStatus status) {
 		statusCode = status.getStatusCode();
 		reasonPhrase = status.getReasonPhrase();
-	}
-	
-	/**
-	 * Set a header for the response data.
-	 * 
-	 * @param field the header field
-	 */
-	public void setHeader(HttpField<?> field) {
-		headers.put(field.getName(), field);
-	}
-
-	/**
-	 * Returns the header field with the given type and name or {@code null}
-	 * if no such header is set.
-	 * 
-	 * @param type the header field type
-	 * @param name the field name
-	 * @return the header field or {@code null}
-	 */
-	public <T extends HttpField<?>> T getHeader(Class<T> type, String name) {
-		return type.cast(headers.get(name));
-	}
-	
-	/**
-	 * Returns all headers as unmodifiable map.
-	 * 
-	 * @return the headers
-	 */
-	public Map<String, HttpField<?>> headers() {
-		return Collections.unmodifiableMap(headers);
 	}
 	
 	/**

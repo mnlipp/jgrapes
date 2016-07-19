@@ -15,33 +15,8 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.test;
-
-import static org.junit.Assert.*;
-
-import java.text.ParseException;
-import java.util.Iterator;
-
-import org.jdrupes.httpcodec.fields.HttpStringListField;
-import org.junit.Test;
-
 /**
  * @author Michael N. Lipp
  *
  */
-public class FieldValuesTests {
-
-	@Test
-	public void testStringList() throws ParseException {
-		HttpStringListField fv = HttpStringListField.fromString("Test", 
-		        "How, are,you,  \"out there\"");
-		Iterator<String> iter = fv.iterator();
-		assertEquals("How", iter.next());
-		assertEquals("are", iter.next());
-		assertEquals("you", iter.next());
-		assertEquals("out there", iter.next());
-		assertFalse(iter.hasNext());
-		assertEquals("How, are, you, \"out there\"", fv.valueToString());;
-	}
-
-}
+package org.jdrupes.httpcodec.test.fields;

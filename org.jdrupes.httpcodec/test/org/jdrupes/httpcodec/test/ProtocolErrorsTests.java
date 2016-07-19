@@ -5,8 +5,8 @@ import static org.junit.Assert.*;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.DecoderResult;
 import org.jdrupes.httpcodec.HttpRequestDecoder;
+import org.jdrupes.httpcodec.RequestResult;
 import org.junit.Test;
 
 public class ProtocolErrorsTests {
@@ -19,8 +19,8 @@ public class ProtocolErrorsTests {
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		DecoderResult result = decoder.decode(buffer);
-		assertFalse(result.hasRequest());
+		RequestResult result = decoder.decode(buffer);
+		assertFalse(result.hasMessage());
 		assertFalse(result.hasPayloadBytes());
 		assertFalse(result.hasPayloadChars());
 		assertTrue(result.hasResponse());
