@@ -27,4 +27,26 @@ public class ProtocolErrorsTests {
 		assertEquals(505, result.getResponse().getStatusCode());
 	}
 
+	/**
+	 * RFC 7230 3.1.1
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
+	@Test
+	public void testRequestWithWhitespace()
+	        throws UnsupportedEncodingException {
+		String reqText 
+			= "GET /tricky/Resource HTTP/1.1 HTTP/1.1\r\n"
+			+ "Host: localhost:8888\r\n"
+			+ "\r\n";
+		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
+		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		RequestResult result = decoder.decode(buffer);
+		assertFalse(result.hasMessage());
+		assertFalse(result.hasPayloadBytes());
+		assertFalse(result.hasPayloadChars());
+		assertTrue(result.hasResponse());
+		assertEquals(400, result.getResponse().getStatusCode());
+	}
+
 }
