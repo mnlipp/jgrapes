@@ -20,7 +20,6 @@ package org.jdrupes.httpcodec.test.fields;
 import static org.junit.Assert.*;
 
 import java.text.ParseException;
-import java.time.Instant;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
