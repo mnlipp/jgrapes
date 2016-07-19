@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutionException;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.events.Stop;
+import org.jgrapes.http.events.GetRequest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -21,7 +22,7 @@ public class NotFoundTests {
 
 		public TestServer()
 		        throws IOException, InterruptedException, ExecutionException {
-			super();
+			super(GetRequest.class);
 		}
 
 	}

@@ -29,10 +29,8 @@ import org.jgrapes.io.DataConnection;
  * @author Michael N. Lipp
  *
  */
-public class Request extends Event<Request.Result> {
+public class Request extends Event<Void> {
 
-	public static enum Result { NONE, RESPONDED };
-	
 	public static class Completed extends CompletedEvent<Request> {
 	}
 	
@@ -41,7 +39,7 @@ public class Request extends Event<Request.Result> {
 	
 	/**
 	 * Creates a new request event with the associated {@link Completed}
-	 * event and the result {@code NONE}.
+	 * event.
 	 * 
 	 * @param connection the connection the request is associated with
 	 * @param request the request data
@@ -50,22 +48,8 @@ public class Request extends Event<Request.Result> {
 	public Request(DataConnection connection, 
 			HttpRequest request, Channel... channels) {
 		super(new Completed(), channels);
-		super.setResult(Result.NONE);
 		this.connection = connection;
 		this.request = request;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.EventBase#setResult(java.lang.Object)
-	 */
-	@Override
-	public Event<Result> setResult(Result result) {
-		if (getResult() != Result.NONE
-				&& result == Result.NONE) {
-			throw new IllegalArgumentException
-				("Result may not be reset to NONE.");
-		}
-		return super.setResult(result);
 	}
 
 	/**

@@ -54,10 +54,7 @@ public class HttpRequest {
 	private HttpResponse response;
 	
 	/**
-	 * Creates a new request with basic data. The request provides
-	 * a preliminary {@link HttpResponse} that is already initialized 
-	 * with the basic information that can be derived from the request
-	 * (e.g. by default the HTTP version is copied).
+	 * Creates a new request with basic data. 
 	 * 
 	 * @param method the method
 	 * @param requestUri the requested resource
@@ -156,7 +153,14 @@ public class HttpRequest {
 	}
 
 	/**
-	 * Returns the prepared response.
+	 * Returns the prepared response. Upon creation, the request provides
+	 * a preliminary {@link HttpResponse} that is already initialized 
+	 * with the basic information that can be derived from the request
+	 * (e.g. by default the HTTP version is copied). The status code
+	 * of the preliminary response is 501 "Not implemented".
+	 * <P>
+	 * Although not required, users of the API are encouraged to modify
+	 * this prepared request and use it when encoding the response.
 	 * 
 	 * @return the prepared response
 	 */

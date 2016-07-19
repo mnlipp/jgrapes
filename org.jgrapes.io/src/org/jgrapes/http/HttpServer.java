@@ -22,6 +22,8 @@ import java.net.SocketAddress;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -46,7 +48,6 @@ import org.jgrapes.http.events.OptionsRequest;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.http.events.PutRequest;
 import org.jgrapes.http.events.Request;
-import org.jgrapes.http.events.Request.Result;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.TraceRequest;
 import org.jgrapes.io.Connection;
@@ -67,8 +68,6 @@ import org.jgrapes.net.events.Accepted;
  */
 public class HttpServer extends Component {
 
-	private Channel networkChannel;
-
 	private class ConnectionAttachments {
 		public Extension downStreamConnection;
 		public HttpRequestDecoder decoder;
@@ -84,21 +83,30 @@ public class HttpServer extends Component {
 		}
 	}
 
+	private Channel networkChannel;
 	private Map<Connection, ConnectionAttachments> 
 		connectionData = new WeakHashMap<>();
+	private List<Class<? extends Request>> providedFallbacks;
 
 	/**
 	 * Create a new server that uses the {@code networkChannel} for network
-	 * level I/O.
+	 * level I/O. 
+	 * <P>
+	 * As a convenience the server can provide fall back
+	 * handlers for the specified types of requests. The fall
+	 * back handler simply returns 404 ("Not found").
 	 * 
-	 * @param componentChannel
-	 *            this component's channel
-	 * @param networkChannel
-	 *            the channel for network level I/O
+	 * @param componentChannel this component's channel
+	 * @param networkChannel the channel for network level I/O
+	 * @param fallbacks the requests for which a fall back handler
+	 * is provided
 	 */
-	public HttpServer(Channel componentChannel, Channel networkChannel) {
+	@SafeVarargs
+	public HttpServer(Channel componentChannel, Channel networkChannel,
+			Class<? extends Request>... fallbacks) {
 		super(componentChannel);
 		this.networkChannel = networkChannel;
+		this.providedFallbacks = Arrays.asList(fallbacks);
 		addHandler("onAccepted", networkChannel.getMatchKey());
 		addHandler("onRead", networkChannel.getMatchKey());
 	}
@@ -340,8 +348,9 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Checks whether a response has been generated for a request.
-	 * If not, sends a "Not implemented" to the client.
+	 * Checks whether the request has been handled (status code
+	 * of response has been set). If not, send the default 
+	 * response ("Not implemented") to the client.
 	 * 
 	 * @param event the request completed event
 	 */
@@ -352,23 +361,42 @@ public class HttpServer extends Component {
 		final HttpResponse response = requestEvent.getRequest().getResponse();
 		final DataConnection connection = requestEvent.getConnection();
 
-		if (requestEvent.get() == Result.NONE) {
-			response.setStatus(HttpStatus.NOT_IMPLEMENTED);
+		if (response.getStatusCode() == HttpStatus.NOT_IMPLEMENTED
+		        .getStatusCode()) {
 			(new Response(connection, response)).fire();
 		}
 	}
 
-	@Handler
+	/**
+	 * Provides a fallback handler for an OPTIONS request with
+	 * asterisk. Simply responds with "OK".
+	 * 
+	 * @param event
+	 * @throws ParseException
+	 */
+	@Handler(priority=Integer.MIN_VALUE)
 	public void onOptions(OptionsRequest event) throws ParseException {
 		if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {
 			HttpResponse response = event.getRequest().getResponse();
 			response.setStatus(HttpStatus.OK);
 			fire(new Response(event.getConnection(), response));
+			event.stop();
 		}
 	}
 
+	/**
+	 * Provides a fallback handler (lowest priority) for the request
+	 * types specified in the constructor. 
+	 * 
+	 * @param event
+	 * @throws ParseException
+	 */
 	@Handler(priority=Integer.MIN_VALUE)
-	public void onGet(GetRequest event) throws ParseException {
+	public void onRequest(Request event) throws ParseException {
+		if (providedFallbacks == null 
+				|| !providedFallbacks.contains(event.getClass())) {
+			return;
+		}
 		final HttpResponse response = event.getRequest().getResponse();
 		final DataConnection connection = event.getConnection();
 		response.setStatus(HttpStatus.NOT_FOUND);

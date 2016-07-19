@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.http.HttpServer;
+import org.jgrapes.http.events.Request;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.net.Server;
@@ -39,11 +40,13 @@ public class BasicTestServer extends Component {
 	private InetSocketAddress addr;
 	private WaitForTests readyMonitor;
 
-	public BasicTestServer() throws IOException, InterruptedException, 
-			ExecutionException {
+	@SafeVarargs
+	public BasicTestServer(Class<? extends Request>... fallbacks) 
+			throws IOException, InterruptedException, ExecutionException {
 		attach(new NioDispatcher());
 		Server networkServer = attach(new Server(null));
-		attach(new HttpServer(getChannel(), networkServer.getChannel()));
+		attach(new HttpServer(getChannel(), networkServer.getChannel(),
+				fallbacks));
 		readyMonitor = new WaitForTests
 			(this, Ready.class, networkServer.getChannel().getMatchKey());
 	}
