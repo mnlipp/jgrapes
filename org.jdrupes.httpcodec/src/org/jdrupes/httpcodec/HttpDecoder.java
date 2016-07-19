@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpListField;
 import org.jdrupes.httpcodec.util.DynamicByteArray;
 import org.jdrupes.httpcodec.util.HttpUtils;
 
@@ -251,7 +252,20 @@ abstract class HttpDecoder<T extends HttpMessage> {
 				break;
 			}
 			newField(field);
-			building.setHeader(field);
+			HttpField<?> existing = building.headers().get(field.getName());
+			// RFC 7230 3.2.2
+			if (existing != null) {
+				if (!(existing instanceof HttpListField<?>)
+						|| !(field instanceof HttpListField<?>)
+						|| !(existing.getClass().equals(field.getClass()))) {
+					throw new ProtocolException(protocolVersion, 
+							HttpStatus.BAD_REQUEST.getStatusCode(),
+							"Multiple occurences of field " + field.getName());
+				}
+				((HttpListField<?>)existing).combine((HttpListField<?>)field);
+			} else {
+				building.setHeader(field);
+			}
 		} catch (ParseException e) {
 			throw new ProtocolException(protocolVersion, 
 					HttpStatus.BAD_REQUEST.getStatusCode(), e.getMessage());

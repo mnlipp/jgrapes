@@ -150,6 +150,20 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	}
 
 	/**
+	 * Combine this list with another list of the same type.
+	 * 
+	 * @param other the other list
+	 */
+	@SuppressWarnings("unchecked")
+	public void combine(@SuppressWarnings("rawtypes") HttpListField other) {
+		if (!(getClass().equals(other.getClass()))
+				|| getName() != other.getName()) {
+			throw new IllegalArgumentException("Types and name must be equal.");
+		}
+		addAll(other);
+	}
+
+	/**
 	 * @see java.util.List#add(int, java.lang.Object)
 	 */
 	public void add(int index, T element) {
