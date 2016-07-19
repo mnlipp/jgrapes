@@ -48,7 +48,7 @@ public class HttpServerDemo extends Component {
 		HttpServerDemo app = new HttpServerDemo();
 		app.attach(new NioDispatcher());
 		app.attach(new HttpServer(app.getChannel(), 
-				new InetSocketAddress(8888)));
+				new InetSocketAddress(8888), GetRequest.class));
 		Components.start(app);
 	}
 
