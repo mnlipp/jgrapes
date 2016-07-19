@@ -49,4 +49,26 @@ public class ProtocolErrorsTests {
 		assertEquals(400, result.getResponse().getStatusCode());
 	}
 
+	/**
+	 * RFC 7230 3.2.4
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
+	@Test
+	public void testRequestWithSpaceBeforeColon()
+	        throws UnsupportedEncodingException {
+		String reqText 
+			= "GET / HTTP/1.1\r\n"
+			+ "Host : localhost:8888\r\n"
+			+ "\r\n";
+		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
+		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		RequestResult result = decoder.decode(buffer);
+		assertFalse(result.hasMessage());
+		assertFalse(result.hasPayloadBytes());
+		assertFalse(result.hasPayloadChars());
+		assertTrue(result.hasResponse());
+		assertEquals(400, result.getResponse().getStatusCode());
+	}
+
 }
