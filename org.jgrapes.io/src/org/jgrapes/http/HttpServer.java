@@ -117,8 +117,11 @@ public class HttpServer extends Component {
 	 * 
 	 * @param componentChannel
 	 */
-	public HttpServer(Channel componentChannel, SocketAddress serverAddress) {
+	@SafeVarargs
+	public HttpServer(Channel componentChannel, SocketAddress serverAddress,
+			Class<? extends Request>... fallbacks) {
 		super(componentChannel);
+		this.providedFallbacks = Arrays.asList(fallbacks);
 		Server server = new Server(Channel.SELF, serverAddress);
 		networkChannel = server;
 		attach(server);
