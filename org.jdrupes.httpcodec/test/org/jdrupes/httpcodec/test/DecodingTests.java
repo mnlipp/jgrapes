@@ -24,8 +24,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.HttpRequestDecoder;
-import org.jdrupes.httpcodec.RequestResult;
+import org.jdrupes.httpcodec.server.HttpRequestDecoder;
 import org.junit.Test;
 
 /**
@@ -42,7 +41,7 @@ public class DecodingTests {
 			+ "Host: local";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		RequestResult result = decoder.decode(buffer);
+		HttpRequestDecoder.Result result = decoder.decode(buffer);
 		assertFalse(result.hasMessage());
 		assertFalse(result.hasResponse());
 		assertFalse(result.hasPayloadBytes());

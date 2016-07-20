@@ -5,8 +5,7 @@ import static org.junit.Assert.*;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.HttpRequestDecoder;
-import org.jdrupes.httpcodec.RequestResult;
+import org.jdrupes.httpcodec.server.HttpRequestDecoder;
 import org.junit.Test;
 
 public class ProtocolErrorsTests {
@@ -19,7 +18,7 @@ public class ProtocolErrorsTests {
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		RequestResult result = decoder.decode(buffer);
+		HttpRequestDecoder.Result result = decoder.decode(buffer);
 		assertFalse(result.hasMessage());
 		assertFalse(result.hasPayloadBytes());
 		assertFalse(result.hasPayloadChars());
@@ -41,7 +40,7 @@ public class ProtocolErrorsTests {
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		RequestResult result = decoder.decode(buffer);
+		HttpRequestDecoder.Result result = decoder.decode(buffer);
 		assertFalse(result.hasMessage());
 		assertFalse(result.hasPayloadBytes());
 		assertFalse(result.hasPayloadChars());
@@ -63,7 +62,7 @@ public class ProtocolErrorsTests {
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		RequestResult result = decoder.decode(buffer);
+		HttpRequestDecoder.Result result = decoder.decode(buffer);
 		assertFalse(result.hasMessage());
 		assertFalse(result.hasPayloadBytes());
 		assertFalse(result.hasPayloadChars());

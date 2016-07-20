@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.internal;
 
 import java.util.Collections;
 import java.util.Map;
@@ -28,7 +28,7 @@ import org.jdrupes.httpcodec.fields.HttpField;
  * @author Michael N. Lipp
  *
  */
-abstract class HttpMessage {
+public abstract class Message {
 
 	private HttpProtocol httpProtocol;
 	private Map<String,HttpField<?>> headers 
@@ -38,7 +38,7 @@ abstract class HttpMessage {
 	/**
 	 * 
 	 */
-	public HttpMessage(HttpProtocol httpProtocol, boolean hasBody) {
+	public Message(HttpProtocol httpProtocol, boolean hasBody) {
 		this.httpProtocol = httpProtocol;
 		this.hasBody = hasBody;
 	}

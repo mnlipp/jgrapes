@@ -99,4 +99,19 @@ public class HttpCodec {
 			return reasonPhrase;
 		}
     }
+    
+    public enum TransferCoding { CHUNKED("chunked"), COMPRESS("compress"),
+    	DEFLATE("deflate"), GZIP("gzip");
+    	
+    	private String repr;
+    	
+    	TransferCoding(String repr) {
+    		this.repr = repr;
+    	}
+
+    	@Override
+		public String toString() {
+			return repr;
+		}
+    }
 }

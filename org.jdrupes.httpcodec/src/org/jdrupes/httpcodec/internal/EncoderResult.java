@@ -15,27 +15,18 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.internal;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class EncoderResult {
+class EncoderResult {
 
-	public final static EncoderResult 
-		OVERFLOW = new EncoderResult(true, false, false);
-	public final static EncoderResult 
-		UNDERFLOW = new EncoderResult(false, true, false);
-	public final static EncoderResult 
-		CLOSE_CONNECTION = new EncoderResult(false, false, true);
-	public final static EncoderResult 
-		PROCEED = new EncoderResult(false, false, false);
-	
 	private boolean overflow;
 	private boolean underflow;
 	private boolean closeConnection;
-	
+
 	/**
 	 * Creates a new result with the given values.
 	 * 
@@ -43,8 +34,8 @@ public class EncoderResult {
 	 * @param underflow
 	 * @param closeConnection
 	 */
-	EncoderResult(boolean overflow, boolean underflow, 
-			boolean closeConnection) {
+	protected EncoderResult(boolean overflow, boolean underflow,
+	        boolean closeConnection) {
 		super();
 		this.overflow = overflow;
 		this.underflow = underflow;
@@ -52,9 +43,9 @@ public class EncoderResult {
 	}
 
 	/**
-	 * Indicates that the data didn't fit in the out buffer. The encoding 
-	 * method that has returned this result should be re-invoked with 
-	 * the same parameters except for a new (or cleared) output buffer.
+	 * Indicates that the data didn't fit in the out buffer. The encoding method
+	 * that has returned this result should be re-invoked with the same
+	 * parameters except for a new (or cleared) output buffer.
 	 * 
 	 * @return {@code true} if overflow occurred
 	 */
@@ -63,10 +54,9 @@ public class EncoderResult {
 	}
 
 	/**
-	 * Indicates that more data is expected. The encoding 
-	 * method that has returned this result should be re-invoked with 
-	 * the same parameters except for an input buffer with additional 
-	 * information.
+	 * Indicates that more data is expected. The encoding method that has
+	 * returned this result should be re-invoked with the same parameters except
+	 * for an input buffer with additional information.
 	 * 
 	 * @return {@code true} if underflow occurred
 	 */
@@ -75,8 +65,8 @@ public class EncoderResult {
 	}
 
 	/**
-	 * Indicates that the connection to the receiver of the response
-	 * must be closed to complete the encoding of the response. 
+	 * Indicates that the connection to the receiver of the response must be
+	 * closed to complete the encoding of the response.
 	 * 
 	 * @return the value
 	 */
@@ -84,7 +74,9 @@ public class EncoderResult {
 		return closeConnection;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -97,7 +89,9 @@ public class EncoderResult {
 		return result;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -118,7 +112,9 @@ public class EncoderResult {
 		return true;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -133,5 +129,5 @@ public class EncoderResult {
 		builder.append("]");
 		return builder.toString();
 	}
-	
+
 }

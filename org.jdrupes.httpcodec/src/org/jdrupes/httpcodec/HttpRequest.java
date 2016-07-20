@@ -22,13 +22,14 @@ import java.net.URISyntaxException;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.internal.Message;
 
 /**
  * Represents a complte HTTP request with all received header data.
  * 
  * @author Michael N. Lipp
  */
-public class HttpRequest extends HttpMessage {
+public class HttpRequest extends Message {
 
 	public static final URI ASTERISK_REQUEST 
 		= createUri("http://127.0.0.1/");
@@ -86,7 +87,7 @@ public class HttpRequest extends HttpMessage {
 	 * @param host the host
 	 * @param port the port
 	 */
-	void setHostAndPort (String host, int port) {
+	public void setHostAndPort (String host, int port) {
 		this.host = host;
 		this.port = port;
 	}

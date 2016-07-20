@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.server;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -24,12 +24,17 @@ import java.text.ParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jdrupes.httpcodec.HttpRequest;
+import org.jdrupes.httpcodec.HttpResponse;
+import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
-import org.jdrupes.httpcodec.fields.HttpContentLengthField;
+import org.jdrupes.httpcodec.HttpCodec.TransferCoding;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
+import org.jdrupes.httpcodec.internal.Decoder;
+import org.jdrupes.httpcodec.internal.DecoderResult;
 
 /**
  * A decoder for HTTP requests that accepts data from a sequence of
@@ -37,10 +42,11 @@ import org.jdrupes.httpcodec.fields.HttpStringListField;
  * 
  * @author Michael N. Lipp
  */
-public class HttpRequestDecoder extends HttpDecoder<HttpRequest> {
+public class HttpRequestDecoder extends Decoder<HttpRequest> {
 
-	final static Pattern requestLinePatter = Pattern.compile("^(" + TOKEN 
-			+ ")" + SP + "([^ \\t]+)" + SP + "(" + HTTP_VERSION + ")$");
+	private final static Pattern requestLinePatter = Pattern
+	        .compile("^(" + TOKEN + ")" + SP + "([^ \\t]+)" + SP + "("
+	                + HTTP_VERSION + ")$");
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.HttpDecoder#createResult(org.jdrupes.httpcodec.HttpMessage, boolean, boolean, boolean)
@@ -49,7 +55,7 @@ public class HttpRequestDecoder extends HttpDecoder<HttpRequest> {
 	protected DecoderResult<HttpRequest> createResult(HttpRequest message,
 	        boolean payloadBytes, boolean payloadChars,
 	        boolean closeConnection) {
-		return new RequestResult(message, payloadBytes, payloadChars, 
+		return new Result(message, payloadBytes, payloadChars, 
 				null, closeConnection);
 	}
 
@@ -57,18 +63,19 @@ public class HttpRequestDecoder extends HttpDecoder<HttpRequest> {
 	 * @see org.jdrupes.httpcodec.HttpDecoder#decode(java.nio.ByteBuffer)
 	 */
 	@Override
-	public RequestResult decode(ByteBuffer buffer) {
+	public Result decode(ByteBuffer buffer) {
 		try {
-			return (RequestResult) super.decode(buffer);
+			return (Result) super.decode(buffer);
 		} catch (ProtocolException e) {
 			HttpResponse response = new HttpResponse(e.getHttpVersion(), 
 					e.getStatusCode(), e.getReasonPhrase(), false);
 			response.setHeader(
 			        new HttpStringListField(HttpField.CONNECTION, "close"));
-			return new RequestResult(null, false, false, response, true);
+			return new Result(null, false, false, response, true);
 		}
 	}
 
+	@Override
 	protected HttpRequest newMessage(String startLine)
 	        throws ProtocolException {
 		Matcher requestMatcher = requestLinePatter.matcher(startLine);
@@ -105,50 +112,14 @@ public class HttpRequestDecoder extends HttpDecoder<HttpRequest> {
 		return new HttpRequest(method, uri, protocolVersion, false);
 	}
 
-	protected void newField(HttpField<?> field)
+	@Override
+	protected void newField(HttpRequest request, HttpField<?> field)
 			throws ProtocolException, ParseException {
 		switch (field.getName()) {
-		case HttpField.CONTENT_LENGTH:
-			// RFC 7230 3.3.3 (3.)
-			if (getBuilding().headers()
-			        .containsKey(HttpField.TRANSFER_ENCODING)) {
-				break;
-			}
-			// RFC 7230 3.3.3 (4.)
-			HttpContentLengthField existing = getBuilding().getHeader(
-			        HttpContentLengthField.class, HttpField.CONTENT_LENGTH);
-			if (existing != null && !existing.getValue()
-			        .equals(((HttpContentLengthField) field).getValue())) {
-				throw new ProtocolException(protocolVersion,
-				        HttpStatus.BAD_REQUEST);
-			}
-			// RFC 7230 3.3
-			getBuilding().setHasBody(true);
-			break;
-		case HttpField.TRANSFER_ENCODING:
-			HttpStringListField transEncs = (HttpStringListField)field;
-			// RFC 7230 3.3.3 (3.)
-			if (!transEncs.get(transEncs.size() - 1)
-			        .equalsIgnoreCase("chunked")) {
-				throw new ProtocolException(protocolVersion,
-				        HttpStatus.BAD_REQUEST);
-			}
-			// RFC 7230 3.3.1
-			transEncs = ((HttpStringListField)field).clone();
-			transEncs.removeIgnoreCase("chunked");
-			if (transEncs.size() > 0) {
-				throw new ProtocolException(protocolVersion,
-				        HttpStatus.NOT_IMPLEMENTED);
-			}
-			// RFC 7230 3.3.3 (3.)
-			getBuilding().removeHeader(HttpField.CONTENT_LENGTH);
-			// RFC 7230 3.3
-			getBuilding().setHasBody(true);
-			break;
 		case HttpField.HOST:
 			String[] hostPort = ((HttpStringField)field).getValue().split(":");
 			try {
-				getBuilding().setHostAndPort(hostPort[0], 
+				request.setHostAndPort(hostPort[0], 
 						Integer.parseInt(hostPort[1]));
 			} catch (NumberFormatException e) {
 				throw new ParseException(field.getValue().toString(), 0);
@@ -156,11 +127,91 @@ public class HttpRequestDecoder extends HttpDecoder<HttpRequest> {
 			break;
 		case HttpField.CONNECTION:
 			if (((HttpStringListField)field).containsIgnoreCase("close")) {
-				getBuilding().getResponse().setHeader(new HttpStringListField(
+				request.getResponse().setHeader(new HttpStringListField(
 				        HttpField.CONNECTION, "close"));
 			}
 			break;
 		}
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.HttpDecoder#headerReceived(org.jdrupes.httpcodec.HttpMessage)
+	 */
+	@Override
+	protected BodyMode headerReceived(HttpRequest message) 
+			throws ProtocolException {
+		HttpStringListField transEncs = message.getHeader(
+		        HttpStringListField.class, HttpField.TRANSFER_ENCODING);
+		if (transEncs != null) {
+			// RFC 7230 3.3.1
+			HttpStringListField tec = transEncs.clone();
+			tec.removeIgnoreCase(TransferCoding.CHUNKED.toString());
+			if (tec.size() > 0) {
+				throw new ProtocolException(protocolVersion,
+				        HttpStatus.NOT_IMPLEMENTED);
+			}
+			// RFC 7230 3.3.3 (3.)
+			if (transEncs != null) {
+				if (transEncs.get(transEncs.size() - 1)
+				        .equalsIgnoreCase(TransferCoding.CHUNKED.toString())) {
+					return BodyMode.CHUNKED;
+				} else {
+					throw new ProtocolException(protocolVersion,
+					        HttpStatus.BAD_REQUEST);
+				}
+			}
+		}
+		// RFC 7230 3.3.3 (5.)
+		if (message.headers().containsKey(HttpField.CONTENT_LENGTH)) {
+			return BodyMode.LENGTH;
+		}
+		// RFC 7230 3.3.3 (6.)
+		return BodyMode.NO_BODY;
+	}
+
+	public class Result extends DecoderResult<HttpRequest> {
+
+		private HttpResponse response;
+
+		/**
+		 * @param request
+		 * @param payloadBytes
+		 * @param payloadChars
+		 * @param response
+		 * @param closeConnection
+		 */
+		public Result(HttpRequest request, boolean payloadBytes,
+		        boolean payloadChars, HttpResponse response,
+		        boolean closeConnection) {
+			super(request, payloadBytes, payloadChars, closeConnection);
+			this.response = response;
+		}
+
+		/**
+		 * @return the decoded message as request
+		 */
+		public HttpRequest getMessage() {
+			return (HttpRequest)super.getMessage();
+		}
+
+		
+		/**
+		 * Returns {@code true} if the result includes a response. A response in
+		 * the decoder result indicates that some problem occurred that
+		 * must be signaled back to the client.
+		 * 
+		 * @return the result
+		 */
+		public boolean hasResponse() {
+			return response != null;
+		}
+		
+		/**
+		 * @return the response
+		 */
+		public HttpResponse getResponse() {
+			return response;
+		}
+
+	}
 }

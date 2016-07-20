@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.server;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -25,19 +25,22 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Stack;
 
+import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
+import org.jdrupes.httpcodec.HttpCodec.TransferCoding;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpDateField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpIntField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
+import org.jdrupes.httpcodec.internal.Encoder;
 import org.jdrupes.httpcodec.util.ByteBufferOutputStream;
 
 /**
  * @author Michael N. Lipp
  */
-public class HttpResponseEncoder extends HttpEncoder {
+public class HttpResponseEncoder extends Encoder {
 
 	private enum State { INITIAL, HEADERS, CHUNK_BODY, START_COLLECT_BODY,
 		COLLECT_BODY, STREAM_COLLECTED, STREAM_BODY, DONE
@@ -124,7 +127,7 @@ public class HttpResponseEncoder extends HttpEncoder {
 	 * @param out the buffer to which data is written
 	 * @return the result
 	 */
-	public EncoderResult encode(ByteBuffer out) {
+	public Result encode(ByteBuffer out) {
 		return encode(EMPTY_IN, out);
 	}
 
@@ -135,15 +138,15 @@ public class HttpResponseEncoder extends HttpEncoder {
 	 * @param out the buffer to which data is written
 	 * @return the result
 	 */
-	public EncoderResult encode (ByteBuffer in, ByteBuffer out) {
+	public Result encode (ByteBuffer in, ByteBuffer out) {
 		outStream.assignBuffer(out);
-		EncoderResult result = EncoderResult.PROCEED;
+		Result result = Result.PROCEED;
 		while (true) {
 			if (result.isOverflow() || result.isUnderflow()) {
 				return result;
 			}
 			if (out.remaining() == 0) {
-				return EncoderResult.OVERFLOW;
+				return Result.OVERFLOW;
 			}
 			switch (states.peek()) {
 			case INITIAL:
@@ -167,7 +170,7 @@ public class HttpResponseEncoder extends HttpEncoder {
 				if (in.remaining() == 0) {
 					// Has probably been invoked with a dummy buffer,
 					// cannot be used to create pending body buffer.
-					return EncoderResult.UNDERFLOW;
+					return Result.UNDERFLOW;
 				}
 				pendingBodyData = new ByteBufferOutputStream(in.capacity());
 				states.pop();
@@ -194,15 +197,15 @@ public class HttpResponseEncoder extends HttpEncoder {
 				}
 				// More data
 				if (!ByteBufferOutputStream.putAsMuchAsPossible(out, in)) {
-					return EncoderResult.OVERFLOW; // Shortcut
+					return Result.OVERFLOW; // Shortcut
 				}
 				// Everything written, waiting for more data or end of data
-				return EncoderResult.UNDERFLOW;
+				return Result.UNDERFLOW;
 
 			case CHUNK_BODY:
 				// Send in data as chunk
 				if (in == EMPTY_IN) {
-					return EncoderResult.UNDERFLOW;
+					return Result.UNDERFLOW;
 				}
 				result = writeChunk(in);
 				break;
@@ -211,9 +214,9 @@ public class HttpResponseEncoder extends HttpEncoder {
 				// Was called with in == null and everything is written
 				states.pop();
 				if (closeAfterBody) {
-					return EncoderResult.CLOSE_CONNECTION;
+					return Result.CLOSE_CONNECTION;
 				}
-				return EncoderResult.PROCEED;
+				return Result.PROCEED;
 				
 			default:
 				throw new IllegalStateException();
@@ -277,10 +280,11 @@ public class HttpResponseEncoder extends HttpEncoder {
 			        HttpStringListField.class, HttpField.TRANSFER_ENCODING);
 			if (transEnc == null) {
 				response.setHeader(new HttpStringListField(
-				        HttpField.TRANSFER_ENCODING, "chunked"));
+				        HttpField.TRANSFER_ENCODING,
+				        TransferCoding.CHUNKED.toString()));
 			} else {
-				transEnc.remove("chunked");
-				transEnc.add("chunked");
+				transEnc.remove(TransferCoding.CHUNKED.toString());
+				transEnc.add(TransferCoding.CHUNKED.toString());
 			}
 			states.push(State.CHUNK_BODY);
 			states.push(State.HEADERS);
@@ -338,7 +342,7 @@ public class HttpResponseEncoder extends HttpEncoder {
 	 * 
 	 * @param in
 	 */
-	private EncoderResult collectBody(ByteBuffer in) {
+	private Result collectBody(ByteBuffer in) {
 		if (in == null) {
 			// End of body, found content length!
 			response.setHeader(new HttpContentLengthField(
@@ -346,12 +350,12 @@ public class HttpResponseEncoder extends HttpEncoder {
 			states.pop();
 			states.push(State.STREAM_COLLECTED);
 			states.push(State.HEADERS);
-			return EncoderResult.PROCEED;
+			return Result.PROCEED;
 		}
 		if (pendingBodyData.buffered() + in.remaining() < pendingLimit) {
 			// Space left, collect
 			pendingBodyData.write(in);
-			return EncoderResult.UNDERFLOW; 
+			return Result.UNDERFLOW; 
 		}
 		// No space left, output headers, collected and rest (and then close)
 		states.pop();
@@ -359,7 +363,7 @@ public class HttpResponseEncoder extends HttpEncoder {
 		states.push(State.STREAM_BODY);
 		states.push(State.STREAM_COLLECTED);
 		states.push(State.HEADERS);
-		return EncoderResult.UNDERFLOW;
+		return Result.UNDERFLOW;
 	}
 
 	/**
@@ -368,18 +372,18 @@ public class HttpResponseEncoder extends HttpEncoder {
 	 * @param in
 	 * @return
 	 */
-	private EncoderResult writeChunk(ByteBuffer in) {
+	private Result writeChunk(ByteBuffer in) {
 		try {
 			if (in == null) {
 				outStream.write("0\r\n\r\n".getBytes("ascii"));
 				states.pop();
-				return EncoderResult.PROCEED;
+				return Result.PROCEED;
 			}
 			// We may loose some bytes here, but else we need an elaborate
 			// calculation
 			if (outStream.remaining() < 13) {
 				// max 8 digits chunk size + CRLF + 1 octet + CRLF = 13
-				return EncoderResult.OVERFLOW;
+				return Result.OVERFLOW;
 			}
 			int length = Math.min(outStream.remaining() - 13, in.remaining());
 			outStream.write(Integer.toHexString(length).getBytes("ascii"));
@@ -390,7 +394,6 @@ public class HttpResponseEncoder extends HttpEncoder {
 			// Formally thrown by outStream, cannot happen.
 		}
 		return in.remaining() > 0 
-				? EncoderResult.OVERFLOW : EncoderResult.UNDERFLOW;
+				? Result.OVERFLOW : Result.UNDERFLOW;
 	}
-
 }

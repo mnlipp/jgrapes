@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.internal;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -24,10 +24,14 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpListField;
+import org.jdrupes.httpcodec.fields.HttpStringField;
+import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.util.DynamicByteArray;
 import org.jdrupes.httpcodec.util.HttpUtils;
 
@@ -35,7 +39,7 @@ import org.jdrupes.httpcodec.util.HttpUtils;
  * @author Michael N. Lipp
  *
  */
-abstract class HttpDecoder<T extends HttpMessage> {
+public abstract class Decoder<T extends Message> {
 
 	final protected static String TOKEN = "[" + Pattern.quote(HttpUtils.TCHARS)
 	        + "]+";
@@ -46,8 +50,13 @@ abstract class HttpDecoder<T extends HttpMessage> {
 	        .compile("^(" + TOKEN + "):(.*)$");
 	
     private enum State {
-        AWAIT_CR, AWAIT_LF, AWAIT_MESSAGE, GETTING_HEADERS, RECEIVING_BODY
+        AWAIT_CR, AWAIT_LF, AWAIT_MESSAGE, GETTING_HEADERS, 
+        RECEIVING_UNTIL_CLOSE, AWAIT_CHUNK, READ_SPECIFIED
     }
+
+	protected enum BodyMode {
+		NO_BODY, CHUNKED, LENGTH, UNTIL_CLOSE
+	};
     
     private long maxHeaderLength = 4194304;
 
@@ -57,14 +66,14 @@ abstract class HttpDecoder<T extends HttpMessage> {
     private String headerLine = null;
     protected HttpProtocol protocolVersion = HttpProtocol.HTTP_1_0;
     private long headerLength = 0;
-    private boolean hasBody = false;
+    private BodyMode bodyMode = BodyMode.NO_BODY;
     private T building;
-	
+    private long leftToRead = 0;
 
     /**
      * Creates a new decoder.
      */
-    public HttpDecoder() {
+    public Decoder() {
     	states.push(State.AWAIT_MESSAGE);
     	states.push(State.AWAIT_CR);
 	}
@@ -106,19 +115,17 @@ abstract class HttpDecoder<T extends HttpMessage> {
 	 * @param field
 	 * @throws ProtocolException
 	 */
-	protected void newField(HttpField<?> field) 
+	protected void newField(T building, HttpField<?> field) 
 			throws ProtocolException, ParseException {
 	}
 
 	/**
-	 * Returns the HttpMessage object being build by the decoder.
-	 * 
-	 * @return
+	 * Informs the derived class that the header has been received
+	 * completely.
 	 */
-	protected T getBuilding() {
-		return building;
-	}
-
+	protected abstract BodyMode headerReceived(T message)
+	        throws ProtocolException;
+	
 	/**
 	 * Factory method to be implemented by derived classes that returs
 	 * a decoder result as appropriate for the decoder.
@@ -202,16 +209,30 @@ abstract class HttpDecoder<T extends HttpMessage> {
 				}
 				if (receivedLine.isEmpty()) {
 					// last header, body starts
-					DecoderResult<T> result = createResult(building,
-					        hasBody, false, false);
 					states.pop();
-					if (hasBody) {
-						states.push(State.RECEIVING_BODY);
-					} else {
+					BodyMode bm = headerReceived(building);
+					building.setHasBody(bm != BodyMode.NO_BODY);
+					switch (bm) {
+					case NO_BODY:
 						states.push(State.AWAIT_MESSAGE);
 						states.push(State.AWAIT_CR);
+						break;
+					case UNTIL_CLOSE:
+						states.push(State.RECEIVING_UNTIL_CLOSE);
+						break;
+					case CHUNKED:
+						states.push(State.AWAIT_CHUNK);
+						break;
+					case LENGTH:
+						HttpContentLengthField clf = building.getHeader(
+						        HttpContentLengthField.class,
+						        HttpField.CONTENT_LENGTH);
+						leftToRead = clf.getValue();
+						states.push(State.READ_SPECIFIED);
+						break;
 					}
-					return result;
+					return createResult(building, bodyMode != BodyMode.NO_BODY,
+					        false, false);
 				}
 				headerLine = receivedLine;
 				states.push(State.AWAIT_CR);
@@ -242,7 +263,32 @@ abstract class HttpDecoder<T extends HttpMessage> {
 		String fieldValue = m.group(2).trim();
 		try {
 			HttpField<?> field = HttpField.fromString(fieldName, fieldValue);
-			newField(field);
+			switch (field.getName()) {
+			case HttpField.CONTENT_LENGTH:
+				// RFC 7230 3.3.3 (3.)
+				if (building.headers()
+				        .containsKey(HttpField.TRANSFER_ENCODING)) {
+					field = null;
+					break;
+				}
+				// RFC 7230 3.3.3 (4.)
+				HttpContentLengthField existing = building.getHeader(
+				        HttpContentLengthField.class, HttpField.CONTENT_LENGTH);
+				if (existing != null && !existing.getValue()
+				        .equals(((HttpContentLengthField) field).getValue())) {
+					throw new ProtocolException(protocolVersion,
+					        HttpStatus.BAD_REQUEST);
+				}
+				break;
+			case HttpField.TRANSFER_ENCODING:
+				// RFC 7230 3.3.3 (3.)
+				building.removeHeader(HttpField.CONTENT_LENGTH);
+				break;
+			}
+			if (field == null) {
+				return;
+			}
+			newField(building, field);
 			HttpField<?> existing = building.headers().get(field.getName());
 			// RFC 7230 3.2.2
 			if (existing != null) {

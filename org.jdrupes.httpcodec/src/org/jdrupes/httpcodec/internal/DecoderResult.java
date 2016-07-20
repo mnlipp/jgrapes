@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.internal;
 
 /**
  * The result of invoking the request decoder. Used to inform the
@@ -23,7 +23,7 @@ package org.jdrupes.httpcodec;
  * 
  * @author Michael N. Lipp
  */
-public abstract class DecoderResult<T extends HttpMessage> {
+public abstract class DecoderResult<T extends Message> {
 
 	private T message;
 	private boolean payloadBytes;
@@ -39,7 +39,7 @@ public abstract class DecoderResult<T extends HttpMessage> {
 	 * @param payloadBytes {@code true} if the request has a body with octets
 	 * @param payloadChars {@code true} if the request has a body with text
 	 */
-	DecoderResult(T message, boolean payloadBytes, 
+	protected DecoderResult(T message, boolean payloadBytes, 
 			boolean payloadChars, boolean closeConnection) {
 		super();
 		this.message = message;

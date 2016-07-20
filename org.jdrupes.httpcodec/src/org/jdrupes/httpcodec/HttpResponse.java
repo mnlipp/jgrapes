@@ -23,11 +23,12 @@ import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.internal.Message;
 
 /**
  * @author Michael N. Lipp
  */
-public class HttpResponse extends HttpMessage {
+public class HttpResponse extends Message {
 
 	private int statusCode = -1;
 	private String reasonPhrase;

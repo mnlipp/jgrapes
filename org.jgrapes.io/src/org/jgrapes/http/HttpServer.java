@@ -28,14 +28,12 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import org.jdrupes.httpcodec.HttpRequest;
-import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpResponseEncoder;
-import org.jdrupes.httpcodec.RequestResult;
-import org.jdrupes.httpcodec.EncoderResult;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.server.HttpRequestDecoder;
+import org.jdrupes.httpcodec.server.HttpResponseEncoder;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.annotation.DynamicHandler;
@@ -165,7 +163,7 @@ public class HttpServer extends Component {
 		// Send the data from the event through the decoder. 
 		ByteBuffer buffer = event.getBuffer().getBacking();
 		while (buffer.hasRemaining()) {
-			RequestResult result = httpDecoder.decode(buffer);
+			HttpRequestDecoder.Result result = httpDecoder.decode(buffer);
 			if (result.hasMessage()) {
 				fireRequest(downConn, result.getMessage());
 			}
@@ -244,7 +242,8 @@ public class HttpServer extends Component {
 		while (true) {
 			connData.outBuffer = netConn.acquireByteBuffer();
 			final ManagedByteBuffer buffer = connData.outBuffer;
-			EncoderResult result = encoder.encode(buffer.getBacking());
+			HttpResponseEncoder.Result result = encoder
+			        .encode(buffer.getBacking());
 			if (result.isOverflow()) {
 				(new Write<>(netConn, buffer)).fire();
 				continue;
@@ -280,7 +279,7 @@ public class HttpServer extends Component {
 
 		Buffer in = event.getBuffer().getBacking();
 		while (true) {
-			EncoderResult result = null;
+			HttpResponseEncoder.Result result = null;
 			if (in instanceof ByteBuffer) {
 				result = encoder.encode((ByteBuffer) in,
 				        connData.outBuffer.getBacking());
@@ -335,7 +334,8 @@ public class HttpServer extends Component {
 		// Send remaining data
 		while (true) {
 			final ManagedByteBuffer buffer = connData.outBuffer;
-			EncoderResult result = encoder.encode(null, buffer.getBacking());
+			HttpResponseEncoder.Result result = encoder.encode(null,
+			        buffer.getBacking());
 			if (!result.isOverflow()) {
 				if (buffer.position() > 0) {
 					(new Write<>(netConn, buffer)).fire();
