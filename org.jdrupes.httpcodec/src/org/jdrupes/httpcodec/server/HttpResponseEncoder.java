@@ -140,13 +140,13 @@ public class HttpResponseEncoder extends Encoder {
 	 */
 	public Result encode (ByteBuffer in, ByteBuffer out) {
 		outStream.assignBuffer(out);
-		Result result = Result.PROCEED;
+		Result result = PROCEED;
 		while (true) {
 			if (result.isOverflow() || result.isUnderflow()) {
 				return result;
 			}
 			if (out.remaining() == 0) {
-				return Result.OVERFLOW;
+				return OVERFLOW;
 			}
 			switch (states.peek()) {
 			case INITIAL:
@@ -170,7 +170,7 @@ public class HttpResponseEncoder extends Encoder {
 				if (in.remaining() == 0) {
 					// Has probably been invoked with a dummy buffer,
 					// cannot be used to create pending body buffer.
-					return Result.UNDERFLOW;
+					return UNDERFLOW;
 				}
 				pendingBodyData = new ByteBufferOutputStream(in.capacity());
 				states.pop();
@@ -197,15 +197,15 @@ public class HttpResponseEncoder extends Encoder {
 				}
 				// More data
 				if (!ByteBufferOutputStream.putAsMuchAsPossible(out, in)) {
-					return Result.OVERFLOW; // Shortcut
+					return OVERFLOW; // Shortcut
 				}
 				// Everything written, waiting for more data or end of data
-				return Result.UNDERFLOW;
+				return UNDERFLOW;
 
 			case CHUNK_BODY:
 				// Send in data as chunk
 				if (in == EMPTY_IN) {
-					return Result.UNDERFLOW;
+					return UNDERFLOW;
 				}
 				result = writeChunk(in);
 				break;
@@ -214,9 +214,9 @@ public class HttpResponseEncoder extends Encoder {
 				// Was called with in == null and everything is written
 				states.pop();
 				if (closeAfterBody) {
-					return Result.CLOSE_CONNECTION;
+					return CLOSE_CONNECTION;
 				}
-				return Result.PROCEED;
+				return PROCEED;
 				
 			default:
 				throw new IllegalStateException();
@@ -350,12 +350,12 @@ public class HttpResponseEncoder extends Encoder {
 			states.pop();
 			states.push(State.STREAM_COLLECTED);
 			states.push(State.HEADERS);
-			return Result.PROCEED;
+			return PROCEED;
 		}
 		if (pendingBodyData.buffered() + in.remaining() < pendingLimit) {
 			// Space left, collect
 			pendingBodyData.write(in);
-			return Result.UNDERFLOW; 
+			return UNDERFLOW; 
 		}
 		// No space left, output headers, collected and rest (and then close)
 		states.pop();
@@ -363,7 +363,7 @@ public class HttpResponseEncoder extends Encoder {
 		states.push(State.STREAM_BODY);
 		states.push(State.STREAM_COLLECTED);
 		states.push(State.HEADERS);
-		return Result.UNDERFLOW;
+		return UNDERFLOW;
 	}
 
 	/**
@@ -377,13 +377,13 @@ public class HttpResponseEncoder extends Encoder {
 			if (in == null) {
 				outStream.write("0\r\n\r\n".getBytes("ascii"));
 				states.pop();
-				return Result.PROCEED;
+				return PROCEED;
 			}
 			// We may loose some bytes here, but else we need an elaborate
 			// calculation
 			if (outStream.remaining() < 13) {
 				// max 8 digits chunk size + CRLF + 1 octet + CRLF = 13
-				return Result.OVERFLOW;
+				return OVERFLOW;
 			}
 			int length = Math.min(outStream.remaining() - 13, in.remaining());
 			outStream.write(Integer.toHexString(length).getBytes("ascii"));
@@ -393,7 +393,6 @@ public class HttpResponseEncoder extends Encoder {
 		} catch (IOException e) {
 			// Formally thrown by outStream, cannot happen.
 		}
-		return in.remaining() > 0 
-				? Result.OVERFLOW : Result.UNDERFLOW;
+		return in.remaining() > 0 ? OVERFLOW : UNDERFLOW;
 	}
 }

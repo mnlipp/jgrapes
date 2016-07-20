@@ -23,17 +23,16 @@ package org.jdrupes.httpcodec.internal;
  */
 public class Encoder {
 
-
 	public void encode(Message message) {
 	}
 
-	public static class Result extends EncoderResult {
+	protected final static Result OVERFLOW = new Result(true, false, false);
+	protected final static Result UNDERFLOW = new Result(false, true, false);
+	protected final static Result CLOSE_CONNECTION = new Result(false, false,
+	        true);
+	protected final static Result PROCEED = new Result(false, false, false);
 
-		public final static Result OVERFLOW = new Result(true, false, false);
-		public final static Result UNDERFLOW = new Result(false, true, false);
-		public final static Result CLOSE_CONNECTION = new Result(false, false,
-		        true);
-		public final static Result PROCEED = new Result(false, false, false);
+	public static class Result extends CodecResult {
 
 		/**
 		 * Creates a new result with the given values.

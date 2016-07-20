@@ -131,8 +131,6 @@ public abstract class Decoder<T extends Message> {
 	 * a decoder result as appropriate for the decoder.
 	 * 
 	 * @param message the decoded message
-	 * @param response a response to send because an error occurred
-	 * that must be signaled back to the client
 	 * @param payloadBytes {@code true} if the request has a body with octets
 	 * @param payloadChars {@code true} if the request has a body with text
 	 */
@@ -231,8 +229,7 @@ public abstract class Decoder<T extends Message> {
 						states.push(State.READ_SPECIFIED);
 						break;
 					}
-					return createResult(building, bodyMode != BodyMode.NO_BODY,
-					        false, false);
+					return createResult(building, false, false, false);
 				}
 				headerLine = receivedLine;
 				states.push(State.AWAIT_CR);

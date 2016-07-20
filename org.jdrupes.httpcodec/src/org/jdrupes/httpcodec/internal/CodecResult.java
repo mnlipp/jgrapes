@@ -21,7 +21,7 @@ package org.jdrupes.httpcodec.internal;
  * @author Michael N. Lipp
  *
  */
-class EncoderResult {
+class CodecResult {
 
 	private boolean overflow;
 	private boolean underflow;
@@ -30,11 +30,11 @@ class EncoderResult {
 	/**
 	 * Creates a new result with the given values.
 	 * 
-	 * @param overflow
-	 * @param underflow
-	 * @param closeConnection
+	 * @param overflow {@code true} if the data didn't fit in the out buffer
+	 * @param underflow {@code true} if more data is expected
+	 * @param closeConnection {@code true} if the connection should be closed
 	 */
-	protected EncoderResult(boolean overflow, boolean underflow,
+	protected CodecResult(boolean overflow, boolean underflow,
 	        boolean closeConnection) {
 		super();
 		this.overflow = overflow;
@@ -102,7 +102,7 @@ class EncoderResult {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		EncoderResult other = (EncoderResult) obj;
+		CodecResult other = (CodecResult) obj;
 		if (overflow != other.overflow)
 			return false;
 		if (closeConnection != other.closeConnection)

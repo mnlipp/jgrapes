@@ -44,8 +44,6 @@ public class DecodingTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer);
 		assertFalse(result.hasMessage());
 		assertFalse(result.hasResponse());
-		assertFalse(result.hasPayloadBytes());
-		assertFalse(result.hasPayloadChars());
 		assertFalse(result.getCloseConnection());
 		// Continue header
 		reqText 
@@ -55,8 +53,7 @@ public class DecodingTests {
 		result = decoder.decode(buffer);
 		assertTrue(result.hasMessage());
 		assertFalse(result.hasResponse());
-		assertFalse(result.hasPayloadBytes());
-		assertFalse(result.hasPayloadChars());
+		assertFalse(result.getMessage().hasBody());
 		assertFalse(result.getCloseConnection());
 		assertEquals("GET", result.getMessage().getMethod());
 		assertEquals("localhost", result.getMessage().getHost());

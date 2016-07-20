@@ -53,10 +53,8 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 	 */
 	@Override
 	protected DecoderResult<HttpRequest> createResult(HttpRequest message,
-	        boolean payloadBytes, boolean payloadChars,
-	        boolean closeConnection) {
-		return new Result(message, payloadBytes, payloadChars, 
-				null, closeConnection);
+	        boolean overflow, boolean underflow, boolean closeConnection) {
+		return new Result(message, null, overflow, underflow, closeConnection);
 	}
 
 	/* (non-Javadoc)
@@ -71,7 +69,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 					e.getStatusCode(), e.getReasonPhrase(), false);
 			response.setHeader(
 			        new HttpStringListField(HttpField.CONNECTION, "close"));
-			return new Result(null, false, false, response, true);
+			return new Result(null, response, false, false, true);
 		}
 	}
 
@@ -174,16 +172,17 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 		private HttpResponse response;
 
 		/**
-		 * @param request
-		 * @param payloadBytes
-		 * @param payloadChars
-		 * @param response
-		 * @param closeConnection
+		 * Creates a new result.
+		 * 
+		 * @param message the decoded message
+		 * @param response a response to send due to an error
+		 * @param overflow {@code true} if the data didn't fit in the out buffer
+		 * @param underflow {@code true} if more data is expected
+		 * @param closeConnection {@code true} if the connection should be closed
 		 */
-		public Result(HttpRequest request, boolean payloadBytes,
-		        boolean payloadChars, HttpResponse response,
-		        boolean closeConnection) {
-			super(request, payloadBytes, payloadChars, closeConnection);
+		public Result(HttpRequest request, HttpResponse response,
+		        boolean overflow, boolean underflow, boolean closeConnection) {
+			super(request, overflow, underflow, closeConnection);
 			this.response = response;
 		}
 

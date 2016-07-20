@@ -51,8 +51,7 @@ public class BasicProtocolTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer);
 		assertTrue(result.hasMessage());
 		assertFalse(result.hasResponse());
-		assertFalse(result.hasPayloadBytes());
-		assertFalse(result.hasPayloadChars());
+		assertFalse(result.getMessage().hasBody());
 		assertFalse(result.getCloseConnection());
 		assertEquals("GET", result.getMessage().getMethod());
 		assertEquals("localhost", result.getMessage().getHost());

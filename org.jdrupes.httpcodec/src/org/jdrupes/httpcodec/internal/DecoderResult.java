@@ -23,29 +23,22 @@ package org.jdrupes.httpcodec.internal;
  * 
  * @author Michael N. Lipp
  */
-public abstract class DecoderResult<T extends Message> {
+public abstract class DecoderResult<T extends Message> extends CodecResult {
 
 	private T message;
-	private boolean payloadBytes;
-	private boolean payloadChars;
-	private boolean closeConnection;
 
 	/**
 	 * Creates a new result.
 	 * 
 	 * @param message the decoded message
-	 * @param response a response to send because an error occurred
-	 * that must be signaled back to the client
-	 * @param payloadBytes {@code true} if the request has a body with octets
-	 * @param payloadChars {@code true} if the request has a body with text
+	 * @param overflow {@code true} if the data didn't fit in the out buffer
+	 * @param underflow {@code true} if more data is expected
+	 * @param closeConnection {@code true} if the connection should be closed
 	 */
-	protected DecoderResult(T message, boolean payloadBytes, 
-			boolean payloadChars, boolean closeConnection) {
-		super();
+	protected DecoderResult(T message, boolean overflow, 
+			boolean underflow, boolean closeConnection) {
+		super(overflow, underflow, closeConnection);
 		this.message = message;
-		this.payloadBytes = payloadBytes;
-		this.payloadChars = payloadChars;
-		this.closeConnection = closeConnection;
 	}
 
 	/**
@@ -62,30 +55,5 @@ public abstract class DecoderResult<T extends Message> {
 	 */
 	protected T getMessage() {
 		return message;
-	}
-
-	/**
-	 * @return the payloadBytes
-	 */
-	public boolean hasPayloadBytes() {
-		return payloadBytes;
-	}
-
-	/**
-	 * @return the payloadChars
-	 */
-	public boolean hasPayloadChars() {
-		return payloadChars;
-	}
-	
-	/**
-	 * Returns {@code true} if the connection should be closed. If the
-	 * result has a response, that response must be sent before
-	 * closing the connection.
-	 * 
-	 * @return the result
-	 */
-	public boolean getCloseConnection() {
-		return closeConnection;
 	}
 }

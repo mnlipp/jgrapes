@@ -20,8 +20,6 @@ public class ProtocolErrorsTests {
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		HttpRequestDecoder.Result result = decoder.decode(buffer);
 		assertFalse(result.hasMessage());
-		assertFalse(result.hasPayloadBytes());
-		assertFalse(result.hasPayloadChars());
 		assertTrue(result.hasResponse());
 		assertEquals(505, result.getResponse().getStatusCode());
 	}
@@ -42,8 +40,6 @@ public class ProtocolErrorsTests {
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		HttpRequestDecoder.Result result = decoder.decode(buffer);
 		assertFalse(result.hasMessage());
-		assertFalse(result.hasPayloadBytes());
-		assertFalse(result.hasPayloadChars());
 		assertTrue(result.hasResponse());
 		assertEquals(400, result.getResponse().getStatusCode());
 	}
@@ -64,8 +60,6 @@ public class ProtocolErrorsTests {
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		HttpRequestDecoder.Result result = decoder.decode(buffer);
 		assertFalse(result.hasMessage());
-		assertFalse(result.hasPayloadBytes());
-		assertFalse(result.hasPayloadChars());
 		assertTrue(result.hasResponse());
 		assertEquals(400, result.getResponse().getStatusCode());
 	}
