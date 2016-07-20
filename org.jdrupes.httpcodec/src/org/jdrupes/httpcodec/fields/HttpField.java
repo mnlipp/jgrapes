@@ -68,7 +68,7 @@ public abstract class HttpField<T> implements Cloneable {
 		case HttpField.CONNECTION:
 			return HttpStringListField.fromString(fieldName, fieldValue);
 		case HttpField.CONTENT_LENGTH:
-			return HttpContentLengthField.fromString(fieldName, fieldValue);
+			return HttpContentLengthField.fromString(fieldValue);
 		case HttpField.CONTENT_TYPE:
 			return HttpMediaTypeField.fromString(fieldName, fieldValue);
 		case HttpField.DATE:
