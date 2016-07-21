@@ -32,8 +32,6 @@ public class GetRequestsTests {
 		assertFalse(result.getMessage().hasBody());
 		assertFalse(result.getCloseConnection());
 		assertEquals("GET", result.getMessage().getMethod());
-		assertEquals("localhost", result.getMessage().getHost());
-		assertEquals(8888, result.getMessage().getPort());
 		assertEquals("/test", result.getMessage().getRequestUri().getPath());
 	}
 
