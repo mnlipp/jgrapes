@@ -2,6 +2,7 @@ package org.jdrupes.httpcodec.test;
 
 import static org.junit.Assert.*;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.server.HttpRequestDecoder;
@@ -10,7 +11,7 @@ import org.junit.Test;
 public class GetRequestsTests {
 
 	@Test
-	public void testGetRequest() {
+	public void testGetRequest() throws UnsupportedEncodingException {
 		String reqText 
 			= "GET /test HTTP/1.1\r\n"
 			+ "Host: localhost:8888\r\n"
@@ -23,11 +24,9 @@ public class GetRequestsTests {
 			+ "Accept-Language: de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4\r\n"
 			+ "Cookie: _test.; gsScrollPos=\r\n"
 			+ "\r\n";
-		ByteBuffer buffer = ByteBuffer.allocate(8192);
-		buffer.put(reqText.getBytes());
-		buffer.flip();
+		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		HttpRequestDecoder.Result result = decoder.decode(buffer);
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null);
 		assertTrue(result.hasMessage());
 		assertFalse(result.hasResponse());
 		assertFalse(result.getMessage().hasBody());
