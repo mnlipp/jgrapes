@@ -22,14 +22,14 @@ import java.net.URISyntaxException;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
-import org.jdrupes.httpcodec.internal.Message;
+import org.jdrupes.httpcodec.internal.MessageHeader;
 
 /**
- * Represents a complte HTTP request with all received header data.
+ * Represents an HTTP request.
  * 
  * @author Michael N. Lipp
  */
-public class HttpRequest extends Message {
+public class HttpRequest extends MessageHeader {
 
 	public static final URI ASTERISK_REQUEST 
 		= createUri("http://127.0.0.1/");
@@ -53,10 +53,11 @@ public class HttpRequest extends Message {
 	 * @param method the method
 	 * @param requestUri the requested resource
 	 * @param httpProtocol the HTTP protocol version
+	 * @param messageHasBody indicates that the message has a body
 	 */
 	public HttpRequest(String method, URI requestUri, 
-			HttpProtocol httpProtocol, boolean hasBody) {
-		super(httpProtocol, hasBody);
+			HttpProtocol httpProtocol, boolean messageHasBody) {
+		super(httpProtocol, messageHasBody);
 		this.method = method;
 		this.requestUri = requestUri;
 		response = new HttpResponse(httpProtocol,

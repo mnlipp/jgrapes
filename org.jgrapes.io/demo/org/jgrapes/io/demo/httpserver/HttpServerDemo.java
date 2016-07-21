@@ -18,14 +18,25 @@
 package org.jgrapes.io.demo.httpserver;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.text.ParseException;
 
+import org.jdrupes.httpcodec.HttpResponse;
+import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.events.GetRequest;
+import org.jgrapes.http.events.PostRequest;
+import org.jgrapes.http.events.Response;
+import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.NioDispatcher;
+import org.jgrapes.io.events.Eof;
+import org.jgrapes.io.events.Write;
 
 /**
  * @author Michael N. Lipp
@@ -34,8 +45,40 @@ import org.jgrapes.io.NioDispatcher;
 public class HttpServerDemo extends Component {
 
 	@Handler
-	public void onGet(GetRequest event) {
-		// event.setResult(HandlingResult.RESOURCE_NOT_FOUND);
+	public void onGet(GetRequest event) throws ParseException {
+		if (!event.getRequest().getRequestUri().getPath().equals("/form")) {
+			return;
+		}
+		final HttpResponse response = event.getRequest().getResponse();
+		final DataConnection connection = event.getConnection();
+		response.setStatus(HttpStatus.OK);
+		response.setMessageHasBody(true);
+		HttpMediaTypeField media = new HttpMediaTypeField(
+		        HttpField.CONTENT_TYPE, "text", "html");
+		media.setParameter("charset", "utf-8");
+		response.setHeader(media);
+		(new Response(connection, response)).fire();
+		String form = "<!DOCTYPE html>"
+		        + "<html>"
+		        + "<body>"
+		        + ""
+		        + "<form method=\"post\">"
+		        + "  First name:<br>"
+		        + "  <input type=\"text\" name=\"firstname\">"
+		        + "  <br>"
+		        + "  Last name:<br>"
+		        + "  <input type=\"text\" name=\"lastname\">"
+		        + "  <input type=\"submit\" value=\"Submit\">"
+		        + "</form>"
+		        + ""
+		        + "</body>"
+		        + "</html>";
+		try {
+			Write.wrap(connection, form.getBytes("utf-8")).fire();
+		} catch (UnsupportedEncodingException e) {
+		}
+		(new Eof(connection)).fire();
+		event.stop();
 	}
 	
 	/**
@@ -48,7 +91,8 @@ public class HttpServerDemo extends Component {
 		HttpServerDemo app = new HttpServerDemo();
 		app.attach(new NioDispatcher());
 		app.attach(new HttpServer(app.getChannel(), 
-				new InetSocketAddress(8888), GetRequest.class));
+		        new InetSocketAddress(8888), GetRequest.class,
+		        PostRequest.class));
 		Components.start(app);
 	}
 

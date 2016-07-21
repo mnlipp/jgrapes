@@ -221,6 +221,29 @@ public class ByteBufferOutputStream extends OutputStream {
 	}
 	
 	/**
+	 * Put as many bytes as possible from the src buffer into the 
+	 * destination buffer but not more than specified by limit.
+	 * 
+	 * @param dest the destination buffer
+	 * @param src the source buffer
+	 * @param limit the maximum number of bytes to transfer
+	 * @return {@code true} if {@code src.remaining() == 0}
+	 */
+	public static boolean putAsMuchAsPossible
+			(ByteBuffer dest, ByteBuffer src, int limit) {
+		if (src.remaining() <= limit) {
+			return putAsMuchAsPossible(dest, src);
+		}
+		int oldLimit = src.limit();
+		try {
+			src.limit(src.position() + limit);
+			return putAsMuchAsPossible(dest, src);
+		} finally {
+			src.limit(oldLimit);
+		}
+	}
+	
+	/**
 	 * Returns the number of bytes remaining in the assigned buffer.
 	 * A negative value indicates that the assigned buffer is full
 	 * and an overflow buffer is being used. 

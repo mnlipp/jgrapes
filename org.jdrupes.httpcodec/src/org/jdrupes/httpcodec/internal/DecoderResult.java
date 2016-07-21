@@ -23,37 +23,34 @@ package org.jdrupes.httpcodec.internal;
  * 
  * @author Michael N. Lipp
  */
-public abstract class DecoderResult<T extends Message> extends CodecResult {
+public abstract class DecoderResult extends CodecResult {
 
-	private T message;
+	private boolean headerCompleted;
 
 	/**
 	 * Creates a new result.
 	 * 
-	 * @param message the decoded message
+	 * @param headerCompleted indicates that the message header has been 
+	 * completed and the message (without body) is available
 	 * @param overflow {@code true} if the data didn't fit in the out buffer
 	 * @param underflow {@code true} if more data is expected
 	 * @param closeConnection {@code true} if the connection should be closed
 	 */
-	protected DecoderResult(T message, boolean overflow, 
+	protected DecoderResult(boolean headerCompleted, boolean overflow, 
 			boolean underflow, boolean closeConnection) {
 		super(overflow, underflow, closeConnection);
-		this.message = message;
+		this.headerCompleted = headerCompleted;
 	}
 
 	/**
-	 * Returns {@code true} if the result includes a request. 
+	 * Returns {@code true} if the message header has been decoded 
+	 * completely during the decoder invocation that returned this 
+	 * result and is now available. 
 	 * 
 	 * @return the result
 	 */
-	public boolean hasMessage() {
-		return message != null;
+	public boolean isHeaderCompleted() {
+		return headerCompleted;
 	}
 	
-	/**
-	 * @return the message
-	 */
-	protected T getMessage() {
-		return message;
-	}
 }

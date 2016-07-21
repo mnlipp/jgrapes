@@ -55,6 +55,7 @@ import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
+import org.jgrapes.io.util.BufferCollector;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
@@ -161,17 +162,35 @@ public class HttpServer extends Component {
 		}
 	
 		// Send the data from the event through the decoder. 
-		ByteBuffer buffer = event.getBuffer().getBacking();
-		while (buffer.hasRemaining()) {
-			HttpRequestDecoder.Result result = httpDecoder.decode(buffer);
-			if (result.hasMessage()) {
-				fireRequest(downConn, result.getMessage());
+		ByteBuffer in = event.getBuffer().getBacking();
+		ManagedByteBuffer bodyData = null;
+		while (in.hasRemaining()) {
+			HttpRequestDecoder.Result result = httpDecoder.decode(in, 
+					bodyData == null ? null : bodyData.getBacking());
+			if (result.isHeaderCompleted()) {
+				fireRequest(downConn, httpDecoder.getHeader());
 			}
 			if (result.hasResponse()) {
+				// Error during decoding, send back
 				fire(new Response(downConn, result.getResponse()));
-				if (result.getCloseConnection()) {
-					fire(new Close<>(downConn));
-				}
+				break;
+			}
+			if (result.getCloseConnection()) {
+				fire(new Close<>(downConn));
+				break;
+			}
+			if (bodyData != null && bodyData.position() > 0) {
+				fire(new Read<>(downConn, bodyData));
+			}
+			if (result.isOverflow()) {
+				bodyData = new ManagedByteBuffer(
+				        ByteBuffer.allocate(in.capacity()),
+				        BufferCollector.NOOP_COLLECTOR);
+				continue;
+			}
+			if (!result.isUnderflow()
+			        && httpDecoder.getHeader().messageHasBody()) {
+//				fire(new Eof(downConn));
 			}
 		}
 	}
@@ -248,7 +267,7 @@ public class HttpServer extends Component {
 				(new Write<>(netConn, buffer)).fire();
 				continue;
 			}
-			if (!response.hasBody()) {
+			if (!response.messageHasBody()) {
 				if (buffer.position() > 0) {
 					(new Write<>(netConn, buffer)).fire();
 				} else {
@@ -261,7 +280,7 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Received the message body. A {@link Response} event that has a
+	 * Receives the message body. A {@link Response} event that has a
 	 * message body can be followed by one or more {@link Write} events
 	 * from downstream that contain the data. An {@link Eof} event signals
 	 * the end of the message body.
@@ -403,7 +422,7 @@ public class HttpServer extends Component {
 		final HttpResponse response = event.getRequest().getResponse();
 		final DataConnection connection = event.getConnection();
 		response.setStatus(HttpStatus.NOT_FOUND);
-		response.setHasBody(true);
+		response.setMessageHasBody(true);
 		HttpMediaTypeField media = new HttpMediaTypeField(
 		        HttpField.CONTENT_TYPE, "text", "plain");
 		media.setParameter("charset", "utf-8");

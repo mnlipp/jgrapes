@@ -25,22 +25,26 @@ import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.fields.HttpField;
 
 /**
+ * Represents a HTTP message header (either request or response).
+ * 
  * @author Michael N. Lipp
- *
  */
-public abstract class Message {
+public abstract class MessageHeader {
 
 	private HttpProtocol httpProtocol;
 	private Map<String,HttpField<?>> headers 
 		= new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-	private boolean hasBody;
-	
+	private boolean messageHasBody;
+
 	/**
+	 * Creates a new message header.
 	 * 
+	 * @param httpProtocol the HTTP protocol
+	 * @param messageHasBody indicates that a body is expected after the header
 	 */
-	public Message(HttpProtocol httpProtocol, boolean hasBody) {
+	public MessageHeader(HttpProtocol httpProtocol, boolean messageHasBody) {
 		this.httpProtocol = httpProtocol;
-		this.hasBody = hasBody;
+		this.messageHasBody = messageHasBody;
 	}
 
 	/**
@@ -92,22 +96,21 @@ public abstract class Message {
 	}
 	
 	/**
-	 * Set the flag that indicates whether this response has a body.
+	 * Set the flag that indicates whether this header is followed by a body.
 	 * 
-	 * @param hasBody new value
+	 * @param messageHasBody new value
 	 */
-	public void setHasBody(boolean hasBody) {
-		this.hasBody = hasBody;
+	public void setMessageHasBody(boolean messageHasBody) {
+		this.messageHasBody = messageHasBody;
 	}
 	
 	/**
-	 * Returns true if body data will be delivered to the encoder
-	 * after the header.
+	 * Returns {@code true} if the header is followed by a body.
 	 * 
 	 * @return {@code true} if body data follows
 	 */
-	public boolean hasBody() {
-		return hasBody;
+	public boolean messageHasBody() {
+		return messageHasBody;
 	}
 
 }

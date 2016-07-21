@@ -52,24 +52,25 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 	 * @see org.jdrupes.httpcodec.HttpDecoder#createResult(org.jdrupes.httpcodec.HttpMessage, boolean, boolean, boolean)
 	 */
 	@Override
-	protected DecoderResult<HttpRequest> createResult(HttpRequest message,
+	protected DecoderResult newResult(boolean headerCompleted,
 	        boolean overflow, boolean underflow, boolean closeConnection) {
-		return new Result(message, null, overflow, underflow, closeConnection);
+		return new Result(headerCompleted, null, overflow, underflow,
+		        closeConnection);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.HttpDecoder#decode(java.nio.ByteBuffer)
 	 */
 	@Override
-	public Result decode(ByteBuffer buffer) {
+	public Result decode(ByteBuffer in, ByteBuffer out) {
 		try {
-			return (Result) super.decode(buffer);
+			return (Result) super.decode(in, out);
 		} catch (ProtocolException e) {
 			HttpResponse response = new HttpResponse(e.getHttpVersion(), 
 					e.getStatusCode(), e.getReasonPhrase(), false);
 			response.setHeader(
 			        new HttpStringListField(HttpField.CONNECTION, "close"));
-			return new Result(null, response, false, false, true);
+			return new Result(false, response, false, false, true);
 		}
 	}
 
@@ -111,7 +112,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 	}
 
 	@Override
-	protected void newField(HttpRequest request, HttpField<?> field)
+	protected void fieldReceived(HttpRequest request, HttpField<?> field)
 			throws ProtocolException, ParseException {
 		switch (field.getName()) {
 		case HttpField.HOST:
@@ -167,7 +168,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 		return BodyMode.NO_BODY;
 	}
 
-	public class Result extends DecoderResult<HttpRequest> {
+	public class Result extends DecoderResult {
 
 		private HttpResponse response;
 
@@ -180,20 +181,12 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 		 * @param underflow {@code true} if more data is expected
 		 * @param closeConnection {@code true} if the connection should be closed
 		 */
-		public Result(HttpRequest request, HttpResponse response,
+		public Result(boolean headerCompleted, HttpResponse response,
 		        boolean overflow, boolean underflow, boolean closeConnection) {
-			super(request, overflow, underflow, closeConnection);
+			super(headerCompleted, overflow, underflow, closeConnection);
 			this.response = response;
 		}
 
-		/**
-		 * @return the decoded message as request
-		 */
-		public HttpRequest getMessage() {
-			return (HttpRequest)super.getMessage();
-		}
-
-		
 		/**
 		 * Returns {@code true} if the result includes a response. A response in
 		 * the decoder result indicates that some problem occurred that

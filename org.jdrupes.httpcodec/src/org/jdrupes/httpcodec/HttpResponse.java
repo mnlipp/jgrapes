@@ -23,25 +23,27 @@ import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
-import org.jdrupes.httpcodec.internal.Message;
+import org.jdrupes.httpcodec.internal.MessageHeader;
 
 /**
+ * Represents
+ * 
  * @author Michael N. Lipp
  */
-public class HttpResponse extends Message {
+public class HttpResponse extends MessageHeader {
 
 	private int statusCode = -1;
 	private String reasonPhrase;
 	
 	public HttpResponse(HttpProtocol protocol,
-			HttpStatus status, boolean hasBody) {
-		super(protocol, hasBody);
+			HttpStatus status, boolean messageHasBody) {
+		super(protocol, messageHasBody);
 		setStatus(status);
 	}
 	
 	public HttpResponse(HttpProtocol protocol,
-			int statusCode, String reasonPhrase, boolean hasBody) {
-		super(protocol, hasBody);
+			int statusCode, String reasonPhrase, boolean messageHasBody) {
+		super(protocol, messageHasBody);
 		setStatusCode(statusCode);
 		setReasonPhrase(reasonPhrase);
 	}

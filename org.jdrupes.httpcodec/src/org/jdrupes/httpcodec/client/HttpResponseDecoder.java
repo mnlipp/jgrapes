@@ -45,25 +45,30 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 
 	private String requestMethod = "";
 	
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.HttpDecoder#createResult(org.jdrupes.httpcodec.HttpMessage, boolean, boolean, boolean)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.jdrupes.httpcodec.HttpDecoder#createResult(org.jdrupes.httpcodec.
+	 * HttpMessage, boolean, boolean, boolean)
 	 */
 	@Override
-	protected DecoderResult<HttpResponse> createResult(HttpResponse message,
-	        boolean payloadBytes, boolean payloadChars,
+	protected DecoderResult newResult(boolean headerCompleted,
+	        boolean overflow, boolean underflow,
 	        boolean closeConnection) {
-		return new Result(message, payloadBytes, payloadChars, closeConnection);
+		return new Result(headerCompleted, overflow, underflow,
+		        closeConnection);
 	}
 
 	/**
      * Starts decoding a new response for a request with the given method.
      * 
-     * @param method the request method
+     * @param requestMethod the request method
      * @return the result
      */
-	public DecoderResult<HttpResponse> decode(String method) {
-		requestMethod = method;
-		return new Result(null, false, false, false);
+	public DecoderResult decode(String requestMethod) {
+		this.requestMethod = requestMethod;
+		return new Result(false, false, false, false);
 	}
 	
 	/* (non-Javadoc)
@@ -131,24 +136,24 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 		return BodyMode.UNTIL_CLOSE;
 	}
 
-	public class Result extends DecoderResult<HttpResponse> {
+	public class Result extends DecoderResult {
 
 		/**
-		 * @param request
-		 * @param payloadBytes
-		 * @param payloadChars
+		 * Returns a new result.
+		 * 
+		 * @param headerCompleted
+		 *            indicates that the message header has been completed and
+		 *            the message (without body) is available
+		 * @param overflow
+		 *            {@code true} if the data didn't fit in the out buffer
+		 * @param underflow
+		 *            {@code true} if more data is expected
 		 * @param closeConnection
+		 *            {@code true} if the connection should be closed
 		 */
-		public Result(HttpResponse response, boolean payloadBytes,
+		public Result(boolean headerCompleted, boolean payloadBytes,
 		        boolean payloadChars, boolean closeConnection) {
-			super(response, payloadBytes, payloadChars, closeConnection);
-		}
-
-		/**
-		 * @return the decoded message as request
-		 */
-		public HttpResponse getMessage() {
-			return (HttpResponse)super.getMessage();
+			super(headerCompleted, payloadBytes, payloadChars, closeConnection);
 		}
 
 	}

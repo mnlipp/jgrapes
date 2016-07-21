@@ -48,14 +48,14 @@ public class BasicProtocolTests {
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		HttpRequestDecoder.Result result = decoder.decode(buffer);
-		assertTrue(result.hasMessage());
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null);
+		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(result.getMessage().hasBody());
+		assertFalse(decoder.getHeader().messageHasBody());
 		assertFalse(result.getCloseConnection());
-		assertEquals("GET", result.getMessage().getMethod());
-		assertEquals("localhost", result.getMessage().getHost());
-		assertEquals(8888, result.getMessage().getPort());
+		assertEquals("GET", decoder.getHeader().getMethod());
+		assertEquals("localhost", decoder.getHeader().getHost());
+		assertEquals(8888, decoder.getHeader().getPort());
 	}
 
 

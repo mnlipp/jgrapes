@@ -18,8 +18,8 @@ public class ProtocolErrorsTests {
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		HttpRequestDecoder.Result result = decoder.decode(buffer);
-		assertFalse(result.hasMessage());
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null);
+		assertFalse(result.isHeaderCompleted());
 		assertTrue(result.hasResponse());
 		assertEquals(505, result.getResponse().getStatusCode());
 	}
@@ -38,8 +38,8 @@ public class ProtocolErrorsTests {
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		HttpRequestDecoder.Result result = decoder.decode(buffer);
-		assertFalse(result.hasMessage());
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null);
+		assertFalse(result.isHeaderCompleted());
 		assertTrue(result.hasResponse());
 		assertEquals(400, result.getResponse().getStatusCode());
 	}
@@ -58,8 +58,8 @@ public class ProtocolErrorsTests {
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		HttpRequestDecoder.Result result = decoder.decode(buffer);
-		assertFalse(result.hasMessage());
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null);
+		assertFalse(result.isHeaderCompleted());
 		assertTrue(result.hasResponse());
 		assertEquals(400, result.getResponse().getStatusCode());
 	}

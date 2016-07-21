@@ -262,7 +262,7 @@ public class HttpResponseEncoder extends Encoder {
 		        .getHeader(HttpStringListField.class, HttpField.CONNECTION);
 		closeAfterBody = conField != null
 		        && conField.containsIgnoreCase("close");
-		if (!response.hasBody()) {
+		if (!response.messageHasBody()) {
 			states.push(State.HEADERS);
 			return;
 		}

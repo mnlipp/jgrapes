@@ -23,7 +23,7 @@ package org.jdrupes.httpcodec.internal;
  */
 public class Encoder {
 
-	public void encode(Message message) {
+	public void encode(MessageHeader message) {
 	}
 
 	protected final static Result OVERFLOW = new Result(true, false, false);

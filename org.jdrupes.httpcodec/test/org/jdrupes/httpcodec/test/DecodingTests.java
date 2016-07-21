@@ -41,8 +41,8 @@ public class DecodingTests {
 			+ "Host: local";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		HttpRequestDecoder.Result result = decoder.decode(buffer);
-		assertFalse(result.hasMessage());
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null);
+		assertFalse(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertFalse(result.getCloseConnection());
 		// Continue header
@@ -50,15 +50,16 @@ public class DecodingTests {
 			= "host:8888\r\n"
 			+ "\r\n";
 		buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		result = decoder.decode(buffer);
-		assertTrue(result.hasMessage());
+		result = decoder.decode(buffer, null);
+		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(result.getMessage().hasBody());
+		assertFalse(decoder.getHeader().messageHasBody());
 		assertFalse(result.getCloseConnection());
-		assertEquals("GET", result.getMessage().getMethod());
-		assertEquals("localhost", result.getMessage().getHost());
-		assertEquals(8888, result.getMessage().getPort());
-		assertEquals("/test", result.getMessage().getRequestUri().getPath());
+		assertEquals("GET", decoder.getHeader().getMethod());
+		assertEquals("localhost", decoder.getHeader().getHost());
+		assertEquals(8888, decoder.getHeader().getPort());
+		assertEquals("/test",
+		        decoder.getHeader().getRequestUri().getPath());
 	}
 	
 }

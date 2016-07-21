@@ -27,12 +27,13 @@ public class GetRequestsTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null);
-		assertTrue(result.hasMessage());
+		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(result.getMessage().hasBody());
+		assertFalse(decoder.getHeader().messageHasBody());
 		assertFalse(result.getCloseConnection());
-		assertEquals("GET", result.getMessage().getMethod());
-		assertEquals("/test", result.getMessage().getRequestUri().getPath());
+		assertEquals("GET", decoder.getHeader().getMethod());
+		assertEquals("/test",
+		        decoder.getHeader().getRequestUri().getPath());
 	}
 
 }
