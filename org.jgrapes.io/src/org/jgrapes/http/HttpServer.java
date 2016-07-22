@@ -54,6 +54,7 @@ import org.jgrapes.io.Connection;
 import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.Extension;
 import org.jgrapes.io.events.Close;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
 import org.jgrapes.io.util.BufferCollector;
@@ -110,7 +111,7 @@ public class HttpServer extends Component {
 		this.networkChannel = networkChannel;
 		this.providedFallbacks = Arrays.asList(fallbacks);
 		addHandler("onAccepted", networkChannel.getMatchKey());
-		addHandler("onClientClose", networkChannel.getMatchKey());
+		addHandler("onClientClosed", networkChannel.getMatchKey());
 		addHandler("onRead", networkChannel.getMatchKey());
 	}
 
@@ -153,7 +154,7 @@ public class HttpServer extends Component {
 	 * @param event the event
 	 */
 	@DynamicHandler
-	public void onClientClose(Close<?> event) {
+	public void onClientClosed(Closed<?> event) {
 		connectionData.remove(event.getConnection());
 	}
 	

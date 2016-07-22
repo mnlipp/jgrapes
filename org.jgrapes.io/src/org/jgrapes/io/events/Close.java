@@ -20,13 +20,17 @@ package org.jgrapes.io.events;
 import org.jgrapes.io.Connection;
 
 /**
+ * This event causes the provider of an I/O resource to close 
+ * (shut down) the resource. 
+ * 
  * @author Michael N. Lipp
- *
  */
 public class Close<C extends Connection> extends ConnectionEvent<Void, C> {
 
 	/**
-	 * An event that causes the receiving I/O resource to close.
+	 * Creates a new event for the given connection.
+	 * 
+	 * @param connection the connection
 	 */
 	public Close(C connection) {
 		super(connection);
