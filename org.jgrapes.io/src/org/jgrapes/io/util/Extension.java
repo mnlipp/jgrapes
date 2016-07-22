@@ -15,16 +15,39 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io;
+package org.jgrapes.io.util;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
-import org.jgrapes.io.util.ManagedByteBuffer;
+import org.jgrapes.io.Connection;
+import org.jgrapes.io.DataConnection;
 
 /**
- * Provides an extension of a channel for sending events downstream
- * from a protocol converter component.
+ * Provides an extension of a connection for sending events downstream from a
+ * protocol converter component.
+ * <P>
+ * Protocol converters receive data related to a connection in some format from
+ * upstream, process it and forward it to other components downstream (and vice
+ * versa). This implies that there is a one-to-one relationship between the
+ * upstream and the downstream connection. It is, however, not possible to use
+ * the same connection on the upstream and on the downstream side.
+ * <P>
+ * Aside from identifying a logical connection, {@link Connection} objects
+ * provide an associated channel and an associated pipeline for firing events.
+ * While it would be possible to share the pipeline for downstream and upstream
+ * events, sharing the channel doesn't make sense, because events between the
+ * converter and the upstream component must be fired on a different channel
+ * than the events between the converter and the downstream component. Else it
+ * wouldn't be possible to distinguish between e.g. a {@code Write} event from
+ * upstream to the converter and a {@code Write} event from the converter to the
+ * downstream components.
+ * <P>
+ * Therefore, the converter must provide and manage its own connections for the
+ * data streams on the downstream side. The {@code Extension} class simplifies
+ * this task. It provides a new connection with its own channel and pipeline and
+ * a reference to an existing connection. This makes it easy to find the
+ * upstream connection for a given downstream ({@code Extension}) connection.
  * 
  * @author Michael N. Lipp
  */
@@ -54,7 +77,9 @@ public class Extension implements DataConnection {
 		return upstreamConnection;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.jgrapes.io.Connection#getChannel()
 	 */
 	@Override
@@ -62,7 +87,9 @@ public class Extension implements DataConnection {
 		return converterComponent.getChannel();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.jgrapes.io.Connection#getResponsePipeline()
 	 */
 	@Override
@@ -70,7 +97,9 @@ public class Extension implements DataConnection {
 		return responsePipeline;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.jgrapes.io.DataConnection#acquireByteBuffer()
 	 */
 	@Override
