@@ -130,6 +130,7 @@ public class HttpServer extends Component {
 		networkChannel = server;
 		attach(server);
 		addHandler("onAccepted", networkChannel.getMatchKey());
+		addHandler("onClientClosed", networkChannel.getMatchKey());
 		addHandler("onRead", networkChannel.getMatchKey());
 	}
 
