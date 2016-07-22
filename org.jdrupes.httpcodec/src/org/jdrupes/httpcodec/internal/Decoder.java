@@ -316,6 +316,9 @@ public abstract class Decoder<T extends MessageHeader> {
 				return createResult(false, false, false);
 				
 			case COPY_SPECIFIED:
+				if (out == null) {
+					return createResult(true, false, false);
+				}
 				int initiallyRemaininge = in.remaining();
 				if (out.remaining() <= leftToRead) {
 					ByteBufferOutputStream.putAsMuchAsPossible(out, in);
