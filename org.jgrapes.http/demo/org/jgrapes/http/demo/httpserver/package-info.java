@@ -19,4 +19,4 @@
  * @author Michael N. Lipp
  *
  */
-package org.jgrapes.io.demo.httpserver;
+package org.jgrapes.http.demo.httpserver;
