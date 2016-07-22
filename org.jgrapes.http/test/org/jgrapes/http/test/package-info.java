@@ -19,4 +19,4 @@
  * @author Michael N. Lipp
  *
  */
-package org.jgrapes.io.test.http;
+package org.jgrapes.http.test;

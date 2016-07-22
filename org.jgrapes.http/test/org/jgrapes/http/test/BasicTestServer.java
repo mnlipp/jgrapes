@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io.test.http;
+package org.jgrapes.http.test;
 
 import static org.junit.Assert.fail;
 
@@ -28,7 +28,6 @@ import org.jgrapes.core.Component;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.io.NioDispatcher;
-import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Ready;
 

@@ -1,0 +1,11 @@
+Bundle-Name: org.jgrapes.http
+bundle_version = 0.9.0.${tstamp}
+Bundle-Version: ${bundle_version}
+Bundle-Copyright: Michael N. Lipp (c) 2016
+Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
+api_version = 0.1.0.${tstamp}
+Export-Package: \
+    !org.jgrapes.core, !org.jgrapes.core.*, \
+    !org.jgrapes.io, !org.jgrapes.io.*, \
+    org.jgrapes.*
+    

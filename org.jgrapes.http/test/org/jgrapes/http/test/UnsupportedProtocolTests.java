@@ -1,4 +1,4 @@
-package org.jgrapes.io.test.http;
+package org.jgrapes.http.test;
 
 import static org.junit.Assert.*;
 
