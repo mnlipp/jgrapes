@@ -30,6 +30,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.HttpServer;
+import org.jgrapes.http.events.EndOfResponse;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.http.events.Response;
@@ -77,7 +78,7 @@ public class HttpServerDemo extends Component {
 			Write.wrap(connection, form.getBytes("utf-8")).fire();
 		} catch (UnsupportedEncodingException e) {
 		}
-		(new Eof(connection)).fire();
+		(new EndOfResponse(connection)).fire();
 		event.stop();
 	}
 	

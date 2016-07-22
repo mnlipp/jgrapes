@@ -40,6 +40,8 @@ import org.jgrapes.core.annotation.DynamicHandler;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.ConnectRequest;
 import org.jgrapes.http.events.DeleteRequest;
+import org.jgrapes.http.events.EndOfRequest;
+import org.jgrapes.http.events.EndOfResponse;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.HeadRequest;
 import org.jgrapes.http.events.OptionsRequest;
@@ -52,7 +54,6 @@ import org.jgrapes.io.Connection;
 import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.Extension;
 import org.jgrapes.io.events.Close;
-import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
 import org.jgrapes.io.util.BufferCollector;
@@ -83,30 +84,33 @@ public class HttpServer extends Component {
 	}
 
 	private Channel networkChannel;
-	private Map<Connection, ConnectionAttachments> 
-		connectionData = new WeakHashMap<>();
+	private Map<Connection, ConnectionAttachments> connectionData 
+		= new WeakHashMap<>();
 	private List<Class<? extends Request>> providedFallbacks;
 
 	/**
 	 * Create a new server that uses the {@code networkChannel} for network
-	 * level I/O. 
+	 * level I/O.
 	 * <P>
-	 * As a convenience the server can provide fall back
-	 * handlers for the specified types of requests. The fall
-	 * back handler simply returns 404 ("Not found").
+	 * As a convenience the server can provide fall back handlers for the
+	 * specified types of requests. The fall back handler simply returns 404 (
+	 * "Not found").
 	 * 
-	 * @param componentChannel this component's channel
-	 * @param networkChannel the channel for network level I/O
-	 * @param fallbacks the requests for which a fall back handler
-	 * is provided
+	 * @param componentChannel
+	 *            this component's channel
+	 * @param networkChannel
+	 *            the channel for network level I/O
+	 * @param fallbacks
+	 *            the requests for which a fall back handler is provided
 	 */
 	@SafeVarargs
 	public HttpServer(Channel componentChannel, Channel networkChannel,
-			Class<? extends Request>... fallbacks) {
+	        Class<? extends Request>... fallbacks) {
 		super(componentChannel);
 		this.networkChannel = networkChannel;
 		this.providedFallbacks = Arrays.asList(fallbacks);
 		addHandler("onAccepted", networkChannel.getMatchKey());
+		addHandler("onClientClose", networkChannel.getMatchKey());
 		addHandler("onRead", networkChannel.getMatchKey());
 	}
 
@@ -118,7 +122,7 @@ public class HttpServer extends Component {
 	 */
 	@SafeVarargs
 	public HttpServer(Channel componentChannel, SocketAddress serverAddress,
-			Class<? extends Request>... fallbacks) {
+	        Class<? extends Request>... fallbacks) {
 		super(componentChannel);
 		this.providedFallbacks = Arrays.asList(fallbacks);
 		Server server = new Server(Channel.SELF, serverAddress);
@@ -129,11 +133,12 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Handles a new client connection. Creates a new downstream connection
-	 * as {@link Extension} of the network connection, a 
-	 * {@link HttpRequestDecoder} and a {@link HttpResponseEncoder}.
+	 * Creates a new downstream connection as {@link Extension} of the network
+	 * connection, a {@link HttpRequestDecoder} and a
+	 * {@link HttpResponseEncoder}.
 	 * 
-	 * @param event the accepted event
+	 * @param event
+	 *            the accepted event
 	 */
 	@DynamicHandler
 	public void onAccepted(Accepted<ManagedByteBuffer> event) {
@@ -143,9 +148,19 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Handles data from the client. The data is send through the 
-	 * {@link HttpRequestDecoder} and events are sent downstream
-	 * according to the decoding results.
+	 * Removes the data associated with the upstream connection.
+	 * 
+	 * @param event the event
+	 */
+	@DynamicHandler
+	public void onClientClose(Close<?> event) {
+		connectionData.remove(event.getConnection());
+	}
+	
+	/**
+	 * Handles data from the client. The data is send through the
+	 * {@link HttpRequestDecoder} and events are sent downstream according to
+	 * the decoding results.
 	 * 
 	 * @param event
 	 */
@@ -160,13 +175,13 @@ public class HttpServer extends Component {
 			throw new IllegalStateException(
 			        "Read event for unknown connection.");
 		}
-	
-		// Send the data from the event through the decoder. 
+
+		// Send the data from the event through the decoder.
 		ByteBuffer in = event.getBuffer().getBacking();
 		ManagedByteBuffer bodyData = null;
 		while (in.hasRemaining()) {
-			HttpRequestDecoder.Result result = httpDecoder.decode(in, 
-					bodyData == null ? null : bodyData.getBacking());
+			HttpRequestDecoder.Result result = httpDecoder.decode(in,
+			        bodyData == null ? null : bodyData.getBacking());
 			if (result.isHeaderCompleted()) {
 				fireRequest(downConn, httpDecoder.getHeader());
 			}
@@ -190,17 +205,19 @@ public class HttpServer extends Component {
 			}
 			if (!result.isUnderflow()
 			        && httpDecoder.getHeader().messageHasBody()) {
-//				fire(new Eof(downConn));
+				fire(new EndOfRequest(downConn));
 			}
 		}
 	}
 
 	/**
-	 * Creates a specific request event as appropriate for the request
-	 * and fires it.
+	 * Creates a specific request event as appropriate for the request and fires
+	 * it.
 	 * 
-	 * @param connection the downstream connection
-	 * @param request the decoded request
+	 * @param connection
+	 *            the downstream connection
+	 * @param request
+	 *            the decoded request
 	 */
 	private void fireRequest(DataConnection connection,
 	        HttpRequest request) {
@@ -239,19 +256,20 @@ public class HttpServer extends Component {
 
 	/**
 	 * Handles a response event from downstream by sending it through an
-	 * {@link HttpResponseEncoder} that generates the data (encoded
-	 * information) and sends it upstream with {@link Write} events. 
-	 * Depending on the response data, subsequent {@link Write} events 
-	 * and an {@link Eof} event targeted at the {@link HttpServer} can 
+	 * {@link HttpResponseEncoder} that generates the data (encoded information)
+	 * and sends it upstream with {@link Write} events. Depending on the
+	 * response data, subsequent {@link Write} events and an
+	 * {@link EndOfResponse} event targeted at the {@link HttpServer} can
 	 * follow.
 	 * 
-	 * @param event the repsonse event
+	 * @param event
+	 *            the repsonse event
 	 * @throws InterruptedException
 	 */
 	@Handler
 	public void onResponse(Response event) throws InterruptedException {
-		final DataConnection netConn 
-			= ((Extension)event.getConnection()).getUpstreamConnection();
+		final DataConnection netConn = ((Extension) event.getConnection())
+		        .getUpstreamConnection();
 		final ConnectionAttachments connData = connectionData.get(netConn);
 		final HttpResponseEncoder encoder = connData.encoder;
 		final HttpResponse response = event.getResponse();
@@ -280,19 +298,20 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Receives the message body. A {@link Response} event that has a
-	 * message body can be followed by one or more {@link Write} events
-	 * from downstream that contain the data. An {@link Eof} event signals
-	 * the end of the message body.
+	 * Receives the message body of a response. A {@link Response} event that
+	 * has a message body can be followed by one or more {@link Write} events
+	 * from downstream that contain the data. An {@link EndOfResponse} event
+	 * signals the end of the message body.
 	 * 
-	 * @param event the event with the data
+	 * @param event
+	 *            the event with the data
 	 * @throws InterruptedException
 	 */
 	@Handler
 	public void onWrite(Write<ManagedBuffer<?>> event)
 	        throws InterruptedException {
-		final DataConnection netConn 
-			= ((Extension)event.getConnection()).getUpstreamConnection();
+		final DataConnection netConn = ((Extension) event.getConnection())
+		        .getUpstreamConnection();
 		final ConnectionAttachments connData = connectionData.get(netConn);
 		final HttpResponseEncoder encoder = connData.encoder;
 
@@ -312,29 +331,32 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Signals the end of a message body.
+	 * Signals the end of a response message's body.
 	 * 
-	 * @param event the event
+	 * @param event
+	 *            the event
 	 * @throws InterruptedException
 	 */
 	@Handler
-	public void onEof(Eof event) throws InterruptedException {
-		final DataConnection netConn 
-			= ((Extension)event.getConnection()).getUpstreamConnection();
+	public void onEndOfResponse(EndOfResponse event)
+	        throws InterruptedException {
+		final DataConnection netConn = ((Extension) event.getConnection())
+		        .getUpstreamConnection();
 		flush(netConn);
 	}
 
 	/**
-	 * Handles a close event from downstream by flushing any remaining
-	 * data and sending a {@link Close} event upstream.
+	 * Handles a close event from downstream by flushing any remaining data and
+	 * sending a {@link Close} event upstream.
 	 * 
-	 * @param event the close event
-	 * @throws InterruptedException 
+	 * @param event
+	 *            the close event
+	 * @throws InterruptedException
 	 */
 	@Handler
 	public void onClose(Close<?> event) throws InterruptedException {
-		final DataConnection netConn 
-			= ((Extension)event.getConnection()).getUpstreamConnection();
+		final DataConnection netConn = ((Extension) event.getConnection())
+		        .getUpstreamConnection();
 		flush(netConn);
 		(new Close<>(netConn)).fire();
 	}
@@ -370,11 +392,12 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Checks whether the request has been handled (status code
-	 * of response has been set). If not, send the default 
-	 * response ("Not implemented") to the client.
+	 * Checks whether the request has been handled (status code of response has
+	 * been set). If not, send the default response ("Not implemented") to the
+	 * client.
 	 * 
-	 * @param event the request completed event
+	 * @param event
+	 *            the request completed event
 	 */
 	@Handler
 	public void onRequestCompleted(Request.Completed event)
@@ -390,13 +413,13 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Provides a fallback handler for an OPTIONS request with
-	 * asterisk. Simply responds with "OK".
+	 * Provides a fallback handler for an OPTIONS request with asterisk. Simply
+	 * responds with "OK".
 	 * 
 	 * @param event
 	 * @throws ParseException
 	 */
-	@Handler(priority=Integer.MIN_VALUE)
+	@Handler(priority = Integer.MIN_VALUE)
 	public void onOptions(OptionsRequest event) throws ParseException {
 		if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {
 			HttpResponse response = event.getRequest().getResponse();
@@ -407,16 +430,16 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Provides a fallback handler (lowest priority) for the request
-	 * types specified in the constructor. 
+	 * Provides a fallback handler (lowest priority) for the request types
+	 * specified in the constructor.
 	 * 
 	 * @param event
 	 * @throws ParseException
 	 */
-	@Handler(priority=Integer.MIN_VALUE)
+	@Handler(priority = Integer.MIN_VALUE)
 	public void onRequest(Request event) throws ParseException {
-		if (providedFallbacks == null 
-				|| !providedFallbacks.contains(event.getClass())) {
+		if (providedFallbacks == null
+		        || !providedFallbacks.contains(event.getClass())) {
 			return;
 		}
 		final HttpResponse response = event.getRequest().getResponse();
@@ -433,7 +456,7 @@ public class HttpServer extends Component {
 			        "Not Found".getBytes("utf-8")).fire();
 		} catch (UnsupportedEncodingException e) {
 		}
-		(new Eof(connection)).fire();
+		(new EndOfResponse(connection)).fire();
 		event.stop();
 	}
 }
