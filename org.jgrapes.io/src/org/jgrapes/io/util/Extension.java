@@ -17,6 +17,10 @@
  */
 package org.jgrapes.io.util;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
@@ -48,26 +52,62 @@ import org.jgrapes.io.DataConnection;
  * this task. It provides a new connection with its own channel and pipeline and
  * a reference to an existing connection. This makes it easy to find the
  * upstream connection for a given downstream ({@code Extension}) connection.
+ * <P>
+ * For finding the downstream connection ({@code Extension}) for a given
+ * upstream connection, the class maintains a mapping in a {@link WeakHashMap}.
  * 
  * @author Michael N. Lipp
  */
 public class Extension implements DataConnection {
+
+	final private static Map<Connection, Extension> reverseMap = Collections
+	        .synchronizedMap(new WeakHashMap<>());
 
 	final private Manager converterComponent;
 	final private DataConnection upstreamConnection;
 	final private EventPipeline responsePipeline;
 
 	/**
+	 * Creates a new {@code Extension} for a given connection. Using this
+	 * constructor is similar to invoking
+	 * {@link #Extension(Manager, DataConnection, boolean)} with {@code true} as
+	 * last parameter.
 	 * 
 	 * @param converterComponent
+	 *            the converter component; its channel is returned by
+	 *            {@link #getChannel()}
 	 * @param upstreamConnection
+	 *            the upstream connection
 	 */
 	public Extension(Manager converterComponent,
 	        DataConnection upstreamConnection) {
+		this(converterComponent, upstreamConnection, true);
+	}
+
+	/**
+	 * Creates a new {@code Extension} for a given connection. Using this
+	 * constructor with {@code false} as last parameter prevents the addition of
+	 * the extension to the mapping from connection to extension. This can save
+	 * some space if converter component has some other means to maintain that
+	 * information. Addition to the map is thread safe.
+	 * 
+	 * @param converterComponent
+	 *            the component; its channel is returned by
+	 *            {@link #getChannel()}
+	 * @param upstreamConnection
+	 *            the upstream connection
+	 * @param addToMap
+	 *            add an entry in the map
+	 */
+	public Extension(Manager converterComponent,
+	        DataConnection upstreamConnection, boolean addToMap) {
 		super();
 		this.converterComponent = converterComponent;
 		this.upstreamConnection = upstreamConnection;
 		responsePipeline = converterComponent.newEventPipeline();
+		if (addToMap) {
+			reverseMap.put(upstreamConnection, this);
+		}
 	}
 
 	/**
@@ -97,8 +137,8 @@ public class Extension implements DataConnection {
 		return responsePipeline;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Delegates the invocation to the upstream connection.
 	 * 
 	 * @see org.jgrapes.io.DataConnection#acquireByteBuffer()
 	 */
@@ -107,4 +147,20 @@ public class Extension implements DataConnection {
 		return upstreamConnection.acquireByteBuffer();
 	}
 
+	/**
+	 * Returns the extension that has been created for the given connection. If
+	 * more than one extension has been created for a connection, the extension
+	 * created last is returned.
+	 * <P>
+	 * Having more than one extension for a given connection is a very unusual
+	 * use case. Another mechanism must be used for the reverse mapping in
+	 * that case.
+	 * 
+	 * @param connection the connection
+	 * @return the extension created for this extension or {@code null}
+	 * if no such extension exists
+	 */
+	public static Connection lookupExtension(Connection connection) {
+		return reverseMap.get(connection);
+	}
 }

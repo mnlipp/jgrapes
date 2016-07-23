@@ -24,8 +24,6 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jdrupes.httpcodec.HttpResponse;
@@ -50,10 +48,8 @@ import org.jgrapes.http.events.PutRequest;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.TraceRequest;
-import org.jgrapes.io.Connection;
 import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.events.Close;
-import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
 import org.jgrapes.io.util.BufferCollector;
@@ -69,24 +65,19 @@ import org.jgrapes.net.events.Accepted;
  */
 public class HttpServer extends Component {
 
-	private class ConnectionAttachments {
-		public Extension downStreamConnection;
+	private class ExtExtension extends Extension {
 		public HttpRequestDecoder decoder;
 		public HttpResponseEncoder encoder;
 		public ManagedByteBuffer outBuffer;
 
-		public ConnectionAttachments(Extension downStreamChannel,
-		        HttpRequestDecoder decoder, HttpResponseEncoder encoder) {
-			super();
-			this.downStreamConnection = downStreamChannel;
-			this.decoder = decoder;
-			this.encoder = encoder;
+		public ExtExtension(DataConnection upstreamChannel) {
+			super(HttpServer.this, upstreamChannel);
+			this.decoder = new HttpRequestDecoder();
+			this.encoder = new HttpResponseEncoder();
 		}
 	}
 
 	private Channel networkChannel;
-	private Map<Connection, ConnectionAttachments> connectionData 
-		= new WeakHashMap<>();
 	private List<Class<? extends Request>> providedFallbacks;
 
 	/**
@@ -111,7 +102,6 @@ public class HttpServer extends Component {
 		this.networkChannel = networkChannel;
 		this.providedFallbacks = Arrays.asList(fallbacks);
 		addHandler("onAccepted", networkChannel.getMatchKey());
-		addHandler("onClientClosed", networkChannel.getMatchKey());
 		addHandler("onRead", networkChannel.getMatchKey());
 	}
 
@@ -130,7 +120,6 @@ public class HttpServer extends Component {
 		networkChannel = server;
 		attach(server);
 		addHandler("onAccepted", networkChannel.getMatchKey());
-		addHandler("onClientClosed", networkChannel.getMatchKey());
 		addHandler("onRead", networkChannel.getMatchKey());
 	}
 
@@ -144,21 +133,9 @@ public class HttpServer extends Component {
 	 */
 	@DynamicHandler
 	public void onAccepted(Accepted<ManagedByteBuffer> event) {
-		connectionData.put(event.getConnection(), new ConnectionAttachments(
-		        new Extension(this, event.getConnection()),
-		        new HttpRequestDecoder(), new HttpResponseEncoder()));
+		new ExtExtension(event.getConnection());
 	}
 
-	/**
-	 * Removes the data associated with the upstream connection.
-	 * 
-	 * @param event the event
-	 */
-	@DynamicHandler
-	public void onClientClosed(Closed<?> event) {
-		connectionData.remove(event.getConnection());
-	}
-	
 	/**
 	 * Handles data from the client. The data is send through the
 	 * {@link HttpRequestDecoder} and events are sent downstream according to
@@ -168,11 +145,10 @@ public class HttpServer extends Component {
 	 */
 	@DynamicHandler
 	public void onRead(Read<ManagedByteBuffer> event) {
-		final ConnectionAttachments conData = connectionData
-		        .get(event.getConnection());
+		final ExtExtension extDown = (ExtExtension) Extension
+		        .lookupExtension(event.getConnection());
 		// Get data associated with the channel
-		final HttpRequestDecoder httpDecoder = conData.decoder;
-		final DataConnection downConn = conData.downStreamConnection;
+		final HttpRequestDecoder httpDecoder = extDown.decoder;
 		if (httpDecoder == null) {
 			throw new IllegalStateException(
 			        "Read event for unknown connection.");
@@ -185,19 +161,19 @@ public class HttpServer extends Component {
 			HttpRequestDecoder.Result result = httpDecoder.decode(in,
 			        bodyData == null ? null : bodyData.getBacking());
 			if (result.isHeaderCompleted()) {
-				fireRequest(downConn, httpDecoder.getHeader());
+				fireRequest(extDown, httpDecoder.getHeader());
 			}
 			if (result.hasResponse()) {
 				// Error during decoding, send back
-				fire(new Response(downConn, result.getResponse()));
+				fire(new Response(extDown, result.getResponse()));
 				break;
 			}
 			if (result.getCloseConnection()) {
-				fire(new Close<>(downConn));
+				fire(new Close<>(extDown));
 				break;
 			}
 			if (bodyData != null && bodyData.position() > 0) {
-				fire(new Read<>(downConn, bodyData));
+				fire(new Read<>(extDown, bodyData));
 			}
 			if (result.isOverflow()) {
 				bodyData = new ManagedByteBuffer(
@@ -207,7 +183,7 @@ public class HttpServer extends Component {
 			}
 			if (!result.isUnderflow()
 			        && httpDecoder.getHeader().messageHasBody()) {
-				fire(new EndOfRequest(downConn));
+				fire(new EndOfRequest(extDown));
 			}
 		}
 	}
@@ -270,17 +246,19 @@ public class HttpServer extends Component {
 	 */
 	@Handler
 	public void onResponse(Response event) throws InterruptedException {
-		final DataConnection netConn = ((Extension) event.getConnection())
-		        .getUpstreamConnection();
-		final ConnectionAttachments connData = connectionData.get(netConn);
-		final HttpResponseEncoder encoder = connData.encoder;
+		if (!(event.getConnection() instanceof ExtExtension)) {
+			return;
+		}
+		final ExtExtension extDown = (ExtExtension)event.getConnection();
+		final DataConnection netConn = extDown.getUpstreamConnection();
+		final HttpResponseEncoder encoder = extDown.encoder;
 		final HttpResponse response = event.getResponse();
 
 		// Start sending the response
 		encoder.encode(response);
 		while (true) {
-			connData.outBuffer = netConn.acquireByteBuffer();
-			final ManagedByteBuffer buffer = connData.outBuffer;
+			extDown.outBuffer = netConn.acquireByteBuffer();
+			final ManagedByteBuffer buffer = extDown.outBuffer;
 			HttpResponseEncoder.Result result = encoder
 			        .encode(buffer.getBacking());
 			if (result.isOverflow()) {
@@ -293,7 +271,7 @@ public class HttpServer extends Component {
 				} else {
 					buffer.unlockBuffer();
 				}
-				connData.outBuffer = null;
+				extDown.outBuffer = null;
 			}
 			break;
 		}
@@ -312,23 +290,25 @@ public class HttpServer extends Component {
 	@Handler
 	public void onWrite(Write<ManagedBuffer<?>> event)
 	        throws InterruptedException {
-		final DataConnection netConn = ((Extension) event.getConnection())
-		        .getUpstreamConnection();
-		final ConnectionAttachments connData = connectionData.get(netConn);
-		final HttpResponseEncoder encoder = connData.encoder;
+		if (!(event.getConnection() instanceof ExtExtension)) {
+			return;
+		}
+		final ExtExtension extDown = (ExtExtension)event.getConnection();
+		final DataConnection netConn = extDown.getUpstreamConnection();
+		final HttpResponseEncoder encoder = extDown.encoder;
 
 		Buffer in = event.getBuffer().getBacking();
 		while (true) {
 			HttpResponseEncoder.Result result = null;
 			if (in instanceof ByteBuffer) {
 				result = encoder.encode((ByteBuffer) in,
-				        connData.outBuffer.getBacking());
+						extDown.outBuffer.getBacking());
 			}
 			if (!result.isOverflow()) {
 				break;
 			}
-			(new Write<>(netConn, connData.outBuffer)).fire();
-			connData.outBuffer = netConn.acquireByteBuffer();
+			(new Write<>(netConn, extDown.outBuffer)).fire();
+			extDown.outBuffer = netConn.acquireByteBuffer();
 		}
 	}
 
@@ -342,8 +322,11 @@ public class HttpServer extends Component {
 	@Handler
 	public void onEndOfResponse(EndOfResponse event)
 	        throws InterruptedException {
-		final DataConnection netConn = ((Extension) event.getConnection())
-		        .getUpstreamConnection();
+		if (!(event.getConnection() instanceof ExtExtension)) {
+			return;
+		}
+		final ExtExtension extDown = (ExtExtension)event.getConnection();
+		final DataConnection netConn = extDown.getUpstreamConnection();
 		flush(netConn);
 	}
 
@@ -371,12 +354,13 @@ public class HttpServer extends Component {
 	 */
 	private void flush(final DataConnection netConn)
 	        throws InterruptedException {
-		final ConnectionAttachments connData = connectionData.get(netConn);
-		final HttpResponseEncoder encoder = connData.encoder;
+		final ExtExtension extDown = (ExtExtension) Extension
+		        .lookupExtension(netConn);
+		final HttpResponseEncoder encoder = extDown.encoder;
 
 		// Send remaining data
 		while (true) {
-			final ManagedByteBuffer buffer = connData.outBuffer;
+			final ManagedByteBuffer buffer = extDown.outBuffer;
 			HttpResponseEncoder.Result result = encoder.encode(null,
 			        buffer.getBacking());
 			if (!result.isOverflow()) {
@@ -385,11 +369,11 @@ public class HttpServer extends Component {
 				} else {
 					buffer.unlockBuffer();
 				}
-				connData.outBuffer = null;
+				extDown.outBuffer = null;
 				break;
 			}
 			(new Write<>(netConn, buffer)).fire();
-			connData.outBuffer = netConn.acquireByteBuffer();
+			extDown.outBuffer = netConn.acquireByteBuffer();
 		}
 	}
 
