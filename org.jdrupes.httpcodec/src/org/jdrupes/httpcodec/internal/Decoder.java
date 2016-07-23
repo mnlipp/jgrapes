@@ -335,7 +335,7 @@ public abstract class Decoder<T extends MessageHeader> {
 				        !in.hasRemaining(), false);
 			}
 		}
-		return createResult(false, false, false);
+		return createResult(false, true, false);
 	}
 
 	private void evaluateHeaderLine() throws ProtocolException, ParseException {
