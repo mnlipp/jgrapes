@@ -183,7 +183,7 @@ public abstract class Decoder<T extends MessageHeader> {
 	private DecoderResult doDecode(ByteBuffer in, ByteBuffer out)
 			throws ProtocolException, ParseException {
 		int stateLevel = states.size();
-		while (in.hasRemaining() || states.size() < stateLevel) {
+		do {
 			stateLevel = states.size();
 			switch (states.peek()) {
 			// Waiting for CR (start of end of line)
@@ -333,8 +333,24 @@ public abstract class Decoder<T extends MessageHeader> {
 				}
 				return createResult(!out.hasRemaining() && in.hasRemaining(),
 				        !in.hasRemaining(), false);
+				
+			case COPY_UNTIL_CLOSED:
+				if (in == null) {
+					// Closed indication
+					states.pop();
+					// Wait for next message
+					states.push(State.AWAIT_MESSAGE_START);
+					states.push(State.RECEIVE_LINE);
+					return createResult(false, false, true);
+				}
+				if (out == null) {
+					return createResult(true, false, false);
+				}
+				ByteBufferOutputStream.putAsMuchAsPossible(out, in);
+				return createResult(!out.hasRemaining() && in.hasRemaining(),
+				        true, false);
 			}
-		}
+		} while (in.hasRemaining() || states.size() < stateLevel);
 		return createResult(false, true, false);
 	}
 

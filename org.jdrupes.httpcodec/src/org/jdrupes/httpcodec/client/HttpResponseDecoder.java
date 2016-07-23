@@ -41,10 +41,10 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 
 	private final static Pattern responseLinePatter = Pattern
 	        .compile("^(" + HTTP_VERSION + ")" + SP + "([1-9][0-9][0-9])"
-	        		+ SP + "(.*)$");
+	                + SP + "(.*)$");
 
 	private String requestMethod = "";
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -61,17 +61,33 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	}
 
 	/**
-     * Starts decoding a new response for a request with the given method.
-     * 
-     * @param requestMethod the request method
-     * @return the result
-     */
-	public DecoderResult decode(String requestMethod) {
+	 * Starts decoding a new response to a request with the given method.
+	 * Specifying the request is necessary because the existence of a body
+	 * cannot be derived by looking at the header only. It depends on the kind
+	 * of request made.
+	 * 
+	 * @param requestMethod
+	 *            the request method
+	 * @return the result, which will always indicate underflow because more
+	 *         input is required
+	 */
+	public DecoderResult decodeResponseTo(String requestMethod) {
 		this.requestMethod = requestMethod;
-		return new Result(false, false, false, false);
+		return new Result(false, false, true, false);
 	}
-	
+
 	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.internal.Decoder#decode(java.nio.ByteBuffer, java.nio.ByteBuffer)
+	 */
+	@Override
+	public Result decode(ByteBuffer in, ByteBuffer out)
+	        throws ProtocolException {
+		return (Result)super.decode(in, out);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.jdrupes.httpcodec.HttpDecoder#newMessage(java.lang.String)
 	 */
 	@Override
@@ -101,20 +117,24 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 		        false);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.HttpDecoder#headerReceived(org.jdrupes.httpcodec.HttpMessage)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.jdrupes.httpcodec.HttpDecoder#headerReceived(org.jdrupes.httpcodec.
+	 * HttpMessage)
 	 */
 	@Override
-	protected BodyMode headerReceived(HttpResponse message) 
-			throws ProtocolException {
+	protected BodyMode headerReceived(HttpResponse message)
+	        throws ProtocolException {
 		// RFC 7230 3.3.3 (1. & 2.)
 		int statusCode = message.getStatusCode();
 		if (requestMethod.equalsIgnoreCase("HEAD")
-				|| (statusCode % 100) == 1
-				|| statusCode == 204
-				|| statusCode == 304
-				|| (requestMethod.equalsIgnoreCase("CONNECT") 
-						&& (statusCode % 100 == 2))) {
+		        || (statusCode % 100) == 1
+		        || statusCode == 204
+		        || statusCode == 304
+		        || (requestMethod.equalsIgnoreCase("CONNECT")
+		                && (statusCode % 100 == 2))) {
 			return BodyMode.NO_BODY;
 		}
 		HttpStringListField transEncs = message.getHeader(
@@ -151,9 +171,9 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 		 * @param closeConnection
 		 *            {@code true} if the connection should be closed
 		 */
-		public Result(boolean headerCompleted, boolean payloadBytes,
-		        boolean payloadChars, boolean closeConnection) {
-			super(headerCompleted, payloadBytes, payloadChars, closeConnection);
+		public Result(boolean headerCompleted, boolean overflow,
+		        boolean underflow, boolean closeConnection) {
+			super(headerCompleted, overflow, underflow, closeConnection);
 		}
 
 	}
