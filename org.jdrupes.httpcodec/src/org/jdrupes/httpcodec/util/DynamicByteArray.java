@@ -55,6 +55,20 @@ public class DynamicByteArray {
 	}
 
 	/**
+	 * Appends the given bytes, growing the array if necessary.
+	 * 
+	 * @param b the byte to append
+	 */
+	public void append(byte[] b, int offset, int length) {
+		if (bytes.length - position < length) {
+			byte[] newBytes = new byte[(int)((bytes.length + length) * 1.3)];
+			System.arraycopy(bytes, 0, newBytes, 0, bytes.length);
+			bytes = newBytes;
+		}
+		System.arraycopy(b, offset, bytes, position, length);
+	}
+
+	/**
 	 * Returns the current position (number of bytes in the array).
 	 * 
 	 * @return the position
