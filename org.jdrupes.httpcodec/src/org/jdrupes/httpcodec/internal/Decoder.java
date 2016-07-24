@@ -171,19 +171,21 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 	public DecoderResult decode(ByteBuffer in, ByteBuffer out)
 			throws ProtocolException {
 		try {
-			return doDecode(in, out);
+			return uncheckedDecode(in, out);
 		} catch (ParseException | NumberFormatException e) {
 			throw new ProtocolException(protocolVersion, 
 					HttpStatus.BAD_REQUEST.getStatusCode(), e.getMessage());
 		}
 	}
 		
-	private DecoderResult doDecode(ByteBuffer in, ByteBuffer out)
+	private DecoderResult uncheckedDecode(ByteBuffer in, ByteBuffer out)
 			throws ProtocolException, ParseException {
-		int stateLevel = states.size();
-		if (!in.hasRemaining()) {
+		// May be invoked with null (end of body), but not with empty. Check
+		// once.
+		if (in != null && !in.hasRemaining()) {
 			return createResult(false, true, false);
 		}
+		int stateLevel;
 		do {
 			stateLevel = states.size();
 			switch (states.peek()) {
