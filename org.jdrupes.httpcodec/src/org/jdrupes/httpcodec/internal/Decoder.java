@@ -319,14 +319,14 @@ public abstract class Decoder<T extends MessageHeader> {
 				if (out == null) {
 					return createResult(true, false, false);
 				}
-				int initiallyRemaininge = in.remaining();
+				int initiallyRemaining = in.remaining();
 				if (out.remaining() <= leftToRead) {
 					ByteBufferOutputStream.putAsMuchAsPossible(out, in);
 				} else {
 					ByteBufferOutputStream.putAsMuchAsPossible(out, in,
 					        (int) leftToRead);
 				}
-				leftToRead -= (initiallyRemaininge - in.remaining());
+				leftToRead -= (initiallyRemaining - in.remaining());
 				if (leftToRead == 0) {
 					states.pop();
 					continue;
