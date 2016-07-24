@@ -25,8 +25,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jdrupes.httpcodec.ProtocolException;
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpListField;
@@ -38,7 +36,7 @@ import org.jdrupes.httpcodec.util.HttpUtils;
  * @author Michael N. Lipp
  *
  */
-public abstract class Decoder<T extends MessageHeader> {
+public abstract class Decoder<T extends MessageHeader> extends Codec {
 
 	final protected static String TOKEN = "[" + Pattern.quote(HttpUtils.TCHARS)
 	        + "]+";

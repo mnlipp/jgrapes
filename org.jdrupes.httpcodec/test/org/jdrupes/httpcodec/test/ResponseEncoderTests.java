@@ -7,8 +7,8 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 
 import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.internal.Codec.HttpProtocol;
+import org.jdrupes.httpcodec.internal.Codec.HttpStatus;
 import org.jdrupes.httpcodec.server.HttpResponseEncoder;
 import org.junit.Test;
 

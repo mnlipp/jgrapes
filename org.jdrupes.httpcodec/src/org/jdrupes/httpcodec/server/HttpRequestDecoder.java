@@ -27,14 +27,14 @@ import java.util.regex.Pattern;
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.ProtocolException;
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
-import org.jdrupes.httpcodec.HttpCodec.TransferCoding;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.internal.Decoder;
 import org.jdrupes.httpcodec.internal.DecoderResult;
+import org.jdrupes.httpcodec.internal.Codec.HttpProtocol;
+import org.jdrupes.httpcodec.internal.Codec.HttpStatus;
+import org.jdrupes.httpcodec.internal.Codec.TransferCoding;
 
 /**
  * A decoder for HTTP requests that accepts data from a sequence of

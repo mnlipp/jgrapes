@@ -5,9 +5,9 @@ import static org.junit.Assert.*;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.client.HttpResponseDecoder;
+import org.jdrupes.httpcodec.internal.Codec.HttpStatus;
 import org.junit.Test;
 
 public class ResponseDecoderTests {

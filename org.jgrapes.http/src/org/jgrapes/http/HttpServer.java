@@ -27,9 +27,9 @@ import java.util.List;
 
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.internal.Codec.HttpStatus;
 import org.jdrupes.httpcodec.server.HttpRequestDecoder;
 import org.jdrupes.httpcodec.server.HttpResponseEncoder;
 import org.jgrapes.core.Component;

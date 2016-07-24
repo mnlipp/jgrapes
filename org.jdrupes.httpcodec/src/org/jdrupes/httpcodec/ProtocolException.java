@@ -17,8 +17,8 @@
  */
 package org.jdrupes.httpcodec;
 
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
+import org.jdrupes.httpcodec.internal.Codec.HttpProtocol;
+import org.jdrupes.httpcodec.internal.Codec.HttpStatus;
 
 /**
  * @author Michael N. Lipp

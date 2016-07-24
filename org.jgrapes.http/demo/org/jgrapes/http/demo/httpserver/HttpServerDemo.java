@@ -23,9 +23,9 @@ import java.net.InetSocketAddress;
 import java.text.ParseException;
 
 import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.internal.Codec.HttpStatus;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;

@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.internal;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class HttpCodec {
+public abstract class Codec {
 
     public static enum HttpProtocol { HTTP_1_0("HTTP/1.0"), HTTP_1_1("HTTP/1.1");
     	private String repr;
