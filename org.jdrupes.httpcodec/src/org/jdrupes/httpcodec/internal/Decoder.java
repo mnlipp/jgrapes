@@ -181,6 +181,9 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 	private DecoderResult doDecode(ByteBuffer in, ByteBuffer out)
 			throws ProtocolException, ParseException {
 		int stateLevel = states.size();
+		if (!in.hasRemaining()) {
+			return createResult(false, true, false);
+		}
 		do {
 			stateLevel = states.size();
 			switch (states.peek()) {
