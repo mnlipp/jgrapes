@@ -21,7 +21,7 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.jdrupes.httpcodec.util.HttpUtils;
+import org.jdrupes.httpcodec.HttpCodec;
 
 /**
  * A base class for all kinds of field values.
@@ -192,7 +192,7 @@ public abstract class HttpField<T> implements Cloneable {
 		result.append('"');
 		while (position < value.length()) {
 			char ch = value.charAt(position++);
-			if (!needsQuoting && HttpUtils.TCHARS.indexOf(ch) < 0) {
+			if (!needsQuoting && HttpCodec.TOKEN_CHARS.indexOf(ch) < 0) {
 				needsQuoting = true;
 			}
 			switch(ch) {

@@ -15,19 +15,30 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.util;
+package org.jdrupes.httpcodec;
+
+import java.io.IOException;
+import java.io.Writer;
+
+import org.jdrupes.httpcodec.internal.Encoder;
 
 /**
  * @author Michael N. Lipp
- *
  */
-public class HttpUtils {
+public class HttpResponseEncoder extends Encoder<HttpResponse> {
 
-	private HttpUtils() {
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.internal.Encoder#startMessage(java.io.Writer)
+	 */
+	@Override
+	protected void startMessage(HttpResponse response, Writer writer)
+	        throws IOException {
+		writer.write(response.getProtocol().toString());
+		writer.write(" ");
+		writer.write(Integer.toString(response.getStatusCode()));
+		writer.write(" ");
+		writer.write(response.getReasonPhrase());
+		writer.write("\r\n");
 	}
 
-	final public static String TCHARS 
-		= "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
-				+ "^`abcdefghijklmnopqrstuvwxyz|~";
-	
 }

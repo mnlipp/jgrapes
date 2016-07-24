@@ -20,9 +20,9 @@ package org.jdrupes.httpcodec;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
+import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.internal.MessageHeader;
-import org.jdrupes.httpcodec.internal.Codec.HttpProtocol;
-import org.jdrupes.httpcodec.internal.Codec.HttpStatus;
 
 /**
  * Represents an HTTP request.

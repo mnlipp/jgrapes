@@ -24,21 +24,21 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpListField;
 import org.jdrupes.httpcodec.util.ByteBufferOutputStream;
 import org.jdrupes.httpcodec.util.DynamicByteArray;
-import org.jdrupes.httpcodec.util.HttpUtils;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public abstract class Decoder<T extends MessageHeader> extends Codec {
+public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 
-	final protected static String TOKEN = "[" + Pattern.quote(HttpUtils.TCHARS)
+	final protected static String TOKEN = "[" + Pattern.quote(TOKEN_CHARS)
 	        + "]+";
 	final protected static String SP = "[ \\t]+";
 	final protected static String HTTP_VERSION = "HTTP/\\d+\\.\\d";

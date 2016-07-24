@@ -19,12 +19,12 @@ package org.jdrupes.httpcodec;
 
 import java.text.ParseException;
 
+import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
+import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jdrupes.httpcodec.internal.MessageHeader;
-import org.jdrupes.httpcodec.internal.Codec.HttpProtocol;
-import org.jdrupes.httpcodec.internal.Codec.HttpStatus;
 
 /**
  * Represents

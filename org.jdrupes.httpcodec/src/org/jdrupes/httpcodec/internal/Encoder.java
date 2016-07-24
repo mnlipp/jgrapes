@@ -25,6 +25,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Stack;
 
+import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpDateField;
 import org.jdrupes.httpcodec.fields.HttpField;
@@ -37,7 +38,7 @@ import org.jdrupes.httpcodec.util.ByteBufferOutputStream;
  * @author Michael N. Lipp
  *
  */
-public abstract class Encoder<T extends MessageHeader> extends Codec {
+public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 
 	private enum State {
 		// Main states

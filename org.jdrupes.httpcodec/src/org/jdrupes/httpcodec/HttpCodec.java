@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.internal;
+package org.jdrupes.httpcodec;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public abstract class Codec {
+public abstract class HttpCodec {
 
     public static enum HttpProtocol { HTTP_1_0("HTTP/1.0"), HTTP_1_1("HTTP/1.1");
     	private String repr;
@@ -114,4 +114,8 @@ public abstract class Codec {
 			return repr;
 		}
     }
+
+	final public static String TOKEN_CHARS 
+		= "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+			+ "^`abcdefghijklmnopqrstuvwxyz|~";
 }
