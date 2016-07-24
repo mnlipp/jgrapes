@@ -271,7 +271,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	}
 	
 	/**
-	 * The sum of all bytes written. This is includes the bytes in
+	 * The sum of all bytes written. This includes the bytes in
 	 * the assigned buffer plus the sum of all bytes in all allocated
 	 * overflow buffers.
 	 * 
