@@ -108,7 +108,7 @@ public class ByteBufferOutputStream extends OutputStream {
 			int writePos = head.position(); // Save position
 			head.reset();
 			head.limit(writePos);
-			if (!putAsMuchAsPossible(assignedBuffer, head)) {
+			if (!ByteBufferUtils.putAsMuchAsPossible(assignedBuffer, head)) {
 				// Cannot transfer everything, done what's possible
 				head.mark(); // new position for next put
 				head.limit(head.capacity());
@@ -180,7 +180,7 @@ public class ByteBufferOutputStream extends OutputStream {
 		}
 		bytesWritten += b.remaining();
 		while (true) {
-			if (putAsMuchAsPossible(current, b)) {
+			if (ByteBufferUtils.putAsMuchAsPossible(current, b)) {
 				return;
 			}
 			allocateOverflowBuffer();
@@ -202,56 +202,6 @@ public class ByteBufferOutputStream extends OutputStream {
 		b.limit(b.position() + length);
 		write(b);
 		b.limit(savedLimit);
-	}
-
-	/**
-	 * Put as many bytes as possible from the src buffer into the destination
-	 * buffer.
-	 * 
-	 * @param dest
-	 *            the destination buffer
-	 * @param src
-	 *            the source buffer
-	 * @return {@code true} if {@code src.remaining() == 0}
-	 */
-	public static boolean putAsMuchAsPossible(ByteBuffer dest, ByteBuffer src) {
-		if (dest.remaining() >= src.remaining()) {
-			dest.put(src);
-			return true;
-		}
-		if (dest.remaining() > 0) {
-			int oldLimit = src.limit();
-			src.limit(src.position() + dest.remaining());
-			dest.put(src);
-			src.limit(oldLimit);
-		}
-		return false;
-	}
-
-	/**
-	 * Put as many bytes as possible from the src buffer into the destination
-	 * buffer but not more than specified by limit.
-	 * 
-	 * @param dest
-	 *            the destination buffer
-	 * @param src
-	 *            the source buffer
-	 * @param limit
-	 *            the maximum number of bytes to transfer
-	 * @return {@code true} if {@code src.remaining() == 0}
-	 */
-	public static boolean putAsMuchAsPossible(ByteBuffer dest, ByteBuffer src,
-	        int limit) {
-		if (src.remaining() <= limit) {
-			return putAsMuchAsPossible(dest, src);
-		}
-		int oldLimit = src.limit();
-		try {
-			src.limit(src.position() + limit);
-			return putAsMuchAsPossible(dest, src);
-		} finally {
-			src.limit(oldLimit);
-		}
 	}
 
 	/**

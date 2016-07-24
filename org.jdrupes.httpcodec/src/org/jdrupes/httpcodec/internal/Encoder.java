@@ -33,6 +33,7 @@ import org.jdrupes.httpcodec.fields.HttpIntField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.util.ByteBufferOutputStream;
+import org.jdrupes.httpcodec.util.ByteBufferUtils;
 
 /**
  * @author Michael N. Lipp
@@ -211,7 +212,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 					break;
 				}
 				// More data
-				if (!ByteBufferOutputStream.putAsMuchAsPossible(out, in)) {
+				if (!ByteBufferUtils.putAsMuchAsPossible(out, in)) {
 					return OVERFLOW; // Shortcut
 				}
 				// Everything written, waiting for more data or end of data
@@ -419,7 +420,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 			outStream.write(in, length);
 			outStream.write("\r\n".getBytes("ascii"));
 			outStream.flush();
-			ByteBufferOutputStream.putAsMuchAsPossible(out, in, length);
+			ByteBufferUtils.putAsMuchAsPossible(out, in, length);
 		} catch (IOException e) {
 			// Formally thrown by outStream, cannot happen.
 		}

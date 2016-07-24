@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.Random;
 
 import org.jdrupes.httpcodec.util.ByteBufferOutputStream;
+import org.jdrupes.httpcodec.util.ByteBufferUtils;
 import org.junit.Test;
 
 public class OutputStreamTests {
@@ -17,14 +18,14 @@ public class OutputStreamTests {
 		ByteBuffer src = ByteBuffer.allocate(1000);
 		src.put("Hello World!".getBytes());
 		ByteBuffer dest = ByteBuffer.allocate(5);
-		ByteBufferOutputStream.putAsMuchAsPossible(dest, src);
+		ByteBufferUtils.putAsMuchAsPossible(dest, src);
 		assertEquals(5, dest.position());
 		assertEquals(7, src.remaining());
 		byte[] b = new byte[dest.remaining()];
 		dest.get(b);
 		s.append(b);
 		dest = ByteBuffer.allocate(100);
-		ByteBufferOutputStream.putAsMuchAsPossible(dest, src);
+		ByteBufferUtils.putAsMuchAsPossible(dest, src);
 		b = new byte[dest.remaining()];
 		dest.get(b);
 		s.append(b);

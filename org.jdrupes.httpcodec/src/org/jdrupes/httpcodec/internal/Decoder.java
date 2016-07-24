@@ -29,7 +29,7 @@ import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpListField;
-import org.jdrupes.httpcodec.util.ByteBufferOutputStream;
+import org.jdrupes.httpcodec.util.ByteBufferUtils;
 import org.jdrupes.httpcodec.util.DynamicByteArray;
 
 /**
@@ -324,9 +324,9 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				}
 				int initiallyRemaining = in.remaining();
 				if (out.remaining() <= leftToRead) {
-					ByteBufferOutputStream.putAsMuchAsPossible(out, in);
+					ByteBufferUtils.putAsMuchAsPossible(out, in);
 				} else {
-					ByteBufferOutputStream.putAsMuchAsPossible(out, in,
+					ByteBufferUtils.putAsMuchAsPossible(out, in,
 					        (int) leftToRead);
 				}
 				leftToRead -= (initiallyRemaining - in.remaining());
@@ -349,7 +349,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				if (out == null) {
 					return createResult(true, false, false);
 				}
-				ByteBufferOutputStream.putAsMuchAsPossible(out, in);
+				ByteBufferUtils.putAsMuchAsPossible(out, in);
 				return createResult(!out.hasRemaining() && in.hasRemaining(),
 				        true, false);
 			}
