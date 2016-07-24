@@ -21,6 +21,7 @@ import java.text.ParseException;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jdrupes.httpcodec.internal.MessageHeader;
@@ -114,5 +115,15 @@ public class HttpResponse extends MessageHeader {
 		HttpMediaTypeField mt = new HttpMediaTypeField(HttpField.CONTENT_TYPE,
 		        type, subtype);
 		mt.setParameter("charset", charset);
+		setHeader(mt);
+	}
+	
+	/**
+	 * A convenience method for setting the "Content-Length" header.
+	 * 
+	 * @param length the length
+	 */
+	public void setContentLength(long length) {
+		setHeader(new HttpContentLengthField(length));
 	}
 }

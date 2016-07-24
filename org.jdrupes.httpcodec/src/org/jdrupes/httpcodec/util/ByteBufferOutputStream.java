@@ -24,15 +24,13 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 /**
- * An {@link OutputStream} that is backed by a {@link ByteBuffer}
- * assigned to the stream. If the buffer becomes full, one or more
- * buffers are allocated as intermediate storage. Their content is
- * copied to the next assigned buffer(s).
+ * An {@link OutputStream} that is backed by a {@link ByteBuffer} assigned to
+ * the stream. If the buffer becomes full, one or more buffers are allocated as
+ * intermediate storage. Their content is copied to the next assigned buffer(s).
  * <p>
  * While writing to this stream, {@link #remaining()} should be checked
- * regularly and the production of data should be suspended if possible
- * when no more space is left to avoid the usage of intermediate
- * storage.
+ * regularly and the production of data should be suspended if possible when no
+ * more space is left to avoid the usage of intermediate storage.
  * 
  * @author Michael N. Lipp
  *
@@ -43,6 +41,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	private Queue<ByteBuffer> overflows = new ArrayDeque<>();
 	private ByteBuffer current = null;
 	private int overflowBufferSize = 0;
+	private long bytesWritten = 0;
 
 	/**
 	 * Creates a new instance with an unset overflow buffer size.
@@ -54,7 +53,8 @@ public class ByteBufferOutputStream extends OutputStream {
 	/**
 	 * Creates a new instance with the given overflow buffer size.
 	 * 
-	 * @param overflowBufferSize the overflow buffer size to use
+	 * @param overflowBufferSize
+	 *            the overflow buffer size to use
 	 */
 	public ByteBufferOutputStream(int overflowBufferSize) {
 		super();
@@ -62,8 +62,8 @@ public class ByteBufferOutputStream extends OutputStream {
 	}
 
 	/**
-	 * Returns the size of the buffers that will be allocated
-	 * as overflow buffers.
+	 * Returns the size of the buffers that will be allocated as overflow
+	 * buffers.
 	 *
 	 * @return the allocation size for the overflow buffers
 	 */
@@ -73,11 +73,11 @@ public class ByteBufferOutputStream extends OutputStream {
 
 	/**
 	 * The size of the buffers that are allocated if the assigned buffer
-	 * overflows. If not set, buffers are allocated with one fourth of
-	 * the size of the assigned buffer or 4096 if no buffer has been
-	 * assigned yet.
+	 * overflows. If not set, buffers are allocated with one fourth of the size
+	 * of the assigned buffer or 4096 if no buffer has been assigned yet.
 	 * 
-	 * @param overflowBufferSize the size
+	 * @param overflowBufferSize
+	 *            the size
 	 */
 	public void setOverflowBufferSize(int overflowBufferSize) {
 		this.overflowBufferSize = overflowBufferSize;
@@ -89,15 +89,15 @@ public class ByteBufferOutputStream extends OutputStream {
 	public void clear() {
 		overflows.clear();
 	}
-	
+
 	/**
-	 * Assign a new buffer to this output stream. If the previously
-	 * used buffer had become full and intermediate storage was allocated,
-	 * the data from the intermediate storage is copied to the new buffer
-	 * first. Then, the new buffer is used for all subsequent write
-	 * operations.
+	 * Assign a new buffer to this output stream. If the previously used buffer
+	 * had become full and intermediate storage was allocated, the data from the
+	 * intermediate storage is copied to the new buffer first. Then, the new
+	 * buffer is used for all subsequent write operations.
 	 * 
-	 * @param buffer the buffer to use
+	 * @param buffer
+	 *            the buffer to use
 	 */
 	public void assignBuffer(ByteBuffer buffer) {
 		assignedBuffer = buffer;
@@ -119,7 +119,7 @@ public class ByteBufferOutputStream extends OutputStream {
 		}
 		current = assignedBuffer;
 	}
-	
+
 	private void allocateOverflowBuffer() {
 		current = ByteBuffer.allocate(overflowBufferSize != 0
 		        ? overflowBufferSize
@@ -128,8 +128,10 @@ public class ByteBufferOutputStream extends OutputStream {
 		current.mark();
 		overflows.add(current);
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.io.OutputStream#write(int)
 	 */
 	@Override
@@ -137,10 +139,13 @@ public class ByteBufferOutputStream extends OutputStream {
 		if (current == null || current.remaining() == 0) {
 			allocateOverflowBuffer();
 		}
-		current.put((byte)b);
+		current.put((byte) b);
+		bytesWritten += 1;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.io.OutputStream#write(byte[], int, int)
 	 */
 	@Override
@@ -148,6 +153,7 @@ public class ByteBufferOutputStream extends OutputStream {
 		if (current == null) {
 			allocateOverflowBuffer();
 		}
+		bytesWritten += length;
 		while (true) {
 			if (current.remaining() >= length) {
 				current.put(b, offset, length);
@@ -172,6 +178,7 @@ public class ByteBufferOutputStream extends OutputStream {
 		if (current == null) {
 			allocateOverflowBuffer();
 		}
+		bytesWritten += b.remaining();
 		while (true) {
 			if (putAsMuchAsPossible(current, b)) {
 				return;
@@ -193,20 +200,21 @@ public class ByteBufferOutputStream extends OutputStream {
 		}
 		int savedLimit = b.limit();
 		b.limit(b.position() + length);
-		write (b);
+		write(b);
 		b.limit(savedLimit);
 	}
 
 	/**
-	 * Put as many bytes as possible from the src buffer into the 
-	 * destination buffer.
+	 * Put as many bytes as possible from the src buffer into the destination
+	 * buffer.
 	 * 
-	 * @param dest the destination buffer
-	 * @param src the source buffer
+	 * @param dest
+	 *            the destination buffer
+	 * @param src
+	 *            the source buffer
 	 * @return {@code true} if {@code src.remaining() == 0}
 	 */
-	public static boolean putAsMuchAsPossible
-			(ByteBuffer dest, ByteBuffer src) {
+	public static boolean putAsMuchAsPossible(ByteBuffer dest, ByteBuffer src) {
 		if (dest.remaining() >= src.remaining()) {
 			dest.put(src);
 			return true;
@@ -219,18 +227,21 @@ public class ByteBufferOutputStream extends OutputStream {
 		}
 		return false;
 	}
-	
+
 	/**
-	 * Put as many bytes as possible from the src buffer into the 
-	 * destination buffer but not more than specified by limit.
+	 * Put as many bytes as possible from the src buffer into the destination
+	 * buffer but not more than specified by limit.
 	 * 
-	 * @param dest the destination buffer
-	 * @param src the source buffer
-	 * @param limit the maximum number of bytes to transfer
+	 * @param dest
+	 *            the destination buffer
+	 * @param src
+	 *            the source buffer
+	 * @param limit
+	 *            the maximum number of bytes to transfer
 	 * @return {@code true} if {@code src.remaining() == 0}
 	 */
-	public static boolean putAsMuchAsPossible
-			(ByteBuffer dest, ByteBuffer src, int limit) {
+	public static boolean putAsMuchAsPossible(ByteBuffer dest, ByteBuffer src,
+	        int limit) {
 		if (src.remaining() <= limit) {
 			return putAsMuchAsPossible(dest, src);
 		}
@@ -242,26 +253,38 @@ public class ByteBufferOutputStream extends OutputStream {
 			src.limit(oldLimit);
 		}
 	}
-	
+
 	/**
-	 * Returns the number of bytes remaining in the assigned buffer.
-	 * A negative value indicates that the assigned buffer is full
-	 * and an overflow buffer is being used. 
+	 * Returns the number of bytes remaining in the assigned buffer. A negative
+	 * value indicates that the assigned buffer is full and one or more overflow
+	 * buffers are being used. The absolute value of the negative number is
+	 * the number of bytes in the overflow buffer(s).
 	 * 
-	 * @return the bytes remaining or -1
+	 * @return the bytes remaining or buffered (negative value)
 	 */
-	public int remaining() {
-		if (!overflows.isEmpty()) {
-			return -1;
+	public long remaining() {
+		if (overflows.isEmpty()) {
+			if (assignedBuffer == null) {
+				return 0;
+			}
+			return assignedBuffer.remaining();
 		}
-		return assignedBuffer.remaining();
+		long sum = 0;
+		for (ByteBuffer b : overflows) {
+			int curPos = b.position(); // Save position
+			b.reset();
+			sum += curPos - b.position();
+			b.position(curPos);
+		}
+		return -sum;
 	}
 
 	/**
-	 * Does not have any effect. May be called for consistent usage
-	 * of the output stream.
+	 * Does not have any effect. May be called for consistent usage of the
+	 * output stream.
 	 * 
-	 * @throws IOException if there is still data in intermediate storage
+	 * @throws IOException
+	 *             if there is still data in intermediate storage
 	 * @see java.io.OutputStream#close()
 	 */
 	@Override
@@ -269,25 +292,13 @@ public class ByteBufferOutputStream extends OutputStream {
 		// TODO Auto-generated method stub
 		super.close();
 	}
-	
+
 	/**
-	 * The sum of all bytes written. This includes the bytes in
-	 * the assigned buffer plus the sum of all bytes in all allocated
-	 * overflow buffers.
+	 *	The number of bytes written to this output stream.
 	 * 
-	 * @return the bytes buffer
+	 * @return the number of bytes written
 	 */
-	public long buffered() {
-		long sum = 0;
-		if (assignedBuffer != null) {
-			sum += assignedBuffer.position();
-		}
-		for (ByteBuffer b: overflows) {
-			int curPos = b.position(); // Save position
-			b.reset();
-			sum += curPos - b.position();
-			b.position(curPos);
-		}
-		return sum;
+	public long bytesWritten() {
+		return bytesWritten;
 	}
 }

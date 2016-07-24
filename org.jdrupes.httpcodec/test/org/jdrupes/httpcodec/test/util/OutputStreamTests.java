@@ -53,7 +53,7 @@ public class OutputStreamTests {
 		bytes = new byte[400];
 		dataSource.get(bytes);
 		os.write(bytes);
-		assertEquals(500, os.buffered());
+		assertEquals(500, os.bytesWritten());
 		assignedBuf.flip();
 		sink.put(assignedBuf); // 256/500 sinked
 		assertTrue(os.remaining() < 0);
@@ -70,7 +70,7 @@ public class OutputStreamTests {
 		assignedBuf = ByteBuffer.allocate(202);
 		os.assignBuffer(assignedBuf);
 		assertEquals(202, assignedBuf.position());
-		assertEquals(212, os.buffered());
+		assertEquals(500, os.bytesWritten());
 		assertTrue(os.remaining() < 0);
 		assignedBuf.flip();
 		sink.put(assignedBuf);

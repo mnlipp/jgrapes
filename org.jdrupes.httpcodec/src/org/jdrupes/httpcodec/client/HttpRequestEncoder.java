@@ -17,19 +17,31 @@
  */
 package org.jdrupes.httpcodec.client;
 
+import java.io.IOException;
+import java.io.Writer;
+
+import org.jdrupes.httpcodec.HttpRequest;
 import org.jdrupes.httpcodec.internal.Encoder;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class HttpRequestEncoder extends Encoder {
+public class HttpRequestEncoder extends Encoder<HttpRequest> {
 
-	/**
-	 * 
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.internal.Encoder#startMessage(org.jdrupes.httpcodec.internal.MessageHeader, java.io.Writer)
 	 */
-	public HttpRequestEncoder() {
-		// TODO Auto-generated constructor stub
+	@Override
+	protected void startMessage(HttpRequest messageHeader, Writer writer)
+	        throws IOException {
+		writer.write(messageHeader.getMethod());
+		writer.write(" ");
+		writer.write(messageHeader.getRequestUri().toString());
+		writer.write(" ");
+		writer.write(messageHeader.getProtocol().toString());
+		writer.write("\r\n");
 	}
+
 
 }
