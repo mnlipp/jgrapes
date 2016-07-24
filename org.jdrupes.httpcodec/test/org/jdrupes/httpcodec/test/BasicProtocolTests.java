@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.server.HttpRequestDecoder;
+import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.junit.Test;
 
 /**

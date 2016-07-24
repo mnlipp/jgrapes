@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
-import org.jdrupes.httpcodec.client.HttpResponseDecoder;
+import org.jdrupes.httpcodec.HttpResponseDecoder;
 import org.junit.Test;
 
 public class ResponseDecoderTests {

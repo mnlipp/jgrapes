@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.server.HttpRequestDecoder;
+import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.junit.Test;
 
 public class ProtocolErrorsTests {
