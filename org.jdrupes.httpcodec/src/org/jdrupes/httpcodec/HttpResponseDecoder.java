@@ -21,9 +21,6 @@ import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
-import org.jdrupes.httpcodec.HttpCodec.TransferCoding;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.internal.Decoder;
@@ -37,6 +34,7 @@ import org.jdrupes.httpcodec.internal.DecoderResult;
  */
 public class HttpResponseDecoder extends Decoder<HttpResponse> {
 
+	// RFC 7230 3.1.2
 	private final static Pattern responseLinePatter = Pattern
 	        .compile("^(" + HTTP_VERSION + ")" + SP + "([1-9][0-9][0-9])"
 	                + SP + "(.*)$");
@@ -83,10 +81,15 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 		return (Result)super.decode(in, out);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Checks whether the first line of a message is a valid response.
+	 * If so, create a new response message object with basic information, else
+	 * throw an exception.
+	 * <P>
+	 * Called by the base class when a first line is received.
 	 * 
-	 * @see org.jdrupes.httpcodec.HttpDecoder#newMessage(java.lang.String)
+	 * @param startLine the first line
+	 * @throws ProtocolException if the line is not a correct request line
 	 */
 	@Override
 	protected HttpResponse newMessage(String startLine)

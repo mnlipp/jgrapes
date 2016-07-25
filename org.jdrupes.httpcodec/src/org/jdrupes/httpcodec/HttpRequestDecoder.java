@@ -38,6 +38,7 @@ import org.jdrupes.httpcodec.internal.DecoderResult;
  */
 public class HttpRequestDecoder extends Decoder<HttpRequest> {
 
+	// RFC 7230 3.1.1
 	private final static Pattern requestLinePatter = Pattern
 	        .compile("^(" + TOKEN + ")" + SP + "([^ \\t]+)" + SP + "("
 	                + HTTP_VERSION + ")$");
@@ -68,11 +69,22 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 		}
 	}
 
+	/**
+	 * Checks whether the first line of a message is a valid request.
+	 * If so, create a new request message object with basic information, else
+	 * throw an exception.
+	 * <P>
+	 * Called by the base class when a first line is received.
+	 * 
+	 * @param startLine the first line
+	 * @throws ProtocolException if the line is not a correct request line
+	 */
 	@Override
 	protected HttpRequest newMessage(String startLine)
 	        throws ProtocolException {
 		Matcher requestMatcher = requestLinePatter.matcher(startLine);
 		if (!requestMatcher.matches()) {
+			// RFC 7230 3.1.1
 			throw new ProtocolException(protocolVersion,
 			        HttpStatus.BAD_REQUEST.getStatusCode(),
 			        "Illegal request line");
