@@ -57,7 +57,7 @@ public class HttpServerDemo extends Component {
 		HttpMediaTypeField media = new HttpMediaTypeField(
 		        HttpField.CONTENT_TYPE, "text", "html");
 		media.setParameter("charset", "utf-8");
-		response.setHeader(media);
+		response.setField(media);
 		(new Response(connection, response)).fire();
 		String form = "<!DOCTYPE html>"
 		        + "<html>"

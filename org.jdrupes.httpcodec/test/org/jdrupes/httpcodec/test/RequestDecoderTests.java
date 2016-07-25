@@ -62,7 +62,7 @@ public class RequestDecoderTests {
 		assertEquals("/test",
 		        decoder.getHeader().getRequestUri().getPath());
 		HttpCookieListField field = decoder.getHeader()
-		        .getHeader(HttpCookieListField.class, HttpField.COOKIE);
+		        .getField(HttpCookieListField.class, HttpField.COOKIE);
 		assertEquals(2, field.size());
 		assertEquals("yes", field.valueForName("_test."));
 		assertEquals("", field.valueForName("gsScrollPos"));

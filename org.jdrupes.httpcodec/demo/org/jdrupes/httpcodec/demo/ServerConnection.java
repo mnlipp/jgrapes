@@ -100,7 +100,7 @@ public class ServerConnection extends Thread {
 			media = new HttpMediaTypeField(
 			        HttpField.CONTENT_TYPE, "text", "plain");
 			media.setParameter("charset", "utf-8");
-			response.setHeader(media);
+			response.setField(media);
 		} catch (ParseException e) {
 		}
 		sendResponseHeader(response);
@@ -118,7 +118,7 @@ public class ServerConnection extends Thread {
 			media = new HttpMediaTypeField(
 			        HttpField.CONTENT_TYPE, "text", "html");
 			media.setParameter("charset", "utf-8");
-			response.setHeader(media);
+			response.setField(media);
 		} catch (ParseException e) {
 		}
 		sendResponseHeader(response);
@@ -168,7 +168,7 @@ public class ServerConnection extends Thread {
 			media = new HttpMediaTypeField(
 			        HttpField.CONTENT_TYPE, "text", "plain");
 			media.setParameter("charset", "utf-8");
-			response.setHeader(media);
+			response.setField(media);
 		} catch (ParseException e) {
 		}
 		sendResponseHeader(response);

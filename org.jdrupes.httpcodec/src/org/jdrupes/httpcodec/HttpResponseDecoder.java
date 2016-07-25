@@ -138,7 +138,7 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 		                && (statusCode % 100 == 2))) {
 			return BodyMode.NO_BODY;
 		}
-		HttpStringListField transEncs = message.getHeader(
+		HttpStringListField transEncs = message.getField(
 		        HttpStringListField.class, HttpField.TRANSFER_ENCODING);
 		// RFC 7230 3.3.3 (3.)
 		if (transEncs != null) {
@@ -150,7 +150,7 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 			}
 		}
 		// RFC 7230 3.3.3 (5.)
-		if (message.headers().containsKey(HttpField.CONTENT_LENGTH)) {
+		if (message.fields().containsKey(HttpField.CONTENT_LENGTH)) {
 			return BodyMode.LENGTH;
 		}
 		// RFC 7230 3.3.3 (7.)

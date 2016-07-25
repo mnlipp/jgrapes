@@ -378,13 +378,13 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 		switch (field.getName()) {
 		case HttpField.CONTENT_LENGTH:
 			// RFC 7230 3.3.3 (3.)
-			if (building.headers()
+			if (building.fields()
 			        .containsKey(HttpField.TRANSFER_ENCODING)) {
 				field = null;
 				break;
 			}
 			// RFC 7230 3.3.3 (4.)
-			HttpContentLengthField existing = building.getHeader(
+			HttpContentLengthField existing = building.getField(
 			        HttpContentLengthField.class, HttpField.CONTENT_LENGTH);
 			if (existing != null && !existing.getValue()
 			        .equals(((HttpContentLengthField) field).getValue())) {
@@ -402,14 +402,14 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 //			break;
 		case HttpField.TRANSFER_ENCODING:
 			// RFC 7230 3.3.3 (3.)
-			building.removeHeader(HttpField.CONTENT_LENGTH);
+			building.removeField(HttpField.CONTENT_LENGTH);
 			break;
 		}
 		if (field == null) {
 			return;
 		}
 		fieldReceived(building, field);
-		HttpField<?> existing = building.headers().get(field.getName());
+		HttpField<?> existing = building.fields().get(field.getName());
 		// RFC 7230 3.2.2
 		if (existing != null) {
 			if (!(existing instanceof HttpListField<?>)
@@ -421,7 +421,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 			}
 			((HttpListField<?>) existing).combine((HttpListField<?>) field);
 		} else {
-			building.setHeader(field);
+			building.setField(field);
 		}
 	}
     
@@ -437,7 +437,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 			states.push(State.RECEIVE_LINE);
 			break;
 		case LENGTH:
-			HttpContentLengthField clf = building.getHeader(
+			HttpContentLengthField clf = building.getField(
 			        HttpContentLengthField.class,
 			        HttpField.CONTENT_LENGTH);
 			leftToRead = clf.getValue();

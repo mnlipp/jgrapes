@@ -97,7 +97,7 @@ public class HttpResponse extends MessageHeader {
 	 */
 	public void setContentType(String type, String subtype) 
 			throws ParseException {
-		setHeader(new HttpMediaTypeField
+		setField(new HttpMediaTypeField
 				(HttpField.CONTENT_TYPE, type, subtype));
 	}
 
@@ -115,7 +115,7 @@ public class HttpResponse extends MessageHeader {
 		HttpMediaTypeField mt = new HttpMediaTypeField(HttpField.CONTENT_TYPE,
 		        type, subtype);
 		mt.setParameter("charset", charset);
-		setHeader(mt);
+		setField(mt);
 	}
 	
 	/**
@@ -124,6 +124,6 @@ public class HttpResponse extends MessageHeader {
 	 * @param length the length
 	 */
 	public void setContentLength(long length) {
-		setHeader(new HttpContentLengthField(length));
+		setField(new HttpContentLengthField(length));
 	}
 }

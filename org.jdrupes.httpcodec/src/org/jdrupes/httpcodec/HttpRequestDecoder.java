@@ -63,7 +63,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 		} catch (ProtocolException e) {
 			HttpResponse response = new HttpResponse(e.getHttpVersion(), 
 					e.getStatusCode(), e.getReasonPhrase(), false);
-			response.setHeader(
+			response.setField(
 			        new HttpStringListField(HttpField.CONNECTION, "close"));
 			return new Result(false, response, false, false, true);
 		}
@@ -132,7 +132,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 			break;
 		case HttpField.CONNECTION:
 			if (((HttpStringListField)field).containsIgnoreCase("close")) {
-				request.getResponse().setHeader(new HttpStringListField(
+				request.getResponse().setField(new HttpStringListField(
 				        HttpField.CONNECTION, "close"));
 			}
 			break;
@@ -145,7 +145,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 	@Override
 	protected BodyMode headerReceived(HttpRequest message) 
 			throws ProtocolException {
-		HttpStringListField transEncs = message.getHeader(
+		HttpStringListField transEncs = message.getField(
 		        HttpStringListField.class, HttpField.TRANSFER_ENCODING);
 		if (transEncs != null) {
 			// RFC 7230 3.3.1
@@ -167,7 +167,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 			}
 		}
 		// RFC 7230 3.3.3 (5.)
-		if (message.headers().containsKey(HttpField.CONTENT_LENGTH)) {
+		if (message.fields().containsKey(HttpField.CONTENT_LENGTH)) {
 			return BodyMode.LENGTH;
 		}
 		// RFC 7230 3.3.3 (6.)

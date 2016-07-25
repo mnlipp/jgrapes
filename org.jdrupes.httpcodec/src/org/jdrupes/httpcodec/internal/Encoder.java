@@ -177,7 +177,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 				// Start collecting
 				if (in == null) {
 					// Empty body
-					messageHeader.setHeader(new HttpContentLengthField(0));
+					messageHeader.setField(new HttpContentLengthField(0));
 					states.pop();
 					states.push(State.HEADERS);
 					break;
@@ -245,13 +245,13 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	 */
 	private void startMessage() {
 		// Make sure we have a Date, RFC 7231 7.1.1.2
-		if (!messageHeader.headers().containsKey(HttpField.DATE)) {
-			messageHeader.setHeader(new HttpDateField());
+		if (!messageHeader.fields().containsKey(HttpField.DATE)) {
+			messageHeader.setField(new HttpDateField());
 		}
 
 		// Complete content type
 		HttpMediaTypeField contentType = (HttpMediaTypeField) messageHeader
-		        .headers().get(HttpField.CONTENT_TYPE);
+		        .fields().get(HttpField.CONTENT_TYPE);
 		String charset = null;
 		if (contentType != null) {
 			charset = contentType.getParameter("charset");
@@ -275,7 +275,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 		states.push(State.DONE);
 		// Get a default for closeAfterBody from the header fields
 		HttpStringListField conField = messageHeader
-		        .getHeader(HttpStringListField.class, HttpField.CONNECTION);
+		        .getField(HttpStringListField.class, HttpField.CONNECTION);
 		closeAfterBody = conField != null
 		        && conField.containsIgnoreCase("close");
 		// If there's no body start outputting header fields
@@ -284,7 +284,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 			return;
 		}
 		// Message has a body, find out how to handle it
-		HttpIntField cl = messageHeader.getHeader(HttpIntField.class,
+		HttpIntField cl = messageHeader.getField(HttpIntField.class,
 		        HttpField.CONTENT_LENGTH);
 		contentLength = (cl == null ? -1 : cl.getValue());
 		if (contentLength >= 0) {
@@ -296,10 +296,10 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 		if (messageHeader.getProtocol()
 		        .compareTo(HttpProtocol.HTTP_1_0) > 0) {
 			// At least 1.1, use chunks
-			HttpStringListField transEnc = messageHeader.getHeader(
+			HttpStringListField transEnc = messageHeader.getField(
 			        HttpStringListField.class, HttpField.TRANSFER_ENCODING);
 			if (transEnc == null) {
-				messageHeader.setHeader(new HttpStringListField(
+				messageHeader.setField(new HttpStringListField(
 				        HttpField.TRANSFER_ENCODING,
 				        TransferCoding.CHUNKED.toString()));
 			} else {
@@ -334,7 +334,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	private void continueHeaders() {
 		try {
 			if (headerIter == null) {
-				headerIter = messageHeader.headers().values().iterator();
+				headerIter = messageHeader.fields().values().iterator();
 			}
 			while (true) {
 				if (!headerIter.hasNext()) {
@@ -364,7 +364,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	private Result collectBody(ByteBuffer in) {
 		if (in == null) {
 			// End of body, found content length!
-			messageHeader.setHeader(new HttpContentLengthField(
+			messageHeader.setField(new HttpContentLengthField(
 			        pendingBodyData.bytesWritten()));
 			states.pop();
 			states.push(State.STREAM_COLLECTED);

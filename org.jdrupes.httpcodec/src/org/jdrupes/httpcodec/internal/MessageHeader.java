@@ -57,29 +57,29 @@ public abstract class MessageHeader {
 	}
 
 	/**
-	 * Returns all headers as unmodifiable map.
+	 * Returns all header fields as unmodifiable map.
 	 * 
 	 * @return the headers
 	 */
-	public Map<String, HttpField<?>> headers() {
+	public Map<String, HttpField<?>> fields() {
 		return Collections.unmodifiableMap(headers);
 	}
 	
 	/**
-	 * Set a header for the message.
+	 * Set a header field for the message.
 	 * 
 	 * @param value the header field's value
 	 */
-	public void setHeader(HttpField<?> value) {
+	public void setField(HttpField<?> value) {
 		headers.put(value.getName(), value);
 	}
 
 	/**
-	 * Removes a header from the message.
+	 * Removes a header field from the message.
 	 * 
 	 * @param value the header field's value
 	 */
-	public void removeHeader(String name) {
+	public void removeField(String name) {
 		headers.remove(name);
 	}
 
@@ -91,7 +91,7 @@ public abstract class MessageHeader {
 	 * @param name the field name
 	 * @return the header field or {@code null}
 	 */
-	public <T extends HttpField<?>> T getHeader(Class<T> type, String name) {
+	public <T extends HttpField<?>> T getField(Class<T> type, String name) {
 		return type.cast(headers.get(name));
 	}
 	
