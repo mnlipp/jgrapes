@@ -7,6 +7,9 @@ import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.fields.HttpCookieListField;
+import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpSetCookieListField;
 import org.jdrupes.httpcodec.HttpResponseDecoder;
 import org.junit.Test;
 
@@ -31,6 +34,11 @@ public class ResponseDecoderTests {
 				+ "Keep-Alive: timeout=5, max=100\r\n"
 				+ "Connection: Keep-Alive\r\n"
 				+ "Content-Type: text/plain\r\n"
+				+ "set-cookie:autorf=deleted; "
+				+ "expires=Sun, 26-Jul-2015 12:32:17 GMT; "
+				+ "path=/; domain=www.test.com\r\n"
+				+ "Set-Cookie:MUIDB=13BEF4C6DC68E5; path=/; "
+				+ "httponly; expires=Wed, 25-Jul-2018 12:42:14 GMT\r\n"
 				+ "\r\n"
 				+ "Hello World!";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
@@ -49,6 +57,13 @@ public class ResponseDecoderTests {
 		String bodyText = new String(body.array(), body.position(),
 		        body.limit());
 		assertEquals("Hello World!", bodyText);
+		// Set-Cookies
+		HttpSetCookieListField field = decoder.getHeader()
+		        .getHeader(HttpSetCookieListField.class, HttpField.SET_COOKIE);
+		assertEquals(2, field.size());
+		assertEquals("deleted", field.valueForName("autorf"));
+		assertEquals("13BEF4C6DC68E5", field.valueForName("MUIDB"));
+		
 	}
 
 	/**

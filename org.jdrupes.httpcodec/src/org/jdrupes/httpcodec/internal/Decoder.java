@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
+import org.jdrupes.httpcodec.fields.HttpCookieListField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpListField;
 import org.jdrupes.httpcodec.util.ByteBufferUtils;
@@ -391,6 +392,14 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				        HttpStatus.BAD_REQUEST);
 			}
 			break;
+//		case HttpField.SET_COOKIE:
+//			HttpCookieListField setCookie = building
+//				.getHeader(HttpCookieListField.class, HttpField.COOKIE);
+//			if (setCookie != null) {
+//				setCookie.addAll(setCookie);
+//				field = null;
+//			}
+//			break;
 		case HttpField.TRANSFER_ENCODING:
 			// RFC 7230 3.3.3 (3.)
 			building.removeHeader(HttpField.CONTENT_LENGTH);

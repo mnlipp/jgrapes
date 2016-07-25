@@ -36,16 +36,19 @@ public abstract class HttpField<T> implements Cloneable {
 	final public static String CONTENT_TYPE = "Content-Type";
 	final public static String DATE = "Date";
 	final public static String HOST = "Host";
+	final public static String SET_COOKIE = "Set-Cookie";
 	final public static String TRANSFER_ENCODING = "Transfer-Encoding";
 
 	private static Map<String, String> fieldNameMap = new TreeMap<>(
 	        String.CASE_INSENSITIVE_ORDER);
 	static {
+		fieldNameMap.put(COOKIE, COOKIE);
 		fieldNameMap.put(CONNECTION, CONNECTION);
 		fieldNameMap.put(CONTENT_LENGTH, CONTENT_LENGTH);
 		fieldNameMap.put(CONTENT_TYPE, CONTENT_TYPE);
 		fieldNameMap.put(DATE, DATE);
 		fieldNameMap.put(HOST, HOST);
+		fieldNameMap.put(SET_COOKIE, SET_COOKIE);
 		fieldNameMap.put(TRANSFER_ENCODING, TRANSFER_ENCODING);
 	}
 	
@@ -76,6 +79,8 @@ public abstract class HttpField<T> implements Cloneable {
 			return HttpMediaTypeField.fromString(fieldName, fieldValue);
 		case HttpField.DATE:
 			return HttpDateField.fromString(fieldName, fieldValue);
+		case HttpField.SET_COOKIE:
+			return HttpSetCookieListField.fromString(fieldValue);
 		case HttpField.TRANSFER_ENCODING:
 			return HttpStringListField.fromString(fieldName, fieldValue);
 		default:
