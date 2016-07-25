@@ -30,6 +30,7 @@ import org.jdrupes.httpcodec.HttpCodec;
  */
 public abstract class HttpField<T> implements Cloneable {
 
+	final public static String COOKIE = "Cookie";
 	final public static String CONNECTION = "Connection";
 	final public static String CONTENT_LENGTH = "Content-Length";
 	final public static String CONTENT_TYPE = "Content-Type";
@@ -65,6 +66,8 @@ public abstract class HttpField<T> implements Cloneable {
 		String normalizedFieldName = fieldNameMap
 				.getOrDefault(fieldName, fieldName);
 		switch (normalizedFieldName) {
+		case HttpField.COOKIE:
+			return HttpCookieListField.fromString(fieldValue);
 		case HttpField.CONNECTION:
 			return HttpStringListField.fromString(fieldName, fieldValue);
 		case HttpField.CONTENT_LENGTH:
@@ -129,14 +132,29 @@ public abstract class HttpField<T> implements Cloneable {
 	public abstract String valueToString();
 	
 	/**
-	 * Returns the string representation of this field.
+	 * Returns the string representation of this field as it appears in
+	 * an HTTP message. Note that the returned string may span several
+	 * lines (may contain CRLF).
 	 * 
 	 * @return the field as it occurs in a header
 	 */
-	public String toString() {
+	public String toHeaderField() {
 		return getName() + ": " + valueToString();
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder s = new StringBuilder();
+		s.append(getClass().getSimpleName());
+		s.append(" [");
+		s.append(toHeaderField().replace("\r\n", " CRLF "));
+		s.append("]");
+		return s.toString();
+	}
+
 	/**
 	 * If the value is double quoted, remove the quotes and escape
 	 * characters.

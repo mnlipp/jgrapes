@@ -19,7 +19,6 @@ package org.jdrupes.httpcodec.fields;
 
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.Iterator;
 
 /**
  * An HTTP field value that consists of a comma separated list of 
@@ -73,7 +72,6 @@ public class HttpStringListField extends HttpListField<String>
 	 * @param s the string to parse
 	 * @throws ParseException 
 	 */
-	
 	public static HttpStringListField fromString(String name, String s) 
 			throws ParseException {
 		HttpStringListField result = new HttpStringListField(name, s, true);

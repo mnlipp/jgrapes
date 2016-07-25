@@ -69,6 +69,15 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	}
 
 	/**
+	 * Returns the char that separates th items in the list.
+	 * 
+	 * @return comma
+	 */
+	protected char getSeparator() {
+		return ',';
+	}
+	
+	/**
 	 * Reset the parsing state.
 	 */
 	protected void reset() {
@@ -84,6 +93,7 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	protected String nextElement() throws ParseException {
 		boolean inDquote = false;
 		int startPosition = position;
+		char separator = getSeparator();
 		try {
 			while (true) {
 				if (inDquote) {
@@ -106,10 +116,9 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 					return unparsedValue.substring(startPosition, position);
 				}
 				char ch = unparsedValue.charAt(position);
-				switch (ch) {
-				case ',':
+				if (ch == separator) {
 					String result = unparsedValue
-						.substring(startPosition, position);
+					        .substring(startPosition, position);
 					position += 1; // Skip comma
 					while (true) { // Skip optional white space
 						ch = unparsedValue.charAt(position);
@@ -119,6 +128,8 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 						position += 1;
 					}
 					return result;
+				}
+				switch (ch) {
 				case '\"':
 					inDquote = true;
 				default:
@@ -146,13 +157,15 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	 */
 	@Override
 	public String valueToString() {
+		char separator = getSeparator();
 		boolean first = true;
 		StringBuilder result = new StringBuilder();
 		for (T e: this) {
 			if (first) {
 				first = false;
 			} else {
-				result.append(", ");
+				result.append(separator);
+				result.append(" ");
 			}
 			result.append(elementToString(e));
 		}
