@@ -27,6 +27,8 @@ import java.nio.ByteBuffer;
 import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.jdrupes.httpcodec.fields.HttpCookieListField;
 import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpStringField;
+import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.junit.Test;
 
 /**
@@ -329,5 +331,61 @@ public class RequestDecoderTests {
 		String bodyText = new String(body.array(), body.position(),
 		        body.limit());
 		assertEquals("firstname=J.&lastname=Grapes", bodyText);
+	}
+
+	/**
+	 * POST with chunked body and trailer part.
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
+	@Test
+	public void testPostChunkedWithTrailer()
+	        throws UnsupportedEncodingException {
+		String reqText = "POST /form HTTP/1.1\r\n"
+		        + "Host: localhost:8888\r\n"
+		        + "Connection: keep-alive\r\n"
+		        + "Transfer-Encoding: chunked\r\n"
+		        + "Origin: http://localhost:8888\r\n"
+		        + "Content-Type: application/x-www-form-urlencoded\r\n"
+		        + "Referer: http://localhost:8888/form\r\n"
+		        + "Accept-Encoding: gzip, deflate\r\n"
+		        + "Accept-Language: de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4\r\n"
+		        + "\r\n"
+		        + "1c;dummy=0\r\n"
+		        + "firstname=J.&lastname=Grapes\r\n"
+		        + "0\r\n"
+		        + "X-Test-Field: Valid\r\n"
+		        + "X-Summary-Field: Good\r\n"
+		        + "\r\n";
+		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
+		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		ByteBuffer body = ByteBuffer.allocate(1024);
+		HttpRequestDecoder.Result result = decoder.decode(buffer, body);
+		assertTrue(result.isHeaderCompleted());
+		assertFalse(result.hasResponse());
+		assertTrue(decoder.getHeader().messageHasBody());
+		assertFalse(result.getCloseConnection());
+		assertEquals("POST", decoder.getHeader().getMethod());
+		assertEquals("/form",
+		        decoder.getHeader().getRequestUri().getPath());
+		assertFalse(result.isOverflow());
+		assertFalse(result.isUnderflow());
+		assertTrue(!buffer.hasRemaining());
+		body.flip();
+		String bodyText = new String(body.array(), body.position(),
+		        body.limit());
+		assertEquals("firstname=J.&lastname=Grapes", bodyText);
+		// Trailer
+		HttpStringListField trailer = decoder.getHeader()
+		        .getField(HttpStringListField.class, HttpField.TRAILER);
+		assertEquals(2, trailer.size());
+		trailer.contains("X-Test-Field");
+		trailer.contains("X-Summary-Field");
+		HttpStringField testField = decoder.getHeader()
+		        .getField(HttpStringField.class, "X-Test-Field");
+		assertEquals("Valid", testField.getValue());
+		testField = decoder.getHeader().getField(HttpStringField.class,
+		        "X-Summary-Field");
+		assertEquals("Good", testField.getValue());
 	}
 }

@@ -38,11 +38,13 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	private List<T> elements = new ArrayList<>();
 	
 	/**
-	 * Creates a new header field object with the given field name and no
-	 * elements.
+	 * Creates a new object with the given field name and no elements. Note 
+	 * that in this
+	 * initial state, the field is invalid and no string representation
+	 * can be generated. This constructor must be followed by method invocations
+	 * that add values.
 	 * 
-	 * @param name
-	 *            the field name
+	 * @param name the field name
 	 */
 	protected HttpListField(String name) {
 		super(name);
@@ -164,6 +166,10 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	 */
 	@Override
 	public String asFieldValue() {
+		if (size() == 0) {
+			throw new IllegalStateException(
+			        "Field with list value may not be empty.");
+		}
 		char separator = getDelimiter();
 		boolean first = true;
 		StringBuilder result = new StringBuilder();

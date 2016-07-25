@@ -27,9 +27,9 @@ import java.util.regex.Pattern;
 import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
-import org.jdrupes.httpcodec.fields.HttpCookieListField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpListField;
+import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.util.ByteBufferUtils;
 import org.jdrupes.httpcodec.util.DynamicByteArray;
 
@@ -52,7 +52,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
     	// Main states
         AWAIT_MESSAGE_START, HEADER_LINE_RECEIVED, 
         COPY_UNTIL_CLOSED, CONTENT_RECEIVED, 
-        CHUNK_START_RECEIVED, CHUNK_END_RECEIVED, CHUNK_TRAILER_RECEIVED,
+        CHUNK_START_RECEIVED, CHUNK_END_RECEIVED, CHUNK_TRAILER_LINE_RECEIVED,
         // Sub states
         RECEIVE_LINE, AWAIT_LINE_END, COPY_SPECIFIED
     }
@@ -286,7 +286,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				long chunkSize = Long.parseLong(sizeText, 16);
 				if (chunkSize == 0) {
 					states.pop();
-					states.push(State.CHUNK_TRAILER_RECEIVED);
+					states.push(State.CHUNK_TRAILER_LINE_RECEIVED);
 					states.push(State.RECEIVE_LINE);
 					continue;
 				}
@@ -312,11 +312,13 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				states.push(State.RECEIVE_LINE);
 				continue;
 				
-			case CHUNK_TRAILER_RECEIVED:
+			case CHUNK_TRAILER_LINE_RECEIVED:
 				// We "drop" to this state when a line has been read
 				if (!receivedLine.isEmpty()) {
-					// Ignore trailers
+					headerLine = receivedLine;
+					newTrailerLine();
 					states.push(State.RECEIVE_LINE);
+					break;
 				}
 				// All chunked data received, wait for next message
 				states.push(State.AWAIT_MESSAGE_START);
@@ -391,14 +393,6 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				        HttpStatus.BAD_REQUEST);
 			}
 			break;
-//		case HttpField.SET_COOKIE:
-//			HttpCookieListField setCookie = building
-//				.getHeader(HttpCookieListField.class, HttpField.COOKIE);
-//			if (setCookie != null) {
-//				setCookie.addAll(setCookie);
-//				field = null;
-//			}
-//			break;
 		case HttpField.TRANSFER_ENCODING:
 			// RFC 7230 3.3.3 (3.)
 			building.removeField(HttpField.CONTENT_LENGTH);
@@ -407,9 +401,39 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 		if (field == null) {
 			return;
 		}
+		addHeaderField(field);
+	}
+    
+	private void newTrailerLine() throws ProtocolException, ParseException {
+		headerLength += headerLine.length() + 2;
+		// RFC 7230 3.2
+		Matcher m = headerLinePatter.matcher(headerLine);
+		if (!m.matches()) {
+			throw new ProtocolException(protocolVersion, 
+			        HttpStatus.BAD_REQUEST.getStatusCode(), "Invalid header");
+		}
+		String fieldName = m.group(1);
+		// RFC 7230 3.2.4
+		String fieldValue = m.group(2).trim();
+		HttpField<?> field = HttpField.fromString(fieldName, fieldValue);
+		// RFC 7230 4.4
+		HttpStringListField trailerField = building
+		        .getField(HttpStringListField.class, HttpField.TRAILER);
+		if (trailerField == null) {
+			trailerField = new HttpStringListField(HttpField.TRAILER);
+			building.setField(trailerField);
+		}
+		if (!trailerField.contains(field.getName())) {
+			trailerField.add(field.getName());
+		}
+		addHeaderField(field);
+	}
+
+	private void addHeaderField(HttpField<?> field)
+	        throws ProtocolException, ParseException {
 		fieldReceived(building, field);
-		HttpField<?> existing = building.fields().get(field.getName());
 		// RFC 7230 3.2.2
+		HttpField<?> existing = building.fields().get(field.getName());
 		if (existing != null) {
 			if (!(existing instanceof HttpListField<?>)
 			        || !(field instanceof HttpListField<?>)

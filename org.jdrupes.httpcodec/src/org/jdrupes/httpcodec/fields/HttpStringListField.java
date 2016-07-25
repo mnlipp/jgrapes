@@ -31,12 +31,17 @@ public class HttpStringListField extends HttpListField<String>
 	implements Cloneable {
 
 	/**
-	 * Creates a new object with the given field name.
+	 * Creates a new object with the given field name and no elements. Note 
+	 * that in this
+	 * initial state, the field is invalid and no string representation
+	 * can be generated. This constructor must be followed by method invocations
+	 * that add values.
 	 * 
 	 * @param name the field name
 	 */
-	protected HttpStringListField(String name) {
+	public HttpStringListField(String name) {
 		super(name);
+		reset();
 	}
 
 	/**
