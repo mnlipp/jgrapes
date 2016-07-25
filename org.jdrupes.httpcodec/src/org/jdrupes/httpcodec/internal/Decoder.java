@@ -43,6 +43,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 	final protected static String SP = "[ \\t]+";
 	final protected static String HTTP_VERSION = "HTTP/\\d+\\.\\d";
 
+	// RFC 7230 3.2
 	final protected static Pattern headerLinePatter = Pattern
 	        .compile("^(" + TOKEN + "):(.*)$");
 	
@@ -243,12 +244,12 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 					if (!receivedLine.isEmpty()
 					        && (receivedLine.charAt(0) == ' '
 					                || receivedLine.charAt(0) == '\t')) {
-						headerLine += (" " + receivedLine);
+						headerLine += (" " + receivedLine.substring(1));
 						states.push(State.RECEIVE_LINE);
 						continue;
 					}
 					// Header line complete, evaluate
-					evaluateHeaderLine();
+					newHeaderLine();
 				}
 				if (receivedLine.isEmpty()) {
 					// Body starts
@@ -357,13 +358,14 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 		return createResult(false, true, false);
 	}
 
-	private void evaluateHeaderLine() throws ProtocolException, ParseException {
+	private void newHeaderLine() throws ProtocolException, ParseException {
 		headerLength += headerLine.length() + 2;
 		if (headerLength > maxHeaderLength) {
 			throw new ProtocolException(protocolVersion, 
 					HttpStatus.BAD_REQUEST.getStatusCode(), 
 					"Maximum header size exceeded");
 		}
+		// RFC 7230 3.2
 		Matcher m = headerLinePatter.matcher(headerLine);
 		if (!m.matches()) {
 			throw new ProtocolException(protocolVersion, 
