@@ -79,6 +79,7 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	 * @return the default implementation returns a comma
 	 */
 	protected char getDelimiter() {
+		// Used by default in RFC 7230, see section 7.
 		return ',';
 	}
 	
