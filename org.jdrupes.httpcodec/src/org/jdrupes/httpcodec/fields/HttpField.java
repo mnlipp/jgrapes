@@ -37,9 +37,12 @@ public abstract class HttpField<T> implements Cloneable {
 	final public static String DATE = "Date";
 	final public static String HOST = "Host";
 	final public static String SET_COOKIE = "Set-Cookie";
+	final public static String TE = "TE";
 	final public static String TRAILER = "Trailer";
 	final public static String TRANSFER_ENCODING = "Transfer-Encoding";
-
+	final public static String UPGRADE = "Upgrade";
+	final public static String VIA = "Via";
+	
 	private static Map<String, String> fieldNameMap = new TreeMap<>(
 	        String.CASE_INSENSITIVE_ORDER);
 	static {
@@ -50,8 +53,11 @@ public abstract class HttpField<T> implements Cloneable {
 		fieldNameMap.put(DATE, DATE);
 		fieldNameMap.put(HOST, HOST);
 		fieldNameMap.put(SET_COOKIE, SET_COOKIE);
+		fieldNameMap.put(TE, TE);
 		fieldNameMap.put(TRAILER, TRAILER);
 		fieldNameMap.put(TRANSFER_ENCODING, TRANSFER_ENCODING);
+		fieldNameMap.put(UPGRADE, UPGRADE);
+		fieldNameMap.put(VIA, VIA);
 	}
 	
 	/**
@@ -88,6 +94,8 @@ public abstract class HttpField<T> implements Cloneable {
 		case HttpField.TRAILER:
 			return HttpStringListField.fromString(fieldName, fieldValue);
 		case HttpField.TRANSFER_ENCODING:
+			return HttpStringListField.fromString(fieldName, fieldValue);
+		case HttpField.VIA:
 			return HttpStringListField.fromString(fieldName, fieldValue);
 		default:
 			return HttpStringField.fromString(fieldName, fieldValue);
