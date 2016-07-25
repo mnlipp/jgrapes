@@ -41,7 +41,6 @@ public class HttpCookieListField extends HttpListField<HttpCookie> {
 	 * Creates a new object with the elements obtained by parsing the given
 	 * String.
 	 * 
-	 * @param name the field name
 	 * @param s the string to parse
 	 * @throws ParseException 
 	 */
