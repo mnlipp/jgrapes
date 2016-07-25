@@ -34,7 +34,7 @@ public class HttpDateField extends HttpField<Instant> {
 	private Instant value;
 
 	/**
-	 * Creates the object with the given value.
+	 * Creates a header field object with the given value.
 	 * 
 	 * @param name the field name
 	 * @param value
@@ -46,7 +46,7 @@ public class HttpDateField extends HttpField<Instant> {
 	}
 
 	/**
-	 * Creates the object with name "Date" and the current Time.
+	 * Creates a header field object with name "Date" and the current Time.
 	 * 
 	 * @param value
 	 *            the field value
@@ -104,7 +104,7 @@ public class HttpDateField extends HttpField<Instant> {
 	 * @see org.jdrupes.httpcodec.util.HttpFieldValue#asString()
 	 */
 	@Override
-	public String valueToString() {
+	public String asFieldValue() {
 		return DateTimeFormatter.RFC_1123_DATE_TIME.format
 				(value.atZone(ZoneId.of("GMT")));	
 	}

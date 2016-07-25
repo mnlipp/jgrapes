@@ -21,13 +21,17 @@ import java.net.HttpCookie;
 import java.text.ParseException;
 
 /**
+ * Represents all "Set-Cookie" fields in a Response header. Several
+ * cookies are actually set with several headers. However, to provide
+ * uniform access to all header fields, they are converted to a field
+ * with a list of values in the internal representation.
+ * 
  * @author Michael N. Lipp
- *
  */
 public class HttpSetCookieListField extends HttpListField<HttpCookie> {
 
 	/**
-	 * Creates a new object with the field name "Set-Cookie".
+	 * Creates a new header field object with the field name "Set-Cookie".
 	 */
 	public HttpSetCookieListField() {
 		super(HttpField.SET_COOKIE);

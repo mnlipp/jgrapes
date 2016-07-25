@@ -30,7 +30,7 @@ public class HttpIntField extends HttpField<Long> {
 	private long value;
 	
 	/**
-	 * Creates the object with the given value.
+	 * Creates the header field object with the given value.
 	 * 
 	 * @param name the field name
 	 * @param value the field value
@@ -60,12 +60,14 @@ public class HttpIntField extends HttpField<Long> {
 	}
 	
 	/**
-	 * Creates a new object with a value obtained by parsing the given
-	 * String.
+	 * Creates a new header field object with a value obtained by parsing the
+	 * given String.
 	 * 
-	 * @param name the field name
-	 * @param s the string to parse
-	 * @throws ParseException 
+	 * @param name
+	 *            the field name
+	 * @param s
+	 *            the string to parse
+	 * @throws ParseException
 	 */
 	public static HttpIntField fromString(String name, String s)
 			throws ParseException {
@@ -95,7 +97,7 @@ public class HttpIntField extends HttpField<Long> {
 	 * @see org.jdrupes.httpcodec.util.HttpFieldValue#asString()
 	 */
 	@Override
-	public String valueToString() {
+	public String asFieldValue() {
 		return Long.toString(value);
 	}
 	

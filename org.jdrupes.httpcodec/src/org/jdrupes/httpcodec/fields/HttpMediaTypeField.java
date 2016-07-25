@@ -26,8 +26,8 @@ import javax.activation.MimeTypeParameterList;
 import javax.activation.MimeTypeParseException;
 
 /**
- * Represents a header field's value and provides methods for interpreting
- * that value.
+ * Represents a media type header field and provides methods for interpreting
+ * its value.
  * 
  * @author Michael N. Lipp
  */
@@ -67,12 +67,16 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	}
 	
 	/**
-	 * Creates new object with the given type and subtype and no parameters.
+	 * Creates new header field object with the given type and subtype and no
+	 * parameters.
 	 * 
-	 * @param name the field name
-	 * @param type the type 
-	 * @param subtype the subtype
-	 * @throws ParseException 
+	 * @param name
+	 *            the field name
+	 * @param type
+	 *            the type
+	 * @param subtype
+	 *            the subtype
+	 * @throws ParseException
 	 */
 	public HttpMediaTypeField(String name, String type, String subtype) 
 			throws ParseException {
@@ -118,7 +122,7 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	 * @see org.jdrupes.httpcodec.util.HttpFieldValue#asString()
 	 */
 	@Override
-	public String valueToString() {
+	public String asFieldValue() {
 		return value.toString();
 	}
 

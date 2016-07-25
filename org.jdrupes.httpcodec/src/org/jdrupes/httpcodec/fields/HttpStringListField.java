@@ -22,7 +22,7 @@ import java.util.Arrays;
 
 /**
  * An HTTP field value that consists of a comma separated list of 
- * strings. The class provides an unmodifiable list of strings view
+ * strings. The class provides a "list of strings" view
  * of the values.
  * 
  * @author Michael N. Lipp

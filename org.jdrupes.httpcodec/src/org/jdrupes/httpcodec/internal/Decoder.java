@@ -44,7 +44,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 	final protected static String SP = "[ \\t]+";
 	final protected static String HTTP_VERSION = "HTTP/\\d+\\.\\d";
 
-	// RFC 7230 3.2
+	// RFC 7230 3.2, 3.2.4
 	final protected static Pattern headerLinePatter = Pattern
 	        .compile("^(" + TOKEN + "):(.*)$");
 	
@@ -200,7 +200,8 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 					continue;
 				}
 				lineBuilder.append(ch);
-				if (lineBuilder.position() > maxHeaderLength) {
+				// RFC 7230 3.2.5
+				if (headerLength + lineBuilder.position() > maxHeaderLength) {
 					throw new ProtocolException(protocolVersion,
 					        HttpStatus.BAD_REQUEST.getStatusCode(),
 					        "Maximum header size exceeded");
@@ -212,6 +213,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				char ch = (char) in.get();
 				if (ch == '\n') {
 					try {
+						// RFC 7230 3.2.4
 						receivedLine = new String(lineBuilder.array(), 0,
 						        lineBuilder.position(), "iso-8859-1");
 					} catch (UnsupportedEncodingException e) {
@@ -242,6 +244,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 
 			case HEADER_LINE_RECEIVED:
 				if (headerLine != null) {
+					// RFC 7230 3.2.4
 					if (!receivedLine.isEmpty()
 					        && (receivedLine.charAt(0) == ' '
 					                || receivedLine.charAt(0) == '\t')) {
@@ -361,11 +364,6 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 
 	private void newHeaderLine() throws ProtocolException, ParseException {
 		headerLength += headerLine.length() + 2;
-		if (headerLength > maxHeaderLength) {
-			throw new ProtocolException(protocolVersion, 
-					HttpStatus.BAD_REQUEST.getStatusCode(), 
-					"Maximum header size exceeded");
-		}
 		// RFC 7230 3.2
 		Matcher m = headerLinePatter.matcher(headerLine);
 		if (!m.matches()) {
@@ -373,6 +371,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 			        HttpStatus.BAD_REQUEST.getStatusCode(), "Invalid header");
 		}
 		String fieldName = m.group(1);
+		// RFC 7230 3.2.4
 		String fieldValue = m.group(2).trim();
 		HttpField<?> field = HttpField.fromString(fieldName, fieldValue);
 		switch (field.getName()) {

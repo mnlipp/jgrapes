@@ -25,9 +25,8 @@ import java.util.List;
 import java.util.ListIterator;
 
 /**
- * An HTTP field value that consists of a comma separated list of 
- * strings. The class provides an unmodifiable list of strings view
- * of the values.
+ * An HTTP field value that consists of a list of separated by a delimiter
+ * strings. The class provides a "list of field values" view of the values.
  * 
  * @author Michael N. Lipp
  */
@@ -39,9 +38,11 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	private List<T> elements = new ArrayList<>();
 	
 	/**
-	 * Creates a new object with the given field name and no elements.
+	 * Creates a new header field object with the given field name and no
+	 * elements.
 	 * 
-	 * @param name the field name
+	 * @param name
+	 *            the field name
 	 */
 	protected HttpListField(String name) {
 		super(name);
@@ -49,9 +50,13 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	}
 
 	/**
-	 * Creates a new object with the given field name and unparsed value.
+	 * Creates a new header field object with the given field name and unparsed
+	 * value.
 	 * 
-	 * @param name the field name
+	 * @param name
+	 *            the field name
+	 * @param unparsedValue
+	 * 			  the field value as it appears in the HTTP header
 	 */
 	protected HttpListField(String name, String unparsedValue) {
 		this(name);
@@ -69,11 +74,11 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	}
 
 	/**
-	 * Returns the char that separates th items in the list.
+	 * Returns the char that separates the items in the list.
 	 * 
-	 * @return comma
+	 * @return the default implementation returns a comma
 	 */
-	protected char getSeparator() {
+	protected char getDelimiter() {
 		return ',';
 	}
 	
@@ -91,9 +96,10 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	 * @throws ParseException 
 	 */
 	protected String nextElement() throws ParseException {
+		// RFC 7230 3.2.6
 		boolean inDquote = false;
 		int startPosition = position;
-		char separator = getSeparator();
+		char separator = getDelimiter();
 		try {
 			while (true) {
 				if (inDquote) {
@@ -156,8 +162,8 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	 * @see org.jdrupes.httpcodec.util.HttpFieldValue#asString()
 	 */
 	@Override
-	public String valueToString() {
-		char separator = getSeparator();
+	public String asFieldValue() {
+		char separator = getDelimiter();
 		boolean first = true;
 		StringBuilder result = new StringBuilder();
 		for (T e: this) {

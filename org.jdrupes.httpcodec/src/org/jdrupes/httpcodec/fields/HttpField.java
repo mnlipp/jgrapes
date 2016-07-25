@@ -24,7 +24,7 @@ import java.util.TreeMap;
 import org.jdrupes.httpcodec.HttpCodec;
 
 /**
- * A base class for all kinds of field values.
+ * A base class for all kinds of header field values.
  * 
  * @author Michael N. Lipp
  */
@@ -53,14 +53,16 @@ public abstract class HttpField<T> implements Cloneable {
 	}
 	
 	/**
-	 * Returns an HttpField that represents the given header field,
-	 * using the best matching derived class in this package. Works
-	 * for all well known field names, i.e. the field names defined
-	 * as constants in this class. If the field name is unknown,
-	 * the result will be of type {@link HttpStringField}.
+	 * Returns an HttpField that represents the given header field, using the
+	 * best matching derived class in this package. Works for all well known
+	 * field names, i.e. the field names defined as constants in this class. If
+	 * the field name is unknown, the result will be of type
+	 * {@link HttpStringField}.
 	 * 
-	 * @param fieldName the field name
-	 * @param fieldValue the field value
+	 * @param fieldName
+	 *            the field name
+	 * @param fieldValue
+	 *            the field value
 	 * @return a typed representation
 	 * @throws ParseException
 	 */
@@ -91,7 +93,7 @@ public abstract class HttpField<T> implements Cloneable {
 	final private String name;
 	
 	/**
-	 * Creates a new representation of a field value. For fields with
+	 * Creates a new representation of a header field value. For fields with
 	 * a constant definition in this class, the name is normalized.
 	 * 
 	 * @param name the field name
@@ -114,7 +116,7 @@ public abstract class HttpField<T> implements Cloneable {
 	}
 
 	/**
-	 * Returns the field name.
+	 * Returns the header field name.
 	 * 
 	 * @return the name
 	 */
@@ -123,7 +125,7 @@ public abstract class HttpField<T> implements Cloneable {
 	}
 
 	/**
-	 * Returns the header field's value.
+	 * Returns the header field's parsed value.
 	 * 
 	 * @return the field's value
 	 */
@@ -134,17 +136,17 @@ public abstract class HttpField<T> implements Cloneable {
 	 * 
 	 * @return the field value as string
 	 */
-	public abstract String valueToString();
+	public abstract String asFieldValue();
 	
 	/**
-	 * Returns the string representation of this field as it appears in
+	 * Returns the string representation of this header field as it appears in
 	 * an HTTP message. Note that the returned string may span several
 	 * lines (may contain CRLF).
 	 * 
 	 * @return the field as it occurs in a header
 	 */
-	public String toHeaderField() {
-		return getName() + ": " + valueToString();
+	public String asHeaderField() {
+		return getName() + ": " + asFieldValue();
 	}
 	
 	/* (non-Javadoc)
@@ -155,7 +157,7 @@ public abstract class HttpField<T> implements Cloneable {
 		StringBuilder s = new StringBuilder();
 		s.append(getClass().getSimpleName());
 		s.append(" [");
-		s.append(toHeaderField().replace("\r\n", " CRLF "));
+		s.append(asHeaderField().replace("\r\n", " CRLF "));
 		s.append("]");
 		return s.toString();
 	}
@@ -169,6 +171,7 @@ public abstract class HttpField<T> implements Cloneable {
 	 * @throws ParseException 
 	 */
 	public static String unquote(String value) throws ParseException {
+		// RFC 7230 3.2.6
 		if (value.length() == 0 || value.charAt(0) != '\"') {
 			return value;
 		}
@@ -209,6 +212,7 @@ public abstract class HttpField<T> implements Cloneable {
 	 * @return the result
 	 */
 	public static String quoteIfNecessary(String value) {
+		// RFC 7230 3.2.6
 		StringBuilder result = new StringBuilder();
 		int position = 0;
 		boolean needsQuoting = false;

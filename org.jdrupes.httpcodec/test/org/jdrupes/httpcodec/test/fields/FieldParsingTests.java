@@ -77,13 +77,13 @@ public class FieldParsingTests {
 	public void testMediaType() throws ParseException {
 		HttpMediaTypeField mt = HttpMediaTypeField.fromString("Test",
 		        "text/html;charset=utf-8");
-		assertEquals("text/html; charset=utf-8", mt.valueToString());
+		assertEquals("text/html; charset=utf-8", mt.asFieldValue());
 		mt = HttpMediaTypeField.fromString("Test",
 		        "Text/HTML;Charset=\"utf-8\"");
-		assertEquals("text/html; charset=utf-8", mt.valueToString());
+		assertEquals("text/html; charset=utf-8", mt.asFieldValue());
 		mt = HttpMediaTypeField.fromString("Test",
 		        "text/html; charset=\"utf-8\"");
-		assertEquals("text/html; charset=utf-8", mt.valueToString());
+		assertEquals("text/html; charset=utf-8", mt.asFieldValue());
 	}
 	
 	@Test
@@ -98,6 +98,6 @@ public class FieldParsingTests {
 		assertEquals(12, value.getMinute());
 		assertEquals(31, value.getSecond());
 		HttpDateField back = new HttpDateField("Date", value.toInstant());
-		assertEquals(dateTime, back.valueToString());
+		assertEquals(dateTime, back.asFieldValue());
 	}
 }

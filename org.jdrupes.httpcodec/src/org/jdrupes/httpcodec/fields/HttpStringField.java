@@ -20,8 +20,7 @@ package org.jdrupes.httpcodec.fields;
 import java.text.ParseException;
 
 /**
- * Represents a header field's value and provides methods for interpreting
- * that value.
+ * Represents a header field that has a simple string as its value.
  * 
  * @author Michael N. Lipp
  */
@@ -30,7 +29,7 @@ public class HttpStringField extends HttpField<String> {
 	private String value;
 	
 	/**
-	 * Creates a new representation of a field value.
+	 * Creates a new header field object with the given field name and value.
 	 * 
 	 * @param name the field name
 	 * @param value the field value
@@ -66,7 +65,7 @@ public class HttpStringField extends HttpField<String> {
 	 * @see org.jdrupes.httpcodec.util.HttpFieldValue#asString()
 	 */
 	@Override
-	public String valueToString() {
+	public String asFieldValue() {
 		return quoteIfNecessary(value);
 	}
 }

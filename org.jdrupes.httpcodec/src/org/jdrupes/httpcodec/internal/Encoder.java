@@ -344,7 +344,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 					return;
 				}
 				HttpField<?> header = headerIter.next();
-				writer.write(header.toHeaderField());
+				writer.write(header.asHeaderField());
 				writer.write("\r\n");
 				writer.flush();
 				if (outStream.remaining() <= 0) {

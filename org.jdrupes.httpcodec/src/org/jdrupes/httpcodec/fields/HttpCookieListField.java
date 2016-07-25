@@ -65,7 +65,7 @@ public class HttpCookieListField extends HttpListField<HttpCookie> {
 	 * @see org.jdrupes.httpcodec.fields.HttpListField#getSeparator()
 	 */
 	@Override
-	protected char getSeparator() {
+	protected char getDelimiter() {
 		return ';';
 	}
 
