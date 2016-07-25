@@ -53,7 +53,11 @@ public class HttpCookieListField extends HttpListField<HttpCookie> {
 			if (element == null) {
 				break;
 			}
-			result.addAll(HttpCookie.parse(element));
+			try {
+				result.addAll(HttpCookie.parse(element));
+			} catch (IllegalArgumentException e) {
+				throw new ParseException(element, 0);
+			}
 		}
 		return result;
 	}

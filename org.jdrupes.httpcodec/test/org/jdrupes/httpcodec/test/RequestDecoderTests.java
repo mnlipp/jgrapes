@@ -25,6 +25,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.HttpRequestDecoder;
+import org.jdrupes.httpcodec.fields.HttpCookieListField;
+import org.jdrupes.httpcodec.fields.HttpField;
 import org.junit.Test;
 
 /**
@@ -47,7 +49,7 @@ public class RequestDecoderTests {
 			+ "image/webp,*/*;q=0.8\r\n"
 			+ "Accept-Encoding: gzip, deflate, sdch\r\n"
 			+ "Accept-Language: de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4\r\n"
-			+ "Cookie: _test.; gsScrollPos=\r\n"
+			+ "Cookie: _test.=yes; gsScrollPos=\r\n"
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
@@ -59,6 +61,11 @@ public class RequestDecoderTests {
 		assertEquals("GET", decoder.getHeader().getMethod());
 		assertEquals("/test",
 		        decoder.getHeader().getRequestUri().getPath());
+		HttpCookieListField field = decoder.getHeader()
+		        .getHeader(HttpCookieListField.class, HttpField.COOKIE);
+		assertEquals(2, field.size());
+		assertEquals("yes", field.valueForName("_test."));
+		assertEquals("", field.valueForName("gsScrollPos"));
 	}
 
 	/**
