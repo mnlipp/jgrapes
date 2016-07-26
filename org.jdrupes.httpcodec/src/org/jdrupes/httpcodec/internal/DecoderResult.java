@@ -34,11 +34,10 @@ public abstract class DecoderResult extends CodecResult {
 	 * completed and the message (without body) is available
 	 * @param overflow {@code true} if the data didn't fit in the out buffer
 	 * @param underflow {@code true} if more data is expected
-	 * @param closeConnection {@code true} if the connection should be closed
 	 */
 	protected DecoderResult(boolean headerCompleted, boolean overflow, 
-			boolean underflow, boolean closeConnection) {
-		super(overflow, underflow, closeConnection);
+			boolean underflow) {
+		super(overflow, underflow);
 		this.headerCompleted = headerCompleted;
 	}
 

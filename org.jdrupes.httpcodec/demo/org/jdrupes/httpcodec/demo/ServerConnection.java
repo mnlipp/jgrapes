@@ -71,9 +71,6 @@ public class ServerConnection extends Thread {
 				if (decoderResult.isHeaderCompleted()) {
 					handleRequest();
 				}
-				if (decoderResult.getCloseConnection()) {
-					break;
-				}
 			}
 		} catch (IOException e) {
 		}

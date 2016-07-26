@@ -47,9 +47,8 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 	 */
 	@Override
 	protected DecoderResult newResult(boolean headerCompleted,
-	        boolean overflow, boolean underflow, boolean closeConnection) {
-		return new Result(headerCompleted, null, overflow, underflow,
-		        closeConnection);
+	        boolean overflow, boolean underflow) {
+		return new Result(headerCompleted, null, overflow, underflow);
 	}
 
 	/* (non-Javadoc)
@@ -64,7 +63,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 					e.getStatusCode(), e.getReasonPhrase(), false);
 			response.setField(
 			        new HttpStringListField(HttpField.CONNECTION, "close"));
-			return new Result(false, response, false, false, true);
+			return new Result(false, response, false, false);
 		}
 	}
 
@@ -187,23 +186,20 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 
 		/**
 		 * Creates a new result.
-		 * 
-		 * @param message the decoded message
 		 * @param response a response to send due to an error
 		 * @param overflow {@code true} if the data didn't fit in the out buffer
 		 * @param underflow {@code true} if more data is expected
-		 * @param closeConnection {@code true} if the connection should be closed
+		 * @param message the decoded message
 		 */
 		public Result(boolean headerCompleted, HttpResponse response,
-		        boolean overflow, boolean underflow, boolean closeConnection) {
-			super(headerCompleted, overflow, underflow, closeConnection);
+		        boolean overflow, boolean underflow) {
+			super(headerCompleted, overflow, underflow);
 			this.response = response;
 		}
 
 		/**
-		 * Returns {@code true} if the result includes a response. A response in
-		 * the decoder result indicates that some problem occurred that
-		 * must be signaled back to the client.
+		 * Returns {@code true} if the result includes a response
+		 * (see @link #getResponse()}.
 		 * 
 		 * @return the result
 		 */
@@ -212,6 +208,10 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 		}
 		
 		/**
+		 * Returns the response if a response exists. A response in
+		 * the decoder result indicates that some problem occurred that
+		 * must be signaled back to the client.
+		 * 
 		 * @return the response
 		 */
 		public HttpResponse getResponse() {

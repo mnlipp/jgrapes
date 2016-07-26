@@ -44,7 +44,6 @@ public class RequestEncoderTests {
 		HttpRequestEncoder.Result result = encoder.encode(out);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
-		assertFalse(result.getCloseConnection());
 		String encoded = new String(out.array(), 0, out.position());
 		assertTrue(encoded.contains("GET / HTTP/1.1\r\n"));
 		assertTrue(encoded.endsWith("\r\n\r\n"));

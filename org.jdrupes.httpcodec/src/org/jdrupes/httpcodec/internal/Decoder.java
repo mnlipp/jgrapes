@@ -47,55 +47,53 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 	// RFC 7230 3.2, 3.2.4
 	final protected static Pattern headerLinePatter = Pattern
 	        .compile("^(" + TOKEN + "):(.*)$");
-	
-    private enum State {
-    	// Main states
-        AWAIT_MESSAGE_START, HEADER_LINE_RECEIVED, 
-        COPY_UNTIL_CLOSED, CONTENT_RECEIVED, 
-        CHUNK_START_RECEIVED, CHUNK_END_RECEIVED, CHUNK_TRAILER_LINE_RECEIVED,
-        CLOSED, 
-        // Sub states
-        RECEIVE_LINE, AWAIT_LINE_END, COPY_SPECIFIED
-    }
+
+	private enum State {
+	    // Main states
+		AWAIT_MESSAGE_START, HEADER_LINE_RECEIVED, COPY_UNTIL_CLOSED, CONTENT_RECEIVED, CHUNK_START_RECEIVED, CHUNK_END_RECEIVED, CHUNK_TRAILER_LINE_RECEIVED, CLOSED,
+		// Sub states
+		RECEIVE_LINE, AWAIT_LINE_END, COPY_SPECIFIED
+	}
 
 	protected enum BodyMode {
 		NO_BODY, CHUNKED, LENGTH, UNTIL_CLOSE
 	};
-    
-    private long maxHeaderLength = 4194304;
 
-    private Stack<State> states = new Stack<>();
-    private DynamicByteArray lineBuilder = new DynamicByteArray(8192);
-    private String receivedLine;
-    private String headerLine = null;
-    protected HttpProtocol protocolVersion = HttpProtocol.HTTP_1_0;
-    private long headerLength = 0;
-    private T building;
-    private T built;
-    private long leftToRead = 0;
+	private long maxHeaderLength = 4194304;
 
-    /**
-     * Creates a new decoder.
-     */
-    public Decoder() {
-    	states.push(State.AWAIT_MESSAGE_START);
-    	states.push(State.RECEIVE_LINE);
+	private Stack<State> states = new Stack<>();
+	private DynamicByteArray lineBuilder = new DynamicByteArray(8192);
+	private String receivedLine;
+	private String headerLine = null;
+	protected HttpProtocol protocolVersion = HttpProtocol.HTTP_1_0;
+	private long headerLength = 0;
+	private T building;
+	private T built;
+	private long leftToRead = 0;
+
+	/**
+	 * Creates a new decoder.
+	 */
+	public Decoder() {
+		states.push(State.AWAIT_MESSAGE_START);
+		states.push(State.RECEIVE_LINE);
 	}
 
 	/**
-	 * Sets the maximum size for the complete header. If the size is exceeded,
-	 * a {@link ProtocolException} will be thrown. The default size is
-	 * 4MB (4194304 Byte).
+	 * Sets the maximum size for the complete header. If the size is exceeded, a
+	 * {@link ProtocolException} will be thrown. The default size is 4MB
+	 * (4194304 Byte).
 	 * 
-	 * @param maxHeaderLength the maxHeaderLength to set
+	 * @param maxHeaderLength
+	 *            the maxHeaderLength to set
 	 */
 	public void setMaxHeaderLength(long maxHeaderLength) {
 		this.maxHeaderLength = maxHeaderLength;
 	}
 
-    /**
-     * Returns the maximum header length.
-     * 
+	/**
+	 * Returns the maximum header length.
+	 * 
 	 * @return the maxHeaderLength
 	 */
 	public long getMaxHeaderLength() {
@@ -111,67 +109,82 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 	public T getHeader() {
 		return built;
 	}
-	
+
+	/**
+	 * Returns {@code true} if the decoder does not accept further input because
+	 * the processed data indicated that the connection has been or is to be
+	 * closed.
+	 * 
+	 * @return the result
+	 */
+	public boolean isClosed() {
+		return states.peek() == State.CLOSED;
+	}
+
 	/**
 	 * Informs the derived class about the start of a new message.
 	 * 
-	 * @param startLine the start line (first line) of the message
+	 * @param startLine
+	 *            the start line (first line) of the message
 	 * @return the new HttpMessage object that is to hold the decoded data
 	 * @throws ProtocolException
 	 */
 	protected abstract T newMessage(String startLine)
 	        throws ProtocolException;
-	
+
 	/**
-	 * Factory method to be implemented by derived classes that returns
-	 * a decoder result as appropriate for the decoder.
+	 * Factory method to be implemented by derived classes that returns a
+	 * decoder result as appropriate for the decoder.
 	 * 
-	 * @param headerCompleted indicates that the header has completely
-	 * been received during the invocation of {@link #decode} that
-	 * returned this result
-	 * @param overflow {@code true} if the data didn't fit in the out buffer
-	 * @param underflow {@code true} if more data is expected
-	 * @param closeConnection {@code true} if the connection should be closed
+	 * @param headerCompleted
+	 *            indicates that the header has completely been received during
+	 *            the invocation of {@link #decode} that returned this result
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
 	 */
 	protected abstract DecoderResult newResult(boolean headerCompleted,
-	        boolean overflow, boolean underflow, boolean closeConnection);
-	
+	        boolean overflow, boolean underflow);
+
 	/**
-	 * Informs the derived class that the header has been received
-	 * completely.
+	 * Informs the derived class that the header has been received completely.
 	 */
 	protected abstract BodyMode headerReceived(T message)
 	        throws ProtocolException;
-	
+
 	private DecoderResult createResult(boolean overflow,
 	        boolean underflow, boolean closeConnection) {
 		if (built != null && building != null) {
 			building = null;
-			return newResult(true, overflow, underflow, closeConnection);
+			return newResult(true, overflow, underflow);
 		}
-		return newResult(false, overflow, underflow, closeConnection);
+		return newResult(false, overflow, underflow);
 	}
-	
+
 	/**
-     * Decodes the next chunk of data.
-     * 
-     * @param in holds the data to be decoded
-     * @param out gets the body data (if any) written to it
-     * @return the result
-     * @throws ProtocolException if the message violates the HTTP protocol
-     */
+	 * Decodes the next chunk of data.
+	 * 
+	 * @param in
+	 *            holds the data to be decoded
+	 * @param out
+	 *            gets the body data (if any) written to it
+	 * @return the result
+	 * @throws ProtocolException
+	 *             if the message violates the HTTP protocol
+	 */
 	public DecoderResult decode(ByteBuffer in, ByteBuffer out)
-			throws ProtocolException {
+	        throws ProtocolException {
 		try {
 			return uncheckedDecode(in, out);
 		} catch (ParseException | NumberFormatException e) {
-			throw new ProtocolException(protocolVersion, 
-					HttpStatus.BAD_REQUEST.getStatusCode(), e.getMessage());
+			throw new ProtocolException(protocolVersion,
+			        HttpStatus.BAD_REQUEST.getStatusCode(), e.getMessage());
 		}
 	}
-		
+
 	private DecoderResult uncheckedDecode(ByteBuffer in, ByteBuffer out)
-			throws ProtocolException, ParseException {
+	        throws ProtocolException, ParseException {
 		// May be invoked with null (end of body), but not with empty. Check
 		// once.
 		if (in != null && !in.hasRemaining()) {
@@ -268,7 +281,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				states.pop();
 				adjustToEndOfMessage();
 				return createResult(false, false, false);
-				
+
 			case CHUNK_START_RECEIVED:
 				// We "drop" to this state when a line has been read
 				String sizeText = receivedLine.split(";")[0];
@@ -286,21 +299,21 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				states.push(State.RECEIVE_LINE);
 				states.push(State.COPY_SPECIFIED);
 				continue;
-				
+
 			case CHUNK_END_RECEIVED:
 				// We "drop" to this state when the CR/LF after chunk data
 				// has been read. There's nothing to do except to wait for
 				// next chunk
 				if (receivedLine.length() != 0) {
-					throw new ProtocolException(protocolVersion, 
-							HttpStatus.BAD_REQUEST.getStatusCode(), 
-							"No CRLF after chunk data.");
+					throw new ProtocolException(protocolVersion,
+					        HttpStatus.BAD_REQUEST.getStatusCode(),
+					        "No CRLF after chunk data.");
 				}
 				states.pop();
 				states.push(State.CHUNK_START_RECEIVED);
 				states.push(State.RECEIVE_LINE);
 				continue;
-				
+
 			case CHUNK_TRAILER_LINE_RECEIVED:
 				// We "drop" to this state when a line has been read
 				if (!receivedLine.isEmpty()) {
@@ -312,7 +325,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				// All chunked data received
 				adjustToEndOfMessage();
 				return createResult(false, false, false);
-				
+
 			case COPY_SPECIFIED:
 				if (out == null) {
 					return createResult(true, false, false);
@@ -331,7 +344,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				}
 				return createResult(!out.hasRemaining() && in.hasRemaining(),
 				        !in.hasRemaining(), false);
-				
+
 			case COPY_UNTIL_CLOSED:
 				if (in == null) {
 					// Closed indication
@@ -359,7 +372,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 		// RFC 7230 3.2
 		Matcher m = headerLinePatter.matcher(headerLine);
 		if (!m.matches()) {
-			throw new ProtocolException(protocolVersion, 
+			throw new ProtocolException(protocolVersion,
 			        HttpStatus.BAD_REQUEST.getStatusCode(), "Invalid header");
 		}
 		String fieldName = m.group(1);
@@ -393,13 +406,13 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 		}
 		addHeaderField(field);
 	}
-    
+
 	private void newTrailerLine() throws ProtocolException, ParseException {
 		headerLength += headerLine.length() + 2;
 		// RFC 7230 3.2
 		Matcher m = headerLinePatter.matcher(headerLine);
 		if (!m.matches()) {
-			throw new ProtocolException(protocolVersion, 
+			throw new ProtocolException(protocolVersion,
 			        HttpStatus.BAD_REQUEST.getStatusCode(), "Invalid header");
 		}
 		String fieldName = m.group(1);
@@ -436,7 +449,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 			building.setField(field);
 		}
 	}
-    
+
 	private void adjustToBodyMode(BodyMode bm) {
 		building.setMessageHasBody(bm != BodyMode.NO_BODY);
 		states.pop();

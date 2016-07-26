@@ -50,10 +50,8 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	 */
 	@Override
 	protected DecoderResult newResult(boolean headerCompleted,
-	        boolean overflow, boolean underflow,
-	        boolean closeConnection) {
-		return new Result(headerCompleted, overflow, underflow,
-		        closeConnection);
+	        boolean overflow, boolean underflow) {
+		return new Result(headerCompleted, overflow, underflow, isClosed());
 	}
 
 	/**
@@ -159,6 +157,8 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 
 	public class Result extends DecoderResult {
 
+		boolean closeConnection;
+		
 		/**
 		 * Returns a new result.
 		 * 
@@ -174,8 +174,18 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 		 */
 		public Result(boolean headerCompleted, boolean overflow,
 		        boolean underflow, boolean closeConnection) {
-			super(headerCompleted, overflow, underflow, closeConnection);
+			super(headerCompleted, overflow, underflow);
+			this.closeConnection = closeConnection;
 		}
 
+		/**
+		 * Indicates that the connection to the sender of the response must be
+		 * closed.
+		 * 
+		 * @return the value
+		 */
+		public boolean getCloseConnection() {
+			return closeConnection;
+		}
 	}
 }

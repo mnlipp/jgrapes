@@ -25,21 +25,17 @@ class CodecResult {
 
 	private boolean overflow;
 	private boolean underflow;
-	private boolean closeConnection;
 
 	/**
 	 * Creates a new result with the given values.
 	 * 
 	 * @param overflow {@code true} if the data didn't fit in the out buffer
 	 * @param underflow {@code true} if more data is expected
-	 * @param closeConnection {@code true} if the connection should be closed
 	 */
-	protected CodecResult(boolean overflow, boolean underflow,
-	        boolean closeConnection) {
+	protected CodecResult(boolean overflow, boolean underflow) {
 		super();
 		this.overflow = overflow;
 		this.underflow = underflow;
-		this.closeConnection = closeConnection;
 	}
 
 	/**
@@ -64,16 +60,6 @@ class CodecResult {
 		return underflow;
 	}
 
-	/**
-	 * Indicates that the connection to the receiver of the response must be
-	 * closed to complete the encoding of the response.
-	 * 
-	 * @return the value
-	 */
-	public boolean getCloseConnection() {
-		return closeConnection;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -84,7 +70,6 @@ class CodecResult {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + (overflow ? 1231 : 1237);
-		result = prime * result + (closeConnection ? 1231 : 1237);
 		result = prime * result + (underflow ? 1231 : 1237);
 		return result;
 	}
@@ -105,8 +90,6 @@ class CodecResult {
 		CodecResult other = (CodecResult) obj;
 		if (overflow != other.overflow)
 			return false;
-		if (closeConnection != other.closeConnection)
-			return false;
 		if (underflow != other.underflow)
 			return false;
 		return true;
@@ -124,8 +107,6 @@ class CodecResult {
 		builder.append(overflow);
 		builder.append(", underflow=");
 		builder.append(underflow);
-		builder.append(", sendClose=");
-		builder.append(closeConnection);
 		builder.append("]");
 		return builder.toString();
 	}

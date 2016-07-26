@@ -59,7 +59,6 @@ public class RequestDecoderTests {
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertFalse(decoder.getHeader().messageHasBody());
-		assertFalse(result.getCloseConnection());
 		assertEquals("GET", decoder.getHeader().getMethod());
 		assertEquals("/test",
 		        decoder.getHeader().getRequestUri().getPath());
@@ -86,7 +85,6 @@ public class RequestDecoderTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null);
 		assertFalse(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(result.getCloseConnection());
 		// Continue header
 		reqText 
 			= "host:8888\r\n"
@@ -96,7 +94,6 @@ public class RequestDecoderTests {
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertFalse(decoder.getHeader().messageHasBody());
-		assertFalse(result.getCloseConnection());
 		assertEquals("GET", decoder.getHeader().getMethod());
 		assertEquals("localhost", decoder.getHeader().getHost());
 		assertEquals(8888, decoder.getHeader().getPort());
@@ -129,7 +126,6 @@ public class RequestDecoderTests {
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());
-		assertFalse(result.getCloseConnection());
 		assertEquals("POST", decoder.getHeader().getMethod());
 		assertEquals("/form",
 		        decoder.getHeader().getRequestUri().getPath());
@@ -140,7 +136,6 @@ public class RequestDecoderTests {
 		result = decoder.decode(buffer, body);
 		assertFalse(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(result.getCloseConnection());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertTrue(!buffer.hasRemaining());
@@ -176,7 +171,6 @@ public class RequestDecoderTests {
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());
-		assertFalse(result.getCloseConnection());
 		assertEquals("POST", decoder.getHeader().getMethod());
 		assertEquals("/form",
 		        decoder.getHeader().getRequestUri().getPath());
@@ -215,7 +209,6 @@ public class RequestDecoderTests {
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());
-		assertFalse(result.getCloseConnection());
 		assertEquals("POST", decoder.getHeader().getMethod());
 		assertEquals("/form",
 		        decoder.getHeader().getRequestUri().getPath());
@@ -231,7 +224,6 @@ public class RequestDecoderTests {
 		result = decoder.decode(buffer, body);
 		assertFalse(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(result.getCloseConnection());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(buffer.hasRemaining());
@@ -267,7 +259,6 @@ public class RequestDecoderTests {
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());
-		assertFalse(result.getCloseConnection());
 		assertEquals("POST", decoder.getHeader().getMethod());
 		assertEquals("/form",
 		        decoder.getHeader().getRequestUri().getPath());
@@ -279,7 +270,6 @@ public class RequestDecoderTests {
 		result = decoder.decode(buffer, body);
 		assertFalse(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(result.getCloseConnection());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertTrue(!buffer.hasRemaining());
@@ -320,7 +310,6 @@ public class RequestDecoderTests {
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());
-		assertFalse(result.getCloseConnection());
 		assertEquals("POST", decoder.getHeader().getMethod());
 		assertEquals("/form",
 		        decoder.getHeader().getRequestUri().getPath());
@@ -364,7 +353,6 @@ public class RequestDecoderTests {
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());
-		assertFalse(result.getCloseConnection());
 		assertEquals("POST", decoder.getHeader().getMethod());
 		assertEquals("/form",
 		        decoder.getHeader().getRequestUri().getPath());

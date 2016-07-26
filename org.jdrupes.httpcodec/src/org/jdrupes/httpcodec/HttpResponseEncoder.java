@@ -19,8 +19,10 @@ package org.jdrupes.httpcodec;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.internal.Encoder;
+import org.jdrupes.httpcodec.internal.Encoder.Result;
 
 /**
  * @author Michael N. Lipp
@@ -39,6 +41,61 @@ public class HttpResponseEncoder extends Encoder<HttpResponse> {
 		writer.write(" ");
 		writer.write(response.getReasonPhrase());
 		writer.write("\r\n");
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(java.nio.ByteBuffer)
+	 */
+	@Override
+	public Result encode(ByteBuffer out) {
+		return (Result)super.encode(out);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(java.nio.ByteBuffer, java.nio.ByteBuffer)
+	 */
+	@Override
+	public Result encode(ByteBuffer in, ByteBuffer out) {
+		return (Result)super.encode(in, out);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.internal.Encoder#newResult(boolean, boolean)
+	 */
+	@Override
+	protected Result newResult(boolean overflow, boolean underflow) {
+		return new Result(overflow, underflow, isClosed());
+	}
+
+	public class Result extends Encoder.Result {
+
+		boolean closeConnection;
+		
+		/**
+		 * Returns a new result.
+		 * 
+		 * @param overflow
+		 *            {@code true} if the data didn't fit in the out buffer
+		 * @param underflow
+		 *            {@code true} if more data is expected
+		 * @param closeConnection
+		 *            {@code true} if the connection should be closed
+		 */
+		public Result(boolean overflow, boolean underflow,
+		        boolean closeConnection) {
+			super(overflow, underflow);
+			this.closeConnection = closeConnection;
+		}
+
+		/**
+		 * Indicates that the connection to the receiver of the response must be
+		 * closed.
+		 * 
+		 * @return the value
+		 */
+		public boolean getCloseConnection() {
+			return closeConnection;
+		}
 	}
 
 }

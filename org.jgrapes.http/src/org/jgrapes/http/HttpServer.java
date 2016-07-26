@@ -168,10 +168,6 @@ public class HttpServer extends Component {
 				fire(new Response(extDown, result.getResponse()));
 				break;
 			}
-			if (result.getCloseConnection()) {
-				fire(new Close<>(extDown));
-				break;
-			}
 			if (bodyData != null && bodyData.position() > 0) {
 				fire(new Read<>(extDown, bodyData));
 			}

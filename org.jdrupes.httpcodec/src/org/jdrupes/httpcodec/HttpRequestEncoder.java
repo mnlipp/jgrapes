@@ -21,12 +21,21 @@ import java.io.IOException;
 import java.io.Writer;
 
 import org.jdrupes.httpcodec.internal.Encoder;
+import org.jdrupes.httpcodec.internal.Encoder.Result;
 
 /**
  * @author Michael N. Lipp
  *
  */
 public class HttpRequestEncoder extends Encoder<HttpRequest> {
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.internal.Encoder#newResult(boolean, boolean)
+	 */
+	@Override
+	protected Result newResult(boolean overflow, boolean underflow) {
+		return new Result(overflow, underflow);
+	}
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.internal.Encoder#startMessage(org.jdrupes.httpcodec.internal.MessageHeader, java.io.Writer)
@@ -42,5 +51,20 @@ public class HttpRequestEncoder extends Encoder<HttpRequest> {
 		writer.write("\r\n");
 	}
 
-
+//	public class Result extends Encoder.Result {
+//
+//		/**
+//		 * Returns a new result.
+//		 * 
+//		 * @param overflow
+//		 *            {@code true} if the data didn't fit in the out buffer
+//		 * @param underflow
+//		 *            {@code true} if more data is expected
+//		 */
+//		public Result(boolean overflow, boolean underflow) {
+//			super(overflow, underflow);
+//		}
+//	}
+//
+	
 }

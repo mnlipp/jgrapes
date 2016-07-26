@@ -43,7 +43,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 
 	private enum State {
 		// Main states
-		INITIAL, DONE,
+		INITIAL, DONE, CLOSED,
 		// Sub states
 		HEADERS, CHUNK_BODY, START_COLLECT_BODY, COLLECT_BODY, 
 		STREAM_COLLECTED, STREAM_BODY
@@ -104,6 +104,17 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	}
 
 	/**
+	 * Returns {@code true} if the encoder does not accept further input because
+	 * the processed data indicated that the connection has been or is to be
+	 * closed.
+	 * 
+	 * @return the result
+	 */
+	public boolean isClosed() {
+		return states.peek() == State.CLOSED;
+	}
+
+	/**
 	 * Writes the first line of the message (including the terminating CRLF).
 	 * Must be provided by the derived class because the first line depends on
 	 * whether a request or response is encoded.
@@ -118,6 +129,18 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	 */
 	protected abstract void startMessage(T messageHeader, Writer writer)
 	        throws IOException;
+
+	/**
+	 * Factory method to be implemented by derived classes that returns an
+	 * encoder result as appropriate for the encoder.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 */
+	protected abstract Encoder.Result newResult(boolean overflow,
+	        boolean underflow);
 
 	/**
 	 * Set a new HTTP message that is to be encoded.
@@ -155,13 +178,13 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	 */
 	public Result encode(ByteBuffer in, ByteBuffer out) {
 		outStream.assignBuffer(out);
-		Result result = PROCEED;
+		Result result = newResult(false, false);
 		while (true) {
 			if (result.isOverflow() || result.isUnderflow()) {
 				return result;
 			}
 			if (out.remaining() == 0) {
-				return OVERFLOW;
+				return newResult(true, false);
 			}
 			switch (states.peek()) {
 			case INITIAL:
@@ -185,7 +208,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 				if (in.remaining() == 0) {
 					// Has probably been invoked with a dummy buffer,
 					// cannot be used to create pending body buffer.
-					return UNDERFLOW;
+					return newResult(false, true);
 				}
 				pendingBodyData = new ByteBufferOutputStream(in.capacity());
 				states.pop();
@@ -213,10 +236,10 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 				}
 				// More data
 				if (!ByteBufferUtils.putAsMuchAsPossible(out, in)) {
-					return OVERFLOW; // Shortcut
+					return newResult(true, false); // Shortcut
 				}
 				// Everything written, waiting for more data or end of data
-				return UNDERFLOW;
+				return newResult(false, true);
 
 			case CHUNK_BODY:
 				// Send in data as chunk
@@ -226,11 +249,12 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 			case DONE:
 				// Was called with in == null and everything is written
 				states.pop();
-				states.push(State.INITIAL);
 				if (closeAfterBody) {
-					return CLOSE_CONNECTION;
+					states.push(State.CLOSED);
+				} else {
+					states.push(State.INITIAL);
 				}
-				return PROCEED;
+				return newResult(false, false);
 
 			default:
 				throw new IllegalStateException();
@@ -369,12 +393,12 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 			states.pop();
 			states.push(State.STREAM_COLLECTED);
 			states.push(State.HEADERS);
-			return PROCEED;
+			return newResult(false, false);
 		}
 		if (pendingBodyData.remaining() - in.remaining() > -pendingLimit) {
 			// Space left, collect
 			pendingBodyData.write(in);
-			return UNDERFLOW;
+			return newResult(false, true);
 		}
 		// No space left, output headers, collected and rest (and then close)
 		states.pop();
@@ -382,7 +406,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 		states.push(State.STREAM_BODY);
 		states.push(State.STREAM_COLLECTED);
 		states.push(State.HEADERS);
-		return UNDERFLOW;
+		return newResult(false, true);
 	}
 
 	/**
@@ -396,17 +420,17 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 			if (in == null) {
 				outStream.write("0\r\n\r\n".getBytes("ascii"));
 				states.pop();
-				return PROCEED;
+				return newResult(false, false);
 			}
 			// Don't write zero sized chunks
 			if (!in.hasRemaining()) {
-				return UNDERFLOW;
+				return newResult(false, true);
 			}
 			// We may loose some bytes here, but else we need an elaborate
 			// calculation
 			if (outStream.remaining() < 13) {
 				// max 8 digits chunk size + CRLF + 1 octet + CRLF = 13
-				return OVERFLOW;
+				return newResult(true, false);
 			}
 			int length;
 			if (outStream.remaining() - 13 < in.remaining()) {
@@ -424,14 +448,9 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 		} catch (IOException e) {
 			// Formally thrown by outStream, cannot happen.
 		}
-		return in.remaining() > 0 ? OVERFLOW : UNDERFLOW;
+		return in.remaining() > 0 ? newResult(true, false)
+		        : newResult(false, true);
 	}
-
-	protected final static Result OVERFLOW = new Result(true, false, false);
-	protected final static Result UNDERFLOW = new Result(false, true, false);
-	protected final static Result CLOSE_CONNECTION = new Result(false, false,
-	        true);
-	protected final static Result PROCEED = new Result(false, false, false);
 
 	public static class Result extends CodecResult {
 
@@ -442,9 +461,8 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 		 * @param underflow
 		 * @param closeConnection
 		 */
-		protected Result(boolean overflow, boolean underflow,
-		        boolean closeConnection) {
-			super(overflow, underflow, closeConnection);
+		public Result(boolean overflow, boolean underflow) {
+			super(overflow, underflow);
 		}
 
 	}

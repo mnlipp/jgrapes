@@ -52,7 +52,6 @@ public class BasicProtocolTests {
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertFalse(decoder.getHeader().messageHasBody());
-		assertFalse(result.getCloseConnection());
 		assertEquals("GET", decoder.getHeader().getMethod());
 		assertEquals("localhost", decoder.getHeader().getHost());
 		assertEquals(8888, decoder.getHeader().getPort());
