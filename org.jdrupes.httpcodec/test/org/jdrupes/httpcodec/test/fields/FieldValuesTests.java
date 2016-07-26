@@ -52,7 +52,7 @@ public class FieldValuesTests {
 		field2.removeIgnoreCase("Two");
 		assertTrue(field.size() == 3);
 		assertTrue(field2.size() == 2);
-		assertTrue(field2.contains("one"));
-		assertTrue(field2.contains("three"));
+		assertTrue(field2.containsIgnoreCase("one"));
+		assertTrue(field2.containsIgnoreCase("three"));
 	}
 }

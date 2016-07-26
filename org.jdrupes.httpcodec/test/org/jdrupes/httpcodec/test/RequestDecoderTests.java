@@ -379,8 +379,8 @@ public class RequestDecoderTests {
 		HttpStringListField trailer = decoder.getHeader()
 		        .getField(HttpStringListField.class, HttpField.TRAILER);
 		assertEquals(2, trailer.size());
-		trailer.contains("X-Test-Field");
-		trailer.contains("X-Summary-Field");
+		trailer.containsIgnoreCase("X-Test-Field");
+		trailer.containsIgnoreCase("X-Summary-Field");
 		HttpStringField testField = decoder.getHeader()
 		        .getField(HttpStringField.class, "X-Test-Field");
 		assertEquals("Valid", testField.getValue());
