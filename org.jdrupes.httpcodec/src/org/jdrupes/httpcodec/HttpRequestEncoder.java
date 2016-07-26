@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.Writer;
 
 import org.jdrupes.httpcodec.internal.Encoder;
-import org.jdrupes.httpcodec.internal.Encoder.Result;
 
 /**
  * @author Michael N. Lipp

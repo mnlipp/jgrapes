@@ -22,7 +22,6 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.internal.Encoder;
-import org.jdrupes.httpcodec.internal.Encoder.Result;
 
 /**
  * @author Michael N. Lipp
