@@ -53,6 +53,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
         AWAIT_MESSAGE_START, HEADER_LINE_RECEIVED, 
         COPY_UNTIL_CLOSED, CONTENT_RECEIVED, 
         CHUNK_START_RECEIVED, CHUNK_END_RECEIVED, CHUNK_TRAILER_LINE_RECEIVED,
+        CLOSED, 
         // Sub states
         RECEIVE_LINE, AWAIT_LINE_END, COPY_SPECIFIED
     }
@@ -135,17 +136,6 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 	protected abstract DecoderResult newResult(boolean headerCompleted,
 	        boolean overflow, boolean underflow, boolean closeConnection);
 	
-	/**
-	 * Informs a derived class about a new header field. The new header 
-	 * will be added to the headers after this method returns.
-	 * 
-	 * @param field
-	 * @throws ProtocolException
-	 */
-	protected void fieldReceived(T building, HttpField<?> field) 
-			throws ProtocolException, ParseException {
-	}
-
 	/**
 	 * Informs the derived class that the header has been received
 	 * completely.
@@ -261,6 +251,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 					BodyMode bm = headerReceived(building);
 					adjustToBodyMode(bm);
 					if (bm == BodyMode.NO_BODY) {
+						adjustToEndOfMessage();
 						return createResult(false, false, false);
 					}
 					if (out == null) {
@@ -275,9 +266,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 			case CONTENT_RECEIVED:
 				// We "drop" to this state after READ_SPECIFIED
 				states.pop();
-				// Wait for next message
-				states.push(State.AWAIT_MESSAGE_START);
-				states.push(State.RECEIVE_LINE);
+				adjustToEndOfMessage();
 				return createResult(false, false, false);
 				
 			case CHUNK_START_RECEIVED:
@@ -320,9 +309,8 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 					states.push(State.RECEIVE_LINE);
 					break;
 				}
-				// All chunked data received, wait for next message
-				states.push(State.AWAIT_MESSAGE_START);
-				states.push(State.RECEIVE_LINE);
+				// All chunked data received
+				adjustToEndOfMessage();
 				return createResult(false, false, false);
 				
 			case COPY_SPECIFIED:
@@ -348,9 +336,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				if (in == null) {
 					// Closed indication
 					states.pop();
-					// Wait for next message
-					states.push(State.AWAIT_MESSAGE_START);
-					states.push(State.RECEIVE_LINE);
+					states.push(State.CLOSED);
 					return createResult(false, false, true);
 				}
 				if (out == null) {
@@ -359,6 +345,10 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				ByteBufferUtils.putAsMuchAsPossible(out, in);
 				return createResult(!out.hasRemaining() && in.hasRemaining(),
 				        true, false);
+
+			case CLOSED:
+				in.position(in.limit());
+				return createResult(false, false, true);
 			}
 		} while (in.hasRemaining() || states.size() < stateLevel);
 		return createResult(false, true, false);
@@ -423,7 +413,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 			trailerField = new HttpStringListField(HttpField.TRAILER);
 			building.setField(trailerField);
 		}
-		if (!trailerField.contains(field.getName())) {
+		if (!trailerField.containsIgnoreCase(field.getName())) {
 			trailerField.add(field.getName());
 		}
 		addHeaderField(field);
@@ -431,7 +421,6 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 
 	private void addHeaderField(HttpField<?> field)
 	        throws ProtocolException, ParseException {
-		fieldReceived(building, field);
 		// RFC 7230 3.2.2
 		HttpField<?> existing = building.fields().get(field.getName());
 		if (existing != null) {
@@ -471,10 +460,23 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 			}
 			// Length == 0 means no body, fall through
 		case NO_BODY:
-			states.push(State.AWAIT_MESSAGE_START);
-			states.push(State.RECEIVE_LINE);
 			break;
 		}
 	}
 
+	private void adjustToEndOfMessage() {
+		// RFC 7230 6.3
+		HttpStringListField connection = built
+		        .getField(HttpStringListField.class, HttpField.CONNECTION);
+		if (connection != null && connection.containsIgnoreCase("close")) {
+			states.push(State.CLOSED);
+			return;
+		}
+		if (built.getProtocol().compareTo(HttpProtocol.HTTP_1_1) >= 0) {
+			states.push(State.AWAIT_MESSAGE_START);
+			states.push(State.RECEIVE_LINE);
+			return;
+		}
+		states.push(State.CLOSED);
+	}
 }

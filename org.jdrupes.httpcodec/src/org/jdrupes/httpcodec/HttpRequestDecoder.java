@@ -20,7 +20,6 @@ package org.jdrupes.httpcodec;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
-import java.text.ParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -117,34 +116,42 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 		return new HttpRequest(method, uri, protocolVersion, false);
 	}
 
-	@Override
-	protected void fieldReceived(HttpRequest request, HttpField<?> field)
-			throws ProtocolException, ParseException {
-		switch (field.getName()) {
-		case HttpField.HOST:
-			String[] hostPort = ((HttpStringField)field).getValue().split(":");
-			try {
-				request.setHostAndPort(hostPort[0], 
-						Integer.parseInt(hostPort[1]));
-			} catch (NumberFormatException e) {
-				throw new ParseException(field.getValue().toString(), 0);
-			}
-			break;
-		case HttpField.CONNECTION:
-			if (((HttpStringListField)field).containsIgnoreCase("close")) {
-				request.getResponse().setField(new HttpStringListField(
-				        HttpField.CONNECTION, "close"));
-			}
-			break;
-		}
-	}
-
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.HttpDecoder#headerReceived(org.jdrupes.httpcodec.HttpMessage)
 	 */
 	@Override
 	protected BodyMode headerReceived(HttpRequest message) 
 			throws ProtocolException {
+		// Handle field of special interest
+		HttpStringField host = message.getField(HttpStringField.class,
+		        HttpField.HOST);
+		if (host != null) {
+			String[] hostPort = ((HttpStringField)host).getValue().split(":");
+			try {
+				message.setHostAndPort(hostPort[0], 
+						Integer.parseInt(hostPort[1]));
+			} catch (NumberFormatException e) {
+				throw new ProtocolException(protocolVersion,
+				        HttpStatus.BAD_REQUEST.getStatusCode(),
+				        "Invalid Host port.");
+			}
+		} else {
+			// RFC 7230 5.4.
+			if (message.getProtocol().compareTo(HttpProtocol.HTTP_1_1) >= 0) {
+				throw new ProtocolException(protocolVersion,
+				        HttpStatus.BAD_REQUEST.getStatusCode(),
+				        "HTTP 1.1 request must have a Host field.");
+			}
+		}
+		HttpStringListField connection = message
+		        .getField(HttpStringListField.class, HttpField.CONNECTION);
+		if (connection != null && connection.containsIgnoreCase("close")) {
+			// RFC 7230 6.6.
+			message.getResponse().setField(new HttpStringListField(
+			        HttpField.CONNECTION, "close"));
+		}
+
+		// Find out about body
 		HttpStringListField transEncs = message.getField(
 		        HttpStringListField.class, HttpField.TRANSFER_ENCODING);
 		if (transEncs != null) {
