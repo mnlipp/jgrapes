@@ -444,7 +444,6 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 			outStream.write(in, length);
 			outStream.write("\r\n".getBytes("ascii"));
 			outStream.flush();
-			ByteBufferUtils.putAsMuchAsPossible(out, in, length);
 		} catch (IOException e) {
 			// Formally thrown by outStream, cannot happen.
 		}
