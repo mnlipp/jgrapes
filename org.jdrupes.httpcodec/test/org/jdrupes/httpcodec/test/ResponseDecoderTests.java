@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
-import org.jdrupes.httpcodec.fields.HttpCookieListField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpSetCookieListField;
 import org.jdrupes.httpcodec.HttpResponseDecoder;
