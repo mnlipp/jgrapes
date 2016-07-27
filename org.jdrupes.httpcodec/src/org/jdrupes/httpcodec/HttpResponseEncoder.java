@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 
+import org.jdrupes.httpcodec.internal.CodecResult;
 import org.jdrupes.httpcodec.internal.Encoder;
 
 /**
@@ -66,7 +67,7 @@ public class HttpResponseEncoder extends Encoder<HttpResponse> {
 		return new Result(overflow, underflow, isClosed());
 	}
 
-	public class Result extends Encoder.Result {
+	public class Result extends CodecResult {
 
 		boolean closeConnection;
 		

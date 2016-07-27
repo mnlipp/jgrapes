@@ -24,7 +24,6 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
@@ -37,7 +36,7 @@ import org.jdrupes.httpcodec.util.DynamicByteArray;
  * @author Michael N. Lipp
  *
  */
-public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
+public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 
 	final protected static String TOKEN = "[" + Pattern.quote(TOKEN_CHARS)
 	        + "]+";
@@ -68,7 +67,6 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 	protected HttpProtocol protocolVersion = HttpProtocol.HTTP_1_0;
 	private long headerLength = 0;
 	private T building;
-	private T built;
 	private long leftToRead = 0;
 
 	/**
@@ -107,7 +105,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 	 * @return the result
 	 */
 	public T getHeader() {
-		return built;
+		return messageHeader;
 	}
 
 	/**
@@ -155,7 +153,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 
 	private DecoderResult createResult(boolean overflow,
 	        boolean underflow, boolean closeConnection) {
-		if (built != null && building != null) {
+		if (messageHeader != null && building != null) {
 			building = null;
 			return newResult(true, overflow, underflow);
 		}
@@ -238,7 +236,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 					continue;
 				}
 				building = newMessage(receivedLine);
-				built = null;
+				messageHeader = null;
 				states.pop();
 				headerLine = null;
 				states.push(State.HEADER_LINE_RECEIVED);
@@ -260,7 +258,7 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 				}
 				if (receivedLine.isEmpty()) {
 					// Body starts
-					built = building;
+					messageHeader = building;
 					BodyMode bm = headerReceived(building);
 					adjustToBodyMode(bm);
 					if (bm == BodyMode.NO_BODY) {
@@ -479,13 +477,13 @@ public abstract class Decoder<T extends MessageHeader> extends HttpCodec {
 
 	private void adjustToEndOfMessage() {
 		// RFC 7230 6.3
-		HttpStringListField connection = built
+		HttpStringListField connection = messageHeader
 		        .getField(HttpStringListField.class, HttpField.CONNECTION);
 		if (connection != null && connection.containsIgnoreCase("close")) {
 			states.push(State.CLOSED);
 			return;
 		}
-		if (built.getProtocol().compareTo(HttpProtocol.HTTP_1_1) >= 0) {
+		if (messageHeader.getProtocol().compareTo(HttpProtocol.HTTP_1_1) >= 0) {
 			states.push(State.AWAIT_MESSAGE_START);
 			states.push(State.RECEIVE_LINE);
 			return;

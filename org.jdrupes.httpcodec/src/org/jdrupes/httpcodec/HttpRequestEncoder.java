@@ -19,7 +19,9 @@ package org.jdrupes.httpcodec;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.ByteBuffer;
 
+import org.jdrupes.httpcodec.internal.CodecResult;
 import org.jdrupes.httpcodec.internal.Encoder;
 
 /**
@@ -50,20 +52,35 @@ public class HttpRequestEncoder extends Encoder<HttpRequest> {
 		writer.write("\r\n");
 	}
 
-//	public class Result extends Encoder.Result {
-//
-//		/**
-//		 * Returns a new result.
-//		 * 
-//		 * @param overflow
-//		 *            {@code true} if the data didn't fit in the out buffer
-//		 * @param underflow
-//		 *            {@code true} if more data is expected
-//		 */
-//		public Result(boolean overflow, boolean underflow) {
-//			super(overflow, underflow);
-//		}
-//	}
-//
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(java.nio.ByteBuffer)
+	 */
+	@Override
+	public Result encode(ByteBuffer out) {
+		return (Result)super.encode(out);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(java.nio.ByteBuffer, java.nio.ByteBuffer)
+	 */
+	@Override
+	public Result encode(ByteBuffer in, ByteBuffer out) {
+		return (Result)super.encode(in, out);
+	}
+
+	public class Result extends CodecResult {
+
+		/**
+		 * Returns a new result.
+		 *
+		 * @param overflow
+		 *            {@code true} if the data didn't fit in the out buffer
+		 * @param underflow
+		 *            {@code true} if more data is expected
+		 */
+		public Result(boolean overflow, boolean underflow) {
+			super(overflow, underflow);
+		}
+	}
 	
 }

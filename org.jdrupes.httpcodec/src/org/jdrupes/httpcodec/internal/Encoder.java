@@ -25,7 +25,6 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Stack;
 
-import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpDateField;
 import org.jdrupes.httpcodec.fields.HttpField;
@@ -39,7 +38,7 @@ import org.jdrupes.httpcodec.util.ByteBufferUtils;
  * @author Michael N. Lipp
  *
  */
-public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
+public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 
 	private enum State {
 		// Main states
@@ -56,7 +55,6 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	private boolean closeAfterBody = false;
 	private ByteBufferOutputStream outStream;
 	private Writer writer;
-	private T messageHeader = null;
 	private Iterator<HttpField<?>> headerIter = null;
 	private int pendingLimit = 1024 * 1024;
 	private long leftToStream;
@@ -140,7 +138,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	 * @param underflow
 	 *            {@code true} if more data is expected
 	 */
-	protected abstract Encoder.Result newResult(boolean overflow,
+	protected abstract CodecResult newResult(boolean overflow,
 	        boolean underflow);
 
 	/**
@@ -164,7 +162,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	 *            the buffer to which data is written
 	 * @return the result
 	 */
-	public Result encode(ByteBuffer out) {
+	public CodecResult encode(ByteBuffer out) {
 		return encode(EMPTY_IN, out);
 	}
 
@@ -177,9 +175,9 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	 *            the buffer to which data is written
 	 * @return the result
 	 */
-	public Result encode(ByteBuffer in, ByteBuffer out) {
+	public CodecResult encode(ByteBuffer in, ByteBuffer out) {
 		outStream.assignBuffer(out);
-		Result result = newResult(false, false);
+		CodecResult result = newResult(false, false);
 		while (true) {
 			if (result.isOverflow() || result.isUnderflow()) {
 				return result;
@@ -412,7 +410,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	 * 
 	 * @param in
 	 */
-	private Result collectBody(ByteBuffer in) {
+	private CodecResult collectBody(ByteBuffer in) {
 		if (in == null) {
 			// End of body, found content length!
 			messageHeader.setField(new HttpContentLengthField(
@@ -442,7 +440,7 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 	 * @param in
 	 * @return
 	 */
-	private Result startChunk(ByteBuffer in, ByteBuffer out) {
+	private CodecResult startChunk(ByteBuffer in, ByteBuffer out) {
 		try {
 			if (in == null) {
 				outStream.write("0\r\n\r\n".getBytes("ascii"));
@@ -462,20 +460,5 @@ public abstract class Encoder<T extends MessageHeader> extends HttpCodec {
 			// Formally thrown by outStream, cannot happen.
 		}
 		return newResult(outStream.remaining() < 0, in.remaining() == 0);
-	}
-
-	public static class Result extends CodecResult {
-
-		/**
-		 * Creates a new result with the given values.
-		 * 
-		 * @param overflow
-		 * @param underflow
-		 * @param closeConnection
-		 */
-		public Result(boolean overflow, boolean underflow) {
-			super(overflow, underflow);
-		}
-
 	}
 }

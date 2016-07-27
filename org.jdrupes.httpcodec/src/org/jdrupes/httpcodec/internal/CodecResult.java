@@ -18,10 +18,11 @@
 package org.jdrupes.httpcodec.internal;
 
 /**
+ * The common properties of the result types returned by the various codecs.
+ * 
  * @author Michael N. Lipp
- *
  */
-class CodecResult {
+public class CodecResult {
 
 	private boolean overflow;
 	private boolean underflow;

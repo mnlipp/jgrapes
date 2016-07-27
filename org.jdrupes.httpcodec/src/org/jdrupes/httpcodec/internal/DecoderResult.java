@@ -18,8 +18,9 @@
 package org.jdrupes.httpcodec.internal;
 
 /**
- * The result of invoking the request decoder. Used to inform the
- * invoker about what to do next.
+ * The result from invoking the decoder. Compared to the general codec
+ * result, all decoders return the information whether the message header
+ * has been decoded completely during the last invocation. 
  * 
  * @author Michael N. Lipp
  */
