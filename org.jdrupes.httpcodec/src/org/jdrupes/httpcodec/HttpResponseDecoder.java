@@ -17,6 +17,7 @@
  */
 package org.jdrupes.httpcodec;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -74,7 +75,7 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	 * @see org.jdrupes.httpcodec.internal.Decoder#decode(java.nio.ByteBuffer, java.nio.ByteBuffer)
 	 */
 	@Override
-	public Result decode(ByteBuffer in, ByteBuffer out)
+	public Result decode(ByteBuffer in, Buffer out)
 	        throws ProtocolException {
 		return (Result)super.decode(in, out);
 	}

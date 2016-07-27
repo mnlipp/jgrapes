@@ -18,7 +18,12 @@
 package org.jdrupes.httpcodec.internal;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
 import java.text.ParseException;
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -53,7 +58,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 		LENGTH_RECEIVED, CHUNK_START_RECEIVED, CHUNK_END_RECEIVED, 
 		CHUNK_TRAILER_LINE_RECEIVED, CLOSED,
 		// Sub states
-		RECEIVE_LINE, AWAIT_LINE_END, COPY_SPECIFIED
+		RECEIVE_LINE, AWAIT_LINE_END, COPY_SPECIFIED, FLUSH_CHARDECODER
 	}
 
 	protected enum BodyMode {
@@ -70,6 +75,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	private long headerLength = 0;
 	private T building;
 	private long leftToRead = 0;
+	private CharsetDecoder charDecoder = null;
 
 	/**
 	 * Creates a new decoder.
@@ -173,7 +179,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	 * @throws ProtocolException
 	 *             if the message violates the HTTP protocol
 	 */
-	public DecoderResult decode(ByteBuffer in, ByteBuffer out)
+	public DecoderResult decode(ByteBuffer in, Buffer out)
 	        throws ProtocolException {
 		try {
 			return uncheckedDecode(in, out);
@@ -183,7 +189,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 		}
 	}
 
-	private DecoderResult uncheckedDecode(ByteBuffer in, ByteBuffer out)
+	private DecoderResult uncheckedDecode(ByteBuffer in, Buffer out)
 	        throws ProtocolException, ParseException {
 		// May be invoked with null (end of body), but not with empty. Check
 		// once.
@@ -239,6 +245,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				}
 				building = newMessage(receivedLine);
 				messageHeader = null;
+				charDecoder = null;
 				states.pop();
 				headerLine = null;
 				states.push(State.HEADER_LINE_RECEIVED);
@@ -332,32 +339,57 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					return createResult(true, false, false);
 				}
 				int initiallyRemaining = in.remaining();
+				CoderResult decRes;
 				if (out.remaining() <= leftToRead) {
-					ByteBufferUtils.putAsMuchAsPossible(out, in);
+					decRes = copyBodyData(out, in, out.remaining());
 				} else {
-					ByteBufferUtils.putAsMuchAsPossible(out, in,
-					        (int) leftToRead);
+					decRes = copyBodyData(out, in, (int) leftToRead);
 				}
 				leftToRead -= (initiallyRemaining - in.remaining());
 				if (leftToRead == 0) {
 					states.pop();
+					if (out instanceof CharBuffer && charDecoder != null) {
+						states.push(State.FLUSH_CHARDECODER);
+						if (charDecoder.decode(EMPTY_IN, (CharBuffer) out, true)
+						        .isOverflow()) {
+							return createResult(true, false, false);
+						}
+					}
 					continue;
 				}
-				return createResult(!out.hasRemaining() && in.hasRemaining(),
-				        !in.hasRemaining(), false);
+				return createResult((!out.hasRemaining() && in.hasRemaining())
+						|| (decRes != null && decRes.isOverflow()),
+				        !in.hasRemaining() 
+				        || (decRes != null && decRes.isUnderflow()), false);
+
+			case FLUSH_CHARDECODER:
+				if (charDecoder.flush((CharBuffer)out).isOverflow()) {
+					return createResult(true, false, false);
+				}
+				states.pop();
+				break;
 
 			case COPY_UNTIL_CLOSED:
 				if (in == null) {
 					// Closed indication
 					states.pop();
 					states.push(State.CLOSED);
+					if (out instanceof CharBuffer && charDecoder != null) {
+						states.push(State.FLUSH_CHARDECODER);
+						if (charDecoder.decode(EMPTY_IN, (CharBuffer) out, true)
+						        .isOverflow()) {
+							return createResult(true, false, false);
+						}
+						continue;
+					}
 					return createResult(false, false, true);
 				}
 				if (out == null) {
 					return createResult(true, false, false);
 				}
-				ByteBufferUtils.putAsMuchAsPossible(out, in);
-				return createResult(!out.hasRemaining() && in.hasRemaining(),
+				decRes = copyBodyData(out, in, out.remaining());
+				return createResult((!out.hasRemaining() && in.hasRemaining())
+				        || (decRes != null && decRes.isOverflow()),
 				        true, false);
 
 			case CLOSED:
@@ -475,6 +507,21 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 			// Length == 0 means no body, fall through
 		case NO_BODY:
 			break;
+		}
+	}
+
+	private CoderResult copyBodyData(Buffer out, ByteBuffer in, int limit) {
+		if (out instanceof ByteBuffer) {
+			ByteBufferUtils.putAsMuchAsPossible((ByteBuffer) out, in, limit);
+			return null;
+		} else if (out instanceof CharBuffer) {
+			if (charDecoder == null) {
+				charDecoder = Charset.forName(bodyCharset()).newDecoder();
+			}
+			return charDecoder.decode(in, (CharBuffer)out, false);
+		} else {
+			throw new IllegalArgumentException(
+			        "Only Byte- or CharBuffer are allowed.");
 		}
 	}
 

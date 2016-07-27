@@ -19,6 +19,7 @@ package org.jdrupes.httpcodec;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,7 +56,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 	 * @see org.jdrupes.httpcodec.HttpDecoder#decode(java.nio.ByteBuffer)
 	 */
 	@Override
-	public Result decode(ByteBuffer in, ByteBuffer out) {
+	public Result decode(ByteBuffer in, Buffer out) {
 		try {
 			return (Result) super.decode(in, out);
 		} catch (ProtocolException e) {

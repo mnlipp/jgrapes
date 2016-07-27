@@ -49,8 +49,6 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 		STREAM_BODY, CONTENT_COPIED
 	}
 
-	private final ByteBuffer EMPTY_IN = ByteBuffer.allocate(0);
-
 	private Stack<State> states = new Stack<>();
 	private boolean closeAfterBody = false;
 	private ByteBufferOutputStream outStream;
