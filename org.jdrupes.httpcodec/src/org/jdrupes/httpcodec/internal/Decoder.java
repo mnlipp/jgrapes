@@ -49,7 +49,9 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 
 	private enum State {
 	    // Main states
-		AWAIT_MESSAGE_START, HEADER_LINE_RECEIVED, COPY_UNTIL_CLOSED, CONTENT_RECEIVED, CHUNK_START_RECEIVED, CHUNK_END_RECEIVED, CHUNK_TRAILER_LINE_RECEIVED, CLOSED,
+		AWAIT_MESSAGE_START, HEADER_LINE_RECEIVED, COPY_UNTIL_CLOSED, 
+		LENGTH_RECEIVED, CHUNK_START_RECEIVED, CHUNK_END_RECEIVED, 
+		CHUNK_TRAILER_LINE_RECEIVED, CLOSED,
 		// Sub states
 		RECEIVE_LINE, AWAIT_LINE_END, COPY_SPECIFIED
 	}
@@ -274,8 +276,9 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				states.push(State.RECEIVE_LINE);
 				continue;
 
-			case CONTENT_RECEIVED:
-				// We "drop" to this state after READ_SPECIFIED
+			case LENGTH_RECEIVED:
+				// We "drop" to this state after COPY_SPECIFIED
+				// if we had a content length field
 				states.pop();
 				adjustToEndOfMessage();
 				return createResult(false, false, false);
@@ -465,7 +468,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 			        HttpField.CONTENT_LENGTH);
 			leftToRead = clf.getValue();
 			if (leftToRead > 0) {
-				states.push(State.CONTENT_RECEIVED);
+				states.push(State.LENGTH_RECEIVED);
 				states.push(State.COPY_SPECIFIED);
 				break;
 			}
