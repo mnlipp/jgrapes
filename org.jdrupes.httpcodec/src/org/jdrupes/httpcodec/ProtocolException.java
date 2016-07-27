@@ -21,8 +21,11 @@ import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 
 /**
+ * Represents a violation of the HTTP protocol. This kind of exception
+ * is thrown by the HTTP codecs when a problem is detected while encoding
+ * or decoding a message.
+ * 
  * @author Michael N. Lipp
- *
  */
 public class ProtocolException extends Exception {
 
@@ -33,6 +36,8 @@ public class ProtocolException extends Exception {
 	private String reasonPhrase;
 
 	/**
+	 * Creates a new exception with the given values.
+	 * 
 	 * @param httpProtocol
 	 * @param statusCode
 	 * @param reasonPhrase
@@ -45,6 +50,12 @@ public class ProtocolException extends Exception {
 		this.reasonPhrase = reasonPhrase;
 	}
 
+	/**
+	 * Creates a new exception with the standard reason phrase.
+	 * 
+	 * @param httpProtocol
+	 * @param status
+	 */
 	public ProtocolException(HttpProtocol httpProtocol, HttpStatus status) {
 		super(String.format("%03d %s", status.getStatusCode(),
 				status.getReasonPhrase()));
@@ -54,6 +65,8 @@ public class ProtocolException extends Exception {
 	}
 	
 	/**
+	 * Returns the HTTP version.
+	 * 
 	 * @return the httpVersion
 	 */
 	public HttpProtocol getHttpVersion() {
@@ -61,6 +74,8 @@ public class ProtocolException extends Exception {
 	}
 	
 	/**
+	 * Returns the status code.
+	 * 
 	 * @return the statusCode
 	 */
 	public int getStatusCode() {
@@ -68,6 +83,8 @@ public class ProtocolException extends Exception {
 	}
 
 	/**
+	 * Returns the reason phrase.
+	 * 
 	 * @return the reasonPhrase
 	 */
 	public String getReasonPhrase() {
