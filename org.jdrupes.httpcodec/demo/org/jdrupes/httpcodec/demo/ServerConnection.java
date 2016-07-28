@@ -25,6 +25,7 @@ import java.text.ParseException;
 import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.HttpResponseEncoder;
+import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jdrupes.httpcodec.fields.HttpField;
@@ -63,9 +64,9 @@ public class ServerConnection extends Thread {
 				in.clear();
 				channel.read(in);
 				in.flip();
-				decoderResult = decoder.decode(in, null);
+				decoderResult = decoder.decode(in, null, false);
 				if (decoderResult.hasResponse()) {
-					sendResponseHeader(decoderResult.getResponse());
+					sendResponseWithoutBody(decoderResult.getResponse());
 					break;
 				}
 				if (decoderResult.isHeaderCompleted()) {
@@ -100,10 +101,8 @@ public class ServerConnection extends Thread {
 			response.setField(media);
 		} catch (ParseException e) {
 		}
-		sendResponseHeader(response);
 		ByteBuffer body = ByteBuffer.wrap("Not Found".getBytes("utf-8"));
-		sendResponseBody(body);
-		sendResponseBody(null);
+		sendResponse(response, body, true);
 	}
 
 	private void handleGetForm(HttpRequest request) throws IOException {
@@ -118,7 +117,6 @@ public class ServerConnection extends Thread {
 			response.setField(media);
 		} catch (ParseException e) {
 		}
-		sendResponseHeader(response);
 		String form = "<!DOCTYPE html>"
 		        + "<html>"
 		        + "<body>"
@@ -135,8 +133,7 @@ public class ServerConnection extends Thread {
 		        + "</body>"
 		        + "</html>";
 		ByteBuffer body = ByteBuffer.wrap(form.getBytes("utf-8"));
-		sendResponseBody(body);
-		sendResponseBody(null);
+		sendResponse(response, body, true);
 	}
 
 	private void handlePostForm(HttpRequest request) throws IOException {
@@ -144,7 +141,7 @@ public class ServerConnection extends Thread {
 		FormUrlDecoder fieldDecoder = new FormUrlDecoder();
 		while (true) {
 			out.clear();
-			decoderResult = decoder.decode(in, out);
+			decoderResult = decoder.decode(in, out, false);
 			out.flip();
 			fieldDecoder.addData(out);
 			if (decoderResult.isOverflow()) {
@@ -168,16 +165,15 @@ public class ServerConnection extends Thread {
 			response.setField(media);
 		} catch (ParseException e) {
 		}
-		sendResponseHeader(response);
 		String data = "First name: " + fieldDecoder.getFields().get("firstname")
 		        + "\r\n" + "Last name: "
 		        + fieldDecoder.getFields().get("lastname");
 		ByteBuffer body = ByteBuffer.wrap(data.getBytes("utf-8"));
-		sendResponseBody(body);
-		sendResponseBody(null);
+		sendResponse(response, body, true);
 	}
 
-	private void sendResponseHeader(HttpResponse response) throws IOException {
+	private void sendResponseWithoutBody(HttpResponse response)
+	        throws IOException {
 		encoder.encode(response);
 		out.clear();
 		while (true) {
@@ -194,9 +190,12 @@ public class ServerConnection extends Thread {
 		}
 	}
 
-	private void sendResponseBody(ByteBuffer in) throws IOException {
+	private void sendResponse(HttpResponse response, ByteBuffer in,
+	        boolean endOfInput) throws IOException {
+		encoder.encode(response);
+		out.clear();
 		while (true) {
-			encoderResult = encoder.encode(in, out);
+			encoderResult = encoder.encode(in, out, endOfInput);
 			out.flip();
 			if (out.hasRemaining()) {
 				channel.write(out);

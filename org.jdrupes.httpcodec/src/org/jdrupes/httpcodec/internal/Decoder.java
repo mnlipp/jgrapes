@@ -175,30 +175,27 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	 *            holds the data to be decoded
 	 * @param out
 	 *            gets the body data (if any) written to it
+	 * @param endOfInput
+	 *            {@code true} if there is no input left beyond the data
+	 *            currently in the {@code in} buffer (indicates end of body or
+	 *            no body at all)
 	 * @return the result
 	 * @throws ProtocolException
 	 *             if the message violates the HTTP protocol
 	 */
-	public DecoderResult decode(ByteBuffer in, Buffer out)
+	public DecoderResult decode(ByteBuffer in, Buffer out, boolean endOfInput)
 	        throws ProtocolException {
 		try {
-			return uncheckedDecode(in, out);
+			return uncheckedDecode(in, out, endOfInput);
 		} catch (ParseException | NumberFormatException e) {
 			throw new ProtocolException(protocolVersion,
 			        HttpStatus.BAD_REQUEST.getStatusCode(), e.getMessage());
 		}
 	}
 
-	private DecoderResult uncheckedDecode(ByteBuffer in, Buffer out)
-	        throws ProtocolException, ParseException {
-		// May be invoked with null (end of body), but not with empty. Check
-		// once.
-		if (in != null && !in.hasRemaining()) {
-			return createResult(false, true, false);
-		}
-		int stateLevel;
-		do {
-			stateLevel = states.size();
+	private DecoderResult uncheckedDecode(ByteBuffer in, Buffer out,
+	        boolean endOfInput) throws ProtocolException, ParseException {
+		while(true) {
 			switch (states.peek()) {
 			// Waiting for CR (start of end of line)
 			case RECEIVE_LINE: {
@@ -206,7 +203,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				if (ch == '\r') {
 					states.pop();
 					states.push(State.AWAIT_LINE_END);
-					continue;
+					break;
 				}
 				lineBuilder.append(ch);
 				// RFC 7230 3.2.5
@@ -215,7 +212,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					        HttpStatus.BAD_REQUEST.getStatusCode(),
 					        "Maximum header size exceeded");
 				}
-				continue;
+				break;
 			}
 			// Waiting for LF (confirmation of end of line)
 			case AWAIT_LINE_END: {
@@ -230,7 +227,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					}
 					lineBuilder.clear();
 					states.pop();
-					continue;
+					continue; // New state, maybe we have finished
 				}
 				throw new ProtocolException(protocolVersion,
 				        HttpStatus.BAD_REQUEST.getStatusCode(),
@@ -241,7 +238,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				if (receivedLine.isEmpty()) {
 					// Ignore as recommended by RFC2616/RFC7230
 					states.push(State.RECEIVE_LINE);
-					continue;
+					break;
 				}
 				building = newMessage(receivedLine);
 				messageHeader = null;
@@ -250,7 +247,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				headerLine = null;
 				states.push(State.HEADER_LINE_RECEIVED);
 				states.push(State.RECEIVE_LINE);
-				continue;
+				break;
 
 			case HEADER_LINE_RECEIVED:
 				if (headerLine != null) {
@@ -260,7 +257,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					                || receivedLine.charAt(0) == '\t')) {
 						headerLine += (" " + receivedLine.substring(1));
 						states.push(State.RECEIVE_LINE);
-						continue;
+						break;
 					}
 					// Header line complete, evaluate
 					newHeaderLine();
@@ -281,7 +278,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				}
 				headerLine = receivedLine;
 				states.push(State.RECEIVE_LINE);
-				continue;
+				break;
 
 			case LENGTH_RECEIVED:
 				// We "drop" to this state after COPY_SPECIFIED
@@ -298,7 +295,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					states.pop();
 					states.push(State.CHUNK_TRAILER_LINE_RECEIVED);
 					states.push(State.RECEIVE_LINE);
-					continue;
+					break;
 				}
 				leftToRead = chunkSize;
 				// We expect the chunk data and the trailing CRLF (empty line)
@@ -306,7 +303,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				states.push(State.CHUNK_END_RECEIVED);
 				states.push(State.RECEIVE_LINE);
 				states.push(State.COPY_SPECIFIED);
-				continue;
+				break;
 
 			case CHUNK_END_RECEIVED:
 				// We "drop" to this state when the CR/LF after chunk data
@@ -320,7 +317,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				states.pop();
 				states.push(State.CHUNK_START_RECEIVED);
 				states.push(State.RECEIVE_LINE);
-				continue;
+				break;
 
 			case CHUNK_TRAILER_LINE_RECEIVED:
 				// We "drop" to this state when a line has been read
@@ -367,10 +364,10 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					return createResult(true, false, false);
 				}
 				states.pop();
-				break;
+				continue;
 
 			case COPY_UNTIL_CLOSED:
-				if (in == null) {
+				if (endOfInput) {
 					// Closed indication
 					states.pop();
 					states.push(State.CLOSED);
@@ -396,7 +393,11 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				in.position(in.limit());
 				return createResult(false, false, true);
 			}
-		} while (in.hasRemaining() || states.size() < stateLevel);
+			// Using "continue" in the above code avoids the check
+			if (!in.hasRemaining()) {
+				break;
+			}
+		};
 		return createResult(false, true, false);
 	}
 

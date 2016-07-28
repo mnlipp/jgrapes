@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jdrupes.httpcodec.HttpResponse;
+import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
@@ -159,7 +160,7 @@ public class HttpServer extends Component {
 		ManagedByteBuffer bodyData = null;
 		while (in.hasRemaining()) {
 			HttpRequestDecoder.Result result = httpDecoder.decode(in,
-			        bodyData == null ? null : bodyData.getBacking());
+			        bodyData == null ? null : bodyData.getBacking(), false);
 			if (result.isHeaderCompleted()) {
 				fireRequest(extDown, httpDecoder.getHeader());
 			}
@@ -256,7 +257,7 @@ public class HttpServer extends Component {
 			extDown.outBuffer = netConn.acquireByteBuffer();
 			final ManagedByteBuffer buffer = extDown.outBuffer;
 			HttpResponseEncoder.Result result = encoder
-			        .encode(buffer.getBacking());
+			        .encode(HttpCodec.EMPTY_IN, buffer.getBacking(), false);
 			if (result.isOverflow()) {
 				(new Write<>(netConn, buffer)).fire();
 				continue;
@@ -298,7 +299,7 @@ public class HttpServer extends Component {
 			HttpResponseEncoder.Result result = null;
 			if (in instanceof ByteBuffer) {
 				result = encoder.encode((ByteBuffer) in,
-						extDown.outBuffer.getBacking());
+						extDown.outBuffer.getBacking(), false);
 			}
 			if (!result.isOverflow()) {
 				break;
@@ -357,8 +358,8 @@ public class HttpServer extends Component {
 		// Send remaining data
 		while (true) {
 			final ManagedByteBuffer buffer = extDown.outBuffer;
-			HttpResponseEncoder.Result result = encoder.encode(null,
-			        buffer.getBacking());
+			HttpResponseEncoder.Result result = encoder
+			        .encode(buffer.getBacking());
 			if (!result.isOverflow()) {
 				if (buffer.position() > 0) {
 					(new Write<>(netConn, buffer)).fire();

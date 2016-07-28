@@ -55,7 +55,7 @@ public class RequestDecoderTests {
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		HttpRequestDecoder.Result result = decoder.decode(buffer, null);
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertFalse(decoder.getHeader().messageHasBody());
@@ -82,7 +82,7 @@ public class RequestDecoderTests {
 			+ "Host: local";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		HttpRequestDecoder.Result result = decoder.decode(buffer, null);
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertFalse(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		// Continue header
@@ -90,7 +90,7 @@ public class RequestDecoderTests {
 			= "host:8888\r\n"
 			+ "\r\n";
 		buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		result = decoder.decode(buffer, null);
+		result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertFalse(decoder.getHeader().messageHasBody());
@@ -122,7 +122,7 @@ public class RequestDecoderTests {
 		        + "firstname=J.&lastname=Grapes";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		HttpRequestDecoder.Result result = decoder.decode(buffer, null);
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());
@@ -133,7 +133,7 @@ public class RequestDecoderTests {
 		assertFalse(result.isUnderflow());
 		// Get body
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		result = decoder.decode(buffer, body);
+		result = decoder.decode(buffer, body, false);
 		assertFalse(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertFalse(result.isOverflow());
@@ -167,7 +167,7 @@ public class RequestDecoderTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpRequestDecoder.Result result = decoder.decode(buffer, body);
+		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());
@@ -205,7 +205,7 @@ public class RequestDecoderTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		ByteBuffer body = ByteBuffer.allocate(20);
-		HttpRequestDecoder.Result result = decoder.decode(buffer, body);
+		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());
@@ -221,7 +221,7 @@ public class RequestDecoderTests {
 		assertEquals("firstname=J.&lastnam", bodyText);
 		// Remaining
 		body.clear();
-		result = decoder.decode(buffer, body);
+		result = decoder.decode(buffer, body, false);
 		assertFalse(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertFalse(result.isOverflow());
@@ -255,7 +255,7 @@ public class RequestDecoderTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpRequestDecoder.Result result = decoder.decode(buffer, body);
+		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());
@@ -267,7 +267,7 @@ public class RequestDecoderTests {
 		assertTrue(!buffer.hasRemaining());
 		// Rest
 		buffer = ByteBuffer.wrap("e=Grapes".getBytes("ascii"));
-		result = decoder.decode(buffer, body);
+		result = decoder.decode(buffer, body, false);
 		assertFalse(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertFalse(result.isOverflow());
@@ -306,7 +306,7 @@ public class RequestDecoderTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpRequestDecoder.Result result = decoder.decode(buffer, body);
+		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());
@@ -349,7 +349,7 @@ public class RequestDecoderTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpRequestDecoder.Result result = decoder.decode(buffer, body);
+		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
 		assertTrue(decoder.getHeader().messageHasBody());

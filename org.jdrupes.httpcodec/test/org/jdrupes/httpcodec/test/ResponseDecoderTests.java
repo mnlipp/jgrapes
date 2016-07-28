@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.ProtocolException;
+import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpSetCookieListField;
@@ -43,7 +44,7 @@ public class ResponseDecoderTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder();
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpResponseDecoder.Result result = decoder.decode(buffer, body);
+		HttpResponseDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertFalse(result.getCloseConnection());
@@ -87,7 +88,7 @@ public class ResponseDecoderTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder();
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpResponseDecoder.Result result = decoder.decode(buffer, body);
+		HttpResponseDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertFalse(result.getCloseConnection());
@@ -97,7 +98,7 @@ public class ResponseDecoderTests {
 		assertTrue(result.isUnderflow());
 		assertFalse(buffer.hasRemaining());
 		// Close
-		result = decoder.decode(null, body);
+		result = decoder.decode(buffer, body, true);
 		assertFalse(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertTrue(result.getCloseConnection());

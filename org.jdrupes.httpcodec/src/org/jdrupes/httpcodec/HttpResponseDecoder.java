@@ -75,9 +75,9 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	 * @see org.jdrupes.httpcodec.internal.Decoder#decode(java.nio.ByteBuffer, java.nio.ByteBuffer)
 	 */
 	@Override
-	public Result decode(ByteBuffer in, Buffer out)
+	public Result decode(ByteBuffer in, Buffer out, boolean endOfInput)
 	        throws ProtocolException {
-		return (Result)super.decode(in, out);
+		return (Result)super.decode(in, out, endOfInput);
 	}
 
 	/**

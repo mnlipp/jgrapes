@@ -17,6 +17,8 @@
  */
 package org.jdrupes.httpcodec;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author Michael N. Lipp
  *
@@ -118,4 +120,11 @@ public abstract class HttpCodec {
 	final public static String TOKEN_CHARS 
 		= "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 			+ "^`abcdefghijklmnopqrstuvwxyz|~";
+
+	/**
+	 * An empty input buffer that can be used for codec invocations
+	 * when the (expected) body data is not yet available.
+	 */
+	public final static ByteBuffer EMPTY_IN = ByteBuffer.allocate(0);
+	
 }

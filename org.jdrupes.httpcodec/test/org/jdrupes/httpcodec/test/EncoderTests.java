@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 
+import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.HttpResponse;
@@ -25,7 +26,8 @@ public class EncoderTests {
 		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		HttpResponseEncoder.Result result = encoder.encode(out);
+		HttpResponseEncoder.Result result = encoder.encode(HttpCodec.EMPTY_IN,
+		        out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -34,11 +36,11 @@ public class EncoderTests {
 		assertTrue(encoded.endsWith("\r\n\r\n"));
 
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
-		result = encoder.encode(in, out);
+		result = encoder.encode(in, out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
-		result = encoder.encode(null, out);
+		result = encoder.encode(in, out, true);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -58,7 +60,8 @@ public class EncoderTests {
 		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		HttpResponseEncoder.Result result = encoder.encode(out);
+		HttpResponseEncoder.Result result = encoder.encode(HttpCodec.EMPTY_IN,
+		        out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -68,11 +71,11 @@ public class EncoderTests {
 		assertTrue(encoded.endsWith("\r\n\r\n"));
 
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
-		result = encoder.encode(in, out);
+		result = encoder.encode(in, out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
-		result = encoder.encode(null, out);
+		result = encoder.encode(in, out, true);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -96,18 +99,19 @@ public class EncoderTests {
 		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		HttpResponseEncoder.Result result = encoder.encode(out);
+		HttpResponseEncoder.Result result = encoder.encode(HttpCodec.EMPTY_IN, 
+				out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
 
 		// Provide body
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
-		result = encoder.encode(in, out);
+		result = encoder.encode(in, out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
-		result = encoder.encode(null, out);
+		result = encoder.encode(in, out, true);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());

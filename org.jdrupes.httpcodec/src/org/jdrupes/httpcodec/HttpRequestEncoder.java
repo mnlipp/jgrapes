@@ -64,8 +64,8 @@ public class HttpRequestEncoder extends Encoder<HttpRequest> {
 	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(java.nio.ByteBuffer, java.nio.ByteBuffer)
 	 */
 	@Override
-	public Result encode(ByteBuffer in, ByteBuffer out) {
-		return (Result)super.encode(in, out);
+	public Result encode(ByteBuffer in, ByteBuffer out, boolean endOfInput) {
+		return (Result)super.encode(in, out, endOfInput);
 	}
 
 	public class Result extends CodecResult {
