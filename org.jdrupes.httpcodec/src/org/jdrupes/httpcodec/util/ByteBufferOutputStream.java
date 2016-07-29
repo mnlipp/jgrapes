@@ -121,10 +121,11 @@ public class ByteBufferOutputStream extends OutputStream {
 	}
 
 	private void allocateOverflowBuffer() {
-		current = ByteBuffer.allocate(overflowBufferSize != 0
+		current = ByteBuffer.allocate(
+		        overflowBufferSize != 0
 		        ? overflowBufferSize
-		        : (assignedBuffer == null
-		                ? 4096 : assignedBuffer.capacity() / 4));
+		        : Math.max(4096, (assignedBuffer == null
+		                          ? 0 : assignedBuffer.capacity() / 4)));
 		current.mark();
 		overflows.add(current);
 	}
