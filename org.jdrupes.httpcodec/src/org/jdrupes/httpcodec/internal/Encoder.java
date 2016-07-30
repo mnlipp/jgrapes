@@ -212,8 +212,10 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 					return newResult(false, true);
 				}
 				collectedBodyData = new ByteBufferOutputStream(
-				        Math.max(in.capacity(), 64 * 1024));
+				        Math.min(pendingLimit, 
+				        		Math.max(in.capacity(), 64 * 1024)));
 				states.pop();
+				leftToStream = Long.MAX_VALUE;
 				states.push(State.COLLECT_BODY);
 				// fall through (no write occurred yet)
 			case COLLECT_BODY:
