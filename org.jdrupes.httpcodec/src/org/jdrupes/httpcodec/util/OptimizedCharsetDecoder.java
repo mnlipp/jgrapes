@@ -147,6 +147,10 @@ public class OptimizedCharsetDecoder {
 	 * @see java.nio.charset.CharsetDecoder#flush(java.nio.CharBuffer)
 	 */
 	public final CoderResult flush(CharBuffer out) {
+		if (pending.position() > 0) {
+			// Shouldn't happen, hard to know what to do...
+			pending.clear();
+		}
 		return backing.flush(out);
 	}
 
