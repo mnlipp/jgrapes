@@ -57,5 +57,59 @@ public class BasicProtocolTests {
 		assertEquals(8888, decoder.getHeader().getPort());
 	}
 
+	@Test
+	public void testUnsupportedVersion() throws UnsupportedEncodingException {
+		String reqText 
+			= "GET / HTTP/0.8\r\n"
+			+ "Host: localhost:8888\r\n"
+			+ "\r\n";
+		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
+		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
+		assertFalse(result.isHeaderCompleted());
+		assertTrue(result.hasResponse());
+		assertEquals(505, result.getResponse().getStatusCode());
+	}
+
+	/**
+	 * RFC 7230 3.1.1
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
+	@Test
+	public void testRequestWithWhitespace()
+	        throws UnsupportedEncodingException {
+		String reqText 
+			= "GET /tricky/Resource HTTP/1.1 HTTP/1.1\r\n"
+			+ "Host: localhost:8888\r\n"
+			+ "\r\n";
+		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
+		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
+		assertFalse(result.isHeaderCompleted());
+		assertTrue(result.hasResponse());
+		assertEquals(400, result.getResponse().getStatusCode());
+	}
+
+	/**
+	 * RFC 7230 3.2.4
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
+	@Test
+	public void testRequestWithSpaceBeforeColon()
+	        throws UnsupportedEncodingException {
+		String reqText 
+			= "GET / HTTP/1.1\r\n"
+			+ "Host : localhost:8888\r\n"
+			+ "\r\n";
+		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
+		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
+		assertFalse(result.isHeaderCompleted());
+		assertTrue(result.hasResponse());
+		assertEquals(400, result.getResponse().getStatusCode());
+	}
+
 
 }

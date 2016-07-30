@@ -41,7 +41,8 @@ public class RequestDecoderTests {
 	 * Simple GET request.
 	 */
 	@Test
-	public void testBasicGetRequest() throws UnsupportedEncodingException {
+	public void testBasicGetRequestAtOnce()
+	        throws UnsupportedEncodingException {
 		String reqText 
 			= "GET /test HTTP/1.1\r\n"
 			+ "Host: localhost:8888\r\n"
@@ -69,13 +70,14 @@ public class RequestDecoderTests {
 		assertEquals("", field.valueForName("gsScrollPos"));
 	}
 
+	
 	/**
-	 * GET request with header in two parts.
+	 * Request with header in two parts.
 	 * 
 	 * @throws UnsupportedEncodingException
 	 */
 	@Test
-	public void testSplitHeader() throws UnsupportedEncodingException {
+	public void testRequestSplitHeader() throws UnsupportedEncodingException {
 		// Partial header
 		String reqText 
 			= "GET /test HTTP/1.1\r\n"
@@ -100,7 +102,45 @@ public class RequestDecoderTests {
 		assertEquals("/test",
 		        decoder.getHeader().getRequestUri().getPath());
 	}
-	
+
+	/**
+	 * POST with "expected" body (all in one call).
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
+	@Test
+	public void testHeaderAndBodyAtOnce()
+	        throws UnsupportedEncodingException {
+		String reqText = "POST /form HTTP/1.1\r\n"
+		        + "Host: localhost:8888\r\n"
+		        + "Connection: keep-alive\r\n"
+		        + "Content-Length: 28\r\n"
+		        + "Origin: http://localhost:8888\r\n"
+		        + "Content-Type: application/x-www-form-urlencoded\r\n"
+		        + "Referer: http://localhost:8888/form\r\n"
+		        + "Accept-Encoding: gzip, deflate\r\n"
+		        + "Accept-Language: de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4\r\n"
+		        + "\r\n"
+		        + "firstname=J.&lastname=Grapes";
+		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
+		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		ByteBuffer body = ByteBuffer.allocate(1024);
+		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
+		assertTrue(result.isHeaderCompleted());
+		assertFalse(result.hasResponse());
+		assertTrue(decoder.getHeader().messageHasBody());
+		assertEquals("POST", decoder.getHeader().getMethod());
+		assertEquals("/form",
+		        decoder.getHeader().getRequestUri().getPath());
+		assertFalse(result.isOverflow());
+		assertFalse(result.isUnderflow());
+		assertTrue(!buffer.hasRemaining());
+		body.flip();
+		String bodyText = new String(body.array(), body.position(),
+		        body.limit());
+		assertEquals("firstname=J.&lastname=Grapes", bodyText);
+	}
+
 	/**
 	 * POST with "unexpected" body (no out buffer).
 	 * 
@@ -136,44 +176,6 @@ public class RequestDecoderTests {
 		result = decoder.decode(buffer, body, false);
 		assertFalse(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(result.isOverflow());
-		assertFalse(result.isUnderflow());
-		assertTrue(!buffer.hasRemaining());
-		body.flip();
-		String bodyText = new String(body.array(), body.position(),
-		        body.limit());
-		assertEquals("firstname=J.&lastname=Grapes", bodyText);
-	}
-
-	/**
-	 * POST with "expected" body (all in one call).
-	 * 
-	 * @throws UnsupportedEncodingException
-	 */
-	@Test
-	public void testHeaderAndBody()
-	        throws UnsupportedEncodingException {
-		String reqText = "POST /form HTTP/1.1\r\n"
-		        + "Host: localhost:8888\r\n"
-		        + "Connection: keep-alive\r\n"
-		        + "Content-Length: 28\r\n"
-		        + "Origin: http://localhost:8888\r\n"
-		        + "Content-Type: application/x-www-form-urlencoded\r\n"
-		        + "Referer: http://localhost:8888/form\r\n"
-		        + "Accept-Encoding: gzip, deflate\r\n"
-		        + "Accept-Language: de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4\r\n"
-		        + "\r\n"
-		        + "firstname=J.&lastname=Grapes";
-		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
-		assertTrue(result.isHeaderCompleted());
-		assertFalse(result.hasResponse());
-		assertTrue(decoder.getHeader().messageHasBody());
-		assertEquals("POST", decoder.getHeader().getMethod());
-		assertEquals("/form",
-		        decoder.getHeader().getRequestUri().getPath());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertTrue(!buffer.hasRemaining());
