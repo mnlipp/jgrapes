@@ -200,6 +200,9 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 			switch (states.peek()) {
 			// Waiting for CR (start of end of line)
 			case RECEIVE_LINE: {
+				if (!in.hasRemaining()) {
+					return createResult(false, true, false);
+				}
 				byte ch = in.get();
 				if (ch == '\r') {
 					states.pop();
@@ -217,6 +220,9 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 			}
 			// Waiting for LF (confirmation of end of line)
 			case AWAIT_LINE_END: {
+				if (!in.hasRemaining()) {
+					return createResult(false, true, false);
+				}
 				char ch = (char) in.get();
 				if (ch == '\n') {
 					try {
@@ -228,7 +234,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					}
 					lineBuilder.clear();
 					states.pop();
-					continue; // New state, maybe we have finished
+					break;
 				}
 				throw new ProtocolException(protocolVersion,
 				        HttpStatus.BAD_REQUEST.getStatusCode(),
@@ -351,7 +357,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					if (out instanceof CharBuffer && charDecoder != null) {
 						states.push(State.FINISH_CHARDECODER);
 					}
-					continue;
+					break;
 				}
 				return createResult((!out.hasRemaining() && in.hasRemaining())
 						|| (decRes != null && decRes.isOverflow()),
@@ -365,14 +371,14 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				}
 				states.pop();
 				states.push(State.FLUSH_CHARDECODER);
-				continue;
+				break;
 				
 			case FLUSH_CHARDECODER:
 				if (charDecoder.flush((CharBuffer)out).isOverflow()) {
 					return createResult(true, false, false);
 				}
 				states.pop();
-				continue;
+				break;
 
 			case COPY_UNTIL_CLOSED:
 				if (out == null) {
@@ -394,18 +400,13 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					// Final flush needed
 					states.push(State.FINISH_CHARDECODER);
 				}
-				continue;
+				break;
 
 			case CLOSED:
 				in.position(in.limit());
 				return createResult(false, false, true);
 			}
-			// Using "continue" in the above code avoids the check
-			if (!in.hasRemaining()) {
-				break;
-			}
-		};
-		return createResult(false, true, false);
+		}
 	}
 
 	private void newHeaderLine() throws ProtocolException, ParseException {
