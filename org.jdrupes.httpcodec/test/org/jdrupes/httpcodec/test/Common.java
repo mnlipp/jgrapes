@@ -19,12 +19,12 @@ package org.jdrupes.httpcodec.test;
 
 import static org.junit.Assert.assertTrue;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 
-import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.jdrupes.httpcodec.HttpResponseDecoder;
 import org.jdrupes.httpcodec.HttpResponseEncoder;
-import org.jdrupes.httpcodec.HttpResponseEncoder.Result;
 import org.jdrupes.httpcodec.ProtocolException;
 
 /**
@@ -41,10 +41,17 @@ public class Common {
 	}
 
 	public static HttpResponseEncoder.Result tinyEncodeLoop(
-			HttpResponseEncoder encoder, ByteBuffer in, ByteBuffer out) {
-		ByteBuffer tinyIn = ByteBuffer.allocate(1);
+			HttpResponseEncoder encoder, Buffer in, ByteBuffer out) {
+		return tinyEncodeLoop(encoder, in, 1, out, 1);
+	}
+	
+	public static HttpResponseEncoder.Result tinyEncodeLoop(
+			HttpResponseEncoder encoder, Buffer in, int inSize,
+			ByteBuffer out, int outSize) {
+		Buffer tinyIn = (in instanceof CharBuffer) ? CharBuffer.allocate(1)
+				: ByteBuffer.allocate(inSize);
 		tinyIn.flip(); // Initially empty
-		ByteBuffer tinyOut = ByteBuffer.allocate(1);
+		ByteBuffer tinyOut = ByteBuffer.allocate(outSize);
 		boolean endOfInput = false;
 		HttpResponseEncoder.Result lastResult;
 		while (true) {
@@ -58,7 +65,11 @@ public class Common {
 			if (lastResult.isUnderflow()) {
 				assertTrue(in.hasRemaining());
 				tinyIn.clear();
-				tinyIn.put(in.get());
+				if (in instanceof ByteBuffer) {
+					((ByteBuffer)tinyIn).put(((ByteBuffer)in).get());
+				} else {
+					((CharBuffer)tinyIn).put(((CharBuffer)in).get());
+				}
 				tinyIn.flip();
 				if (!in.hasRemaining()) {
 					endOfInput = true;

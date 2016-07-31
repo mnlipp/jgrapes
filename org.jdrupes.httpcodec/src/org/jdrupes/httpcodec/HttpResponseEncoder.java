@@ -19,6 +19,7 @@ package org.jdrupes.httpcodec;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.internal.CodecResult;
@@ -55,7 +56,7 @@ public class HttpResponseEncoder extends Encoder<HttpResponse> {
 	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(java.nio.ByteBuffer, java.nio.ByteBuffer)
 	 */
 	@Override
-	public Result encode(ByteBuffer in, ByteBuffer out, boolean endOfInput) {
+	public Result encode(Buffer in, ByteBuffer out, boolean endOfInput) {
 		return (Result)super.encode(in, out, endOfInput);
 	}
 

@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.text.ParseException;
 
 import org.jdrupes.httpcodec.HttpCodec;
@@ -40,7 +41,9 @@ public class EncoderClosedTests {
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
 		// Check result
-		String encoded = new String(out.array(), 0, out.position());
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
 		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
 		assertTrue(encoded.contains("Content-Length: 12\r\n"));
 		assertTrue(encoded.endsWith("\r\n\r\nHello World!"));
@@ -75,7 +78,9 @@ public class EncoderClosedTests {
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
 		// Check result
-		String encoded = new String(out.array(), 0, out.position());
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
 		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
 		assertTrue(encoded.contains("Content-Length: 12\r\n"));
 		assertTrue(encoded.endsWith("\r\n\r\nHello World!"));
@@ -97,7 +102,9 @@ public class EncoderClosedTests {
 		// Encode rest
 		Common.tinyEncodeLoop(encoder, in, out);
 		// Check result
-		String encoded = new String(out.array(), 0, out.position());
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
 		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
 		assertTrue(encoded.contains("Content-Length: 12\r\n"));
 		assertTrue(encoded.endsWith("\r\n\r\nHello World!"));
@@ -123,8 +130,11 @@ public class EncoderClosedTests {
 		assertFalse(result.isUnderflow());
 		assertTrue(result.getCloseConnection());
 		// Check result
-		String encoded = new String(out.array(), 0, out.position());
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
 		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
+		assertTrue(!encoded.contains("\r\nContent-Length:"));
 		assertTrue(encoded.endsWith("\r\n\r\nHello World!"));
 	}
 
@@ -158,8 +168,11 @@ public class EncoderClosedTests {
 		assertFalse(result.isUnderflow());
 		assertTrue(result.getCloseConnection());
 		// Check result
-		String encoded = new String(out.array(), 0, out.position());
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
 		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
+		assertTrue(!encoded.contains("\r\nContent-Length:"));
 		assertTrue(encoded.endsWith("\r\n\r\nHello World!"));
 	}
 
@@ -185,9 +198,191 @@ public class EncoderClosedTests {
 		assertFalse(lastResult.isUnderflow());
 		assertTrue(lastResult.getCloseConnection());
 		// assertTrue(lastResult.getCloseConnection());
-		String encoded = new String(out.array(), 0, out.position());
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
 		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
+		assertTrue(!encoded.contains("\r\nContent-Length:"));
 		assertTrue(encoded.endsWith("\r\n\r\nHello World!"));
+	}
+
+	@Test
+	public void testCharResponseClosedAtOnce()
+	        throws UnsupportedEncodingException, ParseException {
+		// Prepare response
+		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_0,
+		        HttpStatus.OK, false);
+		response.setMessageHasBody(true);
+		response.setContentType("text", "plain");
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		// Encode header
+		encoder.encode(response);
+		ByteBuffer out = ByteBuffer.allocate(1024*1024);
+		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
+		// Encode rest
+		HttpResponseEncoder.Result result = encoder.encode(in, out, true);
+		assertFalse(result.isOverflow());
+		assertFalse(result.isUnderflow());
+		assertFalse(result.getCloseConnection());
+		// Check result
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
+		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
+		assertTrue(encoded.contains("Content-Length: 31\r\n"));
+		assertTrue(encoded.endsWith("\r\n\r\näöü€ Hello World! ÄÖÜß"));
+	}
+
+	@Test
+	public void testCharResponseClosedSeparatePhases()
+	        throws UnsupportedEncodingException, ParseException {
+		// Prepare response
+		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_0,
+		        HttpStatus.OK, false);
+		response.setMessageHasBody(true);
+		response.setContentType("text", "plain");
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		// Encode header
+		encoder.encode(response);
+		ByteBuffer out = ByteBuffer.allocate(1024*1024);
+		HttpResponseEncoder.Result result = encoder.encode(HttpCodec.EMPTY_IN, 
+				out, false);
+		assertFalse(result.isOverflow());
+		assertTrue(result.isUnderflow());
+		assertFalse(result.getCloseConnection());
+		// Encode body
+		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
+		result = encoder.encode(in, out, false);
+		assertFalse(result.isOverflow());
+		assertTrue(result.isUnderflow());
+		assertFalse(result.getCloseConnection());
+		// "Encode" end of input
+		result = encoder.encode(in, out, true);
+		assertFalse(result.isOverflow());
+		assertFalse(result.isUnderflow());
+		assertFalse(result.getCloseConnection());
+		// Check result
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
+		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
+		assertTrue(encoded.contains("Content-Length: 31\r\n"));
+		assertTrue(encoded.endsWith("\r\n\r\näöü€ Hello World! ÄÖÜß"));
+	}
+
+	@Test
+	public void testCharResponseClosedTiny()
+	        throws UnsupportedEncodingException, ParseException {
+		// Prepare response
+		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_0,
+		        HttpStatus.OK, false);
+		response.setMessageHasBody(true);
+		response.setContentType("text", "plain");
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		// Encode header
+		encoder.encode(response);
+		ByteBuffer out = ByteBuffer.allocate(1024*1024);
+		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
+		// Encode rest
+		Common.tinyEncodeLoop(encoder, in, out);
+		// Check result
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
+		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
+		assertTrue(encoded.contains("Content-Length: 31\r\n"));
+		assertTrue(encoded.endsWith("\r\n\r\näöü€ Hello World! ÄÖÜß"));
+	}
+
+	@Test
+	public void testCharResponseClosedOverflowAtOnce()
+	        throws UnsupportedEncodingException, ParseException {
+		// Prepare response
+		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_0,
+		        HttpStatus.OK, false);
+		response.setMessageHasBody(true);
+		response.setContentType("text", "plain");
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		encoder.setPendingLimit(4);
+		// Encode header
+		encoder.encode(response);
+		ByteBuffer out = ByteBuffer.allocate(1024*1024);
+		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
+		// Encode rest
+		HttpResponseEncoder.Result result = encoder.encode(in, out, true);
+		assertFalse(result.isOverflow());
+		assertFalse(result.isUnderflow());
+		assertTrue(result.getCloseConnection());
+		// Check result
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
+		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
+		assertTrue(!encoded.contains("\r\nContent-Length:"));
+		assertTrue(encoded.endsWith("\r\n\r\näöü€ Hello World! ÄÖÜß"));
+	}
+
+	@Test
+	public void testCharResponseClosedOverflowSeparatePhases()
+	        throws UnsupportedEncodingException, ParseException {
+		// Prepare response
+		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_0,
+		        HttpStatus.OK, false);
+		response.setMessageHasBody(true);
+		response.setContentType("text", "plain");
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		encoder.setPendingLimit(4);
+		// Encode header
+		encoder.encode(response);
+		ByteBuffer out = ByteBuffer.allocate(1024*1024);
+		HttpResponseEncoder.Result result = encoder.encode(HttpCodec.EMPTY_IN, 
+				out, false);
+		assertFalse(result.isOverflow());
+		assertTrue(result.isUnderflow());
+		assertFalse(result.getCloseConnection());
+		// Encode body
+		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
+		result = encoder.encode(in, out, false);
+		assertFalse(result.isOverflow());
+		assertTrue(result.isUnderflow());
+		assertFalse(result.getCloseConnection());
+		// "Encode" end of input
+		result = encoder.encode(in, out, true);
+		assertFalse(result.isOverflow());
+		assertFalse(result.isUnderflow());
+		assertTrue(result.getCloseConnection());
+		// Check result
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
+		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
+		assertTrue(!encoded.contains("\r\nContent-Length:"));
+		assertTrue(encoded.endsWith("\r\n\r\näöü€ Hello World! ÄÖÜß"));
+	}
+
+	@Test
+	public void testCharResponseClosedOverflowTiny()
+	        throws UnsupportedEncodingException, ParseException {
+		// Prepare response
+		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_0,
+		        HttpStatus.OK, false);
+		response.setMessageHasBody(true);
+		response.setContentType("text", "plain");
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		encoder.setPendingLimit(4);
+		// Encode header
+		encoder.encode(response);
+		ByteBuffer out = ByteBuffer.allocate(1024*1024);
+		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
+		// Encode rest
+		Common.tinyEncodeLoop(encoder, in, 1, out, 3);
+		// Check result
+		out.flip();
+		String encoded = new String(out.array(), out.arrayOffset(),
+		        out.remaining());
+		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
+		assertTrue(!encoded.contains("\r\nContent-Length:"));
+		assertTrue(encoded.endsWith("\r\n\r\näöü€ Hello World! ÄÖÜß"));
 	}
 
 }

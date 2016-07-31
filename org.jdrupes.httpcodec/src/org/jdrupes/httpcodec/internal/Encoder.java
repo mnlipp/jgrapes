@@ -21,7 +21,12 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CoderResult;
 import java.util.Iterator;
 import java.util.Stack;
 
@@ -44,9 +49,9 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 		// Main states
 		INITIAL, DONE, CLOSED,
 		// Sub states
-		HEADERS, CHUNK_BODY, FINISH_CHUNK, FINISH_CHUNKED,
+		HEADERS, CHUNK_BODY, STREAM_CHUNK, FINISH_CHUNK, FINISH_CHUNKED,
 		START_COLLECT_BODY, COLLECT_BODY, STREAM_COLLECTED, 
-		STREAM_BODY
+		STREAM_BODY, FLUSH_ENCODER
 	}
 
 	private Stack<State> states = new Stack<>();
@@ -57,6 +62,9 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	private int pendingLimit = 1024 * 1024;
 	private long leftToStream;
 	private ByteBufferOutputStream collectedBodyData;
+	private CharsetEncoder charEncoder = null;
+	private Writer charWriter = null;
+	private ByteBuffer chunkData;
 
 	/**
 	 * Creates a new encoder.
@@ -150,6 +158,8 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 			throw new IllegalStateException();
 		}
 		this.messageHeader = messageHeader;
+		charEncoder = null;
+		charWriter = null;
 	}
 
 	/**
@@ -181,7 +191,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	 *            no body at all)
 	 * @return the result
 	 */
-	public CodecResult encode(ByteBuffer in, ByteBuffer out,
+	public CodecResult encode(Buffer in, ByteBuffer out,
 	        boolean endOfInput) {
 		outStream.assignBuffer(out);
 		CodecResult result = CONTINUE;
@@ -215,7 +225,6 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 				        Math.min(pendingLimit, 
 				        		Math.max(in.capacity(), 64 * 1024)));
 				states.pop();
-				leftToStream = Long.MAX_VALUE;
 				states.push(State.COLLECT_BODY);
 				// fall through (no write occurred yet)
 			case COLLECT_BODY:
@@ -233,27 +242,43 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 
 			case STREAM_BODY:
 				// Stream, i.e. simply copy from source to destination
-				int initiallyRemaining = in.remaining();
-				if (out.remaining() <= leftToStream) {
-					ByteBufferUtils.putAsMuchAsPossible(out, in);
-				} else {
-					ByteBufferUtils.putAsMuchAsPossible(out, in,
-					        (int) leftToStream);
-				}
-				leftToStream -= (initiallyRemaining - in.remaining());
-				if (leftToStream == 0 || endOfInput) {
+				int initiallyRemaining = out.remaining();
+				result = copyBodyData(in, out, endOfInput);
+				leftToStream -= (initiallyRemaining - out.remaining());
+				if (!result.isOverflow() && (leftToStream == 0 || endOfInput)) {
 					// end of data
 					states.pop();
+					if (charEncoder != null) {
+						states.push(State.FLUSH_ENCODER);
+					}
 					continue;
 				}
-				// Everything written, waiting for more data or end of data
-				return newResult(out.remaining() == 0, in.remaining() == 0);
+				// Buffer written, waiting for space, more data or end of data
+				return result;
 
+			case FLUSH_ENCODER:
+				CoderResult flushResult = charEncoder.flush(out);
+				if (flushResult.isOverflow()) {
+					return newResult(true, false);
+				}
+				states.pop();
+				break;
+				
 			case CHUNK_BODY:
 				// Send in data as chunk
 				result = startChunk(in, out, endOfInput);
 				continue; // remaining check already done 
 
+			case STREAM_CHUNK:
+				// Stream, i.e. simply copy from source to destination
+				if (!ByteBufferUtils.putAsMuchAsPossible(out, chunkData)) {
+					// Not enough space in out buffer
+					return newResult(true, false);
+				}
+				// everything from in written
+				states.pop();
+				continue;
+	
 			case FINISH_CHUNK:
 				try {
 					outStream.write("\r\n".getBytes("ascii"));
@@ -423,24 +448,78 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	}
 
 	/**
+	 * Copy as much data as possible from in to out.
+	 * 
+	 * @param in
+	 * @param out
+	 * @param endOfInput
+	 */
+	private CodecResult copyBodyData(Buffer in, ByteBuffer out,
+	        boolean endOfInput) {
+		if (in instanceof CharBuffer) {
+			// copy via encoder
+			if (charEncoder == null) {
+				charEncoder = Charset.forName(bodyCharset()).newEncoder();
+			}
+			CoderResult result = charEncoder.encode((CharBuffer) in, out,
+			        endOfInput);
+			return newResult(result.isOverflow(), 
+					!endOfInput && result.isUnderflow());
+		}
+		if (out.remaining() <= leftToStream) {
+			ByteBufferUtils.putAsMuchAsPossible(out, (ByteBuffer) in);
+		} else {
+			ByteBufferUtils.putAsMuchAsPossible(out, (ByteBuffer) in,
+			        (int) leftToStream);
+		}
+		return newResult(out.remaining() == 0, 
+				!endOfInput && in.remaining() == 0);
+	}
+
+	/**
 	 * Handle the input as appropriate for the collect-body mode.
 	 * 
 	 * @param in
 	 * @param endOfInput
 	 */
-	private CodecResult collectBody(ByteBuffer in, boolean endOfInput) {
-		if (collectedBodyData.remaining() + in.remaining() > pendingLimit) {
+	private CodecResult collectBody(Buffer in, boolean endOfInput) {
+		if (collectedBodyData.remaining() - in.remaining() < -pendingLimit) {
 			// No space left, output headers, collected and rest (and then
 			// close)
 			states.pop();
 			closeAfterBody = true;
+			leftToStream = Long.MAX_VALUE;
 			states.push(State.STREAM_BODY);
 			states.push(State.STREAM_COLLECTED);
 			states.push(State.HEADERS);
 			return CONTINUE;
 		}
 		// Space left, collect
-		collectedBodyData.write(in);
+		if (in instanceof ByteBuffer) {
+			collectedBodyData.write((ByteBuffer)in);
+		} else {
+			if (charWriter == null) {
+				try {
+					charWriter = new OutputStreamWriter(collectedBodyData,
+					        bodyCharset());
+				} catch (UnsupportedEncodingException e) {
+					throw new IllegalArgumentException(e);
+				}
+			}
+			try {
+				if (in.hasArray()) {
+					// more efficient than CharSequence
+					charWriter.write(((CharBuffer) in).array(),
+					        in.arrayOffset() + in.position(), in.remaining());
+				} else {
+					charWriter.append((CharBuffer)in);
+				}
+				in.position(in.limit());
+				charWriter.flush();
+			} catch (IOException e) {
+				// Formally thrown, cannot happen
+			}
+		}
 		if (endOfInput) {
 			// End of body, found content length!
 			messageHeader.setField(new HttpContentLengthField(
@@ -460,7 +539,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	 * @param in
 	 * @return
 	 */
-	private CodecResult startChunk(ByteBuffer in, ByteBuffer out,
+	private CodecResult startChunk(Buffer in, ByteBuffer out,
 	        boolean endOfInput) {
 		if (endOfInput) {
 			states.pop();
@@ -469,12 +548,21 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 		try {
 			// Don't write zero sized chunks
 			if (in.hasRemaining()) {
-				leftToStream = in.remaining();
+				if (in instanceof CharBuffer) {
+					if (charEncoder == null) {
+						charEncoder = Charset.forName(bodyCharset())
+						        .newEncoder();
+					}
+					chunkData = charEncoder.encode((CharBuffer)in);
+				} else {
+					chunkData = (ByteBuffer)in;
+				}
 				outStream.write(
-				        Long.toHexString(leftToStream).getBytes("ascii"));
+				        Long.toHexString(chunkData.remaining())
+				                .getBytes("ascii"));
 				outStream.write("\r\n".getBytes("ascii"));
 				states.push(State.FINISH_CHUNK);
-				states.push(State.STREAM_BODY);
+				states.push(State.STREAM_CHUNK);
 				return newResult(outStream.remaining() <= 0, false);
 			}
 		} catch (IOException e) {
