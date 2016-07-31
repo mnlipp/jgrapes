@@ -19,10 +19,10 @@ import org.junit.Test;
  * 
  * @author Michael N. Lipp
  */
-public class EncoderCollectedTests {
+public class EncoderClosedTests {
 	
 	@Test
-	public void testResponseCollectedAtOnce()
+	public void testResponseClosedAtOnce()
 	        throws UnsupportedEncodingException, ParseException {
 		// Prepare response
 		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_0,
@@ -47,7 +47,7 @@ public class EncoderCollectedTests {
 	}
 
 	@Test
-	public void testResponseCollectedSeparatePhases()
+	public void testResponseClosedSeparatePhases()
 	        throws UnsupportedEncodingException, ParseException {
 		// Prepare response
 		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_0,
@@ -82,7 +82,7 @@ public class EncoderCollectedTests {
 	}
 
 	@Test
-	public void testResponseCollectedTiny()
+	public void testResponseClosedTiny()
 	        throws UnsupportedEncodingException, ParseException {
 		// Prepare response
 		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_0,
@@ -129,7 +129,7 @@ public class EncoderCollectedTests {
 	}
 
 	@Test
-	public void testResponseCollectedOverflowSeparatePhases()
+	public void testResponseClosedOverflowSeparatePhases()
 	        throws UnsupportedEncodingException, ParseException {
 		// Prepare response
 		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_0,
@@ -164,7 +164,7 @@ public class EncoderCollectedTests {
 	}
 
 	@Test
-	public void testResponseCollectedOverflowTiny()
+	public void testResponseClosedOverflowTiny()
 	        throws UnsupportedEncodingException, ParseException {
 		// Prepare response
 		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_0,
@@ -181,6 +181,9 @@ public class EncoderCollectedTests {
 		HttpResponseEncoder.Result lastResult = Common.tinyEncodeLoop(encoder,
 		        in, out);
 		// Check result
+		assertFalse(lastResult.isOverflow());
+		assertFalse(lastResult.isUnderflow());
+		assertTrue(lastResult.getCloseConnection());
 		// assertTrue(lastResult.getCloseConnection());
 		String encoded = new String(out.array(), 0, out.position());
 		assertTrue(encoded.contains("HTTP/1.0 200 OK\r\n"));
