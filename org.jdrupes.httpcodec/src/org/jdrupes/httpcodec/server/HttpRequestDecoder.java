@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.server;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -24,11 +24,15 @@ import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jdrupes.httpcodec.HttpRequest;
+import org.jdrupes.httpcodec.HttpResponse;
+import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.internal.Decoder;
 import org.jdrupes.httpcodec.internal.DecoderResult;
+import org.jdrupes.httpcodec.internal.Engine;
 
 /**
  * A decoder for HTTP requests that accepts data from a sequence of
@@ -42,6 +46,15 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 	private final static Pattern requestLinePatter = Pattern
 	        .compile("^(" + TOKEN + ")" + SP + "([^ \\t]+)" + SP + "("
 	                + HTTP_VERSION + ")$");
+
+	/**
+	 * Creates a new encoder that belongs to the given HTTP engine.
+	 * 
+	 * @param engine the engine
+	 */
+	public HttpRequestDecoder(Engine<HttpRequest, HttpResponse> engine) {
+		super(engine);
+	}
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.HttpDecoder#createResult(org.jdrupes.httpcodec.HttpMessage, boolean, boolean, boolean)

@@ -24,8 +24,8 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
+import org.jdrupes.httpcodec.client.HttpRequestEncoder;
 import org.jdrupes.httpcodec.HttpRequest;
-import org.jdrupes.httpcodec.HttpRequestEncoder;
 import org.junit.Test;
 
 /**
@@ -39,7 +39,7 @@ public class RequestEncoderTests {
 	public void testSimpleRequest() throws URISyntaxException {
 		HttpRequest request = new HttpRequest("GET", new URI("/"),
 		        HttpProtocol.HTTP_1_1, false);
-		HttpRequestEncoder encoder = new HttpRequestEncoder();
+		HttpRequestEncoder encoder = new HttpRequestEncoder(null);
 		encoder.encode(request);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		HttpRequestEncoder.Result result = encoder.encode(out);

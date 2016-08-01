@@ -9,8 +9,8 @@ import java.text.ParseException;
 import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.server.HttpResponseEncoder;
 import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpResponseEncoder;
 import org.junit.Test;
 
 /**
@@ -31,7 +31,7 @@ public class EncoderContentLengthTests {
 		response.setContentType("text", "plain");
 		response.setContentLength(12);
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
-		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		HttpResponseEncoder.Result result = encoder.encode(in, out, true);
@@ -53,7 +53,7 @@ public class EncoderContentLengthTests {
 		response.setMessageHasBody(true);
 		response.setContentType("text", "plain");
 		response.setContentLength(12);
-		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
 		encoder.encode(response);
 		// Encode header
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
@@ -91,7 +91,7 @@ public class EncoderContentLengthTests {
 		response.setContentType("text", "plain");
 		response.setContentLength(12);
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
-		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		Common.tinyEncodeLoop(encoder, in, out);

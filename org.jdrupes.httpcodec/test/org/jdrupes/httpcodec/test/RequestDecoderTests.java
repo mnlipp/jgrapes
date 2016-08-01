@@ -24,11 +24,11 @@ import static org.junit.Assert.assertTrue;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.jdrupes.httpcodec.fields.HttpCookieListField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
+import org.jdrupes.httpcodec.server.HttpRequestDecoder;
 import org.junit.Test;
 
 /**
@@ -55,7 +55,7 @@ public class RequestDecoderTests {
 			+ "Cookie: _test.=yes; gsScrollPos=\r\n"
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
@@ -83,7 +83,7 @@ public class RequestDecoderTests {
 			= "GET /test HTTP/1.1\r\n"
 			+ "Host: local";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertFalse(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
@@ -123,7 +123,7 @@ public class RequestDecoderTests {
 		        + "\r\n"
 		        + "firstname=J.&lastname=Grapes";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
@@ -161,7 +161,7 @@ public class RequestDecoderTests {
 		        + "\r\n"
 		        + "firstname=J.&lastname=Grapes";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
@@ -205,7 +205,7 @@ public class RequestDecoderTests {
 		        + "\r\n"
 		        + "firstname=J.&lastname=Grapes";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(20);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
@@ -255,7 +255,7 @@ public class RequestDecoderTests {
 		        + "\r\n"
 		        + "firstname=J.&lastnam";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
@@ -306,7 +306,7 @@ public class RequestDecoderTests {
 		        + "0\r\n"
 		        + "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
@@ -349,7 +349,7 @@ public class RequestDecoderTests {
 		        + "X-Summary-Field: Good\r\n"
 		        + "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());

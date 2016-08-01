@@ -15,17 +15,21 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.client;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jdrupes.httpcodec.HttpRequest;
+import org.jdrupes.httpcodec.HttpResponse;
+import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.internal.Decoder;
 import org.jdrupes.httpcodec.internal.DecoderResult;
+import org.jdrupes.httpcodec.internal.Engine;
 
 /**
  * A decoder for HTTP responses that accepts data from a sequence of
@@ -41,6 +45,15 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	                + SP + "(.*)$");
 
 	private String requestMethod = "";
+	
+	/**
+	 * Creates a new decoder that belongs to the given HTTP engine.
+	 * 
+	 * @param engine the engine
+	 */
+	public HttpResponseDecoder(Engine<HttpResponse, HttpRequest> engine) {
+		super(engine);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -56,19 +69,18 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	}
 
 	/**
-	 * Starts decoding a new response to a request with the given method.
+	 * Starts decoding a new response to a given request.
 	 * Specifying the request is necessary because the existence of a body
 	 * cannot be derived by looking at the header only. It depends on the kind
-	 * of request made.
+	 * of request made. Must be called before the response is decoded.
 	 * 
-	 * @param requestMethod
-	 *            the request method
+	 * @param request
+	 *            the request
 	 * @return the result, which will always indicate underflow because more
 	 *         input is required
 	 */
-	public DecoderResult decodeResponseTo(String requestMethod) {
-		this.requestMethod = requestMethod;
-		return new Result(false, false, true, false);
+	public void decodeResponseTo(HttpRequest request) {
+		this.requestMethod = request.getMethod();
 	}
 
 	/* (non-Javadoc)
@@ -93,15 +105,15 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	@Override
 	protected HttpResponse newMessage(String startLine)
 	        throws ProtocolException {
-		Matcher requestMatcher = responseLinePatter.matcher(startLine);
-		if (!requestMatcher.matches()) {
+		Matcher responseMatcher = responseLinePatter.matcher(startLine);
+		if (!responseMatcher.matches()) {
 			throw new ProtocolException(protocolVersion,
 			        HttpStatus.BAD_REQUEST.getStatusCode(),
 			        "Illegal request line");
 		}
-		String httpVersion = requestMatcher.group(1);
-		int statusCode = Integer.parseInt(requestMatcher.group(2));
-		String reasonPhrase = requestMatcher.group(3);
+		String httpVersion = responseMatcher.group(1);
+		int statusCode = Integer.parseInt(responseMatcher.group(2));
+		String reasonPhrase = responseMatcher.group(3);
 		boolean found = false;
 		for (HttpProtocol v : HttpProtocol.values()) {
 			if (v.toString().equals(httpVersion)) {

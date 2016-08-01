@@ -31,10 +31,11 @@ import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
-import org.jdrupes.httpcodec.HttpRequestDecoder;
-import org.jdrupes.httpcodec.HttpResponseEncoder;
-import org.jgrapes.core.Component;
+import org.jdrupes.httpcodec.server.HttpRequestDecoder;
+import org.jdrupes.httpcodec.server.HttpResponseEncoder;
+import org.jdrupes.httpcodec.server.HttpServerEngine;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.DynamicHandler;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.ConnectRequest;
@@ -67,14 +68,12 @@ import org.jgrapes.net.events.Accepted;
 public class HttpServer extends Component {
 
 	private class ExtExtension extends Extension {
-		public HttpRequestDecoder decoder;
-		public HttpResponseEncoder encoder;
+		public HttpServerEngine engine;
 		public ManagedByteBuffer outBuffer;
 
 		public ExtExtension(DataConnection upstreamChannel) {
 			super(HttpServer.this, upstreamChannel);
-			this.decoder = new HttpRequestDecoder();
-			this.encoder = new HttpResponseEncoder();
+			engine = new HttpServerEngine();
 		}
 	}
 
@@ -149,8 +148,8 @@ public class HttpServer extends Component {
 		final ExtExtension extDown = (ExtExtension) Extension
 		        .lookupExtension(event.getConnection());
 		// Get data associated with the channel
-		final HttpRequestDecoder httpDecoder = extDown.decoder;
-		if (httpDecoder == null) {
+		final HttpServerEngine engine = extDown.engine;
+		if (engine == null) {
 			throw new IllegalStateException(
 			        "Read event for unknown connection.");
 		}
@@ -159,10 +158,10 @@ public class HttpServer extends Component {
 		ByteBuffer in = event.getBuffer().getBacking();
 		ManagedByteBuffer bodyData = null;
 		while (in.hasRemaining()) {
-			HttpRequestDecoder.Result result = httpDecoder.decode(in,
+			HttpRequestDecoder.Result result = engine.decode(in,
 			        bodyData == null ? null : bodyData.getBacking(), false);
 			if (result.isHeaderCompleted()) {
-				fireRequest(extDown, httpDecoder.getHeader());
+				fireRequest(extDown, engine.currentRequest());
 			}
 			if (result.hasResponse()) {
 				// Error during decoding, send back
@@ -179,7 +178,7 @@ public class HttpServer extends Component {
 				continue;
 			}
 			if (!result.isUnderflow()
-			        && httpDecoder.getHeader().messageHasBody()) {
+			        && engine.currentRequest().messageHasBody()) {
 				fire(new EndOfRequest(extDown));
 			}
 		}
@@ -248,15 +247,15 @@ public class HttpServer extends Component {
 		}
 		final ExtExtension extDown = (ExtExtension)event.getConnection();
 		final DataConnection netConn = extDown.getUpstreamConnection();
-		final HttpResponseEncoder encoder = extDown.encoder;
+		final HttpServerEngine engine = extDown.engine;
 		final HttpResponse response = event.getResponse();
 
 		// Start sending the response
-		encoder.encode(response);
+		engine.encode(response);
 		while (true) {
 			extDown.outBuffer = netConn.acquireByteBuffer();
 			final ManagedByteBuffer buffer = extDown.outBuffer;
-			HttpResponseEncoder.Result result = encoder
+			HttpResponseEncoder.Result result = engine
 			        .encode(HttpCodec.EMPTY_IN, buffer.getBacking(), false);
 			if (result.isOverflow()) {
 				(new Write<>(netConn, buffer)).fire();
@@ -292,13 +291,13 @@ public class HttpServer extends Component {
 		}
 		final ExtExtension extDown = (ExtExtension)event.getConnection();
 		final DataConnection netConn = extDown.getUpstreamConnection();
-		final HttpResponseEncoder encoder = extDown.encoder;
+		final HttpServerEngine engine = extDown.engine;
 
 		Buffer in = event.getBuffer().getBacking();
 		while (true) {
 			HttpResponseEncoder.Result result = null;
 			if (in instanceof ByteBuffer) {
-				result = encoder.encode((ByteBuffer) in,
+				result = engine.encode((ByteBuffer) in,
 						extDown.outBuffer.getBacking(), false);
 			}
 			if (!result.isOverflow()) {
@@ -353,12 +352,12 @@ public class HttpServer extends Component {
 	        throws InterruptedException {
 		final ExtExtension extDown = (ExtExtension) Extension
 		        .lookupExtension(netConn);
-		final HttpResponseEncoder encoder = extDown.encoder;
+		final HttpServerEngine engine = extDown.engine;
 
 		// Send remaining data
 		while (true) {
 			final ManagedByteBuffer buffer = extDown.outBuffer;
-			HttpResponseEncoder.Result result = encoder
+			HttpResponseEncoder.Result result = engine
 			        .encode(buffer.getBacking());
 			if (!result.isOverflow()) {
 				if (buffer.position() > 0) {

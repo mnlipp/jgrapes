@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.HttpRequestDecoder;
+import org.jdrupes.httpcodec.server.HttpRequestDecoder;
 import org.junit.Test;
 
 /**
@@ -47,7 +47,7 @@ public class BasicProtocolTests {
 			+ "Host: localhost:8888\r\n"
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
@@ -64,7 +64,7 @@ public class BasicProtocolTests {
 			+ "Host: localhost:8888\r\n"
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertFalse(result.isHeaderCompleted());
 		assertTrue(result.hasResponse());
@@ -84,7 +84,7 @@ public class BasicProtocolTests {
 			+ "Host: localhost:8888\r\n"
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertFalse(result.isHeaderCompleted());
 		assertTrue(result.hasResponse());
@@ -104,7 +104,7 @@ public class BasicProtocolTests {
 			+ "Host : localhost:8888\r\n"
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder decoder = new HttpRequestDecoder(null);
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertFalse(result.isHeaderCompleted());
 		assertTrue(result.hasResponse());

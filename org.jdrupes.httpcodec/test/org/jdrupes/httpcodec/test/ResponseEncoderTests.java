@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
-import org.jdrupes.httpcodec.HttpResponseEncoder;
+import org.jdrupes.httpcodec.server.HttpResponseEncoder;
 import org.junit.Test;
 
 /**
@@ -21,7 +21,7 @@ public class ResponseEncoderTests {
 	public void testSimpleResponse() {
 		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_1,
 		        HttpStatus.OK, false);
-		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		HttpResponseEncoder.Result result = encoder.encode(out);
@@ -37,7 +37,7 @@ public class ResponseEncoderTests {
 	public void testSimpleResponseTinyOut() {
 		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_1,
 		        HttpStatus.OK, false);
-		HttpResponseEncoder encoder = new HttpResponseEncoder();
+		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		ByteBuffer tinyOut = ByteBuffer.allocate(1);

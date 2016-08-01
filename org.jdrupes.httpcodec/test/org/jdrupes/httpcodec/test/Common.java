@@ -23,9 +23,9 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
-import org.jdrupes.httpcodec.HttpResponseDecoder;
-import org.jdrupes.httpcodec.HttpResponseEncoder;
 import org.jdrupes.httpcodec.ProtocolException;
+import org.jdrupes.httpcodec.client.HttpResponseDecoder;
+import org.jdrupes.httpcodec.server.HttpResponseEncoder;
 
 /**
  * @author Michael N. Lipp

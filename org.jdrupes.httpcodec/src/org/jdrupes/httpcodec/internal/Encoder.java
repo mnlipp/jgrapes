@@ -54,6 +54,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 		STREAM_BODY, FLUSH_ENCODER
 	}
 
+	private Engine<? extends MessageHeader, T> engine = null;
 	private Stack<State> states = new Stack<>();
 	private boolean closeAfterBody = false;
 	private ByteBufferOutputStream outStream;
@@ -69,7 +70,8 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	/**
 	 * Creates a new encoder.
 	 */
-	public Encoder() {
+	public Encoder(Engine<? extends MessageHeader, T> engine) {
+		this.engine = engine;
 		outStream = new ByteBufferOutputStream();
 		try {
 			writer = new OutputStreamWriter(outStream, "ascii");
@@ -158,6 +160,9 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 			throw new IllegalStateException();
 		}
 		this.messageHeader = messageHeader;
+		if (engine != null) {
+			engine.encoding(messageHeader);
+		}
 		charEncoder = null;
 		charWriter = null;
 	}

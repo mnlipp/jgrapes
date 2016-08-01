@@ -5,9 +5,9 @@ import static org.junit.Assert.*;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.HttpResponseDecoder;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.client.HttpResponseDecoder;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpSetCookieListField;
 import org.junit.Test;
@@ -36,7 +36,7 @@ public class DecoderChunkedTests {
 				+ "0\r\n"
 				+ "\r\n";
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpResponseDecoder decoder = new HttpResponseDecoder();
+		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		HttpResponseDecoder.Result result = decoder.decode(in, body, false);
 		assertTrue(result.isHeaderCompleted());
@@ -76,7 +76,7 @@ public class DecoderChunkedTests {
 				+ "0\r\n"
 				+ "\r\n";
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpResponseDecoder decoder = new HttpResponseDecoder();
+		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		HttpResponseDecoder.Result result = decoder.decode(in, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().messageHasBody());
@@ -126,7 +126,7 @@ public class DecoderChunkedTests {
 				+ "0\r\n"
 				+ "\r\n";
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpResponseDecoder decoder = new HttpResponseDecoder();
+		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		HttpResponseDecoder.Result result = Common.tinyDecodeLoop(decoder, in,
 		        body);

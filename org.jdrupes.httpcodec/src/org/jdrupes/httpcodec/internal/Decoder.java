@@ -66,8 +66,8 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 		NO_BODY, CHUNKED, LENGTH, UNTIL_CLOSE
 	};
 
+	private Engine<T, ? extends MessageHeader> engine = null;
 	private long maxHeaderLength = 4194304;
-
 	private Stack<State> states = new Stack<>();
 	private DynamicByteArray lineBuilder = new DynamicByteArray(8192);
 	private String receivedLine;
@@ -81,7 +81,8 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	/**
 	 * Creates a new decoder.
 	 */
-	public Decoder() {
+	public Decoder(Engine<T, ? extends MessageHeader> engine) {
+		this.engine = engine;
 		states.push(State.AWAIT_MESSAGE_START);
 		states.push(State.RECEIVE_LINE);
 	}
@@ -248,6 +249,9 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					break;
 				}
 				building = newMessage(receivedLine);
+				if (engine != null) {
+					engine.decoding(building);
+				}
 				messageHeader = null;
 				charDecoder = null;
 				states.pop();

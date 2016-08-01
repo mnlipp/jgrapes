@@ -22,14 +22,14 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 
-import org.jdrupes.httpcodec.HttpRequestDecoder;
 import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpResponseEncoder;
-import org.jdrupes.httpcodec.HttpCodec;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.server.HttpRequestDecoder;
+import org.jdrupes.httpcodec.server.HttpResponseEncoder;
+import org.jdrupes.httpcodec.server.HttpServerEngine;
 import org.jdrupes.httpcodec.util.FormUrlDecoder;
 
 /**
@@ -39,17 +39,15 @@ import org.jdrupes.httpcodec.util.FormUrlDecoder;
 public class ServerConnection extends Thread {
 
 	private SocketChannel channel;
-	private HttpRequestDecoder decoder;
+	private HttpServerEngine engine;
 	private HttpRequestDecoder.Result decoderResult;
-	private HttpResponseEncoder encoder;
 	private HttpResponseEncoder.Result encoderResult;
 	private ByteBuffer in;
 	private ByteBuffer out;
 	
 	public ServerConnection(SocketChannel channel) {
 		this.channel = channel;
-		decoder = new HttpRequestDecoder();
-		encoder = new HttpResponseEncoder();
+		engine = new HttpServerEngine();
 		in = ByteBuffer.allocate(2048);
 		out = ByteBuffer.allocate(2048);
 	}
@@ -64,7 +62,7 @@ public class ServerConnection extends Thread {
 				in.clear();
 				channel.read(in);
 				in.flip();
-				decoderResult = decoder.decode(in, null, false);
+				decoderResult = engine.decode(in, null, false);
 				if (decoderResult.hasResponse()) {
 					sendResponseWithoutBody(decoderResult.getResponse());
 					break;
@@ -78,7 +76,7 @@ public class ServerConnection extends Thread {
 	}
 
 	private void handleRequest() throws IOException {
-		HttpRequest request = decoder.getHeader();
+		HttpRequest request = engine.currentRequest();
 		if (request.getMethod().equalsIgnoreCase("GET")
 				&& request.getRequestUri().getPath().equals("/form")) {
 			handleGetForm(request);
@@ -90,7 +88,7 @@ public class ServerConnection extends Thread {
 			return;
 		}
 		// fall back
-		HttpResponse response = decoder.getHeader().getResponse();
+		HttpResponse response = engine.currentRequest().getResponse();
 		response.setStatus(HttpStatus.NOT_FOUND);
 		response.setMessageHasBody(true);
 		HttpMediaTypeField media;
@@ -106,7 +104,7 @@ public class ServerConnection extends Thread {
 	}
 
 	private void handleGetForm(HttpRequest request) throws IOException {
-		HttpResponse response = decoder.getHeader().getResponse();
+		HttpResponse response = engine.currentRequest().getResponse();
 		response.setStatus(HttpStatus.OK);
 		response.setMessageHasBody(true);
 		HttpMediaTypeField media;
@@ -137,11 +135,11 @@ public class ServerConnection extends Thread {
 	}
 
 	private void handlePostForm(HttpRequest request) throws IOException {
-		HttpResponse response = decoder.getHeader().getResponse();
+		HttpResponse response = engine.currentRequest().getResponse();
 		FormUrlDecoder fieldDecoder = new FormUrlDecoder();
 		while (true) {
 			out.clear();
-			decoderResult = decoder.decode(in, out, false);
+			decoderResult = engine.decode(in, out, false);
 			out.flip();
 			fieldDecoder.addData(out);
 			if (decoderResult.isOverflow()) {
@@ -174,10 +172,10 @@ public class ServerConnection extends Thread {
 
 	private void sendResponseWithoutBody(HttpResponse response)
 	        throws IOException {
-		encoder.encode(response);
+		engine.encode(response);
 		out.clear();
 		while (true) {
-			encoderResult = encoder.encode(out);
+			encoderResult = engine.encode(out);
 			out.flip();
 			if (out.hasRemaining()) {
 				channel.write(out);
@@ -192,10 +190,10 @@ public class ServerConnection extends Thread {
 
 	private void sendResponse(HttpResponse response, ByteBuffer in,
 	        boolean endOfInput) throws IOException {
-		encoder.encode(response);
+		engine.encode(response);
 		out.clear();
 		while (true) {
-			encoderResult = encoder.encode(in, out, endOfInput);
+			encoderResult = engine.encode(in, out, endOfInput);
 			out.flip();
 			if (out.hasRemaining()) {
 				channel.write(out);

@@ -7,9 +7,9 @@ import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.client.HttpResponseDecoder;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpSetCookieListField;
-import org.jdrupes.httpcodec.HttpResponseDecoder;
 import org.junit.Test;
 
 public class ResponseDecoderTests {
@@ -39,7 +39,7 @@ public class ResponseDecoderTests {
 				+ "\r\n"
 				+ "Hello World!";
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpResponseDecoder decoder = new HttpResponseDecoder();
+		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		HttpResponseDecoder.Result result = decoder.decode(in, body, false);
 		assertTrue(result.isHeaderCompleted());
