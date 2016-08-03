@@ -75,4 +75,24 @@ class CheckingPipelineFilter implements EventPipeline {
 		return sink.add(event, channels);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("CheckingPipelineFilter [");
+		if (sink != null) {
+			builder.append("sink=");
+			builder.append(sink);
+			builder.append(", ");
+		}
+		if (channel != null) {
+			builder.append("channel=");
+			builder.append(channel);
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+
 }
