@@ -49,7 +49,7 @@ public class FileWriteTests {
 		public void onOpened(FileOpened event) 
 				throws InterruptedException, IOException {
 			try (ByteBufferOutputStream out = new ByteBufferOutputStream
-					(event.getConnection())) {
+					(event.getConnection(), newEventPipeline())) {
 				for (int i = 1; i <= 10000; i++) {
 					out.write(new String(i + ": Hello World!\n").getBytes());
 				}

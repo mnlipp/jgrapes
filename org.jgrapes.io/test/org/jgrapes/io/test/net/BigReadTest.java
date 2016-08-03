@@ -99,7 +99,7 @@ public class BigReadTest {
 		public void onAcctepted(Accepted<ManagedByteBuffer> event) 
 				throws IOException, InterruptedException {
 			try (ByteBufferOutputStream out = new ByteBufferOutputStream(
-			        event.getConnection())) {
+			        event.getConnection(), newEventPipeline())) {
 				for (int i = 0; i < 1000000; i++) {
 					out.write(new String(i + ":Hello World!\n").getBytes());
 				}
