@@ -22,7 +22,7 @@ import org.jgrapes.io.Connection;
 import org.jgrapes.io.DataConnection;
 
 /**
- * Base class for events related to a {@link DataConnection}.
+ * Base class for events related to a {@link Connection}.
  * 
  * @author Michael N. Lipp
  */
@@ -47,7 +47,8 @@ public abstract class ConnectionEvent<T, C extends Connection>
 	}
 
 	/**
-	 * Fires the event as a response on its connection.
+	 * Fires the event as a response on its connection (see
+	 * {@link Connection#respond(Event)}).
 	 */
 	public ConnectionEvent<T, C> fire() {
 		return connection.respond(this);
