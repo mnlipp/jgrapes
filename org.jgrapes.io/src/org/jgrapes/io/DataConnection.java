@@ -23,7 +23,8 @@ import org.jgrapes.io.events.Write;
 import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
- * Represents an I/O connection that is used to transfer data.
+ * Represents an I/O connection with buffers for response data managed by the
+ * initiator.
  * 
  * @author Michael N. Lipp
  */

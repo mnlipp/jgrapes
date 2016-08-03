@@ -24,9 +24,8 @@ import org.jgrapes.core.EventPipeline;
 /**
  * Represents an I/O connection. I/O connections are asymmetrical. A connection
  * has an initiator that creates and manages the connection and responders that
- * react to the creation of the connection (and other state changes) and receive
- * and send data on the connection. Responders can also send an event to close
- * the connection.
+ * reacts to the creation of the connection (and other state changes).
+ * Responders can also send an event to close the connection.
  * <P>
  * Events related to a connection are usually handled by two different pipelines
  * managed by the initiator. One pipeline, accessible only to the initiator,
