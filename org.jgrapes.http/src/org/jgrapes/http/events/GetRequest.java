@@ -19,7 +19,7 @@ package org.jgrapes.http.events;
 
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jgrapes.core.Channel;
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 
 /**
  * @author Michael N. Lipp
@@ -35,7 +35,7 @@ public class GetRequest extends Request {
 	 * @param channels the channels on which the event is to be 
 	 * fired (optional)
 	 */
-	public GetRequest(DataConnection connection,
+	public GetRequest(Connection connection,
 	        HttpRequest request, Channel... channels) {
 		super(connection, request, channels);
 	}

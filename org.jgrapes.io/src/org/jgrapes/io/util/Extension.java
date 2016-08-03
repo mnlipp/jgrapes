@@ -17,6 +17,7 @@
  */
 package org.jgrapes.io.util;
 
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -25,7 +26,6 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.io.Connection;
-import org.jgrapes.io.DataConnection;
 
 /**
  * Provides an extension of a connection for sending events downstream from a
@@ -58,13 +58,13 @@ import org.jgrapes.io.DataConnection;
  * 
  * @author Michael N. Lipp
  */
-public class Extension implements DataConnection {
+public class Extension implements Connection {
 
 	final private static Map<Connection, Extension> reverseMap = Collections
 	        .synchronizedMap(new WeakHashMap<>());
 
 	final private Manager converterComponent;
-	final private DataConnection upstreamConnection;
+	final private Connection upstreamConnection;
 	final private EventPipeline responsePipeline;
 
 	/**
@@ -80,7 +80,7 @@ public class Extension implements DataConnection {
 	 *            the upstream connection
 	 */
 	public Extension(Manager converterComponent,
-	        DataConnection upstreamConnection) {
+	        Connection upstreamConnection) {
 		this(converterComponent, upstreamConnection, true);
 	}
 
@@ -100,7 +100,7 @@ public class Extension implements DataConnection {
 	 *            add an entry in the map
 	 */
 	public Extension(Manager converterComponent,
-	        DataConnection upstreamConnection, boolean addToMap) {
+	        Connection upstreamConnection, boolean addToMap) {
 		super();
 		this.converterComponent = converterComponent;
 		this.upstreamConnection = upstreamConnection;
@@ -113,7 +113,7 @@ public class Extension implements DataConnection {
 	/**
 	 * @return the upstreamConnection
 	 */
-	public DataConnection getUpstreamConnection() {
+	public Connection getUpstreamConnection() {
 		return upstreamConnection;
 	}
 
@@ -140,11 +140,11 @@ public class Extension implements DataConnection {
 	/**
 	 * Delegates the invocation to the upstream connection.
 	 * 
-	 * @see org.jgrapes.io.DataConnection#acquireByteBuffer()
+	 * @see org.jgrapes.io.Connection#bufferPool()
 	 */
 	@Override
-	public ManagedByteBuffer acquireByteBuffer() throws InterruptedException {
-		return upstreamConnection.acquireByteBuffer();
+	public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool() {
+		return upstreamConnection.bufferPool();
 	}
 
 	/**

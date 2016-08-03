@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.io.Connection;
 import org.jgrapes.io.File;
 import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.OpenFile;
@@ -45,7 +46,7 @@ public class FileWriteTests {
 	public static class Producer extends Component {
 		
 		@Handler
-		public void opened(FileOpened event) 
+		public void onOpened(FileOpened event) 
 				throws InterruptedException, IOException {
 			try (ByteBufferOutputStream out = new ByteBufferOutputStream
 					(event.getConnection())) {
@@ -66,7 +67,8 @@ public class FileWriteTests {
 		File app = new File(producer, 512);
 		app.attach(producer);
 		Components.start(app);
-		app.fire(new OpenFile(filePath, StandardOpenOption.WRITE), producer);
+		app.fire(new OpenFile(Connection.newConnection(producer), filePath,
+		        StandardOpenOption.WRITE), producer);
 		Components.awaitExhaustion();
 		try (BufferedReader br = new BufferedReader
 				(new FileReader(filePath.toFile()))) {

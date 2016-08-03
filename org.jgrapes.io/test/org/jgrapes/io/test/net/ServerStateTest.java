@@ -56,13 +56,13 @@ public class ServerStateTest {
 		}
 		
 		@Handler
-		public void onClose(Close<?> event) {
+		public void onClose(Close event) {
 			assertTrue(state == State.READY);
 			state = State.CLOSING;
 		}
 		
 		@Handler
-		public void onClosed(Closed<?> event) {
+		public void onClosed(Closed event) {
 			assertTrue(state == State.CLOSING);
 			state = State.CLOSED;
 		}
@@ -87,7 +87,7 @@ public class ServerStateTest {
 	public void testStartClose() throws InterruptedException {
 		assertEquals(State.READY, checker.state);
 		Components.manager(app).fire
-			(new Close<>(checker.serverConnection), app.getChannel()).get();
+			(new Close(checker.serverConnection), app.getChannel()).get();
 		assertEquals(State.CLOSED, checker.state);
 		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
 		Components.awaitExhaustion();

@@ -17,16 +17,16 @@
  */
 package org.jgrapes.io.events;
 
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 
 /**
  * This event signals the end of data from a stream.
  * 
  * @author Michael N. Lipp
  */
-public class Eof extends ConnectionEvent<Void, DataConnection> {
+public class Eof extends ConnectionEvent<Void> {
 
-	public Eof(DataConnection connection) {
+	public Eof(Connection connection) {
 		super(connection);
 	}
 

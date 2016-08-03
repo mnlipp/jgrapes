@@ -18,18 +18,18 @@
 package org.jgrapes.http.events;
 
 import org.jdrupes.httpcodec.HttpResponse;
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.ConnectionEvent;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class Response extends ConnectionEvent<Void, DataConnection> {
+public class Response extends ConnectionEvent<Void> {
 
 	private HttpResponse response;
 	
-	public Response(DataConnection connection, 
+	public Response(Connection connection, 
 			HttpResponse response) {
 		super(connection);
 		this.response = response;

@@ -30,7 +30,7 @@ import org.jgrapes.io.events.Opened;
  * 
  * @author Michael N. Lipp
  */
-public class Ready extends Opened<Connection> {
+public class Ready extends Opened {
 
 	private SocketAddress listenAddress;
 

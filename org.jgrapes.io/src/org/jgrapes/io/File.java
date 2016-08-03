@@ -26,11 +26,14 @@ import java.nio.channels.CompletionHandler;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
-import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.events.Close;
@@ -50,29 +53,12 @@ import org.jgrapes.io.util.ManagedByteBuffer;
  * 
  * @author Michael N. Lipp
  */
-public class File extends Component implements DataConnection {
+public class File extends Component {
 
-	private class WriteContext {
-		public ManagedByteBuffer buffer;
-		public long pos;
-		public WriteContext(ManagedByteBuffer buffer, long pos) {
-			this.buffer = buffer;
-			this.pos = pos;
-		}
-	}
+	private int bufferSize;
 
-	private EventPipeline downPipeline;
-	private EventPipeline upPipeline;
-	private Path path;
-	private AsynchronousFileChannel ioChannel = null;
-	private ManagedBufferQueue<ManagedByteBuffer,ByteBuffer> ioBuffers;
-	private long offset = 0;
-	private CompletionHandler<Integer, ManagedByteBuffer> 
-		readCompletionHandler = new ReadCompletionHandler();
-	private CompletionHandler<Integer, WriteContext> 
-		writeCompletionHandler = new WriteCompletionHandler();
-	private int outstandingAsyncs = 0;
-	private boolean reading = false;
+	private Map<Connection, FileConnection> connections = Collections
+	        .synchronizedMap(new WeakHashMap<>());
 	
 	/**
 	 * Create a new instance using the given size for the read buffers.
@@ -83,11 +69,7 @@ public class File extends Component implements DataConnection {
 	 */
 	public File(Channel channel, int bufferSize) {
 		super (channel);
-		downPipeline = newEventPipeline();
-		upPipeline = newEventPipeline();
-		ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer.class,
-			ByteBuffer.allocateDirect(bufferSize), 
-			ByteBuffer.allocateDirect(bufferSize));
+		this.bufferSize = bufferSize;
 	}
 
 	/**
@@ -100,155 +82,198 @@ public class File extends Component implements DataConnection {
 		this(channel, 4096);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.jgrapes.io.DataConnection#getByteBuffer()
-	 */
-	@Override
-	public ManagedByteBuffer acquireByteBuffer() throws InterruptedException {
-		return ioBuffers.acquire();
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.jgrapes.io.DataConnection#getPipeline()
-	 */
-	@Override
-	public EventPipeline getResponsePipeline() {
-		return upPipeline;
-	}
-
-	public boolean isOpen() {
-		return ioChannel != null && ioChannel.isOpen();
-	}
-	
 	@Handler
-	public void open(OpenFile event) throws InterruptedException {
-		if (isOpen()) {
-			downPipeline.fire(new IOError(event, 
+	public void onOpen(OpenFile event) throws InterruptedException {
+		if (connections.containsKey(event.getConnection())) {
+			event.getConnection().getResponsePipeline().fire(new IOError(event, 
 					new IllegalStateException("File is already open.")));
 		}
-		path = event.getPath();
-		try {
-			ioChannel = AsynchronousFileChannel
-					.open(event.getPath(), event.getOptions());
-		} catch (IOException e) {
-			downPipeline.fire(new IOError(event, e));
-		}
-		offset = 0;
-		if (Arrays.asList(event.getOptions())
-				.contains(StandardOpenOption.WRITE)) {
-			// Writing to file
-			reading = false;
-			downPipeline.fire(new FileOpened(this, event.getPath(), 
-				event.getOptions()));
-		} else {
-			// Reading from file
-			reading = true;
-			ManagedByteBuffer buffer = ioBuffers.acquire();
-			registerAsGenerator();
-			downPipeline.fire(new FileOpened
-				(this, event.getPath(), event.getOptions()));
-			ioChannel.read
-				(buffer.getBacking(), offset, buffer, readCompletionHandler);
-			synchronized (ioChannel) {
-				outstandingAsyncs += 1;
-			}
-		}
+		connections.put(event.getConnection(), new FileConnection(event));
 	}
 
-	private abstract class BaseCompletionHandler<C> 
-		implements CompletionHandler<Integer, C> {
-		
-		@Override
-		public void failed(Throwable exc, C context) {
-			try {
-				if (!(exc instanceof AsynchronousCloseException)) {
-					downPipeline.fire(new IOError(null, exc));
-				}
-			} finally {
-				handled();
-			}
+	@Handler
+	public void onWrite(Write<ManagedByteBuffer> event) {
+		FileConnection connection = connections.get(event.getConnection());
+		if (connection == null) {
+			return;
 		}
-		
-		protected void handled() {
-			synchronized (ioChannel) {
-				if (--outstandingAsyncs == 0) {
-					ioChannel.notifyAll();
-				}
-			}
-		}
-	}
-	
-	private class ReadCompletionHandler 
-		extends BaseCompletionHandler<ManagedByteBuffer> {
-		
-		@Override
-		public void completed(Integer result, ManagedByteBuffer buffer) {
-			try {
-				if (!isOpen()) {
-					return;
-				}
-				if (result == -1) {
-					downPipeline.fire(new Eof(File.this));
-					downPipeline.fire(new Close<>(File.this));
-					return;
-				}
-				buffer.flip();
-				downPipeline.fire(new Read<>(File.this, buffer));
-				offset += result;
-				try {
-					ManagedByteBuffer nextBuffer = ioBuffers.acquire();
-					nextBuffer.clear();
-					ioChannel.read(nextBuffer.getBacking(), offset, nextBuffer,
-					        readCompletionHandler);
-					synchronized (ioChannel) {
-						outstandingAsyncs += 1;
-					}
-				} catch (InterruptedException e) {
-				}
-			} finally {
-				handled();
-			}
-		}
-
+		connection.write(event);
 	}
 	
 	@Handler
-	public void onWrite(Write<ManagedByteBuffer> event) {
-		ManagedByteBuffer buffer = event.getBuffer();
-		int written = buffer.remaining();
-		if (written == 0) {
+	public void onClose(Close event) throws InterruptedException {
+		FileConnection connection = connections.get(event.getConnection());
+		if (connection == null) {
 			return;
 		}
-		buffer.lockBuffer();
-		synchronized (ioChannel) {
-			ioChannel.write(buffer.getBacking(), offset, 
-					new WriteContext(buffer, offset), writeCompletionHandler);
-			outstandingAsyncs += 1;
-		}
-		offset += written;
+		connection.close(event);
 	}
-	
-	private class WriteCompletionHandler 
-		extends BaseCompletionHandler<WriteContext> {
 
-		@Override
-		public void completed(Integer result, WriteContext context) {
-			ManagedByteBuffer buffer = context.buffer;
-			if (buffer.hasRemaining()) {
-				ioChannel.write(buffer.getBacking(), 
-						context.pos + buffer.position(),
-						context, writeCompletionHandler);
+	@Handler
+	public void onStop(Stop event) throws InterruptedException {
+		while (connections.size() > 0) {
+			FileConnection connection = connections.entrySet().iterator().next()
+			        .getValue();
+			connection.close(event);
+		}
+	}
+
+	private class FileConnection {
+
+		/**
+		 * The write context needs to be finer grained than the general file
+		 * connection context because an asynchronous write may be only
+		 * partially successful, i.e. not all data provided by the write event
+		 * may successfully be written in one asynchronous write invocation.
+		 */
+		private class WriteContext {
+			public ManagedByteBuffer buffer;
+			public long pos;
+
+			public WriteContext(ManagedByteBuffer buffer, long pos) {
+				this.buffer = buffer;
+				this.pos = pos;
+			}
+		}
+
+		private final Connection connection;
+		private EventPipeline downPipeline;
+		private Path path;
+		private AsynchronousFileChannel ioChannel = null;
+		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> ioBuffers;
+		private long offset = 0;
+		private CompletionHandler<Integer, ManagedByteBuffer> readCompletionHandler = new ReadCompletionHandler();
+		private CompletionHandler<Integer, WriteContext> writeCompletionHandler = new WriteCompletionHandler();
+		private int outstandingAsyncs = 0;
+		private boolean reading = false;
+
+		private FileConnection(OpenFile event) throws InterruptedException {
+			connection = event.getConnection();
+			downPipeline = newEventPipeline();
+			path = event.getPath();
+			try {
+				ioChannel = AsynchronousFileChannel
+				        .open(event.getPath(), event.getOptions());
+			} catch (IOException e) {
+				downPipeline.fire(new IOError(event, e));
+			}
+			offset = 0;
+			if (Arrays.asList(event.getOptions())
+			        .contains(StandardOpenOption.WRITE)) {
+				// Writing to file
+				reading = false;
+				downPipeline.fire(new FileOpened(connection, event.getPath(),
+				        event.getOptions()));
+			} else {
+				// Reading from file
+				reading = true;
+				ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer.class,
+				        ByteBuffer.allocateDirect(bufferSize),
+				        ByteBuffer.allocateDirect(bufferSize));
+				ManagedByteBuffer buffer = ioBuffers.acquire();
+				registerAsGenerator();
+				downPipeline.fire(new FileOpened(connection, event.getPath(),
+				        event.getOptions()));
+				ioChannel.read(buffer.getBacking(), offset, buffer,
+				        readCompletionHandler);
+				synchronized (ioChannel) {
+					outstandingAsyncs += 1;
+				}
+			}
+		}
+
+		private abstract class BaseCompletionHandler<C>
+		        implements CompletionHandler<Integer, C> {
+
+			@Override
+			public void failed(Throwable exc, C context) {
+				try {
+					if (!(exc instanceof AsynchronousCloseException)) {
+						downPipeline.fire(new IOError(null, exc));
+					}
+				} finally {
+					handled();
+				}
+			}
+
+			protected void handled() {
+				synchronized (ioChannel) {
+					if (--outstandingAsyncs == 0) {
+						ioChannel.notifyAll();
+					}
+				}
+			}
+		}
+
+		private class ReadCompletionHandler
+		        extends BaseCompletionHandler<ManagedByteBuffer> {
+
+			@Override
+			public void completed(Integer result, ManagedByteBuffer buffer) {
+				try {
+					if (!connections.containsKey(connection)) {
+						return;
+					}
+					if (result == -1) {
+						downPipeline.fire(new Eof(connection));
+						downPipeline.fire(new Close(connection));
+						return;
+					}
+					buffer.flip();
+					downPipeline.fire(new Read<>(connection, buffer));
+					offset += result;
+					try {
+						ManagedByteBuffer nextBuffer = ioBuffers.acquire();
+						nextBuffer.clear();
+						ioChannel.read(nextBuffer.getBacking(), offset,
+						        nextBuffer,
+						        readCompletionHandler);
+						synchronized (ioChannel) {
+							outstandingAsyncs += 1;
+						}
+					} catch (InterruptedException e) {
+					}
+				} finally {
+					handled();
+				}
+			}
+		}
+
+		private void write(Write<ManagedByteBuffer> event) {
+			ManagedByteBuffer buffer = event.getBuffer();
+			int written = buffer.remaining();
+			if (written == 0) {
 				return;
 			}
-			buffer.unlockBuffer();
-			handled();
+			buffer.lockBuffer();
+			synchronized (ioChannel) {
+				ioChannel.write(buffer.getBacking(), offset,
+				        new WriteContext(buffer, offset),
+				        writeCompletionHandler);
+				outstandingAsyncs += 1;
+			}
+			offset += written;
 		}
 
-	}
+		private class WriteCompletionHandler
+		        extends BaseCompletionHandler<WriteContext> {
 
-	@Handler(events={Close.class, Stop.class})
-	public void close(Close<DataConnection> event) throws InterruptedException {
-		if (isOpen()) {
+			@Override
+			public void completed(Integer result, WriteContext context) {
+				ManagedByteBuffer buffer = context.buffer;
+				if (buffer.hasRemaining()) {
+					ioChannel.write(buffer.getBacking(),
+					        context.pos + buffer.position(),
+					        context, writeCompletionHandler);
+					return;
+				}
+				buffer.unlockBuffer();
+				handled();
+			}
+
+		}
+
+		public void close(Event<?> event) throws InterruptedException {
 			try {
 				synchronized (ioChannel) {
 					while (outstandingAsyncs != 0) {
@@ -256,7 +281,7 @@ public class File extends Component implements DataConnection {
 					}
 					ioChannel.close();
 				}
-				downPipeline.fire(new Closed<>(this));
+				downPipeline.fire(new Closed(connection));
 			} catch (ClosedChannelException e) {
 			} catch (IOException e) {
 				downPipeline.fire(new IOError(event, e));
@@ -264,25 +289,49 @@ public class File extends Component implements DataConnection {
 			if (reading) {
 				unregisterAsGenerator();
 			}
+			connections.remove(connection);
 		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("FileConnection [");
+			if (connection != null) {
+				builder.append("connection=");
+				builder.append(connection);
+				builder.append(", ");
+			}
+			if (path != null) {
+				builder.append("path=");
+				builder.append(path);
+				builder.append(", ");
+			}
+			builder.append("offset=");
+			builder.append(offset);
+			builder.append("]");
+			return builder.toString();
+		}
+
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append(" [");
-		if (isOpen() && path != null) {
-			builder.append("path=");
-			builder.append(path);
-		} else {
-			builder.append("(closed)");
+		builder.append("File [");
+		if (connections != null) {
+			builder.append(connections.values());
 		}
 		builder.append("]");
 		return builder.toString();
 	}
-	
 }

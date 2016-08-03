@@ -116,6 +116,25 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 		}
 		return pipeline.getComponentContext(component);
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		String sinkName = "(current) ";
+		builder.append("FeedBackPipelineFilter [");
+		InternalEventPipeline pipeline = currentPipeline.get();
+		if (pipeline == null) {
+			pipeline = fallback;
+			sinkName = "(fallback) ";
+		} 
+		builder.append(sinkName);
+		builder.append(pipeline);
+		builder.append("]");
+		return builder.toString();
+	}
 	
 	
 }

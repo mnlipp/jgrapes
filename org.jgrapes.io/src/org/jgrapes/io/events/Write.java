@@ -17,7 +17,7 @@
  */
 package org.jgrapes.io.events;
 
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.ManagedCharBuffer;
@@ -29,7 +29,7 @@ import org.jgrapes.io.util.ManagedCharBuffer;
  * @author Michael N. Lipp
  */
 public class Write<T extends ManagedBuffer<?>> 
-	extends ConnectionEvent<Void, DataConnection> {
+	extends ConnectionEvent<Void> {
 
 	private T buffer;
 
@@ -42,7 +42,7 @@ public class Write<T extends ManagedBuffer<?>>
 	 * @param buffer
 	 * @param flip
 	 */
-	private Write(DataConnection connection, T buffer, boolean flip) {
+	private Write(Connection connection, T buffer, boolean flip) {
 		super(connection);
 		this.buffer = buffer;
 		if (flip) {
@@ -58,7 +58,7 @@ public class Write<T extends ManagedBuffer<?>>
 	 * @param connection the connection to write the data to
 	 * @param buffer the buffer with the data
 	 */
-	public Write(DataConnection connection, T buffer) {
+	public Write(Connection connection, T buffer) {
 		this(connection, buffer, true);
 	}
 
@@ -71,7 +71,7 @@ public class Write<T extends ManagedBuffer<?>>
 	 * @return the event
 	 */
 	public static Write<ManagedCharBuffer> 
-			wrap(DataConnection connection, String data) {
+			wrap(Connection connection, String data) {
 		return new Write<>(connection, new ManagedCharBuffer(data), false);
 	}
 	
@@ -84,7 +84,7 @@ public class Write<T extends ManagedBuffer<?>>
 	 * @return the event
 	 */
 	public static Write<ManagedByteBuffer> 
-			wrap(DataConnection connection, byte[] data) {
+			wrap(Connection connection, byte[] data) {
 		return new Write<>(connection, new ManagedByteBuffer(data), false);
 	}
 	

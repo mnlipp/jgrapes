@@ -47,7 +47,7 @@ public class EchoServer extends Component {
 	@Handler
 	public void onRead(Read<ManagedByteBuffer> event)
 			throws InterruptedException {
-		ManagedByteBuffer out = event.getConnection().acquireByteBuffer();
+		ManagedByteBuffer out = event.getConnection().bufferPool().acquire();
 		out.put(event.getBuffer());
 		fire(new Write<>(event.getConnection(), out));
 	}

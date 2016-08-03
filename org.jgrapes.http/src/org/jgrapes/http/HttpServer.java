@@ -50,7 +50,7 @@ import org.jgrapes.http.events.PutRequest;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.TraceRequest;
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Read;
 import org.jgrapes.io.events.Write;
@@ -71,7 +71,7 @@ public class HttpServer extends Component {
 		public HttpServerEngine engine;
 		public ManagedByteBuffer outBuffer;
 
-		public ExtExtension(DataConnection upstreamChannel) {
+		public ExtExtension(Connection upstreamChannel) {
 			super(HttpServer.this, upstreamChannel);
 			engine = new HttpServerEngine();
 		}
@@ -193,7 +193,7 @@ public class HttpServer extends Component {
 	 * @param request
 	 *            the decoded request
 	 */
-	private void fireRequest(DataConnection connection,
+	private void fireRequest(Connection connection,
 	        HttpRequest request) {
 		Request req;
 		switch (request.getMethod()) {
@@ -246,14 +246,14 @@ public class HttpServer extends Component {
 			return;
 		}
 		final ExtExtension extDown = (ExtExtension)event.getConnection();
-		final DataConnection netConn = extDown.getUpstreamConnection();
+		final Connection netConn = extDown.getUpstreamConnection();
 		final HttpServerEngine engine = extDown.engine;
 		final HttpResponse response = event.getResponse();
 
 		// Start sending the response
 		engine.encode(response);
 		while (true) {
-			extDown.outBuffer = netConn.acquireByteBuffer();
+			extDown.outBuffer = netConn.bufferPool().acquire();
 			final ManagedByteBuffer buffer = extDown.outBuffer;
 			HttpResponseEncoder.Result result = engine
 			        .encode(HttpCodec.EMPTY_IN, buffer.getBacking(), false);
@@ -290,7 +290,7 @@ public class HttpServer extends Component {
 			return;
 		}
 		final ExtExtension extDown = (ExtExtension)event.getConnection();
-		final DataConnection netConn = extDown.getUpstreamConnection();
+		final Connection netConn = extDown.getUpstreamConnection();
 		final HttpServerEngine engine = extDown.engine;
 
 		Buffer in = event.getBuffer().getBacking();
@@ -304,7 +304,7 @@ public class HttpServer extends Component {
 				break;
 			}
 			(new Write<>(netConn, extDown.outBuffer)).fire();
-			extDown.outBuffer = netConn.acquireByteBuffer();
+			extDown.outBuffer = netConn.bufferPool().acquire();
 		}
 	}
 
@@ -322,7 +322,7 @@ public class HttpServer extends Component {
 			return;
 		}
 		final ExtExtension extDown = (ExtExtension)event.getConnection();
-		final DataConnection netConn = extDown.getUpstreamConnection();
+		final Connection netConn = extDown.getUpstreamConnection();
 		flush(netConn);
 	}
 
@@ -335,11 +335,11 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException
 	 */
 	@Handler
-	public void onClose(Close<?> event) throws InterruptedException {
-		final DataConnection netConn = ((Extension) event.getConnection())
+	public void onClose(Close event) throws InterruptedException {
+		final Connection netConn = ((Extension) event.getConnection())
 		        .getUpstreamConnection();
 		flush(netConn);
-		(new Close<>(netConn)).fire();
+		(new Close(netConn)).fire();
 	}
 
 	/**
@@ -348,7 +348,7 @@ public class HttpServer extends Component {
 	 * @param netConn
 	 * @throws InterruptedException
 	 */
-	private void flush(final DataConnection netConn)
+	private void flush(final Connection netConn)
 	        throws InterruptedException {
 		final ExtExtension extDown = (ExtExtension) Extension
 		        .lookupExtension(netConn);
@@ -369,7 +369,7 @@ public class HttpServer extends Component {
 				break;
 			}
 			(new Write<>(netConn, buffer)).fire();
-			extDown.outBuffer = netConn.acquireByteBuffer();
+			extDown.outBuffer = netConn.bufferPool().acquire();
 		}
 	}
 
@@ -386,7 +386,7 @@ public class HttpServer extends Component {
 	        throws InterruptedException, ParseException {
 		final Request requestEvent = event.getCompleted();
 		final HttpResponse response = requestEvent.getRequest().getResponse();
-		final DataConnection connection = requestEvent.getConnection();
+		final Connection connection = requestEvent.getConnection();
 
 		if (response.getStatusCode() == HttpStatus.NOT_IMPLEMENTED
 		        .getStatusCode()) {
@@ -425,7 +425,7 @@ public class HttpServer extends Component {
 			return;
 		}
 		final HttpResponse response = event.getRequest().getResponse();
-		final DataConnection connection = event.getConnection();
+		final Connection connection = event.getConnection();
 		response.setStatus(HttpStatus.NOT_FOUND);
 		response.setMessageHasBody(true);
 		HttpMediaTypeField media = new HttpMediaTypeField(

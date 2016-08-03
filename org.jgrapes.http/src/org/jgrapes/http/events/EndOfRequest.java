@@ -17,7 +17,7 @@
  */
 package org.jgrapes.http.events;
 
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.ConnectionEvent;
 
 /**
@@ -25,13 +25,13 @@ import org.jgrapes.io.events.ConnectionEvent;
  * 
  * @author Michael N. Lipp
  */
-public class EndOfRequest extends ConnectionEvent<Void, DataConnection> {
+public class EndOfRequest extends ConnectionEvent<Void> {
 
 	/**
 	 * Create a new Event.
 	 * 
 	 */
-	public EndOfRequest(DataConnection connection) {
+	public EndOfRequest(Connection connection) {
 		super(connection);
 	}
 

@@ -105,5 +105,21 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 		W b = (W)buffer;
 		queue.add(b);
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ManagedBufferQueue [");
+		if (queue != null) {
+			builder.append("queue=");
+			builder.append(queue);
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+	
 	
 }

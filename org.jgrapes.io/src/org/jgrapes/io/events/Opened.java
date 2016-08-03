@@ -25,9 +25,9 @@ import org.jgrapes.io.Connection;
  * 
  * @author Michael N. Lipp
  */
-public class Opened<C extends Connection> extends ConnectionEvent<Void, C> {
+public class Opened extends ConnectionEvent<Void> {
 
-	public Opened(C connection) {
+	public Opened(Connection connection) {
 		super(connection);
 	}
 

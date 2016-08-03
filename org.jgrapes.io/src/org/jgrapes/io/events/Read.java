@@ -17,7 +17,7 @@
  */
 package org.jgrapes.io.events;
 
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 import org.jgrapes.io.util.ManagedBuffer;
 
 /**
@@ -29,7 +29,7 @@ import org.jgrapes.io.util.ManagedBuffer;
  * @author Michael N. Lipp
  */
 public class Read<T extends ManagedBuffer<?>> 
-	extends ConnectionEvent<Void, DataConnection> {
+	extends ConnectionEvent<Void> {
 
 	private T buffer;
 	
@@ -40,7 +40,7 @@ public class Read<T extends ManagedBuffer<?>>
 	 * and that can be used for sending {@link Write} events as replies
 	 * @param buffer the buffer with the data
 	 */
-	public Read(DataConnection connection, T buffer) {
+	public Read(Connection connection, T buffer) {
 		super(connection);
 		this.buffer = buffer;
 	}

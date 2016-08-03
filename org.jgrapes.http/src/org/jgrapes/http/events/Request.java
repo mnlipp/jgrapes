@@ -23,7 +23,7 @@ import org.jdrupes.httpcodec.HttpRequest;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletedEvent;
 import org.jgrapes.core.Event;
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 
 /**
  * @author Michael N. Lipp
@@ -35,7 +35,7 @@ public class Request extends Event<Void> {
 	}
 	
 	private HttpRequest request;
-	private DataConnection connection;
+	private Connection connection;
 	
 	/**
 	 * Creates a new request event with the associated {@link Completed}
@@ -45,7 +45,7 @@ public class Request extends Event<Void> {
 	 * @param request the request data
 	 * @param channels the channels associated with this event
 	 */
-	public Request(DataConnection connection, 
+	public Request(Connection connection, 
 			HttpRequest request, Channel... channels) {
 		super(new Completed(), channels);
 		this.connection = connection;
@@ -57,7 +57,7 @@ public class Request extends Event<Void> {
 	 * 
 	 * @return the connection
 	 */
-	public DataConnection getConnection() {
+	public Connection getConnection() {
 		return connection;
 	}
 

@@ -20,19 +20,18 @@ package org.jgrapes.io.events;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class FileOpened extends Opened<DataConnection> {
+public class FileOpened extends Opened {
 
 	private Path path;
 	private OpenOption[] options;
 	
-	public FileOpened
-		(DataConnection connection, Path path, OpenOption[] options) {
+	public FileOpened(Connection connection, Path path, OpenOption[] options) {
 		super(connection);
 		this.path = path;
 		this.options = options;

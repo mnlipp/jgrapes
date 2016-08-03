@@ -20,7 +20,7 @@ package org.jgrapes.io.events;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
-import org.jgrapes.core.Event;
+import org.jgrapes.io.Connection;
 import org.jgrapes.io.File;
 
 /**
@@ -29,7 +29,7 @@ import org.jgrapes.io.File;
  * 
  * @author Michael N. Lipp
  */
-public class OpenFile extends Event<Void> {
+public class OpenFile extends ConnectionEvent<Void> {
 
 	private Path path;
 	private OpenOption[] options;
@@ -38,8 +38,8 @@ public class OpenFile extends Event<Void> {
 	 * @param path
 	 * @param options
 	 */
-	public OpenFile(Path path, OpenOption... options) {
-		super();
+	public OpenFile(Connection connection, Path path, OpenOption... options) {
+		super(connection);
 		this.path = path;
 		this.options = options;
 	}

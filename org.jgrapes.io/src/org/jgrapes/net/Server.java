@@ -41,7 +41,6 @@ import org.jgrapes.core.events.Error;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.Connection;
-import org.jgrapes.io.DataConnection;
 import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.IOError;
@@ -128,6 +127,14 @@ public class Server extends Component
 		return upstreamPipeline;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jgrapes.io.Connection#bufferPool()
+	 */
+	@Override
+	public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool() {
+		return null;
+	}
+
 	/**
 	 * Starts the server.
 	 * 
@@ -201,7 +208,7 @@ public class Server extends Component
 	 * @throws InterruptedException 
 	 */
 	@Handler
-	public void onClose(Close<? extends Connection> event) 
+	public void onClose(Close event) 
 			throws IOException, InterruptedException {
 		if (event.getConnection() == this) {
 			if (!serverSocketChannel.isOpen()) {
@@ -211,7 +218,7 @@ public class Server extends Component
 			EventPipeline ep = newEventPipeline();
 			synchronized (connections) {
 				for (SocketConnection conn: connections) {
-					ep.fire(new Close<>(conn));
+					ep.fire(new Close(conn));
 				}
 				while (connections.size() > 0) {
 					connections.wait();
@@ -219,7 +226,7 @@ public class Server extends Component
 			}
 			serverSocketChannel.close();
 			closing = false;
-			fire(new Closed<>(this));
+			fire(new Closed(this));
 		} else if (event.getConnection() instanceof SocketConnection) {
 			((SocketConnection)event.getConnection()).close();
 		}
@@ -235,7 +242,7 @@ public class Server extends Component
 		if (closing || !serverSocketChannel.isOpen()) {
 			return;
 		}
-		newSyncEventPipeline().fire(new Close<>(this), getChannel());
+		newSyncEventPipeline().fire(new Close(this), getChannel());
 	}
 
 	/**
@@ -244,7 +251,7 @@ public class Server extends Component
 	 * @author Michael N. Lipp
 	 *
 	 */
-	public class SocketConnection implements NioHandler, DataConnection {
+	public class SocketConnection implements NioHandler, Connection {
 
 		private SocketChannel nioChannel;
 		private EventPipeline downPipeline;
@@ -283,14 +290,13 @@ public class Server extends Component
 		}
 
 		/* (non-Javadoc)
-		 * @see org.jgrapes.io.Connection#getBuffer()
+		 * @see org.jgrapes.io.Connection#bufferPool()
 		 */
 		@Override
-		public ManagedByteBuffer acquireByteBuffer()
-				throws InterruptedException {
-			return writeBuffers.acquire();
+		public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool() {
+			return writeBuffers;
 		}
-		
+
 		/* (non-Javadoc)
 		 * @see org.jgrapes.io.DataConnection#getPipeline()
 		 */
@@ -447,7 +453,7 @@ public class Server extends Component
 			// Fail safe
 			synchronized (connections) {
 				if(connections.remove(this)) {
-					downPipeline.fire(new Closed<>(this));
+					downPipeline.fire(new Closed(this));
 				}
 				// In case the server is shutting down
 				connections.notifyAll();

@@ -28,7 +28,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 import org.jgrapes.io.File;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
@@ -80,7 +80,7 @@ public class FileReadTests {
 		}
 		
 		@Handler
-		public void opened(Opened<?> event) {
+		public void opened(Opened event) {
 			assertTrue(state == State.NEW);
 			state = State.OPENED;
 		}
@@ -98,13 +98,13 @@ public class FileReadTests {
 		}
 
 		@Handler
-		public void closing(Close<DataConnection> event) {
+		public void closing(Close event) {
 			assertTrue(state == State.EOF);
 			state = State.CLOSING;
 		}
 
 		@Handler
-		public void closed(Closed<DataConnection> event) {
+		public void closed(Closed event) {
 			assertTrue(state == State.CLOSING);
 			state = State.CLOSED;
 		}
@@ -121,8 +121,8 @@ public class FileReadTests {
 		StateChecker sc = new StateChecker();
 		app.attach(sc);
 		Components.start(app);
-		app.fire
-			(new OpenFile(filePath, StandardOpenOption.READ), consumer).get();
+		app.fire(new OpenFile(Connection.newConnection(consumer), filePath,
+		        StandardOpenOption.READ), consumer).get();
 		Components.awaitExhaustion();
 		assertEquals(fileSize, collected);
 		assertEquals(StateChecker.State.CLOSED, sc.state);

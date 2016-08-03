@@ -25,14 +25,14 @@ import org.jgrapes.io.Connection;
  * 
  * @author Michael N. Lipp
  */
-public class Close<C extends Connection> extends ConnectionEvent<Void, C> {
+public class Close extends ConnectionEvent<Void> {
 
 	/**
 	 * Creates a new event for the given connection.
 	 * 
 	 * @param connection the connection
 	 */
-	public Close(C connection) {
+	public Close(Connection connection) {
 		super(connection);
 	}
 

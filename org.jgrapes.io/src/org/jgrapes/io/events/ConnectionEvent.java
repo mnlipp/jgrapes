@@ -19,22 +19,23 @@ package org.jgrapes.io.events;
 
 import org.jgrapes.core.Event;
 import org.jgrapes.io.Connection;
-import org.jgrapes.io.DataConnection;
 
 /**
  * Base class for events related to a {@link Connection}.
  * 
+ * @param <T> the type of the event's result value (see {@link Event})
+ * 
  * @author Michael N. Lipp
  */
-public abstract class ConnectionEvent<T, C extends Connection> 
+public abstract class ConnectionEvent<T> 
 	extends Event<T> {
 	
-	private C connection;
+	private Connection connection;
 
 	/**
 	 * @param connection
 	 */
-	public ConnectionEvent(C connection) {
+	public ConnectionEvent(Connection connection) {
 		super();
 		this.connection = connection;
 	}
@@ -42,7 +43,7 @@ public abstract class ConnectionEvent<T, C extends Connection>
 	/**
 	 * @return the connection
 	 */
-	public C getConnection() {
+	public Connection getConnection() {
 		return connection;
 	}
 
@@ -50,7 +51,7 @@ public abstract class ConnectionEvent<T, C extends Connection>
 	 * Fires the event as a response on its connection (see
 	 * {@link Connection#respond(Event)}).
 	 */
-	public ConnectionEvent<T, C> fire() {
+	public ConnectionEvent<T> fire() {
 		return connection.respond(this);
 	}
 }

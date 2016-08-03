@@ -17,9 +17,14 @@
  */
 package org.jgrapes.io;
 
+import java.nio.ByteBuffer;
+
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.io.util.ManagedBufferQueue;
+import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
  * Represents an I/O connection. I/O connections are asymmetrical. A connection
@@ -34,6 +39,9 @@ import org.jgrapes.core.EventPipeline;
  * from responder to initiator. Of course, any pipeline could be used to send
  * events to the initiator component. However, using arbitrary pipelines holds
  * the risk that events aren't delivered in the intended order.
+ * <P>
+ * A connection has an associated buffer pool. Buffers from this pool may be
+ * used for read and write events.
  * 
  * @author Michael N. Lipp
  */
@@ -60,6 +68,13 @@ public interface Connection {
 	EventPipeline getResponsePipeline();
 
 	/**
+	 * Get the connection's buffer pool.
+	 * 
+	 * @return the buffer pool
+	 */
+	ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool();
+	
+	/**
 	 * Fires the given event on this connection's channel using the channel's
 	 * response pipeline. Effectively, {@code respond(someEvent)} is a shortcut
 	 * for {@code getResponsePipeline.add(someEvent, getChannel())}.
@@ -70,5 +85,50 @@ public interface Connection {
 	 */
 	default <T extends Event<?>> T respond(T event) {
 		return getResponsePipeline().fire(event, getChannel());
+	}
+
+	/**
+	 * Creates a new connection with the channel set to the given component's
+	 * channel and a new event pipeline.
+	 * 
+	 * @param component
+	 *            the component used to get the channel and the event pipeline
+	 * @return the connection
+	 */
+	static Connection newConnection(Component component) {
+		return new DefaultConnection(component);
+	}
+	
+	public static class DefaultConnection implements Connection {
+
+		private Channel channel;
+		private EventPipeline eventPipeline;
+		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool;
+
+		private DefaultConnection(Component component) {
+			channel = component.getChannel();
+			eventPipeline = component.newEventPipeline();
+		}
+		
+		@Override
+		public Channel getChannel() {
+			return channel;
+		}
+
+		@Override
+		public EventPipeline getResponsePipeline() {
+			return eventPipeline;
+		}
+
+		@Override
+		public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool() {
+			if (bufferPool == null) {
+				bufferPool = new ManagedBufferQueue<>(ManagedByteBuffer.class,
+						ByteBuffer.allocate(4096), 
+						ByteBuffer.allocate(4096));
+			}
+			return bufferPool;
+		}
+
 	}
 }

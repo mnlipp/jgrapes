@@ -22,7 +22,7 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
-import org.jgrapes.io.DataConnection;
+import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Write;
 
@@ -36,7 +36,7 @@ import org.jgrapes.io.events.Write;
  */
 public class ByteBufferOutputStream extends OutputStream {
 
-	private DataConnection connection;
+	private Connection connection;
 	private ManagedByteBuffer buffer;
 	
 	/**
@@ -46,11 +46,11 @@ public class ByteBufferOutputStream extends OutputStream {
 	 * @throws InterruptedException if the current is interrupted
 	 * while trying to get a new buffer from the queue
 	 */
-	public ByteBufferOutputStream (DataConnection connection)
+	public ByteBufferOutputStream (Connection connection)
 			throws InterruptedException {
 		super();
 		this.connection = connection;
-		buffer = connection.acquireByteBuffer();
+		buffer = connection.bufferPool().acquire();
 	}
 
 	/* (non-Javadoc)
@@ -93,9 +93,9 @@ public class ByteBufferOutputStream extends OutputStream {
 	 */
 	@Override
 	public void flush() throws IOException {
-		(new Write<ManagedByteBuffer>(connection, buffer)).fire();
+		connection.respond(new Write<ManagedByteBuffer>(connection, buffer));
 		try {
-			buffer = connection.acquireByteBuffer();
+			buffer = connection.bufferPool().acquire();
 		} catch (InterruptedException e) {
 			throw new InterruptedIOException(e.getMessage());
 		}
@@ -107,7 +107,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	@Override
 	public void close() throws IOException {
 		flush();
-		(new Close<>(connection)).fire();
+		(new Close(connection)).fire();
 	}
 
 }
