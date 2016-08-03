@@ -29,7 +29,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.Connection;
-import org.jgrapes.io.File;
+import org.jgrapes.io.FileDispatcher;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Eof;
@@ -116,7 +116,7 @@ public class FileReadTests {
 		Consumer consumer = new Consumer();
 		Path filePath = Paths.get(getClass().getResource("test.txt").toURI());
 		long fileSize = filePath.toFile().length();
-		File app = new File(consumer, 512);
+		FileDispatcher app = new FileDispatcher(consumer, 512);
 		app.attach(consumer);
 		StateChecker sc = new StateChecker();
 		app.attach(sc);

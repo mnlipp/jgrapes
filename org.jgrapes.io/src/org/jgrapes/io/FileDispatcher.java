@@ -53,7 +53,7 @@ import org.jgrapes.io.util.ManagedByteBuffer;
  * 
  * @author Michael N. Lipp
  */
-public class File extends Component {
+public class FileDispatcher extends Component {
 
 	private int bufferSize;
 
@@ -67,7 +67,7 @@ public class File extends Component {
 	 * events and receiving {@link Write} events 
 	 * @param bufferSize the size of the buffers used for reading
 	 */
-	public File(Channel channel, int bufferSize) {
+	public FileDispatcher(Channel channel, int bufferSize) {
 		super (channel);
 		this.bufferSize = bufferSize;
 	}
@@ -78,7 +78,7 @@ public class File extends Component {
 	 * @param channel the component's channel. Used for sending {@link Read}
 	 * events and receiving {@link Write} events 
 	 */
-	public File(Channel channel) {
+	public FileDispatcher(Channel channel) {
 		this(channel, 4096);
 	}
 	

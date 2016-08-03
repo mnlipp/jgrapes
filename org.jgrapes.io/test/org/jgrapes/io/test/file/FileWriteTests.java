@@ -31,7 +31,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.Connection;
-import org.jgrapes.io.File;
+import org.jgrapes.io.FileDispatcher;
 import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.OpenFile;
 import org.jgrapes.io.util.ByteBufferOutputStream;
@@ -64,7 +64,7 @@ public class FileWriteTests {
 		Path filePath = Files.createTempFile("jgrapes-", ".txt");
 		filePath.toFile().deleteOnExit();
 		Producer producer = new Producer();
-		File app = new File(producer, 512);
+		FileDispatcher app = new FileDispatcher(producer, 512);
 		app.attach(producer);
 		Components.start(app);
 		app.fire(new OpenFile(Connection.newConnection(producer), filePath,
