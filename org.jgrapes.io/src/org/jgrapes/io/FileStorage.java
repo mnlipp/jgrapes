@@ -33,7 +33,6 @@ import java.util.WeakHashMap;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.events.Close;
@@ -42,8 +41,8 @@ import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.OpenFile;
-import org.jgrapes.io.events.Read;
-import org.jgrapes.io.events.Write;
+import org.jgrapes.io.events.Input;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedBufferQueue;
 import org.jgrapes.io.util.ManagedByteBuffer;
 
@@ -52,7 +51,7 @@ import org.jgrapes.io.util.ManagedByteBuffer;
  * 
  * @author Michael N. Lipp
  */
-public class FileDispatcher extends Component {
+public class FileStorage extends Component {
 
 	private int bufferSize;
 
@@ -62,11 +61,11 @@ public class FileDispatcher extends Component {
 	/**
 	 * Create a new instance using the given size for the read buffers.
 	 * 
-	 * @param channel the component's channel. Used for sending {@link Read}
-	 * events and receiving {@link Write} events 
+	 * @param channel the component's channel. Used for sending {@link Output}
+	 * events and receiving {@link Input} events 
 	 * @param bufferSize the size of the buffers used for reading
 	 */
-	public FileDispatcher(Channel channel, int bufferSize) {
+	public FileStorage(Channel channel, int bufferSize) {
 		super (channel);
 		this.bufferSize = bufferSize;
 	}
@@ -74,10 +73,10 @@ public class FileDispatcher extends Component {
 	/**
 	 * Create a new instance using the default buffer size of 4096.
 	 * 
-	 * @param channel the component's channel. Used for sending {@link Read}
-	 * events and receiving {@link Write} events 
+	 * @param channel the component's channel. Used for sending {@link Output}
+	 * events and receiving {@link Input} events 
 	 */
-	public FileDispatcher(Channel channel) {
+	public FileStorage(Channel channel) {
 		this(channel, 4096);
 	}
 
@@ -100,7 +99,7 @@ public class FileDispatcher extends Component {
 	}
 
 	@Handler
-	public void onWrite(Write<ManagedByteBuffer> event) {
+	public void onInput(Input<ManagedByteBuffer> event) {
 		FileConnection connection = connections.get(event.getConnection());
 		if (connection == null) {
 			return;
@@ -149,8 +148,10 @@ public class FileDispatcher extends Component {
 		private AsynchronousFileChannel ioChannel = null;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> ioBuffers;
 		private long offset = 0;
-		private CompletionHandler<Integer, ManagedByteBuffer> readCompletionHandler = new ReadCompletionHandler();
-		private CompletionHandler<Integer, WriteContext> writeCompletionHandler = new WriteCompletionHandler();
+		private CompletionHandler<Integer, ManagedByteBuffer> 
+			readCompletionHandler = new ReadCompletionHandler();
+		private CompletionHandler<Integer, WriteContext> 
+			writeCompletionHandler = new WriteCompletionHandler();
 		private int outstandingAsyncs = 0;
 		private boolean reading = false;
 
@@ -225,8 +226,7 @@ public class FileDispatcher extends Component {
 						(new Close(connection)).fire();
 						return;
 					}
-					buffer.flip();
-					(new Read<>(connection, buffer)).fire();
+					(new Output<>(connection, buffer)).fire();
 					offset += result;
 					try {
 						ManagedByteBuffer nextBuffer = ioBuffers.acquire();
@@ -245,7 +245,7 @@ public class FileDispatcher extends Component {
 			}
 		}
 
-		private void write(Write<ManagedByteBuffer> event) {
+		private void write(Input<ManagedByteBuffer> event) {
 			ManagedByteBuffer buffer = event.getBuffer();
 			int written = buffer.remaining();
 			if (written == 0) {

@@ -44,8 +44,8 @@ import org.jgrapes.io.Connection;
 import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.IOError;
-import org.jgrapes.io.events.Read;
-import org.jgrapes.io.events.Write;
+import org.jgrapes.io.events.Input;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedBufferQueue;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.events.NioRegistration;
@@ -193,7 +193,7 @@ public class Server extends Component
 	 * @throws IOException if an error occurs
 	 */
 	@Handler
-	public void onWrite(Write<ManagedByteBuffer> event) throws IOException {
+	public void onWrite(Output<ManagedByteBuffer> event) throws IOException {
 		if (!(event.getConnection() instanceof SocketConnection)) {
 			return;
 		}
@@ -335,7 +335,7 @@ public class Server extends Component
 		 * @param event the event
 		 * @throws IOException if an error occurs
 		 */
-		public void write(Write<ManagedByteBuffer> event) throws IOException {
+		public void write(Output<ManagedByteBuffer> event) throws IOException {
 			ManagedByteBuffer buffer = event.getBuffer();
 			if (!nioChannel.isOpen()) {
 				return;
@@ -393,7 +393,7 @@ public class Server extends Component
 			}
 			if (bytes > 0) {
 				buffer.flip();
-				downPipeline.fire(new Read<ManagedByteBuffer>(this, buffer));
+				downPipeline.fire(new Input<ManagedByteBuffer>(this, buffer));
 				return;
 			}
 			downPipeline.fire(new Eof(this));

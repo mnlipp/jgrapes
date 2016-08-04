@@ -21,10 +21,10 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 import org.jgrapes.io.Connection;
-import org.jgrapes.io.FileDispatcher;
+import org.jgrapes.io.FileStorage;
 
 /**
- * Signals a {@link FileDispatcher} component that it should start working with
+ * Signals a {@link FileStorage} component that it should start working with
  * a new file.
  * 
  * @author Michael N. Lipp

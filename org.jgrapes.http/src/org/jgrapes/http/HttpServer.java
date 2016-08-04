@@ -52,8 +52,8 @@ import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.TraceRequest;
 import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.Close;
-import org.jgrapes.io.events.Read;
-import org.jgrapes.io.events.Write;
+import org.jgrapes.io.events.Input;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.BufferCollector;
 import org.jgrapes.io.util.Extension;
 import org.jgrapes.io.util.ManagedBuffer;
@@ -144,7 +144,7 @@ public class HttpServer extends Component {
 	 * @param event
 	 */
 	@DynamicHandler
-	public void onRead(Read<ManagedByteBuffer> event) {
+	public void onRead(Input<ManagedByteBuffer> event) {
 		final ExtExtension extDown = (ExtExtension) Extension
 		        .lookupExtension(event.getConnection());
 		// Get data associated with the channel
@@ -169,7 +169,7 @@ public class HttpServer extends Component {
 				break;
 			}
 			if (bodyData != null && bodyData.position() > 0) {
-				fire(new Read<>(extDown, bodyData));
+				fire(new Input<>(extDown, bodyData));
 			}
 			if (result.isOverflow()) {
 				bodyData = new ManagedByteBuffer(
@@ -231,8 +231,8 @@ public class HttpServer extends Component {
 	/**
 	 * Handles a response event from downstream by sending it through an
 	 * {@link HttpResponseEncoder} that generates the data (encoded information)
-	 * and sends it upstream with {@link Write} events. Depending on the
-	 * response data, subsequent {@link Write} events and an
+	 * and sends it upstream with {@link Output} events. Depending on the
+	 * response data, subsequent {@link Output} events and an
 	 * {@link EndOfResponse} event targeted at the {@link HttpServer} can
 	 * follow.
 	 * 
@@ -258,12 +258,12 @@ public class HttpServer extends Component {
 			HttpResponseEncoder.Result result = engine
 			        .encode(HttpCodec.EMPTY_IN, buffer.getBacking(), false);
 			if (result.isOverflow()) {
-				(new Write<>(netConn, buffer)).fire();
+				(new Output<>(netConn, buffer)).fire();
 				continue;
 			}
 			if (!response.messageHasBody()) {
 				if (buffer.position() > 0) {
-					(new Write<>(netConn, buffer)).fire();
+					(new Output<>(netConn, buffer)).fire();
 				} else {
 					buffer.unlockBuffer();
 				}
@@ -275,7 +275,7 @@ public class HttpServer extends Component {
 
 	/**
 	 * Receives the message body of a response. A {@link Response} event that
-	 * has a message body can be followed by one or more {@link Write} events
+	 * has a message body can be followed by one or more {@link Output} events
 	 * from downstream that contain the data. An {@link EndOfResponse} event
 	 * signals the end of the message body.
 	 * 
@@ -284,7 +284,7 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException
 	 */
 	@Handler
-	public void onWrite(Write<ManagedBuffer<?>> event)
+	public void onWrite(Output<ManagedBuffer<?>> event)
 	        throws InterruptedException {
 		if (!(event.getConnection() instanceof ExtExtension)) {
 			return;
@@ -303,7 +303,7 @@ public class HttpServer extends Component {
 			if (!result.isOverflow()) {
 				break;
 			}
-			(new Write<>(netConn, extDown.outBuffer)).fire();
+			(new Output<>(netConn, extDown.outBuffer)).fire();
 			extDown.outBuffer = netConn.bufferPool().acquire();
 		}
 	}
@@ -361,14 +361,14 @@ public class HttpServer extends Component {
 			        .encode(buffer.getBacking());
 			if (!result.isOverflow()) {
 				if (buffer.position() > 0) {
-					(new Write<>(netConn, buffer)).fire();
+					(new Output<>(netConn, buffer)).fire();
 				} else {
 					buffer.unlockBuffer();
 				}
 				extDown.outBuffer = null;
 				break;
 			}
-			(new Write<>(netConn, buffer)).fire();
+			(new Output<>(netConn, buffer)).fire();
 			extDown.outBuffer = netConn.bufferPool().acquire();
 		}
 	}
@@ -434,7 +434,7 @@ public class HttpServer extends Component {
 		response.setField(media);
 		(new Response(connection, response)).fire();
 		try {
-			Write.wrap(connection,
+			Output.wrap(connection,
 			        "Not Found".getBytes("utf-8")).fire();
 		} catch (UnsupportedEncodingException e) {
 		}

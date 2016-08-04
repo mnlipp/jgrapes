@@ -23,12 +23,14 @@ import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.ManagedCharBuffer;
 
 /**
- * This event signals that a new chunk of data is to be forwarded to the
- * destination. The data is kept in a buffer.
+ * This event signals that a new chunk of internally generated data is to be
+ * forwarded to some destination. The data is kept in a buffer. The buffer is
+ * returned to the pool upon successful processing of the event. This type of
+ * event is commonly used for data flowing out of the application.
  * 
  * @author Michael N. Lipp
  */
-public class Write<T extends ManagedBuffer<?>> 
+public class Output<T extends ManagedBuffer<?>> 
 	extends ConnectionEvent<Void> {
 
 	private T buffer;
@@ -38,11 +40,11 @@ public class Write<T extends ManagedBuffer<?>>
 	 * it. Used internally for constructor ("super(...)") invocations that 
 	 * don't flip the buffer.
 	 * 
-	 * @param connection
-	 * @param buffer
+	 * @param connection the connection to write the data to
+	 * @param buffer the buffer with the data
 	 * @param flip
 	 */
-	private Write(Connection connection, T buffer, boolean flip) {
+	private Output(Connection connection, T buffer, boolean flip) {
 		super(connection);
 		this.buffer = buffer;
 		if (flip) {
@@ -58,7 +60,7 @@ public class Write<T extends ManagedBuffer<?>>
 	 * @param connection the connection to write the data to
 	 * @param buffer the buffer with the data
 	 */
-	public Write(Connection connection, T buffer) {
+	public Output(Connection connection, T buffer) {
 		this(connection, buffer, true);
 	}
 
@@ -70,9 +72,9 @@ public class Write<T extends ManagedBuffer<?>>
 	 * @param data the string to wrap
 	 * @return the event
 	 */
-	public static Write<ManagedCharBuffer> 
+	public static Output<ManagedCharBuffer> 
 			wrap(Connection connection, String data) {
-		return new Write<>(connection, new ManagedCharBuffer(data), false);
+		return new Output<>(connection, new ManagedCharBuffer(data), false);
 	}
 	
 	/**
@@ -83,9 +85,9 @@ public class Write<T extends ManagedBuffer<?>>
 	 * @param data the array to wrap
 	 * @return the event
 	 */
-	public static Write<ManagedByteBuffer> 
+	public static Output<ManagedByteBuffer> 
 			wrap(Connection connection, byte[] data) {
-		return new Write<>(connection, new ManagedByteBuffer(data), false);
+		return new Output<>(connection, new ManagedByteBuffer(data), false);
 	}
 	
 	/**

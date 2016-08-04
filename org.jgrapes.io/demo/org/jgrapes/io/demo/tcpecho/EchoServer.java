@@ -24,8 +24,8 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.NioDispatcher;
-import org.jgrapes.io.events.Read;
-import org.jgrapes.io.events.Write;
+import org.jgrapes.io.events.Input;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
 
@@ -45,11 +45,11 @@ public class EchoServer extends Component {
 	}
 
 	@Handler
-	public void onRead(Read<ManagedByteBuffer> event)
+	public void onRead(Input<ManagedByteBuffer> event)
 			throws InterruptedException {
 		ManagedByteBuffer out = event.getConnection().bufferPool().acquire();
 		out.put(event.getBuffer());
-		fire(new Write<>(event.getConnection(), out));
+		fire(new Output<>(event.getConnection(), out));
 	}
 
 	/**

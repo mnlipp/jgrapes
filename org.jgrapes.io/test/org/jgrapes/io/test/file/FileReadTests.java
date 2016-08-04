@@ -29,13 +29,13 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.Connection;
-import org.jgrapes.io.FileDispatcher;
+import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.OpenFile;
 import org.jgrapes.io.events.Opened;
-import org.jgrapes.io.events.Read;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.junit.Test;
 
@@ -59,7 +59,7 @@ public class FileReadTests {
 		}
 		
 		@Handler
-		public void dataRead(Read<ManagedByteBuffer> event) 
+		public void onOutput(Output<ManagedByteBuffer> event) 
 				throws UnsupportedEncodingException {
 			int length = event.getBuffer().limit();
 			collected += length;
@@ -86,7 +86,7 @@ public class FileReadTests {
 		}
 		
 		@Handler
-		public void reading(Read<ManagedByteBuffer> event) {
+		public void reading(Output<ManagedByteBuffer> event) {
 			assertTrue(state == State.OPENED || state == State.READING );
 			state = State.READING;
 		}
@@ -116,7 +116,7 @@ public class FileReadTests {
 		Consumer consumer = new Consumer();
 		Path filePath = Paths.get(getClass().getResource("test.txt").toURI());
 		long fileSize = filePath.toFile().length();
-		FileDispatcher app = new FileDispatcher(consumer, 512);
+		FileStorage app = new FileStorage(consumer, 512);
 		app.attach(consumer);
 		StateChecker sc = new StateChecker();
 		app.attach(sc);

@@ -31,10 +31,13 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.Connection;
-import org.jgrapes.io.FileDispatcher;
+import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.events.FileOpened;
+import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.OpenFile;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ByteBufferOutputStream;
+import org.jgrapes.io.util.ManagedByteBuffer;
 import org.junit.Test;
 
 /**
@@ -56,6 +59,13 @@ public class FileWriteTests {
 			}
 		}
 		
+		@Handler(priority=100)
+		public void onOutput(Output<ManagedByteBuffer> event) {
+			// Convert Output events to Input events
+			event.stop();
+			fire(new Input<>(event.getConnection(),
+			        event.getBuffer().lockBuffer()));
+		}
 	}
 
 	@Test
@@ -64,7 +74,7 @@ public class FileWriteTests {
 		Path filePath = Files.createTempFile("jgrapes-", ".txt");
 		filePath.toFile().deleteOnExit();
 		Producer producer = new Producer();
-		FileDispatcher app = new FileDispatcher(producer, 512);
+		FileStorage app = new FileStorage(producer, 512);
 		app.attach(producer);
 		Components.start(app);
 		app.fire(new OpenFile(Connection.newConnection(producer), filePath,
@@ -82,7 +92,7 @@ public class FileWriteTests {
 				assertEquals(expect, num);
 				expect += 1;
 			}
-			assertEquals(expect, 10001);
+			assertEquals(10001, expect);
 		}
 	}
 }

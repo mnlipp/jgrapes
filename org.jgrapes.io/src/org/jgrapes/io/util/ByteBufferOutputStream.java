@@ -25,11 +25,11 @@ import java.nio.ByteBuffer;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.Close;
-import org.jgrapes.io.events.Write;
+import org.jgrapes.io.events.Output;
 
 /**
  * An {@link OutputStream} that is backed by {@link ByteBuffer}s obtained
- * from a queue. When a byte buffer is full, a {@link Write} event is
+ * from a queue. When a byte buffer is full, a {@link Output} event is
  * generated and a new buffer is fetched from the queue.
  * 
  * @author Michael N. Lipp
@@ -92,12 +92,12 @@ public class ByteBufferOutputStream extends OutputStream {
 	}
 
 	/**
-	 * Creates and fires a {@link Write} event with the buffer being filled and
+	 * Creates and fires a {@link Output} event with the buffer being filled and
 	 * obtains a new buffer from the queue.
 	 */
 	@Override
 	public void flush() throws IOException {
-		eventPipeline.fire(new Write<ManagedByteBuffer>(connection, buffer));
+		eventPipeline.fire(new Output<ManagedByteBuffer>(connection, buffer));
 		try {
 			buffer = connection.bufferPool().acquire();
 		} catch (InterruptedException e) {
