@@ -59,9 +59,12 @@ public abstract class ManagedBuffer<T extends Buffer> {
 
 	/**
 	 * Increases the buffer's lock count.
+	 * 
+	 * @return the managed buffer for easy chaining
 	 */
-	public void lockBuffer() {
+	public ManagedBuffer<T> lockBuffer() {
 		lockCount.incrementAndGet();
+		return this;
 	}
 
 	/**
