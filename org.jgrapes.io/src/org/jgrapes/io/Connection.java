@@ -137,7 +137,7 @@ public interface Connection {
 		@Override
 		public String toString() {
 			StringBuilder builder = new StringBuilder();
-			builder.append(Components.objectName(this, Connection.class));
+			builder.append(Components.objectName(this));
 			builder.append(" [");
 			if (channel != null) {
 				builder.append("channel=");

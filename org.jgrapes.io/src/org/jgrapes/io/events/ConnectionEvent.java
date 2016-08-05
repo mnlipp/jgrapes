@@ -71,7 +71,7 @@ public abstract class ConnectionEvent<T>
 		}
 		if (connection != null) {
 			builder.append(", connection=");
-			builder.append(Components.objectName(connection, Connection.class));
+			builder.append(Components.objectName(connection));
 		}
 		builder.append("]");
 		return builder.toString();

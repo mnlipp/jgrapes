@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 import org.jgrapes.core.AttachedComponent;
-import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Components;
 
 /**
@@ -71,8 +70,8 @@ class VerboseHandlerReference extends HandlerReference {
 			builder.append("] ");
 		}
 		builder.append("P");
-		builder.append(Common.getId(EventPipeline.class, 
-				FeedBackPipelineFilter.getAssociatedPipeline()));
+		builder.append(Components
+		        .objectId(FeedBackPipelineFilter.getAssociatedPipeline()));
 		builder.append(": ");
 		builder.append(event);
 		if (component == ComponentTree.DUMMY_HANDLER) {

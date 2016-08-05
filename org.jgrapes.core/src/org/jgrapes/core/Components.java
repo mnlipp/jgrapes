@@ -17,6 +17,10 @@
  */
 package org.jgrapes.core;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
 import org.jgrapes.core.internal.Common;
@@ -105,40 +109,68 @@ public class Components {
 	}
 	
 	/**
-	 * Returns the class of the object together with a unique id.
-	 * May be used to implement {@code toString()} with identifiable
-	 * objects. Ids are generated and looked up in the scope of the
-	 * object's class. 
+	 * Returns the class of the object together with an id (see @link
+	 * {@link #objectId(Object)}). May be used to implement {@code toString()}
+	 * with identifiable objects.
 	 * 
-	 * @param object the object
+	 * @param object
+	 *            the object
 	 * @return the object's name
 	 */
 	public static String objectName(Object object) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Common.classToString(object.getClass()));
 		builder.append('#');
-		builder.append(Common.getId(object.getClass(), object));
+		builder.append(objectId(object));
 		return builder.toString();
+	}
+
+	private static Map<Object, String> objectIds = new WeakHashMap<>();
+	private static Map<Class<?>, AtomicLong> idCounters = new WeakHashMap<>();
+
+	private static String getId(Class<?> scope, Object object) {
+		if (object == null) {
+			return "?";
+		}
+		synchronized (objectIds) {
+			return objectIds.computeIfAbsent
+				(object, k -> Long.toString
+					(idCounters.computeIfAbsent(scope, l -> new AtomicLong())
+							.incrementAndGet()));
+			
+		}
 	}
 
 	/**
-	 * Returns the class of the object together with a unique id. May be used to
-	 * implement {@code toString()} with identifiable objects. Ids are generated
-	 * and looked up in the scope of the given class that should be a base class
-	 * of the object or an interface implemented by the object.
+	 * Returns an id of the object that is unique within a specific scope. Ids
+	 * are generated and looked up in the scope of the object's class unless the
+	 * class implements {@link IdScopeProvider}.
 	 * 
 	 * @param object
 	 *            the object
-	 * @param scope
-	 *            the scope to use for id generation and lookup
 	 * @return the object's name
 	 */
-	public static String objectName(Object object, Class<?> scope) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Common.classToString(object.getClass()));
-		builder.append('#');
-		builder.append(Common.getId(object.getClass(), object));
-		return builder.toString();
+	public static String objectId(Object object) {
+		if (object instanceof IdScopeProvider) {
+			return getId(((IdScopeProvider) object).idScope(), object);
+		} else {
+			return getId(object.getClass(), object);
+		}
 	}
 
+	/**
+	 * Implemented by classes that want a special class (scope) to be used
+	 * for looking up their id.
+	 * 
+	 * @author Michael N. Lipp
+	 */
+	public static interface IdScopeProvider {
+		
+		/**
+		 * Returns the scope.
+		 * 
+		 * @return the scope
+		 */
+		Class<?> idScope();
+	}
 }

@@ -342,7 +342,7 @@ public class FileStorage extends Component {
 		builder.append(" [");
 		if (connections != null) {
 			builder.append(connections.values().stream()
-			        .map(c -> Components.objectName(c, Connection.class))
+			        .map(c -> Components.objectName(c))
 			        .collect(Collectors.toList()));
 		}
 		builder.append("]");

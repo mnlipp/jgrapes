@@ -251,7 +251,7 @@ public class Server extends Component
 	 */
 	@Override
 	public String toString() {
-		return Components.objectName(this, Connection.class);
+		return Components.objectName(this);
 	}
 	
 	/**
@@ -469,13 +469,5 @@ public class Server extends Component
 			}
 		}
 
-		/* (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
-		@Override
-		public String toString() {
-			return Components.objectName(this, Connection.class);
-		}
-		
 	}
 }

@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.AttachedComponent;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
@@ -118,9 +119,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Common.classToString(getClass()));
-		builder.append('#');
-		builder.append(Common.getId(EventPipeline.class, this));
+		builder.append(Components.objectName(this));
 		builder.append(" [");
 		if (queue != null) {
 			builder.append("queue=");

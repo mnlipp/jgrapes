@@ -154,11 +154,10 @@ public class Extension implements Connection {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this, Connection.class));
+		builder.append(Components.objectName(this));
 		if (upstreamConnection != null) {
 			builder.append("upstreamConnection=");
-			builder.append(Components.objectName(upstreamConnection,
-			        Connection.class));
+			builder.append(Components.objectName(upstreamConnection));
 		}
 		builder.append("]");
 		return builder.toString();

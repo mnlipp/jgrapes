@@ -17,9 +17,6 @@
  */
 package org.jgrapes.core.internal;
 
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -77,7 +74,6 @@ public class Common {
 		builder.append("]");
 		return builder.toString();
 	}
-
 	
 	public static String channelKeyToString(Object channelKey) {
 		StringBuilder builder = new StringBuilder();
@@ -93,20 +89,4 @@ public class Common {
 		return builder.toString();
 	}
 	
-	private static Map<Object, String> objectIds = new WeakHashMap<>();
-	private static Map<Class<?>, AtomicLong> idCounters = new WeakHashMap<>();
-
-	public static String getId(Class<?> scope, Object object) {
-		if (object == null) {
-			return "?";
-		}
-		synchronized (objectIds) {
-			return objectIds.computeIfAbsent
-				(object, k -> Long.toString
-					(idCounters.computeIfAbsent(scope, l -> new AtomicLong())
-							.incrementAndGet()));
-			
-		}
-	}
-
 }

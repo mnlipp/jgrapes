@@ -17,6 +17,8 @@
  */
 package org.jgrapes.core;
 
+import org.jgrapes.core.Components.IdScopeProvider;
+
 /**
  * An event pipeline is a queue of events that are sent to the components
  * of the associated tree. Any events fired by the components while handling
@@ -28,7 +30,7 @@ package org.jgrapes.core;
  * 
  * @author Michael N. Lipp
  */
-public interface EventPipeline {
+public interface EventPipeline extends IdScopeProvider {
 
 	/**
 	 * Add an event to be sent to components listening for such events on
@@ -44,4 +46,13 @@ public interface EventPipeline {
 	 * @return the event (for easy chaining)
 	 */
 	<T extends Event<?>> T fire(T event, Channel... channels);
+
+	/**
+	 * All pipelines use the same id scope to make them uniquely identifiable
+	 * by their number.
+	 */
+	@Override
+	default Class<?> idScope() {
+		return EventPipeline.class;
+	}	
 }
