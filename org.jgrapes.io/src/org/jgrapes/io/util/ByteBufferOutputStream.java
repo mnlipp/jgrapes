@@ -25,13 +25,14 @@ import java.nio.ByteBuffer;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.Closed;
+import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 
 /**
- * An {@link OutputStream} that is backed by {@link ByteBuffer}s obtained
- * from a queue. When a byte buffer is full, a {@link Output} event (default) 
- * is generated and a new buffer is fetched from the queue.
+ * An {@link OutputStream} that is backed by {@link ByteBuffer}s obtained from a
+ * queue. When a byte buffer is full, a {@link Output} event (default) is
+ * generated and a new buffer is fetched from the queue.
  * 
  * @author Michael N. Lipp
  *
@@ -42,20 +43,23 @@ public class ByteBufferOutputStream extends OutputStream {
 	private EventPipeline eventPipeline;
 	private boolean inputMode;
 	private ManagedByteBuffer buffer;
-	
+
 	/**
 	 * Creates a new instance.
 	 * 
-	 * @param connection the connection to send on
-	 * @param eventPipeline the event pipeline used for firing events
-	 * @param inputMode if {@code true} use {@link Input} events
-	 * to dispatch buffers
-	 * @throws InterruptedException if the current is interrupted
-	 * while trying to get a new buffer from the queue
+	 * @param connection
+	 *            the connection to send on
+	 * @param eventPipeline
+	 *            the event pipeline used for firing events
+	 * @param inputMode
+	 *            if {@code true} use {@link Input} events to dispatch buffers
+	 * @throws InterruptedException
+	 *             if the current is interrupted while trying to get a new
+	 *             buffer from the queue
 	 */
 	public ByteBufferOutputStream(Connection connection,
 	        EventPipeline eventPipeline, boolean inputMode)
-	        		throws InterruptedException {
+	        throws InterruptedException {
 		super();
 		this.connection = connection;
 		this.eventPipeline = eventPipeline;
@@ -67,28 +71,35 @@ public class ByteBufferOutputStream extends OutputStream {
 	 * Creates a new instance that uses {@link Output} events to dispatch
 	 * buffers.
 	 * 
-	 * @param connection the connection to send on
-	 * @param eventPipeline the event pipeline used for firing events
-	 * @throws InterruptedException if the current is interrupted
-	 * while trying to get a new buffer from the queue
+	 * @param connection
+	 *            the connection to send on
+	 * @param eventPipeline
+	 *            the event pipeline used for firing events
+	 * @throws InterruptedException
+	 *             if the current is interrupted while trying to get a new
+	 *             buffer from the queue
 	 */
 	public ByteBufferOutputStream(Connection connection,
 	        EventPipeline eventPipeline) throws InterruptedException {
 		this(connection, eventPipeline, false);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.io.OutputStream#write(int)
 	 */
 	@Override
 	public void write(int b) throws IOException {
-		buffer.put((byte)b);
+		buffer.put((byte) b);
 		if (!buffer.hasRemaining()) {
 			flush();
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.io.OutputStream#write(byte[], int, int)
 	 */
 	@Override
@@ -133,11 +144,12 @@ public class ByteBufferOutputStream extends OutputStream {
 	}
 
 	/**
-	 * Calls {@link #flush()} and fires a {@link Closed} event.
+	 * Calls {@link #flush()} and fires a {@link Eof} and {@link Closed} event.
 	 */
 	@Override
 	public void close() throws IOException {
 		flush();
+		eventPipeline.fire(new Eof(connection));
 		eventPipeline.fire(new Closed(connection));
 	}
 
