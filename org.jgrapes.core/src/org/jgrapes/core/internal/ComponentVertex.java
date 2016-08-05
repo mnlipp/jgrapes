@@ -35,6 +35,7 @@ import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.DefaultChannel;
 import org.jgrapes.core.annotation.DynamicHandler;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Attached;
@@ -108,6 +109,7 @@ public abstract class ComponentVertex implements Manager {
 		}
 		// Get channel keys from the annotation.
 		List<Object> channelKeys = new ArrayList<Object>();
+		boolean addDefaultChannel = false;
 		if (handlerAnnotation.channels()[0] != Handler.NO_CHANNEL.class) {
 			for (Class<?> c: handlerAnnotation.channels()) {
 				if (c == Self.class) {
@@ -120,6 +122,8 @@ public abstract class ComponentVertex implements Manager {
 							 + getClass().getName() 
 							 + " does not implement Channel.");
 					}
+				} else if (c == DefaultChannel.class) {
+					addDefaultChannel = true;
 				} else {
 					channelKeys.add(c);
 				}
@@ -130,7 +134,7 @@ public abstract class ComponentVertex implements Manager {
 			channelKeys.addAll
 				(Arrays.asList(handlerAnnotation.namedChannels()));
 		}
-		if (channelKeys.size() == 0) {
+		if (channelKeys.size() == 0 || addDefaultChannel) {
 			channelKeys.add(getChannel().getMatchKey());
 		}
 		for (Object eventKey : eventKeys) {
