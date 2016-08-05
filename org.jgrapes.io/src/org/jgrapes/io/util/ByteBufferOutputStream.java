@@ -25,12 +25,13 @@ import java.nio.ByteBuffer;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.Close;
+import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 
 /**
  * An {@link OutputStream} that is backed by {@link ByteBuffer}s obtained
- * from a queue. When a byte buffer is full, a {@link Output} event is
- * generated and a new buffer is fetched from the queue.
+ * from a queue. When a byte buffer is full, a {@link Output} event (default) 
+ * is generated and a new buffer is fetched from the queue.
  * 
  * @author Michael N. Lipp
  *
@@ -39,10 +40,32 @@ public class ByteBufferOutputStream extends OutputStream {
 
 	private Connection connection;
 	private EventPipeline eventPipeline;
+	private boolean inputMode;
 	private ManagedByteBuffer buffer;
 	
 	/**
 	 * Creates a new instance.
+	 * 
+	 * @param connection the connection to send on
+	 * @param eventPipeline the event pipeline used for firing events
+	 * @param inputMode if {@code true} use {@link Input} events
+	 * to dispatch buffers
+	 * @throws InterruptedException if the current is interrupted
+	 * while trying to get a new buffer from the queue
+	 */
+	public ByteBufferOutputStream(Connection connection,
+	        EventPipeline eventPipeline, boolean inputMode)
+	        		throws InterruptedException {
+		super();
+		this.connection = connection;
+		this.eventPipeline = eventPipeline;
+		this.inputMode = inputMode;
+		buffer = connection.bufferPool().acquire();
+	}
+
+	/**
+	 * Creates a new instance that uses {@link Output} events to dispatch
+	 * buffers.
 	 * 
 	 * @param connection the connection to send on
 	 * @param eventPipeline the event pipeline used for firing events
@@ -51,10 +74,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	 */
 	public ByteBufferOutputStream(Connection connection,
 	        EventPipeline eventPipeline) throws InterruptedException {
-		super();
-		this.connection = connection;
-		this.eventPipeline = eventPipeline;
-		buffer = connection.bufferPool().acquire();
+		this(connection, eventPipeline, false);
 	}
 
 	/* (non-Javadoc)
@@ -97,7 +117,14 @@ public class ByteBufferOutputStream extends OutputStream {
 	 */
 	@Override
 	public void flush() throws IOException {
-		eventPipeline.fire(new Output<ManagedByteBuffer>(connection, buffer));
+		if (inputMode) {
+			buffer.flip();
+			eventPipeline
+			        .fire(new Input<ManagedByteBuffer>(connection, buffer));
+		} else {
+			eventPipeline
+			        .fire(new Output<ManagedByteBuffer>(connection, buffer));
+		}
 		try {
 			buffer = connection.bufferPool().acquire();
 		} catch (InterruptedException e) {

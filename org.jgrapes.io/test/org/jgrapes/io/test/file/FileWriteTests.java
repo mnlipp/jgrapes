@@ -52,19 +52,11 @@ public class FileWriteTests {
 		public void onOpened(FileOpened event) 
 				throws InterruptedException, IOException {
 			try (ByteBufferOutputStream out = new ByteBufferOutputStream
-					(event.getConnection(), newEventPipeline())) {
+					(event.getConnection(), newEventPipeline(), true)) {
 				for (int i = 1; i <= 10000; i++) {
 					out.write(new String(i + ": Hello World!\n").getBytes());
 				}
 			}
-		}
-		
-		@Handler(priority=100)
-		public void onOutput(Output<ManagedByteBuffer> event) {
-			// Convert Output events to Input events
-			event.stop();
-			fire(new Input<>(event.getConnection(),
-			        event.getBuffer().lockBuffer()));
 		}
 	}
 
