@@ -33,11 +33,8 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.Connection;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.events.FileOpened;
-import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.OpenFile;
-import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ByteBufferOutputStream;
-import org.jgrapes.io.util.ManagedByteBuffer;
 import org.junit.Test;
 
 /**
