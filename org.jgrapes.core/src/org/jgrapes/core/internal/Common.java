@@ -96,14 +96,14 @@ public class Common {
 	private static Map<Object, String> objectIds = new WeakHashMap<>();
 	private static Map<Class<?>, AtomicLong> idCounters = new WeakHashMap<>();
 
-	public static String getId(Class<?> clazz, Object object) {
+	public static String getId(Class<?> scope, Object object) {
 		if (object == null) {
 			return "?";
 		}
 		synchronized (objectIds) {
 			return objectIds.computeIfAbsent
 				(object, k -> Long.toString
-					(idCounters.computeIfAbsent(clazz, l -> new AtomicLong())
+					(idCounters.computeIfAbsent(scope, l -> new AtomicLong())
 							.incrementAndGet()));
 			
 		}

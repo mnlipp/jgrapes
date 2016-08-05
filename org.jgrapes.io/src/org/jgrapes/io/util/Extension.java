@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.io.Connection;
@@ -145,6 +146,22 @@ public class Extension implements Connection {
 	@Override
 	public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool() {
 		return upstreamConnection.bufferPool();
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Components.objectName(this, Connection.class));
+		if (upstreamConnection != null) {
+			builder.append("upstreamConnection=");
+			builder.append(Components.objectName(upstreamConnection,
+			        Connection.class));
+		}
+		builder.append("]");
+		return builder.toString();
 	}
 
 	/**

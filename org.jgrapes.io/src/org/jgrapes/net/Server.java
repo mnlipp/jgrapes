@@ -30,6 +30,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
@@ -245,6 +246,14 @@ public class Server extends Component
 		newSyncEventPipeline().fire(new Close(this), getChannel());
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return Components.objectName(this, Connection.class);
+	}
+	
 	/**
 	 * The internal representation of a connected client. 
 	 * 
@@ -460,5 +469,13 @@ public class Server extends Component
 			}
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return Components.objectName(this, Connection.class);
+		}
+		
 	}
 }

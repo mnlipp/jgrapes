@@ -107,12 +107,33 @@ public class Components {
 	/**
 	 * Returns the class of the object together with a unique id.
 	 * May be used to implement {@code toString()} with identifiable
-	 * objects.
+	 * objects. Ids are generated and looked up in the scope of the
+	 * object's class. 
 	 * 
 	 * @param object the object
 	 * @return the object's name
 	 */
 	public static String objectName(Object object) {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Common.classToString(object.getClass()));
+		builder.append('#');
+		builder.append(Common.getId(object.getClass(), object));
+		return builder.toString();
+	}
+
+	/**
+	 * Returns the class of the object together with a unique id. May be used to
+	 * implement {@code toString()} with identifiable objects. Ids are generated
+	 * and looked up in the scope of the given class that should be a base class
+	 * of the object or an interface implemented by the object.
+	 * 
+	 * @param object
+	 *            the object
+	 * @param scope
+	 *            the scope to use for id generation and lookup
+	 * @return the object's name
+	 */
+	public static String objectName(Object object, Class<?> scope) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Common.classToString(object.getClass()));
 		builder.append('#');

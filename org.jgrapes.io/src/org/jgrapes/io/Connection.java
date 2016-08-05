@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.util.ManagedBufferQueue;
@@ -128,6 +129,27 @@ public interface Connection {
 						ByteBuffer.allocate(4096));
 			}
 			return bufferPool;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append(Components.objectName(this, Connection.class));
+			builder.append(" [");
+			if (channel != null) {
+				builder.append("channel=");
+				builder.append(Components.objectName(channel));
+				builder.append(", ");
+			}
+			if (eventPipeline != null) {
+				builder.append("eventPipeline=");
+				builder.append(Components.objectName(eventPipeline));
+			}
+			builder.append("]");
+			return builder.toString();
 		}
 
 	}

@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
@@ -224,6 +225,8 @@ public class FileStorage extends Component {
 					if (result == -1) {
 						(new Eof(connection)).fire();
 						(new Close(connection)).fire();
+//						connection.getResponsePipeline()
+//						        .fire(new Close(connection), FileStorage.this);
 						return;
 					}
 					(new Output<>(connection, buffer)).fire();
@@ -333,7 +336,7 @@ public class FileStorage extends Component {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("File [");
+		builder.append("FileStorage [");
 		if (connections != null) {
 			builder.append(connections.values());
 		}

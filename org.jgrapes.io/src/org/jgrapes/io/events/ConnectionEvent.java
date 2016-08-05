@@ -17,7 +17,9 @@
  */
 package org.jgrapes.io.events;
 
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.Connection;
 
 /**
@@ -54,4 +56,25 @@ public abstract class ConnectionEvent<T>
 	public ConnectionEvent<T> fire() {
 		return connection.respond(this);
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Components.objectName(this));
+		builder.append(" [");
+		if (channels != null) {
+			builder.append("channels=");
+			builder.append(Common.channelsToString(channels));
+		}
+		if (connection != null) {
+			builder.append(", connection=");
+			builder.append(Components.objectName(connection, Connection.class));
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+
 }
