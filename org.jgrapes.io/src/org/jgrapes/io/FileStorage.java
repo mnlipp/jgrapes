@@ -33,8 +33,10 @@ import java.util.stream.Collectors;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.DefaultChannel;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.events.Close;
@@ -109,7 +111,7 @@ public class FileStorage extends Component {
 		connection.write(event);
 	}
 	
-	@Handler
+	@Handler(channels={DefaultChannel.class, Self.class})
 	public void onClose(Close event) throws InterruptedException {
 		FileConnection connection = connections.get(event.getConnection());
 		if (connection == null) {
@@ -225,7 +227,8 @@ public class FileStorage extends Component {
 					}
 					if (result == -1) {
 						(new Eof(connection)).fire();
-						(new Close(connection)).fire();
+						connection.getResponsePipeline()
+						        .fire(new Close(connection), FileStorage.this);
 						return;
 					}
 					(new Output<>(connection, buffer)).fire();
