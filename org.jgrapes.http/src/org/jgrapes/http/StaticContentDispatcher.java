@@ -29,7 +29,6 @@ import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.EndOfResponse;
