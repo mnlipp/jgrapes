@@ -155,6 +155,7 @@ public class Extension implements Connection {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Components.objectName(this));
+		builder.append(" [");
 		if (upstreamConnection != null) {
 			builder.append("upstreamConnection=");
 			builder.append(Components.objectName(upstreamConnection));
