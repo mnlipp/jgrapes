@@ -144,15 +144,16 @@ public class Components {
 	/**
 	 * Returns an id of the object that is unique within a specific scope. Ids
 	 * are generated and looked up in the scope of the object's class unless the
-	 * class implements {@link IdScopeProvider}.
+	 * class implements {@link IdInfoProvider}.
 	 * 
 	 * @param object
 	 *            the object
 	 * @return the object's name
 	 */
 	public static String objectId(Object object) {
-		if (object instanceof IdScopeProvider) {
-			return getId(((IdScopeProvider) object).idScope(), object);
+		if (object instanceof IdInfoProvider) {
+			return getId(((IdInfoProvider) object).idScope(),
+			        ((IdInfoProvider) object).idObject());
 		} else {
 			return getId(object.getClass(), object);
 		}
@@ -160,11 +161,12 @@ public class Components {
 
 	/**
 	 * Implemented by classes that want a special class (scope) to be used
-	 * for looking up their id.
+	 * for looking up their id or want to map to another object for getting the
+	 * id.
 	 * 
 	 * @author Michael N. Lipp
 	 */
-	public static interface IdScopeProvider {
+	public static interface IdInfoProvider {
 		
 		/**
 		 * Returns the scope.
@@ -172,5 +174,14 @@ public class Components {
 		 * @return the scope
 		 */
 		Class<?> idScope();
+		
+		/**
+		 * Returns the object to be used for generating the id.
+		 * 
+		 * @return the object (defaults to {@code this})
+		 */
+		default Object idObject() {
+			return this;
+		}
 	}
 }

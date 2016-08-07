@@ -17,7 +17,7 @@
  */
 package org.jgrapes.core;
 
-import org.jgrapes.core.Components.IdScopeProvider;
+import org.jgrapes.core.Components.IdInfoProvider;
 
 /**
  * An event pipeline is a queue of events that are sent to the components
@@ -30,7 +30,7 @@ import org.jgrapes.core.Components.IdScopeProvider;
  * 
  * @author Michael N. Lipp
  */
-public interface EventPipeline extends IdScopeProvider {
+public interface EventPipeline extends IdInfoProvider {
 
 	/**
 	 * Add an event to be sent to components listening for such events on

@@ -20,7 +20,7 @@ package org.jgrapes.core.internal;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
-import org.jgrapes.core.Components.IdScopeProvider;
+import org.jgrapes.core.Components.IdInfoProvider;
 
 /**
  * Implemented by event pipelines. Note that contrary to the 
@@ -32,7 +32,7 @@ import org.jgrapes.core.Components.IdScopeProvider;
  * 
  * @author Michael N. Lipp
  */
-interface InternalEventPipeline extends IdScopeProvider {
+interface InternalEventPipeline extends IdInfoProvider {
 
 	/**
 	 * Add an event to be sent to components listening for such events on

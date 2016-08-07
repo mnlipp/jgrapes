@@ -18,6 +18,7 @@
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Components.IdInfoProvider;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 
@@ -29,7 +30,7 @@ import org.jgrapes.core.EventPipeline;
  * 
  * @author Michael N. Lipp
  */
-class CheckingPipelineFilter implements EventPipeline {
+class CheckingPipelineFilter implements EventPipeline, IdInfoProvider {
 
 	private InternalEventPipeline sink;
 	private Channel channel;
@@ -73,6 +74,14 @@ class CheckingPipelineFilter implements EventPipeline {
 		}
 		event.setChannels(channels);
 		return sink.add(event, channels);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Components.IdInfoProvider#idObject()
+	 */
+	@Override
+	public Object idObject() {
+		return sink;
 	}
 
 	/* (non-Javadoc)
