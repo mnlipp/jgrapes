@@ -96,7 +96,13 @@ public class Request extends Event<Void> {
 		} else {
 			builder.append(path);
 		}
-		builder.append("\", ");
+		builder.append("\"");
+		if (connection != null) {
+			builder.append(">>P");
+			builder.append(
+			        Components.objectId(connection.getResponsePipeline()));
+		}
+		builder.append(", ");
 		if (channels != null) {
 			builder.append("channels=");
 			builder.append(Common.channelsToString(channels));
