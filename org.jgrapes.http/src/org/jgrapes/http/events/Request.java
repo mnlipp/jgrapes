@@ -22,7 +22,9 @@ import java.net.URI;
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletedEvent;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.Connection;
 
 /**
@@ -77,5 +79,29 @@ public class Request extends Event<Void> {
 	 */
 	public URI getRequestUri() {
 		return getRequest().getRequestUri();
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Components.objectName(this));
+		builder.append(" [\"");
+		String path = request.getRequestUri().getPath();
+		if (path.length() > 15) {
+			builder.append("...");
+			builder.append(path.substring(path.length() - 12));
+		} else {
+			builder.append(path);
+		}
+		builder.append("\", ");
+		if (channels != null) {
+			builder.append("channels=");
+			builder.append(Common.channelsToString(channels));
+		}
+		builder.append("]");
+		return builder.toString();
 	}
 }
