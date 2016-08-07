@@ -322,6 +322,9 @@ public class HttpServer extends Component {
 			return;
 		}
 		final ExtExtension extDown = (ExtExtension)event.getConnection();
+		if (extDown.outBuffer == null) {
+			return;
+		}
 		final Connection netConn = extDown.getUpstreamConnection();
 		flush(netConn);
 	}
