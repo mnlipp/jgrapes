@@ -27,6 +27,7 @@ import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.StaticContentDispatcher;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
+import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.NioDispatcher;
 
 /**
@@ -47,9 +48,11 @@ public class HttpServerDemo extends Component {
 		app.attach(new HttpServer(app.getChannel(), 
 		        new InetSocketAddress(8888), GetRequest.class,
 		        PostRequest.class));
+		app.attach(new FileStorage(app.getChannel()));
 		app.attach(new StaticContentDispatcher(app.getChannel(),
-		        Paths.get("/demo"),
-		        Paths.get("demo-resources/static-content")));
+		        Paths.get("/"), Paths.get("demo-resources/static-content")));
+		app.attach(new StaticContentDispatcher(app.getChannel(),
+		        Paths.get("/doc"), Paths.get("/home/mnl/ownCloud/devel/jgrapes.gh-pages/javadoc")));
 		Components.start(app);
 	}
 

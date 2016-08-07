@@ -62,7 +62,6 @@ public class StaticContentDispatcher extends Component {
 		super(componentChannel);
 		this.prefix = prefix;
 		this.contentDirectory = contentDirectory;
-		attach(new FileStorage(componentChannel));
 	}
 
 	@Handler
@@ -78,7 +77,12 @@ public class StaticContentDispatcher extends Component {
 			Path indexPath = resourcePath.resolve("index.html");
 			if (Files.isReadable(indexPath)) {
 				resourcePath = indexPath;
+			} else {
+				return;
 			}
+		}
+		if (!Files.isReadable(resourcePath)) {
+			return;
 		}
 		String mimeTypeName = Files.probeContentType(resourcePath);
 		if (mimeTypeName == null) {
