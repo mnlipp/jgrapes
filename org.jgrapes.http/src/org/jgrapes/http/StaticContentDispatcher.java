@@ -23,6 +23,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
@@ -35,7 +38,6 @@ import org.jgrapes.http.events.EndOfResponse;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.Connection;
-import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.OpenFile;
 
@@ -46,6 +48,7 @@ public class StaticContentDispatcher extends Component {
 
 	private Path prefix;
 	private Path contentDirectory;
+	private Map<Connection, Object> handling;
 	
 	/**
 	 * @see Component#Component()
@@ -62,6 +65,7 @@ public class StaticContentDispatcher extends Component {
 		super(componentChannel);
 		this.prefix = prefix;
 		this.contentDirectory = contentDirectory;
+		handling = Collections.synchronizedMap(new WeakHashMap<>());
 	}
 
 	@Handler
@@ -84,6 +88,7 @@ public class StaticContentDispatcher extends Component {
 		if (!Files.isReadable(resourcePath)) {
 			return;
 		}
+		handling.put(event.getConnection(), null);
 		String mimeTypeName = Files.probeContentType(resourcePath);
 		if (mimeTypeName == null) {
 			mimeTypeName = "application/octet-stream";
@@ -106,7 +111,11 @@ public class StaticContentDispatcher extends Component {
 
 	@Handler
 	public void onEof(Eof event) {
-		(new EndOfResponse(event.getConnection())).fire();		
+		if (!handling.containsKey(event.getConnection())) {
+			return;
+		}
+		(new EndOfResponse(event.getConnection())).fire();
+		handling.remove(event.getConnection());
 	}
 	
 }
