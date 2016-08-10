@@ -185,9 +185,9 @@ public class FileStorage extends Component {
 				registerAsGenerator();
 				(new FileOpened(connection, event.getPath(),
 				        event.getOptions())).fire();
-				ioChannel.read(buffer.getBacking(), offset, buffer,
-				        readCompletionHandler);
 				synchronized (ioChannel) {
+					ioChannel.read(buffer.getBacking(), offset, buffer,
+					        readCompletionHandler);
 					outstandingAsyncs += 1;
 				}
 			}
@@ -236,10 +236,9 @@ public class FileStorage extends Component {
 					try {
 						ManagedByteBuffer nextBuffer = ioBuffers.acquire();
 						nextBuffer.clear();
-						ioChannel.read(nextBuffer.getBacking(), offset,
-						        nextBuffer,
-						        readCompletionHandler);
 						synchronized (ioChannel) {
+							ioChannel.read(nextBuffer.getBacking(), offset,
+							        nextBuffer, readCompletionHandler);
 							outstandingAsyncs += 1;
 						}
 					} catch (InterruptedException e) {
