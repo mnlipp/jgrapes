@@ -490,7 +490,7 @@ public abstract class ComponentVertex implements Manager {
 	@Override
 	public <T> Event<T> fire(Event<T> event, Channel... channels) {
 		if (channels.length == 0) {
-			channels = event.getChannels();
+			channels = event.channels();
 			if (channels == null || channels.length == 0) {
 				channels = new Channel[] { getChannel() };
 			}

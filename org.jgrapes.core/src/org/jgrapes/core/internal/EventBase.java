@@ -75,7 +75,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * 
 	 * @return the channels
 	 */
-	public Channel[] getChannels() {
+	public Channel[] channels() {
 		return channels;
 	}
 	
@@ -84,10 +84,10 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * 
 	 * @param type the type
 	 * @return the filtered channels
-	 * @see #getChannels()
+	 * @see #channels()
 	 */
 	@SuppressWarnings("unchecked")
-	public <C> C[] getChannels(Class<C> type) {
+	public <C> C[] channels(Class<C> type) {
 		return Arrays.stream(channels)
 		        .filter(c -> type.isAssignableFrom(c.getClass())).toArray(
 		        		size -> (C[])Array.newInstance(type, size));
@@ -240,7 +240,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 			}
 			if (completedEvents != null) {
 				for (Event<?> e: completedEvents) {
-					Channel[] completeChannels = e.getChannels();
+					Channel[] completeChannels = e.channels();
 					if (completeChannels == null) {
 						// Note that channels cannot be null, as it is set
 						// when firing the event and an event is never fired

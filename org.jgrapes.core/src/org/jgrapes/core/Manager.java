@@ -100,7 +100,7 @@ public interface Manager extends Iterable<AttachedComponent> {
 	/**
 	 * Fires the given event on the given channel. If no channels are
 	 * specified as parameters, the event is fired on the event's 
-	 * channel (see {@link Event#getChannels()}). If the event doesn't
+	 * channel (see {@link Event#channels()}). If the event doesn't
 	 * specify channels either, the event is fired on the 
 	 * channel of the component managed by this manager 
 	 * (see {@link #getChannel()}).

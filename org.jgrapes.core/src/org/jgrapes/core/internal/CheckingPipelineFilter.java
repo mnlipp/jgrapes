@@ -63,7 +63,7 @@ class CheckingPipelineFilter implements EventPipeline, IdInfoProvider {
 	@Override
 	public <T extends Event<?>> T fire(T event, Channel... channels) {
 		if (channels.length == 0) {
-			channels = event.getChannels();
+			channels = event.channels();
 			if (channels == null || channels.length == 0) {
 				if (channel != null) {
 					channels = new Channel[] { channel };

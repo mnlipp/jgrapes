@@ -64,8 +64,8 @@ final public class NamedEvent<T> extends Event<T> {
 		StringBuilder result = new StringBuilder();
 		result.append("NamedEvent [name=");
 		result.append(name);
-		if (getChannels() != null) {
-			result.append(", " + "channels=" + Arrays.toString(getChannels())); 
+		if (channels() != null) {
+			result.append(", " + "channels=" + Arrays.toString(channels())); 
 		}
 		result.append("]");
 		return result.toString();

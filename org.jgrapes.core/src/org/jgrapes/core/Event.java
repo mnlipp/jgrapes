@@ -100,7 +100,7 @@ public class Event<T> extends EventBase<T> {
 	protected void handlingError
 		(EventPipeline eventProcessor, Throwable throwable) {
 		eventProcessor.fire
-			(new HandlingError(this, throwable), getChannels());
+			(new HandlingError(this, throwable), channels());
 	}
 
 	/* (non-Javadoc)

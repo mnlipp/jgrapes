@@ -36,7 +36,7 @@ public interface EventPipeline extends IdInfoProvider {
 	 * Add an event to be sent to components listening for such events on
 	 * the given channels to the end of the queue. If no channels are
 	 * specified as parameters, the event is fired on the event's 
-	 * channel (see {@link Event#getChannels()}). If the event doesn't
+	 * channel (see {@link Event#channels()}). If the event doesn't
 	 * specify channels either, the channel depends on how the
 	 * event pipeline was obtained. Event pipelines obtained from a
 	 * component's manager use the component's channel as fall back.
