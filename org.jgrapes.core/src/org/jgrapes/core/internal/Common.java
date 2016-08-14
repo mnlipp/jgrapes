@@ -21,6 +21,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.ClassChannel;
+import org.jgrapes.core.Components;
+import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.AttachedComponent;
 
 /**
@@ -68,10 +71,23 @@ public class Common {
 			if (!first) {
 				builder.append(", ");
 			}
-			builder.append(channelKeyToString(c.getMatchKey()));
+			builder.append(channelToString(c));
 			first = false;
 		}
 		builder.append("]");
+		return builder.toString();
+	}
+
+	public static String channelToString(Channel channel) {
+		StringBuilder builder = new StringBuilder();
+		if ((channel instanceof ClassChannel)
+		        || (channel instanceof NamedChannel)) {
+			builder.append(channelKeyToString(channel.getMatchKey()));
+		} else if (channel == channel.getMatchKey()) {
+			builder.append(Components.objectName(channel));
+		} else {
+			builder.append(channel.toString());
+		}
 		return builder.toString();
 	}
 	
