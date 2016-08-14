@@ -17,6 +17,8 @@
  */
 package org.jgrapes.core.internal;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -76,7 +78,37 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	public Channel[] getChannels() {
 		return channels;
 	}
+	
+	/**
+	 * Returns the subset of channels that are assignable to the given type.
+	 * 
+	 * @param type the type
+	 * @return the filtered channels
+	 * @see #getChannels()
+	 */
+	@SuppressWarnings("unchecked")
+	public <C> C[] getChannels(Class<C> type) {
+		return Arrays.stream(channels)
+		        .filter(c -> type.isAssignableFrom(c.getClass())).toArray(
+		        		size -> (C[])Array.newInstance(type, size));
+	}
 
+	/**
+	 * Look through the event'channels and return the first
+	 * (and usually only) channel of given type.
+	 * 
+	 * @param type the type to look for
+	 * @return the channel or {@code null}
+	 */
+	public <C> C firstChannel(Class<C> type) {
+		for (Channel channel: channels) {
+			if (type.isAssignableFrom(channel.getClass())) {
+				return type.cast(channel);
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Sets the channels that the event is fired on if no channels
 	 * are specified explicitly when firing the event
