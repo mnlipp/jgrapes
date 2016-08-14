@@ -17,22 +17,20 @@
  */
 package org.jgrapes.http.events;
 
-import org.jgrapes.io.Connection;
-import org.jgrapes.io.events.ConnectionEvent;
+import org.jgrapes.core.Event;
 
 /**
  * Is fired after all data belonging to a response has been sent. 
  * 
  * @author Michael N. Lipp
  */
-public class EndOfRequest extends ConnectionEvent<Void> {
+public class EndOfRequest extends Event<Void> {
 
 	/**
 	 * Create a new Event.
 	 * 
 	 */
-	public EndOfRequest(Connection connection) {
-		super(connection);
+	public EndOfRequest() {
 	}
 
 }

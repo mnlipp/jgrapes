@@ -30,8 +30,8 @@ import java.util.concurrent.ExecutionException;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.io.Connection;
 import org.jgrapes.io.FileStorage;
+import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.OpenFile;
 import org.jgrapes.io.util.ByteBufferOutputStream;
@@ -48,10 +48,13 @@ public class FileWriteTests {
 		@Handler
 		public void onOpened(FileOpened event) 
 				throws InterruptedException, IOException {
-			try (ByteBufferOutputStream out = new ByteBufferOutputStream
-					(event.getConnection(), newEventPipeline(), true)) {
-				for (int i = 1; i <= 10000; i++) {
-					out.write(new String(i + ": Hello World!\n").getBytes());
+			for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
+				try (ByteBufferOutputStream out = new ByteBufferOutputStream
+						(channel, newEventPipeline(), true)) {
+					for (int i = 1; i <= 10000; i++) {
+						out.write(
+						        new String(i + ": Hello World!\n").getBytes());
+					}
 				}
 			}
 		}
@@ -66,8 +69,8 @@ public class FileWriteTests {
 		FileStorage app = new FileStorage(producer, 512);
 		app.attach(producer);
 		Components.start(app);
-		app.fire(new OpenFile(Connection.newConnection(producer), filePath,
-		        StandardOpenOption.WRITE), producer);
+		app.fire(new OpenFile(filePath, StandardOpenOption.WRITE),
+		        IOSubchannel.defaultInstance(producer));
 		Components.awaitExhaustion();
 		try (BufferedReader br = new BufferedReader
 				(new FileReader(filePath.toFile()))) {

@@ -25,7 +25,6 @@ import org.jgrapes.core.CompletedEvent;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.internal.Common;
-import org.jgrapes.io.Connection;
 
 /**
  * @author Michael N. Lipp
@@ -37,30 +36,16 @@ public class Request extends Event<Void> {
 	}
 	
 	private HttpRequest request;
-	private Connection connection;
 	
 	/**
 	 * Creates a new request event with the associated {@link Completed}
 	 * event.
-	 * 
-	 * @param connection the connection the request is associated with
 	 * @param request the request data
 	 * @param channels the channels associated with this event
 	 */
-	public Request(Connection connection, 
-			HttpRequest request, Channel... channels) {
+	public Request(HttpRequest request, Channel... channels) {
 		super(new Completed(), channels);
-		this.connection = connection;
 		this.request = request;
-	}
-
-	/**
-	 * Returns the connection.
-	 * 
-	 * @return the connection
-	 */
-	public Connection getConnection() {
-		return connection;
 	}
 
 	/**
@@ -97,14 +82,8 @@ public class Request extends Event<Void> {
 			builder.append(path);
 		}
 		builder.append("\"");
-		if (connection != null) {
-			builder.append(" (>>P");
-			builder.append(
-			        Components.objectId(connection.getResponsePipeline()));
-		}
-		builder.append("), ");
 		if (channels != null) {
-			builder.append("channels=");
+			builder.append(", channels=");
 			builder.append(Common.channelsToString(channels));
 		}
 		builder.append("]");

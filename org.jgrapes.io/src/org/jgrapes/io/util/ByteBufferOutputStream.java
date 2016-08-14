@@ -23,7 +23,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import org.jgrapes.core.EventPipeline;
-import org.jgrapes.io.Connection;
+import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.Input;
@@ -39,7 +39,7 @@ import org.jgrapes.io.events.Output;
  */
 public class ByteBufferOutputStream extends OutputStream {
 
-	private Connection connection;
+	private IOSubchannel channel;
 	private EventPipeline eventPipeline;
 	private boolean inputMode;
 	private ManagedByteBuffer buffer;
@@ -47,8 +47,8 @@ public class ByteBufferOutputStream extends OutputStream {
 	/**
 	 * Creates a new instance.
 	 * 
-	 * @param connection
-	 *            the connection to send on
+	 * @param channel
+	 *            the channel to fire events on
 	 * @param eventPipeline
 	 *            the event pipeline used for firing events
 	 * @param inputMode
@@ -57,14 +57,14 @@ public class ByteBufferOutputStream extends OutputStream {
 	 *             if the current is interrupted while trying to get a new
 	 *             buffer from the queue
 	 */
-	public ByteBufferOutputStream(Connection connection,
+	public ByteBufferOutputStream(IOSubchannel channel,
 	        EventPipeline eventPipeline, boolean inputMode)
 	        throws InterruptedException {
 		super();
-		this.connection = connection;
+		this.channel = channel;
 		this.eventPipeline = eventPipeline;
 		this.inputMode = inputMode;
-		buffer = connection.bufferPool().acquire();
+		buffer = channel.bufferPool().acquire();
 	}
 
 	/**
@@ -79,9 +79,9 @@ public class ByteBufferOutputStream extends OutputStream {
 	 *             if the current is interrupted while trying to get a new
 	 *             buffer from the queue
 	 */
-	public ByteBufferOutputStream(Connection connection,
+	public ByteBufferOutputStream(IOSubchannel channel,
 	        EventPipeline eventPipeline) throws InterruptedException {
-		this(connection, eventPipeline, false);
+		this(channel, eventPipeline, false);
 	}
 
 	/*
@@ -131,13 +131,13 @@ public class ByteBufferOutputStream extends OutputStream {
 		if (inputMode) {
 			buffer.flip();
 			eventPipeline
-			        .fire(new Input<ManagedByteBuffer>(connection, buffer));
+			        .fire(new Input<ManagedByteBuffer>(buffer), channel);
 		} else {
 			eventPipeline
-			        .fire(new Output<ManagedByteBuffer>(connection, buffer));
+			        .fire(new Output<ManagedByteBuffer>(buffer), channel);
 		}
 		try {
-			buffer = connection.bufferPool().acquire();
+			buffer = channel.bufferPool().acquire();
 		} catch (InterruptedException e) {
 			throw new InterruptedIOException(e.getMessage());
 		}
@@ -149,8 +149,8 @@ public class ByteBufferOutputStream extends OutputStream {
 	@Override
 	public void close() throws IOException {
 		flush();
-		eventPipeline.fire(new Eof(connection));
-		eventPipeline.fire(new Closed(connection));
+		eventPipeline.fire(new Eof(), channel);
+		eventPipeline.fire(new Closed(), channel);
 	}
 
 }

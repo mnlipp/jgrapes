@@ -37,7 +37,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.EndOfResponse;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
-import org.jgrapes.io.Connection;
+import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.OpenFile;
 
@@ -48,7 +48,7 @@ public class StaticContentDispatcher extends Component {
 
 	private Path prefix;
 	private Path contentDirectory;
-	private Map<Connection, Object> handling;
+	private Map<IOSubchannel, Object> handling;
 	
 	/**
 	 * @see Component#Component()
@@ -88,7 +88,8 @@ public class StaticContentDispatcher extends Component {
 		if (!Files.isReadable(resourcePath)) {
 			return;
 		}
-		handling.put(event.getConnection(), null);
+		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
+		handling.put(channel, null);
 		String mimeTypeName = Files.probeContentType(resourcePath);
 		if (mimeTypeName == null) {
 			mimeTypeName = "application/octet-stream";
@@ -100,22 +101,22 @@ public class StaticContentDispatcher extends Component {
 			        System.getProperty("file.encoding", "UTF-8"));
 		}
 		final HttpResponse response = event.getRequest().getResponse();
-		final Connection connection = event.getConnection();
 		response.setStatus(HttpStatus.OK);
 		response.setMessageHasBody(true);
 		response.setField(contentType);
-		(new Response(connection, response)).fire();
-		fire(new OpenFile(connection, resourcePath, StandardOpenOption.READ));
+		channel.fire (new Response(response));
+		channel.fire (new OpenFile(resourcePath, StandardOpenOption.READ));
 		event.stop();
 	}
 
 	@Handler
 	public void onEof(Eof event) {
-		if (!handling.containsKey(event.getConnection())) {
+		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
+		if (!handling.containsKey(channel)) {
 			return;
 		}
-		(new EndOfResponse(event.getConnection())).fire();
-		handling.remove(event.getConnection());
+		channel.fire (new EndOfResponse());
+		handling.remove(channel);
 	}
 	
 }

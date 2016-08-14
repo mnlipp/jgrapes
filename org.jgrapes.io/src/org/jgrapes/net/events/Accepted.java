@@ -21,7 +21,6 @@ import java.net.SocketAddress;
 
 import org.jgrapes.core.Components;
 import org.jgrapes.core.internal.Common;
-import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.Opened;
 import org.jgrapes.io.util.ManagedBuffer;
 
@@ -38,9 +37,7 @@ public class Accepted<T extends ManagedBuffer<?>> extends Opened {
 	/**
 	 * @param connection
 	 */
-	public Accepted(Connection connection, SocketAddress localAddress, 
-			SocketAddress remoteAddress) {
-		super(connection);
+	public Accepted(SocketAddress localAddress, SocketAddress remoteAddress) {
 		this.localAddress = localAddress;
 		this.remoteAddress = remoteAddress;
 	}

@@ -59,7 +59,7 @@ public class FileStorage extends Component {
 
 	private int bufferSize;
 
-	private Map<Connection, FileConnection> connections = Collections
+	private Map<Channel, FileHandler> handlers = Collections
 	        .synchronizedMap(new WeakHashMap<>());
 	
 	/**
@@ -95,41 +95,46 @@ public class FileStorage extends Component {
 	 */
 	@Handler
 	public void onOpen(OpenFile event) throws InterruptedException {
-		if (connections.containsKey(event.getConnection())) {
-			event.getConnection().getResponsePipeline().fire(new IOError(event, 
-					new IllegalStateException("File is already open.")));
+		for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
+			if (handlers.containsKey(channel)) {
+				channel.fire(new IOError(event,
+				        new IllegalStateException("File is already open.")));
+			} else {
+				handlers.put(channel, new FileHandler(event, channel));
+			}
 		}
-		connections.put(event.getConnection(), new FileConnection(event));
 	}
 
 	@Handler
 	public void onInput(Input<ManagedByteBuffer> event) {
-		FileConnection connection = connections.get(event.getConnection());
-		if (connection == null) {
-			return;
+		for (Channel channel: event.channels()) {
+			FileHandler handler = handlers.get(channel);
+			if (handler != null) {
+				handler.write(event);
+			}
 		}
-		connection.write(event);
 	}
 	
 	@Handler(channels={DefaultChannel.class, Self.class})
 	public void onClose(Close event) throws InterruptedException {
-		FileConnection connection = connections.get(event.getConnection());
-		if (connection == null) {
-			return;
+		for (Channel channel: event.channels()) {
+			FileHandler handler = handlers.get(channel);
+			if (handler != null) {
+				handler.close(event);
+			}
 		}
-		connection.close(event);
 	}
 
 	@Handler
 	public void onStop(Stop event) throws InterruptedException {
-		while (connections.size() > 0) {
-			FileConnection connection = connections.entrySet().iterator().next()
+		while (handlers.size() > 0) {
+			FileHandler handler = handlers.entrySet().iterator().next()
 			        .getValue();
-			connection.close(event);
+			handler.close(event);
 		}
 	}
 
-	private class FileConnection {
+	private class FileHandler {
 
 		/**
 		 * The write context needs to be finer grained than the general file
@@ -147,7 +152,7 @@ public class FileStorage extends Component {
 			}
 		}
 
-		private final Connection connection;
+		private final IOSubchannel channel;
 		private Path path;
 		private AsynchronousFileChannel ioChannel = null;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> ioBuffers;
@@ -159,22 +164,23 @@ public class FileStorage extends Component {
 		private int outstandingAsyncs = 0;
 		private boolean reading = false;
 
-		private FileConnection(OpenFile event) throws InterruptedException {
-			connection = event.getConnection();
+		private FileHandler(OpenFile event, IOSubchannel channel)
+		        throws InterruptedException {
+			this.channel = channel;
 			path = event.getPath();
 			try {
 				ioChannel = AsynchronousFileChannel
 				        .open(event.getPath(), event.getOptions());
 			} catch (IOException e) {
-				connection.respond(new IOError(event, e));
+				channel.fire(new IOError(event, e));
 			}
 			offset = 0;
 			if (Arrays.asList(event.getOptions())
 			        .contains(StandardOpenOption.WRITE)) {
 				// Writing to file
 				reading = false;
-				(new FileOpened(connection, event.getPath(),
-				        event.getOptions())).fire();
+				channel.fire(
+				        new FileOpened(event.getPath(), event.getOptions()));
 			} else {
 				// Reading from file
 				reading = true;
@@ -183,8 +189,8 @@ public class FileStorage extends Component {
 				        ByteBuffer.allocateDirect(bufferSize));
 				ManagedByteBuffer buffer = ioBuffers.acquire();
 				registerAsGenerator();
-				(new FileOpened(connection, event.getPath(),
-				        event.getOptions())).fire();
+				channel.fire(
+				        new FileOpened(event.getPath(), event.getOptions()));
 				synchronized (ioChannel) {
 					ioChannel.read(buffer.getBacking(), offset, buffer,
 					        readCompletionHandler);
@@ -200,7 +206,7 @@ public class FileStorage extends Component {
 			public void failed(Throwable exc, C context) {
 				try {
 					if (!(exc instanceof AsynchronousCloseException)) {
-						connection.respond(new IOError(null, exc));
+						channel.fire(new IOError(null, exc));
 					}
 				} finally {
 					handled();
@@ -222,16 +228,15 @@ public class FileStorage extends Component {
 			@Override
 			public void completed(Integer result, ManagedByteBuffer buffer) {
 				try {
-					if (!connections.containsKey(connection)) {
+					if (!handlers.containsKey(channel)) {
 						return;
 					}
 					if (result == -1) {
-						(new Eof(connection)).fire();
-						connection.getResponsePipeline()
-						        .fire(new Close(connection), FileStorage.this);
+						channel.fire(new Eof());
+						channel.fire(new Close());
 						return;
 					}
-					(new Output<>(connection, buffer)).fire();
+					channel.fire(new Output<>(buffer));
 					offset += result;
 					try {
 						ManagedByteBuffer nextBuffer = ioBuffers.acquire();
@@ -291,15 +296,15 @@ public class FileStorage extends Component {
 					}
 					ioChannel.close();
 				}
-				(new Closed(connection)).fire();
+				channel.fire(new Closed());
 			} catch (ClosedChannelException e) {
 			} catch (IOException e) {
-				connection.respond(new IOError(event, e));
+				channel.fire(new IOError(event, e));
 			}
 			if (reading) {
 				unregisterAsGenerator();
 			}
-			connections.remove(connection);
+			handlers.remove(channel);
 		}
 
 		/*
@@ -311,9 +316,9 @@ public class FileStorage extends Component {
 		public String toString() {
 			StringBuilder builder = new StringBuilder();
 			builder.append("FileConnection [");
-			if (connection != null) {
-				builder.append("connection=");
-				builder.append(connection);
+			if (channel != null) {
+				builder.append("channel=");
+				builder.append(channel);
 				builder.append(", ");
 			}
 			if (path != null) {
@@ -339,8 +344,8 @@ public class FileStorage extends Component {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Components.objectName(this));
 		builder.append(" [");
-		if (connections != null) {
-			builder.append(connections.values().stream()
+		if (handlers != null) {
+			builder.append(handlers.values().stream()
 			        .map(c -> Components.objectName(c))
 			        .collect(Collectors.toList()));
 		}

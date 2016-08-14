@@ -50,12 +50,12 @@ import org.jgrapes.http.events.PutRequest;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.TraceRequest;
-import org.jgrapes.io.Connection;
+import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.BufferCollector;
-import org.jgrapes.io.util.Extension;
+import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
@@ -67,11 +67,11 @@ import org.jgrapes.net.events.Accepted;
  */
 public class HttpServer extends Component {
 
-	private class ExtExtension extends Extension {
+	private class DownSubchannel extends LinkedIOSubchannel {
 		public HttpServerEngine engine;
 		public ManagedByteBuffer outBuffer;
 
-		public ExtExtension(Connection upstreamChannel) {
+		public DownSubchannel(IOSubchannel upstreamChannel) {
 			super(HttpServer.this, upstreamChannel);
 			engine = new HttpServerEngine();
 		}
@@ -102,7 +102,7 @@ public class HttpServer extends Component {
 		this.networkChannel = networkChannel;
 		this.providedFallbacks = Arrays.asList(fallbacks);
 		addHandler("onAccepted", networkChannel.getMatchKey());
-		addHandler("onRead", networkChannel.getMatchKey());
+		addHandler("onInput", networkChannel.getMatchKey());
 	}
 
 	/**
@@ -120,11 +120,11 @@ public class HttpServer extends Component {
 		networkChannel = server;
 		attach(server);
 		addHandler("onAccepted", networkChannel.getMatchKey());
-		addHandler("onRead", networkChannel.getMatchKey());
+		addHandler("onInput", networkChannel.getMatchKey());
 	}
 
 	/**
-	 * Creates a new downstream connection as {@link Extension} of the network
+	 * Creates a new downstream connection as {@link LinkedIOSubchannel} of the network
 	 * connection, a {@link HttpRequestDecoder} and a
 	 * {@link HttpResponseEncoder}.
 	 * 
@@ -133,7 +133,9 @@ public class HttpServer extends Component {
 	 */
 	@DynamicHandler
 	public void onAccepted(Accepted<ManagedByteBuffer> event) {
-		new ExtExtension(event.getConnection());
+		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
+			new DownSubchannel(channel);
+		}
 	}
 
 	/**
@@ -144,11 +146,12 @@ public class HttpServer extends Component {
 	 * @param event
 	 */
 	@DynamicHandler
-	public void onRead(Input<ManagedByteBuffer> event) {
-		final ExtExtension extDown = (ExtExtension) Extension
-		        .lookupExtension(event.getConnection());
+	public void onInput(Input<ManagedByteBuffer> event) {
+		IOSubchannel netChannel = event.firstChannel(IOSubchannel.class);
+		final DownSubchannel downChannel = (DownSubchannel) LinkedIOSubchannel
+		        .lookupLinked(netChannel);
 		// Get data associated with the channel
-		final HttpServerEngine engine = extDown.engine;
+		final HttpServerEngine engine = downChannel.engine;
 		if (engine == null) {
 			throw new IllegalStateException(
 			        "Read event for unknown connection.");
@@ -161,15 +164,15 @@ public class HttpServer extends Component {
 			HttpRequestDecoder.Result result = engine.decode(in,
 			        bodyData == null ? null : bodyData.getBacking(), false);
 			if (result.isHeaderCompleted()) {
-				fireRequest(extDown, engine.currentRequest());
+				fireRequest(engine.currentRequest(), downChannel);
 			}
 			if (result.hasResponse()) {
 				// Error during decoding, send back
-				fire(new Response(extDown, result.getResponse()));
+				fire(new Response(result.getResponse()), downChannel);
 				break;
 			}
 			if (bodyData != null && bodyData.position() > 0) {
-				fire(new Input<>(extDown, bodyData));
+				fire(new Input<>(bodyData), downChannel);
 			}
 			if (result.isOverflow()) {
 				bodyData = new ManagedByteBuffer(
@@ -179,7 +182,7 @@ public class HttpServer extends Component {
 			}
 			if (!result.isUnderflow()
 			        && engine.currentRequest().messageHasBody()) {
-				fire(new EndOfRequest(extDown));
+				fire(new EndOfRequest(), downChannel);
 			}
 		}
 	}
@@ -188,44 +191,43 @@ public class HttpServer extends Component {
 	 * Creates a specific request event as appropriate for the request and fires
 	 * it.
 	 * 
-	 * @param connection
-	 *            the downstream connection
 	 * @param request
 	 *            the decoded request
+	 * @param channel
+	 *            the downstream channel
 	 */
-	private void fireRequest(Connection connection,
-	        HttpRequest request) {
+	private void fireRequest(HttpRequest request, Channel channel) {
 		Request req;
 		switch (request.getMethod()) {
 		case "OPTIONS":
-			req = new OptionsRequest(connection, request);
+			req = new OptionsRequest(request);
 			break;
 		case "GET":
-			req = new GetRequest(connection, request);
+			req = new GetRequest(request);
 			break;
 		case "HEAD":
-			req = new HeadRequest(connection, request);
+			req = new HeadRequest(request);
 			break;
 		case "POST":
-			req = new PostRequest(connection, request);
+			req = new PostRequest(request);
 			break;
 		case "PUT":
-			req = new PutRequest(connection, request);
+			req = new PutRequest(request);
 			break;
 		case "DELETE":
-			req = new DeleteRequest(connection, request);
+			req = new DeleteRequest(request);
 			break;
 		case "TRACE":
-			req = new TraceRequest(connection, request);
+			req = new TraceRequest(request);
 			break;
 		case "CONNECT":
-			req = new ConnectRequest(connection, request);
+			req = new ConnectRequest(request);
 			break;
 		default:
-			req = new Request(connection, request);
+			req = new Request(request);
 			break;
 		}
-		fire(req);
+		fire(req, channel);
 	}
 
 	/**
@@ -237,37 +239,34 @@ public class HttpServer extends Component {
 	 * follow.
 	 * 
 	 * @param event
-	 *            the repsonse event
+	 *            the response event
 	 * @throws InterruptedException
 	 */
 	@Handler
 	public void onResponse(Response event) throws InterruptedException {
-		if (!(event.getConnection() instanceof ExtExtension)) {
-			return;
-		}
-		final ExtExtension extDown = (ExtExtension)event.getConnection();
-		final Connection netConn = extDown.getUpstreamConnection();
-		final HttpServerEngine engine = extDown.engine;
+		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
+		final IOSubchannel netChannel = downChannel.getUpstreamChannel();
+		final HttpServerEngine engine = downChannel.engine;
 		final HttpResponse response = event.getResponse();
 
 		// Start sending the response
 		engine.encode(response);
 		while (true) {
-			extDown.outBuffer = netConn.bufferPool().acquire();
-			final ManagedByteBuffer buffer = extDown.outBuffer;
+			downChannel.outBuffer = netChannel.bufferPool().acquire();
+			final ManagedByteBuffer buffer = downChannel.outBuffer;
 			HttpResponseEncoder.Result result = engine
 			        .encode(HttpCodec.EMPTY_IN, buffer.getBacking(), false);
 			if (result.isOverflow()) {
-				(new Output<>(netConn, buffer)).fire();
+				fire(new Output<>(buffer), netChannel);
 				continue;
 			}
 			if (!response.messageHasBody()) {
 				if (buffer.position() > 0) {
-					(new Output<>(netConn, buffer)).fire();
+					fire(new Output<>(buffer), netChannel);
 				} else {
 					buffer.unlockBuffer();
 				}
-				extDown.outBuffer = null;
+				downChannel.outBuffer = null;
 			}
 			break;
 		}
@@ -284,27 +283,24 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException
 	 */
 	@Handler
-	public void onWrite(Output<ManagedBuffer<?>> event)
+	public void onOutput(Output<ManagedBuffer<?>> event)
 	        throws InterruptedException {
-		if (!(event.getConnection() instanceof ExtExtension)) {
-			return;
-		}
-		final ExtExtension extDown = (ExtExtension)event.getConnection();
-		final Connection netConn = extDown.getUpstreamConnection();
-		final HttpServerEngine engine = extDown.engine;
+		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
+		final IOSubchannel netChannel = downChannel.getUpstreamChannel();
+		final HttpServerEngine engine = downChannel.engine;
 
 		Buffer in = event.getBuffer().getBacking();
 		while (true) {
 			HttpResponseEncoder.Result result = null;
 			if (in instanceof ByteBuffer) {
 				result = engine.encode((ByteBuffer) in,
-						extDown.outBuffer.getBacking(), false);
+						downChannel.outBuffer.getBacking(), false);
 			}
 			if (!result.isOverflow()) {
 				break;
 			}
-			(new Output<>(netConn, extDown.outBuffer)).fire();
-			extDown.outBuffer = netConn.bufferPool().acquire();
+			fire(new Output<>(downChannel.outBuffer), netChannel);
+			downChannel.outBuffer = netChannel.bufferPool().acquire();
 		}
 	}
 
@@ -318,15 +314,9 @@ public class HttpServer extends Component {
 	@Handler
 	public void onEndOfResponse(EndOfResponse event)
 	        throws InterruptedException {
-		if (!(event.getConnection() instanceof ExtExtension)) {
-			return;
-		}
-		final ExtExtension extDown = (ExtExtension)event.getConnection();
-		if (extDown.outBuffer == null) {
-			return;
-		}
-		final Connection netConn = extDown.getUpstreamConnection();
-		flush(netConn);
+		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
+		final IOSubchannel netChannel = downChannel.getUpstreamChannel();
+		flush(netChannel);
 	}
 
 	/**
@@ -339,40 +329,40 @@ public class HttpServer extends Component {
 	 */
 	@Handler
 	public void onClose(Close event) throws InterruptedException {
-		final Connection netConn = ((Extension) event.getConnection())
-		        .getUpstreamConnection();
-		flush(netConn);
-		(new Close(netConn)).fire();
+		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
+		final IOSubchannel netChannel = downChannel.getUpstreamChannel();
+		flush(netChannel);
+		netChannel.fire(new Close());
 	}
 
 	/**
 	 * Sends any data still remaining in the out buffer upstream.
 	 * 
-	 * @param netConn
+	 * @param netChannel
 	 * @throws InterruptedException
 	 */
-	private void flush(final Connection netConn)
+	private void flush(final IOSubchannel netChannel)
 	        throws InterruptedException {
-		final ExtExtension extDown = (ExtExtension) Extension
-		        .lookupExtension(netConn);
-		final HttpServerEngine engine = extDown.engine;
+		final DownSubchannel down = (DownSubchannel) LinkedIOSubchannel
+		        .lookupLinked(netChannel);
+		final HttpServerEngine engine = down.engine;
 
 		// Send remaining data
 		while (true) {
-			final ManagedByteBuffer buffer = extDown.outBuffer;
+			final ManagedByteBuffer buffer = down.outBuffer;
 			HttpResponseEncoder.Result result = engine
 			        .encode(buffer.getBacking());
 			if (!result.isOverflow()) {
 				if (buffer.position() > 0) {
-					(new Output<>(netConn, buffer)).fire();
+					netChannel.fire(new Output<>(buffer));
 				} else {
 					buffer.unlockBuffer();
 				}
-				extDown.outBuffer = null;
+				down.outBuffer = null;
 				break;
 			}
-			(new Output<>(netConn, buffer)).fire();
-			extDown.outBuffer = netConn.bufferPool().acquire();
+			netChannel.fire(new Output<>(buffer));
+			down.outBuffer = netChannel.bufferPool().acquire();
 		}
 	}
 
@@ -387,13 +377,14 @@ public class HttpServer extends Component {
 	@Handler
 	public void onRequestCompleted(Request.Completed event)
 	        throws InterruptedException, ParseException {
+		IOSubchannel channel = event.getCompleted()
+		        .firstChannel(IOSubchannel.class);
 		final Request requestEvent = event.getCompleted();
 		final HttpResponse response = requestEvent.getRequest().getResponse();
-		final Connection connection = requestEvent.getConnection();
 
 		if (response.getStatusCode() == HttpStatus.NOT_IMPLEMENTED
 		        .getStatusCode()) {
-			(new Response(connection, response)).fire();
+			channel.fire(new Response(response));
 		}
 	}
 
@@ -406,10 +397,12 @@ public class HttpServer extends Component {
 	 */
 	@Handler(priority = Integer.MIN_VALUE)
 	public void onOptions(OptionsRequest event) throws ParseException {
+		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
+		
 		if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {
 			HttpResponse response = event.getRequest().getResponse();
 			response.setStatus(HttpStatus.OK);
-			fire(new Response(event.getConnection(), response));
+			channel.fire(new Response(response));
 			event.stop();
 		}
 	}
@@ -427,21 +420,21 @@ public class HttpServer extends Component {
 		        || !providedFallbacks.contains(event.getClass())) {
 			return;
 		}
+		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
+		
 		final HttpResponse response = event.getRequest().getResponse();
-		final Connection connection = event.getConnection();
 		response.setStatus(HttpStatus.NOT_FOUND);
 		response.setMessageHasBody(true);
 		HttpMediaTypeField media = new HttpMediaTypeField(
 		        HttpField.CONTENT_TYPE, "text", "plain");
 		media.setParameter("charset", "utf-8");
 		response.setField(media);
-		(new Response(connection, response)).fire();
+		fire(new Response(response), channel);
 		try {
-			Output.wrap(connection,
-			        "Not Found".getBytes("utf-8")).fire();
+			fire(Output.wrap("Not Found".getBytes("utf-8")), channel);
 		} catch (UnsupportedEncodingException e) {
 		}
-		(new EndOfResponse(connection)).fire();
+		fire(new EndOfResponse(), channel);
 		event.stop();
 	}
 }

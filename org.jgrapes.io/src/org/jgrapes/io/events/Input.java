@@ -17,7 +17,7 @@
  */
 package org.jgrapes.io.events;
 
-import org.jgrapes.io.Connection;
+import org.jgrapes.core.Event;
 import org.jgrapes.io.util.ManagedBuffer;
 
 /**
@@ -28,8 +28,7 @@ import org.jgrapes.io.util.ManagedBuffer;
  * 
  * @author Michael N. Lipp
  */
-public class Input<T extends ManagedBuffer<?>> 
-	extends ConnectionEvent<Void> {
+public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
 
 	private T buffer;
 	
@@ -40,8 +39,7 @@ public class Input<T extends ManagedBuffer<?>>
 	 * and that can be used for sending {@link Output} events as replies
 	 * @param buffer the buffer with the data
 	 */
-	public Input(Connection connection, T buffer) {
-		super(connection);
+	public Input(T buffer) {
 		this.buffer = buffer;
 	}
 

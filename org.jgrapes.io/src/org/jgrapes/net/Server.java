@@ -38,10 +38,11 @@ import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
+import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.events.Error;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
-import org.jgrapes.io.Connection;
+import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Eof;
 import org.jgrapes.io.events.IOError;
@@ -60,8 +61,7 @@ import org.jgrapes.net.events.Ready;
  * 
  * @author Michael N. Lipp
  */
-public class Server extends Component 
-	implements NioHandler, Connection {
+public class Server extends Component implements NioHandler {
 
 	public final static NamedChannel 
 		DEFAULT_CHANNEL = new NamedChannel("server");
@@ -69,10 +69,9 @@ public class Server extends Component
 	private SocketAddress serverAddress;
 	private ServerSocketChannel serverSocketChannel;
 	private int bufferSize;
-	private EventPipeline upstreamPipeline;
-	private Set<SocketConnection> connections = new HashSet<>();
+	private Set<Connection> connections = new HashSet<>();
 	private boolean closing = false;
-	
+
 	/**
 	 * Creates a new server listening on the given address. 
 	 * The channel is set to the {@link NamedChannel} "server". The size of
@@ -117,23 +116,6 @@ public class Server extends Component
 		super(componentChannel);
 		this.serverAddress = serverAddress;
 		this.bufferSize = bufferSize;
-		upstreamPipeline = newEventPipeline();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jgrapes.io.Connection#getResponsePipeline()
-	 */
-	@Override
-	public EventPipeline getResponsePipeline() {
-		return upstreamPipeline;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jgrapes.io.Connection#bufferPool()
-	 */
-	@Override
-	public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool() {
-		return null;
 	}
 
 	/**
@@ -161,11 +143,11 @@ public class Server extends Component
 						"Registration failed, no NioDispatcher?"));
 				return;
 			}
-			fire(new Ready(this, serverSocketChannel.getLocalAddress()));
+			fire(new Ready(serverSocketChannel.getLocalAddress()));
 			return;
 		}
-		if (handler instanceof SocketConnection) {
-			((SocketConnection)handler)
+		if (handler instanceof Connection) {
+			((Connection)handler)
 				.registrationComplete(event.getCompleted());
 		}
 	}
@@ -179,7 +161,7 @@ public class Server extends Component
 			try {
 				SocketChannel socketChannel = serverSocketChannel.accept();
 				synchronized(connections) {
-					connections.add(new SocketConnection(socketChannel));
+					connections.add(new Connection(socketChannel));
 				}
 			} catch (IOException e) {
 				fire(new IOError(null, e));
@@ -194,11 +176,10 @@ public class Server extends Component
 	 * @throws IOException if an error occurs
 	 */
 	@Handler
-	public void onWrite(Output<ManagedByteBuffer> event) throws IOException {
-		if (!(event.getConnection() instanceof SocketConnection)) {
-			return;
+	public void onOutput(Output<ManagedByteBuffer> event) throws IOException {
+		for (Connection connection: event.channels(Connection.class)) {
+			connection.write(event);
 		}
-		((SocketConnection)event.getConnection()).write(event);
 	}
 
 	/**
@@ -209,17 +190,24 @@ public class Server extends Component
 	 * @throws InterruptedException 
 	 */
 	@Handler
-	public void onClose(Close event) 
-			throws IOException, InterruptedException {
-		if (event.getConnection() == this) {
+	public void onClose(Close event) throws IOException, InterruptedException {
+		boolean nonSub = false;
+		for (Channel channel: event.channels()) {
+			if (channel instanceof Connection) {
+				((Connection)channel).close();
+			} else {
+				nonSub = true;
+			}
+		}
+		if (nonSub) {
 			if (!serverSocketChannel.isOpen()) {
 				return;
 			}
 			closing = true;
 			EventPipeline ep = newEventPipeline();
 			synchronized (connections) {
-				for (SocketConnection conn: connections) {
-					ep.fire(new Close(conn));
+				for (Connection conn: connections) {
+					ep.fire(new Close(), conn);
 				}
 				while (connections.size() > 0) {
 					connections.wait();
@@ -227,9 +215,7 @@ public class Server extends Component
 			}
 			serverSocketChannel.close();
 			closing = false;
-			fire(new Closed(this));
-		} else if (event.getConnection() instanceof SocketConnection) {
-			((SocketConnection)event.getConnection()).close();
+			fire(new Closed());
 		}
 	}
 
@@ -243,7 +229,7 @@ public class Server extends Component
 		if (closing || !serverSocketChannel.isOpen()) {
 			return;
 		}
-		newSyncEventPipeline().fire(new Close(this), getChannel());
+		newSyncEventPipeline().fire(new Close(), getChannel());
 	}
 
 	/* (non-Javadoc)
@@ -260,7 +246,7 @@ public class Server extends Component
 	 * @author Michael N. Lipp
 	 *
 	 */
-	public class SocketConnection implements NioHandler, Connection {
+	public class Connection implements NioHandler, IOSubchannel {
 
 		private SocketChannel nioChannel;
 		private EventPipeline downPipeline;
@@ -275,8 +261,7 @@ public class Server extends Component
 		 * @param nioChannel
 		 * @throws SocketException 
 		 */
-		public SocketConnection(SocketChannel nioChannel)
-				throws SocketException {
+		public Connection(SocketChannel nioChannel)	throws SocketException {
 			this.nioChannel = nioChannel;
 			downPipeline = newEventPipeline();
 			upPipeline = newEventPipeline();
@@ -294,8 +279,17 @@ public class Server extends Component
 					ByteBuffer.allocate(readBufferSize));
 			
 			// Register with dispatcher
-			fire(new NioRegistration (this, nioChannel, 0, Server.this),
-					Channel.BROADCAST);
+			Server.this.fire(
+			        new NioRegistration(this, nioChannel, 0, Server.this),
+			        Channel.BROADCAST);
+		}
+
+		/* (non-Javadoc)
+		 * @see org.jgrapes.io.IOSubchannel#getMainChannel()
+		 */
+		@Override
+		public Channel getMainChannel() {
+			return Server.this.getChannel();
 		}
 
 		/* (non-Javadoc)
@@ -324,18 +318,10 @@ public class Server extends Component
 		public void registrationComplete(NioRegistration event)
 		        throws InterruptedException, IOException {
 			registration = event.get();
-			downPipeline.fire(new Accepted<>(this, nioChannel.getLocalAddress(),
-					nioChannel.getRemoteAddress()));
+			downPipeline.fire(new Accepted<>(nioChannel.getLocalAddress(),
+					nioChannel.getRemoteAddress()), this);
 			registration.updateInterested(SelectionKey.OP_READ);
 
-		}
-
-		/* (non-Javadoc)
-		 * @see org.jgrapes.io.Connection#getChannel()
-		 */
-		@Override
-		public Channel getChannel() {
-			return Server.this.getChannel();
 		}
 
 		/**
@@ -402,10 +388,10 @@ public class Server extends Component
 			}
 			if (bytes > 0) {
 				buffer.flip();
-				downPipeline.fire(new Input<ManagedByteBuffer>(this, buffer));
+				downPipeline.fire(new Input<ManagedByteBuffer>(buffer), this);
 				return;
 			}
-			downPipeline.fire(new Eof(this));
+			downPipeline.fire(new Eof(), this);
 			close();
 		}
 		
@@ -462,12 +448,23 @@ public class Server extends Component
 			// Fail safe
 			synchronized (connections) {
 				if(connections.remove(this)) {
-					downPipeline.fire(new Closed(this));
+					downPipeline.fire(new Closed(), this);
 				}
 				// In case the server is shutting down
 				connections.notifyAll();
 			}
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append(Components.objectName(this));
+			builder.append("(");
+				builder.append(Common.channelToString(getMainChannel()));
+			builder.append(")");
+			return builder.toString();
+		}
 	}
 }

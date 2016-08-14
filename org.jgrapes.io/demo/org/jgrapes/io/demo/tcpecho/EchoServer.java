@@ -23,6 +23,7 @@ import java.net.InetSocketAddress;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
@@ -47,9 +48,11 @@ public class EchoServer extends Component {
 	@Handler
 	public void onRead(Input<ManagedByteBuffer> event)
 			throws InterruptedException {
-		ManagedByteBuffer out = event.getConnection().bufferPool().acquire();
-		out.put(event.getBuffer());
-		fire(new Output<>(event.getConnection(), out));
+		for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
+			ManagedByteBuffer out = channel.bufferPool().acquire();
+			out.put(event.getBuffer());
+			channel.fire(new Output<>(out));
+		}
 	}
 
 	/**

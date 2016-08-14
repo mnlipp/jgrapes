@@ -21,7 +21,6 @@ import java.net.SocketAddress;
 
 import org.jgrapes.core.Components;
 import org.jgrapes.core.internal.Common;
-import org.jgrapes.io.Connection;
 import org.jgrapes.io.events.Opened;
 
 /**
@@ -40,8 +39,7 @@ public class Ready extends Opened {
 	 * @param connection
 	 * @param socketAddress
 	 */
-	public Ready(Connection connection, SocketAddress socketAddress) {
-		super(connection);
+	public Ready(SocketAddress socketAddress) {
 		this.listenAddress = socketAddress;
 	}
 

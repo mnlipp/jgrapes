@@ -24,7 +24,6 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.io.Connection;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
@@ -40,7 +39,7 @@ public class ServerStateTest {
 	
 	public class StateChecker extends Component {
 		
-		public Connection serverConnection = null;
+		public Channel serverChannel = null;
 		
 		public State state = State.NEW;
 
@@ -52,7 +51,7 @@ public class ServerStateTest {
 		public void onReady(Ready event) {
 			assertTrue(state == State.NEW);
 			state = State.READY;
-			serverConnection = event.getConnection();
+			serverChannel = event.channels()[0];
 		}
 		
 		@Handler
@@ -87,7 +86,7 @@ public class ServerStateTest {
 	public void testStartClose() throws InterruptedException {
 		assertEquals(State.READY, checker.state);
 		Components.manager(app).fire
-			(new Close(checker.serverConnection), app.getChannel()).get();
+			(new Close(), app.getChannel()).get();
 		assertEquals(State.CLOSED, checker.state);
 		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
 		Components.awaitExhaustion();

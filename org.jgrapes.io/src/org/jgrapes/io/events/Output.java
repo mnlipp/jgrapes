@@ -17,7 +17,7 @@
  */
 package org.jgrapes.io.events;
 
-import org.jgrapes.io.Connection;
+import org.jgrapes.core.Event;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.ManagedCharBuffer;
@@ -30,8 +30,7 @@ import org.jgrapes.io.util.ManagedCharBuffer;
  * 
  * @author Michael N. Lipp
  */
-public class Output<T extends ManagedBuffer<?>> 
-	extends ConnectionEvent<Void> {
+public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 
 	private T buffer;
 
@@ -44,8 +43,7 @@ public class Output<T extends ManagedBuffer<?>>
 	 * @param buffer the buffer with the data
 	 * @param flip
 	 */
-	private Output(Connection connection, T buffer, boolean flip) {
-		super(connection);
+	private Output(T buffer, boolean flip) {
 		this.buffer = buffer;
 		if (flip) {
 			buffer.flip();
@@ -60,8 +58,8 @@ public class Output<T extends ManagedBuffer<?>>
 	 * @param connection the connection to write the data to
 	 * @param buffer the buffer with the data
 	 */
-	public Output(Connection connection, T buffer) {
-		this(connection, buffer, true);
+	public Output(T buffer) {
+		this(buffer, true);
 	}
 
 	/**
@@ -72,9 +70,8 @@ public class Output<T extends ManagedBuffer<?>>
 	 * @param data the string to wrap
 	 * @return the event
 	 */
-	public static Output<ManagedCharBuffer> 
-			wrap(Connection connection, String data) {
-		return new Output<>(connection, new ManagedCharBuffer(data), false);
+	public static Output<ManagedCharBuffer> wrap(String data) {
+		return new Output<>(new ManagedCharBuffer(data), false);
 	}
 	
 	/**
@@ -85,9 +82,8 @@ public class Output<T extends ManagedBuffer<?>>
 	 * @param data the array to wrap
 	 * @return the event
 	 */
-	public static Output<ManagedByteBuffer> 
-			wrap(Connection connection, byte[] data) {
-		return new Output<>(connection, new ManagedByteBuffer(data), false);
+	public static Output<ManagedByteBuffer> wrap(byte[] data) {
+		return new Output<>(new ManagedByteBuffer(data), false);
 	}
 	
 	/**

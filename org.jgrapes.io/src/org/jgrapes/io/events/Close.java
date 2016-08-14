@@ -17,7 +17,7 @@
  */
 package org.jgrapes.io.events;
 
-import org.jgrapes.io.Connection;
+import org.jgrapes.core.Event;
 
 /**
  * This event causes the provider of an I/O resource to close 
@@ -25,15 +25,14 @@ import org.jgrapes.io.Connection;
  * 
  * @author Michael N. Lipp
  */
-public class Close extends ConnectionEvent<Void> {
+public class Close extends Event<Void> {
 
 	/**
 	 * Creates a new event for the given connection.
 	 * 
 	 * @param connection the connection
 	 */
-	public Close(Connection connection) {
-		super(connection);
+	public Close() {
 	}
 
 }

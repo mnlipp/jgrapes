@@ -28,8 +28,8 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.io.Connection;
 import org.jgrapes.io.FileStorage;
+import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Eof;
@@ -121,8 +121,8 @@ public class FileReadTests {
 		StateChecker sc = new StateChecker();
 		app.attach(sc);
 		Components.start(app);
-		app.fire(new OpenFile(Connection.newConnection(consumer), filePath,
-		        StandardOpenOption.READ), consumer).get();
+		app.fire(new OpenFile(filePath, StandardOpenOption.READ),
+		        IOSubchannel.defaultInstance(consumer)).get();
 		Components.awaitExhaustion();
 		assertEquals(fileSize, collected);
 		assertEquals(StateChecker.State.CLOSED, sc.state);

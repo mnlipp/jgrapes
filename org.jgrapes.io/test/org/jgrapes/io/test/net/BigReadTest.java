@@ -33,6 +33,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
+import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ByteBufferOutputStream;
@@ -98,10 +99,12 @@ public class BigReadTest {
 		@Handler
 		public void onAcctepted(Accepted<ManagedByteBuffer> event) 
 				throws IOException, InterruptedException {
-			try (ByteBufferOutputStream out = new ByteBufferOutputStream(
-			        event.getConnection(), newEventPipeline())) {
-				for (int i = 0; i < 1000000; i++) {
-					out.write(new String(i + ":Hello World!\n").getBytes());
+			for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
+				try (ByteBufferOutputStream out = new ByteBufferOutputStream(
+				        channel, newEventPipeline())) {
+					for (int i = 0; i < 1000000; i++) {
+						out.write(new String(i + ":Hello World!\n").getBytes());
+					}
 				}
 			}
 		}
