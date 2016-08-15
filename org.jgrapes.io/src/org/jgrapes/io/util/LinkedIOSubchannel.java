@@ -152,7 +152,7 @@ public class LinkedIOSubchannel implements IOSubchannel {
 		builder.append(")");
 		builder.append(" [");
 		if (upstreamChannel != null) {
-			builder.append(" ――> ");
+			builder.append("―>");
 			builder.append(Common.channelToString(upstreamChannel));
 		}
 		builder.append("]");
