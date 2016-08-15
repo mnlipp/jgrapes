@@ -44,7 +44,7 @@ import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioHandler;
-import org.jgrapes.io.events.Eof;
+import org.jgrapes.io.events.Eos;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
@@ -391,7 +391,7 @@ public class Server extends Component implements NioHandler {
 				downPipeline.fire(new Input<ManagedByteBuffer>(buffer), this);
 				return;
 			}
-			downPipeline.fire(new Eof(), this);
+			downPipeline.fire(new Eos(), this);
 			close();
 		}
 		

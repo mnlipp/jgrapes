@@ -38,8 +38,8 @@ import org.jgrapes.http.events.EndOfResponse;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Eof;
-import org.jgrapes.io.events.OpenFile;
+import org.jgrapes.io.events.Eos;
+import org.jgrapes.io.events.StreamFromFile;
 
 /**
  * @author Michael N. Lipp
@@ -105,12 +105,12 @@ public class StaticContentDispatcher extends Component {
 		response.setMessageHasBody(true);
 		response.setField(contentType);
 		channel.fire (new Response(response));
-		channel.fire (new OpenFile(resourcePath, StandardOpenOption.READ));
+		channel.fire(new StreamFromFile(resourcePath, StandardOpenOption.READ));
 		event.stop();
 	}
 
 	@Handler
-	public void onEof(Eof event) {
+	public void onEof(Eos event) {
 		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		if (!handling.containsKey(channel)) {
 			return;

@@ -21,15 +21,14 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 import org.jgrapes.core.Event;
-import org.jgrapes.io.FileStorage;
 
 /**
- * Signals a {@link FileStorage} component that it should start working with
- * a new file.
+ * Causes all {@link Input} events to be written to a file until an {@link Eos}
+ * event is received.
  * 
  * @author Michael N. Lipp
  */
-public class OpenFile extends Event<Void> {
+public class StreamToFile extends Event<Void> {
 
 	private Path path;
 	private OpenOption[] options;
@@ -38,7 +37,7 @@ public class OpenFile extends Event<Void> {
 	 * @param path
 	 * @param options
 	 */
-	public OpenFile(Path path, OpenOption... options) {
+	public StreamToFile(Path path, OpenOption... options) {
 		this.path = path;
 		this.options = options;
 	}

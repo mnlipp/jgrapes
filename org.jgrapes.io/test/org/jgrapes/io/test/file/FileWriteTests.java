@@ -18,6 +18,7 @@
 package org.jgrapes.io.test.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -27,13 +28,16 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutionException;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.FileOpened;
-import org.jgrapes.io.events.OpenFile;
+import org.jgrapes.io.events.Opened;
+import org.jgrapes.io.events.StreamToFile;
 import org.jgrapes.io.util.ByteBufferOutputStream;
 import org.junit.Test;
 
@@ -44,13 +48,13 @@ import org.junit.Test;
 public class FileWriteTests {
 
 	public static class Producer extends Component {
-		
+
 		@Handler
-		public void onOpened(FileOpened event) 
-				throws InterruptedException, IOException {
-			for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
-				try (ByteBufferOutputStream out = new ByteBufferOutputStream
-						(channel, newEventPipeline(), true)) {
+		public void onOpened(FileOpened event)
+		        throws InterruptedException, IOException {
+			for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
+				try (ByteBufferOutputStream out = new ByteBufferOutputStream(
+				        channel, newEventPipeline(), true)) {
 					for (int i = 1; i <= 10000; i++) {
 						out.write(
 						        new String(i + ": Hello World!\n").getBytes());
@@ -60,21 +64,44 @@ public class FileWriteTests {
 		}
 	}
 
+	public static class StateChecker extends Component {
+		
+		public enum State { NEW, OPENED, CLOSED };
+		public State state = State.NEW;
+
+		public StateChecker() {
+			super(Channel.BROADCAST);
+		}
+		
+		@Handler
+		public void opened(Opened event) {
+			assertTrue(state == State.NEW);
+			state = State.OPENED;
+		}
+		
+		@Handler
+		public void closed(Closed event) {
+			assertTrue(state == State.OPENED);
+			state = State.CLOSED;
+		}
+	}
+	
 	@Test
-	public void testWrite() 
-			throws IOException, InterruptedException, ExecutionException {
+	public void testWrite()
+	        throws IOException, InterruptedException, ExecutionException {
 		Path filePath = Files.createTempFile("jgrapes-", ".txt");
 		filePath.toFile().deleteOnExit();
 		Producer producer = new Producer();
 		FileStorage app = new FileStorage(producer, 512);
 		app.attach(producer);
+		StateChecker sc = app.attach(new StateChecker());
 		Components.start(app);
-		app.fire(new OpenFile(filePath, StandardOpenOption.WRITE),
+		app.fire(new StreamToFile(filePath, StandardOpenOption.WRITE),
 		        IOSubchannel.defaultInstance(producer));
 		Components.awaitExhaustion();
-		try (BufferedReader br = new BufferedReader
-				(new FileReader(filePath.toFile()))) {
-			int expect  = 1;
+		try (BufferedReader br = new BufferedReader(
+		        new FileReader(filePath.toFile()))) {
+			int expect = 1;
 			while (true) {
 				String line = br.readLine();
 				if (line == null) {
@@ -86,5 +113,7 @@ public class FileWriteTests {
 			}
 			assertEquals(10001, expect);
 		}
+		assertEquals(StateChecker.State.CLOSED, sc.state);
+		Components.checkAssertions();
 	}
 }

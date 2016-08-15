@@ -30,12 +30,11 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
-import org.jgrapes.io.events.Eof;
-import org.jgrapes.io.events.OpenFile;
+import org.jgrapes.io.events.Eos;
 import org.jgrapes.io.events.Opened;
 import org.jgrapes.io.events.Output;
+import org.jgrapes.io.events.StreamFromFile;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.junit.Test;
 
@@ -72,7 +71,7 @@ public class FileReadTests {
 
 	public static class StateChecker extends Component {
 		
-		public enum State { NEW, CLOSED, OPENED, READING, EOF, CLOSING };
+		public enum State { NEW, OPENED, READING, CLOSING, CLOSED };
 		public State state = State.NEW;
 
 		public StateChecker() {
@@ -92,14 +91,8 @@ public class FileReadTests {
 		}
 
 		@Handler
-		public void eof(Eof event) {
+		public void eos(Eos event) {
 			assertTrue(state == State.READING);
-			state = State.EOF;
-		}
-
-		@Handler
-		public void closing(Close event) {
-			assertTrue(state == State.EOF);
 			state = State.CLOSING;
 		}
 
@@ -121,11 +114,12 @@ public class FileReadTests {
 		StateChecker sc = new StateChecker();
 		app.attach(sc);
 		Components.start(app);
-		app.fire(new OpenFile(filePath, StandardOpenOption.READ),
+		app.fire(new StreamFromFile(filePath, StandardOpenOption.READ),
 		        IOSubchannel.defaultInstance(consumer)).get();
 		Components.awaitExhaustion();
 		assertEquals(fileSize, collected);
 		assertEquals(StateChecker.State.CLOSED, sc.state);
+		Components.checkAssertions();
 	}
 	
 }

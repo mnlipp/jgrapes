@@ -24,9 +24,9 @@ import org.jgrapes.core.Event;
  * 
  * @author Michael N. Lipp
  */
-public class Eof extends Event<Void> {
+public class Eos extends Event<Void> {
 
-	public Eof() {
+	public Eos() {
 	}
 
 }
