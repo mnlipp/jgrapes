@@ -70,8 +70,8 @@ public class ByteBufferOutputStream extends OutputStream {
 	 * Creates a new instance that uses {@link Output} events to dispatch
 	 * buffers.
 	 * 
-	 * @param connection
-	 *            the connection to send on
+	 * @param channel
+	 *            the channel to fire events on
 	 * @param eventPipeline
 	 *            the event pipeline used for firing events
 	 * @throws InterruptedException

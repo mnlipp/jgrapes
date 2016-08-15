@@ -47,9 +47,6 @@ public class HttpDateField extends HttpField<Instant> {
 
 	/**
 	 * Creates a header field object with name "Date" and the current Time.
-	 * 
-	 * @param value
-	 *            the field value
 	 */
 	public HttpDateField() {
 		this(HttpField.DATE, Instant.now());

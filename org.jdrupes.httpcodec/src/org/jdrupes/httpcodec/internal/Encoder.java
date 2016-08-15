@@ -169,7 +169,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 
 	/**
 	 * Convenience method for invoking
-	 * {@link #encode(ByteBuffer, ByteBuffer, boolean)} with an empty {@code in}
+	 * {@link #encode(Buffer, ByteBuffer, boolean)} with an empty {@code in}
 	 * buffer and {@code true}. Can be used to get the result of encoding a 
 	 * message without body.
 	 * 

@@ -35,8 +35,6 @@ public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
 	/**
 	 * Create a new event with the given buffer.
 	 * 
-	 * @param connection the connection that this data was received on
-	 * and that can be used for sending {@link Output} events as replies
 	 * @param buffer the buffer with the data
 	 */
 	public Input(T buffer) {

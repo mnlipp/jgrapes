@@ -30,8 +30,7 @@ public class HttpCookieListField extends HttpListField<HttpCookie> {
 	 * Creates a new object with the field name "Cookie" and the given unparsed
 	 * value.
 	 * 
-	 * @param unparsedValue
-	 *            the unparsed value
+	 * @param s the unparsed value
 	 */
 	protected HttpCookieListField(String s) {
 		super(HttpField.COOKIE, s);

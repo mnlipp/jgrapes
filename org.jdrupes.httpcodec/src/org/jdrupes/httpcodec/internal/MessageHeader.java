@@ -77,7 +77,7 @@ public abstract class MessageHeader {
 	/**
 	 * Removes a header field from the message.
 	 * 
-	 * @param value the header field's value
+	 * @param name the header field's name
 	 */
 	public void removeField(String name) {
 		headers.remove(name);

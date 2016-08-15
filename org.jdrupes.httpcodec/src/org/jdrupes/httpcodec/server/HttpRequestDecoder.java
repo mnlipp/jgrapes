@@ -203,7 +203,6 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 		 * @param response a response to send due to an error
 		 * @param overflow {@code true} if the data didn't fit in the out buffer
 		 * @param underflow {@code true} if more data is expected
-		 * @param message the decoded message
 		 */
 		public Result(boolean headerCompleted, HttpResponse response,
 		        boolean overflow, boolean underflow) {

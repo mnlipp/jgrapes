@@ -92,8 +92,8 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	 * @param converterComponent
 	 *            the converter component; used to get the main channel and the
 	 *            new event pipeline
-	 * @param upstreamConnection
-	 *            the upstream connection
+	 * @param upstreamChannel
+	 *            the upstream channel
 	 * @param addToMap
 	 *            add an entry in the map
 	 */

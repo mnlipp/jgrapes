@@ -36,7 +36,6 @@ public class Ready extends Opened {
 	/**
 	 * Creates a new event.
 	 * 
-	 * @param connection
 	 * @param socketAddress
 	 */
 	public Ready(SocketAddress socketAddress) {

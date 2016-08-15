@@ -29,8 +29,6 @@ public class Closed extends Event<Void> {
 
 	/**
 	 * Creates a new event for the given connection.
-	 * 
-	 * @param connection the connection
 	 */
 	public Closed() {
 	}

@@ -76,8 +76,6 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	 * 
 	 * @param request
 	 *            the request
-	 * @return the result, which will always indicate underflow because more
-	 *         input is required
 	 */
 	public void decodeResponseTo(HttpRequest request) {
 		this.requestMethod = request.getMethod();

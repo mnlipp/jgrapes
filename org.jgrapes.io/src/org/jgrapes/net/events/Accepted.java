@@ -33,9 +33,11 @@ public class Accepted<T extends ManagedBuffer<?>> extends Opened {
 
 	private SocketAddress localAddress;
 	private SocketAddress remoteAddress;
-	
+
 	/**
-	 * @param connection
+	 * 
+	 * @param localAddress
+	 * @param remoteAddress
 	 */
 	public Accepted(SocketAddress localAddress, SocketAddress remoteAddress) {
 		this.localAddress = localAddress;

@@ -39,7 +39,6 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	 * it. Used internally for constructor ("super(...)") invocations that 
 	 * don't flip the buffer.
 	 * 
-	 * @param connection the connection to write the data to
 	 * @param buffer the buffer with the data
 	 * @param flip
 	 */
@@ -55,7 +54,6 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	 * flips the buffer as it is assumed to be used for reading by
 	 * the handlers(s) from now on.
 	 * 
-	 * @param connection the connection to write the data to
 	 * @param buffer the buffer with the data
 	 */
 	public Output(T buffer) {
@@ -66,7 +64,6 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	 * Convenience method that wraps a String in a 
 	 * {@code Write<ManagedCharBuffer} event.
 	 * 
-	 * @param connection the connection to write the data to
 	 * @param data the string to wrap
 	 * @return the event
 	 */
@@ -78,7 +75,6 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	 * Convenience method that wraps a byte array in a 
 	 * {@code Write<ManagedByteBuffer} event.
 	 * 
-	 * @param connection the connection to write the data to
 	 * @param data the array to wrap
 	 * @return the event
 	 */
