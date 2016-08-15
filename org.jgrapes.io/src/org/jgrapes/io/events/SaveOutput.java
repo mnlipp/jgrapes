@@ -21,14 +21,16 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 import org.jgrapes.core.Event;
+import org.jgrapes.io.FileStorage;
 
 /**
- * Causes the content of a file to be streamed as sequence of {@link Output}
- * events, terminated by an {@link Eos} event.
+ * Causes the {@link FileStorage} component to write the data from all
+ * {@link Output} events on the channel that this event is fired on to a file
+ * until an {@link Eos} event is sent on the channel.
  * 
  * @author Michael N. Lipp
  */
-public class StreamFromFile extends Event<Void> {
+public class SaveOutput extends Event<Void> {
 
 	private Path path;
 	private OpenOption[] options;
@@ -37,7 +39,7 @@ public class StreamFromFile extends Event<Void> {
 	 * @param path
 	 * @param options
 	 */
-	public StreamFromFile(Path path, OpenOption... options) {
+	public SaveOutput(Path path, OpenOption... options) {
 		this.path = path;
 		this.options = options;
 	}

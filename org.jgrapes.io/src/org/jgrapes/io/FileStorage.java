@@ -23,6 +23,7 @@ import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
@@ -46,8 +47,9 @@ import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
-import org.jgrapes.io.events.StreamFromFile;
-import org.jgrapes.io.events.StreamToFile;
+import org.jgrapes.io.events.StreamFile;
+import org.jgrapes.io.events.SaveInput;
+import org.jgrapes.io.events.SaveOutput;
 import org.jgrapes.io.util.ManagedBufferQueue;
 import org.jgrapes.io.util.ManagedByteBuffer;
 
@@ -60,7 +62,9 @@ public class FileStorage extends Component {
 
 	private int bufferSize;
 
-	private Map<Channel, InputWriter> writers = Collections
+	private Map<Channel, Writer> inputWriters = Collections
+	        .synchronizedMap(new WeakHashMap<>());
+	private Map<Channel, Writer> outputWriters = Collections
 	        .synchronizedMap(new WeakHashMap<>());
 	
 	/**
@@ -96,7 +100,7 @@ public class FileStorage extends Component {
 	 * @throws InterruptedException
 	 */
 	@Handler
-	public void onStreamFromFile(StreamFromFile event)
+	public void onStreamFile(StreamFile event)
 	        throws InterruptedException {
 		if (Arrays.asList(event.getOptions())
 		        .contains(StandardOpenOption.WRITE)) {
@@ -104,7 +108,7 @@ public class FileStorage extends Component {
 			        "Cannot stream file opened for writing.");
 		}
 		for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
-			if (writers.containsKey(channel)) {
+			if (inputWriters.containsKey(channel)) {
 				channel.fire(new IOError(event,
 				        new IllegalStateException("File is already open.")));
 			} else {
@@ -123,7 +127,7 @@ public class FileStorage extends Component {
 		private CompletionHandler<Integer, ManagedByteBuffer> 
 			readCompletionHandler = new ReadCompletionHandler();
 
-		private FileStreamer(StreamFromFile event, IOSubchannel channel)
+		private FileStreamer(StreamFile event, IOSubchannel channel)
 		        throws InterruptedException {
 			this.channel = channel;
 			path = event.getPath();
@@ -224,18 +228,18 @@ public class FileStorage extends Component {
 	 * @throws InterruptedException
 	 */
 	@Handler
-	public void onStreamToFile(StreamToFile event) throws InterruptedException {
+	public void onSaveInput(SaveInput event) throws InterruptedException {
 		if (!Arrays.asList(event.getOptions())
 		        .contains(StandardOpenOption.WRITE)) {
 			throw new IllegalArgumentException(
 			        "File must be opened for writing.");
 		}
 		for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
-			if (writers.containsKey(channel)) {
+			if (inputWriters.containsKey(channel)) {
 				channel.fire(new IOError(event,
 				        new IllegalStateException("File is already open.")));
 			} else {
-				writers.put(channel, new InputWriter(event, channel));
+				inputWriters.put(channel, new Writer(event, channel));
 			}
 		}
 	}
@@ -243,9 +247,44 @@ public class FileStorage extends Component {
 	@Handler
 	public void onInput(Input<ManagedByteBuffer> event) {
 		for (Channel channel: event.channels()) {
-			InputWriter writer = writers.get(channel);
+			Writer writer = inputWriters.get(channel);
 			if (writer != null) {
-				writer.write(event);
+				writer.write(event.getBuffer());
+			}
+		}
+	}
+	
+	/**
+	 * Opens a file for writing using the properties of the event. All data from
+	 * subsequent {@link Output} events is written to the file until an
+	 * {@link Eos} event is received.
+	 * 
+	 * @param event
+	 * @throws InterruptedException
+	 */
+	@Handler
+	public void onSaveOutput(SaveOutput event) throws InterruptedException {
+		if (!Arrays.asList(event.getOptions())
+		        .contains(StandardOpenOption.WRITE)) {
+			throw new IllegalArgumentException(
+			        "File must be opened for writing.");
+		}
+		for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
+			if (outputWriters.containsKey(channel)) {
+				channel.fire(new IOError(event,
+				        new IllegalStateException("File is already open.")));
+			} else {
+				outputWriters.put(channel, new Writer(event, channel));
+			}
+		}
+	}
+	
+	@Handler
+	public void onOutput(Output<ManagedByteBuffer> event) {
+		for (Channel channel: event.channels()) {
+			Writer writer = outputWriters.get(channel);
+			if (writer != null) {
+				writer.write(event.getBuffer());
 			}
 		}
 	}
@@ -253,7 +292,11 @@ public class FileStorage extends Component {
 	@Handler(channels={DefaultChannel.class, Self.class})
 	public void onEos(Eos event) throws InterruptedException {
 		for (Channel channel: event.channels()) {
-			InputWriter writer = writers.get(channel);
+			Writer writer = inputWriters.get(channel);
+			if (writer != null) {
+				writer.close(event);
+			}
+			writer = outputWriters.get(channel);
 			if (writer != null) {
 				writer.close(event);
 			}
@@ -262,14 +305,14 @@ public class FileStorage extends Component {
 
 	@Handler
 	public void onStop(Stop event) throws InterruptedException {
-		while (writers.size() > 0) {
-			InputWriter handler = writers.entrySet().iterator().next()
+		while (inputWriters.size() > 0) {
+			Writer handler = inputWriters.entrySet().iterator().next()
 			        .getValue();
 			handler.close(event);
 		}
 	}
 
-	private class InputWriter {
+	private class Writer {
 
 		/**
 		 * The write context needs to be finer grained than the general file
@@ -295,23 +338,31 @@ public class FileStorage extends Component {
 			writeCompletionHandler = new WriteCompletionHandler();
 		private int outstandingAsyncs = 0;
 
-		public InputWriter(StreamToFile event, IOSubchannel channel)
+		public Writer(SaveInput event, IOSubchannel channel)
 		        throws InterruptedException {
+			this(event, event.getPath(), event.getOptions(), channel);
+		}
+
+		public Writer(SaveOutput event, IOSubchannel channel)
+		        throws InterruptedException {
+			this(event, event.getPath(), event.getOptions(), channel);
+		}
+
+		private Writer(Event<?> event, Path path, OpenOption[] options,
+		        IOSubchannel channel) throws InterruptedException {
 			this.channel = channel;
-			path = event.getPath();
+			this.path = path;
 			offset = 0;
 			try {
-				ioChannel = AsynchronousFileChannel
-				        .open(event.getPath(), event.getOptions());
+				ioChannel = AsynchronousFileChannel.open(path, options);
 			} catch (IOException e) {
 				channel.fire(new IOError(event, e));
 				return;
 			}
-			channel.fire(new FileOpened(event.getPath(), event.getOptions()));
+			channel.fire(new FileOpened(path, options));
 		}
 
-		public void write(Input<ManagedByteBuffer> event) {
-			ManagedByteBuffer buffer = event.getBuffer();
+		public void write(ManagedByteBuffer buffer) {
 			int written = buffer.remaining();
 			if (written == 0) {
 				return;
@@ -375,7 +426,7 @@ public class FileStorage extends Component {
 			} catch (IOException e) {
 				channel.fire(new IOError(event, e));
 			}
-			writers.remove(channel);
+			inputWriters.remove(channel);
 		}
 
 		/*
@@ -415,8 +466,8 @@ public class FileStorage extends Component {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Components.objectName(this));
 		builder.append(" [");
-		if (writers != null) {
-			builder.append(writers.values().stream()
+		if (inputWriters != null) {
+			builder.append(inputWriters.values().stream()
 			        .map(c -> Components.objectName(c))
 			        .collect(Collectors.toList()));
 		}

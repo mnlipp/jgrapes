@@ -39,7 +39,7 @@ import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Eos;
-import org.jgrapes.io.events.StreamFromFile;
+import org.jgrapes.io.events.StreamFile;
 
 /**
  * @author Michael N. Lipp
@@ -105,7 +105,7 @@ public class StaticContentDispatcher extends Component {
 		response.setMessageHasBody(true);
 		response.setField(contentType);
 		channel.fire (new Response(response));
-		channel.fire(new StreamFromFile(resourcePath, StandardOpenOption.READ));
+		channel.fire(new StreamFile(resourcePath, StandardOpenOption.READ));
 		event.stop();
 	}
 

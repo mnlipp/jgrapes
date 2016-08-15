@@ -21,14 +21,16 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 import org.jgrapes.core.Event;
+import org.jgrapes.io.FileStorage;
 
 /**
- * Causes all {@link Input} events to be written to a file until an {@link Eos}
- * event is received.
+ * Causes the {@link FileStorage} component to write the data from all
+ * {@link Input} events on the channel that this event is fired on to a file
+ * until an {@link Eos} event is sent on the channel.
  * 
  * @author Michael N. Lipp
  */
-public class StreamToFile extends Event<Void> {
+public class SaveInput extends Event<Void> {
 
 	private Path path;
 	private OpenOption[] options;
@@ -37,7 +39,7 @@ public class StreamToFile extends Event<Void> {
 	 * @param path
 	 * @param options
 	 */
-	public StreamToFile(Path path, OpenOption... options) {
+	public SaveInput(Path path, OpenOption... options) {
 		this.path = path;
 		this.options = options;
 	}

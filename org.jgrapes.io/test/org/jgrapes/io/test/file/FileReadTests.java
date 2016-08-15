@@ -34,7 +34,7 @@ import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Eos;
 import org.jgrapes.io.events.Opened;
 import org.jgrapes.io.events.Output;
-import org.jgrapes.io.events.StreamFromFile;
+import org.jgrapes.io.events.StreamFile;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.junit.Test;
 
@@ -114,7 +114,7 @@ public class FileReadTests {
 		StateChecker sc = new StateChecker();
 		app.attach(sc);
 		Components.start(app);
-		app.fire(new StreamFromFile(filePath, StandardOpenOption.READ),
+		app.fire(new StreamFile(filePath, StandardOpenOption.READ),
 		        IOSubchannel.defaultInstance(consumer)).get();
 		Components.awaitExhaustion();
 		assertEquals(fileSize, collected);

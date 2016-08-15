@@ -37,7 +37,7 @@ import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.Opened;
-import org.jgrapes.io.events.StreamToFile;
+import org.jgrapes.io.events.SaveOutput;
 import org.jgrapes.io.util.ByteBufferOutputStream;
 import org.junit.Test;
 
@@ -45,7 +45,7 @@ import org.junit.Test;
  * @author Michael N. Lipp
  *
  */
-public class FileWriteTests {
+public class FileOutputWriteTests {
 
 	public static class Producer extends Component {
 
@@ -54,8 +54,8 @@ public class FileWriteTests {
 		        throws InterruptedException, IOException {
 			for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
 				try (ByteBufferOutputStream out = new ByteBufferOutputStream(
-				        channel, newEventPipeline(), true)) {
-					for (int i = 1; i <= 10000; i++) {
+				        channel, newEventPipeline())) {
+					for (int i = 1; i <= 100; i++) {
 						out.write(
 						        new String(i + ": Hello World!\n").getBytes());
 					}
@@ -96,7 +96,7 @@ public class FileWriteTests {
 		app.attach(producer);
 		StateChecker sc = app.attach(new StateChecker());
 		Components.start(app);
-		app.fire(new StreamToFile(filePath, StandardOpenOption.WRITE),
+		app.fire(new SaveOutput(filePath, StandardOpenOption.WRITE),
 		        IOSubchannel.defaultInstance(producer));
 		Components.awaitExhaustion();
 		try (BufferedReader br = new BufferedReader(
@@ -111,7 +111,7 @@ public class FileWriteTests {
 				assertEquals(expect, num);
 				expect += 1;
 			}
-			assertEquals(10001, expect);
+			assertEquals(101, expect);
 		}
 		assertEquals(StateChecker.State.CLOSED, sc.state);
 		Components.checkAssertions();
