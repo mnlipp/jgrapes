@@ -22,14 +22,13 @@ import java.net.SocketAddress;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.events.Opened;
-import org.jgrapes.io.util.ManagedBuffer;
 
 /**
  * This event signals that a new connection has been made by a client.
  * 
  * @author Michael N. Lipp
  */
-public class Accepted<T extends ManagedBuffer<?>> extends Opened {
+public class Accepted extends Opened {
 
 	private SocketAddress localAddress;
 	private SocketAddress remoteAddress;

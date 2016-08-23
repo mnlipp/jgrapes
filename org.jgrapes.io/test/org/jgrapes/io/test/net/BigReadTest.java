@@ -37,7 +37,6 @@ import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ByteBufferOutputStream;
-import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
@@ -97,7 +96,7 @@ public class BigReadTest {
 		 * @throws InterruptedException
 		 */
 		@Handler
-		public void onAcctepted(Accepted<ManagedByteBuffer> event) 
+		public void onAcctepted(Accepted event) 
 				throws IOException, InterruptedException {
 			for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
 				try (ByteBufferOutputStream out = new ByteBufferOutputStream(

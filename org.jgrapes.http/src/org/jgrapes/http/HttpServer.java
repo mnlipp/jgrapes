@@ -132,7 +132,7 @@ public class HttpServer extends Component {
 	 *            the accepted event
 	 */
 	@DynamicHandler
-	public void onAccepted(Accepted<ManagedByteBuffer> event) {
+	public void onAccepted(Accepted event) {
 		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
 			new DownSubchannel(channel);
 		}

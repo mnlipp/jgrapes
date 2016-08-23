@@ -318,7 +318,7 @@ public class Server extends Component implements NioHandler {
 		public void registrationComplete(NioRegistration event)
 		        throws InterruptedException, IOException {
 			registration = event.get();
-			downPipeline.fire(new Accepted<>(nioChannel.getLocalAddress(),
+			downPipeline.fire(new Accepted(nioChannel.getLocalAddress(),
 					nioChannel.getRemoteAddress()), this);
 			registration.updateInterested(SelectionKey.OP_READ);
 
