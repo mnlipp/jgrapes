@@ -31,18 +31,22 @@
             </packageset>
             <packageset dir="../org.jdrupes.httpcodec/src">
             </packageset>
-        	<bottom><![CDATA[<!-- Piwik --> 
-<script type="text/javascript">
-var pkBaseURL = (("https:" == document.location.protocol) ? "https://piwik.mnl.de/" : "http://piwik.mnl.de/");
-document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
-</script><script type="text/javascript">
-try {
-var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 8);
-piwikTracker.trackPageView();
-piwikTracker.enableLinkTracking();
-} catch( err ) {}
-</script><noscript><p><img src="http://piwik.mnl.de/piwik.php?idsite=8" style="border:0" alt="" /></p></noscript>
-<!-- End Piwik Tracking Code -->]]>
+        	<bottom><![CDATA[<!-- Piwik -->
+        		<script type="text/javascript">
+        		  var _paq = _paq || [];
+        		  _paq.push(["setDomains", ["*.mnlipp.github.io/jgrapes"]]);
+        		  _paq.push(['trackPageView']);
+        		  _paq.push(['enableLinkTracking']);
+        		  (function() {
+        		    var u=(("https:" == document.location.protocol) ? "//www.mnl.de/piwik/" : "//piwik.mnl.de/");
+        		    _paq.push(['setTrackerUrl', u+'piwik.php']);
+        		    _paq.push(['setSiteId', 11]);
+        		    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        		    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+        		  })();
+        		</script>
+        		<noscript><p><img src="//piwik.mnl.de/piwik.php?idsite=11" style="border:0;" alt="" /></p></noscript>
+        		<!-- End Piwik Code -->]]>
         	</bottom>
         </javadoc>
     </target>
