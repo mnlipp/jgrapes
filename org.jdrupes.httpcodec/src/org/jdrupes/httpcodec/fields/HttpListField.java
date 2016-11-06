@@ -193,7 +193,7 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	@SuppressWarnings("unchecked")
 	public void combine(@SuppressWarnings("rawtypes") HttpListField other) {
 		if (!(getClass().equals(other.getClass()))
-				|| getName() != other.getName()) {
+				|| !getName().equals(other.getName())) {
 			throw new IllegalArgumentException("Types and name must be equal.");
 		}
 		addAll(other);
