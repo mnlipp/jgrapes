@@ -12,23 +12,27 @@ import org.junit.Test;
 
 public class OutputStreamTests {
 
+	@Test
 	public void testPutAsMuch() {
 		StringBuilder s = new StringBuilder();
 		
 		ByteBuffer src = ByteBuffer.allocate(1000);
 		src.put("Hello World!".getBytes());
+		src.flip();
 		ByteBuffer dest = ByteBuffer.allocate(5);
 		ByteBufferUtils.putAsMuchAsPossible(dest, src);
 		assertEquals(5, dest.position());
 		assertEquals(7, src.remaining());
+		dest.flip();
 		byte[] b = new byte[dest.remaining()];
 		dest.get(b);
-		s.append(b);
+		s.append(new String(b));
 		dest = ByteBuffer.allocate(100);
 		ByteBufferUtils.putAsMuchAsPossible(dest, src);
+		dest.flip();
 		b = new byte[dest.remaining()];
 		dest.get(b);
-		s.append(b);
+		s.append(new String(b));
 		assertEquals("Hello World!", s.toString());
 	}
 	
