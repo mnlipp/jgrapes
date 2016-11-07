@@ -290,12 +290,12 @@ public class HttpServer extends Component {
 		final HttpServerEngine engine = downChannel.engine;
 
 		Buffer in = event.getBuffer().getBacking();
+		if (!(in instanceof ByteBuffer)) {
+			return;
+		}
 		while (true) {
-			HttpResponseEncoder.Result result = null;
-			if (in instanceof ByteBuffer) {
-				result = engine.encode((ByteBuffer) in,
-						downChannel.outBuffer.getBacking(), false);
-			}
+			HttpResponseEncoder.Result result = engine.encode((ByteBuffer) in,
+			        downChannel.outBuffer.getBacking(), false);
 			if (!result.isOverflow()) {
 				break;
 			}
