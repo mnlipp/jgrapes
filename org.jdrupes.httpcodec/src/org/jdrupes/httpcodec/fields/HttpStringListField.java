@@ -107,10 +107,6 @@ public class HttpStringListField extends HttpListField<String>
 		return quoteIfNecessary(element);
 	}
 
-	public static HttpStringListField cast(HttpListField<String> field) {
-		return (HttpStringListField)field;
-	}
-	
 	/**
 	 * Returns whether the list contains the given value, ignoring
 	 * differences in the cases of the letters.
