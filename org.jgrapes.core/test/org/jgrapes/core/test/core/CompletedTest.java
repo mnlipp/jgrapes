@@ -2,9 +2,6 @@ package org.jgrapes.core.test.core;
 
 import static org.junit.Assert.*;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
@@ -13,7 +10,7 @@ import org.junit.Test;
 
 public class CompletedTest {
 
-	private static AtomicBoolean handled1 = new AtomicBoolean();
+	private static boolean handled1 = false;
 	
 	public static class TestEvent1 extends Event<Integer> {
 
@@ -22,9 +19,9 @@ public class CompletedTest {
 		 */
 		@Override
 		protected void handled() {
-			synchronized (handled1) {
-				handled1.set(true);
-				handled1.notifyAll();
+			synchronized (this) {
+				handled1 = true;
+				notifyAll();
 			}
 		}
 		
@@ -35,7 +32,7 @@ public class CompletedTest {
 	
 	public static class TestClass extends Component {
 		
-		public AtomicInteger counter = new AtomicInteger(100);
+		public int counter = 100;
 		public boolean testDone = false;
 		
 		@Handler
@@ -45,9 +42,9 @@ public class CompletedTest {
 
 		@Handler
 		public void onTest2(TestEvent2 evt) throws InterruptedException {
-			synchronized (counter) {
-				while (counter.get() > 0) {
-					counter.wait();
+			synchronized (this) {
+				while (counter > 0) {
+					wait();
 				}				
 			}
 			testDone = true;
@@ -60,17 +57,17 @@ public class CompletedTest {
 		Components.start(app);
 		Event<?> test1 = new TestEvent1();
 		app.fire(test1);
-		synchronized (handled1) {
-			while (!handled1.get()) {
-				handled1.wait(1000);
-				assertTrue(handled1.get());
+		synchronized (test1) {
+			while (!handled1) {
+				test1.wait(1000);
+				assertTrue(handled1);
 			}
 		}
-		while (app.counter.get() > 0) {
+		while (app.counter > 0) {
 			assertTrue(!test1.isDone());
-			app.counter.decrementAndGet();
-			synchronized (app.counter) {
-				app.counter.notifyAll();
+			app.counter -= 1;
+			synchronized (app) {
+				app.notifyAll();
 			}
 		}
 		test1.get();
