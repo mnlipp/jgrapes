@@ -57,7 +57,10 @@ public class NioDispatcher extends Component implements Runnable {
 	 * keeps it running.
 	 */
 	@Handler
-	public void onStart(Start event) {
+	synchronized public void onStart(Start event) {
+		if (running) {
+			return;
+		}
 		running = true;
 		runner = new Thread(this, "NioDispatcher");
 		runner.start();
@@ -69,15 +72,20 @@ public class NioDispatcher extends Component implements Runnable {
 	 * @throws InterruptedException
 	 */
 	@Handler(priority=-10000)
-	public void onStop(Stop event) throws InterruptedException {
+	synchronized public void onStop(Stop event) throws InterruptedException {
 		if (runner == null) {
 			return;
 		}
-		synchronized(runner) {
-			running = false;
+		running = false;
+		// It just might happen that the wakeup() occurs between the
+		// check for running and the select() in the thread's run loop,
+		// but we -- obviously -- cannot put the select() in a 
+		// synchronized(this).
+		while (runner.isAlive()) {
 			selector.wakeup();
+			runner.join(10);
 		}
-		runner.join();
+		runner = null;
 	}
 
 	/**
@@ -88,14 +96,9 @@ public class NioDispatcher extends Component implements Runnable {
 	public void run() {
 		try {
 			registerAsGenerator();
-			while (true) {
+			while (running) {
 				try {
-					synchronized (this) {
-						selector.select();
-						if (!running) {
-							break;
-						}
-					}
+					selector.select();
 					Set<SelectionKey> selected = selector.selectedKeys();
 					for (SelectionKey key: selected) {
 						((NioHandler)key.attachment())
@@ -103,7 +106,8 @@ public class NioDispatcher extends Component implements Runnable {
 					}
 					selected.clear();
 					synchronized (selectorGate) {
-						// Delay next iteration if another thread has the lock
+						// Delay next iteration if another thread has the lock.
+						// "Find bugs" complains, but this is really okay.
 					}
 				} catch (InterruptedIOException e) {
 					break;
@@ -122,7 +126,7 @@ public class NioDispatcher extends Component implements Runnable {
 		channel.configureBlocking(false);
 		SelectionKey key;
 		synchronized (selectorGate) {
-			selector.wakeup();
+			selector.wakeup(); // make sure selector isn't blocking
 			key = channel.register
 					(selector, event.getOps(), event.getHandler());
 		}
@@ -144,7 +148,7 @@ public class NioDispatcher extends Component implements Runnable {
 		@Override
 		public void updateInterested(int ops) {
 			synchronized (selectorGate) {
-				selector.wakeup();
+				selector.wakeup(); // make sure selector isn't blocking
 				key.interestOps(ops);
 			}
 		}
