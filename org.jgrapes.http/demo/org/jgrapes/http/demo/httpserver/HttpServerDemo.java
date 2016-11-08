@@ -52,7 +52,8 @@ public class HttpServerDemo extends Component {
 		app.attach(new StaticContentDispatcher(app.getChannel(),
 		        Paths.get("/"), Paths.get("demo-resources/static-content")));
 		app.attach(new StaticContentDispatcher(app.getChannel(),
-		        Paths.get("/doc"), Paths.get("/home/mnl/ownCloud/devel/jgrapes.gh-pages/javadoc")));
+		        Paths.get("/doc"), 
+		        Paths.get("../../jgrapes.gh-pages/javadoc")));
 		Components.start(app);
 	}
 
