@@ -20,8 +20,6 @@ package org.jdrupes.httpcodec.fields;
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 
-import org.jdrupes.httpcodec.ProtocolException;
-
 /**
  * An HTTP field value that is an integer.
  * 

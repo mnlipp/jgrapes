@@ -19,8 +19,6 @@ package org.jdrupes.httpcodec.fields;
 
 import java.text.ParseException;
 
-import org.jdrupes.httpcodec.ProtocolException;
-
 /**
  * A specialization of {@link HttpIntField} that represents the
  * content-length.
