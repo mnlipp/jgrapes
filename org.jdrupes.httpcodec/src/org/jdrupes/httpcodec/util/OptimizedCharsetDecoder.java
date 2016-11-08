@@ -137,13 +137,6 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	public boolean equals(Object obj) {
-		return backing.equals(obj);
-	}
-
-	/**
 	 * @see java.nio.charset.CharsetDecoder#flush(java.nio.CharBuffer)
 	 */
 	public final CoderResult flush(CharBuffer out) {
@@ -152,13 +145,6 @@ public class OptimizedCharsetDecoder {
 			pending.clear();
 		}
 		return backing.flush(out);
-	}
-
-	/**
-	 * @see java.lang.Object#hashCode()
-	 */
-	public int hashCode() {
-		return backing.hashCode();
 	}
 
 	/**
@@ -242,4 +228,31 @@ public class OptimizedCharsetDecoder {
 		return backing.unmappableCharacterAction();
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return backing.hashCode();
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		OptimizedCharsetDecoder other = (OptimizedCharsetDecoder) obj;
+		if (backing == null) {
+			if (other.backing != null)
+				return false;
+		} else if (!backing.equals(other.backing))
+			return false;
+		return true;
+	}
 }
