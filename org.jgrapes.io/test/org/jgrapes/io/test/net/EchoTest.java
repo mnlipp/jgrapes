@@ -93,6 +93,7 @@ public class EchoTest {
 						        new InputStreamReader(fromServer, "ascii"));
 						while (expected.get() < 16) {
 							String line = in.readLine();
+							assertNotEquals(null, line);
 							String[] parts = line.split(":");
 							assertEquals(expected.get(), 
 										Integer.parseInt(parts[0]));
