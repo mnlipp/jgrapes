@@ -49,13 +49,19 @@ class ComponentTree {
 		= new HashMap<EventChannelsTuple,HandlerList>();
 	private InternalEventPipeline eventPipeline;
 	private static HandlingErrorPrinter fallbackErrorHandler 
-		= new HandlingErrorPrinter(); 
-	public final static ComponentVertex DUMMY_HANDLER 
-		= new Component(Channel.SELF) {
-			@Handler(channels={Channel.class})
-			public void noop(Event<?> event) {
-			}
-	};
+		= new HandlingErrorPrinter();
+	/* This could simply be declared as an anonymous class. But then
+	 * "Find bugs" complains about the noop() not being callable, because it
+	 * doesn't consider that it is called by reflection. */
+	private static class DummyComponent extends Component {
+		public DummyComponent() {
+			super(Channel.SELF);
+		}
+		@Handler(channels={Channel.class})
+		public void noop(Event<?> event) {
+		}
+	}
+	public final static ComponentVertex DUMMY_HANDLER = new DummyComponent(); 
 
 	/**
 	 * Creates a new tree for the given node or sub tree.
