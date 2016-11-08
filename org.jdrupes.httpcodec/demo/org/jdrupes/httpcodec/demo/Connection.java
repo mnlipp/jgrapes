@@ -17,10 +17,13 @@
  */
 package org.jdrupes.httpcodec.demo;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.text.ParseException;
+import java.util.stream.Collectors;
 
 import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
@@ -36,7 +39,7 @@ import org.jdrupes.httpcodec.util.FormUrlDecoder;
  * @author Michael N. Lipp
  *
  */
-public class ServerConnection extends Thread {
+public class Connection extends Thread {
 
 	private SocketChannel channel;
 	private HttpServerEngine engine;
@@ -45,7 +48,7 @@ public class ServerConnection extends Thread {
 	private ByteBuffer in;
 	private ByteBuffer out;
 	
-	public ServerConnection(SocketChannel channel) {
+	public Connection(SocketChannel channel) {
 		this.channel = channel;
 		engine = new HttpServerEngine();
 		in = ByteBuffer.allocate(2048);
@@ -77,10 +80,15 @@ public class ServerConnection extends Thread {
 
 	private void handleRequest() throws IOException {
 		HttpRequest request = engine.currentRequest();
-		if (request.getMethod().equalsIgnoreCase("GET")
-				&& request.getRequestUri().getPath().equals("/form")) {
-			handleGetForm(request);
-			return;
+		if (request.getMethod().equalsIgnoreCase("GET")) {
+			if (request.getRequestUri().getPath().equals("/form")) {
+				handleGetForm(request);
+				return;
+			}
+			if (request.getRequestUri().getPath().equals("/echo")) {
+				handleEcho(request);
+				return;
+			}
 		}
 		if (request.getMethod().equalsIgnoreCase("POST")
 				&& request.getRequestUri().getPath().equals("/form")) {
@@ -115,21 +123,11 @@ public class ServerConnection extends Thread {
 			response.setField(media);
 		} catch (ParseException e) {
 		}
-		String form = "<!DOCTYPE html>"
-		        + "<html>"
-		        + "<body>"
-		        + ""
-		        + "<form method=\"post\">"
-		        + "  First name:<br>"
-		        + "  <input type=\"text\" name=\"firstname\">"
-		        + "  <br>"
-		        + "  Last name:<br>"
-		        + "  <input type=\"text\" name=\"lastname\">"
-		        + "  <input type=\"submit\" value=\"Submit\">"
-		        + "</form>"
-		        + ""
-		        + "</body>"
-		        + "</html>";
+		String form = "";
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(
+		        getClass().getResourceAsStream("form.html"), "utf-8"))) {
+			form = in.lines().collect(Collectors.joining("\r\n"));
+		}
 		ByteBuffer body = ByteBuffer.wrap(form.getBytes("utf-8"));
 		sendResponse(response, body, true);
 	}
@@ -167,6 +165,27 @@ public class ServerConnection extends Thread {
 		        + "\r\n" + "Last name: "
 		        + fieldDecoder.getFields().get("lastname");
 		ByteBuffer body = ByteBuffer.wrap(data.getBytes("utf-8"));
+		sendResponse(response, body, true);
+	}
+
+	private void handleEcho(HttpRequest request) throws IOException {
+		HttpResponse response = engine.currentRequest().getResponse();
+		response.setStatus(HttpStatus.OK);
+		response.setMessageHasBody(true);
+		HttpMediaTypeField media;
+		try {
+			media = new HttpMediaTypeField(
+			        HttpField.CONTENT_TYPE, "text", "html");
+			media.setParameter("charset", "utf-8");
+			response.setField(media);
+		} catch (ParseException e) {
+		}
+		String page = "";
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(
+		        getClass().getResourceAsStream("echo.html"), "utf-8"))) {
+			page = in.lines().collect(Collectors.joining("\r\n"));
+		}
+		ByteBuffer body = ByteBuffer.wrap(page.getBytes("utf-8"));
 		sendResponse(response, body, true);
 	}
 

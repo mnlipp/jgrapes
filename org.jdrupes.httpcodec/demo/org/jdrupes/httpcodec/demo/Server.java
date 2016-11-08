@@ -39,7 +39,7 @@ public class Server {
 		ssockChan.bind(new InetSocketAddress(port));
 		while (true) {
 			SocketChannel channel = ssockChan.accept();
-			(new ServerConnection(channel)).start();
+			(new Connection(channel)).start();
 		}
 	}
 	
