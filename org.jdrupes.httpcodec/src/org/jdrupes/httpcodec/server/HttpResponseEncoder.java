@@ -26,6 +26,7 @@ import org.jdrupes.httpcodec.HttpResponse;
 import org.jdrupes.httpcodec.internal.CodecResult;
 import org.jdrupes.httpcodec.internal.Encoder;
 import org.jdrupes.httpcodec.internal.Engine;
+import org.jdrupes.httpcodec.internal.MessageHeader;
 
 /**
  * @author Michael N. Lipp
@@ -37,7 +38,8 @@ public class HttpResponseEncoder extends Encoder<HttpResponse> {
 	 * 
 	 * @param engine the engine
 	 */
-	public HttpResponseEncoder(Engine engine) {
+	public HttpResponseEncoder
+		(Engine<? extends MessageHeader,HttpResponse> engine) {
 		super(engine);
 	}
 
