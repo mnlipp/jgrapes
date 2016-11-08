@@ -108,6 +108,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the backing array
 	 * @see java.nio.Buffer#array()
 	 */
 	public Object array() {
@@ -115,6 +116,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the backing array offset
 	 * @see java.nio.Buffer#arrayOffset()
 	 */
 	public int arrayOffset() {
@@ -122,6 +124,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the capacity
 	 * @see java.nio.Buffer#capacity()
 	 */
 	public final int capacity() {
@@ -129,6 +132,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the buffer
 	 * @see java.nio.Buffer#clear()
 	 */
 	public final Buffer clear() {
@@ -136,6 +140,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	public boolean equals(Object obj) {
@@ -146,6 +151,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the buffer
 	 * @see java.nio.Buffer#flip()
 	 */
 	public final Buffer flip() {
@@ -153,6 +159,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.Buffer#hasArray()
 	 */
 	public boolean hasArray() {
@@ -160,6 +167,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.Buffer#hasRemaining()
 	 */
 	public final boolean hasRemaining() {
@@ -167,6 +175,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.lang.Object#hashCode()
 	 */
 	public int hashCode() {
@@ -174,6 +183,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.Buffer#isDirect()
 	 */
 	public boolean isDirect() {
@@ -181,6 +191,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.Buffer#isReadOnly()
 	 */
 	public boolean isReadOnly() {
@@ -188,6 +199,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.Buffer#limit()
 	 */
 	public final int limit() {
@@ -195,6 +207,8 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @param newLimit the new limit
+	 * @return the result
 	 * @see java.nio.Buffer#limit(int)
 	 */
 	public final Buffer limit(int newLimit) {
@@ -202,6 +216,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the buffer
 	 * @see java.nio.Buffer#mark()
 	 */
 	public final Buffer mark() {
@@ -209,6 +224,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.Buffer#position()
 	 */
 	public final int position() {
@@ -216,6 +232,8 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @param newPosition the new position
+	 * @return the buffer
 	 * @see java.nio.Buffer#position(int)
 	 */
 	public final Buffer position(int newPosition) {
@@ -223,6 +241,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.Buffer#remaining()
 	 */
 	public final int remaining() {
@@ -230,6 +249,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the Buffer
 	 * @see java.nio.Buffer#reset()
 	 */
 	public final Buffer reset() {
@@ -237,6 +257,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * @return the Buffer
 	 * @see java.nio.Buffer#rewind()
 	 */
 	public final Buffer rewind() {

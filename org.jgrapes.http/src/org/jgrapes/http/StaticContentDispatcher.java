@@ -51,6 +51,9 @@ public class StaticContentDispatcher extends Component {
 	private Map<IOSubchannel, Object> handling;
 	
 	/**
+	 * @param prefix the prefix that requests must start with to be handled
+	 * by this component
+	 * @param contentDirectory the directory with content to serve 
 	 * @see Component#Component()
 	 */
 	public StaticContentDispatcher(Path prefix, Path contentDirectory) {
@@ -58,6 +61,11 @@ public class StaticContentDispatcher extends Component {
 	}
 
 	/**
+	 * @param componentChannel
+	 *            this component's channel
+	 * @param prefix the prefix that requests must start with to be handled
+	 * by this component
+	 * @param contentDirectory the directory with content to serve 
 	 * @see Component#Component(Channel)
 	 */
 	public StaticContentDispatcher(Channel componentChannel, Path prefix,

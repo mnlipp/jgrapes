@@ -87,6 +87,7 @@ public abstract class MessageHeader {
 	 * Returns the header field with the given type and name or {@code null}
 	 * if no such header is set.
 	 * 
+	 * @param <T> the header field class
 	 * @param type the header field type
 	 * @param name the field name
 	 * @return the header field or {@code null}

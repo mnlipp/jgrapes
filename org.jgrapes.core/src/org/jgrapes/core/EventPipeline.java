@@ -41,6 +41,7 @@ public interface EventPipeline extends IdInfoProvider {
 	 * event pipeline was obtained. Event pipelines obtained from a
 	 * component's manager use the component's channel as fall back.
 	 * 
+	 * @param <T> the event's type
 	 * @param event the event to process
 	 * @param channels the channels that the event was fired on
 	 * @return the event (for easy chaining)

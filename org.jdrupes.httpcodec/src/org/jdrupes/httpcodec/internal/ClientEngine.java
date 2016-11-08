@@ -63,6 +63,8 @@ public abstract class ClientEngine extends Engine<HttpResponse, HttpRequest> {
 	/**
 	 * Convenience method to invoke the encoder's encode method.
 	 * 
+	 * @param out the buffer to use for the result
+	 * @return the result
 	 * @see org.jdrupes.httpcodec.client.HttpRequestEncoder#encode(java.nio.ByteBuffer)
 	 */
 	public Result encode(ByteBuffer out) {
@@ -72,6 +74,10 @@ public abstract class ClientEngine extends Engine<HttpResponse, HttpRequest> {
 	/**
 	 * Convenience method to invoke the encoder's encode method.
 	 * 
+	 * @param in the buffer with the data to encode
+	 * @param out the buffer to use for the result
+	 * @param endOfInput {@code true} if end of input
+	 * @return the result
 	 * @see org.jdrupes.httpcodec.client.HttpRequestEncoder#encode(java.nio.Buffer,
 	 *      java.nio.ByteBuffer, boolean)
 	 */
@@ -82,6 +88,7 @@ public abstract class ClientEngine extends Engine<HttpResponse, HttpRequest> {
 	/**
 	 * Convenience method to invoke the encoder's encode method.
 	 * 
+	 * @param messageHeader the message header
 	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(org.jdrupes.httpcodec.internal.MessageHeader)
 	 */
 	public void encode(HttpRequest messageHeader) {
@@ -91,6 +98,7 @@ public abstract class ClientEngine extends Engine<HttpResponse, HttpRequest> {
 	/**
 	 * Convenience method to invoke the decoder's decode method.
 	 * 
+	 * @param request the request
 	 * @see org.jdrupes.httpcodec.client.HttpResponseDecoder#decodeResponseTo(org.jdrupes.httpcodec.HttpRequest)
 	 */
 	public void decodeResponseTo(HttpRequest request) {
@@ -100,6 +108,11 @@ public abstract class ClientEngine extends Engine<HttpResponse, HttpRequest> {
 	/**
 	 * Convenience method to invoke the decoder's decode method.
 	 * 
+	 * @param in the buffer with the data to decode
+	 * @param out the buffer to use for the result
+	 * @param endOfInput {@code true} if end of input
+	 * @return the result
+	 * @throws ProtocolException if the input violates the HTTP
 	 * @see org.jdrupes.httpcodec.client.HttpResponseDecoder#decode(java.nio.ByteBuffer,
 	 *      java.nio.Buffer, boolean)
 	 */

@@ -200,6 +200,9 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 
 		/**
 		 * Creates a new result.
+		 * 
+		 * @param headerCompleted {@code true} if the header has completely
+		 * been decoded
 		 * @param response a response to send due to an error
 		 * @param overflow {@code true} if the data didn't fit in the out buffer
 		 * @param underflow {@code true} if more data is expected

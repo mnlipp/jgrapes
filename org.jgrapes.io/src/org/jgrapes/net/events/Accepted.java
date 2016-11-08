@@ -34,9 +34,10 @@ public class Accepted extends Opened {
 	private SocketAddress remoteAddress;
 
 	/**
+	 * Creates a new instance.
 	 * 
-	 * @param localAddress
-	 * @param remoteAddress
+	 * @param localAddress the local address
+	 * @param remoteAddress the remote address
 	 */
 	public Accepted(SocketAddress localAddress, SocketAddress remoteAddress) {
 		this.localAddress = localAddress;

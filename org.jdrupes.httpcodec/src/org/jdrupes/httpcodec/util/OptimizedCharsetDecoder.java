@@ -57,7 +57,9 @@ public class OptimizedCharsetDecoder {
 	private ByteBuffer pending;
 
 	/**
-	 * @param backing
+	 * Creates a new instance.
+	 * 
+	 * @param backing the backing charset decoder
 	 */
 	public OptimizedCharsetDecoder(CharsetDecoder backing) {
 		super();
@@ -66,6 +68,7 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#averageCharsPerByte()
 	 */
 	public final float averageCharsPerByte() {
@@ -73,6 +76,7 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#charset()
 	 */
 	public final Charset charset() {
@@ -80,6 +84,10 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @param in the data to decode
+	 * @param out the decoded data
+	 * @param endOfInput {@code true} if the completes the input
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#decode(java.nio.ByteBuffer,
 	 *      java.nio.CharBuffer, boolean)
 	 */
@@ -122,6 +130,9 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @param in the data
+	 * @return the result
+	 * @throws CharacterCodingException if an error occurred
 	 * @see java.nio.charset.CharsetDecoder#decode(java.nio.ByteBuffer)
 	 */
 	public final CharBuffer decode(ByteBuffer in)
@@ -130,6 +141,7 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#detectedCharset()
 	 */
 	public Charset detectedCharset() {
@@ -137,6 +149,8 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @param out the decoded data
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#flush(java.nio.CharBuffer)
 	 */
 	public final CoderResult flush(CharBuffer out) {
@@ -148,6 +162,7 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#isAutoDetecting()
 	 */
 	public boolean isAutoDetecting() {
@@ -155,6 +170,7 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#isCharsetDetected()
 	 */
 	public boolean isCharsetDetected() {
@@ -162,6 +178,7 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#malformedInputAction()
 	 */
 	public CodingErrorAction malformedInputAction() {
@@ -169,6 +186,7 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#maxCharsPerByte()
 	 */
 	public final float maxCharsPerByte() {
@@ -176,6 +194,8 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @param newAction the action
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#onMalformedInput
 	 *      (java.nio.charset.CodingErrorAction)
 	 */
@@ -184,6 +204,8 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @param newAction the action
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#onUnmappableCharacter
 	 *      (java.nio.charset.CodingErrorAction)
 	 */
@@ -193,6 +215,8 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @param newReplacement the replacement
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#replaceWith(java.lang.String)
 	 */
 	public final CharsetDecoder replaceWith(String newReplacement) {
@@ -200,6 +224,7 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#replacement()
 	 */
 	public final String replacement() {
@@ -207,6 +232,7 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#reset()
 	 */
 	public final CharsetDecoder reset() {
@@ -215,6 +241,7 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
@@ -222,6 +249,7 @@ public class OptimizedCharsetDecoder {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.charset.CharsetDecoder#unmappableCharacterAction()
 	 */
 	public CodingErrorAction unmappableCharacterAction() {

@@ -31,6 +31,9 @@ public class HandlingError extends Error {
 
 	/**
 	 * Creates a new event caused by the given throwable.
+	 * 
+	 * @param event the event that was being handled
+	 * @param throwable the throwable that occurred 
 	 */
 	public HandlingError(Event<?> event, Throwable throwable) {
 		super (event, throwable);

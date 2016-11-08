@@ -42,7 +42,7 @@ public class HttpSetCookieListField extends HttpListField<HttpCookie> {
 	 * 
 	 * @param s the string to parse
 	 * @return this object for easy chaining
-	 * @throws ParseException 
+	 * @throws ParseException if the input violates the field format
 	 */
 	public HttpSetCookieListField addFromString(String s)
 	        throws ParseException {
@@ -61,7 +61,7 @@ public class HttpSetCookieListField extends HttpListField<HttpCookie> {
 	 * @param s
 	 *            the string to parse
 	 * @return this object for easy chaining
-	 * @throws ParseException
+	 * @throws ParseException if the input violates the field format
 	 */
 	public static HttpSetCookieListField fromString(String s)
 	        throws ParseException {

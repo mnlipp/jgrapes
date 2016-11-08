@@ -173,7 +173,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	/**
 	 * Copies the data from the given buffer to this output stream.
 	 * 
-	 * @param b
+	 * @param b the buffer
 	 */
 	public void write(ByteBuffer b) {
 		if (current == null) {
@@ -191,8 +191,8 @@ public class ByteBufferOutputStream extends OutputStream {
 	/**
 	 * Copies length bytes from the given buffer to this output stream.
 	 * 
-	 * @param b
-	 * @param length
+	 * @param b the buffer
+	 * @param length the number of bytes to copy
 	 */
 	public void write(ByteBuffer b, int length) {
 		if (b.remaining() <= length) {

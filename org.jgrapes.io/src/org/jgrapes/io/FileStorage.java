@@ -96,8 +96,8 @@ public class FileStorage extends Component {
 	 * event and therefore fired using the event processor from the event's
 	 * I/O subchannel.
 	 * 
-	 * @param event
-	 * @throws InterruptedException
+	 * @param event the event
+	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
 	public void onStreamFile(StreamFile event)
@@ -224,8 +224,8 @@ public class FileStorage extends Component {
 	 * subsequent {@link Input} events is written to the file until an
 	 * {@link Eos} event is received.
 	 * 
-	 * @param event
-	 * @throws InterruptedException
+	 * @param event the event
+	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
 	public void onSaveInput(SaveInput event) throws InterruptedException {
@@ -259,8 +259,8 @@ public class FileStorage extends Component {
 	 * subsequent {@link Output} events is written to the file until an
 	 * {@link Eos} event is received.
 	 * 
-	 * @param event
-	 * @throws InterruptedException
+	 * @param event the event
+	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
 	public void onSaveOutput(SaveOutput event) throws InterruptedException {

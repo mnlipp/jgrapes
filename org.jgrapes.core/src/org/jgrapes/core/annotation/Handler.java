@@ -54,28 +54,38 @@ public @interface Handler {
 	
 	/**
 	 * Specifies classes of events that the handler is to receive.
+	 * 
+	 * @return the event classes
 	 */
 	@SuppressWarnings("rawtypes")
 	Class<? extends Event>[] events() default NO_EVENT.class;
 	
 	/**
 	 * Specifies names of {@link NamedEvent}s that the handler is to receive.
+	 * 
+	 * @return the event names
 	 */
 	String[] namedEvents() default "";
 	
 	/**
 	 * Specifies classes of channels that the handler listens on.
+	 * 
+	 * @return the channel classes
 	 */
 	Class<? extends Channel>[] channels() default NO_CHANNEL.class;
 
 	/**
 	 * Specifies names of {@link NamedChannel}s that the handler listens on.
+	 * 
+	 * @return the channel names
 	 */
 	String[] namedChannels() default "";
 	
 	/**
 	 * Specifies a priority. The value is used to sort handlers.
 	 * Handlers with higher priority are invoked first.
+	 * 
+	 * @return the priority
 	 */
 	int priority() default 0;
 }

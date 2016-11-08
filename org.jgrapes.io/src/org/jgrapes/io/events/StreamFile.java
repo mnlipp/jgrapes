@@ -35,8 +35,10 @@ public class StreamFile extends Event<Void> {
 	private OpenOption[] options;
 
 	/**
-	 * @param path
-	 * @param options
+	 * Creates a new instance.
+	 * 
+	 * @param path the file's path
+	 * @param options open options
 	 */
 	public StreamFile(Path path, OpenOption... options) {
 		this.path = path;
@@ -44,6 +46,8 @@ public class StreamFile extends Event<Void> {
 	}
 
 	/**
+	 * Returns the event's path.
+	 * 
 	 * @return the path
 	 */
 	public Path getPath() {
@@ -51,6 +55,8 @@ public class StreamFile extends Event<Void> {
 	}
 
 	/**
+	 * Returns the event's options.
+	 * 
 	 * @return the options
 	 */
 	public OpenOption[] getOptions() {

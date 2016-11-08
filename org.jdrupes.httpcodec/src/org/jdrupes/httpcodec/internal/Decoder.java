@@ -80,6 +80,8 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 
 	/**
 	 * Creates a new decoder.
+	 * 
+	 * @param engine the engine to use
 	 */
 	public Decoder(Engine<T, ? extends MessageHeader> engine) {
 		this.engine = engine;
@@ -135,7 +137,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	 * @param startLine
 	 *            the start line (first line) of the message
 	 * @return the new HttpMessage object that is to hold the decoded data
-	 * @throws ProtocolException
+	 * @throws ProtocolException if the input violates the HTTP
 	 */
 	protected abstract T newMessage(String startLine)
 	        throws ProtocolException;
@@ -151,12 +153,17 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	 *            {@code true} if the data didn't fit in the out buffer
 	 * @param underflow
 	 *            {@code true} if more data is expected
+	 * @return the result
 	 */
 	protected abstract DecoderResult newResult(boolean headerCompleted,
 	        boolean overflow, boolean underflow);
 
 	/**
 	 * Informs the derived class that the header has been received completely.
+	 * 
+	 * @param message the message
+	 * @return indication how the body will be transferred
+	 * @throws ProtocolException if the input violates the HTTP
 	 */
 	protected abstract BodyMode headerReceived(T message)
 	        throws ProtocolException;
@@ -183,7 +190,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	 *            no body at all)
 	 * @return the result
 	 * @throws ProtocolException
-	 *             if the message violates the HTTP protocol
+	 *             if the message violates the HTTP
 	 */
 	public DecoderResult decode(ByteBuffer in, Buffer out, boolean endOfInput)
 	        throws ProtocolException {

@@ -62,6 +62,7 @@ public class Components {
 	 * <code>Start</code> event.
 	 * 
 	 * @param application the application to start
+	 * @throws InterruptedException if the execution was interrupted
 	 */
 	public static void start(AttachedComponent application) 
 			throws InterruptedException {
@@ -84,8 +85,9 @@ public class Components {
 	 * Wait until all generators and event queues are exhausted or
 	 * the maximum wait time has expired.
 	 * 
+	 * @param timeout the wait time in milliseconds
 	 * @return {@code true} if exhaustion state was reached
-	 * @throws InterruptedException 
+	 * @throws InterruptedException if the execution was interrupted 
 	 * @see #awaitExhaustion()
 	 */
 	public static boolean awaitExhaustion(long timeout) 

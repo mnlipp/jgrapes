@@ -57,7 +57,9 @@ public class DynamicByteArray {
 	/**
 	 * Appends the given bytes, growing the array if necessary.
 	 * 
-	 * @param b the byte to append
+	 * @param b an array of bytes
+	 * @param offset the first byte to append
+	 * @param length the number of bytes to append
 	 */
 	public void append(byte[] b, int offset, int length) {
 		if (bytes.length - position < length) {

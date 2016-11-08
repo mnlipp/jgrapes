@@ -41,7 +41,8 @@ public class HttpCookieListField extends HttpListField<HttpCookie> {
 	 * String.
 	 * 
 	 * @param s the string to parse
-	 * @throws ParseException 
+	 * @return the result
+	 * @throws ParseException if the input violates the field format
 	 */
 	public static HttpCookieListField fromString(String s) 
 			throws ParseException {

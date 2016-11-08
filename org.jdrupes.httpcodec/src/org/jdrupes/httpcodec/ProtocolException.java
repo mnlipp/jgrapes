@@ -38,9 +38,9 @@ public class ProtocolException extends Exception {
 	/**
 	 * Creates a new exception with the given values.
 	 * 
-	 * @param httpProtocol
-	 * @param statusCode
-	 * @param reasonPhrase
+	 * @param httpProtocol the HTTP version
+	 * @param statusCode the status code
+	 * @param reasonPhrase the reason phrase
 	 */
 	public ProtocolException(HttpProtocol httpProtocol, int statusCode,
 	        String reasonPhrase) {
@@ -53,8 +53,8 @@ public class ProtocolException extends Exception {
 	/**
 	 * Creates a new exception with the standard reason phrase.
 	 * 
-	 * @param httpProtocol
-	 * @param status
+	 * @param httpProtocol the HTTP version
+	 * @param status the status
 	 */
 	public ProtocolException(HttpProtocol httpProtocol, HttpStatus status) {
 		super(String.format("%03d %s", status.getStatusCode(),
@@ -67,7 +67,7 @@ public class ProtocolException extends Exception {
 	/**
 	 * Returns the HTTP version.
 	 * 
-	 * @return the httpVersion
+	 * @return the HTTP Version
 	 */
 	public HttpProtocol getHttpVersion() {
 		return httpProtocol;

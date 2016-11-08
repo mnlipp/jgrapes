@@ -59,6 +59,7 @@ public interface Manager extends Iterable<AttachedComponent> {
 	 * to the component managed by this manager. The node or tree may not
 	 * have been started.
 	 * 
+	 * @param <T> the component node's type
 	 * @param child the component to add
 	 * @return the added component (for comfortable chaining)
 	 */
@@ -110,6 +111,7 @@ public interface Manager extends Iterable<AttachedComponent> {
 	 * by some other thread (not associated with a pipeline), a new pipeline
 	 * is created for handling the event (and any events triggered by it). 
 	 * 
+	 * @param <T> the result type of the event
 	 * @param event the event to fire
 	 * @param channels the channels to fire the event on
 	 * @return the event (for easy chaining)
@@ -142,8 +144,13 @@ public interface Manager extends Iterable<AttachedComponent> {
 			Object channelKey, int priority);
 	
 	/**
-	 * add a handler like {@link #addHandler(String, Object, Object, int)}
+	 * Add a handler like {@link #addHandler(String, Object, Object, int)}
 	 * but take the values for event and priority from the annotation.
+	 * 
+	 * @param method the name of the method that implements the handler
+	 * @param channelKey the channel key that should be used for matching
+	 * this handler with a channel 
+	 * (see {@link #addHandler(String, Object, Object, int)})
 	 */
 	void addHandler(String method, Object channelKey);
 	

@@ -36,7 +36,7 @@ public class Ready extends Opened {
 	/**
 	 * Creates a new event.
 	 * 
-	 * @param socketAddress
+	 * @param socketAddress the socket address
 	 */
 	public Ready(SocketAddress socketAddress) {
 		this.listenAddress = socketAddress;

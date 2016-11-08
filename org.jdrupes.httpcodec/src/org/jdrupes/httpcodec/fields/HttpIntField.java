@@ -20,6 +20,8 @@ package org.jdrupes.httpcodec.fields;
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 
+import org.jdrupes.httpcodec.ProtocolException;
+
 /**
  * An HTTP field value that is an integer.
  * 
@@ -34,7 +36,6 @@ public class HttpIntField extends HttpField<Long> {
 	 * 
 	 * @param name the field name
 	 * @param value the field value
-	 * @throws ParseException 
 	 */
 	public HttpIntField(String name, long value) {
 		super(name);
@@ -67,7 +68,8 @@ public class HttpIntField extends HttpField<Long> {
 	 *            the field name
 	 * @param s
 	 *            the string to parse
-	 * @throws ParseException
+	 * @return the result
+	 * @throws ParseException if the input violates the field format
 	 */
 	public static HttpIntField fromString(String name, String s)
 			throws ParseException {

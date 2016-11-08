@@ -77,6 +77,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#asCharBuffer()
 	 */
 	public CharBuffer asCharBuffer() {
@@ -84,6 +85,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#asDoubleBuffer()
 	 */
 	public DoubleBuffer asDoubleBuffer() {
@@ -91,6 +93,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#asFloatBuffer()
 	 */
 	public FloatBuffer asFloatBuffer() {
@@ -98,6 +101,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#asIntBuffer()
 	 */
 	public IntBuffer asIntBuffer() {
@@ -105,6 +109,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#asLongBuffer()
 	 */
 	public LongBuffer asLongBuffer() {
@@ -112,6 +117,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#asReadOnlyBuffer()
 	 */
 	public ByteBuffer asReadOnlyBuffer() {
@@ -119,6 +125,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#asShortBuffer()
 	 */
 	public ShortBuffer asShortBuffer() {
@@ -126,6 +133,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#compact()
 	 */
 	public ByteBuffer compact() {
@@ -133,6 +141,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param that the buffer to compare to
+	 * @return the result
 	 * @see java.nio.ByteBuffer#compareTo(java.nio.ByteBuffer)
 	 */
 	public int compareTo(ByteBuffer that) {
@@ -140,6 +150,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#duplicate()
 	 */
 	public ByteBuffer duplicate() {
@@ -147,6 +158,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#get()
 	 */
 	public byte get() {
@@ -154,6 +166,10 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param dst the bytes to wrap
+	 * @param offset the offset of the first byte of the region to wrap
+	 * @param length the number of bytes to wrap
+	 * @return the buffer
 	 * @see java.nio.ByteBuffer#get(byte[], int, int)
 	 */
 	public ByteBuffer get(byte[] dst, int offset, int length) {
@@ -161,6 +177,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param dst the bytes to wrap
+	 * @return the result
 	 * @see java.nio.ByteBuffer#get(byte[])
 	 */
 	public ByteBuffer get(byte[] dst) {
@@ -168,6 +186,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index to fetch from
+	 * @return the result
 	 * @see java.nio.ByteBuffer#get(int)
 	 */
 	public byte get(int index) {
@@ -175,6 +195,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getChar()
 	 */
 	public char getChar() {
@@ -182,6 +203,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index to fetch from
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getChar(int)
 	 */
 	public char getChar(int index) {
@@ -189,6 +212,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getDouble()
 	 */
 	public double getDouble() {
@@ -196,6 +220,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index to fetch from
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getDouble(int)
 	 */
 	public double getDouble(int index) {
@@ -203,6 +229,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getFloat()
 	 */
 	public float getFloat() {
@@ -210,6 +237,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index to fetch from
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getFloat(int)
 	 */
 	public float getFloat(int index) {
@@ -217,6 +246,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getInt()
 	 */
 	public int getInt() {
@@ -224,6 +254,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index to fetch from
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getInt(int)
 	 */
 	public int getInt(int index) {
@@ -231,6 +263,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getLong()
 	 */
 	public long getLong() {
@@ -238,6 +271,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index to fetch from
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getLong(int)
 	 */
 	public long getLong(int index) {
@@ -245,6 +280,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getShort()
 	 */
 	public short getShort() {
@@ -252,6 +288,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index to fetch from
+	 * @return the result
 	 * @see java.nio.ByteBuffer#getShort(int)
 	 */
 	public short getShort(int index) {
@@ -259,6 +297,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#order()
 	 */
 	public final ByteOrder order() {
@@ -266,6 +305,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param bo the byte order
+	 * @return the result
 	 * @see java.nio.ByteBuffer#order(java.nio.ByteOrder)
 	 */
 	public final ByteBuffer order(ByteOrder bo) {
@@ -273,6 +314,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param b the byte
+	 * @return the result
 	 * @see java.nio.ByteBuffer#put(byte)
 	 */
 	public ByteBuffer put(byte b) {
@@ -280,6 +323,10 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param src the array of bytes
+	 * @param offset the beginning of the region
+	 * @param length the size of the region
+	 * @return the result
 	 * @see java.nio.ByteBuffer#put(byte[], int, int)
 	 */
 	public ByteBuffer put(byte[] src, int offset, int length) {
@@ -287,6 +334,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param src the array of bytes
+	 * @return the result
 	 * @see java.nio.ByteBuffer#put(byte[])
 	 */
 	public final ByteBuffer put(byte[] src) {
@@ -294,6 +343,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param src the buffer to use as source
+	 * @return the result
 	 * @see java.nio.ByteBuffer#put(java.nio.ByteBuffer)
 	 */
 	public ByteBuffer put(ByteBuffer src) {
@@ -301,6 +352,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param src the buffer to use as source
+	 * @return the result
 	 * @see java.nio.ByteBuffer#put(java.nio.ByteBuffer)
 	 */
 	public ByteBuffer put(ManagedByteBuffer src) {
@@ -308,6 +361,9 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index
+	 * @param b the byte
+	 * @return the result
 	 * @see java.nio.ByteBuffer#put(int, byte)
 	 */
 	public ByteBuffer put(int index, byte b) {
@@ -315,6 +371,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putChar(char)
 	 */
 	public ByteBuffer putChar(char value) {
@@ -322,6 +380,9 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putChar(int, char)
 	 */
 	public ByteBuffer putChar(int index, char value) {
@@ -329,6 +390,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putDouble(double)
 	 */
 	public ByteBuffer putDouble(double value) {
@@ -336,6 +399,9 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putDouble(int, double)
 	 */
 	public ByteBuffer putDouble(int index, double value) {
@@ -343,6 +409,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putFloat(float)
 	 */
 	public ByteBuffer putFloat(float value) {
@@ -350,6 +418,9 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putFloat(int, float)
 	 */
 	public ByteBuffer putFloat(int index, float value) {
@@ -357,6 +428,9 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putInt(int, int)
 	 */
 	public ByteBuffer putInt(int index, int value) {
@@ -364,6 +438,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putInt(int)
 	 */
 	public ByteBuffer putInt(int value) {
@@ -371,6 +447,9 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putLong(int, long)
 	 */
 	public ByteBuffer putLong(int index, long value) {
@@ -378,6 +457,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putLong(long)
 	 */
 	public ByteBuffer putLong(long value) {
@@ -385,6 +466,9 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param index the index
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putShort(int, short)
 	 */
 	public ByteBuffer putShort(int index, short value) {
@@ -392,6 +476,8 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @param value the value
+	 * @return the result
 	 * @see java.nio.ByteBuffer#putShort(short)
 	 */
 	public ByteBuffer putShort(short value) {
@@ -399,6 +485,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
+	 * @return the result
 	 * @see java.nio.ByteBuffer#slice()
 	 */
 	public ByteBuffer slice() {

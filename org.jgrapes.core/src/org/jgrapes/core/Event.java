@@ -58,6 +58,7 @@ public class Event<T> extends EventBase<T> {
 	 * <P>
 	 * The channels are handled as in {@link Event#Event(Channel...)}.
 	 * 
+	 * @param completedEvent the event to to set
 	 * @param channels the channels to set
 	 */
 	public Event(CompletedEvent<? extends Event<T>> completedEvent,

@@ -34,8 +34,10 @@ public class EventChannelsTuple {
 	public Channel[] channels;
 	
 	/**
-	 * @param event
-	 * @param channels
+	 * Create a new instance.
+	 * 
+	 * @param event the event
+	 * @param channels the channels
 	 */
 	public EventChannelsTuple(EventBase<?> event, Channel[] channels) {
 		super();

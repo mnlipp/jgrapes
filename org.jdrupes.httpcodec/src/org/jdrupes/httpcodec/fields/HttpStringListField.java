@@ -75,7 +75,8 @@ public class HttpStringListField extends HttpListField<String>
 	 * 
 	 * @param name the field name
 	 * @param s the string to parse
-	 * @throws ParseException 
+	 * @return the result
+	 * @throws ParseException if the input violates the field format
 	 */
 	public static HttpStringListField fromString(String name, String s) 
 			throws ParseException {

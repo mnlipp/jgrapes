@@ -93,7 +93,7 @@ public class HttpResponse extends MessageHeader {
 	 * 
 	 * @param type the type
 	 * @param subtype the subtype
-	 * @throws ParseException
+	 * @throws ParseException if the values cannot be parsed
 	 */
 	public void setContentType(String type, String subtype) 
 			throws ParseException {
@@ -108,7 +108,7 @@ public class HttpResponse extends MessageHeader {
 	 * @param type the type
 	 * @param subtype the subtype
 	 * @param charset the charset
-	 * @throws ParseException
+	 * @throws ParseException if the values cannot be parsed
 	 */
 	public void setContentType(String type, String subtype,
 			String charset) throws ParseException {

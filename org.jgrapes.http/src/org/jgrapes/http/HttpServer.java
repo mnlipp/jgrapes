@@ -110,6 +110,9 @@ public class HttpServer extends Component {
 	 * address and uses it for network level I/O.
 	 * 
 	 * @param componentChannel
+	 *            this component's channel
+	 * @param serverAddress the address to listen on
+	 * @param fallbacks fall backs
 	 */
 	@SafeVarargs
 	public HttpServer(Channel componentChannel, SocketAddress serverAddress,
@@ -143,7 +146,7 @@ public class HttpServer extends Component {
 	 * {@link HttpRequestDecoder} and events are sent downstream according to
 	 * the decoding results.
 	 * 
-	 * @param event
+	 * @param event the event
 	 */
 	@DynamicHandler
 	public void onInput(Input<ManagedByteBuffer> event) {
@@ -240,7 +243,7 @@ public class HttpServer extends Component {
 	 * 
 	 * @param event
 	 *            the response event
-	 * @throws InterruptedException
+	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
 	public void onResponse(Response event) throws InterruptedException {
@@ -280,7 +283,7 @@ public class HttpServer extends Component {
 	 * 
 	 * @param event
 	 *            the event with the data
-	 * @throws InterruptedException
+	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
 	public void onOutput(Output<ManagedBuffer<?>> event)
@@ -309,7 +312,7 @@ public class HttpServer extends Component {
 	 * 
 	 * @param event
 	 *            the event
-	 * @throws InterruptedException
+	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
 	public void onEndOfResponse(EndOfResponse event)
@@ -325,7 +328,7 @@ public class HttpServer extends Component {
 	 * 
 	 * @param event
 	 *            the close event
-	 * @throws InterruptedException
+	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
 	public void onClose(Close event) throws InterruptedException {
@@ -373,10 +376,11 @@ public class HttpServer extends Component {
 	 * 
 	 * @param event
 	 *            the request completed event
+	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
 	public void onRequestCompleted(Request.Completed event)
-	        throws InterruptedException, ParseException {
+	        throws InterruptedException {
 		IOSubchannel channel = event.getCompleted()
 		        .firstChannel(IOSubchannel.class);
 		final Request requestEvent = event.getCompleted();
@@ -392,11 +396,10 @@ public class HttpServer extends Component {
 	 * Provides a fallback handler for an OPTIONS request with asterisk. Simply
 	 * responds with "OK".
 	 * 
-	 * @param event
-	 * @throws ParseException
+	 * @param event the event
 	 */
 	@Handler(priority = Integer.MIN_VALUE)
-	public void onOptions(OptionsRequest event) throws ParseException {
+	public void onOptions(OptionsRequest event) {
 		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		
 		if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {
@@ -408,11 +411,11 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Provides a fallback handler (lowest priority) for the request types
+	 * Provides a fall back handler (lowest priority) for the request types
 	 * specified in the constructor.
 	 * 
-	 * @param event
-	 * @throws ParseException
+	 * @param event the event
+	 * @throws ParseException if the request contains illegal header fields
 	 */
 	@Handler(priority = Integer.MIN_VALUE)
 	public void onRequest(Request event) throws ParseException {

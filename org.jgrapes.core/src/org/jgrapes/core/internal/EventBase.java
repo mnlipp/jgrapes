@@ -82,7 +82,8 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	/**
 	 * Returns the subset of channels that are assignable to the given type.
 	 * 
-	 * @param type the type
+	 * @param <C> the given type's class
+	 * @param type the class to look for
 	 * @return the filtered channels
 	 * @see #channels()
 	 */
@@ -97,7 +98,8 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * Look through the event'channels and return the first
 	 * (and usually only) channel of given type.
 	 * 
-	 * @param type the type to look for
+	 * @param <C> the given type's class
+	 * @param type the class to look for
 	 * @return the channel or {@code null}
 	 */
 	public <C> C firstChannel(Class<C> type) {
@@ -141,7 +143,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	/**
 	 * Sets the result of handling this event.
 	 * 
-	 * @param result
+	 * @param result the result to set
 	 * @return the object for easy chaining
 	 */
 	public Event<T> setResult(T result) {
@@ -172,7 +174,7 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * handling like:
 	 * {@code fire((new Event()).tieTo(oldEvent.stop()))}  
 	 * 
-	 * @param other
+	 * @param other the event to tie to
 	 * @return the object for easy chaining
 	 */
 	public Event<T> tieTo(EventBase<T> other) {

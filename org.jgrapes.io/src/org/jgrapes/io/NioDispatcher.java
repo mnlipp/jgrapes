@@ -46,7 +46,7 @@ public class NioDispatcher extends Component implements Runnable {
 	/**
 	 * Creates a new Dispatcher.
 	 * 
-	 * @throws IOException 
+	 * @throws IOException if an I/O exception occurred
 	 */
 	public NioDispatcher() throws IOException {
 		selector = Selector.open();
@@ -55,6 +55,8 @@ public class NioDispatcher extends Component implements Runnable {
 	/**
 	 * Starts this dispatcher. A dispatcher has an associated thread that
 	 * keeps it running.
+	 * 
+	 * @param event the event
 	 */
 	@Handler
 	synchronized public void onStart(Start event) {
@@ -69,7 +71,8 @@ public class NioDispatcher extends Component implements Runnable {
 	/**
 	 * Stops the thread that is associated with this dispatcher.
 	 * 
-	 * @throws InterruptedException
+	 * @param event the event
+	 * @throws InterruptedException if the execution is interrupted
 	 */
 	@Handler(priority=-10000)
 	synchronized public void onStop(Stop event) throws InterruptedException {
@@ -137,9 +140,6 @@ public class NioDispatcher extends Component implements Runnable {
 
 		private SelectionKey key;
 		
-		/**
-		 * @param key
-		 */
 		public Registration(SelectionKey key) {
 			super();
 			this.key = key;

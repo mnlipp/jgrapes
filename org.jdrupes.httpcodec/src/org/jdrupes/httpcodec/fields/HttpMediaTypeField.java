@@ -75,8 +75,8 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	 * @param type
 	 *            the type
 	 * @param subtype
-	 *            the subtype
-	 * @throws ParseException
+	 *            the sub type
+	 * @throws ParseException if the input violates the field format
 	 */
 	public HttpMediaTypeField(String name, String type, String subtype) 
 			throws ParseException {
@@ -103,7 +103,8 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	 * 
 	 * @param name the field name
 	 * @param value the field value
-	 * @throws ParseException 
+	 * @return the result
+	 * @throws ParseException if the input violates the field format
 	 */
 	public static HttpMediaTypeField fromString(String name, String value)
 	        throws ParseException {
@@ -127,6 +128,7 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	}
 
 	/**
+	 * @return the result
 	 * @see javax.activation.MimeType#getBaseType()
 	 */
 	public String getBaseType() {
@@ -134,6 +136,8 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	}
 
 	/**
+	 * @param name the name
+	 * @return the result
 	 * @see javax.activation.MimeType#getParameter(java.lang.String)
 	 */
 	public String getParameter(String name) {
@@ -141,6 +145,7 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	}
 
 	/**
+	 * @return the result
 	 * @see javax.activation.MimeType#getParameters()
 	 */
 	public MimeTypeParameterList getParameters() {
@@ -148,6 +153,7 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	}
 
 	/**
+	 * @return the result
 	 * @see javax.activation.MimeType#getPrimaryType()
 	 */
 	public String getPrimaryType() {
@@ -155,6 +161,7 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	}
 
 	/**
+	 * @return the result
 	 * @see javax.activation.MimeType#getSubType()
 	 */
 	public String getSubType() {
@@ -162,6 +169,8 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	}
 
 	/**
+	 * @param type the type
+	 * @return the result
 	 * @see javax.activation.MimeType#match(javax.activation.MimeType)
 	 */
 	public boolean match(MimeType type) {
@@ -169,6 +178,9 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	}
 
 	/**
+	 * @param rawdata the data
+	 * @return the result
+	 * @throws MimeTypeParseException if an error occurred
 	 * @see javax.activation.MimeType#match(java.lang.String)
 	 */
 	public boolean match(String rawdata) throws MimeTypeParseException {
@@ -176,6 +188,7 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	}
 
 	/**
+	 * @param name the name
 	 * @see javax.activation.MimeType#removeParameter(java.lang.String)
 	 */
 	public void removeParameter(String name) {
@@ -183,6 +196,8 @@ public class HttpMediaTypeField extends HttpField<MimeType> {
 	}
 
 	/**
+	 * @param name the name
+	 * @param value the value
 	 * @see javax.activation.MimeType#setParameter(java.lang.String, java.lang.String)
 	 */
 	public void setParameter(String name, String value) {

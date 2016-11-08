@@ -63,6 +63,7 @@ public abstract class ServerEngine extends Engine<HttpRequest, HttpResponse> {
 	/**
 	 * Convenience method to invoke the encoder's encode method.
 	 * 
+	 * @param messageHeader the message header
 	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(org.jdrupes.httpcodec.internal.MessageHeader)
 	 */
 	public void encode(HttpResponse messageHeader) {
@@ -72,6 +73,10 @@ public abstract class ServerEngine extends Engine<HttpRequest, HttpResponse> {
 	/**
 	 * Convenience method to invoke the decoder's decode method.
 	 * 
+	 * @param in the data to decode
+	 * @param out the decoded data
+	 * @param endOfInput {@code true} if this invocation finishes the message
+	 * @return the result
 	 * @see org.jdrupes.httpcodec.server.HttpRequestDecoder#decode(java.nio.ByteBuffer, java.nio.Buffer, boolean)
 	 */
 	public Result decode(ByteBuffer in, Buffer out, boolean endOfInput) {
@@ -81,6 +86,8 @@ public abstract class ServerEngine extends Engine<HttpRequest, HttpResponse> {
 	/**
 	 * Convenience method to invoke the encoder's encode method.
 	 * 
+	 * @param out the decoded data
+	 * @return the result
 	 * @see org.jdrupes.httpcodec.server.HttpResponseEncoder#encode(java.nio.ByteBuffer)
 	 */
 	public org.jdrupes.httpcodec.server.HttpResponseEncoder.Result encode(
@@ -91,6 +98,10 @@ public abstract class ServerEngine extends Engine<HttpRequest, HttpResponse> {
 	/**
 	 * Convenience method to invoke the encoder's encode method.
 	 * 
+	 * @param in the data to encode
+	 * @param out the encoded data
+	 * @param endOfInput {@code true} if this invocation finishes the message
+	 * @return the result
 	 * @see org.jdrupes.httpcodec.server.HttpResponseEncoder#encode(java.nio.Buffer, java.nio.ByteBuffer, boolean)
 	 */
 	public org.jdrupes.httpcodec.server.HttpResponseEncoder.Result encode(

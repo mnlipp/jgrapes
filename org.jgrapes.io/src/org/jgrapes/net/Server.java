@@ -121,8 +121,8 @@ public class Server extends Component implements NioHandler {
 	/**
 	 * Starts the server.
 	 * 
-	 * @param event
-	 * @throws IOException
+	 * @param event the start event
+	 * @throws IOException if an I/O exception occurred
 	 */
 	@Handler
 	public void onStart(Start event) throws IOException {
@@ -186,8 +186,8 @@ public class Server extends Component implements NioHandler {
 	 * Shuts down the server or one of the connections to the server
 	 * 
 	 * @param event the event
-	 * @throws IOException if an error occurs
-	 * @throws InterruptedException 
+	 * @throws IOException if an I/O exception occurred
+	 * @throws InterruptedException if the execution was interrupted 
 	 */
 	@Handler
 	public void onClose(Close event) throws IOException, InterruptedException {
@@ -258,8 +258,8 @@ public class Server extends Component implements NioHandler {
 		private boolean pendingClose = false;
 		
 		/**
-		 * @param nioChannel
-		 * @throws SocketException 
+		 * @param nioChannel the channel
+		 * @throws SocketException if an error occurred
 		 */
 		public Connection(SocketChannel nioChannel)	throws SocketException {
 			this.nioChannel = nioChannel;
@@ -312,8 +312,8 @@ public class Server extends Component implements NioHandler {
 		 * Invoked when registration has completed.
 		 * 
 		 * @param event the completed event
-		 * @throws InterruptedException
-		 * @throws IOException 
+		 * @throws InterruptedException if the execution was interrupted
+		 * @throws IOException if an I/O error occurred
 		 */
 		public void registrationComplete(NioRegistration event)
 		        throws InterruptedException, IOException {
@@ -328,7 +328,7 @@ public class Server extends Component implements NioHandler {
 		 * Write the data on this connection.
 		 * 
 		 * @param event the event
-		 * @throws IOException if an error occurs
+		 * @throws IOException if an error occurred
 		 */
 		public void write(Output<ManagedByteBuffer> event) throws IOException {
 			ManagedByteBuffer buffer = event.getBuffer();

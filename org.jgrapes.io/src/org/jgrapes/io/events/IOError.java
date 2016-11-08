@@ -28,25 +28,31 @@ import org.jgrapes.core.events.Error;
 public class IOError extends Error {
 
 	/**
-	 * @param event
-	 * @param message
+	 * Creates a new instance.
+	 * 
+	 * @param event the event that was being handled when the problem occurred
+	 * @param message the message
 	 */
 	public IOError(Event<?> event, String message) {
 		super(event, message);
 	}
 
 	/**
-	 * @param event
-	 * @param message
-	 * @param throwable
+	 * Creates a new instance.
+	 * 
+	 * @param event the event that was being handled when the problem occurred
+	 * @param message the message
+	 * @param throwable the encountered throwable
 	 */
 	public IOError(Event<?> event, String message, Throwable throwable) {
 		super(event, message, throwable);
 	}
 
 	/**
-	 * @param event
-	 * @param throwable
+	 * Creates a new instance.
+	 * 
+	 * @param event the event that was being handled when the problem occurred
+	 * @param throwable the encountered throwable
 	 */
 	public IOError(Event<?> event, Throwable throwable) {
 		super(event, throwable);

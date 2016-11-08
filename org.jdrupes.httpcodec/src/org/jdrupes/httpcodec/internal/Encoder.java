@@ -69,6 +69,8 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 
 	/**
 	 * Creates a new encoder.
+	 * 
+	 * @param engine the engine to use
 	 */
 	public Encoder(Engine<? extends MessageHeader, T> engine) {
 		this.engine = engine;
@@ -145,6 +147,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	 *            {@code true} if the data didn't fit in the out buffer
 	 * @param underflow
 	 *            {@code true} if more data is expected
+	 * @return the result
 	 */
 	protected abstract CodecResult newResult(boolean overflow,
 	        boolean underflow);

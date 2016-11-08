@@ -36,6 +36,9 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	
 	/**
 	 * Create a pool that contains the (wrapped) buffers as initial content.
+	 * 
+	 * @param wrapped the class to wrap the buffers in
+	 * @param buffers the buffers to wrap
 	 */
 	@SafeVarargs
 	public ManagedBufferQueue(Class<W> wrapped, T... buffers) {

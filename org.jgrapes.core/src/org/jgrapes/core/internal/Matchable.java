@@ -36,6 +36,7 @@ public interface Matchable {
 	 * criterion provided by a handler.
 	 * 
 	 * @param criterion the criterion provided by the handler
+	 * @return {@code true} if the criterion matches
 	 */
 	boolean matches(Object criterion);
 }

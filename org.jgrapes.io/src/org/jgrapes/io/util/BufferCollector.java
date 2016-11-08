@@ -41,7 +41,7 @@ public interface BufferCollector {
 	 * have been released. Usually, the implementation of a buffer collector
 	 * returns the buffer into some kind of pool when this method is invoked.
 	 * 
-	 * @param buffer
+	 * @param buffer the buffer
 	 */
 	void recollect (ManagedBuffer<?> buffer);
 	

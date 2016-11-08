@@ -88,6 +88,8 @@ public interface IOSubchannel extends Channel {
 	 * the initiator of this connection. Consistently using this event pipeline
 	 * for response events ensures that the events are written in proper
 	 * sequence.
+	 * 
+	 * @return the event pipeline
 	 */
 	public abstract EventPipeline getResponsePipeline();
 
@@ -104,6 +106,7 @@ public interface IOSubchannel extends Channel {
 	 * pipeline. Effectively, {@code fire(someEvent)} is a shortcut for
 	 * {@code getResponsePipeline.add(someEvent, this)}.
 	 * 
+	 * @param <T> the event's type
 	 * @param event
 	 *            the event to fire
 	 * @return the event (for easy chaining)

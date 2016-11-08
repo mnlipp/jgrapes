@@ -46,7 +46,8 @@ public class HttpStringField extends HttpField<String> {
 	 * 
 	 * @param name the field name
 	 * @param s the string to parse
-	 * @throws ParseException 
+	 * @return the result
+	 * @throws ParseException if the input violates the field format
 	 */
 	public static HttpStringField fromString(String name, String s)
 			throws ParseException {

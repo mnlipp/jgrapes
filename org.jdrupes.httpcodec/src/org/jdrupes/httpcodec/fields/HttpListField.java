@@ -96,7 +96,7 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	 * Returns the next element from the unparsed value.
 	 * 
 	 * @return the next element or {@code null} if no elements remain
-	 * @throws ParseException 
+	 * @throws ParseException if the input violates the field format
 	 */
 	protected String nextElement() throws ParseException {
 		// RFC 7230 3.2.6

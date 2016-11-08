@@ -72,7 +72,7 @@ public abstract class HttpField<T> implements Cloneable {
 	 * @param fieldValue
 	 *            the field value
 	 * @return a typed representation
-	 * @throws ParseException
+	 * @throws ParseException if the input violates the field format
 	 */
 	public static HttpField<?> fromString(String fieldName,
 	        String fieldValue) throws ParseException {
@@ -180,7 +180,7 @@ public abstract class HttpField<T> implements Cloneable {
 	 * 
 	 * @param value the value to unquote
 	 * @return the unquoted value
-	 * @throws ParseException 
+	 * @throws ParseException if the input violates the field format
 	 */
 	public static String unquote(String value) throws ParseException {
 		// RFC 7230 3.2.6

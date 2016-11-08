@@ -78,7 +78,8 @@ public class HttpDateField extends HttpField<Instant> {
 	 *            the field name
 	 * @param s
 	 *            the string to parse
-	 * @throws ParseException
+	 * @return the result
+	 * @throws ParseException if the input violates the field format
 	 */
 	public static HttpDateField fromString(String name, String s)
 	        throws ParseException {
