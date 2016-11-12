@@ -65,8 +65,8 @@ public class CompletedTest {
 		}
 		while (app.counter > 0) {
 			assertTrue(!test1.isDone());
-			app.counter -= 1;
 			synchronized (app) {
+				app.counter -= 1;
 				app.notifyAll();
 			}
 		}
