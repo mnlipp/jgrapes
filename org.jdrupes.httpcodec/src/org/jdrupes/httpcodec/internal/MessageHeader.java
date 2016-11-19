@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
+import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.fields.HttpField;
 
 /**

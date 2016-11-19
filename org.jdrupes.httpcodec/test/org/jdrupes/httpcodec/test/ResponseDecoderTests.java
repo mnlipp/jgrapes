@@ -6,7 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.ProtocolException;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.client.HttpResponseDecoder;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpSetCookieListField;

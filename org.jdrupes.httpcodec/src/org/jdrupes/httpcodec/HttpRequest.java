@@ -20,8 +20,8 @@ package org.jdrupes.httpcodec;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
+import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.internal.MessageHeader;
 
 /**

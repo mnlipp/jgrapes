@@ -26,7 +26,7 @@ import java.text.ParseException;
 import java.util.stream.Collectors;
 
 import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;

@@ -23,9 +23,11 @@ import java.nio.ByteBuffer;
  * @author Michael N. Lipp
  *
  */
-public abstract class HttpCodec {
+public interface HttpConstants {
 
-    public static enum HttpProtocol { HTTP_1_0("HTTP/1.0"), HTTP_1_1("HTTP/1.1");
+    public static enum HttpProtocol { 
+    	HTTP_1_0("HTTP/1.0"), HTTP_1_1("HTTP/1.1");
+    	
     	private String repr;
     	
     	HttpProtocol(String repr) {

@@ -7,9 +7,9 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.text.ParseException;
 
-import org.jdrupes.httpcodec.HttpCodec;
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.HttpConstants;
+import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
+import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.server.HttpResponseEncoder;
 import org.jdrupes.httpcodec.HttpResponse;
 import org.junit.Test;
@@ -60,7 +60,7 @@ public class EncoderChunkedTests {
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		// Encode header
-		HttpResponseEncoder.Result result = encoder.encode(HttpCodec.EMPTY_IN,
+		HttpResponseEncoder.Result result = encoder.encode(HttpConstants.EMPTY_IN,
 		        out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
@@ -150,7 +150,7 @@ public class EncoderChunkedTests {
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		// Encode header
-		HttpResponseEncoder.Result result = encoder.encode(HttpCodec.EMPTY_IN,
+		HttpResponseEncoder.Result result = encoder.encode(HttpConstants.EMPTY_IN,
 		        out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());

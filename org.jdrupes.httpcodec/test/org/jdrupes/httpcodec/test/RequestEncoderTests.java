@@ -23,7 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
+import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.client.HttpRequestEncoder;
 import org.jdrupes.httpcodec.HttpRequest;
 import org.junit.Test;

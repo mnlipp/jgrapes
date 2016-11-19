@@ -26,9 +26,9 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
-import org.jdrupes.httpcodec.HttpCodec;
+import org.jdrupes.httpcodec.HttpConstants;
 import org.jdrupes.httpcodec.ProtocolException;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.client.HttpResponseDecoder;
 import org.junit.Test;
 
@@ -254,7 +254,7 @@ public class DecoderClosedTests {
 			result = decoder.decode(buffer, body, false);
 			assertTrue(result.isUnderflow());
 		}
-		result = decoder.decode(HttpCodec.EMPTY_IN, body, true);
+		result = decoder.decode(HttpConstants.EMPTY_IN, body, true);
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertTrue(result.getCloseConnection());
 		assertEquals(HttpStatus.OK.getStatusCode(),

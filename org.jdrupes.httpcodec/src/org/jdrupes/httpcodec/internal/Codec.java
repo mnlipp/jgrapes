@@ -17,7 +17,7 @@
  */
 package org.jdrupes.httpcodec.internal;
 
-import org.jdrupes.httpcodec.HttpCodec;
+import org.jdrupes.httpcodec.HttpConstants;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 
@@ -25,7 +25,7 @@ import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
  * @author Michael N. Lipp
  *
  */
-public class Codec<T extends MessageHeader> extends HttpCodec {
+public class Codec<T extends MessageHeader> implements HttpConstants {
 
 	protected T messageHeader = null;
 	

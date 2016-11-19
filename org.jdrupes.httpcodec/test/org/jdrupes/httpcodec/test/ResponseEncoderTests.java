@@ -5,8 +5,8 @@ import static org.junit.Assert.*;
 import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
+import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.server.HttpResponseEncoder;
 import org.junit.Test;
 

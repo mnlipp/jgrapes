@@ -17,8 +17,8 @@
  */
 package org.jdrupes.httpcodec;
 
-import org.jdrupes.httpcodec.HttpCodec.HttpProtocol;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
+import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
 
 /**
  * Represents a violation of the HTTP protocol. This kind of exception

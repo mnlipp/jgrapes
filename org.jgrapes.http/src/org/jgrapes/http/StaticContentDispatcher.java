@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jgrapes.core.Channel;

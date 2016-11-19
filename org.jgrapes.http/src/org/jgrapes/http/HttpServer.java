@@ -27,8 +27,8 @@ import java.util.List;
 
 import org.jdrupes.httpcodec.HttpRequest;
 import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpCodec;
-import org.jdrupes.httpcodec.HttpCodec.HttpStatus;
+import org.jdrupes.httpcodec.HttpConstants;
+import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jdrupes.httpcodec.server.HttpRequestDecoder;
@@ -258,7 +258,7 @@ public class HttpServer extends Component {
 			downChannel.outBuffer = netChannel.bufferPool().acquire();
 			final ManagedByteBuffer buffer = downChannel.outBuffer;
 			HttpResponseEncoder.Result result = engine
-			        .encode(HttpCodec.EMPTY_IN, buffer.getBacking(), false);
+			        .encode(HttpConstants.EMPTY_IN, buffer.getBacking(), false);
 			if (result.isOverflow()) {
 				fire(new Output<>(buffer), netChannel);
 				continue;
