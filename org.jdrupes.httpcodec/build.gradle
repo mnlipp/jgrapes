@@ -1,0 +1,7 @@
+jar {
+    
+    into('META-INF/services') {
+        from 'services'
+    }
+    
+}
