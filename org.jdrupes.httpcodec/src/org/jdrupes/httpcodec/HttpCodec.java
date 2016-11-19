@@ -117,7 +117,7 @@ public abstract class HttpCodec {
 		}
     }
 
-	final public static String TOKEN_CHARS 
+	public final static String TOKEN_CHARS 
 		= "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 			+ "^`abcdefghijklmnopqrstuvwxyz|~";
 
