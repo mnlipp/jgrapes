@@ -19,4 +19,4 @@
  * @author Michael N. Lipp
  *
  */
-package org.jdrupes.httpcodec.server;
+package org.jdrupes.httpcodec.protocols.http.server;

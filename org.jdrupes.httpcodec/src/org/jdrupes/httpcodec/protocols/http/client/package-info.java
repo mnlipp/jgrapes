@@ -15,16 +15,8 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.server;
-
-import org.jdrupes.httpcodec.internal.ServerEngine;
-
 /**
- * An engine that can be used as an HTTP server. It has an associated
- * request decoder and response encoder.
- * 
  * @author Michael N. Lipp
+ *
  */
-public class HttpServerEngine extends ServerEngine {
-
-}
+package org.jdrupes.httpcodec.protocols.http.client;

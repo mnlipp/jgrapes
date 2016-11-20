@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.internal;
+package org.jdrupes.httpcodec.protocols.http;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -30,6 +30,8 @@ import java.nio.charset.CoderResult;
 import java.util.Iterator;
 import java.util.Stack;
 
+import org.jdrupes.httpcodec.Codec;
+import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpDateField;
 import org.jdrupes.httpcodec.fields.HttpField;
@@ -40,10 +42,13 @@ import org.jdrupes.httpcodec.util.ByteBufferOutputStream;
 import org.jdrupes.httpcodec.util.ByteBufferUtils;
 
 /**
+ * Implements an encoder for HTTP. The class can be used as base class for both
+ * a request and a response encoder.
+ * 
  * @author Michael N. Lipp
- *
  */
-public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
+public abstract class HttpEncoder<T extends HttpMessageHeader,
+	RT extends Codec.Result> extends HttpCodec<T> implements Encoder<T> {
 
 	private enum State {
 		// Main states
@@ -54,7 +59,6 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 		STREAM_BODY, FLUSH_ENCODER
 	}
 
-	private Engine<? extends MessageHeader, T> engine = null;
 	private Stack<State> states = new Stack<>();
 	private boolean closeAfterBody = false;
 	private ByteBufferOutputStream outStream;
@@ -69,11 +73,8 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 
 	/**
 	 * Creates a new encoder.
-	 * 
-	 * @param engine the engine to use
 	 */
-	public Encoder(Engine<? extends MessageHeader, T> engine) {
-		this.engine = engine;
+	public HttpEncoder() {
 		outStream = new ByteBufferOutputStream();
 		try {
 			writer = new OutputStreamWriter(outStream, "ascii");
@@ -130,7 +131,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	 * 
 	 * @param messageHeader
 	 *            the message header to encode (see
-	 *            {@link #encode(MessageHeader)}
+	 *            {@link #encode(HttpMessageHeader)}
 	 * @param writer
 	 *            the Writer to use for writing
 	 * @throws IOException
@@ -149,7 +150,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	 *            {@code true} if more data is expected
 	 * @return the result
 	 */
-	protected abstract CodecResult newResult(boolean overflow,
+	protected abstract RT newResult(boolean overflow,
 	        boolean underflow);
 
 	/**
@@ -163,29 +164,10 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 			throw new IllegalStateException();
 		}
 		this.messageHeader = messageHeader;
-		if (engine != null) {
-			engine.encoding(messageHeader);
-		}
 		charEncoder = null;
 		charWriter = null;
 	}
 
-	/**
-	 * Convenience method for invoking
-	 * {@link #encode(Buffer, ByteBuffer, boolean)} with an empty {@code in}
-	 * buffer and {@code true}. Can be used to get the result of encoding a 
-	 * message without body.
-	 * 
-	 * @param out
-	 *            the buffer to which data is written
-	 * @return the result
-	 */
-	public CodecResult encode(ByteBuffer out) {
-		return encode(EMPTY_IN, out, true);
-	}
-
-	private final static CodecResult CONTINUE = new CodecResult(false, false);
-	
 	/**
 	 * Encodes a HTTP message.
 	 * 
@@ -199,10 +181,10 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	 *            no body at all)
 	 * @return the result
 	 */
-	public CodecResult encode(Buffer in, ByteBuffer out,
+	public RT encode(Buffer in, ByteBuffer out,
 	        boolean endOfInput) {
 		outStream.assignBuffer(out);
-		CodecResult result = CONTINUE;
+		RT result = newResult(false, false);
 		if (out.remaining() == 0) {
 			return newResult(true, false);
 		}
@@ -462,7 +444,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	 * @param out
 	 * @param endOfInput
 	 */
-	private CodecResult copyBodyData(Buffer in, ByteBuffer out,
+	private RT copyBodyData(Buffer in, ByteBuffer out,
 	        boolean endOfInput) {
 		if (in instanceof CharBuffer) {
 			// copy via encoder
@@ -490,7 +472,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	 * @param in
 	 * @param endOfInput
 	 */
-	private CodecResult collectBody(Buffer in, boolean endOfInput) {
+	private RT collectBody(Buffer in, boolean endOfInput) {
 		if (collectedBodyData.remaining() - in.remaining() < -pendingLimit) {
 			// No space left, output headers, collected and rest (and then
 			// close)
@@ -500,7 +482,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 			states.push(State.STREAM_BODY);
 			states.push(State.STREAM_COLLECTED);
 			states.push(State.HEADERS);
-			return CONTINUE;
+			return newResult(false, false);
 		}
 		// Space left, collect
 		if (in instanceof ByteBuffer) {
@@ -535,7 +517,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 			states.pop();
 			states.push(State.STREAM_COLLECTED);
 			states.push(State.HEADERS);
-			return CONTINUE;
+			return newResult(false, false);
 		}
 		// Get more input
 		return newResult(false, true);
@@ -547,8 +529,7 @@ public abstract class Encoder<T extends MessageHeader> extends Codec<T> {
 	 * @param in
 	 * @return
 	 */
-	private CodecResult startChunk(Buffer in, ByteBuffer out,
-	        boolean endOfInput) {
+	private RT startChunk(Buffer in, ByteBuffer out, boolean endOfInput) {
 		if (endOfInput) {
 			states.pop();
 			states.push(State.FINISH_CHUNKED);

@@ -23,9 +23,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
-import org.jdrupes.httpcodec.client.HttpRequestEncoder;
-import org.jdrupes.httpcodec.HttpRequest;
+import org.jdrupes.httpcodec.protocols.http.HttpRequest;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
+import org.jdrupes.httpcodec.protocols.http.client.HttpRequestEncoder;
 import org.junit.Test;
 
 /**

@@ -25,14 +25,17 @@ import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.util.stream.Collectors;
 
-import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
-import org.jdrupes.httpcodec.HttpRequest;
+import org.jdrupes.httpcodec.Codec;
+import org.jdrupes.httpcodec.ProtocolException;
+import org.jdrupes.httpcodec.RequestDecoder;
+import org.jdrupes.httpcodec.ServerEngine;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
-import org.jdrupes.httpcodec.server.HttpRequestDecoder;
-import org.jdrupes.httpcodec.server.HttpResponseEncoder;
-import org.jdrupes.httpcodec.server.HttpServerEngine;
+import org.jdrupes.httpcodec.protocols.http.HttpRequest;
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;
+import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
 import org.jdrupes.httpcodec.util.FormUrlDecoder;
 
 /**
@@ -42,15 +45,16 @@ import org.jdrupes.httpcodec.util.FormUrlDecoder;
 public class Connection extends Thread {
 
 	private SocketChannel channel;
-	private HttpServerEngine engine;
-	private HttpRequestDecoder.Result decoderResult;
-	private HttpResponseEncoder.Result encoderResult;
+	private ServerEngine<HttpRequest, HttpResponse> engine;
+	private RequestDecoder.Result<HttpResponse> decoderResult;
+	private Codec.Result encoderResult;
 	private ByteBuffer in;
 	private ByteBuffer out;
 	
 	public Connection(SocketChannel channel) {
 		this.channel = channel;
-		engine = new HttpServerEngine();
+		engine = new ServerEngine<>
+			(new HttpRequestDecoder(), new HttpResponseEncoder());
 		in = ByteBuffer.allocate(2048);
 		out = ByteBuffer.allocate(2048);
 	}
@@ -67,14 +71,14 @@ public class Connection extends Thread {
 				in.flip();
 				decoderResult = engine.decode(in, null, false);
 				if (decoderResult.hasResponse()) {
-					sendResponseWithoutBody(decoderResult.getResponse());
+					sendResponseWithoutBody	(decoderResult.getResponse());
 					break;
 				}
 				if (decoderResult.isHeaderCompleted()) {
 					handleRequest();
 				}
 			}
-		} catch (IOException e) {
+		} catch (IOException | ProtocolException e) {
 		}
 	}
 
@@ -137,7 +141,10 @@ public class Connection extends Thread {
 		FormUrlDecoder fieldDecoder = new FormUrlDecoder();
 		while (true) {
 			out.clear();
-			decoderResult = engine.decode(in, out, false);
+			try {
+				decoderResult = engine.decode(in, out, false);
+			} catch (ProtocolException e) {
+			}
 			out.flip();
 			fieldDecoder.addData(out);
 			if (decoderResult.isOverflow()) {

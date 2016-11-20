@@ -21,7 +21,7 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.jdrupes.httpcodec.HttpConstants;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants;
 
 /**
  * A base class for all kinds of header field values.

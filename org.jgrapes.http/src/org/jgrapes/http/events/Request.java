@@ -19,7 +19,7 @@ package org.jgrapes.http.events;
 
 import java.net.URI;
 
-import org.jdrupes.httpcodec.HttpRequest;
+import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletedEvent;
 import org.jgrapes.core.Components;

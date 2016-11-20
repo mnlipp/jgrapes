@@ -5,9 +5,10 @@ import static org.junit.Assert.*;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.ProtocolException;
-import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
-import org.jdrupes.httpcodec.client.HttpResponseDecoder;
+import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
+import org.jdrupes.httpcodec.ResponseDecoder;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder;
 import org.junit.Test;
 
 public class DecoderChunkedTests {
@@ -16,11 +17,11 @@ public class DecoderChunkedTests {
 	 * Response with body determined by length.
 	 * 
 	 * @throws UnsupportedEncodingException
-	 * @throws ProtocolException 
+	 * @throws HttpProtocolException 
 	 */
 	@Test
 	public void testWithBodyLengthAtOnce()
-	        throws UnsupportedEncodingException, ProtocolException {
+	        throws UnsupportedEncodingException, HttpProtocolException {
 		String reqText = "HTTP/1.1 200 OK\r\n"
 				+ "Date: Sat, 23 Jul 2016 16:54:54 GMT\r\n"
 				+ "Last-Modified: Fri, 11 Apr 2014 15:15:17 GMT\r\n"
@@ -36,7 +37,7 @@ public class DecoderChunkedTests {
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpResponseDecoder.Result result = decoder.decode(in, body, false);
+		ResponseDecoder.Result result = decoder.decode(in, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertFalse(result.getCloseConnection());
@@ -55,11 +56,11 @@ public class DecoderChunkedTests {
 	 * Response with body determined by length (first header then body).
 	 * 
 	 * @throws UnsupportedEncodingException
-	 * @throws ProtocolException 
+	 * @throws HttpProtocolException 
 	 */
 	@Test
 	public void testWithBodySeparatePhases()
-	        throws UnsupportedEncodingException, ProtocolException {
+	        throws UnsupportedEncodingException, HttpProtocolException {
 		String reqText = "HTTP/1.1 200 OK\r\n"
 				+ "Date: Sat, 23 Jul 2016 16:54:54 GMT\r\n"
 				+ "Last-Modified: Fri, 11 Apr 2014 15:15:17 GMT\r\n"
@@ -75,7 +76,7 @@ public class DecoderChunkedTests {
 				+ "\r\n";
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
-		HttpResponseDecoder.Result result = decoder.decode(in, null, false);
+		ResponseDecoder.Result result = decoder.decode(in, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertFalse(result.getCloseConnection());
@@ -106,11 +107,11 @@ public class DecoderChunkedTests {
 	 * Response with body determined by length.
 	 * 
 	 * @throws UnsupportedEncodingException
-	 * @throws ProtocolException 
+	 * @throws HttpProtocolException 
 	 */
 	@Test
 	public void testWithBodyLengthTiny()
-	        throws UnsupportedEncodingException, ProtocolException {
+	        throws UnsupportedEncodingException, HttpProtocolException {
 		String reqText = "HTTP/1.1 200 OK\r\n"
 				+ "Date: Sat, 23 Jul 2016 16:54:54 GMT\r\n"
 				+ "Last-Modified: Fri, 11 Apr 2014 15:15:17 GMT\r\n"
@@ -126,7 +127,7 @@ public class DecoderChunkedTests {
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpResponseDecoder.Result result = Common.tinyDecodeLoop(decoder, in,
+		ResponseDecoder.Result result = Common.tinyDecodeLoop(decoder, in,
 		        body);
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertEquals(HttpStatus.OK.getStatusCode(),

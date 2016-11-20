@@ -15,28 +15,15 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.internal;
-
-import org.jdrupes.httpcodec.HttpConstants;
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+package org.jdrupes.httpcodec;
 
 /**
+ * Represents a message header (either request or response) which preceeds
+ * the option payload data. Header and payload together form the complete
+ * message.
+ * 
  * @author Michael N. Lipp
- *
  */
-public class Codec<T extends MessageHeader> implements HttpConstants {
+public interface MessageHeader {
 
-	protected T messageHeader = null;
-	
-	protected String bodyCharset() {
-		HttpMediaTypeField contentType = messageHeader
-		        .getField(HttpMediaTypeField.class, HttpField.CONTENT_TYPE);
-		if (contentType == null
-				|| contentType.getParameter("charset") == null) {
-			return "utf-8";
-		}
-		return contentType.getParameter("charset");
-	}
-	
 }

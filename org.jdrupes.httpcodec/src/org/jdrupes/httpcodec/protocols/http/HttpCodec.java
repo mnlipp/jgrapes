@@ -15,8 +15,29 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+package org.jdrupes.httpcodec.protocols.http;
+
+import org.jdrupes.httpcodec.Codec;
+import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+
 /**
  * @author Michael N. Lipp
  *
  */
-package org.jdrupes.httpcodec.internal;
+public class HttpCodec<T extends HttpMessageHeader> 
+	implements Codec, HttpConstants {
+
+	protected T messageHeader = null;
+	
+	protected String bodyCharset() {
+		HttpMediaTypeField contentType = messageHeader
+		        .getField(HttpMediaTypeField.class, HttpField.CONTENT_TYPE);
+		if (contentType == null
+				|| contentType.getParameter("charset") == null) {
+			return "utf-8";
+		}
+		return contentType.getParameter("charset");
+	}
+	
+}

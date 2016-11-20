@@ -15,21 +15,21 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.client;
+package org.jdrupes.httpcodec.protocols.http.client;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jdrupes.httpcodec.HttpRequest;
-import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.ProtocolException;
+import org.jdrupes.httpcodec.Engine;
+import org.jdrupes.httpcodec.ResponseDecoder;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
-import org.jdrupes.httpcodec.internal.Decoder;
-import org.jdrupes.httpcodec.internal.DecoderResult;
-import org.jdrupes.httpcodec.internal.Engine;
+import org.jdrupes.httpcodec.protocols.http.HttpDecoder;
+import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
+import org.jdrupes.httpcodec.protocols.http.HttpRequest;
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 
 /**
  * A decoder for HTTP responses that accepts data from a sequence of
@@ -37,7 +37,9 @@ import org.jdrupes.httpcodec.internal.Engine;
  * 
  * @author Michael N. Lipp
  */
-public class HttpResponseDecoder extends Decoder<HttpResponse> {
+public class HttpResponseDecoder 
+	extends HttpDecoder<HttpResponse, ResponseDecoder.Result>
+	implements ResponseDecoder<HttpResponse, HttpRequest> {
 
 	// RFC 7230 3.1.2
 	private final static Pattern responseLinePatter = Pattern
@@ -52,7 +54,7 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	 * @param engine the engine
 	 */
 	public HttpResponseDecoder(Engine<HttpResponse, HttpRequest> engine) {
-		super(engine);
+		super();
 	}
 
 	/*
@@ -63,9 +65,10 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	 * HttpMessage, boolean, boolean, boolean)
 	 */
 	@Override
-	protected DecoderResult newResult(boolean headerCompleted,
+	protected ResponseDecoder.Result newResult(boolean headerCompleted,
 	        boolean overflow, boolean underflow) {
-		return new Result(headerCompleted, overflow, underflow, isClosed());
+		return new ResponseDecoder.Result
+				(headerCompleted, overflow, underflow, isClosed());
 	}
 
 	/**
@@ -85,9 +88,10 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	 * @see org.jdrupes.httpcodec.internal.Decoder#decode(java.nio.ByteBuffer, java.nio.ByteBuffer)
 	 */
 	@Override
-	public Result decode(ByteBuffer in, Buffer out, boolean endOfInput)
-	        throws ProtocolException {
-		return (Result)super.decode(in, out, endOfInput);
+	public ResponseDecoder.Result decode
+		(ByteBuffer in, Buffer out, boolean endOfInput)
+	        throws HttpProtocolException {
+		return super.decode(in, out, endOfInput);
 	}
 
 	/**
@@ -98,14 +102,14 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	 * Called by the base class when a first line is received.
 	 * 
 	 * @param startLine the first line
-	 * @throws ProtocolException if the line is not a correct request line
+	 * @throws HttpProtocolException if the line is not a correct request line
 	 */
 	@Override
 	protected HttpResponse newMessage(String startLine)
-	        throws ProtocolException {
+	        throws HttpProtocolException {
 		Matcher responseMatcher = responseLinePatter.matcher(startLine);
 		if (!responseMatcher.matches()) {
-			throw new ProtocolException(protocolVersion,
+			throw new HttpProtocolException(protocolVersion,
 			        HttpStatus.BAD_REQUEST.getStatusCode(),
 			        "Illegal request line");
 		}
@@ -120,7 +124,7 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 			}
 		}
 		if (!found) {
-			throw new ProtocolException(HttpProtocol.HTTP_1_1,
+			throw new HttpProtocolException(HttpProtocol.HTTP_1_1,
 			        HttpStatus.HTTP_VERSION_NOT_SUPPORTED);
 		}
 		return new HttpResponse(protocolVersion, statusCode, reasonPhrase,
@@ -136,7 +140,7 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 	 */
 	@Override
 	protected BodyMode headerReceived(HttpResponse message)
-	        throws ProtocolException {
+	        throws HttpProtocolException {
 		// RFC 7230 3.3.3 (1. & 2.)
 		int statusCode = message.getStatusCode();
 		if (requestMethod.equalsIgnoreCase("HEAD")
@@ -166,37 +170,4 @@ public class HttpResponseDecoder extends Decoder<HttpResponse> {
 		return BodyMode.UNTIL_CLOSE;
 	}
 
-	public class Result extends DecoderResult {
-
-		boolean closeConnection;
-		
-		/**
-		 * Returns a new result.
-		 * 
-		 * @param headerCompleted
-		 *            indicates that the message header has been completed and
-		 *            the message (without body) is available
-		 * @param overflow
-		 *            {@code true} if the data didn't fit in the out buffer
-		 * @param underflow
-		 *            {@code true} if more data is expected
-		 * @param closeConnection
-		 *            {@code true} if the connection should be closed
-		 */
-		public Result(boolean headerCompleted, boolean overflow,
-		        boolean underflow, boolean closeConnection) {
-			super(headerCompleted, overflow, underflow);
-			this.closeConnection = closeConnection;
-		}
-
-		/**
-		 * Indicates that the connection to the sender of the response must be
-		 * closed.
-		 * 
-		 * @return the value
-		 */
-		public boolean getCloseConnection() {
-			return closeConnection;
-		}
-	}
 }

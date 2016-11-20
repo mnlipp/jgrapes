@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.server;
+package org.jdrupes.httpcodec.protocols.http.server;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -24,15 +24,14 @@ import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jdrupes.httpcodec.HttpRequest;
-import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.ProtocolException;
+import org.jdrupes.httpcodec.RequestDecoder;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
-import org.jdrupes.httpcodec.internal.Decoder;
-import org.jdrupes.httpcodec.internal.DecoderResult;
-import org.jdrupes.httpcodec.internal.Engine;
+import org.jdrupes.httpcodec.protocols.http.HttpDecoder;
+import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
+import org.jdrupes.httpcodec.protocols.http.HttpRequest;
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 
 /**
  * A decoder for HTTP requests that accepts data from a sequence of
@@ -40,7 +39,9 @@ import org.jdrupes.httpcodec.internal.Engine;
  * 
  * @author Michael N. Lipp
  */
-public class HttpRequestDecoder extends Decoder<HttpRequest> {
+public class HttpRequestDecoder 
+	extends HttpDecoder<HttpRequest, HttpRequestDecoder.Result>
+	implements RequestDecoder<HttpRequest, HttpResponse> {
 
 	// RFC 7230 3.1.1
 	private final static Pattern requestLinePatter = Pattern
@@ -49,35 +50,35 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 
 	/**
 	 * Creates a new encoder that belongs to the given HTTP engine.
-	 * 
-	 * @param engine the engine
 	 */
-	public HttpRequestDecoder(Engine<HttpRequest, HttpResponse> engine) {
-		super(engine);
+	public HttpRequestDecoder() {
+		super();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.HttpDecoder#createResult(org.jdrupes.httpcodec.HttpMessage, boolean, boolean, boolean)
 	 */
 	@Override
-	protected DecoderResult newResult(boolean headerCompleted,
+	protected Result newResult(
+	        boolean headerCompleted,
 	        boolean overflow, boolean underflow) {
-		return new Result(headerCompleted, null, overflow, underflow);
+		return new Result(headerCompleted, null,
+		        false, overflow, underflow);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.HttpDecoder#decode(java.nio.ByteBuffer)
 	 */
 	@Override
-	public Result decode(ByteBuffer in, Buffer out, boolean endOfInput) {
+	public Result decode (ByteBuffer in, Buffer out, boolean endOfInput) {
 		try {
-			return (Result) super.decode(in, out, endOfInput);
-		} catch (ProtocolException e) {
+			return super.decode(in, out, endOfInput);
+		} catch (HttpProtocolException e) {
 			HttpResponse response = new HttpResponse(e.getHttpVersion(), 
 					e.getStatusCode(), e.getReasonPhrase(), false);
 			response.setField(
 			        new HttpStringListField(HttpField.CONNECTION, "close"));
-			return new Result(false, response, false, false);
+			return new Result(false, response, true, false, false);
 		}
 	}
 
@@ -89,15 +90,15 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 	 * Called by the base class when a first line is received.
 	 * 
 	 * @param startLine the first line
-	 * @throws ProtocolException if the line is not a correct request line
+	 * @throws HttpProtocolException if the line is not a correct request line
 	 */
 	@Override
 	protected HttpRequest newMessage(String startLine)
-	        throws ProtocolException {
+	        throws HttpProtocolException {
 		Matcher requestMatcher = requestLinePatter.matcher(startLine);
 		if (!requestMatcher.matches()) {
 			// RFC 7230 3.1.1
-			throw new ProtocolException(protocolVersion,
+			throw new HttpProtocolException(protocolVersion,
 			        HttpStatus.BAD_REQUEST.getStatusCode(),
 			        "Illegal request line");
 		}
@@ -112,7 +113,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 			}
 		}
 		if (!found) {
-			throw new ProtocolException(HttpProtocol.HTTP_1_1,
+			throw new HttpProtocolException(HttpProtocol.HTTP_1_1,
 			        HttpStatus.HTTP_VERSION_NOT_SUPPORTED);
 		}
 		URI uri = null;
@@ -122,7 +123,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 			try {
 				uri = new URI(uriGroup);
 			} catch (URISyntaxException e) {
-				throw new ProtocolException(protocolVersion,
+				throw new HttpProtocolException(protocolVersion,
 				        HttpStatus.BAD_REQUEST.getStatusCode(), e.getMessage());
 			}
 		}
@@ -134,7 +135,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 	 */
 	@Override
 	protected BodyMode headerReceived(HttpRequest message) 
-			throws ProtocolException {
+			throws HttpProtocolException {
 		// Handle field of special interest
 		HttpStringField host = message.getField(HttpStringField.class,
 		        HttpField.HOST);
@@ -144,14 +145,14 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 				message.setHostAndPort(hostPort[0], 
 						Integer.parseInt(hostPort[1]));
 			} catch (NumberFormatException e) {
-				throw new ProtocolException(protocolVersion,
+				throw new HttpProtocolException(protocolVersion,
 				        HttpStatus.BAD_REQUEST.getStatusCode(),
 				        "Invalid Host port.");
 			}
 		} else {
 			// RFC 7230 5.4.
 			if (message.getProtocol().compareTo(HttpProtocol.HTTP_1_1) >= 0) {
-				throw new ProtocolException(protocolVersion,
+				throw new HttpProtocolException(protocolVersion,
 				        HttpStatus.BAD_REQUEST.getStatusCode(),
 				        "HTTP 1.1 request must have a Host field.");
 			}
@@ -172,7 +173,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 			HttpStringListField tec = transEncs.clone();
 			tec.removeIgnoreCase(TransferCoding.CHUNKED.toString());
 			if (tec.size() > 0) {
-				throw new ProtocolException(protocolVersion,
+				throw new HttpProtocolException(protocolVersion,
 				        HttpStatus.NOT_IMPLEMENTED);
 			}
 			// RFC 7230 3.3.3 (3.)
@@ -181,7 +182,7 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 				        .equalsIgnoreCase(TransferCoding.CHUNKED.toString())) {
 					return BodyMode.CHUNKED;
 				} else {
-					throw new ProtocolException(protocolVersion,
+					throw new HttpProtocolException(protocolVersion,
 					        HttpStatus.BAD_REQUEST);
 				}
 			}
@@ -194,45 +195,36 @@ public class HttpRequestDecoder extends Decoder<HttpRequest> {
 		return BodyMode.NO_BODY;
 	}
 
-	public class Result extends DecoderResult {
-
-		private HttpResponse response;
+	/**
+	 * Short for {@code RequestDecoder.Result<HttpResponse>}, provided
+	 * for convenience.
+	 * 
+	 * @author Michael N. Lipp
+	 */
+	public static class Result extends RequestDecoder.Result<HttpResponse> {
 
 		/**
 		 * Creates a new result.
 		 * 
-		 * @param headerCompleted {@code true} if the header has completely
-		 * been decoded
-		 * @param response a response to send due to an error
-		 * @param overflow {@code true} if the data didn't fit in the out buffer
-		 * @param underflow {@code true} if more data is expected
+		 * @param headerCompleted
+		 *            {@code true} if the header has completely been decoded
+		 * @param response
+		 *            a response to send due to an error
+		 * @param requestCompleted
+		 *            if the result includes a response this flag indicates that
+		 *            no further processing besides sending the response is
+		 *            required
+		 * @param overflow
+		 *            {@code true} if the data didn't fit in the out buffer
+		 * @param underflow
+		 *            {@code true} if more data is expected
 		 */
 		public Result(boolean headerCompleted, HttpResponse response,
-		        boolean overflow, boolean underflow) {
-			super(headerCompleted, overflow, underflow);
-			this.response = response;
+		        boolean requestCompleted, boolean overflow, 
+		        boolean underflow) {
+			super(headerCompleted, response, requestCompleted, overflow,
+			        underflow);
+			// TODO Auto-generated constructor stub
 		}
-
-		/**
-		 * Returns {@code true} if the result includes a response
-		 * (see @link #getResponse()}.
-		 * 
-		 * @return the result
-		 */
-		public boolean hasResponse() {
-			return response != null;
-		}
-		
-		/**
-		 * Returns the response if a response exists. A response in
-		 * the decoder result indicates that some problem occurred that
-		 * must be signaled back to the client.
-		 * 
-		 * @return the response
-		 */
-		public HttpResponse getResponse() {
-			return response;
-		}
-
 	}
 }

@@ -15,21 +15,22 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.internal;
+package org.jdrupes.httpcodec.protocols.http;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
+import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.fields.HttpField;
 
 /**
- * Represents a HTTP message header (either request or response).
+ * Represents an HTTP message header (either request or response).
  * 
  * @author Michael N. Lipp
  */
-public abstract class MessageHeader {
+public abstract class HttpMessageHeader 
+	implements MessageHeader, HttpConstants {
 
 	private HttpProtocol httpProtocol;
 	private Map<String,HttpField<?>> headers 
@@ -42,7 +43,7 @@ public abstract class MessageHeader {
 	 * @param httpProtocol the HTTP protocol
 	 * @param messageHasBody indicates that a body is expected after the header
 	 */
-	public MessageHeader(HttpProtocol httpProtocol, boolean messageHasBody) {
+	public HttpMessageHeader(HttpProtocol httpProtocol, boolean messageHasBody) {
 		this.httpProtocol = httpProtocol;
 		this.messageHasBody = messageHasBody;
 	}

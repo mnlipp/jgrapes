@@ -26,10 +26,11 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
-import org.jdrupes.httpcodec.HttpConstants;
-import org.jdrupes.httpcodec.ProtocolException;
-import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
-import org.jdrupes.httpcodec.client.HttpResponseDecoder;
+import org.jdrupes.httpcodec.Codec;
+import org.jdrupes.httpcodec.ResponseDecoder;
+import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder;
 import org.junit.Test;
 
 /**
@@ -42,11 +43,11 @@ public class DecoderClosedTests {
 	 * Response with body terminated by close.
 	 * 
 	 * @throws UnsupportedEncodingException
-	 * @throws ProtocolException 
+	 * @throws HttpProtocolException 
 	 */
 	@Test
 	public void testBodyClosedAtOnce()
-	        throws UnsupportedEncodingException, ProtocolException {
+	        throws UnsupportedEncodingException, HttpProtocolException {
 		String reqText = "HTTP/1.1 200 OK\r\n"
 				+ "Date: Sat, 23 Jul 2016 16:54:54 GMT\r\n"
 				+ "Last-Modified: Fri, 11 Apr 2014 15:15:17 GMT\r\n"
@@ -57,7 +58,7 @@ public class DecoderClosedTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpResponseDecoder.Result result = decoder.decode(buffer, body, true);
+		ResponseDecoder.Result result = decoder.decode(buffer, body, true);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertTrue(result.getCloseConnection());
@@ -76,11 +77,11 @@ public class DecoderClosedTests {
 	 * Response with body terminated by close (delayed close).
 	 * 
 	 * @throws UnsupportedEncodingException
-	 * @throws ProtocolException 
+	 * @throws HttpProtocolException 
 	 */
 	@Test
 	public void testBodyClosedSeparatePhases()
-	        throws UnsupportedEncodingException, ProtocolException {
+	        throws UnsupportedEncodingException, HttpProtocolException {
 		String reqText = "HTTP/1.1 200 OK\r\n"
 				+ "Date: Sat, 23 Jul 2016 16:54:54 GMT\r\n"
 				+ "Last-Modified: Fri, 11 Apr 2014 15:15:17 GMT\r\n"
@@ -91,7 +92,7 @@ public class DecoderClosedTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpResponseDecoder.Result result = decoder.decode(buffer, body, false);
+		ResponseDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertFalse(result.getCloseConnection());
@@ -120,11 +121,11 @@ public class DecoderClosedTests {
 	 * Response with body terminated by close.
 	 * 
 	 * @throws UnsupportedEncodingException
-	 * @throws ProtocolException 
+	 * @throws HttpProtocolException 
 	 */
 	@Test
 	public void testBodyClosedTiny()
-	        throws UnsupportedEncodingException, ProtocolException {
+	        throws UnsupportedEncodingException, HttpProtocolException {
 		String reqText = "HTTP/1.1 200 OK\r\n"
 				+ "Date: Sat, 23 Jul 2016 16:54:54 GMT\r\n"
 				+ "Last-Modified: Fri, 11 Apr 2014 15:15:17 GMT\r\n"
@@ -136,7 +137,7 @@ public class DecoderClosedTests {
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer out = ByteBuffer.allocate(1024);
 		Common.tinyDecodeLoop(decoder, in, out);
-		HttpResponseDecoder.Result result = decoder.decode(in, out, true);
+		ResponseDecoder.Result result = decoder.decode(in, out, true);
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertTrue(result.getCloseConnection());
 		assertEquals(HttpStatus.OK.getStatusCode(),
@@ -154,11 +155,11 @@ public class DecoderClosedTests {
 	 * Response with body terminated by close.
 	 * 
 	 * @throws UnsupportedEncodingException
-	 * @throws ProtocolException 
+	 * @throws HttpProtocolException 
 	 */
 	@Test
 	public void testCharBodyClosedAtOnce()
-	        throws UnsupportedEncodingException, ProtocolException {
+	        throws UnsupportedEncodingException, HttpProtocolException {
 		String reqText = "HTTP/1.1 200 OK\r\n"
 				+ "Date: Sat, 23 Jul 2016 16:54:54 GMT\r\n"
 				+ "Last-Modified: Fri, 11 Apr 2014 15:15:17 GMT\r\n"
@@ -169,7 +170,7 @@ public class DecoderClosedTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("utf-8"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		CharBuffer body = CharBuffer.allocate(1024);
-		HttpResponseDecoder.Result result = decoder.decode(buffer, body, true);
+		ResponseDecoder.Result result = decoder.decode(buffer, body, true);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertTrue(result.getCloseConnection());
@@ -186,11 +187,11 @@ public class DecoderClosedTests {
 	 * Response with body terminated by close and small output buffer.
 	 * 
 	 * @throws UnsupportedEncodingException
-	 * @throws ProtocolException 
+	 * @throws HttpProtocolException 
 	 */
 	@Test
 	public void testCharBodyClosedTinyOut()
-	        throws UnsupportedEncodingException, ProtocolException {
+	        throws UnsupportedEncodingException, HttpProtocolException {
 		String reqText = "HTTP/1.1 200 OK\r\n"
 				+ "Date: Sat, 23 Jul 2016 16:54:54 GMT\r\n"
 				+ "Last-Modified: Fri, 11 Apr 2014 15:15:17 GMT\r\n"
@@ -200,7 +201,7 @@ public class DecoderClosedTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("utf-8"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		CharBuffer body = CharBuffer.allocate(1);
-		HttpResponseDecoder.Result result = decoder.decode(buffer, body, true);
+		ResponseDecoder.Result result = decoder.decode(buffer, body, true);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertFalse(result.getCloseConnection());
@@ -226,12 +227,12 @@ public class DecoderClosedTests {
 	/**
 	 * Response with body terminated by close and small output buffer.
 	 * 
-	 * @throws ProtocolException 
+	 * @throws HttpProtocolException 
 	 * @throws IOException 
 	 */
 	@Test
 	public void testCharBodyClosedTinyIn()
-	        throws ProtocolException, IOException {
+	        throws HttpProtocolException, IOException {
 		String reqText = "HTTP/1.1 200 OK\r\n"
 				+ "Date: Sat, 23 Jul 2016 16:54:54 GMT\r\n"
 				+ "Last-Modified: Fri, 11 Apr 2014 15:15:17 GMT\r\n"
@@ -243,7 +244,7 @@ public class DecoderClosedTests {
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		CharBuffer body = CharBuffer.allocate(1024);
 		byte[] ba = new byte[1];
-		HttpResponseDecoder.Result result;
+		ResponseDecoder.Result result;
 		while (true) {
 			int b = is.read();
 			if (b == -1) {
@@ -254,7 +255,7 @@ public class DecoderClosedTests {
 			result = decoder.decode(buffer, body, false);
 			assertTrue(result.isUnderflow());
 		}
-		result = decoder.decode(HttpConstants.EMPTY_IN, body, true);
+		result = decoder.decode(Codec.EMPTY_IN, body, true);
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertTrue(result.getCloseConnection());
 		assertEquals(HttpStatus.OK.getStatusCode(),

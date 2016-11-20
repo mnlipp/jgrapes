@@ -15,16 +15,17 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.client;
-
-import org.jdrupes.httpcodec.internal.ClientEngine;
+package org.jdrupes.httpcodec;
 
 /**
- * An engine that can be used as an HTTP client. It has an associated
- * request encoder and a response decoder.
+ * Represents an engine with an associated encoder and decoder.
+ * 
+ * @param <D> the message header type handled by the decoder
+ * @param <E> the message header type handled be the encoder
  * 
  * @author Michael N. Lipp
  */
-public class HttpClientEngine extends ClientEngine {
+public abstract class Engine<D extends MessageHeader, 
+	E extends MessageHeader> {
 
 }

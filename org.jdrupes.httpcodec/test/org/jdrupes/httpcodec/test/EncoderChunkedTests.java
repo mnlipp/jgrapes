@@ -7,11 +7,12 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.text.ParseException;
 
-import org.jdrupes.httpcodec.HttpConstants;
-import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
-import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
-import org.jdrupes.httpcodec.server.HttpResponseEncoder;
-import org.jdrupes.httpcodec.HttpResponse;
+import org.jdrupes.httpcodec.Codec;
+import org.jdrupes.httpcodec.ResponseEncoder;
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
 import org.junit.Test;
 
 /**
@@ -31,10 +32,10 @@ public class EncoderChunkedTests {
 		response.setMessageHasBody(true);
 		response.setContentType("text", "plain");
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
-		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		encoder.encode(response);
-		HttpResponseEncoder.Result result = encoder.encode(in, out, true);
+		ResponseEncoder.Result result = encoder.encode(in, out, true);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -56,11 +57,11 @@ public class EncoderChunkedTests {
 		        HttpStatus.OK, false);
 		response.setMessageHasBody(true);
 		response.setContentType("text", "plain");
-		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		// Encode header
-		HttpResponseEncoder.Result result = encoder.encode(HttpConstants.EMPTY_IN,
+		ResponseEncoder.Result result = encoder.encode(Codec.EMPTY_IN,
 		        out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
@@ -98,7 +99,7 @@ public class EncoderChunkedTests {
 		response.setMessageHasBody(true);
 		response.setContentType("text", "plain");
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
-		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		encoder.encode(response);
 		Common.tinyEncodeLoop(encoder, in, out);
@@ -120,11 +121,11 @@ public class EncoderChunkedTests {
 		        HttpStatus.OK, false);
 		response.setMessageHasBody(true);
 		response.setContentType("text", "plain");
-		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		HttpResponseEncoder.Result result = encoder.encode(in, out, true);
+		ResponseEncoder.Result result = encoder.encode(in, out, true);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -146,11 +147,11 @@ public class EncoderChunkedTests {
 		        HttpStatus.OK, false);
 		response.setMessageHasBody(true);
 		response.setContentType("text", "plain");
-		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		// Encode header
-		HttpResponseEncoder.Result result = encoder.encode(HttpConstants.EMPTY_IN,
+		ResponseEncoder.Result result = encoder.encode(Codec.EMPTY_IN,
 		        out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
@@ -188,7 +189,7 @@ public class EncoderChunkedTests {
 		response.setMessageHasBody(true);
 		response.setContentType("text", "plain");
 		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
-		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		encoder.encode(response);
 		Common.tinyEncodeLoop(encoder, in, 1, out, 3);

@@ -15,48 +15,45 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.internal;
+package org.jdrupes.httpcodec;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.HttpRequest;
-import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.ProtocolException;
-import org.jdrupes.httpcodec.client.HttpRequestEncoder;
-import org.jdrupes.httpcodec.client.HttpRequestEncoder.Result;
-import org.jdrupes.httpcodec.client.HttpResponseDecoder;
-
 /**
- * An engine that can be used as an HTTP client. It has an associated
- * request encoder and a response decoder. This is the base class that
- * has access to (and provides) the internal API.
+ * An engine that can be used as a client. It has an associated
+ * request encoder and a response decoder.
+ * 
+ * @param <Q> the message header type handled be the encoder (the request)
+ * @param <R> the message header type handled by the decoder (the response)
  * 
  * @author Michael N. Lipp
  */
-public abstract class ClientEngine extends Engine<HttpResponse, HttpRequest> {
+public abstract class ClientEngine<Q extends MessageHeader, 
+	R extends MessageHeader> extends Engine<R, Q> {
 
-	private HttpRequestEncoder requestEncoder;
-	private HttpResponseDecoder responseDecoder;
+	private Encoder<Q> requestEncoder;
+	private ResponseDecoder<R, Q> responseDecoder;
 	
 	/**
-	 * 
+	 * Creates a new instance.
 	 */
-	public ClientEngine() {
-		requestEncoder = new HttpRequestEncoder(this);
-		responseDecoder = new HttpResponseDecoder(this);
+	public ClientEngine(Encoder<Q> requestEncoder, 
+			ResponseDecoder<R, Q> responseDecoder) {
+		this.requestEncoder = requestEncoder;
+		this.responseDecoder = responseDecoder;
 	}
 	
 	/**
 	 * @return the requestEncoder
 	 */
-	public HttpRequestEncoder requestEncoder() {
+	public Encoder<Q> requestEncoder() {
 		return requestEncoder;
 	}
 	/**
 	 * @return the responseDecoder
 	 */
-	public HttpResponseDecoder responseDecoder() {
+	public Decoder<R> responseDecoder() {
 		return responseDecoder;
 	}
 
@@ -65,9 +62,8 @@ public abstract class ClientEngine extends Engine<HttpResponse, HttpRequest> {
 	 * 
 	 * @param out the buffer to use for the result
 	 * @return the result
-	 * @see org.jdrupes.httpcodec.client.HttpRequestEncoder#encode(java.nio.ByteBuffer)
 	 */
-	public Result encode(ByteBuffer out) {
+	public Codec.Result encode(ByteBuffer out) {
 		return requestEncoder.encode(out);
 	}
 
@@ -78,10 +74,8 @@ public abstract class ClientEngine extends Engine<HttpResponse, HttpRequest> {
 	 * @param out the buffer to use for the result
 	 * @param endOfInput {@code true} if end of input
 	 * @return the result
-	 * @see org.jdrupes.httpcodec.client.HttpRequestEncoder#encode(java.nio.Buffer,
-	 *      java.nio.ByteBuffer, boolean)
 	 */
-	public Result encode(Buffer in, ByteBuffer out, boolean endOfInput) {
+	public Codec.Result encode(Buffer in, ByteBuffer out, boolean endOfInput) {
 		return requestEncoder.encode(in, out, endOfInput);
 	}
 
@@ -89,9 +83,8 @@ public abstract class ClientEngine extends Engine<HttpResponse, HttpRequest> {
 	 * Convenience method to invoke the encoder's encode method.
 	 * 
 	 * @param messageHeader the message header
-	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(org.jdrupes.httpcodec.internal.MessageHeader)
 	 */
-	public void encode(HttpRequest messageHeader) {
+	public void encode(Q messageHeader) {
 		requestEncoder.encode(messageHeader);
 	}
 
@@ -99,9 +92,8 @@ public abstract class ClientEngine extends Engine<HttpResponse, HttpRequest> {
 	 * Convenience method to invoke the decoder's decode method.
 	 * 
 	 * @param request the request
-	 * @see org.jdrupes.httpcodec.client.HttpResponseDecoder#decodeResponseTo(org.jdrupes.httpcodec.HttpRequest)
 	 */
-	public void decodeResponseTo(HttpRequest request) {
+	public void decodeResponseTo(Q request) {
 		responseDecoder.decodeResponseTo(request);
 	}
 
@@ -112,37 +104,37 @@ public abstract class ClientEngine extends Engine<HttpResponse, HttpRequest> {
 	 * @param out the buffer to use for the result
 	 * @param endOfInput {@code true} if end of input
 	 * @return the result
-	 * @throws ProtocolException if the input violates the HTTP
-	 * @see org.jdrupes.httpcodec.client.HttpResponseDecoder#decode(java.nio.ByteBuffer,
+	 * @throws HttpProtocolException if the input violates the HTTP
+	 * @see org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder#decode(java.nio.ByteBuffer,
 	 *      java.nio.Buffer, boolean)
 	 */
-	public org.jdrupes.httpcodec.client.HttpResponseDecoder.Result decode(
+	public Decoder.Result decode(
 	        ByteBuffer in, Buffer out, boolean endOfInput)
 	        throws ProtocolException {
 		return responseDecoder.decode(in, out, endOfInput);
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jdrupes.httpcodec.internal.Engine#decoding(org.jdrupes.httpcodec.
-	 * internal.MessageHeader)
-	 */
-	@Override
-	void decoding(HttpResponse response) {
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.jdrupes.httpcodec.internal.Engine#encoding(org.jdrupes.httpcodec.
-	 * internal.MessageHeader)
-	 */
-	@Override
-	void encoding(HttpRequest request) {
-		responseDecoder.decodeResponseTo(request);
-	}
+//	/*
+//	 * (non-Javadoc)
+//	 * 
+//	 * @see
+//	 * org.jdrupes.httpcodec.internal.Engine#decoding(org.jdrupes.httpcodec.
+//	 * internal.MessageHeader)
+//	 */
+//	@Override
+//	void decoding(HttpResponse response) {
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 * 
+//	 * @see
+//	 * org.jdrupes.httpcodec.internal.Engine#encoding(org.jdrupes.httpcodec.
+//	 * internal.MessageHeader)
+//	 */
+//	@Override
+//	void encoding(HttpRequest request) {
+//		responseDecoder.decodeResponseTo(request);
+//	}
 
 }

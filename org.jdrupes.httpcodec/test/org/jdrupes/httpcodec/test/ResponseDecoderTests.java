@@ -5,11 +5,12 @@ import static org.junit.Assert.*;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.ProtocolException;
-import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
-import org.jdrupes.httpcodec.client.HttpResponseDecoder;
+import org.jdrupes.httpcodec.ResponseDecoder;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpSetCookieListField;
+import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder;
 import org.junit.Test;
 
 public class ResponseDecoderTests {
@@ -18,11 +19,11 @@ public class ResponseDecoderTests {
 	 * Response with body determined by length.
 	 * 
 	 * @throws UnsupportedEncodingException
-	 * @throws ProtocolException 
+	 * @throws HttpProtocolException 
 	 */
 	@Test
 	public void testSetCookie()
-	        throws UnsupportedEncodingException, ProtocolException {
+	        throws UnsupportedEncodingException, HttpProtocolException {
 		String reqText = "HTTP/1.1 200 OK\r\n"
 				+ "Date: Sat, 23 Jul 2016 16:54:54 GMT\r\n"
 				+ "Last-Modified: Fri, 11 Apr 2014 15:15:17 GMT\r\n"
@@ -41,7 +42,7 @@ public class ResponseDecoderTests {
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		HttpResponseDecoder.Result result = decoder.decode(in, body, false);
+		ResponseDecoder.Result result = decoder.decode(in, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().messageHasBody());
 		assertFalse(result.getCloseConnection());

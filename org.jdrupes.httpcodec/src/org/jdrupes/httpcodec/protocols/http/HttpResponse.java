@@ -15,23 +15,20 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.protocols.http;
 
 import java.text.ParseException;
 
-import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
-import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
-import org.jdrupes.httpcodec.internal.MessageHeader;
 
 /**
- * Represents
+ * Represents an HTTP response header.
  * 
  * @author Michael N. Lipp
  */
-public class HttpResponse extends MessageHeader {
+public class HttpResponse extends HttpMessageHeader {
 
 	private int statusCode = -1;
 	private String reasonPhrase;

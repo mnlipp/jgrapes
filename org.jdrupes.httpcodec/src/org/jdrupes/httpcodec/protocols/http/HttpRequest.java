@@ -15,21 +15,17 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.protocols.http;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
-import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
-import org.jdrupes.httpcodec.internal.MessageHeader;
-
 /**
- * Represents an HTTP request.
+ * Represents an HTTP request header.
  * 
  * @author Michael N. Lipp
  */
-public class HttpRequest extends MessageHeader {
+public class HttpRequest extends HttpMessageHeader {
 
 	public static final URI ASTERISK_REQUEST 
 		= createUri("http://127.0.0.1/");

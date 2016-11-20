@@ -17,7 +17,7 @@
  */
 package org.jgrapes.http.events;
 
-import org.jdrupes.httpcodec.HttpRequest;
+import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
 
 /**

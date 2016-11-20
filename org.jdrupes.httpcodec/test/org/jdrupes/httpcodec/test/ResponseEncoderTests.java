@@ -4,10 +4,11 @@ import static org.junit.Assert.*;
 
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
-import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
-import org.jdrupes.httpcodec.server.HttpResponseEncoder;
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.ResponseEncoder;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
 import org.junit.Test;
 
 /**
@@ -21,10 +22,10 @@ public class ResponseEncoderTests {
 	public void testSimpleResponse() {
 		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_1,
 		        HttpStatus.OK, false);
-		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		HttpResponseEncoder.Result result = encoder.encode(out);
+		ResponseEncoder.Result result = encoder.encode(out);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -37,12 +38,12 @@ public class ResponseEncoderTests {
 	public void testSimpleResponseTinyOut() {
 		HttpResponse response = new HttpResponse(HttpProtocol.HTTP_1_1,
 		        HttpStatus.OK, false);
-		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		ByteBuffer tinyOut = ByteBuffer.allocate(1);
 		while (true) {
-			HttpResponseEncoder.Result result = encoder.encode(tinyOut);
+			ResponseEncoder.Result result = encoder.encode(tinyOut);
 			assertFalse(result.isUnderflow());
 			assertFalse(result.getCloseConnection());
 			tinyOut.flip();

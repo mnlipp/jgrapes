@@ -15,9 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
-
-import java.nio.ByteBuffer;
+package org.jdrupes.httpcodec.protocols.http;
 
 /**
  * @author Michael N. Lipp
@@ -123,10 +121,4 @@ public interface HttpConstants {
 		= "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 			+ "^`abcdefghijklmnopqrstuvwxyz|~";
 
-	/**
-	 * An empty input buffer that can be used for codec invocations
-	 * when the (expected) body data is not yet available.
-	 */
-	public final static ByteBuffer EMPTY_IN = ByteBuffer.allocate(0);
-	
 }

@@ -17,7 +17,7 @@
  */
 package org.jgrapes.http.events;
 
-import org.jdrupes.httpcodec.HttpResponse;
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jgrapes.core.Event;
 
 /**

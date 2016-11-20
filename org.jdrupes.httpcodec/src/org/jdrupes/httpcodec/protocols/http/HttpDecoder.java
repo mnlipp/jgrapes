@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.internal;
+package org.jdrupes.httpcodec.protocols.http;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.Buffer;
@@ -28,7 +28,7 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jdrupes.httpcodec.ProtocolException;
+import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpListField;
@@ -38,10 +38,14 @@ import org.jdrupes.httpcodec.util.DynamicByteArray;
 import org.jdrupes.httpcodec.util.OptimizedCharsetDecoder;
 
 /**
+ * Implements a decoder for HTTP. The class can be used as base class for both
+ * a request and a response decoder.
+ * 
  * @author Michael N. Lipp
- *
  */
-public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
+public abstract class HttpDecoder<T extends HttpMessageHeader, 
+	RT extends Decoder.Result> 
+	extends HttpCodec<T> implements Decoder<T> {
 
 	final protected static String TOKEN = "[" + Pattern.quote(TOKEN_CHARS)
 	        + "]+";
@@ -66,7 +70,6 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 		NO_BODY, CHUNKED, LENGTH, UNTIL_CLOSE
 	};
 
-	private Engine<T, ? extends MessageHeader> engine = null;
 	private long maxHeaderLength = 4194304;
 	private Stack<State> states = new Stack<>();
 	private DynamicByteArray lineBuilder = new DynamicByteArray(8192);
@@ -80,18 +83,15 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 
 	/**
 	 * Creates a new decoder.
-	 * 
-	 * @param engine the engine to use
 	 */
-	public Decoder(Engine<T, ? extends MessageHeader> engine) {
-		this.engine = engine;
+	public HttpDecoder() {
 		states.push(State.AWAIT_MESSAGE_START);
 		states.push(State.RECEIVE_LINE);
 	}
 
 	/**
 	 * Sets the maximum size for the complete header. If the size is exceeded, a
-	 * {@link ProtocolException} will be thrown. The default size is 4MB
+	 * {@link HttpProtocolException} will be thrown. The default size is 4MB
 	 * (4194304 Byte).
 	 * 
 	 * @param maxHeaderLength
@@ -137,10 +137,10 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	 * @param startLine
 	 *            the start line (first line) of the message
 	 * @return the new HttpMessage object that is to hold the decoded data
-	 * @throws ProtocolException if the input violates the HTTP
+	 * @throws HttpProtocolException if the input violates the HTTP
 	 */
 	protected abstract T newMessage(String startLine)
-	        throws ProtocolException;
+	        throws HttpProtocolException;
 
 	/**
 	 * Factory method to be implemented by derived classes that returns a
@@ -155,7 +155,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	 *            {@code true} if more data is expected
 	 * @return the result
 	 */
-	protected abstract DecoderResult newResult(boolean headerCompleted,
+	protected abstract RT newResult(boolean headerCompleted,
 	        boolean overflow, boolean underflow);
 
 	/**
@@ -163,12 +163,12 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	 * 
 	 * @param message the message
 	 * @return indication how the body will be transferred
-	 * @throws ProtocolException if the input violates the HTTP
+	 * @throws HttpProtocolException if the input violates the HTTP
 	 */
 	protected abstract BodyMode headerReceived(T message)
-	        throws ProtocolException;
+	        throws HttpProtocolException;
 
-	private DecoderResult createResult(boolean overflow,
+	private RT createResult(boolean overflow,
 	        boolean underflow, boolean closeConnection) {
 		if (messageHeader != null && building != null) {
 			building = null;
@@ -189,21 +189,21 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	 *            currently in the {@code in} buffer (indicates end of body or
 	 *            no body at all)
 	 * @return the result
-	 * @throws ProtocolException
+	 * @throws HttpProtocolException
 	 *             if the message violates the HTTP
 	 */
-	public DecoderResult decode(ByteBuffer in, Buffer out, boolean endOfInput)
-	        throws ProtocolException {
+	public RT decode (ByteBuffer in, Buffer out, boolean endOfInput)
+	        throws HttpProtocolException {
 		try {
 			return uncheckedDecode(in, out, endOfInput);
 		} catch (ParseException | NumberFormatException e) {
-			throw new ProtocolException(protocolVersion,
+			throw new HttpProtocolException(protocolVersion,
 			        HttpStatus.BAD_REQUEST.getStatusCode(), e.getMessage());
 		}
 	}
 
-	private DecoderResult uncheckedDecode(ByteBuffer in, Buffer out,
-	        boolean endOfInput) throws ProtocolException, ParseException {
+	private RT uncheckedDecode(ByteBuffer in, Buffer out, boolean endOfInput)
+			throws HttpProtocolException, ParseException {
 		while(true) {
 			switch (states.peek()) {
 			// Waiting for CR (start of end of line)
@@ -220,7 +220,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				lineBuilder.append(ch);
 				// RFC 7230 3.2.5
 				if (headerLength + lineBuilder.position() > maxHeaderLength) {
-					throw new ProtocolException(protocolVersion,
+					throw new HttpProtocolException(protocolVersion,
 					        HttpStatus.BAD_REQUEST.getStatusCode(),
 					        "Maximum header size exceeded");
 				}
@@ -244,7 +244,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					states.pop();
 					break;
 				}
-				throw new ProtocolException(protocolVersion,
+				throw new HttpProtocolException(protocolVersion,
 				        HttpStatus.BAD_REQUEST.getStatusCode(),
 				        "CR not followed by LF");
 			}
@@ -256,9 +256,6 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 					break;
 				}
 				building = newMessage(receivedLine);
-				if (engine != null) {
-					engine.decoding(building);
-				}
 				messageHeader = null;
 				charDecoder = null;
 				states.pop();
@@ -328,7 +325,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 				// has been read. There's nothing to do except to wait for
 				// next chunk
 				if (receivedLine.length() != 0) {
-					throw new ProtocolException(protocolVersion,
+					throw new HttpProtocolException(protocolVersion,
 					        HttpStatus.BAD_REQUEST.getStatusCode(),
 					        "No CRLF after chunk data.");
 				}
@@ -420,12 +417,12 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 		}
 	}
 
-	private void newHeaderLine() throws ProtocolException, ParseException {
+	private void newHeaderLine() throws HttpProtocolException, ParseException {
 		headerLength += headerLine.length() + 2;
 		// RFC 7230 3.2
 		Matcher m = headerLinePatter.matcher(headerLine);
 		if (!m.matches()) {
-			throw new ProtocolException(protocolVersion,
+			throw new HttpProtocolException(protocolVersion,
 			        HttpStatus.BAD_REQUEST.getStatusCode(), "Invalid header");
 		}
 		String fieldName = m.group(1);
@@ -445,7 +442,7 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 			        HttpContentLengthField.class, HttpField.CONTENT_LENGTH);
 			if (existing != null && !existing.getValue()
 			        .equals(((HttpContentLengthField) field).getValue())) {
-				throw new ProtocolException(protocolVersion,
+				throw new HttpProtocolException(protocolVersion,
 				        HttpStatus.BAD_REQUEST);
 			}
 			break;
@@ -460,12 +457,12 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 		addHeaderField(field);
 	}
 
-	private void newTrailerLine() throws ProtocolException, ParseException {
+	private void newTrailerLine() throws HttpProtocolException, ParseException {
 		headerLength += headerLine.length() + 2;
 		// RFC 7230 3.2
 		Matcher m = headerLinePatter.matcher(headerLine);
 		if (!m.matches()) {
-			throw new ProtocolException(protocolVersion,
+			throw new HttpProtocolException(protocolVersion,
 			        HttpStatus.BAD_REQUEST.getStatusCode(), "Invalid header");
 		}
 		String fieldName = m.group(1);
@@ -486,14 +483,14 @@ public abstract class Decoder<T extends MessageHeader> extends Codec<T> {
 	}
 
 	private void addHeaderField(HttpField<?> field)
-	        throws ProtocolException, ParseException {
+	        throws HttpProtocolException, ParseException {
 		// RFC 7230 3.2.2
 		HttpField<?> existing = building.fields().get(field.getName());
 		if (existing != null) {
 			if (!(existing instanceof HttpListField<?>)
 			        || !(field instanceof HttpListField<?>)
 			        || !(existing.getClass().equals(field.getClass()))) {
-				throw new ProtocolException(protocolVersion,
+				throw new HttpProtocolException(protocolVersion,
 				        HttpStatus.BAD_REQUEST.getStatusCode(),
 				        "Multiple occurences of field " + field.getName());
 			}

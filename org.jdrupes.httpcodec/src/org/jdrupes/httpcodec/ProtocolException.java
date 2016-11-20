@@ -17,13 +17,9 @@
  */
 package org.jdrupes.httpcodec;
 
-import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
-import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
-
 /**
- * Represents a violation of the HTTP protocol. This kind of exception
- * is thrown by the HTTP codecs when a problem is detected while encoding
- * or decoding a message.
+ * Represents the base class of all exceptions thrown due to protocol
+ * violations.
  * 
  * @author Michael N. Lipp
  */
@@ -31,64 +27,43 @@ public class ProtocolException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 
-	private HttpProtocol httpProtocol;
-	private int statusCode;
-	private String reasonPhrase;
-
 	/**
-	 * Creates a new exception with the given values.
 	 * 
-	 * @param httpProtocol the HTTP version
-	 * @param statusCode the status code
-	 * @param reasonPhrase the reason phrase
 	 */
-	public ProtocolException(HttpProtocol httpProtocol, int statusCode,
-	        String reasonPhrase) {
-		super(String.format("%03d %s", statusCode, reasonPhrase));
-		this.httpProtocol = httpProtocol;
-		this.statusCode = statusCode;
-		this.reasonPhrase = reasonPhrase;
+	public ProtocolException() {
 	}
 
 	/**
-	 * Creates a new exception with the standard reason phrase.
-	 * 
-	 * @param httpProtocol the HTTP version
-	 * @param status the status
+	 * @param message the message
 	 */
-	public ProtocolException(HttpProtocol httpProtocol, HttpStatus status) {
-		super(String.format("%03d %s", status.getStatusCode(),
-				status.getReasonPhrase()));
-		this.httpProtocol = httpProtocol;
-		this.statusCode = status.getStatusCode();
-		this.reasonPhrase = status.getReasonPhrase();
-	}
-	
-	/**
-	 * Returns the HTTP version.
-	 * 
-	 * @return the HTTP Version
-	 */
-	public HttpProtocol getHttpVersion() {
-		return httpProtocol;
-	}
-	
-	/**
-	 * Returns the status code.
-	 * 
-	 * @return the statusCode
-	 */
-	public int getStatusCode() {
-		return statusCode;
+	public ProtocolException(String message) {
+		super(message);
 	}
 
 	/**
-	 * Returns the reason phrase.
-	 * 
-	 * @return the reasonPhrase
+	 * @param cause the cause
 	 */
-	public String getReasonPhrase() {
-		return reasonPhrase;
+	public ProtocolException(Throwable cause) {
+		super(cause);
 	}
-	
+
+	/**
+	 * @param message the message
+	 * @param cause the cause
+	 */
+	public ProtocolException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	/**
+	 * @param message the message
+	 * @param cause the cause
+	 * @param enableSuppression whether to enable suppression
+	 * @param writableStackTrace whether the stack trace is writable
+	 */
+	public ProtocolException(String message, Throwable cause,
+	        boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
+
 }

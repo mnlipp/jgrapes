@@ -25,15 +25,17 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jdrupes.httpcodec.HttpRequest;
-import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.HttpConstants;
-import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.Codec;
+import org.jdrupes.httpcodec.ProtocolException;
+import org.jdrupes.httpcodec.RequestDecoder;
+import org.jdrupes.httpcodec.ServerEngine;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
-import org.jdrupes.httpcodec.server.HttpRequestDecoder;
-import org.jdrupes.httpcodec.server.HttpResponseEncoder;
-import org.jdrupes.httpcodec.server.HttpServerEngine;
+import org.jdrupes.httpcodec.protocols.http.HttpRequest;
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;
+import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.DynamicHandler;
@@ -68,12 +70,13 @@ import org.jgrapes.net.events.Accepted;
 public class HttpServer extends Component {
 
 	private class DownSubchannel extends LinkedIOSubchannel {
-		public HttpServerEngine engine;
+		public ServerEngine<HttpRequest,HttpResponse> engine;
 		public ManagedByteBuffer outBuffer;
 
 		public DownSubchannel(IOSubchannel upstreamChannel) {
 			super(HttpServer.this, upstreamChannel);
-			engine = new HttpServerEngine();
+			engine = new ServerEngine<>
+				(new HttpRequestDecoder(), new HttpResponseEncoder());
 		}
 	}
 
@@ -149,12 +152,14 @@ public class HttpServer extends Component {
 	 * @param event the event
 	 */
 	@DynamicHandler
-	public void onInput(Input<ManagedByteBuffer> event) {
+	public void onInput(Input<ManagedByteBuffer> event) 
+			throws ProtocolException {
 		IOSubchannel netChannel = event.firstChannel(IOSubchannel.class);
 		final DownSubchannel downChannel = (DownSubchannel) LinkedIOSubchannel
 		        .lookupLinked(netChannel);
 		// Get data associated with the channel
-		final HttpServerEngine engine = downChannel.engine;
+		final ServerEngine<HttpRequest,HttpResponse> engine 
+			= downChannel.engine;
 		if (engine == null) {
 			throw new IllegalStateException(
 			        "Read event for unknown connection.");
@@ -164,7 +169,7 @@ public class HttpServer extends Component {
 		ByteBuffer in = event.getBuffer().getBacking();
 		ManagedByteBuffer bodyData = null;
 		while (in.hasRemaining()) {
-			HttpRequestDecoder.Result result = engine.decode(in,
+			RequestDecoder.Result<HttpResponse> result = engine.decode(in,
 			        bodyData == null ? null : bodyData.getBacking(), false);
 			if (result.isHeaderCompleted()) {
 				fireRequest(engine.currentRequest(), downChannel);
@@ -249,7 +254,8 @@ public class HttpServer extends Component {
 	public void onResponse(Response event) throws InterruptedException {
 		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
 		final IOSubchannel netChannel = downChannel.getUpstreamChannel();
-		final HttpServerEngine engine = downChannel.engine;
+		final ServerEngine<HttpRequest,HttpResponse> engine 
+			= downChannel.engine;
 		final HttpResponse response = event.getResponse();
 
 		// Start sending the response
@@ -257,8 +263,8 @@ public class HttpServer extends Component {
 		while (true) {
 			downChannel.outBuffer = netChannel.bufferPool().acquire();
 			final ManagedByteBuffer buffer = downChannel.outBuffer;
-			HttpResponseEncoder.Result result = engine
-			        .encode(HttpConstants.EMPTY_IN, buffer.getBacking(), false);
+			Codec.Result result = engine.encode
+					(Codec.EMPTY_IN, buffer.getBacking(), false);
 			if (result.isOverflow()) {
 				fire(new Output<>(buffer), netChannel);
 				continue;
@@ -290,14 +296,15 @@ public class HttpServer extends Component {
 	        throws InterruptedException {
 		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
 		final IOSubchannel netChannel = downChannel.getUpstreamChannel();
-		final HttpServerEngine engine = downChannel.engine;
+		final ServerEngine<HttpRequest,HttpResponse> engine 
+			= downChannel.engine;
 
 		Buffer in = event.getBuffer().getBacking();
 		if (!(in instanceof ByteBuffer)) {
 			return;
 		}
 		while (true) {
-			HttpResponseEncoder.Result result = engine.encode((ByteBuffer) in,
+			Codec.Result result = engine.encode((ByteBuffer) in,
 			        downChannel.outBuffer.getBacking(), false);
 			if (!result.isOverflow()) {
 				break;
@@ -348,13 +355,12 @@ public class HttpServer extends Component {
 	        throws InterruptedException {
 		final DownSubchannel down = (DownSubchannel) LinkedIOSubchannel
 		        .lookupLinked(netChannel);
-		final HttpServerEngine engine = down.engine;
+		final ServerEngine<HttpRequest,HttpResponse> engine = down.engine;
 
 		// Send remaining data
 		while (true) {
 			final ManagedByteBuffer buffer = down.outBuffer;
-			HttpResponseEncoder.Result result = engine
-			        .encode(buffer.getBacking());
+			Codec.Result result = engine.encode(buffer.getBacking());
 			if (!result.isOverflow()) {
 				if (buffer.position() > 0) {
 					netChannel.fire(new Output<>(buffer));

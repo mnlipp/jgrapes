@@ -6,11 +6,12 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 
-import org.jdrupes.httpcodec.HttpConstants;
-import org.jdrupes.httpcodec.HttpConstants.HttpProtocol;
-import org.jdrupes.httpcodec.HttpConstants.HttpStatus;
-import org.jdrupes.httpcodec.server.HttpResponseEncoder;
-import org.jdrupes.httpcodec.HttpResponse;
+import org.jdrupes.httpcodec.Codec;
+import org.jdrupes.httpcodec.ResponseEncoder;
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
 import org.junit.Test;
 
 /**
@@ -31,10 +32,10 @@ public class EncoderContentLengthTests {
 		response.setContentType("text", "plain");
 		response.setContentLength(12);
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
-		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		HttpResponseEncoder.Result result = encoder.encode(in, out, true);
+		ResponseEncoder.Result result = encoder.encode(in, out, true);
 		// Check result
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
@@ -53,11 +54,11 @@ public class EncoderContentLengthTests {
 		response.setMessageHasBody(true);
 		response.setContentType("text", "plain");
 		response.setContentLength(12);
-		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		// Encode header
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		HttpResponseEncoder.Result result = encoder.encode(HttpConstants.EMPTY_IN,
+		ResponseEncoder.Result result = encoder.encode(Codec.EMPTY_IN,
 		        out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
@@ -91,7 +92,7 @@ public class EncoderContentLengthTests {
 		response.setContentType("text", "plain");
 		response.setContentLength(12);
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
-		HttpResponseEncoder encoder = new HttpResponseEncoder(null);
+		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		Common.tinyEncodeLoop(encoder, in, out);

@@ -15,24 +15,25 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.client;
+package org.jdrupes.httpcodec.protocols.http.client;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.HttpRequest;
-import org.jdrupes.httpcodec.HttpResponse;
-import org.jdrupes.httpcodec.internal.CodecResult;
-import org.jdrupes.httpcodec.internal.Encoder;
-import org.jdrupes.httpcodec.internal.Engine;
+import org.jdrupes.httpcodec.Codec;
+import org.jdrupes.httpcodec.Engine;
+import org.jdrupes.httpcodec.protocols.http.HttpEncoder;
+import org.jdrupes.httpcodec.protocols.http.HttpRequest;
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class HttpRequestEncoder extends Encoder<HttpRequest> {
+public class HttpRequestEncoder 
+	extends HttpEncoder<HttpRequest, Codec.Result> {
 
 	/**
 	 * Creates a new encoder that belongs to the given HTTP engine.
@@ -40,7 +41,7 @@ public class HttpRequestEncoder extends Encoder<HttpRequest> {
 	 * @param engine the engine
 	 */
 	public HttpRequestEncoder(Engine<HttpResponse, HttpRequest> engine) {
-		super(engine);
+		super();
 	}
 
 	/* (non-Javadoc)
@@ -48,7 +49,7 @@ public class HttpRequestEncoder extends Encoder<HttpRequest> {
 	 */
 	@Override
 	protected Result newResult(boolean overflow, boolean underflow) {
-		return new Result(overflow, underflow);
+		return new Codec.Result(overflow, underflow);
 	}
 
 	/* (non-Javadoc)
@@ -70,7 +71,7 @@ public class HttpRequestEncoder extends Encoder<HttpRequest> {
 	 */
 	@Override
 	public Result encode(ByteBuffer out) {
-		return (Result)super.encode(out);
+		return super.encode(out);
 	}
 
 	/* (non-Javadoc)
@@ -78,22 +79,7 @@ public class HttpRequestEncoder extends Encoder<HttpRequest> {
 	 */
 	@Override
 	public Result encode(Buffer in, ByteBuffer out, boolean endOfInput) {
-		return (Result)super.encode(in, out, endOfInput);
+		return super.encode(in, out, endOfInput);
 	}
 
-	public class Result extends CodecResult {
-
-		/**
-		 * Returns a new result.
-		 *
-		 * @param overflow
-		 *            {@code true} if the data didn't fit in the out buffer
-		 * @param underflow
-		 *            {@code true} if more data is expected
-		 */
-		public Result(boolean overflow, boolean underflow) {
-			super(overflow, underflow);
-		}
-	}
-	
 }

@@ -15,30 +15,8 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.internal;
-
 /**
- * Represents an engine with an associated encoder and decoder.
- * 
  * @author Michael N. Lipp
+ *
  */
-public abstract class Engine<D extends MessageHeader, E extends MessageHeader> {
-
-	/**
-	 * Invoked by the decoder as soon as it has created the basic 
-	 * message object.
-	 * 
-	 * @param message the basic message object
-	 * @see Decoder#newMessage(String)
-	 */
-	abstract void decoding (D message);
-
-	/**
-	 * Invoked by the encoder when it knows about the message to be encoded.
-	 * 
-	 * @param message the message to be encoded
-	 * @see Encoder#encode(MessageHeader)
-	 */
-	abstract void encoding (E message);
-
-}
+package org.jdrupes.httpcodec.protocols.http;
