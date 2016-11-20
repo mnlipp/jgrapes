@@ -31,6 +31,7 @@ import org.jdrupes.httpcodec.RequestDecoder;
 import org.jdrupes.httpcodec.ServerEngine;
 import org.jdrupes.httpcodec.fields.HttpField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
@@ -89,7 +90,8 @@ public class Connection extends Thread {
 				handleGetForm(request);
 				return;
 			}
-			if (request.getRequestUri().getPath().equals("/echo")) {
+			if (request.getRequestUri().getPath().equals("/echo")
+					|| request.getRequestUri().getPath().startsWith("/echo/")) {
 				handleEcho(request);
 				return;
 			}
@@ -176,6 +178,10 @@ public class Connection extends Thread {
 	}
 
 	private void handleEcho(HttpRequest request) throws IOException {
+		if (request.getField(HttpStringListField.class, "upgrade")
+				.map(f -> f.containsIgnoreCase("websocket")).orElse(false)) {
+			upgradeEcho(request);
+		}
 		HttpResponse response = engine.currentRequest().getResponse();
 		response.setStatus(HttpStatus.OK);
 		response.setMessageHasBody(true);
@@ -196,6 +202,14 @@ public class Connection extends Thread {
 		sendResponse(response, body, true);
 	}
 
+	private void upgradeEcho(HttpRequest request) throws IOException {
+		HttpResponse response = engine.currentRequest().getResponse();
+		response.setStatus(HttpStatus.SWITCHING_PROTOCOLS);
+		response.setField((new HttpStringListField(HttpField.UPGRADE))
+				.append("websocket"));
+		sendResponse(response, null, true);
+	}
+	
 	private void sendResponseWithoutBody(HttpResponse response)
 	        throws IOException {
 		engine.encode(response);

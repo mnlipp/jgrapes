@@ -186,6 +186,17 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	}
 
 	/**
+	 * Appends the value to the list of values.
+	 * 
+	 * @param value the value
+	 * @return the field
+	 */
+	public HttpListField<T> append(T value) {
+		elements.add(value);
+		return this;
+	}
+	
+	/**
 	 * Combine this list with another list of the same type.
 	 * 
 	 * @param other the other list
