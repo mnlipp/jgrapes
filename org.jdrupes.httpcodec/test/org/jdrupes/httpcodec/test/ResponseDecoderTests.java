@@ -57,7 +57,8 @@ public class ResponseDecoderTests {
 		assertEquals("Hello World!", bodyText);
 		// Set-Cookies
 		HttpSetCookieListField field = decoder.getHeader()
-		        .getField(HttpSetCookieListField.class, HttpField.SET_COOKIE);
+		        .getField(HttpSetCookieListField.class, HttpField.SET_COOKIE)
+		        .orElse(null);
 		assertEquals(2, field.size());
 		assertEquals("deleted", field.valueForName("autorf"));
 		assertEquals("13BEF4C6DC68E5", field.valueForName("MUIDB"));

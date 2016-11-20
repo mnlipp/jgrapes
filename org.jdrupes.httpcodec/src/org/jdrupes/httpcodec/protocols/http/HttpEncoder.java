@@ -352,7 +352,8 @@ public abstract class HttpEncoder<T extends HttpMessageHeader,
 		states.push(State.DONE);
 		// Get a default for closeAfterBody from the header fields
 		HttpStringListField conField = messageHeader
-		        .getField(HttpStringListField.class, HttpField.CONNECTION);
+		        .getField(HttpStringListField.class, HttpField.CONNECTION)
+		        .orElse(null);
 		closeAfterBody = conField != null
 		        && conField.containsIgnoreCase("close");
 		// If there's no body, start outputting header fields
@@ -362,7 +363,7 @@ public abstract class HttpEncoder<T extends HttpMessageHeader,
 		}
 		// Message has a body, find out how to handle it
 		HttpIntField cl = messageHeader.getField(HttpIntField.class,
-		        HttpField.CONTENT_LENGTH);
+		        HttpField.CONTENT_LENGTH).orElse(null);
 		leftToStream = (cl == null ? -1 : cl.getValue());
 		if (leftToStream >= 0) {
 			// Easiest: we have a content length, works always
@@ -374,7 +375,8 @@ public abstract class HttpEncoder<T extends HttpMessageHeader,
 		        .compareTo(HttpProtocol.HTTP_1_0) > 0) {
 			// At least 1.1, use chunked
 			HttpStringListField transEnc = messageHeader.getField(
-			        HttpStringListField.class, HttpField.TRANSFER_ENCODING);
+			        HttpStringListField.class, HttpField.TRANSFER_ENCODING)
+					.orElse(null);
 			if (transEnc == null) {
 				messageHeader.setField(new HttpStringListField(
 				        HttpField.TRANSFER_ENCODING,

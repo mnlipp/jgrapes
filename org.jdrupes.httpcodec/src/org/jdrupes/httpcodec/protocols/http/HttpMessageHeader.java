@@ -19,6 +19,7 @@ package org.jdrupes.httpcodec.protocols.http;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import org.jdrupes.httpcodec.MessageHeader;
@@ -85,16 +86,16 @@ public abstract class HttpMessageHeader
 	}
 
 	/**
-	 * Returns the header field with the given type and name or {@code null}
-	 * if no such header is set.
+	 * Returns the header field with the given type if it exists.
 	 * 
 	 * @param <T> the header field class
 	 * @param type the header field type
 	 * @param name the field name
 	 * @return the header field or {@code null}
 	 */
-	public <T extends HttpField<?>> T getField(Class<T> type, String name) {
-		return type.cast(headers.get(name));
+	public <T extends HttpField<?>> Optional<T> 
+		getField(Class<T> type, String name) {
+		return Optional.ofNullable(type.cast(headers.get(name)));
 	}
 	
 	/**

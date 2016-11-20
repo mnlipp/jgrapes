@@ -31,13 +31,9 @@ public class HttpCodec<T extends HttpMessageHeader>
 	protected T messageHeader = null;
 	
 	protected String bodyCharset() {
-		HttpMediaTypeField contentType = messageHeader
-		        .getField(HttpMediaTypeField.class, HttpField.CONTENT_TYPE);
-		if (contentType == null
-				|| contentType.getParameter("charset") == null) {
-			return "utf-8";
-		}
-		return contentType.getParameter("charset");
+		return messageHeader
+			.getField(HttpMediaTypeField.class, HttpField.CONTENT_TYPE)
+			.map(f -> f.getParameter("charset")).orElse("utf-8");
 	}
 	
 }

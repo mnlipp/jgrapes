@@ -24,6 +24,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CoderResult;
 import java.text.ParseException;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -439,7 +440,8 @@ public abstract class HttpDecoder<T extends HttpMessageHeader,
 			}
 			// RFC 7230 3.3.3 (4.)
 			HttpContentLengthField existing = building.getField(
-			        HttpContentLengthField.class, HttpField.CONTENT_LENGTH);
+			        HttpContentLengthField.class, HttpField.CONTENT_LENGTH)
+					.orElse(null);
 			if (existing != null && !existing.getValue()
 			        .equals(((HttpContentLengthField) field).getValue())) {
 				throw new HttpProtocolException(protocolVersion,
@@ -471,7 +473,8 @@ public abstract class HttpDecoder<T extends HttpMessageHeader,
 		HttpField<?> field = HttpField.fromString(fieldName, fieldValue);
 		// RFC 7230 4.4
 		HttpStringListField trailerField = building
-		        .getField(HttpStringListField.class, HttpField.TRAILER);
+		        .getField(HttpStringListField.class, HttpField.TRAILER)
+		        .orElse(null);
 		if (trailerField == null) {
 			trailerField = new HttpStringListField(HttpField.TRAILER);
 			building.setField(trailerField);
@@ -514,7 +517,7 @@ public abstract class HttpDecoder<T extends HttpMessageHeader,
 		case LENGTH:
 			HttpContentLengthField clf = building.getField(
 			        HttpContentLengthField.class,
-			        HttpField.CONTENT_LENGTH);
+			        HttpField.CONTENT_LENGTH).get();
 			leftToRead = clf.getValue();
 			if (leftToRead > 0) {
 				states.push(State.LENGTH_RECEIVED);
@@ -553,9 +556,10 @@ public abstract class HttpDecoder<T extends HttpMessageHeader,
 
 	private void adjustToEndOfMessage() {
 		// RFC 7230 6.3
-		HttpStringListField connection = messageHeader
+		Optional<HttpStringListField> connection = messageHeader
 		        .getField(HttpStringListField.class, HttpField.CONNECTION);
-		if (connection != null && connection.containsIgnoreCase("close")) {
+		if (connection.isPresent() 
+				&& connection.get().containsIgnoreCase("close")) {
 			states.push(State.CLOSED);
 			return;
 		}

@@ -95,6 +95,8 @@ public abstract class HttpField<T> implements Cloneable {
 			return HttpStringListField.fromString(fieldName, fieldValue);
 		case HttpField.TRANSFER_ENCODING:
 			return HttpStringListField.fromString(fieldName, fieldValue);
+		case HttpField.UPGRADE:
+			return HttpStringListField.fromString(fieldName, fieldValue);
 		case HttpField.VIA:
 			return HttpStringListField.fromString(fieldName, fieldValue);
 		default:

@@ -152,7 +152,8 @@ public class HttpResponseDecoder
 			return BodyMode.NO_BODY;
 		}
 		HttpStringListField transEncs = message.getField(
-		        HttpStringListField.class, HttpField.TRANSFER_ENCODING);
+		        HttpStringListField.class, HttpField.TRANSFER_ENCODING)
+				.orElse(null);
 		// RFC 7230 3.3.3 (3.)
 		if (transEncs != null) {
 			if (transEncs.get(transEncs.size() - 1)

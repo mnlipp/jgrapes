@@ -64,7 +64,8 @@ public class RequestDecoderTests {
 		assertEquals("/test",
 		        decoder.getHeader().getRequestUri().getPath());
 		HttpCookieListField field = decoder.getHeader()
-		        .getField(HttpCookieListField.class, HttpField.COOKIE);
+				.getField(HttpCookieListField.class, HttpField.COOKIE)
+				.orElse(null);
 		assertEquals(2, field.size());
 		assertEquals("yes", field.valueForName("_test."));
 		assertEquals("", field.valueForName("gsScrollPos"));
@@ -367,15 +368,16 @@ public class RequestDecoderTests {
 		assertEquals("firstname=J.&lastname=Grapes", bodyText);
 		// Trailer
 		HttpStringListField trailer = decoder.getHeader()
-		        .getField(HttpStringListField.class, HttpField.TRAILER);
+				.getField(HttpStringListField.class, HttpField.TRAILER)
+				.orElse(null);
 		assertEquals(2, trailer.size());
 		trailer.containsIgnoreCase("X-Test-Field");
 		trailer.containsIgnoreCase("X-Summary-Field");
 		HttpStringField testField = decoder.getHeader()
-		        .getField(HttpStringField.class, "X-Test-Field");
+		        .getField(HttpStringField.class, "X-Test-Field").orElse(null);
 		assertEquals("Valid", testField.getValue());
 		testField = decoder.getHeader().getField(HttpStringField.class,
-		        "X-Summary-Field");
+		        "X-Summary-Field").orElse(null);
 		assertEquals("Good", testField.getValue());
 	}
 }

@@ -138,7 +138,7 @@ public class HttpRequestDecoder
 			throws HttpProtocolException {
 		// Handle field of special interest
 		HttpStringField host = message.getField(HttpStringField.class,
-		        HttpField.HOST);
+		        HttpField.HOST).orElse(null);
 		if (host != null) {
 			String[] hostPort = ((HttpStringField)host).getValue().split(":");
 			try {
@@ -158,7 +158,8 @@ public class HttpRequestDecoder
 			}
 		}
 		HttpStringListField connection = message
-		        .getField(HttpStringListField.class, HttpField.CONNECTION);
+		        .getField(HttpStringListField.class, HttpField.CONNECTION)
+		        .orElse(null);
 		if (connection != null && connection.containsIgnoreCase("close")) {
 			// RFC 7230 6.6.
 			message.getResponse().setField(new HttpStringListField(
@@ -167,7 +168,8 @@ public class HttpRequestDecoder
 
 		// Find out about body
 		HttpStringListField transEncs = message.getField(
-		        HttpStringListField.class, HttpField.TRANSFER_ENCODING);
+		        HttpStringListField.class, HttpField.TRANSFER_ENCODING)
+				.orElse(null);
 		if (transEncs != null) {
 			// RFC 7230 3.3.1
 			HttpStringListField tec = transEncs.clone();
