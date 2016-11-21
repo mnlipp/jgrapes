@@ -32,7 +32,7 @@ import java.nio.ByteBuffer;
 public abstract class ClientEngine<Q extends MessageHeader, 
 	R extends MessageHeader> extends Engine<R, Q> {
 
-	private Encoder<Q> requestEncoder;
+	private RequestEncoder<Q> requestEncoder;
 	private ResponseDecoder<R, Q> responseDecoder;
 	
 	/**
@@ -41,7 +41,7 @@ public abstract class ClientEngine<Q extends MessageHeader,
 	 * @param requestEncoder the encoder for the request
 	 * @param responseDecoder the decoder for the response
 	 */
-	public ClientEngine(Encoder<Q> requestEncoder, 
+	public ClientEngine(RequestEncoder<Q> requestEncoder, 
 			ResponseDecoder<R, Q> responseDecoder) {
 		this.requestEncoder = requestEncoder;
 		this.responseDecoder = responseDecoder;

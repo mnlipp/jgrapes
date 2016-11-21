@@ -1,7 +1,7 @@
 jar {
     
-    into('META-INF/services') {
-        from 'services'
+    into('META-INF') {
+        from 'resources/META-INF'
     }
     
 }
