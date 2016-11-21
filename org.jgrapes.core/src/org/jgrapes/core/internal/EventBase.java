@@ -103,12 +103,9 @@ public abstract class EventBase<T> implements Matchable, Future<T> {
 	 * @return the channel or {@code null}
 	 */
 	public <C> C firstChannel(Class<C> type) {
-		for (Channel channel: channels) {
-			if (type.isAssignableFrom(channel.getClass())) {
-				return type.cast(channel);
-			}
-		}
-		return null;
+		return Arrays.stream(channels)
+				.filter(c -> type.isAssignableFrom(c.getClass()))
+				.map(c -> type.cast(c)).findFirst().get();
 	}
 	
 	/**
