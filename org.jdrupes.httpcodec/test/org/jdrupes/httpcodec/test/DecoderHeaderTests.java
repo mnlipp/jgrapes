@@ -43,12 +43,12 @@ public class DecoderHeaderTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(decoder.getHeader().messageHasBody());
-		assertEquals("GET", decoder.getHeader().getMethod());
-		assertEquals("localhost", decoder.getHeader().getHost());
-		assertEquals(8888, decoder.getHeader().getPort());
+		assertFalse(decoder.getHeader().get().messageHasBody());
+		assertEquals("GET", decoder.getHeader().get().getMethod());
+		assertEquals("localhost", decoder.getHeader().get().getHost());
+		assertEquals(8888, decoder.getHeader().get().getPort());
 		assertEquals("/test",
-		        decoder.getHeader().getRequestUri().getPath());
+		        decoder.getHeader().get().getRequestUri().getPath());
 	}
 
 	/**
@@ -75,12 +75,12 @@ public class DecoderHeaderTests {
 		result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(decoder.getHeader().messageHasBody());
-		assertEquals("GET", decoder.getHeader().getMethod());
-		assertEquals("localhost", decoder.getHeader().getHost());
-		assertEquals(8888, decoder.getHeader().getPort());
+		assertFalse(decoder.getHeader().get().messageHasBody());
+		assertEquals("GET", decoder.getHeader().get().getMethod());
+		assertEquals("localhost", decoder.getHeader().get().getHost());
+		assertEquals(8888, decoder.getHeader().get().getPort());
 		assertEquals("/test",
-		        decoder.getHeader().getRequestUri().getPath());
+		        decoder.getHeader().get().getRequestUri().getPath());
 	}
 
 	@Test
@@ -95,12 +95,12 @@ public class DecoderHeaderTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(decoder.getHeader().messageHasBody());
-		assertEquals("GET", decoder.getHeader().getMethod());
-		assertEquals("localhost", decoder.getHeader().getHost());
-		assertEquals(8888, decoder.getHeader().getPort());
+		assertFalse(decoder.getHeader().get().messageHasBody());
+		assertEquals("GET", decoder.getHeader().get().getMethod());
+		assertEquals("localhost", decoder.getHeader().get().getHost());
+		assertEquals(8888, decoder.getHeader().get().getPort());
 		assertEquals("/test",
-		        decoder.getHeader().getRequestUri().getPath());
+		        decoder.getHeader().get().getRequestUri().getPath());
 	}
 
 }

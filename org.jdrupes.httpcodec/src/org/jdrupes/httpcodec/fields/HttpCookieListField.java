@@ -19,6 +19,7 @@ package org.jdrupes.httpcodec.fields;
 
 import java.net.HttpCookie;
 import java.text.ParseException;
+import java.util.Optional;
 
 /**
  * @author Michael N. Lipp
@@ -81,14 +82,10 @@ public class HttpCookieListField extends HttpListField<HttpCookie> {
 	 * Returns the value for the cookie with the given name.
 	 * 
 	 * @param name the name
-	 * @return the value or {@code null} if no cookie with the given name exists
+	 * @return the value if a cookie with the given name exists
 	 */
-	public String valueForName(String name) {
-		for (HttpCookie cookie: this) {
-			if (cookie.getName().equals(name)) {
-				return cookie.getValue();
-			}
-		}
-		return null;
+	public Optional<String> valueForName(String name) {
+		return stream().filter(cookie -> cookie.getName().equals(name))
+				.findFirst().map(HttpCookie::getValue);
 	}
 }

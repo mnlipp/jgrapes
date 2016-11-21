@@ -19,12 +19,13 @@ package org.jdrupes.httpcodec.fields;
 
 import java.net.HttpCookie;
 import java.text.ParseException;
+import java.util.Optional;
 
 /**
- * Represents all "Set-Cookie" fields in a Response header. Several
- * cookies are actually set with several headers. However, to provide
- * uniform access to all header fields, they are converted to a field
- * with a list of values in the internal representation.
+ * Represents all "Set-Cookie" fields in a Response header. Several cookies are
+ * actually set with several headers. However, to provide uniform access to all
+ * header fields, they are converted to a field with a list of values in the
+ * internal representation.
  * 
  * @author Michael N. Lipp
  */
@@ -40,9 +41,11 @@ public class HttpSetCookieListField extends HttpListField<HttpCookie> {
 	/**
 	 * Adds a new cookie obtained by parsing the given String.
 	 * 
-	 * @param s the string to parse
+	 * @param s
+	 *            the string to parse
 	 * @return this object for easy chaining
-	 * @throws ParseException if the input violates the field format
+	 * @throws ParseException
+	 *             if the input violates the field format
 	 */
 	public HttpSetCookieListField addFromString(String s)
 	        throws ParseException {
@@ -61,7 +64,8 @@ public class HttpSetCookieListField extends HttpListField<HttpCookie> {
 	 * @param s
 	 *            the string to parse
 	 * @return this object for easy chaining
-	 * @throws ParseException if the input violates the field format
+	 * @throws ParseException
+	 *             if the input violates the field format
 	 */
 	public static HttpSetCookieListField fromString(String s)
 	        throws ParseException {
@@ -70,8 +74,12 @@ public class HttpSetCookieListField extends HttpListField<HttpCookie> {
 		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.fields.HttpListField#elementToString(java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.jdrupes.httpcodec.fields.HttpListField#elementToString(java.lang.
+	 * Object)
 	 */
 	@Override
 	protected String elementToString(HttpCookie element) {
@@ -81,15 +89,12 @@ public class HttpSetCookieListField extends HttpListField<HttpCookie> {
 	/**
 	 * Returns the value for the cookie with the given name.
 	 * 
-	 * @param name the name
-	 * @return the value or {@code null} if no cookie with the given name exists
+	 * @param name
+	 *            the name
+	 * @return the value if a cookie with the given name exists
 	 */
-	public String valueForName(String name) {
-		for (HttpCookie cookie: this) {
-			if (cookie.getName().equals(name)) {
-				return cookie.getValue();
-			}
-		}
-		return null;
+	public Optional<String> valueForName(String name) {
+		return stream().filter(cookie -> cookie.getName().equals(name))
+			.findFirst().map(HttpCookie::getValue);
 	}
 }

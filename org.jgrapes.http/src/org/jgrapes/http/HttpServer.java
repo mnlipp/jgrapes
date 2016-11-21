@@ -172,7 +172,7 @@ public class HttpServer extends Component {
 			RequestDecoder.Result<HttpResponse> result = engine.decode(in,
 			        bodyData == null ? null : bodyData.getBacking(), false);
 			if (result.isHeaderCompleted()) {
-				fireRequest(engine.currentRequest(), downChannel);
+				fireRequest(engine.currentRequest().get(), downChannel);
 			}
 			if (result.hasResponse()) {
 				// Error during decoding, send back
@@ -189,7 +189,7 @@ public class HttpServer extends Component {
 				continue;
 			}
 			if (!result.isUnderflow()
-			        && engine.currentRequest().messageHasBody()) {
+			        && engine.currentRequest().get().messageHasBody()) {
 				fire(new EndOfRequest(), downChannel);
 			}
 		}

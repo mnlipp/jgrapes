@@ -19,6 +19,7 @@ package org.jdrupes.httpcodec;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 /**
  * The general interface of a decoder.
@@ -50,11 +51,11 @@ public interface Decoder<T extends MessageHeader> extends Codec {
 	
 	/**
 	 * Returns the last message (header) received completely 
-	 * or {@code null} if none has been received yet.
+	 * if it exists.
 	 * 
 	 * @return the result
 	 */
-	public T getHeader();
+	public Optional<T> getHeader();
 	
 	/**
 	 * The result from invoking the decoder. In addition to the general codec

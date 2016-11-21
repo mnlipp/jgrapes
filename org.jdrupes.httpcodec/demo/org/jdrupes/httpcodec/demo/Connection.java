@@ -84,7 +84,7 @@ public class Connection extends Thread {
 	}
 
 	private void handleRequest() throws IOException {
-		HttpRequest request = engine.currentRequest();
+		HttpRequest request = engine.currentRequest().get();
 		if (request.getMethod().equalsIgnoreCase("GET")) {
 			if (request.getRequestUri().getPath().equals("/form")) {
 				handleGetForm(request);
@@ -102,7 +102,7 @@ public class Connection extends Thread {
 			return;
 		}
 		// fall back
-		HttpResponse response = engine.currentRequest().getResponse();
+		HttpResponse response = engine.currentRequest().get().getResponse();
 		response.setStatus(HttpStatus.NOT_FOUND);
 		response.setMessageHasBody(true);
 		HttpMediaTypeField media;
@@ -118,7 +118,7 @@ public class Connection extends Thread {
 	}
 
 	private void handleGetForm(HttpRequest request) throws IOException {
-		HttpResponse response = engine.currentRequest().getResponse();
+		HttpResponse response = engine.currentRequest().get().getResponse();
 		response.setStatus(HttpStatus.OK);
 		response.setMessageHasBody(true);
 		HttpMediaTypeField media;
@@ -139,7 +139,7 @@ public class Connection extends Thread {
 	}
 
 	private void handlePostForm(HttpRequest request) throws IOException {
-		HttpResponse response = engine.currentRequest().getResponse();
+		HttpResponse response = engine.currentRequest().get().getResponse();
 		FormUrlDecoder fieldDecoder = new FormUrlDecoder();
 		while (true) {
 			out.clear();
@@ -182,7 +182,7 @@ public class Connection extends Thread {
 				.map(f -> f.containsIgnoreCase("websocket")).orElse(false)) {
 			upgradeEcho(request);
 		}
-		HttpResponse response = engine.currentRequest().getResponse();
+		HttpResponse response = engine.currentRequest().get().getResponse();
 		response.setStatus(HttpStatus.OK);
 		response.setMessageHasBody(true);
 		HttpMediaTypeField media;
@@ -203,7 +203,7 @@ public class Connection extends Thread {
 	}
 
 	private void upgradeEcho(HttpRequest request) throws IOException {
-		HttpResponse response = engine.currentRequest().getResponse();
+		HttpResponse response = engine.currentRequest().get().getResponse();
 		response.setStatus(HttpStatus.SWITCHING_PROTOCOLS);
 		response.setField((new HttpStringListField(HttpField.UPGRADE))
 				.append("websocket"));

@@ -112,13 +112,12 @@ public abstract class HttpDecoder<T extends HttpMessageHeader,
 	}
 
 	/**
-	 * Returns the message (header) if it has been received completely, else
-	 * {@code null}.
+	 * Returns the message (header) if one exists.
 	 * 
 	 * @return the result
 	 */
-	public T getHeader() {
-		return messageHeader;
+	public Optional<T> getHeader() {
+		return Optional.ofNullable(messageHeader);
 	}
 
 	/**

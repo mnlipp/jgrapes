@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 import org.jdrupes.httpcodec.ResponseDecoder;
 import org.jdrupes.httpcodec.fields.HttpField;
@@ -44,10 +45,10 @@ public class ResponseDecoderTests {
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		ResponseDecoder.Result result = decoder.decode(in, body, false);
 		assertTrue(result.isHeaderCompleted());
-		assertTrue(decoder.getHeader().messageHasBody());
+		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
 		assertEquals(HttpStatus.OK.getStatusCode(),
-		        decoder.getHeader().getStatusCode());
+		        decoder.getHeader().get().getStatusCode());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(in.hasRemaining());
@@ -56,12 +57,12 @@ public class ResponseDecoderTests {
 		        body.limit());
 		assertEquals("Hello World!", bodyText);
 		// Set-Cookies
-		HttpSetCookieListField field = decoder.getHeader()
-		        .getField(HttpSetCookieListField.class, HttpField.SET_COOKIE)
-		        .orElse(null);
-		assertEquals(2, field.size());
-		assertEquals("deleted", field.valueForName("autorf"));
-		assertEquals("13BEF4C6DC68E5", field.valueForName("MUIDB"));
+		Optional<HttpSetCookieListField> field = decoder.getHeader()
+				.flatMap(h -> h.getField
+						(HttpSetCookieListField.class, HttpField.SET_COOKIE));
+		assertEquals(2, field.get().size());
+		assertEquals("deleted", field.get().valueForName("autorf").get());
+		assertEquals("13BEF4C6DC68E5", field.get().valueForName("MUIDB").get());
 	}
 
 }

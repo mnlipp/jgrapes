@@ -91,7 +91,7 @@ public abstract class HttpMessageHeader
 	 * @param <T> the header field class
 	 * @param type the header field type
 	 * @param name the field name
-	 * @return the header field or {@code null}
+	 * @return the header field if it exists
 	 */
 	public <T extends HttpField<?>> Optional<T> 
 		getField(Class<T> type, String name) {

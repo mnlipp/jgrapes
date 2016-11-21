@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 import org.jdrupes.httpcodec.ResponseDecoder;
 import org.jdrupes.httpcodec.fields.HttpField;
@@ -39,10 +40,10 @@ public class DecoderContentLengthTests {
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		ResponseDecoder.Result result = decoder.decode(in, body, false);
 		assertTrue(result.isHeaderCompleted());
-		assertTrue(decoder.getHeader().messageHasBody());
+		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
 		assertEquals(HttpStatus.OK.getStatusCode(),
-		        decoder.getHeader().getStatusCode());
+		        decoder.getHeader().get().getStatusCode());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(in.hasRemaining());
@@ -82,10 +83,10 @@ public class DecoderContentLengthTests {
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ResponseDecoder.Result result = decoder.decode(in, null, false);
 		assertTrue(result.isHeaderCompleted());
-		assertTrue(decoder.getHeader().messageHasBody());
+		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
 		assertEquals(HttpStatus.OK.getStatusCode(),
-		        decoder.getHeader().getStatusCode());
+		        decoder.getHeader().get().getStatusCode());
 		assertTrue(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertTrue(in.hasRemaining());
@@ -93,10 +94,10 @@ public class DecoderContentLengthTests {
 		// Decode body
 		result = decoder.decode(in, body, false);
 		assertFalse(result.isHeaderCompleted());
-		assertTrue(decoder.getHeader().messageHasBody());
+		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
 		assertEquals(HttpStatus.OK.getStatusCode(),
-		        decoder.getHeader().getStatusCode());
+		        decoder.getHeader().get().getStatusCode());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(in.hasRemaining());
@@ -106,12 +107,13 @@ public class DecoderContentLengthTests {
 		        body.limit());
 		assertEquals("Hello World!", bodyText);
 		// Set-Cookies
-		HttpSetCookieListField field = decoder.getHeader()
-		        .getField(HttpSetCookieListField.class, HttpField.SET_COOKIE)
-		        .orElse(null);
-		assertEquals(2, field.size());
-		assertEquals("deleted", field.valueForName("autorf"));
-		assertEquals("13BEF4C6DC68E5", field.valueForName("MUIDB"));
+		Optional<HttpSetCookieListField> field = decoder.getHeader()
+		        .flatMap(h -> h.getField
+		        		(HttpSetCookieListField.class, HttpField.SET_COOKIE));
+		assertTrue(field.isPresent());
+		assertEquals(2, field.get().size());
+		assertEquals("deleted", field.get().valueForName("autorf").get());
+		assertEquals("13BEF4C6DC68E5", field.get().valueForName("MUIDB").get());
 	}
 
 	/**
@@ -145,9 +147,9 @@ public class DecoderContentLengthTests {
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		ResponseDecoder.Result result = Common.tinyDecodeLoop(decoder, in,
 				body);
-		assertTrue(decoder.getHeader().messageHasBody());
+		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertEquals(HttpStatus.OK.getStatusCode(),
-		        decoder.getHeader().getStatusCode());
+		        decoder.getHeader().get().getStatusCode());
 		assertFalse(result.getCloseConnection());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
@@ -157,12 +159,12 @@ public class DecoderContentLengthTests {
 		        body.limit());
 		assertEquals("Hello World!", bodyText);
 		// Set-Cookies
-		HttpSetCookieListField field = decoder.getHeader()
-		        .getField(HttpSetCookieListField.class, HttpField.SET_COOKIE)
-		        .orElse(null);
-		assertEquals(2, field.size());
-		assertEquals("deleted", field.valueForName("autorf"));
-		assertEquals("13BEF4C6DC68E5", field.valueForName("MUIDB"));
+		Optional<HttpSetCookieListField> field = decoder.getHeader()
+		        .flatMap(f -> f.getField
+		        		(HttpSetCookieListField.class, HttpField.SET_COOKIE));
+		assertEquals(2, field.get().size());
+		assertEquals("deleted", field.get().valueForName("autorf").get());
+		assertEquals("13BEF4C6DC68E5", field.get().valueForName("MUIDB").get());
 	}
 
 

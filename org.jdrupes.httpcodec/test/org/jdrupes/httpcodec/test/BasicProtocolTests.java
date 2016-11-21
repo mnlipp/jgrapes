@@ -51,10 +51,10 @@ public class BasicProtocolTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(decoder.getHeader().messageHasBody());
-		assertEquals("GET", decoder.getHeader().getMethod());
-		assertEquals("localhost", decoder.getHeader().getHost());
-		assertEquals(8888, decoder.getHeader().getPort());
+		assertFalse(decoder.getHeader().get().messageHasBody());
+		assertEquals("GET", decoder.getHeader().get().getMethod());
+		assertEquals("localhost", decoder.getHeader().get().getHost());
+		assertEquals(8888, decoder.getHeader().get().getPort());
 	}
 
 	@Test

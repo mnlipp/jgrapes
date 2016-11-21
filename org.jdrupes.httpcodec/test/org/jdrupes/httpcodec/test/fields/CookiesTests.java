@@ -18,10 +18,13 @@ public class CookiesTests {
 				+ "gsScrollPos=";
 		HttpCookieListField field = HttpCookieListField.fromString(header);
 		assertEquals(4, field.size());
-		assertEquals("4001d5958e8ad80", field.valueForName("ui.portal_session"));
-		assertEquals("425ea9b9241f479f8b134b32ad80", field.valueForName("ui.session"));
-		assertEquals("95d519dd36c53ec9.", field.valueForName("_pk_id.10.1fff"));
-		assertEquals("", field.valueForName("gsScrollPos"));
+		assertEquals("4001d5958e8ad80", 
+					field.valueForName("ui.portal_session").get());
+		assertEquals("425ea9b9241f479f8b134b32ad80", 
+					field.valueForName("ui.session").get());
+		assertEquals("95d519dd36c53ec9.", 
+					field.valueForName("_pk_id.10.1fff").get());
+		assertEquals("", field.valueForName("gsScrollPos").get());
 	}
 	
 	public void testSetCookieFromString() throws ParseException {

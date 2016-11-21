@@ -19,6 +19,7 @@ package org.jdrupes.httpcodec;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 /**
  * An engine that can be used as a server. It has an associated
@@ -111,11 +112,11 @@ public class ServerEngine<Q extends MessageHeader, R extends MessageHeader>
 	}
 
 	/**
-	 * Returns the last fully decoded request.
+	 * Returns the last fully decoded request if it exists.
 	 * 
 	 * @return the request
 	 */
-	public Q currentRequest() {
+	public Optional<Q> currentRequest() {
 		return requestDecoder.getHeader();
 	}
 	

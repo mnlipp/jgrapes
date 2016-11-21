@@ -39,10 +39,10 @@ public class DecoderChunkedTests {
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		ResponseDecoder.Result result = decoder.decode(in, body, false);
 		assertTrue(result.isHeaderCompleted());
-		assertTrue(decoder.getHeader().messageHasBody());
+		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
 		assertEquals(HttpStatus.OK.getStatusCode(),
-		        decoder.getHeader().getStatusCode());
+		        decoder.getHeader().get().getStatusCode());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(in.hasRemaining());
@@ -78,10 +78,10 @@ public class DecoderChunkedTests {
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ResponseDecoder.Result result = decoder.decode(in, null, false);
 		assertTrue(result.isHeaderCompleted());
-		assertTrue(decoder.getHeader().messageHasBody());
+		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
 		assertEquals(HttpStatus.OK.getStatusCode(),
-		        decoder.getHeader().getStatusCode());
+		        decoder.getHeader().get().getStatusCode());
 		assertTrue(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertTrue(in.hasRemaining());
@@ -89,10 +89,10 @@ public class DecoderChunkedTests {
 		// Decode body
 		result = decoder.decode(in, body, false);
 		assertFalse(result.isHeaderCompleted());
-		assertTrue(decoder.getHeader().messageHasBody());
+		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
 		assertEquals(HttpStatus.OK.getStatusCode(),
-		        decoder.getHeader().getStatusCode());
+		        decoder.getHeader().get().getStatusCode());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(in.hasRemaining());
@@ -129,9 +129,9 @@ public class DecoderChunkedTests {
 		ByteBuffer body = ByteBuffer.allocate(1024);
 		ResponseDecoder.Result result = Common.tinyDecodeLoop(decoder, in,
 		        body);
-		assertTrue(decoder.getHeader().messageHasBody());
-		assertEquals(HttpStatus.OK.getStatusCode(),
-		        decoder.getHeader().getStatusCode());
+		assertTrue(decoder.getHeader().get().messageHasBody());
+		assertEquals(HttpStatus.OK.getStatusCode(), 
+				decoder.getHeader().get().getStatusCode());
 		assertFalse(result.getCloseConnection());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());

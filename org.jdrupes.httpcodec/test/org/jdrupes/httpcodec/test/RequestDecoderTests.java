@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 import org.jdrupes.httpcodec.fields.HttpCookieListField;
 import org.jdrupes.httpcodec.fields.HttpField;
@@ -59,16 +60,16 @@ public class RequestDecoderTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(decoder.getHeader().messageHasBody());
-		assertEquals("GET", decoder.getHeader().getMethod());
+		assertFalse(decoder.getHeader().get().messageHasBody());
+		assertEquals("GET", decoder.getHeader().get().getMethod());
 		assertEquals("/test",
-		        decoder.getHeader().getRequestUri().getPath());
-		HttpCookieListField field = decoder.getHeader()
-				.getField(HttpCookieListField.class, HttpField.COOKIE)
-				.orElse(null);
-		assertEquals(2, field.size());
-		assertEquals("yes", field.valueForName("_test."));
-		assertEquals("", field.valueForName("gsScrollPos"));
+		        decoder.getHeader().get().getRequestUri().getPath());
+		Optional<HttpCookieListField> field = decoder.getHeader()
+				.flatMap(h -> h.getField
+						(HttpCookieListField.class, HttpField.COOKIE));
+		assertEquals(2, field.get().size());
+		assertEquals("yes", field.get().valueForName("_test.").get());
+		assertEquals("", field.get().valueForName("gsScrollPos").get());
 	}
 
 	
@@ -96,12 +97,12 @@ public class RequestDecoderTests {
 		result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertFalse(decoder.getHeader().messageHasBody());
-		assertEquals("GET", decoder.getHeader().getMethod());
-		assertEquals("localhost", decoder.getHeader().getHost());
-		assertEquals(8888, decoder.getHeader().getPort());
+		assertFalse(decoder.getHeader().get().messageHasBody());
+		assertEquals("GET", decoder.getHeader().get().getMethod());
+		assertEquals("localhost", decoder.getHeader().get().getHost());
+		assertEquals(8888, decoder.getHeader().get().getPort());
 		assertEquals("/test",
-		        decoder.getHeader().getRequestUri().getPath());
+		        decoder.getHeader().get().getRequestUri().getPath());
 	}
 
 	/**
@@ -129,10 +130,10 @@ public class RequestDecoderTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertTrue(decoder.getHeader().messageHasBody());
-		assertEquals("POST", decoder.getHeader().getMethod());
+		assertTrue(decoder.getHeader().get().messageHasBody());
+		assertEquals("POST", decoder.getHeader().get().getMethod());
 		assertEquals("/form",
-		        decoder.getHeader().getRequestUri().getPath());
+		        decoder.getHeader().get().getRequestUri().getPath());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertTrue(!buffer.hasRemaining());
@@ -166,10 +167,10 @@ public class RequestDecoderTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertTrue(decoder.getHeader().messageHasBody());
-		assertEquals("POST", decoder.getHeader().getMethod());
+		assertTrue(decoder.getHeader().get().messageHasBody());
+		assertEquals("POST", decoder.getHeader().get().getMethod());
 		assertEquals("/form",
-		        decoder.getHeader().getRequestUri().getPath());
+		        decoder.getHeader().get().getRequestUri().getPath());
 		assertTrue(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		// Get body
@@ -211,10 +212,10 @@ public class RequestDecoderTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertTrue(decoder.getHeader().messageHasBody());
-		assertEquals("POST", decoder.getHeader().getMethod());
+		assertTrue(decoder.getHeader().get().messageHasBody());
+		assertEquals("POST", decoder.getHeader().get().getMethod());
 		assertEquals("/form",
-		        decoder.getHeader().getRequestUri().getPath());
+		        decoder.getHeader().get().getRequestUri().getPath());
 		assertTrue(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertTrue(buffer.hasRemaining());
@@ -261,10 +262,10 @@ public class RequestDecoderTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertTrue(decoder.getHeader().messageHasBody());
-		assertEquals("POST", decoder.getHeader().getMethod());
+		assertTrue(decoder.getHeader().get().messageHasBody());
+		assertEquals("POST", decoder.getHeader().get().getMethod());
 		assertEquals("/form",
-		        decoder.getHeader().getRequestUri().getPath());
+		        decoder.getHeader().get().getRequestUri().getPath());
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertTrue(!buffer.hasRemaining());
@@ -312,10 +313,10 @@ public class RequestDecoderTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertTrue(decoder.getHeader().messageHasBody());
-		assertEquals("POST", decoder.getHeader().getMethod());
+		assertTrue(decoder.getHeader().get().messageHasBody());
+		assertEquals("POST", decoder.getHeader().get().getMethod());
 		assertEquals("/form",
-		        decoder.getHeader().getRequestUri().getPath());
+		        decoder.getHeader().get().getRequestUri().getPath());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertTrue(!buffer.hasRemaining());
@@ -355,10 +356,10 @@ public class RequestDecoderTests {
 		HttpRequestDecoder.Result result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertFalse(result.hasResponse());
-		assertTrue(decoder.getHeader().messageHasBody());
-		assertEquals("POST", decoder.getHeader().getMethod());
+		assertTrue(decoder.getHeader().get().messageHasBody());
+		assertEquals("POST", decoder.getHeader().get().getMethod());
 		assertEquals("/form",
-		        decoder.getHeader().getRequestUri().getPath());
+		        decoder.getHeader().get().getRequestUri().getPath());
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertTrue(!buffer.hasRemaining());
@@ -367,17 +368,18 @@ public class RequestDecoderTests {
 		        body.limit());
 		assertEquals("firstname=J.&lastname=Grapes", bodyText);
 		// Trailer
-		HttpStringListField trailer = decoder.getHeader()
-				.getField(HttpStringListField.class, HttpField.TRAILER)
-				.orElse(null);
-		assertEquals(2, trailer.size());
-		trailer.containsIgnoreCase("X-Test-Field");
-		trailer.containsIgnoreCase("X-Summary-Field");
-		HttpStringField testField = decoder.getHeader()
-		        .getField(HttpStringField.class, "X-Test-Field").orElse(null);
-		assertEquals("Valid", testField.getValue());
-		testField = decoder.getHeader().getField(HttpStringField.class,
-		        "X-Summary-Field").orElse(null);
-		assertEquals("Good", testField.getValue());
+		Optional<HttpStringListField> trailer = decoder.getHeader()
+				.flatMap(f -> f.getField
+						(HttpStringListField.class, HttpField.TRAILER));
+		assertEquals(2, trailer.get().size());
+		trailer.get().containsIgnoreCase("X-Test-Field");
+		trailer.get().containsIgnoreCase("X-Summary-Field");
+		Optional<HttpStringField> testField = decoder.getHeader()
+		        .flatMap(h -> h.getField
+		        		(HttpStringField.class, "X-Test-Field"));
+		assertEquals("Valid", testField.get().getValue());
+		testField = decoder.getHeader().flatMap
+				(h -> h.getField(HttpStringField.class, "X-Summary-Field"));
+		assertEquals("Good", testField.get().getValue());
 	}
 }
