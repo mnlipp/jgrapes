@@ -1,8 +1,8 @@
 org.jdrupes.httpcodec
-org.jdrupes.httpcodec.client
 org.jdrupes.httpcodec.fields
-org.jdrupes.httpcodec.internal
-org.jdrupes.httpcodec.server
+org.jdrupes.httpcodec.protocols.http
+org.jdrupes.httpcodec.protocols.http.client
+org.jdrupes.httpcodec.protocols.http.server
 org.jdrupes.httpcodec.util
 org.jgrapes.core
 org.jgrapes.core.annotation
