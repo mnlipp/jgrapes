@@ -150,6 +150,7 @@ public class HttpServer extends Component {
 	 * the decoding results.
 	 * 
 	 * @param event the event
+	 * @throws ProtocolException if a protocol exception occurs
 	 */
 	@DynamicHandler
 	public void onInput(Input<ManagedByteBuffer> event) 

@@ -38,6 +38,9 @@ public class ServerEngine<Q extends MessageHeader, R extends MessageHeader>
 	
 	/**
 	 * Creates a new instance.
+	 * 
+	 * @param requestDecoder the decoder for the request
+	 * @param responseEncoder the encoder for the response
 	 */
 	public ServerEngine
 		(RequestDecoder<Q, R> requestDecoder, Encoder<R> responseEncoder) {

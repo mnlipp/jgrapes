@@ -37,6 +37,9 @@ public abstract class ClientEngine<Q extends MessageHeader,
 	
 	/**
 	 * Creates a new instance.
+	 * 
+	 * @param requestEncoder the encoder for the request
+	 * @param responseDecoder the decoder for the response
 	 */
 	public ClientEngine(Encoder<Q> requestEncoder, 
 			ResponseDecoder<R, Q> responseDecoder) {
@@ -104,7 +107,7 @@ public abstract class ClientEngine<Q extends MessageHeader,
 	 * @param out the buffer to use for the result
 	 * @param endOfInput {@code true} if end of input
 	 * @return the result
-	 * @throws HttpProtocolException if the input violates the HTTP
+	 * @throws ProtocolException if the input violates the protocol
 	 * @see org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder#decode(java.nio.ByteBuffer,
 	 *      java.nio.Buffer, boolean)
 	 */
@@ -114,27 +117,4 @@ public abstract class ClientEngine<Q extends MessageHeader,
 		return responseDecoder.decode(in, out, endOfInput);
 	}
 	
-//	/*
-//	 * (non-Javadoc)
-//	 * 
-//	 * @see
-//	 * org.jdrupes.httpcodec.internal.Engine#decoding(org.jdrupes.httpcodec.
-//	 * internal.MessageHeader)
-//	 */
-//	@Override
-//	void decoding(HttpResponse response) {
-//	}
-//
-//	/*
-//	 * (non-Javadoc)
-//	 * 
-//	 * @see
-//	 * org.jdrupes.httpcodec.internal.Engine#encoding(org.jdrupes.httpcodec.
-//	 * internal.MessageHeader)
-//	 */
-//	@Override
-//	void encoding(HttpRequest request) {
-//		responseDecoder.decodeResponseTo(request);
-//	}
-
 }
