@@ -17,6 +17,7 @@
  */
 package org.jdrupes.httpcodec.protocols.http;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +25,7 @@ import java.util.TreeMap;
 
 import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpStringListField;
 
 /**
  * Represents an HTTP message header (either request or response).
@@ -74,6 +76,10 @@ public abstract class HttpMessageHeader
 	 */
 	public void setField(HttpField<?> value) {
 		headers.put(value.getName(), value);
+		if (value.getName().equalsIgnoreCase(HttpField.UPGRADE)) {
+			getOrCreateField(HttpStringListField.class, HttpField.CONNECTION)
+				.appendIfNotContained(HttpField.UPGRADE);
+		}
 	}
 
 	/**
@@ -96,6 +102,28 @@ public abstract class HttpMessageHeader
 	public <T extends HttpField<?>> Optional<T> 
 		getField(Class<T> type, String name) {
 		return Optional.ofNullable(type.cast(headers.get(name)));
+	}
+	
+	/**
+	 * Returns the header field with the given type, creating it if it 
+	 * doesn't exist.
+	 * 
+	 * @param <T> the header field class
+	 * @param type the header field type
+	 * @param name the field name
+	 * @return the header field if it exists
+	 */
+	public <T extends HttpField<?>> T getOrCreateField
+			(Class<T> type, String name) {
+		return type.cast(headers.computeIfAbsent(name, n -> {
+				try {	
+					return type.getConstructor(String.class).newInstance(name);
+				} catch (InstantiationException | IllegalAccessException
+				        | IllegalArgumentException | InvocationTargetException
+				        | NoSuchMethodException | SecurityException e) {
+					throw new IllegalArgumentException();
+				}
+			}));
 	}
 	
 	/**

@@ -197,6 +197,19 @@ public abstract class HttpListField<T> extends HttpField<List<T>>
 	}
 	
 	/**
+	 * Appends the value to the list of values if it is not already in the list.
+	 * 
+	 * @param value the value
+	 * @return the field
+	 */
+	public HttpListField<T> appendIfNotContained(T value) {
+		if (!elements.contains(value)) {
+			elements.add(value);
+		}
+		return this;
+	}
+	
+	/**
 	 * Combine this list with another list of the same type.
 	 * 
 	 * @param other the other list
