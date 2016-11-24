@@ -159,7 +159,6 @@ public class FileStorage extends Component {
 			public void completed(Integer result, ManagedByteBuffer buffer) {
 				if (result == -1) {
 					channel.fire(new Eos());
-					unregisterAsGenerator();
 					try {
 						ioChannel.close();
 						channel.fire(new Closed());
@@ -167,6 +166,7 @@ public class FileStorage extends Component {
 					} catch (IOException e) {
 						channel.fire(new IOError(null, e));
 					}
+					unregisterAsGenerator();
 					return;
 				}
 				channel.fire(new Output<>(buffer));
