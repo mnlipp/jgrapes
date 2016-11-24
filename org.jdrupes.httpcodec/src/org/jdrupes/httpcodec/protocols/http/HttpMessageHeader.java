@@ -17,11 +17,11 @@
  */
 package org.jdrupes.httpcodec.protocols.http;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.fields.HttpField;
@@ -76,8 +76,10 @@ public abstract class HttpMessageHeader
 	 */
 	public void setField(HttpField<?> value) {
 		headers.put(value.getName(), value);
+		// Check some consistency rules
 		if (value.getName().equalsIgnoreCase(HttpField.UPGRADE)) {
-			getOrCreateField(HttpStringListField.class, HttpField.CONNECTION)
+			computeIfAbsent(HttpStringListField.class, HttpField.CONNECTION,
+					n -> new HttpStringListField(n))
 				.appendIfNotContained(HttpField.UPGRADE);
 		}
 	}
@@ -105,25 +107,19 @@ public abstract class HttpMessageHeader
 	}
 	
 	/**
-	 * Returns the header field with the given type, creating it if it 
-	 * doesn't exist.
+	 * Returns the header field with the given type, computing 
+	 * and adding it if it doesn't exist.
 	 * 
 	 * @param <T> the header field class
 	 * @param type the header field type
 	 * @param name the field name
+	 * @param computeFunction the function that computes the filed if
+	 * it doesn't exist
 	 * @return the header field if it exists
 	 */
-	public <T extends HttpField<?>> T getOrCreateField
-			(Class<T> type, String name) {
-		return type.cast(headers.computeIfAbsent(name, n -> {
-				try {	
-					return type.getConstructor(String.class).newInstance(name);
-				} catch (InstantiationException | IllegalAccessException
-				        | IllegalArgumentException | InvocationTargetException
-				        | NoSuchMethodException | SecurityException e) {
-					throw new IllegalArgumentException();
-				}
-			}));
+	public <T extends HttpField<?>> T computeIfAbsent
+			(Class<T> type, String name, Function<String, T> computeFunction) {
+		return type.cast(headers.computeIfAbsent(name, computeFunction));
 	}
 	
 	/**
