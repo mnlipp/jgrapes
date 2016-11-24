@@ -73,8 +73,9 @@ public abstract class HttpMessageHeader
 	 * Set a header field for the message.
 	 * 
 	 * @param value the header field's value
+	 * @return the field for easy chaining
 	 */
-	public void setField(HttpField<?> value) {
+	public <T extends HttpField<?>> T setField(T value) {
 		headers.put(value.getName(), value);
 		// Check some consistency rules
 		if (value.getName().equalsIgnoreCase(HttpField.UPGRADE)) {
@@ -82,6 +83,7 @@ public abstract class HttpMessageHeader
 					n -> new HttpStringListField(n))
 				.appendIfNotContained(HttpField.UPGRADE);
 		}
+		return value;
 	}
 
 	/**
@@ -119,7 +121,11 @@ public abstract class HttpMessageHeader
 	 */
 	public <T extends HttpField<?>> T computeIfAbsent
 			(Class<T> type, String name, Function<String, T> computeFunction) {
-		return type.cast(headers.computeIfAbsent(name, computeFunction));
+		Optional<T> result = getField(type, name);
+		if (result.isPresent()) {
+			return result.get();
+		}
+		return setField(computeFunction.apply(name));
 	}
 	
 	/**
