@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -137,10 +138,10 @@ public class HttpRequestDecoder
 	protected BodyMode headerReceived(HttpRequest message) 
 			throws HttpProtocolException {
 		// Handle field of special interest
-		HttpStringField host = message.getField(HttpStringField.class,
-		        HttpField.HOST).orElse(null);
-		if (host != null) {
-			String[] hostPort = ((HttpStringField)host).getValue().split(":");
+		Optional<HttpStringField> host = message.getField
+				(HttpStringField.class, HttpField.HOST);
+		if (host.isPresent()) {
+			String[] hostPort = host.get().getValue().split(":");
 			try {
 				message.setHostAndPort(hostPort[0], 
 						Integer.parseInt(hostPort[1]));
