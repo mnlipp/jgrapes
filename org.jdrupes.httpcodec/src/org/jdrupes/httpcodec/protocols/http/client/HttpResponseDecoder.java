@@ -53,7 +53,7 @@ public class HttpResponseDecoder
 	 * 
 	 * @param engine the engine
 	 */
-	public HttpResponseDecoder(Engine<HttpResponse, HttpRequest> engine) {
+	public HttpResponseDecoder(Engine engine) {
 		super();
 	}
 

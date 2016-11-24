@@ -24,23 +24,23 @@ import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.Codec;
 import org.jdrupes.httpcodec.Engine;
+import org.jdrupes.httpcodec.RequestEncoder;
 import org.jdrupes.httpcodec.protocols.http.HttpEncoder;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
-import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class HttpRequestEncoder 
-	extends HttpEncoder<HttpRequest, Codec.Result> {
+public class HttpRequestEncoder extends HttpEncoder<HttpRequest, Codec.Result> 
+	implements RequestEncoder<HttpRequest> {
 
 	/**
 	 * Creates a new encoder that belongs to the given HTTP engine.
 	 * 
 	 * @param engine the engine
 	 */
-	public HttpRequestEncoder(Engine<HttpResponse, HttpRequest> engine) {
+	public HttpRequestEncoder(Engine engine) {
 		super();
 	}
 

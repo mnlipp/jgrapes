@@ -30,6 +30,16 @@ public interface ResponseEncoder<T extends MessageHeader>
 	extends Encoder<T> {
 
 	/**
+	 * Set the header of the message that is to be encoded. Must be invoked
+	 * before the first invocation to any {@code encode} method for a given
+	 * message.
+	 * 
+	 * @param messageHeader
+	 *            the message header
+	 */
+	public void encode(T messageHeader);
+	
+	/**
 	 * Encodes a message.
 	 * 
 	 * @param in

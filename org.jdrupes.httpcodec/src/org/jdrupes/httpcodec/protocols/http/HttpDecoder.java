@@ -44,8 +44,8 @@ import org.jdrupes.httpcodec.util.OptimizedCharsetDecoder;
  * 
  * @author Michael N. Lipp
  */
-public abstract class HttpDecoder<T extends HttpMessageHeader, 
-	RT extends Decoder.Result> 
+public abstract class 
+	HttpDecoder<T extends HttpMessageHeader, RT extends Decoder.Result> 
 	extends HttpCodec<T> implements Decoder<T> {
 
 	final protected static String TOKEN = "[" + Pattern.quote(TOKEN_CHARS)
@@ -165,8 +165,8 @@ public abstract class HttpDecoder<T extends HttpMessageHeader,
 	 * @return indication how the body will be transferred
 	 * @throws HttpProtocolException if the input violates the HTTP
 	 */
-	protected abstract BodyMode headerReceived(T message)
-	        throws HttpProtocolException;
+	protected abstract BodyMode headerReceived(T message) 
+			throws HttpProtocolException;
 
 	private RT createResult(boolean overflow,
 	        boolean underflow, boolean closeConnection) {

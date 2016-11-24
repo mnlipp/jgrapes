@@ -30,7 +30,7 @@ import java.nio.ByteBuffer;
  * @author Michael N. Lipp
  */
 public abstract class ClientEngine<Q extends MessageHeader, 
-	R extends MessageHeader> extends Engine<R, Q> {
+	R extends MessageHeader> extends Engine {
 
 	private RequestEncoder<Q> requestEncoder;
 	private ResponseDecoder<R, Q> responseDecoder;
@@ -50,7 +50,7 @@ public abstract class ClientEngine<Q extends MessageHeader,
 	/**
 	 * @return the requestEncoder
 	 */
-	public Encoder<Q> requestEncoder() {
+	public RequestEncoder<Q> requestEncoder() {
 		return requestEncoder;
 	}
 	/**

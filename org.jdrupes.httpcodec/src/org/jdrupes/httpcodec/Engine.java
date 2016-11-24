@@ -20,12 +20,8 @@ package org.jdrupes.httpcodec;
 /**
  * Represents an engine with an associated encoder and decoder.
  * 
- * @param <D> the message header type handled by the decoder
- * @param <E> the message header type handled be the encoder
- * 
  * @author Michael N. Lipp
  */
-public abstract class Engine<D extends MessageHeader, 
-	E extends MessageHeader> {
+public abstract class Engine {
 
 }

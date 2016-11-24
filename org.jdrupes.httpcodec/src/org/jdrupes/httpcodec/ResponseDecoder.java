@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
  * provides an additional method and has an extended result type.
  * 
  * @param <T>
- *            the type of the message header to be encoded (the response)
+ *            the type of the message header to be decoded (the response)
  * @param <Q>
  *            the type of the message header that caused the response (the
  *            request)
@@ -146,7 +146,7 @@ public interface ResponseDecoder<T extends MessageHeader,
 		 * 
 		 * @return the encoder or {@code null} if no protocol switch occured
 		 */
-		public RequestEncoder<? extends MessageHeader> newEncoder() {
+		public RequestEncoder<MessageHeader> newEncoder() {
 			return newEncoder;
 		}
 	}

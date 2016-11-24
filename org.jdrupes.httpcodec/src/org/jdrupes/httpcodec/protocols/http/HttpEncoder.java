@@ -47,8 +47,9 @@ import org.jdrupes.httpcodec.util.ByteBufferUtils;
  * 
  * @author Michael N. Lipp
  */
-public abstract class HttpEncoder<T extends HttpMessageHeader,
-	RT extends Codec.Result> extends HttpCodec<T> implements Encoder<T> {
+public abstract class HttpEncoder
+	<T extends HttpMessageHeader, RT extends Codec.Result> 
+	extends HttpCodec<T> implements Encoder<T> {
 
 	private enum State {
 		// Main states
@@ -137,8 +138,8 @@ public abstract class HttpEncoder<T extends HttpMessageHeader,
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 */
-	protected abstract void startMessage(T messageHeader, Writer writer)
-	        throws IOException;
+	protected abstract void startMessage(T messageHeader, Writer writer) 
+			throws IOException;
 
 	/**
 	 * Factory method to be implemented by derived classes that returns an

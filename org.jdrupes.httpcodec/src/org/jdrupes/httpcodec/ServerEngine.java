@@ -31,7 +31,7 @@ import java.util.Optional;
  * @author Michael N. Lipp
  */
 public class ServerEngine<Q extends MessageHeader, R extends MessageHeader>
-	extends Engine<Q, R> {
+	extends Engine {
 
 	private RequestDecoder<?, ?> requestDecoder;
 	private ResponseEncoder<?> responseEncoder;

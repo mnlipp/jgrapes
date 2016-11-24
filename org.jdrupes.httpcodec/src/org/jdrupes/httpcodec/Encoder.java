@@ -23,8 +23,6 @@ import java.nio.ByteBuffer;
 /**
  * The general interface of an encoder.
  * 
- * @param <T> the type of message encoded by this encoder
- * 
  * @author Michael N. Lipp
  *
  */
