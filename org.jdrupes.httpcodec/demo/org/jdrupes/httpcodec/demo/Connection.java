@@ -78,15 +78,17 @@ public class Connection extends Thread {
 					break;
 				}
 				if (decoderResult.isHeaderCompleted()) {
-					handleHttpRequest(engine.currentRequest().get());
+					MessageHeader hdr = engine.currentRequest().get();
+					if (hdr instanceof HttpRequest) {
+						handleHttpRequest((HttpRequest)hdr);
+					}
 				}
 			}
 		} catch (IOException | ProtocolException e) {
 		}
 	}
 
-	private void handleHttpRequest(MessageHeader mh) throws IOException {
-		HttpRequest request = (HttpRequest)mh;
+	private void handleHttpRequest(HttpRequest request) throws IOException {
 		if (request.getMethod().equalsIgnoreCase("GET")) {
 			if (request.getRequestUri().getPath().equals("/form")) {
 				handleGetForm(request);
