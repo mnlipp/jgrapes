@@ -25,7 +25,8 @@ import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.util.stream.Collectors;
 
-import org.jdrupes.httpcodec.Codec;
+import org.jdrupes.httpcodec.Encoder;
+import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.RequestDecoder;
 import org.jdrupes.httpcodec.ServerEngine;
@@ -46,16 +47,16 @@ import org.jdrupes.httpcodec.util.FormUrlDecoder;
 public class Connection extends Thread {
 
 	private SocketChannel channel;
-	private ServerEngine<HttpRequest, HttpResponse> engine;
-	private RequestDecoder.Result<HttpResponse> decoderResult;
-	private Codec.Result encoderResult;
+	private ServerEngine<?, ?> engine;
 	private ByteBuffer in;
 	private ByteBuffer out;
 	
 	public Connection(SocketChannel channel) {
 		this.channel = channel;
-		engine = new ServerEngine<>
-			(new HttpRequestDecoder(), new HttpResponseEncoder());
+		ServerEngine<HttpRequest,HttpResponse> 
+			serverEngine = new ServerEngine<>
+				(new HttpRequestDecoder(), new HttpResponseEncoder());
+		engine = serverEngine;
 		in = ByteBuffer.allocate(2048);
 		out = ByteBuffer.allocate(2048);
 	}
@@ -70,20 +71,22 @@ public class Connection extends Thread {
 				in.clear();
 				channel.read(in);
 				in.flip();
-				decoderResult = engine.decode(in, null, false);
+				RequestDecoder.Result<?> decoderResult 
+					= engine.decode(in, null, false);
 				if (decoderResult.hasResponse()) {
 					sendResponseWithoutBody	(decoderResult.getResponse());
 					break;
 				}
 				if (decoderResult.isHeaderCompleted()) {
-					handleRequest(engine.currentRequest().get());
+					handleHttpRequest(engine.currentRequest().get());
 				}
 			}
 		} catch (IOException | ProtocolException e) {
 		}
 	}
 
-	private void handleRequest(HttpRequest request) throws IOException {
+	private void handleHttpRequest(MessageHeader mh) throws IOException {
+		HttpRequest request = (HttpRequest)mh;
 		if (request.getMethod().equalsIgnoreCase("GET")) {
 			if (request.getRequestUri().getPath().equals("/form")) {
 				handleGetForm(request);
@@ -142,9 +145,11 @@ public class Connection extends Thread {
 		FormUrlDecoder fieldDecoder = new FormUrlDecoder();
 		while (true) {
 			out.clear();
+			RequestDecoder.Result<?> decoderResult = null;
 			try {
 				decoderResult = engine.decode(in, out, false);
 			} catch (ProtocolException e) {
+				return;
 			}
 			out.flip();
 			fieldDecoder.addData(out);
@@ -209,12 +214,15 @@ public class Connection extends Thread {
 		sendResponse(response, null, true);
 	}
 	
-	private void sendResponseWithoutBody(HttpResponse response)
+	private void sendResponseWithoutBody(MessageHeader response)
 	        throws IOException {
-		engine.encode(response);
+		@SuppressWarnings("unchecked")
+		ServerEngine<HttpRequest,HttpResponse> httpEngine
+			= (ServerEngine<HttpRequest,HttpResponse>)engine;
+		httpEngine.encode((HttpResponse)response);
 		out.clear();
 		while (true) {
-			encoderResult = engine.encode(out);
+			Encoder.Result encoderResult = engine.encode(out);
 			out.flip();
 			if (out.hasRemaining()) {
 				channel.write(out);
@@ -229,10 +237,13 @@ public class Connection extends Thread {
 
 	private void sendResponse(HttpResponse response, ByteBuffer in,
 	        boolean endOfInput) throws IOException {
-		engine.encode(response);
+		@SuppressWarnings("unchecked")
+		ServerEngine<HttpRequest,HttpResponse> httpEngine
+			= (ServerEngine<HttpRequest,HttpResponse>)engine;
+		httpEngine.encode((HttpResponse)response);
 		out.clear();
 		while (true) {
-			encoderResult = engine.encode(in, out, endOfInput);
+			Encoder.Result encoderResult = engine.encode(in, out, endOfInput);
 			out.flip();
 			if (out.hasRemaining()) {
 				channel.write(out);

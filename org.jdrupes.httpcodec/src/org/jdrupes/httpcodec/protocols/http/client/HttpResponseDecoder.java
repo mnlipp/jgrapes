@@ -68,7 +68,8 @@ public class HttpResponseDecoder
 	protected ResponseDecoder.Result newResult(boolean headerCompleted,
 	        boolean overflow, boolean underflow) {
 		return new ResponseDecoder.Result
-				(headerCompleted, overflow, underflow, isClosed());
+				(headerCompleted, overflow, underflow, isClosed(),
+				 null, null, null);
 	}
 
 	/**

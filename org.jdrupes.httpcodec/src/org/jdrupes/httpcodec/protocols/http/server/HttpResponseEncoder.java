@@ -21,8 +21,15 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.stream.StreamSupport;
 
 import org.jdrupes.httpcodec.ResponseEncoder;
+import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpStringListField;
+import org.jdrupes.httpcodec.plugin.ProtocolProvider;
 import org.jdrupes.httpcodec.protocols.http.HttpEncoder;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 
@@ -32,6 +39,10 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 public class HttpResponseEncoder 
 	extends HttpEncoder<HttpResponse, ResponseEncoder.Result>
 	implements ResponseEncoder<HttpResponse>{
+
+	private static ServiceLoader<ProtocolProvider> pluginLoader 
+		= ServiceLoader.load(ProtocolProvider.class);
+	private Map<String,ProtocolProvider> plugins = new HashMap<>();
 
 	/**
 	 * Creates a new encoder that belongs to the given HTTP engine.
@@ -60,7 +71,33 @@ public class HttpResponseEncoder
 	@Override
 	public ResponseEncoder.Result encode
 		(Buffer in, ByteBuffer out, boolean endOfInput) {
+		if ((messageHeader instanceof HttpResponse)
+				&& ((HttpResponse)messageHeader).getStatusCode()
+					== HttpStatus.SWITCHING_PROTOCOLS.getStatusCode()) {
+			prepareSwitchProtocol((HttpResponse)messageHeader);
+		}
 		return super.encode(in, out, endOfInput);
+	}
+
+	private void prepareSwitchProtocol(HttpResponse response) {
+		ProtocolProvider plugin = null;
+		String protocol = response.getField(HttpStringListField.class, 
+				HttpField.UPGRADE).map(l -> l.get(0)).orElse("(pass-through)");
+		synchronized (pluginLoader) {
+			if (plugins.containsKey(protocol)) {
+				plugin = plugins.get(plugin);
+			} else {
+				plugin = StreamSupport
+						.stream(pluginLoader.spliterator(), false)
+						.filter(p -> p.supportsProtocol(protocol))
+						.findFirst().get();
+				plugins.put(protocol, plugin);
+			}
+		}
+		if (plugin == null) {
+			// TODO
+		}
+		plugin.augmentInitialResponse(response);
 	}
 
 	/* (non-Javadoc)
@@ -69,7 +106,8 @@ public class HttpResponseEncoder
 	@Override
 	protected ResponseEncoder.Result newResult
 		(boolean overflow, boolean underflow) {
-		return new ResponseEncoder.Result(overflow, underflow, isClosed());
+		return new ResponseEncoder.Result(overflow, underflow, isClosed(),
+				null, null, null);
 	}
 
 }

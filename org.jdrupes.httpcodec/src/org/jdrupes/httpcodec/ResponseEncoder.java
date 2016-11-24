@@ -64,13 +64,17 @@ public interface ResponseEncoder<T extends MessageHeader>
 	/**
 	 * The result from encoding a response. In addition to the usual
 	 * codec result, a result encoder may signal to the invoker that the
-	 * connection to the requester must be closed.
+	 * connection to the requester must be closed and that the protocol has
+	 * been switched.
 	 * 
 	 * @author Michael N. Lipp
 	 */
 	public class Result extends Codec.Result {
 
-		boolean closeConnection;
+		private boolean closeConnection;
+		private String newProtocol;
+		private ResponseEncoder<MessageHeader> newEncoder;
+		private RequestDecoder<MessageHeader, MessageHeader> newDecoder;
 		
 		/**
 		 * Returns a new result.
@@ -81,11 +85,19 @@ public interface ResponseEncoder<T extends MessageHeader>
 		 *            {@code true} if more data is expected
 		 * @param closeConnection
 		 *            {@code true} if the connection should be closed
+		 * @param newProtocol the name of the new protocol if a switch occurred
+		 * @param newEncoder the new decoder if a switch occurred
+		 * @param newDecoder the new decoder if a switch occurred
 		 */
 		public Result(boolean overflow, boolean underflow,
-		        boolean closeConnection) {
+		        boolean closeConnection, String newProtocol,
+		        ResponseEncoder<MessageHeader> newEncoder, 
+		        RequestDecoder<MessageHeader, MessageHeader> newDecoder) {
 			super(overflow, underflow);
 			this.closeConnection = closeConnection;
+			this.newProtocol = newProtocol;
+			this.newEncoder = newEncoder;
+			this.newDecoder = newDecoder;
 		}
 
 		/**
@@ -96,6 +108,37 @@ public interface ResponseEncoder<T extends MessageHeader>
 		 */
 		public boolean getCloseConnection() {
 			return closeConnection;
+		}
+
+		/**
+		 * The name of the protocol to be used for the next request
+		 * if a protocol switch occured.
+		 * 
+		 * @return the name or {@code null} if no protocol switch occured
+		 */
+		public String newProtocol() {
+			return newProtocol;
+		}
+		
+		/**
+		 * The response encoder to be used for the next response
+		 * if a protocol switch occured.
+		 * 
+		 * @return the encoder or {@code null} if no protocol switch occurred
+		 */
+		public ResponseEncoder<MessageHeader> newEncoder() {
+			return newEncoder;
+		}
+		
+		/**
+		 * The request decoder to be used for the next request
+		 * if a protocol switch occured.
+		 * 
+		 * @return the decoder or {@code null} if no protocol switch occurred
+		 */
+		public RequestDecoder<MessageHeader,
+				MessageHeader> newDecoder() {
+			return newDecoder;
 		}
 	}
 

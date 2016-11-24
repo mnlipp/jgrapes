@@ -20,13 +20,6 @@ package org.jdrupes.httpcodec;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import java.util.ServiceLoader;
-
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpStringListField;
-import org.jdrupes.httpcodec.plugin.ProtocolProvider;
-import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
-import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 
 /**
  * An engine that can be used as a server. It has an associated
@@ -40,9 +33,8 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 public class ServerEngine<Q extends MessageHeader, R extends MessageHeader>
 	extends Engine<Q, R> {
 
-	private RequestDecoder<Q, R> requestDecoder;
-	private ResponseEncoder<R> responseEncoder;
-	private ServiceLoader<ProtocolProvider> pluginLoader = null;
+	private RequestDecoder<?, ?> requestDecoder;
+	private ResponseEncoder<?> responseEncoder;
 	
 	/**
 	 * Creates a new instance.
@@ -50,10 +42,12 @@ public class ServerEngine<Q extends MessageHeader, R extends MessageHeader>
 	 * @param requestDecoder the decoder for the request
 	 * @param responseEncoder the encoder for the response
 	 */
+	@SuppressWarnings("unchecked")
 	public ServerEngine	(RequestDecoder<Q, R> requestDecoder, 
 				ResponseEncoder<R> responseEncoder) {
-		this.requestDecoder = requestDecoder;
-		this.responseEncoder = responseEncoder;
+		this.requestDecoder = (RequestDecoder<MessageHeader, MessageHeader>)
+				requestDecoder;
+		this.responseEncoder = (ResponseEncoder<MessageHeader>)responseEncoder;
 	}
 
 	/**
@@ -61,8 +55,9 @@ public class ServerEngine<Q extends MessageHeader, R extends MessageHeader>
 	 * 
 	 * @return the request decoder
 	 */
-	public Decoder<Q> requestDecoder() {
-		return requestDecoder;
+	@SuppressWarnings("unchecked")
+	public RequestDecoder<Q, R> requestDecoder() {
+		return (RequestDecoder<Q, R>)requestDecoder;
 	}
 
 	/**
@@ -70,8 +65,9 @@ public class ServerEngine<Q extends MessageHeader, R extends MessageHeader>
 	 * 
 	 * @return the response encoder
 	 */
-	public Encoder<R> responseEncoder() {
-		return responseEncoder;
+	@SuppressWarnings("unchecked")
+	public ResponseEncoder<R> responseEncoder() {
+		return (ResponseEncoder<R>)responseEncoder;
 	}
 
 	/**
@@ -83,10 +79,12 @@ public class ServerEngine<Q extends MessageHeader, R extends MessageHeader>
 	 * @return the result
 	 * @throws ProtocolException if the input violates the protocol
 	 */
+	@SuppressWarnings("unchecked")
 	public RequestDecoder.Result<R> decode
 		(ByteBuffer in, Buffer out, boolean endOfInput)
 			throws ProtocolException {
-		return requestDecoder.decode(in, out, endOfInput);
+		return (RequestDecoder.Result<R>)
+				requestDecoder.decode(in, out, endOfInput);
 	}
 
 	/**
@@ -95,57 +93,48 @@ public class ServerEngine<Q extends MessageHeader, R extends MessageHeader>
 	 * "switch protocol" response.
 	 * 
 	 * @param messageHeader the message header
+	 * @see ResponseEncoder#encode(MessageHeader)
 	 */
+	@SuppressWarnings("unchecked")
 	public void encode(R messageHeader) {
-		if ((messageHeader instanceof HttpResponse)
-				&& ((HttpResponse)messageHeader).getStatusCode()
-					== HttpStatus.SWITCHING_PROTOCOLS.getStatusCode()) {
-			switchProtocol((HttpResponse)messageHeader);
-		}
-		responseEncoder.encode(messageHeader);
-	}
-
-	private void switchProtocol(HttpResponse response) {
-		ProtocolProvider plugin = null;
-		String protocol = response.getField(HttpStringListField.class, 
-				HttpField.UPGRADE).map(l -> l.get(0)).orElse("(unknown)");
-		if (pluginLoader == null) {
-			pluginLoader = ServiceLoader.load(ProtocolProvider.class);
-			for (ProtocolProvider pp: pluginLoader) {
-				if (pp.supportsProtocol(protocol)) {
-					plugin = pp;
-					break;
-				}
-			}
-		}
-		if (plugin == null) {
-			// TODO
-		}
-		plugin.augmentInitialResponse(response);
+		((ResponseEncoder<R>)responseEncoder).encode(messageHeader);
 	}
 
 	/**
-	 * Convenience method to invoke the encoder's encode method.
+	 * Invokes the encoder's encode method. This method must be used
+	 * instead of decoding the encoder's method directly if the
+	 * encoder and decoder should adapt to a protocol
+	 * switch automatically.
 	 * 
 	 * @param out the decoded data
 	 * @return the result
+	 * @see ResponseEncoder#encode(ByteBuffer)
 	 */
-	public Codec.Result encode(
+	public ResponseEncoder.Result encode(
 	        ByteBuffer out) {
-		return responseEncoder.encode(out);
+		return encode(Codec.EMPTY_IN, out, true);
 	}
 
 	/**
-	 * Convenience method to invoke the encoder's encode method.
+	 * Invokes the encoder's encode method. This method must be used
+	 * instead of decoding the encoder's method directly if the
+	 * encoder and decoder should adapt to a protocol
+	 * switch automatically.
 	 * 
 	 * @param in the data to encode
 	 * @param out the encoded data
 	 * @param endOfInput {@code true} if this invocation finishes the message
 	 * @return the result
+	 * @see ResponseEncoder#encode(Buffer, ByteBuffer, boolean)
 	 */
-	public Codec.Result encode(
+	public ResponseEncoder.Result encode(
 	        Buffer in, ByteBuffer out, boolean endOfInput) {
-		return responseEncoder.encode(in, out, endOfInput);
+		ResponseEncoder.Result result = responseEncoder.encode(in, out, endOfInput);
+		if (result.newProtocol() != null) {
+			requestDecoder = result.newDecoder();
+			responseEncoder = result.newEncoder();
+		}
+		return result;
 	}
 
 	/**
@@ -153,8 +142,9 @@ public class ServerEngine<Q extends MessageHeader, R extends MessageHeader>
 	 * 
 	 * @return the request
 	 */
+	@SuppressWarnings("unchecked")
 	public Optional<Q> currentRequest() {
-		return requestDecoder.getHeader();
+		return (Optional<Q>)requestDecoder.getHeader();
 	}
 	
 }
