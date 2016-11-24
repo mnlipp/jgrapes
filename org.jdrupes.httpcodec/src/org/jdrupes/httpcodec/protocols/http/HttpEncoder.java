@@ -351,11 +351,9 @@ public abstract class HttpEncoder<T extends HttpMessageHeader,
 		// We'll eventually fall back to this state
 		states.push(State.DONE);
 		// Get a default for closeAfterBody from the header fields
-		HttpStringListField conField = messageHeader
+		closeAfterBody = messageHeader
 		        .getField(HttpStringListField.class, HttpField.CONNECTION)
-		        .orElse(null);
-		closeAfterBody = conField != null
-		        && conField.containsIgnoreCase("close");
+		        .map(f -> f.containsIgnoreCase("close")).orElse(false);
 		// If there's no body, start outputting header fields
 		if (!messageHeader.messageHasBody()) {
 			states.push(State.HEADERS);
