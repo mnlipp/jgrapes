@@ -45,21 +45,21 @@ subprojects {
         }
     }
     
-//    test {
-//        testLogging {
-//            events TestLogEvent.FAILED,
-//                   TestLogEvent.SKIPPED,
-//                   TestLogEvent.PASSED,
-//                   TestLogEvent.STANDARD_ERROR,
-//                   TestLogEvent.STANDARD_OUT
-//
-//            exceptionFormat TestExceptionFormat.FULL
-//
-//            showStandardStreams = true
-//            showExceptions = true
-//            showStackTraces = true
-//            showCauses = true
-//        }
-//    }
+    test {
+        testLogging {
+            events TestLogEvent.FAILED,
+                   TestLogEvent.SKIPPED,
+                   TestLogEvent.PASSED,
+                   TestLogEvent.STANDARD_ERROR,
+                   TestLogEvent.STANDARD_OUT
+
+            exceptionFormat TestExceptionFormat.FULL
+
+            showStandardStreams = true
+            showExceptions = true
+            showStackTraces = true
+            showCauses = true
+        }
+    }
 }
 
