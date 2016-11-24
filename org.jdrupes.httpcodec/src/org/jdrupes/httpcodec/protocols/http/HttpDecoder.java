@@ -472,12 +472,8 @@ public abstract class HttpDecoder<T extends HttpMessageHeader,
 		HttpField<?> field = HttpField.fromString(fieldName, fieldValue);
 		// RFC 7230 4.4
 		HttpStringListField trailerField = building
-		        .getField(HttpStringListField.class, HttpField.TRAILER)
-		        .orElse(null);
-		if (trailerField == null) {
-			trailerField = new HttpStringListField(HttpField.TRAILER);
-			building.setField(trailerField);
-		}
+		        .computeIfAbsent(HttpStringListField.class, HttpField.TRAILER,
+		        		n -> new HttpStringListField(n));
 		if (!trailerField.containsIgnoreCase(field.getName())) {
 			trailerField.add(field.getName());
 		}
