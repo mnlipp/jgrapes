@@ -17,12 +17,21 @@
  */
 package org.jdrupes.httpcodec.protocols.websocket;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.Optional;
+
 import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.RequestDecoder;
 import org.jdrupes.httpcodec.RequestEncoder;
 import org.jdrupes.httpcodec.ResponseDecoder;
 import org.jdrupes.httpcodec.ResponseEncoder;
+import org.jdrupes.httpcodec.fields.HttpStringField;
+import org.jdrupes.httpcodec.fields.HttpUnquotedStringField;
 import org.jdrupes.httpcodec.plugin.ProtocolProvider;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 
 /**
@@ -44,14 +53,35 @@ public class WsProtocolProvider extends ProtocolProvider {
 	 */
 	@Override
 	public void augmentInitialResponse(HttpResponse response) {
-	}
+		Optional<String> wsKey = response.getRequest()
+			.flatMap(r -> r.getField
+					(HttpStringField.class, "Sec-WebSocket-Key"))
+			.map(HttpStringField::getValue);
+		if (!wsKey.isPresent()) {
+			response.setStatus(HttpStatus.BAD_REQUEST)
+				.setMessageHasBody(false).clearHeaders();
+			return;
+		}
+		String s = wsKey.get() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+		try {
+			MessageDigest crypt = MessageDigest.getInstance("SHA-1");
+			byte[] sha1 = crypt.digest(s.getBytes("ascii"));
+			String accept = Base64.getEncoder().encodeToString(sha1);
+			response.setField(new HttpUnquotedStringField
+					("Sec-WebSocket-Accept", accept));
+		} catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+				.setMessageHasBody(false).clearHeaders();
+			return;
+		}
+ 	}
 
 	/* (non-Javadoc)
 	 * @see ProtocolProvider#createRequestEncoder()
 	 */
 	@Override
-	public RequestEncoder<? extends MessageHeader> createRequestEncoder() {
-		// TODO Auto-generated method stub
+	public RequestEncoder<? extends MessageHeader> 
+		createRequestEncoder(String protocol) {
 		return null;
 	}
 
@@ -60,18 +90,17 @@ public class WsProtocolProvider extends ProtocolProvider {
 	 */
 	@Override
 	public RequestDecoder<? extends MessageHeader, 
-			? extends MessageHeader> createRequestDecoder() {
-		// TODO Auto-generated method stub
-		return null;
+			? extends MessageHeader> createRequestDecoder(String protocol) {
+		return new WsRequestDecoder();
 	}
 
 	/* (non-Javadoc)
 	 * @see ProtocolProvider#createResponseEncoder()
 	 */
 	@Override
-	public ResponseEncoder<? extends MessageHeader> createResponseEncoder() {
-		// TODO Auto-generated method stub
-		return null;
+	public ResponseEncoder<? extends MessageHeader> 
+		createResponseEncoder(String protocol) {
+		return new WsResponseEncoder();
 	}
 
 	/* (non-Javadoc)
@@ -79,8 +108,7 @@ public class WsProtocolProvider extends ProtocolProvider {
 	 */
 	@Override
 	public ResponseDecoder<? extends MessageHeader, 
-			? extends MessageHeader> createResponseDecoder() {
-		// TODO Auto-generated method stub
+			? extends MessageHeader> createResponseDecoder(String protocol) {
 		return null;
 	}
 

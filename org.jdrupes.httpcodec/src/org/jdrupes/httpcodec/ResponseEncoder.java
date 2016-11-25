@@ -83,8 +83,9 @@ public interface ResponseEncoder<T extends MessageHeader>
 
 		private boolean closeConnection;
 		private String newProtocol;
-		private ResponseEncoder<MessageHeader> newEncoder;
-		private RequestDecoder<MessageHeader, MessageHeader> newDecoder;
+		private RequestDecoder<? extends MessageHeader, 
+				? extends MessageHeader> newDecoder;
+		private ResponseEncoder<? extends MessageHeader> newEncoder;
 		
 		/**
 		 * Returns a new result.
@@ -96,13 +97,14 @@ public interface ResponseEncoder<T extends MessageHeader>
 		 * @param closeConnection
 		 *            {@code true} if the connection should be closed
 		 * @param newProtocol the name of the new protocol if a switch occurred
-		 * @param newEncoder the new decoder if a switch occurred
 		 * @param newDecoder the new decoder if a switch occurred
+		 * @param newEncoder the new decoder if a switch occurred
 		 */
 		public Result(boolean overflow, boolean underflow,
 		        boolean closeConnection, String newProtocol,
-		        ResponseEncoder<MessageHeader> newEncoder, 
-		        RequestDecoder<MessageHeader, MessageHeader> newDecoder) {
+		        RequestDecoder<? extends MessageHeader, 
+		        		? extends MessageHeader> newDecoder,
+		        ResponseEncoder<? extends MessageHeader> newEncoder) {
 			super(overflow, underflow);
 			this.closeConnection = closeConnection;
 			this.newProtocol = newProtocol;
@@ -136,7 +138,7 @@ public interface ResponseEncoder<T extends MessageHeader>
 		 * 
 		 * @return the encoder or {@code null} if no protocol switch occurred
 		 */
-		public ResponseEncoder<MessageHeader> newEncoder() {
+		public ResponseEncoder<? extends MessageHeader> newEncoder() {
 			return newEncoder;
 		}
 		
@@ -146,8 +148,8 @@ public interface ResponseEncoder<T extends MessageHeader>
 		 * 
 		 * @return the decoder or {@code null} if no protocol switch occurred
 		 */
-		public RequestDecoder<MessageHeader,
-				MessageHeader> newDecoder() {
+		public RequestDecoder<? extends MessageHeader,
+				? extends MessageHeader> newDecoder() {
 			return newDecoder;
 		}
 	}

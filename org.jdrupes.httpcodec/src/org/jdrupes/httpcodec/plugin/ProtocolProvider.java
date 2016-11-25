@@ -48,34 +48,38 @@ public abstract class ProtocolProvider {
 	/**
 	 * Creates a new request encoder for the protocol.
 	 * 
+	 * @param the protocol, which must be supported by this plugin
 	 * @return the request encoder
 	 */
 	abstract public RequestEncoder<? extends MessageHeader> 
-		createRequestEncoder();
+		createRequestEncoder(String protocol);
 	
 	/**
 	 * Creates a new request decoder for the protocol.
 	 * 
+	 * @param the protocol, which must be supported by this plugin
 	 * @return the request decoder
 	 */
 	abstract public RequestDecoder<? extends MessageHeader, 
-			? extends MessageHeader> createRequestDecoder();
+			? extends MessageHeader> createRequestDecoder(String protocol);
 	
 	/**
 	 * Creates a new response encoder for the protocol.
 	 * 
+	 * @param the protocol, which must be supported by this plugin
 	 * @return the response encoder
 	 */
 	abstract public ResponseEncoder<? extends MessageHeader>
-		createResponseEncoder();
+		createResponseEncoder(String protocol);
 	
 	/**
 	 * Creates a new response decoder for the protocol.
 	 * 
+	 * @param the protocol, which must be supported by this plugin
 	 * @return the response decoder
 	 */
 	abstract public ResponseDecoder<? extends MessageHeader,
-			? extends MessageHeader> createResponseDecoder();
+			? extends MessageHeader> createResponseDecoder(String protocol);
 	
 	
 }

@@ -23,6 +23,7 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
@@ -43,12 +44,78 @@ public class HttpResponseEncoder
 	private static ServiceLoader<ProtocolProvider> pluginLoader 
 		= ServiceLoader.load(ProtocolProvider.class);
 	private Map<String,ProtocolProvider> plugins = new HashMap<>();
+	private String switchingTo;
+	private ProtocolProvider protocolPlugin;
 
 	/**
 	 * Creates a new encoder that belongs to the given HTTP engine.
 	 */
 	public HttpResponseEncoder() {
 		super();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.protocols.http.HttpEncoder#encode(org.jdrupes.httpcodec.protocols.http.HttpMessageHeader)
+	 */
+	@Override
+	public void encode(HttpResponse messageHeader) {
+		if (messageHeader.getStatusCode()
+					== HttpStatus.SWITCHING_PROTOCOLS.getStatusCode()) {
+			switchingTo = prepareSwitchProtocol(messageHeader);
+		}
+		super.encode(messageHeader);
+	}
+
+	private String prepareSwitchProtocol(HttpResponse response) {
+		Optional<String> protocol = response
+				.getField(HttpStringListField.class, HttpField.UPGRADE)
+				.map(l -> l.get(0));
+		if (!protocol.isPresent()) {
+			response.setStatus(HttpStatus.BAD_REQUEST)
+				.setMessageHasBody(false).clearHeaders();
+			return null;
+		}
+		synchronized (pluginLoader) {
+			if (plugins.containsKey(protocol.get())) {
+				protocolPlugin = plugins.get(protocol.get());
+			} else {
+				protocolPlugin = StreamSupport
+						.stream(pluginLoader.spliterator(), false)
+						.filter(p -> p.supportsProtocol(protocol.get()))
+						.findFirst().get();
+				plugins.put(protocol.get(), protocolPlugin);
+			}
+		}
+		if (protocolPlugin == null) {
+			response.setStatus(HttpStatus.BAD_REQUEST)
+				.setMessageHasBody(false).clearHeaders();
+			return null;
+		}
+		protocolPlugin.augmentInitialResponse(response);
+		if (response.getStatusCode() 
+				!= HttpStatus.SWITCHING_PROTOCOLS.getStatusCode()) {
+			// Not switching after all
+			return null;
+		}
+		return protocol.get();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(java.nio.ByteBuffer, java.nio.ByteBuffer)
+	 */
+	@Override
+	public ResponseEncoder.Result encode
+		(Buffer in, ByteBuffer out, boolean endOfInput) {
+		ResponseEncoder.Result result = super.encode(in, out, endOfInput);
+		if (switchingTo != null && endOfInput 
+				&& !result.isUnderflow() && !result.isOverflow()) {
+			// Last invocation of encode
+			result = new ResponseEncoder.Result(false, false, 
+					result.getCloseConnection(), switchingTo, 
+					protocolPlugin.createRequestDecoder(switchingTo), 
+					protocolPlugin.createResponseEncoder(switchingTo));
+		}
+		return result;
 	}
 
 	/* (non-Javadoc)
@@ -63,41 +130,6 @@ public class HttpResponseEncoder
 		writer.write(" ");
 		writer.write(response.getReasonPhrase());
 		writer.write("\r\n");
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(java.nio.ByteBuffer, java.nio.ByteBuffer)
-	 */
-	@Override
-	public ResponseEncoder.Result encode
-		(Buffer in, ByteBuffer out, boolean endOfInput) {
-		if ((messageHeader instanceof HttpResponse)
-				&& ((HttpResponse)messageHeader).getStatusCode()
-					== HttpStatus.SWITCHING_PROTOCOLS.getStatusCode()) {
-			prepareSwitchProtocol((HttpResponse)messageHeader);
-		}
-		return super.encode(in, out, endOfInput);
-	}
-
-	private void prepareSwitchProtocol(HttpResponse response) {
-		ProtocolProvider plugin = null;
-		String protocol = response.getField(HttpStringListField.class, 
-				HttpField.UPGRADE).map(l -> l.get(0)).orElse("(pass-through)");
-		synchronized (pluginLoader) {
-			if (plugins.containsKey(protocol)) {
-				plugin = plugins.get(plugin);
-			} else {
-				plugin = StreamSupport
-						.stream(pluginLoader.spliterator(), false)
-						.filter(p -> p.supportsProtocol(protocol))
-						.findFirst().get();
-				plugins.put(protocol, plugin);
-			}
-		}
-		if (plugin == null) {
-			// TODO
-		}
-		plugin.augmentInitialResponse(response);
 	}
 
 	/* (non-Javadoc)

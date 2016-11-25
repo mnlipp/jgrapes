@@ -185,6 +185,7 @@ public class Connection extends Thread {
 		if (request.getField(HttpStringListField.class, "upgrade")
 				.map(f -> f.containsIgnoreCase("websocket")).orElse(false)) {
 			upgradeEcho(request);
+			return;
 		}
 		HttpResponse response = request.getResponse().get()
 				.setStatus(HttpStatus.OK).setMessageHasBody(true);
