@@ -108,7 +108,7 @@ public class StaticContentDispatcher extends Component {
 			contentType.setParameter("charset",
 			        System.getProperty("file.encoding", "UTF-8"));
 		}
-		final HttpResponse response = event.getRequest().getResponse();
+		final HttpResponse response = event.getRequest().getResponse().get();
 		response.setStatus(HttpStatus.OK);
 		response.setMessageHasBody(true);
 		response.setField(contentType);

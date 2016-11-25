@@ -106,9 +106,8 @@ public class Connection extends Thread {
 			return;
 		}
 		// fall back
-		HttpResponse response = request.getResponse();
-		response.setStatus(HttpStatus.NOT_FOUND);
-		response.setMessageHasBody(true);
+		HttpResponse response = request.getResponse().get()
+				.setStatus(HttpStatus.NOT_FOUND).setMessageHasBody(true);
 		HttpMediaTypeField media;
 		try {
 			media = new HttpMediaTypeField(
@@ -122,9 +121,8 @@ public class Connection extends Thread {
 	}
 
 	private void handleGetForm(HttpRequest request) throws IOException {
-		HttpResponse response = request.getResponse();
-		response.setStatus(HttpStatus.OK);
-		response.setMessageHasBody(true);
+		HttpResponse response = request.getResponse().get()
+				.setStatus(HttpStatus.OK).setMessageHasBody(true);
 		HttpMediaTypeField media;
 		try {
 			media = new HttpMediaTypeField(
@@ -143,7 +141,7 @@ public class Connection extends Thread {
 	}
 
 	private void handlePostForm(HttpRequest request) throws IOException {
-		HttpResponse response = request.getResponse();
+		HttpResponse response = request.getResponse().get();
 		FormUrlDecoder fieldDecoder = new FormUrlDecoder();
 		while (true) {
 			out.clear();
@@ -188,9 +186,8 @@ public class Connection extends Thread {
 				.map(f -> f.containsIgnoreCase("websocket")).orElse(false)) {
 			upgradeEcho(request);
 		}
-		HttpResponse response = request.getResponse();
-		response.setStatus(HttpStatus.OK);
-		response.setMessageHasBody(true);
+		HttpResponse response = request.getResponse().get()
+				.setStatus(HttpStatus.OK).setMessageHasBody(true);
 		HttpMediaTypeField media;
 		try {
 			media = new HttpMediaTypeField(
@@ -209,10 +206,10 @@ public class Connection extends Thread {
 	}
 
 	private void upgradeEcho(HttpRequest request) throws IOException {
-		HttpResponse response = request.getResponse();
-		response.setStatus(HttpStatus.SWITCHING_PROTOCOLS);
-		response.setField((new HttpStringListField(HttpField.UPGRADE))
-				.append("websocket"));
+		HttpResponse response = request.getResponse().get()
+			.setStatus(HttpStatus.SWITCHING_PROTOCOLS)
+			.setField((new HttpStringListField(HttpField.UPGRADE))
+						.append("websocket"));
 		sendResponse(response, null, true);
 	}
 	

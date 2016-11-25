@@ -391,7 +391,8 @@ public class HttpServer extends Component {
 		IOSubchannel channel = event.getCompleted()
 		        .firstChannel(IOSubchannel.class);
 		final Request requestEvent = event.getCompleted();
-		final HttpResponse response = requestEvent.getRequest().getResponse();
+		final HttpResponse response 
+			= requestEvent.getRequest().getResponse().get();
 
 		if (response.getStatusCode() == HttpStatus.NOT_IMPLEMENTED
 		        .getStatusCode()) {
@@ -410,7 +411,7 @@ public class HttpServer extends Component {
 		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		
 		if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {
-			HttpResponse response = event.getRequest().getResponse();
+			HttpResponse response = event.getRequest().getResponse().get();
 			response.setStatus(HttpStatus.OK);
 			channel.fire(new Response(response));
 			event.stop();
@@ -432,7 +433,7 @@ public class HttpServer extends Component {
 		}
 		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		
-		final HttpResponse response = event.getRequest().getResponse();
+		final HttpResponse response = event.getRequest().getResponse().get();
 		response.setStatus(HttpStatus.NOT_FOUND);
 		response.setMessageHasBody(true);
 		HttpMediaTypeField media = new HttpMediaTypeField(

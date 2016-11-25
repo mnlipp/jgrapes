@@ -73,9 +73,9 @@ public abstract class HttpMessageHeader
 	 * Set a header field for the message.
 	 * 
 	 * @param value the header field's value
-	 * @return the field for easy chaining
+	 * @return the message header for easy chaining
 	 */
-	public <T extends HttpField<?>> T setField(T value) {
+	public HttpMessageHeader setField(HttpField<?> value) {
 		headers.put(value.getName(), value);
 		// Check some consistency rules
 		if (value.getName().equalsIgnoreCase(HttpField.UPGRADE)) {
@@ -83,7 +83,7 @@ public abstract class HttpMessageHeader
 					n -> new HttpStringListField(n))
 				.appendIfNotContained(HttpField.UPGRADE);
 		}
-		return value;
+		return this;
 	}
 
 	/**
@@ -125,16 +125,20 @@ public abstract class HttpMessageHeader
 		if (result.isPresent()) {
 			return result.get();
 		}
-		return setField(computeFunction.apply(name));
+		T value = computeFunction.apply(name);
+		setField(value);
+		return value;
 	}
 	
 	/**
 	 * Set the flag that indicates whether this header is followed by a body.
 	 * 
 	 * @param messageHasBody new value
+	 * @return the message for easy chaining
 	 */
-	public void setMessageHasBody(boolean messageHasBody) {
+	public MessageHeader setMessageHasBody(boolean messageHasBody) {
 		this.messageHasBody = messageHasBody;
+		return this;
 	}
 	
 	/**

@@ -128,7 +128,11 @@ public class HttpRequestDecoder
 				        HttpStatus.BAD_REQUEST.getStatusCode(), e.getMessage());
 			}
 		}
-		return new HttpRequest(method, uri, protocolVersion, false);
+		HttpRequest request = new HttpRequest
+				(method, uri, protocolVersion, false);
+		HttpResponse response = (new HttpResponse(protocolVersion,
+				HttpStatus.NOT_IMPLEMENTED, false)).setRequest(request); 
+		return request.setResponse(response);
 	}
 
 	/* (non-Javadoc)
@@ -158,12 +162,10 @@ public class HttpRequestDecoder
 				        "HTTP 1.1 request must have a Host field.");
 			}
 		}
-		HttpStringListField connection = message
-		        .getField(HttpStringListField.class, HttpField.CONNECTION)
-		        .orElse(null);
-		if (connection != null && connection.containsIgnoreCase("close")) {
+		if (message.getField(HttpStringListField.class, HttpField.CONNECTION)
+				.map(f -> f.containsIgnoreCase("close")).orElse(false)) {
 			// RFC 7230 6.6.
-			message.getResponse().setField(new HttpStringListField(
+			message.getResponse().get().setField(new HttpStringListField(
 			        HttpField.CONNECTION, "close"));
 		}
 

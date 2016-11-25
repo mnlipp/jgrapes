@@ -19,6 +19,9 @@ package org.jdrupes.httpcodec.protocols.http;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
+
+import org.jdrupes.httpcodec.fields.HttpField;
 
 /**
  * Represents an HTTP request header.
@@ -56,8 +59,24 @@ public class HttpRequest extends HttpMessageHeader {
 		super(httpProtocol, messageHasBody);
 		this.method = method;
 		this.requestUri = requestUri;
-		response = new HttpResponse(httpProtocol,
-		        HttpStatus.NOT_IMPLEMENTED, false);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.protocols.http.HttpMessageHeader#setField(org.jdrupes.httpcodec.fields.HttpField)
+	 */
+	@Override
+	public HttpRequest setField(HttpField<?> value) {
+		super.setField(value);
+		return this;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.protocols.http.HttpMessageHeader#setMessageHasBody(boolean)
+	 */
+	@Override
+	public HttpRequest setMessageHasBody(boolean messageHasBody) {
+		super.setMessageHasBody(messageHasBody);
+		return this;
 	}
 
 	/**
@@ -83,10 +102,12 @@ public class HttpRequest extends HttpMessageHeader {
 	 * 
 	 * @param host the host
 	 * @param port the port
+	 * @return the request for easy chaining
 	 */
-	public void setHostAndPort (String host, int port) {
+	public HttpRequest setHostAndPort (String host, int port) {
 		this.host = host;
 		this.port = port;
+		return this;
 	}
 
 	/**
@@ -104,19 +125,31 @@ public class HttpRequest extends HttpMessageHeader {
 	}
 
 	/**
-	 * Returns the prepared response. Upon creation, the request provides
-	 * a preliminary {@link HttpResponse} that is already initialized 
-	 * with the basic information that can be derived from the request
+	 * Associates the request with a response. This method is
+	 * invoked by the request decoder that initializes the response with
+	 * basic information that can be derived from the request 
 	 * (e.g. by default the HTTP version is copied). The status code
 	 * of the preliminary response is 501 "Not implemented".
 	 * <P>
-	 * Although not required, users of the API are encouraged to modify
-	 * this prepared request and use it when encoding the response.
+	 * Although not strictly required, users of the API are encouraged to 
+	 * modify this prepared request and use it when building the response.
+	 *  
+	 * @param response the prepared response
+	 * @return the request for easy chaining
+	 */
+	public HttpRequest setResponse(HttpResponse response) {
+		this.response = response;
+		return this;
+	}
+	
+	/**
+	 * Returns the prepared response.
 	 * 
 	 * @return the prepared response
+	 * @see #setResponse(HttpResponse)
 	 */
-	public HttpResponse getResponse() {
-		return response;
+	public Optional<HttpResponse> getResponse() {
+		return Optional.ofNullable(response);
 	}
 	
 	/* (non-Javadoc)

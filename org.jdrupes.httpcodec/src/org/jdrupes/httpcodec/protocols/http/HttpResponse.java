@@ -18,6 +18,7 @@
 package org.jdrupes.httpcodec.protocols.http;
 
 import java.text.ParseException;
+import java.util.Optional;
 
 import org.jdrupes.httpcodec.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.fields.HttpField;
@@ -32,20 +33,39 @@ public class HttpResponse extends HttpMessageHeader {
 
 	private int statusCode = -1;
 	private String reasonPhrase;
+	private HttpRequest request;
 	
-	public HttpResponse(HttpProtocol protocol,
-			HttpStatus status, boolean messageHasBody) {
+	public HttpResponse(HttpProtocol protocol, HttpStatus status, 
+			boolean messageHasBody) {
 		super(protocol, messageHasBody);
 		setStatus(status);
 	}
 	
-	public HttpResponse(HttpProtocol protocol,
-			int statusCode, String reasonPhrase, boolean messageHasBody) {
+	public HttpResponse(HttpProtocol protocol, int statusCode, 
+			String reasonPhrase, boolean messageHasBody) {
 		super(protocol, messageHasBody);
 		setStatusCode(statusCode);
 		setReasonPhrase(reasonPhrase);
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.protocols.http.HttpMessageHeader#setField(org.jdrupes.httpcodec.fields.HttpField)
+	 */
+	@Override
+	public HttpResponse setField(HttpField<?> value) {
+		super.setField(value);
+		return this;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.protocols.http.HttpMessageHeader#setMessageHasBody(boolean)
+	 */
+	@Override
+	public HttpResponse setMessageHasBody(boolean messageHasBody) {
+		super.setMessageHasBody(messageHasBody);
+		return this;
+	}
+
 	/**
 	 * @return the responseCode
 	 */
@@ -55,9 +75,11 @@ public class HttpResponse extends HttpMessageHeader {
 
 	/**
 	 * @param statusCode the responseCode to set
+	 * @return the response for easy chaining
 	 */
-	public void setStatusCode(int statusCode) {
+	public HttpResponse setStatusCode(int statusCode) {
 		this.statusCode = statusCode;
+		return this;
 	}
 
 	/**
@@ -69,9 +91,11 @@ public class HttpResponse extends HttpMessageHeader {
 
 	/**
 	 * @param reasonPhrase the reason phrase to set
+	 * @return the response for easy chaining
 	 */
-	public void setReasonPhrase(String reasonPhrase) {
+	public HttpResponse setReasonPhrase(String reasonPhrase) {
 		this.reasonPhrase = reasonPhrase;
+		return this;
 	}
 
 	/**
@@ -79,10 +103,12 @@ public class HttpResponse extends HttpMessageHeader {
 	 * http status value.
 	 * 
 	 * @param status the status value
+	 * @return the response for easy chaining
 	 */
-	public void setStatus(HttpStatus status) {
+	public HttpResponse setStatus(HttpStatus status) {
 		statusCode = status.getStatusCode();
 		reasonPhrase = status.getReasonPhrase();
+		return this;
 	}
 	
 	/**
@@ -90,11 +116,12 @@ public class HttpResponse extends HttpMessageHeader {
 	 * 
 	 * @param type the type
 	 * @param subtype the subtype
+	 * @return the response for easy chaining
 	 * @throws ParseException if the values cannot be parsed
 	 */
-	public void setContentType(String type, String subtype) 
+	public HttpResponse setContentType(String type, String subtype) 
 			throws ParseException {
-		setField(new HttpMediaTypeField
+		return setField(new HttpMediaTypeField
 				(HttpField.CONTENT_TYPE, type, subtype));
 	}
 
@@ -105,22 +132,51 @@ public class HttpResponse extends HttpMessageHeader {
 	 * @param type the type
 	 * @param subtype the subtype
 	 * @param charset the charset
+	 * @return the response for easy chaining
 	 * @throws ParseException if the values cannot be parsed
 	 */
-	public void setContentType(String type, String subtype,
+	public HttpResponse setContentType(String type, String subtype,
 			String charset) throws ParseException {
 		HttpMediaTypeField mt = new HttpMediaTypeField(HttpField.CONTENT_TYPE,
 		        type, subtype);
 		mt.setParameter("charset", charset);
-		setField(mt);
+		return setField(mt);
 	}
 	
 	/**
 	 * A convenience method for setting the "Content-Length" header.
 	 * 
 	 * @param length the length
+	 * @return the response for easy chaining
+  	 */
+	public HttpResponse setContentLength(long length) {
+		return setField(new HttpContentLengthField(length));
+	}
+	
+	/**
+	 * Associates the response with the request that it responds to. This method
+	 * is invoked by the request decoder when it creates the prepared
+	 * response for a request. The relationship with the request is required
+	 * because information from the request headers may be needed when encoding
+	 * the response. 
+	 * 
+	 * @param request
+	 *            the request
+	 * @return the response for easy chaining
+	 * @see HttpRequest#setResponse(HttpResponse)
 	 */
-	public void setContentLength(long length) {
-		setField(new HttpContentLengthField(length));
+	public HttpResponse setRequest(HttpRequest request) {
+		this.request = request;
+		return this;
+	}
+	
+	/**
+	 * Returns the request that this response responds to.
+	 * 
+	 * @return the request
+	 * @see #setRequest(HttpRequest)
+	 */
+	public Optional<HttpRequest> getRequest() {
+		return Optional.ofNullable(request);
 	}
 }
