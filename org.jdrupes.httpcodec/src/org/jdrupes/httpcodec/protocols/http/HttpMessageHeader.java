@@ -87,6 +87,16 @@ public abstract class HttpMessageHeader
 	}
 
 	/**
+	 * Clear all headers.
+	 * 
+	 * @return the message header for easy chaining
+	 */
+	public HttpMessageHeader clearHeaders() {
+		headers.clear();
+		return this;
+	}
+	
+	/**
 	 * Removes a header field from the message.
 	 * 
 	 * @param name the header field's name
