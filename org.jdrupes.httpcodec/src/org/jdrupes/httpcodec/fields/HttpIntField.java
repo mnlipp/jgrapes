@@ -43,13 +43,14 @@ public class HttpIntField extends HttpField<Long> {
 	protected static <T extends HttpIntField> T fromString
 		(Class<T> type, String name, String s) throws ParseException {
 		try {
-			T result = type.getConstructor(String.class, Long.class)
-			        .newInstance(name, 0);
+			long value;
 			try {
-				((HttpIntField)result).value = Long.parseLong(unquote(s));
+				value = Long.parseLong(unquote(s));
 			} catch (NumberFormatException e) {
 				throw new ParseException(s, 0);
 			}
+			T result = type.getConstructor(String.class, long.class)
+			        .newInstance(name, value);
 			return result;
 		} catch (InstantiationException | IllegalAccessException
 		        | IllegalArgumentException | InvocationTargetException

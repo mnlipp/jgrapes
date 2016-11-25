@@ -26,6 +26,7 @@ import java.time.ZonedDateTime;
 
 import org.jdrupes.httpcodec.fields.HttpDateField;
 import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpIntField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
 import org.jdrupes.httpcodec.fields.HttpStringField;
@@ -99,5 +100,11 @@ public class FieldParsingTests {
 		assertEquals(31, value.getSecond());
 		HttpDateField back = new HttpDateField("Date", value.toInstant());
 		assertEquals(dateTime, back.asFieldValue());
+	}
+	
+	@Test
+	public void testIntFromString() throws ParseException {
+		HttpIntField field = HttpIntField.fromString("test", "42");
+		assertEquals(42, field.getValue().longValue());
 	}
 }
