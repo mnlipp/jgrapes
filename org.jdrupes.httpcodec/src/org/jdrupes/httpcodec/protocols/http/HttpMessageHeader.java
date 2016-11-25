@@ -17,6 +17,7 @@
  */
 package org.jdrupes.httpcodec.protocols.http;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -25,6 +26,7 @@ import java.util.function.Function;
 
 import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpIntField;
 import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
 
@@ -116,7 +118,26 @@ public abstract class HttpMessageHeader
 	 */
 	public <T extends HttpField<?>> Optional<T> 
 		getField(Class<T> type, String name) {
-		return Optional.ofNullable(type.cast(headers.get(name)));
+		HttpField<?> field = headers.get(name);
+		if (field == null || type.isAssignableFrom(field.getClass()) ) {
+			return Optional.ofNullable(type.cast(field));
+		}
+		if ((field instanceof HttpStringField)
+		        && HttpIntField.class.isAssignableFrom(type)) {
+			long value = Long.parseLong(((HttpStringField) field).getValue());
+			try {
+				T result = type.getConstructor(String.class, long.class)
+				        .newInstance(name, value);
+				removeField(name);
+				setField(result);
+				return Optional.of(type.cast(result));
+			} catch (InstantiationException | IllegalAccessException
+			        | IllegalArgumentException | InvocationTargetException
+			        | NoSuchMethodException | SecurityException e) {
+				e.printStackTrace();
+			}
+		}
+		return Optional.empty();
 	}
 
 	/**
