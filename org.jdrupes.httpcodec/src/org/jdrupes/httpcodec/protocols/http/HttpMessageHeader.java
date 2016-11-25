@@ -25,6 +25,7 @@ import java.util.function.Function;
 
 import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.jdrupes.httpcodec.fields.HttpStringListField;
 
 /**
@@ -116,6 +117,17 @@ public abstract class HttpMessageHeader
 	public <T extends HttpField<?>> Optional<T> 
 		getField(Class<T> type, String name) {
 		return Optional.ofNullable(type.cast(headers.get(name)));
+	}
+
+	/**
+	 * Convenience method for getting a field with a string value.
+	 * 
+	 * @param name the field name
+	 * @return the header field if it exists
+	 * @see #getField(Class, String)
+	 */
+	public Optional<HttpStringField> getStringField(String name) {
+		return getField(HttpStringField.class, name);
 	}
 	
 	/**
