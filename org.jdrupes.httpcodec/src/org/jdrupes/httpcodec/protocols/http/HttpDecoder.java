@@ -44,8 +44,7 @@ import org.jdrupes.httpcodec.util.OptimizedCharsetDecoder;
  * 
  * @author Michael N. Lipp
  */
-public abstract class 
-	HttpDecoder<T extends HttpMessageHeader, RT extends Decoder.Result> 
+public abstract class 	HttpDecoder<T extends HttpMessageHeader> 
 	extends HttpCodec<T> implements Decoder<T> {
 
 	final protected static String TOKEN = "[" + Pattern.quote(TOKEN_CHARS)
@@ -155,7 +154,7 @@ public abstract class
 	 *            {@code true} if more data is expected
 	 * @return the result
 	 */
-	protected abstract RT newResult(boolean headerCompleted,
+	protected abstract Decoder.Result newResult(boolean headerCompleted,
 	        boolean overflow, boolean underflow);
 
 	/**
@@ -168,7 +167,7 @@ public abstract class
 	protected abstract BodyMode headerReceived(T message) 
 			throws HttpProtocolException;
 
-	private RT createResult(boolean overflow,
+	private Decoder.Result createResult(boolean overflow,
 	        boolean underflow, boolean closeConnection) {
 		if (messageHeader != null && building != null) {
 			building = null;
@@ -192,7 +191,8 @@ public abstract class
 	 * @throws HttpProtocolException
 	 *             if the message violates the HTTP
 	 */
-	public RT decode (ByteBuffer in, Buffer out, boolean endOfInput)
+	public Decoder.Result decode 
+		(ByteBuffer in, Buffer out, boolean endOfInput)
 	        throws HttpProtocolException {
 		try {
 			return uncheckedDecode(in, out, endOfInput);
@@ -202,7 +202,8 @@ public abstract class
 		}
 	}
 
-	private RT uncheckedDecode(ByteBuffer in, Buffer out, boolean endOfInput)
+	private Decoder.Result uncheckedDecode
+		(ByteBuffer in, Buffer out, boolean endOfInput)
 			throws HttpProtocolException, ParseException {
 		while(true) {
 			switch (states.peek()) {
