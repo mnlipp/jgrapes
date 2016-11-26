@@ -20,16 +20,14 @@ package org.jdrupes.httpcodec.protocols.http.fields;
 import java.text.ParseException;
 import java.util.Arrays;
 
-import org.jdrupes.httpcodec.protocols.http.HttpMessageHeader;
-
 /**
  * An HTTP field value that consists of a comma separated list of 
- * strings. The class provides a "list of strings" view
+ * integers. The class provides a "list of integers" view
  * of the values.
  * 
  * @author Michael N. Lipp
  */
-public class HttpStringListField extends HttpListField<String>
+public class HttpIntListField extends HttpListField<Long>
 	implements Cloneable {
 
 	/**
@@ -41,7 +39,7 @@ public class HttpStringListField extends HttpListField<String>
 	 * 
 	 * @param name the field name
 	 */
-	public HttpStringListField(String name) {
+	public HttpIntListField(String name) {
 		super(name);
 		reset();
 	}
@@ -53,7 +51,7 @@ public class HttpStringListField extends HttpListField<String>
 	 * @param value the first value
 	 * @param values more values
 	 */
-	public HttpStringListField(String name, String value, String... values) {
+	public HttpIntListField(String name, Long value, Long... values) {
 		super(name);
 		add(value);
 		addAll(Arrays.asList(values));
@@ -61,23 +59,24 @@ public class HttpStringListField extends HttpListField<String>
 
 	/**
 	 * Creates a new object with the given field name and unparsed value.
-	 * Derived classes must implement this constructor to support automatic
-	 * conversion (see {@link HttpMessageHeader#getField(Class, String)}).
 	 * 
 	 * @param name the field name
 	 * @param unparsedValue the unparsed value
-	 * @param unparsed used to distinguish constructors
 	 * @throws ParseException if the input violates the field format
 	 */
-	public HttpStringListField(String name, String unparsedValue, 
-			boolean unparsed) throws ParseException {
+	public HttpIntListField(String name, String unparsedValue)
+			throws ParseException {
 		super(name, unparsedValue);
 		while (true) {
 			String element = nextElement();
 			if (element == null) {
 				break;
 			}
-			add(unquote(element));
+			try {
+				add(Long.parseLong(element));
+			} catch (NumberFormatException e) {
+				throw new ParseException(element, 0);
+			}
 		}
 	}
 
@@ -90,50 +89,25 @@ public class HttpStringListField extends HttpListField<String>
 	 * @return the result
 	 * @throws ParseException if the input violates the field format
 	 */
-	public static HttpStringListField fromString(String name, String s) 
+	public static HttpIntListField fromString(String name, String s) 
 			throws ParseException {
-		return new HttpStringListField(name, s, true);
+		return new HttpIntListField(name, s);
 	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
 	@Override
-	public HttpStringListField clone() {
-		return (HttpStringListField)super.clone();
+	public HttpIntListField clone() {
+		return (HttpIntListField)super.clone();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.fields.HttpListField#elementAsString(java.lang.Object)
 	 */
 	@Override
-	protected String elementToString(String element) {
-		return quoteIfNecessary(element);
+	protected String elementToString(Long element) {
+		return element.toString();
 	}
 
-	/**
-	 * Returns whether the list contains the given value, ignoring
-	 * differences in the cases of the letters.
-	 * 
-	 * @param value the value to compare with
-	 * @return the result
-	 */
-	public boolean containsIgnoreCase(String value) {
-		for (String s: getValue()) {
-			if (s.equalsIgnoreCase(value)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/**
-	 * Removes all strings equal to the given value, ignoring
-	 * differences in the cases of the letters.
-	 * 
-	 * @param value the value to compare with
-	 */
-	public void removeIgnoreCase(String value) {
-		removeIf(s -> s.equalsIgnoreCase(value));
-	}
 }

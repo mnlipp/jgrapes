@@ -27,6 +27,7 @@ import java.util.function.Function;
 import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpIntField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpIntListField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpStringField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 
@@ -110,6 +111,11 @@ public abstract class HttpMessageHeader
 
 	/**
 	 * Returns the header field with the given type if it exists.
+	 * The well known header fields are always parsed with their
+	 * proper type. Unknown header fields will be parsed as string fields.
+	 * <P>
+	 * String fields will be automatically converted to more specific types
+	 * if they are requested as integer fields or string list fields.
 	 * 
 	 * @param <T> the header field class
 	 * @param type the header field type
@@ -122,8 +128,10 @@ public abstract class HttpMessageHeader
 		if (field == null || type.isAssignableFrom(field.getClass()) ) {
 			return Optional.ofNullable(type.cast(field));
 		}
-		if ((field instanceof HttpStringField)
-		        && HttpIntField.class.isAssignableFrom(type)) {
+		if (!(field instanceof HttpStringField)) {
+			return Optional.empty();
+		}
+		if (HttpIntField.class.isAssignableFrom(type)) {
 			long value = Long.parseLong(((HttpStringField) field).getValue());
 			try {
 				T result = type.getConstructor(String.class, long.class)
@@ -134,7 +142,32 @@ public abstract class HttpMessageHeader
 			} catch (InstantiationException | IllegalAccessException
 			        | IllegalArgumentException | InvocationTargetException
 			        | NoSuchMethodException | SecurityException e) {
-				e.printStackTrace();
+			}
+		}
+		if (HttpStringListField.class.isAssignableFrom(type)) {
+			try {
+				T result = type.getConstructor
+						(String.class, String.class, boolean.class)
+						.newInstance(name, ((HttpStringField) field).getValue(),
+								true);
+				removeField(name);
+				setField(result);
+				return Optional.of(type.cast(result));
+			} catch (InstantiationException | IllegalAccessException
+			        | IllegalArgumentException | InvocationTargetException
+			        | NoSuchMethodException | SecurityException e) {
+			}
+		}
+		if (HttpIntListField.class.isAssignableFrom(type)) {
+			try {
+				T result = type.getConstructor(String.class, String.class)
+					.newInstance(name, ((HttpStringField) field).getValue());
+				removeField(name);
+				setField(result);
+				return Optional.of(type.cast(result));
+			} catch (InstantiationException | IllegalAccessException
+			        | IllegalArgumentException | InvocationTargetException
+			        | NoSuchMethodException | SecurityException e) {
 			}
 		}
 		return Optional.empty();
