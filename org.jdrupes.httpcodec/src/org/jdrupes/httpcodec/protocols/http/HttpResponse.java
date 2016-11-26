@@ -20,9 +20,9 @@ package org.jdrupes.httpcodec.protocols.http;
 import java.text.ParseException;
 import java.util.Optional;
 
-import org.jdrupes.httpcodec.fields.HttpContentLengthField;
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpContentLengthField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
 
 /**
  * Represents an HTTP response header.

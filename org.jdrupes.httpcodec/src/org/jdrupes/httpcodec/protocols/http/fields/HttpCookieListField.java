@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.fields;
+package org.jdrupes.httpcodec.protocols.http.fields;
 
 import java.net.HttpCookie;
 import java.text.ParseException;

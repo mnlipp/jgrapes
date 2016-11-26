@@ -30,10 +30,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jdrupes.httpcodec.Decoder;
-import org.jdrupes.httpcodec.fields.HttpContentLengthField;
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpListField;
-import org.jdrupes.httpcodec.fields.HttpStringListField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpContentLengthField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpListField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 import org.jdrupes.httpcodec.util.ByteBufferUtils;
 import org.jdrupes.httpcodec.util.DynamicByteArray;
 import org.jdrupes.httpcodec.util.OptimizedCharsetDecoder;

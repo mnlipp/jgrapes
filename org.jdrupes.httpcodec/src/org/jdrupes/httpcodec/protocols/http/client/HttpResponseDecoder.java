@@ -24,12 +24,12 @@ import java.util.regex.Pattern;
 
 import org.jdrupes.httpcodec.Engine;
 import org.jdrupes.httpcodec.ResponseDecoder;
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.protocols.http.HttpDecoder;
 import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 
 /**
  * A decoder for HTTP responses that accepts data from a sequence of

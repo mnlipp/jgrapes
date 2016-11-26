@@ -4,8 +4,8 @@ import static org.junit.Assert.*;
 
 import java.text.ParseException;
 
-import org.jdrupes.httpcodec.fields.HttpCookieListField;
-import org.jdrupes.httpcodec.fields.HttpSetCookieListField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpCookieListField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpSetCookieListField;
 import org.junit.Test;
 
 public class CookiesTests {

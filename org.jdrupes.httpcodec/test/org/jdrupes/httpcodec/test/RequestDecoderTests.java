@@ -25,10 +25,10 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-import org.jdrupes.httpcodec.fields.HttpCookieListField;
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpStringField;
-import org.jdrupes.httpcodec.fields.HttpStringListField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpCookieListField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;
 import org.junit.Test;
 

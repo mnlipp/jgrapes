@@ -32,12 +32,12 @@ import java.util.Stack;
 
 import org.jdrupes.httpcodec.Codec;
 import org.jdrupes.httpcodec.Encoder;
-import org.jdrupes.httpcodec.fields.HttpContentLengthField;
-import org.jdrupes.httpcodec.fields.HttpDateField;
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpIntField;
-import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
-import org.jdrupes.httpcodec.fields.HttpStringListField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpContentLengthField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpDateField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpIntField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 import org.jdrupes.httpcodec.util.ByteBufferOutputStream;
 import org.jdrupes.httpcodec.util.ByteBufferUtils;
 

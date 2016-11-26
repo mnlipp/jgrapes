@@ -22,7 +22,7 @@ import static org.junit.Assert.*;
 import java.text.ParseException;
 import java.util.Iterator;
 
-import org.jdrupes.httpcodec.fields.HttpStringListField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 import org.junit.Test;
 
 /**

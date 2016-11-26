@@ -7,11 +7,11 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 
 import org.jdrupes.httpcodec.ResponseDecoder;
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpSetCookieListField;
 import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpSetCookieListField;
 import org.junit.Test;
 
 public class DecoderContentLengthTests {

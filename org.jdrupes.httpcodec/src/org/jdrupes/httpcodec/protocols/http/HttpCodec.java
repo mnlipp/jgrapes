@@ -18,8 +18,8 @@
 package org.jdrupes.httpcodec.protocols.http;
 
 import org.jdrupes.httpcodec.Codec;
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
 
 /**
  * @author Michael N. Lipp

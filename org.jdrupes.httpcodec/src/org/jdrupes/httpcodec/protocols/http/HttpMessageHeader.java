@@ -25,10 +25,10 @@ import java.util.TreeMap;
 import java.util.function.Function;
 
 import org.jdrupes.httpcodec.MessageHeader;
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpIntField;
-import org.jdrupes.httpcodec.fields.HttpStringField;
-import org.jdrupes.httpcodec.fields.HttpStringListField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpIntField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 
 /**
  * Represents an HTTP message header (either request or response).

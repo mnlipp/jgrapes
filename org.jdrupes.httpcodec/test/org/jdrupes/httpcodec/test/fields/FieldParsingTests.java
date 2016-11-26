@@ -24,12 +24,12 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
-import org.jdrupes.httpcodec.fields.HttpDateField;
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpIntField;
-import org.jdrupes.httpcodec.fields.HttpStringListField;
-import org.jdrupes.httpcodec.fields.HttpMediaTypeField;
-import org.jdrupes.httpcodec.fields.HttpStringField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpDateField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpIntField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 import org.junit.Test;
 
 /**

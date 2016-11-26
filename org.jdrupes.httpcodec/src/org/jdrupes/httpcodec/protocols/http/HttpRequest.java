@@ -21,7 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
-import org.jdrupes.httpcodec.fields.HttpField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
 
 /**
  * Represents an HTTP request header.

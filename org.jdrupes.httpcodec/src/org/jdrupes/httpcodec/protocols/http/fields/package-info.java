@@ -19,4 +19,4 @@
  * @author Michael N. Lipp
  *
  */
-package org.jdrupes.httpcodec.fields;
+package org.jdrupes.httpcodec.protocols.http.fields;

@@ -28,11 +28,11 @@ import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
 import org.jdrupes.httpcodec.ResponseEncoder;
-import org.jdrupes.httpcodec.fields.HttpField;
-import org.jdrupes.httpcodec.fields.HttpStringListField;
 import org.jdrupes.httpcodec.plugin.ProtocolProvider;
 import org.jdrupes.httpcodec.protocols.http.HttpEncoder;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 
 /**
  * @author Michael N. Lipp

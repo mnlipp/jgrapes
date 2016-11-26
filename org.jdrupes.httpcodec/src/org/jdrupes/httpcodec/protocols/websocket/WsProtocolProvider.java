@@ -28,11 +28,11 @@ import org.jdrupes.httpcodec.RequestDecoder;
 import org.jdrupes.httpcodec.RequestEncoder;
 import org.jdrupes.httpcodec.ResponseDecoder;
 import org.jdrupes.httpcodec.ResponseEncoder;
-import org.jdrupes.httpcodec.fields.HttpIntField;
-import org.jdrupes.httpcodec.fields.HttpStringField;
-import org.jdrupes.httpcodec.fields.HttpUnquotedStringField;
 import org.jdrupes.httpcodec.plugin.ProtocolProvider;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpIntField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpStringField;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpUnquotedStringField;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 
 /**
