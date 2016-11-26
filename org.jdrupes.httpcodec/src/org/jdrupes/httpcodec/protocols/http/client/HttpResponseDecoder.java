@@ -37,8 +37,7 @@ import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
  * 
  * @author Michael N. Lipp
  */
-public class HttpResponseDecoder 
-	extends HttpDecoder<HttpResponse, ResponseDecoder.Result>
+public class HttpResponseDecoder extends HttpDecoder<HttpResponse>
 	implements ResponseDecoder<HttpResponse, HttpRequest> {
 
 	// RFC 7230 3.1.2
@@ -92,7 +91,7 @@ public class HttpResponseDecoder
 	public ResponseDecoder.Result decode
 		(ByteBuffer in, Buffer out, boolean endOfInput)
 	        throws HttpProtocolException {
-		return super.decode(in, out, endOfInput);
+		return (ResponseDecoder.Result)super.decode(in, out, endOfInput);
 	}
 
 	/**
