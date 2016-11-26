@@ -26,13 +26,13 @@ import org.jdrupes.httpcodec.ResponseEncoder;
  * @author Michael N. Lipp
  *
  */
-public class WsResponseEncoder implements ResponseEncoder<WsMessageHeader> {
+public class WsResponseEncoder implements ResponseEncoder<WsFrameHeader> {
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.ResponseEncoder#encode(org.jdrupes.httpcodec.MessageHeader)
 	 */
 	@Override
-	public void encode(WsMessageHeader messageHeader) {
+	public void encode(WsFrameHeader messageHeader) {
 		// TODO Auto-generated method stub
 
 	}

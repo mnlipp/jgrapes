@@ -28,6 +28,7 @@ import org.jdrupes.httpcodec.RequestDecoder;
 import org.jdrupes.httpcodec.RequestEncoder;
 import org.jdrupes.httpcodec.ResponseDecoder;
 import org.jdrupes.httpcodec.ResponseEncoder;
+import org.jdrupes.httpcodec.fields.HttpIntField;
 import org.jdrupes.httpcodec.fields.HttpStringField;
 import org.jdrupes.httpcodec.fields.HttpUnquotedStringField;
 import org.jdrupes.httpcodec.plugin.ProtocolProvider;
@@ -54,13 +55,23 @@ public class WsProtocolProvider extends ProtocolProvider {
 	@Override
 	public void augmentInitialResponse(HttpResponse response) {
 		Optional<String> wsKey = response.getRequest()
-			.flatMap(r -> r.getField
-					(HttpStringField.class, "Sec-WebSocket-Key"))
+			.flatMap(r -> r.getStringField("Sec-WebSocket-Key"))
 			.map(HttpStringField::getValue);
 		if (!wsKey.isPresent()) {
 			response.setStatus(HttpStatus.BAD_REQUEST)
 				.setMessageHasBody(false).clearHeaders();
 			return;
+		}
+		// RFC 6455 4.1
+		if(response.getRequest().flatMap
+				(r -> r.getField(HttpIntField.class, "Sec-WebSocket-Version"))
+				.map(HttpIntField::asInt).orElse(-1) != 13) {
+			response.setStatus(HttpStatus.BAD_REQUEST)
+				.setMessageHasBody(false).clearHeaders();
+			// RFC 6455 4.4
+			response.setField(new HttpIntField("Sec-WebSocket-Version", 13));
+			return;
+			
 		}
 		String s = wsKey.get() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 		try {

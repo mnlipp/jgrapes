@@ -71,16 +71,18 @@ public class Connection extends Thread {
 				in.clear();
 				channel.read(in);
 				in.flip();
-				RequestDecoder.Result<?> decoderResult 
-					= engine.decode(in, null, false);
-				if (decoderResult.hasResponse()) {
-					sendResponseWithoutBody	(decoderResult.getResponse());
-					break;
-				}
-				if (decoderResult.isHeaderCompleted()) {
-					MessageHeader hdr = engine.currentRequest().get();
-					if (hdr instanceof HttpRequest) {
-						handleHttpRequest((HttpRequest)hdr);
+				while (in.hasRemaining()) {
+					RequestDecoder.Result<?> decoderResult 
+						= engine.decode(in, null, false);
+					if (decoderResult.hasResponse()) {
+						sendResponseWithoutBody(decoderResult.getResponse());
+						break;
+					}
+					if (decoderResult.isHeaderCompleted()) {
+						MessageHeader hdr = engine.currentRequest().get();
+						if (hdr instanceof HttpRequest) {
+							handleHttpRequest((HttpRequest) hdr);
+						}
 					}
 				}
 			}

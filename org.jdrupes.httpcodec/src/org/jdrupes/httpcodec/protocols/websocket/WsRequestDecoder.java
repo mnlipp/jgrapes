@@ -17,38 +17,13 @@
  */
 package org.jdrupes.httpcodec.protocols.websocket;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.util.Optional;
-
-import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.RequestDecoder;
 
 /**
  * @author Michael N. Lipp
  *
  */
-public class WsRequestDecoder implements RequestDecoder
-	<WsMessageHeader, WsMessageHeader> {
-
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.Decoder#getHeader()
-	 */
-	@Override
-	public Optional<WsMessageHeader> getHeader() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.RequestDecoder#decode(java.nio.ByteBuffer, java.nio.Buffer, boolean)
-	 */
-	@Override
-	public org.jdrupes.httpcodec.RequestDecoder.Result<WsMessageHeader> decode(
-	        ByteBuffer in, Buffer out, boolean endOfInput)
-	        throws ProtocolException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+public class WsRequestDecoder extends WsDecoder implements RequestDecoder
+	<WsFrameHeader, WsFrameHeader> {
 
 }

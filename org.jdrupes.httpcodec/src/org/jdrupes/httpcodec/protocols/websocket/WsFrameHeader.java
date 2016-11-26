@@ -23,6 +23,6 @@ import org.jdrupes.httpcodec.MessageHeader;
  * @author Michael N. Lipp
  *
  */
-public class WsMessageHeader implements MessageHeader {
+public class WsFrameHeader implements MessageHeader {
 
 }

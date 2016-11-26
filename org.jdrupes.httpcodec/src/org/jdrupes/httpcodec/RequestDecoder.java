@@ -80,8 +80,8 @@ public interface RequestDecoder<Q extends MessageHeader,
 		 * @param underflow {@code true} if more data is expected
 		 */
 		public Result(boolean headerCompleted, R response, 
-				boolean requestCompleted,
-		        boolean overflow, boolean underflow) {
+				boolean requestCompleted, boolean overflow, 
+				boolean underflow) {
 			super(headerCompleted, overflow, underflow);
 			this.response = response;
 		}
