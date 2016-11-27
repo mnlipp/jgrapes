@@ -152,7 +152,85 @@ public interface ResponseEncoder<T extends MessageHeader>
 				? extends MessageHeader> newDecoder() {
 			return newDecoder;
 		}
-	}
 
-	
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("ResponseEncoder.Result [overflow=");
+			builder.append(isOverflow());
+			builder.append(", underflow=");
+			builder.append(isUnderflow());
+			builder.append(", closeConnection=");
+			builder.append(closeConnection);
+			builder.append(", ");
+			if (newProtocol != null) {
+				builder.append("newProtocol=");
+				builder.append(newProtocol);
+				builder.append(", ");
+			}
+			if (newDecoder != null) {
+				builder.append("newDecoder=");
+				builder.append(newDecoder);
+				builder.append(", ");
+			}
+			if (newEncoder != null) {
+				builder.append("newEncoder=");
+				builder.append(newEncoder);
+			}
+			builder.append("]");
+			return builder.toString();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = super.hashCode();
+			result = prime * result + (closeConnection ? 1231 : 1237);
+			result = prime * result
+			        + ((newDecoder == null) ? 0 : newDecoder.hashCode());
+			result = prime * result
+			        + ((newEncoder == null) ? 0 : newEncoder.hashCode());
+			result = prime * result
+			        + ((newProtocol == null) ? 0 : newProtocol.hashCode());
+			return result;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (!super.equals(obj))
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Result other = (Result) obj;
+			if (closeConnection != other.closeConnection)
+				return false;
+			if (newDecoder == null) {
+				if (other.newDecoder != null)
+					return false;
+			} else if (!newDecoder.equals(other.newDecoder))
+				return false;
+			if (newEncoder == null) {
+				if (other.newEncoder != null)
+					return false;
+			} else if (!newEncoder.equals(other.newEncoder))
+				return false;
+			if (newProtocol == null) {
+				if (other.newProtocol != null)
+					return false;
+			} else if (!newProtocol.equals(other.newProtocol))
+				return false;
+			return true;
+		}
+	}
 }
