@@ -120,7 +120,7 @@ public interface Codec {
 		@Override
 		public String toString() {
 			StringBuilder builder = new StringBuilder();
-			builder.append("CodecResult [overflow=");
+			builder.append("Codec.Result [overflow=");
 			builder.append(overflow);
 			builder.append(", underflow=");
 			builder.append(underflow);
