@@ -118,6 +118,67 @@ public interface RequestDecoder<Q extends MessageHeader,
 		public boolean requestCompleted() {
 			return requestComleted;
 		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("RequestDecoder.Result [overflow=");
+			builder.append(isOverflow());
+			builder.append(", underflow=");
+			builder.append(isUnderflow());
+			builder.append(", headerCompleted=");
+			builder.append(isHeaderCompleted());
+			builder.append(", ");
+			if (response != null) {
+				builder.append("response=");
+				builder.append(response);
+				builder.append(", ");
+			}
+			builder.append("requestComleted=");
+			builder.append(requestComleted);
+			builder.append("]");
+			return builder.toString();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = super.hashCode();
+			result = prime * result + (requestComleted ? 1231 : 1237);
+			result = prime * result
+			        + ((response == null) ? 0 : response.hashCode());
+			return result;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (!super.equals(obj))
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			@SuppressWarnings("unchecked")
+			Result<R> other = (Result<R>) obj;
+			if (requestComleted != other.requestComleted)
+				return false;
+			if (response == null) {
+				if (other.response != null)
+					return false;
+			} else if (!response.equals(other.response))
+				return false;
+			return true;
+		}
+		
 		
 	}
 	
