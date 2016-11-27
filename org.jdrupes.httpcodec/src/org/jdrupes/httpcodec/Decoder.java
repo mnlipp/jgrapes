@@ -95,6 +95,49 @@ public interface Decoder<T extends MessageHeader> extends Codec {
 		public boolean isHeaderCompleted() {
 			return headerCompleted;
 		}
-		
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("Decoder.Result [overflow=");
+			builder.append(isOverflow());
+			builder.append(", underflow=");
+			builder.append(isUnderflow());
+			builder.append(", headerCompleted=");
+			builder.append(headerCompleted);
+			builder.append("]");
+			return builder.toString();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = super.hashCode();
+			result = prime * result + (headerCompleted ? 1231 : 1237);
+			return result;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (!super.equals(obj))
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Result other = (Result) obj;
+			if (headerCompleted != other.headerCompleted)
+				return false;
+			return true;
+		}
 	}
 }
