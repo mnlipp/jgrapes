@@ -24,7 +24,6 @@ import org.jdrupes.httpcodec.ResponseEncoder;
 
 /**
  * @author Michael N. Lipp
- *
  */
 public class WsResponseEncoder implements ResponseEncoder<WsFrameHeader> {
 
@@ -35,6 +34,15 @@ public class WsResponseEncoder implements ResponseEncoder<WsFrameHeader> {
 	public void encode(WsFrameHeader messageHeader) {
 		// TODO Auto-generated method stub
 
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jdrupes.httpcodec.ResponseEncoder#newResult(boolean, boolean)
+	 */
+	@Override
+	public Result newResult(boolean overflow, boolean underflow) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	/* (non-Javadoc)

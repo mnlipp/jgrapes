@@ -69,13 +69,56 @@ public interface ResponseDecoder<T extends MessageHeader,
 	        throws ProtocolException;
 	
 	/**
+	 * Factory method for result.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param headerCompleted {@code true} if the header has completely
+	 * been decoded
+	 * @param closeConnection
+	 *            {@code true} if the connection should be closed
+	 * @param newProtocol the name of the new protocol if a switch occurred
+	 * @param newDecoder the new decoder if a switch occurred
+	 * @param newEncoder the new decoder if a switch occurred
+	 */
+	default Result newResult (boolean overflow, boolean underflow, 
+			boolean headerCompleted, boolean closeConnection,
+	        String newProtocol, ResponseDecoder<MessageHeader, 
+	        MessageHeader> newDecoder, 
+	        RequestEncoder<MessageHeader> newEncoder) {
+		return new Result(overflow, underflow, headerCompleted,
+				closeConnection, newProtocol, newDecoder, newEncoder) {
+		};
+	}
+
+	/**
+	 * Overrides the base interface's factory method in order to make
+	 * it return the extended return type.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param headerCompleted
+	 *            indicates that the message header has been completed and
+	 *            the message (without body) is available
+	 */
+	Result newResult (boolean overflow, boolean underflow, 
+			boolean headerCompleted);
+	
+	/**
 	 * The result from encoding a response. In addition to the usual
 	 * codec result, a result decoder may signal to the invoker that the
 	 * connection to the responder must be closed.
+	 * <P>
+	 * The class is declared abstract to promote the usage of the factory
+	 * method.
 	 * 
 	 * @author Michael N. Lipp
 	 */
-	public class Result extends Decoder.Result {
+	public abstract class Result extends Decoder.Result {
 
 		private boolean closeConnection;
 		private String newProtocol;
@@ -84,26 +127,25 @@ public interface ResponseDecoder<T extends MessageHeader,
 		
 		/**
 		 * Returns a new result.
-		 * 
-		 * @param headerCompleted
-		 *            indicates that the message header has been completed and
-		 *            the message (without body) is available
 		 * @param overflow
 		 *            {@code true} if the data didn't fit in the out buffer
 		 * @param underflow
 		 *            {@code true} if more data is expected
+		 * @param headerCompleted
+		 *            indicates that the message header has been completed and
+		 *            the message (without body) is available
 		 * @param closeConnection
 		 *            {@code true} if the connection should be closed
 		 * @param newProtocol the name of the new protocol if a switch occurred
 		 * @param newDecoder the new decoder if a switch occurred
 		 * @param newEncoder the new decoder if a switch occurred
 		 */
-		public Result(boolean headerCompleted, boolean overflow,
-		        boolean underflow, boolean closeConnection,
+		protected Result(boolean overflow, boolean underflow,
+		        boolean headerCompleted, boolean closeConnection,
 		        String newProtocol, ResponseDecoder<MessageHeader, 
 		        MessageHeader> newDecoder, 
 		        RequestEncoder<MessageHeader> newEncoder) {
-			super(headerCompleted, overflow, underflow);
+			super(overflow, underflow, headerCompleted);
 			this.closeConnection = closeConnection;
 			this.newProtocol = newProtocol;
 			this.newDecoder = newDecoder;

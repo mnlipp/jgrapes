@@ -32,11 +32,27 @@ public interface Codec {
 	public final static ByteBuffer EMPTY_IN = ByteBuffer.allocate(0);
 	
 	/**
+	 * Factory method for results. 
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 */
+	default Result newResult (boolean overflow, boolean underflow) {
+		return new Result(overflow, underflow) {
+		};
+	}
+	
+	/**
 	 * The common properties of the result types returned by the various codecs.
+	 * <P>
+	 * The class is declared abstract to promote the usage of the factory
+	 * method.
 	 * 
 	 * @author Michael N. Lipp
 	 */
-	public static class Result {
+	public static abstract class Result {
 
 		private boolean overflow;
 		private boolean underflow;
@@ -49,7 +65,7 @@ public interface Codec {
 		 * @param underflow
 		 *            {@code true} if more data is expected
 		 */
-		public Result(boolean overflow, boolean underflow) {
+		protected Result(boolean overflow, boolean underflow) {
 			super();
 			this.overflow = overflow;
 			this.underflow = underflow;

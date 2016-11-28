@@ -57,17 +57,6 @@ public class HttpRequestDecoder
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.HttpDecoder#createResult(org.jdrupes.httpcodec.HttpMessage, boolean, boolean, boolean)
-	 */
-	@Override
-	protected Result newResult(
-	        boolean headerCompleted,
-	        boolean overflow, boolean underflow) {
-		return new Result(headerCompleted, null,
-		        false, overflow, underflow);
-	}
-
-	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.HttpDecoder#decode(java.nio.ByteBuffer)
 	 */
 	@Override
@@ -79,7 +68,7 @@ public class HttpRequestDecoder
 					e.getStatusCode(), e.getReasonPhrase(), false);
 			response.setField(
 			        new HttpStringListField(HttpField.CONNECTION, "close"));
-			return new Result(false, response, true, false, false);
+			return newResult(false, false, false, true, response);
 		}
 	}
 
@@ -201,35 +190,79 @@ public class HttpRequestDecoder
 	}
 
 	/**
+	 * Overrides the base interface's factory method in order to make
+	 * it return the extended return type. As the {@link HttpDecoder}
+	 * does not know about a response, this implementation always
+	 * returns a result without one.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param headerCompleted
+	 *            indicates that the message header has been completed and
+	 *            the message (without body) is available
+	 */
+	@Override
+	public Result newResult(boolean overflow, boolean underflow,
+	        boolean headerCompleted) {
+		return newResult(overflow, underflow, headerCompleted, false, null);
+	}
+
+	/**
+	 * Factory method for result.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param headerCompleted {@code true} if the header has completely
+	 * been decoded
+	 * @param requestCompleted if the result includes a response 
+	 * this flag indicates that no further processing besides 
+	 * sending the response is required
+	 * @param response a response to send due to an error
+	 */
+	public Result newResult (boolean overflow, boolean underflow, 
+			boolean headerCompleted, boolean requestCompleted, 
+			HttpResponse response) {
+		return new Result(overflow, underflow, 
+				headerCompleted, requestCompleted, response) {
+		};
+	}
+
+	/**
 	 * Short for {@code RequestDecoder.Result<HttpResponse>}, provided
 	 * for convenience.
+	 * <P>
+	 * The class is declared abstract to promote the usage of the factory
+	 * method.
 	 * 
 	 * @author Michael N. Lipp
 	 */
-	public static class Result extends RequestDecoder.Result<HttpResponse> {
+	public static abstract class Result 
+		extends RequestDecoder.Result<HttpResponse> {
 
 		/**
 		 * Creates a new result.
-		 * 
-		 * @param headerCompleted
-		 *            {@code true} if the header has completely been decoded
-		 * @param response
-		 *            a response to send due to an error
-		 * @param requestCompleted
-		 *            if the result includes a response this flag indicates that
-		 *            no further processing besides sending the response is
-		 *            required
 		 * @param overflow
 		 *            {@code true} if the data didn't fit in the out buffer
 		 * @param underflow
 		 *            {@code true} if more data is expected
+		 * @param headerCompleted
+		 *            {@code true} if the header has completely been decoded
+		 * @param requestCompleted
+		 *            if the result includes a response this flag indicates that
+		 *            no further processing besides sending the response is
+		 *            required
+		 * @param response
+		 *            a response to send due to an error
 		 */
-		public Result(boolean headerCompleted, HttpResponse response,
-		        boolean requestCompleted, boolean overflow, 
-		        boolean underflow) {
-			super(headerCompleted, response, requestCompleted, overflow,
-			        underflow);
-			// TODO Auto-generated constructor stub
+		public Result(boolean overflow, boolean underflow,
+		        boolean headerCompleted, boolean requestCompleted, 
+		        HttpResponse response) {
+			super(overflow, underflow, headerCompleted, requestCompleted,
+			        response);
 		}
 	}
 }

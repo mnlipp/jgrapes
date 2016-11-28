@@ -52,37 +52,76 @@ public interface RequestDecoder<Q extends MessageHeader,
 	        throws ProtocolException;
 
 	/**
+	 * Factory method for result.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param headerCompleted {@code true} if the header has completely
+	 * been decoded
+	 * @param requestCompleted if the result includes a response 
+	 * this flag indicates that no further processing besides 
+	 * sending the response is required
+	 * @param response a response to send due to an error
+	 */
+	default Result<R> newResult (boolean overflow, boolean underflow, 
+			boolean headerCompleted, boolean requestCompleted, 
+			R response) {
+		return new Result<R>(overflow, underflow, headerCompleted,
+				requestCompleted, response) {
+		};
+	}
+
+	/**
+	 * Overrides the base interface's factory method in order to make
+	 * it return the extended return type.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param headerCompleted
+	 *            indicates that the message header has been completed and
+	 *            the message (without body) is available
+	 */
+	Result<R> newResult (boolean overflow, boolean underflow, 
+			boolean headerCompleted);
+	
+	/**
 	 * The result from decoding a request. In addition to the common
 	 * decoder result, this can include a response that is to be sent
 	 * back to the requester in order to fulfill the requirements of
 	 * the protocol. As the decoder can (obviously) not sent back this
 	 * response by itself, it is included in the result.
+	 * <P>
+	 * The class is declared abstract to promote the usage of the factory
+	 * method.
 	 *
 	 * @param <R> the type of the optionally generated response message
 	 * @author Michael N. Lipp
 	 */
-	public static class Result<R extends MessageHeader> 
+	public static abstract class Result<R extends MessageHeader> 
 		extends Decoder.Result {
 
-		private R response;
 		private boolean requestComleted;
+		private R response;
 
 		/**
 		 * Creates a new result.
-		 * 
+		 * @param overflow {@code true} if the data didn't fit in the out buffer
+		 * @param underflow {@code true} if more data is expected
 		 * @param headerCompleted {@code true} if the header has completely
 		 * been decoded
-		 * @param response a response to send due to an error
 		 * @param requestCompleted if the result includes a response 
 		 * this flag indicates that no further processing besides 
 		 * sending the response is required
-		 * @param overflow {@code true} if the data didn't fit in the out buffer
-		 * @param underflow {@code true} if more data is expected
+		 * @param response a response to send due to an error
 		 */
-		public Result(boolean headerCompleted, R response, 
-				boolean requestCompleted, boolean overflow, 
-				boolean underflow) {
-			super(headerCompleted, overflow, underflow);
+		protected Result(boolean overflow, boolean underflow, 
+				boolean headerCompleted, boolean requestCompleted, 
+				R response) {
+			super(overflow, underflow, headerCompleted);
 			this.response = response;
 		}
 

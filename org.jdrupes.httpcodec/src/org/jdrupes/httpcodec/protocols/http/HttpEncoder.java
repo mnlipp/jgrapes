@@ -30,7 +30,6 @@ import java.nio.charset.CoderResult;
 import java.util.Iterator;
 import java.util.Stack;
 
-import org.jdrupes.httpcodec.Codec;
 import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpContentLengthField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpDateField;
@@ -47,8 +46,7 @@ import org.jdrupes.httpcodec.util.ByteBufferUtils;
  * 
  * @author Michael N. Lipp
  */
-public abstract class HttpEncoder
-	<T extends HttpMessageHeader, RT extends Codec.Result> 
+public abstract class HttpEncoder<T extends HttpMessageHeader> 
 	extends HttpCodec<T> implements Encoder<T> {
 
 	private enum State {
@@ -141,18 +139,18 @@ public abstract class HttpEncoder
 	protected abstract void startMessage(T messageHeader, Writer writer) 
 			throws IOException;
 
-	/**
-	 * Factory method to be implemented by derived classes that returns an
-	 * encoder result as appropriate for the encoder.
-	 * 
-	 * @param overflow
-	 *            {@code true} if the data didn't fit in the out buffer
-	 * @param underflow
-	 *            {@code true} if more data is expected
-	 * @return the result
-	 */
-	protected abstract RT newResult(boolean overflow,
-	        boolean underflow);
+//	/**
+//	 * Factory method to be implemented by derived classes that returns an
+//	 * encoder result as appropriate for the encoder.
+//	 * 
+//	 * @param overflow
+//	 *            {@code true} if the data didn't fit in the out buffer
+//	 * @param underflow
+//	 *            {@code true} if more data is expected
+//	 * @return the result
+//	 */
+//	abstract RT newResult(boolean overflow,
+//	        boolean underflow);
 
 	/**
 	 * Set a new HTTP message that is to be encoded.
@@ -182,10 +180,10 @@ public abstract class HttpEncoder
 	 *            no body at all)
 	 * @return the result
 	 */
-	public RT encode(Buffer in, ByteBuffer out,
+	public Encoder.Result encode(Buffer in, ByteBuffer out,
 	        boolean endOfInput) {
 		outStream.assignBuffer(out);
-		RT result = newResult(false, false);
+		Encoder.Result result = newResult(false, false);
 		if (out.remaining() == 0) {
 			return newResult(true, false);
 		}
@@ -445,7 +443,7 @@ public abstract class HttpEncoder
 	 * @param out
 	 * @param endOfInput
 	 */
-	private RT copyBodyData(Buffer in, ByteBuffer out,
+	private Encoder.Result copyBodyData(Buffer in, ByteBuffer out,
 	        boolean endOfInput) {
 		if (in instanceof CharBuffer) {
 			// copy via encoder
@@ -473,7 +471,7 @@ public abstract class HttpEncoder
 	 * @param in
 	 * @param endOfInput
 	 */
-	private RT collectBody(Buffer in, boolean endOfInput) {
+	private Encoder.Result collectBody(Buffer in, boolean endOfInput) {
 		if (collectedBodyData.remaining() - in.remaining() < -pendingLimit) {
 			// No space left, output headers, collected and rest (and then
 			// close)
@@ -530,7 +528,8 @@ public abstract class HttpEncoder
 	 * @param in
 	 * @return
 	 */
-	private RT startChunk(Buffer in, ByteBuffer out, boolean endOfInput) {
+	private Encoder.Result startChunk
+		(Buffer in, ByteBuffer out, boolean endOfInput) {
 		if (endOfInput) {
 			states.pop();
 			states.push(State.FINISH_CHUNKED);

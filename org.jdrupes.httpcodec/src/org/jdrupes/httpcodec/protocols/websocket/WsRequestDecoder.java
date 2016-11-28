@@ -17,13 +17,116 @@
  */
 package org.jdrupes.httpcodec.protocols.websocket;
 
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+
+import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.RequestDecoder;
+import org.jdrupes.httpcodec.protocols.http.HttpDecoder;
 
 /**
  * @author Michael N. Lipp
- *
  */
-public class WsRequestDecoder extends WsDecoder implements RequestDecoder
-	<WsFrameHeader, WsFrameHeader> {
+public class WsRequestDecoder extends WsDecoder
+	implements RequestDecoder<WsFrameHeader, WsFrameHeader> {
 
+	/**
+	 * Decodes the next chunk of data.
+	 * 
+	 * @param in
+	 *            holds the data to be decoded
+	 * @param out
+	 *            gets the body data (if any) written to it
+	 * @param endOfInput
+	 *            {@code true} if there is no input left beyond the data
+	 *            currently in the {@code in} buffer (indicates end of body or
+	 *            no body at all)
+	 * @return the result
+	 * @throws ProtocolException
+	 *             if the message violates the HTTP
+	 */
+	@Override
+	public Result decode(ByteBuffer in, Buffer out, boolean endOfInput)
+	        throws ProtocolException {
+		return (Result)super.decode(in, out, endOfInput);
+	}
+
+	/**
+	 * Overrides the base interface's factory method in order to make
+	 * it return the extended return type. As the {@link HttpDecoder}
+	 * does not know about a response, this implementation always
+	 * returns a result without one.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param headerCompleted
+	 *            indicates that the message header has been completed and
+	 *            the message (without body) is available
+	 */
+	@Override
+	public Result newResult(boolean overflow, boolean underflow,
+	        boolean headerCompleted) {
+		return newResult(overflow, underflow, headerCompleted, false, null);
+	}
+
+	/**
+	 * Factory method for result.
+	 * 
+	 * @param headerCompleted
+	 *            {@code true} if the header has completely been decoded
+	 * @param response
+	 *            a response to send due to an error
+	 * @param requestCompleted
+	 *            if the result includes a response this flag indicates that
+	 *            no further processing besides sending the response is
+	 *            required
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 */
+	public Result newResult (boolean overflow, boolean underflow, 
+			boolean headerCompleted, boolean requestCompleted, 
+			WsFrameHeader response) {
+		return new Result(overflow, underflow, 
+				headerCompleted, requestCompleted, response) {
+		};
+	}
+
+	/**
+	 * Short for {@code RequestDecoder.Result<WsFrameHeader>}, provided
+	 * for convenience.
+	 * <P>
+	 * The class is declared abstract to promote the usage of the factory
+	 * method.
+	 * 
+	 * @author Michael N. Lipp
+	 */
+	public static abstract class Result 
+		extends RequestDecoder.Result<WsFrameHeader> {
+
+		/**
+		 * Creates a new result.
+		 * @param overflow
+		 *            {@code true} if the data didn't fit in the out buffer
+		 * @param underflow
+		 *            {@code true} if more data is expected
+		 * @param headerCompleted
+		 *            {@code true} if the header has completely been decoded
+		 * @param requestCompleted
+		 *            if the result includes a response this flag indicates that
+		 *            no further processing besides sending the response is
+		 *            required
+		 * @param response
+		 *            a response to send due to an error
+		 */
+		public Result(boolean overflow, boolean underflow,
+		        boolean headerCompleted, boolean requestCompleted, 
+		        WsFrameHeader response) {
+			super(overflow, underflow, headerCompleted, requestCompleted,
+			        response);
+		}
+	}
 }

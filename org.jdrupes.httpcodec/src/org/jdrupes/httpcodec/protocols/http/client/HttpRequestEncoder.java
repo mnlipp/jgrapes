@@ -22,7 +22,6 @@ import java.io.Writer;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.Codec;
 import org.jdrupes.httpcodec.Engine;
 import org.jdrupes.httpcodec.RequestEncoder;
 import org.jdrupes.httpcodec.protocols.http.HttpEncoder;
@@ -32,7 +31,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpRequest;
  * @author Michael N. Lipp
  *
  */
-public class HttpRequestEncoder extends HttpEncoder<HttpRequest, Codec.Result> 
+public class HttpRequestEncoder extends HttpEncoder<HttpRequest> 
 	implements RequestEncoder<HttpRequest> {
 
 	/**
@@ -42,14 +41,6 @@ public class HttpRequestEncoder extends HttpEncoder<HttpRequest, Codec.Result>
 	 */
 	public HttpRequestEncoder(Engine engine) {
 		super();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.internal.Encoder#newResult(boolean, boolean)
-	 */
-	@Override
-	protected Result newResult(boolean overflow, boolean underflow) {
-		return new Codec.Result(overflow, underflow);
 	}
 
 	/* (non-Javadoc)

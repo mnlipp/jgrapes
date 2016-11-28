@@ -37,8 +37,7 @@ import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 /**
  * @author Michael N. Lipp
  */
-public class HttpResponseEncoder 
-	extends HttpEncoder<HttpResponse, ResponseEncoder.Result>
+public class HttpResponseEncoder extends HttpEncoder<HttpResponse>
 	implements ResponseEncoder<HttpResponse>{
 
 	private static ServiceLoader<ProtocolProvider> pluginLoader 
@@ -106,11 +105,12 @@ public class HttpResponseEncoder
 	@Override
 	public ResponseEncoder.Result encode
 		(Buffer in, ByteBuffer out, boolean endOfInput) {
-		ResponseEncoder.Result result = super.encode(in, out, endOfInput);
+		ResponseEncoder.Result result = (ResponseEncoder.Result)
+				super.encode(in, out, endOfInput);
 		if (switchingTo != null && endOfInput 
 				&& !result.isUnderflow() && !result.isOverflow()) {
 			// Last invocation of encode
-			result = new ResponseEncoder.Result(false, false, 
+			result = newResult(false, false, 
 					result.getCloseConnection(), switchingTo, 
 					protocolPlugin.createRequestDecoder(switchingTo), 
 					protocolPlugin.createResponseEncoder(switchingTo));
@@ -136,10 +136,9 @@ public class HttpResponseEncoder
 	 * @see org.jdrupes.httpcodec.internal.Encoder#newResult(boolean, boolean)
 	 */
 	@Override
-	protected ResponseEncoder.Result newResult
+	public ResponseEncoder.Result newResult
 		(boolean overflow, boolean underflow) {
-		return new ResponseEncoder.Result(overflow, underflow, isClosed(),
-				null, null, null);
+		return newResult(overflow, underflow, isClosed(), null, null, null);
 	}
 
 }

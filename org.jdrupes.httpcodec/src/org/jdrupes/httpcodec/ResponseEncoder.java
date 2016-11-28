@@ -72,6 +72,40 @@ public interface ResponseEncoder<T extends MessageHeader>
 	}
 
 	/**
+	 * Factory method for result.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param closeConnection
+	 *            {@code true} if the connection should be closed
+	 * @param newProtocol the name of the new protocol if a switch occurred
+	 * @param newDecoder the new decoder if a switch occurred
+	 * @param newEncoder the new decoder if a switch occurred
+	 */
+	default Result newResult (boolean overflow, boolean underflow,
+	        boolean closeConnection, String newProtocol,
+	        RequestDecoder<? extends MessageHeader, 
+	        		? extends MessageHeader> newDecoder,
+	        ResponseEncoder<? extends MessageHeader> newEncoder) {
+		return new Result (overflow, underflow, closeConnection,
+				newProtocol, newDecoder, newEncoder) {
+		};
+	}
+	
+	/**
+	 * Overrides the base interface's factory method in order to make
+	 * it return the extended return type.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 */
+	Result newResult (boolean overflow, boolean underflow);
+	
+	/**
 	 * The result from encoding a response. In addition to the usual
 	 * codec result, a result encoder may signal to the invoker that the
 	 * connection to the requester must be closed and that the protocol has
@@ -79,7 +113,7 @@ public interface ResponseEncoder<T extends MessageHeader>
 	 * 
 	 * @author Michael N. Lipp
 	 */
-	public class Result extends Codec.Result {
+	public abstract class Result extends Codec.Result {
 
 		private boolean closeConnection;
 		private String newProtocol;
@@ -100,7 +134,7 @@ public interface ResponseEncoder<T extends MessageHeader>
 		 * @param newDecoder the new decoder if a switch occurred
 		 * @param newEncoder the new decoder if a switch occurred
 		 */
-		public Result(boolean overflow, boolean underflow,
+		protected Result(boolean overflow, boolean underflow,
 		        boolean closeConnection, String newProtocol,
 		        RequestDecoder<? extends MessageHeader, 
 		        		? extends MessageHeader> newDecoder,

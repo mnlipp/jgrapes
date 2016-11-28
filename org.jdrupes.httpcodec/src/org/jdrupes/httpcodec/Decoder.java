@@ -58,9 +58,40 @@ public interface Decoder<T extends MessageHeader> extends Codec {
 	public Optional<T> getHeader();
 	
 	/**
+	 * Factory method for result.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param headerCompleted
+	 *            indicates that the message header has been completed and
+	 *            the message (without body) is available
+	 */
+	default Result newResult (boolean overflow, boolean underflow, 
+			boolean headerCompleted) {
+		return new Result (overflow, underflow, headerCompleted) {
+		};
+	}
+	
+	/**
+	 * Overrides the base interface's factory method in order to make
+	 * it return the extended return type.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 */
+	Result newResult (boolean overflow, boolean underflow);
+	
+	/**
 	 * The result from invoking the decoder. In addition to the general codec
 	 * result, all decoders may return a message header if one
 	 * has been decoded during the invocation. 
+	 * <P>
+	 * The class is declared abstract to promote the usage of the factory
+	 * method.
 	 * 
 	 * @author Michael N. Lipp
 	 */
@@ -70,17 +101,16 @@ public interface Decoder<T extends MessageHeader> extends Codec {
 
 		/**
 		 * Creates a new result.
-		 * 
-		 * @param headerCompleted
-		 *            indicates that the message header has been completed and
-		 *            the message (without body) is available
 		 * @param overflow
 		 *            {@code true} if the data didn't fit in the out buffer
 		 * @param underflow
 		 *            {@code true} if more data is expected
+		 * @param headerCompleted
+		 *            indicates that the message header has been completed and
+		 *            the message (without body) is available
 		 */
-		protected Result(boolean headerCompleted, boolean overflow, 
-				boolean underflow) {
+		protected Result(boolean overflow, boolean underflow, 
+				boolean headerCompleted) {
 			super(overflow, underflow);
 			this.headerCompleted = headerCompleted;
 		}

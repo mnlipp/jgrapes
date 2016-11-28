@@ -90,6 +90,21 @@ public abstract class 	HttpDecoder<T extends HttpMessageHeader>
 	}
 
 	/**
+	 * Overrides the base interface's factory method in order to make
+	 * it return the extended return type. As the base class does snot know
+	 * about a header it always reports that no header has been completed.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 */
+	@Override
+	public Decoder.Result newResult(boolean overflow, boolean underflow) {
+		return newResult(overflow, underflow, false);
+	}
+
+	/**
 	 * Sets the maximum size for the complete header. If the size is exceeded, a
 	 * {@link HttpProtocolException} will be thrown. The default size is 4MB
 	 * (4194304 Byte).
@@ -142,22 +157,6 @@ public abstract class 	HttpDecoder<T extends HttpMessageHeader>
 	        throws HttpProtocolException;
 
 	/**
-	 * Factory method to be implemented by derived classes that returns a
-	 * decoder result as appropriate for the decoder.
-	 * 
-	 * @param headerCompleted
-	 *            indicates that the header has completely been received during
-	 *            the invocation of {@link #decode} that returned this result
-	 * @param overflow
-	 *            {@code true} if the data didn't fit in the out buffer
-	 * @param underflow
-	 *            {@code true} if more data is expected
-	 * @return the result
-	 */
-	protected abstract Decoder.Result newResult(boolean headerCompleted,
-	        boolean overflow, boolean underflow);
-
-	/**
 	 * Informs the derived class that the header has been received completely.
 	 * 
 	 * @param message the message
@@ -171,9 +170,9 @@ public abstract class 	HttpDecoder<T extends HttpMessageHeader>
 	        boolean underflow, boolean closeConnection) {
 		if (messageHeader != null && building != null) {
 			building = null;
-			return newResult(true, overflow, underflow);
+			return newResult(overflow, underflow, true);
 		}
-		return newResult(false, overflow, underflow);
+		return newResult(overflow, underflow, false);
 	}
 
 	/**

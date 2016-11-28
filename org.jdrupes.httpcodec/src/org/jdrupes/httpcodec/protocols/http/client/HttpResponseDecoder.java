@@ -56,18 +56,24 @@ public class HttpResponseDecoder extends HttpDecoder<HttpResponse>
 		super();
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Overrides the base interface's factory method in order to make
+	 * it return the extended return type. The value for 
+	 * {@code closeConnection} is taken from {@link #isClosed()}.
+	 * a protocol change is never reported by the base class.
 	 * 
-	 * @see
-	 * org.jdrupes.httpcodec.HttpDecoder#createResult(org.jdrupes.httpcodec.
-	 * HttpMessage, boolean, boolean, boolean)
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param headerCompleted
+	 *            indicates that the message header has been completed and
+	 *            the message (without body) is available
 	 */
 	@Override
-	protected ResponseDecoder.Result newResult(boolean headerCompleted,
-	        boolean overflow, boolean underflow) {
-		return new ResponseDecoder.Result
-				(headerCompleted, overflow, underflow, isClosed(),
+	public ResponseDecoder.Result newResult(boolean overflow,
+	        boolean underflow, boolean headerCompleted) {
+		return newResult (overflow, underflow, headerCompleted, isClosed(),
 				 null, null, null);
 	}
 

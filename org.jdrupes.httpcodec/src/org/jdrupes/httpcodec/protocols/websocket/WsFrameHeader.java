@@ -25,4 +25,21 @@ import org.jdrupes.httpcodec.MessageHeader;
  */
 public class WsFrameHeader implements MessageHeader {
 
+	private boolean textMode;
+
+	/**
+	 * @param textMode
+	 */
+	public WsFrameHeader(boolean textMode) {
+		super();
+		this.textMode = textMode;
+	}
+
+	/**
+	 * @return the textMode
+	 */
+	public boolean isTextMode() {
+		return textMode;
+	}
+	
 }
