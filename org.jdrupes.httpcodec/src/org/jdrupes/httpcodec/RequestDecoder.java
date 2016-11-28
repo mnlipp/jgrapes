@@ -60,16 +60,16 @@ public interface RequestDecoder<Q extends MessageHeader,
 	 *            {@code true} if more data is expected
 	 * @param headerCompleted {@code true} if the header has completely
 	 * been decoded
+	 * @param response a response to send due to an error
 	 * @param requestCompleted if the result includes a response 
 	 * this flag indicates that no further processing besides 
 	 * sending the response is required
-	 * @param response a response to send due to an error
 	 */
 	default Result<R> newResult (boolean overflow, boolean underflow, 
-			boolean headerCompleted, boolean requestCompleted, 
-			R response) {
+			boolean headerCompleted, R response, 
+			boolean requestCompleted) {
 		return new Result<R>(overflow, underflow, headerCompleted,
-				requestCompleted, response) {
+				response, requestCompleted) {
 		};
 	}
 
@@ -113,14 +113,14 @@ public interface RequestDecoder<Q extends MessageHeader,
 		 * @param underflow {@code true} if more data is expected
 		 * @param headerCompleted {@code true} if the header has completely
 		 * been decoded
+		 * @param response a response to send due to an error
 		 * @param requestCompleted if the result includes a response 
 		 * this flag indicates that no further processing besides 
 		 * sending the response is required
-		 * @param response a response to send due to an error
 		 */
 		protected Result(boolean overflow, boolean underflow, 
-				boolean headerCompleted, boolean requestCompleted, 
-				R response) {
+				boolean headerCompleted, R response, 
+				boolean requestCompleted) {
 			super(overflow, underflow, headerCompleted);
 			this.response = response;
 		}

@@ -48,15 +48,15 @@ public abstract class WsDecoder implements Decoder<WsFrameHeader> {
 	private Opcode opcode;
 	private boolean textMode = false;
 	private OptimizedCharsetDecoder charDecoder = null;
-	private WsFrameHeader decodedHeader = null;
-	private WsFrameHeader reportedHeader = null;
+	private WsReceiveInfo receivedHeader = null;
+	private WsReceiveInfo reportedHeader = null;
 	
 	private void reset() {
 		state = State.READING_HEADER;
 		bytesExpected = 2;
 		headerHead = 0;
 		payloadLength = 0;
-		decodedHeader = null;
+		receivedHeader = null;
 		if (charDecoder != null) {
 			charDecoder.reset();
 		}
@@ -67,7 +67,7 @@ public abstract class WsDecoder implements Decoder<WsFrameHeader> {
 	 */
 	@Override
 	public Optional<WsFrameHeader> getHeader() {
-		return Optional.ofNullable(decodedHeader);
+		return Optional.ofNullable(receivedHeader);
 	}
 
 	/* (non-Javadoc)
@@ -75,8 +75,8 @@ public abstract class WsDecoder implements Decoder<WsFrameHeader> {
 	 */
 	@Override
 	public Result newResult(boolean overflow, boolean underflow) {
-		if (decodedHeader != null && decodedHeader != reportedHeader) {
-			reportedHeader = decodedHeader;
+		if (receivedHeader != null && receivedHeader != reportedHeader) {
+			reportedHeader = receivedHeader;
 			return newResult(overflow, underflow, true);
 		}
 		return newResult(overflow, underflow, false);
@@ -193,7 +193,7 @@ public abstract class WsDecoder implements Decoder<WsFrameHeader> {
 			opcode = Opcode.PONG;
 			break;
 		}
-		decodedHeader = new WsFrameHeader(textMode);
+		receivedHeader = new WsReceiveInfo(textMode);
 		if (bytesExpected == 0) {
 			return newResult(false, false);
 		}

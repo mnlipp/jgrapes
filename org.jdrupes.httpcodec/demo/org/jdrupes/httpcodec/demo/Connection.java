@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.util.stream.Collectors;
@@ -38,6 +39,7 @@ import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;
 import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
+import org.jdrupes.httpcodec.protocols.websocket.WsFrameHeader;
 import org.jdrupes.httpcodec.util.FormUrlDecoder;
 
 /**
@@ -82,6 +84,9 @@ public class Connection extends Thread {
 						MessageHeader hdr = engine.currentRequest().get();
 						if (hdr instanceof HttpRequest) {
 							handleHttpRequest((HttpRequest) hdr);
+						}
+						if (hdr instanceof WsFrameHeader) {
+							handleWsFrame((WsFrameHeader)hdr);
 						}
 					}
 				}
@@ -258,4 +263,28 @@ public class Connection extends Thread {
 		}
 	}
 
+	private void handleWsFrame(WsFrameHeader hdr) throws IOException {
+		CharBuffer out = CharBuffer.allocate(100);
+		while (true) {
+			out.clear();
+			RequestDecoder.Result<?> decoderResult = null;
+			try {
+				decoderResult = engine.decode(in, out, false);
+			} catch (ProtocolException e) {
+				return;
+			}
+			out.flip();
+			if (decoderResult.isOverflow()) {
+				continue;
+			}
+			if (decoderResult.isUnderflow()) {
+				in.clear();
+				channel.read(in);
+				in.flip();
+				continue;
+			}
+			break;
+		}
+	}
+	
 }

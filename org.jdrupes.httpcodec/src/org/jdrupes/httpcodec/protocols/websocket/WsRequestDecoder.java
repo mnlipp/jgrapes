@@ -68,12 +68,15 @@ public class WsRequestDecoder extends WsDecoder
 	@Override
 	public Result newResult(boolean overflow, boolean underflow,
 	        boolean headerCompleted) {
-		return newResult(overflow, underflow, headerCompleted, false, null);
+		return newResult(overflow, underflow, headerCompleted, null, false);
 	}
 
 	/**
 	 * Factory method for result.
-	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
 	 * @param headerCompleted
 	 *            {@code true} if the header has completely been decoded
 	 * @param response
@@ -82,14 +85,10 @@ public class WsRequestDecoder extends WsDecoder
 	 *            if the result includes a response this flag indicates that
 	 *            no further processing besides sending the response is
 	 *            required
-	 * @param overflow
-	 *            {@code true} if the data didn't fit in the out buffer
-	 * @param underflow
-	 *            {@code true} if more data is expected
 	 */
 	public Result newResult (boolean overflow, boolean underflow, 
-			boolean headerCompleted, boolean requestCompleted, 
-			WsFrameHeader response) {
+			boolean headerCompleted, WsFrameHeader response, 
+			boolean requestCompleted) {
 		return new Result(overflow, underflow, 
 				headerCompleted, requestCompleted, response) {
 		};
@@ -125,8 +124,8 @@ public class WsRequestDecoder extends WsDecoder
 		public Result(boolean overflow, boolean underflow,
 		        boolean headerCompleted, boolean requestCompleted, 
 		        WsFrameHeader response) {
-			super(overflow, underflow, headerCompleted, requestCompleted,
-			        response);
+			super(overflow, underflow, headerCompleted, response,
+			        requestCompleted);
 		}
 	}
 }

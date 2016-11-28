@@ -68,7 +68,7 @@ public class HttpRequestDecoder
 					e.getStatusCode(), e.getReasonPhrase(), false);
 			response.setField(
 			        new HttpStringListField(HttpField.CONNECTION, "close"));
-			return newResult(false, false, false, true, response);
+			return newResult(false, false, false, response, true);
 		}
 	}
 
@@ -206,7 +206,7 @@ public class HttpRequestDecoder
 	@Override
 	public Result newResult(boolean overflow, boolean underflow,
 	        boolean headerCompleted) {
-		return newResult(overflow, underflow, headerCompleted, false, null);
+		return newResult(overflow, underflow, headerCompleted, null, false);
 	}
 
 	/**
@@ -218,16 +218,16 @@ public class HttpRequestDecoder
 	 *            {@code true} if more data is expected
 	 * @param headerCompleted {@code true} if the header has completely
 	 * been decoded
+	 * @param response a response to send due to an error
 	 * @param requestCompleted if the result includes a response 
 	 * this flag indicates that no further processing besides 
 	 * sending the response is required
-	 * @param response a response to send due to an error
 	 */
 	public Result newResult (boolean overflow, boolean underflow, 
-			boolean headerCompleted, boolean requestCompleted, 
-			HttpResponse response) {
+			boolean headerCompleted, HttpResponse response, 
+			boolean requestCompleted) {
 		return new Result(overflow, underflow, 
-				headerCompleted, requestCompleted, response) {
+				headerCompleted, response, requestCompleted) {
 		};
 	}
 
@@ -251,18 +251,18 @@ public class HttpRequestDecoder
 		 *            {@code true} if more data is expected
 		 * @param headerCompleted
 		 *            {@code true} if the header has completely been decoded
+		 * @param response
+		 *            a response to send due to an error
 		 * @param requestCompleted
 		 *            if the result includes a response this flag indicates that
 		 *            no further processing besides sending the response is
 		 *            required
-		 * @param response
-		 *            a response to send due to an error
 		 */
 		public Result(boolean overflow, boolean underflow,
-		        boolean headerCompleted, boolean requestCompleted, 
-		        HttpResponse response) {
-			super(overflow, underflow, headerCompleted, requestCompleted,
-			        response);
+		        boolean headerCompleted, HttpResponse response, 
+		        boolean requestCompleted) {
+			super(overflow, underflow, headerCompleted, response,
+			        requestCompleted);
 		}
 	}
 }

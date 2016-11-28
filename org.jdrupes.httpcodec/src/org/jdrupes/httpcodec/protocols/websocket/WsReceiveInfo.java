@@ -17,12 +17,27 @@
  */
 package org.jdrupes.httpcodec.protocols.websocket;
 
-import org.jdrupes.httpcodec.MessageHeader;
-
 /**
  * @author Michael N. Lipp
  *
  */
-public class WsFrameHeader implements MessageHeader {
+public class WsReceiveInfo extends WsFrameHeader {
 
+	private boolean textMode;
+
+	/**
+	 * @param textMode
+	 */
+	public WsReceiveInfo(boolean textMode) {
+		super();
+		this.textMode = textMode;
+	}
+
+	/**
+	 * @return the textMode
+	 */
+	public boolean isTextMode() {
+		return textMode;
+	}
+	
 }
