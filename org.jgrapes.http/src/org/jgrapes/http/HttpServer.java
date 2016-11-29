@@ -26,8 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.jdrupes.httpcodec.Codec;
+import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.ProtocolException;
-import org.jdrupes.httpcodec.RequestDecoder;
 import org.jdrupes.httpcodec.ServerEngine;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
@@ -170,7 +170,7 @@ public class HttpServer extends Component {
 		ByteBuffer in = event.getBuffer().getBacking();
 		ManagedByteBuffer bodyData = null;
 		while (in.hasRemaining()) {
-			RequestDecoder.Result<HttpResponse> result = engine.decode(in,
+			Decoder.Result<HttpResponse> result = engine.decode(in,
 			        bodyData == null ? null : bodyData.getBacking(), false);
 			if (result.isHeaderCompleted()) {
 				fireRequest(engine.currentRequest().get(), downChannel);

@@ -22,8 +22,11 @@ import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jdrupes.httpcodec.Codec;
+import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.Engine;
 import org.jdrupes.httpcodec.ResponseDecoder;
+import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.protocols.http.HttpDecoder;
 import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
@@ -37,7 +40,8 @@ import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
  * 
  * @author Michael N. Lipp
  */
-public class HttpResponseDecoder extends HttpDecoder<HttpResponse>
+public class HttpResponseDecoder 
+	extends HttpDecoder<HttpResponse, HttpRequest>
 	implements ResponseDecoder<HttpResponse, HttpRequest> {
 
 	// RFC 7230 3.1.2
@@ -71,9 +75,9 @@ public class HttpResponseDecoder extends HttpDecoder<HttpResponse>
 	 *            the message (without body) is available
 	 */
 	@Override
-	public ResponseDecoder.Result newResult(boolean overflow,
+	public Result newResult(boolean overflow,
 	        boolean underflow, boolean headerCompleted) {
-		return newResult (overflow, underflow, headerCompleted, isClosed(),
+		return newResult (overflow, underflow, isClosed(), headerCompleted,
 				 null, null, null);
 	}
 
@@ -94,10 +98,9 @@ public class HttpResponseDecoder extends HttpDecoder<HttpResponse>
 	 * @see org.jdrupes.httpcodec.internal.Decoder#decode(java.nio.ByteBuffer, java.nio.ByteBuffer)
 	 */
 	@Override
-	public ResponseDecoder.Result decode
-		(ByteBuffer in, Buffer out, boolean endOfInput)
+	public Result decode(ByteBuffer in, Buffer out, boolean endOfInput)
 	        throws HttpProtocolException {
-		return (ResponseDecoder.Result)super.decode(in, out, endOfInput);
+		return (Result)super.decode(in, out, endOfInput);
 	}
 
 	/**
@@ -177,4 +180,208 @@ public class HttpResponseDecoder extends HttpDecoder<HttpResponse>
 		return BodyMode.UNTIL_CLOSE;
 	}
 
+	/**
+	 * Factory method for result.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param closeConnection
+	 *            {@code true} if the connection should be closed
+	 * @param headerCompleted {@code true} if the header has completely
+	 * been decoded
+	 * @param newProtocol the name of the new protocol if a switch occurred
+	 * @param newDecoder the new decoder if a switch occurred
+	 * @param newEncoder the new decoder if a switch occurred
+	 * @return the result
+	 */
+	public Result newResult (boolean overflow, boolean underflow, 
+			boolean closeConnection, boolean headerCompleted,
+	        String newProtocol, ResponseDecoder<?,?> newDecoder, 
+	        Encoder<?> newEncoder) {
+		return new Result(overflow, underflow, closeConnection,
+				headerCompleted, newProtocol, newDecoder, newEncoder) {
+		};
+	}
+
+	/**
+	 * Overrides the base interface's factory method in order to make
+	 * it return the extended return type.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param closeConnection
+	 *            {@code true} if the connection should be closed
+	 * @param headerCompleted {@code true} if the header has completely
+	 * been decoded
+	 * @param response a response to send due to an error
+	 * @param responseOnly if the result includes a response 
+	 * 	this flag indicates that no further processing besides 
+	 * 	sending the response is required
+	 * @return the result
+	 */
+	public Result newResult (boolean overflow, boolean underflow, 
+			boolean closeConnection, boolean headerCompleted, 
+			HttpRequest response, boolean responseOnly) {
+		return newResult(overflow, underflow, closeConnection,
+				headerCompleted, null, null, null);
+	}
+	
+	/**
+	 * The result from encoding a response. In addition to the usual
+	 * codec result, a result decoder may signal to the invoker that the
+	 * connection to the responder must be closed.
+	 * <P>
+	 * The class is declared abstract to promote the usage of the factory
+	 * method.
+	 * 
+	 * @author Michael N. Lipp
+	 */
+	public abstract class Result extends Decoder.Result<HttpRequest>
+		implements Codec.ProtocolSwitchResult {
+
+		private String newProtocol;
+		private ResponseDecoder<?, ?> newDecoder;
+		private Encoder<?> newEncoder;
+		
+		/**
+		 * Returns a new result.
+		 * 
+		 * @param overflow
+		 *            {@code true} if the data didn't fit in the out buffer
+		 * @param underflow
+		 *            {@code true} if more data is expected
+		 * @param closeConnection
+		 *            {@code true} if the connection should be closed
+		 * @param headerCompleted
+		 *            indicates that the message header has been completed and
+		 *            the message (without body) is available
+		 * @param newProtocol the name of the new protocol if a switch occurred
+		 * @param newDecoder the new decoder if a switch occurred
+		 * @param newEncoder the new decoder if a switch occurred
+		 */
+		protected Result(boolean overflow, boolean underflow,
+		        boolean closeConnection, boolean headerCompleted,
+		        String newProtocol, ResponseDecoder<?, ?> newDecoder, 
+		        Encoder<?> newEncoder) {
+			super(overflow, underflow, closeConnection, headerCompleted,
+					null, false);
+			this.newProtocol = newProtocol;
+			this.newDecoder = newDecoder;
+			this.newEncoder = newEncoder;
+		}
+
+		@Override
+		public String newProtocol() {
+			return newProtocol;
+		}
+		
+		@Override
+		public ResponseDecoder<?, ?> newDecoder() {
+			return newDecoder;
+		}
+		
+		@Override
+		public Encoder<?> newEncoder() {
+			return newEncoder;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = super.hashCode();
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result
+			        + ((newDecoder == null) ? 0 : newDecoder.hashCode());
+			result = prime * result
+			        + ((newEncoder == null) ? 0 : newEncoder.hashCode());
+			result = prime * result
+			        + ((newProtocol == null) ? 0 : newProtocol.hashCode());
+			return result;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (!super.equals(obj))
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Result other = (Result) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (newDecoder == null) {
+				if (other.newDecoder != null)
+					return false;
+			} else if (!newDecoder.equals(other.newDecoder))
+				return false;
+			if (newEncoder == null) {
+				if (other.newEncoder != null)
+					return false;
+			} else if (!newEncoder.equals(other.newEncoder))
+				return false;
+			if (newProtocol == null) {
+				if (other.newProtocol != null)
+					return false;
+			} else if (!newProtocol.equals(other.newProtocol))
+				return false;
+			return true;
+		}
+
+		private HttpResponseDecoder getOuterType() {
+			return HttpResponseDecoder.this;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("HttpResponseDecoder.Result [overflow=");
+			builder.append(isOverflow());
+			builder.append(", underflow=");
+			builder.append(isUnderflow());
+			builder.append(", closeConnection=");
+			builder.append(getCloseConnection());
+			builder.append(", headerCompleted=");
+			builder.append(isHeaderCompleted());
+			builder.append(", ");
+			if (getResponse() != null) {
+				builder.append("response=");
+				builder.append(getResponse());
+				builder.append(", ");
+			}
+			builder.append("responseOnly=");
+			builder.append(isResponseOnly());
+			builder.append(", ");
+			if (newProtocol != null) {
+				builder.append("newProtocol=");
+				builder.append(newProtocol);
+				builder.append(", ");
+			}
+			if (newDecoder != null) {
+				builder.append("newDecoder=");
+				builder.append(newDecoder);
+				builder.append(", ");
+			}
+			if (newEncoder != null) {
+				builder.append("newEncoder=");
+				builder.append(newEncoder);
+			}
+			builder.append("]");
+			return builder.toString();
+		}
+		
+	}
 }

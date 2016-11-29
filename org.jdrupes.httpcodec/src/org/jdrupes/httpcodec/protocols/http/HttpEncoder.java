@@ -183,9 +183,9 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 	public Encoder.Result encode(Buffer in, ByteBuffer out,
 	        boolean endOfInput) {
 		outStream.assignBuffer(out);
-		Encoder.Result result = newResult(false, false);
+		Encoder.Result result = newResult(false, false, false);
 		if (out.remaining() == 0) {
-			return newResult(true, false);
+			return newResult(true, false, false);
 		}
 		while (true) {
 			if (result.isOverflow() || result.isUnderflow()) {
@@ -208,7 +208,7 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 				if (in.remaining() == 0 && !endOfInput) {
 					// Has probably been invoked with a dummy buffer,
 					// cannot be used to create pending body buffer.
-					return newResult(false, true);
+					return newResult(false, true, false);
 				}
 				collectedBodyData = new ByteBufferOutputStream(
 				        Math.min(pendingLimit, 
@@ -248,7 +248,7 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 			case FLUSH_ENCODER:
 				CoderResult flushResult = charEncoder.flush(out);
 				if (flushResult.isOverflow()) {
-					return newResult(true, false);
+					return newResult(true, false, false);
 				}
 				states.pop();
 				break;
@@ -262,7 +262,7 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 				// Stream, i.e. simply copy from source to destination
 				if (!ByteBufferUtils.putAsMuchAsPossible(out, chunkData)) {
 					// Not enough space in out buffer
-					return newResult(true, false);
+					return newResult(true, false, false);
 				}
 				// everything from in written
 				states.pop();
@@ -290,7 +290,7 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 				// Everything is written
 				if (!endOfInput) {
 					if (in.remaining() == 0) {
-						return newResult(false, true);
+						return newResult(false, true, false);
 					}
 					throw new IllegalStateException("Unexpected input.");
 				}
@@ -300,7 +300,7 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 				} else {
 					states.push(State.INITIAL);
 				}
-				return newResult(false, false);
+				return newResult(false, false, false);
 
 			default:
 				throw new IllegalStateException();
@@ -308,7 +308,7 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 			// Using "continue" above avoids this check. Use it only
 			// if the state has changed and no addition output is expected. 
 			if (out.remaining() == 0) {
-				return newResult(true, false);
+				return newResult(true, false, false);
 			}
 		}
 	}
@@ -453,7 +453,7 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 			CoderResult result = charEncoder.encode((CharBuffer) in, out,
 			        endOfInput);
 			return newResult(result.isOverflow(), 
-					!endOfInput && result.isUnderflow());
+					!endOfInput && result.isUnderflow(), false);
 		}
 		if (out.remaining() <= leftToStream) {
 			ByteBufferUtils.putAsMuchAsPossible(out, (ByteBuffer) in);
@@ -462,7 +462,7 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 			        (int) leftToStream);
 		}
 		return newResult(out.remaining() == 0, 
-				!endOfInput && in.remaining() == 0);
+				!endOfInput && in.remaining() == 0, false);
 	}
 
 	/**
@@ -481,7 +481,7 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 			states.push(State.STREAM_BODY);
 			states.push(State.STREAM_COLLECTED);
 			states.push(State.HEADERS);
-			return newResult(false, false);
+			return newResult(false, false, false);
 		}
 		// Space left, collect
 		if (in instanceof ByteBuffer) {
@@ -516,10 +516,10 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 			states.pop();
 			states.push(State.STREAM_COLLECTED);
 			states.push(State.HEADERS);
-			return newResult(false, false);
+			return newResult(false, false, false);
 		}
 		// Get more input
-		return newResult(false, true);
+		return newResult(false, true, false);
 	}
 
 	/**
@@ -552,12 +552,12 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 				outStream.write("\r\n".getBytes("ascii"));
 				states.push(State.FINISH_CHUNK);
 				states.push(State.STREAM_CHUNK);
-				return newResult(outStream.remaining() <= 0, false);
+				return newResult(outStream.remaining() <= 0, false, false);
 			}
 		} catch (IOException e) {
 			// Formally thrown by outStream, cannot happen.
 		}
 		return newResult(outStream.remaining() < 0, 
-				in.remaining() == 0 && !endOfInput);
+				in.remaining() == 0 && !endOfInput, false);
 	}
 }

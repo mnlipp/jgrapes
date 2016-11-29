@@ -26,10 +26,10 @@ import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.util.stream.Collectors;
 
+import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.ProtocolException;
-import org.jdrupes.httpcodec.RequestDecoder;
 import org.jdrupes.httpcodec.ServerEngine;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
@@ -74,11 +74,13 @@ public class Connection extends Thread {
 				channel.read(in);
 				in.flip();
 				while (in.hasRemaining()) {
-					RequestDecoder.Result<?> decoderResult 
+					Decoder.Result<?> decoderResult 
 						= engine.decode(in, null, false);
 					if (decoderResult.hasResponse()) {
 						sendResponseWithoutBody(decoderResult.getResponse());
-						break;
+						if (decoderResult.isResponseOnly()) {
+							break;
+						}
 					}
 					if (decoderResult.isHeaderCompleted()) {
 						MessageHeader hdr = engine.currentRequest().get();
@@ -152,7 +154,7 @@ public class Connection extends Thread {
 		FormUrlDecoder fieldDecoder = new FormUrlDecoder();
 		while (true) {
 			out.clear();
-			RequestDecoder.Result<?> decoderResult = null;
+			Decoder.Result<?> decoderResult = null;
 			try {
 				decoderResult = engine.decode(in, out, false);
 			} catch (ProtocolException e) {
@@ -267,7 +269,7 @@ public class Connection extends Thread {
 		CharBuffer out = CharBuffer.allocate(100);
 		while (true) {
 			out.clear();
-			RequestDecoder.Result<?> decoderResult = null;
+			Decoder.Result<?> decoderResult = null;
 			try {
 				decoderResult = engine.decode(in, out, false);
 			} catch (ProtocolException e) {

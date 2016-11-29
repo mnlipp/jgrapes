@@ -21,8 +21,8 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /**
- * A decoder that is used to encode a request. This type of decoder 
- * provides an additional method and has an extended result type.
+ * A decoder that is used to decode a response. This type of decoder 
+ * provides an additional method.
  * 
  * @param <T>
  *            the type of the message header to be decoded (the response)
@@ -33,7 +33,7 @@ import java.nio.ByteBuffer;
  * @author Michael N. Lipp
  */
 public interface ResponseDecoder<T extends MessageHeader, 
-	Q extends MessageHeader> extends Decoder<T> {
+	Q extends MessageHeader> extends Decoder<T, Q> {
 
 	/**
 	 * Causes the decoder to interpret the data in invocations of
@@ -48,148 +48,4 @@ public interface ResponseDecoder<T extends MessageHeader,
 	 *            the request header
 	 */
 	public void decodeResponseTo(Q request);
-
-	/**
-	 * Decodes the next chunk of data.
-	 * 
-	 * @param in
-	 *            holds the data to be decoded
-	 * @param out
-	 *            gets the body data (if any) written to it
-	 * @param endOfInput
-	 *            {@code true} if there is no input left beyond the data
-	 *            currently in the {@code in} buffer (indicates end of body or
-	 *            no body at all)
-	 * @return the result
-	 * @throws ProtocolException
-	 *             if the message violates the HTTP
-	 */
-	@Override
-	public Result decode(ByteBuffer in, Buffer out, boolean endOfInput)
-	        throws ProtocolException;
-	
-	/**
-	 * Factory method for result.
-	 * 
-	 * @param overflow
-	 *            {@code true} if the data didn't fit in the out buffer
-	 * @param underflow
-	 *            {@code true} if more data is expected
-	 * @param headerCompleted {@code true} if the header has completely
-	 * been decoded
-	 * @param closeConnection
-	 *            {@code true} if the connection should be closed
-	 * @param newProtocol the name of the new protocol if a switch occurred
-	 * @param newDecoder the new decoder if a switch occurred
-	 * @param newEncoder the new decoder if a switch occurred
-	 */
-	default Result newResult (boolean overflow, boolean underflow, 
-			boolean headerCompleted, boolean closeConnection,
-	        String newProtocol, ResponseDecoder<MessageHeader, 
-	        MessageHeader> newDecoder, 
-	        RequestEncoder<MessageHeader> newEncoder) {
-		return new Result(overflow, underflow, headerCompleted,
-				closeConnection, newProtocol, newDecoder, newEncoder) {
-		};
-	}
-
-	/**
-	 * Overrides the base interface's factory method in order to make
-	 * it return the extended return type.
-	 * 
-	 * @param overflow
-	 *            {@code true} if the data didn't fit in the out buffer
-	 * @param underflow
-	 *            {@code true} if more data is expected
-	 * @param headerCompleted
-	 *            indicates that the message header has been completed and
-	 *            the message (without body) is available
-	 */
-	Result newResult (boolean overflow, boolean underflow, 
-			boolean headerCompleted);
-	
-	/**
-	 * The result from encoding a response. In addition to the usual
-	 * codec result, a result decoder may signal to the invoker that the
-	 * connection to the responder must be closed.
-	 * <P>
-	 * The class is declared abstract to promote the usage of the factory
-	 * method.
-	 * 
-	 * @author Michael N. Lipp
-	 */
-	public abstract class Result extends Decoder.Result {
-
-		private boolean closeConnection;
-		private String newProtocol;
-		private ResponseDecoder<MessageHeader, MessageHeader> newDecoder;
-		private RequestEncoder<MessageHeader> newEncoder;
-		
-		/**
-		 * Returns a new result.
-		 * @param overflow
-		 *            {@code true} if the data didn't fit in the out buffer
-		 * @param underflow
-		 *            {@code true} if more data is expected
-		 * @param headerCompleted
-		 *            indicates that the message header has been completed and
-		 *            the message (without body) is available
-		 * @param closeConnection
-		 *            {@code true} if the connection should be closed
-		 * @param newProtocol the name of the new protocol if a switch occurred
-		 * @param newDecoder the new decoder if a switch occurred
-		 * @param newEncoder the new decoder if a switch occurred
-		 */
-		protected Result(boolean overflow, boolean underflow,
-		        boolean headerCompleted, boolean closeConnection,
-		        String newProtocol, ResponseDecoder<MessageHeader, 
-		        MessageHeader> newDecoder, 
-		        RequestEncoder<MessageHeader> newEncoder) {
-			super(overflow, underflow, headerCompleted);
-			this.closeConnection = closeConnection;
-			this.newProtocol = newProtocol;
-			this.newDecoder = newDecoder;
-			this.newEncoder = newEncoder;
-		}
-
-		/**
-		 * Indicates that the connection to the sender of the response must be
-		 * closed.
-		 * 
-		 * @return the value
-		 */
-		public boolean getCloseConnection() {
-			return closeConnection;
-		}
-		
-		/**
-		 * The name of the protocol to be used for the next request
-		 * if a protocol switch occured.
-		 * 
-		 * @return the name or {@code null} if no protocol switch occured
-		 */
-		public String newProtocol() {
-			return newProtocol;
-		}
-		
-		/**
-		 * The response decoder to be used for the next response
-		 * if a protocol switch occurred.
-		 * 
-		 * @return the decoder or {@code null} if no protocol switch occured
-		 */
-		public ResponseDecoder<MessageHeader, MessageHeader> newDecoder() {
-			return newDecoder;
-		}
-		
-		/**
-		 * The request encoder to be used for the next request
-		 * if a protocol switch occurred.
-		 * 
-		 * @return the encoder or {@code null} if no protocol switch occured
-		 */
-		public RequestEncoder<MessageHeader> newEncoder() {
-			return newEncoder;
-		}
-	}
 }

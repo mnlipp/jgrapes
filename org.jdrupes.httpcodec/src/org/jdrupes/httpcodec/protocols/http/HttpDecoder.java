@@ -44,8 +44,9 @@ import org.jdrupes.httpcodec.util.OptimizedCharsetDecoder;
  * 
  * @author Michael N. Lipp
  */
-public abstract class 	HttpDecoder<T extends HttpMessageHeader> 
-	extends HttpCodec<T> implements Decoder<T> {
+public abstract class 	HttpDecoder<T extends HttpMessageHeader,
+	R extends HttpMessageHeader> 
+	extends HttpCodec<T> implements Decoder<T, R> {
 
 	final protected static String TOKEN = "[" + Pattern.quote(TOKEN_CHARS)
 	        + "]+";
@@ -87,21 +88,6 @@ public abstract class 	HttpDecoder<T extends HttpMessageHeader>
 	public HttpDecoder() {
 		states.push(State.AWAIT_MESSAGE_START);
 		states.push(State.RECEIVE_LINE);
-	}
-
-	/**
-	 * Overrides the base interface's factory method in order to make
-	 * it return the extended return type. As the base class does snot know
-	 * about a header it always reports that no header has been completed.
-	 * 
-	 * @param overflow
-	 *            {@code true} if the data didn't fit in the out buffer
-	 * @param underflow
-	 *            {@code true} if more data is expected
-	 */
-	@Override
-	public Decoder.Result newResult(boolean overflow, boolean underflow) {
-		return newResult(overflow, underflow, false);
 	}
 
 	/**
@@ -166,7 +152,7 @@ public abstract class 	HttpDecoder<T extends HttpMessageHeader>
 	protected abstract BodyMode headerReceived(T message) 
 			throws HttpProtocolException;
 
-	private Decoder.Result createResult(boolean overflow,
+	private Decoder.Result<R> createResult(boolean overflow,
 	        boolean underflow, boolean closeConnection) {
 		if (messageHeader != null && building != null) {
 			building = null;
@@ -190,7 +176,7 @@ public abstract class 	HttpDecoder<T extends HttpMessageHeader>
 	 * @throws HttpProtocolException
 	 *             if the message violates the HTTP
 	 */
-	public Decoder.Result decode 
+	public Decoder.Result<R> decode 
 		(ByteBuffer in, Buffer out, boolean endOfInput)
 	        throws HttpProtocolException {
 		try {
@@ -201,7 +187,7 @@ public abstract class 	HttpDecoder<T extends HttpMessageHeader>
 		}
 	}
 
-	private Decoder.Result uncheckedDecode
+	private Decoder.Result<R> uncheckedDecode
 		(ByteBuffer in, Buffer out, boolean endOfInput)
 			throws HttpProtocolException, ParseException {
 		while(true) {

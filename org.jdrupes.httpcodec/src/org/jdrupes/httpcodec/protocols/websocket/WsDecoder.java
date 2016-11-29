@@ -31,9 +31,8 @@ import org.jdrupes.httpcodec.util.OptimizedCharsetDecoder;
 
 /**
  * @author Michael N. Lipp
- *
  */
-public abstract class WsDecoder implements Decoder<WsFrameHeader> {
+public class WsDecoder	implements Decoder<WsFrameHeader, WsFrameHeader> {
 
 	private static enum State { READING_HEADER, READING_LENGTH,
 		READING_MASK, READING_PAYLOAD };
@@ -70,25 +69,41 @@ public abstract class WsDecoder implements Decoder<WsFrameHeader> {
 		return Optional.ofNullable(receivedHeader);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.Decoder#newResult(boolean, boolean)
+	/**
+	 * Overrides the base interface's factory method in order to make
+	 * it return the extended return type.
+	 * 
+	 * @param overflow
+	 *            {@code true} if the data didn't fit in the out buffer
+	 * @param underflow
+	 *            {@code true} if more data is expected
+	 * @param closeConnection
+	 *            {@code true} if the connection should be closed
 	 */
 	@Override
-	public Result newResult(boolean overflow, boolean underflow) {
+	public Result<WsFrameHeader> newResult
+		(boolean overflow, boolean underflow, boolean closeConnection) {
+		return new Result<WsFrameHeader>(overflow, underflow, closeConnection,
+				false, null, false) {
+		};
+	}
+	
+	private Result<WsFrameHeader> createResult
+		(boolean overflow, boolean underflow) {
 		if (receivedHeader != null && receivedHeader != reportedHeader) {
 			reportedHeader = receivedHeader;
-			return newResult(overflow, underflow, true);
+			return newResult(overflow, underflow, false, true, null, false);
 		}
-		return newResult(overflow, underflow, false);
+		return newResult(overflow, underflow, false, false, null, false);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.RequestDecoder#decode(java.nio.ByteBuffer, java.nio.Buffer, boolean)
 	 */
 	@Override
-	public Decoder.Result decode(ByteBuffer in, Buffer out, boolean endOfInput)
-	        throws ProtocolException {
-		Decoder.Result result = null;
+	public Decoder.Result<WsFrameHeader> decode(ByteBuffer in, Buffer out, 
+			boolean endOfInput) throws ProtocolException {
+		Decoder.Result<WsFrameHeader> result = null;
 		while (in.hasRemaining()) {
 			switch (state) {
 			case READING_HEADER:
@@ -141,7 +156,7 @@ public abstract class WsDecoder implements Decoder<WsFrameHeader> {
 				
 			case READING_PAYLOAD:
 				if (out == null) {
-					return newResult(true, !in.hasRemaining());
+					return createResult(true, !in.hasRemaining());
 				}
 				int initiallyAvaible = in.remaining();
 				CoderResult decRes = copyData(out, in,
@@ -150,9 +165,9 @@ public abstract class WsDecoder implements Decoder<WsFrameHeader> {
 				bytesExpected -= (initiallyAvaible - in.remaining());
 				if (bytesExpected == 0) {
 					reset();
-					return newResult(false, false);
+					return createResult(false, false);
 				}
-				return newResult(
+				return createResult(
 				        (in.hasRemaining() && !out.hasRemaining())
 				                || (decRes != null && decRes.isOverflow()),
 				        !in.hasRemaining()
@@ -162,10 +177,10 @@ public abstract class WsDecoder implements Decoder<WsFrameHeader> {
 				return result;
 			}
 		}
-		return newResult(false, true);
+		return createResult(false, true);
 	}
 
-	private Decoder.Result maybeEnterPayloadState() {
+	private Decoder.Result<WsFrameHeader> maybeEnterPayloadState() {
 		bytesExpected = payloadLength;
 		switch (headerHead >> 8 & 0xf) {
 		case 0:
@@ -195,7 +210,7 @@ public abstract class WsDecoder implements Decoder<WsFrameHeader> {
 		}
 		receivedHeader = new WsReceiveInfo(textMode);
 		if (bytesExpected == 0) {
-			return newResult(false, false);
+			return createResult(false, false);
 		}
 		state = State.READING_PAYLOAD;
 		return null;

@@ -20,12 +20,12 @@ package org.jdrupes.httpcodec.protocols.websocket;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.ResponseEncoder;
+import org.jdrupes.httpcodec.Encoder;
 
 /**
  * @author Michael N. Lipp
  */
-public class WsResponseEncoder implements ResponseEncoder<WsFrameHeader> {
+public class WsResponseEncoder implements Encoder<WsFrameHeader> {
 
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.ResponseEncoder#encode(org.jdrupes.httpcodec.MessageHeader)
@@ -36,21 +36,8 @@ public class WsResponseEncoder implements ResponseEncoder<WsFrameHeader> {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.ResponseEncoder#newResult(boolean, boolean)
-	 */
 	@Override
-	public Result newResult(boolean overflow, boolean underflow) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.ResponseEncoder#encode(java.nio.Buffer, java.nio.ByteBuffer, boolean)
-	 */
-	@Override
-	public org.jdrupes.httpcodec.ResponseEncoder.Result encode(Buffer in,
-	        ByteBuffer out, boolean endOfInput) {
+	public Result encode(Buffer in, ByteBuffer out, boolean endOfInput) {
 		// TODO Auto-generated method stub
 		return null;
 	}

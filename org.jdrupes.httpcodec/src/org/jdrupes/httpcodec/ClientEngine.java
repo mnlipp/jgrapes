@@ -32,7 +32,7 @@ import java.nio.ByteBuffer;
 public abstract class ClientEngine<Q extends MessageHeader, 
 	R extends MessageHeader> extends Engine {
 
-	private RequestEncoder<Q> requestEncoder;
+	private Encoder<Q> requestEncoder;
 	private ResponseDecoder<R, Q> responseDecoder;
 	
 	/**
@@ -41,7 +41,7 @@ public abstract class ClientEngine<Q extends MessageHeader,
 	 * @param requestEncoder the encoder for the request
 	 * @param responseDecoder the decoder for the response
 	 */
-	public ClientEngine(RequestEncoder<Q> requestEncoder, 
+	public ClientEngine(Encoder<Q> requestEncoder, 
 			ResponseDecoder<R, Q> responseDecoder) {
 		this.requestEncoder = requestEncoder;
 		this.responseDecoder = responseDecoder;
@@ -50,13 +50,13 @@ public abstract class ClientEngine<Q extends MessageHeader,
 	/**
 	 * @return the requestEncoder
 	 */
-	public RequestEncoder<Q> requestEncoder() {
+	public Encoder<Q> requestEncoder() {
 		return requestEncoder;
 	}
 	/**
 	 * @return the responseDecoder
 	 */
-	public Decoder<R> responseDecoder() {
+	public Decoder<R,Q> responseDecoder() {
 		return responseDecoder;
 	}
 
@@ -111,7 +111,7 @@ public abstract class ClientEngine<Q extends MessageHeader,
 	 * @see org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder#decode(java.nio.ByteBuffer,
 	 *      java.nio.Buffer, boolean)
 	 */
-	public Decoder.Result decode(
+	public Decoder.Result<Q> decode(
 	        ByteBuffer in, Buffer out, boolean endOfInput)
 	        throws ProtocolException {
 		return responseDecoder.decode(in, out, endOfInput);

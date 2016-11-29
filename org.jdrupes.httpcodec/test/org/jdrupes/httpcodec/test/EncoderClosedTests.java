@@ -8,7 +8,7 @@ import java.nio.CharBuffer;
 import java.text.ParseException;
 
 import org.jdrupes.httpcodec.Codec;
-import org.jdrupes.httpcodec.ResponseEncoder;
+import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
@@ -37,7 +37,7 @@ public class EncoderClosedTests {
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
 		// Encode rest
-		ResponseEncoder.Result result = encoder.encode(in, out, true);
+		Encoder.Result result = encoder.encode(in, out, true);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -62,8 +62,7 @@ public class EncoderClosedTests {
 		// Encode header
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		ResponseEncoder.Result result = encoder.encode(Codec.EMPTY_IN, 
-				out, false);
+		Encoder.Result result = encoder.encode(Codec.EMPTY_IN, out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -126,7 +125,7 @@ public class EncoderClosedTests {
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
 		// Encode rest
-		ResponseEncoder.Result result = encoder.encode(in, out, true);
+		Encoder.Result result = encoder.encode(in, out, true);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertTrue(result.getCloseConnection());
@@ -152,8 +151,7 @@ public class EncoderClosedTests {
 		// Encode header
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		ResponseEncoder.Result result = encoder.encode(Codec.EMPTY_IN, 
-				out, false);
+		Encoder.Result result = encoder.encode(Codec.EMPTY_IN, out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -192,8 +190,7 @@ public class EncoderClosedTests {
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		ByteBuffer in = ByteBuffer.wrap("Hello World!".getBytes("ascii"));
 		// Encode rest
-		ResponseEncoder.Result lastResult = Common.tinyEncodeLoop(encoder,
-		        in, out);
+		Encoder.Result lastResult = Common.tinyEncodeLoop(encoder, in, out);
 		// Check result
 		assertFalse(lastResult.isOverflow());
 		assertFalse(lastResult.isUnderflow());
@@ -221,7 +218,7 @@ public class EncoderClosedTests {
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
 		// Encode rest
-		ResponseEncoder.Result result = encoder.encode(in, out, true);
+		Encoder.Result result = encoder.encode(in, out, true);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -246,8 +243,7 @@ public class EncoderClosedTests {
 		// Encode header
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		ResponseEncoder.Result result = encoder.encode(Codec.EMPTY_IN, 
-				out, false);
+		Encoder.Result result = encoder.encode(Codec.EMPTY_IN, out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -310,7 +306,7 @@ public class EncoderClosedTests {
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
 		// Encode rest
-		ResponseEncoder.Result result = encoder.encode(in, out, true);
+		Encoder.Result result = encoder.encode(in, out, true);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertTrue(result.getCloseConnection());
@@ -336,8 +332,7 @@ public class EncoderClosedTests {
 		// Encode header
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		ResponseEncoder.Result result = encoder.encode(Codec.EMPTY_IN, 
-				out, false);
+		Encoder.Result result = encoder.encode(Codec.EMPTY_IN, out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());

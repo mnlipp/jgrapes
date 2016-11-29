@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jdrupes.httpcodec.RequestDecoder;
+import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.protocols.http.HttpDecoder;
 import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
@@ -41,8 +41,7 @@ import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
  * @author Michael N. Lipp
  */
 public class HttpRequestDecoder 
-	extends HttpDecoder<HttpRequest>
-	implements RequestDecoder<HttpRequest, HttpResponse> {
+	extends HttpDecoder<HttpRequest, HttpResponse> {
 
 	// RFC 7230 3.1.1
 	private final static Pattern requestLinePatter = Pattern
@@ -191,7 +190,7 @@ public class HttpRequestDecoder
 
 	/**
 	 * Overrides the base interface's factory method in order to make
-	 * it return the extended return type. As the {@link HttpDecoder}
+	 * it return the extended return type. As the {@link HttpRequestDecoder}
 	 * does not know about a response, this implementation always
 	 * returns a result without one.
 	 * 
@@ -219,15 +218,16 @@ public class HttpRequestDecoder
 	 * @param headerCompleted {@code true} if the header has completely
 	 * been decoded
 	 * @param response a response to send due to an error
-	 * @param requestCompleted if the result includes a response 
+	 * @param responseOnly if the result includes a response 
 	 * this flag indicates that no further processing besides 
 	 * sending the response is required
+	 * @return the result
 	 */
 	public Result newResult (boolean overflow, boolean underflow, 
 			boolean headerCompleted, HttpResponse response, 
-			boolean requestCompleted) {
+			boolean responseOnly) {
 		return new Result(overflow, underflow, 
-				headerCompleted, response, requestCompleted) {
+				headerCompleted, response, responseOnly) {
 		};
 	}
 
@@ -241,7 +241,7 @@ public class HttpRequestDecoder
 	 * @author Michael N. Lipp
 	 */
 	public static abstract class Result 
-		extends RequestDecoder.Result<HttpResponse> {
+		extends Decoder.Result<HttpResponse> {
 
 		/**
 		 * Creates a new result.
@@ -253,16 +253,16 @@ public class HttpRequestDecoder
 		 *            {@code true} if the header has completely been decoded
 		 * @param response
 		 *            a response to send due to an error
-		 * @param requestCompleted
+		 * @param responseOnly
 		 *            if the result includes a response this flag indicates that
 		 *            no further processing besides sending the response is
 		 *            required
 		 */
 		public Result(boolean overflow, boolean underflow,
 		        boolean headerCompleted, HttpResponse response, 
-		        boolean requestCompleted) {
-			super(overflow, underflow, headerCompleted, response,
-			        requestCompleted);
+		        boolean responseOnly) {
+			super(overflow, underflow, false, headerCompleted, response,
+					responseOnly);
 		}
 	}
 }

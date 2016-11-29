@@ -26,7 +26,7 @@ public class WsReceiveInfo extends WsFrameHeader {
 	private boolean textMode;
 
 	/**
-	 * @param textMode
+	 * @param textMode indicates whether the data is sent as text  
 	 */
 	public WsReceiveInfo(boolean textMode) {
 		super();
@@ -34,7 +34,7 @@ public class WsReceiveInfo extends WsFrameHeader {
 	}
 
 	/**
-	 * @return the textMode
+	 * @return whether the data is sent as text
 	 */
 	public boolean isTextMode() {
 		return textMode;

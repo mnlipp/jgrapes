@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 
 import org.jdrupes.httpcodec.Codec;
-import org.jdrupes.httpcodec.ResponseEncoder;
+import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
@@ -35,7 +35,7 @@ public class EncoderContentLengthTests {
 		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		ResponseEncoder.Result result = encoder.encode(in, out, true);
+		Encoder.Result result = encoder.encode(in, out, true);
 		// Check result
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
@@ -58,8 +58,7 @@ public class EncoderContentLengthTests {
 		encoder.encode(response);
 		// Encode header
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		ResponseEncoder.Result result = encoder.encode(Codec.EMPTY_IN,
-		        out, false);
+		Encoder.Result result = encoder.encode(Codec.EMPTY_IN, out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());

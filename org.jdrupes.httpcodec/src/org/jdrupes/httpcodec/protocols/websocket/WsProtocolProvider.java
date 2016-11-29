@@ -23,11 +23,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Optional;
 
-import org.jdrupes.httpcodec.MessageHeader;
-import org.jdrupes.httpcodec.RequestDecoder;
-import org.jdrupes.httpcodec.RequestEncoder;
+import org.jdrupes.httpcodec.Decoder;
+import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.ResponseDecoder;
-import org.jdrupes.httpcodec.ResponseEncoder;
 import org.jdrupes.httpcodec.plugin.ProtocolProvider;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpIntField;
@@ -91,8 +89,7 @@ public class WsProtocolProvider extends ProtocolProvider {
 	 * @see ProtocolProvider#createRequestEncoder()
 	 */
 	@Override
-	public RequestEncoder<? extends MessageHeader> 
-		createRequestEncoder(String protocol) {
+	public Encoder<?> createRequestEncoder(String protocol) {
 		return null;
 	}
 
@@ -100,17 +97,15 @@ public class WsProtocolProvider extends ProtocolProvider {
 	 * @see ProtocolProvider#createRequestDecoder()
 	 */
 	@Override
-	public RequestDecoder<? extends MessageHeader, 
-			? extends MessageHeader> createRequestDecoder(String protocol) {
-		return new WsRequestDecoder();
+	public Decoder<?, ?> createRequestDecoder(String protocol) {
+		return new WsDecoder();
 	}
 
 	/* (non-Javadoc)
 	 * @see ProtocolProvider#createResponseEncoder()
 	 */
 	@Override
-	public ResponseEncoder<? extends MessageHeader> 
-		createResponseEncoder(String protocol) {
+	public Encoder<?> createResponseEncoder(String protocol) {
 		return new WsResponseEncoder();
 	}
 
@@ -118,8 +113,7 @@ public class WsProtocolProvider extends ProtocolProvider {
 	 * @see ProtocolProvider#createResponseDecoder()
 	 */
 	@Override
-	public ResponseDecoder<? extends MessageHeader, 
-			? extends MessageHeader> createResponseDecoder(String protocol) {
+	public ResponseDecoder<?, ?> createResponseDecoder(String protocol) {
 		return null;
 	}
 

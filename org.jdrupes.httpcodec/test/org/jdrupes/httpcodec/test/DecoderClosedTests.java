@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
 import org.jdrupes.httpcodec.Codec;
-import org.jdrupes.httpcodec.ResponseDecoder;
+import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder;
@@ -58,7 +58,7 @@ public class DecoderClosedTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		ResponseDecoder.Result result = decoder.decode(buffer, body, true);
+		Decoder.Result<?> result = decoder.decode(buffer, body, true);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertTrue(result.getCloseConnection());
@@ -92,7 +92,7 @@ public class DecoderClosedTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		ResponseDecoder.Result result = decoder.decode(buffer, body, false);
+		Decoder.Result<?> result = decoder.decode(buffer, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
@@ -137,7 +137,7 @@ public class DecoderClosedTests {
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer out = ByteBuffer.allocate(1024);
 		Common.tinyDecodeLoop(decoder, in, out);
-		ResponseDecoder.Result result = decoder.decode(in, out, true);
+		Decoder.Result<?> result = decoder.decode(in, out, true);
 		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertTrue(result.getCloseConnection());
 		assertEquals(HttpStatus.OK.getStatusCode(),
@@ -170,7 +170,7 @@ public class DecoderClosedTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("utf-8"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		CharBuffer body = CharBuffer.allocate(1024);
-		ResponseDecoder.Result result = decoder.decode(buffer, body, true);
+		Decoder.Result<?> result = decoder.decode(buffer, body, true);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertTrue(result.getCloseConnection());
@@ -201,7 +201,7 @@ public class DecoderClosedTests {
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("utf-8"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		CharBuffer body = CharBuffer.allocate(1);
-		ResponseDecoder.Result result = decoder.decode(buffer, body, true);
+		Decoder.Result<?> result = decoder.decode(buffer, body, true);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
@@ -244,7 +244,7 @@ public class DecoderClosedTests {
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		CharBuffer body = CharBuffer.allocate(1024);
 		byte[] ba = new byte[1];
-		ResponseDecoder.Result result;
+		Decoder.Result<?> result;
 		while (true) {
 			int b = is.read();
 			if (b == -1) {

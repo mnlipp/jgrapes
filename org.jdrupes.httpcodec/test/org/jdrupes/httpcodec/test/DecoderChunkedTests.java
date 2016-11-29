@@ -6,7 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
-import org.jdrupes.httpcodec.ResponseDecoder;
+import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class DecoderChunkedTests {
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		ResponseDecoder.Result result = decoder.decode(in, body, false);
+		Decoder.Result<?> result = decoder.decode(in, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
@@ -76,7 +76,7 @@ public class DecoderChunkedTests {
 				+ "\r\n";
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
-		ResponseDecoder.Result result = decoder.decode(in, null, false);
+		Decoder.Result<?> result = decoder.decode(in, null, false);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
@@ -127,8 +127,7 @@ public class DecoderChunkedTests {
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		ResponseDecoder.Result result = Common.tinyDecodeLoop(decoder, in,
-		        body);
+		Decoder.Result<?> result = Common.tinyDecodeLoop(decoder, in, body);
 		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertEquals(HttpStatus.OK.getStatusCode(), 
 				decoder.getHeader().get().getStatusCode());

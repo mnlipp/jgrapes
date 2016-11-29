@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
-import org.jdrupes.httpcodec.ResponseEncoder;
+import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
@@ -25,7 +25,7 @@ public class ResponseEncoderTests {
 		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		ResponseEncoder.Result result = encoder.encode(out);
+		Encoder.Result result = encoder.encode(out);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -43,7 +43,7 @@ public class ResponseEncoderTests {
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		ByteBuffer tinyOut = ByteBuffer.allocate(1);
 		while (true) {
-			ResponseEncoder.Result result = encoder.encode(tinyOut);
+			Encoder.Result result = encoder.encode(tinyOut);
 			assertFalse(result.isUnderflow());
 			assertFalse(result.getCloseConnection());
 			tinyOut.flip();

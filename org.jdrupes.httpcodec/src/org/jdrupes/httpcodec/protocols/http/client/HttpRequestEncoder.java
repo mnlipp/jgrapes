@@ -19,11 +19,8 @@ package org.jdrupes.httpcodec.protocols.http.client;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.Engine;
-import org.jdrupes.httpcodec.RequestEncoder;
 import org.jdrupes.httpcodec.protocols.http.HttpEncoder;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 
@@ -31,8 +28,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpRequest;
  * @author Michael N. Lipp
  *
  */
-public class HttpRequestEncoder extends HttpEncoder<HttpRequest> 
-	implements RequestEncoder<HttpRequest> {
+public class HttpRequestEncoder extends HttpEncoder<HttpRequest> {
 
 	/**
 	 * Creates a new encoder that belongs to the given HTTP engine.
@@ -55,22 +51,6 @@ public class HttpRequestEncoder extends HttpEncoder<HttpRequest>
 		writer.write(" ");
 		writer.write(messageHeader.getProtocol().toString());
 		writer.write("\r\n");
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(java.nio.ByteBuffer)
-	 */
-	@Override
-	public Result encode(ByteBuffer out) {
-		return super.encode(out);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.internal.Encoder#encode(java.nio.ByteBuffer, java.nio.ByteBuffer)
-	 */
-	@Override
-	public Result encode(Buffer in, ByteBuffer out, boolean endOfInput) {
-		return super.encode(in, out, endOfInput);
 	}
 
 }

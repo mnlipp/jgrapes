@@ -15,13 +15,30 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec;
+package org.jdrupes.httpcodec.protocols.websocket;
 
 /**
- * An encoder that encodes a response.
- * 
  * @author Michael N. Lipp
+ *
  */
-public interface RequestEncoder<T extends MessageHeader> extends Encoder<T> {
+public class WsPongFrame extends WsFrameHeader {
 
+	private byte[] applicationData;
+	
+	/**
+	 * A pong data frame.
+	 * 
+	 * @param applicationData the data to echo back
+	 */
+	public WsPongFrame(byte[] applicationData) {
+		this.applicationData = applicationData;
+	}
+
+	/**
+	 * 
+	 * @return the data to echo back
+	 */
+	public byte[] getApplicationData() {
+		return applicationData;
+	}
 }

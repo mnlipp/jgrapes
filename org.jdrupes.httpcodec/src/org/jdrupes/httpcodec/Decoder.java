@@ -25,11 +25,14 @@ import java.util.Optional;
  * The general interface of a decoder.
  * 
  * @param <T> the type of message decoded by this decoder
+ * @param <R> the type of message that may be generated as response
+ * (see {@link Decoder.Result#getResponse()})
  * 
  * @author Michael N. Lipp
  *
  */
-public interface Decoder<T extends MessageHeader> extends Codec {
+public interface Decoder<T extends MessageHeader,
+	R extends MessageHeader> extends Codec {
 
 	/**
 	 * Decodes the next chunk of data.
@@ -46,7 +49,7 @@ public interface Decoder<T extends MessageHeader> extends Codec {
 	 * @throws ProtocolException
 	 *             if the message violates the HTTP
 	 */
-	public Result decode(ByteBuffer in, Buffer out, boolean endOfInput)
+	public Result<R> decode(ByteBuffer in, Buffer out, boolean endOfInput)
 	        throws ProtocolException;
 	
 	/**
@@ -64,16 +67,24 @@ public interface Decoder<T extends MessageHeader> extends Codec {
 	 *            {@code true} if the data didn't fit in the out buffer
 	 * @param underflow
 	 *            {@code true} if more data is expected
-	 * @param headerCompleted
-	 *            indicates that the message header has been completed and
-	 *            the message (without body) is available
+	 * @param closeConnection
+	 *            {@code true} if the connection should be closed
+	 * @param headerCompleted {@code true} if the header has completely
+	 * been decoded
+	 * @param response a response to send due to an error
+	 * @param responseOnly if the result includes a response 
+	 * this flag indicates that no further processing besides 
+	 * sending the response is required
+	 * @return the result
 	 */
-	default Result newResult (boolean overflow, boolean underflow, 
-			boolean headerCompleted) {
-		return new Result (overflow, underflow, headerCompleted) {
+	default Result<R> newResult (boolean overflow, boolean underflow, 
+			boolean closeConnection, boolean headerCompleted, 
+			R response, boolean responseOnly) {
+		return new Result<R>(overflow, underflow, closeConnection,
+				headerCompleted, response, responseOnly) {
 		};
 	}
-	
+
 	/**
 	 * Overrides the base interface's factory method in order to make
 	 * it return the extended return type.
@@ -82,37 +93,55 @@ public interface Decoder<T extends MessageHeader> extends Codec {
 	 *            {@code true} if the data didn't fit in the out buffer
 	 * @param underflow
 	 *            {@code true} if more data is expected
+	 * @param headerCompleted
+	 *            indicates that the message header has been completed and
+	 *            the message (without body) is available
 	 */
-	Result newResult (boolean overflow, boolean underflow);
+	Result<R> newResult (boolean overflow, boolean underflow, 
+			boolean headerCompleted);
 	
 	/**
-	 * The result from invoking the decoder. In addition to the general codec
-	 * result, all decoders may return a message header if one
-	 * has been decoded during the invocation. 
+	 * The result from decoding. In addition to the common codec result, this
+	 * includes the information wheteher a complete message header has been
+	 * received and it can include a response that is to be sent back to the
+	 * sender in order to fulfill the requirements of the protocol. As the
+	 * decoder can (obviously) not sent back this response by itself, it is
+	 * included in the result.
 	 * <P>
 	 * The class is declared abstract to promote the usage of the factory
 	 * method.
-	 * 
+	 *
+	 * @param <R>
+	 *            the type of the optionally generated response message
 	 * @author Michael N. Lipp
 	 */
-	public abstract class Result extends Codec.Result {
+	public static abstract class Result<R extends MessageHeader> 
+		extends Codec.Result {
 
 		private boolean headerCompleted;
+		private R response;
+		private boolean responseOnly;
 
 		/**
 		 * Creates a new result.
-		 * @param overflow
-		 *            {@code true} if the data didn't fit in the out buffer
-		 * @param underflow
-		 *            {@code true} if more data is expected
-		 * @param headerCompleted
-		 *            indicates that the message header has been completed and
-		 *            the message (without body) is available
+		 * @param overflow {@code true} if the data didn't fit in the out buffer
+		 * @param underflow {@code true} if more data is expected
+		 * @param closeConnection
+		 * 	 {@code true} if the connection should be closed
+		 * @param headerCompleted {@code true} if the header has completely
+		 * been decoded
+		 * @param response a response to send due to an error
+		 * @param responseOnly if the result includes a response 
+		 * this flag indicates that no further processing besides 
+		 * sending the response is required
 		 */
 		protected Result(boolean overflow, boolean underflow, 
-				boolean headerCompleted) {
-			super(overflow, underflow);
-			this.headerCompleted = headerCompleted;
+				boolean closeConnection, boolean headerCompleted, 
+				R response, boolean responseOnly) {
+			super(overflow, underflow, closeConnection);
+			this.headerCompleted =  headerCompleted;
+			this.response = response;
+			this.responseOnly = responseOnly;
 		}
 
 		/**
@@ -126,20 +155,37 @@ public interface Decoder<T extends MessageHeader> extends Codec {
 			return headerCompleted;
 		}
 
-		/* (non-Javadoc)
-		 * @see java.lang.Object#toString()
+		/**
+		 * Returns {@code true} if the result includes a response
+		 * (see {@link #getResponse()}).
+		 * 
+		 * @return the result
 		 */
-		@Override
-		public String toString() {
-			StringBuilder builder = new StringBuilder();
-			builder.append("Decoder.Result [overflow=");
-			builder.append(isOverflow());
-			builder.append(", underflow=");
-			builder.append(isUnderflow());
-			builder.append(", headerCompleted=");
-			builder.append(headerCompleted);
-			builder.append("]");
-			return builder.toString();
+		public boolean hasResponse() {
+			return response != null;
+		}
+		
+		/**
+		 * Returns the response if a response exists. A response in
+		 * the decoder result indicates that some information
+		 * must be signaled back to the sender.
+		 * 
+		 * @return the response
+		 */
+		public R getResponse() {
+			return response;
+		}
+
+		/**
+		 * If the result includes a response ({@link #hasResponse()} returns
+		 * {@code true}) and this method returns {@code true} then no
+		 * further processing of the received data (besides sending the 
+		 * response) is required.  
+		 * 
+		 * @return the result
+		 */
+		public boolean isResponseOnly() {
+			return responseOnly;
 		}
 
 		/* (non-Javadoc)
@@ -150,6 +196,9 @@ public interface Decoder<T extends MessageHeader> extends Codec {
 			final int prime = 31;
 			int result = super.hashCode();
 			result = prime * result + (headerCompleted ? 1231 : 1237);
+			result = prime * result + (responseOnly ? 1231 : 1237);
+			result = prime * result
+			        + ((response == null) ? 0 : response.hashCode());
 			return result;
 		}
 
@@ -164,10 +213,45 @@ public interface Decoder<T extends MessageHeader> extends Codec {
 				return false;
 			if (getClass() != obj.getClass())
 				return false;
-			Result other = (Result) obj;
+			Result<?> other = (Result<?>) obj;
 			if (headerCompleted != other.headerCompleted)
+				return false;
+			if (responseOnly != other.responseOnly)
+				return false;
+			if (response == null) {
+				if (other.response != null)
+					return false;
+			} else if (!response.equals(other.response))
 				return false;
 			return true;
 		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("Decoder.Result [overflow=");
+			builder.append(isOverflow());
+			builder.append(", underflow=");
+			builder.append(isUnderflow());
+			builder.append(", closeConnection=");
+			builder.append(getCloseConnection());
+			builder.append(", headerCompleted=");
+			builder.append(headerCompleted);
+			builder.append(", ");
+			if (response != null) {
+				builder.append("response=");
+				builder.append(response);
+				builder.append(", ");
+			}
+			builder.append("requestComleted=");
+			builder.append(responseOnly);
+			builder.append("]");
+			return builder.toString();
+		}
+
 	}
+	
 }

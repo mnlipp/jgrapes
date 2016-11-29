@@ -8,7 +8,7 @@ import java.nio.CharBuffer;
 import java.text.ParseException;
 
 import org.jdrupes.httpcodec.Codec;
-import org.jdrupes.httpcodec.ResponseEncoder;
+import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
@@ -35,7 +35,7 @@ public class EncoderChunkedTests {
 		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		encoder.encode(response);
-		ResponseEncoder.Result result = encoder.encode(in, out, true);
+		Encoder.Result result = encoder.encode(in, out, true);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -61,8 +61,7 @@ public class EncoderChunkedTests {
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		// Encode header
-		ResponseEncoder.Result result = encoder.encode(Codec.EMPTY_IN,
-		        out, false);
+		Encoder.Result result = encoder.encode(Codec.EMPTY_IN, out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -125,7 +124,7 @@ public class EncoderChunkedTests {
 		encoder.encode(response);
 		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
-		ResponseEncoder.Result result = encoder.encode(in, out, true);
+		Encoder.Result result = encoder.encode(in, out, true);
 		assertFalse(result.isOverflow());
 		assertFalse(result.isUnderflow());
 		assertFalse(result.getCloseConnection());
@@ -151,8 +150,7 @@ public class EncoderChunkedTests {
 		encoder.encode(response);
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		// Encode header
-		ResponseEncoder.Result result = encoder.encode(Codec.EMPTY_IN,
-		        out, false);
+		Encoder.Result result = encoder.encode(Codec.EMPTY_IN, out, false);
 		assertFalse(result.isOverflow());
 		assertTrue(result.isUnderflow());
 		assertFalse(result.getCloseConnection());

@@ -23,8 +23,8 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
+import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.ResponseDecoder;
-import org.jdrupes.httpcodec.ResponseEncoder;
 import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
 import org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder;
 import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
@@ -35,19 +35,12 @@ import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
  */
 public class Common {
 
-	/**
-	 * 
-	 */
-	public Common() {
-		// TODO Auto-generated constructor stub
-	}
-
-	public static ResponseEncoder.Result tinyEncodeLoop(
+	public static Encoder.Result tinyEncodeLoop(
 			HttpResponseEncoder encoder, Buffer in, ByteBuffer out) {
 		return tinyEncodeLoop(encoder, in, 1, out, 1);
 	}
 	
-	public static ResponseEncoder.Result tinyEncodeLoop(
+	public static Encoder.Result tinyEncodeLoop(
 			HttpResponseEncoder encoder, Buffer in, int inSize,
 			ByteBuffer out, int outSize) {
 		Buffer tinyIn = (in instanceof CharBuffer) ? CharBuffer.allocate(1)
@@ -55,7 +48,7 @@ public class Common {
 		tinyIn.flip(); // Initially empty
 		ByteBuffer tinyOut = ByteBuffer.allocate(outSize);
 		boolean endOfInput = false;
-		ResponseEncoder.Result lastResult;
+		Encoder.Result lastResult;
 		while (true) {
 			lastResult = encoder.encode(tinyIn, tinyOut, endOfInput);
 			if (lastResult.isOverflow()) {
@@ -88,14 +81,14 @@ public class Common {
 		return lastResult;
 	}
 
-	public static ResponseDecoder.Result tinyDecodeLoop(
+	public static ResponseDecoder.Result<?> tinyDecodeLoop(
 			HttpResponseDecoder decoder, ByteBuffer in, ByteBuffer out) 
 					throws HttpProtocolException {
 		ByteBuffer tinyIn = ByteBuffer.allocate(1);
 		tinyIn.flip(); // Initially empty
 		ByteBuffer tinyOut = ByteBuffer.allocate(1);
 		boolean endOfInput = false;
-		ResponseDecoder.Result lastResult;
+		ResponseDecoder.Result<?> lastResult;
 		while (true) {
 			lastResult = decoder.decode(tinyIn, tinyOut, endOfInput);
 			if (lastResult.isOverflow()) {

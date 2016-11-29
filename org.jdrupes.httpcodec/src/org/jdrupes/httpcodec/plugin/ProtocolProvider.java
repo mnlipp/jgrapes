@@ -17,11 +17,10 @@
  */
 package org.jdrupes.httpcodec.plugin;
 
+import org.jdrupes.httpcodec.Decoder;
+import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.MessageHeader;
-import org.jdrupes.httpcodec.RequestDecoder;
-import org.jdrupes.httpcodec.RequestEncoder;
 import org.jdrupes.httpcodec.ResponseDecoder;
-import org.jdrupes.httpcodec.ResponseEncoder;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 
 /**
@@ -32,7 +31,8 @@ public abstract class ProtocolProvider {
 	/**
 	 * Checks if the plugin supports the given protocol.
 	 * 
-	 * @protocol the protocol in question
+	 * @param protocol the protocol in question
+	 * @return the result
 	 */
 	abstract public boolean supportsProtocol(String protocol);
 
@@ -48,38 +48,36 @@ public abstract class ProtocolProvider {
 	/**
 	 * Creates a new request encoder for the protocol.
 	 * 
-	 * @param the protocol, which must be supported by this plugin
+	 * @param protocol the protocol, which must be supported by this plugin
 	 * @return the request encoder
 	 */
-	abstract public RequestEncoder<? extends MessageHeader> 
-		createRequestEncoder(String protocol);
+	abstract public Encoder<?>	createRequestEncoder(String protocol);
 	
 	/**
 	 * Creates a new request decoder for the protocol.
 	 * 
-	 * @param the protocol, which must be supported by this plugin
+	 * @param protocol the protocol, which must be supported by this plugin
 	 * @return the request decoder
 	 */
-	abstract public RequestDecoder<? extends MessageHeader, 
-			? extends MessageHeader> createRequestDecoder(String protocol);
+	abstract public Decoder<?, ?> createRequestDecoder(String protocol);
 	
 	/**
 	 * Creates a new response encoder for the protocol.
 	 * 
-	 * @param the protocol, which must be supported by this plugin
+	 * @param protocol the protocol, which must be supported by this plugin
 	 * @return the response encoder
 	 */
-	abstract public ResponseEncoder<? extends MessageHeader>
+	abstract public Encoder<? extends MessageHeader>
 		createResponseEncoder(String protocol);
 	
 	/**
 	 * Creates a new response decoder for the protocol.
 	 * 
-	 * @param the protocol, which must be supported by this plugin
+	 * @param protocol the protocol, which must be supported by this plugin
 	 * @return the response decoder
 	 */
-	abstract public ResponseDecoder<? extends MessageHeader,
-			? extends MessageHeader> createResponseDecoder(String protocol);
+	abstract public ResponseDecoder<?, ?>
+		createResponseDecoder(String protocol);
 	
 	
 }

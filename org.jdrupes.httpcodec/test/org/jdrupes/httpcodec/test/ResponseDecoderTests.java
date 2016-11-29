@@ -43,7 +43,7 @@ public class ResponseDecoderTests {
 		ByteBuffer in = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpResponseDecoder decoder = new HttpResponseDecoder(null);
 		ByteBuffer body = ByteBuffer.allocate(1024);
-		ResponseDecoder.Result result = decoder.decode(in, body, false);
+		ResponseDecoder.Result<?> result = decoder.decode(in, body, false);
 		assertTrue(result.isHeaderCompleted());
 		assertTrue(decoder.getHeader().get().messageHasBody());
 		assertFalse(result.getCloseConnection());
