@@ -193,6 +193,8 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 			}
 			switch (states.peek()) {
 			case INITIAL:
+				outStream.clear();
+				outStream.assignBuffer(out);
 				startMessage();
 				break;
 
@@ -337,7 +339,6 @@ public abstract class HttpEncoder<T extends HttpMessageHeader>
 		}
 		
 		// Prepare encoder
-		outStream.clear();
 		headerIter = null;
 
 		// Write request or status line
