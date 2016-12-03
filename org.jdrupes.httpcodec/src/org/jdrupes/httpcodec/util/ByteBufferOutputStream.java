@@ -84,9 +84,12 @@ public class ByteBufferOutputStream extends OutputStream {
 	}
 
 	/**
-	 * Clear any buffered data.
+	 * Clear any buffered data and prepares the buffer for reuse.
 	 */
 	public void clear() {
+		assignedBuffer = null;
+		current = null;
+		bytesWritten = 0;
 		overflows.clear();
 	}
 
