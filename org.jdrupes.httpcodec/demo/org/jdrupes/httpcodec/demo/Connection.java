@@ -20,6 +20,7 @@ package org.jdrupes.httpcodec.demo;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.SocketChannel;
@@ -40,6 +41,7 @@ import org.jdrupes.httpcodec.protocols.http.fields.HttpStringListField;
 import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;
 import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
 import org.jdrupes.httpcodec.protocols.websocket.WsFrameHeader;
+import org.jdrupes.httpcodec.protocols.websocket.WsMessageHeader;
 import org.jdrupes.httpcodec.util.FormUrlDecoder;
 
 /**
@@ -69,6 +71,7 @@ public class Connection extends Thread {
 	@Override
 	public void run() {
 		try (SocketChannel channel = this.channel) {
+			channel.configureBlocking(true);
 			while (channel.isOpen()) {
 				in.clear();
 				channel.read(in);
@@ -90,6 +93,10 @@ public class Connection extends Thread {
 						if (hdr instanceof WsFrameHeader) {
 							handleWsFrame((WsFrameHeader)hdr);
 						}
+					}
+					if (decoderResult.getCloseConnection()) {
+						channel.close();
+						break;
 					}
 				}
 			}
@@ -226,12 +233,12 @@ public class Connection extends Thread {
 	private void sendResponseWithoutBody(MessageHeader response)
 	        throws IOException {
 		@SuppressWarnings("unchecked")
-		ServerEngine<HttpRequest,HttpResponse> httpEngine
-			= (ServerEngine<HttpRequest,HttpResponse>)engine;
-		httpEngine.encode((HttpResponse)response);
+		ServerEngine<MessageHeader, MessageHeader> genericServer
+			= (ServerEngine<MessageHeader, MessageHeader>)engine; 
+		genericServer.encode(response);
 		out.clear();
 		while (true) {
-			Encoder.Result encoderResult = engine.encode(out);
+			Encoder.Result encoderResult = genericServer.encode(out);
 			out.flip();
 			if (out.hasRemaining()) {
 				channel.write(out);
@@ -244,12 +251,12 @@ public class Connection extends Thread {
 		}
 	}
 
-	private void sendResponse(HttpResponse response, ByteBuffer in,
+	private void sendResponse(MessageHeader response, Buffer in,
 	        boolean endOfInput) throws IOException {
 		@SuppressWarnings("unchecked")
-		ServerEngine<HttpRequest,HttpResponse> httpEngine
-			= (ServerEngine<HttpRequest,HttpResponse>)engine;
-		httpEngine.encode((HttpResponse)response);
+		ServerEngine<MessageHeader, MessageHeader> genericEngine
+			= (ServerEngine<MessageHeader, MessageHeader>)engine;
+		genericEngine.encode(response);
 		out.clear();
 		while (true) {
 			Encoder.Result encoderResult = engine.encode(in, out, endOfInput);
@@ -265,7 +272,14 @@ public class Connection extends Thread {
 		}
 	}
 
-	private void handleWsFrame(WsFrameHeader hdr) throws IOException {
+	private void handleWsFrame(WsFrameHeader header) throws IOException {
+		if (!(header instanceof WsMessageHeader)) {
+			return;
+		}
+		WsMessageHeader hdr = (WsMessageHeader)header;
+		if (!hdr.hasPayload()) {
+			return;
+		}
 		CharBuffer out = CharBuffer.allocate(100);
 		while (true) {
 			out.clear();
@@ -279,7 +293,7 @@ public class Connection extends Thread {
 			if (decoderResult.isOverflow()) {
 				continue;
 			}
-			if (decoderResult.isUnderflow()) {
+			if (decoderResult.isUnderflow() && channel.isOpen()) {
 				in.clear();
 				channel.read(in);
 				in.flip();
@@ -287,6 +301,7 @@ public class Connection extends Thread {
 			}
 			break;
 		}
+		sendResponse(new WsMessageHeader(true, true), out, true);
 	}
 	
 }

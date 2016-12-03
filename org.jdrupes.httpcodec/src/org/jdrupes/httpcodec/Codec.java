@@ -86,15 +86,31 @@ public interface Codec {
 		 * same parameters except for a new (or cleared) output buffer.
 		 * 
 		 * @return {@code true} if overflow occurred
+		 * @see #isUnderflow()
 		 */
 		public boolean isOverflow() {
 			return overflow;
 		}
 
 		/**
-		 * Indicates that more data is expected. The encoding method that has
-		 * returned this result should be re-invoked with the same parameters
+		 * Indicates that more data is needed to complete the encoding or
+		 * decoding of the entity. 
+		 * <P>
+		 * {@code Codec}s may report an underflow 
+		 * condition even if there is still data available in the input 
+		 * buffer in order to report some special condition in an extended 
+		 * result type. In this case, the encode or decode method should 
+		 * be reinvoked with the same parameters after handling the special 
+		 * condition that has been reported.
+		 * <P>
+		 * If underflow is reported and the input buffer is empty, the
+		 * encode or decode method should be reinvoked with the same parameters
 		 * except for an input buffer with additional information.
+		 * <P>
+		 * A result with both overflow and underflow set to false indicates
+		 * the completion of the encoding or decoding process of the entity.
+		 * In this case, the input buffer may still contain data that belongs
+		 * to the next entity that is to be encoded or decoded. 
 		 * 
 		 * @return {@code true} if underflow occurred
 		 */

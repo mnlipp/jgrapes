@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- Taken from https://blog.idrsolutions.com/2013/12/websockets-an-introduction/ -->
+<!-- Taken from https://blog.idrsolutions.com/2013/12/websockets-an-introduction/
+    with minor modifications -->
 <html>
     <head>
         <title>Echo Chamber</title>
@@ -50,6 +51,7 @@
                     // For reasons I can't determine, onopen gets called twice
                     // and the first time event.data is undefined.
                     // Leave a comment if you know the answer.
+                    writeResponse("WebSocket opened");
                     if(event.data === undefined) 
                         return;
 

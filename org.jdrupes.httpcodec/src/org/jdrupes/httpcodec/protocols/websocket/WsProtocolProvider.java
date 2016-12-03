@@ -106,7 +106,7 @@ public class WsProtocolProvider extends ProtocolProvider {
 	 */
 	@Override
 	public Encoder<?> createResponseEncoder(String protocol) {
-		return new WsResponseEncoder();
+		return new WsEncoder(false);
 	}
 
 	/* (non-Javadoc)

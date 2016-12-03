@@ -179,8 +179,9 @@ public interface Decoder<T extends MessageHeader,
 		/**
 		 * If the result includes a response ({@link #hasResponse()} returns
 		 * {@code true}) and this method returns {@code true} then no
-		 * further processing of the received data (besides sending the 
-		 * response) is required.  
+		 * further processing of the received data is required. After sending
+		 * the response data, the decode method should be invoked 
+		 * again with the same parameters. 
 		 * 
 		 * @return the result
 		 */

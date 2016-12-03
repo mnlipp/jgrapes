@@ -17,29 +17,31 @@
  */
 package org.jdrupes.httpcodec.protocols.websocket;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-import org.jdrupes.httpcodec.Encoder;
-
 /**
+ * Control frames with binary application data.
+ * 
  * @author Michael N. Lipp
  */
-public class WsResponseEncoder implements Encoder<WsFrameHeader> {
+public class WsDefaultControlFrame extends WsFrameHeader {
 
-	/* (non-Javadoc)
-	 * @see org.jdrupes.httpcodec.ResponseEncoder#encode(org.jdrupes.httpcodec.MessageHeader)
+	private ByteBuffer applicationData;
+	
+	/**
+	 * Creates a new frame.
+	 * 
+	 * @param applicationData the application data. May be {@code null}.
 	 */
-	@Override
-	public void encode(WsFrameHeader messageHeader) {
-		// TODO Auto-generated method stub
-
+	public WsDefaultControlFrame(ByteBuffer applicationData) {
+		this.applicationData = applicationData;
 	}
 
-	@Override
-	public Result encode(Buffer in, ByteBuffer out, boolean endOfInput) {
-		// TODO Auto-generated method stub
-		return null;
+	/**
+	 * 
+	 * @return the application data
+	 */
+	public ByteBuffer getApplicationData() {
+		return applicationData;
 	}
-
 }

@@ -23,14 +23,14 @@ import java.nio.ByteBuffer;
  * @author Michael N. Lipp
  *
  */
-public class WsPongFrame extends WsDefaultControlFrame {
+public class WsPingFrame extends WsDefaultControlFrame {
 
 	/**
-	 * A pong control frame.
+	 * A ping control frame.
 	 * 
 	 * @param applicationData the data to echo back
 	 */
-	public WsPongFrame(ByteBuffer applicationData) {
+	public WsPingFrame(ByteBuffer applicationData) {
 		super (applicationData);
 	}
 
