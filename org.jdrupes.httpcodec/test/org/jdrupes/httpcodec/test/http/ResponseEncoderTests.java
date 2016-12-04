@@ -1,4 +1,4 @@
-package org.jdrupes.httpcodec.test;
+package org.jdrupes.httpcodec.test.http;
 
 import static org.junit.Assert.*;
 

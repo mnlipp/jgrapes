@@ -15,11 +15,9 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.test;
+package org.jdrupes.httpcodec.test.http;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -31,19 +29,13 @@ import org.junit.Test;
  * @author Michael N. Lipp
  *
  */
-public class BasicProtocolTests {
+public class DecoderHeaderTests {
 
-	/**
-	 * RFC 7230 3.
-	 * 
-	 * @throws UnsupportedEncodingException
-	 */
 	@Test
-	public void testLeadingWhitespace() throws UnsupportedEncodingException {
+	public void testRequestAtOnce() throws UnsupportedEncodingException {
+		// Partial header
 		String reqText 
-			= "\r\n"
-			+ "\r\n"
-			+ "GET / HTTP/1.0\r\n"
+			= "GET /test HTTP/1.1\r\n"
 			+ "Host: localhost:8888\r\n"
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
@@ -55,61 +47,60 @@ public class BasicProtocolTests {
 		assertEquals("GET", decoder.getHeader().get().getMethod());
 		assertEquals("localhost", decoder.getHeader().get().getHost());
 		assertEquals(8888, decoder.getHeader().get().getPort());
+		assertEquals("/test",
+		        decoder.getHeader().get().getRequestUri().getPath());
+	}
+
+	/**
+	 * Request with header in two parts.
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
+	@Test
+	public void testRequestSplitHeader() throws UnsupportedEncodingException {
+		// Partial header
+		String reqText 
+			= "GET /test HTTP/1.1\r\n"
+			+ "Host: local";
+		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
+		HttpRequestDecoder decoder = new HttpRequestDecoder();
+		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
+		assertFalse(result.isHeaderCompleted());
+		assertFalse(result.hasResponse());
+		// Continue header
+		reqText 
+			= "host:8888\r\n"
+			+ "\r\n";
+		buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
+		result = decoder.decode(buffer, null, false);
+		assertTrue(result.isHeaderCompleted());
+		assertFalse(result.hasResponse());
+		assertFalse(decoder.getHeader().get().messageHasBody());
+		assertEquals("GET", decoder.getHeader().get().getMethod());
+		assertEquals("localhost", decoder.getHeader().get().getHost());
+		assertEquals(8888, decoder.getHeader().get().getPort());
+		assertEquals("/test",
+		        decoder.getHeader().get().getRequestUri().getPath());
 	}
 
 	@Test
-	public void testUnsupportedVersion() throws UnsupportedEncodingException {
+	public void testRequestTiny() throws UnsupportedEncodingException {
+		// Partial header
 		String reqText 
-			= "GET / HTTP/0.8\r\n"
+			= "GET /test HTTP/1.1\r\n"
 			+ "Host: localhost:8888\r\n"
 			+ "\r\n";
 		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
 		HttpRequestDecoder decoder = new HttpRequestDecoder();
 		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
-		assertFalse(result.isHeaderCompleted());
-		assertTrue(result.hasResponse());
-		assertEquals(505, result.getResponse().getStatusCode());
+		assertTrue(result.isHeaderCompleted());
+		assertFalse(result.hasResponse());
+		assertFalse(decoder.getHeader().get().messageHasBody());
+		assertEquals("GET", decoder.getHeader().get().getMethod());
+		assertEquals("localhost", decoder.getHeader().get().getHost());
+		assertEquals(8888, decoder.getHeader().get().getPort());
+		assertEquals("/test",
+		        decoder.getHeader().get().getRequestUri().getPath());
 	}
-
-	/**
-	 * RFC 7230 3.1.1
-	 * 
-	 * @throws UnsupportedEncodingException
-	 */
-	@Test
-	public void testRequestWithWhitespace()
-	        throws UnsupportedEncodingException {
-		String reqText 
-			= "GET /tricky/Resource HTTP/1.1 HTTP/1.1\r\n"
-			+ "Host: localhost:8888\r\n"
-			+ "\r\n";
-		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
-		assertFalse(result.isHeaderCompleted());
-		assertTrue(result.hasResponse());
-		assertEquals(400, result.getResponse().getStatusCode());
-	}
-
-	/**
-	 * RFC 7230 3.2.4
-	 * 
-	 * @throws UnsupportedEncodingException
-	 */
-	@Test
-	public void testRequestWithSpaceBeforeColon()
-	        throws UnsupportedEncodingException {
-		String reqText 
-			= "GET / HTTP/1.1\r\n"
-			+ "Host : localhost:8888\r\n"
-			+ "\r\n";
-		ByteBuffer buffer = ByteBuffer.wrap(reqText.getBytes("ascii"));
-		HttpRequestDecoder decoder = new HttpRequestDecoder();
-		HttpRequestDecoder.Result result = decoder.decode(buffer, null, false);
-		assertFalse(result.isHeaderCompleted());
-		assertTrue(result.hasResponse());
-		assertEquals(400, result.getResponse().getStatusCode());
-	}
-
 
 }
