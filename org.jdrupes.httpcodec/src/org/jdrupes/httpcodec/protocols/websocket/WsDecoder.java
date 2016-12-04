@@ -36,7 +36,7 @@ public class WsDecoder	implements Decoder<WsFrameHeader, WsFrameHeader> {
 
 	private static enum State { READING_HEADER, READING_LENGTH,
 		READING_MASK, READING_PAYLOAD, READING_PING_DATA,
-		READING_CLOSE_DATA };
+		READING_PONG_DATA, READING_CLOSE_DATA };
 	private static enum Opcode { CONT_FRAME, TEXT_FRAME, BIN_FRAME,
 		CON_CLOSE, PING, PONG;
 
@@ -189,7 +189,8 @@ public class WsDecoder	implements Decoder<WsFrameHeader, WsFrameHeader> {
 				int initiallyAvailable = in.remaining();
 				CoderResult decRes = copyData(out, in,
 				        bytesExpected > Integer.MAX_VALUE
-				                ? Integer.MAX_VALUE : (int) bytesExpected);
+			                ? Integer.MAX_VALUE : (int) bytesExpected, 
+			            endOfInput);
 				bytesExpected -= (initiallyAvailable - in.remaining());
 				if (bytesExpected == 0) {
 					result = frameFinished();
@@ -202,14 +203,22 @@ public class WsDecoder	implements Decoder<WsFrameHeader, WsFrameHeader> {
 				                || (decRes != null && decRes.isUnderflow()));
 
 			case READING_PING_DATA:
+			case READING_PONG_DATA:
 				initiallyAvailable = in.remaining();
-				copyData(controlData, in, (int) bytesExpected);
+				copyData(controlData, in, (int) bytesExpected, endOfInput);
 				bytesExpected -= (initiallyAvailable - in.remaining());
 				if (bytesExpected == 0) {
-					frameFinished();
 					controlData.flip();
-					result = createResult(false, !dataMessageFinished, 
-							new WsPongFrame(controlData), true);
+					if (state == State.READING_PING_DATA) {
+						receivedHeader = new WsPingFrame(controlData);
+						result = createResult(false, !dataMessageFinished, 
+							new WsPongFrame(controlData.duplicate()), true);
+						frameFinished();
+					} else {
+						receivedHeader = new WsPongFrame(controlData);
+						result = createResult(false, !dataMessageFinished);
+						frameFinished();
+					}
 					controlData = null;
 					return result;
 				}
@@ -222,7 +231,7 @@ public class WsDecoder	implements Decoder<WsFrameHeader, WsFrameHeader> {
 					continue;
 				}
 				initiallyAvailable = in.remaining();
-				copyData(controlData, in, (int) bytesExpected);
+				copyData(controlData, in, (int) bytesExpected, endOfInput);
 				bytesExpected -= (initiallyAvailable - in.remaining());
 				if (bytesExpected == 0) {
 					frameFinished();
@@ -278,6 +287,13 @@ public class WsDecoder	implements Decoder<WsFrameHeader, WsFrameHeader> {
 			controlData = ByteBuffer.allocate((int)bytesExpected);
 			state = State.READING_PING_DATA;
 			return null;
+		case PONG:
+			if (bytesExpected == 0) {
+				return createResult	(false, !dataMessageFinished);
+			}
+			controlData = ByteBuffer.allocate((int)bytesExpected);
+			state = State.READING_PONG_DATA;
+			return null;
 		case CON_CLOSE:
 			if (bytesExpected == 0) {
 				receivedHeader = new WsCloseFrame(null, null);
@@ -309,7 +325,8 @@ public class WsDecoder	implements Decoder<WsFrameHeader, WsFrameHeader> {
 		return (curHeaderHead & 0x80) != 0;
 	}
 	
-	private CoderResult copyData(Buffer out, ByteBuffer in, int limit) {
+	private CoderResult copyData
+		(Buffer out, ByteBuffer in, int limit, boolean endOfInput) {
 		if (out instanceof ByteBuffer) {
 			if (!isDataMasked()) {
 				ByteBufferUtils.putAsMuchAsPossible((ByteBuffer) out, in, limit);
@@ -319,6 +336,7 @@ public class WsDecoder	implements Decoder<WsFrameHeader, WsFrameHeader> {
 				((ByteBuffer) out).put
 					((byte)(in.get() ^ maskingKey[maskIndex]));
 				maskIndex = (maskIndex + 1) % 4;
+				limit -= 1;
 			}
 			return null;
 		} 
@@ -331,7 +349,8 @@ public class WsDecoder	implements Decoder<WsFrameHeader, WsFrameHeader> {
 					maskIndex = (maskIndex + 1) % 4;
 					limit -= 1;
 					unmasked.flip();
-					res = charDecoder.decode(unmasked, (CharBuffer)out, false);
+					res = charDecoder.decode(unmasked, (CharBuffer)out, 
+							!in.hasRemaining() && endOfInput);
 					unmasked.clear();
 				}
 				return res;
@@ -341,7 +360,7 @@ public class WsDecoder	implements Decoder<WsFrameHeader, WsFrameHeader> {
 				if (in.remaining() > limit) {
 					in.limit(in.position() + limit);
 				}
-				return charDecoder.decode(in, (CharBuffer)out, false);
+				return charDecoder.decode(in, (CharBuffer)out, endOfInput);
 			} finally {
 				in.limit(oldLimit);
 			}

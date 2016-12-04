@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.security.SecureRandom;
+import java.util.Stack;
 
 import org.jdrupes.httpcodec.Encoder;
 import org.jdrupes.httpcodec.util.ByteBufferOutputStream;
@@ -34,16 +35,15 @@ import org.jdrupes.httpcodec.util.ByteBufferUtils;
  */
 public class WsEncoder implements Encoder<WsFrameHeader> {
 
-	private static enum State { WRITING_HEADER,  
+	private static enum State { STARTING_FRAME, WRITING_HEADER,  
 		WRITING_LENGTH, WRITING_MASK, WRITING_PAYLOAD };
 	private static float bytesPerCharUtf8		
 		= Charset.forName("utf-8").newEncoder().averageBytesPerChar();		
 	private SecureRandom randoms = new SecureRandom();
-	private State state;
-	private boolean firstFrame;
-	private WsFrameHeader messageHeader;
+	private State state = State.STARTING_FRAME;
+	private boolean continuationFrame;
+	private Stack<WsFrameHeader> messageHeaders = new Stack<>();
 	private int headerHead;
-	private boolean textMode = false;
 	private long bytesToSend;
 	private long payloadSize;
 	private int payloadBytes;
@@ -62,31 +62,52 @@ public class WsEncoder implements Encoder<WsFrameHeader> {
 		this.doMask = mask;
 	}
 
+	private Encoder.Result frameFinished(boolean endOfInput) {
+		boolean close = (messageHeaders.peek() instanceof WsCloseFrame);
+		if (!(messageHeaders.peek() instanceof WsMessageHeader) 
+				|| endOfInput) {
+			messageHeaders.pop();
+		}
+		state = State.STARTING_FRAME;
+		bytesToSend = 2;
+		return newResult(false, 
+				!endOfInput || !messageHeaders.isEmpty(), close);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.jdrupes.httpcodec.ResponseEncoder#encode(org.jdrupes.httpcodec.MessageHeader)
 	 */
 	@Override
 	public void encode(WsFrameHeader messageHeader) {
-		this.messageHeader = messageHeader;
+		if (state != State.STARTING_FRAME) {
+			throw new IllegalStateException
+				("Trying to start new frame while previous "
+						+ "has not completely been sent");
+		}
 		if (messageHeader instanceof WsMessageHeader) {
-			textMode = ((WsMessageHeader) messageHeader).isTextMode();
-			if (textMode) {
+			messageHeaders.clear();
+			messageHeaders.push(messageHeader);
+			if (((WsMessageHeader) messageHeader).isTextMode()) {
 				headerHead = (1 << 8);
 			} else {
 				headerHead = (2 << 8);
 			}
-		} else if (messageHeader instanceof WsCloseFrame) {
-			headerHead = (8 << 8);
-		} else if (messageHeader instanceof WsPingFrame) {
-			headerHead = (9 << 8);
-		} else if (messageHeader instanceof WsPongFrame) {
-			headerHead = (10 << 8);
+			continuationFrame = false;
 		} else {
-			throw new IllegalArgumentException("Invalid hessage header type");
+			messageHeaders.push(messageHeader);
+			if (messageHeader instanceof WsCloseFrame) {
+				headerHead = (8 << 8);
+			} else if (messageHeader instanceof WsPingFrame) {
+				headerHead = (9 << 8);
+			} else if (messageHeader instanceof WsPongFrame) {
+				headerHead = (10 << 8);
+			} else {
+				throw new IllegalArgumentException(
+				        "Invalid hessage header type");
+			}
 		}
+		state = State.STARTING_FRAME;
 		bytesToSend = 2;
-		state = State.WRITING_HEADER;
-		firstFrame = true;
 	}
 
 	@Override
@@ -94,10 +115,13 @@ public class WsEncoder implements Encoder<WsFrameHeader> {
 		Result result = null;
 		while (out.remaining() > 0) {
 			switch(state) {
+			case STARTING_FRAME:
+				prepareHeaderHead(in, endOfInput);
+				// If called again without new message header...
+				continuationFrame = true;
+				state = State.WRITING_HEADER;
+				// fall through
 			case WRITING_HEADER:
-				if (bytesToSend == 2) {
-					prepareHeaderHead(in, endOfInput);
-				}
 				out.put((byte)(headerHead >> 8 * --bytesToSend));
 				if (bytesToSend > 0) {
 					continue;
@@ -108,21 +132,21 @@ public class WsEncoder implements Encoder<WsFrameHeader> {
 					continue;
 				}
 				// Length written
-				result = nextAfterLength();
+				result = nextAfterLength(endOfInput);
 				break;
 			case WRITING_LENGTH:
 				out.put((byte)(payloadSize >> 8 * --bytesToSend));
 				if (bytesToSend > 0) {
 					continue;
 				}
-				result = nextAfterLength();
+				result = nextAfterLength(endOfInput);
 				break;
 			case WRITING_MASK:
 				out.put(maskingKey[4 - (int)bytesToSend]);
 				if (--bytesToSend > 0) {
 					continue;
 				}
-				result = nextAfterMask();
+				result = nextAfterMask(endOfInput);
 				break;
 			case WRITING_PAYLOAD:
 				int posBefore = out.position();
@@ -130,11 +154,10 @@ public class WsEncoder implements Encoder<WsFrameHeader> {
 				bytesToSend -= (out.position() - posBefore);
 				if (bytesToSend == 0) {
 					convData.clear();
-					return newResult(false, false, 
-							(messageHeader instanceof WsCloseFrame));
+					return frameFinished(endOfInput);
 				}
 				return newResult(!out.hasRemaining(),
-						(messageHeader instanceof WsMessageHeader) 
+						(messageHeaders.peek() instanceof WsMessageHeader) 
 							&& !in.hasRemaining(), false);
 			}
 			if (result != null) {
@@ -145,47 +168,53 @@ public class WsEncoder implements Encoder<WsFrameHeader> {
 	}
 
 	private void prepareHeaderHead(Buffer in, boolean endOfInput) {
-		if (!firstFrame) {
-			headerHead = 0;
-		}
-		firstFrame = false;
-		if (endOfInput) {
-			headerHead |= 0x8000;
-		}
-		if (doMask) {
-			headerHead |= 0x80;
-			randoms.nextBytes(maskingKey);
-		}
-
-		// Prepare payload
-		if (messageHeader instanceof WsMessageHeader) {
-			if (!textMode) {
+		WsFrameHeader hdr = messageHeaders.peek();
+		if (hdr instanceof WsMessageHeader) {
+			if (continuationFrame) {
+				headerHead = 0;
+			}			
+			if (endOfInput) {
+				headerHead |= 0x8000;
+			}
+			// Prepare payload
+			if (!((WsMessageHeader)messageHeaders.peek()).isTextMode()) {
 				payloadSize = in.remaining();
 			} else {
 				convData.clear();
 				convTextData(in);
 			}
-		} else if (messageHeader instanceof WsCloseFrame) {
-			payloadSize = 0;
-			if (((WsCloseFrame)messageHeader).getStatusCode() != null) {
-				convData.clear();
-				int code = ((WsCloseFrame)messageHeader).getStatusCode();
-				try {
-					convData.write(code >> 8);
-					convData.write(code & 0xff);
-					payloadSize = 2;
-				} catch (IOException e) {
-					// Formally thrown, cannot happen
+		} else {
+			// Control frame
+			headerHead |= 0x8000;
+			// Prepare payload
+			if (hdr instanceof WsCloseFrame) {
+				payloadSize = 0;
+				if (((WsCloseFrame)hdr).getStatusCode() != null) {
+					convData.clear();
+					int code = ((WsCloseFrame)hdr).getStatusCode();
+					try {
+						convData.write(code >> 8);
+						convData.write(code & 0xff);
+						payloadSize = 2;
+					} catch (IOException e) {
+						// Formally thrown, cannot happen
+					}
+					if (((WsCloseFrame)hdr).getReason() != null) {
+						convTextData(((WsCloseFrame)hdr).getReason());
+					}
 				}
-				if (((WsCloseFrame)messageHeader).getReason() != null) {
-					convTextData(((WsCloseFrame)messageHeader).getReason());
-				}
+			} else if (hdr instanceof WsDefaultControlFrame) {
+				payloadSize = ((WsDefaultControlFrame)hdr)
+						.getApplicationData().remaining();
 			}
-		} else if (messageHeader instanceof WsDefaultControlFrame) {
-			payloadSize = ((WsDefaultControlFrame)messageHeader)
-					.getApplicationData().remaining();
 		}
 		
+		// Finally add mask bit
+		if (doMask) {
+			headerHead |= 0x80;
+			randoms.nextBytes(maskingKey);
+		}
+
 		// Code payload size
 		if (payloadSize <= 125) {
 			headerHead |= payloadSize;
@@ -221,18 +250,18 @@ public class WsEncoder implements Encoder<WsFrameHeader> {
 		}
 	}
 	
-	private Result nextAfterLength() {
+	private Result nextAfterLength(boolean endOfInput) {
 		if (doMask) {
 			bytesToSend = 4;
 			state = State.WRITING_MASK;
 			return null;
 		}
-		return nextAfterMask();
+		return nextAfterMask(endOfInput);
 	}
 	
-	private Result nextAfterMask() {
+	private Result nextAfterMask(boolean endOfInput) {
 		if (payloadSize == 0) {
-			return newResult(false, false, false);
+			return frameFinished(endOfInput);
 		}
 		maskIndex = 0;
 		bytesToSend = payloadSize;
@@ -241,25 +270,35 @@ public class WsEncoder implements Encoder<WsFrameHeader> {
 	}
 	
 	private void outputPayload(Buffer in, ByteBuffer out) {
-		if (!doMask) {
-			if (textMode) {
+		WsFrameHeader hdr = messageHeaders.peek();
+		if ((hdr instanceof WsMessageHeader) 
+				&& ((WsMessageHeader)hdr).isTextMode()
+				|| (hdr instanceof WsCloseFrame)) {
+			// Data is in convData
+			if (!doMask) {
 				convData.assignBuffer(out);
-			} else {
-				ByteBufferUtils
-					.putAsMuchAsPossible(out, (ByteBuffer) in);
+				return;
 			}
+			// Retrieving as much as fit in out buffer for conversion
+			in = ByteBuffer.allocate(out.remaining());
+			convData.assignBuffer((ByteBuffer)in);
+			in.flip();
 		} else {
-			if (textMode) {
-				in = ByteBuffer.allocate(out.remaining());
-				convData.assignBuffer((ByteBuffer)in);
-				in.flip();
+			// Take data from in
+			if (hdr instanceof WsDefaultControlFrame) {
+				in = ((WsDefaultControlFrame)hdr).getApplicationData();
 			}
-			while (bytesToSend > 0
-			        && in.hasRemaining() && out.hasRemaining()) {
-				out.put((byte) (((ByteBuffer) in)
-				        .get() ^ maskingKey[maskIndex]));
-				maskIndex = (maskIndex + 1) % 4;
+			if (!doMask) {
+				ByteBufferUtils.putAsMuchAsPossible(out, (ByteBuffer) in);
+				return;
 			}
+		}
+		// Mask while writing
+		while (bytesToSend > 0
+		        && in.hasRemaining() && out.hasRemaining()) {
+			out.put((byte) (((ByteBuffer) in)
+			        .get() ^ maskingKey[maskIndex]));
+			maskIndex = (maskIndex + 1) % 4;
 		}
 	}
 
