@@ -339,9 +339,9 @@ public abstract class 	HttpDecoder<T extends HttpMessageHeader,
 				int initiallyRemaining = in.remaining();
 				CoderResult decRes;
 				if (in.remaining() <= leftToRead) {
-					decRes = copyBodyData(out, in, in.remaining());
+					decRes = copyBodyData(out, in, in.remaining(), endOfInput);
 				} else {
-					decRes = copyBodyData(out, in, (int) leftToRead);
+					decRes = copyBodyData(out, in, (int) leftToRead, endOfInput);
 				}
 				leftToRead -= (initiallyRemaining - in.remaining());
 				if (leftToRead == 0) {
@@ -378,7 +378,7 @@ public abstract class 	HttpDecoder<T extends HttpMessageHeader,
 				if (out == null) {
 					return createResult(true, false, false);
 				}
-				decRes = copyBodyData(out, in, in.remaining());
+				decRes = copyBodyData(out, in, in.remaining(), endOfInput);
 				boolean overflow = (!out.hasRemaining() && in.hasRemaining())
 						|| (decRes != null && decRes.isOverflow());
 				if (overflow) {
@@ -511,7 +511,8 @@ public abstract class 	HttpDecoder<T extends HttpMessageHeader,
 		}
 	}
 
-	private CoderResult copyBodyData(Buffer out, ByteBuffer in, int limit) {
+	private CoderResult copyBodyData
+		(Buffer out, ByteBuffer in, int limit, boolean endOfInput) {
 		if (out instanceof ByteBuffer) {
 			ByteBufferUtils.putAsMuchAsPossible((ByteBuffer) out, in, limit);
 			return null;
@@ -525,7 +526,7 @@ public abstract class 	HttpDecoder<T extends HttpMessageHeader,
 				if (in.remaining() > limit) {
 					in.limit(in.position() + limit);
 				}
-				return charDecoder.decode(in, (CharBuffer)out, false);
+				return charDecoder.decode(in, (CharBuffer)out, endOfInput);
 			} finally {
 				in.limit(oldLimit);
 			}
