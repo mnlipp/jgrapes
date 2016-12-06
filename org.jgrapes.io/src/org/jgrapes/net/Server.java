@@ -57,6 +57,8 @@ import org.jgrapes.net.events.Ready;
 /**
  * Provides a TCP server. The server binds to the given address. If the
  * address is {@code null}, address and port are automatically assigned.
+ * <P>
+ * The end of record flag is not used by the server.
  * 
  * @author Michael N. Lipp
  */
@@ -392,9 +394,6 @@ public class Server extends Component implements NioHandler {
 					(new Input<ManagedByteBuffer>(buffer, false), this);
 				return;
 			}
-			ManagedByteBuffer.EMPTY_BUFFER.lockBuffer();
-			downPipeline.fire(new Input<ManagedByteBuffer>
-				(ManagedByteBuffer.EMPTY_BUFFER, true), this);
 			close();
 		}
 		
