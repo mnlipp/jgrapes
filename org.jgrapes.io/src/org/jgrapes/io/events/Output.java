@@ -17,7 +17,9 @@
  */
 package org.jgrapes.io.events;
 
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.ManagedCharBuffer;
@@ -33,6 +35,7 @@ import org.jgrapes.io.util.ManagedCharBuffer;
 public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 
 	private T buffer;
+	private boolean eor;
 
 	/**
 	 * Create a new write event with the given buffer and optionally flips
@@ -40,10 +43,12 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	 * don't flip the buffer.
 	 * 
 	 * @param buffer the buffer with the data
-	 * @param flip
+	 * @param flip if the buffer should be flipped
+	 * @param endOfRecord if the event ends a data record
 	 */
-	private Output(T buffer, boolean flip) {
+	private Output(T buffer, boolean flip, boolean endOfRecord) {
 		this.buffer = buffer;
+		this.eor = endOfRecord;
 		if (flip) {
 			buffer.flip();
 		}
@@ -55,9 +60,10 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	 * the handlers(s) from now on.
 	 * 
 	 * @param buffer the buffer with the data
+	 * @param endOfRecord if the event ends a data record
 	 */
-	public Output(T buffer) {
-		this(buffer, true);
+	public Output(T buffer, boolean endOfRecord) {
+		this(buffer, true, endOfRecord);
 	}
 
 	/**
@@ -65,10 +71,12 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	 * {@code Write<ManagedCharBuffer} event.
 	 * 
 	 * @param data the string to wrap
+	 * @param endOfRecord if the event ends a data record
 	 * @return the event
 	 */
-	public static Output<ManagedCharBuffer> wrap(String data) {
-		return new Output<>(new ManagedCharBuffer(data), false);
+	public static Output<ManagedCharBuffer> 
+		wrap(String data, boolean endOfRecord) {
+		return new Output<>(new ManagedCharBuffer(data), false, endOfRecord);
 	}
 	
 	/**
@@ -76,10 +84,12 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	 * {@code Write<ManagedByteBuffer} event.
 	 * 
 	 * @param data the array to wrap
+	 * @param endOfRecord if the event ends a data record
 	 * @return the event
 	 */
-	public static Output<ManagedByteBuffer> wrap(byte[] data) {
-		return new Output<>(new ManagedByteBuffer(data), false);
+	public static Output<ManagedByteBuffer> 
+		wrap(byte[] data, boolean endOfRecord) {
+		return new Output<>(new ManagedByteBuffer(data), false, endOfRecord);
 	}
 	
 	/**
@@ -92,6 +102,15 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	}
 
 	/**
+	 * Return the end of record flag passed to the constructor.
+	 * The precise interpretation of a record depends on the data
+	 * handled. 
+	 */
+	public boolean isEndOfRecord() {
+		return eor;
+	}
+	
+	/**
 	 * Releases the buffer, unless locked.
 	 */
 	@Override
@@ -99,4 +118,21 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 		buffer.unlockBuffer();
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Components.objectName(this));
+		builder.append(" [");
+		if (channels != null) {
+			builder.append("channels=");
+			builder.append(Common.channelsToString(channels));
+		}
+		builder.append(",eor=");
+		builder.append(eor);
+		builder.append("]");
+		return builder.toString();
+	}
 }

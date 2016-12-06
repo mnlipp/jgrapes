@@ -17,7 +17,9 @@
  */
 package org.jgrapes.io.events;
 
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.util.ManagedBuffer;
 
 /**
@@ -31,14 +33,17 @@ import org.jgrapes.io.util.ManagedBuffer;
 public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
 
 	private T buffer;
+	private boolean eor;
 	
 	/**
 	 * Create a new event with the given buffer.
 	 * 
 	 * @param buffer the buffer with the data
+	 * @param endOfRecord if the event ends a data record
 	 */
-	public Input(T buffer) {
+	public Input(T buffer, boolean endOfRecord) {
 		this.buffer = buffer;
+		this.eor = endOfRecord;
 	}
 
 	/**
@@ -50,6 +55,15 @@ public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
 		return buffer;
 	}
 
+	/**
+	 * Return the end of record flag passed to the constructor.
+	 * The precise interpretation of a record depends on the data
+	 * handled. 
+	 */
+	public boolean isEndOfRecord() {
+		return eor;
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.jgrapes.core.internal.EventBase#stopped()
 	 */
@@ -58,4 +72,21 @@ public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
 		buffer.unlockBuffer();
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Components.objectName(this));
+		builder.append(" [");
+		if (channels != null) {
+			builder.append("channels=");
+			builder.append(Common.channelsToString(channels));
+		}
+		builder.append(",eor=");
+		builder.append(eor);
+		builder.append("]");
+		return builder.toString();
+	}
 }

@@ -34,11 +34,10 @@ import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.http.events.EndOfResponse;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Eos;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.StreamFile;
 
 /**
@@ -118,12 +117,11 @@ public class StaticContentDispatcher extends Component {
 	}
 
 	@Handler
-	public void onEof(Eos event) {
-		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
-		if (!handling.containsKey(channel)) {
+	public void onOutput(Output<?> event) {
+		if (!event.isEndOfRecord()) {
 			return;
 		}
-		channel.fire (new EndOfResponse());
+		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		handling.remove(channel);
 	}
 	

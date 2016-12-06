@@ -20,15 +20,16 @@ package org.jgrapes.io.events;
 import org.jgrapes.core.Event;
 
 /**
- * This event causes the provider of an I/O resource to close 
- * (shut down) the resource. 
+ * This event causes the initiator of an I/O channel to shutdown the
+ * channel. After terminating any outstanding actions, the initiator
+ * must send a {@link Closed} event on the I/O channel.
  * 
  * @author Michael N. Lipp
  */
 public class Close extends Event<Void> {
 
 	/**
-	 * Creates a new event for the given connection.
+	 * Creates a new event.
 	 */
 	public Close() {
 	}

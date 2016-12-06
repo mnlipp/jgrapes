@@ -31,7 +31,6 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Closed;
-import org.jgrapes.io.events.Eos;
 import org.jgrapes.io.events.Opened;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.StreamFile;
@@ -87,13 +86,11 @@ public class FileReadTests {
 		@Handler
 		public void reading(Output<ManagedByteBuffer> event) {
 			assertTrue(state == State.OPENED || state == State.READING );
-			state = State.READING;
-		}
-
-		@Handler
-		public void eos(Eos event) {
-			assertTrue(state == State.READING);
-			state = State.CLOSING;
+			if (event.isEndOfRecord()) {
+				state = State.CLOSING;
+			} else {
+				state = State.READING;
+			}
 		}
 
 		@Handler

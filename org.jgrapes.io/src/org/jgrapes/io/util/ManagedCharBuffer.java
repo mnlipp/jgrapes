@@ -32,6 +32,13 @@ import java.util.stream.IntStream;
 public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 
 	/**
+	 * An empty buffer usable instead of {@code null}.
+	 */
+	public final static ManagedCharBuffer EMPTY_BUFFER 
+		= new ManagedCharBuffer(CharBuffer.allocate(0), 
+				BufferCollector.NOOP_COLLECTOR);
+	
+	/**
 	 * Creates new managed buffer that is backed by the given buffer
 	 * and uses the given manager to release the buffer if it is no longer
 	 * locked.

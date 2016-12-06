@@ -43,7 +43,6 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.ConnectRequest;
 import org.jgrapes.http.events.DeleteRequest;
 import org.jgrapes.http.events.EndOfRequest;
-import org.jgrapes.http.events.EndOfResponse;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.HeadRequest;
 import org.jgrapes.http.events.OptionsRequest;
@@ -171,7 +170,8 @@ public class HttpServer extends Component {
 		ManagedByteBuffer bodyData = null;
 		while (in.hasRemaining()) {
 			Decoder.Result<HttpResponse> result = engine.decode(in,
-			        bodyData == null ? null : bodyData.getBacking(), false);
+			        bodyData == null ? null : bodyData.getBacking(),
+			        event.isEndOfRecord());
 			if (result.isHeaderCompleted()) {
 				fireRequest(engine.currentRequest().get(), downChannel);
 			}
@@ -181,7 +181,8 @@ public class HttpServer extends Component {
 				break;
 			}
 			if (bodyData != null && bodyData.position() > 0) {
-				fire(new Input<>(bodyData), downChannel);
+				fire(new Input<>(bodyData, !result.isOverflow() 
+						&& !result.isUnderflow()), downChannel);
 			}
 			if (result.isOverflow()) {
 				bodyData = new ManagedByteBuffer(
@@ -242,9 +243,8 @@ public class HttpServer extends Component {
 	/**
 	 * Handles a response event from downstream by sending it through an
 	 * {@link HttpResponseEncoder} that generates the data (encoded information)
-	 * and sends it upstream with {@link Output} events. Depending on the
-	 * response data, subsequent {@link Output} events and an
-	 * {@link EndOfResponse} event targeted at the {@link HttpServer} can
+	 * and sends it upstream with {@link Output} events. Depending on whether 
+	 * the response has a body, subsequent {@link Output} events can
 	 * follow.
 	 * 
 	 * @param event
@@ -267,17 +267,21 @@ public class HttpServer extends Component {
 			Codec.Result result = engine.encode
 					(Codec.EMPTY_IN, buffer.getBacking(), false);
 			if (result.isOverflow()) {
-				fire(new Output<>(buffer), netChannel);
+				fire(new Output<>(buffer, false), netChannel);
 				continue;
 			}
-			if (!response.messageHasBody()) {
-				if (buffer.position() > 0) {
-					fire(new Output<>(buffer), netChannel);
-				} else {
-					buffer.unlockBuffer();
-				}
-				downChannel.outBuffer = null;
+			if (response.messageHasBody()) {
+				// Keep buffer with incomplete response to be further
+				// filled by Output events
+				break;
 			}
+			// Response is complete
+			if (buffer.position() > 0) {
+				fire(new Output<>(buffer, false), netChannel);
+			} else {
+				buffer.unlockBuffer();
+			}
+			downChannel.outBuffer = null;
 			break;
 		}
 	}
@@ -285,8 +289,8 @@ public class HttpServer extends Component {
 	/**
 	 * Receives the message body of a response. A {@link Response} event that
 	 * has a message body can be followed by one or more {@link Output} events
-	 * from downstream that contain the data. An {@link EndOfResponse} event
-	 * signals the end of the message body.
+	 * from downstream that contain the data. An {@code Output} event
+	 * with the end of record flag set signals the end of the message body.
 	 * 
 	 * @param event
 	 *            the event with the data
@@ -306,33 +310,22 @@ public class HttpServer extends Component {
 		}
 		while (true) {
 			Codec.Result result = engine.encode((ByteBuffer) in,
-			        downChannel.outBuffer.getBacking(), false);
-			if (!result.isOverflow()) {
+			        downChannel.outBuffer.getBacking(), event.isEndOfRecord());
+			if (!result.isOverflow() && !event.isEndOfRecord()) {
 				break;
 			}
-			fire(new Output<>(downChannel.outBuffer), netChannel);
+			fire(new Output<>(downChannel.outBuffer, false), netChannel);
+			if (event.isEndOfRecord()) {
+				downChannel.outBuffer = null;
+				break;
+			}
 			downChannel.outBuffer = netChannel.bufferPool().acquire();
 		}
 	}
 
 	/**
-	 * Signals the end of a response message's body.
-	 * 
-	 * @param event
-	 *            the event
-	 * @throws InterruptedException if the execution was interrupted
-	 */
-	@Handler
-	public void onEndOfResponse(EndOfResponse event)
-	        throws InterruptedException {
-		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
-		final IOSubchannel netChannel = downChannel.getUpstreamChannel();
-		flush(netChannel);
-	}
-
-	/**
-	 * Handles a close event from downstream by flushing any remaining data and
-	 * sending a {@link Close} event upstream.
+	 * Handles a close event from downstream by sending a {@link Close} 
+	 * event upstream.
 	 * 
 	 * @param event
 	 *            the close event
@@ -342,38 +335,7 @@ public class HttpServer extends Component {
 	public void onClose(Close event) throws InterruptedException {
 		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
 		final IOSubchannel netChannel = downChannel.getUpstreamChannel();
-		flush(netChannel);
 		netChannel.fire(new Close());
-	}
-
-	/**
-	 * Sends any data still remaining in the out buffer upstream.
-	 * 
-	 * @param netChannel
-	 * @throws InterruptedException
-	 */
-	private void flush(final IOSubchannel netChannel)
-	        throws InterruptedException {
-		final DownSubchannel down = (DownSubchannel) LinkedIOSubchannel
-		        .lookupLinked(netChannel);
-		final ServerEngine<HttpRequest,HttpResponse> engine = down.engine;
-
-		// Send remaining data
-		while (true) {
-			final ManagedByteBuffer buffer = down.outBuffer;
-			Codec.Result result = engine.encode(buffer.getBacking());
-			if (!result.isOverflow()) {
-				if (buffer.position() > 0) {
-					netChannel.fire(new Output<>(buffer));
-				} else {
-					buffer.unlockBuffer();
-				}
-				down.outBuffer = null;
-				break;
-			}
-			netChannel.fire(new Output<>(buffer));
-			down.outBuffer = netChannel.bufferPool().acquire();
-		}
 	}
 
 	/**
@@ -442,10 +404,9 @@ public class HttpServer extends Component {
 		response.setField(media);
 		fire(new Response(response), channel);
 		try {
-			fire(Output.wrap("Not Found".getBytes("utf-8")), channel);
+			fire(Output.wrap("Not Found".getBytes("utf-8"), true), channel);
 		} catch (UnsupportedEncodingException e) {
 		}
-		fire(new EndOfResponse(), channel);
 		event.stop();
 	}
 }

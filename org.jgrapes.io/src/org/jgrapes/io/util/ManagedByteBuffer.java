@@ -36,6 +36,13 @@ import java.nio.ShortBuffer;
 public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 
 	/**
+	 * An empty buffer usable instead of {@code null}.
+	 */
+	public final static ManagedByteBuffer EMPTY_BUFFER 
+		= new ManagedByteBuffer(ByteBuffer.allocate(0), 
+				BufferCollector.NOOP_COLLECTOR);
+	
+	/**
 	 * Creates new managed buffer that is backed by the given buffer
 	 * and managed by the given manager. 
 	 * 

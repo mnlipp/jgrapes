@@ -24,7 +24,7 @@ import java.nio.ByteBuffer;
 
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Eos;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 
@@ -92,7 +92,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	public void write(int b) throws IOException {
 		buffer.put((byte) b);
 		if (!buffer.hasRemaining()) {
-			flush();
+			flush(false);
 		}
 	}
 
@@ -109,12 +109,12 @@ public class ByteBufferOutputStream extends OutputStream {
 				break;
 			} else if (buffer.remaining() == length) {
 				buffer.put(b, offset, length);
-				flush();
+				flush(false);
 				break;
 			} else {
 				int chunkSize = buffer.remaining();
 				buffer.put(b, offset, chunkSize);
-				flush();
+				flush(false);
 				length -= chunkSize;
 				offset += chunkSize;
 			}
@@ -123,17 +123,17 @@ public class ByteBufferOutputStream extends OutputStream {
 
 	/**
 	 * Creates and fires a {@link Output} event with the buffer being filled and
-	 * obtains a new buffer from the queue.
+	 * obtains a new buffer from the queue. The end of record flag of the
+	 * event is set according to the parameter.
 	 */
-	@Override
-	public void flush() throws IOException {
+	private void flush(boolean endOfRecord) throws IOException {
 		if (inputMode) {
 			buffer.flip();
-			eventPipeline
-			        .fire(new Input<ManagedByteBuffer>(buffer), channel);
+			eventPipeline.fire
+				(new Input<ManagedByteBuffer>(buffer, endOfRecord), channel);
 		} else {
-			eventPipeline
-			        .fire(new Output<ManagedByteBuffer>(buffer), channel);
+			eventPipeline.fire
+				(new Output<ManagedByteBuffer>(buffer, endOfRecord), channel);
 		}
 		try {
 			buffer = channel.bufferPool().acquire();
@@ -143,12 +143,21 @@ public class ByteBufferOutputStream extends OutputStream {
 	}
 
 	/**
-	 * Calls {@link #flush()} and fires an {@link Eos} event.
+	 * Creates and fires a {@link Output} event with the buffer being filled and
+	 * obtains a new buffer from the queue.
+	 */
+	@Override
+	public void flush() throws IOException {
+		flush(false);
+	}
+	
+	/**
+	 * Sends any remaining data with the end of record flag set.
 	 */
 	@Override
 	public void close() throws IOException {
-		flush();
-		eventPipeline.fire(new Eos(), channel);
+		flush(true);
+		eventPipeline.fire(new Closed(), channel);
 	}
 
 }

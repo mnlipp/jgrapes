@@ -34,15 +34,12 @@ import java.util.stream.Collectors;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.DefaultChannel;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.events.Closed;
-import org.jgrapes.io.events.Eos;
 import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
@@ -91,10 +88,10 @@ public class FileStorage extends Component {
 
 	/**
 	 * Opens a file for reading using the properties of the event and streams
-	 * its content as a sequence of {@link Output} events terminates by a
-	 * {@link Eos} event. All generated events are considered responses to this
-	 * event and therefore fired using the event processor from the event's
-	 * I/O subchannel.
+	 * its content as a sequence of {@link Output} events terminated by an
+	 * event with the end of record flag set. All generated events are 
+	 * considered responses to this event and therefore fired using the event 
+	 * processor from the event's I/O subchannel.
 	 * 
 	 * @param event the event
 	 * @throws InterruptedException if the execution was interrupted
@@ -157,29 +154,35 @@ public class FileStorage extends Component {
 
 			@Override
 			public void completed(Integer result, ManagedByteBuffer buffer) {
-				if (result == -1) {
-					channel.fire(new Eos());
+				if (result >= 0) {
+					offset += result;
+					boolean eof = true;
 					try {
-						ioChannel.close();
-						channel.fire(new Closed());
-					} catch (ClosedChannelException e) {
-					} catch (IOException e) {
-						channel.fire(new IOError(null, e));
+						eof = (offset == ioChannel.size());
+					} catch (IOException e1) {
+					} 
+					channel.fire(new Output<>(buffer, eof));
+					if (!eof) {
+						try {
+							ManagedByteBuffer nextBuffer = ioBuffers.acquire();
+							nextBuffer.clear();
+							synchronized (ioChannel) {
+								ioChannel.read(nextBuffer.getBacking(), offset,
+							        nextBuffer, readCompletionHandler);
+							}
+						} catch (InterruptedException e) {
+						}
+						return;
 					}
-					unregisterAsGenerator();
-					return;
 				}
-				channel.fire(new Output<>(buffer));
-				offset += result;
 				try {
-					ManagedByteBuffer nextBuffer = ioBuffers.acquire();
-					nextBuffer.clear();
-					synchronized (ioChannel) {
-						ioChannel.read(nextBuffer.getBacking(), offset,
-						        nextBuffer, readCompletionHandler);
-					}
-				} catch (InterruptedException e) {
+					ioChannel.close();
+					channel.fire(new Closed());
+				} catch (ClosedChannelException e) {
+				} catch (IOException e) {
+					channel.fire(new IOError(null, e));
 				}
+				unregisterAsGenerator();
 			}
 			
 			@Override
@@ -187,7 +190,7 @@ public class FileStorage extends Component {
 				if (!(exc instanceof AsynchronousCloseException)) {
 					channel.fire(new IOError(null, exc));
 				}
-				channel.fire(new Eos());
+				channel.fire(new Closed());
 				unregisterAsGenerator();
 			}
 		}
@@ -222,7 +225,7 @@ public class FileStorage extends Component {
 	/**
 	 * Opens a file for writing using the properties of the event. All data from
 	 * subsequent {@link Input} events is written to the file until an
-	 * {@link Eos} event is received.
+	 * an event with the end of record flag set is received.
 	 * 
 	 * @param event the event
 	 * @throws InterruptedException if the execution was interrupted
@@ -249,7 +252,7 @@ public class FileStorage extends Component {
 		for (Channel channel: event.channels()) {
 			Writer writer = inputWriters.get(channel);
 			if (writer != null) {
-				writer.write(event.getBuffer());
+				writer.write(event.getBuffer(), event.isEndOfRecord());
 			}
 		}
 	}
@@ -257,7 +260,7 @@ public class FileStorage extends Component {
 	/**
 	 * Opens a file for writing using the properties of the event. All data from
 	 * subsequent {@link Output} events is written to the file until an
-	 * {@link Eos} event is received.
+	 * event with the end of record flag set is received.
 	 * 
 	 * @param event the event
 	 * @throws InterruptedException if the execution was interrupted
@@ -284,29 +287,36 @@ public class FileStorage extends Component {
 		for (Channel channel: event.channels()) {
 			Writer writer = outputWriters.get(channel);
 			if (writer != null) {
-				writer.write(event.getBuffer());
-			}
-		}
-	}
-	
-	@Handler(channels={DefaultChannel.class, Self.class})
-	public void onEos(Eos event) throws InterruptedException {
-		for (Channel channel: event.channels()) {
-			Writer writer = inputWriters.get(channel);
-			if (writer != null) {
-				writer.close(event);
-			}
-			writer = outputWriters.get(channel);
-			if (writer != null) {
-				writer.close(event);
+				writer.write(event.getBuffer(), event.isEndOfRecord());
 			}
 		}
 	}
 
 	@Handler
+	public void onClosed(Closed event) throws InterruptedException {
+		for (Channel channel: event.channels()) {
+			Writer writer = inputWriters.get(channel);
+			if (writer != null) {
+				writer.close(event);
+			}
+		}
+		for (Channel channel: event.channels()) {
+			Writer writer = outputWriters.get(channel);
+			if (writer != null) {
+				writer.close(event);
+			}
+		}
+	}
+	
+	@Handler
 	public void onStop(Stop event) throws InterruptedException {
 		while (inputWriters.size() > 0) {
 			Writer handler = inputWriters.entrySet().iterator().next()
+			        .getValue();
+			handler.close(event);
+		}
+		while (outputWriters.size() > 0) {
+			Writer handler = outputWriters.entrySet().iterator().next()
 			        .getValue();
 			handler.close(event);
 		}
@@ -324,7 +334,8 @@ public class FileStorage extends Component {
 			public ManagedByteBuffer buffer;
 			public long pos;
 
-			public WriteContext(ManagedByteBuffer buffer, long pos) {
+			public WriteContext
+				(ManagedByteBuffer buffer, long pos) {
 				this.buffer = buffer;
 				this.pos = pos;
 			}
@@ -362,17 +373,20 @@ public class FileStorage extends Component {
 			channel.fire(new FileOpened(path, options));
 		}
 
-		public void write(ManagedByteBuffer buffer) {
+		public void write(ManagedByteBuffer buffer, boolean endOfRecord) {
 			int written = buffer.remaining();
 			if (written == 0) {
 				return;
 			}
 			buffer.lockBuffer();
 			synchronized (ioChannel) {
+				if (outstandingAsyncs == 0) {
+					registerAsGenerator();
+				}
+				outstandingAsyncs += 1;
 				ioChannel.write(buffer.getBacking(), offset,
 				        new WriteContext(buffer, offset),
 				        writeCompletionHandler);
-				outstandingAsyncs += 1;
 			}
 			offset += written;
 		}
@@ -407,26 +421,28 @@ public class FileStorage extends Component {
 			private void handled() {
 				synchronized (ioChannel) {
 					if (--outstandingAsyncs == 0) {
+						unregisterAsGenerator();
 						ioChannel.notifyAll();
 					}
 				}
 			}
 		}
 
-		public void close(Event<?> event) throws InterruptedException {
+		public void close(Event<?> event)
+				throws InterruptedException {
 			try {
 				synchronized (ioChannel) {
-					while (outstandingAsyncs != 0) {
+					while (outstandingAsyncs > 0) {
 						ioChannel.wait();
 					}
 					ioChannel.close();
 				}
-				channel.fire(new Closed());
 			} catch (ClosedChannelException e) {
 			} catch (IOException e) {
 				channel.fire(new IOError(event, e));
 			}
 			inputWriters.remove(channel);
+			outputWriters.remove(channel);
 		}
 
 		/*
