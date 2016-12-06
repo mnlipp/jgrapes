@@ -169,7 +169,8 @@ public class Server extends Component implements NioHandler {
 	}
 
 	/**
-	 * Writes the data passed in the event to the client. 
+	 * Writes the data passed in the event to the client. The end of record
+	 * flag is ignored.
 	 * 
 	 * @param event the event
 	 * @throws IOException if an error occurs

@@ -77,19 +77,19 @@ public class FileStorage extends Component {
 	}
 
 	/**
-	 * Create a new instance using the default buffer size of 4096.
+	 * Create a new instance using the default buffer size of 8192.
 	 * 
 	 * @param channel the component's channel. Used for sending {@link Output}
 	 * events and receiving {@link Input} events 
 	 */
 	public FileStorage(Channel channel) {
-		this(channel, 4096);
+		this(channel, 8192);
 	}
 
 	/**
 	 * Opens a file for reading using the properties of the event and streams
-	 * its content as a sequence of {@link Output} events terminated by an
-	 * event with the end of record flag set. All generated events are 
+	 * its content as a sequence of {@link Output} events with the 
+	 * end of record flag set in the last event. All generated events are 
 	 * considered responses to this event and therefore fired using the event 
 	 * processor from the event's I/O subchannel.
 	 * 
@@ -224,8 +224,8 @@ public class FileStorage extends Component {
 
 	/**
 	 * Opens a file for writing using the properties of the event. All data from
-	 * subsequent {@link Input} events is written to the file until an
-	 * an event with the end of record flag set is received.
+	 * subsequent {@link Input} events is written to the file.
+	 * The end of record flag is ignored.
 	 * 
 	 * @param event the event
 	 * @throws InterruptedException if the execution was interrupted
@@ -252,15 +252,15 @@ public class FileStorage extends Component {
 		for (Channel channel: event.channels()) {
 			Writer writer = inputWriters.get(channel);
 			if (writer != null) {
-				writer.write(event.getBuffer(), event.isEndOfRecord());
+				writer.write(event.getBuffer());
 			}
 		}
 	}
 	
 	/**
 	 * Opens a file for writing using the properties of the event. All data from
-	 * subsequent {@link Output} events is written to the file until an
-	 * event with the end of record flag set is received.
+	 * subsequent {@link Output} events is written to the file. 
+	 * The end of record flag is ignored.
 	 * 
 	 * @param event the event
 	 * @throws InterruptedException if the execution was interrupted
@@ -287,7 +287,7 @@ public class FileStorage extends Component {
 		for (Channel channel: event.channels()) {
 			Writer writer = outputWriters.get(channel);
 			if (writer != null) {
-				writer.write(event.getBuffer(), event.isEndOfRecord());
+				writer.write(event.getBuffer());
 			}
 		}
 	}
@@ -373,7 +373,7 @@ public class FileStorage extends Component {
 			channel.fire(new FileOpened(path, options));
 		}
 
-		public void write(ManagedByteBuffer buffer, boolean endOfRecord) {
+		public void write(ManagedByteBuffer buffer) {
 			int written = buffer.remaining();
 			if (written == 0) {
 				return;

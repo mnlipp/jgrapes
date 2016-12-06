@@ -105,6 +105,8 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	 * Return the end of record flag passed to the constructor.
 	 * The precise interpretation of a record depends on the data
 	 * handled. 
+	 * 
+	 * @return the end of record flag
 	 */
 	public boolean isEndOfRecord() {
 		return eor;
