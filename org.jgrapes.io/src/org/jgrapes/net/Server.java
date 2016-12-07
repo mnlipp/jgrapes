@@ -206,10 +206,9 @@ public class Server extends Component implements NioHandler {
 				return;
 			}
 			closing = true;
-			EventPipeline ep = newEventPipeline();
 			synchronized (connections) {
 				for (Connection conn: connections) {
-					ep.fire(new Close(), conn);
+					conn.close();
 				}
 				while (connections.size() > 0) {
 					connections.wait();
@@ -403,8 +402,10 @@ public class Server extends Component implements NioHandler {
 		 * pending buffer. 
 		 * 
 		 * @throws IOException
+		 * @throws InterruptedException 
 		 */
-		private void handleWriteOp() throws IOException {
+		private void handleWriteOp() 
+				throws IOException, InterruptedException {
 			while (true) {
 				ManagedByteBuffer head = null;
 				synchronized (pendingWrites) {
@@ -436,8 +437,9 @@ public class Server extends Component implements NioHandler {
 		 * Closes this connection.
 		 * 
 		 * @throws IOException if an error occurs
+		 * @throws InterruptedException if the execution was interrupted 
 		 */
-		public void close() throws IOException {
+		public void close() throws IOException, InterruptedException {
 			if (nioChannel.isOpen()) {
 				synchronized (pendingWrites) {
 					if (!pendingWrites.isEmpty()) {
@@ -450,7 +452,9 @@ public class Server extends Component implements NioHandler {
 			// Fail safe
 			synchronized (connections) {
 				if(connections.remove(this)) {
-					downPipeline.fire(new Closed(), this);
+					Closed evt = new Closed();
+					downPipeline.fire(evt, this);
+					evt.get();
 				}
 				// In case the server is shutting down
 				connections.notifyAll();
