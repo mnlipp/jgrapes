@@ -144,9 +144,9 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Handles data from the client. The data is send through the
-	 * {@link HttpRequestDecoder} and events are sent downstream according to
-	 * the decoding results.
+	 * Handles data from the client (from upstream). The data is send through 
+	 * the {@link HttpRequestDecoder} and events are sent downstream according
+	 * to the decoding results.
 	 * 
 	 * @param event the event
 	 * @throws ProtocolException if a protocol exception occurs
