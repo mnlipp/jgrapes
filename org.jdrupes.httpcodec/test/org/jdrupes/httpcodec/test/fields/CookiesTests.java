@@ -40,8 +40,8 @@ public class CookiesTests {
 				+ "httponly; expires=Wed, 25-Jul-2018 12:42:14 GMT";
 		field.addFromString(header);
 		assertEquals(3, field.size());
-		assertEquals("deleted", field.valueForName("autorf"));
-		assertEquals("V=2&GUID=2853211950", field.valueForName("SRCHUID"));
-		assertEquals("13BEF4C6DC68E5", field.valueForName("MUIDB"));
+		assertEquals("deleted", field.valueForName("autorf").get());
+		assertEquals("V=2&GUID=2853211950", field.valueForName("SRCHUID").get());
+		assertEquals("13BEF4C6DC68E5", field.valueForName("MUIDB").get());
 	}
 }
