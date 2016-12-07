@@ -238,7 +238,7 @@ public class WsDecoder	implements Decoder<WsFrameHeader, WsFrameHeader> {
 					controlData.flip();
 					int status = 0;
 					while (controlData.hasRemaining()) {
-						status = (status << 8) | in.get();
+						status = (status << 8) | (in.get() & 0xff);
 					}
 					controlChars.flip();
 					receivedHeader = new WsCloseFrame(status, controlChars);
