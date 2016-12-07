@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutionException;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.IOSubchannel;
@@ -53,8 +54,9 @@ public class FileInputWriteTests {
 		public void onOpened(FileOpened event)
 		        throws InterruptedException, IOException {
 			for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
+				EventPipeline ep = newEventPipeline();
 				try (ByteBufferOutputStream out = new ByteBufferOutputStream(
-				        channel, newEventPipeline(), true)) {
+				        channel, ep, true)) {
 					for (int i = 1; i <= 10000; i++) {
 						out.write(
 						        new String(i + ": Hello World!\n").getBytes());
@@ -73,7 +75,7 @@ public class FileInputWriteTests {
 			super(Channel.BROADCAST);
 		}
 		
-		@Handler
+		@Handler(priority=+1) // Must be called before the producer's method
 		public void opened(Opened event) {
 			assertTrue(state == State.NEW);
 			state = State.OPENED;
