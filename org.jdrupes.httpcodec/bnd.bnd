@@ -2,6 +2,6 @@ Bundle-Name: org.jdrupes.httpcodec
 bundle_version = 0.9.0.${tstamp}
 Bundle-Version: ${bundle_version}
 Bundle-Copyright: Michael N. Lipp (c) 2016
-Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
+Bundle-License: http://www.gnu.org/licenses/lgpl-3.0.txt
 -exportcontents: org.jdrupes.*
 api_version = 0.1.0.${tstamp}
