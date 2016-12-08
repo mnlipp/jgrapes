@@ -372,7 +372,7 @@ public class EncoderClosedTests {
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		CharBuffer in = CharBuffer.wrap("äöü€ Hello World! ÄÖÜß");
 		// Encode rest
-		Common.tinyEncodeLoop(encoder, in, 1, out, 3);
+		Common.tinyEncodeLoop(encoder, in, 1, out, 3, false);
 		// Check result
 		out.flip();
 		String encoded = new String(out.array(), out.arrayOffset(),

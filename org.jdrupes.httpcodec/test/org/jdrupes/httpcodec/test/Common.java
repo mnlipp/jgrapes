@@ -35,20 +35,23 @@ public class Common {
 
 	public static Encoder.Result tinyEncodeLoop(
 			Encoder<?> encoder, Buffer in, ByteBuffer out) {
-		return tinyEncodeLoop(encoder, in, 1, out, 1);
+		return tinyEncodeLoop(encoder, in, 1, out, 1, false);
 	}
 	
 	public static Encoder.Result tinyEncodeLoop(
 			Encoder<?> encoder, Buffer in, int inSize,
-			ByteBuffer out, int outSize) {
-		Buffer tinyIn = (in instanceof CharBuffer) ? CharBuffer.allocate(1)
-				: ByteBuffer.allocate(inSize);
-		tinyIn.flip(); // Initially empty
+			ByteBuffer out, int outSize, boolean fillInOnStart) {
+		Buffer tinyIn = (in instanceof CharBuffer) 
+				? CharBuffer.allocate(inSize) : ByteBuffer.allocate(inSize);
+		if (fillInOnStart) {
+			fillBuffer(tinyIn, in);
+		} else {
+			tinyIn.flip(); // Initially empty
+		}
 		ByteBuffer tinyOut = ByteBuffer.allocate(outSize);
-		boolean endOfInput = false;
 		Encoder.Result lastResult;
 		while (true) {
-			lastResult = encoder.encode(tinyIn, tinyOut, endOfInput);
+			lastResult = encoder.encode(tinyIn, tinyOut, !in.hasRemaining());
 			if (lastResult.isOverflow()) {
 				tinyOut.flip();
 				out.put(tinyOut);
@@ -58,15 +61,7 @@ public class Common {
 			if (lastResult.isUnderflow()) {
 				assertTrue(in.hasRemaining());
 				tinyIn.clear();
-				if (in instanceof ByteBuffer) {
-					((ByteBuffer)tinyIn).put(((ByteBuffer)in).get());
-				} else {
-					((CharBuffer)tinyIn).put(((CharBuffer)in).get());
-				}
-				tinyIn.flip();
-				if (!in.hasRemaining()) {
-					endOfInput = true;
-				}
+				fillBuffer(tinyIn, in);
 				continue;
 			}
 			break;
@@ -79,20 +74,46 @@ public class Common {
 		return lastResult;
 	}
 
+	private static void fillBuffer(Buffer dest, Buffer src) {
+		if (dest.remaining() >= src.remaining()) {
+			if (dest instanceof ByteBuffer) {
+				((ByteBuffer)dest).put((ByteBuffer)src);
+			} else {
+				((CharBuffer)dest).put((CharBuffer)src);
+			}
+		} else if (dest.remaining() > 0) {
+			int oldLimit = src.limit();
+			src.limit(src.position() + dest.remaining());
+			if (dest instanceof ByteBuffer) {
+				((ByteBuffer)dest).put((ByteBuffer)src);
+			} else {
+				((CharBuffer)dest).put((CharBuffer)src);
+			}
+			src.limit(oldLimit);
+		}
+		dest.flip();		
+	}
+	
 	public static Decoder.Result<?> tinyDecodeLoop(
-			Decoder<?,?> decoder, ByteBuffer in, ByteBuffer out) 
+			Decoder<?,?> decoder, ByteBuffer in, Buffer out) 
 					throws ProtocolException {
 		ByteBuffer tinyIn = ByteBuffer.allocate(1);
 		tinyIn.flip(); // Initially empty
-		ByteBuffer tinyOut = ByteBuffer.allocate(1);
+		Buffer tinyOut = (out instanceof ByteBuffer) 
+				? ByteBuffer.allocate(1) : CharBuffer.allocate(1);
 		boolean endOfInput = false;
 		Decoder.Result<?> lastResult;
 		while (true) {
 			lastResult = decoder.decode(tinyIn, tinyOut, endOfInput);
 			if (lastResult.isOverflow()) {
 				tinyOut.flip();
-				out.put(tinyOut);
-				tinyOut.compact();
+				if (out instanceof ByteBuffer) {
+					((ByteBuffer)out).put((ByteBuffer)tinyOut);
+					((ByteBuffer)tinyOut).compact();
+				} else {
+					((CharBuffer)out).put(((CharBuffer)tinyOut).get());
+					((CharBuffer)tinyOut).compact();
+				}
 				continue;
 			}
 			if (lastResult.isUnderflow()) {
@@ -109,8 +130,13 @@ public class Common {
 		}
 		if (tinyOut.position() > 0) {
 			tinyOut.flip();
-			out.put(tinyOut);
-			tinyOut.compact();
+			if (out instanceof ByteBuffer) {
+				((ByteBuffer)out).put((ByteBuffer)tinyOut);
+				((ByteBuffer)tinyOut).compact();
+			} else {
+				((CharBuffer)out).put(((CharBuffer)tinyOut).get());
+				((CharBuffer)tinyOut).compact();
+			}
 		}
 		return lastResult;
 	}

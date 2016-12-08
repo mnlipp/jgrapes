@@ -191,7 +191,7 @@ public class EncoderChunkedTests {
 		HttpResponseEncoder encoder = new HttpResponseEncoder();
 		ByteBuffer out = ByteBuffer.allocate(1024*1024);
 		encoder.encode(response);
-		Common.tinyEncodeLoop(encoder, in, 1, out, 3);
+		Common.tinyEncodeLoop(encoder, in, 1, out, 3, false);
 		// Check result
 		String encoded = new String(out.array(), 0, out.position(), "utf-8");
 		assertTrue(encoded.contains("HTTP/1.1 200 OK\r\n"));
