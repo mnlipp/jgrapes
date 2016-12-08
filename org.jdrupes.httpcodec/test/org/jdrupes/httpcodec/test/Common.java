@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jdrupes.httpcodec.test.http;
+package org.jdrupes.httpcodec.test;
 
 import static org.junit.Assert.assertTrue;
 
@@ -23,11 +23,9 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
+import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.Encoder;
-import org.jdrupes.httpcodec.ResponseDecoder;
-import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
-import org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder;
-import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
+import org.jdrupes.httpcodec.ProtocolException;
 
 /**
  * @author Michael N. Lipp
@@ -36,12 +34,12 @@ import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
 public class Common {
 
 	public static Encoder.Result tinyEncodeLoop(
-			HttpResponseEncoder encoder, Buffer in, ByteBuffer out) {
+			Encoder<?> encoder, Buffer in, ByteBuffer out) {
 		return tinyEncodeLoop(encoder, in, 1, out, 1);
 	}
 	
 	public static Encoder.Result tinyEncodeLoop(
-			HttpResponseEncoder encoder, Buffer in, int inSize,
+			Encoder<?> encoder, Buffer in, int inSize,
 			ByteBuffer out, int outSize) {
 		Buffer tinyIn = (in instanceof CharBuffer) ? CharBuffer.allocate(1)
 				: ByteBuffer.allocate(inSize);
@@ -81,14 +79,14 @@ public class Common {
 		return lastResult;
 	}
 
-	public static ResponseDecoder.Result<?> tinyDecodeLoop(
-			HttpResponseDecoder decoder, ByteBuffer in, ByteBuffer out) 
-					throws HttpProtocolException {
+	public static Decoder.Result<?> tinyDecodeLoop(
+			Decoder<?,?> decoder, ByteBuffer in, ByteBuffer out) 
+					throws ProtocolException {
 		ByteBuffer tinyIn = ByteBuffer.allocate(1);
 		tinyIn.flip(); // Initially empty
 		ByteBuffer tinyOut = ByteBuffer.allocate(1);
 		boolean endOfInput = false;
-		ResponseDecoder.Result<?> lastResult;
+		Decoder.Result<?> lastResult;
 		while (true) {
 			lastResult = decoder.decode(tinyIn, tinyOut, endOfInput);
 			if (lastResult.isOverflow()) {

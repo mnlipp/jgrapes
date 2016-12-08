@@ -13,6 +13,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
+import org.jdrupes.httpcodec.test.Common;
 import org.junit.Test;
 
 /**

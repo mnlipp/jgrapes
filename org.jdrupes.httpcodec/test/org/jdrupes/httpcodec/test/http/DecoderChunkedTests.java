@@ -7,8 +7,10 @@ import java.nio.ByteBuffer;
 
 import org.jdrupes.httpcodec.protocols.http.HttpProtocolException;
 import org.jdrupes.httpcodec.Decoder;
+import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder;
+import org.jdrupes.httpcodec.test.Common;
 import org.junit.Test;
 
 public class DecoderChunkedTests {
@@ -111,7 +113,7 @@ public class DecoderChunkedTests {
 	 */
 	@Test
 	public void testWithBodyLengthTiny()
-	        throws UnsupportedEncodingException, HttpProtocolException {
+	        throws UnsupportedEncodingException, ProtocolException {
 		String reqText = "HTTP/1.1 200 OK\r\n"
 				+ "Date: Sat, 23 Jul 2016 16:54:54 GMT\r\n"
 				+ "Last-Modified: Fri, 11 Apr 2014 15:15:17 GMT\r\n"
