@@ -20,7 +20,7 @@ subprojects {
     }
 
     dependencies {
-        compile 'junit:junit:4.12'
+        compile 'junit:junit:4.12','biz.aQute.bnd:annotation:2.4.0'
         testCompile 'junit:junit:4.12'
     }
 

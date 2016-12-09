@@ -39,4 +39,7 @@
  * 
  * @author Michael N. Lipp
  */
+@Version("${api_version}")
 package org.jgrapes.core;
+
+import aQute.bnd.annotation.Version;

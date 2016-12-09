@@ -19,6 +19,6 @@
  * @author Michael N. Lipp
  */
 @Version("${api_version}")
-package org.jgrapes.net.events;
+package org.jgrapes.core.events;
 
 import aQute.bnd.annotation.Version;
