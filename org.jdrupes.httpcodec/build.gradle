@@ -1,7 +1,0 @@
-jar {
-    
-    into('META-INF') {
-        from 'resources/META-INF'
-    }
-    
-}
