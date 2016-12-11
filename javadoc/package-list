@@ -1,11 +1,3 @@
-org.jdrupes.httpcodec
-org.jdrupes.httpcodec.plugin
-org.jdrupes.httpcodec.protocols.http
-org.jdrupes.httpcodec.protocols.http.client
-org.jdrupes.httpcodec.protocols.http.fields
-org.jdrupes.httpcodec.protocols.http.server
-org.jdrupes.httpcodec.protocols.websocket
-org.jdrupes.httpcodec.util
 org.jgrapes.core
 org.jgrapes.core.annotation
 org.jgrapes.core.events
