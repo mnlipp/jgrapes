@@ -1,6 +1,5 @@
 rootProject.name = 'JGrapes'
 
-include 'org.jdrupes.httpcodec'
 include 'org.jgrapes.core'
 include 'org.jgrapes.io'
 include 'org.jgrapes.http'

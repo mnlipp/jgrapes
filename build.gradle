@@ -7,6 +7,13 @@ buildscript {
     }
 }
 
+allprojects {
+    repositories {
+        jcenter()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
@@ -15,12 +22,8 @@ subprojects {
     // apply plugin: 'java'
     apply plugin: 'biz.aQute.bnd.builder'
 
-    repositories {
-        jcenter()
-    }
-
     dependencies {
-        compile 'junit:junit:4.12','biz.aQute.bnd:annotation:2.4.0'
+        compileOnly 'org.osgi:org.osgi.annotation:6.0.0'
         testCompile 'junit:junit:4.12'
     }
 

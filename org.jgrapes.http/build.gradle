@@ -1,8 +1,8 @@
 dependencies {
 
-    compile project(':org.jdrupes.httpcodec')
     compile project(':org.jgrapes.io')
-
+    compile 'com.github.mnlipp:org.jdrupes.httpcodec:master-SNAPSHOT'
+    
     sourceSets {
         test {
             resources {
