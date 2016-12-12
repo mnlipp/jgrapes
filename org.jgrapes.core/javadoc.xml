@@ -29,8 +29,6 @@
             </packageset>
             <packageset dir="../org.jgrapes.http/src">
             </packageset>
-            <packageset dir="../org.jdrupes.httpcodec/src">
-            </packageset>
         	<bottom><![CDATA[<!-- Piwik -->
         		<script type="text/javascript">
         		  var _paq = _paq || [];
