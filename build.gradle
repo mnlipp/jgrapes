@@ -76,3 +76,12 @@ subprojects {
     }
 }
 
+task javadocs(type: Javadoc) {
+    group 'documentation'
+    
+    classpath = files(subprojects.collect {project -> 
+        project.sourceSets.main.compileClasspath})
+    source subprojects.collect {project -> project.sourceSets.main.allJava } 
+    destinationDir = file("../jgrapes.gh-pages/javadoc")
+    options.addStringOption("bottom", file("misc/javadoc.bottom.txt").text)
+}
