@@ -84,4 +84,5 @@ task javadocs(type: Javadoc) {
     source subprojects.collect {project -> project.sourceSets.main.allJava } 
     destinationDir = file("../jgrapes.gh-pages/javadoc")
     options.addStringOption("bottom", file("misc/javadoc.bottom.txt").text)
+    options.addStringOption("link", "http://docs.oracle.com/javase/8/docs/api/")
 }
