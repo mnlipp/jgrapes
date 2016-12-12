@@ -20,7 +20,7 @@ package org.jgrapes.core.internal;
 import java.lang.reflect.Field;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.AttachedComponent;
+import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.annotation.Handler;
@@ -35,7 +35,7 @@ import org.jgrapes.core.annotation.Handler;
 public class ComponentProxy extends ComponentVertex {
 
 	/** The reference to the actual component. */
-	private AttachedComponent component = null;
+	private ComponentType component = null;
 	/** The referenced component's channel. */
 	private Channel componentChannel = Channel.BROADCAST;
 	
@@ -83,7 +83,7 @@ public class ComponentProxy extends ComponentVertex {
 	 * @param field the field that gets the proxy assigned
 	 * @param component the component
 	 */
-	private ComponentProxy(Field field, AttachedComponent component) {
+	private ComponentProxy(Field field, ComponentType component) {
 		this.component = component;
 		try {
 			field.set(component, this);
@@ -102,7 +102,7 @@ public class ComponentProxy extends ComponentVertex {
 	 * @param component the component
 	 * @return the node representing the component in the tree
 	 */
-	static ComponentVertex getComponentProxy (AttachedComponent component) {
+	static ComponentVertex getComponentProxy (ComponentType component) {
 		ComponentProxy componentProxy = null;
 		try {
 			Field field = getManagerField(component.getClass());
@@ -128,7 +128,7 @@ public class ComponentProxy extends ComponentVertex {
 		return componentProxy;
 	}
 
-	public AttachedComponent getComponent() {
+	public ComponentType getComponent() {
 		return component;
 	}
 

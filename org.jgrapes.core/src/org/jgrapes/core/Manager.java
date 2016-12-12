@@ -28,14 +28,14 @@ import org.jgrapes.core.annotation.DynamicHandler;
  * <P>
  * The <code>Manager</code> for a component that extends from 
  * {@link Component} is provided by the base class itself.
- * Components that only implement the {@link AttachedComponent} interface
+ * Components that only implement the {@link ComponentType} interface
  * get an associated <code>Manager</code> assigned to their annotated 
  * attribute.
  * 
  * @author Michael N. Lipp
- * @see AttachedComponent
+ * @see ComponentType
  */
-public interface Manager extends Iterable<AttachedComponent> {
+public interface Manager extends Iterable<ComponentType> {
 
 	/**
 	 * Detaches the component managed by this manager (with its children,
@@ -52,7 +52,7 @@ public interface Manager extends Iterable<AttachedComponent> {
 	 * @throws IllegalStateException if invoked before a <code>Start</code>
 	 * event
 	 */
-	AttachedComponent detach ();
+	ComponentType detach ();
 
 	/**
 	 * Attaches the given component node (or complete tree) as a child 
@@ -63,7 +63,7 @@ public interface Manager extends Iterable<AttachedComponent> {
 	 * @param child the component to add
 	 * @return the added component (for comfortable chaining)
 	 */
-	<T extends AttachedComponent> T attach (T child);
+	<T extends ComponentType> T attach (T child);
 	
 	/**
 	 * Returns the child components of the component managed by 
@@ -71,7 +71,7 @@ public interface Manager extends Iterable<AttachedComponent> {
 	 * 
 	 * @return the child components
 	 */
-	List<AttachedComponent> getChildren();
+	List<ComponentType> getChildren();
 
 	/**
 	 * Returns the parent of the component managed by this manager.
@@ -79,7 +79,7 @@ public interface Manager extends Iterable<AttachedComponent> {
 	 * @return the parent component or <code>null</code> if the
 	 * component is not registered with another component
 	 */
-	AttachedComponent getParent();
+	ComponentType getParent();
 	
 	/**
 	 * Returns the root of the tree the component 
@@ -87,7 +87,7 @@ public interface Manager extends Iterable<AttachedComponent> {
 	 * 
 	 * @return the root
 	 */
-	AttachedComponent getRoot();
+	ComponentType getRoot();
 	
 	/**
 	 * Returns the channel of the component managed by this manager.

@@ -17,7 +17,7 @@
  */
 package org.jgrapes.core.events;
 
-import org.jgrapes.core.AttachedComponent;
+import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.internal.Common;
@@ -31,8 +31,8 @@ import org.jgrapes.core.internal.Common;
  */
 public class Detached extends Event<Void> {
 
-	private AttachedComponent node;
-	private AttachedComponent parent;
+	private ComponentType node;
+	private ComponentType parent;
 	
 	/**
 	 * Creates a new event.
@@ -40,7 +40,7 @@ public class Detached extends Event<Void> {
 	 * @param node the component being removed
 	 * @param parent the component that the node is removed from
 	 */
-	public Detached(AttachedComponent node, AttachedComponent parent) {
+	public Detached(ComponentType node, ComponentType parent) {
 		this.parent = parent;
 		this.node = node;
 	}
@@ -48,14 +48,14 @@ public class Detached extends Event<Void> {
 	/**
 	 * @return the node
 	 */
-	public AttachedComponent getNode() {
+	public ComponentType getNode() {
 		return node;
 	}
 
 	/**
 	 * @return the parent
 	 */
-	public AttachedComponent getParent() {
+	public ComponentType getParent() {
 		return parent;
 	}
 

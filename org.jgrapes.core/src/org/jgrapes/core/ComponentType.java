@@ -26,17 +26,17 @@ import org.jgrapes.core.annotation.ComponentManager;
  * Attached components are not directly part of the component tree. 
  * They are represented in the tree by a proxy. 
  * <P>
- * Classes that implement {@code AttachedComponent} aren't required to
+ * Classes that implement {@code ComponentType} aren't required to
  * implement specific methods. They must, however, declare a field
  * for a component manager. This field must be of type 
  * {@link Manager} and annotated as {@link ComponentManager}.
  * The implementation of the attached component can use the value in this 
  * field to get access to the component hierarchy. The field is initialized
  * when the component is added to the component hierarchy or when
- * calling {@link Components#manager(AttachedComponent)}.
+ * calling {@link Components#manager(ComponentType)}.
  * 
  * @author Michael N. Lipp
  */
-public interface AttachedComponent {
+public interface ComponentType {
 	
 }

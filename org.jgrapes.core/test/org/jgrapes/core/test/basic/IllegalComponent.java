@@ -15,12 +15,12 @@
  */
 package org.jgrapes.core.test.basic;
 
-import org.jgrapes.core.AttachedComponent;
+import org.jgrapes.core.ComponentType;
 
 /**
  * @author mnl
  *
  */
-public class IllegalComponent implements AttachedComponent {
+public class IllegalComponent implements ComponentType {
 
 }

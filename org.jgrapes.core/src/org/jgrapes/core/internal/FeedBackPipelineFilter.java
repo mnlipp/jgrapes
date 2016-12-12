@@ -18,7 +18,7 @@
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.AttachedComponent;
+import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Event;
 
 /**
@@ -86,13 +86,13 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 	}
 
 	/**
-	 * Set the data stored for a given {@link AttachedComponent} in the context
+	 * Set the data stored for a given {@link ComponentType} in the context
 	 * of this pipeline.
 	 * 
 	 * @param component the component
 	 * @param data the data
 	 */
-	static void setComponentContext(AttachedComponent component, Object data) {
+	static void setComponentContext(ComponentType component, Object data) {
 		ExecutingEventPipeline pipeline = currentPipeline.get();
 		if (pipeline == null) {
 			throw new IllegalStateException
@@ -102,13 +102,13 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 	}
 
 	/**
-	 * Get the data stored for a given {@link AttachedComponent} in the context
+	 * Get the data stored for a given {@link ComponentType} in the context
 	 * of this pipeline.
 	 * 
 	 * @param component the component
 	 * @return the data
 	 */
-	static Object getComponentContext(AttachedComponent component) {
+	static Object getComponentContext(ComponentType component) {
 		ExecutingEventPipeline pipeline = currentPipeline.get();
 		if (pipeline == null) {
 			throw new IllegalStateException

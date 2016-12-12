@@ -22,10 +22,10 @@ import org.jgrapes.core.internal.ComponentVertex;
 /**
  * A base class for components. In general, new component types can 
  * be created by deriving from this class or by implementing 
- * the interface {@link AttachedComponent}. 
+ * the interface {@link ComponentType}. 
  * <P>
  * This class implements the {@link Manager} interface. In contrary 
- * to component types that implement {@link AttachedComponent}, derived 
+ * to component types that implement {@link ComponentType}, derived 
  * classes therefore don't need a manager attribute to get access to the 
  * component management methods provided by this interface.
  * <P>
@@ -33,10 +33,10 @@ import org.jgrapes.core.internal.ComponentVertex;
  * This allows instances to be used as targets for events. 
  * 
  * @author Michael N. Lipp
- * @see AttachedComponent
+ * @see ComponentType
  */
 public abstract class Component extends ComponentVertex 
-	implements AttachedComponent, Channel {
+	implements ComponentType, Channel {
 
 	private Channel componentChannel;
 	
@@ -76,7 +76,7 @@ public abstract class Component extends ComponentVertex
 	 * @see org.jgrapes.core.internal.ComponentVertex#getComponent()
 	 */
 	@Override
-	protected AttachedComponent getComponent() {
+	protected ComponentType getComponent() {
 		return this;
 	}
 

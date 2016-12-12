@@ -17,7 +17,7 @@
  */
 package org.jgrapes.core.internal;
 
-import org.jgrapes.core.AttachedComponent;
+import org.jgrapes.core.ComponentType;
 
 /**
  * @author Michael N. Lipp
@@ -26,21 +26,21 @@ import org.jgrapes.core.AttachedComponent;
 public interface ExecutingEventPipeline extends InternalEventPipeline {
 
 	/**
-	 * Set the data stored for a given {@link AttachedComponent} in the context
+	 * Set the data stored for a given {@link ComponentType} in the context
 	 * of this pipeline.
 	 * 
 	 * @param component the component
 	 * @param data the data
 	 */
-	void setComponentContext(AttachedComponent component, Object data);
+	void setComponentContext(ComponentType component, Object data);
 
 	/**
-	 * Get the data stored for a given {@link AttachedComponent} in the context
+	 * Get the data stored for a given {@link ComponentType} in the context
 	 * of this pipeline.
 	 * 
 	 * @param component the component
 	 * @return the data
 	 */
-	Object getComponentContext(AttachedComponent component);
+	Object getComponentContext(ComponentType component);
 
 }

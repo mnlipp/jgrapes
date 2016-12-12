@@ -29,7 +29,7 @@ import java.util.NoSuchElementException;
 import java.util.Stack;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.AttachedComponent;
+import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
@@ -153,7 +153,7 @@ public abstract class ComponentVertex implements Manager {
 	 * @param component the component
 	 * @return the node representing the component in the tree
 	 */
-	public static ComponentVertex getComponentVertex (AttachedComponent component) {
+	public static ComponentVertex getComponentVertex (ComponentType component) {
 		if (component instanceof ComponentVertex) {
 			return (ComponentVertex)component;
 		}
@@ -165,14 +165,14 @@ public abstract class ComponentVertex implements Manager {
 	 * 
 	 * @return the component
 	 */
-	protected abstract AttachedComponent getComponent();
+	protected abstract ComponentType getComponent();
 
 	/* (non-Javadoc)
 	 * @see org.jgrapes.core.Manager#getChildren()
 	 */
 	@Override
-	synchronized public List<AttachedComponent> getChildren() {
-		List<AttachedComponent> children = new ArrayList<AttachedComponent>();
+	synchronized public List<ComponentType> getChildren() {
+		List<ComponentType> children = new ArrayList<ComponentType>();
 		for (ComponentVertex child: this.children) {
 			children.add(child.getComponent());
 		}
@@ -183,7 +183,7 @@ public abstract class ComponentVertex implements Manager {
 	 * @see org.jgrapes.core.Manager#getParent()
 	 */
 	@Override
-	synchronized public AttachedComponent getParent() {
+	synchronized public ComponentType getParent() {
 		if (parent == null) {
 			return null;
 		}
@@ -194,7 +194,7 @@ public abstract class ComponentVertex implements Manager {
 	 * @see org.jgrapes.core.Manager#getRoot()
 	 */
 	@Override
-	public AttachedComponent getRoot() {
+	public ComponentType getRoot() {
 		return getTree().getRoot().getComponent();
 	}
 
@@ -231,7 +231,7 @@ public abstract class ComponentVertex implements Manager {
 	 * @see org.jgrapes.core.Manager#attach(Component)
 	 */
 	@Override
-	synchronized public <T extends AttachedComponent> T attach (T child) {
+	synchronized public <T extends ComponentType> T attach (T child) {
 		ComponentVertex childNode = getComponentVertex(child);
 		synchronized (childNode) {
 			synchronized (getTree()) {
@@ -283,7 +283,7 @@ public abstract class ComponentVertex implements Manager {
 	/**
 	 * Remove the component from the tree, making it a stand-alone tree.
 	 */
-	synchronized public AttachedComponent detach() {
+	synchronized public ComponentType detach() {
 		if (parent != null) {
 			ComponentVertex oldParent = parent;
 			synchronized (tree) {
@@ -314,14 +314,14 @@ public abstract class ComponentVertex implements Manager {
 	 * @see java.lang.Iterable#iterator()
 	 */
 	@Override
-	public Iterator<AttachedComponent> iterator() {
+	public Iterator<ComponentType> iterator() {
 		return new TreeIterator(this);
 	}
 	
 	/**
 	 * An iterator for getting all nodes of the tree.
 	 */
-	private static class TreeIterator implements Iterator<AttachedComponent> {
+	private static class TreeIterator implements Iterator<ComponentType> {
 
 		private class Pos {
 			public ComponentVertex current;
@@ -352,7 +352,7 @@ public abstract class ComponentVertex implements Manager {
 		 * @see java.util.Iterator#next()
 		 */
 		@Override
-		public AttachedComponent next() {
+		public ComponentType next() {
 			if (stack.empty()) {
 				throw new NoSuchElementException();
 			}

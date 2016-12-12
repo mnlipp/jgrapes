@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
-import org.jgrapes.core.AttachedComponent;
+import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 
 /**
@@ -34,7 +34,7 @@ import org.jgrapes.core.Components;
 class VerboseHandlerReference extends HandlerReference {
 
 	private static AtomicLong invocationCounter = new AtomicLong(1);
-	private AttachedComponent component;
+	private ComponentType component;
 	private String handlerName;
 	
 	/**
@@ -46,7 +46,7 @@ class VerboseHandlerReference extends HandlerReference {
 	 * @param priority
 	 */
 	public VerboseHandlerReference(Object eventKey, Object channelKey,
-	        AttachedComponent component, Method method, boolean eventParam,
+	        ComponentType component, Method method, boolean eventParam,
 	        int priority) {
 		super(eventKey, channelKey, component, method, eventParam, priority);
 		this.component = component;

@@ -42,7 +42,7 @@ public class Components {
 	 * from {@link org.jgrapes.core.Component} this method simply returns
 	 * the component as it is its own manager.
 	 * 
-	 * For components that implement {@link AttachedComponent} but don't inherit from 
+	 * For components that implement {@link ComponentType} but don't inherit from 
 	 * {@link org.jgrapes.core.Component} the method returns the value of 
 	 * the attribute annotated as manager slot. If the attribute is still
 	 * empty, this method makes the component the root
@@ -51,7 +51,7 @@ public class Components {
 	 * @param component the component
 	 * @return the component (with its manager attribute set)
 	 */
-	public static Manager manager (AttachedComponent component) {
+	public static Manager manager (ComponentType component) {
 		return ComponentVertex.getComponentVertex(component);
 	}
 
@@ -64,7 +64,7 @@ public class Components {
 	 * @param application the application to start
 	 * @throws InterruptedException if the execution was interrupted
 	 */
-	public static void start(AttachedComponent application) 
+	public static void start(ComponentType application) 
 			throws InterruptedException {
 		manager(application).fire(new Start() , Channel.BROADCAST).get();
 	}
