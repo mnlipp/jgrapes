@@ -23,8 +23,9 @@ import org.jgrapes.core.annotation.ComponentManager;
  * Marks a class as a component. Implementing this interface is an 
  * alternative to deriving from {@link Component} (usually because 
  * there is some other preferential inheritance relationship). 
- * Attached components are not directly part of the component tree. 
- * They are represented in the tree by a proxy. 
+ * Components that implement this interface but don't inherit from
+ * {@link Component} aren't inserted as vertices into the component tree;
+ * rather, they are represented in the tree by a proxy. 
  * <P>
  * Classes that implement {@code ComponentType} aren't required to
  * implement specific methods. They must, however, declare a field
