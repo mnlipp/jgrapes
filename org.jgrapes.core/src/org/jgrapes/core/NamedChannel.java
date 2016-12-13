@@ -55,7 +55,7 @@ final public class NamedChannel implements Channel {
 	 * is the broadcast channel's key or matches the name
 	 * of this channel.
 	 * 
-	 * @see org.jgrapes.core.internal.Matchable#matches(java.lang.Object)
+	 * @see org.jgrapes.core.Matchable#matches(java.lang.Object)
 	 */
 	@Override
 	public boolean matches(Object criterion) {

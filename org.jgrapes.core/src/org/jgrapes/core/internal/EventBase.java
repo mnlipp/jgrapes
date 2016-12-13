@@ -33,6 +33,7 @@ import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
+import org.jgrapes.core.Matchable;
 
 /**
  * Provides the implementations of methods to class {@link Event} that

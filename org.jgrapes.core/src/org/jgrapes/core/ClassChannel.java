@@ -32,7 +32,7 @@ public class ClassChannel implements Channel {
 	 * 
 	 * @return the class of this channel
 	 * 
-	 * @see org.jgrapes.core.internal.Matchable#getMatchKey()
+	 * @see org.jgrapes.core.Matchable#getMatchKey()
 	 */
 	@Override
 	public Object getMatchKey() {
@@ -43,7 +43,7 @@ public class ClassChannel implements Channel {
 	 * Returns <code>true</code> if the <code>criterion</code>
 	 * is the same class or a base class of this channel's class.
 	 * 
-	 * @see org.jgrapes.core.internal.Matchable#matches(java.lang.Object)
+	 * @see org.jgrapes.core.Matchable#matches(java.lang.Object)
 	 */
 	@Override
 	public boolean matches(Object criterion) {

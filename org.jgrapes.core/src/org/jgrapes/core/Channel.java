@@ -17,8 +17,6 @@
  */
 package org.jgrapes.core;
 
-import org.jgrapes.core.internal.Matchable;
-
 /**
  * Represents a communication bus for sending events between components.
  * <P>

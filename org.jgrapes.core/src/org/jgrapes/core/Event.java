@@ -20,7 +20,6 @@ package org.jgrapes.core;
 import org.jgrapes.core.events.HandlingError;
 import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.internal.EventBase;
-import org.jgrapes.core.internal.Matchable;
 
 /**
  * The base class for all events. Event classes form a hierarchy.
