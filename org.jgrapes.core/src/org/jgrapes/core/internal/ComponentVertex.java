@@ -115,7 +115,7 @@ public abstract class ComponentVertex implements Manager {
 			for (Class<?> c: handlerAnnotation.channels()) {
 				if (c == Self.class) {
 					if (this instanceof Channel) {
-						channelKeys.add(((Channel)this).getMatchKey());
+						channelKeys.add(((Channel)this).getCriterion());
 					} else {
 						throw new IllegalArgumentException
 							("Canot use channel This.class in annotation"
@@ -136,7 +136,7 @@ public abstract class ComponentVertex implements Manager {
 				(Arrays.asList(handlerAnnotation.namedChannels()));
 		}
 		if (channelKeys.size() == 0 || addDefaultChannel) {
-			channelKeys.add(getChannel().getMatchKey());
+			channelKeys.add(getChannel().getCriterion());
 		}
 		for (Object eventKey : eventKeys) {
 			for (Object channelKey : channelKeys) {
@@ -394,7 +394,7 @@ public abstract class ComponentVertex implements Manager {
 	public void addHandler(String method, Object eventKey, 
 			Object channelKey, int priority) {
 		if (channelKey instanceof Channel) {
-			channelKey = ((Matchable)channelKey).getMatchKey();
+			channelKey = ((Matchable)channelKey).getCriterion();
 		}
 		try {
 			for (Method m: getComponent().getClass().getMethods()) {
@@ -430,7 +430,7 @@ public abstract class ComponentVertex implements Manager {
 	@Override
 	public void addHandler(String method, Object channelKey) {
 		if (channelKey instanceof Channel) {
-			channelKey = ((Matchable)channelKey).getMatchKey();
+			channelKey = ((Matchable)channelKey).getCriterion();
 		}
 		try {
 			for (Method m: getComponent().getClass().getMethods()) {
@@ -513,12 +513,12 @@ public abstract class ComponentVertex implements Manager {
 	void collectHandlers (Collection<HandlerReference> hdlrs, 
 			EventBase<?> event, Channel[] channels) {
 		for (HandlerReference hdlr: handlers) {
-			if (!event.matches(hdlr.getEventKey())) {
+			if (!event.isHandledBy(hdlr.getEventKey())) {
 				continue;
 			}
 			boolean match = false;
 			for (Channel channel : channels) {
-				if (channel.matches(hdlr.getChannelKey())) {
+				if (channel.isHandledBy(hdlr.getChannelKey())) {
 					match = true;
 					break;
 				}

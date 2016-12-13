@@ -82,8 +82,8 @@ public class Common {
 		StringBuilder builder = new StringBuilder();
 		if ((channel instanceof ClassChannel)
 		        || (channel instanceof NamedChannel)) {
-			builder.append(channelKeyToString(channel.getMatchKey()));
-		} else if (channel == channel.getMatchKey()) {
+			builder.append(channelKeyToString(channel.getCriterion()));
+		} else if (channel == channel.getCriterion()) {
 			builder.append(Components.objectName(channel));
 		} else {
 			builder.append(channel.toString());

@@ -72,21 +72,28 @@ public class Event<T> extends EventBase<T> {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jdrupes.core.internal.Matchable#getMatchKey()
+	/**
+	 * Returns the class of this event as criterion.
+	 * 
+	 * @return the class of this event
+	 * 
+	 * @see org.jgrapes.core.Matchable#getCriterion()
 	 */
 	@Override
-	public Object getMatchKey() {
+	public Object getCriterion() {
 		return getClass();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.Matchable#matches(java.lang.Object)
+	/**
+	 * Returns <code>true</code> if the <code>criterion</code>
+	 * is the same class or a base class of this event.
+	 * 
+	 * @see org.jgrapes.core.Matchable#isHandledBy(java.lang.Object)
 	 */
 	@Override
-	public boolean matches(Object handlerKey) {
-		return Class.class.isInstance(handlerKey)
-				&& ((Class<?>)handlerKey).isAssignableFrom(getClass());
+	public boolean isHandledBy(Object criterion) {
+		return Class.class.isInstance(criterion)
+				&& ((Class<?>)criterion).isAssignableFrom(getClass());
 	}
 
 	/**

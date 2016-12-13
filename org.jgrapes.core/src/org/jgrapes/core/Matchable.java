@@ -24,19 +24,19 @@ package org.jgrapes.core;
 public interface Matchable {
 
 	/**
-	 * Returns the key used for matching. 
+	 * Returns the criterion used for matching. 
 	 * 
-	 * @return the key which usually is a String, a Class or an instance
+	 * @return the criterion which is usually a String, a Class or an instance
 	 * of Component (for channels only)
 	 */
-	Object getMatchKey();
+	Object getCriterion();
 	
 	/**
-	 * Returns <code>true</code> if this Matchable's key matches the
-	 * criterion provided by a handler.
+	 * Returns <code>true</code> if this {@code Matchable}
+	 * matches the criterion provided by a handler.
 	 * 
 	 * @param criterion the criterion provided by the handler
 	 * @return {@code true} if the criterion matches
 	 */
-	boolean matches(Object criterion);
+	boolean isHandledBy(Object criterion);
 }

@@ -28,14 +28,14 @@ import org.jgrapes.core.internal.Common;
 public class ClassChannel implements Channel {
 
 	/**
-	 * Return the class of this channel as its key.
+	 * Returns the class of this channel as criterion.
 	 * 
 	 * @return the class of this channel
 	 * 
-	 * @see org.jgrapes.core.Matchable#getMatchKey()
+	 * @see org.jgrapes.core.Matchable#getCriterion()
 	 */
 	@Override
-	public Object getMatchKey() {
+	public Object getCriterion() {
 		return getClass();
 	}
 
@@ -43,13 +43,13 @@ public class ClassChannel implements Channel {
 	 * Returns <code>true</code> if the <code>criterion</code>
 	 * is the same class or a base class of this channel's class.
 	 * 
-	 * @see org.jgrapes.core.Matchable#matches(java.lang.Object)
+	 * @see org.jgrapes.core.Matchable#isHandledBy(java.lang.Object)
 	 */
 	@Override
-	public boolean matches(Object criterion) {
+	public boolean isHandledBy(Object criterion) {
 		return Class.class.isInstance(criterion) 
 				&& ((Class<?>)criterion)
-					.isAssignableFrom((Class<?>)getMatchKey());
+					.isAssignableFrom((Class<?>)getCriterion());
 	}
 
 	/* (non-Javadoc)
@@ -57,7 +57,7 @@ public class ClassChannel implements Channel {
 	 */
 	@Override
 	public int hashCode() {
-		return getMatchKey().hashCode();
+		return getCriterion().hashCode();
 	}
 
 	/* (non-Javadoc)
@@ -72,10 +72,10 @@ public class ClassChannel implements Channel {
 		if (getClass() != obj.getClass())
 			return false;
 		ClassChannel other = (ClassChannel) obj;
-		if (getMatchKey() == null) {
-			if (other.getMatchKey() != null)
+		if (getCriterion() == null) {
+			if (other.getCriterion() != null)
 				return false;
-		} else if (!getMatchKey().equals(other.getMatchKey()))
+		} else if (!getCriterion().equals(other.getCriterion()))
 			return false;
 		return true;
 	}
@@ -86,10 +86,10 @@ public class ClassChannel implements Channel {
 	@Override
 	public String toString() {
 		return Common.classToString(getClass())
-				+ " [matchKey=" 
-				+ ((getMatchKey() instanceof Class)
-					?  Common.classToString((Class<?>)getMatchKey())
-					: getMatchKey())
+				+ " [criterion=" 
+				+ ((getCriterion() instanceof Class)
+					?  Common.classToString((Class<?>)getCriterion())
+					: getCriterion())
 				+ "]";
 	}
 }

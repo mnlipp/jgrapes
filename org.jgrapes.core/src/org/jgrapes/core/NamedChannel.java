@@ -39,14 +39,14 @@ final public class NamedChannel implements Channel {
 	}
 
 	/**
-	 * Returns the name of the channel as its key.
+	 * Returns the name of the channel as its criterion.
 	 * 
 	 * @return the name
 	 * 
-	 * @see org.jgrapes.core.Channel#getMatchKey()
+	 * @see org.jgrapes.core.Channel#getCriterion()
 	 */
 	@Override
-	public Object getMatchKey() {
+	public Object getCriterion() {
 		return name;
 	}
 
@@ -55,11 +55,11 @@ final public class NamedChannel implements Channel {
 	 * is the broadcast channel's key or matches the name
 	 * of this channel.
 	 * 
-	 * @see org.jgrapes.core.Matchable#matches(java.lang.Object)
+	 * @see org.jgrapes.core.Matchable#isHandledBy(java.lang.Object)
 	 */
 	@Override
-	public boolean matches(Object criterion) {
-		return criterion.equals(BROADCAST.getMatchKey())
+	public boolean isHandledBy(Object criterion) {
+		return criterion.equals(BROADCAST.getCriterion())
 				|| criterion.equals(name);
 	}
 

@@ -23,7 +23,7 @@ package org.jgrapes.core;
  * For ordinary usage, the implementing classes {@link ClassChannel}
  * and {@link NamedChannel} should be sufficient. If another type of
  * <code>Channel</code> is needed, its implementation of this interface 
- * must make sure that {@link Matchable#matches(Object)} returns
+ * must make sure that {@link Matchable#isHandledBy(Object)} returns
  * <code>true</code> if called with <code>Channel.class</code>
  * as parameter, else channels of the new type will not participate
  * in broadcasts.
@@ -52,10 +52,10 @@ public interface Channel extends Matchable {
 		/**
 		 * @return <code>Channel.class</code>
 		 * 
-		 * @see org.jgrapes.core.ClassChannel#getMatchKey()
+		 * @see org.jgrapes.core.ClassChannel#getCriterion()
 		 */
 		@Override
-		public Object getMatchKey() {
+		public Object getCriterion() {
 			return Channel.class;
 		}
 		
@@ -63,7 +63,7 @@ public interface Channel extends Matchable {
 		 * @see org.jgrapes.core.ClassChannel#matches(java.lang.Object)
 		 */
 		@Override
-		public boolean matches(Object criterion) {
+		public boolean isHandledBy(Object criterion) {
 			return true;
 		}
 

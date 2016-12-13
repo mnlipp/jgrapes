@@ -93,10 +93,10 @@ public abstract class Component extends ComponentVertex
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.Matchable#getMatchKey()
+	 * @see org.jgrapes.core.Matchable#getCriterion()
 	 */
 	@Override
-	public Object getMatchKey() {
+	public Object getCriterion() {
 		return this;
 	}
 
@@ -104,8 +104,8 @@ public abstract class Component extends ComponentVertex
 	 * @see org.jgrapes.core.internal.Matchable#matches(java.lang.Object)
 	 */
 	@Override
-	public boolean matches(Object handlerKey) {
-		return handlerKey.equals(Channel.class) || handlerKey == getMatchKey();
+	public boolean isHandledBy(Object handlerKey) {
+		return handlerKey.equals(Channel.class) || handlerKey == getCriterion();
 	}
 
 }
