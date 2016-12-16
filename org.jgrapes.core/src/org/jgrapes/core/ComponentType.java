@@ -20,8 +20,8 @@ package org.jgrapes.core;
 import org.jgrapes.core.annotation.ComponentManager;
 
 /**
- * Marks a class as a component. Implementing this interface is an 
- * alternative to deriving from {@link Component} (usually because 
+ * This interface marks a class as a component. Implementing this interface is 
+ * an alternative to deriving from {@link Component} (usually because 
  * there is some other preferential inheritance relationship). 
  * Components that implement this interface but don't inherit from
  * {@link Component} aren't inserted as vertices into the component tree;

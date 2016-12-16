@@ -17,14 +17,16 @@
  */
 package org.jgrapes.core.internal;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Stack;
 
@@ -33,12 +35,9 @@ import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.Matchable;
-import org.jgrapes.core.Self;
+import org.jgrapes.core.Criterion;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.DefaultChannel;
-import org.jgrapes.core.annotation.DynamicHandler;
-import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.annotation.HandlerDefinition;
 import org.jgrapes.core.events.Attached;
 import org.jgrapes.core.events.Detached;
 
@@ -61,7 +60,11 @@ public abstract class ComponentVertex implements Manager {
 	/** All the node's children */
 	private List<ComponentVertex> children = new ArrayList<>();
 	/** The handlers provided by this component. */
-	private List<HandlerReference> handlers = new ArrayList<HandlerReference>();
+	private List<HandlerReference> handlers;
+	/** Handler factory cache. */
+	private Map<Class<? extends HandlerDefinition.Evaluator>,
+			HandlerDefinition.Evaluator> definitionEvaluators 
+			= Collections.synchronizedMap(new HashMap<>());
 	
 	/** 
 	 * Initialize the ComponentVertex. By default it forms a stand-alone
@@ -76,6 +79,7 @@ public abstract class ComponentVertex implements Manager {
 	 * correct value.
 	 */
 	protected void initComponentsHandlers() {
+		handlers = new ArrayList<HandlerReference>();
 		// Have a look at all methods.
 		for (Method m : getComponent().getClass().getMethods()) {
 			maybeAddHandler(m);
@@ -84,68 +88,35 @@ public abstract class ComponentVertex implements Manager {
 	}
 
 	private void maybeAddHandler(Method m) {
-		Handler handlerAnnotation = m.getAnnotation(Handler.class);
-		// Methods without handler annotation are ignored
-		if (handlerAnnotation == null) {
-			return;
-		}
-		// Get all event keys from the handler annotation.
-		List<Object> eventKeys = new ArrayList<Object>();
-		if (handlerAnnotation.events()[0] != Handler.NO_EVENT.class) {
-			eventKeys.addAll(Arrays.asList(handlerAnnotation.events()));
-		}
-		// Get all named events from the annotation and add to event keys.
-		if (!handlerAnnotation.namedEvents()[0].equals("")) {
-			eventKeys.addAll
-				(Arrays.asList(handlerAnnotation.namedEvents()));
-		}
-		Class<?>[] paramTypes = m.getParameterTypes();
-		// If no event types are given, try first parameter.
-		if (eventKeys.isEmpty()) {
-			if (paramTypes.length > 0) {
-				if (Event.class.isAssignableFrom(paramTypes[0])) {
-					eventKeys.add(paramTypes[0]);
-				}
+		for (Annotation annotation: m.getDeclaredAnnotations()) {
+			Class<?> annoType = annotation.annotationType();
+			HandlerDefinition hda 
+				= annoType.getAnnotation(HandlerDefinition.class);
+			if (hda == null || hda.dynamic()) {
+				continue;
 			}
+			HandlerDefinition.Evaluator evaluator = defintionEvaluator(hda);
+			handlers.add(HandlerReference.newRef
+					(getComponent(), m, evaluator.getPriority(annotation),
+							evaluator.getScope(annotation, this, m, null, null)));
 		}
-		// Get channel keys from the annotation.
-		List<Object> channelKeys = new ArrayList<Object>();
-		boolean addDefaultChannel = false;
-		if (handlerAnnotation.channels()[0] != Handler.NO_CHANNEL.class) {
-			for (Class<?> c: handlerAnnotation.channels()) {
-				if (c == Self.class) {
-					if (this instanceof Channel) {
-						channelKeys.add(((Channel)this).getCriterion());
-					} else {
-						throw new IllegalArgumentException
-							("Canot use channel This.class in annotation"
-							 + " of " + m + " because " 
-							 + getClass().getName() 
-							 + " does not implement Channel.");
-					}
-				} else if (c == DefaultChannel.class) {
-					addDefaultChannel = true;
-				} else {
-					channelKeys.add(c);
-				}
+	}
+
+	private HandlerDefinition.Evaluator defintionEvaluator(
+	        HandlerDefinition hda) {
+		HandlerDefinition.Evaluator evaluator = definitionEvaluators
+				.computeIfAbsent(hda.evaluator(), key -> {
+			try {
+				HandlerDefinition.Evaluator e 
+					= hda.evaluator().newInstance();
+				definitionEvaluators.put (key, e);
+				return e;
+			} catch (InstantiationException
+			        | IllegalAccessException e) {
+				throw new RuntimeException(e);
 			}
-		}
-		// Get named channels from annotation and add to channel keys.
-		if (!handlerAnnotation.namedChannels()[0].equals("")) {
-			channelKeys.addAll
-				(Arrays.asList(handlerAnnotation.namedChannels()));
-		}
-		if (channelKeys.size() == 0 || addDefaultChannel) {
-			channelKeys.add(getChannel().getCriterion());
-		}
-		for (Object eventKey : eventKeys) {
-			for (Object channelKey : channelKeys) {
-				handlers.add(HandlerReference.newRef
-						(eventKey, channelKey, getComponent(), m,
-						 paramTypes.length == 0 ? false : true,
-						 handlerAnnotation.priority()));
-			}
-		}
+		});
+		return evaluator;
 	}
 
 	/**
@@ -387,57 +358,40 @@ public abstract class ComponentVertex implements Manager {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.Manager#addHandler
-	 */
-	@Override
-	public void addHandler(String method, Object eventKey, 
-			Object channelKey, int priority) {
-		if (channelKey instanceof Channel) {
-			channelKey = ((Matchable)channelKey).getCriterion();
-		}
-		try {
-			for (Method m: getComponent().getClass().getMethods()) {
-				if (m.getName().equals(method) 
-						&& m.getAnnotation(DynamicHandler.class) != null) {
-					if (m.getParameterTypes().length == 1
-							&& Event.class.isAssignableFrom
-								(m.getParameterTypes()[0])) {
-						handlers.add(HandlerReference.newRef
-								(eventKey, channelKey, getComponent(), 
-								 m, true, priority));
-						return;
-					} else if (m.getParameterTypes().length == 0) {
-						handlers.add(HandlerReference.newRef
-								(eventKey, channelKey, getComponent(), 
-								 m, false, priority));
-						return;
-					}
-				}
-			}
-			throw new IllegalArgumentException
-				("No method named \"" + method + "\" with DynamicHandler"
-						+ " annotation and correct parameter list.");
-		} catch (SecurityException e) {
-			throw (RuntimeException)
-				(new IllegalArgumentException().initCause(e));
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.Manager#addHandler(java.lang.String, java.lang.Object)
-	 */
-	@Override
-	public void addHandler(String method, Object channelKey) {
-		if (channelKey instanceof Channel) {
-			channelKey = ((Matchable)channelKey).getCriterion();
+	private void addHandler(String method, Object eventValue, 
+			Object channelValue, Integer priority) {
+		if (channelValue instanceof Channel) {
+			channelValue = ((Criterion)channelValue).getMatchValue();
 		}
 		try {
 			for (Method m: getComponent().getClass().getMethods()) {
 				if (!m.getName().equals(method)) {
 					continue;
 				}
-				if (maybeAddDynamicHandler(m, channelKey)) {
+				for (Annotation annotation: m.getDeclaredAnnotations()) {
+					Class<?> annoType = annotation.annotationType();
+					HandlerDefinition hda 
+						= annoType.getAnnotation(HandlerDefinition.class);
+					if (hda == null) {
+						continue;
+					}
+					HandlerDefinition.Evaluator evaluator = defintionEvaluator(hda);
+					if (m.getParameterTypes().length != 0
+							&& !(m.getParameterTypes().length == 1
+								 && Event.class.isAssignableFrom
+								 (m.getParameterTypes()[0]))) {
+						continue;
+					}
+					handlers.add(HandlerReference.newRef(getComponent(), 
+							m, priority == null 
+								? evaluator.getPriority(annotation)
+								: priority.intValue(), 
+							evaluator.getScope
+							(annotation, this, m, 
+							 eventValue == null ? null
+									 : new Object[] {eventValue}, 
+							 channelValue == null ? null
+									 : new Object[] {channelValue})));
 					return;
 				}
 			}
@@ -450,38 +404,21 @@ public abstract class ComponentVertex implements Manager {
 		}
 	}
 
-	private boolean maybeAddDynamicHandler(Method m, Object channelKey) {
-		DynamicHandler handlerAnnotation = m
-		        .getAnnotation(DynamicHandler.class);
-		if (handlerAnnotation == null) {
-			return false;
-		}
-		// Get all event keys from the handler annotation.
-		List<Object> eventKeys = new ArrayList<Object>();
-		if (handlerAnnotation.events()[0] != Handler.NO_EVENT.class) {
-			eventKeys.addAll(Arrays.asList(handlerAnnotation.events()));
-		}
-		// Get all named events
-		if (!handlerAnnotation.namedEvents()[0].equals("")) {
-			eventKeys.addAll(Arrays.asList(handlerAnnotation.namedEvents()));
-		}
-		// Get parameter types
-		Class<?>[] paramTypes = m.getParameterTypes();
-		// If no event types are given, try first parameter.
-		if (eventKeys.isEmpty()) {
-			if (paramTypes.length > 0) {
-				if (Event.class.isAssignableFrom(paramTypes[0])) {
-					eventKeys.add(paramTypes[0]);
-				}
-			}
-		}
-		for (Object eventKey : eventKeys) {
-			handlers.add(HandlerReference.newRef(eventKey, channelKey,
-			        getComponent(), m,
-			        paramTypes.length == 0 ? false : true,
-			        handlerAnnotation.priority()));
-		}
-		return true;
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#addHandler
+	 */
+	@Override
+	public void addHandler(String method, Object eventValue, 
+			Object channelValue, int priority) {
+		addHandler(method, eventValue, channelValue, Integer.valueOf(priority));
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#addHandler(java.lang.String, java.lang.Object)
+	 */
+	@Override
+	public void addHandler(String method, Object channelValue) {
+		addHandler(method, null, channelValue, null);
 	}
 
 	/* (non-Javadoc)
@@ -513,20 +450,9 @@ public abstract class ComponentVertex implements Manager {
 	void collectHandlers (Collection<HandlerReference> hdlrs, 
 			EventBase<?> event, Channel[] channels) {
 		for (HandlerReference hdlr: handlers) {
-			if (!event.isHandledBy(hdlr.getEventKey())) {
-				continue;
+			if (hdlr.handles(event, channels)) {
+				hdlrs.add(hdlr);
 			}
-			boolean match = false;
-			for (Channel channel : channels) {
-				if (channel.isHandledBy(hdlr.getChannelKey())) {
-					match = true;
-					break;
-				}
-			}
-			if (!match) {
-				continue;
-			}
-			hdlrs.add(hdlr);
 		}
 		for (ComponentVertex child: children) {
 			child.collectHandlers(hdlrs, event, channels);

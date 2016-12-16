@@ -23,6 +23,7 @@ import java.util.logging.Level;
 
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.annotation.HandlerScope;
 
 /**
  * An variant of handler reference that provides better debug information
@@ -38,17 +39,14 @@ class VerboseHandlerReference extends HandlerReference {
 	private String handlerName;
 	
 	/**
-	 * @param eventKey
-	 * @param channelKey
 	 * @param component
 	 * @param method
 	 * @param eventParam
 	 * @param priority
 	 */
-	public VerboseHandlerReference(Object eventKey, Object channelKey,
-	        ComponentType component, Method method, boolean eventParam,
-	        int priority) {
-		super(eventKey, channelKey, component, method, eventParam, priority);
+	public VerboseHandlerReference(ComponentType component, Method method, 
+			int priority, HandlerScope filter) {
+		super(component, method, priority, filter);
 		this.component = component;
 		handlerName = Components.objectName(component)
 				+ "." + method.getName();

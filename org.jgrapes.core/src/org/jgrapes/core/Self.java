@@ -18,7 +18,7 @@
 package org.jgrapes.core;
 
 /**
- * An interface that can be used to specify the object
+ * This interface type can be used to specify the object
  * itself as channel in handler annotations.
  * 
  * @author Michael N. Lipp

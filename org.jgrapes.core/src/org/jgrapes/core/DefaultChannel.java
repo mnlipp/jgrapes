@@ -18,14 +18,14 @@
 package org.jgrapes.core;
 
 /**
- * An interface that can be used to specify the component's channel (see
+ * This interface type can be used to specify a component's channel (see
  * {@link Component#getChannel()}) as channel in handler annotations.
  * <P>
  * Using the component's channel is the default if no channels are specified in
- * the annotation, so specifying this channel only in the handler annotation is
- * equivalent to specifying no channel at all. This special channel class is
- * required if you want to specify a handler that handles events fired on the
- * component's channel or on additional channels.
+ * the annotation, so specifying only {@code DefaultChannel.class} in the
+ * handler annotation is equivalent to specifying no channel at all. This
+ * special channel type is required if you want to specify a handler that
+ * handles events fired on the component's channel or on additional channels.
  * 
  * @author Michael N. Lipp
  */

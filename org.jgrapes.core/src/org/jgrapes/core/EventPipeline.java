@@ -20,7 +20,7 @@ package org.jgrapes.core;
 import org.jgrapes.core.Components.IdInfoProvider;
 
 /**
- * An event pipeline is a queue of events that are sent to the components
+ * An interface that describes a queue of events that are sent to the components
  * of the associated tree. Any events fired by the components while handling
  * an event from the pipeline are added at the end of the pipeline.
  * <P>

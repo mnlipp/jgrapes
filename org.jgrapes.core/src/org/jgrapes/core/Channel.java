@@ -18,12 +18,13 @@
 package org.jgrapes.core;
 
 /**
- * Represents a communication bus for sending events between components.
+ * Classes that implements this interface can be used as a communication bus 
+ * for sending events between components.
  * <P>
  * For ordinary usage, the implementing classes {@link ClassChannel}
  * and {@link NamedChannel} should be sufficient. If another type of
  * <code>Channel</code> is needed, its implementation of this interface 
- * must make sure that {@link Matchable#isHandledBy(Object)} returns
+ * must make sure that {@link Criterion#isMatchedBy(Object)} returns
  * <code>true</code> if called with <code>Channel.class</code>
  * as parameter, else channels of the new type will not participate
  * in broadcasts.
@@ -33,7 +34,7 @@ package org.jgrapes.core;
  * @author Michael N. Lipp
  * @see Channel#BROADCAST
  */
-public interface Channel extends Matchable {
+public interface Channel extends Criterion {
 
 	/**
 	 * A special channel object that can be passed to the constructor
@@ -50,20 +51,24 @@ public interface Channel extends Matchable {
 	public static final Channel BROADCAST = new ClassChannel() {
 
 		/**
-		 * @return <code>Channel.class</code>
+		 * Returns <code>Channel.class</code>, the value that must
+		 * by definition be matched by any channel.
 		 * 
-		 * @see org.jgrapes.core.ClassChannel#getCriterion()
+		 * @return <code>Channel.class</code>
 		 */
 		@Override
-		public Object getCriterion() {
+		public Object getMatchValue() {
 			return Channel.class;
 		}
-		
-		/* (non-Javadoc)
-		 * @see org.jgrapes.core.ClassChannel#matches(java.lang.Object)
+
+		/**
+		 * Always returns {@code true} because the broadcast channel
+		 * is matched by every channel.
+		 * 
+		 * @return {@code true}
 		 */
 		@Override
-		public boolean isHandledBy(Object criterion) {
+		public boolean isMatchedBy(Object criterion) {
 			return true;
 		}
 

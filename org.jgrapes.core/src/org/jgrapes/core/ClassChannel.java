@@ -20,36 +20,36 @@ package org.jgrapes.core;
 import org.jgrapes.core.internal.Common;
 
 /**
- * The root base class for channels that use their class (type) as key
- * for matching channels with handlers.
+ * This class is the root base class for channels that use their class (type)
+ * as value for matching (see {@link Criterion}).
  * 
  * @author Michael N. Lipp
  */
 public class ClassChannel implements Channel {
 
 	/**
-	 * Returns the class of this channel as criterion.
+	 * Returns the class of this channel as value.
 	 * 
 	 * @return the class of this channel
 	 * 
-	 * @see org.jgrapes.core.Matchable#getCriterion()
+	 * @see org.jgrapes.core.Criterion#getMatchValue()
 	 */
 	@Override
-	public Object getCriterion() {
+	public Object getMatchValue() {
 		return getClass();
 	}
 
 	/**
-	 * Returns <code>true</code> if the <code>criterion</code>
+	 * Returns <code>true</code> if the <code>value</code>
 	 * is the same class or a base class of this channel's class.
 	 * 
-	 * @see org.jgrapes.core.Matchable#isHandledBy(java.lang.Object)
+	 * @see org.jgrapes.core.Criterion#isMatchedBy(java.lang.Object)
 	 */
 	@Override
-	public boolean isHandledBy(Object criterion) {
-		return Class.class.isInstance(criterion) 
-				&& ((Class<?>)criterion)
-					.isAssignableFrom((Class<?>)getCriterion());
+	public boolean isMatchedBy(Object value) {
+		return Class.class.isInstance(value) 
+				&& ((Class<?>)value)
+					.isAssignableFrom((Class<?>)getMatchValue());
 	}
 
 	/* (non-Javadoc)
@@ -57,7 +57,7 @@ public class ClassChannel implements Channel {
 	 */
 	@Override
 	public int hashCode() {
-		return getCriterion().hashCode();
+		return getMatchValue().hashCode();
 	}
 
 	/* (non-Javadoc)
@@ -72,10 +72,10 @@ public class ClassChannel implements Channel {
 		if (getClass() != obj.getClass())
 			return false;
 		ClassChannel other = (ClassChannel) obj;
-		if (getCriterion() == null) {
-			if (other.getCriterion() != null)
+		if (getMatchValue() == null) {
+			if (other.getMatchValue() != null)
 				return false;
-		} else if (!getCriterion().equals(other.getCriterion()))
+		} else if (!getMatchValue().equals(other.getMatchValue()))
 			return false;
 		return true;
 	}
@@ -87,9 +87,9 @@ public class ClassChannel implements Channel {
 	public String toString() {
 		return Common.classToString(getClass())
 				+ " [criterion=" 
-				+ ((getCriterion() instanceof Class)
-					?  Common.classToString((Class<?>)getCriterion())
-					: getCriterion())
+				+ ((getMatchValue() instanceof Class)
+					?  Common.classToString((Class<?>)getMatchValue())
+					: getMatchValue())
 				+ "]";
 	}
 }

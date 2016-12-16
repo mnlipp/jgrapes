@@ -22,7 +22,7 @@ import java.util.List;
 import org.jgrapes.core.annotation.DynamicHandler;
 
 /**
- * Provides methods for manipulating the
+ * The interface that provides the methods for manipulating the
  * component hierarchy and for firing events. Every component has
  * access to a manager implementation that manages the component.
  * <P>

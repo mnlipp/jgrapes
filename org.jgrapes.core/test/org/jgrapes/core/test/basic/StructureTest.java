@@ -47,7 +47,7 @@ public class StructureTest {
 		// Retrieve existing manager
 		assertEquals(manager, Components.manager(c));
 		assertEquals(c.getManager().getRoot(), c);
-		assertEquals("Test", manager.getChannel().getCriterion());
+		assertEquals("Test", manager.getChannel().getMatchValue());
 	}
 
 	@Test

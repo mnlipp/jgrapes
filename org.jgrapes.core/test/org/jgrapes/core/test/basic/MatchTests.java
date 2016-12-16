@@ -39,12 +39,12 @@ public class MatchTests {
 		ClassChannel derived = new DerivedChannel();
 		ClassChannel derivedDerived = new DerivedDerivedChannel();
 		
-		assertTrue(derivedDerived.isHandledBy(DerivedChannel.class));
-		assertTrue(!derived.isHandledBy(DerivedDerivedChannel.class));
-		assertTrue(derived.isHandledBy(ClassChannel.BROADCAST.getCriterion()));
-		assertTrue(derivedDerived.isHandledBy(ClassChannel.BROADCAST.getCriterion()));
-		assertTrue(ClassChannel.BROADCAST.isHandledBy(DerivedChannel.class));
-		assertTrue(ClassChannel.BROADCAST.isHandledBy(DerivedDerivedChannel.class));
+		assertTrue(derivedDerived.isMatchedBy(DerivedChannel.class));
+		assertTrue(!derived.isMatchedBy(DerivedDerivedChannel.class));
+		assertTrue(derived.isMatchedBy(ClassChannel.BROADCAST.getMatchValue()));
+		assertTrue(derivedDerived.isMatchedBy(ClassChannel.BROADCAST.getMatchValue()));
+		assertTrue(ClassChannel.BROADCAST.isMatchedBy(DerivedChannel.class));
+		assertTrue(ClassChannel.BROADCAST.isMatchedBy(DerivedDerivedChannel.class));
 	}
 
 }

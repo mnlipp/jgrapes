@@ -115,7 +115,7 @@ public class BigReadTest {
 		EchoServer app = new EchoServer();
 		app.attach(new NioDispatcher());
 		WaitForTests wf = new WaitForTests
-				(app, Ready.class, Server.DEFAULT_CHANNEL.getCriterion());
+				(app, Ready.class, Server.DEFAULT_CHANNEL.getMatchValue());
 		Components.start(app);
 		Ready readyEvent = (Ready) wf.get();
 		if (!(readyEvent.getListenAddress() instanceof InetSocketAddress)) {

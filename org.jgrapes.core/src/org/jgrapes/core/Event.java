@@ -22,15 +22,16 @@ import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.internal.EventBase;
 
 /**
- * The base class for all events. Event classes form a hierarchy.
- * By default (i.e. as implemented by this class), the event's class 
- * (type) is used for matching. A handler is invoked if the class of the
- * event handled by it is equal to or a base class of the class of the event 
- * to be handled. This default behavior can be changed by overriding the methods
- * from {@link Matchable}. See {@link NamedEvent} as an example.
+ * This class is the base class for all events. Event classes form a hierarchy.
+ * By default (i.e. as implemented by this class), the event's class (type) is
+ * used for matching events with handlers. A handler is invoked if the class of
+ * the event(s) handled by it is equal to or a base class of the class of the
+ * event to be handled. This default behavior can be changed by overriding the
+ * methods from {@link Criterion}. See {@link NamedEvent} as an example.
  * 
- * @param <T> the result type of the event. Use {@link Void} if handling
- * the event does not produce a result
+ * @param <T>
+ *            the result type of the event. Use {@link Void} if handling the
+ *            event does not produce a result
  * 
  * @author Michael N. Lipp
  */
@@ -73,27 +74,27 @@ public class Event<T> extends EventBase<T> {
 	}
 
 	/**
-	 * Returns the class of this event as criterion.
+	 * Returns the class of this event as sample value.
 	 * 
 	 * @return the class of this event
 	 * 
-	 * @see org.jgrapes.core.Matchable#getCriterion()
+	 * @see org.jgrapes.core.Criterion#getMatchValue()
 	 */
 	@Override
-	public Object getCriterion() {
+	public Object getMatchValue() {
 		return getClass();
 	}
 
 	/**
-	 * Returns <code>true</code> if the <code>criterion</code>
+	 * Returns <code>true</code> if the <code>sample</code>
 	 * is the same class or a base class of this event.
 	 * 
-	 * @see org.jgrapes.core.Matchable#isHandledBy(java.lang.Object)
+	 * @see org.jgrapes.core.Criterion#isMatchedBy(java.lang.Object)
 	 */
 	@Override
-	public boolean isHandledBy(Object criterion) {
-		return Class.class.isInstance(criterion)
-				&& ((Class<?>)criterion).isAssignableFrom(getClass());
+	public boolean isMatchedBy(Object value) {
+		return Class.class.isInstance(value)
+				&& ((Class<?>)value).isAssignableFrom(getClass());
 	}
 
 	/**

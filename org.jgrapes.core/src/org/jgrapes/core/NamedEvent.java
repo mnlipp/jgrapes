@@ -41,26 +41,26 @@ final public class NamedEvent<T> extends Event<T> {
 	}
 
 	/**
-	 * Returns the name of the Event as criterion.
+	 * Returns the name of the Event as value.
 	 * 
 	 * @return the name
 	 * 
-	 * @see org.jgrapes.core.Channel#getCriterion()
+	 * @see org.jgrapes.core.Channel#getMatchValue()
 	 */
 	@Override
-	public Object getCriterion() {
+	public Object getMatchValue() {
 		return name;
 	}
 
 	/**
-	 * Returns <code>true</code> if the <code>criterion</code>
+	 * Returns <code>true</code> if the <code>value</code>
 	 * is the event class or is equal to the event's name.
 	 * 
-	 * @see org.jgrapes.core.Matchable#isHandledBy(java.lang.Object)
+	 * @see org.jgrapes.core.Criterion#isMatchedBy(java.lang.Object)
 	 */
 	@Override
-	public boolean isHandledBy(Object criterion) {
-		return criterion.equals(Event.class) || criterion.equals(name);
+	public boolean isMatchedBy(Object value) {
+		return value.equals(Event.class) || value.equals(name);
 	}
 
 	/* (non-Javadoc)

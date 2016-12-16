@@ -64,23 +64,23 @@ public interface IOSubchannel extends Channel {
 	Channel getMainChannel();
 
 	/**
-	 * Returns the main channel's match key.
+	 * Returns the main channel's match value.
 	 * 
-	 * @see Channel#getCriterion()
+	 * @see Channel#getMatchValue()
 	 */
 	@Override
-	default Object getCriterion() {
-		return getMainChannel().getCriterion();
+	default Object getMatchValue() {
+		return getMainChannel().getMatchValue();
 	}
 
 	/**
-	 * Matches the criterion with the main channel.
+	 * Delegates to main channel.
 	 * 
-	 * @see Channel#isHandledBy(Object)
+	 * @see Channel#isMatchedBy(Object)
 	 */
 	@Override
-	default boolean isHandledBy(Object criterion) {
-		return getMainChannel().isHandledBy(criterion);
+	default boolean isMatchedBy(Object value) {
+		return getMainChannel().isMatchedBy(value);
 	}
 
 	/**

@@ -15,28 +15,21 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.core;
+package org.jgrapes.core.annotation;
+
+import org.jgrapes.core.Criterion;
+import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
 
 /**
+ * This interface allows to verify whether a given
+ * event fired on given channels is handled by a handler.
+ * {@link Evaluator}s use this interface to provide the information
+ * about the events being handled.
+ * 
  * @author Michael N. Lipp
- *
  */
-public interface Matchable {
+public interface HandlerScope {
 
-	/**
-	 * Returns the criterion used for matching. 
-	 * 
-	 * @return the criterion which is usually a String, a Class or an instance
-	 * of Component (for channels only)
-	 */
-	Object getCriterion();
+	boolean includes (Criterion event, Criterion[] channels);
 	
-	/**
-	 * Returns <code>true</code> if this {@code Matchable}
-	 * matches the criterion provided by a handler.
-	 * 
-	 * @param criterion the criterion provided by the handler
-	 * @return {@code true} if the criterion matches
-	 */
-	boolean isHandledBy(Object criterion);
 }

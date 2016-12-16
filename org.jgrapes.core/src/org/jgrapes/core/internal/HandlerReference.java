@@ -24,6 +24,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.Criterion;
+import org.jgrapes.core.Event;
+import org.jgrapes.core.annotation.HandlerScope;
 
 /**
  * A reference to a method that handles an event.
@@ -36,30 +39,32 @@ class HandlerReference implements Comparable<HandlerReference> {
 		= Logger.getLogger(ComponentType.class.getPackage().getName() 
 			+ ".handlerTracking");
 	
-	private Object eventKey;
-	private Object channelKey;
+	private HandlerScope filter;
 	private MethodHandle method;
 	private boolean hasEventParam;
 	private int priority;
 	
 	/**
 	 * Create a new handler reference to a component's method that 
-	 * handles the given kind of event on the given channel.
+	 * handles events matching the filter.
 	 * 
-	 * @param eventKey the kind of event handled
-	 * @param channelKey the channel listening to
+	 * @param component the component
 	 * @param method the method to be invoked
-	 * @param eventParam {@code true} if the handler has an event parameter
 	 * @param priority the handler's priority
+	 * @param filter the filter
 	 */
-	protected HandlerReference(Object eventKey, Object channelKey,	
-			ComponentType component, Method method, boolean eventParam, 
-			int priority) {
+	protected HandlerReference(ComponentType component, Method method,	
+			int priority, HandlerScope filter) {
 		super();
-		this.eventKey = eventKey;
-		this.channelKey = channelKey;
-		this.hasEventParam = eventParam;
+		this.filter = filter;
 		this.priority = priority;
+		Class<?>[] paramTypes = method.getParameterTypes();
+		hasEventParam = false;
+		if (paramTypes.length > 0) {
+			if (Event.class.isAssignableFrom(paramTypes[0])) {
+				hasEventParam = true;
+			}
+		}
 		try {
 			this.method = MethodHandles.lookup().unreflect(method);
 			this.method = this.method.bindTo(component);
@@ -86,17 +91,15 @@ class HandlerReference implements Comparable<HandlerReference> {
 	}
 
 	/**
-	 * @return the eventKey
+	 * Returns {@code true} if this handler handles the given event
+	 * fired on the given channels. 
+	 * 
+	 * @param event the event
+	 * @param channels the channels
+	 * @return the result
 	 */
-	public Object getEventKey() {
-		return eventKey;
-	}
-	
-	/**
-	 * @return the channelKey
-	 */
-	public Object getChannelKey() {
-		return channelKey;
+	public boolean handles(Criterion event, Criterion[] channels) {
+		return filter.includes(event, channels);
 	}
 	
 	/**
@@ -119,6 +122,28 @@ class HandlerReference implements Comparable<HandlerReference> {
 		}
 	}
 
+	protected String methodToString() {
+		return method.toString();
+	}
+
+	static abstract class HandlerRefFactory {
+		abstract HandlerReference createHandlerRef
+			(Object eventKey, Object channelKey,	
+			 ComponentType component, Method method, boolean eventParam, 
+			 int priority);
+	}
+
+    public static HandlerReference newRef
+    		(ComponentType component, Method method,
+			int priority, HandlerScope filter) {
+    	if (handlerTracking.isLoggable(Level.FINE)) {
+			return new VerboseHandlerReference
+					(component, method, priority, filter);
+    	} else {
+			return new HandlerReference(component, method, priority, filter);
+    	}
+    }
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -126,10 +151,8 @@ class HandlerReference implements Comparable<HandlerReference> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((channelKey == null) ? 0 : channelKey.hashCode());
-		result = prime * result
-				+ ((eventKey == null) ? 0 : eventKey.hashCode());
+		result = prime * result + ((filter == null) ? 0 : filter.hashCode());
+		result = prime * result + (hasEventParam ? 1231 : 1237);
 		result = prime * result + ((method == null) ? 0 : method.hashCode());
 		result = prime * result + priority;
 		return result;
@@ -147,15 +170,12 @@ class HandlerReference implements Comparable<HandlerReference> {
 		if (getClass() != obj.getClass())
 			return false;
 		HandlerReference other = (HandlerReference) obj;
-		if (channelKey == null) {
-			if (other.channelKey != null)
+		if (filter == null) {
+			if (other.filter != null)
 				return false;
-		} else if (!channelKey.equals(other.channelKey))
+		} else if (!filter.equals(other.filter))
 			return false;
-		if (eventKey == null) {
-			if (other.eventKey != null)
-				return false;
-		} else if (!eventKey.equals(other.eventKey))
+		if (hasEventParam != other.hasEventParam)
 			return false;
 		if (method == null) {
 			if (other.method != null)
@@ -166,35 +186,22 @@ class HandlerReference implements Comparable<HandlerReference> {
 			return false;
 		return true;
 	}
-	
-	protected String methodToString() {
-		return method.toString();
-	}
-	
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("Handler [");
+		builder.append("HandlerReference [");
 		if (method != null) {
 			builder.append("method=");
-			builder.append(methodToString());
+			builder.append(method);
 			builder.append(", ");
 		}
-		if (eventKey != null) {
-			builder.append("event=");
-			if (eventKey instanceof Class) {
-				builder.append(Common.classToString((Class<?>) eventKey));
-			} else {
-				builder.append(eventKey);
-			}
-			builder.append(", ");
-		}
-		if (channelKey != null) {
-			builder.append("channel=");
-			builder.append(Common.channelKeyToString(channelKey));
+		if (filter != null) {
+			builder.append("filter=");
+			builder.append(filter);
 			builder.append(", ");
 		}
 		builder.append("priority=");
@@ -203,22 +210,4 @@ class HandlerReference implements Comparable<HandlerReference> {
 		return builder.toString();
 	}
 	
-	static abstract class HandlerRefFactory {
-		abstract HandlerReference createHandlerRef
-			(Object eventKey, Object channelKey,	
-			 ComponentType component, Method method, boolean eventParam, 
-			 int priority);
-	}
-
-    public static HandlerReference newRef(Object eventKey, Object channelKey,	
-			ComponentType component, Method method, boolean eventParam, 
-			int priority) {
-    	if (handlerTracking.isLoggable(Level.FINE)) {
-			return new VerboseHandlerReference(eventKey, channelKey,
-	                component, method, eventParam, priority);
-    	} else {
-			return new HandlerReference(eventKey, channelKey,
-	                component, method, eventParam, priority);
-    	}
-    }
 }

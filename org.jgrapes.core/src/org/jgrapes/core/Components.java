@@ -111,7 +111,7 @@ public class Components {
 	}
 	
 	/**
-	 * Returns the class of the object together with an id (see @link
+	 * Returns the name of the object's class together with an id (see 
 	 * {@link #objectId(Object)}). May be used to implement {@code toString()}
 	 * with identifiable objects.
 	 * 
@@ -164,7 +164,7 @@ public class Components {
 	/**
 	 * Implemented by classes that want a special class (scope) to be used
 	 * for looking up their id or want to map to another object for getting the
-	 * id.
+	 * id (see {@link Components#objectId(Object)}).
 	 * 
 	 * @author Michael N. Lipp
 	 */

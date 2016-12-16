@@ -20,17 +20,16 @@ package org.jgrapes.core;
 import org.jgrapes.core.internal.ComponentVertex;
 
 /**
- * A base class for components. In general, new component types can 
- * be created by deriving from this class or by implementing 
- * the interface {@link ComponentType}. 
+ * This class can be used as base class for implementing a component. 
  * <P>
- * This class implements the {@link Manager} interface. In contrary 
- * to component types that implement {@link ComponentType}, derived 
+ * This class implements the {@link Manager} interface. Contrary 
+ * to classes that only implement {@link ComponentType}, derived 
  * classes therefore don't need a manager attribute to get access to the 
  * component management methods provided by this interface.
  * <P>
- * The class also implements the {@code Channel} interface.
- * This allows instances to be used as targets for events. 
+ * This class also implements the {@code Channel} interface in such a way
+ * that each instance of this class can be used as an independant
+ * communication bus.
  * 
  * @author Michael N. Lipp
  * @see ComponentType
@@ -92,20 +91,24 @@ public abstract class Component extends ComponentVertex
 		return componentChannel;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.Matchable#getCriterion()
+	/**
+	 * Return the object itself as value.
 	 */
 	@Override
-	public Object getCriterion() {
+	public Object getMatchValue() {
 		return this;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.Matchable#matches(java.lang.Object)
+	/**
+	 * Matches the object itself (using identity comparison) or the
+	 * {@link Channel} class.
+	 * 
+	 * @see Channel#isMatchedBy(Object)
 	 */
 	@Override
-	public boolean isHandledBy(Object handlerKey) {
-		return handlerKey.equals(Channel.class) || handlerKey == getCriterion();
+	public boolean isMatchedBy(Object value) {
+		return value.equals(Channel.class) 
+				|| value == getMatchValue();
 	}
 
 }
