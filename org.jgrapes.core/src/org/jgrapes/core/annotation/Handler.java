@@ -124,7 +124,7 @@ public @interface Handler {
 			(ComponentType component, Method method, 
 					Object[] eventValues, Object[] channelValues) {
 			Handler annotation = method.getAnnotation(Handler.class);
-			if (annotation.dynamic()) {
+			if (annotation == null || annotation.dynamic()) {
 				return null;
 			}
 			return new Scope(component, method, annotation, eventValues, channelValues);
@@ -182,10 +182,9 @@ public @interface Handler {
 						Class<?> annoType = annotation.annotationType();
 						HandlerDefinition hda 
 							= annoType.getAnnotation(HandlerDefinition.class);
-						if (hda == null) {
-							continue;
-						}
-						if (!((Handler)annotation).dynamic()) {
+						if (hda == null
+								|| !Handler.class.isAssignableFrom(annoType)
+								|| !((Handler)annotation).dynamic()) {
 							continue;
 						}
 						Scope scope = new Scope(component, m, 
@@ -240,10 +239,9 @@ public @interface Handler {
 						}
 						HandlerDefinition hda 
 							= annoType.getAnnotation(HandlerDefinition.class);
-						if (hda == null) {
-							continue;
-						}						
-						if (!((Handler)annotation).dynamic()) {
+						if (hda == null
+								|| !Handler.class.isAssignableFrom(annoType)
+								|| !((Handler)annotation).dynamic()) {
 							continue;
 						}
 						Scope scope = new Scope(component, m,
