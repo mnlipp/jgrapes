@@ -158,14 +158,14 @@ public class Server extends Component implements NioHandler {
 	 */
 	@Override
 	public void handleOps(int ops) {
-		if ((ops & SelectionKey.OP_ACCEPT) != 0 && !closing) {
-			try {
-				SocketChannel socketChannel = serverSocketChannel.accept();
-				synchronized(connections) {
+		synchronized (connections) {
+			if ((ops & SelectionKey.OP_ACCEPT) != 0 && !closing) {
+				try {
+					SocketChannel socketChannel = serverSocketChannel.accept();
 					connections.add(new Connection(socketChannel));
+				} catch (IOException e) {
+					fire(new IOError(null, e));
 				}
-			} catch (IOException e) {
-				fire(new IOError(null, e));
 			}
 		}
 	}
@@ -205,9 +205,11 @@ public class Server extends Component implements NioHandler {
 			if (!serverSocketChannel.isOpen()) {
 				return;
 			}
-			closing = true;
 			synchronized (connections) {
-				for (Connection conn: connections) {
+				closing = true;
+				// Copy to avoid concurrent modification exception
+				Set<Connection> conns = new HashSet<>(connections);
+				for (Connection conn: conns) {
 					conn.close();
 				}
 				while (connections.size() > 0) {
