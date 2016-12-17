@@ -44,7 +44,8 @@ public class WaitForTests extends Component implements Future<Event<?>> {
 	 * the given channel. 
 	 */
 	public WaitForTests(ComponentType app, Object eventKey, Object channelKey) {
-		addHandler("onEvent", eventKey, channelKey, Integer.MIN_VALUE);
+		DynamicHandler.Evaluator.add
+			(this, "onEvent", eventKey, channelKey, Integer.MIN_VALUE);
 		Components.manager(app).attach(this);
 	}
 

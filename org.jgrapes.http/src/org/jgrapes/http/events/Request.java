@@ -89,4 +89,8 @@ public class Request extends Event<Void> {
 		builder.append("]");
 		return builder.toString();
 	}
+	
+	private class MatchValue {
+//		private 
+	}
 }

@@ -103,8 +103,10 @@ public class HttpServer extends Component {
 		super(componentChannel);
 		this.networkChannel = networkChannel;
 		this.providedFallbacks = Arrays.asList(fallbacks);
-		addHandler("onAccepted", networkChannel.getMatchValue());
-		addHandler("onInput", networkChannel.getMatchValue());
+		DynamicHandler.Evaluator.add
+			(this, "onAccepted", networkChannel.getMatchValue());
+		DynamicHandler.Evaluator.add
+			(this, "onInput", networkChannel.getMatchValue());
 	}
 
 	/**
@@ -124,8 +126,10 @@ public class HttpServer extends Component {
 		Server server = new Server(Channel.SELF, serverAddress);
 		networkChannel = server;
 		attach(server);
-		addHandler("onAccepted", networkChannel.getMatchValue());
-		addHandler("onInput", networkChannel.getMatchValue());
+		DynamicHandler.Evaluator.add
+			(this, "onAccepted", networkChannel.getMatchValue());
+		DynamicHandler.Evaluator.add
+			(this, "onInput", networkChannel.getMatchValue());
 	}
 
 	/**
