@@ -25,6 +25,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 
+import org.jgrapes.core.HandlerScope;
 import org.jgrapes.core.Manager;
 
 /**

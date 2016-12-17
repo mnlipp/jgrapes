@@ -49,8 +49,9 @@ public class MatchTest {
 		 */
 		public EventCounter() {
 			super(Channel.BROADCAST);
-			addHandler("onStartedComponent", Start.class, this, 0);
-			addHandler("onStart", getChannel());
+			DynamicHandler.Evaluator.add
+				(this, "onStartedComponent", Start.class, this, 0);
+			DynamicHandler.Evaluator.add(this, "onStart", getChannel());
 		}
 
 		@DynamicHandler
@@ -89,6 +90,7 @@ public class MatchTest {
 		EventCounter app = new EventCounter();
 		EventPipeline pipeline = Components.manager(app).newSyncEventPipeline();
 		pipeline.fire(new Start());
+		Components.awaitExhaustion();
 		assertEquals(1, app.startedGlobal);
 		assertEquals(1, app.startedTest1);
 		assertEquals(0, app.named1Global);

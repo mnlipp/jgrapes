@@ -23,7 +23,7 @@ import java.util.logging.Level;
 
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.annotation.HandlerScope;
+import org.jgrapes.core.HandlerScope;
 
 /**
  * An variant of handler reference that provides better debug information

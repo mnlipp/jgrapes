@@ -32,6 +32,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.DefaultChannel;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.HandlerScope;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Criterion;
 import org.jgrapes.core.NamedChannel;
@@ -122,8 +123,8 @@ public @interface Handler {
 					Object[] eventValues, Object[] channelValues) {
 			return new Scope(component, method, (Handler)annotation);
 		}
-
-		public static class Scope implements HandlerScope {
+		
+		private static class Scope implements HandlerScope {
 
 			private Set<Object> handledEvents = new HashSet<Object>();
 			private Set<Object> handledChannels = new HashSet<Object>();
@@ -196,6 +197,26 @@ public @interface Handler {
 					}
 				}
 				return false;
+			}
+
+			/* (non-Javadoc)
+			 * @see java.lang.Object#toString()
+			 */
+			@Override
+			public String toString() {
+				StringBuilder builder = new StringBuilder();
+				builder.append("Scope [");
+				if (handledEvents != null) {
+					builder.append("handledEvents=");
+					builder.append(handledEvents);
+					builder.append(", ");
+				}
+				if (handledChannels != null) {
+					builder.append("handledChannels=");
+					builder.append(handledChannels);
+				}
+				builder.append("]");
+				return builder.toString();
 			}
 			
 		}

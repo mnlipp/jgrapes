@@ -28,8 +28,12 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jgrapes.core.Channel;
+import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Criterion;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.HandlerScope;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.annotation.Handler.NO_EVENT;
@@ -81,6 +85,14 @@ public @interface DynamicHandler {
 	 */
 	public static class Evaluator implements HandlerDefinition.Evaluator {
 
+		@Override
+		public HandlerScope getScope
+			(Annotation annotation, Manager component, Method method, 
+					Object eventValues[], Object[] channelValues) {
+			return new Scope(method, (DynamicHandler)annotation,
+					eventValues, channelValues);
+		}
+		
 		/* (non-Javadoc)
 		 * @see org.jgrapes.core.annotation.HandlerDefinition.Evaluator#getPriority()
 		 */
@@ -89,22 +101,131 @@ public @interface DynamicHandler {
 			return ((DynamicHandler)annotation).priority();
 		}
 
-		@Override
-		public HandlerScope getScope
-			(Annotation annotation, Manager component, Method method, 
-					Object eventValues[], Object[] channelValues) {
-			return new Scope(component, method, (DynamicHandler)annotation,
-					eventValues, channelValues);
+		/**
+		 * Adds the given method of the given component as a 
+		 * dynamic handler for a specific event and channel. The method
+		 * with the given name must be annotated as {@link DynamicHandler}
+		 * and must have a single argument of type
+		 * {@link Event} (or a derived type as appropriate for the
+		 * event type to be handled).
+		 * 
+		 * @param component the component
+		 * @param method the name of the method that implements the handler
+		 * @param eventKey the event key that should be used for matching
+		 * this handler with an event. This is equivalent to an 
+		 * <code>events</code>/<code>namedEvents</code> parameter
+		 * used with a single value in the handler annotation, but here 
+		 * all kinds of Objects are allowed as key values.
+		 * @param channelKey the channel key that should be used for matching
+		 * this handler with a channel. This is equivalent to a 
+		 * <code>channels</code>/<code>namedChannels</code> parameter
+		 * used with a single value in the handler annotation, but here 
+		 * all kinds of Objects are allowed as key values. If the
+		 * actual object provided is a {@link Channel}, its
+		 * match value is used for matching.
+		 * @param priority the priority of the handler
+		 */
+		public static void add (ComponentType component, String method,
+				Object eventValue, Object channelValue, int priority) {
+			try {
+				if (channelValue instanceof Channel) {
+					channelValue = ((Criterion)channelValue).getMatchValue();
+				}
+				for (Method m: component.getClass().getMethods()) {
+					if (!m.getName().equals(method)) {
+						continue;
+					}
+					if (m.getParameterTypes().length != 0
+							&& !(m.getParameterTypes().length == 1
+								 && Event.class.isAssignableFrom
+								 (m.getParameterTypes()[0]))) {
+						continue;
+					}
+					for (Annotation annotation: m.getDeclaredAnnotations()) {
+						Class<?> annoType = annotation.annotationType();
+						HandlerDefinition hda 
+							= annoType.getAnnotation(HandlerDefinition.class);
+						if (hda == null) {
+							continue;
+						}
+						Scope scope = new Scope(m, (DynamicHandler)annotation,
+								new Object[] { eventValue },
+								new Object[] { channelValue });
+						Components.manager(component)
+							.addHandler(m, scope, priority);
+						return;
+					}
+				}
+				throw new IllegalArgumentException
+					("No method named \"" + method + "\" with DynamicHandler"
+							+ " annotation and correct parameter list.");
+			} catch (SecurityException e) {
+				throw (RuntimeException)
+					(new IllegalArgumentException().initCause(e));
+			}
 		}
+		
+		/**
+		 * Add a handler like 
+		 * {@link #add(ComponentType, String, Object, Object, int)}
+		 * but take the values for event and priority from the annotation.
+		 * 
+		 * @param component the component
+		 * @param method the name of the method that implements the handler
+		 * @param channelKey the channel key that should be used for matching
+		 * this handler with a channel 
+		 * (see {@link #addHandler(String, Object, Object, int)})
+		 */
+		public static void add(ComponentType component, String method,
+		        Object channelValue) {
+			try {
+				if (channelValue instanceof Channel) {
+					channelValue = ((Criterion)channelValue).getMatchValue();
+				}
+				for (Method m: component.getClass().getMethods()) {
+					if (!m.getName().equals(method)) {
+						continue;
+					}
+					if (m.getParameterTypes().length != 0
+							&& !(m.getParameterTypes().length == 1
+								 && Event.class.isAssignableFrom
+								 (m.getParameterTypes()[0]))) {
+						continue;
+					}
+					for (Annotation annotation: m.getDeclaredAnnotations()) {
+						Class<?> annoType = annotation.annotationType();
+						if (!(annoType.equals(DynamicHandler.class))) {
+							continue;
+						}
+						HandlerDefinition hda 
+							= annoType.getAnnotation(HandlerDefinition.class);
+						if (hda == null) {
+							continue;
+						}						
+						Scope scope = new Scope(m, (DynamicHandler)annotation,
+								null, new Object[] { channelValue });
+						Components.manager(component).addHandler(m, scope, 
+								((DynamicHandler) annotation).priority());
+						return;
+					}
+				}
+				throw new IllegalArgumentException
+					("No method named \"" + method + "\" with DynamicHandler"
+							+ " annotation and correct parameter list.");
+			} catch (SecurityException e) {
+				throw (RuntimeException)
+					(new IllegalArgumentException().initCause(e));
+			}
+		}
+		
 
-		public static class Scope implements HandlerScope {
+		private static class Scope implements HandlerScope {
 
 			private Set<Object> handledEvents = new HashSet<Object>();
 			private Set<Object> handledChannels = new HashSet<Object>();
 
-			public Scope(Manager component, Method method, 
-					DynamicHandler annotation, Object eventValues[], 
-					Object[] channelValues) {
+			public Scope(Method method, DynamicHandler annotation,
+					Object eventValues[], Object[] channelValues) {
 				if (eventValues != null) {
 					handledEvents.addAll(Arrays.asList(eventValues));
 				} else {
@@ -147,6 +268,26 @@ public @interface DynamicHandler {
 					}
 				}
 				return false;
+			}
+
+			/* (non-Javadoc)
+			 * @see java.lang.Object#toString()
+			 */
+			@Override
+			public String toString() {
+				StringBuilder builder = new StringBuilder();
+				builder.append("Scope [");
+				if (handledEvents != null) {
+					builder.append("handledEvents=");
+					builder.append(handledEvents);
+					builder.append(", ");
+				}
+				if (handledChannels != null) {
+					builder.append("handledChannels=");
+					builder.append(handledChannels);
+				}
+				builder.append("]");
+				return builder.toString();
 			}
 			
 		}

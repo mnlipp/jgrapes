@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Criterion;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.annotation.HandlerScope;
+import org.jgrapes.core.HandlerScope;
 
 /**
  * A reference to a method that handles an event.

@@ -15,9 +15,8 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.core.annotation;
+package org.jgrapes.core;
 
-import org.jgrapes.core.Criterion;
 import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
 
 /**

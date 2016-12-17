@@ -17,6 +17,7 @@
  */
 package org.jgrapes.core;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 import org.jgrapes.core.annotation.DynamicHandler;
@@ -119,40 +120,14 @@ public interface Manager extends Iterable<ComponentType> {
 	<T> Event<T> fire(Event<T> event, Channel... channels);
 
 	/**
-	 * Adds a method of the component managed by this manager as a 
-	 * handler for a specific event and channel. The method
-	 * with the given name must be annotated as {@link DynamicHandler}
-	 * and must have a single argument of type
-	 * {@link Event} (or a derived type as appropriate for the
-	 * event type to be handled).
-	 * @param method the name of the method that implements the handler
-	 * @param eventKey the event key that should be used for matching
-	 * this handler with an event. This is equivalent to an 
-	 * <code>events</code>/<code>namedEvents</code> parameter
-	 * used with a single value in the handler annotation, but here 
-	 * all kinds of Objects are allowed as key values.
-	 * @param channelKey the channel key that should be used for matching
-	 * this handler with a channel. This is equivalent to a 
-	 * <code>channels</code>/<code>namedChannels</code> parameter
-	 * used with a single value in the handler annotation, but here 
-	 * all kinds of Objects are allowed as key values. If the
-	 * actual object provided is a {@link Channel}, its
-	 * match key is used for matching.
+	 * Adds a handler for the given mathod with the given scope
+	 * and priority.
+	 * 
+	 * @param method the method to invoke 
+	 * @param scope the handler scope to be used for matching events
 	 * @param priority the priority of the handler
 	 */
-	void addHandler(String method, Object eventKey, 
-			Object channelKey, int priority);
-	
-	/**
-	 * Add a handler like {@link #addHandler(String, Object, Object, int)}
-	 * but take the values for event and priority from the annotation.
-	 * 
-	 * @param method the name of the method that implements the handler
-	 * @param channelKey the channel key that should be used for matching
-	 * this handler with a channel 
-	 * (see {@link #addHandler(String, Object, Object, int)})
-	 */
-	void addHandler(String method, Object channelKey);
+	void addHandler(Method method, HandlerScope scope, int priority);
 	
 	/**
 	 * Returns the pipeline used when firing an event.

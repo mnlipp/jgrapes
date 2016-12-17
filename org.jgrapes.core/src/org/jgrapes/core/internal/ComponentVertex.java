@@ -34,8 +34,8 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.core.HandlerScope;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.Criterion;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.HandlerDefinition;
 import org.jgrapes.core.events.Attached;
@@ -53,6 +53,10 @@ import org.jgrapes.core.events.Detached;
  */
 public abstract class ComponentVertex implements Manager {
 
+	/** Handler factory cache. */
+	static private Map<Class<? extends HandlerDefinition.Evaluator>,
+			HandlerDefinition.Evaluator> definitionEvaluators 
+			= Collections.synchronizedMap(new HashMap<>());
 	/** Reference to the common properties of the tree nodes. */
 	private ComponentTree tree = null;
 	/** Reference to the parent node. */
@@ -61,10 +65,6 @@ public abstract class ComponentVertex implements Manager {
 	private List<ComponentVertex> children = new ArrayList<>();
 	/** The handlers provided by this component. */
 	private List<HandlerReference> handlers;
-	/** Handler factory cache. */
-	private Map<Class<? extends HandlerDefinition.Evaluator>,
-			HandlerDefinition.Evaluator> definitionEvaluators 
-			= Collections.synchronizedMap(new HashMap<>());
 	
 	/** 
 	 * Initialize the ComponentVertex. By default it forms a stand-alone
@@ -358,67 +358,10 @@ public abstract class ComponentVertex implements Manager {
 		}
 	}
 
-	private void addHandler(String method, Object eventValue, 
-			Object channelValue, Integer priority) {
-		if (channelValue instanceof Channel) {
-			channelValue = ((Criterion)channelValue).getMatchValue();
-		}
-		try {
-			for (Method m: getComponent().getClass().getMethods()) {
-				if (!m.getName().equals(method)) {
-					continue;
-				}
-				for (Annotation annotation: m.getDeclaredAnnotations()) {
-					Class<?> annoType = annotation.annotationType();
-					HandlerDefinition hda 
-						= annoType.getAnnotation(HandlerDefinition.class);
-					if (hda == null) {
-						continue;
-					}
-					HandlerDefinition.Evaluator evaluator = defintionEvaluator(hda);
-					if (m.getParameterTypes().length != 0
-							&& !(m.getParameterTypes().length == 1
-								 && Event.class.isAssignableFrom
-								 (m.getParameterTypes()[0]))) {
-						continue;
-					}
-					handlers.add(HandlerReference.newRef(getComponent(), 
-							m, priority == null 
-								? evaluator.getPriority(annotation)
-								: priority.intValue(), 
-							evaluator.getScope
-							(annotation, this, m, 
-							 eventValue == null ? null
-									 : new Object[] {eventValue}, 
-							 channelValue == null ? null
-									 : new Object[] {channelValue})));
-					return;
-				}
-			}
-			throw new IllegalArgumentException
-				("No method named \"" + method + "\" with DynamicHandler"
-						+ " annotation and correct parameter list.");
-		} catch (SecurityException e) {
-			throw (RuntimeException)
-				(new IllegalArgumentException().initCause(e));
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.Manager#addHandler
-	 */
 	@Override
-	public void addHandler(String method, Object eventValue, 
-			Object channelValue, int priority) {
-		addHandler(method, eventValue, channelValue, Integer.valueOf(priority));
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.Manager#addHandler(java.lang.String, java.lang.Object)
-	 */
-	@Override
-	public void addHandler(String method, Object channelValue) {
-		addHandler(method, null, channelValue, null);
+	public void addHandler(Method method, HandlerScope scope, int priority) {
+		handlers.add(HandlerReference.newRef(getComponent(),
+		        method, priority, scope));
 	}
 
 	/* (non-Javadoc)
