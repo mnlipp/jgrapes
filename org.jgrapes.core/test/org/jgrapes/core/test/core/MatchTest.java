@@ -24,7 +24,6 @@ import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.annotation.DynamicHandler;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.junit.Test;
@@ -49,12 +48,12 @@ public class MatchTest {
 		 */
 		public EventCounter() {
 			super(Channel.BROADCAST);
-			DynamicHandler.Evaluator.add
+			Handler.Evaluator.add
 				(this, "onStartedComponent", Start.class, this, 0);
-			DynamicHandler.Evaluator.add(this, "onStart", getChannel());
+			Handler.Evaluator.add(this, "onStart", getChannel());
 		}
 
-		@DynamicHandler
+		@Handler(dynamic=true)
 		public void onStartedComponent(Start event) {
 			startedComponent += 1;
 		}
@@ -64,7 +63,7 @@ public class MatchTest {
 			all += 1;
 		}
 
-		@DynamicHandler
+		@Handler(dynamic=true)
 		public void onStart(Start event) {
 			startedGlobal += 1;
 		}

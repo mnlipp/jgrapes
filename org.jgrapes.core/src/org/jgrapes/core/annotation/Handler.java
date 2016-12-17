@@ -30,10 +30,11 @@ import java.util.Set;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ClassChannel;
+import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.DefaultChannel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
-import org.jgrapes.core.Manager;
 import org.jgrapes.core.Criterion;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
@@ -101,6 +102,15 @@ public @interface Handler {
 	int priority() default 0;
 
 	/**
+	 * Returns {@code true} if the annotated annotation defines a
+	 * dynamic handler. A dynamic handler must be added to the set of
+	 * handlers of a component explicitly.
+	 * 
+	 * @return the result
+	 */
+	boolean dynamic() default false;
+	
+	/**
 	 * This class provides the {@link Evaluator} for the (default)
 	 * {@link Handler} annotation provided by the core package. It 
 	 * implements the behavior as described for the annotation. 
@@ -109,6 +119,17 @@ public @interface Handler {
 	 */
 	public static class Evaluator implements HandlerDefinition.Evaluator {
 
+		@Override
+		public HandlerScope getScope
+			(ComponentType component, Method method, 
+					Object[] eventValues, Object[] channelValues) {
+			Handler annotation = method.getAnnotation(Handler.class);
+			if (annotation.dynamic()) {
+				return null;
+			}
+			return new Scope(component, method, annotation, eventValues, channelValues);
+		}
+		
 		/* (non-Javadoc)
 		 * @see org.jgrapes.core.annotation.HandlerDefinition.Evaluator#getPriority()
 		 */
@@ -117,67 +138,201 @@ public @interface Handler {
 			return ((Handler)annotation).priority();
 		}
 
-		@Override
-		public HandlerScope getScope
-			(Annotation annotation, Manager component, Method method, 
-					Object[] eventValues, Object[] channelValues) {
-			return new Scope(component, method, (Handler)annotation);
+		/**
+		 * Adds the given method of the given component as a 
+		 * dynamic handler for a specific event and channel. The method
+		 * with the given name must be annotated as dynamic handler
+		 * and must have a single argument of type
+		 * {@link Event} (or a derived type as appropriate for the
+		 * event type to be handled).
+		 * 
+		 * @param component the component
+		 * @param method the name of the method that implements the handler
+		 * @param eventKey the event key that should be used for matching
+		 * this handler with an event. This is equivalent to an 
+		 * <code>events</code>/<code>namedEvents</code> parameter
+		 * used with a single value in the handler annotation, but here 
+		 * all kinds of Objects are allowed as key values.
+		 * @param channelKey the channel key that should be used for matching
+		 * this handler with a channel. This is equivalent to a 
+		 * <code>channels</code>/<code>namedChannels</code> parameter
+		 * used with a single value in the handler annotation, but here 
+		 * all kinds of Objects are allowed as key values. If the
+		 * actual object provided is a {@link Channel}, its
+		 * match value is used for matching.
+		 * @param priority the priority of the handler
+		 */
+		public static void add (ComponentType component, String method,
+				Object eventValue, Object channelValue, int priority) {
+			try {
+				if (channelValue instanceof Channel) {
+					channelValue = ((Criterion)channelValue).getMatchValue();
+				}
+				for (Method m: component.getClass().getMethods()) {
+					if (!m.getName().equals(method)) {
+						continue;
+					}
+					if (m.getParameterTypes().length != 0
+							&& !(m.getParameterTypes().length == 1
+								 && Event.class.isAssignableFrom
+								 (m.getParameterTypes()[0]))) {
+						continue;
+					}
+					for (Annotation annotation: m.getDeclaredAnnotations()) {
+						Class<?> annoType = annotation.annotationType();
+						HandlerDefinition hda 
+							= annoType.getAnnotation(HandlerDefinition.class);
+						if (hda == null) {
+							continue;
+						}
+						if (!((Handler)annotation).dynamic()) {
+							continue;
+						}
+						Scope scope = new Scope(component, m, 
+								(Handler)annotation,
+								new Object[] { eventValue },
+								new Object[] { channelValue });
+						Components.manager(component)
+							.addHandler(m, scope, priority);
+						return;
+					}
+				}
+				throw new IllegalArgumentException
+					("No method named \"" + method + "\" with DynamicHandler"
+							+ " annotation and correct parameter list.");
+			} catch (SecurityException e) {
+				throw (RuntimeException)
+					(new IllegalArgumentException().initCause(e));
+			}
 		}
 		
+		/**
+		 * Add a handler like 
+		 * {@link #add(ComponentType, String, Object, Object, int)}
+		 * but take the values for event and priority from the annotation.
+		 * 
+		 * @param component the component
+		 * @param method the name of the method that implements the handler
+		 * @param channelKey the channel key that should be used for matching
+		 * this handler with a channel 
+		 * (see {@link #addHandler(String, Object, Object, int)})
+		 */
+		public static void add(ComponentType component, String method,
+		        Object channelValue) {
+			try {
+				if (channelValue instanceof Channel) {
+					channelValue = ((Criterion)channelValue).getMatchValue();
+				}
+				for (Method m: component.getClass().getMethods()) {
+					if (!m.getName().equals(method)) {
+						continue;
+					}
+					if (m.getParameterTypes().length != 0
+							&& !(m.getParameterTypes().length == 1
+								 && Event.class.isAssignableFrom
+								 (m.getParameterTypes()[0]))) {
+						continue;
+					}
+					for (Annotation annotation: m.getDeclaredAnnotations()) {
+						Class<?> annoType = annotation.annotationType();
+						if (!(annoType.equals(Handler.class))) {
+							continue;
+						}
+						HandlerDefinition hda 
+							= annoType.getAnnotation(HandlerDefinition.class);
+						if (hda == null) {
+							continue;
+						}						
+						if (!((Handler)annotation).dynamic()) {
+							continue;
+						}
+						Scope scope = new Scope(component, m,
+						        (Handler) annotation, null,
+						        new Object[] { channelValue });
+						Components.manager(component).addHandler(m, scope, 
+								((Handler) annotation).priority());
+						return;
+					}
+				}
+				throw new IllegalArgumentException
+					("No method named \"" + method + "\" with DynamicHandler"
+							+ " annotation and correct parameter list.");
+			} catch (SecurityException e) {
+				throw (RuntimeException)
+					(new IllegalArgumentException().initCause(e));
+			}
+		}
+		
+
 		private static class Scope implements HandlerScope {
 
 			private Set<Object> handledEvents = new HashSet<Object>();
 			private Set<Object> handledChannels = new HashSet<Object>();
 
-			public Scope(Manager component, 
-					Method method, Handler annotation) {
-				// Get all event keys from the handler annotation.
-				if (annotation.events()[0] != Handler.NO_EVENT.class) {
-					handledEvents.addAll(Arrays.asList(annotation.events()));
-				}
-				// Get all named events from the annotation and add to event keys.
-				if (!annotation.namedEvents()[0].equals("")) {
-					handledEvents.addAll(Arrays.asList(annotation.namedEvents()));
-				}
-				// If no event types are given, try first parameter.
-				if (handledEvents.isEmpty()) {
-					Class<?>[] paramTypes = method.getParameterTypes();
-					if (paramTypes.length > 0) {
-						if (Event.class.isAssignableFrom(paramTypes[0])) {
-							handledEvents.add(paramTypes[0]);
+			public Scope(ComponentType component, Method method,
+			        Handler annotation, Object[] eventValues,
+			        Object[] channelValues) {
+				if (eventValues != null) {
+					handledEvents.addAll(Arrays.asList(eventValues));
+				} else {
+					// Get all event values from the handler annotation.
+					if (annotation.events()[0] != Handler.NO_EVENT.class) {
+						handledEvents
+						        .addAll(Arrays.asList(annotation.events()));
+					}
+					// Get all named events from the annotation and add to event
+					// keys.
+					if (!annotation.namedEvents()[0].equals("")) {
+						handledEvents.addAll(
+						        Arrays.asList(annotation.namedEvents()));
+					}
+					// If no event types are given, try first parameter.
+					if (handledEvents.isEmpty()) {
+						Class<?>[] paramTypes = method.getParameterTypes();
+						if (paramTypes.length > 0) {
+							if (Event.class.isAssignableFrom(paramTypes[0])) {
+								handledEvents.add(paramTypes[0]);
+							}
 						}
 					}
 				}
 				
-				// Get channel keys from the annotation.
-				boolean addDefaultChannel = false;
-				if (annotation.channels()[0] != Handler.NO_CHANNEL.class) {
-					for (Class<?> c: annotation.channels()) {
-						if (c == Self.class) {
-							if (component instanceof Channel) {
-								handledChannels
-									.add(((Channel)component).getMatchValue());
+				if (channelValues != null) {
+					handledChannels.addAll(Arrays.asList(channelValues));
+				} else {
+					// Get channel values from the annotation.
+					boolean addDefaultChannel = false;
+					if (annotation.channels()[0] != Handler.NO_CHANNEL.class) {
+						for (Class<?> c : annotation.channels()) {
+							if (c == Self.class) {
+								if (component instanceof Channel) {
+									handledChannels
+									        .add(((Channel) component)
+									                .getMatchValue());
+								} else {
+									throw new IllegalArgumentException(
+									    "Canot use channel This.class in "
+										+ "annotation of " + method 
+										+ " because " + getClass().getName()
+									    + " does not implement Channel.");
+								}
+							} else if (c == DefaultChannel.class) {
+								addDefaultChannel = true;
 							} else {
-								throw new IllegalArgumentException
-									("Canot use channel This.class in annotation"
-									 + " of " + method + " because " 
-									 + getClass().getName() 
-									 + " does not implement Channel.");
+								handledChannels.add(c);
 							}
-						} else if (c == DefaultChannel.class) {
-							addDefaultChannel = true;
-						} else {
-							handledChannels.add(c);
 						}
 					}
-				}
-				// Get named channels from annotation and add to channel keys.
-				if (!annotation.namedChannels()[0].equals("")) {
-					handledChannels.addAll
-						(Arrays.asList(annotation.namedChannels()));
-				}
-				if (handledChannels.size() == 0 || addDefaultChannel) {
-					handledChannels.add(component.getChannel().getMatchValue());
+					// Get named channels from annotation and add to channel
+					// keys.
+					if (!annotation.namedChannels()[0].equals("")) {
+						handledChannels.addAll(
+						        Arrays.asList(annotation.namedChannels()));
+					}
+					if (handledChannels.size() == 0 || addDefaultChannel) {
+						handledChannels.add(Components.manager(component)
+						        .getChannel().getMatchValue());
+					}
 				}
 			}
 			

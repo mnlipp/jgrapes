@@ -92,13 +92,18 @@ public abstract class ComponentVertex implements Manager {
 			Class<?> annoType = annotation.annotationType();
 			HandlerDefinition hda 
 				= annoType.getAnnotation(HandlerDefinition.class);
-			if (hda == null || hda.dynamic()) {
+			if (hda == null) {
 				continue;
 			}
 			HandlerDefinition.Evaluator evaluator = defintionEvaluator(hda);
+			HandlerScope scope = evaluator.getScope(getComponent(), m, null,
+			        null);
+			if (scope == null) {
+				continue;
+			}
 			handlers.add(HandlerReference.newRef
 					(getComponent(), m, evaluator.getPriority(annotation),
-							evaluator.getScope(annotation, this, m, null, null)));
+							scope));
 		}
 	}
 

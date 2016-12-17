@@ -25,8 +25,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 
+import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.HandlerScope;
-import org.jgrapes.core.Manager;
 
 /**
  * This annotation marks some other annotation (a.k.a the handler annotation) 
@@ -49,15 +49,6 @@ public @interface HandlerDefinition {
 	Class<? extends Evaluator> evaluator();
 
 	/**
-	 * Returns {@code true} if the annotated annotation defines a
-	 * dynamic handler. A dynamic handler must be added to the set of
-	 * handlers of a component explicitly.
-	 * 
-	 * @return the result
-	 */
-	boolean dynamic() default false;
-	
-	/**
 	 * This interface allows access to the properties defined by
 	 * any handler annotation in a uniform way. Handler annotations
 	 * must specify the scope of a handler, i.e. for which events and
@@ -78,9 +69,12 @@ public @interface HandlerDefinition {
 
 		/**
 		 * Returns the information about the events and channels handled
-		 * by the handler as a {@link HandlerScope} object.
+		 * by the handler as a {@link HandlerScope} object. This method
+		 * is invoked during object initialization. It may return
+		 * {@code null} if a handler is not supposed to be added for
+		 * this method during initialization (dynamic handler,
+		 * see {@link Handler#dynamic()). 
 		 * 
-		 * @param annotation the annotation
 		 * @param component the component
 		 * @param method the annotated method
 		 * @param eventValues event values that can be used in addition
@@ -89,10 +83,11 @@ public @interface HandlerDefinition {
 		 * @param channelValues channel values that can be used in addition
 		 * to or as replacements for the values specified in the
 		 * annotation
-		 * @return the result
+		 * @return the scope or {@code null} if a handler for the method
+		 * should not be created
 		 */
 		HandlerScope getScope
-			(Annotation annotation, Manager component, Method method, 
+			(ComponentType component, Method method, 
 					Object[] eventValues, Object[] channelValues);
 	}
 

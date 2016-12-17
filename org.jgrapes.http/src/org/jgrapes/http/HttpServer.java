@@ -38,7 +38,6 @@ import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;
 import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
-import org.jgrapes.core.annotation.DynamicHandler;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.ConnectRequest;
 import org.jgrapes.http.events.DeleteRequest;
@@ -103,9 +102,9 @@ public class HttpServer extends Component {
 		super(componentChannel);
 		this.networkChannel = networkChannel;
 		this.providedFallbacks = Arrays.asList(fallbacks);
-		DynamicHandler.Evaluator.add
+		Handler.Evaluator.add
 			(this, "onAccepted", networkChannel.getMatchValue());
-		DynamicHandler.Evaluator.add
+		Handler.Evaluator.add
 			(this, "onInput", networkChannel.getMatchValue());
 	}
 
@@ -126,9 +125,9 @@ public class HttpServer extends Component {
 		Server server = new Server(Channel.SELF, serverAddress);
 		networkChannel = server;
 		attach(server);
-		DynamicHandler.Evaluator.add
+		Handler.Evaluator.add
 			(this, "onAccepted", networkChannel.getMatchValue());
-		DynamicHandler.Evaluator.add
+		Handler.Evaluator.add
 			(this, "onInput", networkChannel.getMatchValue());
 	}
 
@@ -140,7 +139,7 @@ public class HttpServer extends Component {
 	 * @param event
 	 *            the accepted event
 	 */
-	@DynamicHandler
+	@Handler(dynamic=true)
 	public void onAccepted(Accepted event) {
 		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
 			new DownSubchannel(channel);
@@ -155,7 +154,7 @@ public class HttpServer extends Component {
 	 * @param event the event
 	 * @throws ProtocolException if a protocol exception occurs
 	 */
-	@DynamicHandler
+	@Handler(dynamic=true)
 	public void onInput(Input<ManagedByteBuffer> event) 
 			throws ProtocolException {
 		IOSubchannel netChannel = event.firstChannel(IOSubchannel.class);

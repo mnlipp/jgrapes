@@ -20,8 +20,6 @@ package org.jgrapes.core;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.jgrapes.core.annotation.DynamicHandler;
-
 /**
  * The interface that provides the methods for manipulating the
  * component hierarchy and for firing events. Every component has
