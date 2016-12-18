@@ -29,12 +29,17 @@ public class TraceRequest extends Request {
 	/**
 	 * Create a new event.
 	 * 
-	 * @param request the request
+	 * @param request the request data
+	 * @param secure indicates whether the request was received on a
+	 * secure channel
+	 * @param matchLevels the number of elements from the request path
+	 * to use in the match value
 	 * @param channels the channels on which the event is to be 
 	 * fired (optional)
 	 */
-	public TraceRequest(HttpRequest request, Channel... channels) {
-		super(request, channels);
+	public TraceRequest(HttpRequest request, boolean secure,
+			int matchLevels, Channel... channels) {
+		super(secure ? "https" : "https", request, matchLevels, channels);
 	}
 
 }

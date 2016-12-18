@@ -80,6 +80,7 @@ public class HttpServer extends Component {
 
 	private Channel networkChannel;
 	private List<Class<? extends Request>> providedFallbacks;
+	private int matchLevels = 1;
 
 	/**
 	 * Create a new server that uses the {@code networkChannel} for network
@@ -129,6 +130,24 @@ public class HttpServer extends Component {
 			(this, "onAccepted", networkChannel.getMatchValue());
 		Handler.Evaluator.add
 			(this, "onInput", networkChannel.getMatchValue());
+	}
+
+	/**
+	 * @return the matchLevels
+	 */
+	public int getMatchLevels() {
+		return matchLevels;
+	}
+
+	/**
+	 * Sets the number of elements from the request path used in the match value
+	 * of the generated events (see {@link Request#getMatchValue()}), defaults
+	 * to 1.
+	 * 
+	 * @param matchLevels the matchLevels to set
+	 */
+	public void setMatchLevels(int matchLevels) {
+		this.matchLevels = matchLevels;
 	}
 
 	/**
@@ -211,33 +230,34 @@ public class HttpServer extends Component {
 	 */
 	private void fireRequest(HttpRequest request, Channel channel) {
 		Request req;
+		boolean secure = false;
 		switch (request.getMethod()) {
 		case "OPTIONS":
-			req = new OptionsRequest(request);
+			req = new OptionsRequest(request, secure, matchLevels);
 			break;
 		case "GET":
-			req = new GetRequest(request);
+			req = new GetRequest(request, secure, matchLevels);
 			break;
 		case "HEAD":
-			req = new HeadRequest(request);
+			req = new HeadRequest(request, secure, matchLevels);
 			break;
 		case "POST":
-			req = new PostRequest(request);
+			req = new PostRequest(request, secure, matchLevels);
 			break;
 		case "PUT":
-			req = new PutRequest(request);
+			req = new PutRequest(request, secure, matchLevels);
 			break;
 		case "DELETE":
-			req = new DeleteRequest(request);
+			req = new DeleteRequest(request, secure, matchLevels);
 			break;
 		case "TRACE":
-			req = new TraceRequest(request);
+			req = new TraceRequest(request, secure, matchLevels);
 			break;
 		case "CONNECT":
-			req = new ConnectRequest(request);
+			req = new ConnectRequest(request, secure, matchLevels);
 			break;
 		default:
-			req = new Request(request);
+			req = new Request(secure ? "https" : "http", request, matchLevels);
 			break;
 		}
 		fire(req, channel);

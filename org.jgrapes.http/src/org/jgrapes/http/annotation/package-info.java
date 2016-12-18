@@ -15,31 +15,9 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.http.events;
-
-import org.jdrupes.httpcodec.protocols.http.HttpRequest;
-import org.jgrapes.core.Channel;
-
 /**
  * @author Michael N. Lipp
  *
  */
-public class ConnectRequest extends Request {
-
-	/**
-	 * Create a new event.
-	 * 
-	 * @param request the request data
-	 * @param secure indicates whether the request was received on a
-	 * secure channel
-	 * @param matchLevels the number of elements from the request path
-	 * to use in the match value
-	 * @param channels the channels on which the event is to be 
-	 * fired (optional)
-	 */
-	public ConnectRequest(HttpRequest request, boolean secure,
-			int matchLevels, Channel... channels) {
-		super(secure ? "https" : "https", request, matchLevels, channels);
-	}
-
-}
+@org.osgi.annotation.versioning.Version("${api_version}")
+package org.jgrapes.http.annotation;

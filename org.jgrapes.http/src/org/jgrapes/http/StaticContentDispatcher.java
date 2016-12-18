@@ -34,6 +34,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
@@ -73,9 +74,10 @@ public class StaticContentDispatcher extends Component {
 		this.prefix = prefix;
 		this.contentDirectory = contentDirectory;
 		handling = Collections.synchronizedMap(new WeakHashMap<>());
+		RequestHandler.Evaluator.add(this, "onGet", prefix.toString());
 	}
 
-	@Handler
+	@RequestHandler(dynamic=true)
 	public void onGet(GetRequest event) throws ParseException, IOException {
 		Path requestPath = Paths
 		        .get(event.getRequest().getRequestUri().getPath());
