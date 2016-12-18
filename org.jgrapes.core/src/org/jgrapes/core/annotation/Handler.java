@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ClassChannel;
@@ -39,6 +40,7 @@ import org.jgrapes.core.Criterion;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.Self;
+import org.jgrapes.core.internal.Common;
 
 /**
  * This annotation marks a method as handler for events. The method is 
@@ -361,7 +363,12 @@ public @interface Handler {
 				builder.append("Scope [");
 				if (handledEvents != null) {
 					builder.append("handledEvents=");
-					builder.append(handledEvents);
+					builder.append(handledEvents.stream().map(v -> {
+						if (v instanceof Class) {
+							return Common.classToString((Class<?>) v);
+						}
+						return v.toString();
+					}).collect(Collectors.toSet()));
 					builder.append(", ");
 				}
 				if (handledChannels != null) {
