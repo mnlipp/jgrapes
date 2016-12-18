@@ -23,9 +23,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
@@ -33,12 +30,10 @@ import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
-import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.StreamFile;
 
 /**
@@ -48,7 +43,6 @@ public class StaticContentDispatcher extends Component {
 
 	private Path prefix;
 	private Path contentDirectory;
-	private Map<IOSubchannel, Object> handling;
 	
 	/**
 	 * @param prefix the prefix that requests must start with to be handled
@@ -73,7 +67,6 @@ public class StaticContentDispatcher extends Component {
 		super(componentChannel);
 		this.prefix = prefix;
 		this.contentDirectory = contentDirectory;
-		handling = Collections.synchronizedMap(new WeakHashMap<>());
 		RequestHandler.Evaluator.add(this, "onGet", prefix.toString());
 	}
 
@@ -98,7 +91,6 @@ public class StaticContentDispatcher extends Component {
 			return;
 		}
 		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
-		handling.put(channel, null);
 		String mimeTypeName = Files.probeContentType(resourcePath);
 		if (mimeTypeName == null) {
 			mimeTypeName = "application/octet-stream";
@@ -117,14 +109,4 @@ public class StaticContentDispatcher extends Component {
 		channel.fire(new StreamFile(resourcePath, StandardOpenOption.READ));
 		event.stop();
 	}
-
-	@Handler
-	public void onOutput(Output<?> event) {
-		if (!event.isEndOfRecord()) {
-			return;
-		}
-		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
-		handling.remove(channel);
-	}
-	
 }
