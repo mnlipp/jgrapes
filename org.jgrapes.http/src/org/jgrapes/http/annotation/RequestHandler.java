@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
@@ -38,6 +39,7 @@ import org.jgrapes.core.Criterion;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler.NO_CHANNEL;
 import org.jgrapes.core.annotation.Handler.NO_EVENT;
+import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.annotation.HandlerDefinition;
 import org.jgrapes.http.events.Request;
 
@@ -294,6 +296,41 @@ public @interface RequestHandler {
 					}
 				}
 				return false;
+			}
+
+			/* (non-Javadoc)
+			 * @see java.lang.Object#toString()
+			 */
+			@Override
+			public String toString() {
+				StringBuilder builder = new StringBuilder();
+				builder.append("Scope [");
+				if (handledEventTypes != null) {
+					builder.append("handledEventTypes=");
+					builder.append(handledEventTypes.stream().map(v -> {
+						if (v instanceof Class) {
+							return Common.classToString((Class<?>) v);
+						}
+						return v.toString();
+					}).collect(Collectors.toSet()));
+					builder.append(", ");
+				}
+				if (handledChannels != null) {
+					builder.append("handledChannels=");
+					builder.append(handledChannels);
+					builder.append(", ");
+				}
+				if (handledProtocols != null) {
+					builder.append("handledProtocols=");
+					builder.append(handledProtocols);
+					builder.append(", ");
+				}
+				if (handledPaths != null) {
+					builder.append("handledPaths=");
+					builder.append(handledPaths);
+				}
+				builder.append("]");
+				return builder.toString();
 			}
 			
 		}
