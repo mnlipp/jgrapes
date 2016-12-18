@@ -193,10 +193,10 @@ class HandlerReference implements Comparable<HandlerReference> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("HandlerReference [");
+		builder.append("Handler [");
 		if (method != null) {
 			builder.append("method=");
-			builder.append(method);
+			builder.append(methodToString());
 			builder.append(", ");
 		}
 		if (filter != null) {
