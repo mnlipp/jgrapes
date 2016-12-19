@@ -17,6 +17,7 @@
  */
 package org.jgrapes.core.internal;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,8 +46,7 @@ class ComponentTree {
 				+ ".handlerTracking");	
 	
 	private ComponentVertex root;
-	private Map<EventChannelsTuple,HandlerList> handlerCache
-		= new HashMap<EventChannelsTuple,HandlerList>();
+	private Map<CacheKey,HandlerList> handlerCache = new HashMap<>();
 	private InternalEventPipeline eventPipeline;
 	private static HandlingErrorPrinter fallbackErrorHandler 
 		= new HandlingErrorPrinter();
@@ -121,10 +121,56 @@ class ComponentTree {
 		HandlerList handlers = getEventHandlers(event, channels);
 		handlers.process(pipeline, event);
 	}
+
+	private static class CacheKey {
+		private Object eventMatchValue;
+		private Object[] channelMatchValues;
+		
+		public CacheKey(EventBase<?> event, Channel[] channels) {
+			eventMatchValue = event.getMatchValue();
+			channelMatchValues = Arrays.stream(channels)
+			        .map(c -> c.getMatchValue()).toArray();
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + Arrays.hashCode(channelMatchValues);
+			result = prime * result + ((eventMatchValue == null) ? 0
+			        : eventMatchValue.hashCode());
+			return result;
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			CacheKey other = (CacheKey) obj;
+			if (!Arrays.equals(channelMatchValues, other.channelMatchValues))
+				return false;
+			if (eventMatchValue == null) {
+				if (other.eventMatchValue != null)
+					return false;
+			} else if (!eventMatchValue.equals(other.eventMatchValue))
+				return false;
+			return true;
+		}
+	}
 	
 	private HandlerList getEventHandlers
 		(EventBase<?> event, Channel[] channels) {
-		EventChannelsTuple key = new EventChannelsTuple(event, channels);
+		CacheKey key = new CacheKey(event, channels);
 		HandlerList hdlrs = handlerCache.get(key);
 		if (hdlrs != null) {
 			return hdlrs;
