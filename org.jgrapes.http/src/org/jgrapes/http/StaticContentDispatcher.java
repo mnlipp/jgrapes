@@ -20,9 +20,10 @@ package org.jgrapes.http;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.StringTokenizer;
 
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
@@ -32,6 +33,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
+import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.StreamFile;
@@ -41,44 +43,55 @@ import org.jgrapes.io.events.StreamFile;
  */
 public class StaticContentDispatcher extends Component {
 
-	private Path prefix;
+	private ResourcePattern resourcePattern;
+	private int pathPrefixElements;
 	private Path contentDirectory;
 	
 	/**
-	 * @param prefix the prefix that requests must start with to be handled
-	 * by this component
+	 * @param resourcePattern the pattern that requests must match with to 
+	 * be handled by this component 
+	 * (see {@link Request#matches(String, java.net.URI)})
 	 * @param contentDirectory the directory with content to serve 
 	 * @see Component#Component()
 	 */
-	public StaticContentDispatcher(Path prefix, Path contentDirectory) {
-		this(Channel.SELF, prefix, contentDirectory);
+	public StaticContentDispatcher(String resourcePattern, 
+			Path contentDirectory) {
+		this(Channel.SELF, resourcePattern, contentDirectory);
 	}
 
 	/**
 	 * @param componentChannel
 	 *            this component's channel
-	 * @param prefix the prefix that requests must start with to be handled
-	 * by this component
+	 * @param resourcePattern the pattern that requests must match with to 
+	 * be handled by this component 
+	 * (see {@link Request#matches(String, java.net.URI)})
 	 * @param contentDirectory the directory with content to serve 
 	 * @see Component#Component(Channel)
 	 */
-	public StaticContentDispatcher(Channel componentChannel, Path prefix,
-	        Path contentDirectory) {
+	public StaticContentDispatcher(Channel componentChannel, 
+			String resourcePattern, Path contentDirectory) {
 		super(componentChannel);
-		this.prefix = prefix;
+		try {
+			this.resourcePattern = new ResourcePattern(resourcePattern);
+		} catch (ParseException e) {
+			throw new IllegalArgumentException(e);
+		}
+		pathPrefixElements = (new StringTokenizer(
+		        this.resourcePattern.getPath(), "/")).countTokens();
 		this.contentDirectory = contentDirectory;
-		RequestHandler.Evaluator.add(this, "onGet", prefix.toString());
+		RequestHandler.Evaluator.add(this, "onGet", resourcePattern);
 	}
 
 	@RequestHandler(dynamic=true)
 	public void onGet(GetRequest event) throws ParseException, IOException {
-		Path requestPath = Paths
-		        .get(event.getRequest().getRequestUri().getPath());
-		if (!requestPath.startsWith(prefix)) {
+		if (!resourcePattern.matches(event.getRequestUri())) {
 			return;
 		}
-		Path resourcePath = contentDirectory
-		        .resolve(prefix.relativize(requestPath));
+		final Path[] assembly = new Path[] { contentDirectory };
+		Arrays.stream(event.getRequestUri().getPath().split("/"))
+		        .skip(pathPrefixElements)
+		        .forEach(e -> assembly[0] = assembly[0].resolve(e));
+		Path resourcePath = assembly[0];
 		if (Files.isDirectory(resourcePath)) {
 			Path indexPath = resourcePath.resolve("index.html");
 			if (Files.isReadable(indexPath)) {

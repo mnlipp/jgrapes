@@ -1,0 +1,117 @@
+/*
+ * JGrapes Event Driven Framework
+ * Copyright (C) 2016  Michael N. Lipp
+ * 
+ * This program is free software; you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation; either version 3 of the License, or 
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ * for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along 
+ * with this program; if not, see <http://www.gnu.org/licenses/>.
+ */
+package org.jgrapes.http.test;
+
+import static org.junit.Assert.*;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.text.ParseException;
+
+import org.jgrapes.http.ResourcePattern;
+import org.junit.Test;
+
+/**
+ * @author Michael N. Lipp
+ *
+ */
+public class UriMatchTest {
+
+	@Test
+	public void testWildcards1() throws URISyntaxException, ParseException {
+		URI request = new URI
+				("http", null, "localhost", 80, "/test", null, null);
+		assertTrue(ResourcePattern.matches("/test", request));
+		assertTrue(ResourcePattern.matches("*/test", request));
+		assertTrue(ResourcePattern.matches("*:*/test", request));
+		assertTrue(ResourcePattern.matches("*://*:*/test", request));
+		assertTrue(ResourcePattern.matches("*://*:*/**", request));
+		assertTrue(ResourcePattern.matches("http://*:*/test", request));
+		assertTrue(ResourcePattern.matches("http,https://*:*/test", request));
+		assertFalse(ResourcePattern.matches("https://*:*/test", request));
+		assertTrue(ResourcePattern.matches("*://localhost/test", request));
+		assertFalse(ResourcePattern.matches("*://otherhost/test", request));
+		assertTrue(ResourcePattern.matches("localhost:*/test", request));
+		assertFalse(ResourcePattern.matches("otherhost:*/test", request));
+		assertTrue(ResourcePattern.matches("*:80/test", request));
+		assertFalse(ResourcePattern.matches("*:8080/test", request));
+	}
+
+	@Test
+	public void testWildcards2() throws URISyntaxException, ParseException {
+		URI request = new URI
+				(null, null, "localhost", 80, "/test", null, null);
+		assertTrue(ResourcePattern.matches("/test", request));
+		assertTrue(ResourcePattern.matches("*/test", request));
+		assertTrue(ResourcePattern.matches("*:*/test", request));
+		assertTrue(ResourcePattern.matches("*://*:*/test", request));
+		assertTrue(ResourcePattern.matches("*://*:*/**", request));
+		assertFalse(ResourcePattern.matches("http://*:*/test", request));
+		assertFalse(ResourcePattern.matches("https://*:*/test", request));
+	}
+
+	@Test
+	public void testWildcards3() throws URISyntaxException, ParseException {
+		URI request = new URI
+				(null, null, null, 80, "/test", null, null);
+		assertTrue(ResourcePattern.matches("/test", request));
+		assertTrue(ResourcePattern.matches("*/test", request));
+		assertTrue(ResourcePattern.matches("*:*/test", request));
+		assertTrue(ResourcePattern.matches("*://*:*/test", request));
+		assertTrue(ResourcePattern.matches("*://*:*/**", request));
+		assertFalse(ResourcePattern.matches("*://localhost/test", request));
+		assertFalse(ResourcePattern.matches("*://localhost:*/test", request));
+	}
+
+	@Test
+	public void testWildcards4() throws URISyntaxException, ParseException {
+		URI request = new URI
+				(null, null, null, -1, "/test", null, null);
+		assertTrue(ResourcePattern.matches("/test", request));
+		assertTrue(ResourcePattern.matches("*/test", request));
+		assertTrue(ResourcePattern.matches("*:*/test", request));
+		assertTrue(ResourcePattern.matches("*://*:*/test", request));
+		assertTrue(ResourcePattern.matches("*://*:*/**", request));
+		assertFalse(ResourcePattern.matches("*://*:80/test", request));
+	}
+
+	@Test
+	public void testPath1() throws URISyntaxException, ParseException {
+		URI request = new URI
+				(null, null, null, -1, "/test", null, null);
+		assertTrue(ResourcePattern.matches("/test", request));
+		assertFalse(ResourcePattern.matches("/", request));
+		assertTrue(ResourcePattern.matches("/*", request));
+		assertTrue(ResourcePattern.matches("/**", request));
+		assertFalse(ResourcePattern.matches("/test/*", request));
+		assertTrue(ResourcePattern.matches("/test/**", request));
+	}
+
+	@Test
+	public void testPath2() throws URISyntaxException, ParseException {
+		URI request = new URI
+				(null, null, null, -1, "/test/Test.html", null, null);
+		assertTrue(ResourcePattern.matches("/test/Test.html", request));
+		assertFalse(ResourcePattern.matches("/", request));
+		assertFalse(ResourcePattern.matches("/*", request));
+		assertTrue(ResourcePattern.matches("/**", request));
+		assertTrue(ResourcePattern.matches("/test/*", request));
+		assertTrue(ResourcePattern.matches("/test/**", request));
+	}
+
+}

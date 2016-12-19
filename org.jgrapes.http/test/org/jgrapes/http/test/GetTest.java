@@ -54,7 +54,7 @@ public class GetTest {
 			RequestHandler.Evaluator.add(this, "getDynamic", "/dynamic");
 		}
 
-		@RequestHandler(paths="/top")
+		@RequestHandler(patterns="*://*/top/**")
 		public void getTop(GetRequest event) throws ParseException {
 			invocations += 1;
 			IOSubchannel channel = event.firstChannel(IOSubchannel.class);

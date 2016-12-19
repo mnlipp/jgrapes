@@ -19,6 +19,7 @@ package org.jgrapes.http.events;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.util.StringTokenizer;
 
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
@@ -27,6 +28,7 @@ import org.jgrapes.core.CompletedEvent;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.internal.Common;
+import org.jgrapes.http.ResourcePattern;
 
 /**
  * @author Michael N. Lipp
@@ -40,6 +42,7 @@ public class Request extends Event<Void> {
 	private HttpRequest request;
 	private URI uri;
 	private MatchValue matchValue;
+	private URI matchUri;
 	
 	/**
 	 * Creates a new request event with the associated {@link Completed}
@@ -60,13 +63,22 @@ public class Request extends Event<Void> {
 					request.getHost(), request.getPort(), null, null, null);
 			uri = headerInfo.resolve(request.getRequestUri());
 			StringTokenizer st = new StringTokenizer(uri.getPath(), "/");
-			StringBuilder matchPath = new StringBuilder();
+			StringBuilder mp = new StringBuilder();
 			for (int i = 0; i < matchLevels && st.hasMoreTokens(); i++) {
-				matchPath.append("/");
-				matchPath.append(st.nextToken());
+				mp.append("/");
+				mp.append(st.nextToken());
 			}
+			if (st.hasMoreTokens()) {
+				mp.append("/**");
+			}
+			String matchPath = mp.toString();
+			matchUri = new URI(uri.getScheme(), null, uri.getHost(),
+			        uri.getPort(), uri.getPath(), null, null);
 			matchValue = new MatchValue(getClass(), 
-					uri.resolve(new URI(matchPath.toString())));
+					(uri.getScheme() != null ? uri.getScheme() : "*")
+					+ "://" + (uri.getHost() != null ? uri.getHost() : "*")
+					+ ":" + (uri.getPort() != -1 ? uri.getPort() : "*")
+					+ matchPath);
 		} catch (URISyntaxException e) {
 			throw new IllegalArgumentException();
 		}
@@ -116,16 +128,14 @@ public class Request extends Event<Void> {
 			return super.isMatchedBy(value);
 		}
 		MatchValue mv = (MatchValue)value;
-		if (!mv.type.isAssignableFrom(getClass())) {
+		if (!mv.type.isAssignableFrom(matchValue.type)) {
 			return false;
 		}
-		String reqPath = request.getRequestUri().getPath();
-		String myPath = mv.resource.getPath();
-		if (myPath.equals(reqPath)) {
-			return true;
+		try {
+			return ResourcePattern.matches(mv.resource, matchUri);
+		} catch (ParseException e) {
+			return false;
 		}
-		return reqPath
-		        .startsWith(myPath.endsWith("/") ? myPath : (myPath + "/"));
 	}
 
 	/* (non-Javadoc)
@@ -152,18 +162,24 @@ public class Request extends Event<Void> {
 		return builder.toString();
 	}
 	
-	private class MatchValue {
+	public static Object createMatchValue(Class<?> type, String resource) {
+		return new MatchValue(type, resource);
+	}
+	
+	private static class MatchValue {
 		private Class<?> type;
-		private URI resource;
+		private String resource;
+
 		/**
 		 * @param type
 		 * @param resource
 		 */
-		public MatchValue(Class<?> type, URI resource) {
+		public MatchValue(Class<?> type, String resource) {
 			super();
 			this.type = type;
 			this.resource = resource;
 		}
+
 		/* (non-Javadoc)
 		 * @see java.lang.Object#hashCode()
 		 */
@@ -171,12 +187,12 @@ public class Request extends Event<Void> {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + getOuterType().hashCode();
 			result = prime * result
 			        + ((resource == null) ? 0 : resource.hashCode());
 			result = prime * result + ((type == null) ? 0 : type.hashCode());
 			return result;
 		}
+
 		/* (non-Javadoc)
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
@@ -189,8 +205,6 @@ public class Request extends Event<Void> {
 			if (getClass() != obj.getClass())
 				return false;
 			MatchValue other = (MatchValue) obj;
-			if (!getOuterType().equals(other.getOuterType()))
-				return false;
 			if (resource == null) {
 				if (other.resource != null)
 					return false;
@@ -203,8 +217,6 @@ public class Request extends Event<Void> {
 				return false;
 			return true;
 		}
-		private Request getOuterType() {
-			return Request.this;
-		}
+		
 	}
 }

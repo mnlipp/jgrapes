@@ -45,9 +45,8 @@ import org.jgrapes.http.events.Request;
 
 /**
  * This annotation marks a method as handler for events. The method is 
- * invoked for events that have a type (or name) matching the given events
- * (or namedEvents) parameter and that are fired on the given
- * channels (or namedChannels). 
+ * invoked for events that have a type derived from {@link Request} and
+ * are matched by one of the specified mask values.
  * 
  * @author Michael N. Lipp
  */
@@ -73,19 +72,11 @@ public @interface RequestHandler {
 	Class<? extends Channel>[] channels() default NO_CHANNEL.class;
 
 	/**
-	 * Specifies names of the protocols that the handler is
-	 * supposed to handle.
+	 * Specifies the patterns that the handler is supposed to handle.
 	 * 
-	 * @return the protocol names
+	 * @return the patterns
 	 */
-	String[] protocols() default "*";
-
-	/**
-	 * Specifies the paths that the handler is supposed to handle.
-	 * 
-	 * @return the protocol names
-	 */
-	String[] paths() default "";
+	String[] patterns() default "";
 
 	/**
 	 * Specifies a priority. The value is used to sort handlers.
@@ -135,15 +126,15 @@ public @interface RequestHandler {
 
 		/**
 		 * Adds the given method of the given component as a 
-		 * dynamic handler for a specific path. Other informations
+		 * dynamic handler for a specific pattern. Other informations
 		 * are taken from the annotation.
 		 * 
 		 * @param component the component
 		 * @param method the name of the method that implements the handler
-		 * @param path the path
+		 * @param pattern the pattern
 		 */
 		public static void add (ComponentType component, String method,
-				String path) {
+				String pattern) {
 			try {
 				for (Method m: component.getClass().getMethods()) {
 					if (!m.getName().equals(method)) {
@@ -165,7 +156,7 @@ public @interface RequestHandler {
 							continue;
 						}
 						Scope scope = new Scope(component, m, 
-								(RequestHandler)annotation, path);
+								(RequestHandler)annotation, pattern);
 						Components.manager(component)
 							.addHandler(m, scope, 
 									((RequestHandler)annotation).priority());
@@ -185,11 +176,10 @@ public @interface RequestHandler {
 
 			private Set<Object> handledEventTypes = new HashSet<>();
 			private Set<Object> handledChannels = new HashSet<>();
-			private Set<String> handledProtocols = new HashSet<>();
-			private Set<String> handledPaths = new HashSet<>();
+			private Set<String> handledPatterns = new HashSet<>();
 
 			public Scope(ComponentType component, 
-					Method method, RequestHandler annotation, String path) {
+					Method method, RequestHandler annotation, String pattern) {
 				// Get all event keys from the handler annotation.
 				if (annotation.events()[0] != NO_EVENT.class) {
 					handledEventTypes.addAll(Arrays.asList(annotation.events()));
@@ -231,20 +221,14 @@ public @interface RequestHandler {
 					        .getChannel().getMatchValue());
 				}
 				
-				// Get all protocol names from the annotation.
-				if (!annotation.protocols()[0].equals("")) {
-					handledProtocols.addAll
-						(Arrays.asList(annotation.protocols()));
-				}
-				
 				// Get all paths from the annotation.
-				if (!annotation.paths()[0].equals("")) {
-					handledPaths.addAll(Arrays.asList(annotation.paths()));
+				if (!annotation.patterns()[0].equals("")) {
+					handledPatterns.addAll(Arrays.asList(annotation.patterns()));
 				}
 				
 				// Add additionally provided path
-				if (path != null) {
-					handledPaths.add(path);
+				if (pattern != null) {
+					handledPatterns.add(pattern);
 				}
 			}
 			
@@ -279,23 +263,9 @@ public @interface RequestHandler {
 				if (!(event instanceof Request)) {
 					return false;
 				}
-				Request request = (Request)event;
-				if (!handledProtocols.contains("*")
-				        && !handledProtocols.contains(
-				                request.getRequestUri().getScheme())) {
-					return false;
-				}
-				String reqPath = request.getRequestUri().getPath();
-				for (String path: handledPaths) {
-					if (path.equals(reqPath)) {
-						return true;
-					}
-					if (reqPath.startsWith(path.endsWith("/")
-							? path : (path + "/"))) {
-						return true;
-					}
-				}
-				return false;
+				return handledPatterns.stream()
+				    .anyMatch(p -> ((Request) event)
+				    .isMatchedBy(Request.createMatchValue(Request.class, p)));
 			}
 
 			/* (non-Javadoc)
@@ -320,14 +290,9 @@ public @interface RequestHandler {
 					builder.append(handledChannels);
 					builder.append(", ");
 				}
-				if (handledProtocols != null) {
-					builder.append("handledProtocols=");
-					builder.append(handledProtocols);
-					builder.append(", ");
-				}
-				if (handledPaths != null) {
-					builder.append("handledPaths=");
-					builder.append(handledPaths);
+				if (handledPatterns != null) {
+					builder.append("handledPatterns=");
+					builder.append(handledPatterns);
 				}
 				builder.append("]");
 				return builder.toString();

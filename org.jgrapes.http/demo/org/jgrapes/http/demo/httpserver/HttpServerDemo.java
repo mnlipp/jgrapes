@@ -50,10 +50,9 @@ public class HttpServerDemo extends Component {
 		        PostRequest.class));
 		app.attach(new FileStorage(app.getChannel()));
 		app.attach(new StaticContentDispatcher(app.getChannel(),
-		        Paths.get("/"), Paths.get("demo-resources/static-content")));
+		        "/", Paths.get("demo-resources/static-content")));
 		app.attach(new StaticContentDispatcher(app.getChannel(),
-		        Paths.get("/doc"), 
-		        Paths.get("../../jgrapes.gh-pages/javadoc")));
+		        "/doc/**", Paths.get("../../jgrapes.gh-pages/javadoc")));
 		Components.start(app);
 	}
 
