@@ -17,6 +17,7 @@
  */
 package org.jgrapes.io.util;
 
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Map;
@@ -52,6 +53,14 @@ import org.jgrapes.io.IOSubchannel;
  * for a given downstream ({@code LinkedIOSubchannel}) when processing response
  * events. For finding the downstream {@code IOSubchannel} for a given upstream
  * connection, the class maintains a mapping in a {@link WeakHashMap}.
+ * <P>
+ * Note that memory management is a bit special here. The 
+ * {@code LinkedIOSubchannel} should exist as long as the subchannel that
+ * it is linked to exists. This subchannel, however, does not have a reference
+ * to the {@code LinkedIOSubchannel}. Unless other references exist, the
+ * existence of the {@code LinkedIOSubchannel} is ensured only by the reference
+ * as value in the {@code WeakHashMap}. This reference will go away when
+ * the upstream subchannel (used as key) goes away.
  * 
  * @author Michael N. Lipp
  */
@@ -61,7 +70,9 @@ public class LinkedIOSubchannel implements IOSubchannel {
 		reverseMap = Collections.synchronizedMap(new WeakHashMap<>());
 
 	final private Manager converterComponent;
-	final private IOSubchannel upstreamChannel;
+	// Must be weak, else there will always be a reference to the 
+	// upstream channel and, though the reverseMap, to this object.
+	final private WeakReference<IOSubchannel> upstreamChannel;
 	final private EventPipeline responsePipeline;
 
 	/**
@@ -101,7 +112,7 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	        IOSubchannel upstreamChannel, boolean addToMap) {
 		super();
 		this.converterComponent = converterComponent;
-		this.upstreamChannel = upstreamChannel;
+		this.upstreamChannel = new WeakReference<>(upstreamChannel);
 		responsePipeline = converterComponent.newEventPipeline();
 		if (addToMap) {
 			reverseMap.put(upstreamChannel, this);
@@ -128,7 +139,7 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	 * @return the upstream channel
 	 */
 	public IOSubchannel getUpstreamChannel() {
-		return upstreamChannel;
+		return upstreamChannel.get();
 	}
 
 	/**
@@ -138,7 +149,8 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	 */
 	@Override
 	public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool() {
-		return upstreamChannel.bufferPool();
+		IOSubchannel up = upstreamChannel.get();
+		return up == null ? null : up.bufferPool();
 	}
 
 	/* (non-Javadoc)
@@ -153,7 +165,7 @@ public class LinkedIOSubchannel implements IOSubchannel {
 		builder.append(" [");
 		if (upstreamChannel != null) {
 			builder.append("―>");
-			builder.append(Common.channelToString(upstreamChannel));
+			builder.append(Common.channelToString(upstreamChannel.get()));
 		}
 		builder.append("]");
 		return builder.toString();
