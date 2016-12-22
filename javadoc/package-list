@@ -3,6 +3,7 @@ org.jgrapes.core.annotation
 org.jgrapes.core.events
 org.jgrapes.core.internal
 org.jgrapes.http
+org.jgrapes.http.annotation
 org.jgrapes.http.events
 org.jgrapes.io
 org.jgrapes.io.events
