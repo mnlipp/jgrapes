@@ -43,10 +43,10 @@ import org.jgrapes.core.Self;
 import org.jgrapes.core.internal.Common;
 
 /**
- * This annotation marks a method as handler for events. The method is 
- * invoked for events that have a type (or name) matching the given events
- * (or namedEvents) parameter and that are fired on the given
- * channels (or namedChannels). 
+ * This is the basic, general purpose handler annotation provided as part of the
+ * core package. The annotated method is invoked for events that have a type (or
+ * name) matching the given events (or namedEvents) parameter and that are fired
+ * on the given channels (or namedChannels).
  * 
  * @author Michael N. Lipp
  */
@@ -113,7 +113,7 @@ public @interface Handler {
 	boolean dynamic() default false;
 	
 	/**
-	 * This class provides the {@link Evaluator} for the (default)
+	 * This class provides the {@link Evaluator} for the 
 	 * {@link Handler} annotation provided by the core package. It 
 	 * implements the behavior as described for the annotation. 
 	 * 
@@ -129,7 +129,8 @@ public @interface Handler {
 			if (annotation == null || annotation.dynamic()) {
 				return null;
 			}
-			return new Scope(component, method, annotation, eventValues, channelValues);
+			return new Scope(component, method, annotation, eventValues,
+			        channelValues);
 		}
 		
 		/* (non-Javadoc)
@@ -141,28 +142,32 @@ public @interface Handler {
 		}
 
 		/**
-		 * Adds the given method of the given component as a 
-		 * dynamic handler for a specific event and channel. The method
-		 * with the given name must be annotated as dynamic handler
-		 * and must have a single argument of type
-		 * {@link Event} (or a derived type as appropriate for the
-		 * event type to be handled).
+		 * Adds the given method of the given component as a dynamic handler for
+		 * a specific event and channel. The method with the given name must be
+		 * annotated as dynamic handler and must have a single argument of type
+		 * {@link Event} (or a derived type as appropriate for the event type to
+		 * be handled).
 		 * 
-		 * @param component the component
-		 * @param method the name of the method that implements the handler
-		 * @param eventKey the event key that should be used for matching
-		 * this handler with an event. This is equivalent to an 
-		 * <code>events</code>/<code>namedEvents</code> parameter
-		 * used with a single value in the handler annotation, but here 
-		 * all kinds of Objects are allowed as key values.
-		 * @param channelKey the channel key that should be used for matching
-		 * this handler with a channel. This is equivalent to a 
-		 * <code>channels</code>/<code>namedChannels</code> parameter
-		 * used with a single value in the handler annotation, but here 
-		 * all kinds of Objects are allowed as key values. If the
-		 * actual object provided is a {@link Channel}, its
-		 * match value is used for matching.
-		 * @param priority the priority of the handler
+		 * @param component
+		 *            the component
+		 * @param method
+		 *            the name of the method that implements the handler
+		 * @param eventValue
+		 *            the event key that should be used for matching this
+		 *            handler with an event. This is equivalent to an
+		 *            <code>events</code>/<code>namedEvents</code> parameter
+		 *            used with a single value in the handler annotation, but
+		 *            here all kinds of Objects are allowed as key values.
+		 * @param channelValue
+		 *            the channel key that should be used for matching this
+		 *            handler with a channel. This is equivalent to a
+		 *            <code>channels</code>/<code>namedChannels</code> parameter
+		 *            used with a single value in the handler annotation, but
+		 *            here all kinds of Objects are allowed as key values. As a
+		 *            convenience, if the actual object provided is a
+		 *            {@link Channel}, its match value is used for matching.
+		 * @param priority
+		 *            the priority of the handler
 		 */
 		public static void add (ComponentType component, String method,
 				Object eventValue, Object channelValue, int priority) {
@@ -214,9 +219,8 @@ public @interface Handler {
 		 * 
 		 * @param component the component
 		 * @param method the name of the method that implements the handler
-		 * @param channelKey the channel key that should be used for matching
+		 * @param channelValue the channel key that should be used for matching
 		 * this handler with a channel 
-		 * (see {@link #addHandler(String, Object, Object, int)})
 		 */
 		public static void add(ComponentType component, String method,
 		        Object channelValue) {
@@ -263,7 +267,11 @@ public @interface Handler {
 			}
 		}
 		
-
+		/**
+		 * The handler scope implementation used by the evaluator.
+		 * 
+		 * @author Michael N. Lipp
+		 */
 		private static class Scope implements HandlerScope {
 
 			private Set<Object> handledEvents = new HashSet<Object>();

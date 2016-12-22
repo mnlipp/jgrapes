@@ -58,14 +58,6 @@ public @interface HandlerDefinition {
 	 * @author Michael N. Lipp
 	 */
 	public interface Evaluator {
-		
-		/**
-		 * Returns the priority defined by the annotation
-		 * 
-		 * @param annotation the annotation
-		 * @return the priority
-		 */
-		int getPriority(Annotation annotation);
 
 		/**
 		 * Returns the information about the events and channels handled
@@ -73,7 +65,7 @@ public @interface HandlerDefinition {
 		 * is invoked during object initialization. It may return
 		 * {@code null} if a handler is not supposed to be added for
 		 * this method during initialization (dynamic handler,
-		 * see {@link Handler#dynamic()). 
+		 * see {@link Handler#dynamic()}). 
 		 * 
 		 * @param component the component
 		 * @param method the annotated method
@@ -89,6 +81,14 @@ public @interface HandlerDefinition {
 		HandlerScope getScope
 			(ComponentType component, Method method, 
 					Object[] eventValues, Object[] channelValues);
+		
+		/**
+		 * Returns the priority defined by the annotation
+		 * 
+		 * @param annotation the annotation
+		 * @return the priority
+		 */
+		int getPriority(Annotation annotation);
 	}
 
 }

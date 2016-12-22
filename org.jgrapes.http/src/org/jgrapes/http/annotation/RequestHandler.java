@@ -41,12 +41,13 @@ import org.jgrapes.core.annotation.Handler.NO_CHANNEL;
 import org.jgrapes.core.annotation.Handler.NO_EVENT;
 import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.annotation.HandlerDefinition;
+import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.events.Request;
 
 /**
  * This annotation marks a method as handler for events. The method is 
  * invoked for events that have a type derived from {@link Request} and
- * are matched by one of the specified mask values.
+ * are matched by one of the specified {@link ResourcePattern}s.
  * 
  * @author Michael N. Lipp
  */
@@ -72,7 +73,8 @@ public @interface RequestHandler {
 	Class<? extends Channel>[] channels() default NO_CHANNEL.class;
 
 	/**
-	 * Specifies the patterns that the handler is supposed to handle.
+	 * Specifies the patterns that the handler is supposed to handle
+	 * (see {@link ResourcePattern}).
 	 * 
 	 * @return the patterns
 	 */

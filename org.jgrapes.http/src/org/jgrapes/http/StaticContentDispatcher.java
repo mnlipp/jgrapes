@@ -50,7 +50,7 @@ public class StaticContentDispatcher extends Component {
 	/**
 	 * @param resourcePattern the pattern that requests must match with to 
 	 * be handled by this component 
-	 * (see {@link Request#matches(String, java.net.URI)})
+	 * (see {@link ResourcePattern#matches(String, java.net.URI)})
 	 * @param contentDirectory the directory with content to serve 
 	 * @see Component#Component()
 	 */
@@ -62,9 +62,9 @@ public class StaticContentDispatcher extends Component {
 	/**
 	 * @param componentChannel
 	 *            this component's channel
-	 * @param resourcePattern the pattern that requests must match with to 
-	 * be handled by this component 
-	 * (see {@link Request#matches(String, java.net.URI)})
+	 * @param resourcePattern the pattern that requests must match 
+	 * in order to be handled by this component 
+	 * (see {@link ResourcePattern#matches(String, java.net.URI)})
 	 * @param contentDirectory the directory with content to serve 
 	 * @see Component#Component(Channel)
 	 */
