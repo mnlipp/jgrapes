@@ -18,8 +18,36 @@
 
 /**
  * This package defines the interfaces and classes that provide
- * the core functionality of JGrapes.
- * <P>
+ * the core functionality of the JGrapes event driven component framework.
+ * 
+ * A JGrapes application consists of a tree of components that interact
+ * using events.
+ * 
+ * ![Sample component tree](ComponentTree.svg)
+ *  
+ * Components can be defined in two ways. Classes can implement the interface
+ * {@link org.jgrapes.core.ComponentType} and provide a special attribute
+ * that allows them to access their component manager
+ * (see the description of the interface {@link org.jgrapes.core.ComponentType}
+ * for details). Alternatively, classes
+ * can inherit from {@link org.jgrapes.core.Component}. This base class
+ * implements {@link org.jgrapes.core.ComponentType} and also provides the 
+ * component manager for the component.
+ *  
+ * ![Example](Components.svg)
+ * 
+ * The {@link org.jgrapes.core.Manager} interface enables the components 
+ * to access the functions of the framework. This includes methods
+ * for manipulating the tree structure 
+ * ({@link org.jgrapes.core.Manager#attach(ComponentType)},
+ * {@link org.jgrapes.core.Manager#detach()} etc.) and methods
+ * for sending and handling events
+ * ({@link org.jgrapes.core.Manager#fire(Event, Channel...)},
+ * {@link org.jgrapes.core.Manager#addHandler(Method, HandlerScope, int)}).
+ * 
+ * Logging
+ * -------
+ * 
  * The package supports some specific (java.util) logging settings.
  * <dl>
  *   <dt>{@code org.jgrapes.core.handlerTracking.level}</dt>
@@ -36,6 +64,42 @@
  *   <dd>If set to {@code FINER}, class names are converted to fully
  *   qualified names in {@code toString()} methods.</dd>
  *   </dl>
+ * 
+ *
+ * @startuml ComponentTree.svg
+ * object Component1 #NavajoWhite
+ * object Component2 #NavajoWhite
+ * object Component3 #NavajoWhite
+ * 
+ * Component1 -- Component2
+ * Component1 -- Component3
+ * 
+ * @enduml
+ * 
+ * @startuml Components.svg
+ * 
+ * interface Manager {
+ *   T attach(T child)
+ *   ComponentType detach()
+ *   List<ComponentType> getChildren()
+ *   ComponentType getParent()
+ *   ComponentType getRoot()
+ *   Channel getChannel()
+ *   Event<T> fire(Event<T> event, Channel[] channels)
+ *   void addHandler(Method method, HandlerScope scope, int priority)
+ * }
+ * interface ComponentType
+ * class ComponentWithOwnBaseClass #NavajoWhite {
+ *   -<<ComponentManager>> manager: Manager 
+ * }
+ * class SomeComponent #NavajoWhite
+ * 
+ * ComponentWithOwnBaseClass *-> "1" Manager
+ * Manager <|-- Component
+ * ComponentType <|-- Component
+ * Component <|-- SomeComponent
+ * ComponentType <|-- ComponentWithOwnBaseClass
+ * @enduml
  * 
  * @author Michael N. Lipp
  */

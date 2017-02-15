@@ -9,6 +9,7 @@ buildscript {
     }
     dependencies {
         classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:3.2.0'
+        classpath 'ch.raffael.pegdown-doclet:pegdown-doclet:1.2'
     }
 }
 
@@ -22,6 +23,8 @@ allprojects {
 subprojects {
 
     apply plugin: 'biz.aQute.bnd.builder'
+
+    tasks.withType(Javadoc).all { enabled = false }
 
     // The builder plugin doesn't provide access to the bnd properties.
     // Provide workaround as properties in extra bnd
@@ -77,9 +80,10 @@ subprojects {
     }
 }
 
-task javadoc(type: Javadoc) {
-    group 'documentation'
-    
+apply plugin: 'ch.raffael.pegdown-doclet'
+
+javadoc {
+
     def javaVersionMatcher = 
         org.gradle.internal.jvm.Jvm.current() =~ 
         /(\d+)\.(\d+)\.(\d+)_(\d+) .*/
