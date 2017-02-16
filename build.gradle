@@ -84,20 +84,9 @@ apply plugin: 'ch.raffael.pegdown-doclet'
 
 javadoc {
 
-    def javaVersionMatcher = 
-        org.gradle.internal.jvm.Jvm.current() =~ 
-        /(\d+)\.(\d+)\.(\d+)_(\d+) .*/
-    if (javaVersionMatcher.matches()) {
-        def major = javaVersionMatcher.group(1).toInteger()
-        def minor = javaVersionMatcher.group(2).toInteger()
-        def patch = javaVersionMatcher.group(3).toInteger()
-        def build = javaVersionMatcher.group(4).toInteger()
-        if (major > 1
-            || major == 1 && minor > 8
-            || major == 1 && minor == 8 && patch > 0
-            || major == 1 && minor == 8 && patch == 0 && build >= 121) {
-            options.addBooleanOption("-allow-script-in-comments", true)
-        }
+    if (javax.tools.ToolProvider.getSystemDocumentationTool()
+        .isSupportedOption("--allow-script-in-comments")) {
+        options.addBooleanOption("-allow-script-in-comments", true)
     }
 
     classpath = files(subprojects.collect {project -> 
