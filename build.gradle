@@ -11,7 +11,7 @@ buildscript {
     }
     dependencies {
         classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:3.2.0'
-        classpath 'org.jdrupes:mdoclet-gradle-plugin:0.1.2'
+        classpath 'org.jdrupes:mdoclet-gradle-plugin:1.0.0'
     }
 }
 
@@ -90,7 +90,8 @@ configurations {
 }
 
 dependencies {
-    javadocTaglets "org.jdrupes:plantuml-taglet:0.1.0"
+    javadocTaglets "org.jdrupes:plantuml-taglet:1.0.0"
+    // javadocTaglets "com.github.mnlipp:jdrupes-taglets:master-SNAPSHOT"
 }
 
 task javadoc(type: Javadoc) {
