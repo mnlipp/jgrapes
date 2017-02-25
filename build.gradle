@@ -5,16 +5,19 @@ import aQute.bnd.osgi.Processor
 
 buildscript {
     repositories {
+        mavenCentral()
         jcenter()
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
         classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:3.2.0'
-        classpath 'ch.raffael.pegdown-doclet:pegdown-doclet:1.2'
+        classpath 'org.jdrupes:mdoclet-gradle-plugin:0.1.2'
     }
 }
 
 allprojects {
     repositories {
+        mavenCentral()
         jcenter()
         maven { url 'https://jitpack.io' }
     }
@@ -80,14 +83,20 @@ subprojects {
     }
 }
 
-apply plugin: 'ch.raffael.pegdown-doclet'
+apply plugin: 'org.jdrupes.mdoclet'
 
-javadoc {
+configurations {
+    javadocTaglets
+}
 
-    if (javax.tools.ToolProvider.getSystemDocumentationTool()
-        .isSupportedOption("--allow-script-in-comments")) {
-        options.addBooleanOption("-allow-script-in-comments", true)
-    }
+dependencies {
+    javadocTaglets "org.jdrupes:plantuml-taglet:0.1.0"
+}
+
+task javadoc(type: Javadoc) {
+
+    options.tagletPath = configurations.javadocTaglets.files as List
+    options.taglets = ["org.jdrupes.taglets.plantUml.Taglet"]
 
     classpath = files(subprojects.collect {project -> 
         project.sourceSets.main.compileClasspath})
@@ -96,5 +105,5 @@ javadoc {
     options.addStringOption("bottom", file("misc/javadoc.bottom.txt").text)
     options.addStringOption("link", "http://docs.oracle.com/javase/8/docs/api/")
     
-    options.addStringOption("tag", "org.osgi.annotation.versioning.Version:x")
+    options.addStringOption("tag", "org.osgi.annotation.versioning.Version:Xp")
 }
