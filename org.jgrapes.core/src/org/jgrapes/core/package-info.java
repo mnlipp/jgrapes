@@ -95,10 +95,10 @@
  * class SomeComponent #NavajoWhite
  * 
  * ComponentWithOwnBaseClass *-> "1" Manager
- * Manager <|-- Component
- * ComponentType <|-- Component
+ * Manager <|.. Component
+ * ComponentType <|.. Component
  * Component <|-- SomeComponent
- * ComponentType <|-- ComponentWithOwnBaseClass
+ * ComponentType <|.. ComponentWithOwnBaseClass
  * @enduml
  * 
  * @author Michael N. Lipp
