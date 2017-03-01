@@ -197,9 +197,9 @@ public class HttpServer extends Component {
 			if (result.isHeaderCompleted()) {
 				fireRequest(engine.currentRequest().get(), downChannel);
 			}
-			if (result.hasResponse()) {
+			if (result.getResponse().isPresent()) {
 				// Error during decoding, send back
-				fire(new Response(result.getResponse()), downChannel);
+				fire(new Response(result.getResponse().get()), downChannel);
 				break;
 			}
 			if (bodyData != null && bodyData.position() > 0) {

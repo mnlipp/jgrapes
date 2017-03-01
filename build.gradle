@@ -5,20 +5,22 @@ import aQute.bnd.osgi.Processor
 
 buildscript {
     repositories {
-        mavenCentral()
         jcenter()
+        mavenCentral()
+		maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url 'https://jitpack.io' }
     }
     dependencies {
         classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:3.2.0'
-        classpath 'org.jdrupes:mdoclet-gradle-plugin:1.0.0'
+        classpath 'org.jdrupes.mdoclet:gradle-plugin:1.0.2'
     }
 }
 
 allprojects {
     repositories {
-        mavenCentral()
         jcenter()
+        mavenCentral()
+		maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url 'https://jitpack.io' }
     }
 }
@@ -90,7 +92,7 @@ configurations {
 }
 
 dependencies {
-    javadocTaglets "org.jdrupes:plantuml-taglet:1.0.0"
+    javadocTaglets "org.jdrupes.taglets:plantuml-taglet:1.0.2"
     // javadocTaglets "com.github.mnlipp:jdrupes-taglets:master-SNAPSHOT"
 }
 
