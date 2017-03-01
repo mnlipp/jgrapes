@@ -104,9 +104,9 @@ task javadoc(type: Javadoc) {
     classpath = files(subprojects.collect {project -> 
         project.sourceSets.main.compileClasspath})
     source subprojects.collect {project -> project.sourceSets.main.allJava } 
-    destinationDir = file("../jgrapes.gh-pages/javadoc")
+	options.addStringOption("overview", "overview.md")
+	inputs.file "overview.md"
     options.addStringOption("bottom", file("misc/javadoc.bottom.txt").text)
     options.addStringOption("link", "http://docs.oracle.com/javase/8/docs/api/")
-    
-    options.addStringOption("tag", "org.osgi.annotation.versioning.Version:Xp")
+	destinationDir = file("../jgrapes.gh-pages/javadoc")
 }
