@@ -20,7 +20,6 @@ package org.jgrapes.http;
 import java.net.URI;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
