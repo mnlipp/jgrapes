@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 
 /**
  * A resource pattern can be used to filter URIs. A pattern looks  
- * similar to a URI (<code>scheme://host:port/path</code>) with the 
+ * similar to a URI (<code>scheme://host:port/paths</code>) with the 
  * following differences:
  * <ul>
  *   <li>The <em>scheme</em> may be a single protocol name or a list
@@ -43,8 +43,9 @@ import java.util.regex.Pattern;
  *   <li>If the scheme part is omitted, the {@code host:port} part may 
  *   completely be left out as well, which is
  *   equivalent to specifiying an asterisk for both host and port.</li>
- *   <li>The path consists of a sequence of names and asterisks separated
- *   by commas. A name must be matched by the corresponding path element of 
+ *   <li>The paths consist of one or more path separated by commas.
+ *   Each path consists of a sequence of names and asterisks separated
+ *   by slashes. A name must be matched by the corresponding path element of 
  *   filtered URIs, an asterisk is matched by any corresponding path element
  *   (which, however, must exist in the filtered URI). The final element in 
  *   the path of a pattern may be two asterisks ({@code **}), which matches 
@@ -67,6 +68,7 @@ public class ResourcePattern {
 	private String host;
 	private String port;
 	private String path;
+	private String[][] pathPatternElements;
 
 	/**
 	 * Creates a new resource pattern.
@@ -83,6 +85,15 @@ public class ResourcePattern {
 		host = m.group("host");
 		port = m.group("port");
 		path = m.group("path");
+		if (path == null) {
+			pathPatternElements = new String[0][];
+		} else {
+			String[] paths = path.split(",");
+			pathPatternElements = new String[paths.length][];
+			for (int i = 0; i < paths.length; i++) {
+				pathPatternElements[i] = paths[i].split("/");
+			}
+		}
 	}
 	
 	/**
@@ -140,25 +151,35 @@ public class ResourcePattern {
 				return false;
 			}
 		}
-		StringTokenizer patternElements = new StringTokenizer(path, "/");
-		StringTokenizer reqElements = new StringTokenizer(resource.getPath(),
-		        "/");
-		while (true) {
-			if (!patternElements.hasMoreTokens()) {
-				return !reqElements.hasMoreElements();
+		String[] reqElements = resource.getPath().split("/");
+		for (int pathIdx = 0; pathIdx < pathPatternElements.length; pathIdx++) {
+			if (matchPath(pathPatternElements[pathIdx], reqElements)) {
+				return true;
 			}
-			String matchElement = patternElements.nextToken();
+		}
+		return false;
+	}
+
+	private boolean matchPath(String[] patternElements, String[] reqElements) {
+		int pIdx = 0;
+		int rIdx = 0;
+		while (true) {
+			if (pIdx == patternElements.length) {
+				return rIdx == reqElements.length;
+			}
+			String matchElement = patternElements[pIdx++];
 			if (matchElement.equals("**")) {
 				return true;
 			}
-			if (!reqElements.hasMoreTokens()) {
+			if (rIdx == reqElements.length) {
 				return false;
 			}
-			String reqElement = reqElements.nextToken();
+			String reqElement = reqElements[rIdx++];
 			if (!matchElement.equals("*") && !matchElement.equals(reqElement)) {
 				return false;
 			}
 		}
+		
 	}
 	
 	/**

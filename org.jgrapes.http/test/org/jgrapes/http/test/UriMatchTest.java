@@ -100,6 +100,8 @@ public class UriMatchTest {
 		assertTrue(ResourcePattern.matches("/**", request));
 		assertFalse(ResourcePattern.matches("/test/*", request));
 		assertTrue(ResourcePattern.matches("/test/**", request));
+		assertFalse(ResourcePattern.matches("/test1/**", request));
+		assertTrue(ResourcePattern.matches("/test1/**,/test/**", request));
 	}
 
 	@Test
