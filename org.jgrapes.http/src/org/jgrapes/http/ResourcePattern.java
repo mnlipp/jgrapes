@@ -56,12 +56,12 @@ import java.util.regex.Pattern;
 public class ResourcePattern {
 
 	private static Pattern resourcePattern = Pattern.compile
-			("^(([^:]+|\\*)://)?" // Optional protocol (2)
+			("^((?<proto>[^:]+|\\*)://)?" // Optional protocol (2)
 			+ "(" // Start of optional host/port part
-				+ "(([^\\[/][^:/]*)|(\\[[^\\]]*\\]))" // Host (4)
-				+ "(:(([0-9]+)|(\\*)))?" // Optional port (8)
+				+ "(?<host>([^\\[/][^:/]*)|(\\[[^\\]]*\\]))" // Host (4)
+				+ "(:(?<port>([0-9]+)|(\\*)))?" // Optional port (8)
 			+ ")?" // End of optional host/port
-			+ "(/.*)?"); // Finally path (11)
+			+ "(?<path>/.*)?"); // Finally path (11)
 	
 	private String protocol;
 	private String host;
@@ -79,10 +79,10 @@ public class ResourcePattern {
 		if (!m.matches()) {
 			throw new ParseException("Invalid pattern: " + pattern, 0);
 		}
-		protocol = m.group(2);
-		host = m.group(4);
-		port = m.group(8);
-		path = m.group(11);
+		protocol = m.group("proto");
+		host = m.group("host");
+		port = m.group("port");
+		path = m.group("path");
 	}
 	
 	/**
