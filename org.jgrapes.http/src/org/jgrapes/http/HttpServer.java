@@ -194,13 +194,15 @@ public class HttpServer extends Component {
 			Decoder.Result<HttpResponse> result = engine.decode(in,
 			        bodyData == null ? null : bodyData.getBacking(),
 			        event.isEndOfRecord());
+			if (result.getResponse().isPresent()) {
+				// Feedback required, send it
+				fire(new Response(result.getResponse().get()), downChannel);
+				if (result.isResponseOnly()) {
+					continue;
+				}
+			}
 			if (result.isHeaderCompleted()) {
 				fireRequest(engine.currentRequest().get(), downChannel);
-			}
-			if (result.getResponse().isPresent()) {
-				// Error during decoding, send back
-				fire(new Response(result.getResponse().get()), downChannel);
-				break;
 			}
 			if (bodyData != null && bodyData.position() > 0) {
 				fire(new Input<>(bodyData, !result.isOverflow() 
