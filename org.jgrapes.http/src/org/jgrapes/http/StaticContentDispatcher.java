@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.StringTokenizer;
 
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
@@ -43,7 +42,6 @@ import org.jgrapes.io.events.StreamFile;
 public class StaticContentDispatcher extends Component {
 
 	private ResourcePattern resourcePattern;
-	private int pathPrefixElements;
 	private Path contentDirectory;
 	
 	/**
@@ -75,20 +73,20 @@ public class StaticContentDispatcher extends Component {
 		} catch (ParseException e) {
 			throw new IllegalArgumentException(e);
 		}
-		pathPrefixElements = (new StringTokenizer(
-		        this.resourcePattern.getPath(), "/")).countTokens();
 		this.contentDirectory = contentDirectory;
 		RequestHandler.Evaluator.add(this, "onGet", resourcePattern);
 	}
 
 	@RequestHandler(dynamic=true)
 	public void onGet(GetRequest event) throws ParseException, IOException {
-		if (!resourcePattern.matches(event.getRequestUri())) {
+		int prefixSegs = resourcePattern.matches(event.getRequestUri());
+		if (prefixSegs < 0) {
 			return;
 		}
+		// Final wrapper for usage in closure
 		final Path[] assembly = new Path[] { contentDirectory };
 		Arrays.stream(event.getRequestUri().getPath().split("/"))
-		        .skip(pathPrefixElements)
+		        .skip(prefixSegs + 1)
 		        .forEach(e -> assembly[0] = assembly[0].resolve(e));
 		Path resourcePath = assembly[0];
 		if (Files.isDirectory(resourcePath)) {

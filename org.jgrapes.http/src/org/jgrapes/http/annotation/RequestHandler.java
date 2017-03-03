@@ -24,6 +24,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -178,7 +179,7 @@ public @interface RequestHandler {
 
 			private Set<Object> handledEventTypes = new HashSet<>();
 			private Set<Object> handledChannels = new HashSet<>();
-			private Set<String> handledPatterns = new HashSet<>();
+			private Set<ResourcePattern> handledPatterns = new HashSet<>();
 
 			public Scope(ComponentType component, 
 					Method method, RequestHandler annotation, String pattern) {
@@ -223,14 +224,20 @@ public @interface RequestHandler {
 					        .getChannel().getMatchValue());
 				}
 				
+				try {
 				// Get all paths from the annotation.
-				if (!annotation.patterns()[0].equals("")) {
-					handledPatterns.addAll(Arrays.asList(annotation.patterns()));
-				}
+					if (!annotation.patterns()[0].equals("")) {
+						for (String p: annotation.patterns()) {
+							handledPatterns.add(new ResourcePattern(p));
+						}
+					}
 				
-				// Add additionally provided path
-				if (pattern != null) {
-					handledPatterns.add(pattern);
+					// Add additionally provided path
+					if (pattern != null) {
+						handledPatterns.add(new ResourcePattern(pattern));
+					}
+				} catch (ParseException e) {
+					throw new IllegalArgumentException(e.getMessage());
 				}
 			}
 			
@@ -265,9 +272,13 @@ public @interface RequestHandler {
 				if (!(event instanceof Request)) {
 					return false;
 				}
-				return handledPatterns.stream()
-				    .anyMatch(p -> ((Request) event)
-				    .isMatchedBy(Request.createMatchValue(Request.class, p)));
+				for (ResourcePattern rp: handledPatterns) {
+					if (((Request)event).isMatchedBy
+						(Request.createMatchValue(Request.class, rp))) {
+						return true;
+					}
+				}
+				return false;
 			}
 
 			/* (non-Javadoc)

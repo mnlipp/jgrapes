@@ -19,7 +19,6 @@ package org.jgrapes.http.events;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.ParseException;
 import java.util.StringTokenizer;
 
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
@@ -75,10 +74,12 @@ public class Request extends Event<Void> {
 			matchUri = new URI(uri.getScheme(), null, uri.getHost(),
 			        uri.getPort(), uri.getPath(), null, null);
 			matchValue = new MatchValue(getClass(), 
-					(uri.getScheme() != null ? uri.getScheme() : "*")
-					+ "://" + (uri.getHost() != null ? uri.getHost() : "*")
-					+ ":" + (uri.getPort() != -1 ? uri.getPort() : "*")
-					+ matchPath);
+					(uri.getScheme() == null ? "" 
+						: (uri.getScheme() + "://"))
+					 + (uri.getHost() == null ? "" 
+						: (uri.getHost() + (uri.getPort() == -1 ? "" 
+							: (":" + uri.getPort()))))
+					 + matchPath);
 		} catch (URISyntaxException e) {
 			throw new IllegalArgumentException();
 		}
@@ -107,7 +108,7 @@ public class Request extends Event<Void> {
 	 * The match value consists of the event class and a URI.
 	 * The URI is similar to the request URI but its path elements
 	 * are shortened as specified in the constructor.
-	 * <P>
+	 * 
 	 * As the match value is used as key in a map that speeds up
 	 * the lookup of handlers, having the complete URI in the match
 	 * value would inflate this map.
@@ -131,11 +132,10 @@ public class Request extends Event<Void> {
 		if (!mv.type.isAssignableFrom(matchValue.type)) {
 			return false;
 		}
-		try {
-			return ResourcePattern.matches(mv.resource, matchUri);
-		} catch (ParseException e) {
-			return false;
+		if (mv.resource instanceof ResourcePattern) {
+			return ((ResourcePattern)mv.resource).matches(matchUri) >= 0;
 		}
+		return mv.resource.equals(matchValue.resource);
 	}
 
 	/* (non-Javadoc)
@@ -162,19 +162,20 @@ public class Request extends Event<Void> {
 		return builder.toString();
 	}
 	
-	public static Object createMatchValue(Class<?> type, String resource) {
+	public static Object createMatchValue
+			(Class<?> type, ResourcePattern resource) {
 		return new MatchValue(type, resource);
 	}
 	
 	private static class MatchValue {
 		private Class<?> type;
-		private String resource;
+		private Object resource;
 
 		/**
 		 * @param type
 		 * @param resource
 		 */
-		public MatchValue(Class<?> type, String resource) {
+		public MatchValue(Class<?> type, Object resource) {
 			super();
 			this.type = type;
 			this.resource = resource;
