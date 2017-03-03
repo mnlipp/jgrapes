@@ -39,7 +39,7 @@ public class PutRequest extends Request {
 	 */
 	public PutRequest(HttpRequest request, boolean secure,
 			int matchLevels, Channel... channels) {
-		super(secure ? "https" : "https", request, matchLevels, channels);
+		super(secure ? "https" : "http", request, matchLevels, channels);
 	}
 
 }

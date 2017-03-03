@@ -39,7 +39,7 @@ public class OptionsRequest extends Request {
 	 */
 	public OptionsRequest(HttpRequest request, boolean secure,
 			int matchLevels, Channel... channels) {
-		super(secure ? "https" : "https", request, matchLevels, channels);
+		super(secure ? "https" : "http", request, matchLevels, channels);
 	}
 
 }
