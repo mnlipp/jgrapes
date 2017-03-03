@@ -21,7 +21,7 @@ import org.jgrapes.core.internal.Common;
 
 /**
  * This class is the root base class for channels that use their class (type)
- * as value for matching (see {@link Criterion}).
+ * as value for matching (see {@link Eligible}).
  * 
  * @author Michael N. Lipp
  */
@@ -32,10 +32,10 @@ public class ClassChannel implements Channel {
 	 * 
 	 * @return the class of this channel
 	 * 
-	 * @see org.jgrapes.core.Criterion#getMatchValue()
+	 * @see org.jgrapes.core.Eligible#getDefaultCriterion()
 	 */
 	@Override
-	public Object getMatchValue() {
+	public Object getDefaultCriterion() {
 		return getClass();
 	}
 
@@ -43,13 +43,13 @@ public class ClassChannel implements Channel {
 	 * Returns <code>true</code> if the <code>value</code>
 	 * is the same class or a base class of this channel's class.
 	 * 
-	 * @see org.jgrapes.core.Criterion#isMatchedBy(java.lang.Object)
+	 * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)
 	 */
 	@Override
-	public boolean isMatchedBy(Object value) {
+	public boolean isEligibleFor(Object value) {
 		return Class.class.isInstance(value) 
 				&& ((Class<?>)value)
-					.isAssignableFrom((Class<?>)getMatchValue());
+					.isAssignableFrom((Class<?>)getDefaultCriterion());
 	}
 
 	/* (non-Javadoc)
@@ -57,7 +57,7 @@ public class ClassChannel implements Channel {
 	 */
 	@Override
 	public int hashCode() {
-		return getMatchValue().hashCode();
+		return getDefaultCriterion().hashCode();
 	}
 
 	/* (non-Javadoc)
@@ -72,10 +72,10 @@ public class ClassChannel implements Channel {
 		if (getClass() != obj.getClass())
 			return false;
 		ClassChannel other = (ClassChannel) obj;
-		if (getMatchValue() == null) {
-			if (other.getMatchValue() != null)
+		if (getDefaultCriterion() == null) {
+			if (other.getDefaultCriterion() != null)
 				return false;
-		} else if (!getMatchValue().equals(other.getMatchValue()))
+		} else if (!getDefaultCriterion().equals(other.getDefaultCriterion()))
 			return false;
 		return true;
 	}
@@ -87,9 +87,9 @@ public class ClassChannel implements Channel {
 	public String toString() {
 		return Common.classToString(getClass())
 				+ " [criterion=" 
-				+ ((getMatchValue() instanceof Class)
-					?  Common.classToString((Class<?>)getMatchValue())
-					: getMatchValue())
+				+ ((getDefaultCriterion() instanceof Class)
+					?  Common.classToString((Class<?>)getDefaultCriterion())
+					: getDefaultCriterion())
 				+ "]";
 	}
 }

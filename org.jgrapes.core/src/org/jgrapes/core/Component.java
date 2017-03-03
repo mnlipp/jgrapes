@@ -95,7 +95,7 @@ public abstract class Component extends ComponentVertex
 	 * Return the object itself as value.
 	 */
 	@Override
-	public Object getMatchValue() {
+	public Object getDefaultCriterion() {
 		return this;
 	}
 
@@ -103,12 +103,12 @@ public abstract class Component extends ComponentVertex
 	 * Matches the object itself (using identity comparison) or the
 	 * {@link Channel} class.
 	 * 
-	 * @see Channel#isMatchedBy(Object)
+	 * @see Channel#isEligibleFor(Object)
 	 */
 	@Override
-	public boolean isMatchedBy(Object value) {
+	public boolean isEligibleFor(Object value) {
 		return value.equals(Channel.class) 
-				|| value == getMatchValue();
+				|| value == getDefaultCriterion();
 	}
 
 }

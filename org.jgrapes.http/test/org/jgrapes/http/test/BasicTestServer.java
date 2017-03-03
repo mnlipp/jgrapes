@@ -47,7 +47,7 @@ public class BasicTestServer extends Component {
 		attach(new HttpServer(getChannel(), networkServer.getChannel(),
 				fallbacks));
 		readyMonitor = new WaitForTests
-			(this, Ready.class, networkServer.getChannel().getMatchValue());
+			(this, Ready.class, networkServer.getChannel().getDefaultCriterion());
 	}
 	
 	public InetSocketAddress getSocketAddress() 

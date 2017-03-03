@@ -33,7 +33,7 @@ import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.Criterion;
+import org.jgrapes.core.Eligible;
 
 /**
  * Provides the implementations of methods to class {@link Event} that
@@ -46,7 +46,7 @@ import org.jgrapes.core.Criterion;
  * 
  * @author Michael N. Lipp
  */
-public abstract class EventBase<T> implements Criterion, Future<T> {
+public abstract class EventBase<T> implements Eligible, Future<T> {
 
 	/** The channels that this event is to be fired on if no
 	 * channels are specified explicitly when firing. */

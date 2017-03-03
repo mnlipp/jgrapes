@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jgrapes.core.ComponentType;
-import org.jgrapes.core.Criterion;
+import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
 
@@ -98,7 +98,7 @@ class HandlerReference implements Comparable<HandlerReference> {
 	 * @param channels the channels
 	 * @return the result
 	 */
-	public boolean handles(Criterion event, Criterion[] channels) {
+	public boolean handles(Eligible event, Eligible[] channels) {
 		return filter.includes(event, channels);
 	}
 	

@@ -113,10 +113,10 @@ public class Request extends Event<Void> {
 	 * the lookup of handlers, having the complete URI in the match
 	 * value would inflate this map.
 	 * 
-	 * @see org.jgrapes.core.Event#getMatchValue()
+	 * @see org.jgrapes.core.Event#getDefaultCriterion()
 	 */
 	@Override
-	public Object getMatchValue() {
+	public Object getDefaultCriterion() {
 		return matchValue;
 	}
 
@@ -124,9 +124,9 @@ public class Request extends Event<Void> {
 	 * @see org.jgrapes.core.Event#isMatchedBy(java.lang.Object)
 	 */
 	@Override
-	public boolean isMatchedBy(Object value) {
+	public boolean isEligibleFor(Object value) {
 		if (!(value instanceof MatchValue)) {
-			return super.isMatchedBy(value);
+			return super.isEligibleFor(value);
 		}
 		MatchValue mv = (MatchValue)value;
 		if (!mv.type.isAssignableFrom(matchValue.type)) {

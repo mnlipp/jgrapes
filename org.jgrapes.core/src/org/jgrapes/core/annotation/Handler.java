@@ -36,7 +36,7 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.DefaultChannel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
-import org.jgrapes.core.Criterion;
+import org.jgrapes.core.Eligible;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.Self;
@@ -173,7 +173,7 @@ public @interface Handler {
 				Object eventValue, Object channelValue, int priority) {
 			try {
 				if (channelValue instanceof Channel) {
-					channelValue = ((Criterion)channelValue).getMatchValue();
+					channelValue = ((Eligible)channelValue).getDefaultCriterion();
 				}
 				for (Method m: component.getClass().getMethods()) {
 					if (!m.getName().equals(method)) {
@@ -226,7 +226,7 @@ public @interface Handler {
 		        Object channelValue) {
 			try {
 				if (channelValue instanceof Channel) {
-					channelValue = ((Criterion)channelValue).getMatchValue();
+					channelValue = ((Eligible)channelValue).getDefaultCriterion();
 				}
 				for (Method m: component.getClass().getMethods()) {
 					if (!m.getName().equals(method)) {
@@ -316,7 +316,7 @@ public @interface Handler {
 								if (component instanceof Channel) {
 									handledChannels
 									        .add(((Channel) component)
-									                .getMatchValue());
+									                .getDefaultCriterion());
 								} else {
 									throw new IllegalArgumentException(
 									    "Canot use channel This.class in "
@@ -339,19 +339,19 @@ public @interface Handler {
 					}
 					if (handledChannels.size() == 0 || addDefaultChannel) {
 						handledChannels.add(Components.manager(component)
-						        .getChannel().getMatchValue());
+						        .getChannel().getDefaultCriterion());
 					}
 				}
 			}
 			
 			@Override
-			public boolean includes(Criterion event, Criterion[] channels) {
+			public boolean includes(Eligible event, Eligible[] channels) {
 				for (Object eventValue: handledEvents) {
-					if (event.isMatchedBy(eventValue)) {
+					if (event.isEligibleFor(eventValue)) {
 						// Found match regarding event, now try channels
-						for (Criterion channel: channels) {
+						for (Eligible channel: channels) {
 							for (Object channelValue: handledChannels) {
-								if (channel.isMatchedBy(channelValue)) {
+								if (channel.isEligibleFor(channelValue)) {
 									return true;
 								}
 							}

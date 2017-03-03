@@ -62,7 +62,7 @@ public class ComponentProxy extends ComponentVertex {
 	private static Channel getComponentChannel(Field field) {
 		ComponentManager cma = field.getAnnotation(ComponentManager.class);
 		if (cma.channel() != Handler.NO_CHANNEL.class) {
-			if (cma.channel() != Channel.BROADCAST.getMatchValue()) {
+			if (cma.channel() != Channel.BROADCAST.getDefaultCriterion()) {
 				try {
 					return cma.channel().newInstance();
 				} catch (InstantiationException | IllegalAccessException e) {

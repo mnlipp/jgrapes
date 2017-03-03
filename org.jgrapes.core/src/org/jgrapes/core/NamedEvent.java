@@ -45,10 +45,10 @@ final public class NamedEvent<T> extends Event<T> {
 	 * 
 	 * @return the name
 	 * 
-	 * @see org.jgrapes.core.Channel#getMatchValue()
+	 * @see org.jgrapes.core.Channel#getDefaultCriterion()
 	 */
 	@Override
-	public Object getMatchValue() {
+	public Object getDefaultCriterion() {
 		return name;
 	}
 
@@ -56,10 +56,10 @@ final public class NamedEvent<T> extends Event<T> {
 	 * Returns <code>true</code> if the <code>value</code>
 	 * is the event class or is equal to the event's name.
 	 * 
-	 * @see org.jgrapes.core.Criterion#isMatchedBy(java.lang.Object)
+	 * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)
 	 */
 	@Override
-	public boolean isMatchedBy(Object value) {
+	public boolean isEligibleFor(Object value) {
 		return value.equals(Event.class) || value.equals(name);
 	}
 

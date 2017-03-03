@@ -127,9 +127,9 @@ class ComponentTree {
 		private Object[] channelMatchValues;
 		
 		public CacheKey(EventBase<?> event, Channel[] channels) {
-			eventMatchValue = event.getMatchValue();
+			eventMatchValue = event.getDefaultCriterion();
 			channelMatchValues = Arrays.stream(channels)
-			        .map(c -> c.getMatchValue()).toArray();
+			        .map(c -> c.getDefaultCriterion()).toArray();
 		}
 		
 		/* (non-Javadoc)

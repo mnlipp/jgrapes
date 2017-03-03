@@ -104,9 +104,9 @@ public class HttpServer extends Component {
 		this.networkChannel = networkChannel;
 		this.providedFallbacks = Arrays.asList(fallbacks);
 		Handler.Evaluator.add
-			(this, "onAccepted", networkChannel.getMatchValue());
+			(this, "onAccepted", networkChannel.getDefaultCriterion());
 		Handler.Evaluator.add
-			(this, "onInput", networkChannel.getMatchValue());
+			(this, "onInput", networkChannel.getDefaultCriterion());
 	}
 
 	/**
@@ -127,9 +127,9 @@ public class HttpServer extends Component {
 		networkChannel = server;
 		attach(server);
 		Handler.Evaluator.add
-			(this, "onAccepted", networkChannel.getMatchValue());
+			(this, "onAccepted", networkChannel.getDefaultCriterion());
 		Handler.Evaluator.add
-			(this, "onInput", networkChannel.getMatchValue());
+			(this, "onInput", networkChannel.getDefaultCriterion());
 	}
 
 	/**
@@ -141,7 +141,7 @@ public class HttpServer extends Component {
 
 	/**
 	 * Sets the number of elements from the request path used in the match value
-	 * of the generated events (see {@link Request#getMatchValue()}), defaults
+	 * of the generated events (see {@link Request#getDefaultCriterion()}), defaults
 	 * to 1.
 	 * 
 	 * @param matchLevels the matchLevels to set

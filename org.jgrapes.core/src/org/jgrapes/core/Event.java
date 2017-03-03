@@ -27,7 +27,7 @@ import org.jgrapes.core.internal.EventBase;
  * used for matching events with handlers. A handler is invoked if the class of
  * the event(s) handled by it is equal to or a base class of the class of the
  * event to be handled. This default behavior can be changed by overriding the
- * methods from {@link Criterion}. See {@link NamedEvent} as an example.
+ * methods from {@link Eligible}. See {@link NamedEvent} as an example.
  * 
  * @param <T>
  *            the result type of the event. Use {@link Void} if handling the
@@ -78,10 +78,10 @@ public class Event<T> extends EventBase<T> {
 	 * 
 	 * @return the class of this event
 	 * 
-	 * @see org.jgrapes.core.Criterion#getMatchValue()
+	 * @see org.jgrapes.core.Eligible#getDefaultCriterion()
 	 */
 	@Override
-	public Object getMatchValue() {
+	public Object getDefaultCriterion() {
 		return getClass();
 	}
 
@@ -89,10 +89,10 @@ public class Event<T> extends EventBase<T> {
 	 * Returns <code>true</code> if the <code>sample</code>
 	 * is the same class or a base class of this event.
 	 * 
-	 * @see org.jgrapes.core.Criterion#isMatchedBy(java.lang.Object)
+	 * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)
 	 */
 	@Override
-	public boolean isMatchedBy(Object value) {
+	public boolean isEligibleFor(Object value) {
 		return Class.class.isInstance(value)
 				&& ((Class<?>)value).isAssignableFrom(getClass());
 	}

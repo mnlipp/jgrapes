@@ -24,7 +24,7 @@ package org.jgrapes.core;
  * For ordinary usage, the implementing classes {@link ClassChannel}
  * and {@link NamedChannel} should be sufficient. If another type of
  * <code>Channel</code> is needed, its implementation of this interface 
- * must make sure that {@link Criterion#isMatchedBy(Object)} returns
+ * must make sure that {@link Eligible#isEligibleFor(Object)} returns
  * <code>true</code> if called with <code>Channel.class</code>
  * as parameter, else channels of the new type will not participate
  * in broadcasts.
@@ -34,7 +34,7 @@ package org.jgrapes.core;
  * @author Michael N. Lipp
  * @see Channel#BROADCAST
  */
-public interface Channel extends Criterion {
+public interface Channel extends Eligible {
 
 	/**
 	 * A special channel object that can be passed to the constructor
@@ -57,7 +57,7 @@ public interface Channel extends Criterion {
 		 * @return <code>Channel.class</code>
 		 */
 		@Override
-		public Object getMatchValue() {
+		public Object getDefaultCriterion() {
 			return Channel.class;
 		}
 
@@ -68,7 +68,7 @@ public interface Channel extends Criterion {
 		 * @return {@code true}
 		 */
 		@Override
-		public boolean isMatchedBy(Object criterion) {
+		public boolean isEligibleFor(Object criterion) {
 			return true;
 		}
 

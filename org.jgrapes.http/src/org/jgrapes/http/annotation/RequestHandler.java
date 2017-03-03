@@ -36,7 +36,7 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.DefaultChannel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
-import org.jgrapes.core.Criterion;
+import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler.NO_CHANNEL;
 import org.jgrapes.core.annotation.Handler.NO_EVENT;
@@ -204,7 +204,7 @@ public @interface RequestHandler {
 						if (c == Self.class) {
 							if (component instanceof Channel) {
 								handledChannels
-									.add(((Channel)component).getMatchValue());
+									.add(((Channel)component).getDefaultCriterion());
 							} else {
 								throw new IllegalArgumentException
 									("Canot use channel This.class in annotation"
@@ -221,7 +221,7 @@ public @interface RequestHandler {
 				}
 				if (handledChannels.size() == 0 || addDefaultChannel) {
 					handledChannels.add(Components.manager(component)
-					        .getChannel().getMatchValue());
+					        .getChannel().getDefaultCriterion());
 				}
 				
 				try {
@@ -242,7 +242,7 @@ public @interface RequestHandler {
 			}
 			
 			@Override
-			public boolean includes(Criterion event, Criterion[] channels) {
+			public boolean includes(Eligible event, Eligible[] channels) {
 				boolean match = false;
 				for (Object eventType: handledEventTypes) {
 					if (Class.class.isInstance(eventType)
@@ -258,9 +258,9 @@ public @interface RequestHandler {
 				}
 				match = false;
 				// Try channels
-				for (Criterion channel: channels) {
+				for (Eligible channel: channels) {
 					for (Object channelValue: handledChannels) {
-						if (channel.isMatchedBy(channelValue)) {
+						if (channel.isEligibleFor(channelValue)) {
 							match = true;
 							break;
 						}
@@ -273,7 +273,7 @@ public @interface RequestHandler {
 					return false;
 				}
 				for (ResourcePattern rp: handledPatterns) {
-					if (((Request)event).isMatchedBy
+					if (((Request)event).isEligibleFor
 						(Request.createMatchValue(Request.class, rp))) {
 						return true;
 					}

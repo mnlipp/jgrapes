@@ -21,7 +21,7 @@ import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
 
 /**
  * This interface allows to verify whether a given
- * event fired on given channels is handled by a handler.
+ * event fired on one of the given channels is handled by a handler.
  * Instances of this interface are provided by the 
  * {@link Evaluator}s for handler annotations.
  * 
@@ -29,6 +29,6 @@ import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
  */
 public interface HandlerScope {
 
-	boolean includes (Criterion event, Criterion[] channels);
+	boolean includes (Eligible event, Eligible[] channels);
 	
 }
