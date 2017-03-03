@@ -11,7 +11,7 @@ three packages.
 `org.jgrapes.core`
 : This package provides the basic mechanisms for defining
     components and for handling events. See the
-    <a href="org/jgrapes/core/package-summary.html">package description</a>
+    <a href="org/jgrapes/core/package-summary.html#package.description">package description</a>
     for details.
 
 @startuml package-hierarchy.svg
