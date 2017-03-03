@@ -23,6 +23,9 @@ allprojects {
 		maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url 'https://jitpack.io' }
     }
+	
+	// Makes Eclipse-groovy handle *.gradle file properly
+	apply plugin:'groovy'
 }
 
 subprojects {
@@ -96,7 +99,7 @@ dependencies {
     // javadocTaglets "com.github.mnlipp:jdrupes-taglets:master-SNAPSHOT"
 }
 
-task javadoc(type: Javadoc) {
+javadoc {
 
     options.tagletPath = configurations.javadocTaglets.files as List
     options.taglets = ["org.jdrupes.taglets.plantUml.Taglet"]
