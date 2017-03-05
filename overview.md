@@ -6,7 +6,7 @@ JGrapes
 JGrapes is an event driven component framework. It consists of
 three packages.
 
-![Package hierarchy](package-hierarchy.svg)
+<object type="image/svg+xml" data="package-hierarchy.svg">Package hierarchy</object>
 
 `org.jgrapes.core`
 : This package provides the basic mechanisms for defining
@@ -17,13 +17,13 @@ three packages.
 @startuml package-hierarchy.svg
 
 package org.jgrapes {
-    package org.jgrapes.core {
+    package org.jgrapes.core [[org/jgrapes/core/package-summary.html#package.description]] {
     }
 
-    package org.jgrapes.io {
+    package org.jgrapes.io [[org/jgrapes/io/package-summary.html#package.description]] {
     }
 
-    package org.jgrapes.http {
+    package org.jgrapes.http [[org/jgrapes/http/package-summary.html#package.description]] {
     }
 }
 
