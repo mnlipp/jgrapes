@@ -15,6 +15,7 @@ three packages.
     for details.
 
 @startuml package-hierarchy.svg
+skinparam svgLinkTarget _parent
 
 package org.jgrapes {
     package org.jgrapes.core [[org/jgrapes/core/package-summary.html#package.description]] {
