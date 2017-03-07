@@ -15,9 +15,8 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.http.test;
 
-import static org.junit.Assert.fail;
+package org.jgrapes.http.test;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -30,6 +29,8 @@ import org.jgrapes.http.events.Request;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Ready;
+
+import static org.junit.Assert.fail;
 
 /**
  * @author Michael N. Lipp
@@ -46,8 +47,8 @@ public class BasicTestServer extends Component {
 		Server networkServer = attach(new Server(null));
 		attach(new HttpServer(getChannel(), networkServer.getChannel(),
 				fallbacks));
-		readyMonitor = new WaitForTests
-			(this, Ready.class, networkServer.getChannel().getDefaultCriterion());
+		readyMonitor = new WaitForTests(
+				this, Ready.class, networkServer.getChannel().getDefaultCriterion());
 	}
 	
 	public InetSocketAddress getSocketAddress() 

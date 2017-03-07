@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.http;
 
 import java.io.IOException;
@@ -24,10 +25,10 @@ import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.util.Arrays;
 
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
-import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.http.annotation.RequestHandler;
@@ -100,7 +101,7 @@ public class StaticContentDispatcher extends Component {
 		if (!Files.isReadable(resourcePath)) {
 			return;
 		}
-		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
+		final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		String mimeTypeName = Files.probeContentType(resourcePath);
 		if (mimeTypeName == null) {
 			mimeTypeName = "application/octet-stream";
@@ -115,7 +116,7 @@ public class StaticContentDispatcher extends Component {
 		response.setStatus(HttpStatus.OK);
 		response.setMessageHasBody(true);
 		response.setField(contentType);
-		channel.fire (new Response(response));
+		channel.fire(new Response(response));
 		channel.fire(new StreamFile(resourcePath, StandardOpenOption.READ));
 		event.stop();
 	}

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.http;
 
 import java.net.URI;
@@ -70,8 +71,8 @@ import java.util.regex.Pattern;
  */
 public class ResourcePattern {
 
-	private static Pattern resourcePattern = Pattern.compile
-			("^((?<proto>[^:]+|\\*)://)?" // Optional protocol (2)
+	private static Pattern resourcePattern = Pattern.compile(
+			"^((?<proto>[^:]+|\\*)://)?" // Optional protocol (2)
 			+ "(" // Start of optional host/port part
 				+ "(?<host>([^\\[/][^:/]*)|(\\[[^\\]]*\\]))" // Host (4)
 				+ "(:(?<port>([0-9]+)|(\\*)))?" // Optional port (8)
@@ -94,14 +95,14 @@ public class ResourcePattern {
 	 */
 	public ResourcePattern(String pattern) throws ParseException {
 		this.pattern = pattern;
-		Matcher m = resourcePattern.matcher(pattern);
-		if (!m.matches()) {
+		Matcher rpm = resourcePattern.matcher(pattern);
+		if (!rpm.matches()) {
 			throw new ParseException("Invalid pattern: " + pattern, 0);
 		}
-		protocol = m.group("proto");
-		host = m.group("host");
-		port = m.group("port");
-		path = m.group("path");
+		protocol = rpm.group("proto");
+		host = rpm.group("host");
+		port = rpm.group("port");
+		path = rpm.group("path");
 		if (path == null) {
 			pathPatternElements = new String[0][];
 		} else {
@@ -195,8 +196,8 @@ public class ResourcePattern {
 			}
 		}
 		
-		String[] reqElements = Collections.list
-				(new StringTokenizer(resource.getPath(), "/"))
+		String[] reqElements = Collections.list(
+				new StringTokenizer(resource.getPath(), "/"))
 				.toArray(new String[0]);
 		for (int pathIdx = 0; pathIdx < pathPatternElements.length; pathIdx++) {
 			if (matchPath(pathPatternElements[pathIdx], reqElements)) {
@@ -206,28 +207,6 @@ public class ResourcePattern {
 		return -1;
 	}
 
-	private boolean matchPath(String[] patternElements, String[] reqElements) {
-		int pIdx = 0;
-		int rIdx = 0;
-		while (true) {
-			if (pIdx == patternElements.length) {
-				return rIdx == reqElements.length;
-			}
-			String matchElement = patternElements[pIdx++];
-			if (matchElement.equals("**")) {
-				return true;
-			}
-			if (rIdx == reqElements.length) {
-				return false;
-			}
-			String reqElement = reqElements[rIdx++];
-			if (!matchElement.equals("*") && !matchElement.equals(reqElement)) {
-				return false;
-			}
-		}
-		
-	}
-	
 	/**
 	 * Matches the given pattern against the given resource URI.
 	 * 
@@ -241,6 +220,28 @@ public class ResourcePattern {
 		return (new ResourcePattern(pattern)).matches(resource) >= 0;
 	}
 
+	private boolean matchPath(String[] patternElements, String[] reqElements) {
+		int pathIdx = 0;
+		int reqIdx = 0;
+		while (true) {
+			if (pathIdx == patternElements.length) {
+				return reqIdx == reqElements.length;
+			}
+			String matchElement = patternElements[pathIdx++];
+			if (matchElement.equals("**")) {
+				return true;
+			}
+			if (reqIdx == reqElements.length) {
+				return false;
+			}
+			String reqElement = reqElements[reqIdx++];
+			if (!matchElement.equals("*") && !matchElement.equals(reqElement)) {
+				return false;
+			}
+		}
+		
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -269,18 +270,23 @@ public class ResourcePattern {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		ResourcePattern other = (ResourcePattern) obj;
 		if (pattern == null) {
-			if (other.pattern != null)
+			if (other.pattern != null) {
 				return false;
-		} else if (!pattern.equals(other.pattern))
+			}
+		} else if (!pattern.equals(other.pattern)) {
 			return false;
+		}
 		return true;
 	}
 	

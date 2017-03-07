@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.http;
 
 import java.io.UnsupportedEncodingException;
@@ -29,11 +30,11 @@ import org.jdrupes.httpcodec.Codec;
 import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.ServerEngine;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
-import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;
 import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
 import org.jgrapes.core.Channel;
@@ -73,8 +74,8 @@ public class HttpServer extends Component {
 
 		public DownSubchannel(IOSubchannel upstreamChannel) {
 			super(HttpServer.this, upstreamChannel);
-			engine = new ServerEngine<>
-				(new HttpRequestDecoder(), new HttpResponseEncoder());
+			engine = new ServerEngine<>(
+					new HttpRequestDecoder(), new HttpResponseEncoder());
 		}
 	}
 
@@ -103,10 +104,10 @@ public class HttpServer extends Component {
 		super(componentChannel);
 		this.networkChannel = networkChannel;
 		this.providedFallbacks = Arrays.asList(fallbacks);
-		Handler.Evaluator.add
-			(this, "onAccepted", networkChannel.getDefaultCriterion());
-		Handler.Evaluator.add
-			(this, "onInput", networkChannel.getDefaultCriterion());
+		Handler.Evaluator.add(
+				this, "onAccepted", networkChannel.getDefaultCriterion());
+		Handler.Evaluator.add(
+				this, "onInput", networkChannel.getDefaultCriterion());
 	}
 
 	/**
@@ -126,10 +127,10 @@ public class HttpServer extends Component {
 		Server server = new Server(Channel.SELF, serverAddress);
 		networkChannel = server;
 		attach(server);
-		Handler.Evaluator.add
-			(this, "onAccepted", networkChannel.getDefaultCriterion());
-		Handler.Evaluator.add
-			(this, "onInput", networkChannel.getDefaultCriterion());
+		Handler.Evaluator.add(
+				this, "onAccepted", networkChannel.getDefaultCriterion());
+		Handler.Evaluator.add(
+				this, "onInput", networkChannel.getDefaultCriterion());
 	}
 
 	/**
@@ -289,8 +290,8 @@ public class HttpServer extends Component {
 		while (true) {
 			downChannel.outBuffer = netChannel.bufferPool().acquire();
 			final ManagedByteBuffer buffer = downChannel.outBuffer;
-			Codec.Result result = engine.encode
-					(Codec.EMPTY_IN, buffer.getBacking(), false);
+			Codec.Result result = engine.encode(
+					Codec.EMPTY_IN, buffer.getBacking(), false);
 			if (result.isOverflow()) {
 				fire(new Output<>(buffer, false), netChannel);
 				continue;
@@ -418,7 +419,7 @@ public class HttpServer extends Component {
 		        || !providedFallbacks.contains(event.getClass())) {
 			return;
 		}
-		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
+		final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		
 		final HttpResponse response = event.getRequest().getResponse().get();
 		response.setStatus(HttpStatus.NOT_FOUND);
@@ -431,6 +432,7 @@ public class HttpServer extends Component {
 		try {
 			fire(Output.wrap("Not Found".getBytes("utf-8"), true), channel);
 		} catch (UnsupportedEncodingException e) {
+			// Supported by definition
 		}
 		event.stop();
 	}

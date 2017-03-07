@@ -1,7 +1,5 @@
 package org.jgrapes.http.test;
 
-import static org.junit.Assert.*;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
@@ -13,6 +11,8 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.http.events.GetRequest;
 import org.junit.AfterClass;
+
+import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -27,17 +27,17 @@ public class NotFoundTests {
 
 	}
 	
-	static private TestServer server;
+	private static TestServer server;
 	
 	@BeforeClass
-	static public void startServer() throws IOException, InterruptedException, 
+	public static void startServer() throws IOException, InterruptedException, 
 			ExecutionException {
 		server = new TestServer();
 		Components.start(server);
 	}
 	
 	@AfterClass
-	static public void stopServer() throws InterruptedException {
+	public static void stopServer() throws InterruptedException {
 		server.fire(new Stop(), Channel.BROADCAST);
 		Components.awaitExhaustion();
 		Components.checkAssertions();
@@ -58,6 +58,7 @@ public class NotFoundTests {
 						reader.interrupt();
 					}
 				} catch (InterruptedException e) {
+					// Okay
 				}
 			}
 		};
@@ -69,6 +70,7 @@ public class NotFoundTests {
 			conn.getInputStream();
 			fail();
 		} catch (FileNotFoundException e) {
+			// Expected
 		} finally {
 			watchdog.interrupt();
 		}

@@ -1,7 +1,5 @@
 package org.jgrapes.http.test;
 
-import static org.junit.Assert.*;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -25,7 +23,10 @@ import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Output;
+
 import org.junit.AfterClass;
+
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,8 +42,8 @@ public class GetTest {
 
 	}
 	
-	static private TestServer server;
-	static private ContentProvider contentProvider;
+	private static TestServer server;
+	private static ContentProvider contentProvider;
 	
 	public static class ContentProvider extends Component {
 		
@@ -57,7 +58,7 @@ public class GetTest {
 		@RequestHandler(patterns="*://*/top/**")
 		public void getTop(GetRequest event) throws ParseException {
 			invocations += 1;
-			IOSubchannel channel = event.firstChannel(IOSubchannel.class);
+			final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 			
 			final HttpResponse response = event.getRequest().getResponse().get();
 			response.setStatus(HttpStatus.OK);
@@ -70,6 +71,7 @@ public class GetTest {
 			try {
 				fire(Output.wrap("Top!".getBytes("utf-8"), true), channel);
 			} catch (UnsupportedEncodingException e) {
+				// Supported by definition
 			}
 			event.stop();
 		}
@@ -77,7 +79,7 @@ public class GetTest {
 		@RequestHandler(dynamic=true)
 		public void getDynamic(GetRequest event) throws ParseException {
 			invocations += 1;
-			IOSubchannel channel = event.firstChannel(IOSubchannel.class);
+			final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 			
 			final HttpResponse response = event.getRequest().getResponse().get();
 			response.setStatus(HttpStatus.OK);
@@ -90,6 +92,7 @@ public class GetTest {
 			try {
 				fire(Output.wrap("Dynamic!".getBytes("utf-8"), true), channel);
 			} catch (UnsupportedEncodingException e) {
+				// Supported by definition
 			}
 			event.stop();
 		}
@@ -97,7 +100,7 @@ public class GetTest {
 	}
 	
 	@BeforeClass
-	static public void startServer() throws IOException, InterruptedException, 
+	public static void startServer() throws IOException, InterruptedException, 
 			ExecutionException {
 		server = new TestServer();
 		server.attach(new ContentProvider(server.getChannel()));
@@ -110,7 +113,7 @@ public class GetTest {
 	}
 	
 	@AfterClass
-	static public void stopServer() throws InterruptedException {
+	public static void stopServer() throws InterruptedException {
 		server.fire(new Stop(), Channel.BROADCAST);
 		Components.awaitExhaustion();
 		Components.checkAssertions();
@@ -131,6 +134,7 @@ public class GetTest {
 						reader.interrupt();
 					}
 				} catch (InterruptedException e) {
+					// Okay
 				}
 			}
 		};
@@ -142,6 +146,7 @@ public class GetTest {
 			conn.getInputStream();
 			fail();
 		} catch (FileNotFoundException e) {
+			// Expected
 		} finally {
 			watchdog.interrupt();
 		}
@@ -163,6 +168,7 @@ public class GetTest {
 						reader.interrupt();
 					}
 				} catch (InterruptedException e) {
+					// Okay
 				}
 			}
 		};
@@ -173,8 +179,8 @@ public class GetTest {
 			conn.setReadTimeout(1000);
 			try (BufferedReader br = new BufferedReader(
 			        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-				String s = br.lines().findFirst().get();
-				assertEquals("Top!", s);
+				String str = br.lines().findFirst().get();
+				assertEquals("Top!", str);
 			}
 		} finally {
 			watchdog.interrupt();
@@ -197,6 +203,7 @@ public class GetTest {
 						reader.interrupt();
 					}
 				} catch (InterruptedException e) {
+					// Okay
 				}
 			}
 		};
@@ -227,6 +234,7 @@ public class GetTest {
 						reader.interrupt();
 					}
 				} catch (InterruptedException e) {
+					// Okay
 				}
 			}
 		};
@@ -237,8 +245,8 @@ public class GetTest {
 			conn.setReadTimeout(1000);
 			try (BufferedReader br = new BufferedReader(
 			        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-				String s = br.lines().findFirst().get();
-				assertEquals("Dynamic!", s);
+				String str = br.lines().findFirst().get();
+				assertEquals("Dynamic!", str);
 			}
 		} finally {
 			watchdog.interrupt();

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.http.annotation;
 
 import java.lang.annotation.Annotation;
@@ -34,14 +35,14 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.DefaultChannel;
+import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
-import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler.NoChannel;
 import org.jgrapes.core.annotation.Handler.NoEvent;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.annotation.HandlerDefinition;
+import org.jgrapes.core.internal.Common;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.events.Request;
 
@@ -115,9 +116,9 @@ public @interface RequestHandler {
 		}
 
 		@Override
-		public HandlerScope getScope
-			(ComponentType component, Method method, 
-					Object[] eventValues, Object[] channelValues) {
+		public HandlerScope getScope(
+				ComponentType component, Method method, 
+				Object[] eventValues, Object[] channelValues) {
 			RequestHandler annotation 
 				= method.getAnnotation(RequestHandler.class);
 			if (annotation.dynamic()) {
@@ -136,7 +137,7 @@ public @interface RequestHandler {
 		 * @param method the name of the method that implements the handler
 		 * @param pattern the pattern
 		 */
-		public static void add (ComponentType component, String method,
+		public static void add(ComponentType component, String method,
 				String pattern) {
 			try {
 				for (Method m: component.getClass().getMethods()) {
@@ -145,8 +146,8 @@ public @interface RequestHandler {
 					}
 					if (m.getParameterTypes().length != 0
 							&& !(m.getParameterTypes().length == 1
-								 && Event.class.isAssignableFrom
-								 (m.getParameterTypes()[0]))) {
+								 && Event.class.isAssignableFrom(
+										 m.getParameterTypes()[0]))) {
 						continue;
 					}
 					for (Annotation annotation: m.getDeclaredAnnotations()) {
@@ -166,9 +167,9 @@ public @interface RequestHandler {
 						return;
 					}
 				}
-				throw new IllegalArgumentException
-					("No method named \"" + method + "\" with DynamicHandler"
-							+ " annotation and correct parameter list.");
+				throw new IllegalArgumentException(
+						"No method named \"" + method + "\" with DynamicHandler"
+						+ " annotation and correct parameter list.");
 			} catch (SecurityException e) {
 				throw (RuntimeException)
 					(new IllegalArgumentException().initCause(e));
@@ -206,11 +207,11 @@ public @interface RequestHandler {
 								handledChannels
 									.add(((Channel)component).getDefaultCriterion());
 							} else {
-								throw new IllegalArgumentException
-									("Canot use channel This.class in annotation"
-									 + " of " + method + " because " 
-									 + getClass().getName() 
-									 + " does not implement Channel.");
+								throw new IllegalArgumentException(
+									"Canot use channel This.class in annotation"
+									+ " of " + method + " because " 
+									+ getClass().getName() 
+									+ " does not implement Channel.");
 							}
 						} else if (c == DefaultChannel.class) {
 							addDefaultChannel = true;
@@ -273,8 +274,8 @@ public @interface RequestHandler {
 					return false;
 				}
 				for (ResourcePattern rp: handledPatterns) {
-					if (((Request)event).isEligibleFor
-						(Request.createMatchValue(Request.class, rp))) {
+					if (((Request)event).isEligibleFor(
+							Request.createMatchValue(Request.class, rp))) {
 						return true;
 					}
 				}

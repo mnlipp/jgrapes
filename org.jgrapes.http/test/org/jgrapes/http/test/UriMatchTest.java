@@ -15,15 +15,16 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.http.test;
 
-import static org.junit.Assert.*;
+package org.jgrapes.http.test;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 
 import org.jgrapes.http.ResourcePattern;
+
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**
@@ -34,8 +35,8 @@ public class UriMatchTest {
 
 	@Test
 	public void testWildcards1() throws URISyntaxException, ParseException {
-		URI request = new URI
-				("http", null, "localhost", 80, "/test", null, null);
+		URI request = new URI(
+				"http", null, "localhost", 80, "/test", null, null);
 		assertTrue(ResourcePattern.matches("/test", request));
 		assertTrue(ResourcePattern.matches("*/test", request));
 		assertTrue(ResourcePattern.matches("*:*/test", request));
@@ -54,8 +55,8 @@ public class UriMatchTest {
 
 	@Test
 	public void testWildcards2() throws URISyntaxException, ParseException {
-		URI request = new URI
-				(null, null, "localhost", 80, "/test", null, null);
+		URI request = new URI(
+				null, null, "localhost", 80, "/test", null, null);
 		assertTrue(ResourcePattern.matches("/test", request));
 		assertTrue(ResourcePattern.matches("*/test", request));
 		assertTrue(ResourcePattern.matches("*:*/test", request));
@@ -67,8 +68,8 @@ public class UriMatchTest {
 
 	@Test
 	public void testWildcards3() throws URISyntaxException, ParseException {
-		URI request = new URI
-				(null, null, null, 80, "/test", null, null);
+		URI request = new URI(
+				null, null, null, 80, "/test", null, null);
 		assertTrue(ResourcePattern.matches("/test", request));
 		assertTrue(ResourcePattern.matches("*/test", request));
 		assertTrue(ResourcePattern.matches("*:*/test", request));
@@ -80,8 +81,8 @@ public class UriMatchTest {
 
 	@Test
 	public void testWildcards4() throws URISyntaxException, ParseException {
-		URI request = new URI
-				(null, null, null, -1, "/test", null, null);
+		URI request = new URI(
+				null, null, null, -1, "/test", null, null);
 		assertTrue(ResourcePattern.matches("/test", request));
 		assertTrue(ResourcePattern.matches("*/test", request));
 		assertTrue(ResourcePattern.matches("*:*/test", request));
@@ -92,8 +93,8 @@ public class UriMatchTest {
 
 	@Test
 	public void testPath1() throws URISyntaxException, ParseException {
-		URI request = new URI
-				(null, null, null, -1, "/test", null, null);
+		URI request = new URI(
+				null, null, null, -1, "/test", null, null);
 		assertTrue(ResourcePattern.matches("/test", request));
 		assertFalse(ResourcePattern.matches("/", request));
 		assertTrue(ResourcePattern.matches("/*", request));
@@ -106,8 +107,8 @@ public class UriMatchTest {
 
 	@Test
 	public void testPath2() throws URISyntaxException, ParseException {
-		URI request = new URI
-				(null, null, null, -1, "/test/Test.html", null, null);
+		URI request = new URI(
+				null, null, null, -1, "/test/Test.html", null, null);
 		assertTrue(ResourcePattern.matches("/test/Test.html", request));
 		assertFalse(ResourcePattern.matches("/", request));
 		assertFalse(ResourcePattern.matches("/*", request));

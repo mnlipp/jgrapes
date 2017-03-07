@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.http.events;
 
 import java.net.URI;
@@ -162,8 +163,8 @@ public class Request extends Event<Void> {
 		return builder.toString();
 	}
 	
-	public static Object createMatchValue
-			(Class<?> type, ResourcePattern resource) {
+	public static Object createMatchValue(
+			Class<?> type, ResourcePattern resource) {
 		return new MatchValue(type, resource);
 	}
 	
@@ -199,23 +200,30 @@ public class Request extends Event<Void> {
 		 */
 		@Override
 		public boolean equals(Object obj) {
-			if (this == obj)
+			if (this == obj) {
 				return true;
-			if (obj == null)
+			}
+			if (obj == null) {
 				return false;
-			if (getClass() != obj.getClass())
+			}
+			if (getClass() != obj.getClass()) {
 				return false;
+			}
 			MatchValue other = (MatchValue) obj;
 			if (resource == null) {
-				if (other.resource != null)
+				if (other.resource != null) {
 					return false;
-			} else if (!resource.equals(other.resource))
+				}
+			} else if (!resource.equals(other.resource)) {
 				return false;
+			}
 			if (type == null) {
-				if (other.type != null)
+				if (other.type != null) {
 					return false;
-			} else if (!type.equals(other.type))
+				}
+			} else if (!type.equals(other.type)) {
 				return false;
+			}
 			return true;
 		}
 		
