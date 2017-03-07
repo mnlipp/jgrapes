@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io.events;
 
 import org.jgrapes.core.Components;
@@ -116,7 +117,7 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	 * Releases the buffer, unless locked.
 	 */
 	@Override
-	synchronized protected void handled() {
+	protected synchronized void handled() {
 		buffer.unlockBuffer();
 	}
 	

@@ -15,9 +15,8 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io.test.net;
 
-import static org.junit.Assert.*;
+package org.jgrapes.io.test.net;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,8 +28,8 @@ import java.net.Socket;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
@@ -42,6 +41,8 @@ import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Ready;
+
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class EchoTest {
@@ -72,8 +73,8 @@ public class EchoTest {
 			ExecutionException {
 		EchoServer app = new EchoServer();
 		app.attach(new NioDispatcher());
-		WaitForTests wf = new WaitForTests
-				(app, Ready.class, Server.DEFAULT_CHANNEL.getDefaultCriterion());
+		WaitForTests wf = new WaitForTests(
+				app, Ready.class, Server.DEFAULT_CHANNEL.getDefaultCriterion());
 		Components.start(app);
 		Ready readyEvent = (Ready) wf.get();
 		if (!(readyEvent.getListenAddress() instanceof InetSocketAddress)) {
@@ -101,6 +102,7 @@ public class EchoTest {
 							expected.incrementAndGet();
 						}
 					} catch (IOException e) {
+						// Ignored
 					}
 				}
 			};
@@ -120,6 +122,7 @@ public class EchoTest {
 								// to previous, not yet flushed out chunk
 								Thread.sleep(5);
 							} catch (InterruptedException e) {
+								// Ignored
 							}
 						}
 					} catch (IOException e) {

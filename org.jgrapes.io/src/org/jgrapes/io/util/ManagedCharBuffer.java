@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io.util;
 
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	/**
 	 * An empty buffer usable instead of {@code null}.
 	 */
-	public final static ManagedCharBuffer EMPTY_BUFFER 
+	public static final ManagedCharBuffer EMPTY_BUFFER 
 		= new ManagedCharBuffer(CharBuffer.allocate(0), 
 				BufferCollector.NOOP_COLLECTOR);
 	
@@ -62,12 +63,12 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 	
 	/**
-	 * @param c the character
+	 * @param ch the character
 	 * @return the result
 	 * @see java.nio.CharBuffer#append(char)
 	 */
-	public CharBuffer append(char c) {
-		return backing.append(c);
+	public CharBuffer append(char ch) {
+		return backing.append(ch);
 	}
 
 	/**
@@ -234,12 +235,12 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param c the char
+	 * @param ch the char
 	 * @return the result
 	 * @see java.nio.CharBuffer#put(char)
 	 */
-	public CharBuffer put(char c) {
-		return backing.put(c);
+	public CharBuffer put(char ch) {
+		return backing.put(ch);
 	}
 
 	/**
@@ -282,12 +283,12 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 
 	/**
 	 * @param index the index
-	 * @param c the char
+	 * @param ch the char
 	 * @return the result
 	 * @see java.nio.CharBuffer#put(int, char)
 	 */
-	public CharBuffer put(int index, char c) {
-		return backing.put(index, c);
+	public CharBuffer put(int index, char ch) {
+		return backing.put(index, ch);
 	}
 
 	/**

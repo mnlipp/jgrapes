@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io.util;
 
 import java.lang.reflect.Constructor;
@@ -56,10 +57,11 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 				}
 			}
 			if (wrapper == null) {
-				throw new IllegalArgumentException
-					(wrapped + " is not a valid wrapper class.");
+				throw new IllegalArgumentException(
+						wrapped + " is not a valid wrapper class.");
 			}
 		} catch (SecurityException e) {
+			// Shouldn't happen
 		}
 		queue = new ArrayBlockingQueue<W>(buffers.length);
 		for (T buffer: buffers) {
@@ -105,8 +107,8 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 		buffer.clear();
 		buffer.lockBuffer();
 		@SuppressWarnings("unchecked")
-		W b = (W)buffer;
-		queue.add(b);
+		W buf = (W)buffer;
+		queue.add(buf);
 	}
 
 	/* (non-Javadoc)

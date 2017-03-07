@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.net.events;
 
 import java.net.SocketAddress;
@@ -26,8 +27,6 @@ import org.jgrapes.io.events.Opened;
 /**
  * Signals that a server has bound to a socket address and
  * is ready to accept connections.
- * 
- * @author Michael N. Lipp
  */
 public class Ready extends Opened {
 

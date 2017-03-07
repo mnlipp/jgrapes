@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io;
 
 import java.nio.ByteBuffer;
@@ -36,11 +37,11 @@ import org.jgrapes.io.util.ManagedByteBuffer;
  * main channel is a means to group related events. In particular, I/O
  * subchannels are used to group events that relate to an I/O resource such as
  * an opened file or a network connection.
- * <P>
+ * 
  * A subchannel has an initiator that creates and manages the subchannel. Events
  * fired by the initiator are said to flow downstream on the channel. Events
  * fired by components in response are said to flow upstream.
- * <P>
+ * 
  * Upstream and downstream events are usually handled by two different pipelines
  * managed by the initiator. One pipeline, accessible only to the initiator,
  * handles the downstream events. The other, made available as a property of the

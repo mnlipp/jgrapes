@@ -15,12 +15,11 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io.test.net;
 
-import static org.junit.Assert.*;
-
-import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
@@ -30,12 +29,14 @@ import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.net.Server;
 import org.jgrapes.net.events.Ready;
+
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ServerStateTest {
 
-	public enum State { NEW, READY, CLOSING, CLOSED };
+	public enum State { NEW, READY, CLOSING, CLOSED }
 	
 	public class StateChecker extends Component {
 		
@@ -85,8 +86,8 @@ public class ServerStateTest {
 	@Test
 	public void testStartClose() throws InterruptedException {
 		assertEquals(State.READY, checker.state);
-		Components.manager(app).fire
-			(new Close(), app.getChannel()).get();
+		Components.manager(app).fire(
+				new Close(), app.getChannel()).get();
 		assertEquals(State.CLOSED, checker.state);
 		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
 		Components.awaitExhaustion();

@@ -15,10 +15,8 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.jgrapes.io.test.file;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+package org.jgrapes.io.test.file;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -39,6 +37,9 @@ import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.Opened;
 import org.jgrapes.io.events.SaveOutput;
 import org.jgrapes.io.util.ByteBufferOutputStream;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 /**
@@ -66,7 +67,8 @@ public class FileOutputWriteTests {
 
 	public static class StateChecker extends Component {
 		
-		public enum State { NEW, OPENED, CLOSED };
+		public enum State { NEW, OPENED, CLOSED }
+		
 		public State state = State.NEW;
 
 		public StateChecker() {
@@ -94,7 +96,7 @@ public class FileOutputWriteTests {
 		Producer producer = new Producer();
 		FileStorage app = new FileStorage(producer, 512);
 		app.attach(producer);
-		StateChecker sc = app.attach(new StateChecker());
+		final StateChecker sc = app.attach(new StateChecker());
 		Components.start(app);
 		app.fire(new SaveOutput(filePath, StandardOpenOption.WRITE),
 		        IOSubchannel.defaultInstance(producer));

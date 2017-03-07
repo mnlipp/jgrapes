@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.net;
 
 import java.io.IOException;
@@ -29,28 +30,28 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.events.Error;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.core.internal.Common;
-import org.jgrapes.core.events.Error;
-import org.jgrapes.io.events.Close;
-import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioHandler;
+import org.jgrapes.io.events.Close;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
+import org.jgrapes.io.events.NioRegistration;
+import org.jgrapes.io.events.NioRegistration.Registration;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedBufferQueue;
 import org.jgrapes.io.util.ManagedByteBuffer;
-import org.jgrapes.io.events.NioRegistration;
-import org.jgrapes.io.events.NioRegistration.Registration;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
 
@@ -64,7 +65,7 @@ import org.jgrapes.net.events.Ready;
  */
 public class Server extends Component implements NioHandler {
 
-	public final static NamedChannel 
+	public static final NamedChannel 
 		DEFAULT_CHANNEL = new NamedChannel("server");
 	
 	private SocketAddress serverAddress;
@@ -354,8 +355,8 @@ public class Server extends Component implements NioHandler {
 				buffer.lockBuffer();
 				pendingWrites.add(buffer);
 				if (pendingWrites.size() == 1) {
-					registration.updateInterested
-						(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+					registration.updateInterested(
+							SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 				}
 			}
 		}
@@ -391,8 +392,8 @@ public class Server extends Component implements NioHandler {
 			}
 			if (bytes > 0) {
 				buffer.flip();
-				downPipeline.fire
-					(new Input<ManagedByteBuffer>(buffer, false), this);
+				downPipeline.fire(
+						new Input<ManagedByteBuffer>(buffer, false), this);
 				return;
 			}
 			close();
@@ -413,8 +414,8 @@ public class Server extends Component implements NioHandler {
 				synchronized (pendingWrites) {
 					if (pendingWrites.isEmpty()) {
 						// Nothing left to write, stop getting ops
-						registration.updateInterested
-							(SelectionKey.OP_READ);
+						registration.updateInterested(
+								SelectionKey.OP_READ);
 						// Stream closed while we were writing?
 						if (pendingClose) {
 							close();

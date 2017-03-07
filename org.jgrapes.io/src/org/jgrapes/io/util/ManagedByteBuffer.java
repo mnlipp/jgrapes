@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io.util;
 
 import java.nio.ByteBuffer;
@@ -38,7 +39,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	/**
 	 * An empty buffer usable instead of {@code null}.
 	 */
-	public final static ManagedByteBuffer EMPTY_BUFFER 
+	public static final ManagedByteBuffer EMPTY_BUFFER 
 		= new ManagedByteBuffer(ByteBuffer.allocate(0), 
 				BufferCollector.NOOP_COLLECTOR);
 	
@@ -321,12 +322,12 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	}
 
 	/**
-	 * @param b the byte
+	 * @param data the byte
 	 * @return the result
 	 * @see java.nio.ByteBuffer#put(byte)
 	 */
-	public ByteBuffer put(byte b) {
-		return backing.put(b);
+	public ByteBuffer put(byte data) {
+		return backing.put(data);
 	}
 
 	/**
@@ -369,12 +370,12 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 
 	/**
 	 * @param index the index
-	 * @param b the byte
+	 * @param data the byte
 	 * @return the result
 	 * @see java.nio.ByteBuffer#put(int, byte)
 	 */
-	public ByteBuffer put(int index, byte b) {
-		return backing.put(index, b);
+	public ByteBuffer put(int index, byte data) {
+		return backing.put(index, data);
 	}
 
 	/**

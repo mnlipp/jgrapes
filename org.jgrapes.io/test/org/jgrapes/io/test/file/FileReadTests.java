@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io.test.file;
 
 import java.io.UnsupportedEncodingException;
@@ -24,8 +25,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutionException;
 
-import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.FileStorage;
@@ -35,9 +36,9 @@ import org.jgrapes.io.events.Opened;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.StreamFile;
 import org.jgrapes.io.util.ManagedByteBuffer;
-import org.junit.Test;
 
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Michael N. Lipp
@@ -70,7 +71,8 @@ public class FileReadTests {
 
 	public static class StateChecker extends Component {
 		
-		public enum State { NEW, OPENED, READING, CLOSING, CLOSED };
+		public enum State { NEW, OPENED, READING, CLOSING, CLOSED }
+		
 		public State state = State.NEW;
 
 		public StateChecker() {
@@ -105,7 +107,7 @@ public class FileReadTests {
 		throws URISyntaxException, InterruptedException, ExecutionException {
 		Consumer consumer = new Consumer();
 		Path filePath = Paths.get(getClass().getResource("test.txt").toURI());
-		long fileSize = filePath.toFile().length();
+		final long fileSize = filePath.toFile().length();
 		FileStorage app = new FileStorage(consumer, 512);
 		app.attach(consumer);
 		StateChecker sc = new StateChecker();

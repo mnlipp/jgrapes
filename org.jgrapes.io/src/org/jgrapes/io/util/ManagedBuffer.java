@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io.util;
 
 import java.nio.Buffer;
@@ -78,8 +79,8 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	public void unlockBuffer() throws IllegalStateException {
 		int locks = lockCount.decrementAndGet();
 		if (locks < 0) {
-			throw new IllegalStateException
-				("Buffer not locked or released already.");
+			throw new IllegalStateException(
+					"Buffer not locked or released already.");
 		}
 		if (locks == 0) {
 			manager.recollect(this);

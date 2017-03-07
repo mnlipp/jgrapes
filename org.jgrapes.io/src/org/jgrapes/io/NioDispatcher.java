@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io;
 
 import java.io.IOException;
@@ -59,7 +60,7 @@ public class NioDispatcher extends Component implements Runnable {
 	 * @param event the event
 	 */
 	@Handler
-	synchronized public void onStart(Start event) {
+	public synchronized void onStart(Start event) {
 		if (running) {
 			return;
 		}
@@ -75,7 +76,7 @@ public class NioDispatcher extends Component implements Runnable {
 	 * @throws InterruptedException if the execution is interrupted
 	 */
 	@Handler(priority=-10000)
-	synchronized public void onStop(Stop event) throws InterruptedException {
+	public synchronized void onStop(Stop event) throws InterruptedException {
 		if (runner == null) {
 			return;
 		}
@@ -115,6 +116,7 @@ public class NioDispatcher extends Component implements Runnable {
 				} catch (InterruptedIOException e) {
 					break;
 				} catch (IOException e) {
+					// Can be ignored
 				}
 			}
 		} finally {
@@ -130,8 +132,8 @@ public class NioDispatcher extends Component implements Runnable {
 		SelectionKey key;
 		synchronized (selectorGate) {
 			selector.wakeup(); // make sure selector isn't blocking
-			key = channel.register
-					(selector, event.getOps(), event.getHandler());
+			key = channel.register(
+					selector, event.getOps(), event.getHandler());
 		}
 		event.setResult(new Registration(key));
 	}

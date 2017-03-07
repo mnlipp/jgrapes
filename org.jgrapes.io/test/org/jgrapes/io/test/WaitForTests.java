@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io.test;
 
 import java.util.concurrent.ExecutionException;
@@ -24,9 +25,9 @@ import java.util.concurrent.TimeoutException;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.core.Components;
 
 /**
  * A helper component that can be used to wait for the occurrence of 
@@ -44,8 +45,8 @@ public class WaitForTests extends Component implements Future<Event<?>> {
 	 * the given channel. 
 	 */
 	public WaitForTests(ComponentType app, Object eventKey, Object channelKey) {
-		Handler.Evaluator.add
-			(this, "onEvent", eventKey, channelKey, Integer.MIN_VALUE);
+		Handler.Evaluator.add(
+				this, "onEvent", eventKey, channelKey, Integer.MIN_VALUE);
 		Components.manager(app).attach(this);
 	}
 

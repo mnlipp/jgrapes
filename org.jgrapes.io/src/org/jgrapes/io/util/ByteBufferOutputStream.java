@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io.util;
 
 import java.io.IOException;
@@ -89,8 +90,8 @@ public class ByteBufferOutputStream extends OutputStream {
 	 * @see java.io.OutputStream#write(int)
 	 */
 	@Override
-	public void write(int b) throws IOException {
-		buffer.put((byte) b);
+	public void write(int data) throws IOException {
+		buffer.put((byte) data);
 		if (!buffer.hasRemaining()) {
 			flush(false);
 		}
@@ -102,18 +103,18 @@ public class ByteBufferOutputStream extends OutputStream {
 	 * @see java.io.OutputStream#write(byte[], int, int)
 	 */
 	@Override
-	public void write(byte[] b, int offset, int length) throws IOException {
+	public void write(byte[] data, int offset, int length) throws IOException {
 		while (true) {
 			if (buffer.remaining() > length) {
-				buffer.put(b, offset, length);
+				buffer.put(data, offset, length);
 				break;
 			} else if (buffer.remaining() == length) {
-				buffer.put(b, offset, length);
+				buffer.put(data, offset, length);
 				flush(false);
 				break;
 			} else {
 				int chunkSize = buffer.remaining();
-				buffer.put(b, offset, chunkSize);
+				buffer.put(data, offset, chunkSize);
 				flush(false);
 				length -= chunkSize;
 				offset += chunkSize;
@@ -129,11 +130,11 @@ public class ByteBufferOutputStream extends OutputStream {
 	private void flush(boolean endOfRecord) throws IOException {
 		if (inputMode) {
 			buffer.flip();
-			eventPipeline.fire
-				(new Input<ManagedByteBuffer>(buffer, endOfRecord), channel);
+			eventPipeline.fire(
+					new Input<ManagedByteBuffer>(buffer, endOfRecord), channel);
 		} else {
-			eventPipeline.fire
-				(new Output<ManagedByteBuffer>(buffer, endOfRecord), channel);
+			eventPipeline.fire(
+					new Output<ManagedByteBuffer>(buffer, endOfRecord), channel);
 		}
 		try {
 			buffer = channel.bufferPool().acquire();

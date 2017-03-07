@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io.events;
 
 import java.nio.channels.SelectableChannel;
@@ -29,7 +30,7 @@ import org.jgrapes.io.NioHandler;
  */
 public class NioRegistration extends Event<NioRegistration.Registration> {
 
-	static public abstract class Registration {
+	public abstract static class Registration {
 		public abstract void updateInterested(int ops);
 	}
 	

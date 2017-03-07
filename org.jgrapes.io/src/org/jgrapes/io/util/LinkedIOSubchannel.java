@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io.util;
 
 import java.lang.ref.WeakReference;
@@ -66,14 +67,14 @@ import org.jgrapes.io.IOSubchannel;
  */
 public class LinkedIOSubchannel implements IOSubchannel {
 
-	final private static Map<IOSubchannel, LinkedIOSubchannel> 
+	private static final Map<IOSubchannel, LinkedIOSubchannel> 
 		reverseMap = Collections.synchronizedMap(new WeakHashMap<>());
 
-	final private Manager converterComponent;
+	private final Manager converterComponent;
 	// Must be weak, else there will always be a reference to the 
 	// upstream channel and, though the reverseMap, to this object.
-	final private WeakReference<IOSubchannel> upstreamChannel;
-	final private EventPipeline responsePipeline;
+	private final WeakReference<IOSubchannel> upstreamChannel;
+	private final EventPipeline responsePipeline;
 
 	/**
 	 * Creates a new {@code LinkedIOSubchannel} that links to the give I/O

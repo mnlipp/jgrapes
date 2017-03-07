@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.io;
 
 import java.io.IOException;
@@ -32,9 +33,9 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
@@ -44,9 +45,9 @@ import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
-import org.jgrapes.io.events.StreamFile;
 import org.jgrapes.io.events.SaveInput;
 import org.jgrapes.io.events.SaveOutput;
+import org.jgrapes.io.events.StreamFile;
 import org.jgrapes.io.util.ManagedBufferQueue;
 import org.jgrapes.io.util.ManagedByteBuffer;
 
@@ -57,7 +58,7 @@ import org.jgrapes.io.util.ManagedByteBuffer;
  */
 public class FileStorage extends Component {
 
-	private int bufferSize;
+    private int bufferSize;
 
 	private Map<Channel, Writer> inputWriters = Collections
 	        .synchronizedMap(new WeakHashMap<>());
@@ -72,7 +73,7 @@ public class FileStorage extends Component {
 	 * @param bufferSize the size of the buffers used for reading
 	 */
 	public FileStorage(Channel channel, int bufferSize) {
-		super (channel);
+		super(channel);
 		this.bufferSize = bufferSize;
 	}
 
@@ -160,6 +161,7 @@ public class FileStorage extends Component {
 					try {
 						eof = (offset == ioChannel.size());
 					} catch (IOException e1) {
+						// Handled like true
 					} 
 					channel.fire(new Output<>(buffer, eof));
 					if (!eof) {
@@ -171,6 +173,7 @@ public class FileStorage extends Component {
 							        nextBuffer, readCompletionHandler);
 							}
 						} catch (InterruptedException e) {
+							// Results in empty buffer
 						}
 						return;
 					}
@@ -179,6 +182,7 @@ public class FileStorage extends Component {
 					ioChannel.close();
 					channel.fire(new Closed());
 				} catch (ClosedChannelException e) {
+					// Can be ignored
 				} catch (IOException e) {
 					channel.fire(new IOError(null, e));
 				}
@@ -334,8 +338,7 @@ public class FileStorage extends Component {
 			public ManagedByteBuffer buffer;
 			public long pos;
 
-			public WriteContext
-				(ManagedByteBuffer buffer, long pos) {
+			public WriteContext(ManagedByteBuffer buffer, long pos) {
 				this.buffer = buffer;
 				this.pos = pos;
 			}
@@ -438,6 +441,7 @@ public class FileStorage extends Component {
 					ioChannel.close();
 				}
 			} catch (ClosedChannelException e) {
+				// Can be ignored
 			} catch (IOException e) {
 				channel.fire(new IOError(event, e));
 			}
