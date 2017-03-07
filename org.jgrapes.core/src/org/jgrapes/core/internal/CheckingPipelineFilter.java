@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
@@ -58,7 +59,7 @@ class CheckingPipelineFilter implements EventPipeline, IdInfoProvider {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jgrapes.core.EventPipeline#add(org.jgrapes.core.internal.EventBase, org.jgrapes.core.Channel[])
+	 * @see EventPipeline#add(EventBase, org.jgrapes.core.Channel[])
 	 */
 	@Override
 	public <T extends Event<?>> T fire(T event, Channel... channels) {

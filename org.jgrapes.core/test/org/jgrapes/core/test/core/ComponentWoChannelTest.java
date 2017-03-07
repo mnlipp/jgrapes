@@ -13,17 +13,18 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+
 package org.jgrapes.core.test.core;
 
-import static org.junit.Assert.*;
-
 import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
+
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**
@@ -32,7 +33,7 @@ import org.junit.Test;
  */
 public class ComponentWoChannelTest {
 
-	public static class ComponentWOChannel implements ComponentType {
+	public static class ComponentWoChannel implements ComponentType {
 
 		@ComponentManager
 		private Manager manager;
@@ -46,8 +47,8 @@ public class ComponentWoChannelTest {
 	}
 
 	@Test
-	public void testWOChannel() throws InterruptedException {
-		ComponentWOChannel app = new ComponentWOChannel();
+	public void testWoChannel() throws InterruptedException {
+		ComponentWoChannel app = new ComponentWoChannel();
 		Components.start(app);
 		assertEquals(1, app.count);
 	}

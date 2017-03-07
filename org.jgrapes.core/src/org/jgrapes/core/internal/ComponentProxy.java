@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import java.lang.reflect.Field;
@@ -49,23 +50,24 @@ public class ComponentProxy extends ComponentVertex {
 				}
 				clazz = clazz.getSuperclass();
 				if (clazz == null) {
-					throw new IllegalArgumentException
-						("Components must have a manager attribute");
+					throw new IllegalArgumentException(
+							"Components must have a manager attribute");
 				}
 			}
 		} catch (SecurityException e) {
-			throw (RuntimeException)(new IllegalArgumentException
-				("Cannot access component's manager attribute")).initCause(e);
+			throw (RuntimeException)(new IllegalArgumentException(
+					"Cannot access component's manager attribute")).initCause(e);
 		}
 	}
 
 	private static Channel getComponentChannel(Field field) {
 		ComponentManager cma = field.getAnnotation(ComponentManager.class);
-		if (cma.channel() != Handler.NO_CHANNEL.class) {
+		if (cma.channel() != Handler.NoChannel.class) {
 			if (cma.channel() != Channel.BROADCAST.getDefaultCriterion()) {
 				try {
 					return cma.channel().newInstance();
 				} catch (InstantiationException | IllegalAccessException e) {
+					// Ignored
 				}
 			}
 			return Channel.BROADCAST;
@@ -90,8 +92,8 @@ public class ComponentProxy extends ComponentVertex {
 			componentChannel = getComponentChannel(field);
 			initComponentsHandlers();
 		} catch (SecurityException | IllegalAccessException e) {
-			throw (RuntimeException)(new IllegalArgumentException
-				("Cannot access component's manager attribute")).initCause(e);
+			throw (RuntimeException)(new IllegalArgumentException(
+					"Cannot access component's manager attribute")).initCause(e);
 		}
 	}
 
@@ -102,7 +104,7 @@ public class ComponentProxy extends ComponentVertex {
 	 * @param component the component
 	 * @return the node representing the component in the tree
 	 */
-	static ComponentVertex getComponentProxy (ComponentType component) {
+	static ComponentVertex getComponentProxy(ComponentType component) {
 		ComponentProxy componentProxy = null;
 		try {
 			Field field = getManagerField(component.getClass());
@@ -122,8 +124,8 @@ public class ComponentProxy extends ComponentVertex {
 				}
 			}
 		} catch (SecurityException | IllegalAccessException e) {
-			throw (RuntimeException)(new IllegalArgumentException
-				("Cannot access component's manager attribute")).initCause(e);
+			throw (RuntimeException)(new IllegalArgumentException(
+					"Cannot access component's manager attribute")).initCause(e);
 		}
 		return componentProxy;
 	}

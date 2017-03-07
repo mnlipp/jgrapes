@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 import org.jgrapes.core.events.HandlingError;
@@ -32,8 +33,6 @@ import org.jgrapes.core.internal.EventBase;
  * @param <T>
  *            the result type of the event. Use {@link Void} if handling the
  *            event does not produce a result
- * 
- * @author Michael N. Lipp
  */
 public class Event<T> extends EventBase<T> {
 
@@ -105,10 +104,10 @@ public class Event<T> extends EventBase<T> {
 	 * @see HandlingError
 	 */
 	@Override
-	protected void handlingError
-		(EventPipeline eventProcessor, Throwable throwable) {
-		eventProcessor.fire
-			(new HandlingError(this, throwable), channels());
+	protected void handlingError(
+			EventPipeline eventProcessor, Throwable throwable) {
+		eventProcessor.fire(
+				new HandlingError(this, throwable), channels());
 	}
 
 	/* (non-Javadoc)

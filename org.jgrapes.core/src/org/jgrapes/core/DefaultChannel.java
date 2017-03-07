@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 /**
@@ -26,8 +27,6 @@ package org.jgrapes.core;
  * handler annotation is equivalent to specifying no channel at all. This
  * special channel type is required if you want to specify a handler that
  * handles events fired on the component's channel or on additional channels.
- * 
- * @author Michael N. Lipp
  */
 public interface DefaultChannel extends Channel {
 

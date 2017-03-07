@@ -13,9 +13,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.jgrapes.core.test.basic;
 
-import static org.junit.Assert.*;
+package org.jgrapes.core.test.basic;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -24,18 +23,20 @@ import java.util.Map;
 
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
+
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class AnnotationTest {
 
 	@Test
 	public void testAnnotations() {
-		Object o = new TestComponent1();
+		Object obj = new TestComponent1();
 		Map<String, Annotation> found = new HashMap<String, Annotation>();
-		for (Method m: o.getClass().getMethods()) {
-			Annotation a = m.getAnnotation(Handler.class);
-			if (a != null) {
-				found.put(m.getName(), a);
+		for (Method m: obj.getClass().getMethods()) {
+			Annotation anno = m.getAnnotation(Handler.class);
+			if (anno != null) {
+				found.put(m.getName(), anno);
 			}
 		}
 		assertEquals(found.size(), 3);

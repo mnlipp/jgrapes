@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
@@ -29,6 +30,6 @@ import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
  */
 public interface HandlerScope {
 
-	boolean includes (Eligible event, Eligible[] channels);
+	boolean includes(Eligible event, Eligible[] channels);
 	
 }

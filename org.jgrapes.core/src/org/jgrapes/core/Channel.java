@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 /**
@@ -31,7 +32,6 @@ package org.jgrapes.core;
  * <P>
  * Objects of type <code>Channel</code> must be immutable.
  * 
- * @author Michael N. Lipp
  * @see Channel#BROADCAST
  */
 public interface Channel extends Eligible {

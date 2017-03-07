@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import java.lang.reflect.Array;
@@ -30,10 +31,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.Eligible;
 
 /**
  * Provides the implementations of methods to class {@link Event} that
@@ -122,8 +123,8 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	 */
 	public Event<T> setChannels(Channel... channels) {
 		if (enqueued()) {
-			throw new IllegalStateException
-				("Channels cannot be changed after fire");
+			throw new IllegalStateException(
+					"Channels cannot be changed after fire");
 		}
 		this.channels = channels;
 		return (Event<T>)this;
@@ -189,8 +190,8 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	 * @param eventProcessor the manager that has invoked the handler
 	 * @param throwable the exception that has been thrown by the handler
 	 */
-	protected abstract void handlingError
-		(EventPipeline eventProcessor, Throwable throwable);
+	protected abstract void handlingError(
+			EventPipeline eventProcessor, Throwable throwable);
 
 	/**
 	 * Can be called during the execution of an event handler to indicate

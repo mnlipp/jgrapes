@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.events;
 
 import org.jgrapes.core.Event;
@@ -36,6 +37,6 @@ public class HandlingError extends Error {
 	 * @param throwable the throwable that occurred 
 	 */
 	public HandlingError(Event<?> event, Throwable throwable) {
-		super (event, throwable);
+		super(event, throwable);
 	}
 }

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
@@ -42,16 +43,16 @@ public class EventBuffer implements InternalEventPipeline {
 	}
 
 	@Override
-	synchronized public void merge(InternalEventPipeline other) {
+	public synchronized void merge(InternalEventPipeline other) {
 		if (!(other instanceof EventBuffer)) {
-			throw new IllegalArgumentException
-				("Can only merge events from an EventBuffer.");
+			throw new IllegalArgumentException(
+					"Can only merge events from an EventBuffer.");
 		}
 		buffered.addAll(((EventBuffer) other).retrieveEvents());
 	}
 
 	@Override
-	synchronized public <T extends Event<?>> T add(T event,
+	public synchronized <T extends Event<?>> T add(T event,
 	        Channel... channels) {
 		// If thread1 adds the start event and thread2 gets here before we
 		// have changed the event processor for the tree, forward the

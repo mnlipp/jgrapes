@@ -15,16 +15,15 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 /**
  * This class provides channels that are identified by a name
  * (<code>string</code>). Instances of this class represent channels that use
  * their name as value for matching channels with handlers.
- * 
- * @author Michael N. Lipp
  */
-final public class NamedChannel implements Channel {
+public final class NamedChannel implements Channel {
 
 	private final String name;
 
@@ -86,18 +85,23 @@ final public class NamedChannel implements Channel {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		NamedChannel other = (NamedChannel) obj;
 		if (name == null) {
-			if (other.name != null)
+			if (other.name != null) {
 				return false;
-		} else if (!name.equals(other.name))
+			}
+		} else if (!name.equals(other.name)) {
 			return false;
+		}
 		return true;
 	}
 	

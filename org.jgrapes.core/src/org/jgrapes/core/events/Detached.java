@@ -15,11 +15,12 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.events;
 
 import org.jgrapes.core.ComponentType;
-import org.jgrapes.core.Event;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.internal.Common;
 
 /**

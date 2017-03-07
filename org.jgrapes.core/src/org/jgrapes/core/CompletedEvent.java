@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 import org.jgrapes.core.internal.Common;
@@ -23,8 +24,6 @@ import org.jgrapes.core.internal.Common;
  * A base class for completion events. The completed event is the
  * result of the completion event. Use {@link #getCompleted()} to access
  * the completed event while handling the completion event. 
- * 
- * @author Michael N. Lipp
  */
 public abstract class CompletedEvent<T extends Event<?>>
 		extends Event<T> {

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 import org.jgrapes.core.annotation.ComponentManager;
@@ -35,8 +36,6 @@ import org.jgrapes.core.annotation.ComponentManager;
  * field to get access to the component hierarchy. The field is initialized
  * when the component is added to the component hierarchy or when
  * calling {@link Components#manager(ComponentType)}.
- * 
- * @author Michael N. Lipp
  */
 public interface ComponentType {
 	

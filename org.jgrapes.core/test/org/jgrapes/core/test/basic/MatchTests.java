@@ -15,11 +15,12 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.test.basic;
 
-import static org.junit.Assert.assertTrue;
-
 import org.jgrapes.core.ClassChannel;
+
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 /**

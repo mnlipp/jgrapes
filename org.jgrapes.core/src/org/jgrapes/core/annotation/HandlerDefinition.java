@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.annotation;
 
 import java.lang.annotation.Annotation;
@@ -78,8 +79,7 @@ public @interface HandlerDefinition {
 		 * @return the scope or {@code null} if a handler for the method
 		 * should not be created
 		 */
-		HandlerScope getScope
-			(ComponentType component, Method method, 
+		HandlerScope getScope(ComponentType component, Method method, 
 					Object[] eventValues, Object[] channelValues);
 		
 		/**

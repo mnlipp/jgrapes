@@ -1,15 +1,15 @@
 package org.jgrapes.core.test.core;
 
-import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Event;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
-import org.junit.Test;
 
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class EventTest {
 
@@ -25,6 +25,7 @@ public class EventTest {
 				evt.setChannels(new Channel[] { Channel.BROADCAST });
 				fail();
 			} catch (IllegalStateException e) {
+				// Expected
 			}
 		}
 		

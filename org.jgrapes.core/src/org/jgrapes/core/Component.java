@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 import org.jgrapes.core.internal.ComponentVertex;
@@ -31,7 +32,6 @@ import org.jgrapes.core.internal.ComponentVertex;
  * that each instance of this class can be used as an independant
  * communication bus.
  * 
- * @author Michael N. Lipp
  * @see ComponentType
  */
 public abstract class Component extends ComponentVertex 

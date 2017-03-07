@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 import java.lang.reflect.Method;
@@ -51,7 +52,7 @@ public interface Manager extends Iterable<ComponentType> {
 	 * @throws IllegalStateException if invoked before a <code>Start</code>
 	 * event
 	 */
-	ComponentType detach ();
+	ComponentType detach();
 
 	/**
 	 * Attaches the given component node (or complete tree) as a child 
@@ -62,7 +63,7 @@ public interface Manager extends Iterable<ComponentType> {
 	 * @param child the component to add
 	 * @return the added component (for comfortable chaining)
 	 */
-	<T extends ComponentType> T attach (T child);
+	<T extends ComponentType> T attach(T child);
 	
 	/**
 	 * Returns the child components of the component managed by 

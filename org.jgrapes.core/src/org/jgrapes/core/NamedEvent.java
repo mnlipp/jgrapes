@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 import java.util.Arrays;
@@ -26,7 +27,7 @@ import java.util.Arrays;
  * 
  * @author Michael N. Lipp
  */
-final public class NamedEvent<T> extends Event<T> {
+public final class NamedEvent<T> extends Event<T> {
 
 	private String name;
 	

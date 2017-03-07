@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import java.util.WeakHashMap;
@@ -22,8 +23,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Components;
 import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 
@@ -46,7 +47,7 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	private WeakHashMap<ComponentType, Object> componentContext 
 		= new WeakHashMap<>();
 	
-	EventProcessor (ComponentTree tree) {
+	EventProcessor(ComponentTree tree) {
 		this.componentTree = tree;
 		asEventPipeline = new CheckingPipelineFilter(this);
 	}
@@ -65,15 +66,6 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 		return event;
 	}
 
-	@Override
-	public void merge(InternalEventPipeline other) {
-		if (!(other instanceof EventBuffer)) {
-			throw new IllegalArgumentException
-				("Can only merge events from an EventBuffer.");
-		}
-		add(((EventBuffer) other).retrieveEvents());
-	}
-
 	void add(EventQueue source) {
 		synchronized (queue) {
 			boolean wasEmpty = queue.isEmpty();
@@ -87,7 +79,16 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 	}
 	
 	@Override
-	synchronized public void run() {
+	public void merge(InternalEventPipeline other) {
+		if (!(other instanceof EventBuffer)) {
+			throw new IllegalArgumentException(
+					"Can only merge events from an EventBuffer.");
+		}
+		add(((EventBuffer) other).retrieveEvents());
+	}
+
+	@Override
+	public synchronized void run() {
 		try {
 			if (queue.isEmpty()) {
 				return;
@@ -96,8 +97,8 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 			while (true) {
 				EventChannelsTuple next = queue.peek();
 				currentlyHandling.set(next.event);
-				componentTree.dispatch
-					(asEventPipeline, next.event, next.channels);
+				componentTree.dispatch(
+						asEventPipeline, next.event, next.channels);
 				currentlyHandling.get().decrementOpen(this);
 				synchronized (queue) {
 					queue.remove();

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import java.util.Arrays;
@@ -62,20 +63,26 @@ public class EventChannelsTuple {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		EventChannelsTuple other = (EventChannelsTuple) obj;
-		if (!Arrays.equals(channels, other.channels))
+		if (!Arrays.equals(channels, other.channels)) {
 			return false;
+		}
 		if (event == null) {
-			if (other.event != null)
+			if (other.event != null) {
 				return false;
-		} else if (!event.equals(other.event))
+			}
+		} else if (!event.equals(other.event)) {
 			return false;
+		}
 		return true;
 	}
 

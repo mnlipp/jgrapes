@@ -100,8 +100,6 @@
  * Component <|-- SomeComponent
  * ComponentType <|.. ComponentWithOwnBaseClass
  * @enduml
- * 
- * @author Michael N. Lipp
  */
 @org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.core;

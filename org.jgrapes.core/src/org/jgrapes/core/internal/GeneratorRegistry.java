@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import java.util.IdentityHashMap;
@@ -52,7 +53,7 @@ public class GeneratorRegistry {
 		return InstanceHolder.INSTANCE;
 	}
 	
-	synchronized public void add(Object obj) {
+	public synchronized void add(Object obj) {
 		running += 1;
 		if (generators != null) {
 			generators.put(obj, null);
@@ -66,6 +67,7 @@ public class GeneratorRegistry {
 							Thread.sleep(Long.MAX_VALUE);
 						}
 					} catch (InterruptedException e) {
+						// Okay, then stop
 					}
 				}
 			};
@@ -73,7 +75,7 @@ public class GeneratorRegistry {
 		}
 	}
 	
-	synchronized public void remove(Object obj) {
+	public synchronized void remove(Object obj) {
 		running -= 1;
 		if (generators != null) {
 			generators.remove(obj);
@@ -88,41 +90,41 @@ public class GeneratorRegistry {
 		return running == 0;
 	}
 	
-	synchronized public void awaitExhaustion() throws InterruptedException {
+	public synchronized void awaitExhaustion() throws InterruptedException {
 		if (generators != null) {
 			if (running != generators.size()) {
-				generatorTracking.severe
-					("Generator count doesn't match tracked.");
+				generatorTracking.severe(
+						"Generator count doesn't match tracked.");
 			}
 		}
 		while (running > 0) {
 			if (generators != null) {
-				generatorTracking.fine
-					("Waiting, generators: " + generators.keySet());
+				generatorTracking.fine(
+						"Waiting, generators: " + generators.keySet());
 			}
 			wait();
 		}
 	}
 	
-	synchronized public boolean awaitExhaustion(long timeout) 
+	public synchronized boolean awaitExhaustion(long timeout) 
 			throws InterruptedException {
 		if (generators != null) {
 			if (running != generators.size()) {
-				generatorTracking.severe
-					("Generator count doesn't match tracked.");
+				generatorTracking.severe(
+						"Generator count doesn't match tracked.");
 			}
 		}
 		if (isExhausted()) {
 			return true;
 		}
 		if (generators != null) {
-			generatorTracking.fine
-				("Waiting, generators: " + generators.keySet());
+			generatorTracking.fine(
+					"Waiting, generators: " + generators.keySet());
 		}
 		wait(timeout);
 		if (generators != null) {
-			generatorTracking.fine
-				("Waited, generators: " + generators.keySet());
+			generatorTracking.fine(
+					"Waited, generators: " + generators.keySet());
 		}
 		return isExhausted();
 	}

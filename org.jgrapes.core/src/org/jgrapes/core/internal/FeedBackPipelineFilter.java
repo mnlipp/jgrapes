@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
@@ -95,8 +96,8 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 	static void setComponentContext(ComponentType component, Object data) {
 		ExecutingEventPipeline pipeline = currentPipeline.get();
 		if (pipeline == null) {
-			throw new IllegalStateException
-				("setComponentContext may only be called in handler.");
+			throw new IllegalStateException(
+					"setComponentContext may only be called in handler.");
 		}
 		pipeline.setComponentContext(component, data);
 	}
@@ -111,8 +112,8 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 	static Object getComponentContext(ComponentType component) {
 		ExecutingEventPipeline pipeline = currentPipeline.get();
 		if (pipeline == null) {
-			throw new IllegalStateException
-				("getComponentContext may only be called in handler.");
+			throw new IllegalStateException(
+					"getComponentContext may only be called in handler.");
 		}
 		return pipeline.getComponentContext(component);
 	}

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import java.util.ArrayDeque;
@@ -38,8 +39,8 @@ class EventQueue extends ArrayDeque<EventChannelsTuple> {
 	 * @param event the event
 	 * @param channels the channels
 	 */
-	public void add (EventBase<?> event, Channel[] channels) {
-		add (new EventChannelsTuple(event, channels));
+	public void add(EventBase<?> event, Channel[] channels) {
+		add(new EventChannelsTuple(event, channels));
 	}
 
 	/* (non-Javadoc)

@@ -15,16 +15,17 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.test.core;
 
-import static org.junit.Assert.*;
-
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.Self;
-import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
+
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.annotation;
 
 import java.lang.annotation.Documented;
@@ -27,15 +28,13 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.annotation.Handler.NO_CHANNEL;
+import org.jgrapes.core.annotation.Handler.NoChannel;
 
 /**
  * This annotation marks a component's attribute of type 
  * {@link Manager} as a slot for its manager. A value is automatically 
  * assigned to such an attribute when a component is attached to the 
  * component tree or by {@link org.jgrapes.core.Components#manager(ComponentType)}.
- * 
- * @author Michael N. Lipp
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
@@ -48,7 +47,7 @@ public @interface ComponentManager {
 	 * 
 	 * @return the channel
 	 */
-	Class<? extends Channel> channel() default NO_CHANNEL.class;
+	Class<? extends Channel> channel() default NoChannel.class;
 
 	/**
 	 * Specifies the channel to be associated with the component

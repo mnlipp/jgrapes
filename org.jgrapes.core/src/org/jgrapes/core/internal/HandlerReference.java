@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import java.lang.invoke.MethodHandle;
@@ -80,11 +81,11 @@ class HandlerReference implements Comparable<HandlerReference> {
 	}
 
 	@Override
-	public int compareTo(HandlerReference o) {
-		if (getPriority() < o.getPriority()) {
+	public int compareTo(HandlerReference other) {
+		if (getPriority() < other.getPriority()) {
 			return 1;
 		}
-		if (getPriority() > o.getPriority()) {
+		if (getPriority() > other.getPriority()) {
 			return -1;
 		}
 		return 0;
@@ -126,19 +127,19 @@ class HandlerReference implements Comparable<HandlerReference> {
 		return method.toString();
 	}
 
-	static abstract class HandlerRefFactory {
-		abstract HandlerReference createHandlerRef
-			(Object eventKey, Object channelKey,	
-			 ComponentType component, Method method, boolean eventParam, 
-			 int priority);
+	abstract static class HandlerRefFactory {
+		abstract HandlerReference createHandlerRef(
+				Object eventKey, Object channelKey,	
+				ComponentType component, Method method, boolean eventParam, 
+				int priority);
 	}
 
-    public static HandlerReference newRef
-    		(ComponentType component, Method method,
+    public static HandlerReference newRef(
+    		ComponentType component, Method method,
 			int priority, HandlerScope filter) {
     	if (handlerTracking.isLoggable(Level.FINE)) {
-			return new VerboseHandlerReference
-					(component, method, priority, filter);
+			return new VerboseHandlerReference(
+					component, method, priority, filter);
     	} else {
 			return new HandlerReference(component, method, priority, filter);
     	}
@@ -163,27 +164,36 @@ class HandlerReference implements Comparable<HandlerReference> {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		HandlerReference other = (HandlerReference) obj;
 		if (filter == null) {
-			if (other.filter != null)
+			if (other.filter != null) {
 				return false;
-		} else if (!filter.equals(other.filter))
+			}
+		} else if (!filter.equals(other.filter)) {
 			return false;
-		if (hasEventParam != other.hasEventParam)
+		}
+		if (hasEventParam != other.hasEventParam) {
 			return false;
+		}
 		if (method == null) {
-			if (other.method != null)
+			if (other.method != null) {
 				return false;
-		} else if (!method.equals(other.method))
+			}
+		} else if (!method.equals(other.method)) {
 			return false;
-		if (priority != other.priority)
+		}
+		if (priority != other.priority) {
 			return false;
+		}
 		return true;
 	}
 

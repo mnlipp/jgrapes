@@ -1,13 +1,13 @@
 package org.jgrapes.core.test.core;
 
 import org.jgrapes.core.Component;
-import org.jgrapes.core.Event;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
-import org.junit.Test;
 
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class StoppedTest {
 

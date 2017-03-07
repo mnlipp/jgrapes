@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 /**
@@ -28,8 +29,6 @@ package org.jgrapes.core;
  * Note, however, that there is no requirement for the key to be unique.
  * The only requirement is that `obj.isEligibleFor(obj.getDefaultCrtiterion())`
  * returns `true` for any implentation of `Eligible`.
- * 
- * @author Michael N. Lipp
  */
 public interface Eligible {
 	

@@ -15,12 +15,13 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Components.IdInfoProvider;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
-import org.jgrapes.core.Components.IdInfoProvider;
 
 /**
  * Implemented by event pipelines. Note that contrary to the 
@@ -50,7 +51,7 @@ interface InternalEventPipeline extends IdInfoProvider {
 	 * 
 	 * @param other the other event pipeline
 	 */
-	void merge (InternalEventPipeline other);
+	void merge(InternalEventPipeline other);
 
 	/**
 	 * All pipelines use the same id scope to make them uniquely identifiable

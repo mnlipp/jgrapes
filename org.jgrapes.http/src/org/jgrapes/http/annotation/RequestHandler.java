@@ -38,8 +38,8 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
 import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Self;
-import org.jgrapes.core.annotation.Handler.NO_CHANNEL;
-import org.jgrapes.core.annotation.Handler.NO_EVENT;
+import org.jgrapes.core.annotation.Handler.NoChannel;
+import org.jgrapes.core.annotation.Handler.NoEvent;
 import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.annotation.HandlerDefinition;
 import org.jgrapes.http.ResourcePattern;
@@ -64,14 +64,14 @@ public @interface RequestHandler {
 	 * @return the event classes
 	 */
 	@SuppressWarnings("rawtypes")
-	Class<? extends Event>[] events() default NO_EVENT.class;
+	Class<? extends Event>[] events() default NoEvent.class;
 	
 	/**
 	 * Specifies classes of channels that the handler listens on.
 	 * 
 	 * @return the channel classes
 	 */
-	Class<? extends Channel>[] channels() default NO_CHANNEL.class;
+	Class<? extends Channel>[] channels() default NoChannel.class;
 
 	/**
 	 * Specifies the patterns that the handler is supposed to handle
@@ -184,7 +184,7 @@ public @interface RequestHandler {
 			public Scope(ComponentType component, 
 					Method method, RequestHandler annotation, String pattern) {
 				// Get all event keys from the handler annotation.
-				if (annotation.events()[0] != NO_EVENT.class) {
+				if (annotation.events()[0] != NoEvent.class) {
 					handledEventTypes.addAll(Arrays.asList(annotation.events()));
 				}
 				// If no event types are given, try first parameter.
@@ -199,7 +199,7 @@ public @interface RequestHandler {
 				
 				// Get channel keys from the annotation.
 				boolean addDefaultChannel = false;
-				if (annotation.channels()[0] != NO_CHANNEL.class) {
+				if (annotation.channels()[0] != NoChannel.class) {
 					for (Class<?> c: annotation.channels()) {
 						if (c == Self.class) {
 							if (component instanceof Channel) {

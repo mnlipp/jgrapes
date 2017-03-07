@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
@@ -33,7 +34,7 @@ class SynchronousEventProcessor extends EventProcessor {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.EventProcessor#add(org.jgrapes.core.internal.EventBase, org.jgrapes.core.Channel[])
+	 * @see EventProcessor#add(EventBase, org.jgrapes.core.Channel[])
 	 */
 	@Override
 	public <T extends Event<?>> T add(T event, Channel... channels) {
@@ -53,7 +54,7 @@ class SynchronousEventProcessor extends EventProcessor {
 	 * @see org.jgrapes.core.internal.EventProcessor#run()
 	 */
 	@Override
-	synchronized public void run() {
+	public synchronized void run() {
 		// Save current event pipeline because a SynchronousEventPipeline
 		// can be called while handling an event (from another event 
 		// processor).

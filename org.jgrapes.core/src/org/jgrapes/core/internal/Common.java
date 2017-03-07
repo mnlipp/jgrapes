@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import java.util.logging.Level;
@@ -22,9 +23,9 @@ import java.util.logging.Logger;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ClassChannel;
+import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.NamedChannel;
-import org.jgrapes.core.ComponentType;
 
 /**
  * @author Michael N. Lipp
@@ -37,13 +38,13 @@ public class Common {
 
 	private static AssertionError assertionError = null;
 	
-	static void setAssertionError (AssertionError error) {
+	static void setAssertionError(AssertionError error) {
 		if (assertionError == null) {
 			assertionError = error;
 		}
 	}
 
-	static public void checkAssertions() {
+	public static void checkAssertions() {
 		if (assertionError != null) {
 			AssertionError error = assertionError;
 			assertionError = null;

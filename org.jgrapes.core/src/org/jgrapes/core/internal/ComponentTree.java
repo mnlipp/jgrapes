@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import java.util.Arrays;
@@ -24,8 +25,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
@@ -50,6 +51,7 @@ class ComponentTree {
 	private InternalEventPipeline eventPipeline;
 	private static HandlingErrorPrinter fallbackErrorHandler 
 		= new HandlingErrorPrinter();
+	
 	/* This could simply be declared as an anonymous class. But then
 	 * "Find bugs" complains about the noop() not being callable, because it
 	 * doesn't consider that it is called by reflection. */
@@ -57,11 +59,13 @@ class ComponentTree {
 		public DummyComponent() {
 			super(Channel.SELF);
 		}
+		
 		@Handler(channels={Channel.class})
 		public void noop(Event<?> event) {
 		}
 	}
-	public final static ComponentVertex DUMMY_HANDLER = new DummyComponent(); 
+	
+	public static final ComponentVertex DUMMY_HANDLER = new DummyComponent(); 
 
 	/**
 	 * Creates a new tree for the given node or sub tree.
@@ -150,26 +154,32 @@ class ComponentTree {
 		 */
 		@Override
 		public boolean equals(Object obj) {
-			if (this == obj)
+			if (this == obj) {
 				return true;
-			if (obj == null)
+			}
+			if (obj == null) {
 				return false;
-			if (getClass() != obj.getClass())
+			}
+			if (getClass() != obj.getClass()) {
 				return false;
+			}
 			CacheKey other = (CacheKey) obj;
-			if (!Arrays.equals(channelMatchValues, other.channelMatchValues))
+			if (!Arrays.equals(channelMatchValues, other.channelMatchValues)) {
 				return false;
+			}
 			if (eventMatchValue == null) {
-				if (other.eventMatchValue != null)
+				if (other.eventMatchValue != null) {
 					return false;
-			} else if (!eventMatchValue.equals(other.eventMatchValue))
+				}
+			} else if (!eventMatchValue.equals(other.eventMatchValue)) {
 				return false;
+			}
 			return true;
 		}
 	}
 	
-	private HandlerList getEventHandlers
-		(EventBase<?> event, Channel[] channels) {
+	private HandlerList getEventHandlers(
+			EventBase<?> event, Channel[] channels) {
 		CacheKey key = new CacheKey(event, channels);
 		HandlerList hdlrs = handlerCache.get(key);
 		if (hdlrs != null) {

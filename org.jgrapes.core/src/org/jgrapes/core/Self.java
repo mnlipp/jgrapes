@@ -15,13 +15,12 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 /**
  * This interface type can be used to specify the object
  * itself as channel in handler annotations.
- * 
- * @author Michael N. Lipp
  */
 public interface Self extends Channel {
 

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.annotation;
 
 import java.lang.annotation.Annotation;
@@ -34,9 +35,9 @@ import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.DefaultChannel;
+import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
-import org.jgrapes.core.Eligible;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.Self;
@@ -58,12 +59,12 @@ public @interface Handler {
 	
 	/** The default value for the <code>events</code> parameter of
 	 * the annotation. Indicates that the parameter is not used. */
-	final public static class NO_EVENT extends Event<Void> {
+	public static final class NoEvent extends Event<Void> {
 	}
 	
 	/** The default value for the <code>channels</code> parameter of
 	 * the annotation. Indicates that the parameter is not used. */
-	final public static class NO_CHANNEL extends ClassChannel {
+	public static final class NoChannel extends ClassChannel {
 	}
 	
 	/**
@@ -72,7 +73,7 @@ public @interface Handler {
 	 * @return the event classes
 	 */
 	@SuppressWarnings("rawtypes")
-	Class<? extends Event>[] events() default NO_EVENT.class;
+	Class<? extends Event>[] events() default NoEvent.class;
 	
 	/**
 	 * Specifies names of {@link NamedEvent}s that the handler is to receive.
@@ -86,7 +87,7 @@ public @interface Handler {
 	 * 
 	 * @return the channel classes
 	 */
-	Class<? extends Channel>[] channels() default NO_CHANNEL.class;
+	Class<? extends Channel>[] channels() default NoChannel.class;
 
 	/**
 	 * Specifies names of {@link NamedChannel}s that the handler listens on.
@@ -122,8 +123,8 @@ public @interface Handler {
 	public static class Evaluator implements HandlerDefinition.Evaluator {
 
 		@Override
-		public HandlerScope getScope
-			(ComponentType component, Method method, 
+		public HandlerScope getScope(
+				ComponentType component, Method method, 
 					Object[] eventValues, Object[] channelValues) {
 			Handler annotation = method.getAnnotation(Handler.class);
 			if (annotation == null || annotation.dynamic()) {
@@ -169,7 +170,7 @@ public @interface Handler {
 		 * @param priority
 		 *            the priority of the handler
 		 */
-		public static void add (ComponentType component, String method,
+		public static void add(ComponentType component, String method,
 				Object eventValue, Object channelValue, int priority) {
 			try {
 				if (channelValue instanceof Channel) {
@@ -181,8 +182,8 @@ public @interface Handler {
 					}
 					if (m.getParameterTypes().length != 0
 							&& !(m.getParameterTypes().length == 1
-								 && Event.class.isAssignableFrom
-								 (m.getParameterTypes()[0]))) {
+								 && Event.class.isAssignableFrom(
+										 m.getParameterTypes()[0]))) {
 						continue;
 					}
 					for (Annotation annotation: m.getDeclaredAnnotations()) {
@@ -203,8 +204,8 @@ public @interface Handler {
 						return;
 					}
 				}
-				throw new IllegalArgumentException
-					("No method named \"" + method + "\" with DynamicHandler"
+				throw new IllegalArgumentException(
+						"No method named \"" + method + "\" with DynamicHandler"
 							+ " annotation and correct parameter list.");
 			} catch (SecurityException e) {
 				throw (RuntimeException)
@@ -234,8 +235,8 @@ public @interface Handler {
 					}
 					if (m.getParameterTypes().length != 0
 							&& !(m.getParameterTypes().length == 1
-								 && Event.class.isAssignableFrom
-								 (m.getParameterTypes()[0]))) {
+								 && Event.class.isAssignableFrom(
+										 m.getParameterTypes()[0]))) {
 						continue;
 					}
 					for (Annotation annotation: m.getDeclaredAnnotations()) {
@@ -258,8 +259,8 @@ public @interface Handler {
 						return;
 					}
 				}
-				throw new IllegalArgumentException
-					("No method named \"" + method + "\" with DynamicHandler"
+				throw new IllegalArgumentException(
+						"No method named \"" + method + "\" with DynamicHandler"
 							+ " annotation and correct parameter list.");
 			} catch (SecurityException e) {
 				throw (RuntimeException)
@@ -284,7 +285,7 @@ public @interface Handler {
 					handledEvents.addAll(Arrays.asList(eventValues));
 				} else {
 					// Get all event values from the handler annotation.
-					if (annotation.events()[0] != Handler.NO_EVENT.class) {
+					if (annotation.events()[0] != Handler.NoEvent.class) {
 						handledEvents
 						        .addAll(Arrays.asList(annotation.events()));
 					}
@@ -310,7 +311,7 @@ public @interface Handler {
 				} else {
 					// Get channel values from the annotation.
 					boolean addDefaultChannel = false;
-					if (annotation.channels()[0] != Handler.NO_CHANNEL.class) {
+					if (annotation.channels()[0] != Handler.NoChannel.class) {
 						for (Class<?> c : annotation.channels()) {
 							if (c == Self.class) {
 								if (component instanceof Channel) {

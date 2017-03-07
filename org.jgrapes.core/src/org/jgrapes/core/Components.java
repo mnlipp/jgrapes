@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 import java.util.Map;
@@ -29,8 +30,6 @@ import org.jgrapes.core.internal.GeneratorRegistry;
 
 /**
  * This class provides some utility functions.
- * 
- * @author Michael N. Lipp
  */
 public class Components {
 
@@ -51,7 +50,7 @@ public class Components {
 	 * @param component the component
 	 * @return the component (with its manager attribute set)
 	 */
-	public static Manager manager (ComponentType component) {
+	public static Manager manager(ComponentType component) {
 		return ComponentVertex.getComponentVertex(component);
 	}
 
@@ -135,9 +134,9 @@ public class Components {
 			return "?";
 		}
 		synchronized (objectIds) {
-			return objectIds.computeIfAbsent
-				(object, k -> Long.toString
-					(idCounters.computeIfAbsent(scope, l -> new AtomicLong())
+			return objectIds.computeIfAbsent(object, k -> 
+				Long.toString(idCounters
+						.computeIfAbsent(scope, l -> new AtomicLong())
 							.incrementAndGet()));
 			
 		}

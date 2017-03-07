@@ -1,11 +1,11 @@
 package org.jgrapes.core.test.core;
 
-import static org.junit.Assert.*;
-
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
+
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class CompletedTest {

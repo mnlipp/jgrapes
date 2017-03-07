@@ -13,19 +13,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+
 package org.jgrapes.core.test.core;
 
-import static org.junit.Assert.*;
-
-import org.jgrapes.core.Component;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
-import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
+
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**
@@ -48,8 +49,8 @@ public class MatchTest {
 		 */
 		public EventCounter() {
 			super(Channel.BROADCAST);
-			Handler.Evaluator.add
-				(this, "onStartedComponent", Start.class, this, 0);
+			Handler.Evaluator.add(
+					this, "onStartedComponent", Start.class, this, 0);
 			Handler.Evaluator.add(this, "onStart", getChannel());
 		}
 

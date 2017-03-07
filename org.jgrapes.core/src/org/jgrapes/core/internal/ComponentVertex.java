@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.internal;
 
 import java.lang.annotation.Annotation;
@@ -32,11 +33,11 @@ import java.util.Stack;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.HandlerScope;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.HandlerDefinition;
 import org.jgrapes.core.events.Attached;
 import org.jgrapes.core.events.Detached;
@@ -54,7 +55,7 @@ import org.jgrapes.core.events.Detached;
 public abstract class ComponentVertex implements Manager {
 
 	/** Handler factory cache. */
-	static private Map<Class<? extends HandlerDefinition.Evaluator>,
+	private static Map<Class<? extends HandlerDefinition.Evaluator>,
 			HandlerDefinition.Evaluator> definitionEvaluators 
 			= Collections.synchronizedMap(new HashMap<>());
 	/** Reference to the common properties of the tree nodes. */
@@ -87,8 +88,8 @@ public abstract class ComponentVertex implements Manager {
 		handlers = Collections.synchronizedList(handlers);
 	}
 
-	private void maybeAddHandler(Method m) {
-		for (Annotation annotation: m.getDeclaredAnnotations()) {
+	private void maybeAddHandler(Method method) {
+		for (Annotation annotation: method.getDeclaredAnnotations()) {
 			Class<?> annoType = annotation.annotationType();
 			HandlerDefinition hda 
 				= annoType.getAnnotation(HandlerDefinition.class);
@@ -96,13 +97,13 @@ public abstract class ComponentVertex implements Manager {
 				continue;
 			}
 			HandlerDefinition.Evaluator evaluator = defintionEvaluator(hda);
-			HandlerScope scope = evaluator.getScope(getComponent(), m, null,
+			HandlerScope scope = evaluator.getScope(getComponent(), method, null,
 			        null);
 			if (scope == null) {
 				continue;
 			}
-			handlers.add(HandlerReference.newRef
-					(getComponent(), m, evaluator.getPriority(annotation),
+			handlers.add(HandlerReference.newRef(
+					getComponent(), method, evaluator.getPriority(annotation),
 							scope));
 		}
 	}
@@ -112,10 +113,10 @@ public abstract class ComponentVertex implements Manager {
 		HandlerDefinition.Evaluator evaluator = definitionEvaluators
 				.computeIfAbsent(hda.evaluator(), key -> {
 			try {
-				HandlerDefinition.Evaluator e 
+				HandlerDefinition.Evaluator hde 
 					= hda.evaluator().newInstance();
-				definitionEvaluators.put (key, e);
-				return e;
+				definitionEvaluators.put(key, hde);
+				return hde;
 			} catch (InstantiationException
 			        | IllegalAccessException e) {
 				throw new RuntimeException(e);
@@ -130,7 +131,7 @@ public abstract class ComponentVertex implements Manager {
 	 * @param component the component
 	 * @return the node representing the component in the tree
 	 */
-	public static ComponentVertex getComponentVertex (ComponentType component) {
+	public static ComponentVertex getComponentVertex(ComponentType component) {
 		if (component instanceof ComponentVertex) {
 			return (ComponentVertex)component;
 		}
@@ -148,7 +149,7 @@ public abstract class ComponentVertex implements Manager {
 	 * @see org.jgrapes.core.Manager#getChildren()
 	 */
 	@Override
-	synchronized public List<ComponentType> getChildren() {
+	public synchronized List<ComponentType> getChildren() {
 		List<ComponentType> children = new ArrayList<ComponentType>();
 		for (ComponentVertex child: this.children) {
 			children.add(child.getComponent());
@@ -160,7 +161,7 @@ public abstract class ComponentVertex implements Manager {
 	 * @see org.jgrapes.core.Manager#getParent()
 	 */
 	@Override
-	synchronized public ComponentType getParent() {
+	public synchronized ComponentType getParent() {
 		if (parent == null) {
 			return null;
 		}
@@ -197,7 +198,7 @@ public abstract class ComponentVertex implements Manager {
 	 * 
 	 * @param comp the new root
 	 */
-	synchronized private void setTree(ComponentTree tree) {
+	private synchronized void setTree(ComponentTree tree) {
 		this.tree = tree;
 		for (ComponentVertex child: children) {
 			child.setTree(tree);
@@ -208,7 +209,7 @@ public abstract class ComponentVertex implements Manager {
 	 * @see org.jgrapes.core.Manager#attach(Component)
 	 */
 	@Override
-	synchronized public <T extends ComponentType> T attach (T child) {
+	public synchronized <T extends ComponentType> T attach(T child) {
 		ComponentVertex childNode = getComponentVertex(child);
 		synchronized (childNode) {
 			synchronized (getTree()) {
@@ -221,12 +222,12 @@ public abstract class ComponentVertex implements Manager {
 					// Attaching a tree...
 					synchronized (childNode.tree) {
 						if (childNode.parent != null) {
-							throw new IllegalStateException
-								("Cannot attach a node with a parent.");
+							throw new IllegalStateException(
+									"Cannot attach a node with a parent.");
 						}
 						if (childNode.tree.isStarted()) {
-							throw new IllegalStateException
-								("Cannot attach a started subtree.");
+							throw new IllegalStateException(
+									"Cannot attach a started subtree.");
 						}
 						childNode.parent = ComponentVertex.this;
 						ComponentTree childTree = childNode.tree;
@@ -237,22 +238,22 @@ public abstract class ComponentVertex implements Manager {
 				}
 			}
 		}
-		Channel pChan = getChannel();
-		if (pChan == null) {
-			pChan = Channel.BROADCAST;
+		Channel parentChan = getChannel();
+		if (parentChan == null) {
+			parentChan = Channel.BROADCAST;
 		}
-		Channel cChan = childNode.getChannel();
-		if (cChan == null) {
-			pChan = Channel.BROADCAST;
+		Channel childChan = childNode.getChannel();
+		if (childChan == null) {
+			parentChan = Channel.BROADCAST;
 		}
-		Attached e = new Attached(childNode.getComponent(), getComponent());
-		if (pChan.equals(Channel.BROADCAST) 
-			|| cChan.equals(Channel.BROADCAST)) {
-			fire(e, Channel.BROADCAST);
-		} else if (pChan.equals(cChan)) {
-			fire(e, pChan);
+		Attached evt = new Attached(childNode.getComponent(), getComponent());
+		if (parentChan.equals(Channel.BROADCAST) 
+			|| childChan.equals(Channel.BROADCAST)) {
+			fire(evt, Channel.BROADCAST);
+		} else if (parentChan.equals(childChan)) {
+			fire(evt, parentChan);
 		} else {
-			fire(e, pChan, cChan);
+			fire(evt, parentChan, childChan);
 		}
 		return child;
 	}
@@ -260,14 +261,14 @@ public abstract class ComponentVertex implements Manager {
 	/**
 	 * Remove the component from the tree, making it a stand-alone tree.
 	 */
-	synchronized public ComponentType detach() {
+	public synchronized ComponentType detach() {
 		if (parent != null) {
 			ComponentVertex oldParent = parent;
 			synchronized (tree) {
 				if (!tree.isStarted()) {
-					throw new IllegalStateException
-						("Components may not be detached from a tree before"
-						 + " a Start event has been fired on it.");
+					throw new IllegalStateException(
+							"Components may not be detached from a tree before"
+							+ " a Start event has been fired on it.");
 				}
 				synchronized (oldParent) {
 					parent.children.remove(ComponentVertex.this);
@@ -279,10 +280,10 @@ public abstract class ComponentVertex implements Manager {
 				newTree.setEventPipeline(new EventProcessor(newTree));
 				setTree(newTree);
 			}
-			Detached e = new Detached(getComponent(), oldParent.getComponent());
-			oldParent.fire(e);
-			e = new Detached(getComponent(), oldParent.getComponent());
-			fire(e);
+			Detached evt = new Detached(getComponent(), oldParent.getComponent());
+			oldParent.fire(evt);
+			evt = new Detached(getComponent(), oldParent.getComponent());
+			fire(evt);
 		}
 		return getComponent();
 	}
@@ -303,6 +304,7 @@ public abstract class ComponentVertex implements Manager {
 		private class Pos {
 			public ComponentVertex current;
 			public Iterator<ComponentVertex> childIter;
+			
 			public Pos(ComponentVertex cm) {
 				current = cm;
 				childIter = current.children.iterator();
@@ -395,7 +397,7 @@ public abstract class ComponentVertex implements Manager {
 	 * @param event the event to match
 	 * @param channels the channels to match
 	 */
-	void collectHandlers (Collection<HandlerReference> hdlrs, 
+	void collectHandlers(Collection<HandlerReference> hdlrs, 
 			EventBase<?> event, Channel[] channels) {
 		for (HandlerReference hdlr: handlers) {
 			if (hdlr.handles(event, channels)) {
@@ -412,8 +414,8 @@ public abstract class ComponentVertex implements Manager {
 	 */
 	@Override
 	public EventPipeline activeEventPipeline() {
-		return new CheckingPipelineFilter
-				(getTree().getEventPipeline(), getChannel());
+		return new CheckingPipelineFilter(
+				getTree().getEventPipeline(), getChannel());
 	}
 
 	/* (non-Javadoc)
@@ -421,8 +423,8 @@ public abstract class ComponentVertex implements Manager {
 	 */
 	@Override
 	public EventPipeline newSyncEventPipeline() {
-		return new CheckingPipelineFilter
-				(new SynchronousEventProcessor(getTree()), getChannel());
+		return new CheckingPipelineFilter(
+				new SynchronousEventProcessor(getTree()), getChannel());
 	}
 
 	/* (non-Javadoc)

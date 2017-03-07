@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core;
 
 import org.jgrapes.core.internal.Common;
@@ -22,8 +23,6 @@ import org.jgrapes.core.internal.Common;
 /**
  * This class is the root base class for channels that use their class (type)
  * as value for matching (see {@link Eligible}).
- * 
- * @author Michael N. Lipp
  */
 public class ClassChannel implements Channel {
 
@@ -65,18 +64,23 @@ public class ClassChannel implements Channel {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		ClassChannel other = (ClassChannel) obj;
 		if (getDefaultCriterion() == null) {
-			if (other.getDefaultCriterion() != null)
+			if (other.getDefaultCriterion() != null) {
 				return false;
-		} else if (!getDefaultCriterion().equals(other.getDefaultCriterion()))
+			}
+		} else if (!getDefaultCriterion().equals(other.getDefaultCriterion())) {
 			return false;
+		}
 		return true;
 	}
 
