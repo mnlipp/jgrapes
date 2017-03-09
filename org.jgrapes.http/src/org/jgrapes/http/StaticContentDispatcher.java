@@ -23,10 +23,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
+import java.time.Instant;
+import java.time.temporal.ChronoField;
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.protocols.http.fields.HttpDateTimeField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
 import org.jgrapes.core.Channel;
@@ -101,23 +105,37 @@ public class StaticContentDispatcher extends Component {
 		if (!Files.isReadable(resourcePath)) {
 			return;
 		}
-		final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
-		String mimeTypeName = Files.probeContentType(resourcePath);
-		if (mimeTypeName == null) {
-			mimeTypeName = "application/octet-stream";
+		// Check if sending is really required.
+		Instant lastModified = Files.getLastModifiedTime(resourcePath)
+				.toInstant().with(ChronoField.NANO_OF_SECOND, 0);
+		Optional<HttpDateTimeField> modifiedSince = event.getRequest()
+				.getField(HttpDateTimeField.class, HttpField.IF_MODIFIED_SINCE);
+		HttpResponse response = event.getRequest().getResponse().get();
+		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
+		if (modifiedSince.isPresent() 
+				&& !lastModified.isAfter(modifiedSince.get().getValue())) {
+			response.setStatus(HttpStatus.NOT_MODIFIED);
+			channel.fire(new Response(response));
+		} else {
+			String mimeTypeName = Files.probeContentType(resourcePath);
+			if (mimeTypeName == null) {
+				mimeTypeName = "application/octet-stream";
+			}
+			HttpMediaTypeField contentType = HttpMediaTypeField
+					.fromString(HttpField.CONTENT_TYPE, mimeTypeName);
+			if (contentType.getBaseType().equals("text")) {
+				contentType.setParameter("charset",
+						System.getProperty("file.encoding", "UTF-8"));
+			}
+			response.setStatus(HttpStatus.OK);
+			response.setMessageHasBody(true);
+			response.setField(contentType);
+			response.setField(new HttpDateTimeField(
+					HttpField.LAST_MODIFIED, lastModified));
+			channel.fire(new Response(response));
+			channel.fire(new StreamFile(resourcePath, StandardOpenOption.READ));
 		}
-		HttpMediaTypeField contentType = HttpMediaTypeField
-		        .fromString(HttpField.CONTENT_TYPE, mimeTypeName);
-		if (contentType.getBaseType().equals("text")) {
-			contentType.setParameter("charset",
-			        System.getProperty("file.encoding", "UTF-8"));
-		}
-		final HttpResponse response = event.getRequest().getResponse().get();
-		response.setStatus(HttpStatus.OK);
-		response.setMessageHasBody(true);
-		response.setField(contentType);
-		channel.fire(new Response(response));
-		channel.fire(new StreamFile(resourcePath, StandardOpenOption.READ));
 		event.stop();
 	}
+
 }
