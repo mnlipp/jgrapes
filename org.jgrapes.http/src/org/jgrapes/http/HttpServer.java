@@ -287,16 +287,17 @@ public class HttpServer extends Component {
 
 		// Start sending the response
 		engine.encode(response);
+		boolean hasBody = response.messageHasBody();
 		while (true) {
 			downChannel.outBuffer = netChannel.bufferPool().acquire();
 			final ManagedByteBuffer buffer = downChannel.outBuffer;
 			Codec.Result result = engine.encode(
-					Codec.EMPTY_IN, buffer.getBacking(), false);
+					Codec.EMPTY_IN, buffer.getBacking(), !hasBody);
 			if (result.isOverflow()) {
 				fire(new Output<>(buffer, false), netChannel);
 				continue;
 			}
-			if (response.messageHasBody()) {
+			if (hasBody) {
 				// Keep buffer with incomplete response to be further
 				// filled by Output events
 				break;
