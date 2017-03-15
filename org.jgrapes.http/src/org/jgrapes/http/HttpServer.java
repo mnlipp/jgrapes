@@ -37,6 +37,7 @@ import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
 import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;
 import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
+import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
@@ -198,6 +199,9 @@ public class HttpServer extends Component {
 			if (result.getResponse().isPresent()) {
 				// Feedback required, send it
 				fire(new Response(result.getResponse().get()), downChannel);
+				if (result.getResponse().get().isFinal()) {
+					break;
+				}
 				if (result.isResponseOnly()) {
 					continue;
 				}
@@ -309,6 +313,9 @@ public class HttpServer extends Component {
 				buffer.unlockBuffer();
 			}
 			downChannel.outBuffer = null;
+			if (result.getCloseConnection()) {
+				fire(new Close(), netChannel);
+			}
 			break;
 		}
 	}
@@ -338,14 +345,19 @@ public class HttpServer extends Component {
 		while (true) {
 			Codec.Result result = engine.encode((ByteBuffer) in,
 			        downChannel.outBuffer.getBacking(), event.isEndOfRecord());
-			if (!result.isOverflow() && !event.isEndOfRecord()) {
+			if (!result.isOverflow() && !event.isEndOfRecord()
+					&& !result.getCloseConnection()) {
 				break;
 			}
 			fire(new Output<>(downChannel.outBuffer, false), netChannel);
-			if (event.isEndOfRecord()) {
+			if (event.isEndOfRecord() || result.getCloseConnection()) {
 				downChannel.outBuffer = null;
+				if (result.getCloseConnection()) {
+					fire(new Close(), netChannel);
+				}
 				break;
 			}
+			
 			downChannel.outBuffer = netChannel.bufferPool().acquire();
 		}
 	}
@@ -385,7 +397,19 @@ public class HttpServer extends Component {
 
 		if (response.getStatusCode() == HttpStatus.NOT_IMPLEMENTED
 		        .getStatusCode()) {
-			channel.fire(new Response(response));
+			response.setMessageHasBody(true);
+			HttpMediaTypeField media = new HttpMediaTypeField(
+			        HttpField.CONTENT_TYPE,
+			        MediaType.builder().setType("text", "plain")
+			        .setParameter("charset", "utf-8").build());
+			response.setField(media);
+			fire(new Response(response), channel);
+			try {
+				fire(Output.wrap("Not Implemented\r\n".getBytes("utf-8"), true),
+						channel);
+			} catch (UnsupportedEncodingException e) {
+				// Supported by definition
+			}
 		}
 	}
 
@@ -426,12 +450,13 @@ public class HttpServer extends Component {
 		response.setStatus(HttpStatus.NOT_FOUND);
 		response.setMessageHasBody(true);
 		HttpMediaTypeField media = new HttpMediaTypeField(
-		        HttpField.CONTENT_TYPE, "text", "plain");
-		media.setParameter("charset", "utf-8");
+		        HttpField.CONTENT_TYPE,
+		        MediaType.builder().setType("text", "plain")
+		        .setParameter("charset", "utf-8").build());
 		response.setField(media);
 		fire(new Response(response), channel);
 		try {
-			fire(Output.wrap("Not Found".getBytes("utf-8"), true), channel);
+			fire(Output.wrap("Not Found\r\n".getBytes("utf-8"), true), channel);
 		} catch (UnsupportedEncodingException e) {
 			// Supported by definition
 		}
