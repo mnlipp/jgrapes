@@ -14,6 +14,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -64,8 +65,8 @@ public class GetTest {
 			response.setStatus(HttpStatus.OK);
 			response.setMessageHasBody(true);
 			HttpMediaTypeField media = new HttpMediaTypeField(
-			        HttpField.CONTENT_TYPE, "text", "plain");
-			media.setParameter("charset", "utf-8");
+			        HttpField.CONTENT_TYPE, MediaType
+			        .fromString("text/plain; charset=utf-8"));
 			response.setField(media);
 			fire(new Response(response), channel);
 			try {
@@ -85,8 +86,8 @@ public class GetTest {
 			response.setStatus(HttpStatus.OK);
 			response.setMessageHasBody(true);
 			HttpMediaTypeField media = new HttpMediaTypeField(
-			        HttpField.CONTENT_TYPE, "text", "plain");
-			media.setParameter("charset", "utf-8");
+			        HttpField.CONTENT_TYPE, MediaType
+			        .fromString("text/plain; charset=utf-8"));
 			response.setField(media);
 			fire(new Response(response), channel);
 			try {
