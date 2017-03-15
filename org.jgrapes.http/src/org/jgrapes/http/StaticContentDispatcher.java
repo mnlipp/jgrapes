@@ -33,6 +33,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpDateTimeField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
 import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.http.annotation.RequestHandler;
@@ -121,15 +122,16 @@ public class StaticContentDispatcher extends Component {
 			if (mimeTypeName == null) {
 				mimeTypeName = "application/octet-stream";
 			}
-			HttpMediaTypeField contentType = HttpMediaTypeField
-					.fromString(HttpField.CONTENT_TYPE, mimeTypeName);
-			if (contentType.getBaseType().equals("text")) {
-				contentType.setParameter("charset",
-						System.getProperty("file.encoding", "UTF-8"));
+			MediaType mediaType = MediaType.fromString(mimeTypeName);
+			if ("text".equals(mediaType.getTopLevelType())) {
+				mediaType = MediaType.builder().from(mediaType)
+						.setParameter("charset", System.getProperty(
+								"file.encoding", "UTF-8")).build();
 			}
+			response.setField(new HttpMediaTypeField(
+					HttpField.CONTENT_TYPE, mediaType));
 			response.setStatus(HttpStatus.OK);
 			response.setMessageHasBody(true);
-			response.setField(contentType);
 			response.setField(new HttpDateTimeField(
 					HttpField.LAST_MODIFIED, lastModified));
 			channel.fire(new Response(response));
