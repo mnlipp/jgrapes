@@ -95,7 +95,7 @@ configurations {
 }
 
 dependencies {
-    javadocTaglets "org.jdrupes.taglets:plantuml-taglet:1.0.3"
+    javadocTaglets "org.jdrupes.taglets:plantuml-taglet:1.0.+"
     // javadocTaglets "com.github.mnlipp:jdrupes-taglets:master-SNAPSHOT"
 }
 
