@@ -109,6 +109,7 @@ javadoc {
     source subprojects.collect {project -> project.sourceSets.main.allJava } 
 	options.addStringOption("overview", "overview.md")
 	inputs.file "overview.md"
+	options.addBooleanOption("linksource", true)
     options.addStringOption("bottom", file("misc/javadoc.bottom.txt").text)
     options.addStringOption("link", "http://docs.oracle.com/javase/8/docs/api/")
 	destinationDir = file("../jgrapes.gh-pages/javadoc")
