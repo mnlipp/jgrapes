@@ -244,8 +244,6 @@ public class Server extends Component implements NioHandler {
 		return Components.objectName(this);
 	}
 	
-	private static enum CloseInitiator { SERVER, CLIENT }
-	
 	/**
 	 * The internal representation of a connected client. 
 	 * 
@@ -399,13 +397,29 @@ public class Server extends Component implements NioHandler {
 				return;
 			}
 			// EOF (-1) from client
-			if (nioChannel.socket().isOutputShutdown()) {
-				// Client confirms our close, complete
-				nioChannel.close();
-				return;
+			synchronized (nioChannel) {
+				if (nioChannel.socket().isOutputShutdown()) {
+					// Client confirms our close, complete close
+					nioChannel.close();
+					return;
+				}
+				
 			}
 			// Client initiates close
-			close(CloseInitiator.CLIENT);
+			removeConnection();
+			synchronized (pendingWrites) {
+				synchronized (nioChannel) {
+					if (!pendingWrites.isEmpty()) {
+						// Pending writes, delay close
+						pendingClose = true;
+						// Mark as client initiated close
+						nioChannel.shutdownInput();
+						return;
+					}
+					// Nothing left to do, close
+					nioChannel.close();
+				}
+			}
 		}
 
 		/**
@@ -427,12 +441,14 @@ public class Server extends Component implements NioHandler {
 								SelectionKey.OP_READ);
 						// Was the connection closed while we were writing?
 						if (pendingClose) {
-							if (nioChannel.socket().isInputShutdown()) {
-								// Delayed close from client, complete
-								nioChannel.close();
-							} else {
-								// Delayed close request
-								nioChannel.shutdownOutput();
+							synchronized (nioChannel) {
+								if (nioChannel.socket().isInputShutdown()) {
+									// Delayed close from client, complete
+									nioChannel.close();
+								} else {
+									// Delayed close from server, initiate
+									nioChannel.shutdownOutput();
+								}
 							}
 							pendingClose = false;
 						}
@@ -459,10 +475,24 @@ public class Server extends Component implements NioHandler {
 		 * @throws InterruptedException if the execution was interrupted 
 		 */
 		public void close() throws IOException, InterruptedException {
-			close(CloseInitiator.SERVER);
+			removeConnection();
+			synchronized (pendingWrites) {
+				if (!pendingWrites.isEmpty()) {
+					// Pending writes, delay close until done
+					pendingClose = true;
+					return;
+				}
+				// Nothing left to do, proceed
+				synchronized (nioChannel) {
+					if (nioChannel.isOpen()) {
+						// Initiate close, must be confirmed by client
+						nioChannel.shutdownOutput();
+					}
+				}
+			}
 		}
 
-		private void close(CloseInitiator initiator) throws IOException {
+		private void removeConnection() {
 			synchronized (connections) {
 				if(!connections.remove(this)) {
 					// Closed already
@@ -470,27 +500,11 @@ public class Server extends Component implements NioHandler {
 				}
 				// In case the server is shutting down
 				connections.notifyAll();
-			}
-			synchronized (pendingWrites) {
-				if (!pendingWrites.isEmpty()) {
-					pendingClose = true;
-					if (initiator == CloseInitiator.CLIENT) {
-						nioChannel.shutdownInput();						
-					}
-					return;
-				}
-			}
-			if (initiator == CloseInitiator.SERVER) {
-				// Initiate close, client completes it.
-				nioChannel.shutdownOutput();
-			} else if (initiator == CloseInitiator.CLIENT) {
-				// No pending writes, nothing expected from client: close
-				nioChannel.close();
-			}
+			}			
 			Closed evt = new Closed();
 			downPipeline.fire(evt, this);
 		}
-
+		
 		/* (non-Javadoc)
 		 * @see java.lang.Object#toString()
 		 */
