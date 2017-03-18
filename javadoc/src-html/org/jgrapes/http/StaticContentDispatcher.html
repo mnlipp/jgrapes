@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="de">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
+<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
+<span class="sourceLineNo">003</span> * Copyright (C) 2016  Michael N. Lipp<a name="line.3"></a>
+<span class="sourceLineNo">004</span> * <a name="line.4"></a>
+<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
+<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
+<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
+<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
+<span class="sourceLineNo">009</span> * <a name="line.9"></a>
+<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
+<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
+<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
+<span class="sourceLineNo">014</span> * <a name="line.14"></a>
+<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
+<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
+<span class="sourceLineNo">017</span> */<a name="line.17"></a>
+<span class="sourceLineNo">018</span><a name="line.18"></a>
+<span class="sourceLineNo">019</span>package org.jgrapes.http;<a name="line.19"></a>
+<span class="sourceLineNo">020</span><a name="line.20"></a>
+<span class="sourceLineNo">021</span>import java.io.IOException;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import java.nio.file.Files;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import java.nio.file.Path;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import java.nio.file.StandardOpenOption;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import java.text.ParseException;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import java.time.Instant;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import java.time.temporal.ChronoField;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import java.util.Arrays;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import java.util.Optional;<a name="line.29"></a>
+<span class="sourceLineNo">030</span><a name="line.30"></a>
+<span class="sourceLineNo">031</span>import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>import org.jdrupes.httpcodec.protocols.http.HttpResponse;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import org.jdrupes.httpcodec.protocols.http.fields.HttpDateTimeField;<a name="line.33"></a>
+<span class="sourceLineNo">034</span>import org.jdrupes.httpcodec.protocols.http.fields.HttpField;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>import org.jdrupes.httpcodec.types.MediaType;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>import org.jgrapes.core.Channel;<a name="line.37"></a>
+<span class="sourceLineNo">038</span>import org.jgrapes.core.Component;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>import org.jgrapes.http.annotation.RequestHandler;<a name="line.39"></a>
+<span class="sourceLineNo">040</span>import org.jgrapes.http.events.GetRequest;<a name="line.40"></a>
+<span class="sourceLineNo">041</span>import org.jgrapes.http.events.Response;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>import org.jgrapes.io.IOSubchannel;<a name="line.42"></a>
+<span class="sourceLineNo">043</span>import org.jgrapes.io.events.StreamFile;<a name="line.43"></a>
+<span class="sourceLineNo">044</span><a name="line.44"></a>
+<span class="sourceLineNo">045</span>/**<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * @author Michael N. Lipp<a name="line.46"></a>
+<span class="sourceLineNo">047</span> */<a name="line.47"></a>
+<span class="sourceLineNo">048</span>public class StaticContentDispatcher extends Component {<a name="line.48"></a>
+<span class="sourceLineNo">049</span><a name="line.49"></a>
+<span class="sourceLineNo">050</span>        private ResourcePattern resourcePattern;<a name="line.50"></a>
+<span class="sourceLineNo">051</span>        private Path contentDirectory;<a name="line.51"></a>
+<span class="sourceLineNo">052</span>        <a name="line.52"></a>
+<span class="sourceLineNo">053</span>        /**<a name="line.53"></a>
+<span class="sourceLineNo">054</span>         * @param resourcePattern the pattern that requests must match with to <a name="line.54"></a>
+<span class="sourceLineNo">055</span>         * be handled by this component <a name="line.55"></a>
+<span class="sourceLineNo">056</span>         * (see {@link ResourcePattern#matches(String, java.net.URI)})<a name="line.56"></a>
+<span class="sourceLineNo">057</span>         * @param contentDirectory the directory with content to serve <a name="line.57"></a>
+<span class="sourceLineNo">058</span>         * @see Component#Component()<a name="line.58"></a>
+<span class="sourceLineNo">059</span>         */<a name="line.59"></a>
+<span class="sourceLineNo">060</span>        public StaticContentDispatcher(String resourcePattern, <a name="line.60"></a>
+<span class="sourceLineNo">061</span>                        Path contentDirectory) {<a name="line.61"></a>
+<span class="sourceLineNo">062</span>                this(Channel.SELF, resourcePattern, contentDirectory);<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        }<a name="line.63"></a>
+<span class="sourceLineNo">064</span><a name="line.64"></a>
+<span class="sourceLineNo">065</span>        /**<a name="line.65"></a>
+<span class="sourceLineNo">066</span>         * @param componentChannel<a name="line.66"></a>
+<span class="sourceLineNo">067</span>         *            this component's channel<a name="line.67"></a>
+<span class="sourceLineNo">068</span>         * @param resourcePattern the pattern that requests must match <a name="line.68"></a>
+<span class="sourceLineNo">069</span>         * in order to be handled by this component <a name="line.69"></a>
+<span class="sourceLineNo">070</span>         * (see {@link ResourcePattern#matches(String, java.net.URI)})<a name="line.70"></a>
+<span class="sourceLineNo">071</span>         * @param contentDirectory the directory with content to serve <a name="line.71"></a>
+<span class="sourceLineNo">072</span>         * @see Component#Component(Channel)<a name="line.72"></a>
+<span class="sourceLineNo">073</span>         */<a name="line.73"></a>
+<span class="sourceLineNo">074</span>        public StaticContentDispatcher(Channel componentChannel, <a name="line.74"></a>
+<span class="sourceLineNo">075</span>                        String resourcePattern, Path contentDirectory) {<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                super(componentChannel);<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                try {<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                        this.resourcePattern = new ResourcePattern(resourcePattern);<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                } catch (ParseException e) {<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                        throw new IllegalArgumentException(e);<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                }<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                this.contentDirectory = contentDirectory;<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                RequestHandler.Evaluator.add(this, "onGet", resourcePattern);<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        }<a name="line.84"></a>
+<span class="sourceLineNo">085</span><a name="line.85"></a>
+<span class="sourceLineNo">086</span>        @RequestHandler(dynamic=true)<a name="line.86"></a>
+<span class="sourceLineNo">087</span>        public void onGet(GetRequest event) throws ParseException, IOException {<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                int prefixSegs = resourcePattern.matches(event.getRequestUri());<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                if (prefixSegs &lt; 0) {<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                        return;<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                }<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                // Final wrapper for usage in closure<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                final Path[] assembly = new Path[] { contentDirectory };<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                Arrays.stream(event.getRequestUri().getPath().split("/"))<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                        .skip(prefixSegs + 1)<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                        .forEach(e -&gt; assembly[0] = assembly[0].resolve(e));<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                Path resourcePath = assembly[0];<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                if (Files.isDirectory(resourcePath)) {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                        Path indexPath = resourcePath.resolve("index.html");<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                        if (Files.isReadable(indexPath)) {<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                                resourcePath = indexPath;<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                        } else {<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                                return;<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                        }<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                }<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                if (!Files.isReadable(resourcePath)) {<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                        return;<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                }<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                // Check if sending is really required.<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                Instant lastModified = Files.getLastModifiedTime(resourcePath)<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                                .toInstant().with(ChronoField.NANO_OF_SECOND, 0);<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                Optional&lt;HttpDateTimeField&gt; modifiedSince = event.getRequest()<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                                .getField(HttpDateTimeField.class, HttpField.IF_MODIFIED_SINCE);<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                HttpResponse response = event.getRequest().getResponse().get();<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                IOSubchannel channel = event.firstChannel(IOSubchannel.class);<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                if (modifiedSince.isPresent() <a name="line.116"></a>
+<span class="sourceLineNo">117</span>                                &amp;&amp; !lastModified.isAfter(modifiedSince.get().getValue())) {<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                        response.setStatus(HttpStatus.NOT_MODIFIED);<a name="line.118"></a>
+<span class="sourceLineNo">119</span>                        channel.fire(new Response(response));<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                } else {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                        String mimeTypeName = Files.probeContentType(resourcePath);<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                        if (mimeTypeName == null) {<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                                mimeTypeName = "application/octet-stream";<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                        }<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                        MediaType mediaType = MediaType.fromString(mimeTypeName);<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                        if ("text".equals(mediaType.getTopLevelType())) {<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                                mediaType = MediaType.builder().from(mediaType)<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                                                .setParameter("charset", System.getProperty(<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                                                                "file.encoding", "UTF-8")).build();<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                        }<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                        response.setField(new HttpMediaTypeField(<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                                        HttpField.CONTENT_TYPE, mediaType));<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                        response.setStatus(HttpStatus.OK);<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                        response.setMessageHasBody(true);<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                        response.setField(new HttpDateTimeField(<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                                        HttpField.LAST_MODIFIED, lastModified));<a name="line.136"></a>
+<span class="sourceLineNo">137</span>                        channel.fire(new Response(response));<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                        channel.fire(new StreamFile(resourcePath, StandardOpenOption.READ));<a name="line.138"></a>
+<span class="sourceLineNo">139</span>                }<a name="line.139"></a>
+<span class="sourceLineNo">140</span>                event.stop();<a name="line.140"></a>
+<span class="sourceLineNo">141</span>        }<a name="line.141"></a>
+<span class="sourceLineNo">142</span><a name="line.142"></a>
+<span class="sourceLineNo">143</span>}<a name="line.143"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>
