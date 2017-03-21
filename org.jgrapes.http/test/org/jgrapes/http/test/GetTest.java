@@ -11,9 +11,8 @@ import java.text.ParseException;
 import java.util.concurrent.ExecutionException;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
-import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
-import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
 import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -64,10 +63,9 @@ public class GetTest {
 			final HttpResponse response = event.getRequest().getResponse().get();
 			response.setStatus(HttpStatus.OK);
 			response.setMessageHasBody(true);
-			HttpMediaTypeField media = new HttpMediaTypeField(
-			        HttpField.CONTENT_TYPE, MediaType
-			        .fromString("text/plain; charset=utf-8"));
-			response.setField(media);
+			response.setField(HttpField.CONTENT_TYPE,
+					MediaType.builder().setType("text", "plain")
+					.setParameter("charset", "utf-8").build());
 			fire(new Response(response), channel);
 			try {
 				fire(Output.wrap("Top!".getBytes("utf-8"), true), channel);
@@ -85,10 +83,9 @@ public class GetTest {
 			final HttpResponse response = event.getRequest().getResponse().get();
 			response.setStatus(HttpStatus.OK);
 			response.setMessageHasBody(true);
-			HttpMediaTypeField media = new HttpMediaTypeField(
-			        HttpField.CONTENT_TYPE, MediaType
-			        .fromString("text/plain; charset=utf-8"));
-			response.setField(media);
+			response.setField(HttpField.CONTENT_TYPE,
+					MediaType.builder().setType("text", "plain")
+					.setParameter("charset", "utf-8").build());
 			fire(new Response(response), channel);
 			try {
 				fire(Output.wrap("Dynamic!".getBytes("utf-8"), true), channel);

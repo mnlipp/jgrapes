@@ -31,10 +31,9 @@ import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.ServerEngine;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
-import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
-import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
 import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;
 import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
 import org.jdrupes.httpcodec.types.MediaType;
@@ -398,11 +397,9 @@ public class HttpServer extends Component {
 		if (response.getStatusCode() == HttpStatus.NOT_IMPLEMENTED
 		        .getStatusCode()) {
 			response.setMessageHasBody(true);
-			HttpMediaTypeField media = new HttpMediaTypeField(
-			        HttpField.CONTENT_TYPE,
-			        MediaType.builder().setType("text", "plain")
+			response.setField(HttpField.CONTENT_TYPE,
+					MediaType.builder().setType("text", "plain")
 			        .setParameter("charset", "utf-8").build());
-			response.setField(media);
 			fire(new Response(response), channel);
 			try {
 				fire(Output.wrap("Not Implemented\r\n".getBytes("utf-8"), true),
@@ -449,11 +446,9 @@ public class HttpServer extends Component {
 		final HttpResponse response = event.getRequest().getResponse().get();
 		response.setStatus(HttpStatus.NOT_FOUND);
 		response.setMessageHasBody(true);
-		HttpMediaTypeField media = new HttpMediaTypeField(
-		        HttpField.CONTENT_TYPE,
-		        MediaType.builder().setType("text", "plain")
+		response.setField(HttpField.CONTENT_TYPE,
+				MediaType.builder().setType("text", "plain")
 		        .setParameter("charset", "utf-8").build());
-		response.setField(media);
 		fire(new Response(response), channel);
 		try {
 			fire(Output.wrap("Not Found\r\n".getBytes("utf-8"), true), channel);

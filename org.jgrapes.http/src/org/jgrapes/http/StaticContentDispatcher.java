@@ -29,10 +29,9 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
-import org.jdrupes.httpcodec.protocols.http.fields.HttpDateTimeField;
-import org.jdrupes.httpcodec.protocols.http.fields.HttpField;
-import org.jdrupes.httpcodec.protocols.http.fields.HttpMediaTypeField;
+import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -109,12 +108,12 @@ public class StaticContentDispatcher extends Component {
 		// Check if sending is really required.
 		Instant lastModified = Files.getLastModifiedTime(resourcePath)
 				.toInstant().with(ChronoField.NANO_OF_SECOND, 0);
-		Optional<HttpDateTimeField> modifiedSince = event.getRequest()
-				.getField(HttpDateTimeField.class, HttpField.IF_MODIFIED_SINCE);
+		Optional<Instant> modifiedSince = event.getRequest()
+				.getValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
 		HttpResponse response = event.getRequest().getResponse().get();
 		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		if (modifiedSince.isPresent() 
-				&& !lastModified.isAfter(modifiedSince.get().getValue())) {
+				&& !lastModified.isAfter(modifiedSince.get())) {
 			response.setStatus(HttpStatus.NOT_MODIFIED);
 			channel.fire(new Response(response));
 		} else {
@@ -128,12 +127,10 @@ public class StaticContentDispatcher extends Component {
 						.setParameter("charset", System.getProperty(
 								"file.encoding", "UTF-8")).build();
 			}
-			response.setField(new HttpMediaTypeField(
-					HttpField.CONTENT_TYPE, mediaType));
+			response.setField(HttpField.CONTENT_TYPE, mediaType);
 			response.setStatus(HttpStatus.OK);
 			response.setMessageHasBody(true);
-			response.setField(new HttpDateTimeField(
-					HttpField.LAST_MODIFIED, lastModified));
+			response.setField(HttpField.LAST_MODIFIED, lastModified);
 			channel.fire(new Response(response));
 			channel.fire(new StreamFile(resourcePath, StandardOpenOption.READ));
 		}
