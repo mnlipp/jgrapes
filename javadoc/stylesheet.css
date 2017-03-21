@@ -3,7 +3,17 @@
 Overall document style
 */
 
-@import url('resources/fonts/dejavu.css');
+/* @import url('resources/fonts/dejavu.css'); */
+
+/* [MOD] Added */
+.footnotes {
+    font-size:80%;
+}
+
+/* [MOD] Added */
+.footnotes code {
+    font-size:80%;
+}
 
 body {
     background-color:#ffffff;
@@ -278,13 +288,20 @@ Page layout container styles
     list-style:none;
     padding-top:2px;
 }
-.contentContainer .description dl dt, .contentContainer .details dl dt, .serializedFormContainer dl dt {
+/* [MOD] */
+/* .contentContainer .description dl dd, */ .contentContainer .details dl dt, .serializedFormContainer dl dt {
     font-size:12px;
     font-weight:bold;
     margin:10px 0 0 0;
     color:#4E4E4E;
 }
-.contentContainer .description dl dd, .contentContainer .details dl dd, .serializedFormContainer dl dd {
+/* [MOD] Added */
+dl dt {
+    margin:10px 0 0 0;
+}
+
+/* [MOD] */
+/* .contentContainer .description dl dd, */ .contentContainer .details dl dd, .serializedFormContainer dl dd {
     margin:5px 0 10px 0px;
     font-size:14px;
     font-family:'DejaVu Sans Mono',monospace;
