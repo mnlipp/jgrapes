@@ -72,7 +72,7 @@ public class LinkedIOSubchannel implements IOSubchannel {
 
 	private final Manager converterComponent;
 	// Must be weak, else there will always be a reference to the 
-	// upstream channel and, though the reverseMap, to this object.
+	// upstream channel and, through the reverseMap, to this object.
 	private final WeakReference<IOSubchannel> upstreamChannel;
 	private final EventPipeline responsePipeline;
 
