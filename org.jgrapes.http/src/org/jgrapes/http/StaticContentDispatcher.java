@@ -121,7 +121,8 @@ public class StaticContentDispatcher extends Component {
 			if (mimeTypeName == null) {
 				mimeTypeName = "application/octet-stream";
 			}
-			MediaType mediaType = MediaType.fromString(mimeTypeName);
+			MediaType mediaType = Converters.MEDIA_TYPE
+					.fromFieldValue(mimeTypeName);
 			if ("text".equals(mediaType.getTopLevelType())) {
 				mediaType = MediaType.builder().from(mediaType)
 						.setParameter("charset", System.getProperty(
