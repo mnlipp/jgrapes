@@ -92,13 +92,13 @@
 <span class="sourceLineNo">084</span><a name="line.84"></a>
 <span class="sourceLineNo">085</span>        @RequestHandler(dynamic=true)<a name="line.85"></a>
 <span class="sourceLineNo">086</span>        public void onGet(GetRequest event) throws ParseException, IOException {<a name="line.86"></a>
-<span class="sourceLineNo">087</span>                int prefixSegs = resourcePattern.matches(event.getRequestUri());<a name="line.87"></a>
+<span class="sourceLineNo">087</span>                int prefixSegs = resourcePattern.matches(event.requestUri());<a name="line.87"></a>
 <span class="sourceLineNo">088</span>                if (prefixSegs &lt; 0) {<a name="line.88"></a>
 <span class="sourceLineNo">089</span>                        return;<a name="line.89"></a>
 <span class="sourceLineNo">090</span>                }<a name="line.90"></a>
 <span class="sourceLineNo">091</span>                // Final wrapper for usage in closure<a name="line.91"></a>
 <span class="sourceLineNo">092</span>                final Path[] assembly = new Path[] { contentDirectory };<a name="line.92"></a>
-<span class="sourceLineNo">093</span>                Arrays.stream(event.getRequestUri().getPath().split("/"))<a name="line.93"></a>
+<span class="sourceLineNo">093</span>                Arrays.stream(event.requestUri().getPath().split("/"))<a name="line.93"></a>
 <span class="sourceLineNo">094</span>                        .skip(prefixSegs + 1)<a name="line.94"></a>
 <span class="sourceLineNo">095</span>                        .forEach(e -&gt; assembly[0] = assembly[0].resolve(e));<a name="line.95"></a>
 <span class="sourceLineNo">096</span>                Path resourcePath = assembly[0];<a name="line.96"></a>
@@ -116,9 +116,9 @@
 <span class="sourceLineNo">108</span>                // Check if sending is really required.<a name="line.108"></a>
 <span class="sourceLineNo">109</span>                Instant lastModified = Files.getLastModifiedTime(resourcePath)<a name="line.109"></a>
 <span class="sourceLineNo">110</span>                                .toInstant().with(ChronoField.NANO_OF_SECOND, 0);<a name="line.110"></a>
-<span class="sourceLineNo">111</span>                Optional&lt;Instant&gt; modifiedSince = event.getRequest()<a name="line.111"></a>
-<span class="sourceLineNo">112</span>                                .getValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);<a name="line.112"></a>
-<span class="sourceLineNo">113</span>                HttpResponse response = event.getRequest().getResponse().get();<a name="line.113"></a>
+<span class="sourceLineNo">111</span>                Optional&lt;Instant&gt; modifiedSince = event.request()<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                                .findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                HttpResponse response = event.request().response().get();<a name="line.113"></a>
 <span class="sourceLineNo">114</span>                IOSubchannel channel = event.firstChannel(IOSubchannel.class);<a name="line.114"></a>
 <span class="sourceLineNo">115</span>                if (modifiedSince.isPresent() <a name="line.115"></a>
 <span class="sourceLineNo">116</span>                                &amp;&amp; !lastModified.isAfter(modifiedSince.get())) {<a name="line.116"></a>
@@ -129,23 +129,24 @@
 <span class="sourceLineNo">121</span>                        if (mimeTypeName == null) {<a name="line.121"></a>
 <span class="sourceLineNo">122</span>                                mimeTypeName = "application/octet-stream";<a name="line.122"></a>
 <span class="sourceLineNo">123</span>                        }<a name="line.123"></a>
-<span class="sourceLineNo">124</span>                        MediaType mediaType = MediaType.fromString(mimeTypeName);<a name="line.124"></a>
-<span class="sourceLineNo">125</span>                        if ("text".equals(mediaType.getTopLevelType())) {<a name="line.125"></a>
-<span class="sourceLineNo">126</span>                                mediaType = MediaType.builder().from(mediaType)<a name="line.126"></a>
-<span class="sourceLineNo">127</span>                                                .setParameter("charset", System.getProperty(<a name="line.127"></a>
-<span class="sourceLineNo">128</span>                                                                "file.encoding", "UTF-8")).build();<a name="line.128"></a>
-<span class="sourceLineNo">129</span>                        }<a name="line.129"></a>
-<span class="sourceLineNo">130</span>                        response.setField(HttpField.CONTENT_TYPE, mediaType);<a name="line.130"></a>
-<span class="sourceLineNo">131</span>                        response.setStatus(HttpStatus.OK);<a name="line.131"></a>
-<span class="sourceLineNo">132</span>                        response.setMessageHasBody(true);<a name="line.132"></a>
-<span class="sourceLineNo">133</span>                        response.setField(HttpField.LAST_MODIFIED, lastModified);<a name="line.133"></a>
-<span class="sourceLineNo">134</span>                        channel.fire(new Response(response));<a name="line.134"></a>
-<span class="sourceLineNo">135</span>                        channel.fire(new StreamFile(resourcePath, StandardOpenOption.READ));<a name="line.135"></a>
-<span class="sourceLineNo">136</span>                }<a name="line.136"></a>
-<span class="sourceLineNo">137</span>                event.stop();<a name="line.137"></a>
-<span class="sourceLineNo">138</span>        }<a name="line.138"></a>
-<span class="sourceLineNo">139</span><a name="line.139"></a>
-<span class="sourceLineNo">140</span>}<a name="line.140"></a>
+<span class="sourceLineNo">124</span>                        MediaType mediaType = Converters.MEDIA_TYPE<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                                        .fromFieldValue(mimeTypeName);<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                        if ("text".equals(mediaType.topLevelType())) {<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                                mediaType = MediaType.builder().from(mediaType)<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                                                .setParameter("charset", System.getProperty(<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                                                                "file.encoding", "UTF-8")).build();<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                        }<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                        response.setField(HttpField.CONTENT_TYPE, mediaType);<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                        response.setStatus(HttpStatus.OK);<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                        response.setMessageHasBody(true);<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                        response.setField(HttpField.LAST_MODIFIED, lastModified);<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                        channel.fire(new Response(response));<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                        channel.fire(new StreamFile(resourcePath, StandardOpenOption.READ));<a name="line.136"></a>
+<span class="sourceLineNo">137</span>                }<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                event.stop();<a name="line.138"></a>
+<span class="sourceLineNo">139</span>        }<a name="line.139"></a>
+<span class="sourceLineNo">140</span><a name="line.140"></a>
+<span class="sourceLineNo">141</span>}<a name="line.141"></a>
 
 
 

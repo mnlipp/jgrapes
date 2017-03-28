@@ -79,7 +79,7 @@
 <span class="sourceLineNo">071</span>         * <a name="line.71"></a>
 <span class="sourceLineNo">072</span>         * @return the child components<a name="line.72"></a>
 <span class="sourceLineNo">073</span>         */<a name="line.73"></a>
-<span class="sourceLineNo">074</span>        List&lt;ComponentType&gt; getChildren();<a name="line.74"></a>
+<span class="sourceLineNo">074</span>        List&lt;ComponentType&gt; children();<a name="line.74"></a>
 <span class="sourceLineNo">075</span><a name="line.75"></a>
 <span class="sourceLineNo">076</span>        /**<a name="line.76"></a>
 <span class="sourceLineNo">077</span>         * Returns the parent of the component managed by this manager.<a name="line.77"></a>
@@ -87,7 +87,7 @@
 <span class="sourceLineNo">079</span>         * @return the parent component or &lt;code&gt;null&lt;/code&gt; if the<a name="line.79"></a>
 <span class="sourceLineNo">080</span>         * component is not registered with another component<a name="line.80"></a>
 <span class="sourceLineNo">081</span>         */<a name="line.81"></a>
-<span class="sourceLineNo">082</span>        ComponentType getParent();<a name="line.82"></a>
+<span class="sourceLineNo">082</span>        ComponentType parent();<a name="line.82"></a>
 <span class="sourceLineNo">083</span>        <a name="line.83"></a>
 <span class="sourceLineNo">084</span>        /**<a name="line.84"></a>
 <span class="sourceLineNo">085</span>         * Returns the root of the tree the component <a name="line.85"></a>
@@ -95,7 +95,7 @@
 <span class="sourceLineNo">087</span>         * <a name="line.87"></a>
 <span class="sourceLineNo">088</span>         * @return the root<a name="line.88"></a>
 <span class="sourceLineNo">089</span>         */<a name="line.89"></a>
-<span class="sourceLineNo">090</span>        ComponentType getRoot();<a name="line.90"></a>
+<span class="sourceLineNo">090</span>        ComponentType root();<a name="line.90"></a>
 <span class="sourceLineNo">091</span>        <a name="line.91"></a>
 <span class="sourceLineNo">092</span>        /**<a name="line.92"></a>
 <span class="sourceLineNo">093</span>         * Returns the channel of the component managed by this manager.<a name="line.93"></a>
@@ -104,7 +104,7 @@
 <span class="sourceLineNo">096</span>         * handlers listen on by default and that <a name="line.96"></a>
 <span class="sourceLineNo">097</span>         * {@link Manager#fire(Event, Channel...)} sends the event to <a name="line.97"></a>
 <span class="sourceLineNo">098</span>         */<a name="line.98"></a>
-<span class="sourceLineNo">099</span>        Channel getChannel();<a name="line.99"></a>
+<span class="sourceLineNo">099</span>        Channel channel();<a name="line.99"></a>
 <span class="sourceLineNo">100</span>        <a name="line.100"></a>
 <span class="sourceLineNo">101</span>        /**<a name="line.101"></a>
 <span class="sourceLineNo">102</span>         * Fires the given event on the given channel. If no channels are<a name="line.102"></a>
@@ -112,7 +112,7 @@
 <span class="sourceLineNo">104</span>         * channel (see {@link Event#channels()}). If the event doesn't<a name="line.104"></a>
 <span class="sourceLineNo">105</span>         * specify channels either, the event is fired on the <a name="line.105"></a>
 <span class="sourceLineNo">106</span>         * channel of the component managed by this manager <a name="line.106"></a>
-<span class="sourceLineNo">107</span>         * (see {@link #getChannel()}).<a name="line.107"></a>
+<span class="sourceLineNo">107</span>         * (see {@link #channel()}).<a name="line.107"></a>
 <span class="sourceLineNo">108</span>         * &lt;P&gt;<a name="line.108"></a>
 <span class="sourceLineNo">109</span>         * If an event is fired inside an event handler, it is added to the<a name="line.109"></a>
 <span class="sourceLineNo">110</span>         * {@link EventPipeline} that has invoked the handler. If an event is fired<a name="line.110"></a>

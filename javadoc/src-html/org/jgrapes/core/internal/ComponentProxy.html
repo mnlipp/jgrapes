@@ -71,7 +71,7 @@
 <span class="sourceLineNo">063</span>        private static Channel getComponentChannel(Field field) {<a name="line.63"></a>
 <span class="sourceLineNo">064</span>                ComponentManager cma = field.getAnnotation(ComponentManager.class);<a name="line.64"></a>
 <span class="sourceLineNo">065</span>                if (cma.channel() != Handler.NoChannel.class) {<a name="line.65"></a>
-<span class="sourceLineNo">066</span>                        if (cma.channel() != Channel.BROADCAST.getDefaultCriterion()) {<a name="line.66"></a>
+<span class="sourceLineNo">066</span>                        if (cma.channel() != Channel.BROADCAST.defaultCriterion()) {<a name="line.66"></a>
 <span class="sourceLineNo">067</span>                                try {<a name="line.67"></a>
 <span class="sourceLineNo">068</span>                                        return cma.channel().newInstance();<a name="line.68"></a>
 <span class="sourceLineNo">069</span>                                } catch (InstantiationException | IllegalAccessException e) {<a name="line.69"></a>
@@ -138,7 +138,7 @@
 <span class="sourceLineNo">130</span>                return componentProxy;<a name="line.130"></a>
 <span class="sourceLineNo">131</span>        }<a name="line.131"></a>
 <span class="sourceLineNo">132</span><a name="line.132"></a>
-<span class="sourceLineNo">133</span>        public ComponentType getComponent() {<a name="line.133"></a>
+<span class="sourceLineNo">133</span>        public ComponentType component() {<a name="line.133"></a>
 <span class="sourceLineNo">134</span>                return component;<a name="line.134"></a>
 <span class="sourceLineNo">135</span>        }<a name="line.135"></a>
 <span class="sourceLineNo">136</span><a name="line.136"></a>
@@ -146,7 +146,7 @@
 <span class="sourceLineNo">138</span>         * @see org.jgrapes.core.Manager#getChannel()<a name="line.138"></a>
 <span class="sourceLineNo">139</span>         */<a name="line.139"></a>
 <span class="sourceLineNo">140</span>        @Override<a name="line.140"></a>
-<span class="sourceLineNo">141</span>        public Channel getChannel() {<a name="line.141"></a>
+<span class="sourceLineNo">141</span>        public Channel channel() {<a name="line.141"></a>
 <span class="sourceLineNo">142</span>                return componentChannel;<a name="line.142"></a>
 <span class="sourceLineNo">143</span>        }<a name="line.143"></a>
 <span class="sourceLineNo">144</span>}<a name="line.144"></a>

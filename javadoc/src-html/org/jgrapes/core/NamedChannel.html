@@ -50,10 +50,10 @@
 <span class="sourceLineNo">042</span>         * <a name="line.42"></a>
 <span class="sourceLineNo">043</span>         * @return the name<a name="line.43"></a>
 <span class="sourceLineNo">044</span>         * <a name="line.44"></a>
-<span class="sourceLineNo">045</span>         * @see org.jgrapes.core.Channel#getDefaultCriterion()<a name="line.45"></a>
+<span class="sourceLineNo">045</span>         * @see org.jgrapes.core.Channel#defaultCriterion()<a name="line.45"></a>
 <span class="sourceLineNo">046</span>         */<a name="line.46"></a>
 <span class="sourceLineNo">047</span>        @Override<a name="line.47"></a>
-<span class="sourceLineNo">048</span>        public Object getDefaultCriterion() {<a name="line.48"></a>
+<span class="sourceLineNo">048</span>        public Object defaultCriterion() {<a name="line.48"></a>
 <span class="sourceLineNo">049</span>                return name;<a name="line.49"></a>
 <span class="sourceLineNo">050</span>        }<a name="line.50"></a>
 <span class="sourceLineNo">051</span><a name="line.51"></a>
@@ -65,7 +65,7 @@
 <span class="sourceLineNo">057</span>         */<a name="line.57"></a>
 <span class="sourceLineNo">058</span>        @Override<a name="line.58"></a>
 <span class="sourceLineNo">059</span>        public boolean isEligibleFor(Object value) {<a name="line.59"></a>
-<span class="sourceLineNo">060</span>                return value.equals(BROADCAST.getDefaultCriterion())<a name="line.60"></a>
+<span class="sourceLineNo">060</span>                return value.equals(BROADCAST.defaultCriterion())<a name="line.60"></a>
 <span class="sourceLineNo">061</span>                                || value.equals(name);<a name="line.61"></a>
 <span class="sourceLineNo">062</span>        }<a name="line.62"></a>
 <span class="sourceLineNo">063</span><a name="line.63"></a>

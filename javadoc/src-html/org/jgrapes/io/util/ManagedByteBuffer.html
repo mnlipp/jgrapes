@@ -373,7 +373,7 @@
 <span class="sourceLineNo">365</span>         * @see java.nio.ByteBuffer#put(java.nio.ByteBuffer)<a name="line.365"></a>
 <span class="sourceLineNo">366</span>         */<a name="line.366"></a>
 <span class="sourceLineNo">367</span>        public ByteBuffer put(ManagedByteBuffer src) {<a name="line.367"></a>
-<span class="sourceLineNo">368</span>                return backing.put(src.getBacking());<a name="line.368"></a>
+<span class="sourceLineNo">368</span>                return backing.put(src.backingBuffer());<a name="line.368"></a>
 <span class="sourceLineNo">369</span>        }<a name="line.369"></a>
 <span class="sourceLineNo">370</span><a name="line.370"></a>
 <span class="sourceLineNo">371</span>        /**<a name="line.371"></a>

@@ -146,9 +146,9 @@
 <span class="sourceLineNo">138</span>        @Handler(channels=Self.class)<a name="line.138"></a>
 <span class="sourceLineNo">139</span>        public void onRegistered(NioRegistration.Completed event) <a name="line.139"></a>
 <span class="sourceLineNo">140</span>                        throws InterruptedException, IOException {<a name="line.140"></a>
-<span class="sourceLineNo">141</span>                NioHandler handler = event.getCompleted().getHandler(); <a name="line.141"></a>
+<span class="sourceLineNo">141</span>                NioHandler handler = event.event().handler(); <a name="line.141"></a>
 <span class="sourceLineNo">142</span>                if (handler == this) {<a name="line.142"></a>
-<span class="sourceLineNo">143</span>                        if (event.getCompleted().get() == null) {<a name="line.143"></a>
+<span class="sourceLineNo">143</span>                        if (event.event().get() == null) {<a name="line.143"></a>
 <span class="sourceLineNo">144</span>                                fire(new Error(event, <a name="line.144"></a>
 <span class="sourceLineNo">145</span>                                                "Registration failed, no NioDispatcher?"));<a name="line.145"></a>
 <span class="sourceLineNo">146</span>                                return;<a name="line.146"></a>
@@ -158,7 +158,7 @@
 <span class="sourceLineNo">150</span>                }<a name="line.150"></a>
 <span class="sourceLineNo">151</span>                if (handler instanceof Connection) {<a name="line.151"></a>
 <span class="sourceLineNo">152</span>                        ((Connection)handler)<a name="line.152"></a>
-<span class="sourceLineNo">153</span>                                .registrationComplete(event.getCompleted());<a name="line.153"></a>
+<span class="sourceLineNo">153</span>                                .registrationComplete(event.event());<a name="line.153"></a>
 <span class="sourceLineNo">154</span>                }<a name="line.154"></a>
 <span class="sourceLineNo">155</span>        }<a name="line.155"></a>
 <span class="sourceLineNo">156</span><a name="line.156"></a>
@@ -241,7 +241,7 @@
 <span class="sourceLineNo">233</span>                if (closing || !serverSocketChannel.isOpen()) {<a name="line.233"></a>
 <span class="sourceLineNo">234</span>                        return;<a name="line.234"></a>
 <span class="sourceLineNo">235</span>                }<a name="line.235"></a>
-<span class="sourceLineNo">236</span>                newSyncEventPipeline().fire(new Close(), getChannel());<a name="line.236"></a>
+<span class="sourceLineNo">236</span>                newSyncEventPipeline().fire(new Close(), channel());<a name="line.236"></a>
 <span class="sourceLineNo">237</span>        }<a name="line.237"></a>
 <span class="sourceLineNo">238</span><a name="line.238"></a>
 <span class="sourceLineNo">239</span>        /* (non-Javadoc)<a name="line.239"></a>
@@ -300,8 +300,8 @@
 <span class="sourceLineNo">292</span>                 * @see org.jgrapes.io.IOSubchannel#getMainChannel()<a name="line.292"></a>
 <span class="sourceLineNo">293</span>                 */<a name="line.293"></a>
 <span class="sourceLineNo">294</span>                @Override<a name="line.294"></a>
-<span class="sourceLineNo">295</span>                public Channel getMainChannel() {<a name="line.295"></a>
-<span class="sourceLineNo">296</span>                        return Server.this.getChannel();<a name="line.296"></a>
+<span class="sourceLineNo">295</span>                public Channel mainChannel() {<a name="line.295"></a>
+<span class="sourceLineNo">296</span>                        return Server.this.channel();<a name="line.296"></a>
 <span class="sourceLineNo">297</span>                }<a name="line.297"></a>
 <span class="sourceLineNo">298</span><a name="line.298"></a>
 <span class="sourceLineNo">299</span>                /* (non-Javadoc)<a name="line.299"></a>
@@ -316,7 +316,7 @@
 <span class="sourceLineNo">308</span>                 * @see org.jgrapes.io.DataConnection#getPipeline()<a name="line.308"></a>
 <span class="sourceLineNo">309</span>                 */<a name="line.309"></a>
 <span class="sourceLineNo">310</span>                @Override<a name="line.310"></a>
-<span class="sourceLineNo">311</span>                public EventPipeline getResponsePipeline() {<a name="line.311"></a>
+<span class="sourceLineNo">311</span>                public EventPipeline responsePipeline() {<a name="line.311"></a>
 <span class="sourceLineNo">312</span>                        return upPipeline;<a name="line.312"></a>
 <span class="sourceLineNo">313</span>                }<a name="line.313"></a>
 <span class="sourceLineNo">314</span><a name="line.314"></a>
@@ -346,7 +346,7 @@
 <span class="sourceLineNo">338</span>                        if (!nioChannel.isOpen()) {<a name="line.338"></a>
 <span class="sourceLineNo">339</span>                                return;<a name="line.339"></a>
 <span class="sourceLineNo">340</span>                        }<a name="line.340"></a>
-<span class="sourceLineNo">341</span>                        ManagedByteBuffer buffer = event.getBuffer();<a name="line.341"></a>
+<span class="sourceLineNo">341</span>                        ManagedByteBuffer buffer = event.buffer();<a name="line.341"></a>
 <span class="sourceLineNo">342</span>                        synchronized(pendingWrites) {<a name="line.342"></a>
 <span class="sourceLineNo">343</span>                                if (!pendingWrites.isEmpty()) {<a name="line.343"></a>
 <span class="sourceLineNo">344</span>                                        buffer.lockBuffer();<a name="line.344"></a>
@@ -354,7 +354,7 @@
 <span class="sourceLineNo">346</span>                                        return;<a name="line.346"></a>
 <span class="sourceLineNo">347</span>                                }<a name="line.347"></a>
 <span class="sourceLineNo">348</span>                        }<a name="line.348"></a>
-<span class="sourceLineNo">349</span>                        nioChannel.write(buffer.getBacking());<a name="line.349"></a>
+<span class="sourceLineNo">349</span>                        nioChannel.write(buffer.backingBuffer());<a name="line.349"></a>
 <span class="sourceLineNo">350</span>                        if (!buffer.hasRemaining()) {<a name="line.350"></a>
 <span class="sourceLineNo">351</span>                                buffer.clear();<a name="line.351"></a>
 <span class="sourceLineNo">352</span>                                return;<a name="line.352"></a>
@@ -393,7 +393,7 @@
 <span class="sourceLineNo">385</span>                private void handleReadOp() throws InterruptedException, IOException {<a name="line.385"></a>
 <span class="sourceLineNo">386</span>                        ManagedByteBuffer buffer;<a name="line.386"></a>
 <span class="sourceLineNo">387</span>                        buffer = readBuffers.acquire();<a name="line.387"></a>
-<span class="sourceLineNo">388</span>                        int bytes = nioChannel.read(buffer.getBacking());<a name="line.388"></a>
+<span class="sourceLineNo">388</span>                        int bytes = nioChannel.read(buffer.backingBuffer());<a name="line.388"></a>
 <span class="sourceLineNo">389</span>                        if (bytes == 0) {<a name="line.389"></a>
 <span class="sourceLineNo">390</span>                                buffer.unlockBuffer();<a name="line.390"></a>
 <span class="sourceLineNo">391</span>                                return;<a name="line.391"></a>
@@ -471,7 +471,7 @@
 <span class="sourceLineNo">463</span>                                                continue;<a name="line.463"></a>
 <span class="sourceLineNo">464</span>                                        }<a name="line.464"></a>
 <span class="sourceLineNo">465</span>                                }<a name="line.465"></a>
-<span class="sourceLineNo">466</span>                                nioChannel.write(head.getBacking()); // write...<a name="line.466"></a>
+<span class="sourceLineNo">466</span>                                nioChannel.write(head.backingBuffer()); // write...<a name="line.466"></a>
 <span class="sourceLineNo">467</span>                                break; // ... and wait for next op<a name="line.467"></a>
 <span class="sourceLineNo">468</span>                        }<a name="line.468"></a>
 <span class="sourceLineNo">469</span>                }<a name="line.469"></a>
@@ -520,7 +520,7 @@
 <span class="sourceLineNo">512</span>                        StringBuilder builder = new StringBuilder();<a name="line.512"></a>
 <span class="sourceLineNo">513</span>                        builder.append(Components.objectName(this));<a name="line.513"></a>
 <span class="sourceLineNo">514</span>                        builder.append("(");<a name="line.514"></a>
-<span class="sourceLineNo">515</span>                                builder.append(Common.channelToString(getMainChannel()));<a name="line.515"></a>
+<span class="sourceLineNo">515</span>                                builder.append(Common.channelToString(mainChannel()));<a name="line.515"></a>
 <span class="sourceLineNo">516</span>                        builder.append(")");<a name="line.516"></a>
 <span class="sourceLineNo">517</span>                        return builder.toString();<a name="line.517"></a>
 <span class="sourceLineNo">518</span>                }<a name="line.518"></a>

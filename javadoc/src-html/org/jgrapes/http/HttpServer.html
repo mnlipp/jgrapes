@@ -113,9 +113,9 @@
 <span class="sourceLineNo">105</span>                this.networkChannel = networkChannel;<a name="line.105"></a>
 <span class="sourceLineNo">106</span>                this.providedFallbacks = Arrays.asList(fallbacks);<a name="line.106"></a>
 <span class="sourceLineNo">107</span>                Handler.Evaluator.add(<a name="line.107"></a>
-<span class="sourceLineNo">108</span>                                this, "onAccepted", networkChannel.getDefaultCriterion());<a name="line.108"></a>
+<span class="sourceLineNo">108</span>                                this, "onAccepted", networkChannel.defaultCriterion());<a name="line.108"></a>
 <span class="sourceLineNo">109</span>                Handler.Evaluator.add(<a name="line.109"></a>
-<span class="sourceLineNo">110</span>                                this, "onInput", networkChannel.getDefaultCriterion());<a name="line.110"></a>
+<span class="sourceLineNo">110</span>                                this, "onInput", networkChannel.defaultCriterion());<a name="line.110"></a>
 <span class="sourceLineNo">111</span>        }<a name="line.111"></a>
 <span class="sourceLineNo">112</span><a name="line.112"></a>
 <span class="sourceLineNo">113</span>        /**<a name="line.113"></a>
@@ -136,21 +136,21 @@
 <span class="sourceLineNo">128</span>                networkChannel = server;<a name="line.128"></a>
 <span class="sourceLineNo">129</span>                attach(server);<a name="line.129"></a>
 <span class="sourceLineNo">130</span>                Handler.Evaluator.add(<a name="line.130"></a>
-<span class="sourceLineNo">131</span>                                this, "onAccepted", networkChannel.getDefaultCriterion());<a name="line.131"></a>
+<span class="sourceLineNo">131</span>                                this, "onAccepted", networkChannel.defaultCriterion());<a name="line.131"></a>
 <span class="sourceLineNo">132</span>                Handler.Evaluator.add(<a name="line.132"></a>
-<span class="sourceLineNo">133</span>                                this, "onInput", networkChannel.getDefaultCriterion());<a name="line.133"></a>
+<span class="sourceLineNo">133</span>                                this, "onInput", networkChannel.defaultCriterion());<a name="line.133"></a>
 <span class="sourceLineNo">134</span>        }<a name="line.134"></a>
 <span class="sourceLineNo">135</span><a name="line.135"></a>
 <span class="sourceLineNo">136</span>        /**<a name="line.136"></a>
 <span class="sourceLineNo">137</span>         * @return the matchLevels<a name="line.137"></a>
 <span class="sourceLineNo">138</span>         */<a name="line.138"></a>
-<span class="sourceLineNo">139</span>        public int getMatchLevels() {<a name="line.139"></a>
+<span class="sourceLineNo">139</span>        public int matchLevels() {<a name="line.139"></a>
 <span class="sourceLineNo">140</span>                return matchLevels;<a name="line.140"></a>
 <span class="sourceLineNo">141</span>        }<a name="line.141"></a>
 <span class="sourceLineNo">142</span><a name="line.142"></a>
 <span class="sourceLineNo">143</span>        /**<a name="line.143"></a>
 <span class="sourceLineNo">144</span>         * Sets the number of elements from the request path used in the match value<a name="line.144"></a>
-<span class="sourceLineNo">145</span>         * of the generated events (see {@link Request#getDefaultCriterion()}), defaults<a name="line.145"></a>
+<span class="sourceLineNo">145</span>         * of the generated events (see {@link Request#defaultCriterion()}), defaults<a name="line.145"></a>
 <span class="sourceLineNo">146</span>         * to 1.<a name="line.146"></a>
 <span class="sourceLineNo">147</span>         * <a name="line.147"></a>
 <span class="sourceLineNo">148</span>         * @param matchLevels the matchLevels to set<a name="line.148"></a>
@@ -197,16 +197,16 @@
 <span class="sourceLineNo">189</span>                }<a name="line.189"></a>
 <span class="sourceLineNo">190</span><a name="line.190"></a>
 <span class="sourceLineNo">191</span>                // Send the data from the event through the decoder.<a name="line.191"></a>
-<span class="sourceLineNo">192</span>                ByteBuffer in = event.getBuffer().getBacking();<a name="line.192"></a>
+<span class="sourceLineNo">192</span>                ByteBuffer in = event.buffer().backingBuffer();<a name="line.192"></a>
 <span class="sourceLineNo">193</span>                ManagedByteBuffer bodyData = null;<a name="line.193"></a>
 <span class="sourceLineNo">194</span>                while (in.hasRemaining()) {<a name="line.194"></a>
 <span class="sourceLineNo">195</span>                        Decoder.Result&lt;HttpResponse&gt; result = engine.decode(in,<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                                bodyData == null ? null : bodyData.getBacking(),<a name="line.196"></a>
+<span class="sourceLineNo">196</span>                                bodyData == null ? null : bodyData.backingBuffer(),<a name="line.196"></a>
 <span class="sourceLineNo">197</span>                                event.isEndOfRecord());<a name="line.197"></a>
-<span class="sourceLineNo">198</span>                        if (result.getResponse().isPresent()) {<a name="line.198"></a>
+<span class="sourceLineNo">198</span>                        if (result.response().isPresent()) {<a name="line.198"></a>
 <span class="sourceLineNo">199</span>                                // Feedback required, send it<a name="line.199"></a>
-<span class="sourceLineNo">200</span>                                fire(new Response(result.getResponse().get()), downChannel);<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                                if (result.getResponse().get().isFinal()) {<a name="line.201"></a>
+<span class="sourceLineNo">200</span>                                fire(new Response(result.response().get()), downChannel);<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                                if (result.response().get().isFinal()) {<a name="line.201"></a>
 <span class="sourceLineNo">202</span>                                        break;<a name="line.202"></a>
 <span class="sourceLineNo">203</span>                                }<a name="line.203"></a>
 <span class="sourceLineNo">204</span>                                if (result.isResponseOnly()) {<a name="line.204"></a>
@@ -245,7 +245,7 @@
 <span class="sourceLineNo">237</span>        private void fireRequest(HttpRequest request, Channel channel) {<a name="line.237"></a>
 <span class="sourceLineNo">238</span>                Request req;<a name="line.238"></a>
 <span class="sourceLineNo">239</span>                boolean secure = false;<a name="line.239"></a>
-<span class="sourceLineNo">240</span>                switch (request.getMethod()) {<a name="line.240"></a>
+<span class="sourceLineNo">240</span>                switch (request.method()) {<a name="line.240"></a>
 <span class="sourceLineNo">241</span>                case "OPTIONS":<a name="line.241"></a>
 <span class="sourceLineNo">242</span>                        req = new OptionsRequest(request, secure, matchLevels);<a name="line.242"></a>
 <span class="sourceLineNo">243</span>                        break;<a name="line.243"></a>
@@ -291,10 +291,10 @@
 <span class="sourceLineNo">283</span>        @Handler<a name="line.283"></a>
 <span class="sourceLineNo">284</span>        public void onResponse(Response event) throws InterruptedException {<a name="line.284"></a>
 <span class="sourceLineNo">285</span>                DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);<a name="line.285"></a>
-<span class="sourceLineNo">286</span>                final IOSubchannel netChannel = downChannel.getUpstreamChannel();<a name="line.286"></a>
+<span class="sourceLineNo">286</span>                final IOSubchannel netChannel = downChannel.upstreamChannel();<a name="line.286"></a>
 <span class="sourceLineNo">287</span>                final ServerEngine&lt;HttpRequest,HttpResponse&gt; engine <a name="line.287"></a>
 <span class="sourceLineNo">288</span>                        = downChannel.engine;<a name="line.288"></a>
-<span class="sourceLineNo">289</span>                final HttpResponse response = event.getResponse();<a name="line.289"></a>
+<span class="sourceLineNo">289</span>                final HttpResponse response = event.response();<a name="line.289"></a>
 <span class="sourceLineNo">290</span><a name="line.290"></a>
 <span class="sourceLineNo">291</span>                // Start sending the response<a name="line.291"></a>
 <span class="sourceLineNo">292</span>                engine.encode(response);<a name="line.292"></a>
@@ -303,7 +303,7 @@
 <span class="sourceLineNo">295</span>                        downChannel.outBuffer = netChannel.bufferPool().acquire();<a name="line.295"></a>
 <span class="sourceLineNo">296</span>                        final ManagedByteBuffer buffer = downChannel.outBuffer;<a name="line.296"></a>
 <span class="sourceLineNo">297</span>                        Codec.Result result = engine.encode(<a name="line.297"></a>
-<span class="sourceLineNo">298</span>                                        Codec.EMPTY_IN, buffer.getBacking(), !hasBody);<a name="line.298"></a>
+<span class="sourceLineNo">298</span>                                        Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);<a name="line.298"></a>
 <span class="sourceLineNo">299</span>                        if (result.isOverflow()) {<a name="line.299"></a>
 <span class="sourceLineNo">300</span>                                fire(new Output&lt;&gt;(buffer, false), netChannel);<a name="line.300"></a>
 <span class="sourceLineNo">301</span>                                continue;<a name="line.301"></a>
@@ -320,7 +320,7 @@
 <span class="sourceLineNo">312</span>                                buffer.unlockBuffer();<a name="line.312"></a>
 <span class="sourceLineNo">313</span>                        }<a name="line.313"></a>
 <span class="sourceLineNo">314</span>                        downChannel.outBuffer = null;<a name="line.314"></a>
-<span class="sourceLineNo">315</span>                        if (result.getCloseConnection()) {<a name="line.315"></a>
+<span class="sourceLineNo">315</span>                        if (result.closeConnection()) {<a name="line.315"></a>
 <span class="sourceLineNo">316</span>                                fire(new Close(), netChannel);<a name="line.316"></a>
 <span class="sourceLineNo">317</span>                        }<a name="line.317"></a>
 <span class="sourceLineNo">318</span>                        break;<a name="line.318"></a>
@@ -341,25 +341,25 @@
 <span class="sourceLineNo">333</span>        public void onOutput(Output&lt;ManagedBuffer&lt;?&gt;&gt; event)<a name="line.333"></a>
 <span class="sourceLineNo">334</span>                throws InterruptedException {<a name="line.334"></a>
 <span class="sourceLineNo">335</span>                DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);<a name="line.335"></a>
-<span class="sourceLineNo">336</span>                final IOSubchannel netChannel = downChannel.getUpstreamChannel();<a name="line.336"></a>
+<span class="sourceLineNo">336</span>                final IOSubchannel netChannel = downChannel.upstreamChannel();<a name="line.336"></a>
 <span class="sourceLineNo">337</span>                final ServerEngine&lt;HttpRequest,HttpResponse&gt; engine <a name="line.337"></a>
 <span class="sourceLineNo">338</span>                        = downChannel.engine;<a name="line.338"></a>
 <span class="sourceLineNo">339</span><a name="line.339"></a>
-<span class="sourceLineNo">340</span>                Buffer in = event.getBuffer().getBacking();<a name="line.340"></a>
+<span class="sourceLineNo">340</span>                Buffer in = event.buffer().backingBuffer();<a name="line.340"></a>
 <span class="sourceLineNo">341</span>                if (!(in instanceof ByteBuffer)) {<a name="line.341"></a>
 <span class="sourceLineNo">342</span>                        return;<a name="line.342"></a>
 <span class="sourceLineNo">343</span>                }<a name="line.343"></a>
 <span class="sourceLineNo">344</span>                while (true) {<a name="line.344"></a>
 <span class="sourceLineNo">345</span>                        Codec.Result result = engine.encode((ByteBuffer) in,<a name="line.345"></a>
-<span class="sourceLineNo">346</span>                                downChannel.outBuffer.getBacking(), event.isEndOfRecord());<a name="line.346"></a>
+<span class="sourceLineNo">346</span>                                downChannel.outBuffer.backingBuffer(), event.isEndOfRecord());<a name="line.346"></a>
 <span class="sourceLineNo">347</span>                        if (!result.isOverflow() &amp;&amp; !event.isEndOfRecord()<a name="line.347"></a>
-<span class="sourceLineNo">348</span>                                        &amp;&amp; !result.getCloseConnection()) {<a name="line.348"></a>
+<span class="sourceLineNo">348</span>                                        &amp;&amp; !result.closeConnection()) {<a name="line.348"></a>
 <span class="sourceLineNo">349</span>                                break;<a name="line.349"></a>
 <span class="sourceLineNo">350</span>                        }<a name="line.350"></a>
 <span class="sourceLineNo">351</span>                        fire(new Output&lt;&gt;(downChannel.outBuffer, false), netChannel);<a name="line.351"></a>
-<span class="sourceLineNo">352</span>                        if (event.isEndOfRecord() || result.getCloseConnection()) {<a name="line.352"></a>
+<span class="sourceLineNo">352</span>                        if (event.isEndOfRecord() || result.closeConnection()) {<a name="line.352"></a>
 <span class="sourceLineNo">353</span>                                downChannel.outBuffer = null;<a name="line.353"></a>
-<span class="sourceLineNo">354</span>                                if (result.getCloseConnection()) {<a name="line.354"></a>
+<span class="sourceLineNo">354</span>                                if (result.closeConnection()) {<a name="line.354"></a>
 <span class="sourceLineNo">355</span>                                        fire(new Close(), netChannel);<a name="line.355"></a>
 <span class="sourceLineNo">356</span>                                }<a name="line.356"></a>
 <span class="sourceLineNo">357</span>                                break;<a name="line.357"></a>
@@ -380,7 +380,7 @@
 <span class="sourceLineNo">372</span>        @Handler<a name="line.372"></a>
 <span class="sourceLineNo">373</span>        public void onClose(Close event) throws InterruptedException {<a name="line.373"></a>
 <span class="sourceLineNo">374</span>                DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);<a name="line.374"></a>
-<span class="sourceLineNo">375</span>                final IOSubchannel netChannel = downChannel.getUpstreamChannel();<a name="line.375"></a>
+<span class="sourceLineNo">375</span>                final IOSubchannel netChannel = downChannel.upstreamChannel();<a name="line.375"></a>
 <span class="sourceLineNo">376</span>                netChannel.fire(new Close());<a name="line.376"></a>
 <span class="sourceLineNo">377</span>        }<a name="line.377"></a>
 <span class="sourceLineNo">378</span><a name="line.378"></a>
@@ -396,76 +396,75 @@
 <span class="sourceLineNo">388</span>        @Handler<a name="line.388"></a>
 <span class="sourceLineNo">389</span>        public void onRequestCompleted(Request.Completed event)<a name="line.389"></a>
 <span class="sourceLineNo">390</span>                throws InterruptedException {<a name="line.390"></a>
-<span class="sourceLineNo">391</span>                IOSubchannel channel = event.getCompleted()<a name="line.391"></a>
+<span class="sourceLineNo">391</span>                IOSubchannel channel = event.event()<a name="line.391"></a>
 <span class="sourceLineNo">392</span>                        .firstChannel(IOSubchannel.class);<a name="line.392"></a>
-<span class="sourceLineNo">393</span>                final Request requestEvent = event.getCompleted();<a name="line.393"></a>
+<span class="sourceLineNo">393</span>                final Request requestEvent = event.event();<a name="line.393"></a>
 <span class="sourceLineNo">394</span>                final HttpResponse response <a name="line.394"></a>
-<span class="sourceLineNo">395</span>                        = requestEvent.getRequest().getResponse().get();<a name="line.395"></a>
+<span class="sourceLineNo">395</span>                        = requestEvent.request().response().get();<a name="line.395"></a>
 <span class="sourceLineNo">396</span><a name="line.396"></a>
-<span class="sourceLineNo">397</span>                if (response.getStatusCode() == HttpStatus.NOT_IMPLEMENTED<a name="line.397"></a>
-<span class="sourceLineNo">398</span>                        .getStatusCode()) {<a name="line.398"></a>
-<span class="sourceLineNo">399</span>                        response.setMessageHasBody(true);<a name="line.399"></a>
-<span class="sourceLineNo">400</span>                        response.setField(HttpField.CONTENT_TYPE,<a name="line.400"></a>
-<span class="sourceLineNo">401</span>                                        MediaType.builder().setType("text", "plain")<a name="line.401"></a>
-<span class="sourceLineNo">402</span>                                .setParameter("charset", "utf-8").build());<a name="line.402"></a>
-<span class="sourceLineNo">403</span>                        fire(new Response(response), channel);<a name="line.403"></a>
-<span class="sourceLineNo">404</span>                        try {<a name="line.404"></a>
-<span class="sourceLineNo">405</span>                                fire(Output.wrap("Not Implemented\r\n".getBytes("utf-8"), true),<a name="line.405"></a>
-<span class="sourceLineNo">406</span>                                                channel);<a name="line.406"></a>
-<span class="sourceLineNo">407</span>                        } catch (UnsupportedEncodingException e) {<a name="line.407"></a>
-<span class="sourceLineNo">408</span>                                // Supported by definition<a name="line.408"></a>
-<span class="sourceLineNo">409</span>                        }<a name="line.409"></a>
-<span class="sourceLineNo">410</span>                }<a name="line.410"></a>
-<span class="sourceLineNo">411</span>        }<a name="line.411"></a>
-<span class="sourceLineNo">412</span><a name="line.412"></a>
-<span class="sourceLineNo">413</span>        /**<a name="line.413"></a>
-<span class="sourceLineNo">414</span>         * Provides a fallback handler for an OPTIONS request with asterisk. Simply<a name="line.414"></a>
-<span class="sourceLineNo">415</span>         * responds with "OK".<a name="line.415"></a>
-<span class="sourceLineNo">416</span>         * <a name="line.416"></a>
-<span class="sourceLineNo">417</span>         * @param event the event<a name="line.417"></a>
-<span class="sourceLineNo">418</span>         */<a name="line.418"></a>
-<span class="sourceLineNo">419</span>        @Handler(priority = Integer.MIN_VALUE)<a name="line.419"></a>
-<span class="sourceLineNo">420</span>        public void onOptions(OptionsRequest event) {<a name="line.420"></a>
-<span class="sourceLineNo">421</span>                IOSubchannel channel = event.firstChannel(IOSubchannel.class);<a name="line.421"></a>
-<span class="sourceLineNo">422</span>                <a name="line.422"></a>
-<span class="sourceLineNo">423</span>                if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {<a name="line.423"></a>
-<span class="sourceLineNo">424</span>                        HttpResponse response = event.getRequest().getResponse().get();<a name="line.424"></a>
-<span class="sourceLineNo">425</span>                        response.setStatus(HttpStatus.OK);<a name="line.425"></a>
-<span class="sourceLineNo">426</span>                        channel.fire(new Response(response));<a name="line.426"></a>
-<span class="sourceLineNo">427</span>                        event.stop();<a name="line.427"></a>
-<span class="sourceLineNo">428</span>                }<a name="line.428"></a>
-<span class="sourceLineNo">429</span>        }<a name="line.429"></a>
-<span class="sourceLineNo">430</span><a name="line.430"></a>
-<span class="sourceLineNo">431</span>        /**<a name="line.431"></a>
-<span class="sourceLineNo">432</span>         * Provides a fall back handler (lowest priority) for the request types<a name="line.432"></a>
-<span class="sourceLineNo">433</span>         * specified in the constructor.<a name="line.433"></a>
-<span class="sourceLineNo">434</span>         * <a name="line.434"></a>
-<span class="sourceLineNo">435</span>         * @param event the event<a name="line.435"></a>
-<span class="sourceLineNo">436</span>         * @throws ParseException if the request contains illegal header fields<a name="line.436"></a>
-<span class="sourceLineNo">437</span>         */<a name="line.437"></a>
-<span class="sourceLineNo">438</span>        @Handler(priority = Integer.MIN_VALUE)<a name="line.438"></a>
-<span class="sourceLineNo">439</span>        public void onRequest(Request event) throws ParseException {<a name="line.439"></a>
-<span class="sourceLineNo">440</span>                if (providedFallbacks == null<a name="line.440"></a>
-<span class="sourceLineNo">441</span>                        || !providedFallbacks.contains(event.getClass())) {<a name="line.441"></a>
-<span class="sourceLineNo">442</span>                        return;<a name="line.442"></a>
-<span class="sourceLineNo">443</span>                }<a name="line.443"></a>
-<span class="sourceLineNo">444</span>                final IOSubchannel channel = event.firstChannel(IOSubchannel.class);<a name="line.444"></a>
-<span class="sourceLineNo">445</span>                <a name="line.445"></a>
-<span class="sourceLineNo">446</span>                final HttpResponse response = event.getRequest().getResponse().get();<a name="line.446"></a>
-<span class="sourceLineNo">447</span>                response.setStatus(HttpStatus.NOT_FOUND);<a name="line.447"></a>
-<span class="sourceLineNo">448</span>                response.setMessageHasBody(true);<a name="line.448"></a>
-<span class="sourceLineNo">449</span>                response.setField(HttpField.CONTENT_TYPE,<a name="line.449"></a>
-<span class="sourceLineNo">450</span>                                MediaType.builder().setType("text", "plain")<a name="line.450"></a>
-<span class="sourceLineNo">451</span>                        .setParameter("charset", "utf-8").build());<a name="line.451"></a>
-<span class="sourceLineNo">452</span>                fire(new Response(response), channel);<a name="line.452"></a>
-<span class="sourceLineNo">453</span>                try {<a name="line.453"></a>
-<span class="sourceLineNo">454</span>                        fire(Output.wrap("Not Found\r\n".getBytes("utf-8"), true), channel);<a name="line.454"></a>
-<span class="sourceLineNo">455</span>                } catch (UnsupportedEncodingException e) {<a name="line.455"></a>
-<span class="sourceLineNo">456</span>                        // Supported by definition<a name="line.456"></a>
-<span class="sourceLineNo">457</span>                }<a name="line.457"></a>
-<span class="sourceLineNo">458</span>                event.stop();<a name="line.458"></a>
-<span class="sourceLineNo">459</span>        }<a name="line.459"></a>
-<span class="sourceLineNo">460</span>}<a name="line.460"></a>
+<span class="sourceLineNo">397</span>                if (response.statusCode() == HttpStatus.NOT_IMPLEMENTED.statusCode()) {<a name="line.397"></a>
+<span class="sourceLineNo">398</span>                        response.setMessageHasBody(true);<a name="line.398"></a>
+<span class="sourceLineNo">399</span>                        response.setField(HttpField.CONTENT_TYPE,<a name="line.399"></a>
+<span class="sourceLineNo">400</span>                                        MediaType.builder().setType("text", "plain")<a name="line.400"></a>
+<span class="sourceLineNo">401</span>                                .setParameter("charset", "utf-8").build());<a name="line.401"></a>
+<span class="sourceLineNo">402</span>                        fire(new Response(response), channel);<a name="line.402"></a>
+<span class="sourceLineNo">403</span>                        try {<a name="line.403"></a>
+<span class="sourceLineNo">404</span>                                fire(Output.wrap("Not Implemented\r\n".getBytes("utf-8"), true),<a name="line.404"></a>
+<span class="sourceLineNo">405</span>                                                channel);<a name="line.405"></a>
+<span class="sourceLineNo">406</span>                        } catch (UnsupportedEncodingException e) {<a name="line.406"></a>
+<span class="sourceLineNo">407</span>                                // Supported by definition<a name="line.407"></a>
+<span class="sourceLineNo">408</span>                        }<a name="line.408"></a>
+<span class="sourceLineNo">409</span>                }<a name="line.409"></a>
+<span class="sourceLineNo">410</span>        }<a name="line.410"></a>
+<span class="sourceLineNo">411</span><a name="line.411"></a>
+<span class="sourceLineNo">412</span>        /**<a name="line.412"></a>
+<span class="sourceLineNo">413</span>         * Provides a fallback handler for an OPTIONS request with asterisk. Simply<a name="line.413"></a>
+<span class="sourceLineNo">414</span>         * responds with "OK".<a name="line.414"></a>
+<span class="sourceLineNo">415</span>         * <a name="line.415"></a>
+<span class="sourceLineNo">416</span>         * @param event the event<a name="line.416"></a>
+<span class="sourceLineNo">417</span>         */<a name="line.417"></a>
+<span class="sourceLineNo">418</span>        @Handler(priority = Integer.MIN_VALUE)<a name="line.418"></a>
+<span class="sourceLineNo">419</span>        public void onOptions(OptionsRequest event) {<a name="line.419"></a>
+<span class="sourceLineNo">420</span>                IOSubchannel channel = event.firstChannel(IOSubchannel.class);<a name="line.420"></a>
+<span class="sourceLineNo">421</span>                <a name="line.421"></a>
+<span class="sourceLineNo">422</span>                if (event.requestUri() == HttpRequest.ASTERISK_REQUEST) {<a name="line.422"></a>
+<span class="sourceLineNo">423</span>                        HttpResponse response = event.request().response().get();<a name="line.423"></a>
+<span class="sourceLineNo">424</span>                        response.setStatus(HttpStatus.OK);<a name="line.424"></a>
+<span class="sourceLineNo">425</span>                        channel.fire(new Response(response));<a name="line.425"></a>
+<span class="sourceLineNo">426</span>                        event.stop();<a name="line.426"></a>
+<span class="sourceLineNo">427</span>                }<a name="line.427"></a>
+<span class="sourceLineNo">428</span>        }<a name="line.428"></a>
+<span class="sourceLineNo">429</span><a name="line.429"></a>
+<span class="sourceLineNo">430</span>        /**<a name="line.430"></a>
+<span class="sourceLineNo">431</span>         * Provides a fall back handler (lowest priority) for the request types<a name="line.431"></a>
+<span class="sourceLineNo">432</span>         * specified in the constructor.<a name="line.432"></a>
+<span class="sourceLineNo">433</span>         * <a name="line.433"></a>
+<span class="sourceLineNo">434</span>         * @param event the event<a name="line.434"></a>
+<span class="sourceLineNo">435</span>         * @throws ParseException if the request contains illegal header fields<a name="line.435"></a>
+<span class="sourceLineNo">436</span>         */<a name="line.436"></a>
+<span class="sourceLineNo">437</span>        @Handler(priority = Integer.MIN_VALUE)<a name="line.437"></a>
+<span class="sourceLineNo">438</span>        public void onRequest(Request event) throws ParseException {<a name="line.438"></a>
+<span class="sourceLineNo">439</span>                if (providedFallbacks == null<a name="line.439"></a>
+<span class="sourceLineNo">440</span>                        || !providedFallbacks.contains(event.getClass())) {<a name="line.440"></a>
+<span class="sourceLineNo">441</span>                        return;<a name="line.441"></a>
+<span class="sourceLineNo">442</span>                }<a name="line.442"></a>
+<span class="sourceLineNo">443</span>                final IOSubchannel channel = event.firstChannel(IOSubchannel.class);<a name="line.443"></a>
+<span class="sourceLineNo">444</span>                <a name="line.444"></a>
+<span class="sourceLineNo">445</span>                final HttpResponse response = event.request().response().get();<a name="line.445"></a>
+<span class="sourceLineNo">446</span>                response.setStatus(HttpStatus.NOT_FOUND);<a name="line.446"></a>
+<span class="sourceLineNo">447</span>                response.setMessageHasBody(true);<a name="line.447"></a>
+<span class="sourceLineNo">448</span>                response.setField(HttpField.CONTENT_TYPE,<a name="line.448"></a>
+<span class="sourceLineNo">449</span>                                MediaType.builder().setType("text", "plain")<a name="line.449"></a>
+<span class="sourceLineNo">450</span>                        .setParameter("charset", "utf-8").build());<a name="line.450"></a>
+<span class="sourceLineNo">451</span>                fire(new Response(response), channel);<a name="line.451"></a>
+<span class="sourceLineNo">452</span>                try {<a name="line.452"></a>
+<span class="sourceLineNo">453</span>                        fire(Output.wrap("Not Found\r\n".getBytes("utf-8"), true), channel);<a name="line.453"></a>
+<span class="sourceLineNo">454</span>                } catch (UnsupportedEncodingException e) {<a name="line.454"></a>
+<span class="sourceLineNo">455</span>                        // Supported by definition<a name="line.455"></a>
+<span class="sourceLineNo">456</span>                }<a name="line.456"></a>
+<span class="sourceLineNo">457</span>                event.stop();<a name="line.457"></a>
+<span class="sourceLineNo">458</span>        }<a name="line.458"></a>
+<span class="sourceLineNo">459</span>}<a name="line.459"></a>
 
 
 
