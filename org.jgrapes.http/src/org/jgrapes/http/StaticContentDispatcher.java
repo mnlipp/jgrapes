@@ -25,13 +25,19 @@ import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoField;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.Converters;
+import org.jdrupes.httpcodec.types.Directive;
+import org.jdrupes.httpcodec.types.MediaRange;
 import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -48,6 +54,7 @@ public class StaticContentDispatcher extends Component {
 
 	private ResourcePattern resourcePattern;
 	private Path contentDirectory;
+	private List<ValidityInfo> validityInfos = new ArrayList<>();
 	
 	/**
 	 * @param resourcePattern the pattern that requests must match with to 
@@ -82,6 +89,40 @@ public class StaticContentDispatcher extends Component {
 		RequestHandler.Evaluator.add(this, "onGet", resourcePattern);
 	}
 
+	/**
+	 * Returns the validity infos as unmodifiable list.
+	 * 
+	 * @return the validityInfos
+	 * @see #validityInfos()
+	 */
+	public List<ValidityInfo> validityInfos() {
+		return Collections.unmodifiableList(validityInfos);
+	}
+
+	/**
+	 * Sets validity infos for generating the `Cache-Control` (`max-age`)
+	 * header of the response. If the type of the resource served 
+	 * matches an entry in the list, the entry's `maxAge` value is used 
+	 * for generating the header. If no info matches or no infos are set, 
+	 * a default of 600 seconds is used as time span.
+	 * 
+	 * @param validityInfos the validityInfos to set
+	 */
+	public void setValidityInfos(List<ValidityInfo> validityInfos) {
+		this.validityInfos = validityInfos;
+	}
+
+	/**
+	 * Add a validity info to the list.
+	 * 
+	 * @return this object for easy chaining
+	 * @see #validityInfos()
+	 */
+	public StaticContentDispatcher addValidityInfo(ValidityInfo info) {
+		validityInfos.add(info);
+		return this;
+	}
+
 	@RequestHandler(dynamic=true)
 	public void onGet(GetRequest event) throws ParseException, IOException {
 		int prefixSegs = resourcePattern.matches(event.requestUri());
@@ -105,24 +146,39 @@ public class StaticContentDispatcher extends Component {
 		if (!Files.isReadable(resourcePath)) {
 			return;
 		}
+		// Get content type and derive max-age
+		String mimeTypeName = Files.probeContentType(resourcePath);
+		if (mimeTypeName == null) {
+			mimeTypeName = "application/octet-stream";
+		}
+		MediaType mediaType = Converters.MEDIA_TYPE.fromFieldValue(mimeTypeName);
+		long maxAge = 600;
+		for (ValidityInfo info: validityInfos) {
+			if (info.mediaRange().matches(mediaType)) {
+				break;
+			}
+		}
+		// Set max age in cache header and expires header (if HTTP 1.0)
+		List<Directive> directives = new ArrayList<>();
+		directives.add(new Directive("max-age", Long.toString(maxAge)));
+		HttpResponse response = event.request().response().get();
+		response.setField(HttpField.CACHE_CONTROL, directives);
+		if (response.request().get().protocol()
+				.compareTo(HttpProtocol.HTTP_1_1) < 0) {
+			response.setField(HttpField.EXPIRES, 
+					Instant.now().plusSeconds(maxAge));
+		}
 		// Check if sending is really required.
 		Instant lastModified = Files.getLastModifiedTime(resourcePath)
 				.toInstant().with(ChronoField.NANO_OF_SECOND, 0);
 		Optional<Instant> modifiedSince = event.request()
 				.findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
-		HttpResponse response = event.request().response().get();
 		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		if (modifiedSince.isPresent() 
 				&& !lastModified.isAfter(modifiedSince.get())) {
 			response.setStatus(HttpStatus.NOT_MODIFIED);
 			channel.fire(new Response(response));
 		} else {
-			String mimeTypeName = Files.probeContentType(resourcePath);
-			if (mimeTypeName == null) {
-				mimeTypeName = "application/octet-stream";
-			}
-			MediaType mediaType = Converters.MEDIA_TYPE
-					.fromFieldValue(mimeTypeName);
 			if ("text".equals(mediaType.topLevelType())) {
 				mediaType = MediaType.builder().from(mediaType)
 						.setParameter("charset", System.getProperty(
@@ -138,4 +194,40 @@ public class StaticContentDispatcher extends Component {
 		event.stop();
 	}
 
+	/**
+	 * Describes an association between a media range and a  
+	 * maximum age in seconds. 
+	 */
+	public static class ValidityInfo {
+		private MediaRange mediaRange;
+		private long maxAge;
+
+		/**
+		 * @param mediaRange
+		 * @param maxAge
+		 */
+		public ValidityInfo(MediaRange mediaRange, long maxAge) {
+			super();
+			this.mediaRange = mediaRange;
+			this.maxAge = maxAge;
+		}
+
+		/**
+		 * The media range matches by this info.
+		 * 
+		 * @return the mediaRange
+		 */
+		public MediaRange mediaRange() {
+			return mediaRange;
+		}
+		
+		/**
+		 * The time span in seconds until the response expires.
+		 * 
+		 * @return the time span
+		 */
+		public long maxAge() {
+			return maxAge;
+		}
+	}
 }
