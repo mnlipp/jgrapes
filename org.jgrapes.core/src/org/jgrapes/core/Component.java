@@ -75,7 +75,7 @@ public abstract class Component extends ComponentVertex
 	 * @see org.jgrapes.core.internal.ComponentVertex#getComponent()
 	 */
 	@Override
-	protected ComponentType getComponent() {
+	protected ComponentType component() {
 		return this;
 	}
 
@@ -84,10 +84,10 @@ public abstract class Component extends ComponentVertex
 	 * 
 	 * @return the channel as assigned by the constructor.
 	 * 
-	 * @see org.jgrapes.core.Manager#getChannel()
+	 * @see org.jgrapes.core.Manager#channel()
 	 */
 	@Override
-	public Channel getChannel() {
+	public Channel channel() {
 		return componentChannel;
 	}
 
@@ -95,7 +95,7 @@ public abstract class Component extends ComponentVertex
 	 * Return the object itself as value.
 	 */
 	@Override
-	public Object getDefaultCriterion() {
+	public Object defaultCriterion() {
 		return this;
 	}
 
@@ -108,7 +108,7 @@ public abstract class Component extends ComponentVertex
 	@Override
 	public boolean isEligibleFor(Object value) {
 		return value.equals(Channel.class) 
-				|| value == getDefaultCriterion();
+				|| value == defaultCriterion();
 	}
 
 }

@@ -51,7 +51,7 @@ public class Components {
 	 * @return the component (with its manager attribute set)
 	 */
 	public static Manager manager(ComponentType component) {
-		return ComponentVertex.getComponentVertex(component);
+		return ComponentVertex.componentVertex(component);
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class Components {
 	 * while waiting
 	 */
 	public static void awaitExhaustion() throws InterruptedException {
-		GeneratorRegistry.getInstance().awaitExhaustion();
+		GeneratorRegistry.instance().awaitExhaustion();
 	}
 
 	/**
@@ -91,7 +91,7 @@ public class Components {
 	 */
 	public static boolean awaitExhaustion(long timeout) 
 			throws InterruptedException {
-		return GeneratorRegistry.getInstance().awaitExhaustion(timeout);
+		return GeneratorRegistry.instance().awaitExhaustion(timeout);
 	}
 
 	/**

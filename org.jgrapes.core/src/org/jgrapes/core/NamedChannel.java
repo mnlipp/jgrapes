@@ -42,10 +42,10 @@ public final class NamedChannel implements Channel {
 	 * 
 	 * @return the name
 	 * 
-	 * @see org.jgrapes.core.Channel#getDefaultCriterion()
+	 * @see org.jgrapes.core.Channel#defaultCriterion()
 	 */
 	@Override
-	public Object getDefaultCriterion() {
+	public Object defaultCriterion() {
 		return name;
 	}
 
@@ -57,7 +57,7 @@ public final class NamedChannel implements Channel {
 	 */
 	@Override
 	public boolean isEligibleFor(Object value) {
-		return value.equals(BROADCAST.getDefaultCriterion())
+		return value.equals(BROADCAST.defaultCriterion())
 				|| value.equals(name);
 	}
 

@@ -38,14 +38,14 @@ public class FileOpened extends Opened {
 	/**
 	 * @return the path
 	 */
-	public Path getPath() {
+	public Path path() {
 		return path;
 	}
 
 	/**
 	 * @return the options
 	 */
-	public OpenOption[] getOptions() {
+	public OpenOption[] options() {
 		return options;
 	}
 

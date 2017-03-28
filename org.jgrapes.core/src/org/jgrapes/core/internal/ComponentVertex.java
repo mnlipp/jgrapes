@@ -76,13 +76,13 @@ public abstract class ComponentVertex implements Manager {
 
 	/**
 	 * Initialize the handler list of this component. May only be called
-	 * when {@link #getComponent()} can be relied on to return the
+	 * when {@link #component()} can be relied on to return the
 	 * correct value.
 	 */
 	protected void initComponentsHandlers() {
 		handlers = new ArrayList<HandlerReference>();
 		// Have a look at all methods.
-		for (Method m : getComponent().getClass().getMethods()) {
+		for (Method m : component().getClass().getMethods()) {
 			maybeAddHandler(m);
 		}
 		handlers = Collections.synchronizedList(handlers);
@@ -97,13 +97,13 @@ public abstract class ComponentVertex implements Manager {
 				continue;
 			}
 			HandlerDefinition.Evaluator evaluator = defintionEvaluator(hda);
-			HandlerScope scope = evaluator.getScope(getComponent(), method, null,
+			HandlerScope scope = evaluator.scope(component(), method, null,
 			        null);
 			if (scope == null) {
 				continue;
 			}
 			handlers.add(HandlerReference.newRef(
-					getComponent(), method, evaluator.getPriority(annotation),
+					component(), method, evaluator.priority(annotation),
 							scope));
 		}
 	}
@@ -131,7 +131,7 @@ public abstract class ComponentVertex implements Manager {
 	 * @param component the component
 	 * @return the node representing the component in the tree
 	 */
-	public static ComponentVertex getComponentVertex(ComponentType component) {
+	public static ComponentVertex componentVertex(ComponentType component) {
 		if (component instanceof ComponentVertex) {
 			return (ComponentVertex)component;
 		}
@@ -143,16 +143,16 @@ public abstract class ComponentVertex implements Manager {
 	 * 
 	 * @return the component
 	 */
-	protected abstract ComponentType getComponent();
+	protected abstract ComponentType component();
 
 	/* (non-Javadoc)
 	 * @see org.jgrapes.core.Manager#getChildren()
 	 */
 	@Override
-	public synchronized List<ComponentType> getChildren() {
+	public synchronized List<ComponentType> children() {
 		List<ComponentType> children = new ArrayList<ComponentType>();
 		for (ComponentVertex child: this.children) {
-			children.add(child.getComponent());
+			children.add(child.component());
 		}
 		return Collections.unmodifiableList(children);
 	}
@@ -161,19 +161,19 @@ public abstract class ComponentVertex implements Manager {
 	 * @see org.jgrapes.core.Manager#getParent()
 	 */
 	@Override
-	public synchronized ComponentType getParent() {
+	public synchronized ComponentType parent() {
 		if (parent == null) {
 			return null;
 		}
-		return parent.getComponent();
+		return parent.component();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.jgrapes.core.Manager#getRoot()
 	 */
 	@Override
-	public ComponentType getRoot() {
-		return getTree().getRoot().getComponent();
+	public ComponentType root() {
+		return tree().root().component();
 	}
 
 	/**
@@ -182,13 +182,13 @@ public abstract class ComponentVertex implements Manager {
 	 * 
 	 * @return the tree
 	 */
-	ComponentTree getTree() {
+	ComponentTree tree() {
 		if (tree != null) {
 			return tree;
 		}
 		tree = new ComponentTree(this);
 		tree.setEventPipeline(new EventBuffer(tree));
-		fire(new Attached(getComponent(), null), getChannel());
+		fire(new Attached(component(), null), channel());
 		return tree;
 	}
 	
@@ -210,9 +210,9 @@ public abstract class ComponentVertex implements Manager {
 	 */
 	@Override
 	public synchronized <T extends ComponentType> T attach(T child) {
-		ComponentVertex childNode = getComponentVertex(child);
+		ComponentVertex childNode = componentVertex(child);
 		synchronized (childNode) {
-			synchronized (getTree()) {
+			synchronized (tree()) {
 				if (childNode.tree == null) { 
 					// Newly created, stand-alone child node
 					childNode.parent = ComponentVertex.this;
@@ -238,15 +238,15 @@ public abstract class ComponentVertex implements Manager {
 				}
 			}
 		}
-		Channel parentChan = getChannel();
+		Channel parentChan = channel();
 		if (parentChan == null) {
 			parentChan = Channel.BROADCAST;
 		}
-		Channel childChan = childNode.getChannel();
+		Channel childChan = childNode.channel();
 		if (childChan == null) {
 			parentChan = Channel.BROADCAST;
 		}
-		Attached evt = new Attached(childNode.getComponent(), getComponent());
+		Attached evt = new Attached(childNode.component(), component());
 		if (parentChan.equals(Channel.BROADCAST) 
 			|| childChan.equals(Channel.BROADCAST)) {
 			fire(evt, Channel.BROADCAST);
@@ -280,12 +280,12 @@ public abstract class ComponentVertex implements Manager {
 				newTree.setEventPipeline(new EventProcessor(newTree));
 				setTree(newTree);
 			}
-			Detached evt = new Detached(getComponent(), oldParent.getComponent());
+			Detached evt = new Detached(component(), oldParent.component());
 			oldParent.fire(evt);
-			evt = new Detached(getComponent(), oldParent.getComponent());
+			evt = new Detached(component(), oldParent.component());
 			fire(evt);
 		}
-		return getComponent();
+		return component();
 	}
 
 	/* (non-Javadoc)
@@ -315,7 +315,7 @@ public abstract class ComponentVertex implements Manager {
 		private ComponentTree tree;
 		
 		public TreeIterator(ComponentVertex root) {
-			tree = root.getTree();
+			tree = root.tree();
 			stack.push(new Pos(root));
 		}
 
@@ -353,7 +353,7 @@ public abstract class ComponentVertex implements Manager {
 				}
 				pos = stack.peek();
 			}
-			return res.getComponent();
+			return res.component();
 		}
 
 		/* (non-Javadoc)
@@ -367,7 +367,7 @@ public abstract class ComponentVertex implements Manager {
 
 	@Override
 	public void addHandler(Method method, HandlerScope scope, int priority) {
-		handlers.add(HandlerReference.newRef(getComponent(),
+		handlers.add(HandlerReference.newRef(component(),
 		        method, priority, scope));
 	}
 
@@ -380,11 +380,11 @@ public abstract class ComponentVertex implements Manager {
 		if (channels.length == 0) {
 			channels = event.channels();
 			if (channels == null || channels.length == 0) {
-				channels = new Channel[] { getChannel() };
+				channels = new Channel[] { channel() };
 			}
 		}
 		event.setChannels(channels);
-		getTree().fire(event, channels);
+		tree().fire(event, channels);
 		return event;
 	}
 
@@ -415,7 +415,7 @@ public abstract class ComponentVertex implements Manager {
 	@Override
 	public EventPipeline activeEventPipeline() {
 		return new CheckingPipelineFilter(
-				getTree().getEventPipeline(), getChannel());
+				tree().getEventPipeline(), channel());
 	}
 
 	/* (non-Javadoc)
@@ -424,7 +424,7 @@ public abstract class ComponentVertex implements Manager {
 	@Override
 	public EventPipeline newSyncEventPipeline() {
 		return new CheckingPipelineFilter(
-				new SynchronousEventProcessor(getTree()), getChannel());
+				new SynchronousEventProcessor(tree()), channel());
 	}
 
 	/* (non-Javadoc)
@@ -432,8 +432,8 @@ public abstract class ComponentVertex implements Manager {
 	 */
 	@Override
 	public EventPipeline newEventPipeline() {
-		return new CheckingPipelineFilter(new EventProcessor(getTree()),
-		        getChannel());
+		return new CheckingPipelineFilter(new EventProcessor(tree()),
+		        channel());
 	}
 
 	/* (non-Javadoc)
@@ -449,7 +449,7 @@ public abstract class ComponentVertex implements Manager {
 	 */
 	@Override
 	public void registerAsGenerator() {
-		GeneratorRegistry.getInstance().add(getComponent());
+		GeneratorRegistry.instance().add(component());
 	}
 
 	/* (non-Javadoc)
@@ -457,7 +457,7 @@ public abstract class ComponentVertex implements Manager {
 	 */
 	@Override
 	public void unregisterAsGenerator() {
-		GeneratorRegistry.getInstance().remove(getComponent());
+		GeneratorRegistry.instance().remove(component());
 	}
 	
 }

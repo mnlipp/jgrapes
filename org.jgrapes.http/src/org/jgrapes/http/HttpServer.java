@@ -105,9 +105,9 @@ public class HttpServer extends Component {
 		this.networkChannel = networkChannel;
 		this.providedFallbacks = Arrays.asList(fallbacks);
 		Handler.Evaluator.add(
-				this, "onAccepted", networkChannel.getDefaultCriterion());
+				this, "onAccepted", networkChannel.defaultCriterion());
 		Handler.Evaluator.add(
-				this, "onInput", networkChannel.getDefaultCriterion());
+				this, "onInput", networkChannel.defaultCriterion());
 	}
 
 	/**
@@ -128,21 +128,21 @@ public class HttpServer extends Component {
 		networkChannel = server;
 		attach(server);
 		Handler.Evaluator.add(
-				this, "onAccepted", networkChannel.getDefaultCriterion());
+				this, "onAccepted", networkChannel.defaultCriterion());
 		Handler.Evaluator.add(
-				this, "onInput", networkChannel.getDefaultCriterion());
+				this, "onInput", networkChannel.defaultCriterion());
 	}
 
 	/**
 	 * @return the matchLevels
 	 */
-	public int getMatchLevels() {
+	public int matchLevels() {
 		return matchLevels;
 	}
 
 	/**
 	 * Sets the number of elements from the request path used in the match value
-	 * of the generated events (see {@link Request#getDefaultCriterion()}), defaults
+	 * of the generated events (see {@link Request#defaultCriterion()}), defaults
 	 * to 1.
 	 * 
 	 * @param matchLevels the matchLevels to set
@@ -189,11 +189,11 @@ public class HttpServer extends Component {
 		}
 
 		// Send the data from the event through the decoder.
-		ByteBuffer in = event.getBuffer().getBacking();
+		ByteBuffer in = event.buffer().backingBuffer();
 		ManagedByteBuffer bodyData = null;
 		while (in.hasRemaining()) {
 			Decoder.Result<HttpResponse> result = engine.decode(in,
-			        bodyData == null ? null : bodyData.getBacking(),
+			        bodyData == null ? null : bodyData.backingBuffer(),
 			        event.isEndOfRecord());
 			if (result.response().isPresent()) {
 				// Feedback required, send it
@@ -283,10 +283,10 @@ public class HttpServer extends Component {
 	@Handler
 	public void onResponse(Response event) throws InterruptedException {
 		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
-		final IOSubchannel netChannel = downChannel.getUpstreamChannel();
+		final IOSubchannel netChannel = downChannel.upstreamChannel();
 		final ServerEngine<HttpRequest,HttpResponse> engine 
 			= downChannel.engine;
-		final HttpResponse response = event.getResponse();
+		final HttpResponse response = event.response();
 
 		// Start sending the response
 		engine.encode(response);
@@ -295,7 +295,7 @@ public class HttpServer extends Component {
 			downChannel.outBuffer = netChannel.bufferPool().acquire();
 			final ManagedByteBuffer buffer = downChannel.outBuffer;
 			Codec.Result result = engine.encode(
-					Codec.EMPTY_IN, buffer.getBacking(), !hasBody);
+					Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);
 			if (result.isOverflow()) {
 				fire(new Output<>(buffer, false), netChannel);
 				continue;
@@ -333,17 +333,17 @@ public class HttpServer extends Component {
 	public void onOutput(Output<ManagedBuffer<?>> event)
 	        throws InterruptedException {
 		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
-		final IOSubchannel netChannel = downChannel.getUpstreamChannel();
+		final IOSubchannel netChannel = downChannel.upstreamChannel();
 		final ServerEngine<HttpRequest,HttpResponse> engine 
 			= downChannel.engine;
 
-		Buffer in = event.getBuffer().getBacking();
+		Buffer in = event.buffer().backingBuffer();
 		if (!(in instanceof ByteBuffer)) {
 			return;
 		}
 		while (true) {
 			Codec.Result result = engine.encode((ByteBuffer) in,
-			        downChannel.outBuffer.getBacking(), event.isEndOfRecord());
+			        downChannel.outBuffer.backingBuffer(), event.isEndOfRecord());
 			if (!result.isOverflow() && !event.isEndOfRecord()
 					&& !result.closeConnection()) {
 				break;
@@ -372,7 +372,7 @@ public class HttpServer extends Component {
 	@Handler
 	public void onClose(Close event) throws InterruptedException {
 		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
-		final IOSubchannel netChannel = downChannel.getUpstreamChannel();
+		final IOSubchannel netChannel = downChannel.upstreamChannel();
 		netChannel.fire(new Close());
 	}
 
@@ -388,11 +388,11 @@ public class HttpServer extends Component {
 	@Handler
 	public void onRequestCompleted(Request.Completed event)
 	        throws InterruptedException {
-		IOSubchannel channel = event.getCompleted()
+		IOSubchannel channel = event.event()
 		        .firstChannel(IOSubchannel.class);
-		final Request requestEvent = event.getCompleted();
+		final Request requestEvent = event.event();
 		final HttpResponse response 
-			= requestEvent.getRequest().response().get();
+			= requestEvent.request().response().get();
 
 		if (response.statusCode() == HttpStatus.NOT_IMPLEMENTED.statusCode()) {
 			response.setMessageHasBody(true);
@@ -419,8 +419,8 @@ public class HttpServer extends Component {
 	public void onOptions(OptionsRequest event) {
 		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		
-		if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {
-			HttpResponse response = event.getRequest().response().get();
+		if (event.requestUri() == HttpRequest.ASTERISK_REQUEST) {
+			HttpResponse response = event.request().response().get();
 			response.setStatus(HttpStatus.OK);
 			channel.fire(new Response(response));
 			event.stop();
@@ -442,7 +442,7 @@ public class HttpServer extends Component {
 		}
 		final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		
-		final HttpResponse response = event.getRequest().response().get();
+		final HttpResponse response = event.request().response().get();
 		response.setStatus(HttpStatus.NOT_FOUND);
 		response.setMessageHasBody(true);
 		response.setField(HttpField.CONTENT_TYPE,

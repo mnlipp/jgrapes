@@ -127,13 +127,13 @@ public class NioDispatcher extends Component implements Runnable {
 	@Handler
 	public void onNioRegistration(NioRegistration event)
 			throws IOException {
-		SelectableChannel channel = event.getIoChannel();
+		SelectableChannel channel = event.ioChannel();
 		channel.configureBlocking(false);
 		SelectionKey key;
 		synchronized (selectorGate) {
 			selector.wakeup(); // make sure selector isn't blocking
 			key = channel.register(
-					selector, event.getOps(), event.getHandler());
+					selector, event.ops(), event.handler());
 		}
 		event.setResult(new Registration(key));
 	}

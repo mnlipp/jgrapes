@@ -68,21 +68,21 @@ public class NioRegistration extends Event<NioRegistration.Registration> {
 	/**
 	 * @return the handler
 	 */
-	public NioHandler getHandler() {
+	public NioHandler handler() {
 		return handler;
 	}
 
 	/**
 	 * @return the channel
 	 */
-	public SelectableChannel getIoChannel() {
+	public SelectableChannel ioChannel() {
 		return ioChannel;
 	}
 
 	/**
 	 * @return the ops
 	 */
-	public int getOps() {
+	public int ops() {
 		return ops;
 	}
 

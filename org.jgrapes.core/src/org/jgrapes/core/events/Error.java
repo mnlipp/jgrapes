@@ -73,7 +73,7 @@ public class Error extends Event<Void> {
 	 * 
 	 * @return the event
 	 */
-	public Event<?> getEvent() {
+	public Event<?> event() {
 		return event;
 	}
 	
@@ -82,7 +82,7 @@ public class Error extends Event<Void> {
 	 * 
 	 * @return the message
 	 */
-	public String getMessage() {
+	public String message() {
 		return message;
 	}
 
@@ -92,7 +92,7 @@ public class Error extends Event<Void> {
 	 * @return the throwable or {@code null} if the problem wasn't caused
 	 * by a throwable.
 	 */
-	public Throwable getThrowable() {
+	public Throwable throwable() {
 		return throwable;
 	}
 }

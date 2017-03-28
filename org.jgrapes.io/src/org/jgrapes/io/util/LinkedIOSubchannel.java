@@ -124,22 +124,22 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	 * @see org.jgrapes.io.IOSubchannel#getMainChannel()
 	 */
 	@Override
-	public Channel getMainChannel() {
-		return converterComponent.getChannel();
+	public Channel mainChannel() {
+		return converterComponent.channel();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.jgrapes.io.IOSubchannel#getResponsePipeline()
 	 */
 	@Override
-	public EventPipeline getResponsePipeline() {
+	public EventPipeline responsePipeline() {
 		return responsePipeline;
 	}
 
 	/**
 	 * @return the upstream channel
 	 */
-	public IOSubchannel getUpstreamChannel() {
+	public IOSubchannel upstreamChannel() {
 		return upstreamChannel.get();
 	}
 
@@ -161,7 +161,7 @@ public class LinkedIOSubchannel implements IOSubchannel {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Components.objectName(this));
 		builder.append("(");
-			builder.append(Common.channelToString(getMainChannel()));
+			builder.append(Common.channelToString(mainChannel()));
 		builder.append(")");
 		builder.append(" [");
 		if (upstreamChannel != null) {

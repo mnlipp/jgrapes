@@ -100,7 +100,7 @@ public class FileStorage extends Component {
 	@Handler
 	public void onStreamFile(StreamFile event)
 	        throws InterruptedException {
-		if (Arrays.asList(event.getOptions())
+		if (Arrays.asList(event.options())
 		        .contains(StandardOpenOption.WRITE)) {
 			throw new IllegalArgumentException(
 			        "Cannot stream file opened for writing.");
@@ -128,16 +128,16 @@ public class FileStorage extends Component {
 		private FileStreamer(StreamFile event, IOSubchannel channel)
 		        throws InterruptedException {
 			this.channel = channel;
-			path = event.getPath();
+			path = event.path();
 			offset = 0;
 			try {
 				ioChannel = AsynchronousFileChannel
-				        .open(event.getPath(), event.getOptions());
+				        .open(event.path(), event.options());
 			} catch (IOException e) {
 				channel.fire(new IOError(event, e));
 				return;
 			}
-			channel.fire(new FileOpened(event.getPath(), event.getOptions()));
+			channel.fire(new FileOpened(event.path(), event.options()));
 			// Reading from file
 			ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer.class,
 					ByteBuffer.allocateDirect(bufferSize),
@@ -145,7 +145,7 @@ public class FileStorage extends Component {
 			ManagedByteBuffer buffer = ioBuffers.acquire();
 			registerAsGenerator();
 			synchronized (ioChannel) {
-				ioChannel.read(buffer.getBacking(), offset, buffer,
+				ioChannel.read(buffer.backingBuffer(), offset, buffer,
 						readCompletionHandler);
 			}
 		}
@@ -169,7 +169,7 @@ public class FileStorage extends Component {
 							ManagedByteBuffer nextBuffer = ioBuffers.acquire();
 							nextBuffer.clear();
 							synchronized (ioChannel) {
-								ioChannel.read(nextBuffer.getBacking(), offset,
+								ioChannel.read(nextBuffer.backingBuffer(), offset,
 							        nextBuffer, readCompletionHandler);
 							}
 						} catch (InterruptedException e) {
@@ -236,7 +236,7 @@ public class FileStorage extends Component {
 	 */
 	@Handler
 	public void onSaveInput(SaveInput event) throws InterruptedException {
-		if (!Arrays.asList(event.getOptions())
+		if (!Arrays.asList(event.options())
 		        .contains(StandardOpenOption.WRITE)) {
 			throw new IllegalArgumentException(
 			        "File must be opened for writing.");
@@ -256,7 +256,7 @@ public class FileStorage extends Component {
 		for (Channel channel: event.channels()) {
 			Writer writer = inputWriters.get(channel);
 			if (writer != null) {
-				writer.write(event.getBuffer());
+				writer.write(event.buffer());
 			}
 		}
 	}
@@ -271,7 +271,7 @@ public class FileStorage extends Component {
 	 */
 	@Handler
 	public void onSaveOutput(SaveOutput event) throws InterruptedException {
-		if (!Arrays.asList(event.getOptions())
+		if (!Arrays.asList(event.options())
 		        .contains(StandardOpenOption.WRITE)) {
 			throw new IllegalArgumentException(
 			        "File must be opened for writing.");
@@ -291,7 +291,7 @@ public class FileStorage extends Component {
 		for (Channel channel: event.channels()) {
 			Writer writer = outputWriters.get(channel);
 			if (writer != null) {
-				writer.write(event.getBuffer());
+				writer.write(event.buffer());
 			}
 		}
 	}
@@ -354,12 +354,12 @@ public class FileStorage extends Component {
 
 		public Writer(SaveInput event, IOSubchannel channel)
 		        throws InterruptedException {
-			this(event, event.getPath(), event.getOptions(), channel);
+			this(event, event.path(), event.options(), channel);
 		}
 
 		public Writer(SaveOutput event, IOSubchannel channel)
 		        throws InterruptedException {
-			this(event, event.getPath(), event.getOptions(), channel);
+			this(event, event.path(), event.options(), channel);
 		}
 
 		private Writer(Event<?> event, Path path, OpenOption[] options,
@@ -387,7 +387,7 @@ public class FileStorage extends Component {
 					registerAsGenerator();
 				}
 				outstandingAsyncs += 1;
-				ioChannel.write(buffer.getBacking(), offset,
+				ioChannel.write(buffer.backingBuffer(), offset,
 				        new WriteContext(buffer, offset),
 				        writeCompletionHandler);
 			}
@@ -401,7 +401,7 @@ public class FileStorage extends Component {
 			public void completed(Integer result, WriteContext context) {
 				ManagedByteBuffer buffer = context.buffer;
 				if (buffer.hasRemaining()) {
-					ioChannel.write(buffer.getBacking(),
+					ioChannel.write(buffer.backingBuffer(),
 					        context.pos + buffer.position(),
 					        context, writeCompletionHandler);
 					return;

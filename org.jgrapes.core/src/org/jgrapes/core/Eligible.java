@@ -46,5 +46,5 @@ public interface Eligible {
 	 * 
 	 * @return the criterion
 	 */
-	Object getDefaultCriterion();
+	Object defaultCriterion();
 }

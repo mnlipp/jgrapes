@@ -62,16 +62,16 @@ public interface IOSubchannel extends Channel {
 	 * 
 	 * @return the mainChannel
 	 */
-	Channel getMainChannel();
+	Channel mainChannel();
 
 	/**
 	 * Returns the main channel's match value.
 	 * 
-	 * @see Channel#getDefaultCriterion()
+	 * @see Channel#defaultCriterion()
 	 */
 	@Override
-	default Object getDefaultCriterion() {
-		return getMainChannel().getDefaultCriterion();
+	default Object defaultCriterion() {
+		return mainChannel().defaultCriterion();
 	}
 
 	/**
@@ -81,7 +81,7 @@ public interface IOSubchannel extends Channel {
 	 */
 	@Override
 	default boolean isEligibleFor(Object value) {
-		return getMainChannel().isEligibleFor(value);
+		return mainChannel().isEligibleFor(value);
 	}
 
 	/**
@@ -92,7 +92,7 @@ public interface IOSubchannel extends Channel {
 	 * 
 	 * @return the event pipeline
 	 */
-	public abstract EventPipeline getResponsePipeline();
+	public abstract EventPipeline responsePipeline();
 
 	/**
 	 * Get the subchannel's buffer pool.
@@ -113,7 +113,7 @@ public interface IOSubchannel extends Channel {
 	 * @return the event (for easy chaining)
 	 */
 	default <T extends Event<?>> T fire(T event) {
-		return getResponsePipeline().fire(event, this);
+		return responsePipeline().fire(event, this);
 	}
 
 	/**
@@ -136,7 +136,7 @@ public interface IOSubchannel extends Channel {
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool;
 
 		private DefaultSubchannel(Component component) {
-			mainChannel = component.getChannel();
+			mainChannel = component.channel();
 			eventPipeline = component.newEventPipeline();
 		}
 		
@@ -144,12 +144,12 @@ public interface IOSubchannel extends Channel {
 		 * @see org.jgrapes.io.IOSubchannel#getMainChannel()
 		 */
 		@Override
-		public Channel getMainChannel() {
+		public Channel mainChannel() {
 			return mainChannel;
 		}
 
 		@Override
-		public EventPipeline getResponsePipeline() {
+		public EventPipeline responsePipeline() {
 			return eventPipeline;
 		}
 

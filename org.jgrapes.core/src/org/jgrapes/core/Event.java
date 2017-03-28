@@ -77,10 +77,10 @@ public class Event<T> extends EventBase<T> {
 	 * 
 	 * @return the class of this event
 	 * 
-	 * @see org.jgrapes.core.Eligible#getDefaultCriterion()
+	 * @see org.jgrapes.core.Eligible#defaultCriterion()
 	 */
 	@Override
-	public Object getDefaultCriterion() {
+	public Object defaultCriterion() {
 		return getClass();
 	}
 

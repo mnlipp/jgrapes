@@ -52,7 +52,7 @@ public class SaveOutput extends Event<Void> {
 	 * 
 	 * @return the path
 	 */
-	public Path getPath() {
+	public Path path() {
 		return path;
 	}
 
@@ -61,7 +61,7 @@ public class SaveOutput extends Event<Void> {
 	 * 
 	 * @return the options
 	 */
-	public OpenOption[] getOptions() {
+	public OpenOption[] options() {
 		return options;
 	}
 

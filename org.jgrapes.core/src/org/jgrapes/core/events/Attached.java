@@ -53,7 +53,7 @@ public class Attached extends Event<Void> {
 	 * 
 	 * @return the node
 	 */
-	public ComponentType getNode() {
+	public ComponentType node() {
 		return node;
 	}
 
@@ -63,7 +63,7 @@ public class Attached extends Event<Void> {
 	 * 
 	 * @return the parent or <code>null</code>
 	 */
-	public ComponentType getParent() {
+	public ComponentType parent() {
 		return parent;
 	}
 

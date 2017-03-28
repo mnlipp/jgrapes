@@ -115,7 +115,7 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 			throw new IllegalStateException(
 					"getComponentContext may only be called in handler.");
 		}
-		return pipeline.getComponentContext(component);
+		return pipeline.componentContext(component);
 	}
 
 	/* (non-Javadoc)

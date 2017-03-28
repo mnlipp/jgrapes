@@ -45,7 +45,7 @@ public class ComponentContextTest {
 		
 		@Handler(events=Started.class)
 		public void onStarted(Event<?> evt) {
-			result = (String)evt.getComponentContext(this);
+			result = (String)evt.componentContext(this);
 		}
 	}
 	

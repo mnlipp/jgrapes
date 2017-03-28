@@ -116,14 +116,14 @@ public class BigReadTest {
 		EchoServer app = new EchoServer();
 		app.attach(new NioDispatcher());
 		WaitForTests wf = new WaitForTests(
-				app, Ready.class, Server.DEFAULT_CHANNEL.getDefaultCriterion());
+				app, Ready.class, Server.DEFAULT_CHANNEL.defaultCriterion());
 		Components.start(app);
 		Ready readyEvent = (Ready) wf.get();
-		if (!(readyEvent.getListenAddress() instanceof InetSocketAddress)) {
+		if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
 			fail();
 		}
 		InetSocketAddress serverAddr 
-			= ((InetSocketAddress)readyEvent.getListenAddress());
+			= ((InetSocketAddress)readyEvent.listenAddress());
 
 		// Watchdog
 		final Thread mainTread = Thread.currentThread();

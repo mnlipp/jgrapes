@@ -49,7 +49,7 @@ public class GeneratorRegistry {
 		}
 	}
 
-	public static GeneratorRegistry getInstance() {
+	public static GeneratorRegistry instance() {
 		return InstanceHolder.INSTANCE;
 	}
 	

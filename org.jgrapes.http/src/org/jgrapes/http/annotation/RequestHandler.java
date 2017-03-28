@@ -111,12 +111,12 @@ public @interface RequestHandler {
 		 * @see org.jgrapes.core.annotation.HandlerDefinition.Evaluator#getPriority()
 		 */
 		@Override
-		public int getPriority(Annotation annotation) {
+		public int priority(Annotation annotation) {
 			return ((RequestHandler)annotation).priority();
 		}
 
 		@Override
-		public HandlerScope getScope(
+		public HandlerScope scope(
 				ComponentType component, Method method, 
 				Object[] eventValues, Object[] channelValues) {
 			RequestHandler annotation 
@@ -205,7 +205,7 @@ public @interface RequestHandler {
 						if (c == Self.class) {
 							if (component instanceof Channel) {
 								handledChannels
-									.add(((Channel)component).getDefaultCriterion());
+									.add(((Channel)component).defaultCriterion());
 							} else {
 								throw new IllegalArgumentException(
 									"Canot use channel This.class in annotation"
@@ -222,7 +222,7 @@ public @interface RequestHandler {
 				}
 				if (handledChannels.size() == 0 || addDefaultChannel) {
 					handledChannels.add(Components.manager(component)
-					        .getChannel().getDefaultCriterion());
+					        .channel().defaultCriterion());
 				}
 				
 				try {

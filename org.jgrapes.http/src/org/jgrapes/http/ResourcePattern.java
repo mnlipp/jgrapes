@@ -135,35 +135,35 @@ public class ResourcePattern {
 	 * @return the pattern (string) that was used to create this 
 	 * resource pattern.
 	 */
-	public String getPattern() {
+	public String pattern() {
 		return pattern;
 	}
 	
 	/**
 	 * @return the protocol value specified in the pattern or {@code null}
 	 */
-	public String getProtocol() {
+	public String protocol() {
 		return protocol;
 	}
 
 	/**
 	 * @return the host value specified in the pattern or {@code null}
 	 */
-	public String getHost() {
+	public String host() {
 		return host;
 	}
 
 	/**
 	 * @return the port value specified in the pattern or {@code null}
 	 */
-	public String getPort() {
+	public String port() {
 		return port;
 	}
 
 	/**
 	 * @return the path value specified in the pattern or {@code null}
 	 */
-	public String getPath() {
+	public String path() {
 		return path;
 	}
 

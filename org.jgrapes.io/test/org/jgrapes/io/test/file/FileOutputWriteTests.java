@@ -55,7 +55,7 @@ public class FileOutputWriteTests {
 		        throws InterruptedException, IOException {
 			for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
 				try (ByteBufferOutputStream out = new ByteBufferOutputStream(
-				        channel, channel.getResponsePipeline())) {
+				        channel, channel.responsePipeline())) {
 					for (int i = 1; i <= 100; i++) {
 						out.write(
 						        new String(i + ": Hello World!\n").getBytes());

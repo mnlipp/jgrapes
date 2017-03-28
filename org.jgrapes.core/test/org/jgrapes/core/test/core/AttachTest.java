@@ -28,17 +28,17 @@ public class AttachTest {
 		
 		@Handler
 		public void onAttached(Attached evt) {
-			if (evt.getParent() == null) {
-				attachRoot = evt.getNode();
+			if (evt.parent() == null) {
+				attachRoot = evt.node();
 			}
-			attachParent = evt.getParent();
-			attachChild = evt.getNode();
+			attachParent = evt.parent();
+			attachChild = evt.node();
 		}
 		
 		@Handler
 		public void onDetached(Detached evt) {
-			detachParent = evt.getParent();
-			detachChild = evt.getNode();
+			detachParent = evt.parent();
+			detachChild = evt.node();
 		}
 	}
 	

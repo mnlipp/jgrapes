@@ -60,10 +60,10 @@ public class FileReadTests {
 		@Handler
 		public void onOutput(Output<ManagedByteBuffer> event) 
 				throws UnsupportedEncodingException {
-			int length = event.getBuffer().limit();
+			int length = event.buffer().limit();
 			collected += length;
 			byte[] bytes = new byte[length];
-			event.getBuffer().get(bytes);
+			event.buffer().get(bytes);
 			collectedText.append(new String(bytes, "ascii"));
 		}
 		

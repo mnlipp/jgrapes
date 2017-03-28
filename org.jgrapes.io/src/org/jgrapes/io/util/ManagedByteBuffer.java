@@ -365,7 +365,7 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	 * @see java.nio.ByteBuffer#put(java.nio.ByteBuffer)
 	 */
 	public ByteBuffer put(ManagedByteBuffer src) {
-		return backing.put(src.getBacking());
+		return backing.put(src.backingBuffer());
 	}
 
 	/**

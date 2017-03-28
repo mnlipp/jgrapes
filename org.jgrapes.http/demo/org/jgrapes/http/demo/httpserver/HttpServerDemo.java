@@ -46,13 +46,13 @@ public class HttpServerDemo extends Component {
 			throws IOException, InterruptedException {
 		HttpServerDemo app = new HttpServerDemo();
 		app.attach(new NioDispatcher());
-		app.attach(new HttpServer(app.getChannel(), 
+		app.attach(new HttpServer(app.channel(), 
 		        new InetSocketAddress(8888), GetRequest.class,
 		        PostRequest.class));
-		app.attach(new FileStorage(app.getChannel()));
-		app.attach(new StaticContentDispatcher(app.getChannel(),
+		app.attach(new FileStorage(app.channel()));
+		app.attach(new StaticContentDispatcher(app.channel(),
 		        "/**", Paths.get("demo-resources/static-content")));
-		app.attach(new StaticContentDispatcher(app.getChannel(),
+		app.attach(new StaticContentDispatcher(app.channel(),
 		        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc")));
 		Components.start(app);
 	}

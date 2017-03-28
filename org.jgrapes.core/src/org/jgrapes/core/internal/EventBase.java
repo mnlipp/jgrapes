@@ -160,7 +160,7 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	 * 
 	 * @return the intermediate result
 	 */
-	protected T getResult() {
+	protected T result() {
 		return result == null ? null : result.get();
 	}
 	
@@ -265,7 +265,7 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	 * @return the completed events
 	 */
 	@SuppressWarnings("unchecked")
-	public Set<Event<?>> getCompletedEvents() {
+	public Set<Event<?>> completedEvents() {
 		return completedEvents == null ? (Set<Event<?>>)Collections.EMPTY_SET
 				: Collections.unmodifiableSet(completedEvents);
 	}
@@ -384,7 +384,7 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	 * @param component the component
 	 * @return the data
 	 */
-	public Object getComponentContext(ComponentType component) {
+	public Object componentContext(ComponentType component) {
 		return FeedBackPipelineFilter.getComponentContext(component);
 	}
 }

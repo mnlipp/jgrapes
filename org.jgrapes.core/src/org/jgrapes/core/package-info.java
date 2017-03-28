@@ -81,10 +81,10 @@
  * interface Manager {
  *   T attach(T child)
  *   ComponentType detach()
- *   List<ComponentType> getChildren()
- *   ComponentType getParent()
- *   ComponentType getRoot()
- *   Channel getChannel()
+ *   List<ComponentType> children()
+ *   ComponentType parent()
+ *   ComponentType root()
+ *   Channel channel()
  *   Event<T> fire(Event<T> event, Channel[] channels)
  *   void addHandler(Method method, HandlerScope scope, int priority)
  * }

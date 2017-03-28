@@ -84,13 +84,13 @@ public class StaticContentDispatcher extends Component {
 
 	@RequestHandler(dynamic=true)
 	public void onGet(GetRequest event) throws ParseException, IOException {
-		int prefixSegs = resourcePattern.matches(event.getRequestUri());
+		int prefixSegs = resourcePattern.matches(event.requestUri());
 		if (prefixSegs < 0) {
 			return;
 		}
 		// Final wrapper for usage in closure
 		final Path[] assembly = new Path[] { contentDirectory };
-		Arrays.stream(event.getRequestUri().getPath().split("/"))
+		Arrays.stream(event.requestUri().getPath().split("/"))
 		        .skip(prefixSegs + 1)
 		        .forEach(e -> assembly[0] = assembly[0].resolve(e));
 		Path resourcePath = assembly[0];
@@ -108,9 +108,9 @@ public class StaticContentDispatcher extends Component {
 		// Check if sending is really required.
 		Instant lastModified = Files.getLastModifiedTime(resourcePath)
 				.toInstant().with(ChronoField.NANO_OF_SECOND, 0);
-		Optional<Instant> modifiedSince = event.getRequest()
+		Optional<Instant> modifiedSince = event.request()
 				.findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
-		HttpResponse response = event.getRequest().response().get();
+		HttpResponse response = event.request().response().get();
 		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		if (modifiedSince.isPresent() 
 				&& !lastModified.isAfter(modifiedSince.get())) {

@@ -123,7 +123,7 @@ public @interface Handler {
 	public static class Evaluator implements HandlerDefinition.Evaluator {
 
 		@Override
-		public HandlerScope getScope(
+		public HandlerScope scope(
 				ComponentType component, Method method, 
 					Object[] eventValues, Object[] channelValues) {
 			Handler annotation = method.getAnnotation(Handler.class);
@@ -138,7 +138,7 @@ public @interface Handler {
 		 * @see org.jgrapes.core.annotation.HandlerDefinition.Evaluator#getPriority()
 		 */
 		@Override
-		public int getPriority(Annotation annotation) {
+		public int priority(Annotation annotation) {
 			return ((Handler)annotation).priority();
 		}
 
@@ -174,7 +174,7 @@ public @interface Handler {
 				Object eventValue, Object channelValue, int priority) {
 			try {
 				if (channelValue instanceof Channel) {
-					channelValue = ((Eligible)channelValue).getDefaultCriterion();
+					channelValue = ((Eligible)channelValue).defaultCriterion();
 				}
 				for (Method m: component.getClass().getMethods()) {
 					if (!m.getName().equals(method)) {
@@ -227,7 +227,7 @@ public @interface Handler {
 		        Object channelValue) {
 			try {
 				if (channelValue instanceof Channel) {
-					channelValue = ((Eligible)channelValue).getDefaultCriterion();
+					channelValue = ((Eligible)channelValue).defaultCriterion();
 				}
 				for (Method m: component.getClass().getMethods()) {
 					if (!m.getName().equals(method)) {
@@ -317,7 +317,7 @@ public @interface Handler {
 								if (component instanceof Channel) {
 									handledChannels
 									        .add(((Channel) component)
-									                .getDefaultCriterion());
+									                .defaultCriterion());
 								} else {
 									throw new IllegalArgumentException(
 									    "Canot use channel This.class in "
@@ -340,7 +340,7 @@ public @interface Handler {
 					}
 					if (handledChannels.size() == 0 || addDefaultChannel) {
 						handledChannels.add(Components.manager(component)
-						        .getChannel().getDefaultCriterion());
+						        .channel().defaultCriterion());
 					}
 				}
 			}

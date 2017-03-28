@@ -42,6 +42,6 @@ public interface ExecutingEventPipeline extends InternalEventPipeline {
 	 * @param component the component
 	 * @return the data
 	 */
-	Object getComponentContext(ComponentType component);
+	Object componentContext(ComponentType component);
 
 }

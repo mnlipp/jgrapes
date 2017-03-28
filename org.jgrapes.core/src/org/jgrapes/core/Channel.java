@@ -57,7 +57,7 @@ public interface Channel extends Eligible {
 		 * @return <code>Channel.class</code>
 		 */
 		@Override
-		public Object getDefaultCriterion() {
+		public Object defaultCriterion() {
 			return Channel.class;
 		}
 

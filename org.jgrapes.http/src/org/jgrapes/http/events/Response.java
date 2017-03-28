@@ -36,7 +36,7 @@ public class Response extends Event<Void> {
 	/**
 	 * @return the response
 	 */
-	public HttpResponse getResponse() {
+	public HttpResponse response() {
 		return response;
 	}
 

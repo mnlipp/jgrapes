@@ -42,8 +42,8 @@ public class MatchTests {
 		
 		assertTrue(derivedDerived.isEligibleFor(DerivedChannel.class));
 		assertTrue(!derived.isEligibleFor(DerivedDerivedChannel.class));
-		assertTrue(derived.isEligibleFor(ClassChannel.BROADCAST.getDefaultCriterion()));
-		assertTrue(derivedDerived.isEligibleFor(ClassChannel.BROADCAST.getDefaultCriterion()));
+		assertTrue(derived.isEligibleFor(ClassChannel.BROADCAST.defaultCriterion()));
+		assertTrue(derivedDerived.isEligibleFor(ClassChannel.BROADCAST.defaultCriterion()));
 		assertTrue(ClassChannel.BROADCAST.isEligibleFor(DerivedChannel.class));
 		assertTrue(ClassChannel.BROADCAST.isEligibleFor(DerivedDerivedChannel.class));
 	}

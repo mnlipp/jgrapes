@@ -63,7 +63,7 @@ public class ComponentProxy extends ComponentVertex {
 	private static Channel getComponentChannel(Field field) {
 		ComponentManager cma = field.getAnnotation(ComponentManager.class);
 		if (cma.channel() != Handler.NoChannel.class) {
-			if (cma.channel() != Channel.BROADCAST.getDefaultCriterion()) {
+			if (cma.channel() != Channel.BROADCAST.defaultCriterion()) {
 				try {
 					return cma.channel().newInstance();
 				} catch (InstantiationException | IllegalAccessException e) {
@@ -130,7 +130,7 @@ public class ComponentProxy extends ComponentVertex {
 		return componentProxy;
 	}
 
-	public ComponentType getComponent() {
+	public ComponentType component() {
 		return component;
 	}
 
@@ -138,7 +138,7 @@ public class ComponentProxy extends ComponentVertex {
 	 * @see org.jgrapes.core.Manager#getChannel()
 	 */
 	@Override
-	public Channel getChannel() {
+	public Channel channel() {
 		return componentChannel;
 	}
 }

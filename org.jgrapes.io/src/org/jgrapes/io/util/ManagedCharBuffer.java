@@ -278,7 +278,7 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	 * @see java.nio.CharBuffer#put(java.nio.CharBuffer)
 	 */
 	public CharBuffer put(ManagedCharBuffer src) {
-		return backing.put(src.getBacking());
+		return backing.put(src.backingBuffer());
 	}
 
 	/**

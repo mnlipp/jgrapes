@@ -71,7 +71,7 @@ public interface Manager extends Iterable<ComponentType> {
 	 * 
 	 * @return the child components
 	 */
-	List<ComponentType> getChildren();
+	List<ComponentType> children();
 
 	/**
 	 * Returns the parent of the component managed by this manager.
@@ -79,7 +79,7 @@ public interface Manager extends Iterable<ComponentType> {
 	 * @return the parent component or <code>null</code> if the
 	 * component is not registered with another component
 	 */
-	ComponentType getParent();
+	ComponentType parent();
 	
 	/**
 	 * Returns the root of the tree the component 
@@ -87,7 +87,7 @@ public interface Manager extends Iterable<ComponentType> {
 	 * 
 	 * @return the root
 	 */
-	ComponentType getRoot();
+	ComponentType root();
 	
 	/**
 	 * Returns the channel of the component managed by this manager.
@@ -96,7 +96,7 @@ public interface Manager extends Iterable<ComponentType> {
 	 * handlers listen on by default and that 
 	 * {@link Manager#fire(Event, Channel...)} sends the event to 
 	 */
-	Channel getChannel();
+	Channel channel();
 	
 	/**
 	 * Fires the given event on the given channel. If no channels are
@@ -104,7 +104,7 @@ public interface Manager extends Iterable<ComponentType> {
 	 * channel (see {@link Event#channels()}). If the event doesn't
 	 * specify channels either, the event is fired on the 
 	 * channel of the component managed by this manager 
-	 * (see {@link #getChannel()}).
+	 * (see {@link #channel()}).
 	 * <P>
 	 * If an event is fired inside an event handler, it is added to the
 	 * {@link EventPipeline} that has invoked the handler. If an event is fired

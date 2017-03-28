@@ -60,7 +60,7 @@ public class GetTest {
 			invocations += 1;
 			final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 			
-			final HttpResponse response = event.getRequest().response().get();
+			final HttpResponse response = event.request().response().get();
 			response.setStatus(HttpStatus.OK);
 			response.setMessageHasBody(true);
 			response.setField(HttpField.CONTENT_TYPE,
@@ -80,7 +80,7 @@ public class GetTest {
 			invocations += 1;
 			final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 			
-			final HttpResponse response = event.getRequest().response().get();
+			final HttpResponse response = event.request().response().get();
 			response.setStatus(HttpStatus.OK);
 			response.setMessageHasBody(true);
 			response.setField(HttpField.CONTENT_TYPE,
@@ -101,7 +101,7 @@ public class GetTest {
 	public static void startServer() throws IOException, InterruptedException, 
 			ExecutionException {
 		server = new TestServer();
-		server.attach(new ContentProvider(server.getChannel()));
+		server.attach(new ContentProvider(server.channel()));
 		Components.start(server);
 	}
 	

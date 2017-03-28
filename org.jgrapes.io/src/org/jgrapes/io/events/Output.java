@@ -98,7 +98,7 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	 * 
 	 * @return the buffer
 	 */
-	public T getBuffer() {
+	public T buffer() {
 		return buffer;
 	}
 

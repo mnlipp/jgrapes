@@ -79,7 +79,7 @@ public @interface HandlerDefinition {
 		 * @return the scope or {@code null} if a handler for the method
 		 * should not be created
 		 */
-		HandlerScope getScope(ComponentType component, Method method, 
+		HandlerScope scope(ComponentType component, Method method, 
 					Object[] eventValues, Object[] channelValues);
 		
 		/**
@@ -88,7 +88,7 @@ public @interface HandlerDefinition {
 		 * @param annotation the annotation
 		 * @return the priority
 		 */
-		int getPriority(Annotation annotation);
+		int priority(Annotation annotation);
 	}
 
 }

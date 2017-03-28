@@ -22,7 +22,7 @@ import org.jgrapes.core.internal.Common;
 
 /**
  * A base class for completion events. The completed event is the
- * result of the completion event. Use {@link #getCompleted()} to access
+ * result of the completion event. Use {@link #event()} to access
  * the completed event while handling the completion event. 
  */
 public abstract class CompletedEvent<T extends Event<?>>
@@ -37,8 +37,8 @@ public abstract class CompletedEvent<T extends Event<?>>
 	 * 
 	 * @return the completed event
 	 */
-	public T getCompleted() {
-		return getResult();
+	public T event() {
+		return result();
 	}
 	
 	/* (non-Javadoc)
@@ -49,7 +49,7 @@ public abstract class CompletedEvent<T extends Event<?>>
 		StringBuilder builder = new StringBuilder();
 		builder.append(Common.classToString(getClass()));
 		builder.append("(");
-		builder.append(Components.objectName(getResult()));
+		builder.append(Components.objectName(result()));
 		builder.append(")");
 		builder.append(" [");
 		if (channels != null) {

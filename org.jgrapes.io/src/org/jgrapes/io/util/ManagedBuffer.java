@@ -54,7 +54,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	 * 
 	 * @return the buffer
 	 */
-	public T getBacking() {
+	public T backingBuffer() {
 		return backing;
 	}
 
@@ -148,7 +148,7 @@ public abstract class ManagedBuffer<T extends Buffer> {
 		if (!(obj instanceof ManagedBuffer)) {
 			return false;
 		}
-		return backing.equals(((ManagedBuffer<?>)obj).getBacking());
+		return backing.equals(((ManagedBuffer<?>)obj).backingBuffer());
 	}
 
 	/**

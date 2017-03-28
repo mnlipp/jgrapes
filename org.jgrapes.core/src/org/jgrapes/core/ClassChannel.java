@@ -31,10 +31,10 @@ public class ClassChannel implements Channel {
 	 * 
 	 * @return the class of this channel
 	 * 
-	 * @see org.jgrapes.core.Eligible#getDefaultCriterion()
+	 * @see org.jgrapes.core.Eligible#defaultCriterion()
 	 */
 	@Override
-	public Object getDefaultCriterion() {
+	public Object defaultCriterion() {
 		return getClass();
 	}
 
@@ -48,7 +48,7 @@ public class ClassChannel implements Channel {
 	public boolean isEligibleFor(Object value) {
 		return Class.class.isInstance(value) 
 				&& ((Class<?>)value)
-					.isAssignableFrom((Class<?>)getDefaultCriterion());
+					.isAssignableFrom((Class<?>)defaultCriterion());
 	}
 
 	/* (non-Javadoc)
@@ -56,7 +56,7 @@ public class ClassChannel implements Channel {
 	 */
 	@Override
 	public int hashCode() {
-		return getDefaultCriterion().hashCode();
+		return defaultCriterion().hashCode();
 	}
 
 	/* (non-Javadoc)
@@ -74,11 +74,11 @@ public class ClassChannel implements Channel {
 			return false;
 		}
 		ClassChannel other = (ClassChannel) obj;
-		if (getDefaultCriterion() == null) {
-			if (other.getDefaultCriterion() != null) {
+		if (defaultCriterion() == null) {
+			if (other.defaultCriterion() != null) {
 				return false;
 			}
-		} else if (!getDefaultCriterion().equals(other.getDefaultCriterion())) {
+		} else if (!defaultCriterion().equals(other.defaultCriterion())) {
 			return false;
 		}
 		return true;
@@ -91,9 +91,9 @@ public class ClassChannel implements Channel {
 	public String toString() {
 		return Common.classToString(getClass())
 				+ " [criterion=" 
-				+ ((getDefaultCriterion() instanceof Class)
-					?  Common.classToString((Class<?>)getDefaultCriterion())
-					: getDefaultCriterion())
+				+ ((defaultCriterion() instanceof Class)
+					?  Common.classToString((Class<?>)defaultCriterion())
+					: defaultCriterion())
 				+ "]";
 	}
 }

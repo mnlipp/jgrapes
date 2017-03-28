@@ -45,20 +45,20 @@ public class BasicTestServer extends Component {
 			throws IOException, InterruptedException, ExecutionException {
 		attach(new NioDispatcher());
 		Server networkServer = attach(new Server(null));
-		attach(new HttpServer(getChannel(), networkServer.getChannel(),
+		attach(new HttpServer(channel(), networkServer.channel(),
 				fallbacks));
 		readyMonitor = new WaitForTests(
-				this, Ready.class, networkServer.getChannel().getDefaultCriterion());
+				this, Ready.class, networkServer.channel().defaultCriterion());
 	}
 	
 	public InetSocketAddress getSocketAddress() 
 				throws InterruptedException, ExecutionException {
 		if (addr == null) {
 			Ready readyEvent = (Ready) readyMonitor.get();
-			if (!(readyEvent.getListenAddress() instanceof InetSocketAddress)) {
+			if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
 				fail();
 			}
-			addr = ((InetSocketAddress)readyEvent.getListenAddress());
+			addr = ((InetSocketAddress)readyEvent.listenAddress());
 		}
 		return addr;
 		

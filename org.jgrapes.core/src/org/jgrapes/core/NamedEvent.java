@@ -46,10 +46,10 @@ public final class NamedEvent<T> extends Event<T> {
 	 * 
 	 * @return the name
 	 * 
-	 * @see org.jgrapes.core.Channel#getDefaultCriterion()
+	 * @see org.jgrapes.core.Channel#defaultCriterion()
 	 */
 	@Override
-	public Object getDefaultCriterion() {
+	public Object defaultCriterion() {
 		return name;
 	}
 

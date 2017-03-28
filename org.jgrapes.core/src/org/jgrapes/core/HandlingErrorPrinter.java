@@ -25,7 +25,7 @@ public class HandlingErrorPrinter extends Component {
 
 	@Handler(channels=Channel.class)
 	public void printError(HandlingError event) {
-		System.err.println("Error handling " + event.getEvent());
-		event.getThrowable().printStackTrace();
+		System.err.println("Error handling " + event.event());
+		event.throwable().printStackTrace();
 	}
 }

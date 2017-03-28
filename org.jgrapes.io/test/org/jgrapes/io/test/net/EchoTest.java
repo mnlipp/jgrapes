@@ -62,7 +62,7 @@ public class EchoTest {
 				throws InterruptedException {
 			for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
 				ManagedByteBuffer out = channel.bufferPool().acquire();
-				out.put(event.getBuffer());
+				out.put(event.buffer());
 				channel.fire(new Output<>(out, event.isEndOfRecord()));
 			}
 		}
@@ -74,14 +74,14 @@ public class EchoTest {
 		EchoServer app = new EchoServer();
 		app.attach(new NioDispatcher());
 		WaitForTests wf = new WaitForTests(
-				app, Ready.class, Server.DEFAULT_CHANNEL.getDefaultCriterion());
+				app, Ready.class, Server.DEFAULT_CHANNEL.defaultCriterion());
 		Components.start(app);
 		Ready readyEvent = (Ready) wf.get();
-		if (!(readyEvent.getListenAddress() instanceof InetSocketAddress)) {
+		if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
 			fail();
 		}
 		InetSocketAddress serverAddr 
-			= ((InetSocketAddress)readyEvent.getListenAddress());
+			= ((InetSocketAddress)readyEvent.listenAddress());
 		try (Socket client = new Socket(serverAddr.getAddress(),
 		        serverAddr.getPort())) {
 			final AtomicInteger expected = new AtomicInteger(0);

@@ -51,7 +51,7 @@ public class MatchTest {
 			super(Channel.BROADCAST);
 			Handler.Evaluator.add(
 					this, "onStartedComponent", Start.class, this, 0);
-			Handler.Evaluator.add(this, "onStart", getChannel());
+			Handler.Evaluator.add(this, "onStart", channel());
 		}
 
 		@Handler(dynamic=true)

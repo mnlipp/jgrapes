@@ -48,7 +48,7 @@ public class Request extends Event<Void> {
 	 * Creates a new request event with the associated {@link Completed}
 	 * event.
 	 * 
-	 * @param protocol the protocol as reported by {@link #getRequestUri()}
+	 * @param protocol the protocol as reported by {@link #requestUri()}
 	 * @param request the request data
 	 * @param matchLevels the number of elements from the request path
 	 * to use in the match value (see {@link #matchValue})
@@ -91,7 +91,7 @@ public class Request extends Event<Void> {
 	 * 
 	 * @return the request
 	 */
-	public HttpRequest getRequest() {
+	public HttpRequest request() {
 		return request;
 	}
 
@@ -101,7 +101,7 @@ public class Request extends Event<Void> {
 	 * 
 	 * @return the URI
 	 */
-	public URI getRequestUri() {
+	public URI requestUri() {
 		return uri;
 	}
 	
@@ -114,10 +114,10 @@ public class Request extends Event<Void> {
 	 * the lookup of handlers, having the complete URI in the match
 	 * value would inflate this map.
 	 * 
-	 * @see org.jgrapes.core.Event#getDefaultCriterion()
+	 * @see org.jgrapes.core.Event#defaultCriterion()
 	 */
 	@Override
-	public Object getDefaultCriterion() {
+	public Object defaultCriterion() {
 		return matchValue;
 	}
 

@@ -138,9 +138,9 @@ public class Server extends Component implements NioHandler {
 	@Handler(channels=Self.class)
 	public void onRegistered(NioRegistration.Completed event) 
 			throws InterruptedException, IOException {
-		NioHandler handler = event.getCompleted().getHandler(); 
+		NioHandler handler = event.event().handler(); 
 		if (handler == this) {
-			if (event.getCompleted().get() == null) {
+			if (event.event().get() == null) {
 				fire(new Error(event, 
 						"Registration failed, no NioDispatcher?"));
 				return;
@@ -150,7 +150,7 @@ public class Server extends Component implements NioHandler {
 		}
 		if (handler instanceof Connection) {
 			((Connection)handler)
-				.registrationComplete(event.getCompleted());
+				.registrationComplete(event.event());
 		}
 	}
 
@@ -233,7 +233,7 @@ public class Server extends Component implements NioHandler {
 		if (closing || !serverSocketChannel.isOpen()) {
 			return;
 		}
-		newSyncEventPipeline().fire(new Close(), getChannel());
+		newSyncEventPipeline().fire(new Close(), channel());
 	}
 
 	/* (non-Javadoc)
@@ -292,8 +292,8 @@ public class Server extends Component implements NioHandler {
 		 * @see org.jgrapes.io.IOSubchannel#getMainChannel()
 		 */
 		@Override
-		public Channel getMainChannel() {
-			return Server.this.getChannel();
+		public Channel mainChannel() {
+			return Server.this.channel();
 		}
 
 		/* (non-Javadoc)
@@ -308,7 +308,7 @@ public class Server extends Component implements NioHandler {
 		 * @see org.jgrapes.io.DataConnection#getPipeline()
 		 */
 		@Override
-		public EventPipeline getResponsePipeline() {
+		public EventPipeline responsePipeline() {
 			return upPipeline;
 		}
 
@@ -338,7 +338,7 @@ public class Server extends Component implements NioHandler {
 			if (!nioChannel.isOpen()) {
 				return;
 			}
-			ManagedByteBuffer buffer = event.getBuffer();
+			ManagedByteBuffer buffer = event.buffer();
 			synchronized(pendingWrites) {
 				if (!pendingWrites.isEmpty()) {
 					buffer.lockBuffer();
@@ -346,7 +346,7 @@ public class Server extends Component implements NioHandler {
 					return;
 				}
 			}
-			nioChannel.write(buffer.getBacking());
+			nioChannel.write(buffer.backingBuffer());
 			if (!buffer.hasRemaining()) {
 				buffer.clear();
 				return;
@@ -385,7 +385,7 @@ public class Server extends Component implements NioHandler {
 		private void handleReadOp() throws InterruptedException, IOException {
 			ManagedByteBuffer buffer;
 			buffer = readBuffers.acquire();
-			int bytes = nioChannel.read(buffer.getBacking());
+			int bytes = nioChannel.read(buffer.backingBuffer());
 			if (bytes == 0) {
 				buffer.unlockBuffer();
 				return;
@@ -463,7 +463,7 @@ public class Server extends Component implements NioHandler {
 						continue;
 					}
 				}
-				nioChannel.write(head.getBacking()); // write...
+				nioChannel.write(head.backingBuffer()); // write...
 				break; // ... and wait for next op
 			}
 		}
@@ -512,7 +512,7 @@ public class Server extends Component implements NioHandler {
 			StringBuilder builder = new StringBuilder();
 			builder.append(Components.objectName(this));
 			builder.append("(");
-				builder.append(Common.channelToString(getMainChannel()));
+				builder.append(Common.channelToString(mainChannel()));
 			builder.append(")");
 			return builder.toString();
 		}

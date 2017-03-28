@@ -77,7 +77,7 @@ class ComponentTree {
 		this.root = root;
 	}
 
-	ComponentVertex getRoot() {
+	ComponentVertex root() {
 		return root;
 	}
 	
@@ -131,9 +131,9 @@ class ComponentTree {
 		private Object[] channelMatchValues;
 		
 		public CacheKey(EventBase<?> event, Channel[] channels) {
-			eventMatchValue = event.getDefaultCriterion();
+			eventMatchValue = event.defaultCriterion();
 			channelMatchValues = Arrays.stream(channels)
-			        .map(c -> c.getDefaultCriterion()).toArray();
+			        .map(c -> c.defaultCriterion()).toArray();
 		}
 		
 		/* (non-Javadoc)

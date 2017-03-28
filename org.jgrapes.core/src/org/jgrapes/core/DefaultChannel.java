@@ -20,7 +20,7 @@ package org.jgrapes.core;
 
 /**
  * This interface type can be used to specify a component's channel (see
- * {@link Component#getChannel()}) as channel in handler annotations.
+ * {@link Component#channel()}) as channel in handler annotations.
  * <P>
  * Using the component's channel is the default if no channels are specified in
  * the annotation, so specifying only {@code DefaultChannel.class} in the

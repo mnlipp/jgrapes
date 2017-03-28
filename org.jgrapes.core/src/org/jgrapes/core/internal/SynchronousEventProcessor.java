@@ -44,7 +44,7 @@ class SynchronousEventProcessor extends EventProcessor {
 			return event;
 		}
 		isRunning = true;
-		GeneratorRegistry.getInstance().add(this);
+		GeneratorRegistry.instance().add(this);
 		run();
 		isRunning = false;
 		return event;

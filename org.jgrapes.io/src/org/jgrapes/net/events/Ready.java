@@ -46,7 +46,7 @@ public class Ready extends Opened {
 	 * 
 	 * @return the address
 	 */
-	public SocketAddress getListenAddress() {
+	public SocketAddress listenAddress() {
 		return listenAddress;
 	}
 	

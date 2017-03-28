@@ -51,7 +51,7 @@ public class EchoServer extends Component {
 			throws InterruptedException {
 		for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
 			ManagedByteBuffer out = channel.bufferPool().acquire();
-			out.put(event.getBuffer());
+			out.put(event.buffer());
 			channel.fire(new Output<>(out, event.isEndOfRecord()));
 		}
 	}

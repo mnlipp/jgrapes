@@ -48,14 +48,14 @@ public class Accepted extends Opened {
 	/**
 	 * @return the localAddress
 	 */
-	public SocketAddress getLocalAddress() {
+	public SocketAddress localAddress() {
 		return localAddress;
 	}
 
 	/**
 	 * @return the remoteAddress
 	 */
-	public SocketAddress getRemoteAddress() {
+	public SocketAddress remoteAddress() {
 		return remoteAddress;
 	}
 

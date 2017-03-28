@@ -49,14 +49,14 @@ public class Detached extends Event<Void> {
 	/**
 	 * @return the node
 	 */
-	public ComponentType getNode() {
+	public ComponentType node() {
 		return node;
 	}
 
 	/**
 	 * @return the parent
 	 */
-	public ComponentType getParent() {
+	public ComponentType parent() {
 		return parent;
 	}
 

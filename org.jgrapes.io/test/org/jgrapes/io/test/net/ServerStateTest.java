@@ -87,7 +87,7 @@ public class ServerStateTest {
 	public void testStartClose() throws InterruptedException {
 		assertEquals(State.READY, checker.state);
 		Components.manager(app).fire(
-				new Close(), app.getChannel()).get();
+				new Close(), app.channel()).get();
 		assertEquals(State.CLOSED, checker.state);
 		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
 		Components.awaitExhaustion();
