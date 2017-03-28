@@ -49,7 +49,7 @@ public class HttpServerDemo extends Component {
 		app.attach(new HttpServer(app.channel(), 
 		        new InetSocketAddress(8888), GetRequest.class,
 		        PostRequest.class));
-		app.attach(new FileStorage(app.channel()));
+		app.attach(new FileStorage(app.channel(), 65536));
 		app.attach(new StaticContentDispatcher(app.channel(),
 		        "/**", Paths.get("demo-resources/static-content")));
 		app.attach(new StaticContentDispatcher(app.channel(),
