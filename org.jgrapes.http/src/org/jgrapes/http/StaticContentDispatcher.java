@@ -109,8 +109,8 @@ public class StaticContentDispatcher extends Component {
 		Instant lastModified = Files.getLastModifiedTime(resourcePath)
 				.toInstant().with(ChronoField.NANO_OF_SECOND, 0);
 		Optional<Instant> modifiedSince = event.getRequest()
-				.getValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
-		HttpResponse response = event.getRequest().getResponse().get();
+				.findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
+		HttpResponse response = event.getRequest().response().get();
 		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		if (modifiedSince.isPresent() 
 				&& !lastModified.isAfter(modifiedSince.get())) {
@@ -123,7 +123,7 @@ public class StaticContentDispatcher extends Component {
 			}
 			MediaType mediaType = Converters.MEDIA_TYPE
 					.fromFieldValue(mimeTypeName);
-			if ("text".equals(mediaType.getTopLevelType())) {
+			if ("text".equals(mediaType.topLevelType())) {
 				mediaType = MediaType.builder().from(mediaType)
 						.setParameter("charset", System.getProperty(
 								"file.encoding", "UTF-8")).build();

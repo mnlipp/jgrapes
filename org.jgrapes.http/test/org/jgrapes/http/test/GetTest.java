@@ -60,7 +60,7 @@ public class GetTest {
 			invocations += 1;
 			final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 			
-			final HttpResponse response = event.getRequest().getResponse().get();
+			final HttpResponse response = event.getRequest().response().get();
 			response.setStatus(HttpStatus.OK);
 			response.setMessageHasBody(true);
 			response.setField(HttpField.CONTENT_TYPE,
@@ -80,7 +80,7 @@ public class GetTest {
 			invocations += 1;
 			final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 			
-			final HttpResponse response = event.getRequest().getResponse().get();
+			final HttpResponse response = event.getRequest().response().get();
 			response.setStatus(HttpStatus.OK);
 			response.setMessageHasBody(true);
 			response.setField(HttpField.CONTENT_TYPE,

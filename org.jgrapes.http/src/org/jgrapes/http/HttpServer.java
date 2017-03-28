@@ -195,10 +195,10 @@ public class HttpServer extends Component {
 			Decoder.Result<HttpResponse> result = engine.decode(in,
 			        bodyData == null ? null : bodyData.getBacking(),
 			        event.isEndOfRecord());
-			if (result.getResponse().isPresent()) {
+			if (result.response().isPresent()) {
 				// Feedback required, send it
-				fire(new Response(result.getResponse().get()), downChannel);
-				if (result.getResponse().get().isFinal()) {
+				fire(new Response(result.response().get()), downChannel);
+				if (result.response().get().isFinal()) {
 					break;
 				}
 				if (result.isResponseOnly()) {
@@ -237,7 +237,7 @@ public class HttpServer extends Component {
 	private void fireRequest(HttpRequest request, Channel channel) {
 		Request req;
 		boolean secure = false;
-		switch (request.getMethod()) {
+		switch (request.method()) {
 		case "OPTIONS":
 			req = new OptionsRequest(request, secure, matchLevels);
 			break;
@@ -312,7 +312,7 @@ public class HttpServer extends Component {
 				buffer.unlockBuffer();
 			}
 			downChannel.outBuffer = null;
-			if (result.getCloseConnection()) {
+			if (result.closeConnection()) {
 				fire(new Close(), netChannel);
 			}
 			break;
@@ -345,13 +345,13 @@ public class HttpServer extends Component {
 			Codec.Result result = engine.encode((ByteBuffer) in,
 			        downChannel.outBuffer.getBacking(), event.isEndOfRecord());
 			if (!result.isOverflow() && !event.isEndOfRecord()
-					&& !result.getCloseConnection()) {
+					&& !result.closeConnection()) {
 				break;
 			}
 			fire(new Output<>(downChannel.outBuffer, false), netChannel);
-			if (event.isEndOfRecord() || result.getCloseConnection()) {
+			if (event.isEndOfRecord() || result.closeConnection()) {
 				downChannel.outBuffer = null;
-				if (result.getCloseConnection()) {
+				if (result.closeConnection()) {
 					fire(new Close(), netChannel);
 				}
 				break;
@@ -392,10 +392,9 @@ public class HttpServer extends Component {
 		        .firstChannel(IOSubchannel.class);
 		final Request requestEvent = event.getCompleted();
 		final HttpResponse response 
-			= requestEvent.getRequest().getResponse().get();
+			= requestEvent.getRequest().response().get();
 
-		if (response.getStatusCode() == HttpStatus.NOT_IMPLEMENTED
-		        .getStatusCode()) {
+		if (response.statusCode() == HttpStatus.NOT_IMPLEMENTED.statusCode()) {
 			response.setMessageHasBody(true);
 			response.setField(HttpField.CONTENT_TYPE,
 					MediaType.builder().setType("text", "plain")
@@ -421,7 +420,7 @@ public class HttpServer extends Component {
 		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		
 		if (event.getRequestUri() == HttpRequest.ASTERISK_REQUEST) {
-			HttpResponse response = event.getRequest().getResponse().get();
+			HttpResponse response = event.getRequest().response().get();
 			response.setStatus(HttpStatus.OK);
 			channel.fire(new Response(response));
 			event.stop();
@@ -443,7 +442,7 @@ public class HttpServer extends Component {
 		}
 		final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		
-		final HttpResponse response = event.getRequest().getResponse().get();
+		final HttpResponse response = event.getRequest().response().get();
 		response.setStatus(HttpStatus.NOT_FOUND);
 		response.setMessageHasBody(true);
 		response.setField(HttpField.CONTENT_TYPE,

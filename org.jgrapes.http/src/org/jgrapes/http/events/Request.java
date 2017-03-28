@@ -60,8 +60,8 @@ public class Request extends Event<Void> {
 		this.request = request;
 		try {
 			URI headerInfo = new URI(protocol, null, 
-					request.getHost(), request.getPort(), null, null, null);
-			uri = headerInfo.resolve(request.getRequestUri());
+					request.host(), request.port(), null, null, null);
+			uri = headerInfo.resolve(request.requestUri());
 			StringTokenizer st = new StringTokenizer(uri.getPath(), "/");
 			StringBuilder mp = new StringBuilder();
 			for (int i = 0; i < matchLevels && st.hasMoreTokens(); i++) {
@@ -147,7 +147,7 @@ public class Request extends Event<Void> {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Components.objectName(this));
 		builder.append(" [\"");
-		String path = request.getRequestUri().getPath();
+		String path = request.requestUri().getPath();
 		if (path.length() > 15) {
 			builder.append("...");
 			builder.append(path.substring(path.length() - 12));
