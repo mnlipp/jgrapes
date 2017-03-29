@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
@@ -129,6 +128,7 @@ public class StaticContentDispatcher extends Component {
 		if (prefixSegs < 0) {
 			return;
 		}
+		
 		// Final wrapper for usage in closure
 		final Path[] assembly = new Path[] { contentDirectory };
 		Arrays.stream(event.requestUri().getPath().split("/"))
@@ -146,6 +146,7 @@ public class StaticContentDispatcher extends Component {
 		if (!Files.isReadable(resourcePath)) {
 			return;
 		}
+		
 		// Get content type and derive max-age
 		String mimeTypeName = Files.probeContentType(resourcePath);
 		if (mimeTypeName == null) {
@@ -158,16 +159,13 @@ public class StaticContentDispatcher extends Component {
 				break;
 			}
 		}
-		// Set max age in cache header and expires header (if HTTP 1.0)
+
+		// Set max age in cache-control header
 		List<Directive> directives = new ArrayList<>();
-		directives.add(new Directive("max-age", Long.toString(maxAge)));
+		directives.add(new Directive("max-age", maxAge));
 		HttpResponse response = event.request().response().get();
 		response.setField(HttpField.CACHE_CONTROL, directives);
-		if (response.request().get().protocol()
-				.compareTo(HttpProtocol.HTTP_1_1) < 0) {
-			response.setField(HttpField.EXPIRES, 
-					Instant.now().plusSeconds(maxAge));
-		}
+
 		// Check if sending is really required.
 		Instant lastModified = Files.getLastModifiedTime(resourcePath)
 				.toInstant().with(ChronoField.NANO_OF_SECOND, 0);
