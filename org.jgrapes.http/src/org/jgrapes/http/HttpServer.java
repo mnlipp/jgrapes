@@ -59,7 +59,7 @@ import org.jgrapes.io.util.BufferCollector;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedByteBuffer;
-import org.jgrapes.net.Server;
+import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Accepted;
 
 /**
@@ -111,7 +111,7 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Create a new server that creates its own {@link Server} with the given
+	 * Create a new server that creates its own {@link TcpServer} with the given
 	 * address and uses it for network level I/O.
 	 * 
 	 * @param componentChannel
@@ -124,7 +124,7 @@ public class HttpServer extends Component {
 	        Class<? extends Request>... fallbacks) {
 		super(componentChannel);
 		this.providedFallbacks = Arrays.asList(fallbacks);
-		Server server = new Server(Channel.SELF, serverAddress);
+		TcpServer server = new TcpServer(Channel.SELF, serverAddress);
 		networkChannel = server;
 		attach(server);
 		Handler.Evaluator.add(

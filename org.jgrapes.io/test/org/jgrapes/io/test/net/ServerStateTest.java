@@ -27,7 +27,7 @@ import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.test.WaitForTests;
-import org.jgrapes.net.Server;
+import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Ready;
 
 import static org.junit.Assert.*;
@@ -69,13 +69,13 @@ public class ServerStateTest {
 
 	}
 	
-	Server app;
+	TcpServer app;
 	StateChecker checker;
 
 	@Before
 	public void setUp() throws Exception {
 		NioDispatcher root = new NioDispatcher();
-		app = root.attach(new Server(null));
+		app = root.attach(new TcpServer(null));
 		checker = new StateChecker();
 		app.attach(checker);
 		WaitForTests wf = new WaitForTests(app, Ready.class, Channel.class);

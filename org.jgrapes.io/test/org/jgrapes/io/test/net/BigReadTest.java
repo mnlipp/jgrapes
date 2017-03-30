@@ -36,7 +36,7 @@ import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ByteBufferOutputStream;
-import org.jgrapes.net.Server;
+import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
 
@@ -83,8 +83,8 @@ public class BigReadTest {
 		 * @throws IOException 
 		 */
 		public EchoServer() throws IOException {
-			super(Server.DEFAULT_CHANNEL);
-			attach(new Server(null));
+			super(TcpServer.DEFAULT_CHANNEL);
+			attach(new TcpServer(null));
 		}
 
 		/**
@@ -116,7 +116,7 @@ public class BigReadTest {
 		EchoServer app = new EchoServer();
 		app.attach(new NioDispatcher());
 		WaitForTests wf = new WaitForTests(
-				app, Ready.class, Server.DEFAULT_CHANNEL.defaultCriterion());
+				app, Ready.class, TcpServer.DEFAULT_CHANNEL.defaultCriterion());
 		Components.start(app);
 		Ready readyEvent = (Ready) wf.get();
 		if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {

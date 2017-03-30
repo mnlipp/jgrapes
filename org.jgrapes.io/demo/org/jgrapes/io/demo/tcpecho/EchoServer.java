@@ -29,7 +29,7 @@ import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedByteBuffer;
-import org.jgrapes.net.Server;
+import org.jgrapes.net.TcpServer;
 
 /**
  * @author Michael N. Lipp
@@ -41,9 +41,9 @@ public class EchoServer extends Component {
 	 * @throws IOException 
 	 */
 	public EchoServer() throws IOException {
-		super(Server.DEFAULT_CHANNEL);
+		super(TcpServer.DEFAULT_CHANNEL);
 		attach(new NioDispatcher());
-		attach(new Server(new InetSocketAddress(8888), 120000));
+		attach(new TcpServer(new InetSocketAddress(8888), 120000));
 	}
 
 	@Handler

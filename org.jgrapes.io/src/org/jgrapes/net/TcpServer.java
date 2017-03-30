@@ -63,7 +63,7 @@ import org.jgrapes.net.events.Ready;
  * 
  * @author Michael N. Lipp
  */
-public class Server extends Component implements NioHandler {
+public class TcpServer extends Component implements NioHandler {
 
 	public static final NamedChannel 
 		DEFAULT_CHANNEL = new NamedChannel("server");
@@ -81,7 +81,7 @@ public class Server extends Component implements NioHandler {
 	 * 
 	 * @param serverAddress the address to bind to
 	 */
-	public Server(SocketAddress serverAddress) {
+	public TcpServer(SocketAddress serverAddress) {
 		this(DEFAULT_CHANNEL, serverAddress);
 	}
 
@@ -91,7 +91,7 @@ public class Server extends Component implements NioHandler {
 	 * @param componentChannel the component's channel
 	 * @param serverAddress the address to bind to
 	 */
-	public Server(Channel componentChannel,	SocketAddress serverAddress) {
+	public TcpServer(Channel componentChannel,	SocketAddress serverAddress) {
 		this(componentChannel, serverAddress, 0);
 	}
 
@@ -102,7 +102,7 @@ public class Server extends Component implements NioHandler {
 	 * @param serverAddress the address to bind to
 	 * @param bufferSize the size to use for the send and receive buffers
 	 */
-	public Server(SocketAddress serverAddress, int bufferSize) {
+	public TcpServer(SocketAddress serverAddress, int bufferSize) {
 		this(DEFAULT_CHANNEL, serverAddress, bufferSize);
 	}
 
@@ -113,7 +113,7 @@ public class Server extends Component implements NioHandler {
 	 * @param serverAddress the address to bind to
 	 * @param bufferSize the size to use for the send and receive buffers
 	 */
-	public Server(Channel componentChannel, 
+	public TcpServer(Channel componentChannel, 
 			SocketAddress serverAddress, int bufferSize) {
 		super(componentChannel);
 		this.serverAddress = serverAddress;
@@ -283,8 +283,8 @@ public class Server extends Component implements NioHandler {
 					ByteBuffer.allocate(readBufferSize));
 			
 			// Register with dispatcher
-			Server.this.fire(
-			        new NioRegistration(this, nioChannel, 0, Server.this),
+			TcpServer.this.fire(
+			        new NioRegistration(this, nioChannel, 0, TcpServer.this),
 			        Channel.BROADCAST);
 		}
 
@@ -293,7 +293,7 @@ public class Server extends Component implements NioHandler {
 		 */
 		@Override
 		public Channel mainChannel() {
-			return Server.this.channel();
+			return TcpServer.this.channel();
 		}
 
 		/* (non-Javadoc)

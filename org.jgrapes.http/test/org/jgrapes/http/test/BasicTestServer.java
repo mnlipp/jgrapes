@@ -27,7 +27,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.io.NioDispatcher;
-import org.jgrapes.net.Server;
+import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Ready;
 
 import static org.junit.Assert.fail;
@@ -44,7 +44,7 @@ public class BasicTestServer extends Component {
 	public BasicTestServer(Class<? extends Request>... fallbacks) 
 			throws IOException, InterruptedException, ExecutionException {
 		attach(new NioDispatcher());
-		Server networkServer = attach(new Server(null));
+		TcpServer networkServer = attach(new TcpServer(null));
 		attach(new HttpServer(channel(), networkServer.channel(),
 				fallbacks));
 		readyMonitor = new WaitForTests(
