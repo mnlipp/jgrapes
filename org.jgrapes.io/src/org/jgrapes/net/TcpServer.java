@@ -181,7 +181,9 @@ public class TcpServer extends Component implements NioHandler {
 	@Handler
 	public void onOutput(Output<ManagedByteBuffer> event) throws IOException {
 		for (Connection connection: event.channels(Connection.class)) {
-			connection.write(event);
+			if (connections.contains(connection)) {
+				connection.write(event);
+			}
 		}
 	}
 
@@ -194,33 +196,33 @@ public class TcpServer extends Component implements NioHandler {
 	 */
 	@Handler
 	public void onClose(Close event) throws IOException, InterruptedException {
-		boolean nonSub = false;
+		boolean subOnly = true;
 		for (Channel channel: event.channels()) {
 			if (channel instanceof Connection) {
-				((Connection)channel).close();
+				if (connections.contains(channel)) {
+					((Connection)channel).close();
+				}
 			} else {
-				nonSub = true;
+				subOnly = false;
 			}
 		}
-		if (nonSub) {
-			if (!serverSocketChannel.isOpen()) {
-				return;
-			}
-			synchronized (connections) {
-				closing = true;
-				// Copy to avoid concurrent modification exception
-				Set<Connection> conns = new HashSet<>(connections);
-				for (Connection conn: conns) {
-					conn.close();
-				}
-				while (connections.size() > 0) {
-					connections.wait();
-				}
-			}
-			serverSocketChannel.close();
-			closing = false;
-			fire(new Closed());
+		if (subOnly || !serverSocketChannel.isOpen()) {
+			return;
 		}
+		synchronized (connections) {
+			closing = true;
+			// Copy to avoid concurrent modification exception
+			Set<Connection> conns = new HashSet<>(connections);
+			for (Connection conn : conns) {
+				conn.close();
+			}
+			while (connections.size() > 0) {
+				connections.wait();
+			}
+		}
+		serverSocketChannel.close();
+		closing = false;
+		fire(new Closed());
 	}
 
 	/**
