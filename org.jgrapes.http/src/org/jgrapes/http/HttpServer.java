@@ -334,8 +334,7 @@ public class HttpServer extends Component {
 	        throws InterruptedException {
 		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
 		final IOSubchannel netChannel = downChannel.upstreamChannel();
-		final ServerEngine<HttpRequest,HttpResponse> engine 
-			= downChannel.engine;
+		final ServerEngine<HttpRequest,HttpResponse> engine = downChannel.engine;
 
 		Buffer in = event.buffer().backingBuffer();
 		if (!(in instanceof ByteBuffer)) {
@@ -349,7 +348,8 @@ public class HttpServer extends Component {
 				break;
 			}
 			fire(new Output<>(downChannel.outBuffer, false), netChannel);
-			if (event.isEndOfRecord() || result.closeConnection()) {
+			if (!event.buffer().hasRemaining() && event.isEndOfRecord() 
+					|| result.closeConnection()) {
 				downChannel.outBuffer = null;
 				if (result.closeConnection()) {
 					fire(new Close(), netChannel);
