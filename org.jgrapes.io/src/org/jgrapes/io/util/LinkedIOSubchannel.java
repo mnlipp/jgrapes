@@ -34,7 +34,7 @@ import org.jgrapes.io.IOSubchannel;
 /**
  * Provides an I/O subchannel that is linked to another I/O subchannel. A
  * typical use case for this class is a protocol converter.
- * <P>
+ * 
  * Protocol converters receive events related to an I/O resource from upstream,
  * and while processing them usually generate new events to other components
  * downstream (and vice versa). The events received are associated with a
@@ -45,7 +45,7 @@ import org.jgrapes.io.IOSubchannel;
  * possible to distinguish between e.g. an {@code Input} event from upstream to
  * the converter and an {@code Input} event (conveying the converted data) from
  * the converter to the downstream components.
- * <P>
+ * 
  * Therefore, the converter must provide and manage independent subchannels for
  * the data streams on its downstream side with a one-to-one relationship to the
  * upstream subchannels. The {@code LinkedIOSubchannel} class simplifies this
@@ -54,7 +54,7 @@ import org.jgrapes.io.IOSubchannel;
  * for a given downstream ({@code LinkedIOSubchannel}) when processing response
  * events. For finding the downstream {@code IOSubchannel} for a given upstream
  * connection, the class maintains a mapping in a {@link WeakHashMap}.
- * <P>
+ * 
  * Note that memory management is a bit special here. The 
  * {@code LinkedIOSubchannel} should exist as long as the subchannel that
  * it is linked to exists. This subchannel, however, does not have a reference
@@ -63,7 +63,6 @@ import org.jgrapes.io.IOSubchannel;
  * as value in the {@code WeakHashMap}. This reference will go away when
  * the upstream subchannel (used as key) goes away.
  * 
- * @author Michael N. Lipp
  */
 public class LinkedIOSubchannel implements IOSubchannel {
 
