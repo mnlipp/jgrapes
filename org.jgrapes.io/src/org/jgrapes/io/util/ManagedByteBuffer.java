@@ -75,6 +75,15 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	public ManagedByteBuffer(byte[] array, int offset, int length) {
 		super(ByteBuffer.wrap(array, offset, length), BufferCollector.NOOP_COLLECTOR);
 	}
+
+	/**
+	 * Creates a new {@link Reader}. 
+	 * 
+	 * @return the reader
+	 */
+	public Reader newReader() {
+		return new Reader();
+	}
 	
 	/**
 	 * @see java.nio.ByteBuffer#array()
@@ -163,145 +172,6 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	 */
 	public ByteBuffer duplicate() {
 		return backing.duplicate();
-	}
-
-	/**
-	 * @return the result
-	 * @see java.nio.ByteBuffer#get()
-	 */
-	public byte get() {
-		return backing.get();
-	}
-
-	/**
-	 * @param dst the bytes to wrap
-	 * @param offset the offset of the first byte of the region to wrap
-	 * @param length the number of bytes to wrap
-	 * @return the buffer
-	 * @see java.nio.ByteBuffer#get(byte[], int, int)
-	 */
-	public ByteBuffer get(byte[] dst, int offset, int length) {
-		return backing.get(dst, offset, length);
-	}
-
-	/**
-	 * @param dst the bytes to wrap
-	 * @return the result
-	 * @see java.nio.ByteBuffer#get(byte[])
-	 */
-	public ByteBuffer get(byte[] dst) {
-		return backing.get(dst);
-	}
-
-	/**
-	 * @param index the index to fetch from
-	 * @return the result
-	 * @see java.nio.ByteBuffer#get(int)
-	 */
-	public byte get(int index) {
-		return backing.get(index);
-	}
-
-	/**
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getChar()
-	 */
-	public char getChar() {
-		return backing.getChar();
-	}
-
-	/**
-	 * @param index the index to fetch from
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getChar(int)
-	 */
-	public char getChar(int index) {
-		return backing.getChar(index);
-	}
-
-	/**
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getDouble()
-	 */
-	public double getDouble() {
-		return backing.getDouble();
-	}
-
-	/**
-	 * @param index the index to fetch from
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getDouble(int)
-	 */
-	public double getDouble(int index) {
-		return backing.getDouble(index);
-	}
-
-	/**
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getFloat()
-	 */
-	public float getFloat() {
-		return backing.getFloat();
-	}
-
-	/**
-	 * @param index the index to fetch from
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getFloat(int)
-	 */
-	public float getFloat(int index) {
-		return backing.getFloat(index);
-	}
-
-	/**
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getInt()
-	 */
-	public int getInt() {
-		return backing.getInt();
-	}
-
-	/**
-	 * @param index the index to fetch from
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getInt(int)
-	 */
-	public int getInt(int index) {
-		return backing.getInt(index);
-	}
-
-	/**
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getLong()
-	 */
-	public long getLong() {
-		return backing.getLong();
-	}
-
-	/**
-	 * @param index the index to fetch from
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getLong(int)
-	 */
-	public long getLong(int index) {
-		return backing.getLong(index);
-	}
-
-	/**
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getShort()
-	 */
-	public short getShort() {
-		return backing.getShort();
-	}
-
-	/**
-	 * @param index the index to fetch from
-	 * @return the result
-	 * @see java.nio.ByteBuffer#getShort(int)
-	 */
-	public short getShort(int index) {
-		return backing.getShort(index);
 	}
 
 	/**
@@ -500,4 +370,35 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 		return backing.slice();
 	}
 
+	/**
+	 * A reader for the buffers content. The reader consists
+	 * of a read only view of the managed buffer's content
+	 * (backing buffer) and a reference to the managed buffer.
+	 */
+	public class Reader {
+		private ByteBuffer bufferView;
+		
+		private Reader() {
+			bufferView = backingBuffer().asReadOnlyBuffer();
+		}
+
+		/**
+		 * Returns the {@link ByteBuffer} that represents this
+		 * view (position, mark, limit).
+		 * 
+		 * @return the `ByteBuffer` view
+		 */
+		public ByteBuffer get() {
+			return bufferView;
+		}
+
+		/**
+		 * Returns the managed buffer that this reader is a view of.
+		 * 
+		 * @return the managed buffer
+		 */
+		public ManagedByteBuffer managedBuffer() {
+			return ManagedByteBuffer.this;
+		}
+	}
 }

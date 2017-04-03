@@ -335,11 +335,11 @@ public class FileStorage extends Component {
 		 * may successfully be written in one asynchronous write invocation.
 		 */
 		private class WriteContext {
-			public ManagedByteBuffer buffer;
+			public ManagedByteBuffer.Reader reader;
 			public long pos;
 
-			public WriteContext(ManagedByteBuffer buffer, long pos) {
-				this.buffer = buffer;
+			public WriteContext(ManagedByteBuffer.Reader reader, long pos) {
+				this.reader = reader;
 				this.pos = pos;
 			}
 		}
@@ -387,8 +387,9 @@ public class FileStorage extends Component {
 					registerAsGenerator();
 				}
 				outstandingAsyncs += 1;
-				ioChannel.write(buffer.backingBuffer(), offset,
-				        new WriteContext(buffer, offset),
+				ManagedByteBuffer.Reader reader = buffer.newReader();
+				ioChannel.write(reader.get(), offset,
+				        new WriteContext(reader, offset),
 				        writeCompletionHandler);
 			}
 			offset += written;
@@ -399,14 +400,14 @@ public class FileStorage extends Component {
 
 			@Override
 			public void completed(Integer result, WriteContext context) {
-				ManagedByteBuffer buffer = context.buffer;
-				if (buffer.hasRemaining()) {
-					ioChannel.write(buffer.backingBuffer(),
-					        context.pos + buffer.position(),
+				ManagedByteBuffer.Reader reader = context.reader;
+				if (reader.get().hasRemaining()) {
+					ioChannel.write(reader.get(),
+					        context.pos + reader.get().position(),
 					        context, writeCompletionHandler);
 					return;
 				}
-				buffer.unlockBuffer();
+				reader.managedBuffer().unlockBuffer();
 				handled();
 			}
 

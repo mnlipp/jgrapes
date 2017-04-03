@@ -18,7 +18,7 @@
 
 package org.jgrapes.io.util;
 
-import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.util.stream.IntStream;
@@ -60,6 +60,15 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	 */
 	public ManagedCharBuffer(CharSequence backing) {
 		super(CharBuffer.wrap(backing), BufferCollector.NOOP_COLLECTOR);
+	}
+	
+	/**
+	 * Creates a new {@link Reader}. 
+	 * 
+	 * @return the reader
+	 */
+	public Reader newReader() {
+		return new Reader();
 	}
 	
 	/**
@@ -156,43 +165,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	 */
 	public CharBuffer duplicate() {
 		return backing.duplicate();
-	}
-
-	/**
-	 * @return the result
-	 * @see java.nio.CharBuffer#get()
-	 */
-	public char get() {
-		return backing.get();
-	}
-
-	/**
-	 * @param dst the char array to wrap
-	 * @param offset the start index
-	 * @param length the length
-	 * @return the result
-	 * @see java.nio.CharBuffer#get(char[], int, int)
-	 */
-	public CharBuffer get(char[] dst, int offset, int length) {
-		return backing.get(dst, offset, length);
-	}
-
-	/**
-	 * @param dst the char array to wrap
-	 * @return the result
-	 * @see java.nio.CharBuffer#get(char[])
-	 */
-	public CharBuffer get(char[] dst) {
-		return backing.get(dst);
-	}
-
-	/**
-	 * @param index the index
-	 * @return the result
-	 * @see java.nio.CharBuffer#get(int)
-	 */
-	public char get(int index) {
-		return backing.get(index);
 	}
 
 	/**
@@ -312,16 +284,6 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 	}
 
 	/**
-	 * @param target the target
-	 * @return the result
-	 * @throws IOException if an I/O exception occurred
-	 * @see java.nio.CharBuffer#read(java.nio.CharBuffer)
-	 */
-	public int read(CharBuffer target) throws IOException {
-		return backing.read(target);
-	}
-
-	/**
 	 * @return the result
 	 * @see java.nio.CharBuffer#slice()
 	 */
@@ -339,4 +301,35 @@ public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 		return backing.subSequence(start, end);
 	}
 
+	/**
+	 * A reader for the buffers content. The reader consists
+	 * of a read only view of the managed buffer's content
+	 * (backing buffer) and a reference to the managed buffer.
+	 */
+	public class Reader {
+		private CharBuffer bufferView;
+		
+		private Reader() {
+			bufferView = backingBuffer().asReadOnlyBuffer();
+		}
+
+		/**
+		 * Returns the {@link ByteBuffer} that represents this
+		 * view (position, mark, limit).
+		 * 
+		 * @return the `ByteBuffer` view
+		 */
+		public CharBuffer get() {
+			return bufferView;
+		}
+
+		/**
+		 * Returns the managed buffer that this reader is a view of.
+		 * 
+		 * @return the managed buffer
+		 */
+		public ManagedCharBuffer managedBuffer() {
+			return ManagedCharBuffer.this;
+		}
+	}
 }

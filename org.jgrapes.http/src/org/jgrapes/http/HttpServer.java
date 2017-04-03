@@ -63,21 +63,11 @@ import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Accepted;
 
 /**
- * @author Michael N. Lipp
- *
+ * A converter component that receives and sends byte buffers on a 
+ * network channel and sends HTTP requests and receives HTTP 
+ * responses on its own channel.
  */
 public class HttpServer extends Component {
-
-	private class DownSubchannel extends LinkedIOSubchannel {
-		public ServerEngine<HttpRequest,HttpResponse> engine;
-		public ManagedByteBuffer outBuffer;
-
-		public DownSubchannel(IOSubchannel upstreamChannel) {
-			super(HttpServer.this, upstreamChannel);
-			engine = new ServerEngine<>(
-					new HttpRequestDecoder(), new HttpResponseEncoder());
-		}
-	}
 
 	private Channel networkChannel;
 	private List<Class<? extends Request>> providedFallbacks;
@@ -162,7 +152,7 @@ public class HttpServer extends Component {
 	@Handler(dynamic=true)
 	public void onAccepted(Accepted event) {
 		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
-			new DownSubchannel(channel);
+			new DownChannel(channel);
 		}
 	}
 
@@ -175,14 +165,23 @@ public class HttpServer extends Component {
 	 * @throws ProtocolException if a protocol exception occurs
 	 */
 	@Handler(dynamic=true)
-	public void onInput(Input<ManagedByteBuffer> event) 
-			throws ProtocolException {
-		IOSubchannel netChannel = event.firstChannel(IOSubchannel.class);
-		final DownSubchannel downChannel = (DownSubchannel) LinkedIOSubchannel
+	public void onInput(Input<ManagedByteBuffer> event)
+		throws ProtocolException {
+		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
+			onInputForChannel(event, channel);
+		}
+	}
+
+	private void onInputForChannel(
+			Input<ManagedByteBuffer> event, IOSubchannel netChannel)
+		throws ProtocolException {
+		final DownChannel downChannel = (DownChannel) LinkedIOSubchannel
 		        .lookupLinked(netChannel);
+		if (downChannel == null || downChannel.converterComponent() != this) {
+			return;
+		}
 		// Get data associated with the channel
-		final ServerEngine<HttpRequest,HttpResponse> engine 
-			= downChannel.engine;
+		final ServerEngine<HttpRequest,HttpResponse> engine = downChannel.engine;
 		if (engine == null) {
 			throw new IllegalStateException(
 			        "Read event for unknown connection.");
@@ -223,8 +222,9 @@ public class HttpServer extends Component {
 				fire(new EndOfRequest(), downChannel);
 			}
 		}
+		
 	}
-
+	
 	/**
 	 * Creates a specific request event as appropriate for the request and fires
 	 * it.
@@ -282,7 +282,7 @@ public class HttpServer extends Component {
 	 */
 	@Handler
 	public void onResponse(Response event) throws InterruptedException {
-		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
+		DownChannel downChannel = event.firstChannel(DownChannel.class);
 		final IOSubchannel netChannel = downChannel.upstreamChannel();
 		final ServerEngine<HttpRequest,HttpResponse> engine 
 			= downChannel.engine;
@@ -332,7 +332,7 @@ public class HttpServer extends Component {
 	@Handler
 	public void onOutput(Output<ManagedBuffer<?>> event)
 	        throws InterruptedException {
-		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
+		DownChannel downChannel = event.firstChannel(DownChannel.class);
 		final IOSubchannel netChannel = downChannel.upstreamChannel();
 		final ServerEngine<HttpRequest,HttpResponse> engine = downChannel.engine;
 
@@ -371,7 +371,7 @@ public class HttpServer extends Component {
 	 */
 	@Handler
 	public void onClose(Close event) throws InterruptedException {
-		DownSubchannel downChannel = event.firstChannel(DownSubchannel.class);
+		DownChannel downChannel = event.firstChannel(DownChannel.class);
 		final IOSubchannel netChannel = downChannel.upstreamChannel();
 		netChannel.fire(new Close());
 	}
@@ -456,4 +456,16 @@ public class HttpServer extends Component {
 		}
 		event.stop();
 	}
+	
+	private class DownChannel extends LinkedIOSubchannel {
+		public ServerEngine<HttpRequest,HttpResponse> engine;
+		public ManagedByteBuffer outBuffer;
+
+		public DownChannel(IOSubchannel upstreamChannel) {
+			super(HttpServer.this, upstreamChannel);
+			engine = new ServerEngine<>(
+					new HttpRequestDecoder(), new HttpResponseEncoder());
+		}
+	}
+
 }

@@ -260,7 +260,7 @@ public class TcpServer extends Component implements NioHandler {
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> readBuffers;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> writeBuffers;
 		private Registration registration = null;
-		private Queue<ManagedByteBuffer> pendingWrites = new ArrayDeque<>();
+		private Queue<ManagedByteBuffer.Reader> pendingWrites = new ArrayDeque<>();
 		private boolean pendingClose = false;
 		
 		/**
@@ -340,22 +340,21 @@ public class TcpServer extends Component implements NioHandler {
 			if (!nioChannel.isOpen()) {
 				return;
 			}
-			ManagedByteBuffer buffer = event.buffer();
+			ManagedByteBuffer.Reader reader = event.buffer().newReader();
 			synchronized(pendingWrites) {
 				if (!pendingWrites.isEmpty()) {
-					buffer.lockBuffer();
-					pendingWrites.add(buffer);
+					reader.managedBuffer().lockBuffer();
+					pendingWrites.add(reader);
 					return;
 				}
 			}
-			nioChannel.write(buffer.backingBuffer());
-			if (!buffer.hasRemaining()) {
-				buffer.clear();
+			nioChannel.write(reader.get());
+			if (!reader.get().hasRemaining()) {
 				return;
 			}
 			synchronized(pendingWrites) {
-				buffer.lockBuffer();
-				pendingWrites.add(buffer);
+				reader.managedBuffer().lockBuffer();
+				pendingWrites.add(reader);
 				if (pendingWrites.size() == 1) {
 					registration.updateInterested(
 							SelectionKey.OP_READ | SelectionKey.OP_WRITE);
@@ -435,7 +434,7 @@ public class TcpServer extends Component implements NioHandler {
 		private void handleWriteOp() 
 				throws IOException, InterruptedException {
 			while (true) {
-				ManagedByteBuffer head = null;
+				ManagedByteBuffer.Reader head = null;
 				synchronized (pendingWrites) {
 					if (pendingWrites.isEmpty()) {
 						// Nothing left to write, stop getting ops
@@ -457,15 +456,14 @@ public class TcpServer extends Component implements NioHandler {
 						break; // Nothing left to do
 					}
 					head = pendingWrites.peek();
-					if (!head.hasRemaining()) {
+					if (!head.get().hasRemaining()) {
 						// Nothing left in head buffer, try next
-						head.clear();
-						head.unlockBuffer();
+						head.managedBuffer().unlockBuffer();
 						pendingWrites.remove();
 						continue;
 					}
 				}
-				nioChannel.write(head.backingBuffer()); // write...
+				nioChannel.write(head.get()); // write...
 				break; // ... and wait for next op
 			}
 		}
@@ -520,4 +518,5 @@ public class TcpServer extends Component implements NioHandler {
 			return builder.toString();
 		}
 	}
+	
 }

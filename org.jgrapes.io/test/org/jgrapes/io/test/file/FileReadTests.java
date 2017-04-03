@@ -63,7 +63,7 @@ public class FileReadTests {
 			int length = event.buffer().limit();
 			collected += length;
 			byte[] bytes = new byte[length];
-			event.buffer().get(bytes);
+			event.buffer().backingBuffer().get(bytes);
 			collectedText.append(new String(bytes, "ascii"));
 		}
 		
