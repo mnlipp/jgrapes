@@ -120,6 +120,13 @@ public class LinkedIOSubchannel implements IOSubchannel {
 		}
 	}
 
+	/**
+	 * @return the converterComponent
+	 */
+	public Manager converterComponent() {
+		return converterComponent;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.jgrapes.io.IOSubchannel#getMainChannel()
 	 */
