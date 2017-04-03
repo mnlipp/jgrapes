@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
@@ -96,6 +97,22 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 		        		size -> (C[])Array.newInstance(type, size));
 	}
 
+	/**
+	 * Execute the given handler for all channels of the given type.
+	 * 
+	 * @param <E> the type of the event
+	 * @param <C> the type of the channel
+	 * @param type the channel type
+	 * @param handler the handler
+	 */
+	@SuppressWarnings("unchecked")
+	public <E extends EventBase<?>, C extends Channel> void forChannels(
+			Class<C> type, BiConsumer<E, C> handler) {
+		Arrays.stream(channels)
+		        .filter(c -> type.isAssignableFrom(c.getClass()))
+		        .forEach(c -> handler.accept((E)this, (C)c));
+	}
+	
 	/**
 	 * Look through the event'channels and return the first
 	 * (and usually only) channel of given type.
