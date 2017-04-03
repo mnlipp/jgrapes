@@ -73,6 +73,7 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	// Must be weak, else there will always be a reference to the 
 	// upstream channel and, through the reverseMap, to this object.
 	private final WeakReference<IOSubchannel> upstreamChannel;
+	private final EventPipeline responsePipeline;
 
 	/**
 	 * Creates a new {@code LinkedIOSubchannel} that links to the give I/O
@@ -81,7 +82,8 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	 * {@code true} as last parameter.
 	 * 
 	 * @param converterComponent
-	 *            the converter component
+	 *            the converter component; used to get the main channel and the
+	 *            new event pipeline
 	 * @param upstreamChannel
 	 *            the upstream channel
 	 */
@@ -99,7 +101,8 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	 * the map is thread safe.
 	 * 
 	 * @param converterComponent
-	 *            the converter component
+	 *            the converter component; used to get the main channel and the
+	 *            new event pipeline
 	 * @param upstreamChannel
 	 *            the upstream channel
 	 * @param addToMap
@@ -110,6 +113,7 @@ public class LinkedIOSubchannel implements IOSubchannel {
 		super();
 		this.converterComponent = converterComponent;
 		this.upstreamChannel = new WeakReference<>(upstreamChannel);
+		responsePipeline = converterComponent.newEventPipeline();
 		if (addToMap) {
 			reverseMap.put(upstreamChannel, this);
 		}
@@ -135,7 +139,7 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	 */
 	@Override
 	public EventPipeline responsePipeline() {
-		return upstreamChannel().responsePipeline();
+		return responsePipeline;
 	}
 
 	/**
