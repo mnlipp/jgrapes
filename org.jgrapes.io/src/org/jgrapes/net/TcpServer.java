@@ -494,7 +494,7 @@ public class TcpServer extends Component implements NioHandler {
 			}
 		}
 
-		private void removeConnection() {
+		private void removeConnection() throws InterruptedException {
 			synchronized (connections) {
 				if(!connections.remove(this)) {
 					// Closed already
@@ -505,6 +505,7 @@ public class TcpServer extends Component implements NioHandler {
 			}			
 			Closed evt = new Closed();
 			downPipeline.fire(evt, this);
+			evt.get();
 		}
 		
 		/* (non-Javadoc)
