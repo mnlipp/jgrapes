@@ -84,7 +84,7 @@ public class SslServer extends Component {
 	 */
 	@Handler(dynamic=true)
 	public void onAccepted(Accepted event) {
-		event.forChannels(IOSubchannel.class, DownChannel::new);
+		event.forChannels(IOSubchannel.class, SslConn::new);
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class SslServer extends Component {
 	public void onInput(Input<ManagedByteBuffer> event) 
 			throws InterruptedException, SSLException {
 		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
-			final DownChannel downChannel = (DownChannel) LinkedIOSubchannel
+			final SslConn downChannel = (SslConn) LinkedIOSubchannel
 			        .lookupLinked(channel);
 			if (downChannel == null || downChannel.converterComponent() != this) {
 				continue;
@@ -121,7 +121,7 @@ public class SslServer extends Component {
 	public void onClosed(Closed event) 
 			throws SSLException, InterruptedException {
 		for (IOSubchannel netChannel: event.channels(IOSubchannel.class)) {
-			final DownChannel downChannel = (DownChannel) LinkedIOSubchannel
+			final SslConn downChannel = (SslConn) LinkedIOSubchannel
 			        .lookupLinked(netChannel);
 			if (downChannel == null || downChannel.converterComponent() != this) {
 				return;
@@ -141,7 +141,7 @@ public class SslServer extends Component {
 	@Handler
 	public void onOutput(Output<ManagedBuffer<ByteBuffer>> event)
 	        throws InterruptedException, SSLException {
-		for (DownChannel downChannel: event.channels(DownChannel.class)) {
+		for (SslConn downChannel: event.channels(SslConn.class)) {
 			if (downChannel.converterComponent() != this) {
 				continue;
 			}
@@ -166,7 +166,7 @@ public class SslServer extends Component {
 	@Handler
 	public void onClose(Close event) 
 			throws InterruptedException, SSLException {
-		for (DownChannel connection: event.channels(DownChannel.class)) {
+		for (SslConn connection: event.channels(SslConn.class)) {
 			if (connection.converterComponent() != this) {
 				continue;
 			}
@@ -181,7 +181,7 @@ public class SslServer extends Component {
 		}		
 	}
 	
-	private class DownChannel extends LinkedIOSubchannel {
+	private class SslConn extends LinkedIOSubchannel {
 		public SocketAddress localAddress;
 		public SocketAddress remoteAddress;
 		public SSLEngine sslEngine;
@@ -189,7 +189,7 @@ public class SslServer extends Component {
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> upstreamPool;
 		private boolean isInputClosed = false;
 
-		public DownChannel(Accepted event, IOSubchannel upstreamChannel) {
+		public SslConn(Accepted event, IOSubchannel upstreamChannel) {
 			super(SslServer.this, upstreamChannel);
 			localAddress = event.localAddress();
 			remoteAddress = event.remoteAddress();

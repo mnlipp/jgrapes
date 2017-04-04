@@ -149,7 +149,7 @@ public class HttpServer extends Component {
 	@Handler(dynamic=true)
 	public void onAccepted(Accepted event) {
 		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
-			new DownChannel(channel);
+			new HttpConn(channel);
 		}
 	}
 
@@ -172,7 +172,7 @@ public class HttpServer extends Component {
 	private void onInputForChannel(
 			Input<ManagedByteBuffer> event, IOSubchannel netChannel)
 		throws ProtocolException {
-		final DownChannel downChannel = (DownChannel) LinkedIOSubchannel
+		final HttpConn downChannel = (HttpConn) LinkedIOSubchannel
 		        .lookupLinked(netChannel);
 		if (downChannel == null || downChannel.converterComponent() != this) {
 			return;
@@ -279,7 +279,7 @@ public class HttpServer extends Component {
 	 */
 	@Handler
 	public void onResponse(Response event) throws InterruptedException {
-		DownChannel downChannel = event.firstChannel(DownChannel.class);
+		HttpConn downChannel = event.firstChannel(HttpConn.class);
 		final IOSubchannel netChannel = downChannel.upstreamChannel();
 		final ServerEngine<HttpRequest,HttpResponse> engine 
 			= downChannel.engine;
@@ -329,7 +329,7 @@ public class HttpServer extends Component {
 	@Handler
 	public void onOutput(Output<ManagedBuffer<?>> event)
 	        throws InterruptedException {
-		for (DownChannel downChannel: event.channels(DownChannel.class)) {
+		for (HttpConn downChannel: event.channels(HttpConn.class)) {
 			downChannel.sendUpstream(event);
 		}
 	}
@@ -344,7 +344,7 @@ public class HttpServer extends Component {
 	 */
 	@Handler
 	public void onClose(Close event) throws InterruptedException {
-		DownChannel downChannel = event.firstChannel(DownChannel.class);
+		HttpConn downChannel = event.firstChannel(HttpConn.class);
 		final IOSubchannel netChannel = downChannel.upstreamChannel();
 		netChannel.fire(new Close());
 	}
@@ -430,11 +430,11 @@ public class HttpServer extends Component {
 		event.stop();
 	}
 	
-	private class DownChannel extends LinkedIOSubchannel {
+	private class HttpConn extends LinkedIOSubchannel {
 		public ServerEngine<HttpRequest,HttpResponse> engine;
 		public ManagedByteBuffer outBuffer;
 
-		public DownChannel(IOSubchannel upstreamChannel) {
+		public HttpConn(IOSubchannel upstreamChannel) {
 			super(HttpServer.this, upstreamChannel);
 			engine = new ServerEngine<>(
 					new HttpRequestDecoder(), new HttpResponseEncoder());

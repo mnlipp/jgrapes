@@ -69,7 +69,7 @@ public class TcpServer extends Component implements NioHandler {
 	private SocketAddress serverAddress;
 	private ServerSocketChannel serverSocketChannel;
 	private int bufferSize;
-	private Set<Connection> connections = new HashSet<>();
+	private Set<SocketConn> connections = new HashSet<>();
 	private boolean closing = false;
 
 	/**
@@ -146,8 +146,8 @@ public class TcpServer extends Component implements NioHandler {
 			fire(new Ready(serverSocketChannel.getLocalAddress()));
 			return;
 		}
-		if (handler instanceof Connection) {
-			((Connection)handler)
+		if (handler instanceof SocketConn) {
+			((SocketConn)handler)
 				.registrationComplete(event.event());
 		}
 	}
@@ -161,7 +161,7 @@ public class TcpServer extends Component implements NioHandler {
 			if ((ops & SelectionKey.OP_ACCEPT) != 0 && !closing) {
 				try {
 					SocketChannel socketChannel = serverSocketChannel.accept();
-					connections.add(new Connection(socketChannel));
+					connections.add(new SocketConn(socketChannel));
 				} catch (IOException e) {
 					fire(new IOError(null, e));
 				}
@@ -178,7 +178,7 @@ public class TcpServer extends Component implements NioHandler {
 	 */
 	@Handler
 	public void onOutput(Output<ManagedByteBuffer> event) throws IOException {
-		for (Connection connection: event.channels(Connection.class)) {
+		for (SocketConn connection: event.channels(SocketConn.class)) {
 			if (connections.contains(connection)) {
 				connection.write(event);
 			}
@@ -196,9 +196,9 @@ public class TcpServer extends Component implements NioHandler {
 	public void onClose(Close event) throws IOException, InterruptedException {
 		boolean subOnly = true;
 		for (Channel channel: event.channels()) {
-			if (channel instanceof Connection) {
+			if (channel instanceof SocketConn) {
 				if (connections.contains(channel)) {
-					((Connection)channel).close();
+					((SocketConn)channel).close();
 				}
 			} else {
 				subOnly = false;
@@ -210,8 +210,8 @@ public class TcpServer extends Component implements NioHandler {
 		synchronized (connections) {
 			closing = true;
 			// Copy to avoid concurrent modification exception
-			Set<Connection> conns = new HashSet<>(connections);
-			for (Connection conn : conns) {
+			Set<SocketConn> conns = new HashSet<>(connections);
+			for (SocketConn conn : conns) {
 				conn.close();
 			}
 			while (connections.size() > 0) {
@@ -250,7 +250,7 @@ public class TcpServer extends Component implements NioHandler {
 	 * @author Michael N. Lipp
 	 *
 	 */
-	public class Connection implements NioHandler, IOSubchannel {
+	public class SocketConn implements NioHandler, IOSubchannel {
 
 		private SocketChannel nioChannel;
 		private EventPipeline downPipeline;
@@ -265,7 +265,7 @@ public class TcpServer extends Component implements NioHandler {
 		 * @param nioChannel the channel
 		 * @throws IOException if an I/O error occured
 		 */
-		public Connection(SocketChannel nioChannel)	throws IOException {
+		public SocketConn(SocketChannel nioChannel)	throws IOException {
 			this.nioChannel = nioChannel;
 			downPipeline = newEventPipeline();
 			upPipeline = newEventPipeline();
