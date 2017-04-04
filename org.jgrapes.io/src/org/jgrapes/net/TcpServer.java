@@ -20,7 +20,6 @@ package org.jgrapes.net;
 
 import java.io.IOException;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
@@ -264,9 +263,9 @@ public class TcpServer extends Component implements NioHandler {
 		
 		/**
 		 * @param nioChannel the channel
-		 * @throws SocketException if an error occurred
+		 * @throws IOException if an I/O error occured
 		 */
-		public Connection(SocketChannel nioChannel)	throws SocketException {
+		public Connection(SocketChannel nioChannel)	throws IOException {
 			this.nioChannel = nioChannel;
 			downPipeline = newEventPipeline();
 			upPipeline = newEventPipeline();
@@ -284,6 +283,7 @@ public class TcpServer extends Component implements NioHandler {
 					ByteBuffer.allocate(readBufferSize));
 			
 			// Register with dispatcher
+			nioChannel.configureBlocking(false);
 			TcpServer.this.fire(
 			        new NioRegistration(this, nioChannel, 0, TcpServer.this),
 			        Channel.BROADCAST);
@@ -336,22 +336,20 @@ public class TcpServer extends Component implements NioHandler {
 		 * @throws IOException if an error occurred
 		 */
 		public void write(Output<ManagedByteBuffer> event) throws IOException {
-			if (!nioChannel.isOpen()) {
-				return;
-			}
-			ManagedByteBuffer.Reader reader = event.buffer().newReader();
 			synchronized(pendingWrites) {
+				if (!nioChannel.isOpen()) {
+					return;
+				}
+				ManagedByteBuffer.Reader reader = event.buffer().newReader();
 				if (!pendingWrites.isEmpty()) {
 					reader.managedBuffer().lockBuffer();
 					pendingWrites.add(reader);
 					return;
 				}
-			}
-			nioChannel.write(reader.get());
-			if (!reader.get().hasRemaining()) {
-				return;
-			}
-			synchronized(pendingWrites) {
+				nioChannel.write(reader.get());
+				if (!reader.get().hasRemaining()) {
+					return;
+				}
 				reader.managedBuffer().lockBuffer();
 				pendingWrites.add(reader);
 				if (pendingWrites.size() == 1) {
@@ -437,8 +435,7 @@ public class TcpServer extends Component implements NioHandler {
 				synchronized (pendingWrites) {
 					if (pendingWrites.isEmpty()) {
 						// Nothing left to write, stop getting ops
-						registration.updateInterested(
-								SelectionKey.OP_READ);
+						registration.updateInterested(SelectionKey.OP_READ);
 						// Was the connection closed while we were writing?
 						if (pendingClose) {
 							synchronized (nioChannel) {
