@@ -76,8 +76,7 @@ public class SslServer extends Component {
 
 	/**
 	 * Creates a new downstream connection as {@link LinkedIOSubchannel} 
-	 * of the network connection, a {@link HttpRequestDecoder} and a
-	 * {@link HttpResponseEncoder}.
+	 * of the network connection together with an {@link SSLEngine}.
 	 * 
 	 * @param event
 	 *            the accepted event
