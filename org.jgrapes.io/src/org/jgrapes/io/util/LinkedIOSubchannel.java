@@ -165,12 +165,12 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(IOSubchannel.toString(this));
-		builder.append(" [");
+		builder.append(" (");
 		if (upstreamChannel != null) {
 			builder.append("―>");
 			builder.append(Common.channelToString(upstreamChannel.get()));
 		}
-		builder.append("]");
+		builder.append(")");
 		return builder.toString();
 	}
 	
