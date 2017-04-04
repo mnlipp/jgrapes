@@ -21,11 +21,14 @@ package org.jgrapes.net;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
 
 import org.jgrapes.core.Channel;
@@ -49,6 +52,9 @@ import org.jgrapes.net.events.Accepted;
  */
 public class SslServer extends Component {
 
+	private static final Logger logger 
+		= Logger.getLogger(SslServer.class.getName());
+	
 	private SSLContext sslContext;
 	
 	/**
@@ -114,33 +120,18 @@ public class SslServer extends Component {
 	@Handler(dynamic=true)
 	public void onClosed(Closed event) 
 			throws SSLException, InterruptedException {
-		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
-			onClosedForChannel(event, channel);
+		for (IOSubchannel netChannel: event.channels(IOSubchannel.class)) {
+			final DownChannel downChannel = (DownChannel) LinkedIOSubchannel
+			        .lookupLinked(netChannel);
+			if (downChannel == null || downChannel.converterComponent() != this) {
+				return;
+			}
+			downChannel.upstreamClosed();
 		}
 	}
-	
-	private void onClosedForChannel(Closed event,
-	        IOSubchannel netChannel) throws SSLException, InterruptedException {
-		final DownChannel downChannel = (DownChannel) LinkedIOSubchannel
-		        .lookupLinked(netChannel);
-		if (downChannel == null || downChannel.converterComponent() != this) {
-			return;
-		}
-		Closed evt = new Closed();
-		downChannel.fire(evt);
-		evt.get();
-		downChannel.sslEngine.closeInbound();
-		while (!downChannel.sslEngine.isOutboundDone()) {
-			ManagedByteBuffer feedback = downChannel.upstreamBuffer();
-			downChannel.sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
-					.backingBuffer(),feedback.backingBuffer());
-			downChannel.upstreamChannel().fire(new Output<>(feedback, false));
-		}
-	}
-
 	
 	/**
-	 * Send decrypted data through the engine and then upstream.
+	 * Sends decrypted data through the engine and then upstream.
 	 * 
 	 * @param event
 	 *            the event with the data
@@ -196,6 +187,7 @@ public class SslServer extends Component {
 		public SSLEngine sslEngine;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> downstreamPool;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> upstreamPool;
+		private boolean isInputClosed = false;
 
 		public DownChannel(Accepted event, IOSubchannel upstreamChannel) {
 			super(SslServer.this, upstreamChannel);
@@ -245,9 +237,11 @@ public class SslServer extends Component {
 				throws SSLException, InterruptedException {
 			ManagedByteBuffer unwrapped = bufferPool().acquire();
 			ByteBuffer input = event.buffer().duplicate();
+			SSLEngineResult unwrapResult;
 			while (true) {
-				SSLEngineResult unwrapResult = sslEngine.unwrap(
+				unwrapResult = sslEngine.unwrap(
 						input, unwrapped.backingBuffer());
+				// Handle any handshaking procedures
 				switch (unwrapResult.getHandshakeStatus()) {
 				case NEED_TASK:
 					while (true) {
@@ -272,8 +266,7 @@ public class SslServer extends Component {
 					
 				case FINISHED:
 					fire(new Accepted(localAddress, remoteAddress));
-					break;
-					
+					// fall through
 				case NEED_UNWRAP:
 					if (input.hasRemaining()) {
 						continue;
@@ -283,16 +276,52 @@ public class SslServer extends Component {
 				default:
 					break;
 				}
+				// Handshake done
 				break;
 			}
 			if (unwrapped.position() == 0) {
 				// Was only handshake
 				unwrapped.unlockBuffer();
-				return;
+			} else {
+				// forward data received
+				unwrapped.flip();
+				fire(new Input<>(unwrapped, sslEngine.isInboundDone()));
 			}
-			unwrapped.flip();
-			fire(new Input<>(unwrapped, sslEngine.isInboundDone()));
+			
+			// final message?
+			if (unwrapResult.getStatus() == Status.CLOSED
+					&& ! isInputClosed) {
+				Closed evt = new Closed();
+				fire(evt);
+				evt.get();
+				isInputClosed = true;
+			}
 		}
-	}
+		
+		public void upstreamClosed()
+				throws SSLException, InterruptedException {
+			if (!isInputClosed) {
+				// was not properly closed on SSL layer
+				Closed evt = new Closed();
+				fire(evt);
+				evt.get();
+			}
+			try {
+				sslEngine.closeInbound();
+				while (!sslEngine.isOutboundDone()) {
+					ManagedByteBuffer feedback = upstreamBuffer();
+					sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
+							.backingBuffer(),feedback.backingBuffer());
+					upstreamChannel().fire(new Output<>(feedback, false));
+				}
+			} catch (SSLException e) {
+				// Several clients (notably chromium, see
+				// https://bugs.chromium.org/p/chromium/issues/detail?id=118366
+				// don't close the connection properly. So nobody is really
+				// interested in this message
+				logger.log(Level.FINEST, e.getMessage(), e);
+			}
+		}
 
+	}
 }
