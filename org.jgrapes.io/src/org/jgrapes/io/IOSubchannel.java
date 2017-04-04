@@ -116,6 +116,18 @@ public interface IOSubchannel extends Channel {
 		return responsePipeline().fire(event, this);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	static String toString(IOSubchannel subchannel) {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Common.channelToString(subchannel.mainChannel()));
+		builder.append("{");
+		builder.append(Components.objectName(subchannel));
+		builder.append("}");
+		return builder.toString();
+	}
+
 	/**
 	 * Creates a new subchannel of the given component's channel with a new
 	 * event pipeline and a buffer pool with two buffers sized 4096.
@@ -162,18 +174,14 @@ public interface IOSubchannel extends Channel {
 			}
 			return bufferPool;
 		}
-		
+
 		/* (non-Javadoc)
 		 * @see java.lang.Object#toString()
 		 */
+		@Override
 		public String toString() {
-			StringBuilder builder = new StringBuilder();
-			builder.append(Components.objectName(this));
-			builder.append("(");
-				builder.append(Common.channelToString(mainChannel));
-			builder.append(")");
-			return builder.toString();
+			return IOSubchannel.toString(this);
 		}
-
+		
 	}
 }

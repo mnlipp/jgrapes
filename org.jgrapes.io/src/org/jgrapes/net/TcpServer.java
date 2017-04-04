@@ -40,7 +40,6 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Error;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Close;
@@ -510,12 +509,7 @@ public class TcpServer extends Component implements NioHandler {
 		 * @see java.lang.Object#toString()
 		 */
 		public String toString() {
-			StringBuilder builder = new StringBuilder();
-			builder.append(Components.objectName(this));
-			builder.append("(");
-				builder.append(Common.channelToString(mainChannel()));
-			builder.append(")");
-			return builder.toString();
+			return IOSubchannel.toString(this);
 		}
 	}
 	

@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Components;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.internal.Common;
@@ -165,10 +164,7 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	 */
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append("(");
-			builder.append(Common.channelToString(mainChannel()));
-		builder.append(")");
+		builder.append(IOSubchannel.toString(this));
 		builder.append(" [");
 		if (upstreamChannel != null) {
 			builder.append("―>");
