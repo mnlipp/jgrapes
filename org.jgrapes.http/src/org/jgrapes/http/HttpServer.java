@@ -69,7 +69,6 @@ import org.jgrapes.net.events.Accepted;
  */
 public class HttpServer extends Component {
 
-	private Channel networkChannel;
 	private List<Class<? extends Request>> providedFallbacks;
 	private int matchLevels = 1;
 
@@ -92,7 +91,6 @@ public class HttpServer extends Component {
 	public HttpServer(Channel componentChannel, Channel networkChannel,
 	        Class<? extends Request>... fallbacks) {
 		super(componentChannel);
-		this.networkChannel = networkChannel;
 		this.providedFallbacks = Arrays.asList(fallbacks);
 		Handler.Evaluator.add(
 				this, "onAccepted", networkChannel.defaultCriterion());
@@ -115,12 +113,11 @@ public class HttpServer extends Component {
 		super(componentChannel);
 		this.providedFallbacks = Arrays.asList(fallbacks);
 		TcpServer server = new TcpServer(Channel.SELF, serverAddress);
-		networkChannel = server;
 		attach(server);
 		Handler.Evaluator.add(
-				this, "onAccepted", networkChannel.defaultCriterion());
+				this, "onAccepted", server.defaultCriterion());
 		Handler.Evaluator.add(
-				this, "onInput", networkChannel.defaultCriterion());
+				this, "onInput", server.defaultCriterion());
 	}
 
 	/**
@@ -332,32 +329,8 @@ public class HttpServer extends Component {
 	@Handler
 	public void onOutput(Output<ManagedBuffer<?>> event)
 	        throws InterruptedException {
-		DownChannel downChannel = event.firstChannel(DownChannel.class);
-		final IOSubchannel netChannel = downChannel.upstreamChannel();
-		final ServerEngine<HttpRequest,HttpResponse> engine = downChannel.engine;
-
-		Buffer in = event.buffer().backingBuffer();
-		if (!(in instanceof ByteBuffer)) {
-			return;
-		}
-		while (true) {
-			Codec.Result result = engine.encode((ByteBuffer) in,
-			        downChannel.outBuffer.backingBuffer(), event.isEndOfRecord());
-			if (!result.isOverflow() && !event.isEndOfRecord()
-					&& !result.closeConnection()) {
-				break;
-			}
-			fire(new Output<>(downChannel.outBuffer, false), netChannel);
-			if (!event.buffer().hasRemaining() && event.isEndOfRecord() 
-					|| result.closeConnection()) {
-				downChannel.outBuffer = null;
-				if (result.closeConnection()) {
-					fire(new Close(), netChannel);
-				}
-				break;
-			}
-			
-			downChannel.outBuffer = netChannel.bufferPool().acquire();
+		for (DownChannel downChannel: event.channels(DownChannel.class)) {
+			downChannel.sendUpstream(event);
 		}
 	}
 
@@ -465,6 +438,35 @@ public class HttpServer extends Component {
 			super(HttpServer.this, upstreamChannel);
 			engine = new ServerEngine<>(
 					new HttpRequestDecoder(), new HttpResponseEncoder());
+		}
+		
+		public void sendUpstream(Output<ManagedBuffer<?>> event) 
+				throws InterruptedException {
+			Buffer in = event.buffer().backingBuffer();
+			if (!(in instanceof ByteBuffer)) {
+				return;
+			}
+			ByteBuffer input = ((ByteBuffer)in).duplicate();
+			while (true) {
+				Codec.Result result = engine.encode(input,
+				        outBuffer.backingBuffer(), event.isEndOfRecord());
+				if (!result.isOverflow() && !event.isEndOfRecord()
+						&& !result.closeConnection()) {
+					break;
+				}
+				upstreamChannel().fire(new Output<>(outBuffer, false));
+				if (!input.hasRemaining() && event.isEndOfRecord() 
+						|| result.closeConnection()) {
+					outBuffer = null;
+					if (result.closeConnection()) {
+						upstreamChannel().fire(new Close());
+					}
+					break;
+				}
+				
+				outBuffer = upstreamChannel().bufferPool().acquire();
+			}
+			
 		}
 	}
 
