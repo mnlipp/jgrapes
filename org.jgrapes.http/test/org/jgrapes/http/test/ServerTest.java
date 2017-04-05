@@ -185,7 +185,7 @@ public class ServerTest {
 				server.getPort(), "/");
 		final List<Thread> threads = new ArrayList<>();
 		AtomicInteger waiting = new AtomicInteger(0);
-		for (int i = 0; i < 1000; i++) {
+		for (int i = 0; i < 100; i++) {
 			Thread getThread = new Thread() {
 				@Override
 				public void run() {
