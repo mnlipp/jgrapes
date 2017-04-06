@@ -20,6 +20,7 @@ package org.jgrapes.core;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * The interface that provides the methods for manipulating the
@@ -143,6 +144,15 @@ public interface Manager extends Iterable<ComponentType> {
 	 * @return the pipeline
 	 */
 	EventPipeline newEventPipeline();
+	
+	/**
+	 * Return a new {@link EventPipeline} that processes the added events
+	 * using threads from the given executor service.
+	 * 
+	 * @param executorService the executor service
+	 * @return the pipeline
+	 */
+	EventPipeline newEventPipeline(ExecutorService executorService);
 	
 	/**
 	 * Return a new {@link EventPipeline} that processes an added event

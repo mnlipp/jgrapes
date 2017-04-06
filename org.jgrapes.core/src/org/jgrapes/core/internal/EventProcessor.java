@@ -35,12 +35,13 @@ import org.jgrapes.core.EventPipeline;
  */
 public class EventProcessor implements ExecutingEventPipeline, Runnable {
 
-	private static ExecutorService executorService 
+	private static ExecutorService defaultExecutorService 
 		= Executors.newCachedThreadPool();
 	
 	protected static ThreadLocal<EventBase<?>> 
 		currentlyHandling = new ThreadLocal<>();
 	
+	private ExecutorService executorService;
 	private ComponentTree componentTree;
 	private EventPipeline asEventPipeline;
 	protected EventQueue queue = new EventQueue();
@@ -48,7 +49,12 @@ public class EventProcessor implements ExecutingEventPipeline, Runnable {
 		= new WeakHashMap<>();
 	
 	EventProcessor(ComponentTree tree) {
+		this(tree, defaultExecutorService);
+	}
+
+	EventProcessor(ComponentTree tree, ExecutorService executorService) {
 		this.componentTree = tree;
+		this.executorService = executorService;
 		asEventPipeline = new CheckingPipelineFilter(this);
 	}
 

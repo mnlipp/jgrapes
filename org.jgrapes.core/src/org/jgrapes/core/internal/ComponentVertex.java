@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Stack;
+import java.util.concurrent.ExecutorService;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
@@ -434,6 +435,15 @@ public abstract class ComponentVertex implements Manager {
 	public EventPipeline newEventPipeline() {
 		return new CheckingPipelineFilter(new EventProcessor(tree()),
 		        channel());
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#newEventPipeline(java.util.concurrent.ExecutorService)
+	 */
+	@Override
+	public EventPipeline newEventPipeline(ExecutorService executorService) {
+		return new CheckingPipelineFilter(
+				new EventProcessor(tree(), executorService), channel());
 	}
 
 	/* (non-Javadoc)
