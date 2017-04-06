@@ -34,6 +34,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.core.Manager;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
@@ -134,10 +135,12 @@ public class TcpServer extends Component implements NioHandler {
 	 * allows to control the maximum load from the network.
 	 * 
 	 * @param executorService the executorService to set
-	 * @see EventPipeline
+	 * @return the tcp server for easy chaining
+	 * @see Manager#newEventPipeline(ExecutorService)
 	 */
-	public void setExecutorService(ExecutorService executorService) {
+	public TcpServer setExecutorService(ExecutorService executorService) {
 		this.executorService = executorService;
+		return this;
 	}
 
 	/**
