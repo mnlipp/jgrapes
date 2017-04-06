@@ -107,7 +107,7 @@ public class FileStorage extends Component {
 		}
 		for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
 			if (inputWriters.containsKey(channel)) {
-				channel.fire(new IOError(event,
+				channel.respond(new IOError(event,
 				        new IllegalStateException("File is already open.")));
 			} else {
 				new FileStreamer(event, channel);
@@ -134,10 +134,10 @@ public class FileStorage extends Component {
 				ioChannel = AsynchronousFileChannel
 				        .open(event.path(), event.options());
 			} catch (IOException e) {
-				channel.fire(new IOError(event, e));
+				channel.respond(new IOError(event, e));
 				return;
 			}
-			channel.fire(new FileOpened(event.path(), event.options()));
+			channel.respond(new FileOpened(event.path(), event.options()));
 			// Reading from file
 			ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer.class,
 					ByteBuffer.allocateDirect(bufferSize),
@@ -163,7 +163,7 @@ public class FileStorage extends Component {
 					} catch (IOException e1) {
 						// Handled like true
 					} 
-					channel.fire(new Output<>(buffer, eof));
+					channel.respond(new Output<>(buffer, eof));
 					if (!eof) {
 						try {
 							ManagedByteBuffer nextBuffer = ioBuffers.acquire();
@@ -180,11 +180,11 @@ public class FileStorage extends Component {
 				}
 				try {
 					ioChannel.close();
-					channel.fire(new Closed());
+					channel.respond(new Closed());
 				} catch (ClosedChannelException e) {
 					// Can be ignored
 				} catch (IOException e) {
-					channel.fire(new IOError(null, e));
+					channel.respond(new IOError(null, e));
 				}
 				unregisterAsGenerator();
 			}
@@ -192,9 +192,9 @@ public class FileStorage extends Component {
 			@Override
 			public void failed(Throwable exc, ManagedByteBuffer context) {
 				if (!(exc instanceof AsynchronousCloseException)) {
-					channel.fire(new IOError(null, exc));
+					channel.respond(new IOError(null, exc));
 				}
-				channel.fire(new Closed());
+				channel.respond(new Closed());
 				unregisterAsGenerator();
 			}
 		}
@@ -243,7 +243,7 @@ public class FileStorage extends Component {
 		}
 		for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
 			if (inputWriters.containsKey(channel)) {
-				channel.fire(new IOError(event,
+				channel.respond(new IOError(event,
 				        new IllegalStateException("File is already open.")));
 			} else {
 				inputWriters.put(channel, new Writer(event, channel));
@@ -278,7 +278,7 @@ public class FileStorage extends Component {
 		}
 		for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
 			if (outputWriters.containsKey(channel)) {
-				channel.fire(new IOError(event,
+				channel.respond(new IOError(event,
 				        new IllegalStateException("File is already open.")));
 			} else {
 				outputWriters.put(channel, new Writer(event, channel));
@@ -370,10 +370,10 @@ public class FileStorage extends Component {
 			try {
 				ioChannel = AsynchronousFileChannel.open(path, options);
 			} catch (IOException e) {
-				channel.fire(new IOError(event, e));
+				channel.respond(new IOError(event, e));
 				return;
 			}
-			channel.fire(new FileOpened(path, options));
+			channel.respond(new FileOpened(path, options));
 		}
 
 		public void write(ManagedByteBuffer buffer) {
@@ -415,7 +415,7 @@ public class FileStorage extends Component {
 			public void failed(Throwable exc, WriteContext context) {
 				try {
 					if (!(exc instanceof AsynchronousCloseException)) {
-						channel.fire(new IOError(null, exc));
+						channel.respond(new IOError(null, exc));
 					}
 				} finally {
 					handled();
@@ -444,7 +444,7 @@ public class FileStorage extends Component {
 			} catch (ClosedChannelException e) {
 				// Can be ignored
 			} catch (IOException e) {
-				channel.fire(new IOError(event, e));
+				channel.respond(new IOError(event, e));
 			}
 			inputWriters.remove(channel);
 			outputWriters.remove(channel);

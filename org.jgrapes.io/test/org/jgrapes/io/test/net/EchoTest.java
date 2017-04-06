@@ -63,7 +63,7 @@ public class EchoTest {
 			for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
 				ManagedByteBuffer out = channel.bufferPool().acquire();
 				out.put(event.buffer());
-				channel.fire(new Output<>(out, event.isEndOfRecord()));
+				channel.respond(new Output<>(out, event.isEndOfRecord()));
 			}
 		}
 	}

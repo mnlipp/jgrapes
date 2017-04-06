@@ -148,7 +148,7 @@ public class SslServer extends Component {
 			while (output.hasRemaining()) {
 				ManagedByteBuffer out = downChannel.upstreamBuffer();
 				downChannel.sslEngine.wrap(output,	out.backingBuffer());
-				downChannel.upstreamChannel().fire(new Output<>(
+				downChannel.upstreamChannel().respond(new Output<>(
 						out, event.isEndOfRecord()));
 			}
 		}
@@ -174,9 +174,10 @@ public class SslServer extends Component {
 				ManagedByteBuffer feedback = connection.upstreamBuffer();
 				connection.sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
 						.backingBuffer(),feedback.backingBuffer());
-				connection.upstreamChannel().fire(new Output<>(feedback, false));
+				connection.upstreamChannel()
+					.respond(new Output<>(feedback, false));
 			}
-			connection.upstreamChannel().fire(new Close());
+			connection.upstreamChannel().respond(new Close());
 		}		
 	}
 	
@@ -257,14 +258,14 @@ public class SslServer extends Component {
 					SSLEngineResult wrapResult = sslEngine.wrap(
 							ManagedByteBuffer.EMPTY_BUFFER
 							.backingBuffer(), feedback.backingBuffer());
-					upstreamChannel().fire(new Output<>(feedback, false));
+					upstreamChannel().respond(new Output<>(feedback, false));
 					if (wrapResult.getHandshakeStatus() == HandshakeStatus.FINISHED) {
-						fire(new Accepted(localAddress, remoteAddress));
+						fire(new Accepted(localAddress, remoteAddress), this);
 					}
 					continue;
 					
 				case FINISHED:
-					fire(new Accepted(localAddress, remoteAddress));
+					fire(new Accepted(localAddress, remoteAddress), this);
 					// fall through
 				case NEED_UNWRAP:
 					if (input.hasRemaining()) {
@@ -284,14 +285,14 @@ public class SslServer extends Component {
 			} else {
 				// forward data received
 				unwrapped.flip();
-				fire(new Input<>(unwrapped, sslEngine.isInboundDone()));
+				fire(new Input<>(unwrapped, sslEngine.isInboundDone()), this);
 			}
 			
 			// final message?
 			if (unwrapResult.getStatus() == Status.CLOSED
 					&& ! isInputClosed) {
 				Closed evt = new Closed();
-				fire(evt);
+				newEventPipeline().fire(evt, this);
 				evt.get();
 				isInputClosed = true;
 			}
@@ -302,7 +303,7 @@ public class SslServer extends Component {
 			if (!isInputClosed) {
 				// was not properly closed on SSL layer
 				Closed evt = new Closed();
-				fire(evt);
+				newEventPipeline().fire(evt, this);
 				evt.get();
 			}
 			try {
@@ -311,7 +312,7 @@ public class SslServer extends Component {
 					ManagedByteBuffer feedback = upstreamBuffer();
 					sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
 							.backingBuffer(),feedback.backingBuffer());
-					upstreamChannel().fire(new Output<>(feedback, false));
+					upstreamChannel().respond(new Output<>(feedback, false));
 				}
 			} catch (SSLException e) {
 				// Several clients (notably chromium, see

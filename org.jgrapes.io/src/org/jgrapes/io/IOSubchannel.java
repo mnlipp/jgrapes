@@ -112,7 +112,7 @@ public interface IOSubchannel extends Channel {
 	 *            the event to fire
 	 * @return the event (for easy chaining)
 	 */
-	default <T extends Event<?>> T fire(T event) {
+	default <T extends Event<?>> T respond(T event) {
 		return responsePipeline().fire(event, this);
 	}
 
