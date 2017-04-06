@@ -28,6 +28,7 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -71,6 +72,7 @@ public class TcpServer extends Component implements NioHandler {
 	private int bufferSize;
 	private Set<SocketConn> connections = new HashSet<>();
 	private boolean closing = false;
+	private ExecutorService executorService = null;
 
 	/**
 	 * Creates a new server listening on the given address. 
@@ -116,6 +118,26 @@ public class TcpServer extends Component implements NioHandler {
 		super(componentChannel);
 		this.serverAddress = serverAddress;
 		this.bufferSize = bufferSize;
+	}
+
+	/**
+	 * @return the executorService
+	 */
+	public ExecutorService executorService() {
+		return executorService;
+	}
+
+	/**
+	 * Sets an executor service to be used by the event pipelines
+	 * that process the data from the network. Setting this
+	 * to an executor service with a limited number of threads
+	 * allows to control the maximum load from the network.
+	 * 
+	 * @param executorService the executorService to set
+	 * @see EventPipeline
+	 */
+	public void setExecutorService(ExecutorService executorService) {
+		this.executorService = executorService;
 	}
 
 	/**
@@ -169,6 +191,18 @@ public class TcpServer extends Component implements NioHandler {
 		}
 	}
 
+	private boolean removeConnection(SocketConn connection) {
+		synchronized (connections) {
+			if(!connections.remove(connection)) {
+				// Closed already
+				return false;
+			}
+			// In case the server is shutting down
+			connections.notifyAll();
+		}			
+		return true;
+	}
+	
 	/**
 	 * Writes the data passed in the event to the client. The end of record
 	 * flag is ignored.
@@ -267,7 +301,11 @@ public class TcpServer extends Component implements NioHandler {
 		 */
 		public SocketConn(SocketChannel nioChannel)	throws IOException {
 			this.nioChannel = nioChannel;
-			downPipeline = newEventPipeline();
+			if (executorService != null) {
+				downPipeline = newEventPipeline(executorService);
+			} else {
+				downPipeline = newEventPipeline();
+			}
 			upPipeline = newEventPipeline();
 
 			int writeBufferSize = bufferSize == 0 
@@ -489,17 +527,11 @@ public class TcpServer extends Component implements NioHandler {
 		}
 
 		private void removeConnection() throws InterruptedException {
-			synchronized (connections) {
-				if(!connections.remove(this)) {
-					// Closed already
-					return;
-				}
-				// In case the server is shutting down
-				connections.notifyAll();
-			}			
-			Closed evt = new Closed();
-			downPipeline.fire(evt, this);
-			evt.get();
+			if (TcpServer.this.removeConnection(this)) {
+				Closed evt = new Closed();
+				downPipeline.fire(evt, this);
+				evt.get();
+			}
 		}
 		
 		/* (non-Javadoc)
