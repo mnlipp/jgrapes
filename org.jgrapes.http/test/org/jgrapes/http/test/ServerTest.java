@@ -180,7 +180,7 @@ public class ServerTest {
 	}
 	
 	@Test
-	public void testGetRoot() 
+	public void testConcurrentGetRoot() 
 			throws IOException, InterruptedException, ExecutionException, 
 			TimeoutException {
 		Waiter waiter = new Waiter();
