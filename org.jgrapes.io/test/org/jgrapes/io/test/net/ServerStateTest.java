@@ -75,7 +75,7 @@ public class ServerStateTest {
 	@Before
 	public void setUp() throws Exception {
 		NioDispatcher root = new NioDispatcher();
-		app = root.attach(new TcpServer(null));
+		app = root.attach(new TcpServer());
 		checker = new StateChecker();
 		app.attach(checker);
 		WaitForTests wf = new WaitForTests(app, Ready.class, Channel.class);
