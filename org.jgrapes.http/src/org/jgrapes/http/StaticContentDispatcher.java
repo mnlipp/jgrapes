@@ -175,7 +175,7 @@ public class StaticContentDispatcher extends Component {
 		if (modifiedSince.isPresent() 
 				&& !lastModified.isAfter(modifiedSince.get())) {
 			response.setStatus(HttpStatus.NOT_MODIFIED);
-			channel.fire(new Response(response));
+			channel.respond(new Response(response));
 		} else {
 			if ("text".equals(mediaType.topLevelType())) {
 				mediaType = MediaType.builder().from(mediaType)
@@ -186,8 +186,8 @@ public class StaticContentDispatcher extends Component {
 			response.setStatus(HttpStatus.OK);
 			response.setMessageHasBody(true);
 			response.setField(HttpField.LAST_MODIFIED, lastModified);
-			channel.fire(new Response(response));
-			channel.fire(new StreamFile(resourcePath, StandardOpenOption.READ));
+			channel.respond(new Response(response));
+			fire(new StreamFile(resourcePath, StandardOpenOption.READ), channel);
 		}
 		event.stop();
 	}

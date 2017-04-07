@@ -43,6 +43,7 @@ import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.NioDispatcher;
+import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
 
@@ -75,7 +76,8 @@ public class HttpServerDemo extends Component {
 		// Network level unencrypted channel.
 		Channel httpTransport = new NamedChannel("httpTransport");
 		// Create a TCP server listening on port 8888
-		app.attach(new TcpServer(httpTransport, new InetSocketAddress(8888)));
+		app.attach(new TcpServer(httpTransport)
+				.setServerAddress(new InetSocketAddress(8888)));
 
 		// Create TLS "converter"
 		KeyStore serverStore = KeyStore.getInstance("JKS");
@@ -90,7 +92,8 @@ public class HttpServerDemo extends Component {
 		sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
 		// Create a TCP server for SSL
 		Channel securedNetwork = app.attach(
-				new TcpServer(SELF, new InetSocketAddress(4443)));
+				new TcpServer().setServerAddress(new InetSocketAddress(4443))
+				.setBacklog(3000).setConnectionLimiter(new PermitsPool(100)));
 		app.attach(new SslServer(httpTransport, securedNetwork, sslContext));
 
 		// Create an HTTP server as converter between transport and application

@@ -41,9 +41,10 @@ public class EchoServer extends Component {
 	 * @throws IOException 
 	 */
 	public EchoServer() throws IOException {
-		super(TcpServer.DEFAULT_CHANNEL);
+		super();
 		attach(new NioDispatcher());
-		attach(new TcpServer(new InetSocketAddress(8888), 120000));
+		attach(new TcpServer(this).setServerAddress(
+				new InetSocketAddress(8888)).setBufferSize(120000));
 	}
 
 	@Handler

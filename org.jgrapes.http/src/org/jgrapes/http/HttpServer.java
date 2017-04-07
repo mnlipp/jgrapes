@@ -112,7 +112,7 @@ public class HttpServer extends Component {
 	        Class<? extends Request>... fallbacks) {
 		super(componentChannel);
 		this.providedFallbacks = Arrays.asList(fallbacks);
-		TcpServer server = new TcpServer(Channel.SELF, serverAddress);
+		TcpServer server = new TcpServer().setServerAddress(serverAddress);
 		attach(server);
 		Handler.Evaluator.add(
 				this, "onAccepted", server.defaultCriterion());
@@ -164,64 +164,17 @@ public class HttpServer extends Component {
 	@Handler(dynamic=true)
 	public void onInput(Input<ManagedByteBuffer> event)
 		throws ProtocolException {
-		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
-			onInputForChannel(event, channel);
+		for (IOSubchannel netChannel: event.channels(IOSubchannel.class)) {
+			final HttpConn httpConn = (HttpConn) LinkedIOSubchannel
+			        .lookupLinked(netChannel);
+			if (httpConn == null 
+					|| httpConn.converterComponent() != this) {
+				return;
+			}
+			httpConn.handleInput(event);
 		}
 	}
 
-	private void onInputForChannel(
-			Input<ManagedByteBuffer> event, IOSubchannel netChannel)
-		throws ProtocolException {
-		final HttpConn downChannel = (HttpConn) LinkedIOSubchannel
-		        .lookupLinked(netChannel);
-		if (downChannel == null || downChannel.converterComponent() != this) {
-			return;
-		}
-		// Get data associated with the channel
-		final ServerEngine<HttpRequest,HttpResponse> engine = downChannel.engine;
-		if (engine == null) {
-			throw new IllegalStateException(
-			        "Read event for unknown connection.");
-		}
-
-		// Send the data from the event through the decoder.
-		ByteBuffer in = event.buffer().backingBuffer();
-		ManagedByteBuffer bodyData = null;
-		while (in.hasRemaining()) {
-			Decoder.Result<HttpResponse> result = engine.decode(in,
-			        bodyData == null ? null : bodyData.backingBuffer(),
-			        event.isEndOfRecord());
-			if (result.response().isPresent()) {
-				// Feedback required, send it
-				fire(new Response(result.response().get()), downChannel);
-				if (result.response().get().isFinal()) {
-					break;
-				}
-				if (result.isResponseOnly()) {
-					continue;
-				}
-			}
-			if (result.isHeaderCompleted()) {
-				fireRequest(engine.currentRequest().get(), downChannel);
-			}
-			if (bodyData != null && bodyData.position() > 0) {
-				fire(new Input<>(bodyData, !result.isOverflow() 
-						&& !result.isUnderflow()), downChannel);
-			}
-			if (result.isOverflow()) {
-				bodyData = new ManagedByteBuffer(
-				        ByteBuffer.allocate(in.capacity()),
-				        BufferCollector.NOOP_COLLECTOR);
-				continue;
-			}
-			if (!result.isUnderflow()
-			        && engine.currentRequest().get().messageHasBody()) {
-				fire(new EndOfRequest(), downChannel);
-			}
-		}
-		
-	}
-	
 	/**
 	 * Creates a specific request event as appropriate for the request and fires
 	 * it.
@@ -346,7 +299,8 @@ public class HttpServer extends Component {
 	public void onClose(Close event) throws InterruptedException {
 		HttpConn downChannel = event.firstChannel(HttpConn.class);
 		final IOSubchannel netChannel = downChannel.upstreamChannel();
-		netChannel.fire(new Close());
+
+		netChannel.respond(new Close());
 	}
 
 	/**
@@ -395,7 +349,7 @@ public class HttpServer extends Component {
 		if (event.requestUri() == HttpRequest.ASTERISK_REQUEST) {
 			HttpResponse response = event.request().response().get();
 			response.setStatus(HttpStatus.OK);
-			channel.fire(new Response(response));
+			channel.respond(new Response(response));
 			event.stop();
 		}
 	}
@@ -440,6 +394,47 @@ public class HttpServer extends Component {
 					new HttpRequestDecoder(), new HttpResponseEncoder());
 		}
 		
+		public void handleInput(Input<ManagedByteBuffer> event) 
+				throws ProtocolException {
+			// Send the data from the event through the decoder.
+			ByteBuffer in = event.buffer().backingBuffer();
+			ManagedByteBuffer bodyData = null;
+			while (in.hasRemaining()) {
+				Decoder.Result<HttpResponse> result = engine.decode(in,
+				        bodyData == null ? null : bodyData.backingBuffer(),
+				        event.isEndOfRecord());
+				if (result.response().isPresent()) {
+					// Feedback required, send it
+					respond(new Response(result.response().get()));
+					if (result.response().get().isFinal()) {
+						break;
+					}
+					if (result.isResponseOnly()) {
+						continue;
+					}
+				}
+				if (result.isHeaderCompleted()) {
+					fireRequest(engine.currentRequest().get(), this);
+				}
+				if (bodyData != null && bodyData.position() > 0) {
+					fire(new Input<>(bodyData, !result.isOverflow() 
+							&& !result.isUnderflow()), this);
+				}
+				if (result.isOverflow()) {
+					bodyData = new ManagedByteBuffer(
+					        ByteBuffer.allocate(in.capacity()),
+					        BufferCollector.NOOP_COLLECTOR);
+					continue;
+				}
+				if (!result.isUnderflow()
+				        && engine.currentRequest().get().messageHasBody()) {
+					fire(new EndOfRequest(), this);
+				}
+			}
+			
+			
+		}
+		
 		public void sendUpstream(Output<ManagedBuffer<?>> event) 
 				throws InterruptedException {
 			Buffer in = event.buffer().backingBuffer();
@@ -454,12 +449,12 @@ public class HttpServer extends Component {
 						&& !result.closeConnection()) {
 					break;
 				}
-				upstreamChannel().fire(new Output<>(outBuffer, false));
+				upstreamChannel().respond(new Output<>(outBuffer, false));
 				if (!input.hasRemaining() && event.isEndOfRecord() 
 						|| result.closeConnection()) {
 					outBuffer = null;
 					if (result.closeConnection()) {
-						upstreamChannel().fire(new Close());
+						upstreamChannel().respond(new Close());
 					}
 					break;
 				}

@@ -44,7 +44,7 @@ public class BasicTestServer extends Component {
 	public BasicTestServer(Class<? extends Request>... fallbacks) 
 			throws IOException, InterruptedException, ExecutionException {
 		attach(new NioDispatcher());
-		TcpServer networkServer = attach(new TcpServer(null));
+		TcpServer networkServer = attach(new TcpServer());
 		attach(new HttpServer(channel(), networkServer.channel(),
 				fallbacks));
 		readyMonitor = new WaitForTests(

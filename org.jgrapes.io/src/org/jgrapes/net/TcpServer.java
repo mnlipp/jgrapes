@@ -35,7 +35,6 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Error;
@@ -50,8 +49,10 @@ import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.NioRegistration.Registration;
 import org.jgrapes.io.events.Output;
+import org.jgrapes.io.util.AvailabilityListener;
 import org.jgrapes.io.util.ManagedBufferQueue;
 import org.jgrapes.io.util.ManagedByteBuffer;
+import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
 
@@ -65,67 +66,133 @@ import org.jgrapes.net.events.Ready;
  */
 public class TcpServer extends Component implements NioHandler {
 
-	public static final NamedChannel 
-		DEFAULT_CHANNEL = new NamedChannel("server");
-	
-	private SocketAddress serverAddress;
-	private ServerSocketChannel serverSocketChannel;
-	private int bufferSize;
+	private SocketAddress serverAddress = null;
+	private ServerSocketChannel serverSocketChannel = null;
+	private int bufferSize = 0;
 	private Set<SocketConn> connections = new HashSet<>();
 	private boolean closing = false;
 	private ExecutorService executorService = null;
+	private int backlog = 0;
+	private PermitsPool connLimiter = null;
+	private Registration registration = null;
+	private AvailabilityListener permitsListener = new AvailabilityListener() {
+		
+		@Override
+		public void availabilityChanged(PermitsPool pool, boolean available) {
+			if (registration == null) {
+				return;
+			}
+			registration.updateInterested(
+					(Boolean)available ? SelectionKey.OP_ACCEPT : 0);
+		}
+	};
 
 	/**
-	 * Creates a new server listening on the given address. 
-	 * The channel is set to the {@link NamedChannel} "server". The size of
-	 * the send and receive buffers is set to the platform defaults. 
+	 * Creates a new server, using itself as component channel. 
 	 * 
 	 * @param serverAddress the address to bind to
 	 */
-	public TcpServer(SocketAddress serverAddress) {
-		this(DEFAULT_CHANNEL, serverAddress);
+	public TcpServer() {
+		super();
 	}
 
 	/**
-	 * Creates a new server using the given channel and address.
+	 * Creates a new server using the given channel.
 	 * 
 	 * @param componentChannel the component's channel
-	 * @param serverAddress the address to bind to
 	 */
-	public TcpServer(Channel componentChannel,	SocketAddress serverAddress) {
-		this(componentChannel, serverAddress, 0);
-	}
-
-	/**
-	 * Creates a new server listening on the given address.
-	 * The channel is set to the {@link NamedChannel} "server". 
-	 * 
-	 * @param serverAddress the address to bind to
-	 * @param bufferSize the size to use for the send and receive buffers
-	 */
-	public TcpServer(SocketAddress serverAddress, int bufferSize) {
-		this(DEFAULT_CHANNEL, serverAddress, bufferSize);
-	}
-
-	/**
-	 * Creates a new server using the given channel and address.
-	 * 
-	 * @param componentChannel the component's channel
-	 * @param serverAddress the address to bind to
-	 * @param bufferSize the size to use for the send and receive buffers
-	 */
-	public TcpServer(Channel componentChannel, 
-			SocketAddress serverAddress, int bufferSize) {
+	public TcpServer(Channel componentChannel) {
 		super(componentChannel);
+	}
+	
+	/**
+	 * Sets the address to bind to. If none is set, the address and port
+	 * are assigned automatically.
+	 * 
+	 * @param serverAddress the address to bind to
+	 * @return the TCP server for easy chaining
+	 */
+	public TcpServer setServerAddress(SocketAddress serverAddress) {
 		this.serverAddress = serverAddress;
-		this.bufferSize = bufferSize;
+		return this;
 	}
 
 	/**
-	 * @return the executorService
+	 * Returns the server address. Before starting, the address is the
+	 * address set with {@link #setServerAddress(SocketAddress)}. After
+	 * starting the address is obtained from the created socket.  
+	 * 
+	 * @return the serverAddress
 	 */
-	public ExecutorService executorService() {
-		return executorService;
+	public SocketAddress serverAddress() {
+		try {
+			return serverSocketChannel == null ? serverAddress
+					: serverSocketChannel.getLocalAddress();
+		} catch (IOException e) {
+			return serverAddress;
+		}
+	}
+
+	/**
+	 * Sets the buffer size for the send an receive buffers.
+	 * If no size is set, the system defaults will be used.
+	 * 
+	 * @param bufferSize the size to use for the send and receive buffers
+	 * @return the TCP server for easy chaining
+	 */
+	public TcpServer setBufferSize(int bufferSize) {
+		this.bufferSize = bufferSize;
+		return this;
+	}
+	
+	/**
+	 * @return the bufferSize
+	 */
+	public int bufferSize() {
+		return bufferSize;
+	}
+
+	/**
+	 * Sets the backlog size.
+	 * 
+	 * @param backlog the backlog to set
+	 * @return the TCP server for easy chaining
+	 */
+	public TcpServer setBacklog(int backlog) {
+		this.backlog = backlog;
+		return this;
+	}
+
+	/**
+	 * @return the backlog
+	 */
+	public int backlog() {
+		return backlog;
+	}
+
+	/**
+	 * Sets a permit "pool". A new connection is created only if a permit
+	 * can be obtained from the pool.
+	 * 
+	 * @param connectionLimiter the connection pool to set
+	 * @return the TCP server for easy chaining
+	 */
+	public TcpServer setConnectionLimiter(PermitsPool connectionLimiter) {
+		if (connLimiter != null) {
+			connLimiter.removeListener(permitsListener);
+		}
+		this.connLimiter = connectionLimiter;
+		if (connLimiter != null) {
+			connLimiter.addListener(permitsListener);
+		}
+		return this;
+	}
+
+	/**
+	 * @return the connection Limiter
+	 */
+	public PermitsPool getConnectionLimiter() {
+		return connLimiter;
 	}
 
 	/**
@@ -135,12 +202,19 @@ public class TcpServer extends Component implements NioHandler {
 	 * allows to control the maximum load from the network.
 	 * 
 	 * @param executorService the executorService to set
-	 * @return the tcp server for easy chaining
+	 * @return the TCP server for easy chaining
 	 * @see Manager#newEventPipeline(ExecutorService)
 	 */
 	public TcpServer setExecutorService(ExecutorService executorService) {
 		this.executorService = executorService;
 		return this;
+	}
+
+	/**
+	 * @return the executorService
+	 */
+	public ExecutorService executorService() {
+		return executorService;
 	}
 
 	/**
@@ -153,7 +227,7 @@ public class TcpServer extends Component implements NioHandler {
 	public void onStart(Start event) throws IOException {
 		closing = false;
 		serverSocketChannel = ServerSocketChannel.open();
-		serverSocketChannel.bind(serverAddress);
+		serverSocketChannel.bind(serverAddress, backlog);
 		fire(new NioRegistration(this, serverSocketChannel, 
 				SelectionKey.OP_ACCEPT, this), Channel.BROADCAST);
 	}
@@ -168,6 +242,7 @@ public class TcpServer extends Component implements NioHandler {
 						"Registration failed, no NioDispatcher?"));
 				return;
 			}
+			registration = event.event().get();
 			fire(new Ready(serverSocketChannel.getLocalAddress()));
 			return;
 		}
@@ -185,8 +260,10 @@ public class TcpServer extends Component implements NioHandler {
 		synchronized (connections) {
 			if ((ops & SelectionKey.OP_ACCEPT) != 0 && !closing) {
 				try {
-					SocketChannel socketChannel = serverSocketChannel.accept();
-					connections.add(new SocketConn(socketChannel));
+					if (connLimiter == null || connLimiter.tryAcquire()) {
+						SocketChannel socketChannel = serverSocketChannel.accept();
+						connections.add(new SocketConn(socketChannel));
+					}
 				} catch (IOException e) {
 					fire(new IOError(null, e));
 				}
@@ -199,6 +276,9 @@ public class TcpServer extends Component implements NioHandler {
 			if(!connections.remove(connection)) {
 				// Closed already
 				return false;
+			}
+			if (connLimiter != null) {
+				connLimiter.release();
 			}
 			// In case the server is shutting down
 			connections.notifyAll();

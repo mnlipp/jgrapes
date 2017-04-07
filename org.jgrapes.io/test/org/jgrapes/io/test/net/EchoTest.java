@@ -53,8 +53,8 @@ public class EchoTest {
 		 * @throws IOException 
 		 */
 		public EchoServer() throws IOException {
-			super(TcpServer.DEFAULT_CHANNEL);
-			attach(new TcpServer(null));
+			super();
+			attach(new TcpServer(this));
 		}
 
 		@Handler
@@ -74,7 +74,7 @@ public class EchoTest {
 		EchoServer app = new EchoServer();
 		app.attach(new NioDispatcher());
 		WaitForTests wf = new WaitForTests(
-				app, Ready.class, TcpServer.DEFAULT_CHANNEL.defaultCriterion());
+				app, Ready.class, app.defaultCriterion());
 		Components.start(app);
 		Ready readyEvent = (Ready) wf.get();
 		if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
