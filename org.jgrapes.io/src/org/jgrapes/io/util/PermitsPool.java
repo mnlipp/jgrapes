@@ -28,7 +28,7 @@ import java.util.List;
  * A class that manages a set of permits and notifies listeners
  * about changes of availability.
  * 
- * Listeners are added using {@link WeakReferences}, so removing
+ * Listeners are added using {@link WeakReference}, so removing
  * them isn't strictly necessary.
  */
 public class PermitsPool {

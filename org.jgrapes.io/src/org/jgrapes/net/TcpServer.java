@@ -89,8 +89,6 @@ public class TcpServer extends Component implements NioHandler {
 
 	/**
 	 * Creates a new server, using itself as component channel. 
-	 * 
-	 * @param serverAddress the address to bind to
 	 */
 	public TcpServer() {
 		super();
