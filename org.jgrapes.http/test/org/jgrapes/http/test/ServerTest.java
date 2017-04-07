@@ -54,7 +54,11 @@ import org.junit.Test;
 public class ServerTest {
 
 	private static TestServer server;
-//	private static SSLSocketFactory sslSocketFactory;
+
+	int minTime = 0;
+	int maxTime = 0;
+	long accumTime = 0;
+	int calls = 0;
 	
 	public static class TestServer extends Component {
 
@@ -84,7 +88,7 @@ public class ServerTest {
 			Channel httpTransport = new NamedChannel("httpTransport");
 
 			// Create a TCP server for SSL
-			TcpServer securedNetwork = attach(new TcpServer(SELF, null));
+			TcpServer securedNetwork = attach(new TcpServer());
 			attach(new SslServer(httpTransport, securedNetwork, sslContext));
 
 			// Create an HTTP server as converter between transport and application
@@ -183,9 +187,10 @@ public class ServerTest {
 		
 		URL url = new URL("https", server.getAddress().getHostAddress(), 
 				server.getPort(), "/");
+		
 		final List<Thread> threads = new ArrayList<>();
 		AtomicInteger waiting = new AtomicInteger(0);
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1000; i++) {
 			Thread getThread = new Thread() {
 				@Override
 				public void run() {
@@ -198,9 +203,23 @@ public class ServerTest {
 								// ignored
 							}
 						}
+						long start = System.currentTimeMillis();
 						HttpURLConnection conn = (HttpURLConnection) url
 						        .openConnection();
 						conn.getInputStream().close();
+						long stop = System.currentTimeMillis();
+						int used = (int)(stop - start);
+						synchronized (ServerTest.this) {
+							if (calls == 0) {
+								minTime = used;
+								maxTime = used;
+							} else {
+								minTime = Math.min(minTime,  used);
+								maxTime = Math.max(maxTime, used);
+							}
+							calls += 1;
+							accumTime += used;
+						}
 						waiter.assertEquals(200, conn.getResponseCode());
 					} catch (IOException e) {
 						waiter.fail(e);
@@ -219,12 +238,15 @@ public class ServerTest {
 		synchronized (threads) {
 			threads.notifyAll();
 		}
-		waiter.await(100000, threads.size());
+		waiter.await(60000, threads.size());
 		
 		// Cleanup.
 		while (threads.size() > 0) {
 			threads.remove(0).join();
 		}
+		
+		System.out.println("min/avg/max (ms): " 
+				+ minTime + "/" + (accumTime / calls) + "/" + maxTime);
 	}
 	
 }

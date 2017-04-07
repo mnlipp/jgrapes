@@ -93,7 +93,7 @@ public class HttpServerDemo extends Component {
 		// Create a TCP server for SSL
 		Channel securedNetwork = app.attach(
 				new TcpServer().setServerAddress(new InetSocketAddress(4443))
-				.setBacklog(3000).setConnectionLimiter(new PermitsPool(100)));
+				.setBacklog(3000).setConnectionLimiter(new PermitsPool(50)));
 		app.attach(new SslServer(httpTransport, securedNetwork, sslContext));
 
 		// Create an HTTP server as converter between transport and application
