@@ -36,7 +36,7 @@ import org.jgrapes.core.events.HandlingError;
 
 /**
  * This class represents the component tree. It holds all properties that 
- * are common to all nodes of a component tree (the {@link ComponentVertex}s.
+ * are common to all nodes of a component tree (the {@link ComponentVertex}s).
  * 
  * @author Michael N. Lipp
  */
