@@ -115,7 +115,7 @@
 <span class="sourceLineNo">107</span>                }<a name="line.107"></a>
 <span class="sourceLineNo">108</span>                for (IOSubchannel channel : event.channels(IOSubchannel.class)) {<a name="line.108"></a>
 <span class="sourceLineNo">109</span>                        if (inputWriters.containsKey(channel)) {<a name="line.109"></a>
-<span class="sourceLineNo">110</span>                                channel.fire(new IOError(event,<a name="line.110"></a>
+<span class="sourceLineNo">110</span>                                channel.respond(new IOError(event,<a name="line.110"></a>
 <span class="sourceLineNo">111</span>                                        new IllegalStateException("File is already open.")));<a name="line.111"></a>
 <span class="sourceLineNo">112</span>                        } else {<a name="line.112"></a>
 <span class="sourceLineNo">113</span>                                new FileStreamer(event, channel);<a name="line.113"></a>
@@ -142,10 +142,10 @@
 <span class="sourceLineNo">134</span>                                ioChannel = AsynchronousFileChannel<a name="line.134"></a>
 <span class="sourceLineNo">135</span>                                        .open(event.path(), event.options());<a name="line.135"></a>
 <span class="sourceLineNo">136</span>                        } catch (IOException e) {<a name="line.136"></a>
-<span class="sourceLineNo">137</span>                                channel.fire(new IOError(event, e));<a name="line.137"></a>
+<span class="sourceLineNo">137</span>                                channel.respond(new IOError(event, e));<a name="line.137"></a>
 <span class="sourceLineNo">138</span>                                return;<a name="line.138"></a>
 <span class="sourceLineNo">139</span>                        }<a name="line.139"></a>
-<span class="sourceLineNo">140</span>                        channel.fire(new FileOpened(event.path(), event.options()));<a name="line.140"></a>
+<span class="sourceLineNo">140</span>                        channel.respond(new FileOpened(event.path(), event.options()));<a name="line.140"></a>
 <span class="sourceLineNo">141</span>                        // Reading from file<a name="line.141"></a>
 <span class="sourceLineNo">142</span>                        ioBuffers = new ManagedBufferQueue&lt;&gt;(ManagedByteBuffer.class,<a name="line.142"></a>
 <span class="sourceLineNo">143</span>                                        ByteBuffer.allocateDirect(bufferSize),<a name="line.143"></a>
@@ -171,7 +171,7 @@
 <span class="sourceLineNo">163</span>                                        } catch (IOException e1) {<a name="line.163"></a>
 <span class="sourceLineNo">164</span>                                                // Handled like true<a name="line.164"></a>
 <span class="sourceLineNo">165</span>                                        } <a name="line.165"></a>
-<span class="sourceLineNo">166</span>                                        channel.fire(new Output&lt;&gt;(buffer, eof));<a name="line.166"></a>
+<span class="sourceLineNo">166</span>                                        channel.respond(new Output&lt;&gt;(buffer, eof));<a name="line.166"></a>
 <span class="sourceLineNo">167</span>                                        if (!eof) {<a name="line.167"></a>
 <span class="sourceLineNo">168</span>                                                try {<a name="line.168"></a>
 <span class="sourceLineNo">169</span>                                                        ManagedByteBuffer nextBuffer = ioBuffers.acquire();<a name="line.169"></a>
@@ -188,11 +188,11 @@
 <span class="sourceLineNo">180</span>                                }<a name="line.180"></a>
 <span class="sourceLineNo">181</span>                                try {<a name="line.181"></a>
 <span class="sourceLineNo">182</span>                                        ioChannel.close();<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                                        channel.fire(new Closed());<a name="line.183"></a>
+<span class="sourceLineNo">183</span>                                        channel.respond(new Closed());<a name="line.183"></a>
 <span class="sourceLineNo">184</span>                                } catch (ClosedChannelException e) {<a name="line.184"></a>
 <span class="sourceLineNo">185</span>                                        // Can be ignored<a name="line.185"></a>
 <span class="sourceLineNo">186</span>                                } catch (IOException e) {<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                                        channel.fire(new IOError(null, e));<a name="line.187"></a>
+<span class="sourceLineNo">187</span>                                        channel.respond(new IOError(null, e));<a name="line.187"></a>
 <span class="sourceLineNo">188</span>                                }<a name="line.188"></a>
 <span class="sourceLineNo">189</span>                                unregisterAsGenerator();<a name="line.189"></a>
 <span class="sourceLineNo">190</span>                        }<a name="line.190"></a>
@@ -200,9 +200,9 @@
 <span class="sourceLineNo">192</span>                        @Override<a name="line.192"></a>
 <span class="sourceLineNo">193</span>                        public void failed(Throwable exc, ManagedByteBuffer context) {<a name="line.193"></a>
 <span class="sourceLineNo">194</span>                                if (!(exc instanceof AsynchronousCloseException)) {<a name="line.194"></a>
-<span class="sourceLineNo">195</span>                                        channel.fire(new IOError(null, exc));<a name="line.195"></a>
+<span class="sourceLineNo">195</span>                                        channel.respond(new IOError(null, exc));<a name="line.195"></a>
 <span class="sourceLineNo">196</span>                                }<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                                channel.fire(new Closed());<a name="line.197"></a>
+<span class="sourceLineNo">197</span>                                channel.respond(new Closed());<a name="line.197"></a>
 <span class="sourceLineNo">198</span>                                unregisterAsGenerator();<a name="line.198"></a>
 <span class="sourceLineNo">199</span>                        }<a name="line.199"></a>
 <span class="sourceLineNo">200</span>                }<a name="line.200"></a>
@@ -251,7 +251,7 @@
 <span class="sourceLineNo">243</span>                }<a name="line.243"></a>
 <span class="sourceLineNo">244</span>                for (IOSubchannel channel : event.channels(IOSubchannel.class)) {<a name="line.244"></a>
 <span class="sourceLineNo">245</span>                        if (inputWriters.containsKey(channel)) {<a name="line.245"></a>
-<span class="sourceLineNo">246</span>                                channel.fire(new IOError(event,<a name="line.246"></a>
+<span class="sourceLineNo">246</span>                                channel.respond(new IOError(event,<a name="line.246"></a>
 <span class="sourceLineNo">247</span>                                        new IllegalStateException("File is already open.")));<a name="line.247"></a>
 <span class="sourceLineNo">248</span>                        } else {<a name="line.248"></a>
 <span class="sourceLineNo">249</span>                                inputWriters.put(channel, new Writer(event, channel));<a name="line.249"></a>
@@ -286,7 +286,7 @@
 <span class="sourceLineNo">278</span>                }<a name="line.278"></a>
 <span class="sourceLineNo">279</span>                for (IOSubchannel channel : event.channels(IOSubchannel.class)) {<a name="line.279"></a>
 <span class="sourceLineNo">280</span>                        if (outputWriters.containsKey(channel)) {<a name="line.280"></a>
-<span class="sourceLineNo">281</span>                                channel.fire(new IOError(event,<a name="line.281"></a>
+<span class="sourceLineNo">281</span>                                channel.respond(new IOError(event,<a name="line.281"></a>
 <span class="sourceLineNo">282</span>                                        new IllegalStateException("File is already open.")));<a name="line.282"></a>
 <span class="sourceLineNo">283</span>                        } else {<a name="line.283"></a>
 <span class="sourceLineNo">284</span>                                outputWriters.put(channel, new Writer(event, channel));<a name="line.284"></a>
@@ -378,10 +378,10 @@
 <span class="sourceLineNo">370</span>                        try {<a name="line.370"></a>
 <span class="sourceLineNo">371</span>                                ioChannel = AsynchronousFileChannel.open(path, options);<a name="line.371"></a>
 <span class="sourceLineNo">372</span>                        } catch (IOException e) {<a name="line.372"></a>
-<span class="sourceLineNo">373</span>                                channel.fire(new IOError(event, e));<a name="line.373"></a>
+<span class="sourceLineNo">373</span>                                channel.respond(new IOError(event, e));<a name="line.373"></a>
 <span class="sourceLineNo">374</span>                                return;<a name="line.374"></a>
 <span class="sourceLineNo">375</span>                        }<a name="line.375"></a>
-<span class="sourceLineNo">376</span>                        channel.fire(new FileOpened(path, options));<a name="line.376"></a>
+<span class="sourceLineNo">376</span>                        channel.respond(new FileOpened(path, options));<a name="line.376"></a>
 <span class="sourceLineNo">377</span>                }<a name="line.377"></a>
 <span class="sourceLineNo">378</span><a name="line.378"></a>
 <span class="sourceLineNo">379</span>                public void write(ManagedByteBuffer buffer) {<a name="line.379"></a>
@@ -423,7 +423,7 @@
 <span class="sourceLineNo">415</span>                        public void failed(Throwable exc, WriteContext context) {<a name="line.415"></a>
 <span class="sourceLineNo">416</span>                                try {<a name="line.416"></a>
 <span class="sourceLineNo">417</span>                                        if (!(exc instanceof AsynchronousCloseException)) {<a name="line.417"></a>
-<span class="sourceLineNo">418</span>                                                channel.fire(new IOError(null, exc));<a name="line.418"></a>
+<span class="sourceLineNo">418</span>                                                channel.respond(new IOError(null, exc));<a name="line.418"></a>
 <span class="sourceLineNo">419</span>                                        }<a name="line.419"></a>
 <span class="sourceLineNo">420</span>                                } finally {<a name="line.420"></a>
 <span class="sourceLineNo">421</span>                                        handled();<a name="line.421"></a>
@@ -452,7 +452,7 @@
 <span class="sourceLineNo">444</span>                        } catch (ClosedChannelException e) {<a name="line.444"></a>
 <span class="sourceLineNo">445</span>                                // Can be ignored<a name="line.445"></a>
 <span class="sourceLineNo">446</span>                        } catch (IOException e) {<a name="line.446"></a>
-<span class="sourceLineNo">447</span>                                channel.fire(new IOError(event, e));<a name="line.447"></a>
+<span class="sourceLineNo">447</span>                                channel.respond(new IOError(event, e));<a name="line.447"></a>
 <span class="sourceLineNo">448</span>                        }<a name="line.448"></a>
 <span class="sourceLineNo">449</span>                        inputWriters.remove(channel);<a name="line.449"></a>
 <span class="sourceLineNo">450</span>                        outputWriters.remove(channel);<a name="line.450"></a>

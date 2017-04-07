@@ -183,7 +183,7 @@
 <span class="sourceLineNo">175</span>                if (modifiedSince.isPresent() <a name="line.175"></a>
 <span class="sourceLineNo">176</span>                                &amp;&amp; !lastModified.isAfter(modifiedSince.get())) {<a name="line.176"></a>
 <span class="sourceLineNo">177</span>                        response.setStatus(HttpStatus.NOT_MODIFIED);<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                        channel.fire(new Response(response));<a name="line.178"></a>
+<span class="sourceLineNo">178</span>                        channel.respond(new Response(response));<a name="line.178"></a>
 <span class="sourceLineNo">179</span>                } else {<a name="line.179"></a>
 <span class="sourceLineNo">180</span>                        if ("text".equals(mediaType.topLevelType())) {<a name="line.180"></a>
 <span class="sourceLineNo">181</span>                                mediaType = MediaType.builder().from(mediaType)<a name="line.181"></a>
@@ -194,8 +194,8 @@
 <span class="sourceLineNo">186</span>                        response.setStatus(HttpStatus.OK);<a name="line.186"></a>
 <span class="sourceLineNo">187</span>                        response.setMessageHasBody(true);<a name="line.187"></a>
 <span class="sourceLineNo">188</span>                        response.setField(HttpField.LAST_MODIFIED, lastModified);<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                        channel.fire(new Response(response));<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                        channel.fire(new StreamFile(resourcePath, StandardOpenOption.READ));<a name="line.190"></a>
+<span class="sourceLineNo">189</span>                        channel.respond(new Response(response));<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                        fire(new StreamFile(resourcePath, StandardOpenOption.READ), channel);<a name="line.190"></a>
 <span class="sourceLineNo">191</span>                }<a name="line.191"></a>
 <span class="sourceLineNo">192</span>                event.stop();<a name="line.192"></a>
 <span class="sourceLineNo">193</span>        }<a name="line.193"></a>
