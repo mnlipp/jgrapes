@@ -16,6 +16,10 @@ buildscript {
     }
 }
 
+ext {
+	isTravisBuild = System.getenv().get("TRAVIS") == 'true'
+}
+
 allprojects {
     repositories {
         jcenter()
@@ -84,6 +88,11 @@ subprojects {
             showExceptions = true
             showStackTraces = true
             showCauses = true
+        }
+		
+		if (isTravisBuild) {
+            maxParallelForks = 2
+            maxHeapSize = '768m'
         }
     }
 }
