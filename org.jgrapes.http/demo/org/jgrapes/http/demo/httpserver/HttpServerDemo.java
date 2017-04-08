@@ -80,19 +80,16 @@ public class HttpServerDemo extends Component {
 		= Collections.synchronizedMap(new WeakHashMap<>());
 	
 	@RequestHandler(patterns="/form")
-	public void onPost(PostRequest request) {
+	public void onPost(PostRequest request, IOSubchannel channel) {
 		HttpResponse response = request.request().response().get();
-		for (IOSubchannel channel: request.channels(IOSubchannel.class)) {
-			formContexts.put(channel, new FormContext());
-		}		
+		formContexts.put(channel, new FormContext());
 	}
 	
 	@Handler
-	public void onInput(Input<ManagedByteBuffer> event) {
-		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
-			FormContext ctx = formContexts.get(channel);
-			ctx.fieldDecoder.addData(event.buffer().backingBuffer());
-		}
+	public void onInput(Input<ManagedByteBuffer> event, IOSubchannel channel) {
+		FormContext ctx = formContexts.get(channel);
+		ctx.fieldDecoder.addData(event.buffer().backingBuffer());
+
 //		while (true) {
 //		out.clear();
 //		Decoder.Result<?> decoderResult = null;
