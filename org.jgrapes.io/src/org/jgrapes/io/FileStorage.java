@@ -250,12 +250,10 @@ public class FileStorage extends Component {
 	}
 	
 	@Handler
-	public void onInput(Input<ManagedByteBuffer> event) {
-		for (Channel channel: event.channels()) {
-			Writer writer = inputWriters.get(channel);
-			if (writer != null) {
-				writer.write(event.buffer());
-			}
+	public void onInput(Input<ManagedByteBuffer> event, Channel channel) {
+		Writer writer = inputWriters.get(channel);
+		if (writer != null) {
+			writer.write(event.buffer());
 		}
 	}
 	
@@ -285,28 +283,23 @@ public class FileStorage extends Component {
 	}
 	
 	@Handler
-	public void onOutput(Output<ManagedByteBuffer> event) {
-		for (Channel channel: event.channels()) {
-			Writer writer = outputWriters.get(channel);
-			if (writer != null) {
-				writer.write(event.buffer());
-			}
+	public void onOutput(Output<ManagedByteBuffer> event, Channel channel) {
+		Writer writer = outputWriters.get(channel);
+		if (writer != null) {
+			writer.write(event.buffer());
 		}
 	}
 
 	@Handler
-	public void onClosed(Closed event) throws InterruptedException {
-		for (Channel channel: event.channels()) {
-			Writer writer = inputWriters.get(channel);
-			if (writer != null) {
-				writer.close(event);
-			}
+	public void onClosed(Closed event, Channel channel)
+			throws InterruptedException {
+		Writer writer = inputWriters.get(channel);
+		if (writer != null) {
+			writer.close(event);
 		}
-		for (Channel channel: event.channels()) {
-			Writer writer = outputWriters.get(channel);
-			if (writer != null) {
-				writer.close(event);
-			}
+		writer = outputWriters.get(channel);
+		if (writer != null) {
+			writer.close(event);
 		}
 	}
 	

@@ -82,8 +82,8 @@ public class SslServer extends Component {
 	 *            the accepted event
 	 */
 	@Handler(dynamic=true)
-	public void onAccepted(Accepted event) {
-		event.forChannels(IOSubchannel.class, SslConn::new);
+	public void onAccepted(Accepted event, IOSubchannel channel) {
+		new SslConn(event, channel);
 	}
 
 	/**
@@ -96,17 +96,15 @@ public class SslServer extends Component {
 	 * @throws InterruptedException 
 	 * @throws SSLException 
 	 */
-	@Handler(dynamic=true)
-	public void onInput(Input<ManagedByteBuffer> event) 
-			throws InterruptedException, SSLException {
-		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
-			final SslConn downChannel = (SslConn) LinkedIOSubchannel
-			        .lookupLinked(channel);
-			if (downChannel == null || downChannel.converterComponent() != this) {
-				continue;
-			}
-			downChannel.sendDownstream(event);
+	@Handler(dynamic = true)
+	public void onInput(Input<ManagedByteBuffer> event, IOSubchannel channel)
+	        throws InterruptedException, SSLException {
+		final SslConn downChannel = (SslConn) LinkedIOSubchannel
+		        .lookupLinked(channel);
+		if (downChannel == null || downChannel.converterComponent() != this) {
+			return;
 		}
+		downChannel.sendDownstream(event);
 	}
 
 	/**
@@ -116,17 +114,15 @@ public class SslServer extends Component {
 	 * @throws InterruptedException 
 	 * @throws SSLException 
 	 */
-	@Handler(dynamic=true)
-	public void onClosed(Closed event) 
-			throws SSLException, InterruptedException {
-		for (IOSubchannel netChannel: event.channels(IOSubchannel.class)) {
-			final SslConn downChannel = (SslConn) LinkedIOSubchannel
-			        .lookupLinked(netChannel);
-			if (downChannel == null || downChannel.converterComponent() != this) {
-				return;
-			}
-			downChannel.upstreamClosed();
+	@Handler(dynamic = true)
+	public void onClosed(Closed event, IOSubchannel netChannel)
+	        throws SSLException, InterruptedException {
+		final SslConn downChannel = (SslConn) LinkedIOSubchannel
+		        .lookupLinked(netChannel);
+		if (downChannel == null || downChannel.converterComponent() != this) {
+			return;
 		}
+		downChannel.upstreamClosed();
 	}
 	
 	/**
@@ -138,19 +134,18 @@ public class SslServer extends Component {
 	 * @throws SSLException if some SSL related problem occurs
 	 */
 	@Handler
-	public void onOutput(Output<ManagedBuffer<ByteBuffer>> event)
+	public void onOutput(Output<ManagedBuffer<ByteBuffer>> event,
+	        SslConn downChannel)
 	        throws InterruptedException, SSLException {
-		for (SslConn downChannel: event.channels(SslConn.class)) {
-			if (downChannel.converterComponent() != this) {
-				continue;
-			}
-			ByteBuffer output = event.buffer().backingBuffer().duplicate();
-			while (output.hasRemaining()) {
-				ManagedByteBuffer out = downChannel.upstreamBuffer();
-				downChannel.sslEngine.wrap(output,	out.backingBuffer());
-				downChannel.upstreamChannel().respond(new Output<>(
-						out, event.isEndOfRecord()));
-			}
+		if (downChannel.converterComponent() != this) {
+			return;
+		}
+		ByteBuffer output = event.buffer().backingBuffer().duplicate();
+		while (output.hasRemaining()) {
+			ManagedByteBuffer out = downChannel.upstreamBuffer();
+			downChannel.sslEngine.wrap(output, out.backingBuffer());
+			downChannel.upstreamChannel().respond(new Output<>(
+			        out, event.isEndOfRecord()));
 		}
 	}
 
@@ -163,22 +158,20 @@ public class SslServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onClose(Close event) 
-			throws InterruptedException, SSLException {
-		for (SslConn connection: event.channels(SslConn.class)) {
-			if (connection.converterComponent() != this) {
-				continue;
-			}
-			connection.sslEngine.closeOutbound();
-			while (!connection.sslEngine.isOutboundDone()) {
-				ManagedByteBuffer feedback = connection.upstreamBuffer();
-				connection.sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
-						.backingBuffer(),feedback.backingBuffer());
-				connection.upstreamChannel()
-					.respond(new Output<>(feedback, false));
-			}
-			connection.upstreamChannel().respond(new Close());
-		}		
+	public void onClose(Close event, SslConn connection)
+	        throws InterruptedException, SSLException {
+		if (connection.converterComponent() != this) {
+			return;
+		}
+		connection.sslEngine.closeOutbound();
+		while (!connection.sslEngine.isOutboundDone()) {
+			ManagedByteBuffer feedback = connection.upstreamBuffer();
+			connection.sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
+			        .backingBuffer(), feedback.backingBuffer());
+			connection.upstreamChannel()
+			        .respond(new Output<>(feedback, false));
+		}
+		connection.upstreamChannel().respond(new Close());
 	}
 	
 	private class SslConn extends LinkedIOSubchannel {

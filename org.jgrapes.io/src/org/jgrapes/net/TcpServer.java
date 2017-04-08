@@ -290,11 +290,10 @@ public class TcpServer extends Component implements NioHandler {
 	 * @throws IOException if an error occurs
 	 */
 	@Handler
-	public void onOutput(Output<ManagedByteBuffer> event) throws IOException {
-		for (SocketConn connection: event.channels(SocketConn.class)) {
-			if (connections.contains(connection)) {
-				connection.write(event);
-			}
+	public void onOutput(Output<ManagedByteBuffer> event,
+			SocketConn connection) throws IOException {
+		if (connections.contains(connection)) {
+			connection.write(event);
 		}
 	}
 
