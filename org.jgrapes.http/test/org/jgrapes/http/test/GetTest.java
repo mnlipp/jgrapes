@@ -56,9 +56,9 @@ public class GetTest {
 		}
 
 		@RequestHandler(patterns="*://*/top/**")
-		public void getTop(GetRequest event) throws ParseException {
+		public void getTop(GetRequest event, IOSubchannel channel)
+				throws ParseException {
 			invocations += 1;
-			final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 			
 			final HttpResponse response = event.request().response().get();
 			response.setStatus(HttpStatus.OK);
@@ -76,9 +76,9 @@ public class GetTest {
 		}
 		
 		@RequestHandler(dynamic=true)
-		public void getDynamic(GetRequest event) throws ParseException {
+		public void getDynamic(GetRequest event, IOSubchannel channel)
+				throws ParseException {
 			invocations += 1;
-			final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 			
 			final HttpResponse response = event.request().response().get();
 			response.setStatus(HttpStatus.OK);

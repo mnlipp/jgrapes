@@ -122,7 +122,8 @@ public class StaticContentDispatcher extends Component {
 	}
 
 	@RequestHandler(dynamic=true)
-	public void onGet(GetRequest event) throws ParseException, IOException {
+	public void onGet(GetRequest event, IOSubchannel channel)
+			throws ParseException, IOException {
 		int prefixSegs = resourcePattern.matches(event.requestUri());
 		if (prefixSegs < 0) {
 			return;
@@ -170,7 +171,6 @@ public class StaticContentDispatcher extends Component {
 				.toInstant().with(ChronoField.NANO_OF_SECOND, 0);
 		Optional<Instant> modifiedSince = event.request()
 				.findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
-		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		if (modifiedSince.isPresent() 
 				&& !lastModified.isAfter(modifiedSince.get())) {
 			response.setStatus(HttpStatus.NOT_MODIFIED);

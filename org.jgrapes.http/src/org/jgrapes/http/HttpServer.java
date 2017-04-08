@@ -227,8 +227,8 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onResponse(Response event) throws InterruptedException {
-		HttpConn downChannel = event.firstChannel(HttpConn.class);
+	public void onResponse(Response event, HttpConn downChannel)
+			throws InterruptedException {
 		final IOSubchannel netChannel = downChannel.upstreamChannel();
 		final ServerEngine<HttpRequest,HttpResponse> engine 
 			= downChannel.engine;
@@ -306,10 +306,9 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onRequestCompleted(Request.Completed event)
+	public void onRequestCompleted(
+			Request.Completed event, IOSubchannel channel)
 	        throws InterruptedException {
-		IOSubchannel channel = event.event()
-		        .firstChannel(IOSubchannel.class);
 		final Request requestEvent = event.event();
 		final HttpResponse response 
 			= requestEvent.request().response().get();
@@ -353,12 +352,12 @@ public class HttpServer extends Component {
 	 * @throws ParseException if the request contains illegal header fields
 	 */
 	@Handler(priority = Integer.MIN_VALUE)
-	public void onRequest(Request event) throws ParseException {
+	public void onRequest(Request event, IOSubchannel channel)
+			throws ParseException {
 		if (providedFallbacks == null
 		        || !providedFallbacks.contains(event.getClass())) {
 			return;
 		}
-		final IOSubchannel channel = event.firstChannel(IOSubchannel.class);
 		
 		final HttpResponse response = event.request().response().get();
 		response.setStatus(HttpStatus.NOT_FOUND);

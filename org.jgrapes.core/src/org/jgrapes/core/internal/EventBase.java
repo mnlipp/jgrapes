@@ -112,20 +112,6 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	}
 	
 	/**
-	 * Look through the event'channels and return the first
-	 * (and usually only) channel of given type.
-	 * 
-	 * @param <C> the given type's class
-	 * @param type the class to look for
-	 * @return the channel or {@code null}
-	 */
-	public <C> C firstChannel(Class<C> type) {
-		return Arrays.stream(channels)
-				.filter(c -> type.isAssignableFrom(c.getClass()))
-				.map(c -> type.cast(c)).findFirst().get();
-	}
-	
-	/**
 	 * Sets the channels that the event is fired on if no channels
 	 * are specified explicitly when firing the event
 	 * (see {@link org.jgrapes.core.Manager#fire(Event, Channel...)}).
