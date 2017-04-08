@@ -119,12 +119,19 @@ public interface Manager extends Iterable<ComponentType> {
 	<T> Event<T> fire(Event<T> event, Channel... channels);
 
 	/**
-	 * Adds a handler for the given mathod with the given scope
+	 * Adds a handler for the given method with the given scope
 	 * and priority.
+	 * 
+	 * This method is usually not invoked directly. Rather, a {@link
+	 * org.jgrapes.core.annotation.HandlerDefinition.Evaluator} provides
+	 * `add(...)` methods that evaluate the required `method` and
+	 * `scope` arguments from easier to provide arguments and then
+	 * call this method.
 	 * 
 	 * @param method the method to invoke 
 	 * @param scope the handler scope to be used for matching events
 	 * @param priority the priority of the handler
+	 * @see org.jgrapes.core.annotation.Handler.Evaluator#add 
 	 */
 	void addHandler(Method method, HandlerScope scope, int priority);
 	

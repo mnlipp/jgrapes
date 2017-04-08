@@ -46,8 +46,8 @@ import org.jgrapes.core.internal.Common;
 /**
  * This is the basic, general purpose handler annotation provided as part of the
  * core package. The annotated method is invoked for events that have a type (or
- * name) matching the given events (or namedEvents) parameter and that are fired
- * on the given channels (or namedChannels).
+ * name) matching the given `events` (or `namedEvents`) parameter and that 
+ * are fired on the given `channels` (or `namedChannels`).
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)

@@ -17,8 +17,11 @@
  */
 
 /**
- * This package defines the interfaces and classes that provide
+ * Defines the interfaces and classes that provide
  * the core functionality of the JGrapes event driven component framework.
+ * 
+ * Components
+ * ----------
  * 
  * A JGrapes application consists of a tree of components that interact
  * using events.
@@ -44,6 +47,33 @@
  * for sending and handling events
  * ({@link org.jgrapes.core.Manager#fire(Event, Channel...)},
  * {@link org.jgrapes.core.Manager#addHandler(Method, HandlerScope, int)}).
+ * 
+ * Event Handlers
+ * --------------
+ * 
+ * Event handlers are methods which are invoked by the framework.
+ * These method have no return type (`void`) and can have zero to
+ * two parameters. If specified, the first parameter must be of type
+ * {@link org.jgrapes.core.Event} (or, of course, a type derived from `
+ * Event`). The purpose of the second (optional) parameter will be 
+ * explained in the next section.
+ * 
+ * Event handlers are usually registered with the framework using
+ * an annotation. The standard annotation for registering event handlers
+ * is {@link org.jgrapes.core.annotation.Handler}. See its definition
+ * for usage examples. If special needs arise,
+ * other annotations for registering handlers may be defined using the 
+ * {@link org.jgrapes.core.annotation.HandlerDefinition}.
+ * 
+ * If the information required for using the handler annotation is not 
+ * (completely) available at compile time, handler methods can also be added
+ * at runtime using
+ * {@link org.jgrapes.core.Manager#addHandler(Method, HandlerScope, int)}.
+ * 
+ * Channels
+ * --------
+ * 
+ * ...
  * 
  * Logging
  * -------

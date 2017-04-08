@@ -32,10 +32,12 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
 
 /**
- * This annotation marks some other annotation (a.k.a the handler annotation) 
- * as an annotation that can be used to mark a method as a handler. 
- * The annotation must specify an {@link Evaluator} that can be used to access
- * the properties of the handler annotation in a uniform way. 
+ * This annotation tags some other annotation as a handler annotation. 
+ * The tagged annotation can then be used to mark a method as a handler.
+ *  
+ * Every handler definition annotation must provide an {@link Evaluator} 
+ * to allow access to the properties of the handler annotation in a 
+ * uniform way. 
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
@@ -50,8 +52,8 @@ public @interface HandlerDefinition {
 	Class<? extends Evaluator> evaluator();
 
 	/**
-	 * This interface allows access to the properties defined by
-	 * any handler annotation in a uniform way. Handler annotations
+	 * This interface allows access to the properties defined by arbitrary
+	 * handler annotations in a uniform way. Handler annotations
 	 * must specify the scope of a handler, i.e. for which events and
 	 * channels the handler should be invoked, and the priority of
 	 * the handler.  
