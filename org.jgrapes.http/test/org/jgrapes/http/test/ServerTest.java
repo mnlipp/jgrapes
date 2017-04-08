@@ -42,6 +42,7 @@ import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.NioDispatcher;
+import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Ready;
@@ -88,7 +89,9 @@ public class ServerTest {
 			Channel httpTransport = new NamedChannel("httpTransport");
 
 			// Create a TCP server for SSL
-			TcpServer securedNetwork = attach(new TcpServer());
+			TcpServer securedNetwork = attach(new TcpServer()
+					.setBacklog(3000)
+					.setConnectionLimiter(new PermitsPool(50)));
 			attach(new SslServer(httpTransport, securedNetwork, sslContext));
 
 			// Create an HTTP server as converter between transport and application
