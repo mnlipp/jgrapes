@@ -147,10 +147,8 @@ public class HttpServer extends Component {
 	 *            the accepted event
 	 */
 	@Handler(dynamic=true)
-	public void onAccepted(Accepted event) {
-		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
-			new HttpConn(channel);
-		}
+	public void onAccepted(Accepted event, IOSubchannel channel) {
+		new HttpConn(channel);
 	}
 
 	/**
@@ -162,17 +160,15 @@ public class HttpServer extends Component {
 	 * @throws ProtocolException if a protocol exception occurs
 	 */
 	@Handler(dynamic=true)
-	public void onInput(Input<ManagedByteBuffer> event)
+	public void onInput(Input<ManagedByteBuffer> event, IOSubchannel netChannel)
 		throws ProtocolException {
-		for (IOSubchannel netChannel: event.channels(IOSubchannel.class)) {
-			final HttpConn httpConn = (HttpConn) LinkedIOSubchannel
-			        .lookupLinked(netChannel);
-			if (httpConn == null 
-					|| httpConn.converterComponent() != this) {
-				return;
-			}
-			httpConn.handleInput(event);
+		final HttpConn httpConn 
+			= (HttpConn) LinkedIOSubchannel.lookupLinked(netChannel);
+		if (httpConn == null 
+				|| httpConn.converterComponent() != this) {
+			return;
 		}
+		httpConn.handleInput(event);
 	}
 
 	/**
@@ -280,11 +276,9 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onOutput(Output<ManagedBuffer<?>> event)
+	public void onOutput(Output<ManagedBuffer<?>> event, HttpConn downChannel)
 	        throws InterruptedException {
-		for (HttpConn downChannel: event.channels(HttpConn.class)) {
-			downChannel.sendUpstream(event);
-		}
+		downChannel.sendUpstream(event);
 	}
 
 	/**
@@ -296,10 +290,9 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onClose(Close event) throws InterruptedException {
-		HttpConn downChannel = event.firstChannel(HttpConn.class);
+	public void onClose(Close event, HttpConn downChannel) 
+			throws InterruptedException {
 		final IOSubchannel netChannel = downChannel.upstreamChannel();
-
 		netChannel.respond(new Close());
 	}
 
@@ -343,9 +336,7 @@ public class HttpServer extends Component {
 	 * @param event the event
 	 */
 	@Handler(priority = Integer.MIN_VALUE)
-	public void onOptions(OptionsRequest event) {
-		IOSubchannel channel = event.firstChannel(IOSubchannel.class);
-		
+	public void onOptions(OptionsRequest event, IOSubchannel channel) {
 		if (event.requestUri() == HttpRequest.ASTERISK_REQUEST) {
 			HttpResponse response = event.request().response().get();
 			response.setStatus(HttpStatus.OK);
