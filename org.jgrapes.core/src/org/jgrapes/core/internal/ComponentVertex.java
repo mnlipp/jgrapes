@@ -50,8 +50,6 @@ import org.jgrapes.core.events.Detached;
  * alternative for implementing components with an independent base class,
  * the derived class {@link org.jgrapes.core.internal.ComponentProxy} can be
  * used. 
- * 
- * @author Michael N. Lipp
  */
 public abstract class ComponentVertex implements Manager {
 

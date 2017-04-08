@@ -33,7 +33,6 @@ import org.jgrapes.net.events.Ready;
 import static org.junit.Assert.fail;
 
 /**
- * @author Michael N. Lipp
  *
  */
 public class BasicTestServer extends Component {

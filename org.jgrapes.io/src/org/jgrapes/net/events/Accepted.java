@@ -26,8 +26,6 @@ import org.jgrapes.io.events.Opened;
 
 /**
  * This event signals that a new connection has been made by a client.
- * 
- * @author Michael N. Lipp
  */
 public class Accepted extends Opened {
 

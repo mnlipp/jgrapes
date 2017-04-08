@@ -23,8 +23,6 @@ import org.jgrapes.core.Event;
 /**
  * This event signals that an I/O resource has successfully been opened
  * (usually in response to some ...Open event).
- * 
- * @author Michael N. Lipp
  */
 public class Opened extends Event<Void> {
 

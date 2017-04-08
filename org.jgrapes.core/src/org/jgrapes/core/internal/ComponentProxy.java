@@ -30,8 +30,6 @@ import org.jgrapes.core.annotation.Handler;
  * The ComponentProxy is a special ComponentVertex that references the
  * object implementing the Component interface (instead of being
  * its base class).
- * 
- * @author Michael N. Lipp
  */
 public class ComponentProxy extends ComponentVertex {
 

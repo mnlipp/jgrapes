@@ -22,7 +22,6 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 /**
- * @author Michael N. Lipp
  *
  */
 public class FileOpened extends Opened {

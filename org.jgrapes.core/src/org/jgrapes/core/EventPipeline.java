@@ -28,8 +28,6 @@ import org.jgrapes.core.Components.IdInfoProvider;
  * An event pipeline is run by a single thread from a thread pool. Adding
  * several events to the same pipeline therefore ensures that they are executed
  * in sequence.
- * 
- * @author Michael N. Lipp
  */
 public interface EventPipeline extends IdInfoProvider {
 

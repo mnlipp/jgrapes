@@ -30,8 +30,6 @@ import org.jgrapes.core.EventPipeline;
  * an {@code InternalEventPipeline} is not automatically an
  * {@code EventPipeline} (but it's a bit more efficient with regards to the
  * {@code add} method). 
- * 
- * @author Michael N. Lipp
  */
 interface InternalEventPipeline extends IdInfoProvider {
 

@@ -28,8 +28,6 @@ import org.jgrapes.io.FileStorage;
  * Causes the {@link FileStorage} component to write the data from all
  * {@link Output} events on the channel that this event is fired on to a file
  * until an event with the end of record flag set is sent on the channel.
- * 
- * @author Michael N. Lipp
  */
 public class SaveOutput extends Event<Void> {
 

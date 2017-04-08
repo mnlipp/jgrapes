@@ -33,8 +33,6 @@ import org.jgrapes.io.events.Output;
  * An {@link OutputStream} that is backed by {@link ByteBuffer}s obtained from a
  * queue. When a byte buffer is full, a {@link Output} event (default) is
  * generated and a new buffer is fetched from the queue.
- * 
- * @author Michael N. Lipp
  *
  */
 public class ByteBufferOutputStream extends OutputStream {

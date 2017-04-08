@@ -28,8 +28,6 @@ import org.jgrapes.io.util.ManagedBuffer;
  * from some source. The data is kept in a buffer. The buffer is returned to the
  * pool upon successful processing of the event. This type of event is commonly
  * used for data flowing into the application.
- * 
- * @author Michael N. Lipp
  */
 public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
 

@@ -53,8 +53,6 @@ import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
  * A component that reads from or writes to a file.
- * 
- * @author Michael N. Lipp
  */
 public class FileStorage extends Component {
 

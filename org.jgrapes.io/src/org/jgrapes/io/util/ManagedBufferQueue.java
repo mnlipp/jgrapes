@@ -26,8 +26,6 @@ import java.util.concurrent.BlockingQueue;
 
 /**
  * A queue based buffer pool.
- * 
- * @author Michael N. Lipp
  */
 public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	implements BufferCollector {

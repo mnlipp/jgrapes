@@ -22,8 +22,6 @@ import org.jgrapes.core.Event;
 
 /**
  * Is fired after all data belonging to a response has been sent. 
- * 
- * @author Michael N. Lipp
  */
 public class EndOfRequest extends Event<Void> {
 

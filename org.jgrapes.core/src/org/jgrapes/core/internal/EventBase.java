@@ -45,8 +45,6 @@ import org.jgrapes.core.Manager;
  * 
  * @param <T> the result type of the event. Use {@link Void} if handling
  * the event does not produce a result
- * 
- * @author Michael N. Lipp
  */
 public abstract class EventBase<T> implements Eligible, Future<T> {
 

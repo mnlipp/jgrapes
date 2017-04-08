@@ -26,8 +26,6 @@ import org.jgrapes.core.Event;
  * If a pipeline has been associated with the current thread, forward any
  * added event to the associated pipeline. Else forward added events to
  * a fall back pipeline.
- * 
- * @author Michael N. Lipp
  */
 class FeedBackPipelineFilter implements InternalEventPipeline {
 

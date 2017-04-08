@@ -26,8 +26,8 @@ import java.util.logging.Logger;
 import org.jgrapes.core.ComponentType;
 
 /**
- * @author Michael N. Lipp
- *
+ * A registry for generators. Used to track generators and determine
+ * whether the application has stopped.
  */
 public class GeneratorRegistry {
 

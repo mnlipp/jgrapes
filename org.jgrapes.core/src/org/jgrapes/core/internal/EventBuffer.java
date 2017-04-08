@@ -25,8 +25,6 @@ import org.jgrapes.core.events.Start;
 /**
  * The event buffer is used before a tree has been started. It simply
  * buffers all events until a {@link Start} event is added.
- * 
- * @author Michael N. Lipp
  */
 public class EventBuffer implements InternalEventPipeline {
 	

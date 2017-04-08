@@ -26,7 +26,7 @@ import org.jgrapes.core.Event;
 import org.jgrapes.io.NioHandler;
 
 /**
- * @author Michael N. Lipp
+ * Signal a registration request to a registry.
  */
 public class NioRegistration extends Event<NioRegistration.Registration> {
 

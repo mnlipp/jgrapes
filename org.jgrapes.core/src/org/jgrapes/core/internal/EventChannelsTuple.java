@@ -27,8 +27,6 @@ import org.jgrapes.core.Channel;
  * number of channels. Instances represent a particular event being fired
  * on several channels. They are used e.g. to queue the information
  * about an event being fired on some channels.
- * 
- * @author Michael N. Lipp
  */
 public class EventChannelsTuple {
 	public EventBase<?> event;		

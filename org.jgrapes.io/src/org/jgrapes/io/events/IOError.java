@@ -23,8 +23,6 @@ import org.jgrapes.core.events.Error;
 
 /**
  * A special kind of {@link Error} that signals problems during IO.
- * 
- * @author Michael N. Lipp
  */
 public class IOError extends Error {
 

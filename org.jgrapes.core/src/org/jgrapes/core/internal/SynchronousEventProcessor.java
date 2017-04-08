@@ -22,7 +22,6 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 
 /**
- * @author Michael N. Lipp
  *
  */
 class SynchronousEventProcessor extends EventProcessor {

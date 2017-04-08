@@ -16,7 +16,5 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * @author Michael N. Lipp
- *
  */
 package org.jgrapes.io.test.net;

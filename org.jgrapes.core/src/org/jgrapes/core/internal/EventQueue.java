@@ -26,8 +26,6 @@ import org.jgrapes.core.Channel;
 /**
  * This class provides a queue for events and the channels that they have
  * been fired on.
- * 
- * @author Michael N. Lipp
  */
 @SuppressWarnings("serial")
 class EventQueue extends ArrayDeque<EventChannelsTuple> {

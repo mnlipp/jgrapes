@@ -29,8 +29,6 @@ import org.jgrapes.core.HandlerScope;
 /**
  * An variant of handler reference that provides better debug information
  * (at the cost of some cpu cycles).
- * 
- * @author Michael N. Lipp
  *
  */
 class VerboseHandlerReference extends HandlerReference {

@@ -29,7 +29,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 /**
- * @author Michael N. Lipp
  *
  */
 public class ComponentContextTest {

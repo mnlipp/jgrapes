@@ -32,7 +32,6 @@ import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.TcpServer;
 
 /**
- * @author Michael N. Lipp
  *
  */
 public class EchoServer extends Component {

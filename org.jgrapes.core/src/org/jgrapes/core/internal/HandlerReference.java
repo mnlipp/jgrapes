@@ -31,8 +31,6 @@ import org.jgrapes.core.HandlerScope;
 
 /**
  * A reference to a method that handles an event.
- * 
- * @author Michael N. Lipp
  */
 class HandlerReference implements Comparable<HandlerReference> {
 

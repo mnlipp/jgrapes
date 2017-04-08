@@ -25,8 +25,6 @@ import org.jgrapes.core.Event;
  * An event that signals the start of the application.
  * This event must be fired in order to start the dispatching of
  * events to components.
- * 
- * @author Michael N. Lipp
  */
 public class Start extends Event<Void> {
 	

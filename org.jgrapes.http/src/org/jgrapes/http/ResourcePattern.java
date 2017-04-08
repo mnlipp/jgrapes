@@ -66,8 +66,6 @@ import java.util.regex.Pattern;
  *    prefix part and the rest. The number of prefix segments is the
  *    value returned by the match methods.
  *
- * 
- * @author Michael N. Lipp
  */
 public class ResourcePattern {
 

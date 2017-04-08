@@ -21,7 +21,6 @@ package org.jgrapes.core.internal;
 import org.jgrapes.core.ComponentType;
 
 /**
- * @author Michael N. Lipp
  *
  */
 public interface ExecutingEventPipeline extends InternalEventPipeline {

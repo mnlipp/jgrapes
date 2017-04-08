@@ -50,8 +50,6 @@ import org.jgrapes.http.events.Request;
  * This annotation marks a method as handler for events. The method is 
  * invoked for events that have a type derived from {@link Request} and
  * are matched by one of the specified {@link ResourcePattern}s.
- * 
- * @author Michael N. Lipp
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
@@ -102,8 +100,6 @@ public @interface RequestHandler {
 	/**
 	 * This class provides the {@link Evaluator} for the {@link RequestHandler}
 	 * annotation. It implements the behavior as described for the annotation.
-	 * 
-	 * @author Michael N. Lipp
 	 */
 	public static class Evaluator implements HandlerDefinition.Evaluator {
 

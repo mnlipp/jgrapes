@@ -33,7 +33,6 @@ import org.jgrapes.core.annotation.Handler;
  * A helper component that can be used to wait for the occurrence of 
  * an event.
  * 
- * @author Michael N. Lipp
  */
 public class WaitForTests extends Component implements Future<Event<?>> {
 

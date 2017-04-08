@@ -47,7 +47,6 @@ import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.StreamFile;
 
 /**
- * @author Michael N. Lipp
  */
 public class StaticContentDispatcher extends Component {
 

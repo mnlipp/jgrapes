@@ -22,7 +22,6 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jgrapes.core.Event;
 
 /**
- * @author Michael N. Lipp
  *
  */
 public class Response extends Event<Void> {

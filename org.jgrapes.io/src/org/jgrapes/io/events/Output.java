@@ -30,8 +30,6 @@ import org.jgrapes.io.util.ManagedCharBuffer;
  * forwarded to some destination. The data is kept in a buffer. The buffer is
  * returned to the pool upon successful processing of the event. This type of
  * event is commonly used for data flowing out of the application.
- * 
- * @author Michael N. Lipp
  */
 public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 

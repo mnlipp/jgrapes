@@ -52,8 +52,6 @@ import org.jgrapes.io.util.ManagedByteBuffer;
  * <P>
  * An I/O subchannel also has an associated buffer pool. Buffers from this pool
  * may be used for read and write events.
- * 
- * @author Michael N. Lipp
  */
 public interface IOSubchannel extends Channel {
 

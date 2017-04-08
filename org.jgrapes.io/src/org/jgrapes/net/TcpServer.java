@@ -61,8 +61,6 @@ import org.jgrapes.net.events.Ready;
  * address is {@code null}, address and port are automatically assigned.
  * <P>
  * The end of record flag is not used by the server.
- * 
- * @author Michael N. Lipp
  */
 public class TcpServer extends Component implements NioHandler {
 
@@ -361,9 +359,6 @@ public class TcpServer extends Component implements NioHandler {
 	
 	/**
 	 * The internal representation of a connected client. 
-	 * 
-	 * @author Michael N. Lipp
-	 *
 	 */
 	public class SocketConn implements NioHandler, IOSubchannel {
 

@@ -24,8 +24,6 @@ import org.jgrapes.core.Event;
 /**
  * An event that causes an application to shut down. All components that
  * generate events should stop doing so after handling this event.
- * 
- * @author Michael N. Lipp
  */
 public class Stop extends Event<Void> {
 

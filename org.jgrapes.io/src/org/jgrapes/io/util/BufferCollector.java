@@ -20,8 +20,6 @@ package org.jgrapes.io.util;
 
 /**
  * Defines the method of a buffer collector.
- * 
- * @author Michael N. Lipp
  */
 public interface BufferCollector {
 

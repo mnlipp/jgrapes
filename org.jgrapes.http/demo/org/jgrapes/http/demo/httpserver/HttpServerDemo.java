@@ -18,9 +18,12 @@
 
 package org.jgrapes.http.demo.httpserver;
 
+import java.awt.event.InputEvent;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -29,30 +32,108 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
+import org.jdrupes.httpcodec.Decoder;
+import org.jdrupes.httpcodec.ProtocolException;
+import org.jdrupes.httpcodec.protocols.http.HttpField;
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
+import org.jdrupes.httpcodec.types.MediaType;
+import org.jdrupes.httpcodec.util.FormUrlDecoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.NamedChannel;
+import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.StaticContentDispatcher;
+import org.jgrapes.http.annotation.RequestHandler;
+import org.jgrapes.http.events.EndOfRequest;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.io.FileStorage;
+import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioDispatcher;
+import org.jgrapes.io.events.Input;
+import org.jgrapes.io.util.ManagedBuffer;
+import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
 
 /**
- * @author Michael N. Lipp
  *
  */
 public class HttpServerDemo extends Component {
 
+	private class FormContext {
+		public FormUrlDecoder fieldDecoder = new FormUrlDecoder();
+	}
+	
+	private Map<IOSubchannel, FormContext> formContexts 
+		= Collections.synchronizedMap(new WeakHashMap<>());
+	
+	@RequestHandler(patterns="/form")
+	public void onPost(PostRequest request) {
+		HttpResponse response = request.request().response().get();
+		for (IOSubchannel channel: request.channels(IOSubchannel.class)) {
+			formContexts.put(channel, new FormContext());
+		}		
+	}
+	
+	@Handler
+	public void onInput(Input<ManagedByteBuffer> event) {
+		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
+			FormContext ctx = formContexts.get(channel);
+			ctx.fieldDecoder.addData(event.buffer().backingBuffer());
+		}
+//		while (true) {
+//		out.clear();
+//		Decoder.Result<?> decoderResult = null;
+//		try {
+//			decoderResult = engine.decode(in, out, false);
+//		} catch (ProtocolException e) {
+//			return;
+//		}
+//		out.flip();
+//		fieldDecoder.addData(out);
+//		if (decoderResult.isOverflow()) {
+//			continue;
+//		}
+//		if (decoderResult.isUnderflow()) {
+//			in.clear();
+//			channel.read(in);
+//			in.flip();
+//			continue;
+//		}
+//		break;
+//	}
+//	response.setStatus(HttpStatus.OK);
+//	response.setMessageHasBody(true);
+//	response.setField(HttpField.CONTENT_TYPE,
+//			MediaType.builder().setType("text", "plain")
+//			.setParameter("charset", "utf-8").build());
+//	String data = "First name: " + fieldDecoder.fields().get("firstname")
+//	        + "\r\n" + "Last name: "
+//	        + fieldDecoder.fields().get("lastname");
+//	ByteBuffer body = ByteBuffer.wrap(data.getBytes("utf-8"));
+//	sendResponse(response, body, true);
+	}
+
+	@Handler
+	public void onEndOfRequest(EndOfRequest event) {
+		for (IOSubchannel channel: event.channels(IOSubchannel.class)) {
+			FormContext ctx = formContexts.get(channel);
+			int i =0;
+		}
+	}
+	
 	/**
 	 * @param args
 	 * @throws IOException 
@@ -98,7 +179,7 @@ public class HttpServerDemo extends Component {
 
 		// Create an HTTP server as converter between transport and application
 		// layer.
-		app.attach(new HttpServer(app.channel(), 
+		app.attach(new HttpServer(app, 
 		        httpTransport, GetRequest.class, PostRequest.class));
 		
 		// Build application layer

@@ -22,7 +22,6 @@ import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
 
 /**
- * @author Michael N. Lipp
  *
  */
 public class ConnectRequest extends Request {

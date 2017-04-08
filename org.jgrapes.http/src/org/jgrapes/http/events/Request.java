@@ -31,7 +31,6 @@ import org.jgrapes.core.internal.Common;
 import org.jgrapes.http.ResourcePattern;
 
 /**
- * @author Michael N. Lipp
  *
  */
 public class Request extends Event<Void> {

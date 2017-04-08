@@ -34,8 +34,6 @@ import org.jgrapes.io.events.NioRegistration;
  * A helper component that provides the central hub for non blocking
  * I/O components. Exactly one {@code NioDispatcher} must exist in
  * any tree with {@link NioHandler} components. 
- * 
- * @author Michael N. Lipp
  */
 public class NioDispatcher extends Component implements Runnable {
 

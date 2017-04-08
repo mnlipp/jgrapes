@@ -25,8 +25,6 @@ import org.jgrapes.core.Event;
  * executing a handler. It is fired by the default implementation of
  * {@link org.jgrapes.core.internal.EventBase#handlingError} in
  * {@link Event}.
- * 
- * @author Michael N. Lipp
  */
 public class HandlingError extends Error {
 

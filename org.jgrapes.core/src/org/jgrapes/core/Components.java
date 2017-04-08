@@ -164,8 +164,6 @@ public class Components {
 	 * Implemented by classes that want a special class (scope) to be used
 	 * for looking up their id or want to map to another object for getting the
 	 * id (see {@link Components#objectId(Object)}).
-	 * 
-	 * @author Michael N. Lipp
 	 */
 	public static interface IdInfoProvider {
 		

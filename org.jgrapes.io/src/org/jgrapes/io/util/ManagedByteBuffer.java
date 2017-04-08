@@ -31,8 +31,6 @@ import java.nio.ShortBuffer;
  * A specialized {@code ManagedBuffer<ByteBuffer>} that provides
  * the same methods as {@code ByteBuffer} by delegating to the
  * backing buffer.
- * 
- * @author Michael N. Lipp
  */
 public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 

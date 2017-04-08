@@ -27,8 +27,6 @@ import org.jgrapes.core.Event;
  * Causes the content of a file to be streamed as a sequence of {@link Output}
  * events (terminated by an event with the end of record flag set) on the 
  * channel that this event is fired on.
- * 
- * @author Michael N. Lipp
  */
 public class StreamFile extends Event<Void> {
 

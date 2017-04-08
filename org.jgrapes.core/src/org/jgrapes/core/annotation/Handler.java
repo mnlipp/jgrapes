@@ -48,8 +48,6 @@ import org.jgrapes.core.internal.Common;
  * core package. The annotated method is invoked for events that have a type (or
  * name) matching the given events (or namedEvents) parameter and that are fired
  * on the given channels (or namedChannels).
- * 
- * @author Michael N. Lipp
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
@@ -117,8 +115,6 @@ public @interface Handler {
 	 * This class provides the {@link Evaluator} for the 
 	 * {@link Handler} annotation provided by the core package. It 
 	 * implements the behavior as described for the annotation. 
-	 * 
-	 * @author Michael N. Lipp
 	 */
 	public static class Evaluator implements HandlerDefinition.Evaluator {
 
@@ -270,8 +266,6 @@ public @interface Handler {
 		
 		/**
 		 * The handler scope implementation used by the evaluator.
-		 * 
-		 * @author Michael N. Lipp
 		 */
 		private static class Scope implements HandlerScope {
 

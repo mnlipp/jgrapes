@@ -22,8 +22,6 @@ import org.jgrapes.core.Event;
 
 /**
  * This event signals that an error occurred while processing an event.
- * 
- * @author Michael N. Lipp
  */
 public class Error extends Event<Void> {
 

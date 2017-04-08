@@ -24,8 +24,6 @@ import java.util.Arrays;
  * A class for events identified by name. Instances of this class 
  * represent events that use their name for matching 
  * events with handlers.
- * 
- * @author Michael N. Lipp
  */
 public final class NamedEvent<T> extends Event<T> {
 

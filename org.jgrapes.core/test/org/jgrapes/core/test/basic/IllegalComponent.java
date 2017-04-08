@@ -19,7 +19,6 @@ package org.jgrapes.core.test.basic;
 import org.jgrapes.core.ComponentType;
 
 /**
- * @author mnl
  *
  */
 public class IllegalComponent implements ComponentType {

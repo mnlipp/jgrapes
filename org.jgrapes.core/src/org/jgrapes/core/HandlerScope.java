@@ -25,8 +25,6 @@ import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
  * event fired on one of the given channels is handled by a handler.
  * Instances of this interface are provided by the 
  * {@link Evaluator}s for handler annotations.
- * 
- * @author Michael N. Lipp
  */
 public interface HandlerScope {
 

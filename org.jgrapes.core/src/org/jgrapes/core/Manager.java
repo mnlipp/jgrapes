@@ -33,7 +33,6 @@ import java.util.concurrent.ExecutorService;
  * get an associated <code>Manager</code> assigned to their annotated 
  * attribute.
  * 
- * @author Michael N. Lipp
  * @see ComponentType
  */
 public interface Manager extends Iterable<ComponentType> {

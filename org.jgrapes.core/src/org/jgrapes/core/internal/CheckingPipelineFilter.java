@@ -28,8 +28,6 @@ import org.jgrapes.core.EventPipeline;
  * channels are specified, use the channels associated with the event.
  * If there are no channels associated with the event, use the broadcast 
  * channel.
- * 
- * @author Michael N. Lipp
  */
 class CheckingPipelineFilter implements EventPipeline, IdInfoProvider {
 

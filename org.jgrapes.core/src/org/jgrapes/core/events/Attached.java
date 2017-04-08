@@ -25,8 +25,6 @@ import org.jgrapes.core.internal.Common;
 
 /**
  * Signals the addition of a component (or subtree) to the component tree.
- * 
- * @author Michael N. Lipp
  */
 public class Attached extends Event<Void> {
 

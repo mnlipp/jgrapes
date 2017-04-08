@@ -24,8 +24,6 @@ import org.jgrapes.core.Event;
  * This event causes the initiator of an I/O channel to shutdown the
  * channel. After terminating any outstanding actions, the initiator
  * must send a {@link Closed} event on the I/O channel.
- * 
- * @author Michael N. Lipp
  */
 public class Close extends Event<Void> {
 

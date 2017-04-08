@@ -22,8 +22,6 @@ import org.jgrapes.core.CompletedEvent;
 
 /**
  * The event that signals the completion of the {@link Start} event.
- * 
- * @author Michael N. Lipp
  */
 public class Started extends CompletedEvent<Start> {
 

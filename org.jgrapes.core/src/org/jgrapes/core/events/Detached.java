@@ -27,8 +27,6 @@ import org.jgrapes.core.internal.Common;
  * Signals the removal of a component from the component tree.
  * This event is fired on both the node's and the parent's
  * channels.
- * 
- * @author Michael N. Lipp
  */
 public class Detached extends Event<Void> {
 

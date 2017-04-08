@@ -28,8 +28,7 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.NamedChannel;
 
 /**
- * @author Michael N. Lipp
- *
+ * Common utility methods.
  */
 public class Common {
 

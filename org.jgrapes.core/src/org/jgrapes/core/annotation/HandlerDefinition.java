@@ -34,8 +34,6 @@ import org.jgrapes.core.HandlerScope;
  * as an annotation that can be used to mark a method as a handler. 
  * The annotation must specify an {@link Evaluator} that can be used to access
  * the properties of the handler annotation in a uniform way. 
- * 
- * @author Michael N. Lipp
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
@@ -55,8 +53,6 @@ public @interface HandlerDefinition {
 	 * must specify the scope of a handler, i.e. for which events and
 	 * channels the handler should be invoked, and the priority of
 	 * the handler.  
-	 * 
-	 * @author Michael N. Lipp
 	 */
 	public interface Evaluator {
 

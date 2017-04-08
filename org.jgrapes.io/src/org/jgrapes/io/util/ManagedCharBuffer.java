@@ -27,8 +27,6 @@ import java.util.stream.IntStream;
  * A specialized {@code ManagedBuffer<CharBuffer>} that provides
  * the same methods as {@code CharBuffer} by delegating to the
  * backing buffer.
- *
- * @author Michael N. Lipp
  */
 public class ManagedCharBuffer extends ManagedBuffer<CharBuffer> {
 

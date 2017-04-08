@@ -24,8 +24,6 @@ import org.jgrapes.core.Event;
  * This event signals that an I/O subchannel will no longer be used.
  * Components that have allocated resources for that channel should
  * release them in response to receiving this event.
- * 
- * @author Michael N. Lipp
  */
 public class Closed extends Event<Void> {
 
