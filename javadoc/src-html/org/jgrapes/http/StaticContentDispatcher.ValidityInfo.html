@@ -55,83 +55,83 @@
 <span class="sourceLineNo">047</span>import org.jgrapes.io.events.StreamFile;<a name="line.47"></a>
 <span class="sourceLineNo">048</span><a name="line.48"></a>
 <span class="sourceLineNo">049</span>/**<a name="line.49"></a>
-<span class="sourceLineNo">050</span> * @author Michael N. Lipp<a name="line.50"></a>
-<span class="sourceLineNo">051</span> */<a name="line.51"></a>
-<span class="sourceLineNo">052</span>public class StaticContentDispatcher extends Component {<a name="line.52"></a>
-<span class="sourceLineNo">053</span><a name="line.53"></a>
-<span class="sourceLineNo">054</span>        private ResourcePattern resourcePattern;<a name="line.54"></a>
-<span class="sourceLineNo">055</span>        private Path contentDirectory;<a name="line.55"></a>
-<span class="sourceLineNo">056</span>        private List&lt;ValidityInfo&gt; validityInfos = new ArrayList&lt;&gt;();<a name="line.56"></a>
-<span class="sourceLineNo">057</span>        <a name="line.57"></a>
-<span class="sourceLineNo">058</span>        /**<a name="line.58"></a>
-<span class="sourceLineNo">059</span>         * @param resourcePattern the pattern that requests must match with to <a name="line.59"></a>
-<span class="sourceLineNo">060</span>         * be handled by this component <a name="line.60"></a>
-<span class="sourceLineNo">061</span>         * (see {@link ResourcePattern#matches(String, java.net.URI)})<a name="line.61"></a>
-<span class="sourceLineNo">062</span>         * @param contentDirectory the directory with content to serve <a name="line.62"></a>
-<span class="sourceLineNo">063</span>         * @see Component#Component()<a name="line.63"></a>
-<span class="sourceLineNo">064</span>         */<a name="line.64"></a>
-<span class="sourceLineNo">065</span>        public StaticContentDispatcher(String resourcePattern, <a name="line.65"></a>
-<span class="sourceLineNo">066</span>                        Path contentDirectory) {<a name="line.66"></a>
-<span class="sourceLineNo">067</span>                this(Channel.SELF, resourcePattern, contentDirectory);<a name="line.67"></a>
-<span class="sourceLineNo">068</span>        }<a name="line.68"></a>
-<span class="sourceLineNo">069</span><a name="line.69"></a>
-<span class="sourceLineNo">070</span>        /**<a name="line.70"></a>
-<span class="sourceLineNo">071</span>         * @param componentChannel<a name="line.71"></a>
-<span class="sourceLineNo">072</span>         *            this component's channel<a name="line.72"></a>
-<span class="sourceLineNo">073</span>         * @param resourcePattern the pattern that requests must match <a name="line.73"></a>
-<span class="sourceLineNo">074</span>         * in order to be handled by this component <a name="line.74"></a>
-<span class="sourceLineNo">075</span>         * (see {@link ResourcePattern#matches(String, java.net.URI)})<a name="line.75"></a>
-<span class="sourceLineNo">076</span>         * @param contentDirectory the directory with content to serve <a name="line.76"></a>
-<span class="sourceLineNo">077</span>         * @see Component#Component(Channel)<a name="line.77"></a>
-<span class="sourceLineNo">078</span>         */<a name="line.78"></a>
-<span class="sourceLineNo">079</span>        public StaticContentDispatcher(Channel componentChannel, <a name="line.79"></a>
-<span class="sourceLineNo">080</span>                        String resourcePattern, Path contentDirectory) {<a name="line.80"></a>
-<span class="sourceLineNo">081</span>                super(componentChannel);<a name="line.81"></a>
-<span class="sourceLineNo">082</span>                try {<a name="line.82"></a>
-<span class="sourceLineNo">083</span>                        this.resourcePattern = new ResourcePattern(resourcePattern);<a name="line.83"></a>
-<span class="sourceLineNo">084</span>                } catch (ParseException e) {<a name="line.84"></a>
-<span class="sourceLineNo">085</span>                        throw new IllegalArgumentException(e);<a name="line.85"></a>
-<span class="sourceLineNo">086</span>                }<a name="line.86"></a>
-<span class="sourceLineNo">087</span>                this.contentDirectory = contentDirectory;<a name="line.87"></a>
-<span class="sourceLineNo">088</span>                RequestHandler.Evaluator.add(this, "onGet", resourcePattern);<a name="line.88"></a>
-<span class="sourceLineNo">089</span>        }<a name="line.89"></a>
-<span class="sourceLineNo">090</span><a name="line.90"></a>
-<span class="sourceLineNo">091</span>        /**<a name="line.91"></a>
-<span class="sourceLineNo">092</span>         * Returns the validity infos as unmodifiable list.<a name="line.92"></a>
-<span class="sourceLineNo">093</span>         * <a name="line.93"></a>
-<span class="sourceLineNo">094</span>         * @return the validityInfos<a name="line.94"></a>
-<span class="sourceLineNo">095</span>         * @see #validityInfos()<a name="line.95"></a>
-<span class="sourceLineNo">096</span>         */<a name="line.96"></a>
-<span class="sourceLineNo">097</span>        public List&lt;ValidityInfo&gt; validityInfos() {<a name="line.97"></a>
-<span class="sourceLineNo">098</span>                return Collections.unmodifiableList(validityInfos);<a name="line.98"></a>
-<span class="sourceLineNo">099</span>        }<a name="line.99"></a>
-<span class="sourceLineNo">100</span><a name="line.100"></a>
-<span class="sourceLineNo">101</span>        /**<a name="line.101"></a>
-<span class="sourceLineNo">102</span>         * Sets validity infos for generating the `Cache-Control` (`max-age`)<a name="line.102"></a>
-<span class="sourceLineNo">103</span>         * header of the response. If the type of the resource served <a name="line.103"></a>
-<span class="sourceLineNo">104</span>         * matches an entry in the list, the entry's `maxAge` value is used <a name="line.104"></a>
-<span class="sourceLineNo">105</span>         * for generating the header. If no info matches or no infos are set, <a name="line.105"></a>
-<span class="sourceLineNo">106</span>         * a default of 600 seconds is used as time span.<a name="line.106"></a>
-<span class="sourceLineNo">107</span>         * <a name="line.107"></a>
-<span class="sourceLineNo">108</span>         * @param validityInfos the validityInfos to set<a name="line.108"></a>
-<span class="sourceLineNo">109</span>         */<a name="line.109"></a>
-<span class="sourceLineNo">110</span>        public void setValidityInfos(List&lt;ValidityInfo&gt; validityInfos) {<a name="line.110"></a>
-<span class="sourceLineNo">111</span>                this.validityInfos = validityInfos;<a name="line.111"></a>
-<span class="sourceLineNo">112</span>        }<a name="line.112"></a>
-<span class="sourceLineNo">113</span><a name="line.113"></a>
-<span class="sourceLineNo">114</span>        /**<a name="line.114"></a>
-<span class="sourceLineNo">115</span>         * Add a validity info to the list.<a name="line.115"></a>
-<span class="sourceLineNo">116</span>         * <a name="line.116"></a>
-<span class="sourceLineNo">117</span>         * @return this object for easy chaining<a name="line.117"></a>
-<span class="sourceLineNo">118</span>         * @see #validityInfos()<a name="line.118"></a>
-<span class="sourceLineNo">119</span>         */<a name="line.119"></a>
-<span class="sourceLineNo">120</span>        public StaticContentDispatcher addValidityInfo(ValidityInfo info) {<a name="line.120"></a>
-<span class="sourceLineNo">121</span>                validityInfos.add(info);<a name="line.121"></a>
-<span class="sourceLineNo">122</span>                return this;<a name="line.122"></a>
-<span class="sourceLineNo">123</span>        }<a name="line.123"></a>
-<span class="sourceLineNo">124</span><a name="line.124"></a>
-<span class="sourceLineNo">125</span>        @RequestHandler(dynamic=true)<a name="line.125"></a>
-<span class="sourceLineNo">126</span>        public void onGet(GetRequest event) throws ParseException, IOException {<a name="line.126"></a>
+<span class="sourceLineNo">050</span> */<a name="line.50"></a>
+<span class="sourceLineNo">051</span>public class StaticContentDispatcher extends Component {<a name="line.51"></a>
+<span class="sourceLineNo">052</span><a name="line.52"></a>
+<span class="sourceLineNo">053</span>        private ResourcePattern resourcePattern;<a name="line.53"></a>
+<span class="sourceLineNo">054</span>        private Path contentDirectory;<a name="line.54"></a>
+<span class="sourceLineNo">055</span>        private List&lt;ValidityInfo&gt; validityInfos = new ArrayList&lt;&gt;();<a name="line.55"></a>
+<span class="sourceLineNo">056</span>        <a name="line.56"></a>
+<span class="sourceLineNo">057</span>        /**<a name="line.57"></a>
+<span class="sourceLineNo">058</span>         * @param resourcePattern the pattern that requests must match with to <a name="line.58"></a>
+<span class="sourceLineNo">059</span>         * be handled by this component <a name="line.59"></a>
+<span class="sourceLineNo">060</span>         * (see {@link ResourcePattern#matches(String, java.net.URI)})<a name="line.60"></a>
+<span class="sourceLineNo">061</span>         * @param contentDirectory the directory with content to serve <a name="line.61"></a>
+<span class="sourceLineNo">062</span>         * @see Component#Component()<a name="line.62"></a>
+<span class="sourceLineNo">063</span>         */<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        public StaticContentDispatcher(String resourcePattern, <a name="line.64"></a>
+<span class="sourceLineNo">065</span>                        Path contentDirectory) {<a name="line.65"></a>
+<span class="sourceLineNo">066</span>                this(Channel.SELF, resourcePattern, contentDirectory);<a name="line.66"></a>
+<span class="sourceLineNo">067</span>        }<a name="line.67"></a>
+<span class="sourceLineNo">068</span><a name="line.68"></a>
+<span class="sourceLineNo">069</span>        /**<a name="line.69"></a>
+<span class="sourceLineNo">070</span>         * @param componentChannel<a name="line.70"></a>
+<span class="sourceLineNo">071</span>         *            this component's channel<a name="line.71"></a>
+<span class="sourceLineNo">072</span>         * @param resourcePattern the pattern that requests must match <a name="line.72"></a>
+<span class="sourceLineNo">073</span>         * in order to be handled by this component <a name="line.73"></a>
+<span class="sourceLineNo">074</span>         * (see {@link ResourcePattern#matches(String, java.net.URI)})<a name="line.74"></a>
+<span class="sourceLineNo">075</span>         * @param contentDirectory the directory with content to serve <a name="line.75"></a>
+<span class="sourceLineNo">076</span>         * @see Component#Component(Channel)<a name="line.76"></a>
+<span class="sourceLineNo">077</span>         */<a name="line.77"></a>
+<span class="sourceLineNo">078</span>        public StaticContentDispatcher(Channel componentChannel, <a name="line.78"></a>
+<span class="sourceLineNo">079</span>                        String resourcePattern, Path contentDirectory) {<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                super(componentChannel);<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                try {<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                        this.resourcePattern = new ResourcePattern(resourcePattern);<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                } catch (ParseException e) {<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                        throw new IllegalArgumentException(e);<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                }<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                this.contentDirectory = contentDirectory;<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                RequestHandler.Evaluator.add(this, "onGet", resourcePattern);<a name="line.87"></a>
+<span class="sourceLineNo">088</span>        }<a name="line.88"></a>
+<span class="sourceLineNo">089</span><a name="line.89"></a>
+<span class="sourceLineNo">090</span>        /**<a name="line.90"></a>
+<span class="sourceLineNo">091</span>         * Returns the validity infos as unmodifiable list.<a name="line.91"></a>
+<span class="sourceLineNo">092</span>         * <a name="line.92"></a>
+<span class="sourceLineNo">093</span>         * @return the validityInfos<a name="line.93"></a>
+<span class="sourceLineNo">094</span>         * @see #validityInfos()<a name="line.94"></a>
+<span class="sourceLineNo">095</span>         */<a name="line.95"></a>
+<span class="sourceLineNo">096</span>        public List&lt;ValidityInfo&gt; validityInfos() {<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                return Collections.unmodifiableList(validityInfos);<a name="line.97"></a>
+<span class="sourceLineNo">098</span>        }<a name="line.98"></a>
+<span class="sourceLineNo">099</span><a name="line.99"></a>
+<span class="sourceLineNo">100</span>        /**<a name="line.100"></a>
+<span class="sourceLineNo">101</span>         * Sets validity infos for generating the `Cache-Control` (`max-age`)<a name="line.101"></a>
+<span class="sourceLineNo">102</span>         * header of the response. If the type of the resource served <a name="line.102"></a>
+<span class="sourceLineNo">103</span>         * matches an entry in the list, the entry's `maxAge` value is used <a name="line.103"></a>
+<span class="sourceLineNo">104</span>         * for generating the header. If no info matches or no infos are set, <a name="line.104"></a>
+<span class="sourceLineNo">105</span>         * a default of 600 seconds is used as time span.<a name="line.105"></a>
+<span class="sourceLineNo">106</span>         * <a name="line.106"></a>
+<span class="sourceLineNo">107</span>         * @param validityInfos the validityInfos to set<a name="line.107"></a>
+<span class="sourceLineNo">108</span>         */<a name="line.108"></a>
+<span class="sourceLineNo">109</span>        public void setValidityInfos(List&lt;ValidityInfo&gt; validityInfos) {<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                this.validityInfos = validityInfos;<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        }<a name="line.111"></a>
+<span class="sourceLineNo">112</span><a name="line.112"></a>
+<span class="sourceLineNo">113</span>        /**<a name="line.113"></a>
+<span class="sourceLineNo">114</span>         * Add a validity info to the list.<a name="line.114"></a>
+<span class="sourceLineNo">115</span>         * <a name="line.115"></a>
+<span class="sourceLineNo">116</span>         * @return this object for easy chaining<a name="line.116"></a>
+<span class="sourceLineNo">117</span>         * @see #validityInfos()<a name="line.117"></a>
+<span class="sourceLineNo">118</span>         */<a name="line.118"></a>
+<span class="sourceLineNo">119</span>        public StaticContentDispatcher addValidityInfo(ValidityInfo info) {<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                validityInfos.add(info);<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                return this;<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        }<a name="line.122"></a>
+<span class="sourceLineNo">123</span><a name="line.123"></a>
+<span class="sourceLineNo">124</span>        @RequestHandler(dynamic=true)<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        public void onGet(GetRequest event, IOSubchannel channel)<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                        throws ParseException, IOException {<a name="line.126"></a>
 <span class="sourceLineNo">127</span>                int prefixSegs = resourcePattern.matches(event.requestUri());<a name="line.127"></a>
 <span class="sourceLineNo">128</span>                if (prefixSegs &lt; 0) {<a name="line.128"></a>
 <span class="sourceLineNo">129</span>                        return;<a name="line.129"></a>
@@ -179,64 +179,63 @@
 <span class="sourceLineNo">171</span>                                .toInstant().with(ChronoField.NANO_OF_SECOND, 0);<a name="line.171"></a>
 <span class="sourceLineNo">172</span>                Optional&lt;Instant&gt; modifiedSince = event.request()<a name="line.172"></a>
 <span class="sourceLineNo">173</span>                                .findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);<a name="line.173"></a>
-<span class="sourceLineNo">174</span>                IOSubchannel channel = event.firstChannel(IOSubchannel.class);<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                if (modifiedSince.isPresent() <a name="line.175"></a>
-<span class="sourceLineNo">176</span>                                &amp;&amp; !lastModified.isAfter(modifiedSince.get())) {<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                        response.setStatus(HttpStatus.NOT_MODIFIED);<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                        channel.respond(new Response(response));<a name="line.178"></a>
-<span class="sourceLineNo">179</span>                } else {<a name="line.179"></a>
-<span class="sourceLineNo">180</span>                        if ("text".equals(mediaType.topLevelType())) {<a name="line.180"></a>
-<span class="sourceLineNo">181</span>                                mediaType = MediaType.builder().from(mediaType)<a name="line.181"></a>
-<span class="sourceLineNo">182</span>                                                .setParameter("charset", System.getProperty(<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                                                                "file.encoding", "UTF-8")).build();<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                        }<a name="line.184"></a>
-<span class="sourceLineNo">185</span>                        response.setField(HttpField.CONTENT_TYPE, mediaType);<a name="line.185"></a>
-<span class="sourceLineNo">186</span>                        response.setStatus(HttpStatus.OK);<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                        response.setMessageHasBody(true);<a name="line.187"></a>
-<span class="sourceLineNo">188</span>                        response.setField(HttpField.LAST_MODIFIED, lastModified);<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                        channel.respond(new Response(response));<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                        fire(new StreamFile(resourcePath, StandardOpenOption.READ), channel);<a name="line.190"></a>
-<span class="sourceLineNo">191</span>                }<a name="line.191"></a>
-<span class="sourceLineNo">192</span>                event.stop();<a name="line.192"></a>
-<span class="sourceLineNo">193</span>        }<a name="line.193"></a>
-<span class="sourceLineNo">194</span><a name="line.194"></a>
-<span class="sourceLineNo">195</span>        /**<a name="line.195"></a>
-<span class="sourceLineNo">196</span>         * Describes an association between a media range and a  <a name="line.196"></a>
-<span class="sourceLineNo">197</span>         * maximum age in seconds. <a name="line.197"></a>
-<span class="sourceLineNo">198</span>         */<a name="line.198"></a>
-<span class="sourceLineNo">199</span>        public static class ValidityInfo {<a name="line.199"></a>
-<span class="sourceLineNo">200</span>                private MediaRange mediaRange;<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                private long maxAge;<a name="line.201"></a>
-<span class="sourceLineNo">202</span><a name="line.202"></a>
-<span class="sourceLineNo">203</span>                /**<a name="line.203"></a>
-<span class="sourceLineNo">204</span>                 * @param mediaRange<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                 * @param maxAge<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                 */<a name="line.206"></a>
-<span class="sourceLineNo">207</span>                public ValidityInfo(MediaRange mediaRange, long maxAge) {<a name="line.207"></a>
-<span class="sourceLineNo">208</span>                        super();<a name="line.208"></a>
-<span class="sourceLineNo">209</span>                        this.mediaRange = mediaRange;<a name="line.209"></a>
-<span class="sourceLineNo">210</span>                        this.maxAge = maxAge;<a name="line.210"></a>
-<span class="sourceLineNo">211</span>                }<a name="line.211"></a>
-<span class="sourceLineNo">212</span><a name="line.212"></a>
-<span class="sourceLineNo">213</span>                /**<a name="line.213"></a>
-<span class="sourceLineNo">214</span>                 * The media range matches by this info.<a name="line.214"></a>
-<span class="sourceLineNo">215</span>                 * <a name="line.215"></a>
-<span class="sourceLineNo">216</span>                 * @return the mediaRange<a name="line.216"></a>
-<span class="sourceLineNo">217</span>                 */<a name="line.217"></a>
-<span class="sourceLineNo">218</span>                public MediaRange mediaRange() {<a name="line.218"></a>
-<span class="sourceLineNo">219</span>                        return mediaRange;<a name="line.219"></a>
-<span class="sourceLineNo">220</span>                }<a name="line.220"></a>
-<span class="sourceLineNo">221</span>                <a name="line.221"></a>
-<span class="sourceLineNo">222</span>                /**<a name="line.222"></a>
-<span class="sourceLineNo">223</span>                 * The time span in seconds until the response expires.<a name="line.223"></a>
-<span class="sourceLineNo">224</span>                 * <a name="line.224"></a>
-<span class="sourceLineNo">225</span>                 * @return the time span<a name="line.225"></a>
-<span class="sourceLineNo">226</span>                 */<a name="line.226"></a>
-<span class="sourceLineNo">227</span>                public long maxAge() {<a name="line.227"></a>
-<span class="sourceLineNo">228</span>                        return maxAge;<a name="line.228"></a>
-<span class="sourceLineNo">229</span>                }<a name="line.229"></a>
-<span class="sourceLineNo">230</span>        }<a name="line.230"></a>
-<span class="sourceLineNo">231</span>}<a name="line.231"></a>
+<span class="sourceLineNo">174</span>                if (modifiedSince.isPresent() <a name="line.174"></a>
+<span class="sourceLineNo">175</span>                                &amp;&amp; !lastModified.isAfter(modifiedSince.get())) {<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                        response.setStatus(HttpStatus.NOT_MODIFIED);<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                        channel.respond(new Response(response));<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                } else {<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                        if ("text".equals(mediaType.topLevelType())) {<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                                mediaType = MediaType.builder().from(mediaType)<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                                                .setParameter("charset", System.getProperty(<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                                                                "file.encoding", "UTF-8")).build();<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                        }<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                        response.setField(HttpField.CONTENT_TYPE, mediaType);<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                        response.setStatus(HttpStatus.OK);<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                        response.setMessageHasBody(true);<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                        response.setField(HttpField.LAST_MODIFIED, lastModified);<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                        channel.respond(new Response(response));<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                        fire(new StreamFile(resourcePath, StandardOpenOption.READ), channel);<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                }<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                event.stop();<a name="line.191"></a>
+<span class="sourceLineNo">192</span>        }<a name="line.192"></a>
+<span class="sourceLineNo">193</span><a name="line.193"></a>
+<span class="sourceLineNo">194</span>        /**<a name="line.194"></a>
+<span class="sourceLineNo">195</span>         * Describes an association between a media range and a  <a name="line.195"></a>
+<span class="sourceLineNo">196</span>         * maximum age in seconds. <a name="line.196"></a>
+<span class="sourceLineNo">197</span>         */<a name="line.197"></a>
+<span class="sourceLineNo">198</span>        public static class ValidityInfo {<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                private MediaRange mediaRange;<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                private long maxAge;<a name="line.200"></a>
+<span class="sourceLineNo">201</span><a name="line.201"></a>
+<span class="sourceLineNo">202</span>                /**<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                 * @param mediaRange<a name="line.203"></a>
+<span class="sourceLineNo">204</span>                 * @param maxAge<a name="line.204"></a>
+<span class="sourceLineNo">205</span>                 */<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                public ValidityInfo(MediaRange mediaRange, long maxAge) {<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                        super();<a name="line.207"></a>
+<span class="sourceLineNo">208</span>                        this.mediaRange = mediaRange;<a name="line.208"></a>
+<span class="sourceLineNo">209</span>                        this.maxAge = maxAge;<a name="line.209"></a>
+<span class="sourceLineNo">210</span>                }<a name="line.210"></a>
+<span class="sourceLineNo">211</span><a name="line.211"></a>
+<span class="sourceLineNo">212</span>                /**<a name="line.212"></a>
+<span class="sourceLineNo">213</span>                 * The media range matches by this info.<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                 * <a name="line.214"></a>
+<span class="sourceLineNo">215</span>                 * @return the mediaRange<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                 */<a name="line.216"></a>
+<span class="sourceLineNo">217</span>                public MediaRange mediaRange() {<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                        return mediaRange;<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                }<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                <a name="line.220"></a>
+<span class="sourceLineNo">221</span>                /**<a name="line.221"></a>
+<span class="sourceLineNo">222</span>                 * The time span in seconds until the response expires.<a name="line.222"></a>
+<span class="sourceLineNo">223</span>                 * <a name="line.223"></a>
+<span class="sourceLineNo">224</span>                 * @return the time span<a name="line.224"></a>
+<span class="sourceLineNo">225</span>                 */<a name="line.225"></a>
+<span class="sourceLineNo">226</span>                public long maxAge() {<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                        return maxAge;<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                }<a name="line.228"></a>
+<span class="sourceLineNo">229</span>        }<a name="line.229"></a>
+<span class="sourceLineNo">230</span>}<a name="line.230"></a>
 
 
 
