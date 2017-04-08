@@ -24,9 +24,9 @@ import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Eligible;
-import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
 
 /**
@@ -40,7 +40,6 @@ class HandlerReference implements Comparable<HandlerReference> {
 	
 	private HandlerScope filter;
 	private MethodHandle method;
-	private boolean hasEventParam;
 	private int priority;
 	
 	/**
@@ -57,13 +56,6 @@ class HandlerReference implements Comparable<HandlerReference> {
 		super();
 		this.filter = filter;
 		this.priority = priority;
-		Class<?>[] paramTypes = method.getParameterTypes();
-		hasEventParam = false;
-		if (paramTypes.length > 0) {
-			if (Event.class.isAssignableFrom(paramTypes[0])) {
-				hasEventParam = true;
-			}
-		}
 		try {
 			this.method = MethodHandles.lookup().unreflect(method);
 			this.method = this.method.bindTo(component);
@@ -114,10 +106,29 @@ class HandlerReference implements Comparable<HandlerReference> {
 	 * @param event the event
 	 */
 	public void invoke(EventBase<?> event) throws Throwable {
-		if (hasEventParam) {
-			method.invoke(event);
-		} else {
+		switch (method.type().parameterCount()) {
+		case 0:
+			// No parameters
 			method.invoke();
+			break;
+			
+		case 1:
+			// Event parameter
+			method.invoke(event);
+			break;
+
+		case 2:
+			// Event and channel
+			Class<?> channelParam = method.type().parameterType(1);
+			for (Channel channel: event.channels()) {
+				if (channelParam.isAssignableFrom(channel.getClass())) {
+					method.invoke(event, channel);
+				}
+			}
+			break;
+			
+		default:
+			throw new IllegalStateException("Handle not usable");
 		}
 	}
 
@@ -151,7 +162,6 @@ class HandlerReference implements Comparable<HandlerReference> {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((filter == null) ? 0 : filter.hashCode());
-		result = prime * result + (hasEventParam ? 1231 : 1237);
 		result = prime * result + ((method == null) ? 0 : method.hashCode());
 		result = prime * result + priority;
 		return result;
@@ -177,9 +187,6 @@ class HandlerReference implements Comparable<HandlerReference> {
 				return false;
 			}
 		} else if (!filter.equals(other.filter)) {
-			return false;
-		}
-		if (hasEventParam != other.hasEventParam) {
 			return false;
 		}
 		if (method == null) {
@@ -217,5 +224,5 @@ class HandlerReference implements Comparable<HandlerReference> {
 		builder.append("]");
 		return builder.toString();
 	}
-	
+
 }

@@ -141,9 +141,18 @@ public @interface Handler {
 		/**
 		 * Adds the given method of the given component as a dynamic handler for
 		 * a specific event and channel. The method with the given name must be
-		 * annotated as dynamic handler and must have a single argument of type
+		 * annotated as dynamic handler and must have a single parameter of type
 		 * {@link Event} (or a derived type as appropriate for the event type to
-		 * be handled).
+		 * be handled). 
+		 * 
+		 * The method can have an additional optional parameter of type
+		 * {@link Channel} (or a derived type). This parameter does not 
+		 * influence the eligibility of the method regarding a given event,
+		 * it determines how the method is invoked. If the method does not
+		 * have a second parameter, it is invoked once if an event 
+		 * matches. If the parameter exists, the method is invoked once for
+		 * every channel the method was fired on, but only if the 
+		 * actual channel matches the type of the optional parameter.
 		 * 
 		 * @param component
 		 *            the component
@@ -168,47 +177,9 @@ public @interface Handler {
 		 */
 		public static void add(ComponentType component, String method,
 				Object eventValue, Object channelValue, int priority) {
-			try {
-				if (channelValue instanceof Channel) {
-					channelValue = ((Eligible)channelValue).defaultCriterion();
-				}
-				for (Method m: component.getClass().getMethods()) {
-					if (!m.getName().equals(method)) {
-						continue;
-					}
-					if (m.getParameterTypes().length != 0
-							&& !(m.getParameterTypes().length == 1
-								 && Event.class.isAssignableFrom(
-										 m.getParameterTypes()[0]))) {
-						continue;
-					}
-					for (Annotation annotation: m.getDeclaredAnnotations()) {
-						Class<?> annoType = annotation.annotationType();
-						HandlerDefinition hda 
-							= annoType.getAnnotation(HandlerDefinition.class);
-						if (hda == null
-								|| !Handler.class.isAssignableFrom(annoType)
-								|| !((Handler)annotation).dynamic()) {
-							continue;
-						}
-						Scope scope = new Scope(component, m, 
-								(Handler)annotation,
-								new Object[] { eventValue },
-								new Object[] { channelValue });
-						Components.manager(component)
-							.addHandler(m, scope, priority);
-						return;
-					}
-				}
-				throw new IllegalArgumentException(
-						"No method named \"" + method + "\" with DynamicHandler"
-							+ " annotation and correct parameter list.");
-			} catch (SecurityException e) {
-				throw (RuntimeException)
-					(new IllegalArgumentException().initCause(e));
-			}
+			addInternal(component, method, eventValue, channelValue, priority);
 		}
-		
+
 		/**
 		 * Add a handler like 
 		 * {@link #add(ComponentType, String, Object, Object, int)}
@@ -221,18 +192,17 @@ public @interface Handler {
 		 */
 		public static void add(ComponentType component, String method,
 		        Object channelValue) {
+			addInternal(component, method, null, channelValue, null);
+		}
+		
+		private static void addInternal(ComponentType component, String method,
+		        Object eventValue, Object channelValue, Integer priority) {
 			try {
 				if (channelValue instanceof Channel) {
 					channelValue = ((Eligible)channelValue).defaultCriterion();
 				}
 				for (Method m: component.getClass().getMethods()) {
 					if (!m.getName().equals(method)) {
-						continue;
-					}
-					if (m.getParameterTypes().length != 0
-							&& !(m.getParameterTypes().length == 1
-								 && Event.class.isAssignableFrom(
-										 m.getParameterTypes()[0]))) {
 						continue;
 					}
 					for (Annotation annotation: m.getDeclaredAnnotations()) {
@@ -247,11 +217,14 @@ public @interface Handler {
 								|| !((Handler)annotation).dynamic()) {
 							continue;
 						}
-						Scope scope = new Scope(component, m,
-						        (Handler) annotation, null,
-						        new Object[] { channelValue });
+						Scope scope = new Scope(component, m, 
+								(Handler)annotation,
+								eventValue == null ? null
+										: new Object[] { eventValue },
+								new Object[] { channelValue });
 						Components.manager(component).addHandler(m, scope, 
-								((Handler) annotation).priority());
+								priority != null ? priority 
+										: ((Handler)annotation).priority());
 						return;
 					}
 				}
@@ -275,6 +248,11 @@ public @interface Handler {
 			public Scope(ComponentType component, Method method,
 			        Handler annotation, Object[] eventValues,
 			        Object[] channelValues) {
+				if (!HandlerDefinition.Evaluator.checkMethodSignature(method)) {
+					throw new IllegalArgumentException("Method \""
+							 + method.toString() + "\" cannot be used as"
+							 + " handler (wrong signature).");
+				}
 				if (eventValues != null) {
 					handledEvents.addAll(Arrays.asList(eventValues));
 				} else {
@@ -384,4 +362,5 @@ public @interface Handler {
 			
 		}
 	}
+
 }

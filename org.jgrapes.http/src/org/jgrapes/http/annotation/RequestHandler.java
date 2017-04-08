@@ -140,12 +140,6 @@ public @interface RequestHandler {
 					if (!m.getName().equals(method)) {
 						continue;
 					}
-					if (m.getParameterTypes().length != 0
-							&& !(m.getParameterTypes().length == 1
-								 && Event.class.isAssignableFrom(
-										 m.getParameterTypes()[0]))) {
-						continue;
-					}
 					for (Annotation annotation: m.getDeclaredAnnotations()) {
 						Class<?> annoType = annotation.annotationType();
 						HandlerDefinition hda 
@@ -180,6 +174,11 @@ public @interface RequestHandler {
 
 			public Scope(ComponentType component, 
 					Method method, RequestHandler annotation, String pattern) {
+				if (!HandlerDefinition.Evaluator.checkMethodSignature(method)) {
+					throw new IllegalArgumentException("Method "
+							 + method.toString() + " cannot be used as"
+							 + " handler (wrong signature).");
+				}
 				// Get all event keys from the handler annotation.
 				if (annotation.events()[0] != NoEvent.class) {
 					handledEventTypes.addAll(Arrays.asList(annotation.events()));

@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 
@@ -53,4 +54,15 @@ public class AnnotationTest {
 				   .namedChannels()[1].equals("other"));
 	}
 
+	private class BadMethod extends Component {
+
+		@Handler
+		public void onEvent(int param) {
+		}
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testBadMethod() {
+		new BadMethod();
+	}
 }

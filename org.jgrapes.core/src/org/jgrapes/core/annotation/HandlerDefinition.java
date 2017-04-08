@@ -26,7 +26,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
 
 /**
@@ -85,6 +87,24 @@ public @interface HandlerDefinition {
 		 * @return the priority
 		 */
 		int priority(Annotation annotation);
+		
+		/**
+		 * Utility method for checking if the method can be used as handler.
+		 * 
+		 * @param method the method
+		 * @return the result
+		 */
+		public static boolean checkMethodSignature(Method method) {
+			return method.getParameterTypes().length == 0
+			        || (method.getParameterTypes().length == 1
+			                && Event.class.isAssignableFrom(
+			                        method.getParameterTypes()[0]))
+			        || (method.getParameterTypes().length == 2
+			                && Event.class.isAssignableFrom(
+			                        method.getParameterTypes()[0]))
+			                && Channel.class.isAssignableFrom(
+			                        method.getParameterTypes()[1]);
+		}
 	}
 
 }
