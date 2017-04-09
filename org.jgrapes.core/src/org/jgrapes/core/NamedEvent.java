@@ -21,45 +21,45 @@ package org.jgrapes.core;
 import java.util.Arrays;
 
 /**
- * A class for events identified by name. Instances of this class 
- * represent events that use their name for matching 
- * events with handlers.
+ * A class for events using a simple name as the event's kind.
  */
 public final class NamedEvent<T> extends Event<T> {
 
-	private String name;
+	private String kind;
 	
 	/**
 	 * Creates a new named event with the given name.
 	 * 
-	 * @param name the event's name
+	 * @param kind the event's kind
 	 */
-	public NamedEvent(String name) {
+	public NamedEvent(String kind) {
 		super();
-		this.name = name;
+		this.kind = kind;
 	}
 
 	/**
-	 * Returns the name of the Event as value.
+	 * Returns the kind of the event as the String passed to the
+	 * constructor.
 	 * 
-	 * @return the name
+	 * @return the kind
 	 * 
 	 * @see org.jgrapes.core.Channel#defaultCriterion()
 	 */
 	@Override
 	public Object defaultCriterion() {
-		return name;
+		return kind;
 	}
 
 	/**
-	 * Returns <code>true</code> if the <code>value</code>
-	 * is the event class or is equal to the event's name.
+	 * Returns `true` if the criterion is `Event.class` (representing 
+	 * "any event") or if the criterion is a String equal to this 
+	 * event's kind (the String passed to the constructor).
 	 * 
 	 * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)
 	 */
 	@Override
-	public boolean isEligibleFor(Object value) {
-		return value.equals(Event.class) || value.equals(name);
+	public boolean isEligibleFor(Object criterion) {
+		return criterion.equals(Event.class) || criterion.equals(kind);
 	}
 
 	/* (non-Javadoc)
@@ -69,7 +69,7 @@ public final class NamedEvent<T> extends Event<T> {
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append("NamedEvent [name=");
-		result.append(name);
+		result.append(kind);
 		if (channels() != null) {
 			result.append(", " + "channels=" + Arrays.toString(channels())); 
 		}

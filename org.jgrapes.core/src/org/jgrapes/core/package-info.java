@@ -48,14 +48,39 @@
  * ({@link org.jgrapes.core.Manager#fire(Event, Channel...)},
  * {@link org.jgrapes.core.Manager#addHandler(Method, HandlerScope, int)}).
  * 
+ * Events
+ * ------
+ * 
+ * Events are objects that trigger activities of the components that
+ * handle them. Because components are usually only interested in certain 
+ * kinds of triggers, events implement the {@link org.jgrapes.core.Eligible}
+ * interface that enables the user to obtain an event's kind (as criterion)
+ * and filter events depending on their kind.
+ * 
+ * ![Events](Events.svg)
+ * 
+ * As implemented in the base class {@link org.jgrapes.core.Event}, the 
+ * kind of an event is represented by its Java class. E.g. a 
+ * {@link org.jgrapes.core.events.Started} event is an instance 
+ * of class `org.jgrapes.core.events.Started` and its kind
+ * (obtainable from {@link org.jgrapes.core.Event#defaultCriterion()})
+ * is `org.jgrapes.core.events.Started.class`.
+ * 
+ * Especially when building small sample applications, some programmers 
+ * prefer to use a name for representing the kind of an event. The core 
+ * package supports this by providing the {@link org.jgrapes.core.NamedEvent}.
+ * This class overrides {@link org.jgrapes.core.Event#defaultCriterion()}
+ * and {@link org.jgrapes.core.Event#isEligibleFor(Object)} so that a
+ * simple string is used to represent and match the event's kind.
+ *  
  * Event Handlers
  * --------------
  * 
- * Event handlers are methods which are invoked by the framework.
- * These method have no return type (`void`) and can have zero to
+ * Event handlers are methods that are invoked by the framework.
+ * These method have return type `void` and can have zero to
  * two parameters. If specified, the first parameter must be of type
- * {@link org.jgrapes.core.Event} (or, of course, a type derived from `
- * Event`). The purpose of the second (optional) parameter will be 
+ * {@link org.jgrapes.core.Event} (or, obviously, a type derived from
+ * `Event`). The purpose of the second (optional) parameter will be 
  * explained in the next section.
  * 
  * Event handlers are usually registered with the framework using
@@ -129,6 +154,34 @@
  * ComponentType <|.. Component
  * Component <|-- SomeComponent
  * ComponentType <|.. ComponentWithOwnBaseClass
+ * @enduml
+ * 
+ * @startuml Events.svg
+ * 
+ * interface Eligible {
+ * 	Object defaultCriterion()
+ * 	boolean isEligibleFor(Object criterion)
+ * }
+ * 
+ * class Event<T> {
+ * 	+Object defaultCriterion()
+ * 	+boolean isEligibleFor(Object criterion)
+ * }
+ * 
+ * Event .right.|> Eligible
+ * 
+ * class NamedEvent {
+ * 	-String name
+ * 	+NamedEvent(String name)
+ * 	+Object defaultCriterion()
+ * 	+boolean isEligibleFor(Object criterion)
+ * }
+ * Event <|-- NamedEvent
+ * 
+ * class UserEventType #NavajoWhite {
+ * 	+Object defaultCriterion()
+ * }
+ * Event <|-- UserEventType
  * @enduml
  */
 @org.osgi.annotation.versioning.Version("${api_version}")

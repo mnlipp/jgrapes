@@ -48,6 +48,38 @@ import org.jgrapes.core.internal.Common;
  * core package. The annotated method is invoked for events that have a type (or
  * name) matching the given `events` (or `namedEvents`) parameter and that 
  * are fired on the given `channels` (or `namedChannels`).
+ * 
+ * ```java
+ * class SampleComponent extends Component {
+ * 
+ *    {@literal @}Handler(events=Start.class)
+ *     public void onStart() {
+ *         // Invoked for Start events, not interested in the event object
+ *     }
+ * 
+ *    {@literal @}Handler(events={Start.class, Stop.class})
+ *     public void onStart(Event<?> event) {
+ *         // Invoked for Start and Stop events, event made available
+ *         // (may need casting to access specific properties) 
+ *     }
+ * 
+ *    {@literal @}Handler
+ *     public void onStart(Start event) {
+ *         // Invoked for Start events, event object made available
+ *     }
+ * 
+ *    {@literal @}Handler(dynamic=true)
+ *     public void onStartDynamic(Start event) {
+ *         // Only invoked if added as handler at runtime
+ *     }
+ * 
+ *    {@literal @}Handler(namedEvents="Test")
+ *     public void onTest(Event<?> event) {
+ *         // Invoked for (named) "Test" events, event object made available
+ *     }
+ * }
+ * ```
+ * 
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
@@ -67,6 +99,8 @@ public @interface Handler {
 	
 	/**
 	 * Specifies classes of events that the handler is to receive.
+	 * If no event classes are specified, the class of the first
+	 * parameter of the annotated method is used instead. 
 	 * 
 	 * @return the event classes
 	 */

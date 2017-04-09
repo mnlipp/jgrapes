@@ -23,11 +23,13 @@ import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.internal.EventBase;
 
 /**
- * This class is the base class for all events. Event classes form a hierarchy.
- * By default (i.e. as implemented by this class), the event's class (type) is
- * used for matching events with handlers. A handler is invoked if the class of
- * the event(s) handled by it is equal to or a base class of the class of the
- * event to be handled. This default behavior can be changed by overriding the
+ * This class is the base class for all events.
+ *  
+ * By default (i.e. as implemented by this class), the event's kind is
+ * represented by its Java class and the eligibility is based on
+ * the "is a" relationship between classes. An event is eligible if its class
+ * is equal to or a super class of the class used as criterion. 
+ * This default behavior can be changed by overriding the
  * methods from {@link Eligible}. See {@link NamedEvent} as an example.
  * 
  * @param <T>
@@ -73,7 +75,7 @@ public class Event<T> extends EventBase<T> {
 	}
 
 	/**
-	 * Returns the class of this event as sample value.
+	 * Returns the class of this event as representation of its kind.
 	 * 
 	 * @return the class of this event
 	 * 
@@ -85,15 +87,15 @@ public class Event<T> extends EventBase<T> {
 	}
 
 	/**
-	 * Returns <code>true</code> if the <code>sample</code>
-	 * is the same class or a base class of this event.
+	 * Returns <code>true</code> if the `criterion` 
+	 * is of the same class or a base class of this event's class.
 	 * 
 	 * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)
 	 */
 	@Override
-	public boolean isEligibleFor(Object value) {
-		return Class.class.isInstance(value)
-				&& ((Class<?>)value).isAssignableFrom(getClass());
+	public boolean isEligibleFor(Object criterion) {
+		return Class.class.isInstance(criterion)
+				&& ((Class<?>)criterion).isAssignableFrom(getClass());
 	}
 
 	/**

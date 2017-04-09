@@ -19,16 +19,19 @@
 package org.jgrapes.core;
 
 /**
- * This interface provides a mechanism for matching an object against a 
- * criterion. The criteria supported depend on the class that implements
- * this interface.
+ * This interface provides a mechanism for matching objects, using
+ * a filter on the object's "kind" as criterion. How the kind is 
+ * represented depends completely on the class that implements this 
+ * interface.
  * 
- * Instances of classes that implement this interface must also provide 
- * a default criterion that can be used to select the instance.
- * This criterion is usually some unique key that identifies the object.
- * Note, however, that there is no requirement for the key to be unique.
- * The only requirement is that `obj.isEligibleFor(obj.getDefaultCrtiterion())`
- * returns `true` for any implentation of `Eligible`.
+ * Every instance of a class that implement this interface must provide 
+ * a default criterion (filter) that accepts the instance (though, of course,
+ * not *only* this particular instance). Formally: for every instance "`obj`"
+ * of `Eligible`, the expression 
+ * `obj.isEligibleFor(obj.getDefaultCrtiterion())` must return `true`.
+ * 
+ * The default criterion can therefore be interpreted as the 
+ * representation of the kind of the object.
  */
 public interface Eligible {
 	
