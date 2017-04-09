@@ -40,338 +40,422 @@
 <span class="sourceLineNo">032</span><a name="line.32"></a>
 <span class="sourceLineNo">033</span>import org.jgrapes.core.Channel;<a name="line.33"></a>
 <span class="sourceLineNo">034</span>import org.jgrapes.core.ClassChannel;<a name="line.34"></a>
-<span class="sourceLineNo">035</span>import org.jgrapes.core.ComponentType;<a name="line.35"></a>
-<span class="sourceLineNo">036</span>import org.jgrapes.core.Components;<a name="line.36"></a>
-<span class="sourceLineNo">037</span>import org.jgrapes.core.DefaultChannel;<a name="line.37"></a>
-<span class="sourceLineNo">038</span>import org.jgrapes.core.Eligible;<a name="line.38"></a>
-<span class="sourceLineNo">039</span>import org.jgrapes.core.Event;<a name="line.39"></a>
-<span class="sourceLineNo">040</span>import org.jgrapes.core.HandlerScope;<a name="line.40"></a>
-<span class="sourceLineNo">041</span>import org.jgrapes.core.NamedChannel;<a name="line.41"></a>
-<span class="sourceLineNo">042</span>import org.jgrapes.core.NamedEvent;<a name="line.42"></a>
-<span class="sourceLineNo">043</span>import org.jgrapes.core.Self;<a name="line.43"></a>
-<span class="sourceLineNo">044</span>import org.jgrapes.core.internal.Common;<a name="line.44"></a>
-<span class="sourceLineNo">045</span><a name="line.45"></a>
-<span class="sourceLineNo">046</span>/**<a name="line.46"></a>
-<span class="sourceLineNo">047</span> * This is the basic, general purpose handler annotation provided as part of the<a name="line.47"></a>
-<span class="sourceLineNo">048</span> * core package. The annotated method is invoked for events that have a type (or<a name="line.48"></a>
-<span class="sourceLineNo">049</span> * name) matching the given `events` (or `namedEvents`) parameter and that <a name="line.49"></a>
-<span class="sourceLineNo">050</span> * are fired on the given `channels` (or `namedChannels`).<a name="line.50"></a>
-<span class="sourceLineNo">051</span> */<a name="line.51"></a>
-<span class="sourceLineNo">052</span>@Documented<a name="line.52"></a>
-<span class="sourceLineNo">053</span>@Retention(value=RetentionPolicy.RUNTIME)<a name="line.53"></a>
-<span class="sourceLineNo">054</span>@Target(value=ElementType.METHOD)<a name="line.54"></a>
-<span class="sourceLineNo">055</span>@HandlerDefinition(evaluator=Handler.Evaluator.class)<a name="line.55"></a>
-<span class="sourceLineNo">056</span>public @interface Handler {<a name="line.56"></a>
-<span class="sourceLineNo">057</span>        <a name="line.57"></a>
-<span class="sourceLineNo">058</span>        /** The default value for the &lt;code&gt;events&lt;/code&gt; parameter of<a name="line.58"></a>
-<span class="sourceLineNo">059</span>         * the annotation. Indicates that the parameter is not used. */<a name="line.59"></a>
-<span class="sourceLineNo">060</span>        public static final class NoEvent extends Event&lt;Void&gt; {<a name="line.60"></a>
-<span class="sourceLineNo">061</span>        }<a name="line.61"></a>
-<span class="sourceLineNo">062</span>        <a name="line.62"></a>
-<span class="sourceLineNo">063</span>        /** The default value for the &lt;code&gt;channels&lt;/code&gt; parameter of<a name="line.63"></a>
-<span class="sourceLineNo">064</span>         * the annotation. Indicates that the parameter is not used. */<a name="line.64"></a>
-<span class="sourceLineNo">065</span>        public static final class NoChannel extends ClassChannel {<a name="line.65"></a>
-<span class="sourceLineNo">066</span>        }<a name="line.66"></a>
-<span class="sourceLineNo">067</span>        <a name="line.67"></a>
-<span class="sourceLineNo">068</span>        /**<a name="line.68"></a>
-<span class="sourceLineNo">069</span>         * Specifies classes of events that the handler is to receive.<a name="line.69"></a>
-<span class="sourceLineNo">070</span>         * <a name="line.70"></a>
-<span class="sourceLineNo">071</span>         * @return the event classes<a name="line.71"></a>
-<span class="sourceLineNo">072</span>         */<a name="line.72"></a>
-<span class="sourceLineNo">073</span>        @SuppressWarnings("rawtypes")<a name="line.73"></a>
-<span class="sourceLineNo">074</span>        Class&lt;? extends Event&gt;[] events() default NoEvent.class;<a name="line.74"></a>
-<span class="sourceLineNo">075</span>        <a name="line.75"></a>
-<span class="sourceLineNo">076</span>        /**<a name="line.76"></a>
-<span class="sourceLineNo">077</span>         * Specifies names of {@link NamedEvent}s that the handler is to receive.<a name="line.77"></a>
-<span class="sourceLineNo">078</span>         * <a name="line.78"></a>
-<span class="sourceLineNo">079</span>         * @return the event names<a name="line.79"></a>
-<span class="sourceLineNo">080</span>         */<a name="line.80"></a>
-<span class="sourceLineNo">081</span>        String[] namedEvents() default "";<a name="line.81"></a>
+<span class="sourceLineNo">035</span>import org.jgrapes.core.Component;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>import org.jgrapes.core.ComponentType;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>import org.jgrapes.core.Components;<a name="line.37"></a>
+<span class="sourceLineNo">038</span>import org.jgrapes.core.DefaultChannel;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>import org.jgrapes.core.Eligible;<a name="line.39"></a>
+<span class="sourceLineNo">040</span>import org.jgrapes.core.Event;<a name="line.40"></a>
+<span class="sourceLineNo">041</span>import org.jgrapes.core.HandlerScope;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>import org.jgrapes.core.NamedChannel;<a name="line.42"></a>
+<span class="sourceLineNo">043</span>import org.jgrapes.core.NamedEvent;<a name="line.43"></a>
+<span class="sourceLineNo">044</span>import org.jgrapes.core.Self;<a name="line.44"></a>
+<span class="sourceLineNo">045</span>import org.jgrapes.core.internal.Common;<a name="line.45"></a>
+<span class="sourceLineNo">046</span><a name="line.46"></a>
+<span class="sourceLineNo">047</span>/**<a name="line.47"></a>
+<span class="sourceLineNo">048</span> * This is the basic, general purpose handler annotation provided as part of the<a name="line.48"></a>
+<span class="sourceLineNo">049</span> * core package.<a name="line.49"></a>
+<span class="sourceLineNo">050</span> * <a name="line.50"></a>
+<span class="sourceLineNo">051</span> * The annotated method is invoked for events that have a type (or<a name="line.51"></a>
+<span class="sourceLineNo">052</span> * name) matching the given `events` (or `namedEvents`) parameter <a name="line.52"></a>
+<span class="sourceLineNo">053</span> * of the annotation and that are fired on the given `channels` <a name="line.53"></a>
+<span class="sourceLineNo">054</span> * (or `namedChannels`).<a name="line.54"></a>
+<span class="sourceLineNo">055</span> * <a name="line.55"></a>
+<span class="sourceLineNo">056</span> * If neither event classes nor named events are specified as part of the <a name="line.56"></a>
+<span class="sourceLineNo">057</span> * annotation, the class of the annotated method's first parameter (which <a name="line.57"></a>
+<span class="sourceLineNo">058</span> * must be of type {@link Event} or a super type) is used as (single)<a name="line.58"></a>
+<span class="sourceLineNo">059</span> * event class.<a name="line.59"></a>
+<span class="sourceLineNo">060</span> * <a name="line.60"></a>
+<span class="sourceLineNo">061</span> * If neither channel classes not named channels are specified, the<a name="line.61"></a>
+<span class="sourceLineNo">062</span> * default criterion of the component's channel is used for matching<a name="line.62"></a>
+<span class="sourceLineNo">063</span> * events.<a name="line.63"></a>
+<span class="sourceLineNo">064</span> * <a name="line.64"></a>
+<span class="sourceLineNo">065</span> * @see Component#channel()<a name="line.65"></a>
+<span class="sourceLineNo">066</span> */<a name="line.66"></a>
+<span class="sourceLineNo">067</span>@Documented<a name="line.67"></a>
+<span class="sourceLineNo">068</span>@Retention(value=RetentionPolicy.RUNTIME)<a name="line.68"></a>
+<span class="sourceLineNo">069</span>@Target(value=ElementType.METHOD)<a name="line.69"></a>
+<span class="sourceLineNo">070</span>@HandlerDefinition(evaluator=Handler.Evaluator.class)<a name="line.70"></a>
+<span class="sourceLineNo">071</span>public @interface Handler {<a name="line.71"></a>
+<span class="sourceLineNo">072</span>        <a name="line.72"></a>
+<span class="sourceLineNo">073</span>        /** The default value for the &lt;code&gt;events&lt;/code&gt; parameter of<a name="line.73"></a>
+<span class="sourceLineNo">074</span>         * the annotation. Indicates that the parameter is not used. */<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        public static final class NoEvent extends Event&lt;Void&gt; {<a name="line.75"></a>
+<span class="sourceLineNo">076</span>        }<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        <a name="line.77"></a>
+<span class="sourceLineNo">078</span>        /** The default value for the &lt;code&gt;channels&lt;/code&gt; parameter of<a name="line.78"></a>
+<span class="sourceLineNo">079</span>         * the annotation. Indicates that the parameter is not used. */<a name="line.79"></a>
+<span class="sourceLineNo">080</span>        public static final class NoChannel extends ClassChannel {<a name="line.80"></a>
+<span class="sourceLineNo">081</span>        }<a name="line.81"></a>
 <span class="sourceLineNo">082</span>        <a name="line.82"></a>
 <span class="sourceLineNo">083</span>        /**<a name="line.83"></a>
-<span class="sourceLineNo">084</span>         * Specifies classes of channels that the handler listens on.<a name="line.84"></a>
+<span class="sourceLineNo">084</span>         * Specifies classes of events that the handler is to receive.<a name="line.84"></a>
 <span class="sourceLineNo">085</span>         * <a name="line.85"></a>
-<span class="sourceLineNo">086</span>         * @return the channel classes<a name="line.86"></a>
-<span class="sourceLineNo">087</span>         */<a name="line.87"></a>
-<span class="sourceLineNo">088</span>        Class&lt;? extends Channel&gt;[] channels() default NoChannel.class;<a name="line.88"></a>
-<span class="sourceLineNo">089</span><a name="line.89"></a>
-<span class="sourceLineNo">090</span>        /**<a name="line.90"></a>
-<span class="sourceLineNo">091</span>         * Specifies names of {@link NamedChannel}s that the handler listens on.<a name="line.91"></a>
-<span class="sourceLineNo">092</span>         * <a name="line.92"></a>
-<span class="sourceLineNo">093</span>         * @return the channel names<a name="line.93"></a>
-<span class="sourceLineNo">094</span>         */<a name="line.94"></a>
-<span class="sourceLineNo">095</span>        String[] namedChannels() default "";<a name="line.95"></a>
-<span class="sourceLineNo">096</span>        <a name="line.96"></a>
-<span class="sourceLineNo">097</span>        /**<a name="line.97"></a>
-<span class="sourceLineNo">098</span>         * Specifies a priority. The value is used to sort handlers.<a name="line.98"></a>
-<span class="sourceLineNo">099</span>         * Handlers with higher priority are invoked first.<a name="line.99"></a>
+<span class="sourceLineNo">086</span>         * ```java<a name="line.86"></a>
+<span class="sourceLineNo">087</span>         * class SampleComponent extends Component {<a name="line.87"></a>
+<span class="sourceLineNo">088</span>         * <a name="line.88"></a>
+<span class="sourceLineNo">089</span>         *    {@literal @}Handler<a name="line.89"></a>
+<span class="sourceLineNo">090</span>         *     public void onStart(Start event) {<a name="line.90"></a>
+<span class="sourceLineNo">091</span>         *         // Invoked for Start events on the component's channel,<a name="line.91"></a>
+<span class="sourceLineNo">092</span>         *         // event object made available<a name="line.92"></a>
+<span class="sourceLineNo">093</span>         *     }<a name="line.93"></a>
+<span class="sourceLineNo">094</span>         * <a name="line.94"></a>
+<span class="sourceLineNo">095</span>         *    {@literal @}Handler(events=Start.class)<a name="line.95"></a>
+<span class="sourceLineNo">096</span>         *     public void onStart() {<a name="line.96"></a>
+<span class="sourceLineNo">097</span>         *         // Invoked for Start events on the component's channel,<a name="line.97"></a>
+<span class="sourceLineNo">098</span>         *         // not interested in the event object<a name="line.98"></a>
+<span class="sourceLineNo">099</span>         *     }<a name="line.99"></a>
 <span class="sourceLineNo">100</span>         * <a name="line.100"></a>
-<span class="sourceLineNo">101</span>         * @return the priority<a name="line.101"></a>
-<span class="sourceLineNo">102</span>         */<a name="line.102"></a>
-<span class="sourceLineNo">103</span>        int priority() default 0;<a name="line.103"></a>
-<span class="sourceLineNo">104</span><a name="line.104"></a>
-<span class="sourceLineNo">105</span>        /**<a name="line.105"></a>
-<span class="sourceLineNo">106</span>         * Returns {@code true} if the annotated annotation defines a<a name="line.106"></a>
-<span class="sourceLineNo">107</span>         * dynamic handler. A dynamic handler must be added to the set of<a name="line.107"></a>
-<span class="sourceLineNo">108</span>         * handlers of a component explicitly.<a name="line.108"></a>
+<span class="sourceLineNo">101</span>         *    {@literal @}Handler(events={Start.class, Stop.class})<a name="line.101"></a>
+<span class="sourceLineNo">102</span>         *     public void onStart(Event&lt;?&gt; event) {<a name="line.102"></a>
+<span class="sourceLineNo">103</span>         *         // Invoked for Start and Stop events on the component's<a name="line.103"></a>
+<span class="sourceLineNo">104</span>         *         // channel, event made available (may need casting to <a name="line.104"></a>
+<span class="sourceLineNo">105</span>         *         // access specific properties) <a name="line.105"></a>
+<span class="sourceLineNo">106</span>         *     }<a name="line.106"></a>
+<span class="sourceLineNo">107</span>         * }<a name="line.107"></a>
+<span class="sourceLineNo">108</span>         * ```<a name="line.108"></a>
 <span class="sourceLineNo">109</span>         * <a name="line.109"></a>
-<span class="sourceLineNo">110</span>         * @return the result<a name="line.110"></a>
+<span class="sourceLineNo">110</span>         * @return the event classes<a name="line.110"></a>
 <span class="sourceLineNo">111</span>         */<a name="line.111"></a>
-<span class="sourceLineNo">112</span>        boolean dynamic() default false;<a name="line.112"></a>
-<span class="sourceLineNo">113</span>        <a name="line.113"></a>
-<span class="sourceLineNo">114</span>        /**<a name="line.114"></a>
-<span class="sourceLineNo">115</span>         * This class provides the {@link Evaluator} for the <a name="line.115"></a>
-<span class="sourceLineNo">116</span>         * {@link Handler} annotation provided by the core package. It <a name="line.116"></a>
-<span class="sourceLineNo">117</span>         * implements the behavior as described for the annotation. <a name="line.117"></a>
-<span class="sourceLineNo">118</span>         */<a name="line.118"></a>
-<span class="sourceLineNo">119</span>        public static class Evaluator implements HandlerDefinition.Evaluator {<a name="line.119"></a>
-<span class="sourceLineNo">120</span><a name="line.120"></a>
-<span class="sourceLineNo">121</span>                @Override<a name="line.121"></a>
-<span class="sourceLineNo">122</span>                public HandlerScope scope(<a name="line.122"></a>
-<span class="sourceLineNo">123</span>                                ComponentType component, Method method, <a name="line.123"></a>
-<span class="sourceLineNo">124</span>                                        Object[] eventValues, Object[] channelValues) {<a name="line.124"></a>
-<span class="sourceLineNo">125</span>                        Handler annotation = method.getAnnotation(Handler.class);<a name="line.125"></a>
-<span class="sourceLineNo">126</span>                        if (annotation == null || annotation.dynamic()) {<a name="line.126"></a>
-<span class="sourceLineNo">127</span>                                return null;<a name="line.127"></a>
-<span class="sourceLineNo">128</span>                        }<a name="line.128"></a>
-<span class="sourceLineNo">129</span>                        return new Scope(component, method, annotation, eventValues,<a name="line.129"></a>
-<span class="sourceLineNo">130</span>                                channelValues);<a name="line.130"></a>
-<span class="sourceLineNo">131</span>                }<a name="line.131"></a>
-<span class="sourceLineNo">132</span>                <a name="line.132"></a>
-<span class="sourceLineNo">133</span>                /* (non-Javadoc)<a name="line.133"></a>
-<span class="sourceLineNo">134</span>                 * @see org.jgrapes.core.annotation.HandlerDefinition.Evaluator#getPriority()<a name="line.134"></a>
-<span class="sourceLineNo">135</span>                 */<a name="line.135"></a>
-<span class="sourceLineNo">136</span>                @Override<a name="line.136"></a>
-<span class="sourceLineNo">137</span>                public int priority(Annotation annotation) {<a name="line.137"></a>
-<span class="sourceLineNo">138</span>                        return ((Handler)annotation).priority();<a name="line.138"></a>
-<span class="sourceLineNo">139</span>                }<a name="line.139"></a>
-<span class="sourceLineNo">140</span><a name="line.140"></a>
-<span class="sourceLineNo">141</span>                /**<a name="line.141"></a>
-<span class="sourceLineNo">142</span>                 * Adds the given method of the given component as a dynamic handler for<a name="line.142"></a>
-<span class="sourceLineNo">143</span>                 * a specific event and channel. The method with the given name must be<a name="line.143"></a>
-<span class="sourceLineNo">144</span>                 * annotated as dynamic handler and must have a single parameter of type<a name="line.144"></a>
-<span class="sourceLineNo">145</span>                 * {@link Event} (or a derived type as appropriate for the event type to<a name="line.145"></a>
-<span class="sourceLineNo">146</span>                 * be handled). <a name="line.146"></a>
-<span class="sourceLineNo">147</span>                 * <a name="line.147"></a>
-<span class="sourceLineNo">148</span>                 * The method can have an additional optional parameter of type<a name="line.148"></a>
-<span class="sourceLineNo">149</span>                 * {@link Channel} (or a derived type). This parameter does not <a name="line.149"></a>
-<span class="sourceLineNo">150</span>                 * influence the eligibility of the method regarding a given event,<a name="line.150"></a>
-<span class="sourceLineNo">151</span>                 * it determines how the method is invoked. If the method does not<a name="line.151"></a>
-<span class="sourceLineNo">152</span>                 * have a second parameter, it is invoked once if an event <a name="line.152"></a>
-<span class="sourceLineNo">153</span>                 * matches. If the parameter exists, the method is invoked once for<a name="line.153"></a>
-<span class="sourceLineNo">154</span>                 * every channel the method was fired on, but only if the <a name="line.154"></a>
-<span class="sourceLineNo">155</span>                 * actual channel matches the type of the optional parameter.<a name="line.155"></a>
-<span class="sourceLineNo">156</span>                 * <a name="line.156"></a>
-<span class="sourceLineNo">157</span>                 * @param component<a name="line.157"></a>
-<span class="sourceLineNo">158</span>                 *            the component<a name="line.158"></a>
-<span class="sourceLineNo">159</span>                 * @param method<a name="line.159"></a>
-<span class="sourceLineNo">160</span>                 *            the name of the method that implements the handler<a name="line.160"></a>
-<span class="sourceLineNo">161</span>                 * @param eventValue<a name="line.161"></a>
-<span class="sourceLineNo">162</span>                 *            the event key that should be used for matching this<a name="line.162"></a>
-<span class="sourceLineNo">163</span>                 *            handler with an event. This is equivalent to an<a name="line.163"></a>
-<span class="sourceLineNo">164</span>                 *            &lt;code&gt;events&lt;/code&gt;/&lt;code&gt;namedEvents&lt;/code&gt; parameter<a name="line.164"></a>
-<span class="sourceLineNo">165</span>                 *            used with a single value in the handler annotation, but<a name="line.165"></a>
-<span class="sourceLineNo">166</span>                 *            here all kinds of Objects are allowed as key values.<a name="line.166"></a>
-<span class="sourceLineNo">167</span>                 * @param channelValue<a name="line.167"></a>
-<span class="sourceLineNo">168</span>                 *            the channel key that should be used for matching this<a name="line.168"></a>
-<span class="sourceLineNo">169</span>                 *            handler with a channel. This is equivalent to a<a name="line.169"></a>
-<span class="sourceLineNo">170</span>                 *            &lt;code&gt;channels&lt;/code&gt;/&lt;code&gt;namedChannels&lt;/code&gt; parameter<a name="line.170"></a>
-<span class="sourceLineNo">171</span>                 *            used with a single value in the handler annotation, but<a name="line.171"></a>
-<span class="sourceLineNo">172</span>                 *            here all kinds of Objects are allowed as key values. As a<a name="line.172"></a>
-<span class="sourceLineNo">173</span>                 *            convenience, if the actual object provided is a<a name="line.173"></a>
-<span class="sourceLineNo">174</span>                 *            {@link Channel}, its match value is used for matching.<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                 * @param priority<a name="line.175"></a>
-<span class="sourceLineNo">176</span>                 *            the priority of the handler<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                 */<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                public static void add(ComponentType component, String method,<a name="line.178"></a>
-<span class="sourceLineNo">179</span>                                Object eventValue, Object channelValue, int priority) {<a name="line.179"></a>
-<span class="sourceLineNo">180</span>                        addInternal(component, method, eventValue, channelValue, priority);<a name="line.180"></a>
-<span class="sourceLineNo">181</span>                }<a name="line.181"></a>
-<span class="sourceLineNo">182</span><a name="line.182"></a>
-<span class="sourceLineNo">183</span>                /**<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                 * Add a handler like <a name="line.184"></a>
-<span class="sourceLineNo">185</span>                 * {@link #add(ComponentType, String, Object, Object, int)}<a name="line.185"></a>
-<span class="sourceLineNo">186</span>                 * but take the values for event and priority from the annotation.<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                 * <a name="line.187"></a>
-<span class="sourceLineNo">188</span>                 * @param component the component<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                 * @param method the name of the method that implements the handler<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                 * @param channelValue the channel key that should be used for matching<a name="line.190"></a>
-<span class="sourceLineNo">191</span>                 * this handler with a channel <a name="line.191"></a>
-<span class="sourceLineNo">192</span>                 */<a name="line.192"></a>
-<span class="sourceLineNo">193</span>                public static void add(ComponentType component, String method,<a name="line.193"></a>
-<span class="sourceLineNo">194</span>                        Object channelValue) {<a name="line.194"></a>
-<span class="sourceLineNo">195</span>                        addInternal(component, method, null, channelValue, null);<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                }<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                <a name="line.197"></a>
-<span class="sourceLineNo">198</span>                private static void addInternal(ComponentType component, String method,<a name="line.198"></a>
-<span class="sourceLineNo">199</span>                        Object eventValue, Object channelValue, Integer priority) {<a name="line.199"></a>
-<span class="sourceLineNo">200</span>                        try {<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                                if (channelValue instanceof Channel) {<a name="line.201"></a>
-<span class="sourceLineNo">202</span>                                        channelValue = ((Eligible)channelValue).defaultCriterion();<a name="line.202"></a>
-<span class="sourceLineNo">203</span>                                }<a name="line.203"></a>
-<span class="sourceLineNo">204</span>                                for (Method m: component.getClass().getMethods()) {<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                                        if (!m.getName().equals(method)) {<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                                                continue;<a name="line.206"></a>
-<span class="sourceLineNo">207</span>                                        }<a name="line.207"></a>
-<span class="sourceLineNo">208</span>                                        for (Annotation annotation: m.getDeclaredAnnotations()) {<a name="line.208"></a>
-<span class="sourceLineNo">209</span>                                                Class&lt;?&gt; annoType = annotation.annotationType();<a name="line.209"></a>
-<span class="sourceLineNo">210</span>                                                if (!(annoType.equals(Handler.class))) {<a name="line.210"></a>
-<span class="sourceLineNo">211</span>                                                        continue;<a name="line.211"></a>
-<span class="sourceLineNo">212</span>                                                }<a name="line.212"></a>
-<span class="sourceLineNo">213</span>                                                HandlerDefinition hda <a name="line.213"></a>
-<span class="sourceLineNo">214</span>                                                        = annoType.getAnnotation(HandlerDefinition.class);<a name="line.214"></a>
-<span class="sourceLineNo">215</span>                                                if (hda == null<a name="line.215"></a>
-<span class="sourceLineNo">216</span>                                                                || !Handler.class.isAssignableFrom(annoType)<a name="line.216"></a>
-<span class="sourceLineNo">217</span>                                                                || !((Handler)annotation).dynamic()) {<a name="line.217"></a>
-<span class="sourceLineNo">218</span>                                                        continue;<a name="line.218"></a>
-<span class="sourceLineNo">219</span>                                                }<a name="line.219"></a>
-<span class="sourceLineNo">220</span>                                                Scope scope = new Scope(component, m, <a name="line.220"></a>
-<span class="sourceLineNo">221</span>                                                                (Handler)annotation,<a name="line.221"></a>
-<span class="sourceLineNo">222</span>                                                                eventValue == null ? null<a name="line.222"></a>
-<span class="sourceLineNo">223</span>                                                                                : new Object[] { eventValue },<a name="line.223"></a>
-<span class="sourceLineNo">224</span>                                                                new Object[] { channelValue });<a name="line.224"></a>
-<span class="sourceLineNo">225</span>                                                Components.manager(component).addHandler(m, scope, <a name="line.225"></a>
-<span class="sourceLineNo">226</span>                                                                priority != null ? priority <a name="line.226"></a>
-<span class="sourceLineNo">227</span>                                                                                : ((Handler)annotation).priority());<a name="line.227"></a>
-<span class="sourceLineNo">228</span>                                                return;<a name="line.228"></a>
-<span class="sourceLineNo">229</span>                                        }<a name="line.229"></a>
-<span class="sourceLineNo">230</span>                                }<a name="line.230"></a>
-<span class="sourceLineNo">231</span>                                throw new IllegalArgumentException(<a name="line.231"></a>
-<span class="sourceLineNo">232</span>                                                "No method named \"" + method + "\" with DynamicHandler"<a name="line.232"></a>
-<span class="sourceLineNo">233</span>                                                        + " annotation and correct parameter list.");<a name="line.233"></a>
-<span class="sourceLineNo">234</span>                        } catch (SecurityException e) {<a name="line.234"></a>
-<span class="sourceLineNo">235</span>                                throw (RuntimeException)<a name="line.235"></a>
-<span class="sourceLineNo">236</span>                                        (new IllegalArgumentException().initCause(e));<a name="line.236"></a>
-<span class="sourceLineNo">237</span>                        }<a name="line.237"></a>
-<span class="sourceLineNo">238</span>                }<a name="line.238"></a>
-<span class="sourceLineNo">239</span>                <a name="line.239"></a>
-<span class="sourceLineNo">240</span>                /**<a name="line.240"></a>
-<span class="sourceLineNo">241</span>                 * The handler scope implementation used by the evaluator.<a name="line.241"></a>
-<span class="sourceLineNo">242</span>                 */<a name="line.242"></a>
-<span class="sourceLineNo">243</span>                private static class Scope implements HandlerScope {<a name="line.243"></a>
-<span class="sourceLineNo">244</span><a name="line.244"></a>
-<span class="sourceLineNo">245</span>                        private Set&lt;Object&gt; handledEvents = new HashSet&lt;Object&gt;();<a name="line.245"></a>
-<span class="sourceLineNo">246</span>                        private Set&lt;Object&gt; handledChannels = new HashSet&lt;Object&gt;();<a name="line.246"></a>
-<span class="sourceLineNo">247</span><a name="line.247"></a>
-<span class="sourceLineNo">248</span>                        public Scope(ComponentType component, Method method,<a name="line.248"></a>
-<span class="sourceLineNo">249</span>                                Handler annotation, Object[] eventValues,<a name="line.249"></a>
-<span class="sourceLineNo">250</span>                                Object[] channelValues) {<a name="line.250"></a>
-<span class="sourceLineNo">251</span>                                if (!HandlerDefinition.Evaluator.checkMethodSignature(method)) {<a name="line.251"></a>
-<span class="sourceLineNo">252</span>                                        throw new IllegalArgumentException("Method \""<a name="line.252"></a>
-<span class="sourceLineNo">253</span>                                                         + method.toString() + "\" cannot be used as"<a name="line.253"></a>
-<span class="sourceLineNo">254</span>                                                         + " handler (wrong signature).");<a name="line.254"></a>
-<span class="sourceLineNo">255</span>                                }<a name="line.255"></a>
-<span class="sourceLineNo">256</span>                                if (eventValues != null) {<a name="line.256"></a>
-<span class="sourceLineNo">257</span>                                        handledEvents.addAll(Arrays.asList(eventValues));<a name="line.257"></a>
-<span class="sourceLineNo">258</span>                                } else {<a name="line.258"></a>
-<span class="sourceLineNo">259</span>                                        // Get all event values from the handler annotation.<a name="line.259"></a>
-<span class="sourceLineNo">260</span>                                        if (annotation.events()[0] != Handler.NoEvent.class) {<a name="line.260"></a>
-<span class="sourceLineNo">261</span>                                                handledEvents<a name="line.261"></a>
-<span class="sourceLineNo">262</span>                                                        .addAll(Arrays.asList(annotation.events()));<a name="line.262"></a>
-<span class="sourceLineNo">263</span>                                        }<a name="line.263"></a>
-<span class="sourceLineNo">264</span>                                        // Get all named events from the annotation and add to event<a name="line.264"></a>
-<span class="sourceLineNo">265</span>                                        // keys.<a name="line.265"></a>
-<span class="sourceLineNo">266</span>                                        if (!annotation.namedEvents()[0].equals("")) {<a name="line.266"></a>
-<span class="sourceLineNo">267</span>                                                handledEvents.addAll(<a name="line.267"></a>
-<span class="sourceLineNo">268</span>                                                        Arrays.asList(annotation.namedEvents()));<a name="line.268"></a>
-<span class="sourceLineNo">269</span>                                        }<a name="line.269"></a>
-<span class="sourceLineNo">270</span>                                        // If no event types are given, try first parameter.<a name="line.270"></a>
-<span class="sourceLineNo">271</span>                                        if (handledEvents.isEmpty()) {<a name="line.271"></a>
-<span class="sourceLineNo">272</span>                                                Class&lt;?&gt;[] paramTypes = method.getParameterTypes();<a name="line.272"></a>
-<span class="sourceLineNo">273</span>                                                if (paramTypes.length &gt; 0) {<a name="line.273"></a>
-<span class="sourceLineNo">274</span>                                                        if (Event.class.isAssignableFrom(paramTypes[0])) {<a name="line.274"></a>
-<span class="sourceLineNo">275</span>                                                                handledEvents.add(paramTypes[0]);<a name="line.275"></a>
-<span class="sourceLineNo">276</span>                                                        }<a name="line.276"></a>
-<span class="sourceLineNo">277</span>                                                }<a name="line.277"></a>
-<span class="sourceLineNo">278</span>                                        }<a name="line.278"></a>
-<span class="sourceLineNo">279</span>                                }<a name="line.279"></a>
-<span class="sourceLineNo">280</span>                                <a name="line.280"></a>
-<span class="sourceLineNo">281</span>                                if (channelValues != null) {<a name="line.281"></a>
-<span class="sourceLineNo">282</span>                                        handledChannels.addAll(Arrays.asList(channelValues));<a name="line.282"></a>
-<span class="sourceLineNo">283</span>                                } else {<a name="line.283"></a>
-<span class="sourceLineNo">284</span>                                        // Get channel values from the annotation.<a name="line.284"></a>
-<span class="sourceLineNo">285</span>                                        boolean addDefaultChannel = false;<a name="line.285"></a>
-<span class="sourceLineNo">286</span>                                        if (annotation.channels()[0] != Handler.NoChannel.class) {<a name="line.286"></a>
-<span class="sourceLineNo">287</span>                                                for (Class&lt;?&gt; c : annotation.channels()) {<a name="line.287"></a>
-<span class="sourceLineNo">288</span>                                                        if (c == Self.class) {<a name="line.288"></a>
-<span class="sourceLineNo">289</span>                                                                if (component instanceof Channel) {<a name="line.289"></a>
-<span class="sourceLineNo">290</span>                                                                        handledChannels<a name="line.290"></a>
-<span class="sourceLineNo">291</span>                                                                                .add(((Channel) component)<a name="line.291"></a>
-<span class="sourceLineNo">292</span>                                                                                        .defaultCriterion());<a name="line.292"></a>
-<span class="sourceLineNo">293</span>                                                                } else {<a name="line.293"></a>
-<span class="sourceLineNo">294</span>                                                                        throw new IllegalArgumentException(<a name="line.294"></a>
-<span class="sourceLineNo">295</span>                                                                            "Canot use channel This.class in "<a name="line.295"></a>
-<span class="sourceLineNo">296</span>                                                                                + "annotation of " + method <a name="line.296"></a>
-<span class="sourceLineNo">297</span>                                                                                + " because " + getClass().getName()<a name="line.297"></a>
-<span class="sourceLineNo">298</span>                                                                            + " does not implement Channel.");<a name="line.298"></a>
-<span class="sourceLineNo">299</span>                                                                }<a name="line.299"></a>
-<span class="sourceLineNo">300</span>                                                        } else if (c == DefaultChannel.class) {<a name="line.300"></a>
-<span class="sourceLineNo">301</span>                                                                addDefaultChannel = true;<a name="line.301"></a>
-<span class="sourceLineNo">302</span>                                                        } else {<a name="line.302"></a>
-<span class="sourceLineNo">303</span>                                                                handledChannels.add(c);<a name="line.303"></a>
-<span class="sourceLineNo">304</span>                                                        }<a name="line.304"></a>
-<span class="sourceLineNo">305</span>                                                }<a name="line.305"></a>
-<span class="sourceLineNo">306</span>                                        }<a name="line.306"></a>
-<span class="sourceLineNo">307</span>                                        // Get named channels from annotation and add to channel<a name="line.307"></a>
-<span class="sourceLineNo">308</span>                                        // keys.<a name="line.308"></a>
-<span class="sourceLineNo">309</span>                                        if (!annotation.namedChannels()[0].equals("")) {<a name="line.309"></a>
-<span class="sourceLineNo">310</span>                                                handledChannels.addAll(<a name="line.310"></a>
-<span class="sourceLineNo">311</span>                                                        Arrays.asList(annotation.namedChannels()));<a name="line.311"></a>
-<span class="sourceLineNo">312</span>                                        }<a name="line.312"></a>
-<span class="sourceLineNo">313</span>                                        if (handledChannels.size() == 0 || addDefaultChannel) {<a name="line.313"></a>
-<span class="sourceLineNo">314</span>                                                handledChannels.add(Components.manager(component)<a name="line.314"></a>
-<span class="sourceLineNo">315</span>                                                        .channel().defaultCriterion());<a name="line.315"></a>
-<span class="sourceLineNo">316</span>                                        }<a name="line.316"></a>
-<span class="sourceLineNo">317</span>                                }<a name="line.317"></a>
-<span class="sourceLineNo">318</span>                        }<a name="line.318"></a>
-<span class="sourceLineNo">319</span>                        <a name="line.319"></a>
-<span class="sourceLineNo">320</span>                        @Override<a name="line.320"></a>
-<span class="sourceLineNo">321</span>                        public boolean includes(Eligible event, Eligible[] channels) {<a name="line.321"></a>
-<span class="sourceLineNo">322</span>                                for (Object eventValue: handledEvents) {<a name="line.322"></a>
-<span class="sourceLineNo">323</span>                                        if (event.isEligibleFor(eventValue)) {<a name="line.323"></a>
-<span class="sourceLineNo">324</span>                                                // Found match regarding event, now try channels<a name="line.324"></a>
-<span class="sourceLineNo">325</span>                                                for (Eligible channel: channels) {<a name="line.325"></a>
-<span class="sourceLineNo">326</span>                                                        for (Object channelValue: handledChannels) {<a name="line.326"></a>
-<span class="sourceLineNo">327</span>                                                                if (channel.isEligibleFor(channelValue)) {<a name="line.327"></a>
-<span class="sourceLineNo">328</span>                                                                        return true;<a name="line.328"></a>
-<span class="sourceLineNo">329</span>                                                                }<a name="line.329"></a>
-<span class="sourceLineNo">330</span>                                                        }<a name="line.330"></a>
-<span class="sourceLineNo">331</span>                                                }<a name="line.331"></a>
-<span class="sourceLineNo">332</span>                                                return false;<a name="line.332"></a>
-<span class="sourceLineNo">333</span>                                        }<a name="line.333"></a>
-<span class="sourceLineNo">334</span>                                }<a name="line.334"></a>
-<span class="sourceLineNo">335</span>                                return false;<a name="line.335"></a>
-<span class="sourceLineNo">336</span>                        }<a name="line.336"></a>
-<span class="sourceLineNo">337</span><a name="line.337"></a>
-<span class="sourceLineNo">338</span>                        /* (non-Javadoc)<a name="line.338"></a>
-<span class="sourceLineNo">339</span>                         * @see java.lang.Object#toString()<a name="line.339"></a>
-<span class="sourceLineNo">340</span>                         */<a name="line.340"></a>
-<span class="sourceLineNo">341</span>                        @Override<a name="line.341"></a>
-<span class="sourceLineNo">342</span>                        public String toString() {<a name="line.342"></a>
-<span class="sourceLineNo">343</span>                                StringBuilder builder = new StringBuilder();<a name="line.343"></a>
-<span class="sourceLineNo">344</span>                                builder.append("Scope [");<a name="line.344"></a>
-<span class="sourceLineNo">345</span>                                if (handledEvents != null) {<a name="line.345"></a>
-<span class="sourceLineNo">346</span>                                        builder.append("handledEvents=");<a name="line.346"></a>
-<span class="sourceLineNo">347</span>                                        builder.append(handledEvents.stream().map(v -&gt; {<a name="line.347"></a>
-<span class="sourceLineNo">348</span>                                                if (v instanceof Class) {<a name="line.348"></a>
-<span class="sourceLineNo">349</span>                                                        return Common.classToString((Class&lt;?&gt;) v);<a name="line.349"></a>
-<span class="sourceLineNo">350</span>                                                }<a name="line.350"></a>
-<span class="sourceLineNo">351</span>                                                return v.toString();<a name="line.351"></a>
-<span class="sourceLineNo">352</span>                                        }).collect(Collectors.toSet()));<a name="line.352"></a>
-<span class="sourceLineNo">353</span>                                        builder.append(", ");<a name="line.353"></a>
-<span class="sourceLineNo">354</span>                                }<a name="line.354"></a>
-<span class="sourceLineNo">355</span>                                if (handledChannels != null) {<a name="line.355"></a>
-<span class="sourceLineNo">356</span>                                        builder.append("handledChannels=");<a name="line.356"></a>
-<span class="sourceLineNo">357</span>                                        builder.append(handledChannels);<a name="line.357"></a>
-<span class="sourceLineNo">358</span>                                }<a name="line.358"></a>
-<span class="sourceLineNo">359</span>                                builder.append("]");<a name="line.359"></a>
-<span class="sourceLineNo">360</span>                                return builder.toString();<a name="line.360"></a>
-<span class="sourceLineNo">361</span>                        }<a name="line.361"></a>
-<span class="sourceLineNo">362</span>                        <a name="line.362"></a>
-<span class="sourceLineNo">363</span>                }<a name="line.363"></a>
-<span class="sourceLineNo">364</span>        }<a name="line.364"></a>
-<span class="sourceLineNo">365</span><a name="line.365"></a>
-<span class="sourceLineNo">366</span>}<a name="line.366"></a>
+<span class="sourceLineNo">112</span>        @SuppressWarnings("rawtypes")<a name="line.112"></a>
+<span class="sourceLineNo">113</span>        Class&lt;? extends Event&gt;[] events() default NoEvent.class;<a name="line.113"></a>
+<span class="sourceLineNo">114</span>        <a name="line.114"></a>
+<span class="sourceLineNo">115</span>        /**<a name="line.115"></a>
+<span class="sourceLineNo">116</span>         * Specifies names of {@link NamedEvent}s that the handler is to receive.<a name="line.116"></a>
+<span class="sourceLineNo">117</span>         * <a name="line.117"></a>
+<span class="sourceLineNo">118</span>         * ```java<a name="line.118"></a>
+<span class="sourceLineNo">119</span>         * class SampleComponent extends Component {<a name="line.119"></a>
+<span class="sourceLineNo">120</span>         * <a name="line.120"></a>
+<span class="sourceLineNo">121</span>         *    {@literal @}Handler(namedEvents="Test")<a name="line.121"></a>
+<span class="sourceLineNo">122</span>         *     public void onTest(Event&lt;?&gt; event) {<a name="line.122"></a>
+<span class="sourceLineNo">123</span>         *         // Invoked for (named) "Test" events (new NamedEvent("Test")) <a name="line.123"></a>
+<span class="sourceLineNo">124</span>         *         // on the component's channel, event object made available<a name="line.124"></a>
+<span class="sourceLineNo">125</span>         *     }<a name="line.125"></a>
+<span class="sourceLineNo">126</span>         * }<a name="line.126"></a>
+<span class="sourceLineNo">127</span>         * ```<a name="line.127"></a>
+<span class="sourceLineNo">128</span>         * <a name="line.128"></a>
+<span class="sourceLineNo">129</span>         * @return the event names<a name="line.129"></a>
+<span class="sourceLineNo">130</span>         */<a name="line.130"></a>
+<span class="sourceLineNo">131</span>        String[] namedEvents() default "";<a name="line.131"></a>
+<span class="sourceLineNo">132</span>        <a name="line.132"></a>
+<span class="sourceLineNo">133</span>        /**<a name="line.133"></a>
+<span class="sourceLineNo">134</span>         * Specifies classes of channels that the handler listens on. If none<a name="line.134"></a>
+<span class="sourceLineNo">135</span>         * are specified, the component's channel is used.<a name="line.135"></a>
+<span class="sourceLineNo">136</span>         * <a name="line.136"></a>
+<span class="sourceLineNo">137</span>         * ```java<a name="line.137"></a>
+<span class="sourceLineNo">138</span>         * class SampleComponent extends Component {<a name="line.138"></a>
+<span class="sourceLineNo">139</span>         * <a name="line.139"></a>
+<span class="sourceLineNo">140</span>         *    {@literal @}Handler(channels=Feedback.class)<a name="line.140"></a>
+<span class="sourceLineNo">141</span>         *     public void onStart(Start event) {<a name="line.141"></a>
+<span class="sourceLineNo">142</span>         *         // Invoked for Start events on the "Feedback" channel<a name="line.142"></a>
+<span class="sourceLineNo">143</span>         *         // (class Feedback implements Channel {...}),<a name="line.143"></a>
+<span class="sourceLineNo">144</span>         *         // event object made available<a name="line.144"></a>
+<span class="sourceLineNo">145</span>         *     }<a name="line.145"></a>
+<span class="sourceLineNo">146</span>         * }<a name="line.146"></a>
+<span class="sourceLineNo">147</span>         * ```<a name="line.147"></a>
+<span class="sourceLineNo">148</span>         * <a name="line.148"></a>
+<span class="sourceLineNo">149</span>         * @return the channel classes<a name="line.149"></a>
+<span class="sourceLineNo">150</span>         */<a name="line.150"></a>
+<span class="sourceLineNo">151</span>        Class&lt;? extends Channel&gt;[] channels() default NoChannel.class;<a name="line.151"></a>
+<span class="sourceLineNo">152</span><a name="line.152"></a>
+<span class="sourceLineNo">153</span>        /**<a name="line.153"></a>
+<span class="sourceLineNo">154</span>         * Specifies names of {@link NamedChannel}s that the handler listens on.<a name="line.154"></a>
+<span class="sourceLineNo">155</span>         * <a name="line.155"></a>
+<span class="sourceLineNo">156</span>         * ```java<a name="line.156"></a>
+<span class="sourceLineNo">157</span>         * class SampleComponent extends Component {<a name="line.157"></a>
+<span class="sourceLineNo">158</span>         * <a name="line.158"></a>
+<span class="sourceLineNo">159</span>         *    {@literal @}Handler(namedChannels="Feedback")<a name="line.159"></a>
+<span class="sourceLineNo">160</span>         *     public void onStart(Start event) {<a name="line.160"></a>
+<span class="sourceLineNo">161</span>         *         // Invoked for Start events on the (named) channel "Feedback"<a name="line.161"></a>
+<span class="sourceLineNo">162</span>         *         // (new NamedChannel("Feedback")), event object made available<a name="line.162"></a>
+<span class="sourceLineNo">163</span>         *     }<a name="line.163"></a>
+<span class="sourceLineNo">164</span>         * }<a name="line.164"></a>
+<span class="sourceLineNo">165</span>         * ```<a name="line.165"></a>
+<span class="sourceLineNo">166</span>         * <a name="line.166"></a>
+<span class="sourceLineNo">167</span>         * @return the channel names<a name="line.167"></a>
+<span class="sourceLineNo">168</span>         */<a name="line.168"></a>
+<span class="sourceLineNo">169</span>        String[] namedChannels() default "";<a name="line.169"></a>
+<span class="sourceLineNo">170</span>        <a name="line.170"></a>
+<span class="sourceLineNo">171</span>        /**<a name="line.171"></a>
+<span class="sourceLineNo">172</span>         * Specifies a priority. The value is used to sort handlers.<a name="line.172"></a>
+<span class="sourceLineNo">173</span>         * Handlers with higher priority are invoked first.<a name="line.173"></a>
+<span class="sourceLineNo">174</span>         * <a name="line.174"></a>
+<span class="sourceLineNo">175</span>         * @return the priority<a name="line.175"></a>
+<span class="sourceLineNo">176</span>         */<a name="line.176"></a>
+<span class="sourceLineNo">177</span>        int priority() default 0;<a name="line.177"></a>
+<span class="sourceLineNo">178</span><a name="line.178"></a>
+<span class="sourceLineNo">179</span>        /**<a name="line.179"></a>
+<span class="sourceLineNo">180</span>         * Returns {@code true} if the annotated method defines a<a name="line.180"></a>
+<span class="sourceLineNo">181</span>         * dynamic handler. A dynamic handler must be added to the set of<a name="line.181"></a>
+<span class="sourceLineNo">182</span>         * handlers of a component explicitly at run time.<a name="line.182"></a>
+<span class="sourceLineNo">183</span>         * <a name="line.183"></a>
+<span class="sourceLineNo">184</span>         * ```java<a name="line.184"></a>
+<span class="sourceLineNo">185</span>         * class SampleComponent extends Component {<a name="line.185"></a>
+<span class="sourceLineNo">186</span>         * <a name="line.186"></a>
+<span class="sourceLineNo">187</span>         *    {@literal @}Handler(dynamic=true)<a name="line.187"></a>
+<span class="sourceLineNo">188</span>         *     public void onStartDynamic(Start event) {<a name="line.188"></a>
+<span class="sourceLineNo">189</span>         *         // Only invoked if added as handler at runtime<a name="line.189"></a>
+<span class="sourceLineNo">190</span>         *     }<a name="line.190"></a>
+<span class="sourceLineNo">191</span>         * }<a name="line.191"></a>
+<span class="sourceLineNo">192</span>         * ```<a name="line.192"></a>
+<span class="sourceLineNo">193</span>         * <a name="line.193"></a>
+<span class="sourceLineNo">194</span>         * @return the result<a name="line.194"></a>
+<span class="sourceLineNo">195</span>         */<a name="line.195"></a>
+<span class="sourceLineNo">196</span>        boolean dynamic() default false;<a name="line.196"></a>
+<span class="sourceLineNo">197</span>        <a name="line.197"></a>
+<span class="sourceLineNo">198</span>        /**<a name="line.198"></a>
+<span class="sourceLineNo">199</span>         * This class provides the {@link Evaluator} for the <a name="line.199"></a>
+<span class="sourceLineNo">200</span>         * {@link Handler} annotation provided by the core package. It <a name="line.200"></a>
+<span class="sourceLineNo">201</span>         * implements the behavior as described for the annotation. <a name="line.201"></a>
+<span class="sourceLineNo">202</span>         */<a name="line.202"></a>
+<span class="sourceLineNo">203</span>        public static class Evaluator implements HandlerDefinition.Evaluator {<a name="line.203"></a>
+<span class="sourceLineNo">204</span><a name="line.204"></a>
+<span class="sourceLineNo">205</span>                @Override<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                public HandlerScope scope(<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                                ComponentType component, Method method, <a name="line.207"></a>
+<span class="sourceLineNo">208</span>                                        Object[] eventValues, Object[] channelValues) {<a name="line.208"></a>
+<span class="sourceLineNo">209</span>                        Handler annotation = method.getAnnotation(Handler.class);<a name="line.209"></a>
+<span class="sourceLineNo">210</span>                        if (annotation == null || annotation.dynamic()) {<a name="line.210"></a>
+<span class="sourceLineNo">211</span>                                return null;<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                        }<a name="line.212"></a>
+<span class="sourceLineNo">213</span>                        return new Scope(component, method, annotation, eventValues,<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                                channelValues);<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                }<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                <a name="line.216"></a>
+<span class="sourceLineNo">217</span>                /* (non-Javadoc)<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                 * @see org.jgrapes.core.annotation.HandlerDefinition.Evaluator#getPriority()<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                 */<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                @Override<a name="line.220"></a>
+<span class="sourceLineNo">221</span>                public int priority(Annotation annotation) {<a name="line.221"></a>
+<span class="sourceLineNo">222</span>                        return ((Handler)annotation).priority();<a name="line.222"></a>
+<span class="sourceLineNo">223</span>                }<a name="line.223"></a>
+<span class="sourceLineNo">224</span><a name="line.224"></a>
+<span class="sourceLineNo">225</span>                /**<a name="line.225"></a>
+<span class="sourceLineNo">226</span>                 * Adds the given method of the given component as a dynamic handler for<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                 * a specific event and channel. The method with the given name must be<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                 * annotated as dynamic handler and must have a single parameter of type<a name="line.228"></a>
+<span class="sourceLineNo">229</span>                 * {@link Event} (or a derived type as appropriate for the event type to<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                 * be handled). <a name="line.230"></a>
+<span class="sourceLineNo">231</span>                 * <a name="line.231"></a>
+<span class="sourceLineNo">232</span>                 * The method can have an additional optional parameter of type<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                 * {@link Channel} (or a derived type). This parameter does not <a name="line.233"></a>
+<span class="sourceLineNo">234</span>                 * influence the eligibility of the method regarding a given event,<a name="line.234"></a>
+<span class="sourceLineNo">235</span>                 * it determines how the method is invoked. If the method does not<a name="line.235"></a>
+<span class="sourceLineNo">236</span>                 * have a second parameter, it is invoked once if an event <a name="line.236"></a>
+<span class="sourceLineNo">237</span>                 * matches. If the parameter exists, the method is invoked once for<a name="line.237"></a>
+<span class="sourceLineNo">238</span>                 * every channel the method was fired on, but only if the <a name="line.238"></a>
+<span class="sourceLineNo">239</span>                 * actual channel matches the type of the optional parameter.<a name="line.239"></a>
+<span class="sourceLineNo">240</span>                 * <a name="line.240"></a>
+<span class="sourceLineNo">241</span>                 * @param component<a name="line.241"></a>
+<span class="sourceLineNo">242</span>                 *            the component<a name="line.242"></a>
+<span class="sourceLineNo">243</span>                 * @param method<a name="line.243"></a>
+<span class="sourceLineNo">244</span>                 *            the name of the method that implements the handler<a name="line.244"></a>
+<span class="sourceLineNo">245</span>                 * @param eventValue<a name="line.245"></a>
+<span class="sourceLineNo">246</span>                 *            the event key that should be used for matching this<a name="line.246"></a>
+<span class="sourceLineNo">247</span>                 *            handler with an event. This is equivalent to an<a name="line.247"></a>
+<span class="sourceLineNo">248</span>                 *            &lt;code&gt;events&lt;/code&gt;/&lt;code&gt;namedEvents&lt;/code&gt; parameter<a name="line.248"></a>
+<span class="sourceLineNo">249</span>                 *            used with a single value in the handler annotation, but<a name="line.249"></a>
+<span class="sourceLineNo">250</span>                 *            here all kinds of Objects are allowed as key values.<a name="line.250"></a>
+<span class="sourceLineNo">251</span>                 * @param channelValue<a name="line.251"></a>
+<span class="sourceLineNo">252</span>                 *            the channel key that should be used for matching this<a name="line.252"></a>
+<span class="sourceLineNo">253</span>                 *            handler with a channel. This is equivalent to a<a name="line.253"></a>
+<span class="sourceLineNo">254</span>                 *            &lt;code&gt;channels&lt;/code&gt;/&lt;code&gt;namedChannels&lt;/code&gt; parameter<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                 *            used with a single value in the handler annotation, but<a name="line.255"></a>
+<span class="sourceLineNo">256</span>                 *            here all kinds of Objects are allowed as key values. As a<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                 *            convenience, if the actual object provided is a<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                 *            {@link Channel}, its match value is used for matching.<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                 * @param priority<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                 *            the priority of the handler<a name="line.260"></a>
+<span class="sourceLineNo">261</span>                 */<a name="line.261"></a>
+<span class="sourceLineNo">262</span>                public static void add(ComponentType component, String method,<a name="line.262"></a>
+<span class="sourceLineNo">263</span>                                Object eventValue, Object channelValue, int priority) {<a name="line.263"></a>
+<span class="sourceLineNo">264</span>                        addInternal(component, method, eventValue, channelValue, priority);<a name="line.264"></a>
+<span class="sourceLineNo">265</span>                }<a name="line.265"></a>
+<span class="sourceLineNo">266</span><a name="line.266"></a>
+<span class="sourceLineNo">267</span>                /**<a name="line.267"></a>
+<span class="sourceLineNo">268</span>                 * Add a handler like <a name="line.268"></a>
+<span class="sourceLineNo">269</span>                 * {@link #add(ComponentType, String, Object, Object, int)}<a name="line.269"></a>
+<span class="sourceLineNo">270</span>                 * but take the values for event and priority from the annotation.<a name="line.270"></a>
+<span class="sourceLineNo">271</span>                 * <a name="line.271"></a>
+<span class="sourceLineNo">272</span>                 * @param component the component<a name="line.272"></a>
+<span class="sourceLineNo">273</span>                 * @param method the name of the method that implements the handler<a name="line.273"></a>
+<span class="sourceLineNo">274</span>                 * @param channelValue the channel key that should be used for matching<a name="line.274"></a>
+<span class="sourceLineNo">275</span>                 * this handler with a channel <a name="line.275"></a>
+<span class="sourceLineNo">276</span>                 */<a name="line.276"></a>
+<span class="sourceLineNo">277</span>                public static void add(ComponentType component, String method,<a name="line.277"></a>
+<span class="sourceLineNo">278</span>                        Object channelValue) {<a name="line.278"></a>
+<span class="sourceLineNo">279</span>                        addInternal(component, method, null, channelValue, null);<a name="line.279"></a>
+<span class="sourceLineNo">280</span>                }<a name="line.280"></a>
+<span class="sourceLineNo">281</span>                <a name="line.281"></a>
+<span class="sourceLineNo">282</span>                private static void addInternal(ComponentType component, String method,<a name="line.282"></a>
+<span class="sourceLineNo">283</span>                        Object eventValue, Object channelValue, Integer priority) {<a name="line.283"></a>
+<span class="sourceLineNo">284</span>                        try {<a name="line.284"></a>
+<span class="sourceLineNo">285</span>                                if (channelValue instanceof Channel) {<a name="line.285"></a>
+<span class="sourceLineNo">286</span>                                        channelValue = ((Eligible)channelValue).defaultCriterion();<a name="line.286"></a>
+<span class="sourceLineNo">287</span>                                }<a name="line.287"></a>
+<span class="sourceLineNo">288</span>                                for (Method m: component.getClass().getMethods()) {<a name="line.288"></a>
+<span class="sourceLineNo">289</span>                                        if (!m.getName().equals(method)) {<a name="line.289"></a>
+<span class="sourceLineNo">290</span>                                                continue;<a name="line.290"></a>
+<span class="sourceLineNo">291</span>                                        }<a name="line.291"></a>
+<span class="sourceLineNo">292</span>                                        for (Annotation annotation: m.getDeclaredAnnotations()) {<a name="line.292"></a>
+<span class="sourceLineNo">293</span>                                                Class&lt;?&gt; annoType = annotation.annotationType();<a name="line.293"></a>
+<span class="sourceLineNo">294</span>                                                if (!(annoType.equals(Handler.class))) {<a name="line.294"></a>
+<span class="sourceLineNo">295</span>                                                        continue;<a name="line.295"></a>
+<span class="sourceLineNo">296</span>                                                }<a name="line.296"></a>
+<span class="sourceLineNo">297</span>                                                HandlerDefinition hda <a name="line.297"></a>
+<span class="sourceLineNo">298</span>                                                        = annoType.getAnnotation(HandlerDefinition.class);<a name="line.298"></a>
+<span class="sourceLineNo">299</span>                                                if (hda == null<a name="line.299"></a>
+<span class="sourceLineNo">300</span>                                                                || !Handler.class.isAssignableFrom(annoType)<a name="line.300"></a>
+<span class="sourceLineNo">301</span>                                                                || !((Handler)annotation).dynamic()) {<a name="line.301"></a>
+<span class="sourceLineNo">302</span>                                                        continue;<a name="line.302"></a>
+<span class="sourceLineNo">303</span>                                                }<a name="line.303"></a>
+<span class="sourceLineNo">304</span>                                                Scope scope = new Scope(component, m, <a name="line.304"></a>
+<span class="sourceLineNo">305</span>                                                                (Handler)annotation,<a name="line.305"></a>
+<span class="sourceLineNo">306</span>                                                                eventValue == null ? null<a name="line.306"></a>
+<span class="sourceLineNo">307</span>                                                                                : new Object[] { eventValue },<a name="line.307"></a>
+<span class="sourceLineNo">308</span>                                                                new Object[] { channelValue });<a name="line.308"></a>
+<span class="sourceLineNo">309</span>                                                Components.manager(component).addHandler(m, scope, <a name="line.309"></a>
+<span class="sourceLineNo">310</span>                                                                priority != null ? priority <a name="line.310"></a>
+<span class="sourceLineNo">311</span>                                                                                : ((Handler)annotation).priority());<a name="line.311"></a>
+<span class="sourceLineNo">312</span>                                                return;<a name="line.312"></a>
+<span class="sourceLineNo">313</span>                                        }<a name="line.313"></a>
+<span class="sourceLineNo">314</span>                                }<a name="line.314"></a>
+<span class="sourceLineNo">315</span>                                throw new IllegalArgumentException(<a name="line.315"></a>
+<span class="sourceLineNo">316</span>                                                "No method named \"" + method + "\" with DynamicHandler"<a name="line.316"></a>
+<span class="sourceLineNo">317</span>                                                        + " annotation and correct parameter list.");<a name="line.317"></a>
+<span class="sourceLineNo">318</span>                        } catch (SecurityException e) {<a name="line.318"></a>
+<span class="sourceLineNo">319</span>                                throw (RuntimeException)<a name="line.319"></a>
+<span class="sourceLineNo">320</span>                                        (new IllegalArgumentException().initCause(e));<a name="line.320"></a>
+<span class="sourceLineNo">321</span>                        }<a name="line.321"></a>
+<span class="sourceLineNo">322</span>                }<a name="line.322"></a>
+<span class="sourceLineNo">323</span>                <a name="line.323"></a>
+<span class="sourceLineNo">324</span>                /**<a name="line.324"></a>
+<span class="sourceLineNo">325</span>                 * The handler scope implementation used by the evaluator.<a name="line.325"></a>
+<span class="sourceLineNo">326</span>                 */<a name="line.326"></a>
+<span class="sourceLineNo">327</span>                private static class Scope implements HandlerScope {<a name="line.327"></a>
+<span class="sourceLineNo">328</span><a name="line.328"></a>
+<span class="sourceLineNo">329</span>                        private Set&lt;Object&gt; handledEvents = new HashSet&lt;Object&gt;();<a name="line.329"></a>
+<span class="sourceLineNo">330</span>                        private Set&lt;Object&gt; handledChannels = new HashSet&lt;Object&gt;();<a name="line.330"></a>
+<span class="sourceLineNo">331</span><a name="line.331"></a>
+<span class="sourceLineNo">332</span>                        public Scope(ComponentType component, Method method,<a name="line.332"></a>
+<span class="sourceLineNo">333</span>                                Handler annotation, Object[] eventValues,<a name="line.333"></a>
+<span class="sourceLineNo">334</span>                                Object[] channelValues) {<a name="line.334"></a>
+<span class="sourceLineNo">335</span>                                if (!HandlerDefinition.Evaluator.checkMethodSignature(method)) {<a name="line.335"></a>
+<span class="sourceLineNo">336</span>                                        throw new IllegalArgumentException("Method \""<a name="line.336"></a>
+<span class="sourceLineNo">337</span>                                                         + method.toString() + "\" cannot be used as"<a name="line.337"></a>
+<span class="sourceLineNo">338</span>                                                         + " handler (wrong signature).");<a name="line.338"></a>
+<span class="sourceLineNo">339</span>                                }<a name="line.339"></a>
+<span class="sourceLineNo">340</span>                                if (eventValues != null) {<a name="line.340"></a>
+<span class="sourceLineNo">341</span>                                        handledEvents.addAll(Arrays.asList(eventValues));<a name="line.341"></a>
+<span class="sourceLineNo">342</span>                                } else {<a name="line.342"></a>
+<span class="sourceLineNo">343</span>                                        // Get all event values from the handler annotation.<a name="line.343"></a>
+<span class="sourceLineNo">344</span>                                        if (annotation.events()[0] != Handler.NoEvent.class) {<a name="line.344"></a>
+<span class="sourceLineNo">345</span>                                                handledEvents<a name="line.345"></a>
+<span class="sourceLineNo">346</span>                                                        .addAll(Arrays.asList(annotation.events()));<a name="line.346"></a>
+<span class="sourceLineNo">347</span>                                        }<a name="line.347"></a>
+<span class="sourceLineNo">348</span>                                        // Get all named events from the annotation and add to event<a name="line.348"></a>
+<span class="sourceLineNo">349</span>                                        // keys.<a name="line.349"></a>
+<span class="sourceLineNo">350</span>                                        if (!annotation.namedEvents()[0].equals("")) {<a name="line.350"></a>
+<span class="sourceLineNo">351</span>                                                handledEvents.addAll(<a name="line.351"></a>
+<span class="sourceLineNo">352</span>                                                        Arrays.asList(annotation.namedEvents()));<a name="line.352"></a>
+<span class="sourceLineNo">353</span>                                        }<a name="line.353"></a>
+<span class="sourceLineNo">354</span>                                        // If no event types are given, try first parameter.<a name="line.354"></a>
+<span class="sourceLineNo">355</span>                                        if (handledEvents.isEmpty()) {<a name="line.355"></a>
+<span class="sourceLineNo">356</span>                                                Class&lt;?&gt;[] paramTypes = method.getParameterTypes();<a name="line.356"></a>
+<span class="sourceLineNo">357</span>                                                if (paramTypes.length &gt; 0) {<a name="line.357"></a>
+<span class="sourceLineNo">358</span>                                                        if (Event.class.isAssignableFrom(paramTypes[0])) {<a name="line.358"></a>
+<span class="sourceLineNo">359</span>                                                                handledEvents.add(paramTypes[0]);<a name="line.359"></a>
+<span class="sourceLineNo">360</span>                                                        }<a name="line.360"></a>
+<span class="sourceLineNo">361</span>                                                }<a name="line.361"></a>
+<span class="sourceLineNo">362</span>                                        }<a name="line.362"></a>
+<span class="sourceLineNo">363</span>                                }<a name="line.363"></a>
+<span class="sourceLineNo">364</span>                                <a name="line.364"></a>
+<span class="sourceLineNo">365</span>                                if (channelValues != null) {<a name="line.365"></a>
+<span class="sourceLineNo">366</span>                                        handledChannels.addAll(Arrays.asList(channelValues));<a name="line.366"></a>
+<span class="sourceLineNo">367</span>                                } else {<a name="line.367"></a>
+<span class="sourceLineNo">368</span>                                        // Get channel values from the annotation.<a name="line.368"></a>
+<span class="sourceLineNo">369</span>                                        boolean addDefaultChannel = false;<a name="line.369"></a>
+<span class="sourceLineNo">370</span>                                        if (annotation.channels()[0] != Handler.NoChannel.class) {<a name="line.370"></a>
+<span class="sourceLineNo">371</span>                                                for (Class&lt;?&gt; c : annotation.channels()) {<a name="line.371"></a>
+<span class="sourceLineNo">372</span>                                                        if (c == Self.class) {<a name="line.372"></a>
+<span class="sourceLineNo">373</span>                                                                if (component instanceof Channel) {<a name="line.373"></a>
+<span class="sourceLineNo">374</span>                                                                        handledChannels<a name="line.374"></a>
+<span class="sourceLineNo">375</span>                                                                                .add(((Channel) component)<a name="line.375"></a>
+<span class="sourceLineNo">376</span>                                                                                        .defaultCriterion());<a name="line.376"></a>
+<span class="sourceLineNo">377</span>                                                                } else {<a name="line.377"></a>
+<span class="sourceLineNo">378</span>                                                                        throw new IllegalArgumentException(<a name="line.378"></a>
+<span class="sourceLineNo">379</span>                                                                            "Canot use channel This.class in "<a name="line.379"></a>
+<span class="sourceLineNo">380</span>                                                                                + "annotation of " + method <a name="line.380"></a>
+<span class="sourceLineNo">381</span>                                                                                + " because " + getClass().getName()<a name="line.381"></a>
+<span class="sourceLineNo">382</span>                                                                            + " does not implement Channel.");<a name="line.382"></a>
+<span class="sourceLineNo">383</span>                                                                }<a name="line.383"></a>
+<span class="sourceLineNo">384</span>                                                        } else if (c == DefaultChannel.class) {<a name="line.384"></a>
+<span class="sourceLineNo">385</span>                                                                addDefaultChannel = true;<a name="line.385"></a>
+<span class="sourceLineNo">386</span>                                                        } else {<a name="line.386"></a>
+<span class="sourceLineNo">387</span>                                                                handledChannels.add(c);<a name="line.387"></a>
+<span class="sourceLineNo">388</span>                                                        }<a name="line.388"></a>
+<span class="sourceLineNo">389</span>                                                }<a name="line.389"></a>
+<span class="sourceLineNo">390</span>                                        }<a name="line.390"></a>
+<span class="sourceLineNo">391</span>                                        // Get named channels from annotation and add to channel<a name="line.391"></a>
+<span class="sourceLineNo">392</span>                                        // keys.<a name="line.392"></a>
+<span class="sourceLineNo">393</span>                                        if (!annotation.namedChannels()[0].equals("")) {<a name="line.393"></a>
+<span class="sourceLineNo">394</span>                                                handledChannels.addAll(<a name="line.394"></a>
+<span class="sourceLineNo">395</span>                                                        Arrays.asList(annotation.namedChannels()));<a name="line.395"></a>
+<span class="sourceLineNo">396</span>                                        }<a name="line.396"></a>
+<span class="sourceLineNo">397</span>                                        if (handledChannels.size() == 0 || addDefaultChannel) {<a name="line.397"></a>
+<span class="sourceLineNo">398</span>                                                handledChannels.add(Components.manager(component)<a name="line.398"></a>
+<span class="sourceLineNo">399</span>                                                        .channel().defaultCriterion());<a name="line.399"></a>
+<span class="sourceLineNo">400</span>                                        }<a name="line.400"></a>
+<span class="sourceLineNo">401</span>                                }<a name="line.401"></a>
+<span class="sourceLineNo">402</span>                        }<a name="line.402"></a>
+<span class="sourceLineNo">403</span>                        <a name="line.403"></a>
+<span class="sourceLineNo">404</span>                        @Override<a name="line.404"></a>
+<span class="sourceLineNo">405</span>                        public boolean includes(Eligible event, Eligible[] channels) {<a name="line.405"></a>
+<span class="sourceLineNo">406</span>                                for (Object eventValue: handledEvents) {<a name="line.406"></a>
+<span class="sourceLineNo">407</span>                                        if (event.isEligibleFor(eventValue)) {<a name="line.407"></a>
+<span class="sourceLineNo">408</span>                                                // Found match regarding event, now try channels<a name="line.408"></a>
+<span class="sourceLineNo">409</span>                                                for (Eligible channel: channels) {<a name="line.409"></a>
+<span class="sourceLineNo">410</span>                                                        for (Object channelValue: handledChannels) {<a name="line.410"></a>
+<span class="sourceLineNo">411</span>                                                                if (channel.isEligibleFor(channelValue)) {<a name="line.411"></a>
+<span class="sourceLineNo">412</span>                                                                        return true;<a name="line.412"></a>
+<span class="sourceLineNo">413</span>                                                                }<a name="line.413"></a>
+<span class="sourceLineNo">414</span>                                                        }<a name="line.414"></a>
+<span class="sourceLineNo">415</span>                                                }<a name="line.415"></a>
+<span class="sourceLineNo">416</span>                                                return false;<a name="line.416"></a>
+<span class="sourceLineNo">417</span>                                        }<a name="line.417"></a>
+<span class="sourceLineNo">418</span>                                }<a name="line.418"></a>
+<span class="sourceLineNo">419</span>                                return false;<a name="line.419"></a>
+<span class="sourceLineNo">420</span>                        }<a name="line.420"></a>
+<span class="sourceLineNo">421</span><a name="line.421"></a>
+<span class="sourceLineNo">422</span>                        /* (non-Javadoc)<a name="line.422"></a>
+<span class="sourceLineNo">423</span>                         * @see java.lang.Object#toString()<a name="line.423"></a>
+<span class="sourceLineNo">424</span>                         */<a name="line.424"></a>
+<span class="sourceLineNo">425</span>                        @Override<a name="line.425"></a>
+<span class="sourceLineNo">426</span>                        public String toString() {<a name="line.426"></a>
+<span class="sourceLineNo">427</span>                                StringBuilder builder = new StringBuilder();<a name="line.427"></a>
+<span class="sourceLineNo">428</span>                                builder.append("Scope [");<a name="line.428"></a>
+<span class="sourceLineNo">429</span>                                if (handledEvents != null) {<a name="line.429"></a>
+<span class="sourceLineNo">430</span>                                        builder.append("handledEvents=");<a name="line.430"></a>
+<span class="sourceLineNo">431</span>                                        builder.append(handledEvents.stream().map(v -&gt; {<a name="line.431"></a>
+<span class="sourceLineNo">432</span>                                                if (v instanceof Class) {<a name="line.432"></a>
+<span class="sourceLineNo">433</span>                                                        return Common.classToString((Class&lt;?&gt;) v);<a name="line.433"></a>
+<span class="sourceLineNo">434</span>                                                }<a name="line.434"></a>
+<span class="sourceLineNo">435</span>                                                return v.toString();<a name="line.435"></a>
+<span class="sourceLineNo">436</span>                                        }).collect(Collectors.toSet()));<a name="line.436"></a>
+<span class="sourceLineNo">437</span>                                        builder.append(", ");<a name="line.437"></a>
+<span class="sourceLineNo">438</span>                                }<a name="line.438"></a>
+<span class="sourceLineNo">439</span>                                if (handledChannels != null) {<a name="line.439"></a>
+<span class="sourceLineNo">440</span>                                        builder.append("handledChannels=");<a name="line.440"></a>
+<span class="sourceLineNo">441</span>                                        builder.append(handledChannels);<a name="line.441"></a>
+<span class="sourceLineNo">442</span>                                }<a name="line.442"></a>
+<span class="sourceLineNo">443</span>                                builder.append("]");<a name="line.443"></a>
+<span class="sourceLineNo">444</span>                                return builder.toString();<a name="line.444"></a>
+<span class="sourceLineNo">445</span>                        }<a name="line.445"></a>
+<span class="sourceLineNo">446</span>                        <a name="line.446"></a>
+<span class="sourceLineNo">447</span>                }<a name="line.447"></a>
+<span class="sourceLineNo">448</span>        }<a name="line.448"></a>
+<span class="sourceLineNo">449</span><a name="line.449"></a>
+<span class="sourceLineNo">450</span>}<a name="line.450"></a>
 
 
 
