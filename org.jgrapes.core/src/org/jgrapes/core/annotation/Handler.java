@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ClassChannel;
+import org.jgrapes.core.Component;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.DefaultChannel;
@@ -45,41 +46,23 @@ import org.jgrapes.core.internal.Common;
 
 /**
  * This is the basic, general purpose handler annotation provided as part of the
- * core package. The annotated method is invoked for events that have a type (or
- * name) matching the given `events` (or `namedEvents`) parameter and that 
- * are fired on the given `channels` (or `namedChannels`).
+ * core package.
  * 
- * ```java
- * class SampleComponent extends Component {
+ * The annotated method is invoked for events that have a type (or
+ * name) matching the given `events` (or `namedEvents`) parameter 
+ * of the annotation and that are fired on the given `channels` 
+ * (or `namedChannels`).
  * 
- *    {@literal @}Handler(events=Start.class)
- *     public void onStart() {
- *         // Invoked for Start events, not interested in the event object
- *     }
+ * If neither event classes nor named events are specified as part of the 
+ * annotation, the class of the annotated method's first parameter (which 
+ * must be of type {@link Event} or a super type) is used as (single)
+ * event class.
  * 
- *    {@literal @}Handler(events={Start.class, Stop.class})
- *     public void onStart(Event<?> event) {
- *         // Invoked for Start and Stop events, event made available
- *         // (may need casting to access specific properties) 
- *     }
+ * If neither channel classes not named channels are specified, the
+ * default criterion of the component's channel is used for matching
+ * events.
  * 
- *    {@literal @}Handler
- *     public void onStart(Start event) {
- *         // Invoked for Start events, event object made available
- *     }
- * 
- *    {@literal @}Handler(dynamic=true)
- *     public void onStartDynamic(Start event) {
- *         // Only invoked if added as handler at runtime
- *     }
- * 
- *    {@literal @}Handler(namedEvents="Test")
- *     public void onTest(Event<?> event) {
- *         // Invoked for (named) "Test" events, event object made available
- *     }
- * }
- * ```
- * 
+ * @see Component#channel()
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
@@ -99,8 +82,30 @@ public @interface Handler {
 	
 	/**
 	 * Specifies classes of events that the handler is to receive.
-	 * If no event classes are specified, the class of the first
-	 * parameter of the annotated method is used instead. 
+	 * 
+	 * ```java
+	 * class SampleComponent extends Component {
+	 * 
+	 *    {@literal @}Handler
+	 *     public void onStart(Start event) {
+	 *         // Invoked for Start events on the component's channel,
+	 *         // event object made available
+	 *     }
+	 * 
+	 *    {@literal @}Handler(events=Start.class)
+	 *     public void onStart() {
+	 *         // Invoked for Start events on the component's channel,
+	 *         // not interested in the event object
+	 *     }
+	 * 
+	 *    {@literal @}Handler(events={Start.class, Stop.class})
+	 *     public void onStart(Event<?> event) {
+	 *         // Invoked for Start and Stop events on the component's
+	 *         // channel, event made available (may need casting to 
+	 *         // access specific properties) 
+	 *     }
+	 * }
+	 * ```
 	 * 
 	 * @return the event classes
 	 */
@@ -110,12 +115,36 @@ public @interface Handler {
 	/**
 	 * Specifies names of {@link NamedEvent}s that the handler is to receive.
 	 * 
+	 * ```java
+	 * class SampleComponent extends Component {
+	 * 
+	 *    {@literal @}Handler(namedEvents="Test")
+	 *     public void onTest(Event<?> event) {
+	 *         // Invoked for (named) "Test" events (new NamedEvent("Test")) 
+	 *         // on the component's channel, event object made available
+	 *     }
+	 * }
+	 * ```
+	 * 
 	 * @return the event names
 	 */
 	String[] namedEvents() default "";
 	
 	/**
-	 * Specifies classes of channels that the handler listens on.
+	 * Specifies classes of channels that the handler listens on. If none
+	 * are specified, the component's channel is used.
+	 * 
+	 * ```java
+	 * class SampleComponent extends Component {
+	 * 
+	 *    {@literal @}Handler(channels=Feedback.class)
+	 *     public void onStart(Start event) {
+	 *         // Invoked for Start events on the "Feedback" channel
+	 *         // (class Feedback implements Channel {...}),
+	 *         // event object made available
+	 *     }
+	 * }
+	 * ```
 	 * 
 	 * @return the channel classes
 	 */
@@ -123,6 +152,17 @@ public @interface Handler {
 
 	/**
 	 * Specifies names of {@link NamedChannel}s that the handler listens on.
+	 * 
+	 * ```java
+	 * class SampleComponent extends Component {
+	 * 
+	 *    {@literal @}Handler(namedChannels="Feedback")
+	 *     public void onStart(Start event) {
+	 *         // Invoked for Start events on the (named) channel "Feedback"
+	 *         // (new NamedChannel("Feedback")), event object made available
+	 *     }
+	 * }
+	 * ```
 	 * 
 	 * @return the channel names
 	 */
@@ -137,9 +177,19 @@ public @interface Handler {
 	int priority() default 0;
 
 	/**
-	 * Returns {@code true} if the annotated annotation defines a
+	 * Returns {@code true} if the annotated method defines a
 	 * dynamic handler. A dynamic handler must be added to the set of
-	 * handlers of a component explicitly.
+	 * handlers of a component explicitly at run time.
+	 * 
+	 * ```java
+	 * class SampleComponent extends Component {
+	 * 
+	 *    {@literal @}Handler(dynamic=true)
+	 *     public void onStartDynamic(Start event) {
+	 *         // Only invoked if added as handler at runtime
+	 *     }
+	 * }
+	 * ```
 	 * 
 	 * @return the result
 	 */

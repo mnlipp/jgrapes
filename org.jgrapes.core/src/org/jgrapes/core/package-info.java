@@ -55,7 +55,7 @@
  * handle them. Because components are usually only interested in certain 
  * kinds of triggers, events implement the {@link org.jgrapes.core.Eligible}
  * interface that enables the user to obtain an event's kind (as criterion)
- * and filter events depending on their kind.
+ * and to filter events according to their kind.
  * 
  * ![Events](Events.svg)
  * 
@@ -77,9 +77,9 @@
  * --------------
  * 
  * Event handlers are methods that are invoked by the framework.
- * These method have return type `void` and can have zero to
+ * These methods have return type `void` and can have zero to
  * two parameters. If specified, the first parameter must be of type
- * {@link org.jgrapes.core.Event} (or, obviously, a type derived from
+ * {@link org.jgrapes.core.Event} (or, as usual, a super type of
  * `Event`). The purpose of the second (optional) parameter will be 
  * explained in the next section.
  * 
@@ -98,7 +98,27 @@
  * Channels
  * --------
  * 
- * ...
+ * Because events are usually only relevant for a subset of the application's
+ * components, events are fired on so called channels and event handlers 
+ * are attached to one ore more of those channels.
+ * 
+ * In order for objects to be used as channels, they must implement the
+ * {@link org.jgrapes.core.Channel} interface, which implies implementing
+ * the {@link org.jgrapes.core.Eligible} interface. The core package
+ * provides two stand-alone types of channels: the 
+ * {@link org.jgrapes.core.ClassChannel}, that uses a Java class for 
+ * identification and the {@link org.jgrapes.core.NamedChannel}, that uses 
+ * a name (String) for identification. 
+ * 
+ * A third type of channels is provided by the
+ * {@link org.jgrapes.core.Component}s, which implement the
+ * {@link org.jgrapes.core.Channel} interface as well. This means that
+ * every component can be used as a channel.
+ * 
+ * Conceptionally, components fire events on one or more channels,
+ * and the channels forward the events to all (0 to many) event handlers.
+ * 
+ * ![Component-Channel interaction](Component-Channel.svg)
  * 
  * Logging
  * -------
@@ -182,6 +202,30 @@
  * 	+Object defaultCriterion()
  * }
  * Event <|-- UserEventType
+ * @enduml
+ * 
+ * @startuml Component-Channel.svg
+ * 
+ * class Component {
+ *  + fire(event: Event): void
+ *  + onSomeEvent(): void
+ * }
+ * 
+ * class SomeChannel {
+ *  + forward(event: Event): void
+ * }
+ * 
+ * Component -[hidden]right-> SomeChannel
+ * 
+ * Component ..> "0..*" SomeChannel : <<call>>
+ * note right on link: fire event
+ * 
+ * Component "0..*" <.. SomeChannel : <<call>>
+ * note left on link
+ * invoke
+ * event handler
+ * end note
+ * 
  * @enduml
  */
 @org.osgi.annotation.versioning.Version("${api_version}")
