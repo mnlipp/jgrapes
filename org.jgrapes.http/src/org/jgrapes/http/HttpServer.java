@@ -407,6 +407,7 @@ public class HttpServer extends Component {
 					fireRequest(engine.currentRequest().get(), this);
 				}
 				if (bodyData != null && bodyData.position() > 0) {
+					bodyData.flip();
 					fire(new Input<>(bodyData, !result.isOverflow() 
 							&& !result.isUnderflow()), this);
 				}
