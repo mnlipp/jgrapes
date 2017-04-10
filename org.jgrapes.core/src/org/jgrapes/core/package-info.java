@@ -20,6 +20,8 @@
  * Defines the interfaces and classes that provide
  * the core functionality of the JGrapes event driven component framework.
  * 
+ * [TOC formatted]
+ * 
  * Components
  * ----------
  * 
@@ -99,10 +101,10 @@
  * --------
  * 
  * Because events are usually only relevant for a subset of the application's
- * components, events are fired on so called channels and event handlers 
+ * components, events are fired on so called channels. Event handlers 
  * are attached to one ore more of those channels.
  * 
- * In order for objects to be used as channels, they must implement the
+ * In order for objects to be usable as channels, they must implement the
  * {@link org.jgrapes.core.Channel} interface, which implies implementing
  * the {@link org.jgrapes.core.Eligible} interface. The core package
  * provides two stand-alone types of channels: the 
@@ -110,15 +112,49 @@
  * identification and the {@link org.jgrapes.core.NamedChannel}, that uses 
  * a name (String) for identification. 
  * 
- * A third type of channels is provided by the
+ * A third group of channels is implicitly provided by the
  * {@link org.jgrapes.core.Component}s, which implement the
  * {@link org.jgrapes.core.Channel} interface as well. This means that
  * every component can be used as a channel.
  * 
- * Conceptionally, components fire events on one or more channels,
- * and the channels forward the events to all (0 to many) event handlers.
- * 
+ * From a conceptional point of view, components fire events on one or 
+ * more channels, and the channels forward the events to all (0 to many) 
+ * interested event handlers (in reality, channels are only used as
+ * identifiers in event management).
+ * See {@link org.jgrapes.core.Manager#fire(Event, Channel...)} for
+ * a description of how to choose channels when fireing an event.
+ *  
  * ![Component-Channel interaction](Component-Channel.svg)
+ * 
+ * A handler is considered to be interested in an event if it has 
+ * registered with one of the channels that the event is fired on
+ * and the event is of a type that the handler (annotation) has
+ * specified as being processed by the handler (see above)[^handlerCaching].
+ * 
+ * [^handlerCaching]: The mapping from a tuple "(event, channels)" to the
+ * handlers is evaluated once for a new tuple and then cached. So once the
+ * cache has been filled, event processing imposes only a relatively
+ * small constant overhead over invoking methods directly. The cache is
+ * cleared if the handlers are removed or added. Therefore, frequent
+ * changes of the applications structure whie running it should be 
+ * avoided.
+ * 
+ * The channels that an event has been fired on are made available
+ * when the event is passed to an event handler by 
+ * {@link org.jgrapes.core.Event#channels()}. In some use cases, an
+ * event handler has to perform an action for each of the channels. To
+ * simplify this, an event handler may specify a second parameter
+ * of type {@link org.jgrapes.core.Channel}. In this case, the handler
+ * is invoked by the framework once for each channel that the event
+ * was fired on. If the type of the second parameter is a super type
+ * of {@link org.jgrapes.core.Channel}, it is invoked only if the
+ * paramter is assignable from the actual channel.
+ * 
+ * 
+ * Event Processors
+ * ----------------
+ * 
+ * ...
  * 
  * Logging
  * -------
@@ -222,8 +258,8 @@
  * 
  * Component "0..*" <.. SomeChannel : <<call>>
  * note left on link
- * invoke
- * event handler
+ * invoke event 
+ * handlers
  * end note
  * 
  * @enduml
