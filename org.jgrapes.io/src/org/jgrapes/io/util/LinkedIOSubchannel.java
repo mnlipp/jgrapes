@@ -24,11 +24,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import org.jgrapes.core.Channel;
-import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
 
 /**
  * Provides an I/O subchannel that is linked to another I/O subchannel. A
@@ -63,7 +62,7 @@ import org.jgrapes.io.IOSubchannel;
  * the upstream subchannel (used as key) goes away.
  * 
  */
-public class LinkedIOSubchannel implements IOSubchannel {
+public class LinkedIOSubchannel extends DefaultSubchannel {
 
 	private static final Map<IOSubchannel, LinkedIOSubchannel> 
 		reverseMap = Collections.synchronizedMap(new WeakHashMap<>());
@@ -72,7 +71,6 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	// Must be weak, else there will always be a reference to the 
 	// upstream channel and, through the reverseMap, to this object.
 	private final WeakReference<IOSubchannel> upstreamChannel;
-	private final EventPipeline responsePipeline;
 
 	/**
 	 * Creates a new {@code LinkedIOSubchannel} that links to the give I/O
@@ -109,10 +107,9 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	 */
 	public LinkedIOSubchannel(Manager converterComponent,
 	        IOSubchannel upstreamChannel, boolean addToMap) {
-		super();
+		super(converterComponent);
 		this.converterComponent = converterComponent;
 		this.upstreamChannel = new WeakReference<>(upstreamChannel);
-		responsePipeline = converterComponent.newEventPipeline();
 		if (addToMap) {
 			reverseMap.put(upstreamChannel, this);
 		}
@@ -123,22 +120,6 @@ public class LinkedIOSubchannel implements IOSubchannel {
 	 */
 	public Manager converterComponent() {
 		return converterComponent;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jgrapes.io.IOSubchannel#getMainChannel()
-	 */
-	@Override
-	public Channel mainChannel() {
-		return converterComponent.channel();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jgrapes.io.IOSubchannel#getResponsePipeline()
-	 */
-	@Override
-	public EventPipeline responsePipeline() {
-		return responsePipeline;
 	}
 
 	/**

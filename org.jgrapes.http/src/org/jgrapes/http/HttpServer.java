@@ -433,24 +433,29 @@ public class HttpServer extends Component {
 				return;
 			}
 			ByteBuffer input = ((ByteBuffer)in).duplicate();
-			while (true) {
+			if (outBuffer == null) {
+				outBuffer = upstreamChannel().bufferPool().acquire();
+			}
+			while (input.hasRemaining()) {
 				Codec.Result result = engine.encode(input,
 				        outBuffer.backingBuffer(), event.isEndOfRecord());
-				if (!result.isOverflow() && !event.isEndOfRecord()
-						&& !result.closeConnection()) {
-					break;
+				if (result.isOverflow()) {
+					upstreamChannel().respond(new Output<>(outBuffer, false));
+					outBuffer = upstreamChannel().bufferPool().acquire();
+					continue;
 				}
-				upstreamChannel().respond(new Output<>(outBuffer, false));
-				if (!input.hasRemaining() && event.isEndOfRecord() 
-						|| result.closeConnection()) {
+				if (event.isEndOfRecord() || result.closeConnection()) {
+					if (outBuffer.position() > 0) {
+						upstreamChannel().respond(new Output<>(outBuffer, false));
+					} else {
+						outBuffer.unlockBuffer();
+					}
 					outBuffer = null;
 					if (result.closeConnection()) {
 						upstreamChannel().respond(new Close());
 					}
 					break;
 				}
-				
-				outBuffer = upstreamChannel().bufferPool().acquire();
 			}
 			
 		}

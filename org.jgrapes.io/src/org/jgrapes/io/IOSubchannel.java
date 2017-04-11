@@ -19,12 +19,15 @@
 package org.jgrapes.io;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.core.Manager;
 import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.util.ManagedBufferQueue;
 import org.jgrapes.io.util.ManagedByteBuffer;
@@ -90,15 +93,14 @@ public interface IOSubchannel extends Channel {
 	 * 
 	 * @return the event pipeline
 	 */
-	public abstract EventPipeline responsePipeline();
+	public EventPipeline responsePipeline();
 
 	/**
 	 * Get the subchannel's buffer pool.
 	 * 
 	 * @return the buffer pool
 	 */
-	public abstract 
-		ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool();
+	public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool();
 	
 	/**
 	 * Fires the given event on this subchannel using the subchannel's response
@@ -127,6 +129,16 @@ public interface IOSubchannel extends Channel {
 	}
 
 	/**
+	 * Returns the context for the given component. If this is the
+	 * first invocation, a new context will be obtained from the
+	 * component. Else the previously created context is returned.
+	 * 
+	 * @param component the component
+	 * @return the context
+	 */
+	<T> T context(ContextSupplier<T> component);
+	
+	/**
 	 * Creates a new subchannel of the given component's channel with a new
 	 * event pipeline and a buffer pool with two buffers sized 4096.
 	 * 
@@ -138,16 +150,46 @@ public interface IOSubchannel extends Channel {
 	public static IOSubchannel defaultInstance(Component component) {
 		return new DefaultSubchannel(component);
 	}
-	
+
+	/**
+	 * A simple implementation of {@link IOSubchannel}.
+	 */
 	public static class DefaultSubchannel implements IOSubchannel {
-
 		private Channel mainChannel;
-		private EventPipeline eventPipeline;
+		private Map<ContextSupplier<?>, ? super Object> 
+			contexts = new HashMap<>();
+		private EventPipeline responsePipeline;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool;
+		
+		/**
+		 * Creates a new instance with the given main channel and response
+		 * pipeline.  
+		 * 
+		 * @param mainChannel the main channel
+		 * @param responsePipeline the response pipeline to use
+		 * 
+		 */
+		public DefaultSubchannel(
+				Channel mainChannel, EventPipeline responsePipeline) {
+			super();
+			this.mainChannel = mainChannel;
+			this.responsePipeline = responsePipeline;
+		}
+		
+		/**
+		 * Creates a new instance with the main channel
+		 * and event pipeline obtained from the component.
+		 * 
+		 * @param component the manager used to get the main channel
+		 * and a new event pipeline
+		 */
+		public DefaultSubchannel(Manager component) {
+			this(component.channel(), component.newEventPipeline());
+		}
 
-		private DefaultSubchannel(Component component) {
-			mainChannel = component.channel();
-			eventPipeline = component.newEventPipeline();
+		protected void setBufferPool(
+				ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool) {
+			this.bufferPool = bufferPool;
 		}
 		
 		/* (non-Javadoc)
@@ -158,12 +200,28 @@ public interface IOSubchannel extends Channel {
 			return mainChannel;
 		}
 
+		/* (non-Javadoc)
+		 * @see org.jgrapes.io.IOSubchannel#responsePipeline()
+		 */
 		@Override
 		public EventPipeline responsePipeline() {
-			return eventPipeline;
+			return responsePipeline;
 		}
 
+		/* (non-Javadoc)
+		 * @see org.jgrapes.io.IOSubchannel#context(org.jgrapes.io.ContextSupplier)
+		 */
+		@SuppressWarnings("unchecked")
 		@Override
+		public <T> T context(ContextSupplier<T> component) {
+			return (T)contexts.computeIfAbsent(
+					component, c -> c.createContext());
+		}
+
+		/**
+		 * Returns the buffer pool set. If no buffer pool has been set, a
+		 * buffer pool with with two buffers of size 4096 is created.
+		 */
 		public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool() {
 			if (bufferPool == null) {
 				bufferPool = new ManagedBufferQueue<>(ManagedByteBuffer.class,

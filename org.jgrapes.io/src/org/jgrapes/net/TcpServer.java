@@ -41,6 +41,7 @@ import org.jgrapes.core.events.Error;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
 import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
@@ -359,13 +360,12 @@ public class TcpServer extends Component implements NioHandler {
 	/**
 	 * The internal representation of a connected client. 
 	 */
-	public class SocketConn implements NioHandler, IOSubchannel {
+	public class SocketConn 
+		extends DefaultSubchannel implements NioHandler {
 
 		private SocketChannel nioChannel;
 		private EventPipeline downPipeline;
-		private EventPipeline upPipeline;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> readBuffers;
-		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> writeBuffers;
 		private Registration registration = null;
 		private Queue<ManagedByteBuffer.Reader> pendingWrites = new ArrayDeque<>();
 		private boolean pendingClose = false;
@@ -375,19 +375,19 @@ public class TcpServer extends Component implements NioHandler {
 		 * @throws IOException if an I/O error occured
 		 */
 		public SocketConn(SocketChannel nioChannel)	throws IOException {
+			super(TcpServer.this);
 			this.nioChannel = nioChannel;
 			if (executorService != null) {
 				downPipeline = newEventPipeline(executorService);
 			} else {
 				downPipeline = newEventPipeline();
 			}
-			upPipeline = newEventPipeline();
 
 			int writeBufferSize = bufferSize == 0 
 					? nioChannel.socket().getSendBufferSize() : bufferSize;
-			writeBuffers = new ManagedBufferQueue<>(ManagedByteBuffer.class, 
+			setBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer.class, 
 					ByteBuffer.allocate(writeBufferSize),
-					ByteBuffer.allocate(writeBufferSize));
+					ByteBuffer.allocate(writeBufferSize)));
 			
 			int readBufferSize = bufferSize == 0 
 					? nioChannel.socket().getReceiveBufferSize() : bufferSize;
@@ -400,30 +400,6 @@ public class TcpServer extends Component implements NioHandler {
 			TcpServer.this.fire(
 			        new NioRegistration(this, nioChannel, 0, TcpServer.this),
 			        Channel.BROADCAST);
-		}
-
-		/* (non-Javadoc)
-		 * @see org.jgrapes.io.IOSubchannel#getMainChannel()
-		 */
-		@Override
-		public Channel mainChannel() {
-			return TcpServer.this.channel();
-		}
-
-		/* (non-Javadoc)
-		 * @see org.jgrapes.io.Connection#bufferPool()
-		 */
-		@Override
-		public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool() {
-			return writeBuffers;
-		}
-
-		/* (non-Javadoc)
-		 * @see org.jgrapes.io.DataConnection#getPipeline()
-		 */
-		@Override
-		public EventPipeline responsePipeline() {
-			return upPipeline;
 		}
 
 		/**
