@@ -68,7 +68,7 @@ import org.jgrapes.net.TcpServer;
 public class HttpServerDemo extends Component 
 	implements ContextSupplier<HttpServerDemo.FormContext> {
 
-	protected class FormContext {
+	protected static class FormContext {
 		public HttpRequest request;
 		public FormUrlDecoder fieldDecoder = new FormUrlDecoder();
 	}
