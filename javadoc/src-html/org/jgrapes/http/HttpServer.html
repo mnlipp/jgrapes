@@ -415,55 +415,61 @@
 <span class="sourceLineNo">407</span>                                        fireRequest(engine.currentRequest().get(), this);<a name="line.407"></a>
 <span class="sourceLineNo">408</span>                                }<a name="line.408"></a>
 <span class="sourceLineNo">409</span>                                if (bodyData != null &amp;&amp; bodyData.position() &gt; 0) {<a name="line.409"></a>
-<span class="sourceLineNo">410</span>                                        fire(new Input&lt;&gt;(bodyData, !result.isOverflow() <a name="line.410"></a>
-<span class="sourceLineNo">411</span>                                                        &amp;&amp; !result.isUnderflow()), this);<a name="line.411"></a>
-<span class="sourceLineNo">412</span>                                }<a name="line.412"></a>
-<span class="sourceLineNo">413</span>                                if (result.isOverflow()) {<a name="line.413"></a>
-<span class="sourceLineNo">414</span>                                        bodyData = new ManagedByteBuffer(<a name="line.414"></a>
-<span class="sourceLineNo">415</span>                                                ByteBuffer.allocate(in.capacity()),<a name="line.415"></a>
-<span class="sourceLineNo">416</span>                                                BufferCollector.NOOP_COLLECTOR);<a name="line.416"></a>
-<span class="sourceLineNo">417</span>                                        continue;<a name="line.417"></a>
-<span class="sourceLineNo">418</span>                                }<a name="line.418"></a>
-<span class="sourceLineNo">419</span>                                if (!result.isUnderflow()<a name="line.419"></a>
-<span class="sourceLineNo">420</span>                                        &amp;&amp; engine.currentRequest().get().messageHasBody()) {<a name="line.420"></a>
-<span class="sourceLineNo">421</span>                                        fire(new EndOfRequest(), this);<a name="line.421"></a>
-<span class="sourceLineNo">422</span>                                }<a name="line.422"></a>
-<span class="sourceLineNo">423</span>                        }<a name="line.423"></a>
-<span class="sourceLineNo">424</span>                        <a name="line.424"></a>
+<span class="sourceLineNo">410</span>                                        bodyData.flip();<a name="line.410"></a>
+<span class="sourceLineNo">411</span>                                        fire(new Input&lt;&gt;(bodyData, !result.isOverflow() <a name="line.411"></a>
+<span class="sourceLineNo">412</span>                                                        &amp;&amp; !result.isUnderflow()), this);<a name="line.412"></a>
+<span class="sourceLineNo">413</span>                                }<a name="line.413"></a>
+<span class="sourceLineNo">414</span>                                if (result.isOverflow()) {<a name="line.414"></a>
+<span class="sourceLineNo">415</span>                                        bodyData = new ManagedByteBuffer(<a name="line.415"></a>
+<span class="sourceLineNo">416</span>                                                ByteBuffer.allocate(in.capacity()),<a name="line.416"></a>
+<span class="sourceLineNo">417</span>                                                BufferCollector.NOOP_COLLECTOR);<a name="line.417"></a>
+<span class="sourceLineNo">418</span>                                        continue;<a name="line.418"></a>
+<span class="sourceLineNo">419</span>                                }<a name="line.419"></a>
+<span class="sourceLineNo">420</span>                                if (!result.isUnderflow()<a name="line.420"></a>
+<span class="sourceLineNo">421</span>                                        &amp;&amp; engine.currentRequest().get().messageHasBody()) {<a name="line.421"></a>
+<span class="sourceLineNo">422</span>                                        fire(new EndOfRequest(), this);<a name="line.422"></a>
+<span class="sourceLineNo">423</span>                                }<a name="line.423"></a>
+<span class="sourceLineNo">424</span>                        }<a name="line.424"></a>
 <span class="sourceLineNo">425</span>                        <a name="line.425"></a>
-<span class="sourceLineNo">426</span>                }<a name="line.426"></a>
-<span class="sourceLineNo">427</span>                <a name="line.427"></a>
-<span class="sourceLineNo">428</span>                public void sendUpstream(Output&lt;ManagedBuffer&lt;?&gt;&gt; event) <a name="line.428"></a>
-<span class="sourceLineNo">429</span>                                throws InterruptedException {<a name="line.429"></a>
-<span class="sourceLineNo">430</span>                        Buffer in = event.buffer().backingBuffer();<a name="line.430"></a>
-<span class="sourceLineNo">431</span>                        if (!(in instanceof ByteBuffer)) {<a name="line.431"></a>
-<span class="sourceLineNo">432</span>                                return;<a name="line.432"></a>
-<span class="sourceLineNo">433</span>                        }<a name="line.433"></a>
-<span class="sourceLineNo">434</span>                        ByteBuffer input = ((ByteBuffer)in).duplicate();<a name="line.434"></a>
-<span class="sourceLineNo">435</span>                        while (true) {<a name="line.435"></a>
-<span class="sourceLineNo">436</span>                                Codec.Result result = engine.encode(input,<a name="line.436"></a>
-<span class="sourceLineNo">437</span>                                        outBuffer.backingBuffer(), event.isEndOfRecord());<a name="line.437"></a>
-<span class="sourceLineNo">438</span>                                if (!result.isOverflow() &amp;&amp; !event.isEndOfRecord()<a name="line.438"></a>
-<span class="sourceLineNo">439</span>                                                &amp;&amp; !result.closeConnection()) {<a name="line.439"></a>
-<span class="sourceLineNo">440</span>                                        break;<a name="line.440"></a>
-<span class="sourceLineNo">441</span>                                }<a name="line.441"></a>
-<span class="sourceLineNo">442</span>                                upstreamChannel().respond(new Output&lt;&gt;(outBuffer, false));<a name="line.442"></a>
-<span class="sourceLineNo">443</span>                                if (!input.hasRemaining() &amp;&amp; event.isEndOfRecord() <a name="line.443"></a>
-<span class="sourceLineNo">444</span>                                                || result.closeConnection()) {<a name="line.444"></a>
-<span class="sourceLineNo">445</span>                                        outBuffer = null;<a name="line.445"></a>
-<span class="sourceLineNo">446</span>                                        if (result.closeConnection()) {<a name="line.446"></a>
-<span class="sourceLineNo">447</span>                                                upstreamChannel().respond(new Close());<a name="line.447"></a>
-<span class="sourceLineNo">448</span>                                        }<a name="line.448"></a>
-<span class="sourceLineNo">449</span>                                        break;<a name="line.449"></a>
-<span class="sourceLineNo">450</span>                                }<a name="line.450"></a>
-<span class="sourceLineNo">451</span>                                <a name="line.451"></a>
-<span class="sourceLineNo">452</span>                                outBuffer = upstreamChannel().bufferPool().acquire();<a name="line.452"></a>
-<span class="sourceLineNo">453</span>                        }<a name="line.453"></a>
-<span class="sourceLineNo">454</span>                        <a name="line.454"></a>
-<span class="sourceLineNo">455</span>                }<a name="line.455"></a>
-<span class="sourceLineNo">456</span>        }<a name="line.456"></a>
-<span class="sourceLineNo">457</span><a name="line.457"></a>
-<span class="sourceLineNo">458</span>}<a name="line.458"></a>
+<span class="sourceLineNo">426</span>                        <a name="line.426"></a>
+<span class="sourceLineNo">427</span>                }<a name="line.427"></a>
+<span class="sourceLineNo">428</span>                <a name="line.428"></a>
+<span class="sourceLineNo">429</span>                public void sendUpstream(Output&lt;ManagedBuffer&lt;?&gt;&gt; event) <a name="line.429"></a>
+<span class="sourceLineNo">430</span>                                throws InterruptedException {<a name="line.430"></a>
+<span class="sourceLineNo">431</span>                        Buffer in = event.buffer().backingBuffer();<a name="line.431"></a>
+<span class="sourceLineNo">432</span>                        if (!(in instanceof ByteBuffer)) {<a name="line.432"></a>
+<span class="sourceLineNo">433</span>                                return;<a name="line.433"></a>
+<span class="sourceLineNo">434</span>                        }<a name="line.434"></a>
+<span class="sourceLineNo">435</span>                        ByteBuffer input = ((ByteBuffer)in).duplicate();<a name="line.435"></a>
+<span class="sourceLineNo">436</span>                        if (outBuffer == null) {<a name="line.436"></a>
+<span class="sourceLineNo">437</span>                                outBuffer = upstreamChannel().bufferPool().acquire();<a name="line.437"></a>
+<span class="sourceLineNo">438</span>                        }<a name="line.438"></a>
+<span class="sourceLineNo">439</span>                        while (input.hasRemaining()) {<a name="line.439"></a>
+<span class="sourceLineNo">440</span>                                Codec.Result result = engine.encode(input,<a name="line.440"></a>
+<span class="sourceLineNo">441</span>                                        outBuffer.backingBuffer(), event.isEndOfRecord());<a name="line.441"></a>
+<span class="sourceLineNo">442</span>                                if (result.isOverflow()) {<a name="line.442"></a>
+<span class="sourceLineNo">443</span>                                        upstreamChannel().respond(new Output&lt;&gt;(outBuffer, false));<a name="line.443"></a>
+<span class="sourceLineNo">444</span>                                        outBuffer = upstreamChannel().bufferPool().acquire();<a name="line.444"></a>
+<span class="sourceLineNo">445</span>                                        continue;<a name="line.445"></a>
+<span class="sourceLineNo">446</span>                                }<a name="line.446"></a>
+<span class="sourceLineNo">447</span>                                if (event.isEndOfRecord() || result.closeConnection()) {<a name="line.447"></a>
+<span class="sourceLineNo">448</span>                                        if (outBuffer.position() &gt; 0) {<a name="line.448"></a>
+<span class="sourceLineNo">449</span>                                                upstreamChannel().respond(new Output&lt;&gt;(outBuffer, false));<a name="line.449"></a>
+<span class="sourceLineNo">450</span>                                        } else {<a name="line.450"></a>
+<span class="sourceLineNo">451</span>                                                outBuffer.unlockBuffer();<a name="line.451"></a>
+<span class="sourceLineNo">452</span>                                        }<a name="line.452"></a>
+<span class="sourceLineNo">453</span>                                        outBuffer = null;<a name="line.453"></a>
+<span class="sourceLineNo">454</span>                                        if (result.closeConnection()) {<a name="line.454"></a>
+<span class="sourceLineNo">455</span>                                                upstreamChannel().respond(new Close());<a name="line.455"></a>
+<span class="sourceLineNo">456</span>                                        }<a name="line.456"></a>
+<span class="sourceLineNo">457</span>                                        break;<a name="line.457"></a>
+<span class="sourceLineNo">458</span>                                }<a name="line.458"></a>
+<span class="sourceLineNo">459</span>                        }<a name="line.459"></a>
+<span class="sourceLineNo">460</span>                        <a name="line.460"></a>
+<span class="sourceLineNo">461</span>                }<a name="line.461"></a>
+<span class="sourceLineNo">462</span>        }<a name="line.462"></a>
+<span class="sourceLineNo">463</span><a name="line.463"></a>
+<span class="sourceLineNo">464</span>}<a name="line.464"></a>
 
 
 
