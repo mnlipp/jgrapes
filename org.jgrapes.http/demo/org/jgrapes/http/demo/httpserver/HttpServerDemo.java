@@ -20,7 +20,6 @@ package org.jgrapes.http.demo.httpserver;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.nio.file.Paths;
 import java.security.KeyManagementException;
@@ -34,30 +33,16 @@ import java.security.cert.CertificateException;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
-import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
-import org.jdrupes.httpcodec.protocols.http.HttpField;
-import org.jdrupes.httpcodec.protocols.http.HttpRequest;
-import org.jdrupes.httpcodec.protocols.http.HttpResponse;
-import org.jdrupes.httpcodec.types.MediaType;
-import org.jdrupes.httpcodec.util.FormUrlDecoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.NamedChannel;
-import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.StaticContentDispatcher;
-import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
-import org.jgrapes.http.events.Response;
-import org.jgrapes.io.ContextSupplier;
 import org.jgrapes.io.FileStorage;
-import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioDispatcher;
-import org.jgrapes.io.events.Input;
-import org.jgrapes.io.events.Output;
-import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
@@ -65,51 +50,7 @@ import org.jgrapes.net.TcpServer;
 /**
  *
  */
-public class HttpServerDemo extends Component 
-	implements ContextSupplier<HttpServerDemo.FormContext> {
-
-	protected static class FormContext {
-		public HttpRequest request;
-		public FormUrlDecoder fieldDecoder = new FormUrlDecoder();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.jgrapes.io.ContextSupplier#createContext()
-	 */
-	@Override
-	public FormContext createContext() {
-		return new FormContext();
-	}
-
-	@RequestHandler(patterns="/form")
-	public void onPost(PostRequest event, IOSubchannel channel) {
-		channel.context(this).request = event.request();
-		event.stop();
-	}
-	
-	@Handler
-	public void onInput(Input<ManagedByteBuffer> event, IOSubchannel channel) 
-			throws InterruptedException, UnsupportedEncodingException {
-		FormContext ctx = channel.context(this);
-		ctx.fieldDecoder.addData(event.buffer().backingBuffer());
-		if (!event.isEndOfRecord()) {
-			return;
-		}
-		HttpResponse response = ctx.request.response().get();
-		response.setStatus(HttpStatus.OK);
-		response.setMessageHasBody(true);
-		response.setField(HttpField.CONTENT_TYPE,
-		        MediaType.builder().setType("text", "plain")
-		                .setParameter("charset", "utf-8").build());
-		String data = "First name: "
-		        + ctx.fieldDecoder.fields().get("firstname")
-		        + "\r\n" + "Last name: "
-		        + ctx.fieldDecoder.fields().get("lastname");
-		channel.respond(new Response(response));
-		ManagedByteBuffer out = channel.bufferPool().acquire();
-		out.put(data.getBytes("utf-8"));
-		channel.respond(new Output<>(out, true));
-	}
+public class HttpServerDemo extends Component {
 
 	/**
 	 * @param args
@@ -165,6 +106,7 @@ public class HttpServerDemo extends Component
 		        "/**", Paths.get("demo-resources/static-content")));
 		app.attach(new StaticContentDispatcher(app.channel(),
 		        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc")));
+		app.attach(new PostProcessor(app.channel()));
 		Components.start(app);
 	}
 
