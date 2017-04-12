@@ -134,6 +134,9 @@ public class ByteBufferOutputStream extends OutputStream {
 			eventPipeline.fire(
 					new Output<ManagedByteBuffer>(buffer, endOfRecord), channel);
 		}
+		if (endOfRecord) {
+			return;
+		}
 		try {
 			buffer = channel.bufferPool().acquire();
 		} catch (InterruptedException e) {
