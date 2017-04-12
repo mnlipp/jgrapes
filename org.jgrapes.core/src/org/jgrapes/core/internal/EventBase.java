@@ -211,7 +211,7 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	 * 
 	 * @return the stopped state
 	 */
-	boolean isStopped() {
+	public boolean isStopped() {
 		return stopped;
 	}
 
