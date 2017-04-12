@@ -122,10 +122,14 @@ public class ByteBufferOutputStream extends OutputStream {
 
 	/**
 	 * Creates and fires a {@link Output} event with the buffer being filled and
-	 * obtains a new buffer from the queue. The end of record flag of the
-	 * event is set according to the parameter.
+	 * obtains a new buffer from the queue unless the end of record is set. 
+	 * The end of record flag of the event is set according to the parameter.
 	 */
 	private void flush(boolean endOfRecord) throws IOException {
+		if (buffer.position() == 0 && !endOfRecord) {
+			// Nothing to flush
+			return;
+		}
 		if (inputMode) {
 			buffer.flip();
 			eventPipeline.fire(
