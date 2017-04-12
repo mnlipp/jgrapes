@@ -310,21 +310,30 @@ public class HttpServer extends Component {
 			Request.Completed event, IOSubchannel channel)
 	        throws InterruptedException {
 		final Request requestEvent = event.event();
+		if (requestEvent.isStopped()) {
+			// Has been handled
+			return;
+		}
 		final HttpResponse response 
 			= requestEvent.request().response().get();
 
-		if (response.statusCode() == HttpStatus.NOT_IMPLEMENTED.statusCode()) {
-			response.setMessageHasBody(true);
-			response.setField(HttpField.CONTENT_TYPE,
-					MediaType.builder().setType("text", "plain")
-			        .setParameter("charset", "utf-8").build());
-			fire(new Response(response), channel);
-			try {
-				fire(Output.wrap("Not Implemented\r\n".getBytes("utf-8"), true),
-						channel);
-			} catch (UnsupportedEncodingException e) {
-				// Supported by definition
-			}
+		if (response.statusCode() != HttpStatus.NOT_IMPLEMENTED.statusCode()) {
+			// Some other component takes care
+			return;
+		}
+
+		// No component has taken care of the request, provide
+		// fallback response
+		response.setMessageHasBody(true);
+		response.setField(HttpField.CONTENT_TYPE,
+		        MediaType.builder().setType("text", "plain")
+		                .setParameter("charset", "utf-8").build());
+		fire(new Response(response), channel);
+		try {
+			fire(Output.wrap("Not Implemented\r\n".getBytes("utf-8"), true),
+			        channel);
+		} catch (UnsupportedEncodingException e) {
+			// Supported by definition
 		}
 	}
 
