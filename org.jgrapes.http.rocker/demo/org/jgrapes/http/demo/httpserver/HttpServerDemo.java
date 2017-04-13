@@ -105,8 +105,6 @@ public class HttpServerDemo extends Component {
 		app.attach(new FileStorage(app.channel(), 65536));
 		app.attach(new StaticContentDispatcher(app.channel(),
 		        "/**", Paths.get("demo-resources/static-content")));
-		app.attach(new StaticContentDispatcher(app.channel(),
-		        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc")));
 		app.attach(new PostProcessor(app.channel()));
 		app.attach(new RockerRenderer(app.channel()));
 		Components.start(app);
