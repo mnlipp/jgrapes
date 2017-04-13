@@ -19,7 +19,6 @@
 package org.jgrapes.core.internal;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Event;
 
 /**
@@ -29,7 +28,7 @@ import org.jgrapes.core.Event;
  */
 class FeedBackPipelineFilter implements InternalEventPipeline {
 
-	protected static ThreadLocal<ExecutingEventPipeline> 
+	protected static ThreadLocal<InternalEventPipeline> 
 		currentPipeline = new ThreadLocal<>();
 	private InternalEventPipeline fallback;
 	
@@ -49,7 +48,7 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 	 * 
 	 * @param pipeline the pipeline
 	 */
-	public static void setAssociatedPipeline(ExecutingEventPipeline pipeline) {
+	public static void setAssociatedPipeline(InternalEventPipeline pipeline) {
 		currentPipeline.set(pipeline);
 	}
 
@@ -58,7 +57,7 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 	 * 
 	 * @return the pipeline or {@code null}
 	 */
-	public static ExecutingEventPipeline getAssociatedPipeline() {
+	public static InternalEventPipeline getAssociatedPipeline() {
 		return currentPipeline.get();
 	}
 	
@@ -82,38 +81,6 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 		} else {
 			fallback.merge(other);
 		}
-	}
-
-	/**
-	 * Set the data stored for a given {@link ComponentType} in the context
-	 * of this pipeline.
-	 * 
-	 * @param component the component
-	 * @param data the data
-	 */
-	static void setComponentContext(ComponentType component, Object data) {
-		ExecutingEventPipeline pipeline = currentPipeline.get();
-		if (pipeline == null) {
-			throw new IllegalStateException(
-					"setComponentContext may only be called in handler.");
-		}
-		pipeline.setComponentContext(component, data);
-	}
-
-	/**
-	 * Get the data stored for a given {@link ComponentType} in the context
-	 * of this pipeline.
-	 * 
-	 * @param component the component
-	 * @return the data
-	 */
-	static Object getComponentContext(ComponentType component) {
-		ExecutingEventPipeline pipeline = currentPipeline.get();
-		if (pipeline == null) {
-			throw new IllegalStateException(
-					"getComponentContext may only be called in handler.");
-		}
-		return pipeline.componentContext(component);
 	}
 
 	/* (non-Javadoc)

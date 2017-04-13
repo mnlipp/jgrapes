@@ -18,29 +18,9 @@
 
 package org.jgrapes.core.internal;
 
-import org.jgrapes.core.ComponentType;
-
 /**
  *
  */
 public interface ExecutingEventPipeline extends InternalEventPipeline {
-
-	/**
-	 * Set the data stored for a given {@link ComponentType} in the context
-	 * of this pipeline.
-	 * 
-	 * @param component the component
-	 * @param data the data
-	 */
-	void setComponentContext(ComponentType component, Object data);
-
-	/**
-	 * Get the data stored for a given {@link ComponentType} in the context
-	 * of this pipeline.
-	 * 
-	 * @param component the component
-	 * @return the data
-	 */
-	Object componentContext(ComponentType component);
 
 }

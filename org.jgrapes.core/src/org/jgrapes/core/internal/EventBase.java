@@ -31,7 +31,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
@@ -365,27 +364,4 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 		throw new TimeoutException();
 	}
 
-	/**
-	 * Sets the data that is stored in the executing pipeline for
-	 * the given component.
-	 * 
-	 * @param component the component
-	 * @param data the data
-	 * @return the object for easy chaining
-	 */
-	public Event<T> setComponentContext(ComponentType component, Object data) {
-		FeedBackPipelineFilter.setComponentContext(component, data);
-		return (Event<T>)this;
-	}
-	
-	/**
-	 * Gets the data that is stored in the executing pipeline for
-	 * the given component.
-	 * 
-	 * @param component the component
-	 * @return the data
-	 */
-	public Object componentContext(ComponentType component) {
-		return FeedBackPipelineFilter.getComponentContext(component);
-	}
 }
