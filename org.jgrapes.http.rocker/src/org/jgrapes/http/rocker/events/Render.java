@@ -15,13 +15,14 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.http.rocker.events;
+
+import com.fizzed.rocker.RockerModel;
 
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
-
-import com.fizzed.rocker.RockerModel;
 
 /**
  * 

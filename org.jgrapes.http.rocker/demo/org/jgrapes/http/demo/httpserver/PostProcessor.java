@@ -73,7 +73,7 @@ public class PostProcessor extends Component
 		if (!event.isEndOfRecord()) {
 			return;
 		}
-		fire (new Render(ctx.request, SubmitResult.template(
+		fire(new Render(ctx.request, SubmitResult.template(
 				ctx.fieldDecoder.fields())), channel);
 	}
 
