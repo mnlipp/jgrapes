@@ -1,0 +1,18 @@
+@import java.util.Map
+@args (Map<String,String> data)
+
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Post Test</title>
+  <meta name="description" content="Post Test">
+</head>
+
+<body>
+  <p>First name: @data.get("firstname")</p>
+  <p>Last name: @data.get("lastname")</p>
+</body>
+</html>
