@@ -22,7 +22,10 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -64,6 +67,8 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	private boolean stopped = false;
 	/** The result of handling the event (if any). */
 	private AtomicReference<T> result;
+	/** Context data. */
+	private Map<Object,Object> contextData = null;
 	
 	/**
 	 * Returns the channels associated with the event. Before an
@@ -364,4 +369,31 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 		throw new TimeoutException();
 	}
 
+	/**
+	 * Establishes a "named" association to an associate. Note that 
+	 * anything that represents an id can be used as value for 
+	 * parameter `name`, it does not necessarily have to be a string.
+	 * 
+	 * @param name the name
+	 * @param associate the data
+	 */
+	public void setAssociatedBy(Object name, Object associate) {
+		if (contextData == null) {
+			contextData = new ConcurrentHashMap<>();
+		}
+		contextData.put(name, associate);
+	}
+
+	/**
+	 * Retrieves the associate with the given name.
+	 * 
+	 * @param key the key
+	 * @return the data
+	 */
+	public Optional<? extends Object> associatedBy(Object key) {
+		if (contextData == null) {
+			return Optional.empty();
+		}
+		return Optional.ofNullable(contextData.get(key));
+	}
 }
