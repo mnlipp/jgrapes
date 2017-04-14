@@ -17,6 +17,9 @@ dependencies {
 	compile 'com.fizzed:rocker-runtime:0.17.0'
 }
 
+// Override default
+version = "0.0.1-SNAPSHOT"
+
 task compileRockerTemplates {
 	group "build"
 
