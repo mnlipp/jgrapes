@@ -17,23 +17,3 @@ dependencies {
 	compile 'com.fizzed:rocker-runtime:0.17.0'
 }
 
-task compileRockerTemplates {
-	group "build"
-
-	// Generated sources are not added to source set because they are
-	// only part of the demo that is only run in eclipse. The directory
-	// with generated sources is added to the Eclipse source path instead.  
-
-	doLast {
-		def jgm  = com.fizzed.rocker.compiler.JavaGeneratorMain.newInstance()
-		jgm.getParser().getConfiguration().setTemplateDirectory(new File(project.projectDir.toString() +"/demo-resources/templates"))
-		jgm.getParser().getConfiguration().setOutputDirectory(new File(project.projectDir.toString() +"/build/rocker"))
-		jgm.getGenerator().getConfiguration().setClassDirectory(sourceSets.main.output.classesDir)
-		jgm.getGenerator().getConfiguration().getOptions().setOptimize(true);
-		jgm.run()
-	}
-}
-
-compileJava {
-	dependsOn compileRockerTemplates
-}

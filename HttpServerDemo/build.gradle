@@ -1,0 +1,43 @@
+buildscript {
+	
+	repositories {
+		mavenCentral()
+	}
+	
+	dependencies {
+	  classpath 'com.fizzed:rocker-compiler:0.17.0'
+	}
+  }
+
+dependencies {
+
+    compile project(':org.jgrapes.http.rocker')
+	
+	compile 'com.fizzed:rocker-compiler:0.17.0'
+	compile 'com.fizzed:rocker-runtime:0.17.0'
+}
+
+task compileRockerTemplates {
+	group "build"
+
+    sourceSets {
+        main {
+            java {
+                srcDir 'build/rocker'
+            }
+        }
+	}
+
+	doLast {
+		def jgm  = com.fizzed.rocker.compiler.JavaGeneratorMain.newInstance()
+		jgm.getParser().getConfiguration().setTemplateDirectory(new File(project.projectDir.toString() +"/demo-resources/templates"))
+		jgm.getParser().getConfiguration().setOutputDirectory(new File(project.projectDir.toString() +"/build/rocker"))
+		jgm.getGenerator().getConfiguration().setClassDirectory(sourceSets.main.output.classesDir)
+		jgm.getGenerator().getConfiguration().getOptions().setOptimize(true);
+		jgm.run()
+	}
+}
+
+compileJava {
+	dependsOn compileRockerTemplates
+}

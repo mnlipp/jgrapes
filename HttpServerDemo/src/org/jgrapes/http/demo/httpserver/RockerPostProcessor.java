@@ -36,8 +36,8 @@ import org.jgrapes.io.util.ManagedByteBuffer;
 /**
  * 
  */
-public class PostProcessor extends Component 
-	implements ContextSupplier<PostProcessor.FormContext> {
+public class RockerPostProcessor extends Component 
+	implements ContextSupplier<RockerPostProcessor.FormContext> {
 
 	protected static class FormContext {
 		public HttpRequest request;
@@ -47,7 +47,7 @@ public class PostProcessor extends Component
 	/**
 	 * @param componentChannel
 	 */
-	public PostProcessor(Channel componentChannel) {
+	public RockerPostProcessor(Channel componentChannel) {
 		super(componentChannel);
 	}
 
@@ -59,7 +59,7 @@ public class PostProcessor extends Component
 		return new FormContext();
 	}
 
-	@RequestHandler(patterns="/form")
+	@RequestHandler(patterns="/form1")
 	public void onPost(PostRequest event, IOSubchannel channel) {
 		channel.context(this).request = event.request();
 		event.stop();
