@@ -76,7 +76,7 @@ public class ServerTest {
 			// Create TLS "converter"
 			KeyStore serverStore = KeyStore.getInstance("JKS");
 			try (FileInputStream kf 
-					= new FileInputStream("demo-resources/localhost.jks")) {
+					= new FileInputStream("resources/localhost.jks")) {
 				serverStore.load(kf, "nopass".toCharArray());
 			}
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance(
