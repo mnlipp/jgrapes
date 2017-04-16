@@ -2,16 +2,12 @@ buildscript {
 	
 	repositories {
 		mavenCentral()
-		mavenLocal()
 	}
 	
 	dependencies {
 	  classpath 'com.fizzed:rocker-compiler:0.18.0'
-	  classpath 'com.fizzed:rocker-gradle-plugin:1.0.0-SNAPSHOT'
 	}
-}
-
-apply plugin: "rocker-gradle-plugin"
+  }
 
 dependencies {
 
@@ -24,14 +20,27 @@ dependencies {
 // Override default
 version = "0.0.1-SNAPSHOT"
 
-sourceSets {
-	main {
-		rocker {
-			srcDirs 'demo-resources/templates'
-		}
+task compileRockerTemplates {
+	group "build"
+
+    sourceSets {
+        main {
+            java {
+                srcDir 'build/rocker'
+            }
+        }
+	}
+
+	doLast {
+		def jgm  = com.fizzed.rocker.compiler.JavaGeneratorMain.newInstance()
+		jgm.getParser().getConfiguration().setTemplateDirectory(new File(project.projectDir.toString() +"/demo-resources/templates"))
+		jgm.getParser().getConfiguration().setOutputDirectory(new File(project.projectDir.toString() +"/build/rocker"))
+		jgm.getGenerator().getConfiguration().setClassDirectory(sourceSets.main.output.classesDir)
+		jgm.getGenerator().getConfiguration().getOptions().setOptimize(true);
+		jgm.run()
 	}
 }
 
-rocker {
-	optimize true
+compileJava {
+	dependsOn compileRockerTemplates
 }
