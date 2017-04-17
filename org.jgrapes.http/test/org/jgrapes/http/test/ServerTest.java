@@ -102,9 +102,7 @@ public class ServerTest {
 			// Build application layer
 			attach(new FileStorage(channel(), 65536));
 			attach(new StaticContentDispatcher(channel(),
-					"/**", Paths.get("demo-resources/static-content")));
-			attach(new StaticContentDispatcher(channel(),
-			        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc")));
+					"/**", Paths.get("resources/static-content")));
 			
 			readyMonitor = new WaitForTests(this, Ready.class, 
 					securedNetwork.channel().defaultCriterion());
