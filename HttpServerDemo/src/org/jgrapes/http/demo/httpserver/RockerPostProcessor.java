@@ -61,20 +61,21 @@ public class RockerPostProcessor extends Component
 
 	@RequestHandler(patterns="/form1")
 	public void onPost(PostRequest event, IOSubchannel channel) {
-		channel.context(this).request = event.request();
+		channel.context(this, true).get().request = event.request();
 		event.stop();
 	}
 	
 	@Handler
 	public void onInput(Input<ManagedByteBuffer> event, IOSubchannel channel) 
 			throws InterruptedException, UnsupportedEncodingException {
-		FormContext ctx = channel.context(this);
-		ctx.fieldDecoder.addData(event.buffer().backingBuffer());
-		if (!event.isEndOfRecord()) {
-			return;
-		}
-		fire(new Render(ctx.request, SubmitResult.template(
-				ctx.fieldDecoder.fields())), channel);
+		channel.context(this).ifPresent(ctx -> {
+			ctx.fieldDecoder.addData(event.buffer().backingBuffer());
+			if (!event.isEndOfRecord()) {
+				return;
+			}
+			fire(new Render(ctx.request, SubmitResult.template(
+					ctx.fieldDecoder.fields())), channel);
+		});
 	}
 
 }

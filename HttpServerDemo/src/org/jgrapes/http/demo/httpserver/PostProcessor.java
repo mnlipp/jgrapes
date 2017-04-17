@@ -19,6 +19,7 @@
 package org.jgrapes.http.demo.httpserver;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
@@ -66,28 +67,31 @@ public class PostProcessor extends Component
 
 	@RequestHandler(patterns="/form")
 	public void onPost(PostRequest event, IOSubchannel channel) {
-		channel.context(this).request = event.request();
+		channel.context(this, true).get().request = event.request();
 		event.stop();
 	}
 	
 	@Handler
 	public void onInput(Input<ManagedByteBuffer> event, IOSubchannel channel) 
 			throws InterruptedException, UnsupportedEncodingException {
-		FormContext ctx = channel.context(this);
-		ctx.fieldDecoder.addData(event.buffer().backingBuffer());
+		Optional<FormContext> ctx = channel.context(this);
+		if (!ctx.isPresent()) {
+			return;
+		}
+		ctx.get().fieldDecoder.addData(event.buffer().backingBuffer());
 		if (!event.isEndOfRecord()) {
 			return;
 		}
-		HttpResponse response = ctx.request.response().get();
+		HttpResponse response = ctx.get().request.response().get();
 		response.setStatus(HttpStatus.OK);
 		response.setMessageHasBody(true);
 		response.setField(HttpField.CONTENT_TYPE,
 		        MediaType.builder().setType("text", "plain")
 		                .setParameter("charset", "utf-8").build());
 		String data = "First name: "
-		        + ctx.fieldDecoder.fields().get("firstname")
+		        + ctx.get().fieldDecoder.fields().get("firstname")
 		        + "\r\n" + "Last name: "
-		        + ctx.fieldDecoder.fields().get("lastname");
+		        + ctx.get().fieldDecoder.fields().get("lastname");
 		channel.respond(new Response(response));
 		ManagedByteBuffer out = channel.bufferPool().acquire();
 		out.put(data.getBytes("utf-8"));

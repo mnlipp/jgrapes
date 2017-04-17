@@ -21,6 +21,7 @@ package org.jgrapes.io;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -130,14 +131,27 @@ public interface IOSubchannel extends Channel {
 
 	/**
 	 * Returns the context for the given component. If this is the
-	 * first invocation, a new context will be obtained from the
-	 * component. Else the previously created context is returned.
+	 * first invocation and `createIfAbsent` is `true`, a new context 
+	 * will be obtained from the component.
+	 * 
+	 * @param component the component
+	 * @param createIfAbsent create a context if no context exists
+	 * @return the context
+	 */
+	<T> Optional<T> context(
+			ContextSupplier<T> component, boolean createIfAbsent);
+	
+	/**
+	 * Returns the context for the given component if it exists.
+	 * Equivalent to invoking `context(component, false)`.
 	 * 
 	 * @param component the component
 	 * @return the context
 	 */
-	<T> T context(ContextSupplier<T> component);
-	
+	default <T> Optional<T> context(ContextSupplier<T> component) {
+		return context(component, false);
+	}
+
 	/**
 	 * Creates a new subchannel of the given component's channel with a new
 	 * event pipeline and a buffer pool with two buffers sized 4096.
@@ -213,9 +227,13 @@ public interface IOSubchannel extends Channel {
 		 */
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T context(ContextSupplier<T> component) {
-			return (T)contexts.computeIfAbsent(
-					component, c -> c.createContext());
+		public <T> Optional<T> context(
+				ContextSupplier<T> component, boolean createIfAbsent) {
+			if (!createIfAbsent) {
+				return Optional.ofNullable((T)contexts.get(component));
+			}
+			return Optional.of((T)contexts.computeIfAbsent(
+					component, c -> c.createContext()));
 		}
 
 		/**
