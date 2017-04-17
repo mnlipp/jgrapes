@@ -42,13 +42,13 @@ public class AssociatedTest {
 		
 		@Handler(events=Start.class)
 		public void onStart(Event<?> evt) {
-			evt.setAssociatedBy(this, new String("Hello!"));
+			evt.setAssociated(this, new String("Hello!"));
 		}
 		
 		@SuppressWarnings("unchecked")
 		@Handler(events=Started.class)
 		public void onStarted(Started evt) {
-			result = ((Optional<String>)evt.event().associatedBy(this)).get();
+			result = ((Optional<String>)evt.event().associated(this)).get();
 		}
 	}
 	

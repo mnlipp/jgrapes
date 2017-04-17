@@ -370,30 +370,31 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	}
 
 	/**
-	 * Establishes a "named" association to an associate. Note that 
+	 * Establishes a "named" association to an associated object. Note that 
 	 * anything that represents an id can be used as value for 
 	 * parameter `name`, it does not necessarily have to be a string.
 	 * 
-	 * @param name the name
-	 * @param associate the object to be associated
+	 * @param by the "name"
+	 * @param with the object to be associated
 	 */
-	public void setAssociatedBy(Object name, Object associate) {
+	public void setAssociated(Object by, Object with) {
 		if (contextData == null) {
 			contextData = new ConcurrentHashMap<>();
 		}
-		contextData.put(name, associate);
+		contextData.put(by, with);
 	}
 
 	/**
-	 * Retrieves the associate following the association with the given "name".
+	 * Retrieves the associated object following the association 
+	 * with the given "name".
 	 * 
-	 * @param name the name
+	 * @param by the name
 	 * @return the associate, if any
 	 */
-	public Optional<? extends Object> associatedBy(Object name) {
+	public Optional<? extends Object> associated(Object by) {
 		if (contextData == null) {
 			return Optional.empty();
 		}
-		return Optional.ofNullable(contextData.get(name));
+		return Optional.ofNullable(contextData.get(by));
 	}
 }
