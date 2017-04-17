@@ -375,7 +375,7 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	 * parameter `name`, it does not necessarily have to be a string.
 	 * 
 	 * @param name the name
-	 * @param associate the data
+	 * @param associate the object to be associated
 	 */
 	public void setAssociatedBy(Object name, Object associate) {
 		if (contextData == null) {
@@ -385,15 +385,15 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	}
 
 	/**
-	 * Retrieves the associate with the given name.
+	 * Retrieves the associate following the association with the given "name".
 	 * 
-	 * @param key the key
-	 * @return the data
+	 * @param name the name
+	 * @return the associate, if any
 	 */
-	public Optional<? extends Object> associatedBy(Object key) {
+	public Optional<? extends Object> associatedBy(Object name) {
 		if (contextData == null) {
 			return Optional.empty();
 		}
-		return Optional.ofNullable(contextData.get(key));
+		return Optional.ofNullable(contextData.get(name));
 	}
 }
