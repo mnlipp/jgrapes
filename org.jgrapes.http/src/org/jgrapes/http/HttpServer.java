@@ -40,17 +40,10 @@ import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.http.events.ConnectRequest;
-import org.jgrapes.http.events.DeleteRequest;
 import org.jgrapes.http.events.EndOfRequest;
-import org.jgrapes.http.events.GetRequest;
-import org.jgrapes.http.events.HeadRequest;
 import org.jgrapes.http.events.OptionsRequest;
-import org.jgrapes.http.events.PostRequest;
-import org.jgrapes.http.events.PutRequest;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
-import org.jgrapes.http.events.TraceRequest;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Input;
@@ -169,50 +162,6 @@ public class HttpServer extends Component {
 			return;
 		}
 		httpConn.handleInput(event);
-	}
-
-	/**
-	 * Creates a specific request event as appropriate for the request and fires
-	 * it.
-	 * 
-	 * @param request
-	 *            the decoded request
-	 * @param channel
-	 *            the downstream channel
-	 */
-	private void fireRequest(HttpRequest request, Channel channel) {
-		Request req;
-		boolean secure = false;
-		switch (request.method()) {
-		case "OPTIONS":
-			req = new OptionsRequest(request, secure, matchLevels);
-			break;
-		case "GET":
-			req = new GetRequest(request, secure, matchLevels);
-			break;
-		case "HEAD":
-			req = new HeadRequest(request, secure, matchLevels);
-			break;
-		case "POST":
-			req = new PostRequest(request, secure, matchLevels);
-			break;
-		case "PUT":
-			req = new PutRequest(request, secure, matchLevels);
-			break;
-		case "DELETE":
-			req = new DeleteRequest(request, secure, matchLevels);
-			break;
-		case "TRACE":
-			req = new TraceRequest(request, secure, matchLevels);
-			break;
-		case "CONNECT":
-			req = new ConnectRequest(request, secure, matchLevels);
-			break;
-		default:
-			req = new Request(secure ? "https" : "http", request, matchLevels);
-			break;
-		}
-		fire(req, channel);
 	}
 
 	/**
@@ -413,7 +362,8 @@ public class HttpServer extends Component {
 					}
 				}
 				if (result.isHeaderCompleted()) {
-					fireRequest(engine.currentRequest().get(), this);
+					fire(Request.fromHttpRequest(
+							engine.currentRequest().get(), false, matchLevels), this);
 				}
 				if (bodyData != null && bodyData.position() > 0) {
 					bodyData.flip();

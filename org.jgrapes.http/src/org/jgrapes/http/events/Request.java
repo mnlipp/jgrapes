@@ -86,6 +86,39 @@ public class Request extends Event<Void> {
 	}
 
 	/**
+	 * Creates the appropriate derived request event type from
+	 * a given {@link HttpRequest}.
+	 * 
+	 * @param request the HTTP request
+	 * @param secure whether the request was received over a secure channel
+	 * @param matchLevels the match levels
+	 * @return the request event
+	 */
+	public static Request fromHttpRequest(
+			HttpRequest request, boolean secure, int matchLevels) {
+		switch (request.method()) {
+		case "OPTIONS":
+			return new OptionsRequest(request, secure, matchLevels);
+		case "GET":
+			return new GetRequest(request, secure, matchLevels);
+		case "HEAD":
+			return new HeadRequest(request, secure, matchLevels);
+		case "POST":
+			return new PostRequest(request, secure, matchLevels);
+		case "PUT":
+			return new PutRequest(request, secure, matchLevels);
+		case "DELETE":
+			return new DeleteRequest(request, secure, matchLevels);
+		case "TRACE":
+			return new TraceRequest(request, secure, matchLevels);
+		case "CONNECT":
+			return new ConnectRequest(request, secure, matchLevels);
+		default:
+			return new Request(secure ? "https" : "http", request, matchLevels);
+		}
+	}
+	
+	/**
 	 * Returns the "raw" request as provided by the HTTP decoder.
 	 * 
 	 * @return the request
