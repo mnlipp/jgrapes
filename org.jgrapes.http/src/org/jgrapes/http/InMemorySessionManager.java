@@ -38,6 +38,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.internal.EventBase;
+import org.jgrapes.http.events.DiscardSession;
 import org.jgrapes.http.events.Request;
 
 /**
@@ -47,7 +48,7 @@ import org.jgrapes.http.events.Request;
  * @see EventBase#setAssociated(Object, Object)
  * @see "[OWASP Session Management Cheat Sheet](https://www.owasp.org/index.php/Session_Management_Cheat_Sheet)"
  */
-public class SessionManager extends Component {
+public class InMemorySessionManager extends Component {
 
 	private static SecureRandom secureRandom = new SecureRandom();
 	
@@ -58,27 +59,28 @@ public class SessionManager extends Component {
 
 			@Override
 			protected boolean removeEldestEntry(Entry<String, Session> eldest) {
-				return SessionManager.this.maxSessions > 0
-						&& size() > SessionManager.this.maxSessions;
+				return InMemorySessionManager.this.maxSessions > 0
+						&& size() > InMemorySessionManager.this.maxSessions;
 			}
 	};
-	private int maxSessionAge = -1;
+	private int absoluteTimeout = 9*60*60;
+	private int idleTimeout = 30*60;
 	private int maxSessions = 1000;
 	
 	/**
 	 * Creates a new session manager with its channel set to
 	 * itself.
 	 */
-	public SessionManager() {
+	public InMemorySessionManager() {
 	}
 
 	/**
-	 * Creates a new component base with its channel set to the given 
+	 * Creates a new session manager with its channel set to the given 
 	 * channel.
 	 * 
 	 * @param componentChannel the channel
 	 */
-	public SessionManager(Channel componentChannel) {
+	public InMemorySessionManager(Channel componentChannel) {
 		super(componentChannel);
 	}
 
@@ -96,7 +98,7 @@ public class SessionManager extends Component {
 	 * 
 	 * @return the session manager for easy chaining
 	 */
-	public SessionManager setIdName(String idName) {
+	public InMemorySessionManager setIdName(String idName) {
 		this.idName = idName;
 		return this;
 	}
@@ -107,14 +109,14 @@ public class SessionManager extends Component {
 	 * is 1000.
 	 * 
 	 * If adding a new session would exceed the limit, first all
-	 * sessions older than {@link #maxSessionAge()} are removed.
+	 * sessions older than {@link #absoluteTimeout()} are removed.
 	 * If this doesn't free a slot, the least recently used session
 	 * is removed.
 	 * 
 	 * @param maxSessions the maxSessions to set
 	 * @return the session manager for easy chaining
 	 */
-	public SessionManager setMaxSessions(int maxSessions) {
+	public InMemorySessionManager setMaxSessions(int maxSessions) {
 		this.maxSessions = maxSessions;
 		return this;
 	}
@@ -127,21 +129,43 @@ public class SessionManager extends Component {
 	}
 
 	/**
-	 * Sets the maximum age for a session in seconds. 
+	 * Sets the absolute timeout for a session in seconds. The absolute
+	 * timeout is the time after which a session is invalidated (relative
+	 * to its creation time). Defaults to 9 hours. Zero or less disables
+	 * the timeout.
 	 * 
-	 * @param maxSessionAge the sessionMaxAge to set
+	 * @param absoluteTimeout the absolute timeout
 	 * @return the session manager for easy chaining
 	 */
-	public SessionManager setMaxSessionAge(int maxSessionAge) {
-		this.maxSessionAge = maxSessionAge;
+	public InMemorySessionManager setAbsoluteTimeout(int absoluteTimeout) {
+		this.absoluteTimeout = absoluteTimeout;
 		return this;
 	}
 
 	/**
-	 * @return the maximum session age
+	 * @return the absolute session timeout (in seconds)
 	 */
-	public int maxSessionAge() {
-		return maxSessionAge;
+	public int absoluteTimeout() {
+		return absoluteTimeout;
+	}
+
+	/**
+	 * Sets the idle timeout for a session in seconds. Defaults to 30 minutes.
+	 * Zero or less disables the timeout. 
+	 * 
+	 * @param idleTimeout the absolute timeout
+	 * @return the session manager for easy chaining
+	 */
+	public InMemorySessionManager setIdleTimeout(int idleTimeout) {
+		this.idleTimeout = idleTimeout;
+		return this;
+	}
+
+	/**
+	 * @return the idle timeout (in seconds)
+	 */
+	public int idleTimeout() {
+		return idleTimeout;
 	}
 
 	/**
@@ -160,13 +184,18 @@ public class SessionManager extends Component {
 		                .findFirst().map(HttpCookie::getValue));
 		if (requestedSessionId.isPresent()) {
 			String sessionId = requestedSessionId.get();
-			synchronized(SessionManager.this) {
+			synchronized(InMemorySessionManager.this) {
 				Session session = sessionsById.get(sessionId);
+				Instant now = Instant.now();
 				if (session != null) {
-					if (maxSessionAge <= 0
-						|| Duration.between(session.createdAt(), Instant.now())
-							.getSeconds() < maxSessionAge) {
+					if ((absoluteTimeout <= 0
+							|| Duration.between(session.createdAt(), 
+									now).getSeconds() < absoluteTimeout)
+						&& (idleTimeout <= 0
+							|| Duration.between(session.lastUsedAt(),
+									now).getSeconds() < idleTimeout)) {
 						event.setAssociated(Session.class, session);
+						session.updateLastUsedAt();
 						return;
 					}
 					// Invalidate, too old 
@@ -180,27 +209,29 @@ public class SessionManager extends Component {
 	}
 
 	private Session createSession(String sessionId) {
-		Session session = new Session(this, sessionId);
+		Session session = new Session(sessionId);
 		Instant now = Instant.now();
 		synchronized (this) {
-			if (maxSessionAge > 0) {
+			if (absoluteTimeout > 0) {
 				// Quick check for sessions that are too old
 				for (Iterator<Entry<String, Session>> iter = sessionsById
 				        .entrySet().iterator(); iter.hasNext();) {
 					Entry<String, Session> entry = iter.next();
 					if (Duration.between(entry.getValue().createdAt(), now)
-					        .getSeconds() > maxSessionAge) {
+					        .getSeconds() > absoluteTimeout) {
 						iter.remove();
 					} else {
 						break;
 					}
 				}
 			}
-			if (sessionsById.size() >= maxSessions && maxSessionAge > 0) {
+			if (sessionsById.size() >= maxSessions && absoluteTimeout > 0) {
 				// Thorough search for sessions that are too old
 				sessionsById.entrySet().removeIf(entry -> {
 					return Duration.between(entry.getValue().createdAt(),
-					        now).getSeconds() > maxSessionAge;
+								now).getSeconds() > absoluteTimeout
+							|| Duration.between(entry.getValue().lastUsedAt(),
+								now).getSeconds() > idleTimeout;
 				});
 			}
 			sessionsById.put(sessionId, session);
@@ -229,11 +260,12 @@ public class SessionManager extends Component {
 	/**
 	 * Discards the given session.
 	 * 
-	 * @param session the session
+	 * @param event the event
 	 */
-	void discard(Session session) {
+	@Handler(channels=Channel.class)
+	public void discard(DiscardSession event) {
 		synchronized (this) {
-			sessionsById.remove(session).id();
+			sessionsById.remove(event.session().id());
 		}
 	}
 }

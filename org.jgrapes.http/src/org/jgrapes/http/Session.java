@@ -22,44 +22,56 @@ import java.time.Instant;
 import java.util.HashMap;
 
 /**
- * 
+ * Represents a session.
  */
 @SuppressWarnings("serial")
 public class Session extends HashMap<Object, Object> {
 
-	private SessionManager sessionManager;
 	private String id;
 	private Instant createdAt;
 	private Instant lastUsedAt;
 	
 	/**
-	 * 
+	 * Create a new session.
 	 */
-	Session(SessionManager sessionManager, String id) {
-		this.sessionManager = sessionManager;
+	public Session(String id) {
 		this.id = id;
 		createdAt = Instant.now();
 		lastUsedAt = createdAt;
 	}
 
-	String id() {
+	/**
+	 * Returns the session id.
+	 * 
+	 * @return the id
+	 */
+	public String id() {
 		return id;
 	}
 	
+	/**
+	 * Returns the creation time stamp.
+	 * 
+	 * @return the creation time stamp
+	 */
 	public Instant createdAt() {
 		return createdAt;
 	}
 
+	/**
+	 * Returns the last used (referenced in request) time stamp. 
+	 * 
+	 * @return the last used timestamp
+	 */
 	public Instant lastUsedAt() {
 		return lastUsedAt;
 	}
 
-	void setLastUsedAt(Instant now) {
-		this.lastUsedAt = now;
-	}
-	
-	public void discard() {
-		sessionManager.discard(this);
+	/**
+	 * Updates the last used time stamp.
+	 */
+	void updateLastUsedAt() {
+		this.lastUsedAt = Instant.now();
 	}
 
 	/* (non-Javadoc)
