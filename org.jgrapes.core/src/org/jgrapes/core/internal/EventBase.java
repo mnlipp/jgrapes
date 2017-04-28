@@ -211,7 +211,7 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	}
 
 	/**
-	 * Returns <code>true</code> if {@link stop} has been called.
+	 * Returns <code>true</code> if {@link #stop} has been called.
 	 * 
 	 * @return the stopped state
 	 */
