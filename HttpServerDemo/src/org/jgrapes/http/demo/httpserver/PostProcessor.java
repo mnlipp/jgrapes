@@ -30,6 +30,7 @@ import org.jdrupes.httpcodec.util.FormUrlDecoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.Session;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.http.events.Response;
@@ -47,6 +48,7 @@ public class PostProcessor extends Component
 
 	protected static class FormContext {
 		public HttpRequest request;
+		public Session session;
 		public FormUrlDecoder fieldDecoder = new FormUrlDecoder();
 	}
 
@@ -67,7 +69,9 @@ public class PostProcessor extends Component
 
 	@RequestHandler(patterns="/form")
 	public void onPost(PostRequest event, IOSubchannel channel) {
-		channel.context(this, true).get().request = event.request();
+		FormContext ctx = channel.context(this, true).get();
+		ctx.request = event.request();
+		ctx.session = (Session)event.associated(Session.class).get();
 		event.stop();
 	}
 	
@@ -82,6 +86,11 @@ public class PostProcessor extends Component
 		if (!event.isEndOfRecord()) {
 			return;
 		}
+		
+		long invocations = (Long)ctx.get().session.computeIfAbsent(
+				"invocations", key -> { return 0L; });
+		ctx.get().session.put("invocations", invocations + 1);
+		
 		HttpResponse response = ctx.get().request.response().get();
 		response.setStatus(HttpStatus.OK);
 		response.setMessageHasBody(true);
@@ -91,7 +100,8 @@ public class PostProcessor extends Component
 		String data = "First name: "
 		        + ctx.get().fieldDecoder.fields().get("firstname")
 		        + "\r\n" + "Last name: "
-		        + ctx.get().fieldDecoder.fields().get("lastname");
+		        + ctx.get().fieldDecoder.fields().get("lastname")
+		        + "\r\n" + "Previous invocations: " + invocations;
 		channel.respond(new Response(response));
 		ManagedByteBuffer out = channel.bufferPool().acquire();
 		out.put(data.getBytes("utf-8"));
