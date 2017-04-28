@@ -38,7 +38,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.http.HttpServer;
-import org.jgrapes.http.SessionManager;
+import org.jgrapes.http.InMemorySessionManager;
 import org.jgrapes.http.StaticContentDispatcher;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
@@ -103,7 +103,7 @@ public class HttpServerDemo extends Component {
 		        httpTransport, GetRequest.class, PostRequest.class));
 		
 		// Build application layer
-		app.attach(new SessionManager(app.channel()));
+		app.attach(new InMemorySessionManager(app.channel()));
 		app.attach(new FileStorage(app.channel(), 65536));
 		app.attach(new StaticContentDispatcher(app.channel(),
 		        "/**", Paths.get("demo-resources/static-content")));
