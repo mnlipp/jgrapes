@@ -11,7 +11,7 @@ buildscript {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:3.2.0'
+        classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:3.3.0'
     }
 }
 
@@ -45,15 +45,18 @@ subprojects {
 	
     tasks.withType(Javadoc).all { enabled = false }
 
-    // The builder plugin doesn't provide access to the bnd properties.
-    // Provide workaround as properties in extra bnd
-    new Processor().withCloseable { processor ->
-        processor.setProperties(project.file('bnd.bnd'))
-        ext.set("bnd", processor.getFlattenedProperties());
-    }
-
-    group = 'org.jgrapes'
-    version = bnd.base_version + "-SNAPSHOT"
+	group = 'org.jgrapes'
+	
+	if (project.file("bnd.bnd").exists()) {
+		// The builder plugin doesn't provide access to the bnd properties.
+		// Provide workaround as properties in extra bnd
+		new Processor().withCloseable { processor ->
+			processor.setProperties(project.file('bnd.bnd'))
+			ext.set("bnd", processor.getFlattenedProperties());
+		}
+		
+		version = bnd.base_version + "-SNAPSHOT"
+	}
 
     dependencies {
         compileOnly 'org.osgi:org.osgi.annotation:6.0.0'
@@ -128,6 +131,61 @@ subprojects {
 				from components.java
 				artifact sourcesJar
 				artifact javadocJar
+			}
+		}
+	}
+
+	// MavenPublishing (original), still needed for remote 
+
+	uploadArchives {
+		repositories {
+			mavenDeployer {
+				beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+ 
+				pom.project {
+			
+					name project.name
+					artifactId project.archivesBaseName
+					packaging 'pom'
+					description project.description
+					url 'http://mnlipp.github.io/jgrapes/'
+ 
+					scm {
+						url 'scm:git@github.com:mnlipp/jgrapes.git'
+						connection 'scm:git@github.com:mnlipp/jgrapes.git'
+						developerConnection 'git@github.com:mnlipp/jgrapes.git'
+					}
+ 
+					licenses {
+						license {
+							name 'GPL 3.0'
+							url 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+							distribution 'repo'
+						}
+					}
+ 
+					developers {
+						developer {
+							id 'mnlipp'
+							name 'Michael N. Lipp'
+						}
+					}
+				}
+			
+				artifacts {
+					archives jar
+					archives sourcesJar
+					archives javadocJar
+				}
+
+				repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+					authentication(userName: project.properties['sonatypeUsername'] ?: "nouser", 
+						password: project.properties['sonatypePassword'] ?: "nopass")
+				}
+				snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+					authentication(userName: project.properties['sonatypeUsername'] ?: "nouser", 
+						password: project.properties['sonatypePassword'] ?: "nopass")
+				}
 			}
 		}
 	}
