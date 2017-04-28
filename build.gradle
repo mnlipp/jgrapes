@@ -12,8 +12,13 @@ buildscript {
     }
     dependencies {
         classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:3.2.0'
-        classpath 'org.jdrupes.mdoclet:gradle-plugin:1.0.2'
     }
+}
+
+plugins {
+	id "maven-publish"
+	id "signing"
+	id "org.jdrupes.mdoclet" version "1.0.3"
 }
 
 ext {
@@ -35,7 +40,9 @@ allprojects {
 subprojects {
 
     apply plugin: 'biz.aQute.bnd.builder'
-
+	apply plugin: 'maven'
+	apply plugin: 'maven-publish'
+	
     tasks.withType(Javadoc).all { enabled = false }
 
     // The builder plugin doesn't provide access to the bnd properties.
@@ -45,15 +52,14 @@ subprojects {
         ext.set("bnd", processor.getFlattenedProperties());
     }
 
-    group = 'jgrapes'
+    group = 'org.jgrapes'
     version = bnd.base_version + "-SNAPSHOT"
 
     dependencies {
         compileOnly 'org.osgi:org.osgi.annotation:6.0.0'
         testCompile 'junit:junit:4.12', 'net.jodah:concurrentunit:0.4.2'
-		
-		// mandatory dependencies for using Spock
-		testCompile "org.spockframework:spock-core:1.1-groovy-2.4-rc-3"    }
+		testCompile "org.spockframework:spock-core:1.1-groovy-2.4-rc-3"
+    }
 
     // Configure sensible layout
     sourceSets {
@@ -97,9 +103,35 @@ subprojects {
             maxHeapSize = '768m'
         }
     }
-}
 
-apply plugin: 'org.jdrupes.mdoclet'
+	// Additional jars for publishing
+		
+	task sourcesJar(type: Jar) {
+		from sourceSets.main.allJava
+		classifier "sources"
+	}
+	
+	task javadocJar(type: Jar) {
+		from (project.rootDir) {
+			include 'README.md'
+		}
+		classifier "javadoc"
+	}
+	
+	// MavenPublishing (new), incomplete, works only for local.
+	
+	publishing {
+		
+		publications {
+			mavenJava(MavenPublication) {
+				artifactId = archivesBaseName
+				from components.java
+				artifact sourcesJar
+				artifact javadocJar
+			}
+		}
+	}
+}
 
 configurations {
     javadocTaglets
