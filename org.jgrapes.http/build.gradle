@@ -1,8 +1,8 @@
 dependencies {
 
     compile project(':org.jgrapes.io')
-    // compile 'com.github.mnlipp:jdrupes-httpcodec:master-SNAPSHOT'
-	compile 'org.jdrupes.httpcodec:httpcodec:0.9.10-SNAPSHOT'
+	// compile 'com.github.mnlipp:jdrupes-httpcodec:0.9.10'
+	compile 'org.jdrupes.httpcodec:httpcodec:0.9.10'
     
     sourceSets {
         test {
