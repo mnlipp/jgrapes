@@ -19,6 +19,10 @@
 package org.jgrapes.net.events;
 
 import java.net.SocketAddress;
+import java.util.Collections;
+import java.util.List;
+
+import javax.net.ssl.SNIServerName;
 
 import org.jgrapes.core.Components;
 import org.jgrapes.core.internal.Common;
@@ -31,16 +35,25 @@ public class Accepted extends Opened {
 
 	private SocketAddress localAddress;
 	private SocketAddress remoteAddress;
+	private boolean secure;
+	private List<SNIServerName> requestedServerNames;
 
 	/**
 	 * Creates a new instance.
 	 * 
 	 * @param localAddress the local address
 	 * @param remoteAddress the remote address
+	 * @param secure indicates that this is a secure connection
+	 * @param requestedServerNames the requested server names
+	 * (in case of a TLS connection)
 	 */
-	public Accepted(SocketAddress localAddress, SocketAddress remoteAddress) {
+	public Accepted(SocketAddress localAddress, SocketAddress remoteAddress,
+			boolean secure, List<SNIServerName> requestedServerNames) {
 		this.localAddress = localAddress;
 		this.remoteAddress = remoteAddress;
+		this.secure = secure;
+		this.requestedServerNames 
+			= Collections.unmodifiableList(requestedServerNames);
 	}
 
 	/**
@@ -57,6 +70,20 @@ public class Accepted extends Opened {
 		return remoteAddress;
 	}
 
+	/**
+	 * @return if this is a secure connection
+	 */
+	public boolean isSecure() {
+		return secure;
+	}
+
+	/**
+	 * @return the requested server names
+	 */
+	public List<SNIServerName> requestedServerNames() {
+		return requestedServerNames;
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -73,6 +100,8 @@ public class Accepted extends Opened {
 			builder.append("channels=");
 			builder.append(Common.channelsToString(channels));
 		}
+		builder.append(", secure=");
+		builder.append(secure);
 		builder.append("]");
 		return builder.toString();
 	}

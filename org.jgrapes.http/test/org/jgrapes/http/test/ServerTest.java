@@ -97,7 +97,8 @@ public class ServerTest {
 			// Create an HTTP server as converter between transport and application
 			// layer.
 			attach(new HttpServer(channel(), 
-			        httpTransport, GetRequest.class, PostRequest.class));
+			        httpTransport, GetRequest.class, PostRequest.class)
+					.setAcceptNoSni(true));
 			
 			// Build application layer
 			attach(new FileStorage(channel(), 65536));

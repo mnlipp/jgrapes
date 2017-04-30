@@ -25,6 +25,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
@@ -413,7 +414,8 @@ public class TcpServer extends Component implements NioHandler {
 		        throws InterruptedException, IOException {
 			registration = event.get();
 			downPipeline.fire(new Accepted(nioChannel.getLocalAddress(),
-					nioChannel.getRemoteAddress()), this);
+					nioChannel.getRemoteAddress(), false,
+					Collections.emptyList()), this);
 			registration.updateInterested(SelectionKey.OP_READ);
 
 		}

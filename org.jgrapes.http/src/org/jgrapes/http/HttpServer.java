@@ -19,12 +19,20 @@
 package org.jgrapes.http;
 
 import java.io.UnsupportedEncodingException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
+import javax.net.ssl.SNIHostName;
+import javax.net.ssl.SNIServerName;
 
 import org.jdrupes.httpcodec.Codec;
 import org.jdrupes.httpcodec.Decoder;
@@ -64,6 +72,7 @@ public class HttpServer extends Component {
 
 	private List<Class<? extends Request>> providedFallbacks;
 	private int matchLevels = 1;
+	boolean acceptNoSni = false;
 
 	/**
 	 * Create a new server that uses the {@code networkChannel} for network
@@ -126,9 +135,44 @@ public class HttpServer extends Component {
 	 * to 1.
 	 * 
 	 * @param matchLevels the matchLevels to set
+	 * @return the http server for easy chaining
 	 */
-	public void setMatchLevels(int matchLevels) {
+	public HttpServer setMatchLevels(int matchLevels) {
 		this.matchLevels = matchLevels;
+		return this;
+	}
+
+	/**
+	 * Determines if request from secure (TLS) connections without
+	 * SNI are accepted.
+	 *  
+	 * Secure (TLS) requests usually transfer the name of the server that
+	 * they want to connect to during handshake. The HTTP server checks
+	 * that the `Host` header field of decoded requests matches the
+	 * name used to establish the connection. If, however, the connection
+	 * is made using the IP-address, the client does not have a host name.
+	 * If such connections are to be accepted, this flag, which
+	 * defaults to `false`, must be set.
+	 * 
+	 * Note that in request accepted without SNI, the `Host` header field
+	 * will be modified to contain the IP-address of the indicated host
+	 * to prevent accidental matching wit virtual host names.  
+	 * 
+	 * @param acceptNoSni the value to set
+	 * @return the http server for easy chaining
+	 */
+	public HttpServer setAcceptNoSni(boolean acceptNoSni) {
+		this.acceptNoSni = acceptNoSni;
+		return this;
+	}
+
+	/**
+	 * Returns if secure (TLS) requests without SNI are allowed.
+	 * 
+	 * @return the result
+	 */
+	public boolean acceptNoSni() {
+		return acceptNoSni;
 	}
 
 	/**
@@ -141,7 +185,7 @@ public class HttpServer extends Component {
 	 */
 	@Handler(dynamic=true)
 	public void onAccepted(Accepted event, IOSubchannel channel) {
-		new HttpConn(channel);
+		new HttpConn(event, channel);
 	}
 
 	/**
@@ -273,17 +317,8 @@ public class HttpServer extends Component {
 
 		// No component has taken care of the request, provide
 		// fallback response
-		response.setMessageHasBody(true);
-		response.setField(HttpField.CONTENT_TYPE,
-		        MediaType.builder().setType("text", "plain")
-		                .setParameter("charset", "utf-8").build());
-		fire(new Response(response), channel);
-		try {
-			fire(Output.wrap("Not Implemented\r\n".getBytes("utf-8"), true),
-			        channel);
-		} catch (UnsupportedEncodingException e) {
-			// Supported by definition
-		}
+		fireResponse(response, channel, HttpStatus.NOT_IMPLEMENTED.statusCode(), 
+				HttpStatus.NOT_IMPLEMENTED.reasonPhrase());
 	}
 
 	/**
@@ -316,30 +351,47 @@ public class HttpServer extends Component {
 		        || !providedFallbacks.contains(event.getClass())) {
 			return;
 		}
-		
-		final HttpResponse response = event.request().response().get();
-		response.setStatus(HttpStatus.NOT_FOUND);
-		response.setMessageHasBody(true);
-		response.setField(HttpField.CONTENT_TYPE,
-				MediaType.builder().setType("text", "plain")
-		        .setParameter("charset", "utf-8").build());
+		fireResponse(event.request().response().get(), channel, 
+				HttpStatus.NOT_FOUND.statusCode(), 
+				HttpStatus.NOT_FOUND.reasonPhrase());
+		event.stop();
+	}
+
+	private void fireResponse(HttpResponse response, IOSubchannel channel,
+			int statusCode, String reasonPhrase) {
+		response.setStatusCode(statusCode).setReasonPhrase(reasonPhrase)
+			.setMessageHasBody(true).setField(
+					HttpField.CONTENT_TYPE,
+					MediaType.builder().setType("text", "plain")
+					.setParameter("charset", "utf-8").build());
 		fire(new Response(response), channel);
 		try {
-			fire(Output.wrap("Not Found\r\n".getBytes("utf-8"), true), channel);
+			fire(Output.wrap((statusCode + " " + reasonPhrase)
+					.getBytes("utf-8"), true), channel);
 		} catch (UnsupportedEncodingException e) {
 			// Supported by definition
 		}
-		event.stop();
 	}
 	
 	private class HttpConn extends LinkedIOSubchannel {
 		public ServerEngine<HttpRequest,HttpResponse> engine;
 		public ManagedByteBuffer outBuffer;
+		private boolean secure;
+		private List<String> snis = Collections.emptyList();
 
-		public HttpConn(IOSubchannel upstreamChannel) {
+		public HttpConn(Accepted event, IOSubchannel upstreamChannel) {
 			super(HttpServer.this, upstreamChannel);
 			engine = new ServerEngine<>(
 					new HttpRequestDecoder(), new HttpResponseEncoder());
+			secure = event.isSecure();
+			if (secure) {
+				snis = new ArrayList<>();
+				for (SNIServerName sni: event.requestedServerNames()) {
+					if (sni instanceof SNIHostName) {
+						snis.add(((SNIHostName)sni).getAsciiName());
+					}
+				}
+			}
 		}
 		
 		public void handleInput(Input<ManagedByteBuffer> event) 
@@ -362,8 +414,20 @@ public class HttpServer extends Component {
 					}
 				}
 				if (result.isHeaderCompleted()) {
-					fire(Request.fromHttpRequest(
-							engine.currentRequest().get(), false, matchLevels), this);
+					HttpRequest request = engine.currentRequest().get();
+					if (secure) {
+						if (!snis.contains(request.host())) {
+							if (acceptNoSni && snis.isEmpty()) {
+								convertHostToNumerical(request);
+							} else {
+								fireResponse(request.response().get(), 
+										this, 421, "Misdirected Request");
+								break;
+							}
+						}
+					}
+					fire(Request.fromHttpRequest(request,
+							secure, matchLevels), this);
 				}
 				if (bodyData != null && bodyData.position() > 0) {
 					bodyData.flip();
@@ -381,8 +445,22 @@ public class HttpServer extends Component {
 					fire(new EndOfRequest(), this);
 				}
 			}
-			
-			
+		}
+
+		private void convertHostToNumerical(HttpRequest request) {
+			int port = request.port();
+			String host;
+			try {
+				InetAddress addr = InetAddress.getByName(
+						request.host());
+				host = addr.getHostAddress();
+				if (!(addr instanceof Inet4Address)) {
+					host = "[" + host + "]";
+				}
+			} catch (UnknownHostException e) {
+				host = "127.0.0.1";
+			}
+			request.setHostAndPort(host, port);
 		}
 		
 		public void sendUpstream(Output<ManagedBuffer<?>> event) 

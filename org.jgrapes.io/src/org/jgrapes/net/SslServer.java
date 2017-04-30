@@ -21,9 +21,13 @@ package org.jgrapes.net;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.net.ssl.ExtendedSSLSession;
+import javax.net.ssl.SNIServerName;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -253,12 +257,12 @@ public class SslServer extends Component {
 							.backingBuffer(), feedback.backingBuffer());
 					upstreamChannel().respond(new Output<>(feedback, false));
 					if (wrapResult.getHandshakeStatus() == HandshakeStatus.FINISHED) {
-						fire(new Accepted(localAddress, remoteAddress), this);
+						fireAccepted();
 					}
 					continue;
 					
 				case FINISHED:
-					fire(new Accepted(localAddress, remoteAddress), this);
+					fireAccepted();
 					// fall through
 				case NEED_UNWRAP:
 					if (input.hasRemaining()) {
@@ -289,6 +293,16 @@ public class SslServer extends Component {
 				evt.get();
 				isInputClosed = true;
 			}
+		}
+
+		private void fireAccepted() {
+			List<SNIServerName> snis = Collections.emptyList();
+			if (sslEngine.getSession() instanceof ExtendedSSLSession) {
+				snis = ((ExtendedSSLSession)sslEngine.getSession())
+					.getRequestedServerNames();
+			}
+			fire(new Accepted(
+					localAddress, remoteAddress, true, snis), this);
 		}
 		
 		public void upstreamClosed()
