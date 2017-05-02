@@ -37,7 +37,7 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	private boolean eor;
 
 	/**
-	 * Create a new write event with the given buffer and optionally flips
+	 * Create a new output event with the given buffer and optionally flips
 	 * it. Used internally for constructor ("super(...)") invocations that 
 	 * don't flip the buffer.
 	 * 

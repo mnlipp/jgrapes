@@ -62,7 +62,7 @@ public class ByteBufferOutputStream extends OutputStream {
 		this.channel = channel;
 		this.eventPipeline = eventPipeline;
 		this.inputMode = inputMode;
-		buffer = channel.bufferPool().acquire();
+		buffer = channel.byteBufferPool().acquire();
 	}
 
 	/**
@@ -142,7 +142,7 @@ public class ByteBufferOutputStream extends OutputStream {
 			return;
 		}
 		try {
-			buffer = channel.bufferPool().acquire();
+			buffer = channel.byteBufferPool().acquire();
 		} catch (InterruptedException e) {
 			throw new InterruptedIOException(e.getMessage());
 		}

@@ -18,11 +18,10 @@
 
 package org.jgrapes.io.util;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.Buffer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.function.BiFunction;
 
 /**
  * A queue based buffer pool.
@@ -30,37 +29,19 @@ import java.util.concurrent.BlockingQueue;
 public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	implements BufferCollector {
 
-	private Constructor<W> wrapper = null;
+	private BiFunction<T, BufferCollector,W> wrapper = null;
 	private BlockingQueue<W> queue;
 	
 	/**
 	 * Create a pool that contains the (wrapped) buffers as initial content.
 	 * 
-	 * @param wrapped the class to wrap the buffers in
+	 * @param wrapper the function that converts buffers to managed buffers
 	 * @param buffers the buffers to wrap
 	 */
 	@SafeVarargs
-	public ManagedBufferQueue(Class<W> wrapped, T... buffers) {
-		try {
-			@SuppressWarnings("unchecked")
-			Constructor<W>[] constructors 
-				= (Constructor<W>[])wrapped.getConstructors();
-			for (Constructor<W> c: constructors) {
-				Class<?>[] paramTypes = c.getParameterTypes();
-				if(paramTypes.length == 2
-						&& Buffer.class.isAssignableFrom(paramTypes[0])
-						&& paramTypes[1].equals(BufferCollector.class)) {
-					wrapper = c;
-					break;
-				}
-			}
-			if (wrapper == null) {
-				throw new IllegalArgumentException(
-						wrapped + " is not a valid wrapper class.");
-			}
-		} catch (SecurityException e) {
-			// Shouldn't happen
-		}
+	public ManagedBufferQueue(
+			BiFunction<T,BufferCollector, W> wrapper, T... buffers) {
+		this.wrapper = wrapper;
 		queue = new ArrayBlockingQueue<W>(buffers.length);
 		for (T buffer: buffers) {
 			addBuffer(buffer);
@@ -74,13 +55,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @param buffer the buffer to add
 	 */
 	public void addBuffer(T buffer) {
-		try {
-			queue.add(wrapper.newInstance(buffer, this));
-		} catch (InstantiationException | IllegalAccessException
-		        | IllegalArgumentException | InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		queue.add(wrapper.apply(buffer, this));
 	}
 
 	/**

@@ -69,7 +69,7 @@ public class TcpServer extends Component implements NioHandler {
 	private SocketAddress serverAddress = null;
 	private ServerSocketChannel serverSocketChannel = null;
 	private int bufferSize = 0;
-	private Set<SocketConn> connections = new HashSet<>();
+	private Set<TcpChannel> channels = new HashSet<>();
 	private boolean closing = false;
 	private ExecutorService executorService = null;
 	private int backlog = 0;
@@ -244,8 +244,8 @@ public class TcpServer extends Component implements NioHandler {
 			fire(new Ready(serverSocketChannel.getLocalAddress()));
 			return;
 		}
-		if (handler instanceof SocketConn) {
-			((SocketConn)handler)
+		if (handler instanceof TcpChannel) {
+			((TcpChannel)handler)
 				.registrationComplete(event.event());
 		}
 	}
@@ -255,12 +255,12 @@ public class TcpServer extends Component implements NioHandler {
 	 */
 	@Override
 	public void handleOps(int ops) {
-		synchronized (connections) {
+		synchronized (channels) {
 			if ((ops & SelectionKey.OP_ACCEPT) != 0 && !closing) {
 				try {
 					if (connLimiter == null || connLimiter.tryAcquire()) {
 						SocketChannel socketChannel = serverSocketChannel.accept();
-						connections.add(new SocketConn(socketChannel));
+						channels.add(new TcpChannel(socketChannel));
 					}
 				} catch (IOException e) {
 					fire(new IOError(null, e));
@@ -269,9 +269,9 @@ public class TcpServer extends Component implements NioHandler {
 		}
 	}
 
-	private boolean removeConnection(SocketConn connection) {
-		synchronized (connections) {
-			if(!connections.remove(connection)) {
+	private boolean removeChannel(TcpChannel channel) {
+		synchronized (channels) {
+			if(!channels.remove(channel)) {
 				// Closed already
 				return false;
 			}
@@ -279,7 +279,7 @@ public class TcpServer extends Component implements NioHandler {
 				connLimiter.release();
 			}
 			// In case the server is shutting down
-			connections.notifyAll();
+			channels.notifyAll();
 		}			
 		return true;
 	}
@@ -293,9 +293,9 @@ public class TcpServer extends Component implements NioHandler {
 	 */
 	@Handler
 	public void onOutput(Output<ManagedByteBuffer> event,
-			SocketConn connection) throws IOException {
-		if (connections.contains(connection)) {
-			connection.write(event);
+			TcpChannel channel) throws IOException {
+		if (channels.contains(channel)) {
+			channel.write(event);
 		}
 	}
 
@@ -310,9 +310,9 @@ public class TcpServer extends Component implements NioHandler {
 	public void onClose(Close event) throws IOException, InterruptedException {
 		boolean subOnly = true;
 		for (Channel channel: event.channels()) {
-			if (channel instanceof SocketConn) {
-				if (connections.contains(channel)) {
-					((SocketConn)channel).close();
+			if (channel instanceof TcpChannel) {
+				if (channels.contains(channel)) {
+					((TcpChannel)channel).close();
 				}
 			} else {
 				subOnly = false;
@@ -321,15 +321,15 @@ public class TcpServer extends Component implements NioHandler {
 		if (subOnly || !serverSocketChannel.isOpen()) {
 			return;
 		}
-		synchronized (connections) {
+		synchronized (channels) {
 			closing = true;
 			// Copy to avoid concurrent modification exception
-			Set<SocketConn> conns = new HashSet<>(connections);
-			for (SocketConn conn : conns) {
+			Set<TcpChannel> conns = new HashSet<>(channels);
+			for (TcpChannel conn : conns) {
 				conn.close();
 			}
-			while (connections.size() > 0) {
-				connections.wait();
+			while (channels.size() > 0) {
+				channels.wait();
 			}
 		}
 		serverSocketChannel.close();
@@ -361,7 +361,7 @@ public class TcpServer extends Component implements NioHandler {
 	/**
 	 * The internal representation of a connected client. 
 	 */
-	public class SocketConn 
+	public class TcpChannel 
 		extends DefaultSubchannel implements NioHandler {
 
 		private SocketChannel nioChannel;
@@ -375,7 +375,7 @@ public class TcpServer extends Component implements NioHandler {
 		 * @param nioChannel the channel
 		 * @throws IOException if an I/O error occured
 		 */
-		public SocketConn(SocketChannel nioChannel)	throws IOException {
+		public TcpChannel(SocketChannel nioChannel)	throws IOException {
 			super(TcpServer.this);
 			this.nioChannel = nioChannel;
 			if (executorService != null) {
@@ -386,13 +386,13 @@ public class TcpServer extends Component implements NioHandler {
 
 			int writeBufferSize = bufferSize == 0 
 					? nioChannel.socket().getSendBufferSize() : bufferSize;
-			setBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer.class, 
+			setByteBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer::new, 
 					ByteBuffer.allocate(writeBufferSize),
 					ByteBuffer.allocate(writeBufferSize)));
 			
 			int readBufferSize = bufferSize == 0 
 					? nioChannel.socket().getReceiveBufferSize() : bufferSize;
-			readBuffers = new ManagedBufferQueue<>(ManagedByteBuffer.class,
+			readBuffers = new ManagedBufferQueue<>(ManagedByteBuffer::new,
 					ByteBuffer.allocate(readBufferSize),
 					ByteBuffer.allocate(readBufferSize));
 			
@@ -421,7 +421,7 @@ public class TcpServer extends Component implements NioHandler {
 		}
 
 		/**
-		 * Write the data on this connection.
+		 * Write the data on this channel.
 		 * 
 		 * @param event the event
 		 * @throws IOException if an error occurred
@@ -495,7 +495,7 @@ public class TcpServer extends Component implements NioHandler {
 				
 			}
 			// Client initiates close
-			removeConnection();
+			removeChannel();
 			synchronized (pendingWrites) {
 				synchronized (nioChannel) {
 					if (!pendingWrites.isEmpty()) {
@@ -556,13 +556,13 @@ public class TcpServer extends Component implements NioHandler {
 		}
 
 		/**
-		 * Closes this connection.
+		 * Closes this channel.
 		 * 
 		 * @throws IOException if an error occurs
 		 * @throws InterruptedException if the execution was interrupted 
 		 */
 		public void close() throws IOException, InterruptedException {
-			removeConnection();
+			removeChannel();
 			synchronized (pendingWrites) {
 				if (!pendingWrites.isEmpty()) {
 					// Pending writes, delay close until done
@@ -579,8 +579,8 @@ public class TcpServer extends Component implements NioHandler {
 			}
 		}
 
-		private void removeConnection() throws InterruptedException {
-			if (TcpServer.this.removeConnection(this)) {
+		private void removeChannel() throws InterruptedException {
+			if (TcpServer.this.removeChannel(this)) {
 				Closed evt = new Closed();
 				downPipeline.fire(evt, this);
 				evt.get();

@@ -2,7 +2,7 @@ dependencies {
 
     compile project(':org.jgrapes.io')
 	// compile 'com.github.mnlipp:jdrupes-httpcodec:0.9.10'
-	compile 'org.jdrupes.httpcodec:httpcodec:0.9.10'
+	compile 'org.jdrupes.httpcodec:httpcodec:0.9.11-SNAPSHOT'
     
     sourceSets {
         test {

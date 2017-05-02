@@ -112,6 +112,7 @@ public class HttpServerDemo extends Component {
 		app.attach(new PostProcessor(app.channel()));
 		app.attach(new RockerPostProcessor(app.channel()));
 		app.attach(new RockerRenderer(app.channel()));
+		app.attach(new WsEchoServer(app.channel()));
 		Components.start(app);
 	}
 

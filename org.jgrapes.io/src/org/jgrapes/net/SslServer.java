@@ -62,13 +62,13 @@ public class SslServer extends Component {
 	private SSLContext sslContext;
 	
 	/**
-	 * @param componentChannel the component's channel
+	 * @param plainChannel the component's channel
 	 * @param encryptedChannel the channel with the encrypted data
 	 * @param sslContext the SSL context to use
 	 */
-	public SslServer(Channel componentChannel, Channel encryptedChannel,
+	public SslServer(Channel plainChannel, Channel encryptedChannel,
 			SSLContext sslContext) {
-		super(componentChannel);
+		super(plainChannel);
 		this.sslContext = sslContext;
 		Handler.Evaluator.add(
 				this, "onAccepted", encryptedChannel.defaultCriterion());
@@ -86,8 +86,8 @@ public class SslServer extends Component {
 	 *            the accepted event
 	 */
 	@Handler(dynamic=true)
-	public void onAccepted(Accepted event, IOSubchannel channel) {
-		new SslConn(event, channel);
+	public void onAccepted(Accepted event, IOSubchannel encryptedChannel) {
+		new PlainChannel(event, encryptedChannel);
 	}
 
 	/**
@@ -97,36 +97,39 @@ public class SslServer extends Component {
 	 * results.
 	 * 
 	 * @param event the event
+	 * @param encryptedChannel the channel for exchanging the encrypted data
 	 * @throws InterruptedException 
 	 * @throws SSLException 
 	 */
 	@Handler(dynamic = true)
-	public void onInput(Input<ManagedByteBuffer> event, IOSubchannel channel)
+	public void onInput(
+			Input<ManagedByteBuffer> event, IOSubchannel encryptedChannel)
 	        throws InterruptedException, SSLException {
-		final SslConn downChannel = (SslConn) LinkedIOSubchannel
-		        .lookupLinked(channel);
-		if (downChannel == null || downChannel.converterComponent() != this) {
+		final PlainChannel plainChannel = (PlainChannel) LinkedIOSubchannel
+		        .lookupLinked(encryptedChannel);
+		if (plainChannel == null || plainChannel.converterComponent() != this) {
 			return;
 		}
-		downChannel.sendDownstream(event);
+		plainChannel.sendDownstream(event);
 	}
 
 	/**
 	 * Handles a close event from the encrypted channel (client).
 	 * 
 	 * @param event the event
+	 * @param encryptedChannel the channel for exchanging the encrypted data
 	 * @throws InterruptedException 
 	 * @throws SSLException 
 	 */
 	@Handler(dynamic = true)
-	public void onClosed(Closed event, IOSubchannel netChannel)
+	public void onClosed(Closed event, IOSubchannel encryptedChannel)
 	        throws SSLException, InterruptedException {
-		final SslConn downChannel = (SslConn) LinkedIOSubchannel
-		        .lookupLinked(netChannel);
-		if (downChannel == null || downChannel.converterComponent() != this) {
+		final PlainChannel plainChannel = (PlainChannel) LinkedIOSubchannel
+		        .lookupLinked(encryptedChannel);
+		if (plainChannel == null || plainChannel.converterComponent() != this) {
 			return;
 		}
-		downChannel.upstreamClosed();
+		plainChannel.upstreamClosed();
 	}
 	
 	/**
@@ -139,18 +142,12 @@ public class SslServer extends Component {
 	 */
 	@Handler
 	public void onOutput(Output<ManagedBuffer<ByteBuffer>> event,
-	        SslConn downChannel)
+	        PlainChannel plainChannel)
 	        throws InterruptedException, SSLException {
-		if (downChannel.converterComponent() != this) {
+		if (plainChannel.converterComponent() != this) {
 			return;
 		}
-		ByteBuffer output = event.buffer().backingBuffer().duplicate();
-		while (output.hasRemaining()) {
-			ManagedByteBuffer out = downChannel.upstreamBuffer();
-			downChannel.sslEngine.wrap(output, out.backingBuffer());
-			downChannel.upstreamChannel().respond(new Output<>(
-			        out, event.isEndOfRecord()));
-		}
+		plainChannel.sendUpstream(event);
 	}
 
 	/**
@@ -162,31 +159,22 @@ public class SslServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onClose(Close event, SslConn connection)
+	public void onClose(Close event, PlainChannel plainChannel)
 	        throws InterruptedException, SSLException {
-		if (connection.converterComponent() != this) {
+		if (plainChannel.converterComponent() != this) {
 			return;
 		}
-		connection.sslEngine.closeOutbound();
-		while (!connection.sslEngine.isOutboundDone()) {
-			ManagedByteBuffer feedback = connection.upstreamBuffer();
-			connection.sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
-			        .backingBuffer(), feedback.backingBuffer());
-			connection.upstreamChannel()
-			        .respond(new Output<>(feedback, false));
-		}
-		connection.upstreamChannel().respond(new Close());
+		plainChannel.close(event);
 	}
 	
-	private class SslConn extends LinkedIOSubchannel {
+	private class PlainChannel extends LinkedIOSubchannel {
 		public SocketAddress localAddress;
 		public SocketAddress remoteAddress;
 		public SSLEngine sslEngine;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> downstreamPool;
-		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> upstreamPool;
 		private boolean isInputClosed = false;
 
-		public SslConn(Accepted event, IOSubchannel upstreamChannel) {
+		public PlainChannel(Accepted event, IOSubchannel upstreamChannel) {
 			super(SslServer.this, upstreamChannel);
 			localAddress = event.localAddress();
 			remoteAddress = event.remoteAddress();
@@ -198,41 +186,21 @@ public class SslServer extends Component {
 				sslEngine = sslContext.createSSLEngine();
 			}
 			sslEngine.setUseClientMode(false);
-		}
-		
-		@Override
-		public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool() {
-			if (downstreamPool == null) {
-				// Adding 50, see https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/samples/sslengine/SSLEngineSimpleDemo.java
-				int bufSize = sslEngine.getSession()
-						.getApplicationBufferSize() + 50;
-				downstreamPool = new ManagedBufferQueue<>(ManagedByteBuffer.class,
-						ByteBuffer.allocate(bufSize), 
-						ByteBuffer.allocate(bufSize));
-			}
-			return downstreamPool;
-		}
-		
-		public ManagedByteBuffer upstreamBuffer() throws InterruptedException {
-			if (upstreamPool == null) {
-				ManagedByteBuffer testBuf = upstreamChannel().bufferPool().acquire();
-				if (testBuf.capacity() 
-						>= sslEngine.getSession().getPacketBufferSize() + 50) {
-					upstreamPool = upstreamChannel().bufferPool();
-					return testBuf;
-				} else {
-					int bufSize = sslEngine.getSession().getPacketBufferSize() + 50;
-					upstreamPool = new ManagedBufferQueue<>(ManagedByteBuffer.class,
-							ByteBuffer.allocate(bufSize), 
-							ByteBuffer.allocate(bufSize));
-				}
-			}
-			return upstreamPool.acquire();
+			
+			// Create buffer pools, adding 50 to application buffer size, see 
+			// https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/samples/sslengine/SSLEngineSimpleDemo.java
+			int bufSize = sslEngine.getSession().getApplicationBufferSize() + 50;
+			downstreamPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,
+					ByteBuffer.allocate(bufSize), 
+					ByteBuffer.allocate(bufSize));
+			setByteBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer::new,
+					ByteBuffer.allocate(bufSize), 
+					ByteBuffer.allocate(bufSize)));
 		}
 		
 		public void sendDownstream(Input<ManagedByteBuffer> event)
 				throws SSLException, InterruptedException {
-			ManagedByteBuffer unwrapped = bufferPool().acquire();
+			ManagedByteBuffer unwrapped = downstreamPool.acquire();
 			ByteBuffer input = event.buffer().duplicate();
 			SSLEngineResult unwrapResult;
 			while (true) {
@@ -251,7 +219,7 @@ public class SslServer extends Component {
 					continue;
 					
 				case NEED_WRAP:
-					ManagedByteBuffer feedback = upstreamBuffer();
+					ManagedByteBuffer feedback = byteBufferPool().acquire();
 					SSLEngineResult wrapResult = sslEngine.wrap(
 							ManagedByteBuffer.EMPTY_BUFFER
 							.backingBuffer(), feedback.backingBuffer());
@@ -295,6 +263,29 @@ public class SslServer extends Component {
 			}
 		}
 
+		public void sendUpstream(Output<ManagedBuffer<ByteBuffer>> event)
+				throws SSLException, InterruptedException {
+			ByteBuffer output = event.buffer().backingBuffer().duplicate();
+			while (output.hasRemaining()) {
+				ManagedByteBuffer out = byteBufferPool().acquire();
+				sslEngine.wrap(output, out.backingBuffer());
+				upstreamChannel().respond(
+						new Output<>(out, event.isEndOfRecord()));
+			}
+		}
+
+		public void close(Close event) 
+				throws InterruptedException, SSLException {
+			sslEngine.closeOutbound();
+			while (!sslEngine.isOutboundDone()) {
+				ManagedByteBuffer feedback = byteBufferPool().acquire();
+				sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
+				        .backingBuffer(), feedback.backingBuffer());
+				upstreamChannel().respond(new Output<>(feedback, false));
+			}
+			upstreamChannel().respond(new Close());
+		}
+
 		private void fireAccepted() {
 			List<SNIServerName> snis = Collections.emptyList();
 			if (sslEngine.getSession() instanceof ExtendedSSLSession) {
@@ -316,7 +307,7 @@ public class SslServer extends Component {
 			try {
 				sslEngine.closeInbound();
 				while (!sslEngine.isOutboundDone()) {
-					ManagedByteBuffer feedback = upstreamBuffer();
+					ManagedByteBuffer feedback = byteBufferPool().acquire();
 					sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
 							.backingBuffer(),feedback.backingBuffer());
 					upstreamChannel().respond(new Output<>(feedback, false));

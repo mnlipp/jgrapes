@@ -26,7 +26,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * buffer. All methods known from {@code Buffer} are provided and
  * delegate to the backing buffer. Managed buffers can be used to maintain
  * pools of buffers. Buffers are locked when retrieved from the pool
- * and can automatically be returned when the last lock is released. 
+ * and can automatically be returned when the last lock is released.
+ * 
+ * Newly created managed buffer always have a lock count of 1 (you
+ * create them for using them, don't you).
  */
 public abstract class ManagedBuffer<T extends Buffer> {
 

@@ -20,6 +20,7 @@ package org.jgrapes.io.util;
 
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -132,12 +133,23 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	/**
 	 * Delegates the invocation to the upstream channel.
 	 * 
-	 * @see org.jgrapes.io.IOSubchannel#bufferPool()
+	 * @see org.jgrapes.io.IOSubchannel#byteBufferPool()
 	 */
 	@Override
-	public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool() {
+	public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> byteBufferPool() {
 		IOSubchannel up = upstreamChannel.get();
-		return up == null ? null : up.bufferPool();
+		return up == null ? null : up.byteBufferPool();
+	}
+
+	/**
+	 * Delegates the invocation to the upstream channel.
+	 * 
+	 * @see org.jgrapes.io.IOSubchannel#charBufferPool()
+	 */
+	@Override
+	public ManagedBufferQueue<ManagedCharBuffer, CharBuffer> charBufferPool() {
+		IOSubchannel up = upstreamChannel.get();
+		return up == null ? null : up.charBufferPool();
 	}
 
 	/* (non-Javadoc)

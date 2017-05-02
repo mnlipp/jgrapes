@@ -93,7 +93,7 @@ public class PostProcessor extends Component
 		
 		HttpResponse response = ctx.get().request.response().get();
 		response.setStatus(HttpStatus.OK);
-		response.setMessageHasBody(true);
+		response.setHasPayload(true);
 		response.setField(HttpField.CONTENT_TYPE,
 		        MediaType.builder().setType("text", "plain")
 		                .setParameter("charset", "utf-8").build());
@@ -103,7 +103,7 @@ public class PostProcessor extends Component
 		        + ctx.get().fieldDecoder.fields().get("lastname")
 		        + "\r\n" + "Previous invocations: " + invocations;
 		channel.respond(new Response(response));
-		ManagedByteBuffer out = channel.bufferPool().acquire();
+		ManagedByteBuffer out = channel.byteBufferPool().acquire();
 		out.put(data.getBytes("utf-8"));
 		channel.respond(new Output<>(out, true));
 	}

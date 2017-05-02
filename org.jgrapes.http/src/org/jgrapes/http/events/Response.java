@@ -18,7 +18,7 @@
 
 package org.jgrapes.http.events;
 
-import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.MessageHeader;
 import org.jgrapes.core.Event;
 
 /**
@@ -26,16 +26,16 @@ import org.jgrapes.core.Event;
  */
 public class Response extends Event<Void> {
 
-	private HttpResponse response;
+	private MessageHeader response;
 	
-	public Response(HttpResponse response) {
+	public Response(MessageHeader response) {
 		this.response = response;
 	}
 
 	/**
 	 * @return the response
 	 */
-	public HttpResponse response() {
+	public MessageHeader response() {
 		return response;
 	}
 

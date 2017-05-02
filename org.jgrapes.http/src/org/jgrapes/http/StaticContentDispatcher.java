@@ -183,7 +183,7 @@ public class StaticContentDispatcher extends Component {
 			}
 			response.setField(HttpField.CONTENT_TYPE, mediaType);
 			response.setStatus(HttpStatus.OK);
-			response.setMessageHasBody(true);
+			response.setHasPayload(true);
 			response.setField(HttpField.LAST_MODIFIED, lastModified);
 			channel.respond(new Response(response));
 			fire(new StreamFile(resourcePath, StandardOpenOption.READ), channel);

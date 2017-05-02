@@ -54,7 +54,7 @@ public class RockerRenderer extends Component {
 		
 		HttpResponse response = event.request().response().get();
 		response.setStatus(HttpStatus.OK);
-		response.setMessageHasBody(true);
+		response.setHasPayload(true);
 		String subtype;
 		switch (data.getContentType()) {
 		case HTML:

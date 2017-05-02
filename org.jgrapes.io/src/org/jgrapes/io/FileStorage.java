@@ -137,7 +137,7 @@ public class FileStorage extends Component {
 			}
 			channel.respond(new FileOpened(event.path(), event.options()));
 			// Reading from file
-			ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer.class,
+			ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer::new,
 					ByteBuffer.allocateDirect(bufferSize),
 					ByteBuffer.allocateDirect(bufferSize));
 			ManagedByteBuffer buffer = ioBuffers.acquire();

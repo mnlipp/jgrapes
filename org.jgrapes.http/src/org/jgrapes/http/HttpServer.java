@@ -25,6 +25,7 @@ import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +37,7 @@ import javax.net.ssl.SNIServerName;
 
 import org.jdrupes.httpcodec.Codec;
 import org.jdrupes.httpcodec.Decoder;
+import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.ServerEngine;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
@@ -44,22 +46,26 @@ import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;
 import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
+import org.jdrupes.httpcodec.protocols.websocket.WsMessageHeader;
+import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.MediaType;
+import org.jdrupes.httpcodec.types.StringList;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.http.events.EndOfRequest;
 import org.jgrapes.http.events.OptionsRequest;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
+import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
-import org.jgrapes.io.util.BufferCollector;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
+import org.jgrapes.io.util.ManagedBufferQueue;
 import org.jgrapes.io.util.ManagedByteBuffer;
+import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Accepted;
 
@@ -73,6 +79,7 @@ public class HttpServer extends Component {
 	private List<Class<? extends Request>> providedFallbacks;
 	private int matchLevels = 1;
 	boolean acceptNoSni = false;
+	int applicationBufferSize = 4096;
 
 	/**
 	 * Create a new server that uses the {@code networkChannel} for network
@@ -82,7 +89,7 @@ public class HttpServer extends Component {
 	 * specified types of requests. The fall back handler simply returns 404 (
 	 * "Not found").
 	 * 
-	 * @param componentChannel
+	 * @param appChannel
 	 *            this component's channel
 	 * @param networkChannel
 	 *            the channel for network level I/O
@@ -90,9 +97,9 @@ public class HttpServer extends Component {
 	 *            the requests for which a fall back handler is provided
 	 */
 	@SafeVarargs
-	public HttpServer(Channel componentChannel, Channel networkChannel,
+	public HttpServer(Channel appChannel, Channel networkChannel,
 	        Class<? extends Request>... fallbacks) {
-		super(componentChannel);
+		super(appChannel);
 		this.providedFallbacks = Arrays.asList(fallbacks);
 		Handler.Evaluator.add(
 				this, "onAccepted", networkChannel.defaultCriterion());
@@ -104,15 +111,15 @@ public class HttpServer extends Component {
 	 * Create a new server that creates its own {@link TcpServer} with the given
 	 * address and uses it for network level I/O.
 	 * 
-	 * @param componentChannel
+	 * @param appChannel
 	 *            this component's channel
 	 * @param serverAddress the address to listen on
 	 * @param fallbacks fall backs
 	 */
 	@SafeVarargs
-	public HttpServer(Channel componentChannel, SocketAddress serverAddress,
+	public HttpServer(Channel appChannel, SocketAddress serverAddress,
 	        Class<? extends Request>... fallbacks) {
-		super(componentChannel);
+		super(appChannel);
 		this.providedFallbacks = Arrays.asList(fallbacks);
 		TcpServer server = new TcpServer().setServerAddress(serverAddress);
 		attach(server);
@@ -140,6 +147,27 @@ public class HttpServer extends Component {
 	public HttpServer setMatchLevels(int matchLevels) {
 		this.matchLevels = matchLevels;
 		return this;
+	}
+
+	/**
+	 * Sets the size of the buffers used for {@link Output} events
+	 * on the application channel. Defaults to 4096.
+	 * 
+	 * @param applicationBufferSize the size to set
+	 * @return the http server for easy chaining
+	 */
+	public HttpServer setApplicationBufferSize(int applicationBufferSize) {
+		this.applicationBufferSize = applicationBufferSize;
+		return this;
+	}
+
+	/**
+	 * Returns the size of the application side (receive) buffers.
+	 * 
+	 * @return the value
+	 */
+	public int applicationBufferSize() {
+		return applicationBufferSize;
 	}
 
 	/**
@@ -176,16 +204,16 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Creates a new downstream connection as {@link LinkedIOSubchannel} of the network
-	 * connection, a {@link HttpRequestDecoder} and a
+	 * Creates a new downstream connection as {@link LinkedIOSubchannel} 
+	 * of the network connection, a {@link HttpRequestDecoder} and a
 	 * {@link HttpResponseEncoder}.
 	 * 
 	 * @param event
 	 *            the accepted event
 	 */
 	@Handler(dynamic=true)
-	public void onAccepted(Accepted event, IOSubchannel channel) {
-		new HttpConn(event, channel);
+	public void onAccepted(Accepted event, IOSubchannel netChannel) {
+		new AppChannel(event, netChannel);
 	}
 
 	/**
@@ -195,17 +223,18 @@ public class HttpServer extends Component {
 	 * 
 	 * @param event the event
 	 * @throws ProtocolException if a protocol exception occurs
+	 * @throws InterruptedException 
 	 */
 	@Handler(dynamic=true)
-	public void onInput(Input<ManagedByteBuffer> event, IOSubchannel netChannel)
-		throws ProtocolException {
-		final HttpConn httpConn 
-			= (HttpConn) LinkedIOSubchannel.lookupLinked(netChannel);
-		if (httpConn == null 
-				|| httpConn.converterComponent() != this) {
+	public void onInput(
+			Input<ManagedByteBuffer> event, IOSubchannel netChannel)
+					throws ProtocolException, InterruptedException {
+		final AppChannel appChannel 
+			= (AppChannel) LinkedIOSubchannel.lookupLinked(netChannel);
+		if (appChannel == null || appChannel.converterComponent() != this) {
 			return;
 		}
-		httpConn.handleInput(event);
+		appChannel.handleNetInput(event);
 	}
 
 	/**
@@ -220,42 +249,9 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onResponse(Response event, HttpConn downChannel)
+	public void onResponse(Response event, AppChannel appChannel)
 			throws InterruptedException {
-		final IOSubchannel netChannel = downChannel.upstreamChannel();
-		final ServerEngine<HttpRequest,HttpResponse> engine 
-			= downChannel.engine;
-		final HttpResponse response = event.response();
-
-		// Start sending the response
-		engine.encode(response);
-		boolean hasBody = response.messageHasBody();
-		while (true) {
-			downChannel.outBuffer = netChannel.bufferPool().acquire();
-			final ManagedByteBuffer buffer = downChannel.outBuffer;
-			Codec.Result result = engine.encode(
-					Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);
-			if (result.isOverflow()) {
-				fire(new Output<>(buffer, false), netChannel);
-				continue;
-			}
-			if (hasBody) {
-				// Keep buffer with incomplete response to be further
-				// filled by Output events
-				break;
-			}
-			// Response is complete
-			if (buffer.position() > 0) {
-				fire(new Output<>(buffer, false), netChannel);
-			} else {
-				buffer.unlockBuffer();
-			}
-			downChannel.outBuffer = null;
-			if (result.closeConnection()) {
-				fire(new Close(), netChannel);
-			}
-			break;
-		}
+		appChannel.handleResponse(event);
 	}
 
 	/**
@@ -269,9 +265,9 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onOutput(Output<ManagedBuffer<?>> event, HttpConn downChannel)
+	public void onOutput(Output<ManagedBuffer<?>> event, AppChannel appChannel)
 	        throws InterruptedException {
-		downChannel.sendUpstream(event);
+		appChannel.handleAppOutput(event);
 	}
 
 	/**
@@ -283,9 +279,9 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onClose(Close event, HttpConn downChannel) 
+	public void onClose(Close event, AppChannel appChannel) 
 			throws InterruptedException {
-		final IOSubchannel netChannel = downChannel.upstreamChannel();
+		final IOSubchannel netChannel = appChannel.upstreamChannel();
 		netChannel.respond(new Close());
 	}
 
@@ -296,11 +292,12 @@ public class HttpServer extends Component {
 	 * 
 	 * @param event
 	 *            the request completed event
+	 * @param appChannel the application channel 
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
 	public void onRequestCompleted(
-			Request.Completed event, IOSubchannel channel)
+			Request.Completed event, IOSubchannel appChannel)
 	        throws InterruptedException {
 		final Request requestEvent = event.event();
 		if (requestEvent.isStopped()) {
@@ -317,7 +314,8 @@ public class HttpServer extends Component {
 
 		// No component has taken care of the request, provide
 		// fallback response
-		fireResponse(response, channel, HttpStatus.NOT_IMPLEMENTED.statusCode(), 
+		sendResponse(response, appChannel, 
+				HttpStatus.NOT_IMPLEMENTED.statusCode(), 
 				HttpStatus.NOT_IMPLEMENTED.reasonPhrase());
 	}
 
@@ -326,13 +324,14 @@ public class HttpServer extends Component {
 	 * responds with "OK".
 	 * 
 	 * @param event the event
+	 * @param appChannel the application channel
 	 */
 	@Handler(priority = Integer.MIN_VALUE)
-	public void onOptions(OptionsRequest event, IOSubchannel channel) {
+	public void onOptions(OptionsRequest event, IOSubchannel appChannel) {
 		if (event.requestUri() == HttpRequest.ASTERISK_REQUEST) {
 			HttpResponse response = event.request().response().get();
 			response.setStatus(HttpStatus.OK);
-			channel.respond(new Response(response));
+			appChannel.respond(new Response(response));
 			event.stop();
 		}
 	}
@@ -342,45 +341,59 @@ public class HttpServer extends Component {
 	 * specified in the constructor.
 	 * 
 	 * @param event the event
+	 * @param appChannel the application channel
 	 * @throws ParseException if the request contains illegal header fields
 	 */
 	@Handler(priority = Integer.MIN_VALUE)
-	public void onRequest(Request event, IOSubchannel channel)
+	public void onRequest(Request event, IOSubchannel appChannel)
 			throws ParseException {
 		if (providedFallbacks == null
 		        || !providedFallbacks.contains(event.getClass())) {
 			return;
 		}
-		fireResponse(event.request().response().get(), channel, 
+		sendResponse(event.request().response().get(), appChannel, 
 				HttpStatus.NOT_FOUND.statusCode(), 
 				HttpStatus.NOT_FOUND.reasonPhrase());
 		event.stop();
 	}
 
-	private void fireResponse(HttpResponse response, IOSubchannel channel,
+	@Handler
+	public void onWebSocketAccepted(
+			WebSocketAccepted event, IOSubchannel appChannel) {
+		final HttpResponse response = event.baseResponse()
+				.setStatus(HttpStatus.SWITCHING_PROTOCOLS)
+				.setField(HttpField.UPGRADE, new StringList("websocket"));
+		appChannel.respond(new Response(response));
+	}
+	
+	private void sendResponse(HttpResponse response, IOSubchannel appChannel,
 			int statusCode, String reasonPhrase) {
 		response.setStatusCode(statusCode).setReasonPhrase(reasonPhrase)
-			.setMessageHasBody(true).setField(
+			.setHasPayload(true).setField(
 					HttpField.CONTENT_TYPE,
 					MediaType.builder().setType("text", "plain")
 					.setParameter("charset", "utf-8").build());
-		fire(new Response(response), channel);
+		fire(new Response(response), appChannel);
 		try {
 			fire(Output.wrap((statusCode + " " + reasonPhrase)
-					.getBytes("utf-8"), true), channel);
+					.getBytes("utf-8"), true), appChannel);
 		} catch (UnsupportedEncodingException e) {
 			// Supported by definition
 		}
 	}
 	
-	private class HttpConn extends LinkedIOSubchannel {
-		public ServerEngine<HttpRequest,HttpResponse> engine;
-		public ManagedByteBuffer outBuffer;
+	private class AppChannel extends LinkedIOSubchannel {
+		// Starts as ServerEngine<HttpRequest,HttpResponse> but may change
+		private ServerEngine<?,?> engine;
+		private ManagedByteBuffer outBuffer;
 		private boolean secure;
 		private List<String> snis = Collections.emptyList();
+		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> byteBufferPool;
+		private ManagedBufferQueue<ManagedCharBuffer, CharBuffer> charBufferPool;
+		private ManagedBufferQueue<?, ?> currentPool = null;
 
-		public HttpConn(Accepted event, IOSubchannel upstreamChannel) {
-			super(HttpServer.this, upstreamChannel);
+		public AppChannel(Accepted event, IOSubchannel netChannel) {
+			super(HttpServer.this, netChannel);
 			engine = new ServerEngine<>(
 					new HttpRequestDecoder(), new HttpResponseEncoder());
 			secure = event.isSecure();
@@ -392,15 +405,23 @@ public class HttpServer extends Component {
 					}
 				}
 			}
+			
+			// Allocate buffer pools
+			byteBufferPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,
+					ByteBuffer.allocate(applicationBufferSize),
+					ByteBuffer.allocate(applicationBufferSize));
+			charBufferPool = new ManagedBufferQueue<>(ManagedCharBuffer::new,
+					CharBuffer.allocate(applicationBufferSize),
+					CharBuffer.allocate(applicationBufferSize));
 		}
 		
-		public void handleInput(Input<ManagedByteBuffer> event) 
-				throws ProtocolException {
+		public void handleNetInput(Input<ManagedByteBuffer> event) 
+				throws ProtocolException, InterruptedException {
 			// Send the data from the event through the decoder.
 			ByteBuffer in = event.buffer().backingBuffer();
-			ManagedByteBuffer bodyData = null;
+			ManagedBuffer<?> bodyData = null;
 			while (in.hasRemaining()) {
-				Decoder.Result<HttpResponse> result = engine.decode(in,
+				Decoder.Result<?> result = engine.decode(in,
 				        bodyData == null ? null : bodyData.backingBuffer(),
 				        event.isEndOfRecord());
 				if (result.response().isPresent()) {
@@ -414,20 +435,9 @@ public class HttpServer extends Component {
 					}
 				}
 				if (result.isHeaderCompleted()) {
-					HttpRequest request = engine.currentRequest().get();
-					if (secure) {
-						if (!snis.contains(request.host())) {
-							if (acceptNoSni && snis.isEmpty()) {
-								convertHostToNumerical(request);
-							} else {
-								fireResponse(request.response().get(), 
-										this, 421, "Misdirected Request");
-								break;
-							}
-						}
+					if (!handleRequestHeader(engine.currentRequest().get())) {
+						break;
 					}
-					fire(Request.fromHttpRequest(request,
-							secure, matchLevels), this);
 				}
 				if (bodyData != null && bodyData.position() > 0) {
 					bodyData.flip();
@@ -435,18 +445,53 @@ public class HttpServer extends Component {
 							&& !result.isUnderflow()), this);
 				}
 				if (result.isOverflow()) {
-					bodyData = new ManagedByteBuffer(
-					        ByteBuffer.allocate(in.capacity()),
-					        BufferCollector.NOOP_COLLECTOR);
+					// Determine what kind of buffer we need
+					bodyData = currentPool.acquire();
 					continue;
-				}
-				if (!result.isUnderflow()
-				        && engine.currentRequest().get().messageHasBody()) {
-					fire(new EndOfRequest(), this);
 				}
 			}
 		}
 
+		private boolean handleRequestHeader(MessageHeader request) {
+			if (request instanceof HttpRequest) {
+				HttpRequest httpRequest = (HttpRequest)request;
+				if (httpRequest.hasPayload()) {
+					if(httpRequest.findValue(
+						HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)
+							.map(f -> f.value().topLevelType()
+									.equalsIgnoreCase("text"))
+							.orElse(false)) {
+						currentPool = charBufferPool;
+					} else {
+						currentPool = byteBufferPool;
+					}
+				}
+				if (secure) {
+					if (!snis.contains(httpRequest.host())) {
+						if (acceptNoSni && snis.isEmpty()) {
+							convertHostToNumerical(httpRequest);
+						} else {
+							sendResponse(httpRequest.response().get(),
+							        this, 421, "Misdirected Request");
+							return false;
+						}
+					}
+				}
+				fire(Request.fromHttpRequest(httpRequest,
+				        secure, matchLevels), this);
+			} else if (request instanceof WsMessageHeader) {
+				WsMessageHeader wsMessage = (WsMessageHeader)request;
+				if (wsMessage.hasPayload()) {
+					if (wsMessage.isTextMode()) {
+						currentPool = charBufferPool;
+					} else {
+						currentPool = byteBufferPool;
+					}
+				}
+			}
+			return true;
+		}
+		
 		private void convertHostToNumerical(HttpRequest request) {
 			int port = request.port();
 			String host;
@@ -462,23 +507,67 @@ public class HttpServer extends Component {
 			}
 			request.setHostAndPort(host, port);
 		}
-		
-		public void sendUpstream(Output<ManagedBuffer<?>> event) 
-				throws InterruptedException {
-			Buffer in = event.buffer().backingBuffer();
-			if (!(in instanceof ByteBuffer)) {
+
+		public void handleResponse(Response event) throws InterruptedException {
+			if (!engine.encoding().isAssignableFrom(event.response().getClass())) {
 				return;
 			}
-			ByteBuffer input = ((ByteBuffer)in).duplicate();
+			final MessageHeader response = event.response();
+			// Start sending the response
+			@SuppressWarnings("unchecked")
+			ServerEngine<?,MessageHeader> httpEngine 
+				= (ServerEngine<?,MessageHeader>)engine;
+			httpEngine.encode(response);
+			boolean hasBody = response.hasPayload();
+			while (true) {
+				outBuffer = upstreamChannel().byteBufferPool().acquire();
+				final ManagedByteBuffer buffer = outBuffer;
+				Codec.Result result = engine.encode(
+						Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);
+				if (result.isOverflow()) {
+					fire(new Output<>(buffer, false), upstreamChannel());
+					continue;
+				}
+				if (hasBody) {
+					// Keep buffer with incomplete response to be further
+					// filled by Output events
+					break;
+				}
+				// Response is complete
+				if (buffer.position() > 0) {
+					fire(new Output<>(buffer, false), upstreamChannel());
+				} else {
+					buffer.unlockBuffer();
+				}
+				outBuffer = null;
+				if (result.closeConnection()) {
+					fire(new Close(), upstreamChannel());
+				}
+				break;
+			}
+			
+		}
+		
+		public void handleAppOutput(Output<ManagedBuffer<?>> event) 
+				throws InterruptedException {
+			Buffer eventData = event.buffer().backingBuffer();
+			Buffer input;
+			if (eventData instanceof ByteBuffer) {
+				input = ((ByteBuffer)eventData).duplicate();
+			} else if(eventData instanceof CharBuffer) {
+				input = ((CharBuffer)eventData).duplicate();
+			} else {
+				return;
+			}
 			if (outBuffer == null) {
-				outBuffer = upstreamChannel().bufferPool().acquire();
+				outBuffer = upstreamChannel().byteBufferPool().acquire();
 			}
 			while (input.hasRemaining()) {
 				Codec.Result result = engine.encode(input,
 				        outBuffer.backingBuffer(), event.isEndOfRecord());
 				if (result.isOverflow()) {
 					upstreamChannel().respond(new Output<>(outBuffer, false));
-					outBuffer = upstreamChannel().bufferPool().acquire();
+					outBuffer = upstreamChannel().byteBufferPool().acquire();
 					continue;
 				}
 				if (event.isEndOfRecord() || result.closeConnection()) {

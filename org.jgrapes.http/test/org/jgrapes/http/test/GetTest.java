@@ -62,7 +62,7 @@ public class GetTest {
 			
 			final HttpResponse response = event.request().response().get();
 			response.setStatus(HttpStatus.OK);
-			response.setMessageHasBody(true);
+			response.setHasPayload(true);
 			response.setField(HttpField.CONTENT_TYPE,
 					MediaType.builder().setType("text", "plain")
 					.setParameter("charset", "utf-8").build());
@@ -82,7 +82,7 @@ public class GetTest {
 			
 			final HttpResponse response = event.request().response().get();
 			response.setStatus(HttpStatus.OK);
-			response.setMessageHasBody(true);
+			response.setHasPayload(true);
 			response.setField(HttpField.CONTENT_TYPE,
 					MediaType.builder().setType("text", "plain")
 					.setParameter("charset", "utf-8").build());
