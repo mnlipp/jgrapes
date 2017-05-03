@@ -135,13 +135,13 @@ public class FileStorage extends Component {
 				channel.respond(new IOError(event, e));
 				return;
 			}
+			registerAsGenerator();
 			channel.respond(new FileOpened(event.path(), event.options()));
 			// Reading from file
 			ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer::new,
 					ByteBuffer.allocateDirect(bufferSize),
 					ByteBuffer.allocateDirect(bufferSize));
 			ManagedByteBuffer buffer = ioBuffers.acquire();
-			registerAsGenerator();
 			synchronized (ioChannel) {
 				ioChannel.read(buffer.backingBuffer(), offset, buffer,
 						readCompletionHandler);
