@@ -34,6 +34,7 @@ import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Upgraded;
 import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedCharBuffer;
@@ -94,5 +95,10 @@ public class WsEchoServer extends Component {
 				CharBuffer.wrap(event.buffer().backingBuffer()));
 		out.position(out.limit());
 		channel.respond(new Output<>(out, true));
+	}
+	
+	@Handler
+	public void onClosed(Closed event, IOSubchannel channel) {
+		openChannels.remove(channel);
 	}
 }

@@ -46,6 +46,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;
 import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
+import org.jdrupes.httpcodec.protocols.websocket.WsCloseFrame;
 import org.jdrupes.httpcodec.protocols.websocket.WsMessageHeader;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.MediaType;
@@ -58,8 +59,10 @@ import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.Upgraded;
 import org.jgrapes.http.events.WebSocketAccepted;
+import org.jgrapes.http.events.WebSocketClosed;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.LinkedIOSubchannel;
@@ -106,6 +109,8 @@ public class HttpServer extends Component {
 				this, "onAccepted", networkChannel.defaultCriterion());
 		Handler.Evaluator.add(
 				this, "onInput", networkChannel.defaultCriterion());
+		Handler.Evaluator.add(
+				this, "onClosed", networkChannel.defaultCriterion());
 	}
 
 	/**
@@ -236,6 +241,16 @@ public class HttpServer extends Component {
 			return;
 		}
 		appChannel.handleNetInput(event);
+	}
+
+	@Handler(dynamic=true)
+	public void onClosed(Closed event, IOSubchannel netChannel) {
+		final AppChannel appChannel 
+			= (AppChannel) LinkedIOSubchannel.lookupLinked(netChannel);
+		if (appChannel == null || appChannel.converterComponent() != this) {
+			return;
+		}
+		appChannel.handleClosed(event);
 	}
 
 	/**
@@ -428,6 +443,14 @@ public class HttpServer extends Component {
 					// Feedback required, send it
 					respond(new Response(result.response().get()));
 					if (result.response().get().isFinal()) {
+						if (result.isHeaderCompleted()) {
+							engine.currentRequest()
+							.filter(WsCloseFrame.class::isInstance)
+							.ifPresent(closeFrame -> {
+								fire(new WebSocketClosed(
+										(WsCloseFrame)closeFrame, AppChannel.this));
+							});
+						}
 						break;
 					}
 					if (result.isResponseOnly()) {
@@ -608,6 +631,11 @@ public class HttpServer extends Component {
 				currentWsMessage = null;
 			}
 		}
+		
+		public void handleClosed(Closed event) {
+			fire(new Closed(), this);
+		}
+
 	}
 
 }
