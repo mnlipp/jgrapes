@@ -266,7 +266,7 @@ public class SslServer extends Component {
 		public void sendUpstream(Output<ManagedBuffer<ByteBuffer>> event)
 				throws SSLException, InterruptedException {
 			ByteBuffer output = event.buffer().backingBuffer().duplicate();
-			while (output.hasRemaining()) {
+			while (output.hasRemaining() && !sslEngine.isInboundDone()) {
 				ManagedByteBuffer out = byteBufferPool().acquire();
 				sslEngine.wrap(output, out.backingBuffer());
 				upstreamChannel().respond(
