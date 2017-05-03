@@ -56,6 +56,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.OptionsRequest;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
+import org.jgrapes.http.events.Upgraded;
 import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
@@ -359,11 +360,8 @@ public class HttpServer extends Component {
 
 	@Handler
 	public void onWebSocketAccepted(
-			WebSocketAccepted event, IOSubchannel appChannel) {
-		final HttpResponse response = event.baseResponse()
-				.setStatus(HttpStatus.SWITCHING_PROTOCOLS)
-				.setField(HttpField.UPGRADE, new StringList("websocket"));
-		appChannel.respond(new Response(response));
+			WebSocketAccepted event, AppChannel appChannel) {
+		appChannel.handleWebSocketAccepted(event);
 	}
 	
 	private void sendResponse(HttpResponse response, IOSubchannel appChannel,
@@ -391,6 +389,8 @@ public class HttpServer extends Component {
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> byteBufferPool;
 		private ManagedBufferQueue<ManagedCharBuffer, CharBuffer> charBufferPool;
 		private ManagedBufferQueue<?, ?> currentPool = null;
+		private boolean switchedToWebSocket = false;
+		private WsMessageHeader currentWsMessage = null;
 
 		public AppChannel(Accepted event, IOSubchannel netChannel) {
 			super(HttpServer.this, netChannel);
@@ -548,6 +548,16 @@ public class HttpServer extends Component {
 			
 		}
 		
+		public void handleWebSocketAccepted(WebSocketAccepted event) {
+			switchedToWebSocket = true;
+			final HttpResponse response = event.baseResponse()
+					.setStatus(HttpStatus.SWITCHING_PROTOCOLS)
+					.setField(HttpField.UPGRADE, new StringList("websocket"));
+			event.addCompletedEvent(
+					new Upgraded(event.resourceName(), "websocket"));
+			respond(new Response(response));
+		}
+
 		public void handleAppOutput(Output<ManagedBuffer<?>> event) 
 				throws InterruptedException {
 			Buffer eventData = event.buffer().backingBuffer();
@@ -561,6 +571,17 @@ public class HttpServer extends Component {
 			}
 			if (outBuffer == null) {
 				outBuffer = upstreamChannel().byteBufferPool().acquire();
+			}
+			if (switchedToWebSocket && currentWsMessage == null) {
+				// When switched to WebSockets, we only have Input and Output.
+				// Add header automatically.
+				@SuppressWarnings("unchecked")
+				ServerEngine<?,MessageHeader> wsEngine 
+					= (ServerEngine<?,MessageHeader>)engine;
+				currentWsMessage = new WsMessageHeader(
+						event.buffer().backingBuffer() instanceof CharBuffer,
+						true);
+				wsEngine.encode(currentWsMessage);
 			}
 			while (input.hasRemaining()) {
 				Codec.Result result = engine.encode(input,
@@ -583,7 +604,9 @@ public class HttpServer extends Component {
 					break;
 				}
 			}
-			
+			if (switchedToWebSocket && event.isEndOfRecord()) {
+				currentWsMessage = null;
+			}
 		}
 	}
 

@@ -19,19 +19,19 @@
 package org.jgrapes.http.demo.httpserver;
 
 import java.nio.CharBuffer;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
-import org.jdrupes.httpcodec.protocols.websocket.WsMessageHeader;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
-import org.jgrapes.http.events.Response;
+import org.jgrapes.http.events.Upgraded;
 import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Input;
@@ -43,7 +43,8 @@ import org.jgrapes.io.util.ManagedCharBuffer;
  */
 public class WsEchoServer extends Component {
 
-	private Set<IOSubchannel> openChannels = new HashSet<>();
+	private Set<IOSubchannel> openChannels 
+		= Collections.newSetFromMap(new WeakHashMap<IOSubchannel, Boolean>());
 	
 	/**
 	 * 
@@ -59,7 +60,8 @@ public class WsEchoServer extends Component {
 	}
 
 	@RequestHandler(patterns="/ws/echo")
-	public void onGet(GetRequest event, IOSubchannel channel) {
+	public void onGet(GetRequest event, IOSubchannel channel) 
+			throws InterruptedException {
 		final HttpRequest request = event.request();
 		if (!request.findField(
 				HttpField.UPGRADE, Converters.STRING_LIST)
@@ -69,8 +71,18 @@ public class WsEchoServer extends Component {
 		}
 		openChannels.add(channel);
 		channel.respond(new WebSocketAccepted(event.requestUri(),
-				event.request().response().get()));
+				event.request().response().get())).get();
 		event.stop();
+	}
+	
+	@Handler
+	public void onUpgraded(Upgraded event, IOSubchannel channel) {
+		if (!openChannels.contains(channel)) {
+			return;
+		}
+		ManagedCharBuffer greetings = new ManagedCharBuffer("/Greetings!");
+		greetings.position(greetings.limit());
+		channel.respond(new Output<>(greetings, true));
 	}
 	
 	@Handler
@@ -78,7 +90,6 @@ public class WsEchoServer extends Component {
 		if (!openChannels.contains(channel)) {
 			return;
 		}
-		channel.respond(new Response(new WsMessageHeader(true, true)));
 		ManagedCharBuffer out = new ManagedCharBuffer(
 				CharBuffer.wrap(event.buffer().backingBuffer()));
 		out.position(out.limit());
