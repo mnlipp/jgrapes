@@ -40,6 +40,7 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.core.internal.Common;
+import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.FileOpened;
 import org.jgrapes.io.events.IOError;
@@ -291,7 +292,7 @@ public class FileStorage extends Component {
 	}
 
 	@Handler
-	public void onClosed(Closed event, Channel channel)
+	public void onClose(Close event, Channel channel)
 			throws InterruptedException {
 		Writer writer = inputWriters.get(channel);
 		if (writer != null) {
@@ -432,6 +433,7 @@ public class FileStorage extends Component {
 					}
 					ioChannel.close();
 				}
+				channel.respond(new Closed());
 			} catch (ClosedChannelException e) {
 				// Can be ignored
 			} catch (IOException e) {
