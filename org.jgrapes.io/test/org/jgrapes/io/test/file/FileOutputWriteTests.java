@@ -53,8 +53,8 @@ public class FileOutputWriteTests {
 		        throws InterruptedException, IOException {
 			for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
 				try (ByteBufferOutputStream out = new ByteBufferOutputStream(
-				        channel, channel.responsePipeline())) {
-					for (int i = 1; i <= 100; i++) {
+				        channel, newEventPipeline())) {
+					for (int i = 1; i <= 1000; i++) {
 						out.write(
 						        new String(i + ": Hello World!\n").getBytes());
 					}
@@ -99,6 +99,7 @@ public class FileOutputWriteTests {
 		app.fire(new SaveOutput(filePath, StandardOpenOption.WRITE),
 		        IOSubchannel.defaultInstance(producer));
 		Components.awaitExhaustion();
+		assertEquals(StateChecker.State.CLOSED, sc.state);
 		try (BufferedReader br = new BufferedReader(
 		        new FileReader(filePath.toFile()))) {
 			int expect = 1;
@@ -111,9 +112,8 @@ public class FileOutputWriteTests {
 				assertEquals(expect, num);
 				expect += 1;
 			}
-			assertEquals(101, expect);
+			assertEquals(1001, expect);
 		}
-		assertEquals(StateChecker.State.CLOSED, sc.state);
 		Components.checkAssertions();
 	}
 }
