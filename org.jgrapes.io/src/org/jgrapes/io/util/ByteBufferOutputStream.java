@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
 
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Closed;
+import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 
@@ -163,7 +163,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	@Override
 	public void close() throws IOException {
 		flush(true);
-		eventPipeline.fire(new Closed(), channel);
+		eventPipeline.fire(new Close(), channel);
 	}
 
 }
