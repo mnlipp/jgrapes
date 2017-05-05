@@ -24,6 +24,8 @@ import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -130,8 +132,13 @@ public class FileStorage extends Component {
 			path = event.path();
 			offset = 0;
 			try {
-				ioChannel = AsynchronousFileChannel
-				        .open(event.path(), event.options());
+				try {
+					ioChannel = AsynchronousFileChannel
+							.open(event.path(), event.options());
+				} catch (UnsupportedOperationException e) {
+					runReaderThread(event);
+					return;
+				}
 			} catch (IOException e) {
 				channel.respond(new IOError(event, e));
 				return;
@@ -196,6 +203,42 @@ public class FileStorage extends Component {
 				channel.respond(new Closed());
 				unregisterAsGenerator();
 			}
+		}
+
+		/**
+		 * Stream file that doesn't support asynchronous I/O.
+		 * 
+		 * @param event
+		 * @throws IOException
+		 */
+		private void runReaderThread(StreamFile event) 
+				throws IOException {
+			ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer::new,
+					ByteBuffer.allocateDirect(bufferSize),
+					ByteBuffer.allocateDirect(bufferSize));
+			final SeekableByteChannel ioChannel 
+				= Files.newByteChannel(event.path(), event.options());
+			activeEventPipeline().executorService().submit(new Runnable() {
+				@Override
+				public void run() {
+					// Reading from file
+					try {
+						long size = ioChannel.size();
+						while (ioChannel.position() < size) {
+							ManagedByteBuffer buffer = ioBuffers.acquire();
+							ioChannel.read(buffer.backingBuffer());
+							channel.respond(new Output<>(buffer,
+									ioChannel.position() == size));
+						}
+						ioChannel.close();
+						channel.respond(new Closed());
+					} catch (ClosedChannelException e) {
+						// Can be ignored
+					} catch (InterruptedException | IOException e) {
+						channel.respond(new IOError(event, e));
+					}
+				}
+			});
 		}
 
 		/*
