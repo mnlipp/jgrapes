@@ -18,6 +18,8 @@
 
 package org.jgrapes.core.internal;
 
+import java.util.concurrent.ExecutorService;
+
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components.IdInfoProvider;
 import org.jgrapes.core.Event;
@@ -81,6 +83,14 @@ class CheckingPipelineFilter implements EventPipeline, IdInfoProvider {
 	@Override
 	public Object idObject() {
 		return sink;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.EventPipeline#executorService()
+	 */
+	@Override
+	public ExecutorService executorService() {
+		return sink.executorService();
 	}
 
 	/* (non-Javadoc)

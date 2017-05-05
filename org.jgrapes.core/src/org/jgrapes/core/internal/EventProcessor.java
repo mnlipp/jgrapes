@@ -31,7 +31,7 @@ import org.jgrapes.core.EventPipeline;
  */
 public class EventProcessor implements InternalEventPipeline, Runnable {
 
-	private static ExecutorService defaultExecutorService 
+	static ExecutorService defaultExecutorService 
 		= Executors.newCachedThreadPool();
 	
 	protected static ThreadLocal<EventBase<?>> 
@@ -112,6 +112,14 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 			currentlyHandling.set(null);;
 			FeedBackPipelineFilter.setAssociatedPipeline(null);
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()
+	 */
+	@Override
+	public ExecutorService executorService() {
+		return executorService;
 	}
 
 	/* (non-Javadoc)

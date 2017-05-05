@@ -18,6 +18,8 @@
 
 package org.jgrapes.core.internal;
 
+import java.util.concurrent.ExecutorService;
+
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.events.Start;
@@ -78,6 +80,14 @@ public class EventBuffer implements InternalEventPipeline {
 		EventQueue old = buffered;
 		buffered = new EventQueue();
 		return old;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()
+	 */
+	@Override
+	public ExecutorService executorService() {
+		return EventProcessor.defaultExecutorService;
 	}
 
 	/* (non-Javadoc)

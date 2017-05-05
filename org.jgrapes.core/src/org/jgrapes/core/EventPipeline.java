@@ -18,16 +18,18 @@
 
 package org.jgrapes.core;
 
+import java.util.concurrent.ExecutorService;
+
 import org.jgrapes.core.Components.IdInfoProvider;
 
 /**
  * An interface that describes a queue of events that are sent to the components
  * of the associated tree. Any events fired by the components while handling
  * an event from the pipeline are added at the end of the pipeline.
- * <P>
- * An event pipeline is run by a single thread from a thread pool. Adding
- * several events to the same pipeline therefore ensures that they are executed
- * in sequence.
+ * 
+ * An event pipeline is run by a single thread from aan executor service. 
+ * Adding several events to the same pipeline therefore ensures that they 
+ * are executed in sequence.
  */
 public interface EventPipeline extends IdInfoProvider {
 
@@ -54,5 +56,16 @@ public interface EventPipeline extends IdInfoProvider {
 	@Override
 	default Class<?> idScope() {
 		return EventPipeline.class;
-	}	
+	}
+	
+	/**
+	 * Returns the executor service used by this event pipeline to
+	 * obtain its thread. If a component needs to create a thread for its
+	 * own use, it should obtain it from the component's event pipeline's
+	 * executor service in order to conform with standard resource
+	 * management.
+	 * 
+	 * @return the executor service
+	 */
+	ExecutorService executorService();
 }

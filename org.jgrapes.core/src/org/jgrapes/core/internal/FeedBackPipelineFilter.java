@@ -18,6 +18,8 @@
 
 package org.jgrapes.core.internal;
 
+import java.util.concurrent.ExecutorService;
+
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 
@@ -81,6 +83,18 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 		} else {
 			fallback.merge(other);
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()
+	 */
+	@Override
+	public ExecutorService executorService() {
+		InternalEventPipeline pipeline = currentPipeline.get();
+		if (pipeline != null) {
+			return pipeline.executorService();
+		}
+		return fallback.executorService();
 	}
 
 	/* (non-Javadoc)
