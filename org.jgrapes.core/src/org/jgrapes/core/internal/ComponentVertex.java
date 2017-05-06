@@ -128,13 +128,15 @@ public abstract class ComponentVertex implements Manager {
 	 * Return the component node for a given component.
 	 * 
 	 * @param component the component
+	 * @param componentChannel the component's channel
 	 * @return the node representing the component in the tree
 	 */
-	public static ComponentVertex componentVertex(ComponentType component) {
+	public static ComponentVertex componentVertex(
+			ComponentType component, Channel componentChannel) {
 		if (component instanceof ComponentVertex) {
 			return (ComponentVertex)component;
 		}
-		return ComponentProxy.getComponentProxy(component);
+		return ComponentProxy.getComponentProxy(component, componentChannel);
 	}
 
 	/**
@@ -209,7 +211,7 @@ public abstract class ComponentVertex implements Manager {
 	 */
 	@Override
 	public synchronized <T extends ComponentType> T attach(T child) {
-		ComponentVertex childNode = componentVertex(child);
+		ComponentVertex childNode = componentVertex(child, null);
 		synchronized (childNode) {
 			synchronized (tree()) {
 				if (childNode.tree == null) { 

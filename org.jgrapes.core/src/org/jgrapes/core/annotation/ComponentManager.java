@@ -31,10 +31,12 @@ import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler.NoChannel;
 
 /**
- * This annotation marks a component's attribute of type 
- * {@link Manager} as a slot for its manager. A value is automatically 
- * assigned to such an attribute when a component is attached to the 
- * component tree or by {@link org.jgrapes.core.Components#manager(ComponentType)}.
+ * This annotation marks a component type's attribute of type 
+ * {@link Manager} as a slot for the component type's manager. 
+ * A value is automatically assigned to such an attribute 
+ * when the component type is attached to the component tree or by 
+ * {@link org.jgrapes.core.Components#manager(ComponentType)}
+ * (or {@link org.jgrapes.core.Components#manager(ComponentType, Channel)}).
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
@@ -42,16 +44,17 @@ import org.jgrapes.core.annotation.Handler.NoChannel;
 public @interface ComponentManager {
 	
 	/**
-	 * Specifies the channel to be associated with the component
-	 * as a {@link ClassChannel}'s key.
+	 * Specifies the channel to be associated with the component type
+	 * instance as a {@link ClassChannel}'s key.
 	 * 
 	 * @return the channel
 	 */
 	Class<? extends Channel> channel() default NoChannel.class;
 
 	/**
-	 * Specifies the channel to be associated with the component
-	 * as a {@link org.jgrapes.core.NamedChannel}'s key (a <code>String</code>).
+	 * Specifies the channel to be associated with the component type
+	 * instance as a {@link org.jgrapes.core.NamedChannel}'s 
+	 * key (a <code>String</code>).
 	 * 
 	 * @return the channel
 	 */

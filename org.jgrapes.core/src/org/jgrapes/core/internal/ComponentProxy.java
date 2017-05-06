@@ -22,6 +22,7 @@ import java.lang.reflect.Field;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.Manager;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.annotation.Handler;
@@ -31,7 +32,7 @@ import org.jgrapes.core.annotation.Handler;
  * object implementing the Component interface (instead of being
  * its base class).
  */
-public class ComponentProxy extends ComponentVertex {
+public class ComponentProxy extends ComponentVertex implements Channel {
 
 	/** The reference to the actual component. */
 	private ComponentType component = null;
@@ -42,7 +43,8 @@ public class ComponentProxy extends ComponentVertex {
 		try {
 			while (true) {
 				for (Field field: clazz.getDeclaredFields()) {
-					if (field.getAnnotation(ComponentManager.class) != null) {
+					if (Manager.class.isAssignableFrom(field.getType())
+							&& field.getAnnotation(ComponentManager.class) != null) {
 						return field;
 					}
 				}
@@ -73,7 +75,7 @@ public class ComponentProxy extends ComponentVertex {
 		if (!cma.namedChannel().equals("")) {
 			return new NamedChannel(cma.namedChannel());
 		}
-		return Channel.BROADCAST;
+		return Channel.SELF;
 	}
 	
 	/**
@@ -81,13 +83,21 @@ public class ComponentProxy extends ComponentVertex {
 	 * the specified field which must be of type {@link Manager}.
 	 * 
 	 * @param field the field that gets the proxy assigned
+	 * @param componentChannel the componen't channel
 	 * @param component the component
 	 */
-	private ComponentProxy(Field field, ComponentType component) {
+	private ComponentProxy(
+			Field field, ComponentType component, Channel componentChannel) {
 		this.component = component;
 		try {
 			field.set(component, this);
-			componentChannel = getComponentChannel(field);
+			if (componentChannel == null) {
+				componentChannel = getComponentChannel(field);
+			}
+			if (componentChannel.equals(Channel.SELF)) {
+				componentChannel = this;
+			}
+			this.componentChannel = componentChannel;
 			initComponentsHandlers();
 		} catch (SecurityException | IllegalAccessException e) {
 			throw (RuntimeException)(new IllegalArgumentException(
@@ -100,9 +110,11 @@ public class ComponentProxy extends ComponentVertex {
 	 * by a proxy in the tree.
 	 * 
 	 * @param component the component
+	 * @param componentChannel the component's channel
 	 * @return the node representing the component in the tree
 	 */
-	static ComponentVertex getComponentProxy(ComponentType component) {
+	static ComponentVertex getComponentProxy(
+			ComponentType component, Channel componentChannel) {
 		ComponentProxy componentProxy = null;
 		try {
 			Field field = getManagerField(component.getClass());
@@ -111,13 +123,15 @@ public class ComponentProxy extends ComponentVertex {
 					field.setAccessible(true);
 					componentProxy = (ComponentProxy)field.get(component);
 					if (componentProxy == null) {
-						componentProxy = new ComponentProxy(field, component);
+						componentProxy = new ComponentProxy(
+								field, component, componentChannel);
 					}
 					field.setAccessible(false);
 				} else {
 					componentProxy = (ComponentProxy)field.get(component);
 					if (componentProxy == null) {
-						componentProxy = new ComponentProxy(field, component);
+						componentProxy = new ComponentProxy(
+								field, component, componentChannel);
 					}
 				}
 			}
@@ -138,5 +152,25 @@ public class ComponentProxy extends ComponentVertex {
 	@Override
 	public Channel channel() {
 		return componentChannel;
+	}
+
+	/**
+	 * Return the object itself as value.
+	 */
+	@Override
+	public Object defaultCriterion() {
+		return this;
+	}
+
+	/**
+	 * Matches the object itself (using identity comparison) or the
+	 * {@link Channel} class.
+	 * 
+	 * @see Channel#isEligibleFor(Object)
+	 */
+	@Override
+	public boolean isEligibleFor(Object value) {
+		return value.equals(Channel.class) 
+				|| value == defaultCriterion();
 	}
 }

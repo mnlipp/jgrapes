@@ -29,8 +29,8 @@ import org.jgrapes.core.internal.ComponentVertex;
  * component management methods provided by this interface.
  * <P>
  * This class also implements the {@code Channel} interface in such a way
- * that each instance of this class can be used as an independant
- * communication bus.
+ * that each instance of this class can be used as an independent
+ * channel.
  * 
  * @see ComponentType
  */

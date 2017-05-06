@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
 import org.jgrapes.core.internal.Common;
@@ -43,7 +44,7 @@ public class Components {
 	 * 
 	 * For components that implement {@link ComponentType} but don't inherit from 
 	 * {@link org.jgrapes.core.Component} the method returns the value of 
-	 * the attribute annotated as manager slot. If the attribute is still
+	 * the attribute annotated as manager slot. If this attribute is still
 	 * empty, this method makes the component the root
 	 * of a new tree and returns its manager.
 	 * 
@@ -51,7 +52,29 @@ public class Components {
 	 * @return the component (with its manager attribute set)
 	 */
 	public static Manager manager(ComponentType component) {
-		return ComponentVertex.componentVertex(component);
+		return ComponentVertex.componentVertex(component, null);
+	}
+
+	/**
+	 * Returns a component's manager like {@link #manager(ComponentType)}.
+	 * If the manager slot attribute is empty, the component is initialized
+	 * with its component channel set to the given parameter. Invoking
+	 * this method overrides any channel set in the
+	 * {@link ComponentManager} annotation.
+	 * 
+	 * This method is usually invoked by the constructor of a class
+	 * that implements {@link ComponentType}.
+	 * 
+	 * @param component the component
+	 * @param componentChannel the channel that the component's 
+	 * handlers listen on by default and that 
+	 * {@link Manager#fire(Event, Channel...)} sends the event to 
+	 * @return the component (with its manager attribute set)
+	 * @see Component#Component(Channel)
+	 */
+	public static Manager manager(
+			ComponentType component, Channel componentChannel) {
+		return ComponentVertex.componentVertex(component, componentChannel);
 	}
 
 	/**

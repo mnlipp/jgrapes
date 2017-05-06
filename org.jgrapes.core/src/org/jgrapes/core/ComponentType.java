@@ -24,18 +24,27 @@ import org.jgrapes.core.annotation.ComponentManager;
  * This interface marks a class as a component. Implementing this interface is 
  * an alternative to deriving from {@link Component} (usually because 
  * there is some other preferential inheritance relationship). 
- * Components that implement this interface but don't inherit from
- * {@link Component} aren't inserted as vertices into the component tree;
+ * Components that implement this interface (but don't inherit from
+ * {@link Component}) aren't inserted as vertices into the component tree;
  * rather, they are represented in the tree by a proxy. 
- * <P>
+ * 
  * Classes that implement {@code ComponentType} aren't required to
  * implement specific methods. They must, however, declare a field
  * for a component manager. This field must be of type 
  * {@link Manager} and annotated as {@link ComponentManager}.
- * The implementation of the attached component can use the value in this 
+ * The implementation of the component type can use the value in this 
  * field to get access to the component hierarchy. The field is initialized
- * when the component is added to the component hierarchy or when
- * calling {@link Components#manager(ComponentType)}.
+ * when the component type is added to the component hierarchy or when
+ * calling {@link Components#manager(ComponentType)} or
+ * {@link Components#manager(ComponentType, Channel)}.
+ * 
+ * The channel associated with an instance of {@link ComponentType}
+ * can be specified as attribute of the {@link ComponentManager}
+ * annotation. If no channel is specified, the proxy is used as
+ * channel (see {@link Channel#SELF}). The default can be overridden
+ * on a per instance basis by calling 
+ * {@link Components#manager(ComponentType, Channel)} before the component
+ * is added to the tree.
  */
 public interface ComponentType {
 	
