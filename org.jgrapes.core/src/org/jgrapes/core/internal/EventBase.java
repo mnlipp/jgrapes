@@ -386,15 +386,50 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 
 	/**
 	 * Retrieves the associated object following the association 
-	 * with the given "name".
+	 * with the given "name". This general version of the method
+	 * supports the retrieval of values of arbitrary types
+	 * associated by any "name" types. 
+	 * 
+	 * @param by the "name"
+	 * @param type the tape of the value to be retrieved
+	 * @param <V> the type of the value to be retrieved
+	 * @return the associate, if any
+	 */
+	public <V> Optional<V> associated(Object by, Class<V> type) {
+		if (contextData == null) {
+			return Optional.empty();
+		}
+		return Optional.ofNullable(type.cast(contextData.get(by)));
+	}
+	
+	/**
+	 * Retrieves the associated object following the association 
+	 * with the given name. This convenience methods simplifies the
+	 * retrieval of String values associated by a (real) name.
 	 * 
 	 * @param by the name
 	 * @return the associate, if any
 	 */
-	public Optional<? extends Object> associated(Object by) {
+	public Optional<String> associated(String by) {
 		if (contextData == null) {
 			return Optional.empty();
 		}
-		return Optional.ofNullable(contextData.get(by));
+		return Optional.ofNullable((String)contextData.get(by));
+	}
+	
+	/**
+	 * Retrieves the associated object following the association 
+	 * with the given class. The associated object must be an instance
+	 * of the given class.
+	 * 
+	 * @param <V> the type of the value
+	 * @param by the name
+	 * @return the associate, if any
+	 */
+	public <V> Optional<V> associated(Class<V> by) {
+		if (contextData == null) {
+			return Optional.empty();
+		}
+		return Optional.ofNullable(by.cast(contextData.get(by)));
 	}
 }

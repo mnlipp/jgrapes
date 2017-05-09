@@ -18,8 +18,6 @@
 
 package org.jgrapes.core.test.core;
 
-import java.util.Optional;
-
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
@@ -45,10 +43,9 @@ public class AssociatedTest {
 			evt.setAssociated(this, new String("Hello!"));
 		}
 		
-		@SuppressWarnings("unchecked")
 		@Handler(events=Started.class)
 		public void onStarted(Started evt) {
-			result = ((Optional<String>)evt.event().associated(this)).get();
+			result = evt.event().associated(this, String.class).get();
 		}
 	}
 	
