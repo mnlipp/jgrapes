@@ -1,4 +1,5 @@
-Bundle-Name: org.jgrapes.http
+Bundle-Name: JGrapes HTTP
+Bundle-SymbolicName: org.jgrapes.http
 Bundle-Version: 0.9.0.${tstamp}
 Bundle-Copyright: Michael N. Lipp (c) 2016
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt

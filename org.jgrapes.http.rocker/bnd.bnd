@@ -1,4 +1,5 @@
-Bundle-Name: org.jgrapes.http.rocker
+Bundle-Name: JGrapes HTTP Rocker Extension
+Bundle-SymbolicName: org.jgrapes.http.rocker
 Bundle-Version: 0.9.0.${tstamp}
 Bundle-Copyright: Michael N. Lipp (c) 2017
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
