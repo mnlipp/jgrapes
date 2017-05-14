@@ -8,6 +8,14 @@ Require-Bundle: org.jgrapes.core, org.jgrapes.io, org.jdrupes.httpcodec
 base_version = ${versionmask;===;${Bundle-Version}}
 api_version = 0.1.0.${tstamp}
 
--exportcontents: org.jgrapes.*
 -sources: true
 -runee: JavaSE-1.8
+Export-Package: \
+	org.jgrapes.http,\
+	org.jgrapes.http.annotation,\
+	org.jgrapes.http.events
+	
+-dsannotations: 
+
+testbin=bin
+	

@@ -8,6 +8,14 @@ Require-Bundle: org.jgrapes.core, org.jgrapes.io, org.jdrupes.httpcodec, org.jgr
 base_version = ${versionmask;===;${Bundle-Version}}
 api_version = 0.1.0.${tstamp}
 
--exportcontents: org.jgrapes.*
 -sources: true
 -runee: JavaSE-1.8
+Export-Package: \
+	org.jgrapes.http.rocker,\
+	org.jgrapes.http.rocker.events
+	
+-dsannotations: 
+
+testbin=bin
+
+Bundle-ClassPath: rocker-runtime-0.20.0.jar

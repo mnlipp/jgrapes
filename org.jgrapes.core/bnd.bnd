@@ -7,6 +7,15 @@ Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 base_version = ${versionmask;===;${Bundle-Version}}
 api_version = 0.1.0.${tstamp}
 
--exportcontents: org.jgrapes.*
+Export-Package: \
+	org.jgrapes.core,\
+	org.jgrapes.core.annotation,\
+	org.jgrapes.core.events,\
+	org.jgrapes.core.internal
+
 -sources: true
 -runee: JavaSE-1.8
+
+-dsannotations: 
+
+testbin=bin
