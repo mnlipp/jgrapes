@@ -76,7 +76,7 @@ public class ServerTest {
 			// Create TLS "converter"
 			KeyStore serverStore = KeyStore.getInstance("JKS");
 			try (FileInputStream kf 
-					= new FileInputStream("resources/localhost.jks")) {
+					= new FileInputStream("test-resources/localhost.jks")) {
 				serverStore.load(kf, "nopass".toCharArray());
 			}
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance(
@@ -103,7 +103,7 @@ public class ServerTest {
 			// Build application layer
 			attach(new FileStorage(channel(), 65536));
 			attach(new StaticContentDispatcher(channel(),
-					"/**", Paths.get("resources/static-content")));
+					"/**", Paths.get("test-resources/static-content")));
 			
 			readyMonitor = new WaitForTests(this, Ready.class, 
 					securedNetwork.channel().defaultCriterion());

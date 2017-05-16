@@ -7,7 +7,7 @@ dependencies {
     sourceSets {
         test {
             resources {
-                srcDir 'test'
+                srcDir 'test-resources'
             }
         }
     }
