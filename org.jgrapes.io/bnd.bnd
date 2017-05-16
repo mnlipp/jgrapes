@@ -20,4 +20,8 @@ Export-Package: \
 -dsannotations: 
 
 testbin=bin
-	
+
+-fixupmessages: \
+    "Found source folder 'demo' that is not on bnd's source path", \
+    "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \
+    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable."
