@@ -20,5 +20,5 @@ Export-Package: \
 testbin=bin
 
 -fixupmessages: \
-    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable."
-Private-Package: org.jgrapes.core.internal
+    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable.",\
+    "Export org.jgrapes.core,  has 1,  private references [org.jgrapes.core.internal]"
