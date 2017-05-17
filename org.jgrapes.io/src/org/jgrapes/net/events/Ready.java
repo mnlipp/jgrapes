@@ -20,8 +20,8 @@ package org.jgrapes.net.events;
 
 import java.net.SocketAddress;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.events.Opened;
 
 /**
@@ -62,7 +62,7 @@ public class Ready extends Opened {
 		builder.append(", ");
 		if (channels != null) {
 			builder.append("channels=");
-			builder.append(Common.channelsToString(channels));
+			builder.append(Channel.toString(channels));
 		}
 		builder.append("]");
 		return builder.toString();

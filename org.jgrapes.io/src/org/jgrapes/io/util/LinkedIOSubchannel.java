@@ -25,8 +25,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
 
@@ -161,7 +161,7 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 		builder.append(" (");
 		if (upstreamChannel != null) {
 			builder.append("―>");
-			builder.append(Common.channelToString(upstreamChannel.get()));
+			builder.append(Channel.toString(upstreamChannel.get()));
 		}
 		builder.append(")");
 		return builder.toString();

@@ -18,9 +18,9 @@
 
 package org.jgrapes.io.events;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.ManagedCharBuffer;
@@ -129,7 +129,7 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 		builder.append(" [");
 		if (channels != null) {
 			builder.append("channels=");
-			builder.append(Common.channelsToString(channels));
+			builder.append(Channel.toString(channels));
 		}
 		builder.append(",eor=");
 		builder.append(eor);

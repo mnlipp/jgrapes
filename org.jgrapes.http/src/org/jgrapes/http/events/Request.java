@@ -27,7 +27,6 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletedEvent;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.http.ResourcePattern;
 
 /**
@@ -189,7 +188,7 @@ public class Request extends Event<Void> {
 		builder.append("\"");
 		if (channels != null) {
 			builder.append(", channels=");
-			builder.append(Common.channelsToString(channels));
+			builder.append(Channel.toString(channels));
 		}
 		builder.append("]");
 		return builder.toString();

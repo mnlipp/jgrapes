@@ -30,7 +30,6 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.util.ManagedBufferQueue;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.ManagedCharBuffer;
@@ -131,7 +130,7 @@ public interface IOSubchannel extends Channel {
 	 */
 	static String toString(IOSubchannel subchannel) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Common.channelToString(subchannel.mainChannel()));
+		builder.append(Channel.toString(subchannel.mainChannel()));
 		builder.append("{");
 		builder.append(Components.objectName(subchannel));
 		builder.append("}");

@@ -21,11 +21,7 @@ package org.jgrapes.core.internal;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jgrapes.core.Channel;
-import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.ComponentType;
-import org.jgrapes.core.Components;
-import org.jgrapes.core.NamedChannel;
 
 /**
  * Common utility methods.
@@ -61,48 +57,6 @@ public class Common {
 		} else {
 			return clazz.getSimpleName();
 		}
-	}
-
-	public static String channelsToString(Channel[] channels) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("[");
-		boolean first = true;
-		for (Channel c: channels) {
-			if (!first) {
-				builder.append(", ");
-			}
-			builder.append(channelToString(c));
-			first = false;
-		}
-		builder.append("]");
-		return builder.toString();
-	}
-
-	public static String channelToString(Channel channel) {
-		StringBuilder builder = new StringBuilder();
-		if ((channel instanceof ClassChannel)
-		        || (channel instanceof NamedChannel)) {
-			builder.append(channelKeyToString(channel.defaultCriterion()));
-		} else if (channel == channel.defaultCriterion()) {
-			builder.append(Components.objectName(channel));
-		} else {
-			builder.append(channel.toString());
-		}
-		return builder.toString();
-	}
-	
-	public static String channelKeyToString(Object channelKey) {
-		StringBuilder builder = new StringBuilder();
-		if (channelKey instanceof Class) {
-			if (channelKey == Channel.class) {
-				builder.append("BROADCAST");
-			} else {
-				builder.append(Common.classToString((Class<?>) channelKey));
-			}
-		} else {
-			builder.append(channelKey);
-		}
-		return builder.toString();
 	}
 	
 }

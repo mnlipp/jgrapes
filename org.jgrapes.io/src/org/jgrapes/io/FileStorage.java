@@ -41,7 +41,6 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.FileOpened;
@@ -252,7 +251,7 @@ public class FileStorage extends Component {
 			builder.append("FileStreamer [");
 			if (channel != null) {
 				builder.append("channel=");
-				builder.append(Common.channelToString(channel));
+				builder.append(Channel.toString(channel));
 				builder.append(", ");
 			}
 			if (path != null) {
@@ -497,7 +496,7 @@ public class FileStorage extends Component {
 			builder.append("FileConnection [");
 			if (channel != null) {
 				builder.append("channel=");
-				builder.append(Common.channelToString(channel));
+				builder.append(Channel.toString(channel));
 				builder.append(", ");
 			}
 			if (path != null) {

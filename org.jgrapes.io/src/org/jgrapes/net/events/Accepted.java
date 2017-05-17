@@ -24,8 +24,8 @@ import java.util.List;
 
 import javax.net.ssl.SNIServerName;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.io.events.Opened;
 
 /**
@@ -98,7 +98,7 @@ public class Accepted extends Opened {
 		builder.append(", ");
 		if (channels != null) {
 			builder.append("channels=");
-			builder.append(Common.channelsToString(channels));
+			builder.append(Channel.toString(channels));
 		}
 		builder.append(", secure=");
 		builder.append(secure);

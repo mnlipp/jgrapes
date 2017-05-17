@@ -54,7 +54,7 @@ public abstract class CompletedEvent<T extends Event<?>>
 		builder.append(" [");
 		if (channels != null) {
 			builder.append("channels=");
-			builder.append(Common.channelsToString(channels));
+			builder.append(Channel.toString(channels));
 		}
 		builder.append("]");
 		return builder.toString();

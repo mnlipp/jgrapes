@@ -18,10 +18,10 @@
 
 package org.jgrapes.core.events;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
-import org.jgrapes.core.internal.Common;
 
 /**
  * Signals the addition of a component (or subtree) to the component tree.
@@ -83,7 +83,7 @@ public class Attached extends Event<Void> {
 		builder.append(", ");
 		if (channels != null) {
 			builder.append("channels=");
-			builder.append(Common.channelsToString(channels));
+			builder.append(Channel.toString(channels));
 		}
 		builder.append("]");
 		return builder.toString();

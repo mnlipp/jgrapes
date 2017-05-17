@@ -10,8 +10,7 @@ api_version = 0.1.0.${tstamp}
 Export-Package: \
 	org.jgrapes.core,\
 	org.jgrapes.core.annotation,\
-	org.jgrapes.core.events,\
-	org.jgrapes.core.internal
+	org.jgrapes.core.events
 
 -sources: true
 -runee: JavaSE-1.8
@@ -22,3 +21,4 @@ testbin=bin
 
 -fixupmessages: \
     "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable."
+Private-Package: org.jgrapes.core.internal

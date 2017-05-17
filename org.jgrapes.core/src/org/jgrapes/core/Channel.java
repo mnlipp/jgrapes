@@ -18,6 +18,8 @@
 
 package org.jgrapes.core;
 
+import org.jgrapes.core.internal.Common;
+
 /**
  * Classes that implements this interface can be used as a communication bus 
  * for sending events between components.
@@ -80,5 +82,65 @@ public interface Channel extends Eligible {
 			return "BROADCAST";
 		}
 	};
+
+	/**
+	 * Returns a textual representation of a channel's criterion.
+	 * 
+	 * @param criterion the criterion
+	 * @return the representation
+	 */
+	static String criterionToString(Object criterion) {
+		StringBuilder builder = new StringBuilder();
+		if (criterion instanceof Class) {
+			if (criterion == Channel.class) {
+				builder.append("BROADCAST");
+			} else {
+				builder.append(Common.classToString((Class<?>) criterion));
+			}
+		} else {
+			builder.append(criterion);
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * Returns a textual representation of a channel.
+	 * 
+	 * @param channel the channel
+	 * @return the representation
+	 */
+	static String toString(Channel channel) {
+		StringBuilder builder = new StringBuilder();
+		if ((channel instanceof ClassChannel)
+		        || (channel instanceof NamedChannel)) {
+			builder.append(criterionToString(channel.defaultCriterion()));
+		} else if (channel == channel.defaultCriterion()) {
+			builder.append(Components.objectName(channel));
+		} else {
+			builder.append(channel.toString());
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * Returns a textual representation of an array of channels.
+	 * 
+	 * @param channels the channels
+	 * @return the representation
+	 */
+	static String toString(Channel[] channels) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("[");
+		boolean first = true;
+		for (Channel c: channels) {
+			if (!first) {
+				builder.append(", ");
+			}
+			builder.append(Channel.toString(c));
+			first = false;
+		}
+		builder.append("]");
+		return builder.toString();
+	}
 
 }
