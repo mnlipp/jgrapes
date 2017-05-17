@@ -18,8 +18,6 @@
 
 package org.jgrapes.core;
 
-import org.jgrapes.core.internal.Common;
-
 /**
  * This class is the root base class for channels that use their class (type)
  * as value for matching (see {@link Eligible}).
@@ -89,10 +87,10 @@ public class ClassChannel implements Channel {
 	 */
 	@Override
 	public String toString() {
-		return Common.classToString(getClass())
+		return Components.classToString(getClass())
 				+ " [criterion=" 
 				+ ((defaultCriterion() instanceof Class)
-					?  Common.classToString((Class<?>)defaultCriterion())
+					?  Components.classToString((Class<?>)defaultCriterion())
 					: defaultCriterion())
 				+ "]";
 	}

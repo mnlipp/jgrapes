@@ -18,8 +18,6 @@
 
 package org.jgrapes.core;
 
-import org.jgrapes.core.internal.Common;
-
 /**
  * Classes that implements this interface can be used as a communication bus 
  * for sending events between components.
@@ -95,7 +93,7 @@ public interface Channel extends Eligible {
 			if (criterion == Channel.class) {
 				builder.append("BROADCAST");
 			} else {
-				builder.append(Common.classToString((Class<?>) criterion));
+				builder.append(Components.classToString((Class<?>) criterion));
 			}
 		} else {
 			builder.append(criterion);

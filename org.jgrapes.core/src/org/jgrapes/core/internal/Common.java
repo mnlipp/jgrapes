@@ -18,7 +18,6 @@
 
 package org.jgrapes.core.internal;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jgrapes.core.ComponentType;
@@ -49,14 +48,6 @@ public class Common {
 	
 	public static final Logger classNames 
 		= Logger.getLogger(ComponentType.class.getPackage().getName() 
-			+ ".classNames");	
-
-	public static String classToString(Class<?> clazz) {
-		if (classNames.isLoggable(Level.FINER)) {
-			return clazz.getName();
-		} else {
-			return clazz.getSimpleName();
-		}
-	}
+			+ ".classNames");
 	
 }

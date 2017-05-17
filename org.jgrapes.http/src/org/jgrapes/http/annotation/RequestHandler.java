@@ -42,7 +42,6 @@ import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler.NoChannel;
 import org.jgrapes.core.annotation.Handler.NoEvent;
 import org.jgrapes.core.annotation.HandlerDefinition;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.events.Request;
 
@@ -288,7 +287,7 @@ public @interface RequestHandler {
 					builder.append("handledEventTypes=");
 					builder.append(handledEventTypes.stream().map(v -> {
 						if (v instanceof Class) {
-							return Common.classToString((Class<?>) v);
+							return Components.classToString((Class<?>) v);
 						}
 						return v.toString();
 					}).collect(Collectors.toSet()));

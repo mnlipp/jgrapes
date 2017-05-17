@@ -42,7 +42,6 @@ import org.jgrapes.core.HandlerScope;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.Self;
-import org.jgrapes.core.internal.Common;
 
 /**
  * This is the basic, general purpose handler annotation provided as part of the
@@ -430,7 +429,7 @@ public @interface Handler {
 					builder.append("handledEvents=");
 					builder.append(handledEvents.stream().map(v -> {
 						if (v instanceof Class) {
-							return Common.classToString((Class<?>) v);
+							return Components.classToString((Class<?>) v);
 						}
 						return v.toString();
 					}).collect(Collectors.toSet()));

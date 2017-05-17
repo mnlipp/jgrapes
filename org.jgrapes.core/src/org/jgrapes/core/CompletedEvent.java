@@ -18,8 +18,6 @@
 
 package org.jgrapes.core;
 
-import org.jgrapes.core.internal.Common;
-
 /**
  * A base class for completion events. The completed event is the
  * result of the completion event. Use {@link #event()} to access
@@ -47,7 +45,7 @@ public abstract class CompletedEvent<T extends Event<?>>
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Common.classToString(getClass()));
+		builder.append(Components.classToString(getClass()));
 		builder.append("(");
 		builder.append(Components.objectName(result()));
 		builder.append(")");

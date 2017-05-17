@@ -21,6 +21,7 @@ package org.jgrapes.core;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.events.Start;
@@ -143,7 +144,7 @@ public class Components {
 	 */
 	public static String objectName(Object object) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Common.classToString(object.getClass()));
+		builder.append(Components.classToString(object.getClass()));
 		builder.append('#');
 		builder.append(objectId(object));
 		return builder.toString();
@@ -165,6 +166,21 @@ public class Components {
 		}
 	}
 
+	/**
+	 * Returns the full name or simple name of the class depending
+	 * on the log level.
+	 * 
+	 * @param clazz the class
+	 * @return the name
+	 */
+	public static String classToString(Class<?> clazz) {
+		if (Common.classNames.isLoggable(Level.FINER)) {
+			return clazz.getName();
+		} else {
+			return clazz.getSimpleName();
+		}
+	}
+	
 	/**
 	 * Returns an id of the object that is unique within a specific scope. Ids
 	 * are generated and looked up in the scope of the object's class unless the
@@ -206,4 +222,5 @@ public class Components {
 			return this;
 		}
 	}
+
 }
