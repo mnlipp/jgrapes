@@ -19,8 +19,19 @@
 package org.jgrapes.http;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.time.Instant;
@@ -30,6 +41,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import javax.activation.MimetypesFileTypeMap;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
@@ -44,47 +57,71 @@ import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.events.Closed;
+import org.jgrapes.io.events.IOError;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.StreamFile;
+import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
+ * A dispatcher for requests for static content, usually files.
  */
 public class StaticContentDispatcher extends Component {
 
+	private static MimetypesFileTypeMap typesMap = new MimetypesFileTypeMap();
+	
 	private ResourcePattern resourcePattern;
-	private Path contentDirectory;
+	private URI contentRoot = null;
+	private Path contentDirectory = null;
 	private List<ValidityInfo> validityInfos = new ArrayList<>();
 	
 	/**
-	 * @param resourcePattern the pattern that requests must match with to 
-	 * be handled by this component 
-	 * (see {@link ResourcePattern#matches(String, java.net.URI)})
-	 * @param contentDirectory the directory with content to serve 
-	 * @see Component#Component()
-	 */
-	public StaticContentDispatcher(String resourcePattern, 
-			Path contentDirectory) {
-		this(Channel.SELF, resourcePattern, contentDirectory);
-	}
-
-	/**
-	 * @param componentChannel
-	 *            this component's channel
+	 * Creates new dispatcher that tries to fulfill requests matching 
+	 * the given resource pattern from the given content root.
+	 * 
+	 * An attempt is made to convert the content root to a {@link Path}
+	 * in a {@link FileSystem}. If this fails, the content root is
+	 * used as a URL against which requests are resolved and data
+	 * is obtained by open an input stream from the resulting URL.
+	 * In the latter case information such as directory listings and
+	 * modification times aren't available. 
+	 * 
+	 * @param componentChannel this component's channel
 	 * @param resourcePattern the pattern that requests must match 
 	 * in order to be handled by this component 
-	 * (see {@link ResourcePattern#matches(String, java.net.URI)})
-	 * @param contentDirectory the directory with content to serve 
+	 * (see {@link ResourcePattern})
+	 * @param contentRoot the location with content to serve 
 	 * @see Component#Component(Channel)
 	 */
 	public StaticContentDispatcher(Channel componentChannel, 
-			String resourcePattern, Path contentDirectory) {
+			String resourcePattern, URI contentRoot) {
 		super(componentChannel);
 		try {
 			this.resourcePattern = new ResourcePattern(resourcePattern);
 		} catch (ParseException e) {
 			throw new IllegalArgumentException(e);
 		}
-		this.contentDirectory = contentDirectory;
+		try {
+			this.contentDirectory = Paths.get(contentRoot);
+		} catch (FileSystemNotFoundException e) {
+			this.contentRoot = contentRoot;
+		}
 		RequestHandler.Evaluator.add(this, "onGet", resourcePattern);
+	}
+
+	/**
+	 * Creates a new component base with its channel set to
+	 * itself.
+	 * 
+	 * @param resourcePattern the pattern that requests must match with to 
+	 * be handled by this component 
+	 * (see {@link ResourcePattern#matches(String, java.net.URI)})
+	 * @param contentRoot the location with content to serve 
+	 * @see Component#Component()
+	 */
+	public StaticContentDispatcher(String resourcePattern, 
+			URI contentRoot) {
+		this(Channel.SELF, resourcePattern, contentRoot);
 	}
 
 	/**
@@ -128,7 +165,16 @@ public class StaticContentDispatcher extends Component {
 		if (prefixSegs < 0) {
 			return;
 		}
-		
+		if (!(contentDirectory != null 
+				? getFromFileSystem(event, channel, prefixSegs)
+				: getFromUri(event, channel, prefixSegs))) {
+				return;
+		}
+		event.stop();
+	}
+
+	private boolean getFromFileSystem(GetRequest event, IOSubchannel channel,
+	        int prefixSegs) throws IOException, ParseException {
 		// Final wrapper for usage in closure
 		final Path[] assembly = new Path[] { contentDirectory };
 		Arrays.stream(event.requestUri().getPath().split("/"))
@@ -140,17 +186,24 @@ public class StaticContentDispatcher extends Component {
 			if (Files.isReadable(indexPath)) {
 				resourcePath = indexPath;
 			} else {
-				return;
+				return false;
 			}
 		}
 		if (!Files.isReadable(resourcePath)) {
-			return;
+			return false;
 		}
 		
 		// Get content type and derive max-age
-		String mimeTypeName = Files.probeContentType(resourcePath);
+		String mimeTypeName;
+		try {
+			mimeTypeName = Files.probeContentType(resourcePath);
+		} catch(IOException e) {
+			mimeTypeName = null;
+		}
 		if (mimeTypeName == null) {
-			mimeTypeName = "application/octet-stream";
+			// probeContentType has been reported to fail on some platforms.
+			// Use old approach as fall back.
+			mimeTypeName = typesMap.getContentType(resourcePath.toFile());
 		}
 		MediaType mediaType = Converters.MEDIA_TYPE.fromFieldValue(mimeTypeName);
 		long maxAge = 600;
@@ -188,9 +241,114 @@ public class StaticContentDispatcher extends Component {
 			channel.respond(new Response(response));
 			fire(new StreamFile(resourcePath, StandardOpenOption.READ), channel);
 		}
-		event.stop();
+		return true;
 	}
 
+	private boolean getFromUri(GetRequest event, IOSubchannel channel,
+	        int prefixSegs) throws ParseException {
+		// Final wrapper for usage in closure
+		final URI[] assembly = new URI[] { contentRoot };
+		Arrays.stream(event.requestUri().getPath().split("/"))
+		        .skip(prefixSegs + 1)
+		        .forEach(e -> assembly[0] = assembly[0].resolve(e));
+		URL resourceUrl;
+		try {
+			resourceUrl = assembly[0].toURL();
+		} catch (MalformedURLException e1) {
+			return false;
+		}
+		URLConnection resConn;
+		InputStream resIn;
+		try {
+			resConn = resourceUrl.openConnection();
+			resIn = resConn.getInputStream();
+		} catch (IOException e1) {
+			try {
+				resourceUrl = resourceUrl.toURI().resolve("index.html").toURL();
+				resConn = resourceUrl.openConnection();
+				resIn = resConn.getInputStream();
+			} catch (URISyntaxException | IOException e2) {
+				return false;
+			}
+		}
+		
+		// Get content type and derive max-age
+		String mimeTypeName;
+		try {
+			// probeContentType is most advanced, but may fail if it tries
+			// to look at the file's content (which doesn't exist).
+			mimeTypeName = Files.probeContentType(
+					Paths.get(resourceUrl.getPath()));
+		} catch (IOException e) {
+			mimeTypeName = null;
+		}
+		if (mimeTypeName == null) {
+			mimeTypeName = typesMap.getContentType(resourceUrl.getPath());
+		}
+		MediaType mediaType = Converters.MEDIA_TYPE.fromFieldValue(mimeTypeName);
+		long maxAge = 600;
+		for (ValidityInfo info: validityInfos) {
+			if (info.mediaRange().matches(mediaType)) {
+				break;
+			}
+		}
+
+		// Set max age in cache-control header
+		List<Directive> directives = new ArrayList<>();
+		directives.add(new Directive("max-age", maxAge));
+		HttpResponse response = event.request().response().get();
+		response.setField(HttpField.CACHE_CONTROL, directives);
+
+		// Send response 
+		if ("text".equals(mediaType.topLevelType())) {
+			mediaType = MediaType.builder().from(mediaType)
+					.setParameter("charset", System.getProperty(
+							"file.encoding", "UTF-8")).build();
+		}
+		response.setField(HttpField.CONTENT_TYPE, mediaType);
+		response.setStatus(HttpStatus.OK);
+		response.setHasPayload(true);
+		response.setField(HttpField.LAST_MODIFIED, Instant.now());
+		channel.respond(new Response(response));
+		
+		// Start sending content
+		activeEventPipeline().executorService()
+			.submit(new Streamer(resIn, channel));
+		return true;
+	}
+
+	private class Streamer implements Runnable {
+		private InputStream inStream;
+		private IOSubchannel channel;
+		
+		public Streamer(InputStream in, IOSubchannel channel) {
+			this.inStream = in;
+			this.channel = channel;
+		}
+
+		@Override
+		public void run() {
+			// Reading from stream
+			try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {
+				while (true) {
+					ManagedByteBuffer buffer 
+						= channel.byteBufferPool().acquire();
+					int read = inChannel.read(buffer.backingBuffer());
+					boolean eof = (read == -1);
+					channel.respond(new Output<>(buffer, eof));
+					if (eof) {
+						break;
+					}
+				}
+				channel.respond(new Closed());
+			} catch (InterruptedException e) {
+				// Just stop
+			} catch (IOException e) {
+				channel.respond(new IOError(null, e));
+			}
+		}
+	}
+	
 	/**
 	 * Describes an association between a media range and a  
 	 * maximum age in seconds. 
@@ -227,4 +385,5 @@ public class StaticContentDispatcher extends Component {
 			return maxAge;
 		}
 	}
+	
 }
