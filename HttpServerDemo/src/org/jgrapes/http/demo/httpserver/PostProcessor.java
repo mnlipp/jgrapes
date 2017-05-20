@@ -71,7 +71,7 @@ public class PostProcessor extends Component
 	public void onPost(PostRequest event, IOSubchannel channel) {
 		FormContext ctx = channel.context(this, true).get();
 		ctx.request = event.request();
-		ctx.session = (Session)event.associated(Session.class).get();
+		ctx.session = event.associated(Session.class).get();
 		event.stop();
 	}
 	
