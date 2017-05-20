@@ -606,7 +606,7 @@ public class HttpServer extends Component {
 						true);
 				wsEngine.encode(currentWsMessage);
 			}
-			while (input.hasRemaining()) {
+			while (input.hasRemaining() || event.isEndOfRecord()) {
 				Codec.Result result = engine.encode(input,
 				        outBuffer.backingBuffer(), event.isEndOfRecord());
 				if (result.isOverflow()) {
