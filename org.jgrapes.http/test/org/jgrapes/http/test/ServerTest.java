@@ -103,7 +103,7 @@ public class ServerTest {
 			// Build application layer
 			attach(new FileStorage(channel(), 65536));
 			attach(new StaticContentDispatcher(channel(),
-					"/**", Paths.get("test-resources/static-content")));
+					"/**", Paths.get("test-resources/static-content").toUri()));
 			
 			readyMonitor = new WaitForTests(this, Ready.class, 
 					securedNetwork.channel().defaultCriterion());
