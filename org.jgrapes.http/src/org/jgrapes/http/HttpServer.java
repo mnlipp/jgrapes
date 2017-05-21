@@ -592,12 +592,9 @@ public class HttpServer extends Component {
 			} else {
 				return;
 			}
-			if (outBuffer == null) {
-				outBuffer = upstreamChannel().byteBufferPool().acquire();
-			}
 			if (switchedToWebSocket && currentWsMessage == null) {
-				// When switched to WebSockets, we only have Input and Output.
-				// Add header automatically.
+				// When switched to WebSockets, we only have Input and Output
+				// events. Add header automatically.
 				@SuppressWarnings("unchecked")
 				ServerEngine<?,MessageHeader> wsEngine 
 					= (ServerEngine<?,MessageHeader>)engine;
@@ -607,6 +604,9 @@ public class HttpServer extends Component {
 				wsEngine.encode(currentWsMessage);
 			}
 			while (input.hasRemaining() || event.isEndOfRecord()) {
+				if (outBuffer == null) {
+					outBuffer = upstreamChannel().byteBufferPool().acquire();
+				}
 				Codec.Result result = engine.encode(input,
 				        outBuffer.backingBuffer(), event.isEndOfRecord());
 				if (result.isOverflow()) {
