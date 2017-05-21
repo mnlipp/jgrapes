@@ -1,5 +1,5 @@
 Bundle-Name: JGrapes HTTP Portal
-Bundle-SymbolicName: org.jgrapes.http.portal
+Bundle-SymbolicName: org.jgrapes.portal
 Bundle-Version: 0.9.0.${tstamp}
 Bundle-Copyright: Michael N. Lipp (c) 2017
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
@@ -8,6 +8,16 @@ Require-Bundle: org.jgrapes.core, org.jgrapes.io, org.jgrapes.http
 base_version = ${versionmask;===;${Bundle-Version}}
 api_version = 0.1.0.${tstamp}
 
--exportcontents: org.jgrapes.*
 -sources: true
 -runee: JavaSE-1.8
+
+-dsannotations: 
+
+testbin=bin
+
+-fixupmessages: \
+    "Found source folder 'resources' that is not on bnd's source path"
+Export-Package: \
+	org.jgrapes.portal,\
+	org.jgrapes.portal.defaulttheme,\
+	org.jgrapes.portal.util

@@ -37,40 +37,36 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.NamedChannel;
+import org.jgrapes.core.events.Stop;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.InMemorySessionManager;
+import org.jgrapes.http.LanguageSelector;
 import org.jgrapes.http.StaticContentDispatcher;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
-import org.jgrapes.http.rocker.RockerRenderer;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
+import org.jgrapes.portal.Portal;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 
 /**
  *
  */
-public class HttpServerDemo extends Component {
+public class HttpServerDemo extends Component implements BundleActivator {
 
-	/**
-	 * @param args
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws KeyStoreException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws CertificateException 
-	 * @throws KeyManagementException 
+	HttpServerDemo app;
+	
+	/* (non-Javadoc)
+	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
-	public static void main(String[] args) 
-			throws IOException, InterruptedException, 
-			NoSuchAlgorithmException, KeyStoreException, 
-			UnrecoverableKeyException, CertificateException, 
-			KeyManagementException {
+	@Override
+	public void start(BundleContext context) throws Exception {
 		// The demo component is the application
-		HttpServerDemo app = new HttpServerDemo();
+		app = new HttpServerDemo();
 		// Attach a general nio dispatcher
 		app.attach(new NioDispatcher());
 
@@ -104,16 +100,39 @@ public class HttpServerDemo extends Component {
 		
 		// Build application layer
 		app.attach(new InMemorySessionManager(app.channel()));
+		app.attach(new LanguageSelector(app.channel()));
 		app.attach(new FileStorage(app.channel(), 65536));
 		app.attach(new StaticContentDispatcher(app.channel(),
-		        "/**", Paths.get("demo-resources/static-content")));
+		        "/**", Paths.get("demo-resources/static-content").toUri()));
 		app.attach(new StaticContentDispatcher(app.channel(),
-		        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc")));
+		        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc").toUri()));
 		app.attach(new PostProcessor(app.channel()));
-		app.attach(new RockerPostProcessor(app.channel()));
-		app.attach(new RockerRenderer(app.channel()));
 		app.attach(new WsEchoServer(app.channel()));
+		app.attach(new Portal(app.channel(), "/portal"));
 		Components.start(app);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+	 */
+	@Override
+	public void stop(BundleContext context) throws Exception {
+		app.fire(new Stop(), Channel.BROADCAST);
+		Components.awaitExhaustion();
+	}
+
+	/**
+	 * @param args
+	 * @throws IOException 
+	 * @throws InterruptedException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws KeyStoreException 
+	 * @throws UnrecoverableKeyException 
+	 * @throws CertificateException 
+	 * @throws KeyManagementException 
+	 */
+	public static void main(String[] args) throws Exception {
+		new HttpServerDemo().start(null);
 	}
 
 }

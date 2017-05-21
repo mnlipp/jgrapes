@@ -11,26 +11,12 @@ buildscript {
 	}
   }
 
-plugins {
-	id "com.fizzed.rocker" version "0.20.0"
-}
-  
 dependencies {
 
-    compile project(':org.jgrapes.http.rocker')
+    compile project(':org.jgrapes.portal')
+	compile 'org.osgi:osgi.core:6.0.0'
 }
 
 // Override default
 version = "0.0.1-SNAPSHOT"
 
-sourceSets {
-	main {
-		rocker {
-			srcDirs 'demo-resources/templates'
-		}
-	}
-}
-
-rocker {
-	optimize true
-}
