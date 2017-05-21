@@ -71,6 +71,7 @@ public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
 	@Override
 	protected void handled() {
 		buffer.unlockBuffer();
+		buffer = null;
 	}
 	
 	/* (non-Javadoc)

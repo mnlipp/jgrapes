@@ -117,6 +117,7 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	@Override
 	protected synchronized void handled() {
 		buffer.unlockBuffer();
+		buffer = null;
 	}
 	
 	/* (non-Javadoc)
