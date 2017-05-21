@@ -19,7 +19,6 @@
 package org.jgrapes.io.util;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
@@ -62,7 +61,7 @@ public class ByteBufferOutputStream extends OutputStream {
 		this.channel = channel;
 		this.eventPipeline = eventPipeline;
 		this.inputMode = inputMode;
-		buffer = channel.byteBufferPool().acquire();
+		buffer = null;
 	}
 
 	/**
@@ -82,6 +81,17 @@ public class ByteBufferOutputStream extends OutputStream {
 		this(channel, eventPipeline, false);
 	}
 
+	private void ensureBufferAvailable() throws IOException {
+		if (buffer != null) {
+			return;
+		}
+		try {
+			buffer = channel.byteBufferPool().acquire();
+		} catch (InterruptedException e) {
+			throw new IOException(e);
+		}			
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -89,6 +99,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	 */
 	@Override
 	public void write(int data) throws IOException {
+		ensureBufferAvailable();
 		buffer.put((byte) data);
 		if (!buffer.hasRemaining()) {
 			flush(false);
@@ -103,6 +114,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	@Override
 	public void write(byte[] data, int offset, int length) throws IOException {
 		while (true) {
+			ensureBufferAvailable();
 			if (buffer.remaining() > length) {
 				buffer.put(data, offset, length);
 				break;
@@ -126,11 +138,16 @@ public class ByteBufferOutputStream extends OutputStream {
 	 * The end of record flag of the event is set according to the parameter.
 	 */
 	private void flush(boolean endOfRecord) throws IOException {
+		if (buffer == null) {
+			if (!endOfRecord) {
+				return;
+			}
+			ensureBufferAvailable();
+		}
 		if (buffer.position() == 0 && !endOfRecord) {
 			// Nothing to flush
-			return;
-		}
-		if (inputMode) {
+			buffer.unlockBuffer();
+		} else if (inputMode) {
 			buffer.flip();
 			eventPipeline.fire(
 					new Input<ManagedByteBuffer>(buffer, endOfRecord), channel);
@@ -138,14 +155,7 @@ public class ByteBufferOutputStream extends OutputStream {
 			eventPipeline.fire(
 					new Output<ManagedByteBuffer>(buffer, endOfRecord), channel);
 		}
-		if (endOfRecord) {
-			return;
-		}
-		try {
-			buffer = channel.byteBufferPool().acquire();
-		} catch (InterruptedException e) {
-			throw new InterruptedIOException(e.getMessage());
-		}
+		buffer = null;
 	}
 
 	/**
