@@ -1,0 +1,13 @@
+// Override default
+version = "0.0.1-SNAPSHOT"
+
+dependencies {
+	compile project(':org.jgrapes.http')
+	compile 'org.freemarker:freemarker:2.3.26-incubating'
+}
+
+jar {
+    into('META-INF') {
+        from 'resources/META-INF'
+    }
+}

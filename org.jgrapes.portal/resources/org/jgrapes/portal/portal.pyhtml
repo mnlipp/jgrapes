@@ -1,0 +1,111 @@
+<?py from circuits_minpor import Portlet ?>
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <title>{= _(portal.title) =}</title>
+  <meta name="description" content="This is ...">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="shortcut icon" href="{== resource_url("theme-resource/favicon.ico") ==}"> 
+  <link rel="stylesheet" type="text/css" href="{== resource_url("portal-resource/normalize.css") ==}">
+  <link rel="stylesheet" type="text/css" href="{== resource_url("theme-resource/mipypo.css") ==}">
+  <script src="{== resource_url("portal-resource/modernizr-2.8.3.min.js") ==}"></script>
+  <script src="{== resource_url("portal-resource/functions.js") ==}"></script>
+  <script type="text/javascript">
+  CirMinPor._strings = {
+    WebSocketsUnavailable: "{== _("WebSocketsUnavailable") ==}"
+  };
+  CirMinPor._locales = [
+  <?py for locale in preferred_locales: ?>
+    "{== locale ==}",
+  <?py #endfor ?>
+  ];
+  </script>
+  <script src="{== resource_url("portal-resource/date_format.js") ==}" type="text/javascript"></script>
+  <script type="text/javascript">
+  Date.replaceChars.shortMonths = {== _("date_format_shortMonths") ==}
+  Date.replaceChars.longMonths = {== _("date_format_longMonths") ==}
+  Date.replaceChars.shortDays = {== _("date_format_shortDays") ==}
+  Date.replaceChars.longDays = {== _("date_format_longDays") ==}
+  Date.replaceChars.shortDate = {== _("date_format_shortDate") ==}
+  Date.replaceChars.longDate = {== _("date_format_longDate") ==}
+  Date.replaceChars.shortTime = {== _("date_format_shortTime") ==}
+  Date.replaceChars.longTime = {== _("date_format_longTime") ==}
+  Date.replaceChars.shortDateTime = {== _("date_format_shortDateTime") ==}
+  Date.replaceChars.longDateTime = {== _("date_format_longDateTime") ==}
+  </script>
+</head>
+
+<body>
+
+<?py if portal.configuring != None: ?>
+  <div id="overlay"></div>
+  <div id="overlayBody">
+    <div id="overlayPage">
+    <?py include("_portlet_edited.pyhtml", portlet=portal.configuring) ?>    
+    </div>
+  </div>
+<?py #endif ?>
+
+  <!-- This defines the template for an entry in the message list -->
+  <script type="text/template" id="topMessageEntry">
+    <div class="topMessageCloseIcon"><a href="javascript:CirMinPor.removeMessage('<%=id%>')"><img src="{== resource_url("theme-resource/close-tab-active.png") ==}"></a></div>
+    <span class="topMessageText"><%=message%></span>
+  </script>
+
+  <div class="topMessageDisplay" style="display: none;" 
+    id="topMessageDisplay">
+    <ul id="topMessageList"></ul>
+  </div>
+
+  <div class="languageSelector">
+    <?py selected = None ?>
+    <?py for l1 in preferred_locales: ?>
+    <?py   for l2 in portal.supported_locales: ?>
+    <?py     if l1 == l2[0]: ?>
+    <?py       selected = l1 ?>
+    <?py       break ?>
+    <?py     #endif ?>
+    <?py   #endfor ?>
+    <?py   if selected: ?>
+    <?py     break ?>
+    <?py   #endif ?>
+    <?py #endfor ?>
+    <form action="{== portal_action_url("language") ==}" method="get">
+      <select name="language" onchange="this.form.submit()">
+        <?py for locale, name in portal.supported_locales: ?>
+        <option value="{== locale ==}"{== " selected" if locale == selected else "" ==}>{= name =}</option>
+        <?py #endfor ?>
+      </select>
+      <noscript style="inline"><input type="submit" value="{= _("Select") =}"></noscript>
+    </form>
+  </div>
+  
+  <div class="title">{= _(portal.title) =}</div>
+
+  <div class="tabs">
+<span class="{= "tab" + (" activeTab" if portal.tabs[0].selected else "") 
+              =}"><a class="tabLabel" href="{== portal_action_url("select", tab=id(portal.tabs[0])) ==}">{= _("Overview") =}</a><span style="padding-right: 16px;"></span></span>
+  <?py selected = portal.tabs[0] ?>
+  <?py for tab in portal.tabs[1:]: ?>
+  <?py   if tab.selected: ?>
+  <?py     selected=tab ?>
+  <?py   #endif ?>
+  <?py   portlet_desc = tab.portlet.description(preferred_locales) ?>
+<span class="{= "tab" + (" activeTab" if tab.selected else "") 
+             + (" closableTab" if tab.closeable else "") =}"><a class="tabLabel" href="{== portal_action_url("select", tab=id(tab)) ==}">{= portlet_desc.short_title =}</a>
+<?py if tab.selected and Portlet.RenderMode.Edit in portlet_desc.markup_types["text/html"].render_modes: ?>         
+<span class="tabIcons"><a title="{= _("Configure") =}" href="{== portlet_state_url(portlet_desc.handle, mode="edit") ==}"><img src="{== resource_url("theme-resource/edit-solo.png") ==}"></a></span><?py #endif ?>
+<a class="tabCloser" href="{== portal_action_url("close", tab=id(tab)) ==}"><img src="{== resource_url("theme-resource/close-tab-active.png") ==}"></a></span>
+  <?py #endfor ?>
+  </div>
+  <div class="page">
+    <?py include(selected.content_renderer + ".pyhtml",
+    	tab=selected, portlets=portal.portlets, locales=preferred_locales) ?>    
+  </div>
+  
+<script type="text/javascript">
+CirMinPor._openEventExchange("{== resource_url("eventExchange") ==}");
+</script>
+</body>
+</html>
