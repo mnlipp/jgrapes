@@ -191,11 +191,9 @@ public class SslServer extends Component {
 			// https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/samples/sslengine/SSLEngineSimpleDemo.java
 			int bufSize = sslEngine.getSession().getApplicationBufferSize() + 50;
 			downstreamPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					ByteBuffer.allocate(bufSize), 
-					ByteBuffer.allocate(bufSize));
+					() -> { return ByteBuffer.allocate(bufSize); }, 2); 
 			setByteBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					ByteBuffer.allocate(bufSize), 
-					ByteBuffer.allocate(bufSize)));
+					() -> { return ByteBuffer.allocate(bufSize); }, 2));
 		}
 		
 		public void sendDownstream(Input<ManagedByteBuffer> event)

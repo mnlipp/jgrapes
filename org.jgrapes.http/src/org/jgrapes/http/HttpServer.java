@@ -422,12 +422,12 @@ public class HttpServer extends Component {
 			}
 			
 			// Allocate buffer pools
-			byteBufferPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					ByteBuffer.allocate(applicationBufferSize),
-					ByteBuffer.allocate(applicationBufferSize));
-			charBufferPool = new ManagedBufferQueue<>(ManagedCharBuffer::new,
-					CharBuffer.allocate(applicationBufferSize),
-					CharBuffer.allocate(applicationBufferSize));
+			byteBufferPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,	
+					() -> { return ByteBuffer.allocate(
+							applicationBufferSize); }, 2);
+			charBufferPool = new ManagedBufferQueue<>(ManagedCharBuffer::new,	
+					() -> { return CharBuffer.allocate(
+							applicationBufferSize); }, 2);
 		}
 		
 		public void handleNetInput(Input<ManagedByteBuffer> event) 

@@ -257,8 +257,7 @@ public interface IOSubchannel extends Channel {
 		public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> byteBufferPool() {
 			if (byteBufferPool == null) {
 				byteBufferPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,
-						ByteBuffer.allocate(4096), 
-						ByteBuffer.allocate(4096));
+						() -> { return ByteBuffer.allocate(4096); }, 2);
 			}
 			return byteBufferPool;
 		}
@@ -270,8 +269,7 @@ public interface IOSubchannel extends Channel {
 		public ManagedBufferQueue<ManagedCharBuffer, CharBuffer> charBufferPool() {
 			if (charBufferPool == null) {
 				charBufferPool = new ManagedBufferQueue<>(ManagedCharBuffer::new,
-						CharBuffer.allocate(4096), 
-						CharBuffer.allocate(4096));
+						() -> { return CharBuffer.allocate(4096); }, 2); 
 			}
 			return charBufferPool;
 		}

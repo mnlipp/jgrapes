@@ -146,8 +146,7 @@ public class FileStorage extends Component {
 			channel.respond(new FileOpened(event.path(), event.options()));
 			// Reading from file
 			ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					ByteBuffer.allocateDirect(bufferSize),
-					ByteBuffer.allocateDirect(bufferSize));
+					() -> {return ByteBuffer.allocateDirect(bufferSize); }, 2);
 			ManagedByteBuffer buffer = ioBuffers.acquire();
 			synchronized (ioChannel) {
 				ioChannel.read(buffer.backingBuffer(), offset, buffer,
@@ -213,8 +212,7 @@ public class FileStorage extends Component {
 		private void runReaderThread(StreamFile event) 
 				throws IOException {
 			ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					ByteBuffer.allocateDirect(bufferSize),
-					ByteBuffer.allocateDirect(bufferSize));
+					() -> { return ByteBuffer.allocateDirect(bufferSize); }, 2);
 			final SeekableByteChannel ioChannel 
 				= Files.newByteChannel(event.path(), event.options());
 			activeEventPipeline().executorService().submit(new Runnable() {

@@ -386,15 +386,13 @@ public class TcpServer extends Component implements NioHandler {
 
 			int writeBufferSize = bufferSize == 0 
 					? nioChannel.socket().getSendBufferSize() : bufferSize;
-			setByteBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer::new, 
-					ByteBuffer.allocate(writeBufferSize),
-					ByteBuffer.allocate(writeBufferSize)));
+			setByteBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer::new,
+					() -> { return ByteBuffer.allocate(writeBufferSize); }, 2));
 			
 			int readBufferSize = bufferSize == 0 
 					? nioChannel.socket().getReceiveBufferSize() : bufferSize;
 			readBuffers = new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					ByteBuffer.allocate(readBufferSize),
-					ByteBuffer.allocate(readBufferSize));
+					() -> { return ByteBuffer.allocate(readBufferSize); }, 2);
 			
 			// Register with dispatcher
 			nioChannel.configureBlocking(false);

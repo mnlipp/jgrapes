@@ -22,6 +22,7 @@ import java.nio.Buffer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /**
  * A queue based buffer pool.
@@ -30,21 +31,23 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	implements BufferCollector {
 
 	private BiFunction<T, BufferCollector,W> wrapper = null;
+	private Supplier<T> bufferFactory = null;
 	private BlockingQueue<W> queue;
 	
 	/**
-	 * Create a pool that contains the (wrapped) buffers as initial content.
+	 * Create a pool that contains the given number of (wrapped) buffers.
 	 * 
 	 * @param wrapper the function that converts buffers to managed buffers
-	 * @param buffers the buffers to wrap
+	 * @param bufferFactory a function that creates a new buffer
+	 * @param buffers the number of buffers
 	 */
-	@SafeVarargs
-	public ManagedBufferQueue(
-			BiFunction<T,BufferCollector, W> wrapper, T... buffers) {
+	public ManagedBufferQueue(BiFunction<T,BufferCollector, W> wrapper, 
+			Supplier<T> bufferFactory, int buffers) {
 		this.wrapper = wrapper;
-		queue = new ArrayBlockingQueue<W>(buffers.length);
-		for (T buffer: buffers) {
-			addBuffer(buffer);
+		this.bufferFactory = bufferFactory;
+		queue = new ArrayBlockingQueue<W>(buffers);
+		for (int i = 0; i < buffers; i++) {
+			addBuffer(this.bufferFactory.get());
 		}
 	}
 
