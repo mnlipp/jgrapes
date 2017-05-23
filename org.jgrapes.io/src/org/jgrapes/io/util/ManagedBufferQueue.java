@@ -33,6 +33,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	private BiFunction<T, BufferCollector,W> wrapper = null;
 	private Supplier<T> bufferFactory = null;
 	private BlockingQueue<W> queue;
+	private int bufferSize;
 	
 	/**
 	 * Create a pool that contains the given number of (wrapped) buffers.
@@ -49,6 +50,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 		for (int i = 0; i < buffers; i++) {
 			addBuffer(this.bufferFactory.get());
 		}
+		bufferSize = queue.peek().capacity();
 	}
 
 	/**
@@ -59,6 +61,15 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 */
 	public void addBuffer(T buffer) {
 		queue.add(wrapper.apply(buffer, this));
+	}
+
+	/**
+	 * Returns the size of the buffers managed by this queue.
+	 * 
+	 * @return the buffer size
+	 */
+	public int bufferSize() {
+		return bufferSize;
 	}
 
 	/**
