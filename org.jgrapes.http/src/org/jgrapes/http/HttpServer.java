@@ -83,7 +83,7 @@ public class HttpServer extends Component {
 	private List<Class<? extends Request>> providedFallbacks;
 	private int matchLevels = 1;
 	boolean acceptNoSni = false;
-	int applicationBufferSize = 4096;
+	int applicationBufferSize = -1;
 
 	/**
 	 * Create a new server that uses the {@code networkChannel} for network
@@ -157,7 +157,8 @@ public class HttpServer extends Component {
 
 	/**
 	 * Sets the size of the buffers used for {@link Output} events
-	 * on the application channel. Defaults to 4096.
+	 * on the application channel. Defaults to the upstream buffer size
+	 * minus 512 (estimate for added protocol overhead).
 	 * 
 	 * @param applicationBufferSize the size to set
 	 * @return the http server for easy chaining
@@ -170,7 +171,7 @@ public class HttpServer extends Component {
 	/**
 	 * Returns the size of the application side (receive) buffers.
 	 * 
-	 * @return the value
+	 * @return the value or -1 if not set
 	 */
 	public int applicationBufferSize() {
 		return applicationBufferSize;
@@ -420,14 +421,22 @@ public class HttpServer extends Component {
 					}
 				}
 			}
+
+			// Calculate "good" application buffer size
+			int bufferSize = applicationBufferSize;
+			if (bufferSize <= 0) {
+				bufferSize = netChannel.byteBufferPool().bufferSize() - 512;
+				if (bufferSize < 4096) {
+					bufferSize = 4096;
+				}
+			}
 			
 			// Allocate buffer pools
+			final int bufSize = bufferSize;
 			byteBufferPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,	
-					() -> { return ByteBuffer.allocate(
-							applicationBufferSize); }, 2);
+					() -> { return ByteBuffer.allocate(bufSize); }, 2);
 			charBufferPool = new ManagedBufferQueue<>(ManagedCharBuffer::new,	
-					() -> { return CharBuffer.allocate(
-							applicationBufferSize); }, 2);
+					() -> { return CharBuffer.allocate(bufSize); }, 2);
 		}
 		
 		public void handleNetInput(Input<ManagedByteBuffer> event) 
