@@ -25,8 +25,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
@@ -57,11 +55,8 @@ import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Closed;
-import org.jgrapes.io.events.IOError;
-import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.StreamFile;
-import org.jgrapes.io.util.ManagedByteBuffer;
+import org.jgrapes.io.util.InputStreamPipeline;
 
 /**
  * A dispatcher for requests for static content, usually files.
@@ -313,42 +308,10 @@ public class StaticContentDispatcher extends Component {
 		
 		// Start sending content
 		activeEventPipeline().executorService()
-			.submit(new Streamer(resIn, channel));
+			.submit(new InputStreamPipeline(resIn, channel));
 		return true;
 	}
 
-	private class Streamer implements Runnable {
-		private InputStream inStream;
-		private IOSubchannel channel;
-		
-		public Streamer(InputStream in, IOSubchannel channel) {
-			this.inStream = in;
-			this.channel = channel;
-		}
-
-		@Override
-		public void run() {
-			// Reading from stream
-			try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {
-				while (true) {
-					ManagedByteBuffer buffer 
-						= channel.byteBufferPool().acquire();
-					int read = inChannel.read(buffer.backingBuffer());
-					boolean eof = (read == -1);
-					channel.respond(new Output<>(buffer, eof));
-					if (eof) {
-						break;
-					}
-				}
-				channel.respond(new Closed());
-			} catch (InterruptedException e) {
-				// Just stop
-			} catch (IOException e) {
-				channel.respond(new IOError(null, e));
-			}
-		}
-	}
-	
 	/**
 	 * Describes an association between a media range and a  
 	 * maximum age in seconds. 
