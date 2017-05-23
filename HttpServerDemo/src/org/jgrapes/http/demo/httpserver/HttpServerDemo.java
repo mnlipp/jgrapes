@@ -21,6 +21,7 @@ package org.jgrapes.http.demo.httpserver;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -108,7 +109,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc").toUri()));
 		app.attach(new PostProcessor(app.channel()));
 		app.attach(new WsEchoServer(app.channel()));
-		app.attach(new Portal(app.channel(), "/portal"));
+		app.attach(new Portal(app.channel(), new URI("/portal")));
 		Components.start(app);
 	}
 
