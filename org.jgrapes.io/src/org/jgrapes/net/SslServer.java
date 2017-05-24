@@ -217,7 +217,8 @@ public class SslServer extends Component {
 					continue;
 					
 				case NEED_WRAP:
-					ManagedByteBuffer feedback = byteBufferPool().acquire();
+					ManagedByteBuffer feedback 
+						= upstreamChannel().byteBufferPool().acquire();
 					SSLEngineResult wrapResult = sslEngine.wrap(
 							ManagedByteBuffer.EMPTY_BUFFER
 							.backingBuffer(), feedback.backingBuffer());
@@ -265,7 +266,8 @@ public class SslServer extends Component {
 				throws SSLException, InterruptedException {
 			ByteBuffer output = event.buffer().backingBuffer().duplicate();
 			while (output.hasRemaining() && !sslEngine.isInboundDone()) {
-				ManagedByteBuffer out = byteBufferPool().acquire();
+				ManagedByteBuffer out 
+					= upstreamChannel().byteBufferPool().acquire();
 				sslEngine.wrap(output, out.backingBuffer());
 				upstreamChannel().respond(
 						new Output<>(out, event.isEndOfRecord()));
@@ -276,7 +278,8 @@ public class SslServer extends Component {
 				throws InterruptedException, SSLException {
 			sslEngine.closeOutbound();
 			while (!sslEngine.isOutboundDone()) {
-				ManagedByteBuffer feedback = byteBufferPool().acquire();
+				ManagedByteBuffer feedback
+					= upstreamChannel().byteBufferPool().acquire();
 				sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
 				        .backingBuffer(), feedback.backingBuffer());
 				upstreamChannel().respond(new Output<>(feedback, false));
@@ -305,7 +308,8 @@ public class SslServer extends Component {
 			try {
 				sslEngine.closeInbound();
 				while (!sslEngine.isOutboundDone()) {
-					ManagedByteBuffer feedback = byteBufferPool().acquire();
+					ManagedByteBuffer feedback 
+						= upstreamChannel().byteBufferPool().acquire();
 					sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
 							.backingBuffer(),feedback.backingBuffer());
 					upstreamChannel().respond(new Output<>(feedback, false));
