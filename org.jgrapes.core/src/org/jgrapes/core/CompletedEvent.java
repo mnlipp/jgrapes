@@ -36,7 +36,7 @@ public abstract class CompletedEvent<T extends Event<?>>
 	 * @return the completed event
 	 */
 	public T event() {
-		return result();
+		return currentResults().get(0);
 	}
 	
 	/* (non-Javadoc)
@@ -47,7 +47,7 @@ public abstract class CompletedEvent<T extends Event<?>>
 		StringBuilder builder = new StringBuilder();
 		builder.append(Components.classToString(getClass()));
 		builder.append("(");
-		builder.append(Components.objectName(result()));
+		builder.append(Components.objectName(currentResults().get(0)));
 		builder.append(")");
 		builder.append(" [");
 		if (channels != null) {

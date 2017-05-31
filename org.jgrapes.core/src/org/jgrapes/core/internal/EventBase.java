@@ -19,9 +19,11 @@
 package org.jgrapes.core.internal;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -30,7 +32,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 
 import org.jgrapes.core.Channel;
@@ -65,8 +66,8 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	private boolean completed = false;
 	/** Indicates that the event should not processed further. */
 	private boolean stopped = false;
-	/** The result of handling the event (if any). */
-	private AtomicReference<T> result;
+	/** The results of handling the event (if any). */
+	private List<T> results;
 	/** Context data. */
 	private Map<Object,Object> contextData = null;
 	
@@ -145,17 +146,18 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	}
 
 	/**
-	 * Sets the result of handling this event.
+	 * Sets the result of handling this event. If this method is invoked 
+	 * more then once, the various results are collected in a list. This
+	 * can happen if the event is handled by several components. 
 	 * 
 	 * @param result the result to set
 	 * @return the object for easy chaining
 	 */
-	public Event<T> setResult(T result) {
-		if (this.result == null) {
-			this.result = new AtomicReference<T>(result);
-			return (Event<T>)this;
+	public synchronized Event<T> setResult(T result) {
+		if (results == null) {
+			results = new ArrayList<T>();
 		}
-		this.result.set(result);
+		results.add(result);
 		return (Event<T>)this;
 	}
 
@@ -163,10 +165,10 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	 * Allows access to the intermediate result before the 
 	 * completion of the event. 
 	 * 
-	 * @return the intermediate result
+	 * @return the intermediate results or `null`
 	 */
-	protected T result() {
-		return result == null ? null : result.get();
+	protected List<T> currentResults() {
+		return Collections.unmodifiableList(results);
 	}
 	
 	/**
@@ -181,11 +183,11 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	 * @param other the event to tie to
 	 * @return the object for easy chaining
 	 */
-	public Event<T> tieTo(EventBase<T> other) {
-		if (other.result == null) {
-			other.result = new AtomicReference<T>(null);
+	public synchronized Event<T> tieTo(EventBase<T> other) {
+		if (other.results == null) {
+			other.results = new ArrayList<T>();
 		}
-		result = other.result;
+		results = other.results;
 		return (Event<T>)this;
 	}
 	
@@ -333,15 +335,38 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.util.concurrent.Future#get()
+	/**
+	 * Waits for the event to be completed and returns the first (or only)
+	 * result.
+	 * 
+	 * @see Future#get()
 	 */
 	@Override
 	public T get() throws InterruptedException {
 		while (true) {
 			synchronized(this) {
 				if (completed) {
-					return result == null ? null : result.get();
+					return (results == null || results.isEmpty())
+							? null : results.get(0);
+				}
+				wait();
+			}
+		}
+	}
+
+	/**
+	 * Waits for the event to be completed and returns the list
+	 * of results (which may be empty).
+	 * 
+	 * @return the results
+	 * @see Future#get()
+	 */
+	public List<T> results() throws InterruptedException {
+		while (true) {
+			synchronized(this) {
+				if (completed) {
+					return (results == null ? Collections.emptyList() 
+							: Collections.unmodifiableList(results));
 				}
 				wait();
 			}
@@ -350,8 +375,10 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 
 	/**
 	 * Causes the invoking thread to wait until the processing of the 
-	 * event has been completed or given timeout has expired. 
+	 * event has been completed or given timeout has expired and returns
+	 * the first (or only) result. 
 	 * 
+	 * @return the result
 	 * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)
 	 */
 	@Override
@@ -359,12 +386,38 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	        throws InterruptedException, TimeoutException {
 		synchronized(this) {
 			if (completed) {
-				return result == null ? null : result.get();
+				return (results == null || results.isEmpty())
+						? null : results.get(0);
 			}
 			wait(unit.toMillis(timeout));
 		}
 		if (completed) {
-			return result == null ? null : result.get();
+			return (results == null || results.isEmpty())
+					? null : results.get(0);
+		}
+		throw new TimeoutException();
+	}
+
+	/**
+	 * Causes the invoking thread to wait until the processing of the 
+	 * event has been completed or given timeout has expired and returns
+	 * the list of results (which may be empty). 
+	 * 
+	 * @return the results
+	 * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)
+	 */
+	public List<T> results(long timeout, TimeUnit unit)
+	        throws InterruptedException, TimeoutException {
+		synchronized(this) {
+			if (completed) {
+				return (results == null ? Collections.emptyList() 
+						: Collections.unmodifiableList(results));
+			}
+			wait(unit.toMillis(timeout));
+		}
+		if (completed) {
+			return (results == null ? Collections.emptyList() 
+					: Collections.unmodifiableList(results));
 		}
 		throw new TimeoutException();
 	}

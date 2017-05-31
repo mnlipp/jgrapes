@@ -82,8 +82,8 @@ class VerboseHandlerReference extends HandlerReference {
 			builder.setLength(0);
 			builder.append("Result [");
 			builder.append(Long.toString(invocation));
-			builder.append("]: " + (event.result() == null ? "null"
-			        : event.result()));
+			builder.append("]: " + (event.currentResults() == null ? "null"
+			        : event.currentResults()));
 			handlerTracking.fine(builder.toString());
 		}
 	}
