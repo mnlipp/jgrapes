@@ -38,7 +38,7 @@ public class ByteBufferOutputStream extends OutputStream {
 
 	private IOSubchannel channel;
 	private EventPipeline eventPipeline;
-	private boolean inputMode;
+	private boolean sendInputEvents;
 	private ManagedByteBuffer buffer;
 	private boolean sendClose;
 
@@ -58,7 +58,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	        EventPipeline eventPipeline) throws InterruptedException {
 		this.channel = channel;
 		this.eventPipeline = eventPipeline;
-		inputMode = false;
+		sendInputEvents = false;
 		sendClose = true;
 		buffer = null;
 	}
@@ -69,8 +69,8 @@ public class ByteBufferOutputStream extends OutputStream {
 	 * 
 	 * @return the stream for easy chaining
 	 */
-	public ByteBufferOutputStream setInputMode() {
-		inputMode = true;
+	public ByteBufferOutputStream sendInputEvents() {
+		sendInputEvents = true;
 		return this;
 	}
 	
@@ -150,7 +150,7 @@ public class ByteBufferOutputStream extends OutputStream {
 		if (buffer.position() == 0 && !endOfRecord) {
 			// Nothing to flush
 			buffer.unlockBuffer();
-		} else if (inputMode) {
+		} else if (sendInputEvents) {
 			buffer.flip();
 			eventPipeline.fire(
 					new Input<ManagedByteBuffer>(buffer, endOfRecord), channel);

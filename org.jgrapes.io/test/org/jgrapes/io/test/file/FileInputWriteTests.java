@@ -56,7 +56,7 @@ public class FileInputWriteTests {
 				EventPipeline ep = newEventPipeline();
 				try (ByteBufferOutputStream out = new ByteBufferOutputStream(
 				        channel, ep)) {
-					out.setInputMode();
+					out.sendInputEvents();
 					for (int i = 1; i <= 10000; i++) {
 						out.write(
 						        new String(i + ": Hello World!\n").getBytes());
