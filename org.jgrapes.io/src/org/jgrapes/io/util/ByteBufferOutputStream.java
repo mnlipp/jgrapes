@@ -40,29 +40,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	private EventPipeline eventPipeline;
 	private boolean inputMode;
 	private ManagedByteBuffer buffer;
-
-	/**
-	 * Creates a new instance.
-	 * 
-	 * @param channel
-	 *            the channel to fire events on
-	 * @param eventPipeline
-	 *            the event pipeline used for firing events
-	 * @param inputMode
-	 *            if {@code true} use {@link Input} events to dispatch buffers
-	 * @throws InterruptedException
-	 *             if the current is interrupted while trying to get a new
-	 *             buffer from the queue
-	 */
-	public ByteBufferOutputStream(IOSubchannel channel,
-	        EventPipeline eventPipeline, boolean inputMode)
-	        throws InterruptedException {
-		super();
-		this.channel = channel;
-		this.eventPipeline = eventPipeline;
-		this.inputMode = inputMode;
-		buffer = null;
-	}
+	private boolean sendClose;
 
 	/**
 	 * Creates a new instance that uses {@link Output} events to dispatch
@@ -78,9 +56,34 @@ public class ByteBufferOutputStream extends OutputStream {
 	 */
 	public ByteBufferOutputStream(IOSubchannel channel,
 	        EventPipeline eventPipeline) throws InterruptedException {
-		this(channel, eventPipeline, false);
+		this.channel = channel;
+		this.eventPipeline = eventPipeline;
+		inputMode = false;
+		sendClose = true;
+		buffer = null;
 	}
 
+	/**
+	 * Causes the data to be fired as {@link Input} events rather
+	 * than the usual {@link Output} events. 
+	 * 
+	 * @return the stream for easy chaining
+	 */
+	public ByteBufferOutputStream setInputMode() {
+		inputMode = true;
+		return this;
+	}
+	
+	/**
+	 * Suppresses the sending of a close event when the stream is closed. 
+	 * 
+	 * @return the stream for easy chaining
+	 */
+	public ByteBufferOutputStream suppressClose() {
+		sendClose = false;
+		return this;
+	}
+	
 	private void ensureBufferAvailable() throws IOException {
 		if (buffer != null) {
 			return;
@@ -173,7 +176,9 @@ public class ByteBufferOutputStream extends OutputStream {
 	@Override
 	public void close() throws IOException {
 		flush(true);
-		eventPipeline.fire(new Close(), channel);
+		if (sendClose) {
+			eventPipeline.fire(new Close(), channel);
+		}
 	}
 
 }

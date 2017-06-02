@@ -55,7 +55,8 @@ public class FileInputWriteTests {
 			for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
 				EventPipeline ep = newEventPipeline();
 				try (ByteBufferOutputStream out = new ByteBufferOutputStream(
-				        channel, ep, true)) {
+				        channel, ep)) {
+					out.setInputMode();
 					for (int i = 1; i <= 10000; i++) {
 						out.write(
 						        new String(i + ": Hello World!\n").getBytes());
