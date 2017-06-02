@@ -18,27 +18,30 @@
 
 package org.jgrapes.portal;
 
-import java.io.InputStream;
-
 /**
- * 
+ * Thrown if a resource cannot be found.
  */
-public abstract class ThemeProvider {
+@SuppressWarnings("serial")
+public class ResourceNotFoundException extends Exception {
 
-	/**
-	 * Checks if the plugin provides the given protocol.
-	 * 
-	 * @param theme the theme in question
-	 * @return the result
-	 */
-	public abstract boolean providesTheme(String theme);
+	public ResourceNotFoundException() {
+	}
 
-	/**
-	 * Find and open the given resource.
-	 * 
-	 * @param name the resource name
-	 * @return 
-	 */
-	public abstract InputStream getResourceAsStream(String name) 
-			throws ResourceNotFoundException;
+	public ResourceNotFoundException(String message) {
+		super(message);
+	}
+
+	public ResourceNotFoundException(Throwable cause) {
+		super(cause);
+	}
+
+	public ResourceNotFoundException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public ResourceNotFoundException(String message, Throwable cause,
+	        boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
+
 }

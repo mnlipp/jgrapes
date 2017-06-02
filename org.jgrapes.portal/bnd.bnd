@@ -20,4 +20,5 @@ testbin=bin
 Export-Package: \
 	org.jgrapes.portal,\
 	org.jgrapes.portal.defaulttheme,\
-	org.jgrapes.portal.util
+	org.jgrapes.portal.util,\
+	org.jgrapes.portal.events

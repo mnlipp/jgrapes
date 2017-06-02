@@ -18,40 +18,58 @@
 
 package org.jgrapes.portal;
 
+import java.io.IOException;
+import java.net.URI;
+
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.io.util.LinkedIOSubchannel;
+import org.jgrapes.portal.events.RenderPortletResult;
 
 /**
  * 
  */
 public class Portal extends Component {
 
-	private String prefix;
+	private URI prefix;
+	private PortalView view;
 	
 	/**
 	 * 
 	 */
-	public Portal(String prefix) {
+	public Portal(URI prefix) {
 		this(Channel.SELF, prefix);
 	}
 
 	/**
 	 * @param componentChannel
 	 */
-	public Portal(Channel componentChannel, String prefix) {
+	public Portal(Channel componentChannel, URI prefix) {
+		this(componentChannel, componentChannel, prefix);
+	}
+
+	/**
+	 * @param componentChannel
+	 */
+	public Portal(Channel componentChannel, Channel viewChannel, URI prefix) {
 		super(componentChannel);
-		if (prefix.endsWith("/")) {
-			prefix = prefix.substring(0, prefix.length() - 1);
-		}
-		this.prefix = prefix;
-		attach(new PortalView(this));
+		this.prefix = URI.create(prefix.getPath().endsWith("/") 
+				? prefix.getPath() : (prefix.getPath() + "/"));
+		view = attach(new PortalView(this, viewChannel));
 	}
 
 	/**
 	 * @return the prefix
 	 */
-	public String prefix() {
+	public URI prefix() {
 		return prefix;
 	}
-	
+
+	@Handler
+	public void onRenderPortletResult(RenderPortletResult result,
+			LinkedIOSubchannel channel) 
+					throws InterruptedException, IOException {
+		view.renderPortletResult(result, channel);
+	}
 }

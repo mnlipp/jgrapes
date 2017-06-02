@@ -109,7 +109,8 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc").toUri()));
 		app.attach(new PostProcessor(app.channel()));
 		app.attach(new WsEchoServer(app.channel()));
-		app.attach(new Portal(app.channel(), new URI("/portal")));
+		Portal portal = app.attach(new Portal(Channel.SELF, app.channel(), new URI("/portal/")));
+		app.attach(new HelloWorldPortlet(portal));
 		Components.start(app);
 	}
 

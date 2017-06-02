@@ -18,6 +18,9 @@
 
 package org.jgrapes.portal.defaulttheme;
 
+import java.io.InputStream;
+
+import org.jgrapes.portal.ResourceNotFoundException;
 import org.jgrapes.portal.ThemeProvider;
 
 /**
@@ -33,5 +36,16 @@ public class DefaultThemeProvider extends ThemeProvider {
 		return "default".equals(theme);
 	}
 
-
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.ThemeProvider#getResourceAsStream(java.lang.String)
+	 */
+	@Override
+	public InputStream getResourceAsStream(String name)
+	        throws ResourceNotFoundException {
+		InputStream in = getClass().getResourceAsStream(name);
+		if (in == null) {
+			throw new ResourceNotFoundException();
+		}
+		return in;
+	}
 }

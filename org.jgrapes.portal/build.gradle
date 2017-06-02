@@ -1,9 +1,38 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.github.ksoichiro:gradle-web-resource-plugin:1.7.3'
+	}
+}
+
+apply plugin: 'com.github.ksoichiro.web.resource'
+
 // Override default
 version = "0.0.1-SNAPSHOT"
+
+webResource {
+	base {
+		// Change base directories for src/dest
+		src = 'webResource'
+		dest = 'build/generated/webResources/org/jgrapes/portal'
+	}
+	
+	coffeeScript {
+        // Default: true
+        minify = !project.version.endsWith("-SNAPSHOT")
+    }
+}
+
+classes.dependsOn 'webResourceCompile'
+sourceSets.main.output.dir project.file('build/generated/webResources')
+
 
 dependencies {
 	compile project(':org.jgrapes.http')
 	compile 'org.freemarker:freemarker:2.3.26-incubating'
+	compile group: 'org.glassfish', name: 'javax.json', version: '1.0.4'
 }
 
 jar {

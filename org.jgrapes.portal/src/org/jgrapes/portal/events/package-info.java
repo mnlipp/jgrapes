@@ -16,29 +16,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.jgrapes.portal;
-
-import java.io.InputStream;
-
 /**
  * 
  */
-public abstract class ThemeProvider {
-
-	/**
-	 * Checks if the plugin provides the given protocol.
-	 * 
-	 * @param theme the theme in question
-	 * @return the result
-	 */
-	public abstract boolean providesTheme(String theme);
-
-	/**
-	 * Find and open the given resource.
-	 * 
-	 * @param name the resource name
-	 * @return 
-	 */
-	public abstract InputStream getResourceAsStream(String name) 
-			throws ResourceNotFoundException;
-}
+@org.osgi.annotation.versioning.Version("${api_version}")
+package org.jgrapes.portal.events;

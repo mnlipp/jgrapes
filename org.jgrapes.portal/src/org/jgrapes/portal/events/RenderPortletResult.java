@@ -16,29 +16,39 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.jgrapes.portal;
+package org.jgrapes.portal.events;
 
-import java.io.InputStream;
+import org.jgrapes.core.Event;
 
 /**
  * 
  */
-public abstract class ThemeProvider {
+public abstract class RenderPortletResult extends Event<Void> {
+
+	private String portletId;
+	private String title;
 
 	/**
-	 * Checks if the plugin provides the given protocol.
-	 * 
-	 * @param theme the theme in question
-	 * @return the result
+	 * @param channels
+	 * @param portletId
 	 */
-	public abstract boolean providesTheme(String theme);
+	public RenderPortletResult(String portletId, String title) {
+		super();
+		this.portletId = portletId;
+		this.title = title;
+	}
 
 	/**
-	 * Find and open the given resource.
-	 * 
-	 * @param name the resource name
-	 * @return 
+	 * @return the portletId
 	 */
-	public abstract InputStream getResourceAsStream(String name) 
-			throws ResourceNotFoundException;
+	public String portletId() {
+		return portletId;
+	}
+
+	/**
+	 * @return the title
+	 */
+	public String title() {
+		return title;
+	}
 }
