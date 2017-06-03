@@ -23,15 +23,14 @@ updatePortlet: function updatePortlet(params) {
 		portlet = portlets[0];
 	} else {
 		portlet = $( '<div class="portlet">\
-<div class="portlet-header"></div>\
+<div class="portlet-header"><span class="portlet-header-text"></span></div>\
 <div class="portlet-content"></div>\
 </div>');
 		JGPortal.preparePortlets(portlet);
 		$( ".column" ).first().prepend(portlet);
 	}
-	var portletHeader = portlet.find(".portlet-header");
-	portletHeader.children().detach();
-	portletHeader.text(params[1]);
+	var portletHeaderText = portlet.find(".portlet-header-text");
+	portletHeaderText.text(params[1]);
 	var portletContent = portlet.find(".portlet-content");
 	portletContent.children().detach();
 	portletContent.append($(params[2]));
