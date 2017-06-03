@@ -24,8 +24,8 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.portal.events.RenderPortlet;
-import org.jgrapes.portal.events.SimpleRenderPortletResult;
+import org.jgrapes.portal.events.PortalReady;
+import org.jgrapes.portal.events.RenderPortletFromString;
 
 /**
  * 
@@ -52,8 +52,8 @@ public class HelloWorldPortlet extends Component {
 	}
 
 	@Handler
-	public void onRenderPortlet(RenderPortlet event, IOSubchannel channel) {
+	public void onPortalReady(PortalReady event, IOSubchannel channel) {
 		String html = "<div>Hello World!</div>";
-		channel.respond(new SimpleRenderPortletResult("1", "Hello World", html));
+		channel.respond(new RenderPortletFromString("1", "Hello World", html));
 	}
 }
