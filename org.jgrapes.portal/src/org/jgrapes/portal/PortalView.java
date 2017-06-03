@@ -77,9 +77,9 @@ import org.jgrapes.io.util.InputStreamPipeline;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.portal.events.JsonRequest;
+import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortlet;
-import org.jgrapes.portal.events.RenderPortletResult;
-import org.jgrapes.portal.events.SimpleRenderPortletResult;
+import org.jgrapes.portal.events.RenderPortletFromString;
 
 /**
  * 
@@ -302,24 +302,24 @@ public class PortalView extends Component {
 		case "portalReady": {
 			LinkedIOSubchannel reqChannel 
 				= new LinkedIOSubchannel(portal, channel);
-			fire(new RenderPortlet(), reqChannel);
+			fire(new PortalReady(), reqChannel);
 			break;
 		}
 		}
 	}
 	
-	void renderPortletResult(RenderPortletResult event,
+	void renderPortletResult(RenderPortlet event,
 	        LinkedIOSubchannel channel) 
 	        		throws InterruptedException, IOException {
 		JsonBuilderFactory factory = Json.createBuilderFactory(null);
 		JsonObject notification = null;
-		if (event instanceof SimpleRenderPortletResult) {
+		if (event instanceof RenderPortletFromString) {
 			notification = factory.createObjectBuilder()
 					.add("jsonrpc", "2.0").add("method", "updatePortlet")
 					.add("params", factory.createArrayBuilder()
 							.add(event.portletId())
 							.add(event.title())
-							.add(((SimpleRenderPortletResult)event).result()))
+							.add(((RenderPortletFromString)event).content()))
 				.build();
 		}
 		IOSubchannel upstream = channel.upstreamChannel();

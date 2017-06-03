@@ -18,37 +18,29 @@
 
 package org.jgrapes.portal.events;
 
-import org.jgrapes.core.Event;
-
 /**
- * 
+ * Send to the portal for adding or updating a portlet. The content
+ * is provided as string.
  */
-public abstract class RenderPortletResult extends Event<Void> {
+public class RenderPortletFromString extends RenderPortlet {
 
-	private String portletId;
-	private String title;
+	private String content;
 
 	/**
-	 * @param channels
 	 * @param portletId
+	 * @param title
+	 * @param content
 	 */
-	public RenderPortletResult(String portletId, String title) {
-		super();
-		this.portletId = portletId;
-		this.title = title;
+	public RenderPortletFromString(
+			String portletId, String title, String content) {
+		super(portletId, title);
+		this.content = content;
 	}
 
 	/**
-	 * @return the portletId
+	 * @return the result
 	 */
-	public String portletId() {
-		return portletId;
-	}
-
-	/**
-	 * @return the title
-	 */
-	public String title() {
-		return title;
+	public String content() {
+		return content;
 	}
 }

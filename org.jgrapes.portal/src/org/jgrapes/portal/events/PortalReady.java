@@ -18,27 +18,16 @@
 
 package org.jgrapes.portal.events;
 
+import org.jgrapes.core.Event;
+
 /**
- * 
+ * Signals the successful loading of the portal structure
+ * in the browser.
  */
-public class SimpleRenderPortletResult extends RenderPortletResult {
+public class PortalReady extends Event<Void> {
 
-	private String result;
-
-	/**
-	 * @param portletId
-	 * @param result
-	 */
-	public SimpleRenderPortletResult(
-			String portletId, String title, String result) {
-		super(portletId, title);
-		this.result = result;
+	public PortalReady() {
+		super();
 	}
 
-	/**
-	 * @return the result
-	 */
-	public String result() {
-		return result;
-	}
 }

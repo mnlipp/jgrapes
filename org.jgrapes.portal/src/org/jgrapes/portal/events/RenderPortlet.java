@@ -21,15 +21,34 @@ package org.jgrapes.portal.events;
 import org.jgrapes.core.Event;
 
 /**
- * 
+ * Send to the portal for adding or updating a portlet.
  */
-public class RenderPortlet extends Event<Void> {
+public abstract class RenderPortlet extends Event<Void> {
+
+	private String portletId;
+	private String title;
 
 	/**
-	 * 
+	 * @param channels
+	 * @param portletId
 	 */
-	public RenderPortlet() {
+	public RenderPortlet(String portletId, String title) {
 		super();
+		this.portletId = portletId;
+		this.title = title;
 	}
 
+	/**
+	 * @return the portletId
+	 */
+	public String portletId() {
+		return portletId;
+	}
+
+	/**
+	 * @return the title
+	 */
+	public String title() {
+		return title;
+	}
 }
