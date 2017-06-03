@@ -17,15 +17,18 @@ preparePortlets: function (portlets) {
 },
 
 updatePortlet: function updatePortlet(params) {
-	var portlets = $( "div[portletId=" + params[0] + "]" );
+	var matches = $( ".portlet" ).filter(function(index) {
+		return $(this).data("portletId") === params[0];
+	});
 	var portlet;
-	if (portlets.length === 1) {
-		portlet = portlets[0];
+	if (matches.length === 1) {
+		portlet = $( matches[0] );
 	} else {
 		portlet = $( '<div class="portlet">\
 <div class="portlet-header"><span class="portlet-header-text"></span></div>\
 <div class="portlet-content"></div>\
 </div>');
+		portlet.data("portletId", params[0]);
 		JGPortal.preparePortlets(portlet);
 		$( ".column" ).first().prepend(portlet);
 	}
