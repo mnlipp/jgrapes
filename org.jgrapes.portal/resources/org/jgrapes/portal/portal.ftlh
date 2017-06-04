@@ -41,7 +41,7 @@
     margin-bottom: 0.5em;
     position: relative;
   }
-  .portlet-close {
+  .portlet-expand {
     position: absolute;
     top: 50%;
     right: 0;
@@ -81,26 +81,6 @@
     
     // AddTab button
     var tabs = $( "#tabs" ).tabs();
-    var tabTemplate = "<li><a href='@{href}'>@{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>",
-      tabCounter = 2;
-
-    $( "#add_tab" )
-      .button()
-      .on( "click", function() {
-        addTab();
-    });
-
-    function addTab() {
-      tabCounter++;
-      var label = "Tab " + tabCounter,
-        id = "tabs-" + tabCounter,
-        li = $( tabTemplate.replace( /@\{href\}/g, "#" + id ).replace( /@\{label\}/g, label ) ),
-        tabContentHtml = "Tab " + tabCounter + " content.";
- 
-      tabs.find( ".ui-tabs-nav" ).append( li );
-      tabs.append( "<div id='" + id + "'><p>" + tabContentHtml + "</p></div>" );
-      tabs.tabs( "refresh" );
-    }
 
     // Close icon: removing the tab on click
     tabs.on( "click", "span.ui-icon-close", function() {
@@ -113,12 +93,6 @@
     // Portlet Grid
     //
     
-//     $( "#add_portlet" )
-//       .button()
-//       .on( "click", function() {
-//         addPortlet();
-//     });    
-
     // Prepare columns
     $( ".column" ).sortable({
       connectWith: ".column",
@@ -127,8 +101,8 @@
       placeholder: "portlet-placeholder ui-corner-all"
     });
  
-    // With everything prepared, open WebSocket connection
-    JGPortal.openConnection();
+    // With everything prepared, send portal ready
+    JGPortal.sendPortalReady();
 
   } );
   </script>
@@ -136,8 +110,6 @@
 </head>
 
 <body>
-
-<button id="add_tab">Add Tab</button>
 
 <div id="tabs">
   <ul>

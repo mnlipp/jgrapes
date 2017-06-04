@@ -4,42 +4,85 @@
  */
 JGPortal = {
 
-// Prepare the given selection of portlets
-preparePortlets: function (portlets) {
-	portlets.addClass( "ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" )
-		.find( ".portlet-header" )
-		.addClass( "ui-widget-header ui-corner-all" )
-		.prepend( "<span class='ui-icon ui-icon-closethick portlet-close'></span>");
-	portlets.find(".portlet-close").on( "click", function() {
-		var icon = $( this );
-		icon.closest( ".portlet" ).remove();
-	});
-},
+};
 
-updatePortlet: function updatePortlet(params) {
-	var matches = $( ".portlet" ).filter(function(index) {
-		return $(this).data("portletId") === params[0];
-	});
-	var portlet;
-	if (matches.length === 1) {
-		portlet = $( matches[0] );
-	} else {
-		portlet = $( '<div class="portlet">\
+(function () {
+
+	function updatePreview(portletId, title, modes, content) {
+		var matches = $( ".portlet" ).filter(function(index) {
+			return $(this).data("portletId") === portletId;
+		});
+		var portlet;
+		if (matches.length === 1) {
+			portlet = $( matches[0] );
+		} else {
+			portlet = $( '<div class="portlet">\
 <div class="portlet-header"><span class="portlet-header-text"></span></div>\
 <div class="portlet-content"></div>\
 </div>');
-		portlet.data("portletId", params[0]);
-		JGPortal.preparePortlets(portlet);
-		$( ".column" ).first().prepend(portlet);
-	}
-	var portletHeaderText = portlet.find(".portlet-header-text");
-	portletHeaderText.text(params[1]);
-	var portletContent = portlet.find(".portlet-content");
-	portletContent.children().detach();
-	portletContent.append($(params[2]));
-},
+			portlet.data("portletId", portletId);
+			portlet.addClass( "ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" );
+			var portletHeader = portlet.find( ".portlet-header" );
+			portletHeader.addClass( "ui-widget-header ui-corner-all" );
+			if (modes.includes("View")) {
+				portletHeader.prepend( "<span class='ui-icon ui-icon-arrowthick-2-ne-sw portlet-expand'></span>");
+				portletHeader.find(".portlet-expand").on( "click", function() {
+					var icon = $( this );
+					var portlet = icon.closest( ".portlet" );
+					JGPortal.sendRenderPortlet(portlet.data("portletId"), "View");
+				});
+			}
+			$( ".column" ).first().prepend(portlet);
+		}
+		var portletHeaderText = portlet.find(".portlet-header-text");
+		portletHeaderText.text(title);
+		var portletContent = portlet.find(".portlet-content");
+		portletContent.children().detach();
+		portletContent.append($(content));
+	};
 
-};
+    var tabTemplate = "<li><a href='@{href}'>@{label}</a> " +
+    		"<span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>";
+	var tabCounter = 1;
+
+	function updateView(portletId, title, modes, content) {
+		var tabs = $( "#tabs" ).tabs();
+        var portletIndex;
+		var matches = tabs.find("> div").filter(function(index) {
+			if ($(this).data("portletId") === portletId) {
+			    portletIndex = index;
+			    return true;
+			} else {
+			    return false;
+			}
+		});
+		var portletView;
+		if (matches.length === 1) {
+			portletView = $( matches[0] );
+		} else {
+			tabCounter += 1;
+	        var id = "tabs-" + tabCounter,
+	          li = $( tabTemplate.replace( /@\{href\}/g, "#" + id ).replace( /@\{label\}/g, title ) );
+	        var tabItems = tabs.find( ".ui-tabs-nav" );
+	        tabItems.append( li );
+	        portletView = $( "<div id='" + id + "'>" + content + "</div>" )
+			portletView.data("portletId", portletId);
+	        tabs.append( portletView );
+	        tabs.tabs( "refresh" );
+	        portletIndex = tabItems.find("li").length - 1;
+		}
+        tabs.tabs( "option", "active", portletIndex );
+	}
+	
+	JGPortal.updatePortlet = function updatePortlet(params) {
+		if (params[2] === "Preview") {
+			updatePreview(params[0], params[1], params[3], params[4]);
+		} else if (params[2] === "View") {
+			updateView(params[0], params[1], params[3], params[4]);
+		}
+	};
+})();
+
 
 (function() {
 
@@ -48,18 +91,26 @@ updatePortlet: function updatePortlet(params) {
 	};
 	    
 	JGPortal.handleMessage = function(message) {
-        try {
-        	messageHandlers[message.method](message.params);
-        } catch (e) {
-        }    
+		messageHandlers[message.method](message.params);
     };
 	
 })();
 
-JGPortal.openConnection = function() {
+(function() {
+	var wsConn;
+	
 	var loc = (window.location.protocol === "https:" ? "wss:" : "ws") +
 		"//" + window.location.host + window.location.pathname;
-	var wsConn = $.simpleWebSocket({ "url": loc })
-		.listen(JGPortal.handleMessage)    
-		.send({"jsonrpc": "2.0", "method": "portalReady"});
-};
+	wsConn = $.simpleWebSocket({ "url": loc })
+			.listen(JGPortal.handleMessage);
+	wsConn.connect();
+
+	JGPortal.sendPortalReady = function() {
+		wsConn.send({"jsonrpc": "2.0", "method": "portalReady"});
+	};
+	
+	JGPortal.sendRenderPortlet = function(portletId, mode) {
+		wsConn.send({"jsonrpc": "2.0", "method": "renderPortlet",
+			"params": [ portletId, mode ]});
+	};
+})();

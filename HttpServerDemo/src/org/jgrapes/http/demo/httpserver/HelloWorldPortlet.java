@@ -20,23 +20,30 @@ package org.jgrapes.http.demo.httpserver;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortletFromString;
+import org.jgrapes.portal.events.RenderPortletRequest;
+
+import static org.jgrapes.portal.Portlet.*;
 
 /**
  * 
  */
 public class HelloWorldPortlet extends Component {
 
+	private String portletId;
+	
 	/**
 	 * Creates a new component with its channel set to
 	 * itself.
 	 */
 	public HelloWorldPortlet() {
+		this(Channel.SELF);
 	}
 
 	/**
@@ -49,11 +56,27 @@ public class HelloWorldPortlet extends Component {
 	 */
 	public HelloWorldPortlet(Channel componentChannel) {
 		super(componentChannel);
+		portletId = Components.objectFullName(this);
 	}
 
 	@Handler
 	public void onPortalReady(PortalReady event, IOSubchannel channel) {
 		String html = "<div>Hello World!</div>";
-		channel.respond(new RenderPortletFromString("1", "Hello World", html));
+		channel.respond(new RenderPortletFromString(
+				portletId, "Hello World", RenderMode.Preview, 
+				VIEWABLE_PORTLET_MODES, html));
+	}
+	
+	@Handler
+	public void onRenderPortletRequest(RenderPortletRequest event,
+			IOSubchannel channel) {
+		if (!event.portletId().equals(portletId)) {
+			return;
+		}
+		String html = "<div><h1>Hello World!</h1></div>";
+		channel.respond(new RenderPortletFromString(
+				portletId, "Hello World", RenderMode.View, 
+				VIEWABLE_PORTLET_MODES, html));
+		event.stop();
 	}
 }

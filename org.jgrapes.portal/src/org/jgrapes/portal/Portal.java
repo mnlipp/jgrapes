@@ -67,9 +67,9 @@ public class Portal extends Component {
 	}
 
 	@Handler
-	public void onRenderPortletResult(RenderPortlet result,
+	public void onRenderPortlet(RenderPortlet result,
 			LinkedIOSubchannel channel) 
 					throws InterruptedException, IOException {
-		view.renderPortletResult(result, channel);
+		view.renderPortlet(result, channel);
 	}
 }

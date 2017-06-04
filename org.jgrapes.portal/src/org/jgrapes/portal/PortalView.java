@@ -51,6 +51,8 @@ import java.util.stream.StreamSupport;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
@@ -76,10 +78,12 @@ import org.jgrapes.io.util.CharBufferWriter;
 import org.jgrapes.io.util.InputStreamPipeline;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedCharBuffer;
+import org.jgrapes.portal.Portlet.RenderMode;
 import org.jgrapes.portal.events.JsonRequest;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortlet;
 import org.jgrapes.portal.events.RenderPortletFromString;
+import org.jgrapes.portal.events.RenderPortletRequest;
 
 /**
  * 
@@ -305,20 +309,33 @@ public class PortalView extends Component {
 			fire(new PortalReady(), reqChannel);
 			break;
 		}
+		case "renderPortlet":
+			LinkedIOSubchannel reqChannel 
+				= new LinkedIOSubchannel(portal, channel);
+			JsonArray params = (JsonArray)event.params();
+			fire(new RenderPortletRequest(params.getString(0),
+					RenderMode.valueOf(params.getString(1))), reqChannel);
+			break;
 		}
 	}
 	
-	void renderPortletResult(RenderPortlet event,
+	void renderPortlet(RenderPortlet event,
 	        LinkedIOSubchannel channel) 
 	        		throws InterruptedException, IOException {
 		JsonBuilderFactory factory = Json.createBuilderFactory(null);
 		JsonObject notification = null;
 		if (event instanceof RenderPortletFromString) {
+			JsonArrayBuilder renderModes = factory.createArrayBuilder();
+			for (RenderMode mode: event.supportedRenderModes()) {
+				renderModes.add(mode.name());
+			}
 			notification = factory.createObjectBuilder()
 					.add("jsonrpc", "2.0").add("method", "updatePortlet")
 					.add("params", factory.createArrayBuilder()
 							.add(event.portletId())
 							.add(event.title())
+							.add(event.renderMode().name())
+							.add(renderModes)
 							.add(((RenderPortletFromString)event).content()))
 				.build();
 		}
