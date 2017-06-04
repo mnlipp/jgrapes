@@ -134,9 +134,27 @@ public class Components {
 	}
 	
 	/**
+	 * Returns the full name of the object's class together with an id (see 
+	 * {@link #objectId(Object)}). The result can be used as a unique
+	 * human readable identifier for arbitrary objects.
+	 * 
+	 * @param object
+	 *            the object
+	 * @return the object's name
+	 */
+	public static String objectFullName(Object object) {
+		StringBuilder builder = new StringBuilder();
+		builder.append(object.getClass().getName());
+		builder.append('#');
+		builder.append(objectId(object));
+		return builder.toString();
+	}
+
+	/**
 	 * Returns the name of the object's class together with an id (see 
 	 * {@link #objectId(Object)}). May be used to implement {@code toString()}
-	 * with identifiable objects.
+	 * with identifiable objects. If the log level is "finer", the full
+	 * class name will be used for the returned value, else the simple name.
 	 * 
 	 * @param object
 	 *            the object
