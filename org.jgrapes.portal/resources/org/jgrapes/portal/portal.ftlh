@@ -12,7 +12,7 @@
   <!-- CSS -->
   <!-- jQuery / jQuery UI -->
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui.min.css')}"></script>
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui.icon-font.min.css')}"></script>
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-iconfont-2.3.2/jquery-ui-1.12.icon-font.min.css')}"></script>
   <!-- Portal -->
   <link rel="stylesheet" href="${resourceUrl('portal-resource/normalize.css')}">
   <link rel="stylesheet" href="${resourceUrl('theme-resource/portal.css')}">
