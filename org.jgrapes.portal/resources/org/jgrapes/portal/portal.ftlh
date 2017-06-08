@@ -1,6 +1,6 @@
 <!doctype html>
 
-<html class="no-js" lang="en">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,7 +11,8 @@
 
   <!-- CSS -->
   <!-- jQuery / jQuery UI -->
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui.css')}"></script>
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui.min.css')}"></script>
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui.icon-font.min.css')}"></script>
   <!-- Portal -->
   <link rel="stylesheet" href="${resourceUrl('portal-resource/normalize.css')}">
   <link rel="stylesheet" href="${resourceUrl('theme-resource/portal.css')}">
@@ -42,10 +43,7 @@
     position: relative;
   }
   .portlet-expand {
-    position: absolute;
-    top: 50%;
-    right: 0;
-    margin-top: -8px;
+    float: right;
     cursor: pointer;
   }
   .portlet-content {
@@ -71,7 +69,6 @@
   <script src="${resourceUrl('portal-resource/lib/jquery.simple.websocket.min.js')}"></script>
 
   <!-- Portal -->
-  <script src="${resourceUrl('portal-resource/modernizr-2.8.3.min.js')}"></script>
   <script src="${resourceUrl('portal-resource/functions.js')}"></script>
 
   <script>

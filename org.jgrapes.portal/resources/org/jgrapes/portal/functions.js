@@ -25,7 +25,7 @@ JGPortal = {
 			var portletHeader = portlet.find( ".portlet-header" );
 			portletHeader.addClass( "ui-widget-header ui-corner-all" );
 			if (modes.includes("View")) {
-				portletHeader.prepend( "<span class='ui-icon ui-icon-arrowthick-2-ne-sw portlet-expand'></span>");
+				portletHeader.prepend( "<span class='ui-icon ui-icon-fullscreen portlet-expand'></span>");
 				portletHeader.find(".portlet-expand").on( "click", function() {
 					var icon = $( this );
 					var portlet = icon.closest( ".portlet" );
