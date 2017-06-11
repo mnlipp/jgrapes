@@ -54,7 +54,7 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
@@ -84,6 +84,7 @@ import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortlet;
 import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.RenderPortletRequest;
+import org.jgrapes.portal.themes.base.Provider;
 
 /**
  * 
@@ -96,6 +97,7 @@ public class PortalView extends Component {
 	private static Configuration fmConfig = null;
 	private static MimetypesFileTypeMap typesMap = new MimetypesFileTypeMap();
 
+	private ThemeProvider baseTheme;
 	private ThemeProvider themeProvider;
 	private Map<String,Object> portalModel = new HashMap<>();
 
@@ -116,7 +118,8 @@ public class PortalView extends Component {
 					TemplateExceptionHandler.RETHROW_HANDLER);
 	        fmConfig.setLogTemplateExceptions(false);
 		}
-		setTheme("default");
+		baseTheme = new Provider();
+		setTheme("base");
 		RequestHandler.Evaluator.add(this, "onGet", portal.prefix() + "/**");
 		
 		// Create portal model
@@ -133,11 +136,16 @@ public class PortalView extends Component {
 						((SimpleScalar)args.get(0)).getAsString()).getPath();
 			}
 		});
+		
+		portalModel.put("themeInfos", 
+				StreamSupport.stream(themeLoader.spliterator(), false)
+				.map(t -> new ThemeInfo(t.themeId(), t.themeName()))
+				.sorted().toArray(size -> new ThemeInfo[size]));
 	}
 
 	private void setTheme(String theme) {
 		StreamSupport.stream(themeLoader.spliterator(), false)
-			.filter(t -> t.providesTheme(theme)).findFirst()
+			.filter(t -> t.themeId().equals(theme)).findFirst()
 			.ifPresent(t -> { themeProvider = t; });
 	}
 	
@@ -235,7 +243,13 @@ public class PortalView extends Component {
 			String resource) {
 		try {
 			// Get resource
-			InputStream resIn = themeProvider.getResourceAsStream(resource);
+		
+			InputStream resIn;
+			try {
+				resIn = themeProvider.getResourceAsStream(resource);
+			} catch (ResourceNotFoundException e) {
+				resIn = baseTheme.getResourceAsStream(resource);
+			}
 			
 			// Send header
 			HttpResponse response = event.request().response().get();
@@ -301,7 +315,8 @@ public class PortalView extends Component {
 	}
 	
 	@Handler
-	public void onJsonRequest(JsonRequest event, IOSubchannel channel) {
+	public void onJsonRequest(JsonRequest event, IOSubchannel channel) 
+			throws InterruptedException, IOException {
 		switch (event.method()) {
 		case "portalReady": {
 			LinkedIOSubchannel reqChannel 
@@ -309,7 +324,7 @@ public class PortalView extends Component {
 			fire(new PortalReady(), reqChannel);
 			break;
 		}
-		case "renderPortlet":
+		case "renderPortlet": {
 			LinkedIOSubchannel reqChannel 
 				= new LinkedIOSubchannel(portal, channel);
 			JsonArray params = (JsonArray)event.params();
@@ -317,34 +332,68 @@ public class PortalView extends Component {
 					RenderMode.valueOf(params.getString(1))), reqChannel);
 			break;
 		}
+		case "setTheme": {
+			LinkedIOSubchannel reqChannel 
+				= new LinkedIOSubchannel(portal, channel);
+			JsonArray params = (JsonArray)event.params();
+			setTheme(params.getString(0));
+			sendNotificationResponse(reqChannel, "reload");
+		}
+		}		
 	}
 	
 	void renderPortlet(RenderPortlet event,
 	        LinkedIOSubchannel channel) 
 	        		throws InterruptedException, IOException {
 		JsonBuilderFactory factory = Json.createBuilderFactory(null);
-		JsonObject notification = null;
 		if (event instanceof RenderPortletFromString) {
-			JsonArrayBuilder renderModes = factory.createArrayBuilder();
-			for (RenderMode mode: event.supportedRenderModes()) {
-				renderModes.add(mode.name());
-			}
-			notification = factory.createObjectBuilder()
-					.add("jsonrpc", "2.0").add("method", "updatePortlet")
-					.add("params", factory.createArrayBuilder()
-							.add(event.portletId())
-							.add(event.title())
-							.add(event.renderMode().name())
-							.add(renderModes)
-							.add(((RenderPortletFromString)event).content()))
-				.build();
+			sendNotificationResponse(channel, "updatePortlet",
+					event.portletId(), event.title(), event.renderMode().name(),
+					event.supportedRenderModes().stream().map(RenderMode::name)
+						.toArray(size -> new String[size]),
+					((RenderPortletFromString)event).content());
+		}
+		JsonArrayBuilder renderModes = factory.createArrayBuilder();
+		for (RenderMode mode: event.supportedRenderModes()) {
+			renderModes.add(mode.name());
+		}
+	}
+
+	private void sendNotificationResponse(LinkedIOSubchannel channel,
+	        String method, Object... params)
+	        		throws InterruptedException, IOException {
+		JsonBuilderFactory factory = Json.createBuilderFactory(null);
+		JsonObjectBuilder notification = factory.createObjectBuilder()
+				.add("jsonrpc", "2.0").add("method", method);
+		if (params.length > 0) {
+			notification.add("params", toJsonArray(factory, null, params));
 		}
 		IOSubchannel upstream = channel.upstreamChannel();
 		@SuppressWarnings("resource")
 		CharBufferWriter out = new CharBufferWriter(upstream, 
 				upstream.responsePipeline()).suppressClose();
-		Json.createWriter(out).write(notification);
+		Json.createWriter(out).write(notification.build());
 		out.close();
+	}
+
+	private JsonArrayBuilder toJsonArray(JsonBuilderFactory factory,
+			JsonArrayBuilder array, Object item) {
+		if (item instanceof Object[]) {
+			JsonArrayBuilder arrayBuilder = factory.createArrayBuilder();
+			for (Object nested: (Object[])item) {
+				toJsonArray(factory, arrayBuilder, nested);
+			}
+			if (array == null) {
+				return arrayBuilder;
+			}
+			array.add(arrayBuilder);
+			return array;
+		}
+		if (array == null) {
+			array = factory.createArrayBuilder();
+		}
+		array.add(item.toString());
+		return array;
 	}
 	
 	@Handler
@@ -402,6 +451,43 @@ public class PortalView extends Component {
 		}
 	}
 
+	public static class ThemeInfo implements Comparable<ThemeInfo> {
+		private String id;
+		private String name;
+		
+		/**
+		 * @param id
+		 * @param name
+		 */
+		public ThemeInfo(String id, String name) {
+			super();
+			this.id = id;
+			this.name = name;
+		}
+		
+		/**
+		 * @return the id
+		 */
+		public String id() {
+			return id;
+		}
+		
+		/**
+		 * @return the name
+		 */
+		public String name() {
+			return name;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Comparable#compareTo(java.lang.Object)
+		 */
+		@Override
+		public int compareTo(ThemeInfo other) {
+			return name().compareToIgnoreCase(other.name());
+		}
+	}
+	
 //	private void renderTemplate(GetRequest request, IOSubchannel channel,
 //			RockerRenderer rockerRenderer) throws InterruptedException, IOException {
 //		HttpResponse response = request.request().response().get();

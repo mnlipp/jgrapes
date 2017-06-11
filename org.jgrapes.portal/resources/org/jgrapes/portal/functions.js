@@ -74,11 +74,11 @@ JGPortal = {
         tabs.tabs( "option", "active", portletIndex );
 	}
 	
-	JGPortal.updatePortlet = function updatePortlet(params) {
-		if (params[2] === "Preview") {
-			updatePreview(params[0], params[1], params[3], params[4]);
-		} else if (params[2] === "View") {
-			updateView(params[0], params[1], params[3], params[4]);
+	JGPortal.updatePortlet = function updatePortlet(portletId, title, mode, modes, content) {
+		if (mode === "Preview") {
+			updatePreview(portletId, title, modes, content);
+		} else if (mode === "View") {
+			updateView(portletId, title, modes, content);
 		}
 	};
 })();
@@ -87,11 +87,20 @@ JGPortal = {
 (function() {
 
 	var messageHandlers = {
-		'updatePortlet': JGPortal.updatePortlet
+		'updatePortlet': JGPortal.updatePortlet,
+		'reload': function() { window.location.reload(true); }
 	};
 	    
 	JGPortal.handleMessage = function(message) {
-		messageHandlers[message.method](message.params);
+	    var handler = messageHandlers[message.method];
+	    if (handler === null) {
+	        return;
+	    }
+	    if (message.hasOwnProperty("params")) {
+	        handler(...message.params);
+	    } else {
+	        handler();
+	    }
     };
 	
 })();
@@ -109,6 +118,11 @@ JGPortal = {
 		wsConn.send({"jsonrpc": "2.0", "method": "portalReady"});
 	};
 	
+    JGPortal.sendSetTheme = function(themeId) {
+        wsConn.send({"jsonrpc": "2.0", "method": "setTheme",
+            "params": [ themeId ]});
+    };
+    
 	JGPortal.sendRenderPortlet = function(portletId, mode) {
 		wsConn.send({"jsonrpc": "2.0", "method": "renderPortlet",
 			"params": [ portletId, mode ]});

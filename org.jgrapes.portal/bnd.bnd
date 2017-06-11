@@ -19,6 +19,6 @@ testbin=bin
     "Found source folder 'resources' that is not on bnd's source path"
 Export-Package: \
 	org.jgrapes.portal,\
-	org.jgrapes.portal.defaulttheme,\
+	org.jgrapes.portal.themes.base,\
 	org.jgrapes.portal.util,\
 	org.jgrapes.portal.events

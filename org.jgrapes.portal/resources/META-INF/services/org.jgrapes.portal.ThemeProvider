@@ -1,1 +1,3 @@
-org.jgrapes.portal.defaulttheme.DefaultThemeProvider
+org.jgrapes.portal.themes.base.Provider
+org.jgrapes.portal.themes.blacktie.Provider
+org.jgrapes.portal.themes.blitzer.Provider

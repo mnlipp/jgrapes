@@ -10,9 +10,11 @@
   <title>Top Window</title>
 
   <!-- CSS -->
-  <!-- jQuery / jQuery UI -->
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui.min.css')}"></script>
+  <!-- jQuery / jQuery UI and extensions -->
+  <link rel="stylesheet" href="${resourceUrl('theme-resource/jquery-ui.min.css')}"></script>
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-iconfont-2.3.2/jquery-ui-1.12.icon-font.min.css')}"></script>
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.min.css')}"></script>
+
   <!-- Portal -->
   <link rel="stylesheet" href="${resourceUrl('portal-resource/normalize.css')}">
   <link rel="stylesheet" href="${resourceUrl('theme-resource/portal.css')}">
@@ -58,21 +60,28 @@
   </style> 
   
   <!-- Scripts(s) --> 
-  <!-- jQuery / jQuery UI -->
+  <!-- JQuery and extensions -->
   <script src="${resourceUrl('portal-resource/lib/jquery-3.2.1.min.js')}"></script>
-  <script src="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui.min.js')}"></script>
-  
-  <!-- jQuery Touch Punch - Enable Touch Drag and Drop -->
-  <script src="${resourceUrl('portal-resource/lib/jquery.ui.touch-punch.min.js')}"></script>
-
-  <!-- jQuery Web Socket -->
   <script src="${resourceUrl('portal-resource/lib/jquery.simple.websocket.min.js')}"></script>
+  <!-- JQuery UI and extensions -->
+  <script src="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui.min.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/jquery.ui.touch-punch.min.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.js')}"></script>
 
   <!-- Portal -->
   <script src="${resourceUrl('portal-resource/functions.js')}"></script>
 
   <script>
   $( function() {
+    // Top bar
+    $( "#theme-menu" ).click(function(event) {
+      $( "#theme-menu" ).jqDropdown("hide");
+    });
+    
+    $( "#theme-menu" ).on("click", "[data-theme-id]", function() {
+      JGPortal.sendSetTheme($(this).data("theme-id"));
+    });
+    
     // Tabs
     $( "#tabs" ).tabs();
     
@@ -108,6 +117,13 @@
 
 <body>
 
+<!-- The bar at the top of the page -->
+<div class="ui-widget top-bar">
+  <span class="ui-icon ui-icon-settings" data-jq-dropdown="#settings-panel">Settings</span>
+  <span data-jq-dropdown="#test-panel">Test</span>
+</div>
+
+<!-- Main content: The tabs -->
 <div id="tabs">
   <ul>
     <li><a href="#tabs-1">Overview</a></li>
@@ -128,6 +144,32 @@
   </div>
   
 </div>
+
+<!-- (Initially invisible) --> 
+
+<!-- The settings panel and its sub-structures -->
+<div id="settings-panel" class="jq-dropdown jq-dropdown-anchor-right">
+  <div class="jq-dropdown-panel ui-widget-content">
+    <div data-jq-dropdown="#theme-menu">Theme</div>
+  </div>
+</div>
+
+<div id="theme-menu" class="jq-dropdown jq-dropdown-tip">
+  <ul class="jq-dropdown-menu ui-menu ui-widget ui-menu-item">
+  <#list themeInfos as t>
+    <li class="ui-menu-item">
+      <div class="ui-menu-item-wrapper" data-theme-id="${t.id()}">${t.name()}</div>
+    </li>
+  </#list>
+  </ul>
+</div>
+
+<div id="test-panel" class="jq-dropdown jq-dropdown-anchor-right">
+  <div class="jq-dropdown-panel ui-widget-content">
+    Hello!
+  </div>
+</div>
+
 
 </body>
 </html>

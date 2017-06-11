@@ -26,12 +26,20 @@ import java.io.InputStream;
 public abstract class ThemeProvider {
 
 	/**
-	 * Checks if the plugin provides the given protocol.
+	 * Return the id of the theme.
 	 * 
-	 * @param theme the theme in question
 	 * @return the result
 	 */
-	public abstract boolean providesTheme(String theme);
+	public abstract String themeId();
+
+	/**
+	 * Return the name of the theme. The default implementation returns the id.
+	 * 
+	 * @return the result
+	 */
+	public String themeName() {
+		return themeId();
+	}
 
 	/**
 	 * Find and open the given resource.
@@ -39,6 +47,12 @@ public abstract class ThemeProvider {
 	 * @param name the resource name
 	 * @return 
 	 */
-	public abstract InputStream getResourceAsStream(String name) 
-			throws ResourceNotFoundException;
+	public InputStream getResourceAsStream(String name)
+	        throws ResourceNotFoundException {
+		InputStream in = getClass().getResourceAsStream(name);
+		if (in == null) {
+			throw new ResourceNotFoundException();
+		}
+		return in;
+	}
 }
