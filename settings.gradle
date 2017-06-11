@@ -1,6 +1,7 @@
 rootProject.name = 'JGrapes'
 
 include 'org.jgrapes.core'
+include 'org.jgrapes.util'
 include 'org.jgrapes.io'
 include 'org.jgrapes.http'
 include 'org.jgrapes.http.rocker'

@@ -51,6 +51,7 @@ import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.portal.Portal;
+import org.jgrapes.util.PreferencesStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
@@ -100,6 +101,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		        httpTransport, GetRequest.class, PostRequest.class));
 		
 		// Build application layer
+		app.attach(new PreferencesStore(app.channel(), this.getClass()));
 		app.attach(new InMemorySessionManager(app.channel()));
 		app.attach(new LanguageSelector(app.channel()));
 		app.attach(new FileStorage(app.channel(), 65536));
