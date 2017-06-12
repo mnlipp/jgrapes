@@ -18,41 +18,24 @@
 
 package org.jgrapes.util.events;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import org.jgrapes.core.Event;
-
 /**
  * 
  */
-public class UpdatePreferences extends Event<Void> {
+public class InitialPreferences extends UpdatePreferences {
 
-	private Map<String,Map<String,String>> paths = new HashMap<>();
+	private String applicationPath;
 	
 	/**
+	 * 
 	 */
-	public UpdatePreferences() {
+	public InitialPreferences(String applicationPath) {
+		this.applicationPath = applicationPath;
 	}
 
-	public UpdatePreferences add(String path, String key, String value) {
-		if (path == null) {
-			path = "";
-		}
-		Map<String,String> scoped = paths
-				.computeIfAbsent(path, s -> new HashMap<String,String>());
-		scoped.put(key, value);
-		return this;
-	}
-	
-	public Set<String> paths() {
-		return Collections.unmodifiableSet(paths.keySet());
-	}
-	
-	public Map<String,String> preferences(String path) {
-		return Collections.unmodifiableMap(
-				paths.getOrDefault(path, Collections.emptyMap()));
+	/**
+	 * @return the applicationPath
+	 */
+	public String applicationPath() {
+		return applicationPath;
 	}
 }

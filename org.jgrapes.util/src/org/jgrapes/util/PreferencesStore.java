@@ -27,6 +27,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
+import org.jgrapes.util.events.InitialPreferences;
 import org.jgrapes.util.events.UpdatePreferences;
 
 /**
@@ -36,8 +37,8 @@ import org.jgrapes.util.events.UpdatePreferences;
  * node. During application bootstrap, it intercepts the {@link Start} 
  * event using a handler with  priority 999999. When receiving this event, 
  * it fires all known preferences values on its channel as an 
- * {@link UpdatePreferences} event. Then, it re-fires the intercepted 
- * {@link Start} event.
+ * {@link InitialPreferences} event. Then, it re-fires the intercepted 
+ * {@link Start} event. 
  * 
  * Components that depend on preference values define handlers
  * for {@link UpdatePreferences} events and adapt themselves to the values 
@@ -73,14 +74,25 @@ public class PreferencesStore extends Component {
 		}
 		started = true;
 		event.intercept();
-		UpdatePreferences updEvt = new UpdatePreferences();
-		for (String scope: preferences.childrenNames()) {
-			Preferences scoped = preferences.node(scope);
-			for (String key: scoped.keys()) {
-				updEvt.add(scope, key, scoped.get(key, null));
-			}
-		}
+		InitialPreferences updEvt 
+			= new InitialPreferences(preferences.absolutePath());
+		addPrefs(updEvt, preferences.absolutePath(), preferences);
+		fire(updEvt);
 		fire(new Start(), event.channels());
+	}
+
+	private void addPrefs(
+			UpdatePreferences updEvt, String appPath, Preferences node) 
+					throws BackingStoreException {
+		String nodePath = node.absolutePath();
+		String relPath = nodePath.substring(Math.min(
+				appPath.length() + 1, nodePath.length()));
+		for (String key: node.keys()) {
+			updEvt.add(relPath, key, node.get(key, null));
+		}
+		for (String child: node.childrenNames()) {
+			addPrefs(updEvt, appPath, node.node(child));
+		}
 	}
 	
 	@Handler
@@ -91,9 +103,13 @@ public class PreferencesStore extends Component {
 	@Handler
 	public void onUpdatePreferences(UpdatePreferences event) 
 			throws BackingStoreException {
-		for (String scope: event.scopes()) {
-			for (Map.Entry<String, String> e: event.preferences(scope).entrySet()) {
-				preferences.node(scope).put(e.getKey(), e.getValue());
+		if (event instanceof InitialPreferences) {
+			return;
+		}
+		for (String path: event.paths()) {
+			for (Map.Entry<String, String> e: 
+				event.preferences(path).entrySet()) {
+				preferences.node(path).put(e.getKey(), e.getValue());
 			}
 		}
 		preferences.flush();

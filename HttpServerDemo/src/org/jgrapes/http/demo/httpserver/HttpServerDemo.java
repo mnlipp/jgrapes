@@ -30,6 +30,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.prefs.Preferences;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
