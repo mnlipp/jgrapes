@@ -66,7 +66,7 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	private boolean completed = false;
 	/** Indicates that the event should not processed further. */
 	private boolean stopped = false;
-	private boolean intercepted = false;
+	private boolean cancelled = false;
 	/** The results of handling the event (if any). */
 	private List<T> results;
 	/** Context data. */
@@ -214,17 +214,6 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	}
 
 	/**
-	 * Stops the processing of the event like {@link #stop()} and
-	 * additionally prevents the completed events from being fired.
-	 * 
-	 * @return the object for easy chaining
-	 */
-	public Event<T> intercept() {
-		stop();
-		return (Event<T>)this;
-	}
-
-	/**
 	 * Returns <code>true</code> if {@link #stop} has been called.
 	 * 
 	 * @return the stopped state
@@ -258,7 +247,7 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 				completed = true;
 				notifyAll();
 			}
-			if (completedEvents != null && !intercepted) {
+			if (completedEvents != null && !cancelled) {
 				for (Event<?> e: completedEvents) {
 					Channel[] completeChannels = e.channels();
 					if (completeChannels == null) {
@@ -325,26 +314,26 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	}
 	
 	/**
-	 * The cancel semantics of {@link Future}s do not apply to events.
+	 * Prevents the invocation of further handlers (like {@link #stop()} 
+	 * and (in addition) the invocation of any added completed events.
 	 * 
 	 * @param mayInterruptIfRunning ignored
-	 * @return always {@code false} as event processing cannot be cancelled
+	 * @return `false` if the event has already been completed
 	 * @see java.util.concurrent.Future#cancel(boolean)
 	 */
 	@Override
 	public boolean cancel(boolean mayInterruptIfRunning) {
+		if (!completed && !cancelled) {
+			stop();
+			cancelled = true;
+			return true;
+		}
 		return false;
 	}
 
-	/**
-	 * The cancel semantics of {@link Future}s do not apply to events.
-	 * 
-	 * @return always {@code false} as event processing cannot be cancelled
-	 * @see java.util.concurrent.Future#isCancelled()
-	 */
 	@Override
 	public boolean isCancelled() {
-		return false;
+		return cancelled;
 	}
 
 	/**

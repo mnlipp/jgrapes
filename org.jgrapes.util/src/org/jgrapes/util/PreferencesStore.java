@@ -73,7 +73,7 @@ public class PreferencesStore extends Component {
 			return;
 		}
 		started = true;
-		event.intercept();
+		event.cancel(false);
 		InitialPreferences updEvt 
 			= new InitialPreferences(preferences.absolutePath());
 		addPrefs(updEvt, preferences.absolutePath(), preferences);
