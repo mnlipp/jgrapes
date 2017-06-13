@@ -308,27 +308,24 @@ public class PortalView extends Component {
 		if (!optPortalInfo.isPresent()) {
 			return;
 		}
+		// Send events to portlets on portal's channel
+		LinkedIOSubchannel portalChannel 
+			= new LinkedIOSubchannel(portal, channel);
 		switch (event.method()) {
 		case "portalReady": {
-			LinkedIOSubchannel reqChannel 
-				= new LinkedIOSubchannel(portal, channel);
-			fire(new PortalReady(), reqChannel);
+			fire(new PortalReady(), portalChannel);
 			break;
 		}
 		case "renderPortlet": {
-			LinkedIOSubchannel reqChannel 
-				= new LinkedIOSubchannel(portal, channel);
 			JsonArray params = (JsonArray)event.params();
 			fire(new RenderPortletRequest(params.getString(0),
-					RenderMode.valueOf(params.getString(1))), reqChannel);
+					RenderMode.valueOf(params.getString(1))), portalChannel);
 			break;
 		}
 		case "setTheme": {
-			LinkedIOSubchannel reqChannel 
-				= new LinkedIOSubchannel(portal, channel);
 			JsonArray params = (JsonArray)event.params();
 			setTheme(channel, params.getString(0));
-			sendNotificationResponse(reqChannel, "reload");
+			sendNotificationResponse(portalChannel, "reload");
 		}
 		}		
 	}
