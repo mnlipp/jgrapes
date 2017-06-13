@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Eligible;
@@ -456,6 +457,25 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 			return Optional.empty();
 		}
 		return Optional.ofNullable(type.cast(contextData.get(by)));
+	}
+	
+	/**
+	 * Retrieves the associated object following the association 
+	 * with the given "name". If no association exists, the
+	 * object is created and the association is established.  
+	 * 
+	 * @param by the "name"
+	 * @param the supplier the supplier
+	 * @param <V> the type of the value to be retrieved
+	 * @return the associate, if any
+	 */
+	@SuppressWarnings("unchecked")
+	public <V> V associated(Object by, Supplier<V> supplier) {
+		return (V)associated(by, Object.class).orElseGet(() -> {
+			V associated = supplier.get();
+			setAssociated(by, associated);
+			return associated;
+		});
 	}
 	
 	/**
