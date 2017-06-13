@@ -20,9 +20,10 @@ package org.jgrapes.io;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -138,28 +139,73 @@ public interface IOSubchannel extends Channel {
 	}
 
 	/**
-	 * Returns the context for the given component. If this is the
-	 * first invocation and `createIfAbsent` is `true`, a new context 
-	 * will be obtained from the component.
+	 * Establishes a "named" association to an associated object. Note that 
+	 * anything that represents an id can be used as value for 
+	 * parameter `name`, it does not necessarily have to be a string.
 	 * 
-	 * @param component the component
-	 * @param createIfAbsent create a context if no context exists
-	 * @return the context
+	 * @param by the "name"
+	 * @param with the object to be associated
+	 * @return the sub channel for easy chaining
 	 */
-	<T> Optional<T> context(
-			ContextSupplier<T> component, boolean createIfAbsent);
+	IOSubchannel setAssociated(Object by, Object with);
+
+	/**
+	 * Retrieves the associated object following the association 
+	 * with the given "name". This general version of the method
+	 * supports the retrieval of values of arbitrary types
+	 * associated by any "name" types. 
+	 * 
+	 * @param by the "name"
+	 * @param type the type of the value to be retrieved
+	 * @param <V> the type of the value to be retrieved
+	 * @return the associate, if any
+	 */
+	<V> Optional<V> associated(Object by, Class<V> type);
 	
 	/**
-	 * Returns the context for the given component if it exists.
-	 * Equivalent to invoking `context(component, false)`.
+	 * Retrieves the associated object following the association 
+	 * with the given "name". If no association exists, the
+	 * object is created and the association is established.  
 	 * 
-	 * @param component the component
-	 * @return the context
+	 * @param by the "name"
+	 * @param the supplier the supplier
+	 * @param <V> the type of the value to be retrieved
+	 * @return the associate, if any
 	 */
-	default <T> Optional<T> context(ContextSupplier<T> component) {
-		return context(component, false);
+	@SuppressWarnings("unchecked")
+	default <V> V associated(Object by, Supplier<V> supplier) {
+		return (V)associated(by, Object.class).orElseGet(() -> {
+			V associated = supplier.get();
+			setAssociated(by, associated);
+			return associated;
+		});
 	}
-
+	
+	/**
+	 * Retrieves the associated object following the association 
+	 * with the given name. This convenience methods simplifies the
+	 * retrieval of String values associated by a (real) name.
+	 * 
+	 * @param by the name
+	 * @return the associate, if any
+	 */
+	default Optional<String> associated(String by) {
+		return associated(by, String.class);
+	}
+	
+	/**
+	 * Retrieves the associated object following the association 
+	 * with the given class. The associated object must be an instance
+	 * of the given class.
+	 * 
+	 * @param <V> the type of the value
+	 * @param by the name
+	 * @return the associate, if any
+	 */
+	default <V> Optional<V> associated(Class<V> by) {
+		return associated(by, by);
+	}
+	
 	/**
 	 * Creates a new subchannel of the given component's channel with a new
 	 * event pipeline and a buffer pool with two buffers sized 4096.
@@ -178,11 +224,10 @@ public interface IOSubchannel extends Channel {
 	 */
 	public static class DefaultSubchannel implements IOSubchannel {
 		private Channel mainChannel;
-		private Map<ContextSupplier<?>, ? super Object> 
-			contexts = new HashMap<>();
 		private EventPipeline responsePipeline;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> byteBufferPool;
 		private ManagedBufferQueue<ManagedCharBuffer, CharBuffer> charBufferPool;
+		private Map<Object,Object> contextData = null;
 		
 		/**
 		 * Creates a new instance with the given main channel and response
@@ -236,20 +281,6 @@ public interface IOSubchannel extends Channel {
 			return responsePipeline;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.jgrapes.io.IOSubchannel#context(org.jgrapes.io.ContextSupplier)
-		 */
-		@SuppressWarnings("unchecked")
-		@Override
-		public <T> Optional<T> context(
-				ContextSupplier<T> component, boolean createIfAbsent) {
-			if (!createIfAbsent) {
-				return Optional.ofNullable((T)contexts.get(component));
-			}
-			return Optional.of((T)contexts.computeIfAbsent(
-					component, c -> c.createContext()));
-		}
-
 		/**
 		 * Returns the buffer pool set. If no buffer pool has been set, a
 		 * buffer pool with with two buffers of size 4096 is created.
@@ -274,6 +305,40 @@ public interface IOSubchannel extends Channel {
 			return charBufferPool;
 		}
 
+		/**
+		 * Establishes a "named" association to an associated object. Note that 
+		 * anything that represents an id can be used as value for 
+		 * parameter `name`, it does not necessarily have to be a string.
+		 * 
+		 * @param by the "name"
+		 * @param with the object to be associated
+		 */
+		public DefaultSubchannel setAssociated(Object by, Object with) {
+			if (contextData == null) {
+				contextData = new ConcurrentHashMap<>();
+			}
+			contextData.put(by, with);
+			return this;
+		}
+
+		/**
+		 * Retrieves the associated object following the association 
+		 * with the given "name". This general version of the method
+		 * supports the retrieval of values of arbitrary types
+		 * associated by any "name" types. 
+		 * 
+		 * @param by the "name"
+		 * @param type the tape of the value to be retrieved
+		 * @param <V> the type of the value to be retrieved
+		 * @return the associate, if any
+		 */
+		public <V> Optional<V> associated(Object by, Class<V> type) {
+			if (contextData == null) {
+				return Optional.empty();
+			}
+			return Optional.ofNullable(type.cast(contextData.get(by)));
+		}
+		
 		/* (non-Javadoc)
 		 * @see java.lang.Object#toString()
 		 */

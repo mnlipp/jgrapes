@@ -34,7 +34,6 @@ import org.jgrapes.http.Session;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.http.events.Response;
-import org.jgrapes.io.ContextSupplier;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
@@ -43,8 +42,7 @@ import org.jgrapes.io.util.ManagedByteBuffer;
 /**
  * 
  */
-public class PostProcessor extends Component 
-	implements ContextSupplier<PostProcessor.FormContext> {
+public class PostProcessor extends Component {
 
 	protected static class FormContext {
 		public HttpRequest request;
@@ -59,17 +57,10 @@ public class PostProcessor extends Component
 		super(componentChannel);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.io.ContextSupplier#createContext()
-	 */
-	@Override
-	public FormContext createContext() {
-		return new FormContext();
-	}
-
 	@RequestHandler(patterns="/form")
 	public void onPost(PostRequest event, IOSubchannel channel) {
-		FormContext ctx = channel.context(this, true).get();
+		FormContext ctx = channel
+				.associated(this, FormContext::new);
 		ctx.request = event.request();
 		ctx.session = event.associated(Session.class).get();
 		event.stop();
@@ -78,7 +69,7 @@ public class PostProcessor extends Component
 	@Handler
 	public void onInput(Input<ManagedByteBuffer> event, IOSubchannel channel) 
 			throws InterruptedException, UnsupportedEncodingException {
-		Optional<FormContext> ctx = channel.context(this);
+		Optional<FormContext> ctx = channel.associated(this, FormContext.class);
 		if (!ctx.isPresent()) {
 			return;
 		}
