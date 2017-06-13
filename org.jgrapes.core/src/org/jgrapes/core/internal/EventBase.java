@@ -430,12 +430,14 @@ public abstract class EventBase<T> implements Eligible, Future<T> {
 	 * 
 	 * @param by the "name"
 	 * @param with the object to be associated
+	 * @return the event for easy chaining
 	 */
-	public void setAssociated(Object by, Object with) {
+	public Event<T> setAssociated(Object by, Object with) {
 		if (contextData == null) {
 			contextData = new ConcurrentHashMap<>();
 		}
 		contextData.put(by, with);
+		return (Event<T>)this;
 	}
 
 	/**
