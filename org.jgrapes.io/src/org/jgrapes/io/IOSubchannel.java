@@ -23,8 +23,8 @@ import java.nio.CharBuffer;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
+import org.jgrapes.core.Associator;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -59,7 +59,7 @@ import org.jgrapes.io.util.ManagedCharBuffer;
  * As a convenience, an I/O subchannel also has an associated buffer pool. 
  * Buffers from this pool should only be acquired for upstream events.
  */
-public interface IOSubchannel extends Channel {
+public interface IOSubchannel extends Channel, Associator {
 
 	/**
 	 * Returns the main channel.
@@ -138,74 +138,6 @@ public interface IOSubchannel extends Channel {
 		return builder.toString();
 	}
 
-	/**
-	 * Establishes a "named" association to an associated object. Note that 
-	 * anything that represents an id can be used as value for 
-	 * parameter `name`, it does not necessarily have to be a string.
-	 * 
-	 * @param by the "name"
-	 * @param with the object to be associated
-	 * @return the sub channel for easy chaining
-	 */
-	IOSubchannel setAssociated(Object by, Object with);
-
-	/**
-	 * Retrieves the associated object following the association 
-	 * with the given "name". This general version of the method
-	 * supports the retrieval of values of arbitrary types
-	 * associated by any "name" types. 
-	 * 
-	 * @param by the "name"
-	 * @param type the type of the value to be retrieved
-	 * @param <V> the type of the value to be retrieved
-	 * @return the associate, if any
-	 */
-	<V> Optional<V> associated(Object by, Class<V> type);
-	
-	/**
-	 * Retrieves the associated object following the association 
-	 * with the given "name". If no association exists, the
-	 * object is created and the association is established.  
-	 * 
-	 * @param by the "name"
-	 * @param the supplier the supplier
-	 * @param <V> the type of the value to be retrieved
-	 * @return the associate, if any
-	 */
-	@SuppressWarnings("unchecked")
-	default <V> V associated(Object by, Supplier<V> supplier) {
-		return (V)associated(by, Object.class).orElseGet(() -> {
-			V associated = supplier.get();
-			setAssociated(by, associated);
-			return associated;
-		});
-	}
-	
-	/**
-	 * Retrieves the associated object following the association 
-	 * with the given name. This convenience methods simplifies the
-	 * retrieval of String values associated by a (real) name.
-	 * 
-	 * @param by the name
-	 * @return the associate, if any
-	 */
-	default Optional<String> associated(String by) {
-		return associated(by, String.class);
-	}
-	
-	/**
-	 * Retrieves the associated object following the association 
-	 * with the given class. The associated object must be an instance
-	 * of the given class.
-	 * 
-	 * @param <V> the type of the value
-	 * @param by the name
-	 * @return the associate, if any
-	 */
-	default <V> Optional<V> associated(Class<V> by) {
-		return associated(by, by);
-	}
-	
 	/**
 	 * Creates a new subchannel of the given component's channel with a new
 	 * event pipeline and a buffer pool with two buffers sized 4096.

@@ -71,8 +71,7 @@ public class WsEchoServer extends Component {
 			return;
 		}
 		openChannels.add(channel);
-		channel.respond(new WebSocketAccepted(event.requestUri(),
-				event.request().response().get())).get();
+		channel.respond(new WebSocketAccepted(event));
 		event.stop();
 	}
 	

@@ -21,7 +21,6 @@ package org.jgrapes.http.events;
 import java.net.URI;
 
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
-import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.io.events.Opened;
 
@@ -35,22 +34,24 @@ import org.jgrapes.io.events.Opened;
 public class WebSocketAccepted extends Opened {
 
 	private URI resourceName;
-	private HttpResponse baseResponse;
+	private Request requestEvent;
 	
 	/**
-	 * Creates a new event. The base response passed in as parameter
-	 * is used by the {@link HttpServer} to build the response message.
+	 * Creates a new event. The request event passed in as parameter
+	 * is used by the {@link HttpServer} to build the response message
+	 * and link an existing session to the web socket.
 	 * 
-	 * Usually, the `baseResponse` is the unmodified response provided
-	 * by the request event (see {@link Request#request()} and 
-	 * {@link HttpRequest#response()}). However, the accepting component 
-	 * may add special header fields if required.
+	 * To be precise, the {@link HttpServer} retrieves the {@link HttpRequest}
+	 * from the request event and uses the prepared response provided by 
+	 * {@link HttpRequest#response()} to build the response. The default
+	 * information contained in this prepared response is sufficient to
+	 * build the actual response. If required, the accepting component 
+	 * can add special header fields to the prepared response.
 	 * 
-	 * @param resourceName the resource referred to in the upgrade request
-	 * @param baseResponse the base response data
+	 * @param request the base response data
 	 */
-	public WebSocketAccepted(URI resourceName, HttpResponse baseResponse) {
-		this.baseResponse = baseResponse;
+	public WebSocketAccepted(Request request) {
+		this.requestEvent = request;
 	}
 
 	/**
@@ -63,11 +64,11 @@ public class WebSocketAccepted extends Opened {
 	}
 
 	/**
-	 * Returns the base response. 
+	 * Returns the original request. 
 	 * 
 	 * @return the value
 	 */
-	public HttpResponse baseResponse() {
-		return baseResponse;
+	public Request requestEvent() {
+		return requestEvent;
 	}
 }

@@ -21,6 +21,7 @@ package org.jgrapes.io.util;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.WeakHashMap;
 
 import org.jgrapes.core.Channel;
@@ -126,6 +127,22 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	 */
 	public IOSubchannel upstreamChannel() {
 		return upstreamChannel.get();
+	}
+	
+	/**
+	 * Delegates the invocation to the upstream channel 
+	 * if no associated data is found for this channel. 
+	 */
+	@Override
+	public <V> Optional<V> associated(Object by, Class<V> type) {
+		Optional<V> result = super.associated(by, type);
+		if (!result.isPresent()) {
+			IOSubchannel up = upstreamChannel();
+			if (up != null) {
+				return up.associated(by, type);
+			}
+		}
+		return result;
 	}
 
 	/* (non-Javadoc)

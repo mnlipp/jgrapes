@@ -377,7 +377,7 @@ public class HttpServer extends Component {
 	@Handler
 	public void onWebSocketAccepted(
 			WebSocketAccepted event, AppChannel appChannel) {
-		appChannel.handleWebSocketAccepted(event);
+		appChannel.handleWebSocketAccepted(event, appChannel);
 	}
 	
 	private void sendResponse(HttpResponse response, IOSubchannel appChannel,
@@ -580,9 +580,14 @@ public class HttpServer extends Component {
 			
 		}
 		
-		public void handleWebSocketAccepted(WebSocketAccepted event) {
+		public void handleWebSocketAccepted(
+				WebSocketAccepted event, AppChannel appChannel) {
 			switchedToWebSocket = true;
-			final HttpResponse response = event.baseResponse()
+			event.requestEvent().associated(Session.class)
+				.ifPresent(session -> 
+					appChannel.setAssociated(Session.class, session));
+			final HttpResponse response = event.requestEvent()
+					.request().response().get()
 					.setStatus(HttpStatus.SWITCHING_PROTOCOLS)
 					.setField(HttpField.UPGRADE, new StringList("websocket"));
 			event.addCompletedEvent(

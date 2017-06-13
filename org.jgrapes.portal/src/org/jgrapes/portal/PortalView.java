@@ -34,7 +34,6 @@ import java.io.PipedReader;
 import java.io.PipedWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.nio.CharBuffer;
 import java.nio.file.Files;
@@ -45,8 +44,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
-import java.util.WeakHashMap;
 import java.util.stream.StreamSupport;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -66,12 +65,12 @@ import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.Session;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.util.ByteBufferOutputStream;
 import org.jgrapes.io.util.CharBufferWriter;
@@ -98,11 +97,8 @@ public class PortalView extends Component {
 	private static MimetypesFileTypeMap typesMap = new MimetypesFileTypeMap();
 
 	private ThemeProvider baseTheme;
-	private ThemeProvider themeProvider;
 	private Map<String,Object> portalModel = new HashMap<>();
 
-	private Map<IOSubchannel, WsConnection> openChannels = new WeakHashMap<>();
-	
 	/**
 	 * @param componentChannel
 	 */
@@ -119,7 +115,6 @@ public class PortalView extends Component {
 	        fmConfig.setLogTemplateExceptions(false);
 		}
 		baseTheme = new Provider();
-		setTheme("base");
 		RequestHandler.Evaluator.add(this, "onGet", portal.prefix() + "/**");
 		
 		// Create portal model
@@ -143,12 +138,6 @@ public class PortalView extends Component {
 				.sorted().toArray(size -> new ThemeInfo[size]));
 	}
 
-	private void setTheme(String theme) {
-		StreamSupport.stream(themeLoader.spliterator(), false)
-			.filter(t -> t.themeId().equals(theme)).findFirst()
-			.ifPresent(t -> { themeProvider = t; });
-	}
-	
 	@RequestHandler(dynamic=true)
 	public void onGet(GetRequest event, IOSubchannel channel) 
 			throws InterruptedException, IOException {
@@ -171,9 +160,8 @@ public class PortalView extends Component {
 					HttpField.UPGRADE, Converters.STRING_LIST)
 					.map(f -> f.value().containsIgnoreCase("websocket"))
 					.orElse(false)) {
-				openChannels.put(channel, new WsConnection(channel));
-				channel.respond(new WebSocketAccepted(event.requestUri(),
-						event.request().response().get())).get();
+				channel.setAssociated(this, new PortalInfo());
+				channel.respond(new WebSocketAccepted(event));
 				event.stop();
 				return;
 			}
@@ -243,7 +231,9 @@ public class PortalView extends Component {
 			String resource) {
 		try {
 			// Get resource
-		
+			ThemeProvider themeProvider = event.associated(Session.class)
+					.map(session -> (ThemeProvider)session.get("themeProvider"))
+					.orElse(baseTheme);
 			InputStream resIn;
 			try {
 				resIn = themeProvider.getResourceAsStream(resource);
@@ -307,16 +297,23 @@ public class PortalView extends Component {
 	@Handler
 	public void onInput(Input<ManagedCharBuffer> event, IOSubchannel channel)
 			throws IOException {
-		WsConnection channelData = openChannels.get(channel);
-		if (channelData == null) {
+		Optional<PortalInfo> optPortalInfo 
+			= channel.associated(this, PortalInfo.class);
+		if (!optPortalInfo.isPresent()) {
 			return;
 		}
-		channelData.decode(event.buffer().backingBuffer(), event.isEndOfRecord());
+		optPortalInfo.get().toEvent(channel,
+				event.buffer().backingBuffer(), event.isEndOfRecord());
 	}
 	
 	@Handler
 	public void onJsonRequest(JsonRequest event, IOSubchannel channel) 
 			throws InterruptedException, IOException {
+		Optional<PortalInfo> optPortalInfo 
+			= channel.associated(this, PortalInfo.class);
+		if (!optPortalInfo.isPresent()) {
+			return;
+		}
 		switch (event.method()) {
 		case "portalReady": {
 			LinkedIOSubchannel reqChannel 
@@ -336,7 +333,7 @@ public class PortalView extends Component {
 			LinkedIOSubchannel reqChannel 
 				= new LinkedIOSubchannel(portal, channel);
 			JsonArray params = (JsonArray)event.params();
-			setTheme(params.getString(0));
+			setTheme(channel, params.getString(0));
 			sendNotificationResponse(reqChannel, "reload");
 		}
 		}		
@@ -359,6 +356,14 @@ public class PortalView extends Component {
 		}
 	}
 
+	private void setTheme(IOSubchannel channel, String theme) {
+		StreamSupport.stream(themeLoader.spliterator(), false)
+			.filter(t -> t.themeId().equals(theme)).findFirst()
+			.ifPresent(themeProvider ->  
+				channel.associated(Session.class).map(session ->
+					session.put("themeProvider", themeProvider)));
+	}
+	
 	private void sendNotificationResponse(LinkedIOSubchannel channel,
 	        String method, Object... params)
 	        		throws InterruptedException, IOException {
@@ -396,27 +401,18 @@ public class PortalView extends Component {
 		return array;
 	}
 	
-	@Handler
-	public void onClosed(Closed event, IOSubchannel channel) {
-		openChannels.remove(channel);
-	}
-	
-	private class WsConnection {
+	private class PortalInfo {
 
-		private WeakReference<IOSubchannel> channel;
 		private PipedWriter decodeWriter;
 		
-		public WsConnection(IOSubchannel channel) throws IOException {
-			this.channel = new WeakReference<>(channel);
-		}
-
-		public void decode(CharBuffer buffer, boolean last) throws IOException {
+		public void toEvent(IOSubchannel channel, CharBuffer buffer,
+				boolean last) throws IOException {
 			if (decodeWriter == null) {
 				decodeWriter = new PipedWriter();
 				PipedReader reader = new PipedReader(
 						decodeWriter, buffer.capacity());
 				activeEventPipeline().executorService()
-					.submit(new DecodeTask(reader, channel.get()));
+					.submit(new DecodeTask(reader, channel));
 			}
 			decodeWriter.append(buffer);
 			if (last) {
