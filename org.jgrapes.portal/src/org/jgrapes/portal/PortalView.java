@@ -181,7 +181,9 @@ public class PortalView extends Component {
 		}
 	}
 
-	private void renderPortal(GetRequest event, IOSubchannel channel) {
+	private void renderPortal(GetRequest event, IOSubchannel channel)
+		throws IOException, InterruptedException {
+		event.stop();
 		HttpResponse response = event.request().response().get();
 		MediaType mediaType = MediaType.builder().setType("text", "html")
 				.setParameter("charset", "utf-8").build();
@@ -193,17 +195,9 @@ public class PortalView extends Component {
 				channel, channel.responsePipeline()), "utf-8")) {
 			Template tpl = fmConfig.getTemplate("portal.ftlh");
 			tpl.process(portalModel, out);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
 		} catch (TemplateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new IOException(e);
 		}
-		event.stop();
 	}
 
 	private void sendPortalResource(GetRequest event, IOSubchannel channel,
