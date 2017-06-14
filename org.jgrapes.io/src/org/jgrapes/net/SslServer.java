@@ -23,6 +23,7 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -105,12 +106,12 @@ public class SslServer extends Component {
 	public void onInput(
 			Input<ManagedByteBuffer> event, IOSubchannel encryptedChannel)
 	        throws InterruptedException, SSLException {
-		final PlainChannel plainChannel = (PlainChannel) LinkedIOSubchannel
-		        .lookupLinked(encryptedChannel);
-		if (plainChannel == null || plainChannel.converterComponent() != this) {
-			return;
+		@SuppressWarnings("unchecked")
+		final Optional<PlainChannel> plainChannel = (Optional<PlainChannel>)
+				LinkedIOSubchannel.downstreamChannel(this, encryptedChannel);
+		if (plainChannel.isPresent()) {
+			plainChannel.get().sendDownstream(event);
 		}
-		plainChannel.sendDownstream(event);
 	}
 
 	/**
@@ -124,12 +125,12 @@ public class SslServer extends Component {
 	@Handler(dynamic = true)
 	public void onClosed(Closed event, IOSubchannel encryptedChannel)
 	        throws SSLException, InterruptedException {
-		final PlainChannel plainChannel = (PlainChannel) LinkedIOSubchannel
-		        .lookupLinked(encryptedChannel);
-		if (plainChannel == null || plainChannel.converterComponent() != this) {
-			return;
+		@SuppressWarnings("unchecked")
+		final Optional<PlainChannel> plainChannel = (Optional<PlainChannel>)
+				LinkedIOSubchannel.downstreamChannel(this, encryptedChannel);
+		if (plainChannel.isPresent()) {
+			plainChannel.get().upstreamClosed();
 		}
-		plainChannel.upstreamClosed();
 	}
 	
 	/**

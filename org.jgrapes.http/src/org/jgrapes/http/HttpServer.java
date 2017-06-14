@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.net.ssl.SNIHostName;
 import javax.net.ssl.SNIServerName;
@@ -236,22 +237,22 @@ public class HttpServer extends Component {
 	public void onInput(
 			Input<ManagedByteBuffer> event, IOSubchannel netChannel)
 					throws ProtocolException, InterruptedException {
-		final AppChannel appChannel 
-			= (AppChannel) LinkedIOSubchannel.lookupLinked(netChannel);
-		if (appChannel == null || appChannel.converterComponent() != this) {
-			return;
+		@SuppressWarnings("unchecked")
+		final Optional<AppChannel> appChannel = (Optional<AppChannel>)
+				LinkedIOSubchannel.downstreamChannel(this, netChannel);
+		if (appChannel.isPresent()) {
+			appChannel.get().handleNetInput(event);
 		}
-		appChannel.handleNetInput(event);
 	}
 
 	@Handler(dynamic=true)
 	public void onClosed(Closed event, IOSubchannel netChannel) {
-		final AppChannel appChannel 
-			= (AppChannel) LinkedIOSubchannel.lookupLinked(netChannel);
-		if (appChannel == null || appChannel.converterComponent() != this) {
-			return;
+		@SuppressWarnings("unchecked")
+		final Optional<AppChannel> appChannel = (Optional<AppChannel>)
+				LinkedIOSubchannel.downstreamChannel(this, netChannel);
+		if (appChannel.isPresent()) {
+			appChannel.get().handleClosed(event);
 		}
-		appChannel.handleClosed(event);
 	}
 
 	/**

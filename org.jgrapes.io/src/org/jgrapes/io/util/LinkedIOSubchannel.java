@@ -19,10 +19,7 @@
 package org.jgrapes.io.util;
 
 import java.lang.ref.WeakReference;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
-import java.util.WeakHashMap;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Manager;
@@ -51,21 +48,11 @@ import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
  * an existing subchannel. This makes it easy to find the upstream subchannel
  * for a given downstream ({@code LinkedIOSubchannel}) when processing response
  * events. For finding the downstream {@code IOSubchannel} for a given upstream
- * connection, the class maintains a mapping in a {@link WeakHashMap}.
- * 
- * Note that memory management is a bit special here. The 
- * {@code LinkedIOSubchannel} should exist as long as the subchannel that
- * it is linked to exists. This subchannel, however, does not have a reference
- * to the {@code LinkedIOSubchannel}. Unless other references exist, the
- * existence of the {@code LinkedIOSubchannel} is ensured only by the reference
- * as value in the {@code WeakHashMap}. This reference will go away when
- * the upstream subchannel (used as key) goes away.
+ * connection, instances associate themselves with the upstream channel using
+ * a special key.
  * 
  */
 public class LinkedIOSubchannel extends DefaultSubchannel {
-
-	private static final Map<IOSubchannel, LinkedIOSubchannel> 
-		reverseMap = Collections.synchronizedMap(new WeakHashMap<>());
 
 	private final Manager converterComponent;
 	// Must be weak, else there will always be a reference to the 
@@ -111,7 +98,8 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 		this.converterComponent = converterComponent;
 		this.upstreamChannel = new WeakReference<>(upstreamChannel);
 		if (addToMap) {
-			reverseMap.put(upstreamChannel, this);
+			upstreamChannel.setAssociated(
+					new KeyWrapper(converterComponent), this);
 		}
 	}
 
@@ -161,16 +149,68 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	}
 	
 	/**
-	 * Returns the linked subchannel that has been created for the given
-	 * subchannel. If more than one linked subchannel has been created for a
-	 * subchannel, the linked subchannel created last is returned.
+	 * Returns the linked downstream channel that has been created for the 
+	 * given converter and (upstream) subchannel. If more than one linked 
+	 * subchannel has been created for a given converter and subchannel, 
+	 * the linked subchannel created last is returned.
 	 * 
-	 * @param channel
-	 *            the channel
-	 * @return the linked subchannel created for the given subchannel or
-	 *         {@code null} if no such linked subchannel exists
+	 * @param upstreamChannel the (upstream) channel
+	 * @return the linked downstream subchannel created for the 
+	 * given cobverter and (upstream) subchannel if it exists
 	 */
-	public static LinkedIOSubchannel lookupLinked(IOSubchannel channel) {
-		return reverseMap.get(channel);
+	public static Optional<? extends LinkedIOSubchannel> downstreamChannel(
+			Manager converterComponent, IOSubchannel upstreamChannel) {
+		return upstreamChannel.associated(
+				new KeyWrapper(converterComponent), LinkedIOSubchannel.class);
+	}
+	
+	private static class KeyWrapper {
+
+		private Manager converterComponent;
+
+		/**
+		 * @param converterComponent
+		 */
+		public KeyWrapper(Manager converterComponent) {
+			super();
+			this.converterComponent = converterComponent;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((converterComponent == null) ? 0
+			        : converterComponent.hashCode());
+			return result;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			KeyWrapper other = (KeyWrapper) obj;
+			if (converterComponent == null) {
+				if (other.converterComponent != null) {
+					return false;
+				}
+			} else if (!converterComponent.equals(other.converterComponent)) {
+				return false;
+			}
+			return true;
+		}
 	}
 }
