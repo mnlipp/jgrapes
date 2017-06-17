@@ -37,9 +37,6 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.CharBuffer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,7 +46,6 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
-import javax.activation.MimetypesFileTypeMap;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -96,7 +92,6 @@ public class PortalView extends Component {
 	private static ServiceLoader<ThemeProvider> themeLoader 
 		= ServiceLoader.load(ThemeProvider.class);
 	private static Configuration fmConfig = null;
-	private static MimetypesFileTypeMap typesMap = new MimetypesFileTypeMap();
 
 	private ThemeProvider baseTheme;
 	private Map<String,Object> portalModel = new HashMap<>();
@@ -262,40 +257,14 @@ public class PortalView extends Component {
 
 	public static void prepareResourceResponse(
 			HttpResponse response, URI request) {
-		// Get content type
-		String mimeTypeName;
-		try {
-			// probeContentType is most advanced, but may fail if it tries
-			// to look at the file's content (which doesn't exist).
-			mimeTypeName = Files.probeContentType(Paths.get(request.getPath()));
-		} catch (IOException e) {
-			mimeTypeName = null;
-		}
-		if (mimeTypeName == null) {
-			mimeTypeName = typesMap.getContentType(request.getPath());
-		}
-		MediaType mediaType = null;
-		try {
-			mediaType = Converters.MEDIA_TYPE.fromFieldValue(mimeTypeName);
-		} catch (ParseException e) {
-			// Cannot happen
-		}
-		
+		response.setContentType(request);
 		// Set max age in cache-control header
 		List<Directive> directives = new ArrayList<>();
 		directives.add(new Directive("max-age", 600));
 		response.setField(HttpField.CACHE_CONTROL, directives);
-
-		// Send response 
-		if ("text".equals(mediaType.topLevelType())) {
-			mediaType = MediaType.builder().from(mediaType)
-					.setParameter("charset", System.getProperty(
-							"file.encoding", "UTF-8")).build();
-		}
-		response.setField(HttpField.CONTENT_TYPE, mediaType);
-		response.setStatus(HttpStatus.OK);
-		response.setHasPayload(true);
 		response.setField(HttpField.LAST_MODIFIED, Instant.now());
+
+		response.setStatus(HttpStatus.OK);
 	}
 
 	private void requestPortletResource(GetRequest event, IOSubchannel channel,

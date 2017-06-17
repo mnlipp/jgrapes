@@ -27,7 +27,6 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.util.InputStreamPipeline;
-import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.PortletResourceRequest;
