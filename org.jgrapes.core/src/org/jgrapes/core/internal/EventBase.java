@@ -349,7 +349,7 @@ public abstract class EventBase<T>
 		while (true) {
 			synchronized(this) {
 				if (completed) {
-					return (results == null || results.isEmpty())
+					return ((results == null || results.isEmpty()))
 							? null : results.get(0);
 				}
 				wait();
