@@ -60,7 +60,7 @@ public class GetTest {
 				throws ParseException {
 			invocations += 1;
 			
-			final HttpResponse response = event.request().response().get();
+			final HttpResponse response = event.httpRequest().response().get();
 			response.setStatus(HttpStatus.OK);
 			response.setHasPayload(true);
 			response.setField(HttpField.CONTENT_TYPE,
@@ -80,7 +80,7 @@ public class GetTest {
 				throws ParseException {
 			invocations += 1;
 			
-			final HttpResponse response = event.request().response().get();
+			final HttpResponse response = event.httpRequest().response().get();
 			response.setStatus(HttpStatus.OK);
 			response.setHasPayload(true);
 			response.setField(HttpField.CONTENT_TYPE,

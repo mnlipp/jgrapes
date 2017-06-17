@@ -24,12 +24,21 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.util.InputStreamPipeline;
+import org.jgrapes.io.util.LinkedIOSubchannel;
+import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.events.PortalReady;
+import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.RenderPortletRequest;
 
 import static org.jgrapes.portal.Portlet.*;
+
+import java.io.InputStream;
+
+import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 
 /**
  * 
@@ -56,12 +65,43 @@ public class HelloWorldPortlet extends Component {
 	 */
 	public HelloWorldPortlet(Channel componentChannel) {
 		super(componentChannel);
-		portletId = Components.objectFullName(this);
+		portletId = Components.objectId(this);
 	}
 
 	@Handler
+	public void onResourceRequest(
+			PortletResourceRequest event, IOSubchannel channel) {
+		// For me?
+		if (!event.portletId().equals(portletId)) {
+			return;
+		}
+		
+		// Look for content
+		InputStream in = this.getClass().getResourceAsStream(
+				event.resourceUri().getPath());
+		if (in == null) {
+			return;
+		}
+		
+		// Send header
+		HttpResponse response = event.httpRequest().response().get();
+		PortalView.prepareResourceResponse(response, event.resourceUri());
+		event.httpChannel().respond(new Response(response));
+		
+		// Send content
+		activeEventPipeline().executorService()
+			.submit(new InputStreamPipeline(in, event.httpChannel()));
+		
+		// Done
+		event.setResult(true);
+	}
+	
+	@Handler
 	public void onPortalReady(PortalReady event, IOSubchannel channel) {
-		String html = "<div>Hello World!</div>";
+		String html = "<div>Hello World! <img style='vertical-align: bottom;'"
+				+ " src='" + event.renderSupport().portletResource(
+						portletId, PortalView.uriFromPath("globe#1.ico")) 
+				+ "' height='20'></div>";
 		channel.respond(new RenderPortletFromString(
 				portletId, "Hello World", RenderMode.Preview, 
 				VIEWABLE_PORTLET_MODES, html));

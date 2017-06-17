@@ -80,7 +80,7 @@ public class LanguageSelector extends Component {
 	 */
 	@Handler(priority=990)
 	public void onRequest(Request event) {
-		final HttpRequest request = event.request();
+		final HttpRequest request = event.httpRequest();
 		Optional<Session> optSession 
 			= (Optional<Session>)event.associated(Session.class);
 		if (optSession.isPresent()) {

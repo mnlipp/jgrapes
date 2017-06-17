@@ -35,6 +35,7 @@ import java.io.PipedWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.CharBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -80,6 +81,7 @@ import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.portal.Portlet.RenderMode;
 import org.jgrapes.portal.events.JsonRequest;
 import org.jgrapes.portal.events.PortalReady;
+import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.RenderPortlet;
 import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.RenderPortletRequest;
@@ -98,6 +100,7 @@ public class PortalView extends Component {
 
 	private ThemeProvider baseTheme;
 	private Map<String,Object> portalModel = new HashMap<>();
+	private RenderSupport renderSupport = new RenderSupportImpl();
 
 	/**
 	 * @param componentChannel
@@ -128,7 +131,7 @@ public class PortalView extends Component {
 					throw new TemplateModelException("Not a string.");
 				}
 				return portal.prefix().resolve(
-						((SimpleScalar)args.get(0)).getAsString()).getPath();
+						((SimpleScalar)args.get(0)).getAsString()).getRawPath();
 			}
 		});
 		
@@ -141,22 +144,23 @@ public class PortalView extends Component {
 	@RequestHandler(dynamic=true)
 	public void onGet(GetRequest event, IOSubchannel channel) 
 			throws InterruptedException, IOException {
-		String requestPath = event.requestUri().getPath();
+		URI requestUri = event.requestUri();
 		// Append trailing slash, if missing
-		if ((requestPath + "/").equals(portal.prefix().getPath())) {
-			requestPath = portal.prefix().getPath();
+		if ((requestUri.getRawPath() + "/").equals(
+				portal.prefix().getRawPath())) {
+			requestUri = portal.prefix();
 		}
 		
 		// Request for portal?
-		if (!requestPath.startsWith(portal.prefix().getPath())) {
+		if (!requestUri.getRawPath().startsWith(portal.prefix().getRawPath())) {
 			return;
 		}
 		
 		// Normalize and evaluate
-		requestPath = portal.prefix()
-				.relativize(URI.create(requestPath)).getPath();
-		if (requestPath.isEmpty()) {
-			if (event.request().findField(
+		requestUri = portal.prefix().relativize(
+				URI.create(requestUri.getRawPath()));
+		if (requestUri.getRawPath().isEmpty()) {
+			if (event.httpRequest().findField(
 					HttpField.UPGRADE, Converters.STRING_LIST)
 					.map(f -> f.value().containsIgnoreCase("websocket"))
 					.orElse(false)) {
@@ -169,14 +173,19 @@ public class PortalView extends Component {
 			renderPortal(event, channel);
 			return;
 		}
-		if (requestPath.startsWith("portal-resource/")) {
-			sendPortalResource(event, channel, requestPath
-					.substring("portal-resource/".length()));
+		URI subUri = uriFromPath("portal-resource/").relativize(requestUri);
+		if (!subUri.equals(requestUri)) {
+			sendPortalResource(event, channel, subUri.getPath());
 			return;
 		}
-		if (requestPath.startsWith("theme-resource/")) {
-			sendThemeResource(event, channel, requestPath
-					.substring("theme-resource/".length()));
+		subUri = uriFromPath("theme-resource/").relativize(requestUri);
+		if (!subUri.equals(requestUri)) {
+			sendThemeResource(event, channel, subUri.getPath());
+			return;
+		}
+		subUri = uriFromPath("portlet-resource/").relativize(requestUri);
+		if (!subUri.equals(requestUri)) {
+			requestPortletResource(event, channel, subUri);
 			return;
 		}
 	}
@@ -184,7 +193,7 @@ public class PortalView extends Component {
 	private void renderPortal(GetRequest event, IOSubchannel channel)
 		throws IOException, InterruptedException {
 		event.stop();
-		HttpResponse response = event.request().response().get();
+		HttpResponse response = event.httpRequest().response().get();
 		MediaType mediaType = MediaType.builder().setType("text", "html")
 				.setParameter("charset", "utf-8").build();
 		response.setField(HttpField.CONTENT_TYPE, mediaType);
@@ -209,7 +218,7 @@ public class PortalView extends Component {
 		}
 		
 		// Send header
-		HttpResponse response = event.request().response().get();
+		HttpResponse response = event.httpRequest().response().get();
 		prepareResourceResponse(response, event.requestUri());
 		channel.respond(new Response(response));
 		
@@ -236,7 +245,7 @@ public class PortalView extends Component {
 			}
 			
 			// Send header
-			HttpResponse response = event.request().response().get();
+			HttpResponse response = event.httpRequest().response().get();
 			prepareResourceResponse(response, event.requestUri());
 			channel.respond(new Response(response));
 		
@@ -251,7 +260,8 @@ public class PortalView extends Component {
 		}
 	}
 
-	private void prepareResourceResponse(HttpResponse response, URI request) {
+	public static void prepareResourceResponse(
+			HttpResponse response, URI request) {
 		// Get content type
 		String mimeTypeName;
 		try {
@@ -288,6 +298,22 @@ public class PortalView extends Component {
 		response.setField(HttpField.LAST_MODIFIED, Instant.now());
 	}
 
+	private void requestPortletResource(GetRequest event, IOSubchannel channel,
+			URI resource) throws InterruptedException {
+		String resPath = resource.getPath();
+		int sep = resPath.indexOf('/');
+		// Send events to portlets on portal's channel
+		LinkedIOSubchannel portalChannel 
+			= new LinkedIOSubchannel(portal, channel);
+		if (Boolean.TRUE.equals(newEventPipeline().fire(
+				new PortletResourceRequest(resPath.substring(0, sep), 
+						uriFromPath(resPath.substring(sep + 1)),
+						event.httpRequest(), channel), portalChannel)
+				.get())) {
+			event.stop();
+		}
+	}
+	
 	@Handler
 	public void onInput(Input<ManagedCharBuffer> event, IOSubchannel channel)
 			throws IOException {
@@ -313,12 +339,12 @@ public class PortalView extends Component {
 			= new LinkedIOSubchannel(portal, channel);
 		switch (event.method()) {
 		case "portalReady": {
-			fire(new PortalReady(), portalChannel);
+			fire(new PortalReady(renderSupport), portalChannel);
 			break;
 		}
 		case "renderPortlet": {
 			JsonArray params = (JsonArray)event.params();
-			fire(new RenderPortletRequest(params.getString(0),
+			fire(new RenderPortletRequest(renderSupport, params.getString(0),
 					RenderMode.valueOf(params.getString(1))), portalChannel);
 			break;
 		}
@@ -475,24 +501,34 @@ public class PortalView extends Component {
 		}
 	}
 	
-//	private void renderTemplate(GetRequest request, IOSubchannel channel,
-//			RockerRenderer rockerRenderer) throws InterruptedException, IOException {
-//		HttpResponse response = request.request().response().get();
-//		response.setStatus(HttpStatus.OK);
-//		response.setHasPayload(true);
-//		response.setField(HttpField.CONTENT_TYPE,
-//		        MediaType.builder().setType("text", "html")
-//		                .setParameter("charset", "utf-8").build());
-//		channel.respond(new Response(response));
-//		
-//		ArrayOfByteArraysOutput data = rockerRenderer
-//				.render(ArrayOfByteArraysOutput.FACTORY);
-//		ByteBufferOutputStream out = new ByteBufferOutputStream(
-//				channel, channel.responsePipeline());
-//		for (byte[] array: data.getArrays()) {
-//			out.write(array);
-//		}
-//		out.close();
-//	}
+	/**
+	 * Create a {@link URI} from a path. This is similar to calling
+	 * `new URI(null, null, path, null)` with the {@link URISyntaxException}
+	 * converted to a {@link IllegalArgumentException}.
+	 * 
+	 * @param path the path
+	 * @return the uri
+	 * @throws IllegalArgumentException if the string violates 
+	 * RFC 2396
+	 */
+	public static URI uriFromPath(String path) throws IllegalArgumentException {
+		try {
+			return new URI(null, null, path, null);
+		} catch (URISyntaxException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+	
+	private class RenderSupportImpl implements RenderSupport {
+
+		/* (non-Javadoc)
+		 * @see org.jgrapes.portal.RenderSupport#portletResource(java.lang.String, java.net.URI)
+		 */
+		@Override
+		public URI portletResource(String portletId, URI uri) {
+			return portal.prefix().resolve(uriFromPath(
+					"portlet-resource/" + portletId + "/")).resolve(uri);
+		}
+	}
 	
 }

@@ -176,7 +176,7 @@ public class InMemorySessionManager extends Component {
 	 */
 	@Handler(priority=1000)
 	public void onRequest(Request event) {
-		final HttpRequest request = event.request();
+		final HttpRequest request = event.httpRequest();
 		Optional<String> requestedSessionId = request.findValue(
 		        HttpField.COOKIE, Converters.COOKIE_LIST)
 		        .flatMap(cookies -> cookies.stream().filter(

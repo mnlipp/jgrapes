@@ -63,7 +63,7 @@ public class WsEchoServer extends Component {
 	@RequestHandler(patterns="/ws/echo")
 	public void onGet(GetRequest event, IOSubchannel channel) 
 			throws InterruptedException {
-		final HttpRequest request = event.request();
+		final HttpRequest request = event.httpRequest();
 		if (!request.findField(
 				HttpField.UPGRADE, Converters.STRING_LIST)
 				.map(f -> f.value().containsIgnoreCase("websocket"))

@@ -16,24 +16,14 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.jgrapes.portal.events;
+package org.jgrapes.portal;
 
-import org.jgrapes.core.Event;
-import org.jgrapes.portal.RenderSupport;
+import java.net.URI;
 
 /**
- * Signals the successful loading of the portal structure
- * in the browser.
+ * 
  */
-public class PortalReady extends Event<Void> {
+public interface RenderSupport {
 
-	private RenderSupport renderSupport;
-	
-	public PortalReady(RenderSupport renderSupport) {
-		this.renderSupport = renderSupport;
-	}
-
-	public RenderSupport renderSupport() {
-		return renderSupport;
-	}
+	URI portletResource(String portletId, URI uri);
 }

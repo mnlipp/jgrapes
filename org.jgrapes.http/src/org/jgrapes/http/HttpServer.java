@@ -323,7 +323,7 @@ public class HttpServer extends Component {
 			return;
 		}
 		final HttpResponse response 
-			= requestEvent.request().response().get();
+			= requestEvent.httpRequest().response().get();
 
 		if (response.statusCode() != HttpStatus.NOT_IMPLEMENTED.statusCode()) {
 			// Some other component takes care
@@ -347,7 +347,7 @@ public class HttpServer extends Component {
 	@Handler(priority = Integer.MIN_VALUE)
 	public void onOptions(OptionsRequest event, IOSubchannel appChannel) {
 		if (event.requestUri() == HttpRequest.ASTERISK_REQUEST) {
-			HttpResponse response = event.request().response().get();
+			HttpResponse response = event.httpRequest().response().get();
 			response.setStatus(HttpStatus.OK);
 			appChannel.respond(new Response(response));
 			event.stop();
@@ -369,7 +369,7 @@ public class HttpServer extends Component {
 		        || !providedFallbacks.contains(event.getClass())) {
 			return;
 		}
-		sendResponse(event.request().response().get(), appChannel, 
+		sendResponse(event.httpRequest().response().get(), appChannel, 
 				HttpStatus.NOT_FOUND.statusCode(), 
 				HttpStatus.NOT_FOUND.reasonPhrase());
 		event.stop();
@@ -588,7 +588,7 @@ public class HttpServer extends Component {
 				.ifPresent(session -> 
 					appChannel.setAssociated(Session.class, session));
 			final HttpResponse response = event.requestEvent()
-					.request().response().get()
+					.httpRequest().response().get()
 					.setStatus(HttpStatus.SWITCHING_PROTOCOLS)
 					.setField(HttpField.UPGRADE, new StringList("websocket"));
 			event.addCompletedEvent(

@@ -18,38 +18,50 @@
 
 package org.jgrapes.portal.events;
 
+import java.net.URI;
+
+import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Event;
-
-import static org.jgrapes.portal.Portlet.*;
-
-import org.jgrapes.portal.RenderSupport;
+import org.jgrapes.io.IOSubchannel;
 
 /**
  * 
  */
-public class RenderPortletRequest extends Event<Void> {
+public class PortletResourceRequest extends Event<Boolean> {
 
-	private RenderSupport renderSupport;	
+	private HttpRequest httpRequest;
+	private IOSubchannel httpChannel;
 	private String portletId;
-	private RenderMode renderMode;
-	
+	private URI resourceUri;
+
 	/**
-	 * @param channels
+	 * @param httpRequest
 	 * @param portletId
-	 * @param renderMode
+	 * @param resourceUri
+	 * @param channels
 	 */
-	public RenderPortletRequest(RenderSupport renderSupport, 
-			String portletId, RenderMode renderMode) {
-		this.renderSupport = renderSupport;
+	public PortletResourceRequest(String portletId, URI resourceUri,
+			HttpRequest httpRequest, IOSubchannel httpChannel) {
 		this.portletId = portletId;
-		this.renderMode = renderMode;
+		this.resourceUri = resourceUri;
+		this.httpRequest = httpRequest;
+		this.httpChannel = httpChannel;
 	}
 
 	/**
-	 * @return the renderSupport
+	 * Returns the "raw" request as provided by the HTTP decoder.
+	 * 
+	 * @return the request
 	 */
-	public RenderSupport renderSupport() {
-		return renderSupport;
+	public HttpRequest httpRequest() {
+		return httpRequest;
+	}
+
+	/**
+	 * @return the httpChannel
+	 */
+	public IOSubchannel httpChannel() {
+		return httpChannel;
 	}
 
 	/**
@@ -60,11 +72,9 @@ public class RenderPortletRequest extends Event<Void> {
 	}
 
 	/**
-	 * @return the renderMode
+	 * @return the resourceUri
 	 */
-	public RenderMode renderMode() {
-		return renderMode;
+	public URI resourceUri() {
+		return resourceUri;
 	}
-	
-
 }

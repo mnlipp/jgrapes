@@ -122,7 +122,7 @@ public class Request extends Event<Void> {
 	 * 
 	 * @return the request
 	 */
-	public HttpRequest request() {
+	public HttpRequest httpRequest() {
 		return request;
 	}
 

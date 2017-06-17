@@ -211,13 +211,13 @@ public class StaticContentDispatcher extends Component {
 		// Set max age in cache-control header
 		List<Directive> directives = new ArrayList<>();
 		directives.add(new Directive("max-age", maxAge));
-		HttpResponse response = event.request().response().get();
+		HttpResponse response = event.httpRequest().response().get();
 		response.setField(HttpField.CACHE_CONTROL, directives);
 
 		// Check if sending is really required.
 		Instant lastModified = Files.getLastModifiedTime(resourcePath)
 				.toInstant().with(ChronoField.NANO_OF_SECOND, 0);
-		Optional<Instant> modifiedSince = event.request()
+		Optional<Instant> modifiedSince = event.httpRequest()
 				.findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
 		if (modifiedSince.isPresent() 
 				&& !lastModified.isAfter(modifiedSince.get())) {
@@ -291,7 +291,7 @@ public class StaticContentDispatcher extends Component {
 		// Set max age in cache-control header
 		List<Directive> directives = new ArrayList<>();
 		directives.add(new Directive("max-age", maxAge));
-		HttpResponse response = event.request().response().get();
+		HttpResponse response = event.httpRequest().response().get();
 		response.setField(HttpField.CACHE_CONTROL, directives);
 
 		// Send response 
