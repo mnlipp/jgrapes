@@ -127,8 +127,8 @@ public class Request extends Event<Void> {
 	}
 
 	/**
-	 * Returns a URI that is built from the information provided by the
-	 * decoder.
+	 * Returns an absolute URI of the request that is built from the 
+	 * information provided by the decoder.
 	 * 
 	 * @return the URI
 	 */
