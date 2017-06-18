@@ -25,5 +25,5 @@ import java.net.URI;
  */
 public interface RenderSupport {
 
-	URI portletResource(String portletId, URI uri);
+	URI portletResource(String portletType, URI uri);
 }

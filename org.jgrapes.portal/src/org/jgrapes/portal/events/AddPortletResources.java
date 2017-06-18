@@ -19,62 +19,51 @@
 package org.jgrapes.portal.events;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Event;
-import org.jgrapes.io.IOSubchannel;
 
 /**
  * 
  */
-public class PortletResourceRequest extends Event<Boolean> {
+public class AddPortletResources extends Event<Void> {
 
-	private HttpRequest httpRequest;
-	private IOSubchannel httpChannel;
 	private String portletType;
-	private URI resourceUri;
-
+	private List<URI> scriptUris = new ArrayList<>();
+	private List<URI> cssUris = new ArrayList<>();
+	
 	/**
-	 * @param httpRequest
-	 * @param portletType
-	 * @param resourceUri
 	 * @param channels
+	 * @param portletType
+	 * @param scriptUri
 	 */
-	public PortletResourceRequest(String portletType, URI resourceUri,
-			HttpRequest httpRequest, IOSubchannel httpChannel) {
+	public AddPortletResources(String portletType) {
 		this.portletType = portletType;
-		this.resourceUri = resourceUri;
-		this.httpRequest = httpRequest;
-		this.httpChannel = httpChannel;
 	}
-
+	
 	/**
-	 * Returns the "raw" request as provided by the HTTP decoder.
-	 * 
-	 * @return the request
-	 */
-	public HttpRequest httpRequest() {
-		return httpRequest;
-	}
-
-	/**
-	 * @return the httpChannel
-	 */
-	public IOSubchannel httpChannel() {
-		return httpChannel;
-	}
-
-	/**
-	 * @return the portletId
+	 * @return the portletType
 	 */
 	public String portletType() {
 		return portletType;
 	}
 
-	/**
-	 * @return the resourceUri
-	 */
-	public URI resourceUri() {
-		return resourceUri;
+	public AddPortletResources addScript(URI uri) {
+		scriptUris.add(uri);
+		return this;
+	}
+	
+	public AddPortletResources addCss(URI uri) {
+		cssUris.add(uri);
+		return this;
+	}
+	
+	public URI[] scriptUris() {
+		return scriptUris.toArray(new URI[scriptUris.size()]);
+	}
+	
+	public URI[] cssUris() {
+		return cssUris.toArray(new URI[cssUris.size()]);
 	}
 }

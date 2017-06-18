@@ -39,6 +39,7 @@ import java.net.URISyntaxException;
 import java.nio.CharBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +76,7 @@ import org.jgrapes.io.util.InputStreamPipeline;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.portal.Portlet.RenderMode;
+import org.jgrapes.portal.events.AddPortletResources;
 import org.jgrapes.portal.events.JsonRequest;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.PortletResourceRequest;
@@ -325,23 +327,6 @@ public class PortalView extends Component {
 		}		
 	}
 	
-	void renderPortlet(RenderPortlet event,
-	        LinkedIOSubchannel channel) 
-	        		throws InterruptedException, IOException {
-		JsonBuilderFactory factory = Json.createBuilderFactory(null);
-		if (event instanceof RenderPortletFromString) {
-			sendNotificationResponse(channel, "updatePortlet",
-					event.portletId(), event.title(), event.renderMode().name(),
-					event.supportedRenderModes().stream().map(RenderMode::name)
-						.toArray(size -> new String[size]),
-					((RenderPortletFromString)event).content());
-		}
-		JsonArrayBuilder renderModes = factory.createArrayBuilder();
-		for (RenderMode mode: event.supportedRenderModes()) {
-			renderModes.add(mode.name());
-		}
-	}
-
 	private void setTheme(IOSubchannel channel, String theme) {
 		StreamSupport.stream(themeLoader.spliterator(), false)
 			.filter(t -> t.themeId().equals(theme)).findFirst()
@@ -385,6 +370,30 @@ public class PortalView extends Component {
 		}
 		array.add(item.toString());
 		return array;
+	}
+
+	void renderPortlet(RenderPortlet event, LinkedIOSubchannel channel) 
+    		throws InterruptedException, IOException {
+		if (event instanceof RenderPortletFromString) {
+			sendNotificationResponse(channel, "updatePortlet",
+					event.portletId(), event.title(), event.renderMode().name(),
+					event.supportedRenderModes().stream().map(RenderMode::name)
+					.toArray(size -> new String[size]),
+					((RenderPortletFromString)event).content());
+		}
+	}
+
+	void addPortletReosurces(
+			AddPortletResources event, LinkedIOSubchannel channel)
+					throws InterruptedException, IOException {
+		sendNotificationResponse(channel, "addPortletResources",
+				Arrays.stream(event.cssUris()).map(uri -> 
+				renderSupport.portletResource(
+						event.portletType(), uri).toString())
+				.toArray(String[]::new),
+				Arrays.stream(event.scriptUris()).map(uri -> 
+				renderSupport.portletResource(event.portletType(), uri).toString())
+				.toArray(String[]::new));
 	}
 	
 	private class PortalInfo {
@@ -494,10 +503,10 @@ public class PortalView extends Component {
 		 * @see org.jgrapes.portal.RenderSupport#portletResource(java.lang.String, java.net.URI)
 		 */
 		@Override
-		public URI portletResource(String portletId, URI uri) {
+		public URI portletResource(String portletType, URI uri) {
 			return portal.prefix().resolve(uriFromPath(
-					"portlet-resource/" + portletId + "/")).resolve(uri);
+					"portlet-resource/" + portletType + "/")).resolve(uri);
 		}
 	}
-	
+
 }

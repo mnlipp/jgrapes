@@ -81,19 +81,35 @@ JGPortal = {
 			updateView(portletId, title, modes, content);
 		}
 	};
+	
+	JGPortal.addPortletResources = function(cssUris, scriptUris) {
+        for (index in cssUris) {
+            var uri = cssUris[index];
+            if ($("head > link[href='" + uri + "']").length === 0) {
+                $("head").append("<link rel='stylesheet' href='" + uri + "'>");
+            }
+        }
+	    for (index in scriptUris) {
+	        var uri = scriptUris[index];
+	        if ($("head > script[src='" + uri + "']").length === 0) {
+	            $("head").append("<script src='" + uri + "'></script>");
+	        }
+	    }
+	};
 })();
 
 
 (function() {
 
 	var messageHandlers = {
+	    'addPortletResources': JGPortal.addPortletResources,
 		'updatePortlet': JGPortal.updatePortlet,
 		'reload': function() { window.location.reload(true); }
 	};
 	    
 	JGPortal.handleMessage = function(message) {
 	    var handler = messageHandlers[message.method];
-	    if (handler === null) {
+	    if (handler === undefined || handler === null) {
 	        return;
 	    }
 	    if (message.hasOwnProperty("params")) {

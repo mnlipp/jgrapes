@@ -25,6 +25,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.util.LinkedIOSubchannel;
+import org.jgrapes.portal.events.AddPortletResources;
 import org.jgrapes.portal.events.RenderPortlet;
 
 /**
@@ -71,5 +72,12 @@ public class Portal extends Component {
 			LinkedIOSubchannel channel) 
 					throws InterruptedException, IOException {
 		view.renderPortlet(result, channel);
+	}
+	
+	@Handler
+	public void onAddPortletReosurces(
+			AddPortletResources event, LinkedIOSubchannel channel)
+					throws InterruptedException, IOException {
+		view.addPortletReosurces(event, channel);
 	}
 }

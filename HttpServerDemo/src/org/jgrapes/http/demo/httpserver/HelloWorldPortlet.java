@@ -28,6 +28,7 @@ import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.util.InputStreamPipeline;
 import org.jgrapes.portal.PortalView;
+import org.jgrapes.portal.events.AddPortletResources;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.RenderPortletFromString;
@@ -68,10 +69,24 @@ public class HelloWorldPortlet extends Component {
 	}
 
 	@Handler
+	public void onPortalReady(PortalReady event, IOSubchannel channel) {
+		channel.respond(new AddPortletResources(getClass().getName())
+				.addScript(PortalView.uriFromPath("functions.js")));
+		String html = "<div>Hello World! <img style='vertical-align: bottom;'"
+				+ " src='" + event.renderSupport().portletResource(
+						getClass().getName(), 
+						PortalView.uriFromPath("globe#1.ico")) 
+				+ "' height='20'></div>";
+		channel.respond(new RenderPortletFromString(
+				portletId, "Hello World", RenderMode.Preview, 
+				VIEWABLE_PORTLET_MODES, html));
+	}
+	
+	@Handler
 	public void onResourceRequest(
 			PortletResourceRequest event, IOSubchannel channel) {
 		// For me?
-		if (!event.portletId().equals(portletId)) {
+		if (!event.portletType().equals(getClass().getName())) {
 			return;
 		}
 		
@@ -96,20 +111,9 @@ public class HelloWorldPortlet extends Component {
 	}
 	
 	@Handler
-	public void onPortalReady(PortalReady event, IOSubchannel channel) {
-		String html = "<div>Hello World! <img style='vertical-align: bottom;'"
-				+ " src='" + event.renderSupport().portletResource(
-						portletId, PortalView.uriFromPath("globe#1.ico")) 
-				+ "' height='20'></div>";
-		channel.respond(new RenderPortletFromString(
-				portletId, "Hello World", RenderMode.Preview, 
-				VIEWABLE_PORTLET_MODES, html));
-	}
-	
-	@Handler
 	public void onRenderPortletRequest(RenderPortletRequest event,
 			IOSubchannel channel) {
-		if (!event.portletId().equals(portletId)) {
+		if (!event.portletId().equals(getClass().getName())) {
 			return;
 		}
 		String html = "<div><h1>Hello World!</h1></div>";
