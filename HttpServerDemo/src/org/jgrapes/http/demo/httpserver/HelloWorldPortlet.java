@@ -71,7 +71,7 @@ public class HelloWorldPortlet extends Component {
 	@Handler
 	public void onPortalReady(PortalReady event, IOSubchannel channel) {
 		channel.respond(new AddPortletResources(getClass().getName())
-				.addScript(PortalView.uriFromPath("functions.js")));
+				.addScript(PortalView.uriFromPath("HelloWorld-functions.js")));
 		String html = "<div>Hello World! <img style='vertical-align: bottom;'"
 				+ " src='" + event.renderSupport().portletResource(
 						getClass().getName(), 
