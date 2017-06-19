@@ -19,31 +19,32 @@
 package org.jgrapes.http.demo.httpserver;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.util.InputStreamPipeline;
+import org.jgrapes.portal.AbstractPortlet;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.events.AddPortletResources;
 import org.jgrapes.portal.events.PortalReady;
-import org.jgrapes.portal.events.PortletResourceRequest;
+import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.RenderPortletRequest;
 
+import freemarker.core.ParseException;
+import freemarker.template.MalformedTemplateNameException;
+import freemarker.template.Template;
+import freemarker.template.TemplateNotFoundException;
+
 import static org.jgrapes.portal.Portlet.*;
 
-import java.io.InputStream;
-
-import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import java.io.IOException;
 
 /**
  * 
  */
-public class HelloWorldPortlet extends Component {
+public class HelloWorldPortlet extends AbstractPortlet {
 
 	private String portletId;
 	
@@ -83,43 +84,20 @@ public class HelloWorldPortlet extends Component {
 	}
 	
 	@Handler
-	public void onResourceRequest(
-			PortletResourceRequest event, IOSubchannel channel) {
-		// For me?
-		if (!event.portletType().equals(getClass().getName())) {
-			return;
-		}
-		
-		// Look for content
-		InputStream in = this.getClass().getResourceAsStream(
-				event.resourceUri().getPath());
-		if (in == null) {
-			return;
-		}
-		
-		// Send header
-		HttpResponse response = event.httpRequest().response().get();
-		PortalView.prepareResourceResponse(response, event.resourceUri());
-		event.httpChannel().respond(new Response(response));
-		
-		// Send content
-		activeEventPipeline().executorService()
-			.submit(new InputStreamPipeline(in, event.httpChannel()));
-		
-		// Done
-		event.setResult(true);
-	}
-	
-	@Handler
 	public void onRenderPortletRequest(RenderPortletRequest event,
-			IOSubchannel channel) {
-		if (!event.portletId().equals(getClass().getName())) {
+			IOSubchannel channel) 
+					throws TemplateNotFoundException, 
+					MalformedTemplateNameException, ParseException, 
+					IOException {
+		if (!event.portletId().equals(portletId)) {
 			return;
 		}
-		String html = "<div><h1>Hello World!</h1></div>";
-		channel.respond(new RenderPortletFromString(
-				portletId, "Hello World", RenderMode.View, 
-				VIEWABLE_PORTLET_MODES, html));
+		
 		event.stop();
+		Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
+		channel.respond(new RenderPortletFromProvider(
+				portletId, "Hello World", RenderMode.View, 
+				VIEWABLE_PORTLET_MODES, newContentProvider(
+						tpl, freemarkerModel(event.renderSupport()))));
 	}
 }

@@ -33,6 +33,7 @@ import java.io.OutputStreamWriter;
 import java.io.PipedReader;
 import java.io.PipedWriter;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -56,6 +57,7 @@ import javax.json.JsonReader;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
+import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.Directive;
@@ -80,7 +82,8 @@ import org.jgrapes.portal.events.AddPortletResources;
 import org.jgrapes.portal.events.JsonRequest;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.PortletResourceRequest;
-import org.jgrapes.portal.events.RenderPortlet;
+import org.jgrapes.portal.events.PortletResourceResponse;
+import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.themes.base.Provider;
@@ -335,6 +338,55 @@ public class PortalView extends Component {
 					session.put("themeProvider", themeProvider)));
 	}
 	
+	void onAddPortletResources(
+			AddPortletResources event, LinkedIOSubchannel channel)
+					throws InterruptedException, IOException {
+		sendNotificationResponse(channel, "addPortletResources",
+				Arrays.stream(event.cssUris()).map(uri -> 
+				renderSupport.portletResource(
+						event.portletType(), uri).toString())
+				.toArray(String[]::new),
+				Arrays.stream(event.scriptUris()).map(uri -> 
+				renderSupport.portletResource(event.portletType(), uri).toString())
+				.toArray(String[]::new));
+	}
+	
+	void onRenderPortlet(
+			RenderPortletFromString event, LinkedIOSubchannel channel) 
+					throws InterruptedException, IOException {
+		sendNotificationResponse(channel, "updatePortlet",
+				event.portletId(), event.title(), event.renderMode().name(),
+				event.supportedRenderModes().stream().map(RenderMode::name)
+				.toArray(size -> new String[size]),
+				((RenderPortletFromString)event).content());
+	}
+
+	void onRenderPortlet(
+			RenderPortletFromProvider event, LinkedIOSubchannel channel) 
+					throws InterruptedException, IOException {
+		StringWriter content = new StringWriter();
+		event.provider().writeTo(content);
+		sendNotificationResponse(channel, "updatePortlet",
+				event.portletId(), event.title(), event.renderMode().name(),
+				event.supportedRenderModes().stream().map(RenderMode::name)
+				.toArray(size -> new String[size]),
+				content.toString());
+	}
+
+	public void onPortletResourceResponse(PortletResourceResponse event,
+	        LinkedIOSubchannel channel) {
+		HttpRequest request = event.request().httpRequest();
+		// Send header
+		HttpResponse response = request.response().get();
+		prepareResourceResponse(response, request.requestUri());
+		channel.upstreamChannel().respond(new Response(response));
+		
+		// Send content
+		activeEventPipeline().executorService().submit(
+				new InputStreamPipeline(
+						event.stream(), channel.upstreamChannel()));
+	}
+
 	private void sendNotificationResponse(LinkedIOSubchannel channel,
 	        String method, Object... params)
 	        		throws InterruptedException, IOException {
@@ -372,30 +424,6 @@ public class PortalView extends Component {
 		return array;
 	}
 
-	void renderPortlet(RenderPortlet event, LinkedIOSubchannel channel) 
-    		throws InterruptedException, IOException {
-		if (event instanceof RenderPortletFromString) {
-			sendNotificationResponse(channel, "updatePortlet",
-					event.portletId(), event.title(), event.renderMode().name(),
-					event.supportedRenderModes().stream().map(RenderMode::name)
-					.toArray(size -> new String[size]),
-					((RenderPortletFromString)event).content());
-		}
-	}
-
-	void addPortletReosurces(
-			AddPortletResources event, LinkedIOSubchannel channel)
-					throws InterruptedException, IOException {
-		sendNotificationResponse(channel, "addPortletResources",
-				Arrays.stream(event.cssUris()).map(uri -> 
-				renderSupport.portletResource(
-						event.portletType(), uri).toString())
-				.toArray(String[]::new),
-				Arrays.stream(event.scriptUris()).map(uri -> 
-				renderSupport.portletResource(event.portletType(), uri).toString())
-				.toArray(String[]::new));
-	}
-	
 	private class PortalInfo {
 
 		private PipedWriter decodeWriter;

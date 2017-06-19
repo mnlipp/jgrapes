@@ -18,18 +18,39 @@
 
 package org.jgrapes.portal.events;
 
-import org.jgrapes.core.Channel;
-import org.jgrapes.core.CompletedEvent;
+import java.io.InputStream;
+
 import org.jgrapes.core.Event;
 
 /**
  * 
  */
-public class PortletContent extends Event {
+public class PortletResourceResponse extends Event<Void> {
+
+	private PortletResourceRequest request;
+	private InputStream stream;
+	
+	/**
+	 * @param channels
+	 */
+	public PortletResourceResponse(
+			PortletResourceRequest request, InputStream stream) {
+		this.request = request;
+		this.stream = stream;
+	}
 
 	/**
+	 * @return the request
 	 */
-	public PortletContent() {
+	public PortletResourceRequest request() {
+		return request;
+	}
+
+	/**
+	 * @return the stream
+	 */
+	public InputStream stream() {
+		return stream;
 	}
 
 }
