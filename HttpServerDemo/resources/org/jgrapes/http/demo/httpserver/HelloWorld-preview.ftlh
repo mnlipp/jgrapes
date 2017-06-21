@@ -1,7 +1,5 @@
 <div>Hello World! <img style='vertical-align: bottom;'
     src="${portletResource('globe#1.ico')}" height='20'>
-    <script>
-        alert('Portlet loaded');
-    </script>
+    <!-- World icon from http://apathae.deviantart.com/ -->
 </div>
 
