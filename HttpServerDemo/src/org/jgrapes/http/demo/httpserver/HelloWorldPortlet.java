@@ -29,7 +29,6 @@ import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.events.AddPortletResources;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
-import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.RenderPortletRequest;
 
 import freemarker.core.ParseException;
