@@ -32,7 +32,7 @@ sourceSets.main.output.dir project.file('build/generated/webResources')
 dependencies {
 	compile project(':org.jgrapes.http')
 	compile 'org.freemarker:freemarker:2.3.26-incubating'
-	compile group: 'org.glassfish', name: 'javax.json', version: '1.0.4'
+	compile group: 'org.glassfish', name: 'javax.json', version: '1.1'
 }
 
 jar {
