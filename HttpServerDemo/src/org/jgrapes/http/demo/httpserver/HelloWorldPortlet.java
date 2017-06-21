@@ -66,7 +66,7 @@ public class HelloWorldPortlet extends AbstractPortlet {
 	 */
 	public HelloWorldPortlet(Channel componentChannel) {
 		super(componentChannel);
-		portletId = Components.objectId(this);
+		portletId = Components.objectFullName(this);
 	}
 
 	@Handler
