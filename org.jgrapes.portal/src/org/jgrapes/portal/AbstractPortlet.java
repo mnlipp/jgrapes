@@ -89,7 +89,8 @@ public class AbstractPortlet extends Component {
 					if (!(args.get(0) instanceof SimpleScalar)) {
 						throw new TemplateModelException("Not a string.");
 					}
-					return renderSupport.portletResource(getClass().getName(),
+					return renderSupport.portletResource(
+							AbstractPortlet.this.getClass().getName(),
 							PortalView.uriFromPath(
 									((SimpleScalar)args.get(0)).getAsString()))
 							.getRawPath();

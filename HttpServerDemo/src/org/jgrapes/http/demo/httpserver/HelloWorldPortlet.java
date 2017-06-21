@@ -70,17 +70,17 @@ public class HelloWorldPortlet extends AbstractPortlet {
 	}
 
 	@Handler
-	public void onPortalReady(PortalReady event, IOSubchannel channel) {
+	public void onPortalReady(PortalReady event, IOSubchannel channel) 
+			throws TemplateNotFoundException, MalformedTemplateNameException, 
+			ParseException, IOException {
 		channel.respond(new AddPortletResources(getClass().getName())
-				.addScript(PortalView.uriFromPath("HelloWorld-functions.js")));
-		String html = "<div>Hello World! <img style='vertical-align: bottom;'"
-				+ " src='" + event.renderSupport().portletResource(
-						getClass().getName(), 
-						PortalView.uriFromPath("globe#1.ico")) 
-				+ "' height='20'></div>";
-		channel.respond(new RenderPortletFromString(
+				.addScript(PortalView.uriFromPath("HelloWorld-functions.js"))
+				.addCss(PortalView.uriFromPath("HelloWorld-style.css")));
+		Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
+		channel.respond(new RenderPortletFromProvider(
 				portletId, "Hello World", RenderMode.Preview, 
-				VIEWABLE_PORTLET_MODES, html));
+				VIEWABLE_PORTLET_MODES, newContentProvider(
+						tpl, freemarkerModel(event.renderSupport()))));
 	}
 	
 	@Handler

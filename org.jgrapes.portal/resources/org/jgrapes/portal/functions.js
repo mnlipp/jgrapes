@@ -74,48 +74,80 @@ JGPortal = {
         tabs.tabs( "option", "active", portletIndex );
 	}
 	
-	JGPortal.updatePortlet = function updatePortlet(portletId, title, mode, modes, content) {
+	updatePortlet = function updatePortlet(portletId, title, mode, modes, content) {
 		if (mode === "Preview") {
 			updatePreview(portletId, title, modes, content);
 		} else if (mode === "View") {
 			updateView(portletId, title, modes, content);
 		}
 	};
+
+	var pendingResourcesCallbacks = 0;
 	
-	JGPortal.addPortletResources = function(cssUris, scriptUris) {
+	addPortletResources = function(cssUris, scriptUris) {
         for (index in cssUris) {
             var uri = cssUris[index];
             if ($("head > link[href='" + uri + "']").length === 0) {
-                $("head").append("<link rel='stylesheet' href='" + uri + "'>");
+                $("head link[href$='/portal.css']:last").after("<link rel='stylesheet' href='" + uri + "'>");
             }
         }
+        // Don't use jquery, https://stackoverflow.com/questions/610995/cant-append-script-element
+        pendingResourcesCallbacks = scriptUris.length;
+        if (pendingResourcesCallbacks === 0) {
+            messageHandled();
+        }
 	    for (index in scriptUris) {
-	        var uri = scriptUris[index];
+	        let uri = scriptUris[index];
 	        if ($("head > script[src='" + uri + "']").length === 0) {
-	            $("head").append("<script src='" + uri + "'></script>");
+	            let script = document.createElement("script");
+                script.src = uri;
+                script.addEventListener('load', function() {
+                    if (--pendingResourcesCallbacks === 0) {
+                        messageHandled();
+                    }
+                });
+                let head = $("head").get()[0];
+                head.appendChild(script);
 	        }
 	    }
 	};
-})();
-
-
-(function() {
+	addPortletResources.callsBackMessageHandled = true;
 
 	var messageHandlers = {
-	    'addPortletResources': JGPortal.addPortletResources,
-		'updatePortlet': JGPortal.updatePortlet,
+	    'addPortletResources': addPortletResources,
+		'updatePortlet': updatePortlet,
 		'reload': function() { window.location.reload(true); }
 	};
-	    
-	JGPortal.handleMessage = function(message) {
+	
+	var messageQueue = [];
+	
+	function handleNextMessage () {
+	    var message = messageQueue[0]; 
 	    var handler = messageHandlers[message.method];
-	    if (handler === undefined || handler === null) {
-	        return;
+        if (!handler) {
+            return;
+        }
+        if (message.hasOwnProperty("params")) {
+            handler(...message.params);
+        } else {
+            handler();
+        }
+        if (!handler.callsBackMessageHandled) {
+            messageHandled();
+        }
+	};
+
+	function messageHandled() {
+	    messageQueue.shift();
+	    if (messageQueue.length !== 0) {
+	        handleNextMessage();
 	    }
-	    if (message.hasOwnProperty("params")) {
-	        handler(...message.params);
-	    } else {
-	        handler();
+	};
+	
+	JGPortal.handleMessage = function(message) {
+	    messageQueue.push(message);
+	    if (messageQueue.length === 1) {
+	        handleNextMessage();
 	    }
     };
 	

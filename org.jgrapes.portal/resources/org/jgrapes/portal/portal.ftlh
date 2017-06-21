@@ -61,7 +61,7 @@
   
   <!-- Scripts(s) --> 
   <!-- JQuery and extensions -->
-  <script src="${resourceUrl('portal-resource/lib/jquery-3.2.1.min.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/jquery-3.2.1.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/jquery.simple.websocket.min.js')}"></script>
   <!-- JQuery UI and extensions -->
   <script src="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui.min.js')}"></script>
