@@ -79,9 +79,10 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	/**
 	 * Creates a new {@code LinkedIOSubchannel} for a given I/O subchannel.
 	 * Using this constructor with {@code false} as last parameter prevents the
-	 * addition of the linked I/O subchannel to the mapping from (upstream)
-	 * subchannel to linked subchannel. This can save some space if a converter
-	 * component has some other means to maintain that information. Addition to
+	 * addition of the back link from the upstream channel to the downstream
+	 * channel (see {@link #downstreamChannel(Manager, IOSubchannel)}). 
+	 * This can save some space if a converter component has some other 
+	 * means to maintain that information. Addition to
 	 * the map is thread safe.
 	 * 
 	 * @param converterComponent
@@ -89,15 +90,15 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	 *            new event pipeline
 	 * @param upstreamChannel
 	 *            the upstream channel
-	 * @param addToMap
-	 *            add an entry in the map
+	 * @param linkBack
+	 *            create the link from upstream to downstream
 	 */
 	public LinkedIOSubchannel(Manager converterComponent,
-	        IOSubchannel upstreamChannel, boolean addToMap) {
+	        IOSubchannel upstreamChannel, boolean linkBack) {
 		super(converterComponent);
 		this.converterComponent = converterComponent;
 		this.upstreamChannel = new WeakReference<>(upstreamChannel);
-		if (addToMap) {
+		if (linkBack) {
 			upstreamChannel.setAssociated(
 					new KeyWrapper(converterComponent), this);
 		}
