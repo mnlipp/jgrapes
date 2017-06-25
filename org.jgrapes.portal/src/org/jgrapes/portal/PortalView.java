@@ -54,6 +54,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.JsonValue;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
@@ -79,6 +80,7 @@ import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.portal.Portlet.RenderMode;
 import org.jgrapes.portal.events.AddPortletResources;
+import org.jgrapes.portal.events.ChangePortletModel;
 import org.jgrapes.portal.events.JsonRequest;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.PortletResourceRequest;
@@ -141,6 +143,17 @@ public class PortalView extends Component {
 				.sorted().toArray(size -> new ThemeInfo[size]));
 	}
 
+	private LinkedIOSubchannel portalChannel(IOSubchannel channel) {
+		Optional<? extends LinkedIOSubchannel> portalChannel
+			= LinkedIOSubchannel.downstreamChannel(portal, channel);
+		if (portalChannel.isPresent()) {
+			return portalChannel.get();
+		}
+		LinkedIOSubchannel newPortalChannel
+			= new LinkedIOSubchannel(portal, channel);
+		return newPortalChannel;
+	}
+	
 	@RequestHandler(dynamic=true)
 	public void onGet(GetRequest event, IOSubchannel channel) 
 			throws InterruptedException, IOException {
@@ -277,12 +290,10 @@ public class PortalView extends Component {
 		String resPath = resource.getPath();
 		int sep = resPath.indexOf('/');
 		// Send events to portlets on portal's channel
-		LinkedIOSubchannel portalChannel 
-			= new LinkedIOSubchannel(portal, channel);
 		if (Boolean.TRUE.equals(newEventPipeline().fire(
 				new PortletResourceRequest(resPath.substring(0, sep), 
 						uriFromPath(resPath.substring(sep + 1)),
-						event.httpRequest(), channel), portalChannel)
+						event.httpRequest(), channel), portalChannel(channel))
 				.get())) {
 			event.stop();
 		}
@@ -309,8 +320,7 @@ public class PortalView extends Component {
 			return;
 		}
 		// Send events to portlets on portal's channel
-		LinkedIOSubchannel portalChannel 
-			= new LinkedIOSubchannel(portal, channel);
+		LinkedIOSubchannel portalChannel = portalChannel(channel);
 		switch (event.method()) {
 		case "portalReady": {
 			fire(new PortalReady(renderSupport), portalChannel);
@@ -326,6 +336,15 @@ public class PortalView extends Component {
 			JsonArray params = (JsonArray)event.params();
 			setTheme(channel, params.getString(0));
 			sendNotificationResponse(portalChannel, "reload");
+			break;
+		}
+		case "sendToPortlet": {
+			JsonArray params = (JsonArray)event.params();
+			fire(new ChangePortletModel(renderSupport, params.getString(0),
+					params.getString(1), params.size() <= 2
+					? JsonValue.EMPTY_JSON_ARRAY : params.getJsonArray(2)), 
+					portalChannel);
+			break;
 		}
 		}		
 	}

@@ -30,6 +30,7 @@ import freemarker.template.TemplateModelException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import java.util.Map;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
@@ -45,8 +47,8 @@ import org.jgrapes.portal.events.RenderPortletFromProvider.ContentProvider;
 /**
  * 
  */
-public class AbstractPortlet extends Component {
-
+public abstract class AbstractPortlet extends Component {	
+	
 	private Configuration fmConfig = null;
 	private Map<String,Object> fmModel = null;
 	
@@ -56,6 +58,8 @@ public class AbstractPortlet extends Component {
 	public AbstractPortlet() {
 	}
 
+	protected abstract String portletId();
+	
 	/**
 	 * @param componentChannel
 	 */
@@ -77,7 +81,8 @@ public class AbstractPortlet extends Component {
 		return fmConfig;
 	}
 	
-	protected Map<String,Object> freemarkerModel(RenderSupport renderSupport) {
+	protected Map<String,Object> freemarkerBaseModel(
+			RenderSupport renderSupport) {
 		if (fmModel == null) {
 			fmModel = new HashMap<>();
 			fmModel.put("portletResource", new TemplateMethodModelEx() {
@@ -96,6 +101,7 @@ public class AbstractPortlet extends Component {
 							.getRawPath();
 				}
 			});
+			fmModel = Collections.unmodifiableMap(fmModel);
 		}
 		return fmModel;
 	}
@@ -136,5 +142,13 @@ public class AbstractPortlet extends Component {
 			}
 		};
 		
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected Map<Object, Object> portletSession(IOSubchannel channel) {
+		return channel.associated(Session.class).map(session ->
+				(Map<Object,Object>)session.computeIfAbsent(portletId(),
+						k -> new HashMap<>()))
+				.orElseThrow(IllegalStateException::new);
 	}
 }

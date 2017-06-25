@@ -26,7 +26,9 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.AbstractPortlet;
 import org.jgrapes.portal.PortalView;
+import org.jgrapes.portal.RenderSupport;
 import org.jgrapes.portal.events.AddPortletResources;
+import org.jgrapes.portal.events.ChangePortletModel;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletRequest;
@@ -39,6 +41,8 @@ import freemarker.template.TemplateNotFoundException;
 import static org.jgrapes.portal.Portlet.*;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 
@@ -55,6 +59,10 @@ public class HelloWorldPortlet extends AbstractPortlet {
 		this(Channel.SELF);
 	}
 
+	protected String portletId() {
+		return portletId;
+	}
+	
 	/**
 	 * Creates a new component with its channel set to the given 
 	 * channel.
@@ -79,11 +87,11 @@ public class HelloWorldPortlet extends AbstractPortlet {
 		channel.respond(new RenderPortletFromProvider(
 				portletId, "Hello World", RenderMode.Preview, 
 				VIEWABLE_PORTLET_MODES, newContentProvider(
-						tpl, freemarkerModel(event.renderSupport()))));
+						tpl, fmModel(channel, event.renderSupport()))));
 	}
 	
 	@Handler
-	public void onRenderPortletRequest(RenderPortletRequest event,
+	public void onRenderPortlet(RenderPortletRequest event,
 			IOSubchannel channel) 
 					throws TemplateNotFoundException, 
 					MalformedTemplateNameException, ParseException, 
@@ -97,6 +105,53 @@ public class HelloWorldPortlet extends AbstractPortlet {
 		channel.respond(new RenderPortletFromProvider(
 				portletId, "Hello World", RenderMode.View, 
 				VIEWABLE_PORTLET_MODES, newContentProvider(
-						tpl, freemarkerModel(event.renderSupport()))));
+						tpl, fmModel(channel, event.renderSupport()))));
 	}
+	
+	@Handler
+	public void onChangePortletModel(ChangePortletModel event,
+			IOSubchannel channel) throws TemplateNotFoundException, 
+			MalformedTemplateNameException, ParseException, IOException {
+		if (!event.portletId().equals(portletId)) {
+			return;
+		}
+		event.stop();
+		
+		Map<Object,Object> session = portletSession(channel);
+		boolean visible = (Boolean)session.computeIfAbsent
+				("WorldVisible", k -> false);
+		visible = !visible;
+		session.put("WorldVisible", visible);
+		
+		Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
+		channel.respond(new RenderPortletFromProvider(
+				portletId, "Hello World", RenderMode.View, 
+				VIEWABLE_PORTLET_MODES, newContentProvider(
+						tpl, fmModel(channel, event.renderSupport()))));
+	}
+	
+	private Map<Object,Object> fmModel(
+			IOSubchannel channel, RenderSupport renderSupport) {
+		return channel.associated(getClass().getName() + "#fmModel", () -> {
+			Map<Object,Object> model = new HashMap<>(
+					freemarkerBaseModel(renderSupport));
+			model.put("portlet", new PortletBeanView(channel));
+			return model;
+		});
+		
+	}
+
+	public class PortletBeanView {
+		
+		private Map<Object,Object> portletSession;
+		
+		public PortletBeanView(IOSubchannel channel) {
+			portletSession = portletSession(channel);
+		}
+		
+		public boolean isWorldVisible() {
+			return (Boolean)portletSession.getOrDefault("WorldVisible", true);
+		}
+	}
+	
 }

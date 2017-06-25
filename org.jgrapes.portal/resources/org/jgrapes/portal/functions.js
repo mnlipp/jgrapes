@@ -89,6 +89,8 @@ var JGPortal = {
 		let portletView;
 		if (matches.length === 1) {
 			portletView = $( matches[0] );
+	        portletView.children().detach();
+	        portletView.append($(content));
 		} else {
 			tabCounter += 1;
 	        let id = "tabs-" + tabCounter,
@@ -176,4 +178,14 @@ var JGPortal = {
 		wsConn.send({"jsonrpc": "2.0", "method": "renderPortlet",
 			"params": [ portletId, mode ]});
 	};
+    
+    JGPortal.sendToPortlet = function(portletId, method, params) {
+        if (params === undefined) {
+            wsConn.send({"jsonrpc": "2.0", "method": "sendToPortlet",
+                "params": [ portletId, method ]});
+        } else {
+            wsConn.send({"jsonrpc": "2.0", "method": "sendToPortlet",
+                "params": [ portletId, method, params ]});
+        }
+    };
 })();
