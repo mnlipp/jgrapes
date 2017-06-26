@@ -24,7 +24,6 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.portal.AbstractPortlet;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.RenderSupport;
 import org.jgrapes.portal.events.AddPortletResources;
@@ -32,6 +31,7 @@ import org.jgrapes.portal.events.ChangePortletModel;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletRequest;
+import org.jgrapes.portal.freemarker.FreeMarkerPortlet;
 
 import freemarker.core.ParseException;
 import freemarker.template.MalformedTemplateNameException;
@@ -47,7 +47,7 @@ import java.util.Map;
 /**
  * 
  */
-public class HelloWorldPortlet extends AbstractPortlet {
+public class HelloWorldPortlet extends FreeMarkerPortlet {
 
 	private String portletId;
 	
@@ -76,6 +76,11 @@ public class HelloWorldPortlet extends AbstractPortlet {
 		portletId = Components.objectFullName(this);
 	}
 
+	private boolean isWorldVisible(Map<Object,Object> portletSession) {
+		return (boolean)portletSession
+				.computeIfAbsent("WorldVisible", k -> true);
+	}
+	
 	@Handler
 	public void onPortalReady(PortalReady event, IOSubchannel channel) 
 			throws TemplateNotFoundException, MalformedTemplateNameException, 
@@ -118,10 +123,7 @@ public class HelloWorldPortlet extends AbstractPortlet {
 		event.stop();
 		
 		Map<Object,Object> session = portletSession(channel);
-		boolean visible = (Boolean)session.computeIfAbsent
-				("WorldVisible", k -> false);
-		visible = !visible;
-		session.put("WorldVisible", visible);
+		session.put("WorldVisible", !isWorldVisible(session));
 		
 		Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
 		channel.respond(new RenderPortletFromProvider(
@@ -150,7 +152,7 @@ public class HelloWorldPortlet extends AbstractPortlet {
 		}
 		
 		public boolean isWorldVisible() {
-			return (Boolean)portletSession.getOrDefault("WorldVisible", true);
+			return HelloWorldPortlet.this.isWorldVisible(portletSession);
 		}
 	}
 	

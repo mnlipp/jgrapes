@@ -18,21 +18,8 @@
 
 package org.jgrapes.portal;
 
-import freemarker.template.Configuration;
-import freemarker.template.SimpleScalar;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateExceptionHandler;
-import freemarker.template.TemplateMethodModelEx;
-import freemarker.template.TemplateModel;
-import freemarker.template.TemplateModelException;
-
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.Writer;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.jgrapes.core.Channel;
@@ -42,23 +29,11 @@ import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
-import org.jgrapes.portal.events.RenderPortletFromProvider.ContentProvider;
 
 /**
  * 
  */
 public abstract class AbstractPortlet extends Component {	
-	
-	private Configuration fmConfig = null;
-	private Map<String,Object> fmModel = null;
-	
-	/**
-	 * 
-	 */
-	public AbstractPortlet() {
-	}
-
-	protected abstract String portletId();
 	
 	/**
 	 * @param componentChannel
@@ -67,44 +42,7 @@ public abstract class AbstractPortlet extends Component {
 		super(componentChannel);
 	}
 
-	protected Configuration freemarkerConfig() {
-		if (fmConfig == null) {
-			fmConfig = new Configuration(Configuration.VERSION_2_3_26);
-			fmConfig.setClassLoaderForTemplateLoading(
-					getClass().getClassLoader(), getClass().getPackage()
-					.getName().replace('.', '/'));
-			fmConfig.setDefaultEncoding("utf-8");
-			fmConfig.setTemplateExceptionHandler(
-					TemplateExceptionHandler.RETHROW_HANDLER);
-	        fmConfig.setLogTemplateExceptions(false);
-		}
-		return fmConfig;
-	}
-	
-	protected Map<String,Object> freemarkerBaseModel(
-			RenderSupport renderSupport) {
-		if (fmModel == null) {
-			fmModel = new HashMap<>();
-			fmModel.put("portletResource", new TemplateMethodModelEx() {
-				@Override
-				public Object exec(@SuppressWarnings("rawtypes") List arguments)
-						throws TemplateModelException {
-					@SuppressWarnings("unchecked")
-					List<TemplateModel> args = (List<TemplateModel>)arguments;
-					if (!(args.get(0) instanceof SimpleScalar)) {
-						throw new TemplateModelException("Not a string.");
-					}
-					return renderSupport.portletResource(
-							AbstractPortlet.this.getClass().getName(),
-							PortalView.uriFromPath(
-									((SimpleScalar)args.get(0)).getAsString()))
-							.getRawPath();
-				}
-			});
-			fmModel = Collections.unmodifiableMap(fmModel);
-		}
-		return fmModel;
-	}
+	protected abstract String portletId();
 	
 	@Handler
 	public void onResourceRequest(
@@ -128,22 +66,6 @@ public abstract class AbstractPortlet extends Component {
 		event.setResult(true);
 	}
 
-	protected ContentProvider newContentProvider(
-			Template template, Object dataModel) {
-		return new ContentProvider() {
-			
-			@Override
-			public void writeTo(Writer out) throws IOException {
-				try {
-					template.process(dataModel, out);
-				} catch (TemplateException e) {
-					throw new IOException(e);
-				}
-			}
-		};
-		
-	}
-	
 	@SuppressWarnings("unchecked")
 	protected Map<Object, Object> portletSession(IOSubchannel channel) {
 		return channel.associated(Session.class).map(session ->
