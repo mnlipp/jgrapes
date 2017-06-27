@@ -76,6 +76,22 @@ var JGPortal = {
     };
     JGPortal.findPortletView = findPortletView;
     
+    function activatePortletView(portletId) {
+        let tabs = $( "#tabs" ).tabs();
+        let portletIndex = undefined;
+        let matches = tabs.find("> div").filter(function(index) {
+            if ($(this).attr("data-portletId") === portletId) {
+                portletIndex = index;
+                return true;
+            } else {
+                return false;
+            }
+        });
+        if (portletIndex) {
+            tabs.tabs( "option", "active", portletIndex );
+        }
+    }
+    
 	function updatePreview(portletId, title, modes, content) {
 		let portlet = findPortletPreview(portletId);
 		if (!portlet) {
@@ -109,22 +125,13 @@ var JGPortal = {
     var tabCounter = 1;
 
 	function updateView(portletId, title, modes, content) {
-		let tabs = $( "#tabs" ).tabs();
-        let portletIndex;
-		let matches = tabs.find("> div").filter(function(index) {
-			if ($(this).attr("data-portletId") === portletId) {
-			    portletIndex = index;
-			    return true;
-			} else {
-			    return false;
-			}
-		});
-		let portletView;
-		if (matches.length === 1) {
+		let portletView = findPortletView(portletId);
+		if (portletView) {
 			portletView = $( matches[0] );
 	        portletView.children().detach();
 	        portletView.append($(content));
 		} else {
+	        let tabs = $( "#tabs" ).tabs();
 			tabCounter += 1;
 	        let id = "tabs-" + tabCounter,
 	          li = $( tabTemplate.replace( /@\{href\}/g, "#" + id ).replace( /@\{label\}/g, title ) );
@@ -134,10 +141,9 @@ var JGPortal = {
 			portletView.attr("data-portletId", portletId);
 	        tabs.append( portletView );
 	        tabs.tabs( "refresh" );
-	        portletIndex = tabItems.find("li").length - 1;
 		}
-        tabs.tabs( "option", "active", portletIndex );
-	}
+		activatePortletView(portletId);
+    }
 	
 	function updatePortlet(portletId, title, mode, modes, content) {
 		if (mode === "Preview") {
