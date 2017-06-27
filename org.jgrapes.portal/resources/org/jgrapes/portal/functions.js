@@ -10,6 +10,24 @@ var JGPortal = {
 
 (function () {
 
+    var portletFunctionRegistry = {};
+    
+    JGPortal.registerPortletMethod = function(portletClass, methodName, method) {
+        let classRegistry = portletFunctionRegistry[portletClass];
+        if (!classRegistry) {
+            classRegistry = {};
+            portletFunctionRegistry[portletClass] = classRegistry;
+        }
+        classRegistry[methodName] = method;
+    }
+    
+    function invokePortletMethod(portletClass, portletId, method, params) {
+        let f = portletFunctionRegistry[portletClass][method];
+        if (f) {
+            f(portletId, params);
+        }
+    }
+    
     function addPortletResources(cssUris, scriptUris) {
         for (let index in cssUris) {
             let uri = cssUris[index];
@@ -39,13 +57,28 @@ var JGPortal = {
     };
     addPortletResources.callsBackMessageHandled = true;
 
+    function findPortletPreview(portletId) {
+        let matches = $( ".portlet[data-portletId='" + portletId + "']" );
+        if (matches.length === 1) {
+            return $( matches[0] );
+        }
+        return undefined;
+    };
+    JGPortal.findPortletPreview = findPortletPreview;
+    
+    function findPortletView(portletId) {
+        let tabs = $( "#tabs" ).tabs();
+        let matches = tabs.find("> div[data-portletId='" + portletId + "']" );
+        if (matches.length === 1) {
+            return $( matches[0] );
+        }
+        return undefined;
+    };
+    JGPortal.findPortletView = findPortletView;
+    
 	function updatePreview(portletId, title, modes, content) {
-		let matches = $( ".portlet[data-portletId='" + 
-		        portletId + "']" );
-		let portlet;
-		if (matches.length === 1) {
-			portlet = $( matches[0] );
-		} else {
+		let portlet = findPortletPreview(portletId);
+		if (!portlet) {
 			portlet = $( '<div class="portlet">\
 <div class="portlet-header"><span class="portlet-header-text"></span></div>\
 <div class="portlet-content"></div>\
@@ -72,8 +105,8 @@ var JGPortal = {
 	};
 
     var tabTemplate = "<li><a href='@{href}'>@{label}</a> " +
-    		"<span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>";
-	var tabCounter = 1;
+        "<span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>";
+    var tabCounter = 1;
 
 	function updateView(portletId, title, modes, content) {
 		let tabs = $( "#tabs" ).tabs();
@@ -118,8 +151,9 @@ var JGPortal = {
 	
 	var messageHandlers = {
 	    'addPortletResources': addPortletResources,
-		'updatePortlet': updatePortlet,
-		'reload': function() { window.location.reload(true); }
+	    'invokePortletMethod': invokePortletMethod,
+		'reload': function() { window.location.reload(true); },
+        'updatePortlet': updatePortlet,
 	};
 	
 	var messageQueue = [];

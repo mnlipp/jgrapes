@@ -26,7 +26,7 @@ import org.jgrapes.portal.RenderSupport;
 /**
  * 
  */
-public class ChangePortletModel extends Event<Void> {
+public class NotifyPortletModel extends Event<Void> {
 
 	private RenderSupport renderSupport;
 	private String portletId;
@@ -38,7 +38,7 @@ public class ChangePortletModel extends Event<Void> {
 	 * @param method
 	 * @param params
 	 */
-	public ChangePortletModel(RenderSupport renderSupport, 
+	public NotifyPortletModel(RenderSupport renderSupport, 
 			String portletId, String method, JsonArray params) {
 		this.renderSupport = renderSupport;
 		this.portletId = portletId;

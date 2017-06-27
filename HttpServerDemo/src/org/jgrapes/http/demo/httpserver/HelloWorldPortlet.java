@@ -27,7 +27,8 @@ import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.RenderSupport;
 import org.jgrapes.portal.events.AddPortletResources;
-import org.jgrapes.portal.events.ChangePortletModel;
+import org.jgrapes.portal.events.NotifyPortletModel;
+import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletRequest;
@@ -111,10 +112,13 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 				portletId, "Hello World", RenderMode.View, 
 				VIEWABLE_PORTLET_MODES, newContentProvider(
 						tpl, fmModel(channel, event.renderSupport()))));
+		Map<Object,Object> session = portletSession(channel);
+		channel.respond(new NotifyPortletView(getClass().getName(),
+				portletId, "setWorldVisible", isWorldVisible(session)));
 	}
 	
 	@Handler
-	public void onChangePortletModel(ChangePortletModel event,
+	public void onChangePortletModel(NotifyPortletModel event,
 			IOSubchannel channel) throws TemplateNotFoundException, 
 			MalformedTemplateNameException, ParseException, IOException {
 		if (!event.portletId().equals(portletId)) {
@@ -123,13 +127,11 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		event.stop();
 		
 		Map<Object,Object> session = portletSession(channel);
-		session.put("WorldVisible", !isWorldVisible(session));
+		boolean visible = !isWorldVisible(session);
+		session.put("WorldVisible", visible);
 		
-		Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
-		channel.respond(new RenderPortletFromProvider(
-				portletId, "Hello World", RenderMode.View, 
-				VIEWABLE_PORTLET_MODES, newContentProvider(
-						tpl, fmModel(channel, event.renderSupport()))));
+		channel.respond(new NotifyPortletView(getClass().getName(),
+				portletId, "setWorldVisible", visible));
 	}
 	
 	private Map<Object,Object> fmModel(

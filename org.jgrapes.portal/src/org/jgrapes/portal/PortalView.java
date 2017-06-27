@@ -49,8 +49,7 @@ import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 
 import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
+import javax.json.JsonArray; 
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
@@ -80,8 +79,9 @@ import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.portal.Portlet.RenderMode;
 import org.jgrapes.portal.events.AddPortletResources;
-import org.jgrapes.portal.events.ChangePortletModel;
 import org.jgrapes.portal.events.JsonRequest;
+import org.jgrapes.portal.events.NotifyPortletModel;
+import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
@@ -89,6 +89,7 @@ import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.themes.base.Provider;
+import org.jgrapes.portal.util.JsonUtil;
 
 /**
  * 
@@ -340,7 +341,7 @@ public class PortalView extends Component {
 		}
 		case "sendToPortlet": {
 			JsonArray params = (JsonArray)event.params();
-			fire(new ChangePortletModel(renderSupport, params.getString(0),
+			fire(new NotifyPortletModel(renderSupport, params.getString(0),
 					params.getString(1), params.size() <= 2
 					? JsonValue.EMPTY_JSON_ARRAY : params.getJsonArray(2)), 
 					portalChannel);
@@ -406,6 +407,14 @@ public class PortalView extends Component {
 						event.stream(), channel.upstreamChannel()));
 	}
 
+	public void onNotifyPortletView(NotifyPortletView event,
+	        LinkedIOSubchannel channel) 
+	        		throws InterruptedException, IOException {
+		sendNotificationResponse(channel, "invokePortletMethod",
+				event.portletClass(), event.portletId(), 
+				event.method(), event.params());
+	}
+	
 	private void sendNotificationResponse(LinkedIOSubchannel channel,
 	        String method, Object... params)
 	        		throws InterruptedException, IOException {
@@ -413,7 +422,7 @@ public class PortalView extends Component {
 		JsonObjectBuilder notification = factory.createObjectBuilder()
 				.add("jsonrpc", "2.0").add("method", method);
 		if (params.length > 0) {
-			notification.add("params", toJsonArray(factory, null, params));
+			notification.add("params", JsonUtil.toJsonArray(factory, params));
 		}
 		IOSubchannel upstream = channel.upstreamChannel();
 		@SuppressWarnings("resource")
@@ -421,26 +430,6 @@ public class PortalView extends Component {
 				upstream.responsePipeline()).suppressClose();
 		Json.createWriter(out).write(notification.build());
 		out.close();
-	}
-
-	private JsonArrayBuilder toJsonArray(JsonBuilderFactory factory,
-			JsonArrayBuilder array, Object item) {
-		if (item instanceof Object[]) {
-			JsonArrayBuilder arrayBuilder = factory.createArrayBuilder();
-			for (Object nested: (Object[])item) {
-				toJsonArray(factory, arrayBuilder, nested);
-			}
-			if (array == null) {
-				return arrayBuilder;
-			}
-			array.add(arrayBuilder);
-			return array;
-		}
-		if (array == null) {
-			array = factory.createArrayBuilder();
-		}
-		array.add(item.toString());
-		return array;
 	}
 
 	private class PortalInfo {
