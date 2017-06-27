@@ -107,8 +107,12 @@ var JGPortal = {
 				portletHeader.prepend( "<span class='ui-icon ui-icon-fullscreen portlet-expand'></span>");
 				portletHeader.find(".portlet-expand").on( "click", function() {
 					let icon = $( this );
-					let portlet = icon.closest( ".portlet" );
-					JGPortal.sendRenderPortlet(portlet.attr("data-portletId"), "View");
+					let portletId = icon.closest( ".portlet" ).attr("data-portletId");
+					if(findPortletView(portletId)) { 
+					    activatePortletView(portletId);
+					} else {
+					    JGPortal.sendRenderPortlet(portletId, "View");
+					}
 				});
 			}
 			$( ".column" ).first().prepend(portlet);
@@ -127,7 +131,6 @@ var JGPortal = {
 	function updateView(portletId, title, modes, content) {
 		let portletView = findPortletView(portletId);
 		if (portletView) {
-			portletView = $( matches[0] );
 	        portletView.children().detach();
 	        portletView.append($(content));
 		} else {
