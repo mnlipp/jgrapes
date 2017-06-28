@@ -147,13 +147,14 @@ public class LanguageSelector extends Component {
 	public class Selection {
 		private WeakReference<Request> currentEvent;
 		private boolean explicitlySet;
-		private Locale[] locales = new Locale[0];
+		private Locale[] locales;
 
 		/**
 		 */
 		private Selection() {
 			this.currentEvent = new WeakReference<>(null);
 			explicitlySet = false;
+			locales = new Locale[] { Locale.getDefault() };
 		}
 
 		/**

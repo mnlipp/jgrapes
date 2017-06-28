@@ -30,6 +30,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.ResourceBundle;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -111,8 +112,11 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc").toUri()));
 		app.attach(new PostProcessor(app.channel()));
 		app.attach(new WsEchoServer(app.channel()));
-		Portal portal = app.attach(new Portal(Channel.SELF, app.channel(), new URI("/portal/")));
-		app.attach(new HelloWorldPortlet(portal));
+		Portal portal = app.attach(new Portal(Channel.SELF, app.channel(), 
+				new URI("/portal/"))).setResourceSupplier(l -> 
+				ResourceBundle.getBundle(
+					getClass().getPackage().getName() + ".portal-l10n", l));
+		portal.attach(new HelloWorldPortlet(portal));
 		Components.start(app);
 	}
 

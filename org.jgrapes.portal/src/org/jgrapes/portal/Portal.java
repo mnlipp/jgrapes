@@ -20,6 +20,9 @@ package org.jgrapes.portal;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.function.Function;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -70,6 +73,12 @@ public class Portal extends Component {
 		return prefix;
 	}
 
+	public Portal setResourceSupplier(
+			Function<Locale,ResourceBundle> supplier) {
+		view.setResourceSupplier(supplier);
+		return this;
+	}
+	
 	@Handler
 	public void onRenderPortlet(RenderPortletFromString result,
 			LinkedIOSubchannel channel) 
@@ -103,4 +112,5 @@ public class Portal extends Component {
 					throws InterruptedException, IOException {
 		view.onNotifyPortletView(event, channel);
 	}
+
 }

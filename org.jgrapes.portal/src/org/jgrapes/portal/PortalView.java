@@ -43,9 +43,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.ServiceLoader;
+import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 import javax.json.Json;
@@ -65,6 +69,7 @@ import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.LanguageSelector.Selection;
 import org.jgrapes.http.Session;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
@@ -100,6 +105,9 @@ public class PortalView extends Component {
 	private static ServiceLoader<ThemeProvider> themeLoader 
 		= ServiceLoader.load(ThemeProvider.class);
 	private static Configuration fmConfig = null;
+	private ResourceBundle baseResources;
+	private Function<Locale,ResourceBundle> resourceSupplier;
+	private ResourceBundle addedResources;
 
 	private ThemeProvider baseTheme;
 	private Map<String,Object> portalModel = new HashMap<>();
@@ -121,6 +129,7 @@ public class PortalView extends Component {
 	        fmConfig.setLogTemplateExceptions(false);
 		}
 		baseTheme = new Provider();
+		updateResources(Locale.getDefault());
 		RequestHandler.Evaluator.add(this, "onGet", portal.prefix() + "/**");
 		
 		// Create portal model
@@ -137,6 +146,30 @@ public class PortalView extends Component {
 						((SimpleScalar)args.get(0)).getAsString()).getRawPath();
 			}
 		});
+		portalModel.put("_", new TemplateMethodModelEx() {
+			@Override
+			public Object exec(@SuppressWarnings("rawtypes") List arguments)
+					throws TemplateModelException {
+				@SuppressWarnings("unchecked")
+				List<TemplateModel> args = (List<TemplateModel>)arguments;
+				if (!(args.get(0) instanceof SimpleScalar)) {
+					throw new TemplateModelException("Not a string.");
+				}
+				String key = ((SimpleScalar)args.get(0)).getAsString();
+				if (addedResources != null) {
+					try {
+						return addedResources.getString(key);
+					} catch (MissingResourceException e) {
+						// try base
+					}
+				}
+				try {
+					return baseResources.getString(key);
+				} catch (MissingResourceException e) {
+					return key;
+				}
+			}
+		});
 		
 		portalModel.put("themeInfos", 
 				StreamSupport.stream(themeLoader.spliterator(), false)
@@ -144,6 +177,24 @@ public class PortalView extends Component {
 				.sorted().toArray(size -> new ThemeInfo[size]));
 	}
 
+	private void updateResources(Locale locale) {
+		baseResources = ResourceBundle.getBundle(
+				getClass().getPackage().getName() + ".l10n", locale);
+		if (resourceSupplier != null) {
+			try {
+				addedResources = resourceSupplier.apply(locale);
+			} catch (MissingResourceException e) {
+				// Ignore
+			}
+		}
+	}
+
+	void setResourceSupplier(
+			Function<Locale,ResourceBundle> resourceSupplier) {
+		this.resourceSupplier = resourceSupplier;
+		updateResources(baseResources.getLocale());
+	}
+	
 	private LinkedIOSubchannel portalChannel(IOSubchannel channel) {
 		Optional<? extends LinkedIOSubchannel> portalChannel
 			= LinkedIOSubchannel.downstreamChannel(portal, channel);
@@ -217,6 +268,9 @@ public class PortalView extends Component {
 		try (Writer out = new OutputStreamWriter(new ByteBufferOutputStream(
 				channel, channel.responsePipeline()), "utf-8")) {
 			Template tpl = fmConfig.getTemplate("portal.ftlh");
+			event.associated(Selection.class).ifPresent(s -> {
+				updateResources(s.get()[0]);
+			});
 			tpl.process(portalModel, out);
 		} catch (TemplateException e) {
 			throw new IOException(e);

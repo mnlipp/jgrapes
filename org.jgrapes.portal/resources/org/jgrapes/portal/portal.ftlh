@@ -7,7 +7,7 @@
   
   <!-- Portal -->
   <link rel="shortcut icon" href="${resourceUrl('theme-resource/icons/favicon.ico')}">
-  <title>Top Window</title>
+  <title>${_("portalTitle")}</title>
 
   <!-- CSS -->
   <!-- jQuery / jQuery UI and extensions -->
