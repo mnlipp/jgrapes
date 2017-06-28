@@ -40,6 +40,8 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.internal.EventBase;
 import org.jgrapes.http.events.DiscardSession;
 import org.jgrapes.http.events.Request;
+import org.jgrapes.http.events.WebSocketAccepted;
+import org.jgrapes.io.IOSubchannel;
 
 /**
  * A in memory session manager. The event is associated with a 
@@ -267,5 +269,13 @@ public class InMemorySessionManager extends Component {
 		synchronized (this) {
 			sessionsById.remove(event.session().id());
 		}
+	}
+	
+	@Handler
+	public void onWebSocketAccepted(
+			WebSocketAccepted event, IOSubchannel channel) {
+		event.requestEvent().associated(Session.class)
+			.ifPresent(session -> 
+				channel.setAssociated(Session.class, session));
 	}
 }

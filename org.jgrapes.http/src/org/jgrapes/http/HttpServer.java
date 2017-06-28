@@ -584,9 +584,6 @@ public class HttpServer extends Component {
 		public void handleWebSocketAccepted(
 				WebSocketAccepted event, AppChannel appChannel) {
 			switchedToWebSocket = true;
-			event.requestEvent().associated(Session.class)
-				.ifPresent(session -> 
-					appChannel.setAssociated(Session.class, session));
 			final HttpResponse response = event.requestEvent()
 					.httpRequest().response().get()
 					.setStatus(HttpStatus.SWITCHING_PROTOCOLS)
