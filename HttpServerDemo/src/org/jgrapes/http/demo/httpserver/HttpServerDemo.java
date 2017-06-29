@@ -44,6 +44,7 @@ import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.InMemorySessionManager;
 import org.jgrapes.http.LanguageSelector;
 import org.jgrapes.http.StaticContentDispatcher;
+import org.jgrapes.http.demo.portlets.helloworld.HelloWorldPortlet;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.io.FileStorage;

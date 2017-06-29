@@ -16,7 +16,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.jgrapes.http.demo.httpserver;
+package org.jgrapes.http.demo.portlets.helloworld;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
