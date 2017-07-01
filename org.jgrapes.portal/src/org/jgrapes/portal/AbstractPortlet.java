@@ -19,8 +19,10 @@
 package org.jgrapes.portal;
 
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -31,24 +33,32 @@ import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 
 /**
- * 
+ * Provides a base class for implementing portlet components. 
  */
 public abstract class AbstractPortlet extends Component {	
 	
 	/**
-	 * @param componentChannel
+	 * Creates a new component that listens for new events
+	 * on the given channel.
+	 * 
+	 * @param channel the channel to listen on
 	 */
-	public AbstractPortlet(Channel componentChannel) {
-		super(componentChannel);
+	public AbstractPortlet(Channel channel) {
+		super(channel);
 	}
 
-	protected abstract String portletId();
-	
+	/**
+	 * A default handler for resource requests. Searches for
+	 * a file with the requested URI in the portlets class path. 
+	 * 
+	 * @param event the resource request event
+	 * @param channel the channel that the request was recived on
+	 */
 	@Handler
 	public void onResourceRequest(
 			PortletResourceRequest event, IOSubchannel channel) {
 		// For me?
-		if (!event.portletType().equals(getClass().getName())) {
+		if (!event.portletClass().equals(getClass().getName())) {
 			return;
 		}
 		
@@ -66,11 +76,95 @@ public abstract class AbstractPortlet extends Component {
 		event.setResult(true);
 	}
 
+	/**
+	 * Returns all portlet models of this portlet's class from the
+	 * session.
+	 * 
+	 * @param channel the channel, used to access the session
+	 * @return the models
+	 */
 	@SuppressWarnings("unchecked")
-	protected Map<Object, Object> portletSession(IOSubchannel channel) {
+	protected Collection<PortletModelBean> modelsFromSession(
+			IOSubchannel channel) {
 		return channel.associated(Session.class).map(session ->
-				(Map<Object,Object>)session.computeIfAbsent(portletId(),
-						k -> new HashMap<>()))
-				.orElseThrow(IllegalStateException::new);
+			((Map<String,PortletModelBean>)session.computeIfAbsent(getClass(),
+					k -> new HashMap<>())).values())
+			.orElseThrow(() -> new IllegalStateException("Session is missing."));
+	}
+	
+	/**
+	 * Returns the portlet model of this portlet's class with the given id
+	 * from the session.
+	 * 
+	 * @param channel the channel, used to access the session
+	 * @param portletId the portel id
+	 * @return the models
+	 */
+	@SuppressWarnings("unchecked")
+	protected Optional<PortletModelBean> modelFromSession(
+			IOSubchannel channel, String portletId) {
+		return channel.associated(Session.class).map(session ->
+			Optional.ofNullable(
+					((Map<String,PortletModelBean>)session.computeIfAbsent(
+							getClass(), k -> new HashMap<>()))
+					.get(portletId)))
+			.orElseThrow(() -> new IllegalStateException("Session is missing."));
+	}
+
+	/**
+	 * Adds the given portlet model to the session.
+	 * 
+	 * @param channel the channel, used to access the session
+	 * @param model the model
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	protected PortletModelBean addToSession(
+			IOSubchannel channel, PortletModelBean model) {
+		Optional<Session> optSession = channel.associated(Session.class);
+		if (!optSession.isPresent()) {
+			throw new IllegalStateException("Session is missing.");
+		}
+		((Map<String,PortletModelBean>)optSession.get()
+				.computeIfAbsent(getClass(), k -> new HashMap<>()))
+			.put(model.getPortletId(), model);
+		return model;
+	}
+	
+	/**
+	 * Defines the portlet model following the JavaBean conventions.
+	 * Portlet models should follow these cpnventions because
+	 * many template engines rely on this. 
+	 */
+	public abstract static class PortletModelBean {
+
+		private static int counter = 1;
+		
+		private String portletId;
+
+		/**
+		 * Creates a new model with a new unique portlet id.
+		 */
+		public PortletModelBean() {
+			portletId = getClass().getName() + "#" + counter++;
+		}
+
+		/**
+		 * Creates a new model with the given portlet id.
+		 * 
+		 * @param portlet id the portlet id
+		 */
+		public PortletModelBean(String portletId) {
+			this.portletId = portletId;
+		}
+
+		/**
+		 * Returns the portlet id.
+		 * 
+		 * @return the portlet id
+		 */
+		public String getPortletId() {
+			return portletId;
+		}
 	}
 }

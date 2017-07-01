@@ -33,11 +33,13 @@ public class RenderPortletFromProvider extends RenderPortlet {
 	private ContentProvider provider;
 	
 	/**
-	 * @param portletId
-	 * @param title
-	 * @param mode
-	 * @param supportedModes
-	 * @param content
+	 * Creates a new event.
+	 * 
+	 * @param portletId the id of the portlet
+	 * @param title the title of the portlet
+	 * @param mode the view mode that is to be updated
+	 * @param supportedModes the modes supported by the portlet
+	 * @param provider the content provider
 	 */
 	public RenderPortletFromProvider(
 			String portletId, String title, RenderMode mode,
@@ -47,14 +49,27 @@ public class RenderPortletFromProvider extends RenderPortlet {
 	}
 
 	/**
+	 * Returns the provider.
+	 * 
 	 * @return the provider
 	 */
 	public ContentProvider provider() {
 		return provider;
 	}
 
+	/**
+	 * Implemented by content providers. The only requirement for
+	 * content providers is that they can stream the HTML that
+	 * defines the portlet view.
+	 */
 	public interface ContentProvider {
-		
+
+		/**
+		 * Writes the content to the goven stream.
+		 * 
+		 * @param out the (character based) output stream
+		 * @throws IOException
+		 */
 		void writeTo(Writer out) throws IOException;
 	}
 }

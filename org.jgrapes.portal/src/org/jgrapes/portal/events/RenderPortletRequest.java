@@ -25,18 +25,21 @@ import static org.jgrapes.portal.Portlet.*;
 import org.jgrapes.portal.RenderSupport;
 
 /**
- * 
+ * Represents a request from the portal view (browsewr) to update
+ * a portlet.
  */
 public class RenderPortletRequest extends Event<Void> {
 
 	private RenderSupport renderSupport;	
 	private String portletId;
 	private RenderMode renderMode;
-	
+
 	/**
-	 * @param channels
-	 * @param portletId
-	 * @param renderMode
+	 * Creates a new request.
+	 * 
+	 * @param renderSupport the render support for generating the response
+	 * @param portletId the portlet to be updated
+	 * @param renderMode the requested mode
 	 */
 	public RenderPortletRequest(RenderSupport renderSupport, 
 			String portletId, RenderMode renderMode) {
@@ -46,21 +49,27 @@ public class RenderPortletRequest extends Event<Void> {
 	}
 
 	/**
-	 * @return the renderSupport
+	 * Returns the render support.
+	 * 
+	 * @return the render support
 	 */
 	public RenderSupport renderSupport() {
 		return renderSupport;
 	}
 
 	/**
-	 * @return the portletId
+	 * Returns the portlet id.
+	 * 
+	 * @return the portlet id
 	 */
 	public String portletId() {
 		return portletId;
 	}
 
 	/**
-	 * @return the renderMode
+	 * Returns the requested render mode.
+	 * 
+	 * @return the render mode
 	 */
 	public RenderMode renderMode() {
 		return renderMode;

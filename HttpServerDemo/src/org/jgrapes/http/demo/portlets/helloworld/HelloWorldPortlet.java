@@ -19,13 +19,11 @@
 package org.jgrapes.http.demo.portlets.helloworld;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.PortalView;
-import org.jgrapes.portal.RenderSupport;
 import org.jgrapes.portal.events.AddPortletResources;
 import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.NotifyPortletView;
@@ -42,16 +40,15 @@ import freemarker.template.TemplateNotFoundException;
 import static org.jgrapes.portal.Portlet.*;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * 
  */
 public class HelloWorldPortlet extends FreeMarkerPortlet {
 
-	private String portletId;
-	
 	/**
 	 * Creates a new component with its channel set to
 	 * itself.
@@ -60,10 +57,6 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		this(Channel.SELF);
 	}
 
-	protected String portletId() {
-		return portletId;
-	}
-	
 	/**
 	 * Creates a new component with its channel set to the given 
 	 * channel.
@@ -74,26 +67,28 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 	 */
 	public HelloWorldPortlet(Channel componentChannel) {
 		super(componentChannel);
-		portletId = Components.objectFullName(this);
 	}
 
-	private boolean isWorldVisible(Map<Object,Object> portletSession) {
-		return (boolean)portletSession
-				.computeIfAbsent("WorldVisible", k -> true);
-	}
-	
 	@Handler
 	public void onPortalReady(PortalReady event, IOSubchannel channel) 
 			throws TemplateNotFoundException, MalformedTemplateNameException, 
 			ParseException, IOException {
+		// Add HelloWorldPortlet resources to page
 		channel.respond(new AddPortletResources(getClass().getName())
 				.addScript(PortalView.uriFromPath("HelloWorld-functions.js"))
 				.addCss(PortalView.uriFromPath("HelloWorld-style.css")));
-		Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
-		channel.respond(new RenderPortletFromProvider(
-				portletId, "Hello World", RenderMode.Preview, 
-				VIEWABLE_PORTLET_MODES, newContentProvider(
-						tpl, fmModel(channel, event.renderSupport()))));
+		Collection<PortletModelBean> portletModels
+			= new ArrayList<>(modelsFromSession(channel));
+		if (portletModels.size() == 0) {
+			portletModels.add(addToSession(channel, new HelloWorldModel()));
+		}
+		for (PortletModelBean portletModel: portletModels) {
+			Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
+			channel.respond(new RenderPortletFromProvider(
+					portletModel.getPortletId(), "Hello World", RenderMode.Preview, 
+					VIEWABLE_PORTLET_MODES, newContentProvider(
+							tpl, event.renderSupport(), portletModel)));
+		}
 	}
 	
 	@Handler
@@ -102,59 +97,59 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 					throws TemplateNotFoundException, 
 					MalformedTemplateNameException, ParseException, 
 					IOException {
-		if (!event.portletId().equals(portletId)) {
+		Optional<PortletModelBean> optPortletModel 
+			= modelFromSession(channel, event.portletId());
+		if (!optPortletModel.isPresent()) {
 			return;
 		}
 		
 		event.stop();
+		HelloWorldModel portletModel = (HelloWorldModel)optPortletModel.get();
 		Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
 		channel.respond(new RenderPortletFromProvider(
-				portletId, "Hello World", RenderMode.View, 
-				VIEWABLE_PORTLET_MODES, newContentProvider(
-						tpl, fmModel(channel, event.renderSupport()))));
-		Map<Object,Object> session = portletSession(channel);
+				portletModel.getPortletId(), "Hello World", RenderMode.View, 
+				VIEWABLE_PORTLET_MODES, newContentProvider(tpl, 
+						event.renderSupport(), portletModel)));
 		channel.respond(new NotifyPortletView(getClass().getName(),
-				portletId, "setWorldVisible", isWorldVisible(session)));
+				portletModel.getPortletId(), "setWorldVisible",
+				portletModel.isWorldVisible()));
 	}
 	
 	@Handler
 	public void onChangePortletModel(NotifyPortletModel event,
 			IOSubchannel channel) throws TemplateNotFoundException, 
 			MalformedTemplateNameException, ParseException, IOException {
-		if (!event.portletId().equals(portletId)) {
+		Optional<PortletModelBean> optPortletModel 
+			= modelFromSession(channel, event.portletId());
+		if (!optPortletModel.isPresent()) {
 			return;
 		}
+	
 		event.stop();
-		
-		Map<Object,Object> session = portletSession(channel);
-		boolean visible = !isWorldVisible(session);
-		session.put("WorldVisible", visible);
+		HelloWorldModel portletModel = (HelloWorldModel)optPortletModel.get();
+		portletModel.setVisible(!portletModel.isWorldVisible());
 		
 		channel.respond(new NotifyPortletView(getClass().getName(),
-				portletId, "setWorldVisible", visible));
+				portletModel.getPortletId(), "setWorldVisible", 
+				portletModel.isWorldVisible()));
 	}
 	
-	private Map<Object,Object> fmModel(
-			IOSubchannel channel, RenderSupport renderSupport) {
-		return channel.associated(getClass().getName() + "#fmModel", () -> {
-			Map<Object,Object> model = new HashMap<>(
-					freemarkerBaseModel(renderSupport));
-			model.put("portlet", new PortletBeanView(channel));
-			return model;
-		});
-		
-	}
+	public class HelloWorldModel extends PortletModelBean {
 
-	public class PortletBeanView {
+		private boolean visible = true;
 		
-		private Map<Object,Object> portletSession;
-		
-		public PortletBeanView(IOSubchannel channel) {
-			portletSession = portletSession(channel);
+		public HelloWorldModel() {
 		}
 		
+		/**
+		 * @param visible the visible to set
+		 */
+		public void setVisible(boolean visible) {
+			this.visible = visible;
+		}
+
 		public boolean isWorldVisible() {
-			return HelloWorldPortlet.this.isWorldVisible(portletSession);
+			return visible;
 		}
 	}
 	

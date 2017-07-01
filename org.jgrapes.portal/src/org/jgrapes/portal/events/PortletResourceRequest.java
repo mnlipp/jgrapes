@@ -25,7 +25,7 @@ import org.jgrapes.core.Event;
 import org.jgrapes.io.IOSubchannel;
 
 /**
- * 
+ * An event that signals the request of a resource by the portal (browser).
  */
 public class PortletResourceRequest extends Event<Boolean> {
 
@@ -35,10 +35,12 @@ public class PortletResourceRequest extends Event<Boolean> {
 	private URI resourceUri;
 
 	/**
-	 * @param httpRequest
-	 * @param portletType
-	 * @param resourceUri
-	 * @param channels
+	 * Creates a new request.
+	 * 
+	 * @param portletType the portlet type
+	 * @param resourceUri the requested resource
+	 * @param httpRequest the original HTTP request
+	 * @param httpChannel the channel that the HTTP request was received on
 	 */
 	public PortletResourceRequest(String portletType, URI resourceUri,
 			HttpRequest httpRequest, IOSubchannel httpChannel) {
@@ -67,7 +69,7 @@ public class PortletResourceRequest extends Event<Boolean> {
 	/**
 	 * @return the portletId
 	 */
-	public String portletType() {
+	public String portletClass() {
 		return portletType;
 	}
 

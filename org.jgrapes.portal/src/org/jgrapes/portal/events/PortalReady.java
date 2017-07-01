@@ -23,16 +23,27 @@ import org.jgrapes.portal.RenderSupport;
 
 /**
  * Signals the successful loading of the portal structure
- * in the browser.
+ * in the browser. Portlets should respond to this event by
+ * adding themselves to the portal.
  */
 public class PortalReady extends Event<Void> {
 
 	private RenderSupport renderSupport;
-	
+
+	/**
+	 * Creates a new event.
+	 * 
+	 * @param renderSupport the render support for generating responses
+	 */
 	public PortalReady(RenderSupport renderSupport) {
 		this.renderSupport = renderSupport;
 	}
 
+	/**
+	 * Returns the render support.
+	 * 
+	 * @return the render support
+	 */
 	public RenderSupport renderSupport() {
 		return renderSupport;
 	}

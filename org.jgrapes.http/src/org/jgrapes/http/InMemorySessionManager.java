@@ -271,7 +271,7 @@ public class InMemorySessionManager extends Component {
 		}
 	}
 	
-	@Handler
+	@Handler(priority=1000)
 	public void onWebSocketAccepted(
 			WebSocketAccepted event, IOSubchannel channel) {
 		event.requestEvent().associated(Session.class)

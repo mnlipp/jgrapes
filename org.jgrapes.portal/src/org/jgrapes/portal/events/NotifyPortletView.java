@@ -21,7 +21,8 @@ package org.jgrapes.portal.events;
 import org.jgrapes.core.Event;
 
 /**
- * 
+ * A notification (as defined by the JSON RPC specification) to be sent to
+ * the portlet view (the browser).
  */
 public class NotifyPortletView extends Event<Void> {
 
@@ -31,11 +32,14 @@ public class NotifyPortletView extends Event<Void> {
 	private Object[] params;
 	
 	/**
-	 * @param channels
-	 * @param portletClass
-	 * @param portletId
-	 * @param method
-	 * @param params
+	 * Creates a new event.
+	 *  
+	 * @param portletClass the portlet class (used to look up the available
+	 * functions)
+	 * @param portletId the portlet (view) that the notification is directed
+	 * at
+	 * @param method the method (function) to be executed
+	 * @param params the parameters
 	 */
 	public NotifyPortletView(String portletClass,
 	        String portletId, String method, Object... params) {
@@ -46,20 +50,26 @@ public class NotifyPortletView extends Event<Void> {
 	}
 
 	/**
-	 * @return the portletClass
+	 * Returns the portlet class.
+	 * 
+	 * @return the portlet class
 	 */
 	public String portletClass() {
 		return portletClass;
 	}
 
 	/**
-	 * @return the portletId
+	 * Returns the portlet id.
+	 * 
+	 * @return the portlet id
 	 */
 	public String portletId() {
 		return portletId;
 	}
 
 	/**
+	 * Returns the method to be executed.
+	 * 
 	 * @return the method
 	 */
 	public String method() {
@@ -67,7 +77,9 @@ public class NotifyPortletView extends Event<Void> {
 	}
 
 	/**
-	 * @return the params
+	 * Returns the parameters.
+	 * 
+	 * @return the parameters
 	 */
 	public Object[] params() {
 		return params;

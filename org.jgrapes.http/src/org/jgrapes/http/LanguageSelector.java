@@ -136,7 +136,7 @@ public class LanguageSelector extends Component {
 		}
 	}
 	
-	@Handler
+	@Handler(priority=1000)
 	public void onWebSocketAccepted(
 			WebSocketAccepted event, IOSubchannel channel) {
 		event.requestEvent().associated(Selection.class)

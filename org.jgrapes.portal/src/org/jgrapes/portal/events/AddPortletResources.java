@@ -25,7 +25,7 @@ import java.util.List;
 import org.jgrapes.core.Event;
 
 /**
- * 
+ * Adds global resources (JavaScript and/or CSS) to the portal page.
  */
 public class AddPortletResources extends Event<Void> {
 
@@ -34,35 +34,62 @@ public class AddPortletResources extends Event<Void> {
 	private List<URI> cssUris = new ArrayList<>();
 	
 	/**
-	 * @param channels
-	 * @param portletType
-	 * @param scriptUri
+	 * Create a new event for the given portlet type.
+	 * 
+	 * @param portletType a unique id for the portklet type (usually
+	 * the class name)
 	 */
 	public AddPortletResources(String portletType) {
 		this.portletType = portletType;
 	}
 	
 	/**
-	 * @return the portletType
+	 * Return the portlet type.
+	 * 
+	 * @return the portlet type
 	 */
 	public String portletType() {
 		return portletType;
 	}
 
+	/**
+	 * Add the URI of a JavaScript resource that is to be added to the
+	 * header section of the portal page.
+	 * 
+	 * @param uri the URI
+	 * @return the event for easy chaining
+	 */
 	public AddPortletResources addScript(URI uri) {
 		scriptUris.add(uri);
 		return this;
 	}
-	
+
+	/**
+	 * Add the URI of a CSS resource that is to be added to the
+	 * header section of the portal page.
+	 * 
+	 * @param uri the URI
+	 * @return the event for easy chaining
+	 */
 	public AddPortletResources addCss(URI uri) {
 		cssUris.add(uri);
 		return this;
 	}
-	
+
+	/**
+	 * Return all script URIs
+	 * 
+	 * @return the result
+	 */
 	public URI[] scriptUris() {
 		return scriptUris.toArray(new URI[scriptUris.size()]);
 	}
-	
+
+	/**
+	 * Return all CSS URIs.
+	 * 
+	 * @return the result
+	 */
 	public URI[] cssUris() {
 		return cssUris.toArray(new URI[cssUris.size()]);
 	}

@@ -31,11 +31,14 @@ public class RenderPortletFromString extends RenderPortlet {
 	private String content;
 
 	/**
-	 * @param portletId
-	 * @param title
-	 * @param mode
-	 * @param supportedModes
-	 * @param content
+	 * Creates a new event.
+	 * 
+	 * @param portletId the id of the portlet
+	 * @param title the title of the portlet
+	 * @param mode the view mode that is to be updated
+	 * @param supportedModes the modes supported by the portlet
+	 * @param content a string that defines the portlet view
+	 * (as HTML)
 	 */
 	public RenderPortletFromString(
 			String portletId, String title, RenderMode mode,
@@ -45,6 +48,8 @@ public class RenderPortletFromString extends RenderPortlet {
 	}
 
 	/**
+	 * Returns the HTML that defines the portlet view.
+	 * 
 	 * @return the result
 	 */
 	public String content() {

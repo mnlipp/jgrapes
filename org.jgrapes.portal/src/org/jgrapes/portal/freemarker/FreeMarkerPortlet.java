@@ -94,6 +94,13 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 		return fmModel;
 	}
 	
+	protected Map<Object,Object> freemarkerModel(Map<String,Object> baseModel,
+			PortletModelBean portletModel) {
+		Map<Object,Object> model = new HashMap<>(baseModel);
+		model.put("portlet", portletModel);
+		return model;
+	}
+
 	protected ContentProvider newContentProvider(
 			Template template, Object dataModel) {
 		return new ContentProvider() {
@@ -107,7 +114,13 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 				}
 			}
 		};
-		
+	}
+	
+	protected ContentProvider newContentProvider(
+			Template template, RenderSupport renderSupport, 
+			PortletModelBean portletModel) {
+		return newContentProvider(template, freemarkerModel(
+				freemarkerBaseModel(renderSupport), portletModel));
 	}
 	
 }
