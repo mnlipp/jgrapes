@@ -85,7 +85,7 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		for (PortletModelBean portletModel: portletModels) {
 			Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
 			channel.respond(new RenderPortletFromProvider(
-					portletModel.getPortletId(), "Hello World", RenderMode.Preview, 
+					portletModel.getPortletId(), RenderMode.Preview, 
 					VIEWABLE_PORTLET_MODES, newContentProvider(
 							tpl, event.renderSupport(), portletModel)));
 		}
@@ -107,7 +107,7 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		HelloWorldModel portletModel = (HelloWorldModel)optPortletModel.get();
 		Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
 		channel.respond(new RenderPortletFromProvider(
-				portletModel.getPortletId(), "Hello World", RenderMode.View, 
+				portletModel.getPortletId(), RenderMode.View, 
 				VIEWABLE_PORTLET_MODES, newContentProvider(tpl, 
 						event.renderSupport(), portletModel)));
 		channel.respond(new NotifyPortletView(getClass().getName(),

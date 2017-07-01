@@ -429,7 +429,7 @@ public class PortalView extends Component {
 			RenderPortletFromString event, LinkedIOSubchannel channel) 
 					throws InterruptedException, IOException {
 		sendNotificationResponse(channel, "updatePortlet",
-				event.portletId(), event.title(), event.renderMode().name(),
+				event.portletId(), event.renderMode().name(),
 				event.supportedRenderModes().stream().map(RenderMode::name)
 				.toArray(size -> new String[size]),
 				((RenderPortletFromString)event).content());
@@ -441,7 +441,7 @@ public class PortalView extends Component {
 		StringWriter content = new StringWriter();
 		event.provider().writeTo(content);
 		sendNotificationResponse(channel, "updatePortlet",
-				event.portletId(), event.title(), event.renderMode().name(),
+				event.portletId(), event.renderMode().name(),
 				event.supportedRenderModes().stream().map(RenderMode::name)
 				.toArray(size -> new String[size]),
 				content.toString());

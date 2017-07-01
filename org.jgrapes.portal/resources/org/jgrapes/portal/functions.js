@@ -92,7 +92,7 @@ var JGPortal = {
         }
     }
     
-	function updatePreview(portletId, title, modes, content) {
+	function updatePreview(portletId, modes, content) {
 		let portlet = findPortletPreview(portletId);
 		if (!portlet) {
 			portlet = $( '<div class="portlet">\
@@ -117,30 +117,34 @@ var JGPortal = {
 			}
 			$( ".column" ).first().prepend(portlet);
 		}
+		let newContent = $(content);
 		let portletHeaderText = portlet.find(".portlet-header-text");
-		portletHeaderText.text(title);
+		portletHeaderText.text(newContent.attr("data-portletTitle"));
 		let portletContent = portlet.find(".portlet-content");
 		portletContent.children().detach();
-		portletContent.append($(content));
+		portletContent.append(newContent);
 	};
 
     var tabTemplate = "<li><a href='@{href}'>@{label}</a> " +
         "<span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>";
     var tabCounter = 1;
 
-	function updateView(portletId, title, modes, content) {
+	function updateView(portletId, modes, content) {
 		let portletView = findPortletView(portletId);
+		let newContent = $(content);
 		if (portletView) {
 	        portletView.children().detach();
-	        portletView.append($(content));
+	        portletView.append(newContent);
 		} else {
 	        let tabs = $( "#tabs" ).tabs();
 			tabCounter += 1;
-	        let id = "tabs-" + tabCounter,
-	          li = $( tabTemplate.replace( /@\{href\}/g, "#" + id ).replace( /@\{label\}/g, title ) );
+	        let id = "tabs-" + tabCounter;
+	        let li = $( tabTemplate.replace( /@\{href\}/g, "#" + id )
+	                  .replace( /@\{label\}/g, newContent.attr("data-portletTitle")) );
 	        let tabItems = tabs.find( ".ui-tabs-nav" );
 	        tabItems.append( li );
-	        portletView = $( "<div id='" + id + "'>" + content + "</div>" )
+	        portletView = $( "<div id='" + id + "'></div>" );
+            portletView.append(newContent);
 			portletView.attr("data-portletId", portletId);
 	        tabs.append( portletView );
 	        tabs.tabs( "refresh" );
@@ -148,11 +152,11 @@ var JGPortal = {
 		activatePortletView(portletId);
     }
 	
-	function updatePortlet(portletId, title, mode, modes, content) {
+	function updatePortlet(portletId, mode, modes, content) {
 		if (mode === "Preview") {
-			updatePreview(portletId, title, modes, content);
+			updatePreview(portletId, modes, content);
 		} else if (mode === "View") {
-			updateView(portletId, title, modes, content);
+			updateView(portletId, modes, content);
 		}
 	};
 

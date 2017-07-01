@@ -29,7 +29,6 @@ import static org.jgrapes.portal.Portlet.*;
 public abstract class RenderPortlet extends Event<Void> {
 
 	private String portletId;
-	private String title;
 	private RenderMode renderMode;
 	private Set<RenderMode> supportedModes;
 
@@ -41,11 +40,10 @@ public abstract class RenderPortlet extends Event<Void> {
 	 * @param mode the view mode that is to be updated
 	 * @param supportedModes the modes supported by the portlet
 	 */
-	public RenderPortlet(String portletId, String title, RenderMode mode,
+	public RenderPortlet(String portletId, RenderMode mode,
 			Set<RenderMode> supportedModes) {
 		super();
 		this.portletId = portletId;
-		this.title = title;
 		this.renderMode = mode;
 		this.supportedModes = supportedModes;
 	}
@@ -57,15 +55,6 @@ public abstract class RenderPortlet extends Event<Void> {
 	 */
 	public String portletId() {
 		return portletId;
-	}
-
-	/**
-	 * Returns the portlet title.
-	 * 
-	 * @return the title
-	 */
-	public String title() {
-		return title;
 	}
 
 	/**
