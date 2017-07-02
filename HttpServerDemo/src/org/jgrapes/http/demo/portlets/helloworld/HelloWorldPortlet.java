@@ -42,6 +42,7 @@ import static org.jgrapes.portal.Portlet.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -82,12 +83,14 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		if (portletModels.size() == 0) {
 			portletModels.add(addToSession(channel, new HelloWorldModel()));
 		}
+		Map<String, Object> baseModel 
+			= freemarkerBaseModel(event.renderSupport());
 		for (PortletModelBean portletModel: portletModels) {
 			Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
 			channel.respond(new RenderPortletFromProvider(
 					portletModel.getPortletId(), RenderMode.Preview, 
-					VIEWABLE_PORTLET_MODES, newContentProvider(
-							tpl, event.renderSupport(), portletModel)));
+					VIEWABLE_PORTLET_MODES, newContentProvider(tpl, 
+							freemarkerModel(baseModel, portletModel, channel))));
 		}
 	}
 	
@@ -109,7 +112,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		channel.respond(new RenderPortletFromProvider(
 				portletModel.getPortletId(), RenderMode.View, 
 				VIEWABLE_PORTLET_MODES, newContentProvider(tpl, 
-						event.renderSupport(), portletModel)));
+						freemarkerModel(freemarkerBaseModel(
+								event.renderSupport()), portletModel, channel))));
 		channel.respond(new NotifyPortletView(getClass().getName(),
 				portletModel.getPortletId(), "setWorldVisible",
 				portletModel.isWorldVisible()));

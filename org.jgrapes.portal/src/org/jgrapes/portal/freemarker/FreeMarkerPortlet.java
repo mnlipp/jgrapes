@@ -32,9 +32,14 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.http.LanguageSelector.Selection;
+import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.AbstractPortlet;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.RenderSupport;
@@ -69,6 +74,14 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 		return fmConfig;
 	}
 	
+	/**
+	 * Creates the request independant part of the freemarker model. The
+	 * result is cached as unmodifiable map as it can safely be assumed
+	 * that the render support does not change for a given portal.
+	 * 
+	 * @param renderSupport the render support from the portal
+	 * @return the result
+	 */
 	protected Map<String,Object> freemarkerBaseModel(
 			RenderSupport renderSupport) {
 		if (fmModel == null) {
@@ -93,16 +106,68 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 		}
 		return fmModel;
 	}
-	
-	protected Map<Object,Object> freemarkerModel(Map<String,Object> baseModel,
-			PortletModelBean portletModel) {
-		Map<Object,Object> model = new HashMap<>(baseModel);
+
+	/**
+	 * Build a freemarker model from the given base model, portlet model
+	 * and the information associated with the channel.
+	 * 
+	 * @param baseModel the base model
+	 * @param portletModel the portlet model
+	 * @param channel the channel
+	 * @param bundleBaseName the base name of the bundle to be used 
+	 * for localization
+	 * @return the model
+	 */
+	protected Map<String,Object> freemarkerModel(Map<String,Object> baseModel,
+			PortletModelBean portletModel, IOSubchannel channel, 
+			String bundleBaseName) {
+		final Map<String,Object> model = new HashMap<>(baseModel);
 		model.put("portlet", portletModel);
+		Locale locale = channel.associated(Selection.class)
+				.map(s -> s.get()[0]).orElse(Locale.getDefault());
+		model.put("locale", locale);
+		final ResourceBundle resourceBundle = ResourceBundle.getBundle(
+				bundleBaseName, locale, ResourceBundle.Control
+				.getNoFallbackControl(ResourceBundle.Control.FORMAT_DEFAULT));
+		model.put("_", new TemplateMethodModelEx() {
+			@Override
+			public Object exec(@SuppressWarnings("rawtypes") List arguments)
+					throws TemplateModelException {
+				@SuppressWarnings("unchecked")
+				List<TemplateModel> args = (List<TemplateModel>)arguments;
+				if (!(args.get(0) instanceof SimpleScalar)) {
+					throw new TemplateModelException("Not a string.");
+				}
+				String key = ((SimpleScalar)args.get(0)).getAsString();
+				try {
+					return resourceBundle.getString(key);
+				} catch (MissingResourceException e) {
+					// no luck
+				}
+				return key;
+			}
+		});
 		return model;
 	}
-
+	
+	/**
+	 * Build a freemarker model from the given base model, portlet model
+	 * and the information associated with the channel. Uses the
+	 * package name plus "l10n" as base name for the localization bundle.
+	 * 
+	 * @param baseModel the base model
+	 * @param portletModel the portlet model
+	 * @param channel the channel
+	 * @return the model
+	 */
+	protected Map<String,Object> freemarkerModel(Map<String,Object> baseModel,
+			PortletModelBean portletModel, IOSubchannel channel) {
+		return freemarkerModel(baseModel, portletModel, channel,
+				getClass().getPackage().getName() + ".l10n");
+	}
+	
 	protected ContentProvider newContentProvider(
-			Template template, Object dataModel) {
+			Template template, Map<String,Object> dataModel) {
 		return new ContentProvider() {
 			
 			@Override
@@ -114,13 +179,6 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 				}
 			}
 		};
-	}
-	
-	protected ContentProvider newContentProvider(
-			Template template, RenderSupport renderSupport, 
-			PortletModelBean portletModel) {
-		return newContentProvider(template, freemarkerModel(
-				freemarkerBaseModel(renderSupport), portletModel));
 	}
 	
 }
