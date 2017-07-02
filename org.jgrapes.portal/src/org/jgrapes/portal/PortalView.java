@@ -287,7 +287,9 @@ public class PortalView extends Component {
 			final ResourceBundle additionalResources = resourceSupplier == null
 					? null : resourceSupplier.apply(locale);
 			final ResourceBundle baseResources = ResourceBundle.getBundle(
-					getClass().getPackage().getName() + ".l10n", locale);
+					getClass().getPackage().getName() + ".l10n", locale,
+					ResourceBundle.Control.getNoFallbackControl(
+							ResourceBundle.Control.FORMAT_DEFAULT));
 			portalModel.put("_", new TemplateMethodModelEx() {
 				@Override
 				public Object exec(@SuppressWarnings("rawtypes") List arguments)
