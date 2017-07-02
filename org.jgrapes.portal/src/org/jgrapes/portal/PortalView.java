@@ -38,10 +38,14 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.CharBuffer;
+import java.text.Collator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -49,6 +53,7 @@ import java.util.MissingResourceException;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -105,12 +110,12 @@ public class PortalView extends Component {
 	private static ServiceLoader<ThemeProvider> themeLoader 
 		= ServiceLoader.load(ThemeProvider.class);
 	private static Configuration fmConfig = null;
-	private ResourceBundle baseResources;
+	
 	private Function<Locale,ResourceBundle> resourceSupplier;
-	private ResourceBundle addedResources;
-
+	private Set<Locale> supportedLocales;
+	
 	private ThemeProvider baseTheme;
-	private Map<String,Object> portalModel = new HashMap<>();
+	private Map<String,Object> portalBaseModel = new HashMap<>();
 	private RenderSupport renderSupport = new RenderSupportImpl();
 
 	/**
@@ -129,11 +134,29 @@ public class PortalView extends Component {
 	        fmConfig.setLogTemplateExceptions(false);
 		}
 		baseTheme = new Provider();
-		updateResources(Locale.getDefault());
+		
+		supportedLocales = new HashSet<>();
+		for (Locale locale: Locale.getAvailableLocales()) {
+			if (locale.getLanguage().equals("")) {
+				continue;
+			}
+			if (resourceSupplier != null) {
+				ResourceBundle rb = resourceSupplier.apply(locale);
+				if (rb.getLocale().equals(locale)) {
+					supportedLocales.add(locale);
+				}
+			}
+			ResourceBundle rb = ResourceBundle.getBundle(getClass()
+					.getPackage().getName()	+ ".l10n", locale);
+			if (rb.getLocale().equals(locale)) {
+				supportedLocales.add(locale);
+			}
+		}
+		
 		RequestHandler.Evaluator.add(this, "onGet", portal.prefix() + "/**");
 		
 		// Create portal model
-		portalModel.put("resourceUrl", new TemplateMethodModelEx() {
+		portalBaseModel.put("resourceUrl", new TemplateMethodModelEx() {
 			@Override
 			public Object exec(@SuppressWarnings("rawtypes") List arguments)
 					throws TemplateModelException {
@@ -146,53 +169,18 @@ public class PortalView extends Component {
 						((SimpleScalar)args.get(0)).getAsString()).getRawPath();
 			}
 		});
-		portalModel.put("_", new TemplateMethodModelEx() {
-			@Override
-			public Object exec(@SuppressWarnings("rawtypes") List arguments)
-					throws TemplateModelException {
-				@SuppressWarnings("unchecked")
-				List<TemplateModel> args = (List<TemplateModel>)arguments;
-				if (!(args.get(0) instanceof SimpleScalar)) {
-					throw new TemplateModelException("Not a string.");
-				}
-				String key = ((SimpleScalar)args.get(0)).getAsString();
-				if (addedResources != null) {
-					try {
-						return addedResources.getString(key);
-					} catch (MissingResourceException e) {
-						// try base
-					}
-				}
-				try {
-					return baseResources.getString(key);
-				} catch (MissingResourceException e) {
-					return key;
-				}
-			}
-		});
 		
-		portalModel.put("themeInfos", 
+		portalBaseModel.put("themeInfos", 
 				StreamSupport.stream(themeLoader.spliterator(), false)
 				.map(t -> new ThemeInfo(t.themeId(), t.themeName()))
 				.sorted().toArray(size -> new ThemeInfo[size]));
-	}
-
-	private void updateResources(Locale locale) {
-		baseResources = ResourceBundle.getBundle(
-				getClass().getPackage().getName() + ".l10n", locale);
-		if (resourceSupplier != null) {
-			try {
-				addedResources = resourceSupplier.apply(locale);
-			} catch (MissingResourceException e) {
-				// Ignore
-			}
-		}
+		
+		portalBaseModel = Collections.unmodifiableMap(portalBaseModel);
 	}
 
 	void setResourceSupplier(
 			Function<Locale,ResourceBundle> resourceSupplier) {
 		this.resourceSupplier = resourceSupplier;
-		updateResources(baseResources.getLocale());
 	}
 	
 	private LinkedIOSubchannel portalChannel(IOSubchannel channel) {
@@ -258,6 +246,13 @@ public class PortalView extends Component {
 	private void renderPortal(GetRequest event, IOSubchannel channel)
 		throws IOException, InterruptedException {
 		event.stop();
+		
+		// Because language is changed via websocket, locale cookie 
+		// may be out-dated
+		event.associated(Selection.class)
+			.ifPresent(s ->	s.prefer(s.get()[0]));
+		
+		// Prepare response
 		HttpResponse response = event.httpRequest().response().get();
 		MediaType mediaType = MediaType.builder().setType("text", "html")
 				.setParameter("charset", "utf-8").build();
@@ -267,10 +262,56 @@ public class PortalView extends Component {
 		channel.respond(new Response(response));
 		try (Writer out = new OutputStreamWriter(new ByteBufferOutputStream(
 				channel, channel.responsePipeline()), "utf-8")) {
-			Template tpl = fmConfig.getTemplate("portal.ftlh");
-			event.associated(Selection.class).ifPresent(s -> {
-				updateResources(s.get()[0]);
+			Map<String,Object> portalModel = new HashMap<>(portalBaseModel);
+
+			// Add locale
+			final Locale locale = event.associated(Selection.class).map(
+					s -> s.get()[0]).orElse(Locale.getDefault());
+			portalModel.put("locale", locale);
+
+			// Add supported locales
+			final Collator coll = Collator.getInstance(locale);
+			final Comparator<LanguageInfo> comp 
+				= new Comparator<PortalView.LanguageInfo>() {
+				@Override
+				public int compare(LanguageInfo o1,  LanguageInfo o2) {
+					return coll.compare(o1.getLabel(), o2.getLabel());
+				}
+			};
+			LanguageInfo[] languages = supportedLocales.stream()
+					.map(l -> new LanguageInfo(l))
+					.sorted(comp).toArray(size -> new LanguageInfo[size]);
+			portalModel.put("supportedLanguages", languages);
+
+			// Add localization
+			final ResourceBundle additionalResources = resourceSupplier == null
+					? null : resourceSupplier.apply(locale);
+			final ResourceBundle baseResources = ResourceBundle.getBundle(
+					getClass().getPackage().getName() + ".l10n", locale);
+			portalModel.put("_", new TemplateMethodModelEx() {
+				@Override
+				public Object exec(@SuppressWarnings("rawtypes") List arguments)
+						throws TemplateModelException {
+					@SuppressWarnings("unchecked")
+					List<TemplateModel> args = (List<TemplateModel>)arguments;
+					if (!(args.get(0) instanceof SimpleScalar)) {
+						throw new TemplateModelException("Not a string.");
+					}
+					String key = ((SimpleScalar)args.get(0)).getAsString();
+					try {
+						return additionalResources.getString(key);
+					} catch (MissingResourceException e) {
+						// try base resources
+					}
+					try {
+						return baseResources.getString(key);
+					} catch (MissingResourceException e) {
+						// no luck
+					}
+					return key;
+				}
 			});
+			Template tpl = fmConfig.getTemplate("portal.ftlh");
 			tpl.process(portalModel, out);
 		} catch (TemplateException e) {
 			throw new IOException(e);
@@ -387,6 +428,12 @@ public class PortalView extends Component {
 					RenderMode.valueOf(params.getString(1))), portalChannel);
 			break;
 		}
+		case "setLocale": {
+			JsonArray params = (JsonArray)event.params();
+			setLocale(channel, params.getString(0));
+			sendNotificationResponse(portalChannel, "reload");
+			break;
+		}
 		case "setTheme": {
 			JsonArray params = (JsonArray)event.params();
 			setTheme(channel, params.getString(0));
@@ -402,6 +449,13 @@ public class PortalView extends Component {
 			break;
 		}
 		}		
+	}
+	
+	private void setLocale(IOSubchannel channel, String locale) {
+		supportedLocales.stream()
+			.filter(l -> l.toString().equals(locale)).findFirst()
+			.ifPresent(l ->	channel.associated(Selection.class)
+					.map(s -> s.prefer(l)));
 	}
 	
 	private void setTheme(IOSubchannel channel, String theme) {
@@ -532,6 +586,29 @@ public class PortalView extends Component {
 		}
 	}
 
+	public static class LanguageInfo {
+		private Locale locale;
+
+		/**
+		 * @param locale
+		 */
+		public LanguageInfo(Locale locale) {
+			this.locale = locale;
+		}
+
+		/**
+		 * @return the locale
+		 */
+		public Locale getLocale() {
+			return locale;
+		}
+		
+		public String getLabel() {
+			String str = locale.getDisplayName(locale);
+			return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+		}
+	}
+	
 	public static class ThemeInfo implements Comparable<ThemeInfo> {
 		private String id;
 		private String name;

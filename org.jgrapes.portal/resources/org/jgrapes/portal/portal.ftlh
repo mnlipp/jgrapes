@@ -74,12 +74,14 @@
   <script>
   $( function() {
     // Top bar
-    $( "#theme-menu" ).click(function(event) {
+    $( "#theme-menu" ).on("click", "[data-theme-id]", function() {
+      JGPortal.sendSetTheme($(this).data("theme-id"));
       $( "#theme-menu" ).jqDropdown("hide");
     });
     
-    $( "#theme-menu" ).on("click", "[data-theme-id]", function() {
-      JGPortal.sendSetTheme($(this).data("theme-id"));
+    $( "#language-menu" ).on("click", "[data-locale]", function() {
+      JGPortal.sendSetLocale($(this).data("locale"));
+      $( "#theme-menu" ).jqDropdown("hide");
     });
     
     // Tabs
@@ -126,7 +128,7 @@
 <!-- Main content: The tabs -->
 <div id="tabs">
   <ul>
-    <li><a href="#tabs-1">Overview</a></li>
+    <li><a href="#tabs-1">${_("Overview")}</a></li>
   </ul>
 
   <div id="tabs-1">
@@ -150,8 +152,19 @@
 <!-- The settings panel and its sub-structures -->
 <div id="settings-panel" class="jq-dropdown jq-dropdown-anchor-right">
   <div class="jq-dropdown-panel ui-widget-content">
-    <div data-jq-dropdown="#theme-menu">Theme</div>
+    <div data-jq-dropdown="#language-menu">${_("Language")}</div>
+    <div data-jq-dropdown="#theme-menu">${_("Theme")}</div>
   </div>
+</div>
+
+<div id="language-menu" class="jq-dropdown jq-dropdown-tip jq-dropdown-scroll">
+  <ul class="jq-dropdown-menu ui-menu ui-widget ui-menu-item">
+  <#list supportedLanguages as l>
+    <li class="ui-menu-item">
+      <div class="ui-menu-item-wrapper" data-locale="${l.locale}">${l.label}</div>
+    </li>
+  </#list>
+  </ul>
 </div>
 
 <div id="theme-menu" class="jq-dropdown jq-dropdown-tip">
@@ -169,7 +182,6 @@
     Hello!
   </div>
 </div>
-
 
 </body>
 </html>

@@ -221,6 +221,11 @@ var JGPortal = {
             "params": [ themeId ]});
     };
     
+    JGPortal.sendSetLocale = function(locale) {
+        wsConn.send({"jsonrpc": "2.0", "method": "setLocale",
+            "params": [ locale ]});
+    };
+    
 	JGPortal.sendRenderPortlet = function(portletId, mode) {
 		wsConn.send({"jsonrpc": "2.0", "method": "renderPortlet",
 			"params": [ portletId, mode ]});
