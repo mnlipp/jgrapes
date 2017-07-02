@@ -143,6 +143,7 @@ public class EchoTest {
 			if (waitTime <= 0) {
 				fail();
 			}
+			Components.checkAssertions();
 			try {
 				assertTrue(Components.awaitExhaustion(waitTime));
 			} catch (InterruptedException e) {
@@ -150,6 +151,7 @@ public class EchoTest {
 			}
 			break;
 		}
+		Components.checkAssertions();
 	}
 
 }
