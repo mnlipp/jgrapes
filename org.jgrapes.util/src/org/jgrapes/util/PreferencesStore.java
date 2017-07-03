@@ -36,9 +36,9 @@ import org.jgrapes.util.events.UpdatePreferences;
  * The component reads the initial values from a Java {@link Preferences}
  * node. During application bootstrap, it intercepts the {@link Start} 
  * event using a handler with  priority 999999. When receiving this event, 
- * it fires all known preferences values on its channel as an 
- * {@link InitialPreferences} event. Then, it re-fires the intercepted 
- * {@link Start} event. 
+ * it fires all known preferences values (skipping nodes whose name
+ * starts with a dot) on its channel as an {@link InitialPreferences} 
+ * event. Then, it re-fires the intercepted {@link Start} event. 
  * 
  * Components that depend on preference values define handlers
  * for {@link UpdatePreferences} events and adapt themselves to the values 
@@ -61,10 +61,14 @@ public class PreferencesStore extends Component {
 	 * channel.
 	 *  
 	 * @param componentChannel the channel 
+	 * @param node the preferences node, formed by replacing
+	 * each dot in the class's full name with a slash and
+	 * prepending a slash
 	 */
 	public PreferencesStore(Channel componentChannel, Class<?> node) {
 		super(componentChannel);
-		preferences = Preferences.userNodeForPackage(node);
+		preferences = Preferences.userNodeForPackage(node)
+				.node(node.getSimpleName());
 	}
 
 	@Handler(priority=999999)
@@ -91,6 +95,9 @@ public class PreferencesStore extends Component {
 			updEvt.add(relPath, key, node.get(key, null));
 		}
 		for (String child: node.childrenNames()) {
+			if (child.startsWith(".")) {
+				continue;
+			}
 			addPrefs(updEvt, appPath, node.node(child));
 		}
 	}
