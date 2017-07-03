@@ -116,7 +116,9 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		Portal portal = app.attach(new Portal(Channel.SELF, app.channel(), 
 				new URI("/portal/"))).setResourceSupplier(l -> 
 				ResourceBundle.getBundle(
-					getClass().getPackage().getName() + ".portal-l10n", l));
+					getClass().getPackage().getName() + ".portal-l10n", l,
+					ResourceBundle.Control.getNoFallbackControl(
+							ResourceBundle.Control.FORMAT_DEFAULT)));
 		portal.attach(new HelloWorldPortlet(portal));
 		Components.start(app);
 	}
