@@ -58,11 +58,9 @@ import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 import javax.json.Json;
-import javax.json.JsonArray; 
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
-import javax.json.JsonValue;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
@@ -88,19 +86,14 @@ import org.jgrapes.io.util.InputStreamPipeline;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.portal.Portlet.RenderMode;
-import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
-import org.jgrapes.portal.events.DeletePortletRequest;
 import org.jgrapes.portal.events.JsonRequest;
-import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.NotifyPortletView;
-import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
-import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.themes.base.Provider;
 import org.jgrapes.portal.util.JsonUtil;
 
@@ -184,6 +177,10 @@ public class PortalView extends Component {
 	void setResourceSupplier(
 			Function<Locale,ResourceBundle> resourceSupplier) {
 		this.resourceSupplier = resourceSupplier;
+	}
+	
+	RenderSupport renderSupport() {
+		return renderSupport;
 	}
 	
 	private LinkedIOSubchannel portalChannel(IOSubchannel channel) {
@@ -408,69 +405,18 @@ public class PortalView extends Component {
 		if (!optPortalInfo.isPresent()) {
 			return;
 		}
-		optPortalInfo.get().toEvent(channel,
+		optPortalInfo.get().toEvent(portalChannel(channel),
 				event.buffer().backingBuffer(), event.isEndOfRecord());
 	}
 	
-	@Handler
-	public void onJsonRequest(JsonRequest event, IOSubchannel channel) 
-			throws InterruptedException, IOException {
-		Optional<PortalInfo> optPortalInfo 
-			= channel.associated(this, PortalInfo.class);
-		if (!optPortalInfo.isPresent()) {
-			return;
-		}
-		// Send events to portlets on portal's channel
-		LinkedIOSubchannel portalChannel = portalChannel(channel);
-		JsonArray params = (JsonArray)event.params();
-		switch (event.method()) {
-		case "portalReady": {
-			fire(new PortalReady(renderSupport), portalChannel);
-			break;
-		}
-		case "addPortlet": {
-			fire(new AddPortletRequest(renderSupport, params.getString(0),
-					RenderMode.valueOf(params.getString(1))), portalChannel);
-			break;
-		}
-		case "deletePortlet": {
-			fire(new DeletePortletRequest(renderSupport, params.getString(0)),
-					portalChannel);
-			break;
-		}
-		case "renderPortlet": {
-			fire(new RenderPortletRequest(renderSupport, params.getString(0),
-					RenderMode.valueOf(params.getString(1))), portalChannel);
-			break;
-		}
-		case "setLocale": {
-			setLocale(channel, params.getString(0));
-			sendNotificationResponse(portalChannel, "reload");
-			break;
-		}
-		case "setTheme": {
-			setTheme(channel, params.getString(0));
-			sendNotificationResponse(portalChannel, "reload");
-			break;
-		}
-		case "sendToPortlet": {
-			fire(new NotifyPortletModel(renderSupport, params.getString(0),
-					params.getString(1), params.size() <= 2
-					? JsonValue.EMPTY_JSON_ARRAY : params.getJsonArray(2)), 
-					portalChannel);
-			break;
-		}
-		}		
-	}
-	
-	private void setLocale(IOSubchannel channel, String locale) {
+	void setLocale(IOSubchannel channel, String locale) {
 		supportedLocales.stream()
 			.filter(l -> l.toString().equals(locale)).findFirst()
 			.ifPresent(l ->	channel.associated(Selection.class)
 					.map(s -> s.prefer(l)));
 	}
 	
-	private void setTheme(IOSubchannel channel, String theme) {
+	void setTheme(IOSubchannel channel, String theme) {
 		StreamSupport.stream(themeLoader.spliterator(), false)
 			.filter(t -> t.themeId().equals(theme)).findFirst()
 			.ifPresent(themeProvider ->  
@@ -545,7 +491,7 @@ public class PortalView extends Component {
 				event.method(), event.params());
 	}
 	
-	private void sendNotificationResponse(LinkedIOSubchannel channel,
+	void sendNotificationResponse(LinkedIOSubchannel channel,
 	        String method, Object... params)
 	        		throws InterruptedException, IOException {
 		JsonBuilderFactory factory = Json.createBuilderFactory(null);
@@ -604,7 +550,6 @@ public class PortalView extends Component {
 					// Shouldn't happen
 				}
 			}
-			
 		}
 	}
 

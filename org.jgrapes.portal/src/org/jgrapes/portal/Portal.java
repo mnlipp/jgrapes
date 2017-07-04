@@ -24,16 +24,26 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.function.Function;
 
+import javax.json.JsonArray;
+import javax.json.JsonValue;
+
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.util.LinkedIOSubchannel;
+import org.jgrapes.portal.Portlet.RenderMode;
+import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
+import org.jgrapes.portal.events.DeletePortletRequest;
+import org.jgrapes.portal.events.JsonRequest;
+import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.NotifyPortletView;
+import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
+import org.jgrapes.portal.events.RenderPortletRequest;
 
 /**
  * 
@@ -121,4 +131,49 @@ public class Portal extends Component {
 		view.onNotifyPortletView(event, channel);
 	}
 
+	@Handler
+	public void onJsonRequest(JsonRequest event, LinkedIOSubchannel channel) 
+			throws InterruptedException, IOException {
+		// Send events to portlets on portal's channel
+		JsonArray params = (JsonArray)event.params();
+		switch (event.method()) {
+		case "portalReady": {
+			fire(new PortalReady(view.renderSupport()), channel);
+			break;
+		}
+		case "addPortlet": {
+			fire(new AddPortletRequest(view.renderSupport(), params.getString(0),
+					RenderMode.valueOf(params.getString(1))), channel);
+			break;
+		}
+		case "deletePortlet": {
+			fire(new DeletePortletRequest(
+					view.renderSupport(), params.getString(0)), channel);
+			break;
+		}
+		case "renderPortlet": {
+			fire(new RenderPortletRequest(view.renderSupport(), params.getString(0),
+					RenderMode.valueOf(params.getString(1))), channel);
+			break;
+		}
+		case "setLocale": {
+			view.setLocale(channel, params.getString(0));
+			view.sendNotificationResponse(channel, "reload");
+			break;
+		}
+		case "setTheme": {
+			view.setTheme(channel, params.getString(0));
+			view.sendNotificationResponse(channel, "reload");
+			break;
+		}
+		case "sendToPortlet": {
+			fire(new NotifyPortletModel(view.renderSupport(), params.getString(0),
+					params.getString(1), params.size() <= 2
+					? JsonValue.EMPTY_JSON_ARRAY : params.getJsonArray(2)),
+					channel);
+			break;
+		}
+		}		
+	}
+	
 }

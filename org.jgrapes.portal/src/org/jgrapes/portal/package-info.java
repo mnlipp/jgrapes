@@ -48,13 +48,11 @@
  * {@link org.jgrapes.io.events.Input} events with a serialized JSON RPC data
  * from the web socket until the complete JSON RPCnotification has been 
  * received. The notification (a {@link org.jgrapes.portal.events.JsonRequest}
- * from the servers point of view) is then fired on the on HTTP side (due 
- * to its similarity to a HTTP request), which allows it to be intercepted
- * by additional components. Usually, however, it is handled by the 
- * {@link org.jgrapes.portal.PortalView} that either processes it itself 
- * (if it affects the complete portal, e.g. a change of language or theme) or
- * converts it to an  event that is fired on the portal 
- * channel (in case the notification is directed at the portlets).
+ * from the servers point of view) is then fired on the portal channel, 
+ * which allows it to be intercepted by additional components. Usually, 
+ * however, it is handled by the {@link org.jgrapes.portal.Portal} that 
+ * converts it to a higher level event that is again fired on the portal 
+ * channel.
  * 
  * Portlets trigger actions on the browser by firing events on the portal 
  * channel. The events are forward to the {@link org.jgrapes.portal.PortalView}
@@ -89,9 +87,8 @@
  * activate PortalView
  * Browser -> PortalView: JSON RPC (Input)
  * deactivate Browser
- * PortalView -> PortalView: JsonRequest("portalReady")
+ * PortalView -> Portal: JsonRequest("portalReady")
  * deactivate PortalView
- * PortalView -> Portal: fire(PortalReady)
  * activate Portal
  * Portal -> Portlet: PortalReady
  * deactivate Portal
