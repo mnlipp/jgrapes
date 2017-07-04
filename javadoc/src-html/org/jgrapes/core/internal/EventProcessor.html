@@ -39,7 +39,7 @@
 <span class="sourceLineNo">031</span> */<a name="line.31"></a>
 <span class="sourceLineNo">032</span>public class EventProcessor implements InternalEventPipeline, Runnable {<a name="line.32"></a>
 <span class="sourceLineNo">033</span><a name="line.33"></a>
-<span class="sourceLineNo">034</span>        private static ExecutorService defaultExecutorService <a name="line.34"></a>
+<span class="sourceLineNo">034</span>        static ExecutorService defaultExecutorService <a name="line.34"></a>
 <span class="sourceLineNo">035</span>                = Executors.newCachedThreadPool();<a name="line.35"></a>
 <span class="sourceLineNo">036</span>        <a name="line.36"></a>
 <span class="sourceLineNo">037</span>        protected static ThreadLocal&lt;EventBase&lt;?&gt;&gt; <a name="line.37"></a>
@@ -123,22 +123,30 @@
 <span class="sourceLineNo">115</span>        }<a name="line.115"></a>
 <span class="sourceLineNo">116</span><a name="line.116"></a>
 <span class="sourceLineNo">117</span>        /* (non-Javadoc)<a name="line.117"></a>
-<span class="sourceLineNo">118</span>         * @see java.lang.Object#toString()<a name="line.118"></a>
+<span class="sourceLineNo">118</span>         * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()<a name="line.118"></a>
 <span class="sourceLineNo">119</span>         */<a name="line.119"></a>
 <span class="sourceLineNo">120</span>        @Override<a name="line.120"></a>
-<span class="sourceLineNo">121</span>        public String toString() {<a name="line.121"></a>
-<span class="sourceLineNo">122</span>                StringBuilder builder = new StringBuilder();<a name="line.122"></a>
-<span class="sourceLineNo">123</span>                builder.append(Components.objectName(this));<a name="line.123"></a>
-<span class="sourceLineNo">124</span>                builder.append(" [");<a name="line.124"></a>
-<span class="sourceLineNo">125</span>                if (queue != null) {<a name="line.125"></a>
-<span class="sourceLineNo">126</span>                        builder.append("queue=");<a name="line.126"></a>
-<span class="sourceLineNo">127</span>                        builder.append(queue);<a name="line.127"></a>
-<span class="sourceLineNo">128</span>                }<a name="line.128"></a>
-<span class="sourceLineNo">129</span>                builder.append("]");<a name="line.129"></a>
-<span class="sourceLineNo">130</span>                return builder.toString();<a name="line.130"></a>
-<span class="sourceLineNo">131</span>        }<a name="line.131"></a>
-<span class="sourceLineNo">132</span><a name="line.132"></a>
-<span class="sourceLineNo">133</span>}<a name="line.133"></a>
+<span class="sourceLineNo">121</span>        public ExecutorService executorService() {<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                return executorService;<a name="line.122"></a>
+<span class="sourceLineNo">123</span>        }<a name="line.123"></a>
+<span class="sourceLineNo">124</span><a name="line.124"></a>
+<span class="sourceLineNo">125</span>        /* (non-Javadoc)<a name="line.125"></a>
+<span class="sourceLineNo">126</span>         * @see java.lang.Object#toString()<a name="line.126"></a>
+<span class="sourceLineNo">127</span>         */<a name="line.127"></a>
+<span class="sourceLineNo">128</span>        @Override<a name="line.128"></a>
+<span class="sourceLineNo">129</span>        public String toString() {<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                StringBuilder builder = new StringBuilder();<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                builder.append(Components.objectName(this));<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                builder.append(" [");<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                if (queue != null) {<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                        builder.append("queue=");<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                        builder.append(queue);<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                }<a name="line.136"></a>
+<span class="sourceLineNo">137</span>                builder.append("]");<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                return builder.toString();<a name="line.138"></a>
+<span class="sourceLineNo">139</span>        }<a name="line.139"></a>
+<span class="sourceLineNo">140</span><a name="line.140"></a>
+<span class="sourceLineNo">141</span>}<a name="line.141"></a>
 
 
 

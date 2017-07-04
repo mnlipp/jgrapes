@@ -32,22 +32,31 @@
 <span class="sourceLineNo">024</span> * This interface marks a class as a component. Implementing this interface is <a name="line.24"></a>
 <span class="sourceLineNo">025</span> * an alternative to deriving from {@link Component} (usually because <a name="line.25"></a>
 <span class="sourceLineNo">026</span> * there is some other preferential inheritance relationship). <a name="line.26"></a>
-<span class="sourceLineNo">027</span> * Components that implement this interface but don't inherit from<a name="line.27"></a>
-<span class="sourceLineNo">028</span> * {@link Component} aren't inserted as vertices into the component tree;<a name="line.28"></a>
+<span class="sourceLineNo">027</span> * Components that implement this interface (but don't inherit from<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * {@link Component}) aren't inserted as vertices into the component tree;<a name="line.28"></a>
 <span class="sourceLineNo">029</span> * rather, they are represented in the tree by a proxy. <a name="line.29"></a>
-<span class="sourceLineNo">030</span> * &lt;P&gt;<a name="line.30"></a>
+<span class="sourceLineNo">030</span> * <a name="line.30"></a>
 <span class="sourceLineNo">031</span> * Classes that implement {@code ComponentType} aren't required to<a name="line.31"></a>
 <span class="sourceLineNo">032</span> * implement specific methods. They must, however, declare a field<a name="line.32"></a>
 <span class="sourceLineNo">033</span> * for a component manager. This field must be of type <a name="line.33"></a>
 <span class="sourceLineNo">034</span> * {@link Manager} and annotated as {@link ComponentManager}.<a name="line.34"></a>
-<span class="sourceLineNo">035</span> * The implementation of the attached component can use the value in this <a name="line.35"></a>
+<span class="sourceLineNo">035</span> * The implementation of the component type can use the value in this <a name="line.35"></a>
 <span class="sourceLineNo">036</span> * field to get access to the component hierarchy. The field is initialized<a name="line.36"></a>
-<span class="sourceLineNo">037</span> * when the component is added to the component hierarchy or when<a name="line.37"></a>
-<span class="sourceLineNo">038</span> * calling {@link Components#manager(ComponentType)}.<a name="line.38"></a>
-<span class="sourceLineNo">039</span> */<a name="line.39"></a>
-<span class="sourceLineNo">040</span>public interface ComponentType {<a name="line.40"></a>
-<span class="sourceLineNo">041</span>        <a name="line.41"></a>
-<span class="sourceLineNo">042</span>}<a name="line.42"></a>
+<span class="sourceLineNo">037</span> * when the component type is added to the component hierarchy or when<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * calling {@link Components#manager(ComponentType)} or<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * {@link Components#manager(ComponentType, Channel)}.<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * <a name="line.40"></a>
+<span class="sourceLineNo">041</span> * The channel associated with an instance of {@link ComponentType}<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * can be specified as attribute of the {@link ComponentManager}<a name="line.42"></a>
+<span class="sourceLineNo">043</span> * annotation. If no channel is specified, the proxy is used as<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * channel (see {@link Channel#SELF}). The default can be overridden<a name="line.44"></a>
+<span class="sourceLineNo">045</span> * on a per instance basis by calling <a name="line.45"></a>
+<span class="sourceLineNo">046</span> * {@link Components#manager(ComponentType, Channel)} before the component<a name="line.46"></a>
+<span class="sourceLineNo">047</span> * is added to the tree.<a name="line.47"></a>
+<span class="sourceLineNo">048</span> */<a name="line.48"></a>
+<span class="sourceLineNo">049</span>public interface ComponentType {<a name="line.49"></a>
+<span class="sourceLineNo">050</span>        <a name="line.50"></a>
+<span class="sourceLineNo">051</span>}<a name="line.51"></a>
 
 
 

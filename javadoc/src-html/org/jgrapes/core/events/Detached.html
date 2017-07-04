@@ -26,10 +26,10 @@
 <span class="sourceLineNo">018</span><a name="line.18"></a>
 <span class="sourceLineNo">019</span>package org.jgrapes.core.events;<a name="line.19"></a>
 <span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>import org.jgrapes.core.ComponentType;<a name="line.21"></a>
-<span class="sourceLineNo">022</span>import org.jgrapes.core.Components;<a name="line.22"></a>
-<span class="sourceLineNo">023</span>import org.jgrapes.core.Event;<a name="line.23"></a>
-<span class="sourceLineNo">024</span>import org.jgrapes.core.internal.Common;<a name="line.24"></a>
+<span class="sourceLineNo">021</span>import org.jgrapes.core.Channel;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import org.jgrapes.core.ComponentType;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import org.jgrapes.core.Components;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import org.jgrapes.core.Event;<a name="line.24"></a>
 <span class="sourceLineNo">025</span><a name="line.25"></a>
 <span class="sourceLineNo">026</span>/**<a name="line.26"></a>
 <span class="sourceLineNo">027</span> * Signals the removal of a component from the component tree.<a name="line.27"></a>
@@ -80,7 +80,7 @@
 <span class="sourceLineNo">072</span>                builder.append(", ");<a name="line.72"></a>
 <span class="sourceLineNo">073</span>                if (channels != null) {<a name="line.73"></a>
 <span class="sourceLineNo">074</span>                        builder.append("channels=");<a name="line.74"></a>
-<span class="sourceLineNo">075</span>                        builder.append(Common.channelsToString(channels));<a name="line.75"></a>
+<span class="sourceLineNo">075</span>                        builder.append(Channel.toString(channels));<a name="line.75"></a>
 <span class="sourceLineNo">076</span>                }<a name="line.76"></a>
 <span class="sourceLineNo">077</span>                builder.append("]");<a name="line.77"></a>
 <span class="sourceLineNo">078</span>                return builder.toString();<a name="line.78"></a>
