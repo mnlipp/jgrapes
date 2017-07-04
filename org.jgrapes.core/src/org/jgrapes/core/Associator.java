@@ -57,7 +57,7 @@ public interface Associator {
 	 * object is created and the association is established.  
 	 * 
 	 * @param by the "name"
-	 * @param the supplier the supplier
+	 * @param supplier the supplier
 	 * @param <V> the type of the value to be retrieved
 	 * @return the associate, if any
 	 */

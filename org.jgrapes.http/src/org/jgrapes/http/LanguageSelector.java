@@ -43,7 +43,8 @@ import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
 
 /**
- * 
+ * A component that attempts to derive information about language preferences
+ * from requests.
  */
 public class LanguageSelector extends Component {
 
@@ -90,8 +91,8 @@ public class LanguageSelector extends Component {
 	}
 
 	/**
-	 * Associates the event with a {@link Selector} object
-	 * using `Selector.class` as association identifier.
+	 * Associates the event with a {@link Selection} object
+	 * using `Selection.class` as association identifier.
 	 * 
 	 * @param event the event
 	 */
@@ -207,8 +208,8 @@ public class LanguageSelector extends Component {
 		/**
 		 * Updates the current locale.
 		 * 
-		 * @param locale
-		 * @return
+		 * @param locale the locale
+		 * @return the selection for easy chaining
 		 */
 		public Selection prefer(Locale locale) {
 			explicitlySet = true;

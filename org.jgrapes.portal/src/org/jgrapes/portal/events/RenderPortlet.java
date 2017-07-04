@@ -36,7 +36,6 @@ public abstract class RenderPortlet extends Event<Void> {
 	 * Creates a new event.
 	 * 
 	 * @param portletId the id of the portlet
-	 * @param title the title of the portlet
 	 * @param mode the view mode that is to be updated
 	 * @param supportedModes the modes supported by the portlet
 	 */

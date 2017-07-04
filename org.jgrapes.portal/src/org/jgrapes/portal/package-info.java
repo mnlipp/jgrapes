@@ -23,9 +23,9 @@
  * with the portlets, usually using a channel that is independent
  * of the  channel used for HTTP Input/Output.
  *
- * When created, a {@link Portal} component automatically instantiates 
- * a child component of type {@link org.jgrapes.portal.PortalView} which
- * handles the HTTP side of the portal. You can think of the 
+ * When created, a {@link org.jgrapes.portal.Portal} component automatically 
+ * instantiates a child component of type {@link org.jgrapes.portal.PortalView}
+ * which handles the HTTP side of the portal. You can think of the 
  * {@link org.jgrapes.portal.PortalView}/{@link org.jgrapes.portal.Portal}
  * pair as a gateway that translates the Input/Output related events on the 
  * HTTP side to portal/portlet related events on the portlet side and 
@@ -108,7 +108,6 @@
  * deactivate Browser
  * 
  * @enduml
-
  */
 @org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.portal;

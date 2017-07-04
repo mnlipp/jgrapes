@@ -119,7 +119,7 @@ public abstract class AbstractPortlet extends Component {
 	 * 
 	 * @param channel the channel, used to access the session
 	 * @param model the model
-	 * @return
+	 * @return the model
 	 */
 	@SuppressWarnings("unchecked")
 	protected <T extends PortletModelBean> T addToSession(
@@ -139,7 +139,7 @@ public abstract class AbstractPortlet extends Component {
 	 * 
 	 * @param channel the channel, used to access the session
 	 * @param model the model
-	 * @return
+	 * @return the model
 	 */
 	@SuppressWarnings("unchecked")
 	protected <T extends PortletModelBean> T removeFromSession(
@@ -159,10 +159,7 @@ public abstract class AbstractPortlet extends Component {
 	 * The default implementation looks up a bundle using the
 	 * package name plus "l10n" as base name.
 	 * 
-	 * @param baseModel the base model
-	 * @param portletModel the portlet model
-	 * @param channel the channel
-	 * @return the model
+	 * @return the supplier
 	 */
 	protected Function<Locale,ResourceBundle> resourceSupplier() {
 		return locale -> ResourceBundle.getBundle(
@@ -193,7 +190,7 @@ public abstract class AbstractPortlet extends Component {
 		/**
 		 * Creates a new model with the given portlet id.
 		 * 
-		 * @param portlet id the portlet id
+		 * @param portletId the portlet id
 		 */
 		public PortletModelBean(String portletId) {
 			this.portletId = portletId;

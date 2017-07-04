@@ -45,7 +45,7 @@ public abstract class ThemeProvider {
 	 * Find and open the given resource.
 	 * 
 	 * @param name the resource name
-	 * @return 
+	 * @return the data as input stream
 	 */
 	public InputStream getResourceAsStream(String name)
 	        throws ResourceNotFoundException {
