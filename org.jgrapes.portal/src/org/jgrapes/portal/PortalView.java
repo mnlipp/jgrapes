@@ -88,7 +88,10 @@ import org.jgrapes.io.util.InputStreamPipeline;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.portal.Portlet.RenderMode;
-import org.jgrapes.portal.events.AddPortletResources;
+import org.jgrapes.portal.events.AddPortletRequest;
+import org.jgrapes.portal.events.AddPortletType;
+import org.jgrapes.portal.events.DeletePortlet;
+import org.jgrapes.portal.events.DeletePortletRequest;
 import org.jgrapes.portal.events.JsonRequest;
 import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.NotifyPortletView;
@@ -419,31 +422,38 @@ public class PortalView extends Component {
 		}
 		// Send events to portlets on portal's channel
 		LinkedIOSubchannel portalChannel = portalChannel(channel);
+		JsonArray params = (JsonArray)event.params();
 		switch (event.method()) {
 		case "portalReady": {
 			fire(new PortalReady(renderSupport), portalChannel);
 			break;
 		}
+		case "addPortlet": {
+			fire(new AddPortletRequest(renderSupport, params.getString(0),
+					RenderMode.valueOf(params.getString(1))), portalChannel);
+			break;
+		}
+		case "deletePortlet": {
+			fire(new DeletePortletRequest(renderSupport, params.getString(0)),
+					portalChannel);
+			break;
+		}
 		case "renderPortlet": {
-			JsonArray params = (JsonArray)event.params();
 			fire(new RenderPortletRequest(renderSupport, params.getString(0),
 					RenderMode.valueOf(params.getString(1))), portalChannel);
 			break;
 		}
 		case "setLocale": {
-			JsonArray params = (JsonArray)event.params();
 			setLocale(channel, params.getString(0));
 			sendNotificationResponse(portalChannel, "reload");
 			break;
 		}
 		case "setTheme": {
-			JsonArray params = (JsonArray)event.params();
 			setTheme(channel, params.getString(0));
 			sendNotificationResponse(portalChannel, "reload");
 			break;
 		}
 		case "sendToPortlet": {
-			JsonArray params = (JsonArray)event.params();
 			fire(new NotifyPortletModel(renderSupport, params.getString(0),
 					params.getString(1), params.size() <= 2
 					? JsonValue.EMPTY_JSON_ARRAY : params.getJsonArray(2)), 
@@ -468,17 +478,20 @@ public class PortalView extends Component {
 					session.put("themeProvider", themeProvider)));
 	}
 	
-	void onAddPortletResources(
-			AddPortletResources event, LinkedIOSubchannel channel)
+	void onAddPortletType(
+			AddPortletType event, LinkedIOSubchannel channel)
 					throws InterruptedException, IOException {
-		sendNotificationResponse(channel, "addPortletResources",
+		sendNotificationResponse(channel, "addPortletType",
+				event.portletType(),
+				event.displayName(),
 				Arrays.stream(event.cssUris()).map(uri -> 
 				renderSupport.portletResource(
 						event.portletType(), uri).toString())
 				.toArray(String[]::new),
 				Arrays.stream(event.scriptUris()).map(uri -> 
 				renderSupport.portletResource(event.portletType(), uri).toString())
-				.toArray(String[]::new));
+				.toArray(String[]::new),
+				event.isInstantiable());
 	}
 	
 	void onRenderPortlet(
@@ -501,6 +514,13 @@ public class PortalView extends Component {
 				event.supportedRenderModes().stream().map(RenderMode::name)
 				.toArray(size -> new String[size]),
 				content.toString());
+	}
+
+	public void onDeletePortlet(DeletePortlet event,
+	        LinkedIOSubchannel channel) 
+	        		throws InterruptedException, IOException {
+		sendNotificationResponse(channel, "deletePortlet",
+				event.portletId());
 	}
 
 	public void onPortletResourceResponse(PortletResourceResponse event,

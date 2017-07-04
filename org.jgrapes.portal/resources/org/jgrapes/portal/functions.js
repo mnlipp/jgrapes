@@ -28,7 +28,8 @@ var JGPortal = {
         }
     }
     
-    function addPortletResources(cssUris, scriptUris) {
+    function addPortletType(portletType, displayName, cssUris, scriptUris,
+            isInstantiable) {
         for (let index in cssUris) {
             let uri = cssUris[index];
             if ($("head > link[href='" + uri + "']").length === 0) {
@@ -54,8 +55,13 @@ var JGPortal = {
                 head.appendChild(script);
             }
         }
+        // Add to menu
+        let item = $('<li class="ui-menu-item">'
+                + '<div class="ui-menu-item-wrapper" data-portlet-type="' 
+                + portletType + '">' + displayName + '</div></li>');
+        $("#addon-menu-list").append(item);
     };
-    addPortletResources.callsBackMessageHandled = true;
+    addPortletType.callsBackMessageHandled = true;
 
     function findPortletPreview(portletId) {
         let matches = $( ".portlet[data-portletId='" + portletId + "']" );
@@ -103,6 +109,14 @@ var JGPortal = {
 			portlet.addClass( "ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" );
 			let portletHeader = portlet.find( ".portlet-header" );
 			portletHeader.addClass( "ui-widget-header ui-corner-all" );
+            if (modes.includes("DeleteablePreview")) {
+                portletHeader.prepend( "<span class='ui-icon ui-icon-delete portlet-delete'></span>");
+                portletHeader.find(".portlet-delete").on( "click", function() {
+                    let icon = $( this );
+                    let portletId = icon.closest( ".portlet" ).attr("data-portletId");
+                    JGPortal.sendDeletePortlet(portletId);
+                });
+            }
 			if (modes.includes("View")) {
 				portletHeader.prepend( "<span class='ui-icon ui-icon-fullscreen portlet-expand'></span>");
 				portletHeader.find(".portlet-expand").on( "click", function() {
@@ -153,17 +167,32 @@ var JGPortal = {
     }
 	
 	function updatePortlet(portletId, mode, modes, content) {
-		if (mode === "Preview") {
+		if (mode === "Preview" || mode === "DeleteablePreview") {
 			updatePreview(portletId, modes, content);
 		} else if (mode === "View") {
 			updateView(portletId, modes, content);
 		}
 	};
 
+	function deletePortlet(portletId) {
+        let portletView = findPortletView(portletId);
+        if (portletView) {
+            let panelId = portletView.closest(".ui-tabs-panel").remove().attr("id");
+            let tabs = $( "#tabs" ).tabs();
+            tabs.find("li[aria-controls='" + panelId + "']").remove();
+            $( "#tabs" ).tabs().tabs( "refresh" );
+        }
+        let portlet = findPortletPreview(portletId);
+        if (portlet) {
+            portlet.remove();
+        }
+	}
+	
 	var pendingResourcesCallbacks = 0;
 	
 	var messageHandlers = {
-	    'addPortletResources': addPortletResources,
+	    'addPortletType': addPortletType,
+        'deletePortlet': deletePortlet,
 	    'invokePortletMethod': invokePortletMethod,
 		'reload': function() { window.location.reload(true); },
         'updatePortlet': updatePortlet,
@@ -230,6 +259,16 @@ var JGPortal = {
 		wsConn.send({"jsonrpc": "2.0", "method": "renderPortlet",
 			"params": [ portletId, mode ]});
 	};
+    
+    JGPortal.sendAddPortlet = function(portletType) {
+        wsConn.send({"jsonrpc": "2.0", "method": "addPortlet",
+            "params": [ portletType, "Preview" ]});
+    };
+    
+    JGPortal.sendDeletePortlet = function(portletId) {
+        wsConn.send({"jsonrpc": "2.0", "method": "deletePortlet",
+            "params": [ portletId ]});
+    };
     
     JGPortal.sendToPortlet = function(portletId, method, params) {
         if (params === undefined) {

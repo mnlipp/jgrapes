@@ -19,59 +19,52 @@
 package org.jgrapes.portal.events;
 
 import org.jgrapes.core.Event;
+
+import static org.jgrapes.portal.Portlet.*;
+
 import org.jgrapes.portal.RenderSupport;
 
+
 /**
- * Signals the successful loading of the portal structure
- * in the browser. Portlets should respond to this event by
- * adding their types (using {@link AddPortletType} events)
- * and instances (using {@link RenderPortlet} events) to the portal.
+ * Sent to the portal (server) for adding a new portlet instance of a given 
+ * type. The portal usually responds with a {@link RenderPortlet}.
  * 
- * ![Event Sequence](PortalReadySeq.svg)
+ * ![Event Sequence](AddPortletRequestSeq.svg)
  * 
- * @startuml PortalReadySeq.svg
+ * @startuml AddPortletRequestSeq.svg
  * hide footbox
  * 
- * Browser -> Portal: "portalReady"
+ * Browser -> Portal: "addPortlet"
  * activate Portal
- * Portal -> PortletA: PortalReady
- * activate PortletA
- * PortletA -> Portal: AddPortletType 
- * activate Portal
- * Portal -> Browser: "addPortletType"
+ * Portal -> Portlet: AddPortletRequest
  * deactivate Portal
- * PortletA -> Portal: RenderPortlet
- * deactivate PortletA
+ * activate Portlet
+ * Portlet -> Portal: RenderPortlet
+ * deactivate Portlet
  * activate Portal
  * Portal -> Browser: "renderPortlet"
- * deactivate Portal
- * 
- * Portal -> PortletB: PortalReady
- * activate PortletB
- * PortletA -> Portal: AddPortletType 
- * activate Portal
- * Portal -> Browser: "addPortletType"
- * deactivate Portal
- * PortletB -> Portal: RenderPortlet
- * deactivate PortletB
- * activate Portal
- * Portal -> Browser: "renderPortlet"
- * deactivate Portal
  * deactivate Portal
  * 
  * @enduml
+ * 
  */
-public class PortalReady extends Event<Void> {
+public class AddPortletRequest extends Event<Void> {
 
 	private RenderSupport renderSupport;
+	private String portletType;
+	private RenderMode renderMode;
 
 	/**
 	 * Creates a new event.
 	 * 
-	 * @param renderSupport the render support for generating responses
+	 * @param portletType the type of the portlet
+	 * @param mode the view mode that is requested
 	 */
-	public PortalReady(RenderSupport renderSupport) {
+	public AddPortletRequest(
+			RenderSupport renderSupport, String portletType, RenderMode mode) {
 		this.renderSupport = renderSupport;
+		this.portletType = portletType;
+		this.renderMode = mode;
 	}
 
 	/**
@@ -81,5 +74,23 @@ public class PortalReady extends Event<Void> {
 	 */
 	public RenderSupport renderSupport() {
 		return renderSupport;
+	}
+	
+	/**
+	 * Returns the portlet type
+	 * 
+	 * @return the portlet type
+	 */
+	public String portletType() {
+		return portletType;
+	}
+
+	/**
+	 * Returns the render mode.
+	 * 
+	 * @return the render mode
+	 */
+	public RenderMode renderMode() {
+		return renderMode;
 	}
 }

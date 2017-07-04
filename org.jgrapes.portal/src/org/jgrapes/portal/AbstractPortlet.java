@@ -21,8 +21,11 @@ package org.jgrapes.portal;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.function.Function;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -119,8 +122,8 @@ public abstract class AbstractPortlet extends Component {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	protected PortletModelBean addToSession(
-			IOSubchannel channel, PortletModelBean model) {
+	protected <T extends PortletModelBean> T addToSession(
+			IOSubchannel channel, T model) {
 		Optional<Session> optSession = channel.associated(Session.class);
 		if (!optSession.isPresent()) {
 			throw new IllegalStateException("Session is missing.");
@@ -129,6 +132,44 @@ public abstract class AbstractPortlet extends Component {
 				.computeIfAbsent(getClass(), k -> new HashMap<>()))
 			.put(model.getPortletId(), model);
 		return model;
+	}
+	
+	/**
+	 * Adds the given portlet model to the session.
+	 * 
+	 * @param channel the channel, used to access the session
+	 * @param model the model
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	protected <T extends PortletModelBean> T removeFromSession(
+			IOSubchannel channel, T model) {
+		Optional<Session> optSession = channel.associated(Session.class);
+		if (!optSession.isPresent()) {
+			throw new IllegalStateException("Session is missing.");
+		}
+		((Map<String,PortletModelBean>)optSession.get()
+				.computeIfAbsent(getClass(), k -> new HashMap<>()))
+			.remove(model.getPortletId());
+		return model;
+	}
+	
+	/**
+	 * Provides a supplier for a resource bundle for localization.
+	 * The default implementation looks up a bundle using the
+	 * package name plus "l10n" as base name.
+	 * 
+	 * @param baseModel the base model
+	 * @param portletModel the portlet model
+	 * @param channel the channel
+	 * @return the model
+	 */
+	protected Function<Locale,ResourceBundle> resourceSupplier() {
+		return locale -> ResourceBundle.getBundle(
+			getClass().getPackage().getName() + ".l10n", locale, 
+				ResourceBundle.Control.getNoFallbackControl(
+						ResourceBundle.Control.FORMAT_DEFAULT));
+		
 	}
 	
 	/**

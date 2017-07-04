@@ -18,38 +18,27 @@
 
 package org.jgrapes.portal.events;
 
-import java.util.Set;
 import org.jgrapes.core.Event;
 
-import static org.jgrapes.portal.Portlet.*;
-
 /**
- * Send to the portal view for adding or updating a complete portlet view.
+ * A notification (as defined by the JSON RPC specification) to be sent to
+ * the portlet view (the browser).
  */
-public abstract class RenderPortlet extends Event<Void> {
+public class DeletePortlet extends Event<Void> {
 
 	private String portletId;
-	private RenderMode renderMode;
-	private Set<RenderMode> supportedModes;
-
+	
 	/**
 	 * Creates a new event.
-	 * 
-	 * @param portletId the id of the portlet
-	 * @param title the title of the portlet
-	 * @param mode the view mode that is to be updated
-	 * @param supportedModes the modes supported by the portlet
+	 *  
+	 * @param portletId the portlet (view) that should be deleted
 	 */
-	public RenderPortlet(String portletId, RenderMode mode,
-			Set<RenderMode> supportedModes) {
-		super();
+	public DeletePortlet(String portletId) {
 		this.portletId = portletId;
-		this.renderMode = mode;
-		this.supportedModes = supportedModes;
 	}
 
 	/**
-	 * Returns the portlet id
+	 * Returns the portlet id.
 	 * 
 	 * @return the portlet id
 	 */
@@ -57,21 +46,4 @@ public abstract class RenderPortlet extends Event<Void> {
 		return portletId;
 	}
 
-	/**
-	 * Returns the render mode.
-	 * 
-	 * @return the render mode
-	 */
-	public RenderMode renderMode() {
-		return renderMode;
-	}
-
-	/**
-	 * Returns the supported modes.
-	 * 
-	 * @return the supported modes
-	 */
-	public Set<RenderMode> supportedRenderModes() {
-		return supportedModes;
-	}
 }

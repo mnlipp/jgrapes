@@ -30,33 +30,6 @@
   #tabs li .ui-icon-close { float: left; margin: 0.4em 0.2em 0 0; cursor: pointer; }
   #add_tab { cursor: pointer; }
   
-  .column {
-    width: 33%;
-    float: left;
-    padding-bottom: 50px;
-  }
-  .portlet {
-    margin: 0 1em 1em 0;
-    padding: 0.3em;
-  }
-  .portlet-header {
-    padding: 0.2em 0.3em;
-    margin-bottom: 0.5em;
-    position: relative;
-  }
-  .portlet-expand {
-    float: right;
-    cursor: pointer;
-  }
-  .portlet-content {
-    padding: 0.4em;
-  }
-  .portlet-placeholder {
-    border: 1px dotted black;
-    margin: 0 1em 1em 0;
-    height: 50px;
-  }
-  
   </style> 
   
   <!-- Scripts(s) --> 
@@ -81,6 +54,11 @@
     
     $( "#language-menu" ).on("click", "[data-locale]", function() {
       JGPortal.sendSetLocale($(this).data("locale"));
+      $( "#theme-menu" ).jqDropdown("hide");
+    });
+    
+    $( "#addon-menu" ).on("click", "[data-portlet-type]", function() {
+      JGPortal.sendAddPortlet($(this).data("portlet-type"));
       $( "#theme-menu" ).jqDropdown("hide");
     });
     
@@ -122,7 +100,7 @@
 <!-- The bar at the top of the page -->
 <div class="ui-widget top-bar">
   <span class="ui-icon ui-icon-settings" data-jq-dropdown="#settings-panel">Settings</span>
-  <span data-jq-dropdown="#test-panel">Test</span>
+  <span class="ui-icon ui-icon-addon" data-jq-dropdown="#addon-menu">Add-Ons</span>
 </div>
 
 <!-- Main content: The tabs -->
@@ -177,10 +155,9 @@
   </ul>
 </div>
 
-<div id="test-panel" class="jq-dropdown jq-dropdown-anchor-right">
-  <div class="jq-dropdown-panel ui-widget-content">
-    Hello!
-  </div>
+<div id="addon-menu" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right">
+  <ul id="addon-menu-list" class="jq-dropdown-menu ui-menu ui-widget ui-menu-item">
+  </ul>
 </div>
 
 </body>

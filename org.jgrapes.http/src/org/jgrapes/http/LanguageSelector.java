@@ -34,6 +34,7 @@ import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.CookieList;
 import org.jdrupes.httpcodec.types.DefaultMultiValueConverter;
 import org.jdrupes.httpcodec.types.ParameterizedValue;
+import org.jgrapes.core.Associator;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
@@ -142,6 +143,17 @@ public class LanguageSelector extends Component {
 		event.requestEvent().associated(Selection.class)
 			.ifPresent(selection -> 
 				channel.setAssociated(Selection.class, selection));
+	}
+
+	/**
+	 * Convenience method to retrieve a locale from an associator.
+	 * 
+	 * @param assoc the associator
+	 * @return the locale
+	 */
+	public static Locale associatedLocale(Associator assoc) {
+		return assoc.associated(Selection.class)
+				.map(s -> s.get()[0]).orElse(Locale.getDefault());
 	}
 	
 	public class Selection {

@@ -25,11 +25,14 @@ import java.util.List;
 import org.jgrapes.core.Event;
 
 /**
- * Adds global resources (JavaScript and/or CSS) to the portal page.
+ * Adds a portlet type with its global resources (JavaScript and/or CSS) 
+ * to the portal page.
  */
-public class AddPortletResources extends Event<Void> {
+public class AddPortletType extends Event<Void> {
 
 	private String portletType;
+	private String displayName = "";
+	private boolean instantiable = false;
 	private List<URI> scriptUris = new ArrayList<>();
 	private List<URI> cssUris = new ArrayList<>();
 	
@@ -39,7 +42,7 @@ public class AddPortletResources extends Event<Void> {
 	 * @param portletType a unique id for the portklet type (usually
 	 * the class name)
 	 */
-	public AddPortletResources(String portletType) {
+	public AddPortletType(String portletType) {
 		this.portletType = portletType;
 	}
 	
@@ -53,13 +56,52 @@ public class AddPortletResources extends Event<Void> {
 	}
 
 	/**
+	 * Sets the display name.
+	 * 
+	 * @param displayName the display name
+	 * @return the event for easy chaining
+	 */
+	public AddPortletType setDisplayName(String displayName) {
+		this.displayName = displayName;
+		return this;
+	}
+	
+	/**
+	 * Return the display name.
+	 * 
+	 * @return the displayName
+	 */
+	public String displayName() {
+		return displayName;
+	}
+
+	/**
+	 * Mark the portlet type as instantiable.
+	 * 
+	 * @return the event for easy chaining
+	 */
+	public AddPortletType setInstantiable() {
+		instantiable = true;
+		return this;
+	}
+	
+	/**
+	 * Return if the portelt is instantiable.
+	 * 
+	 * @return the result
+	 */
+	public boolean isInstantiable() {
+		return instantiable;
+	}
+
+	/**
 	 * Add the URI of a JavaScript resource that is to be added to the
 	 * header section of the portal page.
 	 * 
 	 * @param uri the URI
 	 * @return the event for easy chaining
 	 */
-	public AddPortletResources addScript(URI uri) {
+	public AddPortletType addScript(URI uri) {
 		scriptUris.add(uri);
 		return this;
 	}
@@ -71,7 +113,7 @@ public class AddPortletResources extends Event<Void> {
 	 * @param uri the URI
 	 * @return the event for easy chaining
 	 */
-	public AddPortletResources addCss(URI uri) {
+	public AddPortletType addCss(URI uri) {
 		cssUris.add(uri);
 		return this;
 	}

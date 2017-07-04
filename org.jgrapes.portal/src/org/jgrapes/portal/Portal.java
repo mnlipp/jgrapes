@@ -28,7 +28,8 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.util.LinkedIOSubchannel;
-import org.jgrapes.portal.events.AddPortletResources;
+import org.jgrapes.portal.events.AddPortletType;
+import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
@@ -94,10 +95,17 @@ public class Portal extends Component {
 	}
 	
 	@Handler
-	public void onAddPortletReosurces(
-			AddPortletResources event, LinkedIOSubchannel channel)
+	public void onAddPortletResources(
+			AddPortletType event, LinkedIOSubchannel channel)
 					throws InterruptedException, IOException {
-		view.onAddPortletResources(event, channel);
+		view.onAddPortletType(event, channel);
+	}
+	
+	@Handler
+	public void onDeletePortlet(
+			DeletePortlet event, LinkedIOSubchannel channel) 
+					throws InterruptedException, IOException {
+		view.onDeletePortlet(event, channel);
 	}
 	
 	@Handler

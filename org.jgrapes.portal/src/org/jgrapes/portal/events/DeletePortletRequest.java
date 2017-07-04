@@ -19,51 +19,28 @@
 package org.jgrapes.portal.events;
 
 import org.jgrapes.core.Event;
-
-import static org.jgrapes.portal.Portlet.*;
-
 import org.jgrapes.portal.RenderSupport;
 
 /**
- * Represents a request from the portal view (browser) to update
- * a portlet.
- * 
- * ![Event Sequence](RenderPortletRequestSeq.svg)
- * 
- * @startuml RenderPortletRequestSeq.svg
- * hide footbox
- * 
- * Browser -> Portal: "renderPortletRequest"
- * activate Portal
- * Portal -> Portlet: RenderPortletRequest
- * deactivate Portal
- * activate Portlet
- * Portlet -> Portal: RenderPortlet
- * deactivate Portlet
- * activate Portal
- * Portal -> Browser: "renderPortlet"
- * deactivate Portal
- * 
- * @enduml
+ * A request to delete a portlet instance.
  */
-public class RenderPortletRequest extends Event<Void> {
+public class DeletePortletRequest extends Event<Void> {
 
-	private RenderSupport renderSupport;	
+	private RenderSupport renderSupport;
 	private String portletId;
-	private RenderMode renderMode;
-
+	
 	/**
-	 * Creates a new request.
+	 * Creates a new event.
 	 * 
-	 * @param renderSupport the render support for generating the response
-	 * @param portletId the portlet to be updated
-	 * @param renderMode the requested mode
+	 * @param renderSupport the render support from the portal in case
+	 * the response requires it
+	 * @param portletId the portlet model that the notification is 
+	 * directed at 
 	 */
-	public RenderPortletRequest(RenderSupport renderSupport, 
-			String portletId, RenderMode renderMode) {
+	public DeletePortletRequest(RenderSupport renderSupport, 
+			String portletId) {
 		this.renderSupport = renderSupport;
 		this.portletId = portletId;
-		this.renderMode = renderMode;
 	}
 
 	/**
@@ -83,15 +60,5 @@ public class RenderPortletRequest extends Event<Void> {
 	public String portletId() {
 		return portletId;
 	}
-
-	/**
-	 * Returns the requested render mode.
-	 * 
-	 * @return the render mode
-	 */
-	public RenderMode renderMode() {
-		return renderMode;
-	}
-	
 
 }

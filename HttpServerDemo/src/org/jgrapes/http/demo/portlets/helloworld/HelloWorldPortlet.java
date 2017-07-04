@@ -22,9 +22,13 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.LanguageSelector;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.PortalView;
-import org.jgrapes.portal.events.AddPortletResources;
+import org.jgrapes.portal.events.AddPortletRequest;
+import org.jgrapes.portal.events.AddPortletType;
+import org.jgrapes.portal.events.DeletePortlet;
+import org.jgrapes.portal.events.DeletePortletRequest;
 import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalReady;
@@ -38,18 +42,24 @@ import freemarker.template.Template;
 import freemarker.template.TemplateNotFoundException;
 
 import static org.jgrapes.portal.Portlet.*;
+import static org.jgrapes.portal.Portlet.RenderMode.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 /**
  * 
  */
 public class HelloWorldPortlet extends FreeMarkerPortlet {
 
+	private final static Set<RenderMode> MODES = RenderMode.asSet(
+			DeleteablePreview, View);
+	
 	/**
 	 * Creates a new component with its channel set to
 	 * itself.
@@ -74,10 +84,14 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 	public void onPortalReady(PortalReady event, IOSubchannel channel) 
 			throws TemplateNotFoundException, MalformedTemplateNameException, 
 			ParseException, IOException {
+		ResourceBundle resourceBundle = resourceSupplier().apply(
+				LanguageSelector.associatedLocale(channel));
 		// Add HelloWorldPortlet resources to page
-		channel.respond(new AddPortletResources(getClass().getName())
+		channel.respond(new AddPortletType(getClass().getName())
+				.setDisplayName(resourceBundle.getString("portletName"))
 				.addScript(PortalView.uriFromPath("HelloWorld-functions.js"))
-				.addCss(PortalView.uriFromPath("HelloWorld-style.css")));
+				.addCss(PortalView.uriFromPath("HelloWorld-style.css"))
+				.setInstantiable());
 		Collection<PortletModelBean> portletModels
 			= new ArrayList<>(modelsFromSession(channel));
 		if (portletModels.size() == 0) {
@@ -88,10 +102,45 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		for (PortletModelBean portletModel: portletModels) {
 			Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
 			channel.respond(new RenderPortletFromProvider(
-					portletModel.getPortletId(), RenderMode.Preview, 
-					VIEWABLE_PORTLET_MODES, newContentProvider(tpl, 
+					portletModel.getPortletId(), DeleteablePreview, 
+					MODES, newContentProvider(tpl, 
 							freemarkerModel(baseModel, portletModel, channel))));
 		}
+	}
+	
+	@Handler
+	public void onAddPortletRequest(AddPortletRequest event,
+			IOSubchannel channel) throws TemplateNotFoundException, 
+				MalformedTemplateNameException, ParseException, IOException {
+		if (!event.portletType().equals(getClass().getName())) {
+			return;
+		}
+		
+		event.stop();
+		HelloWorldModel portletModel 
+			= addToSession(channel, new HelloWorldModel());
+		Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
+		Map<String, Object> baseModel 
+			= freemarkerBaseModel(event.renderSupport());
+		channel.respond(new RenderPortletFromProvider(
+				portletModel.getPortletId(), DeleteablePreview, 
+				MODES, newContentProvider(tpl, 
+						freemarkerModel(baseModel, portletModel, channel))));
+	}
+
+	@Handler
+	public void onDeletePortletRequest(DeletePortletRequest event, 
+			IOSubchannel channel) {
+		Optional<PortletModelBean> optPortletModel 
+			= modelFromSession(channel, event.portletId());
+		if (!optPortletModel.isPresent()) {
+			return;
+		}
+	
+		event.stop();
+		removeFromSession(channel, optPortletModel.get());
+		channel.respond(new DeletePortlet(
+				optPortletModel.get().getPortletId()));
 	}
 	
 	@Handler
@@ -110,8 +159,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		HelloWorldModel portletModel = (HelloWorldModel)optPortletModel.get();
 		Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
 		channel.respond(new RenderPortletFromProvider(
-				portletModel.getPortletId(), RenderMode.View, 
-				VIEWABLE_PORTLET_MODES, newContentProvider(tpl, 
+				portletModel.getPortletId(), View, MODES,
+				newContentProvider(tpl, 
 						freemarkerModel(freemarkerBaseModel(
 								event.renderSupport()), portletModel, channel))));
 		channel.respond(new NotifyPortletView(getClass().getName(),

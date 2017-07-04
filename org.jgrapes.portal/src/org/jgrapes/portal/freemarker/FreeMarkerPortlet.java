@@ -114,21 +114,16 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	 * @param baseModel the base model
 	 * @param portletModel the portlet model
 	 * @param channel the channel
-	 * @param bundleBaseName the base name of the bundle to be used 
-	 * for localization
 	 * @return the model
 	 */
 	protected Map<String,Object> freemarkerModel(Map<String,Object> baseModel,
-			PortletModelBean portletModel, IOSubchannel channel, 
-			String bundleBaseName) {
+			PortletModelBean portletModel, IOSubchannel channel) {
 		final Map<String,Object> model = new HashMap<>(baseModel);
 		model.put("portlet", portletModel);
 		Locale locale = channel.associated(Selection.class)
 				.map(s -> s.get()[0]).orElse(Locale.getDefault());
 		model.put("locale", locale);
-		final ResourceBundle resourceBundle = ResourceBundle.getBundle(
-				bundleBaseName, locale, ResourceBundle.Control
-				.getNoFallbackControl(ResourceBundle.Control.FORMAT_DEFAULT));
+		final ResourceBundle resourceBundle = resourceSupplier().apply(locale);
 		model.put("_", new TemplateMethodModelEx() {
 			@Override
 			public Object exec(@SuppressWarnings("rawtypes") List arguments)
@@ -148,22 +143,6 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 			}
 		});
 		return model;
-	}
-	
-	/**
-	 * Build a freemarker model from the given base model, portlet model
-	 * and the information associated with the channel. Uses the
-	 * package name plus "l10n" as base name for the localization bundle.
-	 * 
-	 * @param baseModel the base model
-	 * @param portletModel the portlet model
-	 * @param channel the channel
-	 * @return the model
-	 */
-	protected Map<String,Object> freemarkerModel(Map<String,Object> baseModel,
-			PortletModelBean portletModel, IOSubchannel channel) {
-		return freemarkerModel(baseModel, portletModel, channel,
-				getClass().getPackage().getName() + ".l10n");
 	}
 	
 	protected ContentProvider newContentProvider(

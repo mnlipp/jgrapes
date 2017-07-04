@@ -19,7 +19,6 @@
 package org.jgrapes.portal;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,25 +27,10 @@ import java.util.Set;
  */
 public interface Portlet {
 	
-	enum RenderMode { Preview, View, Edit, Help }
-	
-	static final Set<RenderMode> PREVIEW_ONLY_PORTLET_MODES
-		= Collections.unmodifiableSet(
-				new HashSet<>(Arrays.asList(RenderMode.Preview)));
-
-	static final Set<RenderMode> VIEWABLE_PORTLET_MODES
-		= Collections.unmodifiableSet(
-				new HashSet<>(Arrays.asList(
-						RenderMode.Preview, RenderMode.View)));
-
-	static final Set<RenderMode> EDITABLE_PREVIEW_PORTLET_MODES
-		= Collections.unmodifiableSet(
-				new HashSet<>(Arrays.asList(
-						RenderMode.Preview, RenderMode.Edit)));
-
-	static final Set<RenderMode> EDITABLE_PORTLET_MODES
-		= Collections.unmodifiableSet(
-				new HashSet<>(Arrays.asList(
-						RenderMode.Preview, RenderMode.View, RenderMode.Edit)));
+	enum RenderMode { Preview, DeleteablePreview, View, Edit, Help;
+		public static Set<RenderMode> asSet(RenderMode... modes) {
+			return new HashSet<>(Arrays.asList(modes));
+		}
+	}
 
 }
