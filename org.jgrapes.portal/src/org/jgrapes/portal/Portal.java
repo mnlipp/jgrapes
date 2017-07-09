@@ -50,6 +50,7 @@ import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.events.SetLocale;
+import org.jgrapes.portal.events.SetTheme;
 import org.jgrapes.portal.events.StoreDataInPortal;
 import org.jgrapes.portal.util.JsonUtil;
 
@@ -195,8 +196,7 @@ public class Portal extends Component {
 			break;
 		}
 		case "setTheme": {
-			view.setTheme(channel, params.getString(0));
-			view.sendNotification(channel, "reload");
+			fire(new SetTheme(params.getString(0)), channel);
 			break;
 		}
 		case "sendToPortlet": {

@@ -95,6 +95,7 @@ import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.SetLocale;
+import org.jgrapes.portal.events.SetTheme;
 import org.jgrapes.portal.events.StoreDataInPortal;
 import org.jgrapes.portal.themes.base.Provider;
 import org.jgrapes.portal.util.JsonUtil;
@@ -178,6 +179,7 @@ public class PortalView extends Component {
 		// Handlers attached to the portal side channel
 		Handler.Evaluator.add(this, "onStoreDataInPortal", portal.channel());
 		Handler.Evaluator.add(this, "onSetLocale", portal.channel());
+		Handler.Evaluator.add(this, "onSetTheme", portal.channel());
 	}
 
 	void setResourceSupplier(
@@ -415,14 +417,6 @@ public class PortalView extends Component {
 				event.buffer().backingBuffer(), event.isEndOfRecord());
 	}
 	
-	void setTheme(IOSubchannel channel, String theme) {
-		StreamSupport.stream(themeLoader.spliterator(), false)
-			.filter(t -> t.themeId().equals(theme)).findFirst()
-			.ifPresent(themeProvider ->  
-				channel.associated(Session.class).map(session ->
-					session.put("themeProvider", themeProvider)));
-	}
-	
 	void onAddPortletType(
 			AddPortletType event, LinkedIOSubchannel channel)
 					throws InterruptedException, IOException {
@@ -497,6 +491,17 @@ public class PortalView extends Component {
 			.filter(l -> l.equals(event.locale())).findFirst()
 			.ifPresent(l ->	channel.associated(Selection.class)
 					.map(s -> s.prefer(l)));
+		sendNotification(channel, "reload");
+	}
+	
+	@Handler(dynamic=true)
+	public void onSetTheme(SetTheme event, LinkedIOSubchannel channel)
+			throws InterruptedException, IOException {
+		StreamSupport.stream(themeLoader.spliterator(), false)
+			.filter(t -> t.themeId().equals(event.theme())).findFirst()
+			.ifPresent(themeProvider ->  
+				channel.associated(Session.class).map(session ->
+					session.put("themeProvider", themeProvider)));
 		sendNotification(channel, "reload");
 	}
 	
