@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.jgrapes.core.Channel;
@@ -176,15 +177,13 @@ public abstract class AbstractPortlet extends Component {
 	 */
 	public abstract static class PortletModelBean {
 
-		private static int counter = 1;
-		
 		private String portletId;
 
 		/**
 		 * Creates a new model with a new unique portlet id.
 		 */
 		public PortletModelBean() {
-			portletId = getClass().getName() + "#" + counter++;
+			portletId = UUID.randomUUID().toString();
 		}
 
 		/**
