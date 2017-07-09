@@ -73,6 +73,7 @@
       var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
       $( "#" + panelId ).remove();
       tabs.tabs( "refresh" );
+      JGPortal.layoutChanged();
     });
 
     //
@@ -84,7 +85,8 @@
       connectWith: ".column",
       handle: ".portlet-header",
       cancel: ".portlet-toggle",
-      placeholder: "portlet-placeholder ui-corner-all"
+      placeholder: "portlet-placeholder ui-corner-all",
+      stop: function( event, ui ) { JGPortal.layoutChanged(); }
     });
  
     // With everything prepared, send portal ready
@@ -109,7 +111,7 @@
     <li><a href="#tabs-1">${_("Overview")}</a></li>
   </ul>
 
-  <div id="tabs-1">
+  <div id="tabs-1" class="overview-panel">
     <div class="column">
     </div>
  

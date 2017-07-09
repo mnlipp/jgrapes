@@ -19,13 +19,17 @@
 package org.jgrapes.portal;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.function.Function;
 
+import javax.json.Json;
 import javax.json.JsonArray;
+import javax.json.JsonString;
 import javax.json.JsonValue;
+import javax.json.JsonWriter;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -39,11 +43,14 @@ import org.jgrapes.portal.events.DeletePortletRequest;
 import org.jgrapes.portal.events.JsonRequest;
 import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.NotifyPortletView;
+import org.jgrapes.portal.events.PortalLayoutChanged;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.RenderPortletRequest;
+import org.jgrapes.portal.events.StoreDataInPortal;
+import org.jgrapes.portal.util.JsonUtil;
 
 /**
  * 
@@ -132,6 +139,18 @@ public class Portal extends Component {
 	}
 
 	@Handler
+	public void onPortalLayoutChanged(PortalLayoutChanged event, 
+			LinkedIOSubchannel channel) {
+		JsonArray layoutInfo = JsonUtil.toJsonArray(event.previewLayout(),
+				event.tabsLayout());
+		StringWriter out = new StringWriter(); 
+		try (JsonWriter jsonWriter = Json.createWriter(out)) {
+			jsonWriter.write(layoutInfo);
+		}
+		fire(new StoreDataInPortal("portalLayout", out.toString()), channel);
+	}
+	
+	@Handler
 	public void onJsonRequest(JsonRequest event, LinkedIOSubchannel channel) 
 			throws InterruptedException, IOException {
 		// Send events to portlets on portal's channel
@@ -151,6 +170,19 @@ public class Portal extends Component {
 					view.renderSupport(), params.getString(0)), channel);
 			break;
 		}
+		case "portalLayout": {
+			String[][] previewLayout = params.getJsonArray(0)
+					.getValuesAs(column -> ((JsonArray)column)
+							.getValuesAs(JsonString::getString)
+							.stream().toArray(s -> new String[s]))
+					.stream().toArray(s -> new String[s][]);
+			String[] tabsLayout = params.getJsonArray(1)
+					.getValuesAs(JsonString::getString)
+					.stream().toArray(s -> new String[s]);
+			fire(new PortalLayoutChanged(
+					previewLayout, tabsLayout), channel);
+			break;
+		}
 		case "renderPortlet": {
 			fire(new RenderPortletRequest(view.renderSupport(), params.getString(0),
 					RenderMode.valueOf(params.getString(1))), channel);
@@ -158,12 +190,12 @@ public class Portal extends Component {
 		}
 		case "setLocale": {
 			view.setLocale(channel, params.getString(0));
-			view.sendNotificationResponse(channel, "reload");
+			view.sendNotification(channel, "reload");
 			break;
 		}
 		case "setTheme": {
 			view.setTheme(channel, params.getString(0));
-			view.sendNotificationResponse(channel, "reload");
+			view.sendNotification(channel, "reload");
 			break;
 		}
 		case "sendToPortlet": {

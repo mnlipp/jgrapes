@@ -130,6 +130,7 @@ var JGPortal = {
 				});
 			}
 			$( ".column" ).first().prepend(portlet);
+			layoutChanged();
 		}
 		let newContent = $(content);
 		let portletHeaderText = portlet.find(".portlet-header-text");
@@ -139,6 +140,29 @@ var JGPortal = {
 		portletContent.append(newContent);
 	};
 
+	function layoutChanged() {
+	    let previewLayout = [];
+	    $(".overview-panel").find(".column").each(function(column) {
+	        let colData = [];
+	        previewLayout.push(colData);
+	        $(this).find("div.portlet[data-portletId]").each(function(row) {
+	            colData.push($(this).attr("data-portletId"));
+	        });
+	    });
+	    let tabsLayout = [];
+        let tabs = $( "#tabs" ).tabs();
+        tabs.find(".ui-tabs-nav .ui-tabs-tab").each(function(index) {
+            if (index > 0) {
+                let tabId = $(this).attr("aria-controls");
+                let portletId = tabs.find("#" + tabId).attr("data-portletId");
+                tabsLayout.push(portletId);
+            }
+        });
+
+	    JGPortal.sendLayout(previewLayout, tabsLayout);
+	};
+	JGPortal.layoutChanged = layoutChanged;
+	
     var tabTemplate = "<li><a href='@{href}'>@{label}</a> " +
         "<span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>";
     var tabCounter = 1;
@@ -162,6 +186,7 @@ var JGPortal = {
 			portletView.attr("data-portletId", portletId);
 	        tabs.append( portletView );
 	        tabs.tabs( "refresh" );
+	        layoutChanged();
 		}
 		activatePortletView(portletId);
     }
@@ -186,6 +211,14 @@ var JGPortal = {
         if (portlet) {
             portlet.remove();
         }
+        layoutChanged();
+	}
+
+	function storeData(path, data) {
+	    try {
+	        localStorage.setItem(path, data);
+	    } catch (e) {
+	    }
 	}
 	
 	var pendingResourcesCallbacks = 0;
@@ -195,6 +228,7 @@ var JGPortal = {
         'deletePortlet': deletePortlet,
 	    'invokePortletMethod': invokePortletMethod,
 		'reload': function() { window.location.reload(true); },
+		'storeData': storeData,
         'updatePortlet': updatePortlet,
 	};
 	
@@ -279,4 +313,10 @@ var JGPortal = {
                 "params": [ portletId, method, params ]});
         }
     };
+    
+    JGPortal.sendLayout = function(previewLayout, tabLayout) {
+        wsConn.send({"jsonrpc": "2.0", "method": "portalLayout",
+            "params": [ previewLayout, tabLayout ]});
+    };
+    
 })();

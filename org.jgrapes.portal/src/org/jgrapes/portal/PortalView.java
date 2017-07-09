@@ -94,6 +94,7 @@ import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
+import org.jgrapes.portal.events.StoreDataInPortal;
 import org.jgrapes.portal.themes.base.Provider;
 import org.jgrapes.portal.util.JsonUtil;
 
@@ -172,6 +173,8 @@ public class PortalView extends Component {
 				.sorted().toArray(size -> new ThemeInfo[size]));
 		
 		portalBaseModel = Collections.unmodifiableMap(portalBaseModel);
+		
+		Handler.Evaluator.add(this, "onStoreDataInPortal", portal.channel());
 	}
 
 	void setResourceSupplier(
@@ -427,7 +430,7 @@ public class PortalView extends Component {
 	void onAddPortletType(
 			AddPortletType event, LinkedIOSubchannel channel)
 					throws InterruptedException, IOException {
-		sendNotificationResponse(channel, "addPortletType",
+		sendNotification(channel, "addPortletType",
 				event.portletType(),
 				event.displayName(),
 				Arrays.stream(event.cssUris()).map(uri -> 
@@ -443,7 +446,7 @@ public class PortalView extends Component {
 	void onRenderPortlet(
 			RenderPortletFromString event, LinkedIOSubchannel channel) 
 					throws InterruptedException, IOException {
-		sendNotificationResponse(channel, "updatePortlet",
+		sendNotification(channel, "updatePortlet",
 				event.portletId(), event.renderMode().name(),
 				event.supportedRenderModes().stream().map(RenderMode::name)
 				.toArray(size -> new String[size]),
@@ -455,7 +458,7 @@ public class PortalView extends Component {
 					throws InterruptedException, IOException {
 		StringWriter content = new StringWriter();
 		event.provider().writeTo(content);
-		sendNotificationResponse(channel, "updatePortlet",
+		sendNotification(channel, "updatePortlet",
 				event.portletId(), event.renderMode().name(),
 				event.supportedRenderModes().stream().map(RenderMode::name)
 				.toArray(size -> new String[size]),
@@ -465,7 +468,7 @@ public class PortalView extends Component {
 	public void onDeletePortlet(DeletePortlet event,
 	        LinkedIOSubchannel channel) 
 	        		throws InterruptedException, IOException {
-		sendNotificationResponse(channel, "deletePortlet",
+		sendNotification(channel, "deletePortlet",
 				event.portletId());
 	}
 
@@ -486,12 +489,21 @@ public class PortalView extends Component {
 	public void onNotifyPortletView(NotifyPortletView event,
 	        LinkedIOSubchannel channel) 
 	        		throws InterruptedException, IOException {
-		sendNotificationResponse(channel, "invokePortletMethod",
+		sendNotification(channel, "invokePortletMethod",
 				event.portletClass(), event.portletId(), 
 				event.method(), event.params());
 	}
 	
-	void sendNotificationResponse(LinkedIOSubchannel channel,
+	@Handler(dynamic=true)
+	public void onStoreDataInPortal(
+			StoreDataInPortal event, LinkedIOSubchannel channel) 
+					throws InterruptedException, IOException {
+		sendNotification(channel, "storeData",
+				portal.prefix() + event.path(),
+				event.data());
+	}
+	
+	void sendNotification(LinkedIOSubchannel channel,
 	        String method, Object... params)
 	        		throws InterruptedException, IOException {
 		JsonBuilderFactory factory = Json.createBuilderFactory(null);
