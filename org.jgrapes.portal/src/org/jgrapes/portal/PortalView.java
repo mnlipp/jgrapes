@@ -94,6 +94,7 @@ import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
+import org.jgrapes.portal.events.SetLocale;
 import org.jgrapes.portal.events.StoreDataInPortal;
 import org.jgrapes.portal.themes.base.Provider;
 import org.jgrapes.portal.util.JsonUtil;
@@ -173,8 +174,10 @@ public class PortalView extends Component {
 				.sorted().toArray(size -> new ThemeInfo[size]));
 		
 		portalBaseModel = Collections.unmodifiableMap(portalBaseModel);
-		
+
+		// Handlers attached to the portal side channel
 		Handler.Evaluator.add(this, "onStoreDataInPortal", portal.channel());
+		Handler.Evaluator.add(this, "onSetLocale", portal.channel());
 	}
 
 	void setResourceSupplier(
@@ -412,13 +415,6 @@ public class PortalView extends Component {
 				event.buffer().backingBuffer(), event.isEndOfRecord());
 	}
 	
-	void setLocale(IOSubchannel channel, String locale) {
-		supportedLocales.stream()
-			.filter(l -> l.toString().equals(locale)).findFirst()
-			.ifPresent(l ->	channel.associated(Selection.class)
-					.map(s -> s.prefer(l)));
-	}
-	
 	void setTheme(IOSubchannel channel, String theme) {
 		StreamSupport.stream(themeLoader.spliterator(), false)
 			.filter(t -> t.themeId().equals(theme)).findFirst()
@@ -492,6 +488,16 @@ public class PortalView extends Component {
 		sendNotification(channel, "invokePortletMethod",
 				event.portletClass(), event.portletId(), 
 				event.method(), event.params());
+	}
+	
+	@Handler(dynamic=true)
+	public void onSetLocale(SetLocale event, LinkedIOSubchannel channel)
+			throws InterruptedException, IOException {
+		supportedLocales.stream()
+			.filter(l -> l.equals(event.locale())).findFirst()
+			.ifPresent(l ->	channel.associated(Selection.class)
+					.map(s -> s.prefer(l)));
+		sendNotification(channel, "reload");
 	}
 	
 	@Handler(dynamic=true)

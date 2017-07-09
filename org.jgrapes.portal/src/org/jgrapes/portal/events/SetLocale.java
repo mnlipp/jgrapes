@@ -18,39 +18,50 @@
 
 package org.jgrapes.portal.events;
 
+import java.util.Locale;
+
 import org.jgrapes.core.Event;
+import org.jgrapes.portal.PortalView;
 
 /**
+ * Signals that the locale for the portal has changed. This  event is
+ * handled by the {@link PortalView} but may, of course, also be
+ * used by other components.
  * 
+ * ![Event Sequence](SetLocale.svg)
+ * 
+ * @startuml SetLocale.svg
+ * hide footbox
+ * 
+ * Browser -> Portal: "setLocale"
+ * activate Portal
+ * Portal -> PortalView: SetLocale
+ * deactivate Portal
+ * activate PortalView
+ * PortalView -> Browser: "reload"
+ * deactivate PortalView
+ * 
+ * @enduml
  */
-public class PortalLayoutChanged extends Event<Void> {
+public class SetLocale extends Event<Void> {
 
-	private String[][] previewLayout;
-	private String[] tabsLayout;
-	
+	private Locale locale;
+
 	/**
-	 * @param previewLayout
-	 * @param tabsLayout
+	 * Creates a new event.
+	 * 
+	 * @param locale the locale to set
 	 */
-	public PortalLayoutChanged(String[][] previewLayout, String[] tabsLayout) {
-		this.previewLayout = previewLayout;
-		this.tabsLayout = tabsLayout;
+	public SetLocale(Locale locale) {
+		this.locale = locale;
 	}
 
 	/**
-	 * @return the previewLayout
+	 * Returns the locale to set.
+	 * 
+	 * @return the locale
 	 */
-	public String[][] previewLayout() {
-		return previewLayout;
+	public Locale locale() {
+		return locale;
 	}
-
-	/**
-	 * @return the tabsLayout
-	 */
-	public String[] tabsLayout() {
-		return tabsLayout;
-	}
-	
-
-
 }

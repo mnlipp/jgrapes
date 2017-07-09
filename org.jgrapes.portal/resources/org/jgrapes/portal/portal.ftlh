@@ -141,7 +141,7 @@
   <ul class="jq-dropdown-menu ui-menu ui-widget ui-menu-item">
   <#list supportedLanguages as l>
     <li class="ui-menu-item">
-      <div class="ui-menu-item-wrapper" data-locale="${l.locale}">${l.label}</div>
+      <div class="ui-menu-item-wrapper" data-locale="${l.locale.toLanguageTag()}">${l.label}</div>
     </li>
   </#list>
   </ul>
