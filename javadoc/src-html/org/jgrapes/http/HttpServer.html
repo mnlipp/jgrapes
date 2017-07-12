@@ -596,7 +596,7 @@
 <span class="sourceLineNo">588</span>                                        .httpRequest().response().get()<a name="line.588"></a>
 <span class="sourceLineNo">589</span>                                        .setStatus(HttpStatus.SWITCHING_PROTOCOLS)<a name="line.589"></a>
 <span class="sourceLineNo">590</span>                                        .setField(HttpField.UPGRADE, new StringList("websocket"));<a name="line.590"></a>
-<span class="sourceLineNo">591</span>                        event.addCompletedEvent(<a name="line.591"></a>
+<span class="sourceLineNo">591</span>                        event.addCompletionEvent(<a name="line.591"></a>
 <span class="sourceLineNo">592</span>                                        new Upgraded(event.resourceName(), "websocket"));<a name="line.592"></a>
 <span class="sourceLineNo">593</span>                        respond(new Response(response));<a name="line.593"></a>
 <span class="sourceLineNo">594</span>                }<a name="line.594"></a>
