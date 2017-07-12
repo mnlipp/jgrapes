@@ -214,13 +214,22 @@ var JGPortal = {
         layoutChanged();
 	}
 
-	function storeData(path, data) {
+	function retrieveData(path) {
+	    let result = null;
 	    try {
-	        localStorage.setItem(path, data);
+	        result = localStorage.getItem(path);
 	    } catch (e) {
 	    }
+	    JGPortal.sendData(path, result);
 	}
 	
+    function storeData(path, data) {
+        try {
+            localStorage.setItem(path, data);
+        } catch (e) {
+        }
+    }
+    
 	var pendingResourcesCallbacks = 0;
 	
 	var messageHandlers = {
@@ -228,6 +237,7 @@ var JGPortal = {
         'deletePortlet': deletePortlet,
 	    'invokePortletMethod': invokePortletMethod,
 		'reload': function() { window.location.reload(true); },
+        'retrieveData': retrieveData,
 		'storeData': storeData,
         'updatePortlet': updatePortlet,
 	};
@@ -317,6 +327,11 @@ var JGPortal = {
     JGPortal.sendLayout = function(previewLayout, tabLayout) {
         wsConn.send({"jsonrpc": "2.0", "method": "portalLayout",
             "params": [ previewLayout, tabLayout ]});
+    };
+    
+    JGPortal.sendData = function(path, data) {
+        wsConn.send({"jsonrpc": "2.0", "method": "retrievedData",
+            "params": [ path, data ]});
     };
     
 })();

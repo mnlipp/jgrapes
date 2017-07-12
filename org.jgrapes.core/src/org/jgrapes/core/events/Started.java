@@ -18,11 +18,16 @@
 
 package org.jgrapes.core.events;
 
-import org.jgrapes.core.CompletedEvent;
+import org.jgrapes.core.Channel;
+import org.jgrapes.core.CompletionEvent;
 
 /**
  * The event that signals the completion of the {@link Start} event.
  */
-public class Started extends CompletedEvent<Start> {
+public class Started extends CompletionEvent<Start> {
+
+	public Started(Start monitoredEvent, Channel... channels) {
+		super(monitoredEvent, channels);
+	}
 
 }

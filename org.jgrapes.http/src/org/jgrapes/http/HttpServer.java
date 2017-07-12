@@ -588,7 +588,7 @@ public class HttpServer extends Component {
 					.httpRequest().response().get()
 					.setStatus(HttpStatus.SWITCHING_PROTOCOLS)
 					.setField(HttpField.UPGRADE, new StringList("websocket"));
-			event.addCompletedEvent(
+			event.addCompletionEvent(
 					new Upgraded(event.resourceName(), "websocket"));
 			respond(new Response(response));
 		}

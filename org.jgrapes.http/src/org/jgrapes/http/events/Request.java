@@ -24,7 +24,7 @@ import java.util.StringTokenizer;
 
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.CompletedEvent;
+import org.jgrapes.core.CompletionEvent;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.http.ResourcePattern;
@@ -34,7 +34,11 @@ import org.jgrapes.http.ResourcePattern;
  */
 public class Request extends Event<Void> {
 
-	public static class Completed extends CompletedEvent<Request> {
+	public static class Completed extends CompletionEvent<Request> {
+
+		public Completed(Request monitoredEvent, Channel... channels) {
+			super(monitoredEvent, channels);
+		}
 	}
 	
 	private HttpRequest request;
@@ -54,7 +58,8 @@ public class Request extends Event<Void> {
 	 */
 	public Request(String protocol, HttpRequest request, 
 			int matchLevels, Channel... channels) {
-		super(new Completed(), channels);
+		super(channels);
+		new Completed(this);
 		this.request = request;
 		try {
 			URI headerInfo = new URI(protocol, null, 

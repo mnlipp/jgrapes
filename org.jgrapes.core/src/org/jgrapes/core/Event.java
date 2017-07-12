@@ -52,28 +52,6 @@ public class Event<T> extends EventBase<T> {
 	}
 
 	/**
-	 * Creates a new event. Sets the associated completed event to the
-	 * event passed as parameter and sets this event as result of
-	 * the completed event.
-	 * <P>
-	 * The channels are handled as in {@link Event#Event(Channel...)}.
-	 * 
-	 * @param completedEvent the event to to set
-	 * @param channels the channels to set
-	 */
-	public Event(CompletedEvent<? extends Event<T>> completedEvent,
-			Channel... channels) {
-		super();
-		@SuppressWarnings("unchecked")
-		Event<Event<T>> ce = (Event<Event<T>>)completedEvent;
-		ce.setResult(this);
-		addCompletedEvent(ce);
-		if (channels.length > 0) {
-			setChannels(channels);
-		}
-	}
-
-	/**
 	 * Returns the class of this event as representation of its kind.
 	 * 
 	 * @return the class of this event

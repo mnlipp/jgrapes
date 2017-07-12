@@ -19,19 +19,22 @@
 package org.jgrapes.core;
 
 /**
- * A base class for completion events. The completed event is the
- * result of the completion event. Use {@link #event()} to access
+ * A base class for completion events that use the completed event
+ * as their result type. Use {@link #event()} to access
  * the completed event while handling the completion event. 
  */
-public abstract class CompletedEvent<T extends Event<?>>
+public abstract class CompletionEvent<T extends Event<?>>
 		extends Event<T> {
 
-	public CompletedEvent(Channel... channels) {
+	public CompletionEvent(T monitoredEvent, Channel... channels) {
 		super(channels);
+		setResult(monitoredEvent);
+		monitoredEvent.addCompletionEvent(this);
 	}
 
 	/**
-	 * Return the completed event.
+	 * Return the completed event. This is simply a shortcut 
+	 * for ``currentResults().get(0)``.
 	 * 
 	 * @return the completed event
 	 */

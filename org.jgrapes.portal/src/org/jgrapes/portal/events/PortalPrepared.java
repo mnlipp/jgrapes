@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016  Michael N. Lipp
+ * Copyright (C) 2017  Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by 
@@ -16,26 +16,18 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.jgrapes.core.events;
+package org.jgrapes.portal.events;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Event;
+import org.jgrapes.core.CompletionEvent;
 
 /**
- * An event that signals the start of the application.
- * This event must be fired in order to start the dispatching of
- * events to components.
+ * This event is the completed event for the {@link PortalReady}
+ * event.
  */
-public class Start extends Event<Void> {
-	
-	/**
-	 * Create a new start event and set its completion event to {@link Started}.
-	 * The completion event may not be changed. The event's channels
-	 * are set to {@link Channel#BROADCAST}.
-	 */
-	public Start() {
-		super(Channel.BROADCAST);
-		new Started(this);
-	}
+public class PortalPrepared extends CompletionEvent<PortalReady> {
 
+	public PortalPrepared(PortalReady monitoredEvent, Channel... channels) {
+		super(monitoredEvent, channels);
+	}
 }

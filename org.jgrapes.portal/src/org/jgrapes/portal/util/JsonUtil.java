@@ -18,10 +18,13 @@
 
 package org.jgrapes.portal.util;
 
+import java.util.Map;
+
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
-import javax.json.JsonBuilderFactory;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonValue;
 
 /**
  * 
@@ -32,43 +35,43 @@ public abstract class JsonUtil {
 	}
 
 	public static JsonArray toJsonArray(Object... items) {
-		return toJsonArray(Json.createBuilderFactory(null), items);
+		return (JsonArray)toJsonValue(items);
 	}
 	
-	public static JsonArray toJsonArray(
-			JsonBuilderFactory factory, Object... items) {
-		return toJsonArray(factory, null, items).build();
-	}
-	
-	private static JsonArrayBuilder toJsonArray(JsonBuilderFactory factory,
-			JsonArrayBuilder array, Object item) {
-		if (item instanceof Object[]) {
-			JsonArrayBuilder arrayBuilder = factory.createArrayBuilder();
-			for (Object nested: (Object[])item) {
-				toJsonArray(factory, arrayBuilder, nested);
-			}
-			if (array == null) {
-				return arrayBuilder;
-			}
-			array.add(arrayBuilder);
-			return array;
+	public static JsonValue toJsonValue(Object obj) {
+		if (obj == null) {
+			return JsonValue.NULL;
 		}
-		if (array == null) {
-			array = factory.createArrayBuilder();
-		}
-		if (item instanceof Boolean) {
-			array.add((Boolean)item);
-		} else if (item instanceof Number) {
-			if ((item instanceof Integer) || (item instanceof Long)) {
-				array.add((Long)item);
+		if (obj instanceof Boolean) {
+			if ((Boolean)obj) {
+				return JsonValue.TRUE;
+			}
+			return JsonValue.FALSE;
+		} 
+		if (obj instanceof Number) {
+			if ((obj instanceof Integer) || (obj instanceof Long)) {
+				return Json.createValue((Long)obj);
 			} else {
-				array.add((Double)item);
+				return Json.createValue((Double)obj);
 			}
-		} else {
-			array.add(item.toString());
+		} 
+		if (obj instanceof Object[]) {
+			JsonArrayBuilder builder = Json.createArrayBuilder();
+			for (Object o: (Object[])obj) {
+				builder.add(toJsonValue(o));
+			}
+			return builder.build();
 		}
-		return array;
+		if (obj instanceof Map) {
+			@SuppressWarnings("unchecked")
+			Map<String,Object> map = (Map<String,Object>)obj;
+			JsonObjectBuilder builder = Json.createObjectBuilder();
+			for (Map.Entry<String, Object> e: map.entrySet()) {
+				builder.add(e.getKey(), toJsonValue(e.getValue()));
+			}
+			return builder.build();
+		}
+		return Json.createValue(obj.toString());
 	}
-
 	
 }

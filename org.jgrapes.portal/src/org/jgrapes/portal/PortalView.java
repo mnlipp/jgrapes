@@ -94,6 +94,7 @@ import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
+import org.jgrapes.portal.events.RetrieveDataFromPortal;
 import org.jgrapes.portal.events.SetLocale;
 import org.jgrapes.portal.events.SetTheme;
 import org.jgrapes.portal.events.StoreDataInPortal;
@@ -180,6 +181,7 @@ public class PortalView extends Component {
 		Handler.Evaluator.add(this, "onStoreDataInPortal", portal.channel());
 		Handler.Evaluator.add(this, "onSetLocale", portal.channel());
 		Handler.Evaluator.add(this, "onSetTheme", portal.channel());
+		Handler.Evaluator.add(this, "onRetrieveDataFromPortal", portal.channel());
 	}
 
 	void setResourceSupplier(
@@ -510,8 +512,16 @@ public class PortalView extends Component {
 			StoreDataInPortal event, LinkedIOSubchannel channel) 
 					throws InterruptedException, IOException {
 		sendNotification(channel, "storeData",
-				portal.prefix() + event.path(),
+				portal.prefix().getPath() + event.path(),
 				event.data());
+	}
+	
+	@Handler(dynamic=true)
+	public void onRetrieveDataFromPortal(
+			RetrieveDataFromPortal event, LinkedIOSubchannel channel) 
+					throws InterruptedException, IOException {
+		sendNotification(channel, "retrieveData",
+				portal.prefix() + event.path());
 	}
 	
 	void sendNotification(LinkedIOSubchannel channel,
@@ -521,7 +531,7 @@ public class PortalView extends Component {
 		JsonObjectBuilder notification = factory.createObjectBuilder()
 				.add("jsonrpc", "2.0").add("method", method);
 		if (params.length > 0) {
-			notification.add("params", JsonUtil.toJsonArray(factory, params));
+			notification.add("params", JsonUtil.toJsonArray(params));
 		}
 		IOSubchannel upstream = channel.upstreamChannel();
 		@SuppressWarnings("resource")

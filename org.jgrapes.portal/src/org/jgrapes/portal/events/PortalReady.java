@@ -24,8 +24,12 @@ import org.jgrapes.portal.RenderSupport;
 /**
  * Signals the successful loading of the portal structure
  * in the browser. Portlets should respond to this event by
- * adding their types (using {@link AddPortletType} events)
- * and instances (using {@link RenderPortlet} events) to the portal.
+ * adding their types (using {@link AddPortletType} events).
+ * 
+ * After the portal ready event has been processed, a {@link PortalPrepared}
+ * event is generated as {@link CompletionEvent}. A portal policy component
+ * should respond to this event and trigger the rendering of the portlets
+ * that are to be displayed in the current portal state.
  * 
  * ![Event Sequence](PortalReadySeq.svg)
  * 
@@ -40,23 +44,27 @@ import org.jgrapes.portal.RenderSupport;
  * activate Portal
  * Portal -> Browser: "addPortletType"
  * deactivate Portal
+ * 
+ * loop for all remaining portlets
+ *     Portal -> PortletX: PortalReady
+ *     activate PortletX
+ *     PortletX -> Portal: AddPortletType 
+ *     activate Portal
+ *     Portal -> Browser: "addPortletType"
+ *     deactivate Portal
+ * end
+ * 
+ * actor System
+ * System -> PortalPolicy: PortalPrepared
+ * deactivate Portal
+ * activate PortalPolicy
+ * PortalPolicy -> PortletA: RenderPortletRequest
+ * deactivate PortalPolicy
+ * activate PortletA
  * PortletA -> Portal: RenderPortlet
  * deactivate PortletA
  * activate Portal
  * Portal -> Browser: "renderPortlet"
- * deactivate Portal
- * 
- * Portal -> PortletB: PortalReady
- * activate PortletB
- * PortletA -> Portal: AddPortletType 
- * activate Portal
- * Portal -> Browser: "addPortletType"
- * deactivate Portal
- * PortletB -> Portal: RenderPortlet
- * deactivate PortletB
- * activate Portal
- * Portal -> Browser: "renderPortlet"
- * deactivate Portal
  * deactivate Portal
  * 
  * @enduml
@@ -71,6 +79,7 @@ public class PortalReady extends Event<Void> {
 	 * @param renderSupport the render support for generating responses
 	 */
 	public PortalReady(RenderSupport renderSupport) {
+		new PortalPrepared(this);
 		this.renderSupport = renderSupport;
 	}
 

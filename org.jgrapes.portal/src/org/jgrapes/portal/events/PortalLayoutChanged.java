@@ -21,7 +21,14 @@ package org.jgrapes.portal.events;
 import org.jgrapes.core.Event;
 
 /**
+ * Notifies the server about a change of the portal layout. This event
+ * is sent by the browser when the layout changes due to user interaction
+ * (e.g. moving the preview representations) or due to notifications
+ * from the server (e.g. {@link RenderPortlet}).
  * 
+ * The server should persist the layout and pass it back to the browser
+ * in response to {@link PortalReady} (see this event's description
+ * for details). 
  */
 public class PortalLayoutChanged extends Event<Void> {
 

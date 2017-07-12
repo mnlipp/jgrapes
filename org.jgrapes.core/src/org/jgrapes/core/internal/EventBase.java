@@ -63,7 +63,7 @@ public abstract class EventBase<T>
 	 * that has this event as its cause. */
 	private AtomicInteger openCount = new AtomicInteger(0);
 	/** The event to be fired upon completion. */
-	private Set<Event<?>> completedEvents = null;
+	private Set<Event<?>> completionEvents = null;
 	/** Set when the event has been completed. */
 	private boolean completed = false;
 	/** Set when the event is enqueued, reset when it has been completed. */
@@ -260,8 +260,8 @@ public abstract class EventBase<T>
 				completed = true;
 				notifyAll();
 			}
-			if (completedEvents != null && !cancelled) {
-				for (Event<?> e: completedEvents) {
+			if (completionEvents != null && !cancelled) {
+				for (Event<?> e: completionEvents) {
 					Channel[] completeChannels = e.channels();
 					if (completeChannels == null) {
 						// Note that channels cannot be null, as it is set
@@ -286,24 +286,26 @@ public abstract class EventBase<T>
 	 * 
 	 * @return the completed events
 	 */
-	@SuppressWarnings("unchecked")
-	public Set<Event<?>> completedEvents() {
-		return completedEvents == null ? (Set<Event<?>>)Collections.EMPTY_SET
-				: Collections.unmodifiableSet(completedEvents);
+	public Set<Event<?>> completionEvents() {
+		return completionEvents == null ? Collections.emptySet()
+				: Collections.unmodifiableSet(completionEvents);
 	}
 
 	/**
-	 * Adds the event to the events to be thrown when this event and all 
-	 * events caused by it have been handled.
+	 * Adds the given event to the events to be thrown when this event 
+	 * and all events caused by it have been handled. 
 	 * 
-	 * @param completedEvent the completedEvent to add
+	 * The completion events handled by the same {@link EventProcessor}
+	 * as the event that has been completed.
+	 * 
+	 * @param completionEvent the completion event to add
 	 * @return the object for easy chaining
 	 */
-	public Event<T> addCompletedEvent(Event<?> completedEvent) {
-		if (completedEvents == null) {
-			completedEvents = new HashSet<>();
+	public Event<T> addCompletionEvent(Event<?> completionEvent) {
+		if (completionEvents == null) {
+			completionEvents = new HashSet<>();
 		}
-		completedEvents.add(completedEvent);
+		completionEvents.add(completionEvent);
 		return (Event<T>)this;
 	}
 

@@ -21,7 +21,7 @@ package org.jgrapes.io.events;
 import java.nio.channels.SelectableChannel;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.CompletedEvent;
+import org.jgrapes.core.CompletionEvent;
 import org.jgrapes.core.Event;
 import org.jgrapes.io.NioHandler;
 
@@ -35,12 +35,12 @@ public class NioRegistration extends Event<NioRegistration.Registration> {
 	}
 	
 	public static class Completed 
-		extends CompletedEvent<NioRegistration> {
+		extends CompletionEvent<NioRegistration> {
 
-		public Completed(Channel... channels) {
-			super(channels);
+		public Completed(NioRegistration monitoredEvent, Channel... channels) {
+			super(monitoredEvent, channels);
+			// TODO Auto-generated constructor stub
 		}
-		
 	}
 	
 	private NioHandler handler;
@@ -59,7 +59,7 @@ public class NioRegistration extends Event<NioRegistration.Registration> {
 	 */
 	public NioRegistration(NioHandler handler, SelectableChannel ioChannel,
 	        int ops, Channel completedTarget) {
-		super(new Completed(completedTarget));
+		new Completed(this, completedTarget);
 		this.handler = handler;
 		this.ioChannel = ioChannel;
 		this.ops = ops;
