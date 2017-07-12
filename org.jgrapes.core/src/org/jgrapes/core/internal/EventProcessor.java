@@ -55,6 +55,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	@Override
 	public <T extends Event<?>> T add(T event, Channel... channels) {
 		((EventBase<?>)event).generatedBy(currentlyHandling.get());
+		((EventBase<?>)event).processedBy(this);
 		synchronized (queue) {
 			boolean wasEmpty = queue.isEmpty();
 			queue.add(event, channels);
@@ -69,7 +70,10 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	void add(EventQueue source) {
 		synchronized (queue) {
 			boolean wasEmpty = queue.isEmpty();
-			queue.addAll(source);
+			for (EventChannelsTuple entry: source) {
+				entry.event.processedBy(this);
+				queue.add(entry);
+			}
 			source.clear();
 			if (wasEmpty) {
 				GeneratorRegistry.instance().add(this);

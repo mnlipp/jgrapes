@@ -66,6 +66,8 @@ public abstract class EventBase<T>
 	private Set<Event<?>> completedEvents = null;
 	/** Set when the event has been completed. */
 	private boolean completed = false;
+	/** Set when the event is enqueued, reset when it has been completed. */
+	private EventProcessor processedBy = null;
 	/** Indicates that the event should not processed further. */
 	private boolean stopped = false;
 	private boolean cancelled = false;
@@ -241,6 +243,15 @@ public abstract class EventBase<T>
 	}
 
 	/**
+	 * Set the processor that will (eventually) process the event. 
+	 * 
+	 * @param processor the processor
+	 */
+	void processedBy(EventProcessor processor) {
+		this.processedBy = processor;
+	}
+	
+	/**
 	 * @param pipeline
 	 */
 	void decrementOpen(InternalEventPipeline pipeline) {
@@ -259,12 +270,13 @@ public abstract class EventBase<T>
 						completeChannels = channels;
 						e.setChannels(completeChannels);
 					}
-					pipeline.add(e, completeChannels);
+					processedBy.add(e, completeChannels);
 				}
 			}
 			if (generatedBy != null) {
 				generatedBy.decrementOpen(pipeline);
 			}
+			processedBy = null; // No longer needed
 		}
 	}
 
