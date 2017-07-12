@@ -45,8 +45,6 @@ import static org.jgrapes.portal.Portlet.*;
 import static org.jgrapes.portal.Portlet.RenderMode.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -92,20 +90,6 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 				.addScript(PortalView.uriFromPath("HelloWorld-functions.js"))
 				.addCss(PortalView.uriFromPath("HelloWorld-style.css"))
 				.setInstantiable());
-		Collection<PortletModelBean> portletModels
-			= new ArrayList<>(modelsFromSession(channel));
-		if (portletModels.size() == 0) {
-			portletModels.add(addToSession(channel, new HelloWorldModel()));
-		}
-		Map<String, Object> baseModel 
-			= freemarkerBaseModel(event.renderSupport());
-		for (PortletModelBean portletModel: portletModels) {
-			Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
-			channel.respond(new RenderPortletFromProvider(
-					portletModel.getPortletId(), DeleteablePreview, 
-					MODES, newContentProvider(tpl, 
-							freemarkerModel(baseModel, portletModel, channel))));
-		}
 	}
 	
 	@Handler
@@ -156,13 +140,28 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		}
 		
 		event.stop();
+		Map<String, Object> baseModel 
+			= freemarkerBaseModel(event.renderSupport());
 		HelloWorldModel portletModel = (HelloWorldModel)optPortletModel.get();
-		Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
-		channel.respond(new RenderPortletFromProvider(
-				portletModel.getPortletId(), View, MODES,
-				newContentProvider(tpl, 
-						freemarkerModel(freemarkerBaseModel(
-								event.renderSupport()), portletModel, channel))));
+		switch (event.renderMode()) {
+		case Preview:
+		case DeleteablePreview: {
+			Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
+			channel.respond(new RenderPortletFromProvider(
+					portletModel.getPortletId(), DeleteablePreview, MODES,
+					newContentProvider(tpl, 
+							freemarkerModel(baseModel, portletModel, channel))));
+		}
+		case View: {
+			Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
+			channel.respond(new RenderPortletFromProvider(
+					portletModel.getPortletId(), View, MODES,
+					newContentProvider(tpl, 
+							freemarkerModel(baseModel, portletModel, channel))));
+		}
+		default:
+			break;
+		}	
 		channel.respond(new NotifyPortletView(getClass().getName(),
 				portletModel.getPortletId(), "setWorldVisible",
 				portletModel.isWorldVisible()));

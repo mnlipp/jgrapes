@@ -53,6 +53,7 @@ import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.portal.Portal;
+import org.jgrapes.portal.BrowserBasedPortalPolicy;
 import org.jgrapes.util.PreferencesStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -119,6 +120,8 @@ public class HttpServerDemo extends Component implements BundleActivator {
 					getClass().getPackage().getName() + ".portal-l10n", l,
 					ResourceBundle.Control.getNoFallbackControl(
 							ResourceBundle.Control.FORMAT_DEFAULT)));
+		portal.attach(new BrowserBasedPortalPolicy(portal));
+		portal.attach(new NewPortalSessionPolicy(portal));
 		portal.attach(new HelloWorldPortlet(portal));
 		Components.start(app);
 	}
