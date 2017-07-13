@@ -28,6 +28,7 @@ import javax.json.JsonArray;
 import javax.json.JsonWriter;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.Session;
@@ -107,14 +108,13 @@ public class BrowserBasedPortalPolicy extends Component {
 	private class PortalSession {
 
 		private IOSubchannel channel;
-		private RenderSupport pendingRenderSupport = null;
+		private CompletionLock preparedLock;
 		private Map<String,Object> persisted = null;
 		
 		/**
 		 * @param channel
 		 */
 		public PortalSession(IOSubchannel channel) {
-			super();
 			this.channel = channel;
 		}
 
@@ -132,27 +132,20 @@ public class BrowserBasedPortalPolicy extends Component {
 			if (persisted != null) {
 				return;
 			}
+			preparedLock = new CompletionLock(event);
 			channel.respond(new RetrieveDataFromPortal(
 					BrowserBasedPortalPolicy.class.getName()));
 		}
 		
 		public void onDataRetrieved(DataRetrieved event) {
 			persisted = new HashMap<>();
-			if (pendingRenderSupport != null) {
-				handlePrepared(pendingRenderSupport);
-			}
-			pendingRenderSupport = null;
+			preparedLock.remove();
 		}
 		
 		public void onPortalPrepared(PortalPrepared event) {
 			if (persisted == null) {
-				pendingRenderSupport = event.event().renderSupport();
-				return;
+				persisted = new HashMap<>();
 			}
-			handlePrepared(event.event().renderSupport());
-		}
-		
-		private void handlePrepared(RenderSupport renderSupport) {
 			System.out.println("prepared");
 		}
 		
