@@ -18,6 +18,7 @@
 
 package org.jgrapes.portal.events;
 
+import org.jgrapes.core.CompletionEvent;
 import org.jgrapes.core.Event;
 import org.jgrapes.portal.RenderSupport;
 
