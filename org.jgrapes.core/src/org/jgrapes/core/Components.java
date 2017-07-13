@@ -18,7 +18,12 @@
 
 package org.jgrapes.core;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -241,4 +246,133 @@ public class Components {
 		}
 	}
 
+	/**
+	 * Instances are added to the scheduler in order to be invoked
+	 * at a given time.
+	 */
+	@FunctionalInterface
+	public static interface TimeoutHandler {
+
+		/**
+		 * Invoked when the timeout occurs.
+		 * 
+		 * @param scheduledFor the time that the handler was scheduled for
+		 */
+		void timeout(Instant scheduledFor);
+	}
+
+	/**
+	 * Represents a timer as created by 
+	 * {@link Components#schedule(TimeoutHandler, Instant)}.
+	 */
+	public static class Timer {
+		private Scheduler scheduler;
+		private TimeoutHandler timeoutHandler;
+		private Instant scheduledFor;
+
+		private Timer(Scheduler scheduler,
+				TimeoutHandler timeoutHandler, Instant scheduledFor) {
+			this.scheduler = scheduler;
+			this.timeoutHandler = timeoutHandler;
+			this.scheduledFor = scheduledFor;
+		}
+
+		/**
+		 * Returns the timeout handler of this timer.
+		 * 
+		 * @return the handler
+		 */
+		public TimeoutHandler timeoutHandler() {
+			return timeoutHandler;
+		}
+
+		/**
+		 * Returns the instant that this handler is scheduled for.
+		 * 
+		 * @return the instant
+		 */
+		public Instant scheduledFor() {
+			return scheduledFor;
+		}
+
+		/**
+		 * Cancels this timer.
+		 */
+		public void cancel() {
+			scheduler.cancel(this);
+		}
+	}
+
+	/**
+	 * A general purpose scheduler.
+	 */
+	private static class Scheduler extends Thread {
+
+		private SortedSet<Timer> timers = new TreeSet<>(
+				Comparator.comparing(Timer::scheduledFor)); 
+
+		public Scheduler() {
+			setName("Components.Scheduler");
+			setDaemon(true);
+			start();
+		}
+		
+		public Timer schedule(
+				TimeoutHandler timeoutHandler, Instant scheduledFor) {
+			Timer timer = new Timer(this, timeoutHandler, scheduledFor);
+			synchronized (this) {
+				timers.add(timer);
+				notify();
+			}
+			return timer;
+		}
+		
+		private void cancel(Timer timer) {
+			synchronized (this) {
+				timers.remove(timer);
+				notify();
+			}
+		}
+		
+		@Override
+		public void run() {
+			while (true) {
+				Instant now = Instant.now();
+				synchronized (this) {
+					while (timers.size() > 0) {
+						final Timer first = timers.first();
+						if (first.scheduledFor().isAfter(now)) {
+							break;
+						}
+						timers.remove(first);
+						new Thread(() -> first.timeoutHandler()
+								.timeout(first.scheduledFor())).start();
+					}
+					try {
+						if (timers.size() == 0) {
+							wait();
+						} else {
+							wait(Math.max(1, Duration.between(now, 
+									timers.first().scheduledFor()).toMillis()));
+						}
+					} catch (Throwable e) {
+					}
+				}
+			}
+		}
+	}
+	
+	private static Scheduler scheduler = new Scheduler();
+
+	/**
+	 * Schedules the given timeout handler for the given instance. 
+	 * 
+	 * @param timeoutHandler the handler
+	 * @param scheduledFor the instance in time
+	 * @return the timer
+	 */
+	public static Timer schedule(
+			TimeoutHandler timeoutHandler, Instant scheduledFor) {
+		return scheduler.schedule(timeoutHandler, scheduledFor);
+	}
 }

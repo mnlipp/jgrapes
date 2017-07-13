@@ -36,6 +36,7 @@ import java.util.function.BiConsumer;
 
 import org.jgrapes.core.Associator;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
@@ -66,6 +67,8 @@ public abstract class EventBase<T>
 	private Set<Event<?>> completionEvents = null;
 	/** Set when the event has been completed. */
 	private boolean completed = false;
+	/** Completion locks. */
+	private Set<CompletionLockBase> completionLocks = null;
 	/** Set when the event is enqueued, reset when it has been completed. */
 	private EventProcessor processedBy = null;
 	/** Indicates that the event should not processed further. */
@@ -254,7 +257,7 @@ public abstract class EventBase<T>
 	/**
 	 * @param pipeline
 	 */
-	void decrementOpen(InternalEventPipeline pipeline) {
+	void decrementOpen() {
 		if (openCount.decrementAndGet() == 0 && !completed) {
 			synchronized (this) {
 				completed = true;
@@ -274,12 +277,47 @@ public abstract class EventBase<T>
 				}
 			}
 			if (generatedBy != null) {
-				generatedBy.decrementOpen(pipeline);
+				generatedBy.decrementOpen();
 			}
 			processedBy = null; // No longer needed
 		}
 	}
 
+	/**
+	 * Adds the given completion lock. 
+	 * 
+	 * @param lock the lock
+	 * @see CompletionLock
+	 */
+	Event<T> addCompletionLock(CompletionLockBase lock) {
+		synchronized (this) {
+			if (completionLocks == null) {
+				completionLocks = Collections.synchronizedSet(new HashSet<>());
+			}
+		}
+		if (completionLocks.add(lock)) {
+			openCount.incrementAndGet();
+			lock.startTimer(this);
+		}
+		return (Event<T>)this;
+	}
+
+	/**
+	 * Removes the given completion lock. 
+	 * 
+	 * @param lock the lock
+	 * @see CompletionLock
+	 */
+	void removeCompletionLock(CompletionLockBase lock) {
+		if (completionLocks == null) {
+			return;
+		}
+		if (completionLocks.remove(lock)) {
+			decrementOpen();
+		}
+		lock.cancelTimer();
+	}
+	
 	/**
 	 * Returns the events to be thrown when this event and all events caused
 	 * by it have been handled.

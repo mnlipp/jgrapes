@@ -103,7 +103,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 				currentlyHandling.set(next.event);
 				componentTree.dispatch(
 						asEventPipeline, next.event, next.channels);
-				currentlyHandling.get().decrementOpen(this);
+				currentlyHandling.get().decrementOpen();
 				synchronized (queue) {
 					queue.remove();
 					if (queue.isEmpty()) {
