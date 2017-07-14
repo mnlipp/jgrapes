@@ -99,6 +99,18 @@ var JGPortal = {
         }
     }
     
+    function isBefore(items, x, limit) {
+        for (let i = 0; i < items.length; i++) {
+            if (items[i] === x) {
+                return true;
+            }
+            if (items[i] === limit) {
+                return false;
+            }
+        }
+        return false;
+    }
+    
 	function updatePreview(portletId, modes, content, foreground) {
 		let portlet = findPortletPreview(portletId);
 		if (!portlet) {
@@ -131,18 +143,28 @@ var JGPortal = {
 				});
 			}
 			let inserted = false;
-			$( ".column" ).each(function(index) {
-			    if (index >= JGPortal.lastPreviewLayout.length) {
+			$( ".column" ).each(function(colIndex) {
+			    if (colIndex >= JGPortal.lastPreviewLayout.length) {
 			        return false;
 			    }
-			    let col = JGPortal.lastPreviewLayout[index];
-			    for (let i = 0; i < col.length; i++) {
-			        if (col[i] === portletId) {
-			            $( this ).append(portlet);
-			            inserted = true;
-			            return false;
-			        }
-			    }
+			    let colData = JGPortal.lastPreviewLayout[colIndex];
+                // Hack to check if portletId is in colData
+                if (isBefore(colData, portletId, portletId)) {
+                    $( this ).find(".portlet").each(function(rowIndex) {
+                        let item = $( this );
+                        let itemId = item.attr("data-portletId");
+                        if (!isBefore(colData, itemId, portletId)) {
+                            item.before(portlet);
+                            inserted = true;
+                            return false;
+                        }
+                    });
+                    if (!inserted) {
+                        $( this ).append(portlet);
+                    }
+                    inserted = true;
+                    return false;
+                }
 			});
 			if (!inserted) {
 			    $( ".column" ).first().prepend(portlet);
