@@ -158,13 +158,13 @@ public class BrowserBasedPortalPolicy extends Component {
 			for (String portletId: tabsLayout) {
 				fire(new RenderPortletRequest(
 						event.event().renderSupport(), portletId,
-						Portlet.RenderMode.View), channel);
+						Portlet.RenderMode.View, false), channel);
 			}
 			for (String[] column: previewLayout) {
 				for (String portletId: column) {
 					fire(new RenderPortletRequest(
 							event.event().renderSupport(), portletId,
-							Portlet.RenderMode.Preview), channel);
+							Portlet.RenderMode.Preview, true), channel);
 				}
 			}
 		}

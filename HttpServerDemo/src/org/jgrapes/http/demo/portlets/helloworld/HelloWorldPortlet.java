@@ -109,7 +109,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		channel.respond(new RenderPortletFromProvider(
 				portletModel.getPortletId(), DeleteablePreview, 
 				MODES, newContentProvider(tpl, 
-						freemarkerModel(baseModel, portletModel, channel))));
+						freemarkerModel(baseModel, portletModel, channel)),
+				true));
 	}
 
 	@Handler
@@ -150,7 +151,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 			channel.respond(new RenderPortletFromProvider(
 					portletModel.getPortletId(), DeleteablePreview, MODES,
 					newContentProvider(tpl, 
-							freemarkerModel(baseModel, portletModel, channel))));
+							freemarkerModel(baseModel, portletModel, channel)),
+					event.isForeground()));
 			break;
 		}
 		case View: {
@@ -158,7 +160,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 			channel.respond(new RenderPortletFromProvider(
 					portletModel.getPortletId(), View, MODES,
 					newContentProvider(tpl, 
-							freemarkerModel(baseModel, portletModel, channel))));
+							freemarkerModel(baseModel, portletModel, channel)),
+					event.isForeground()));
 			channel.respond(new NotifyPortletView(getClass().getName(),
 					portletModel.getPortletId(), "setWorldVisible",
 					portletModel.isWorldVisible()));

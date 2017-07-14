@@ -452,7 +452,7 @@ public class PortalView extends Component {
 				event.portletId(), event.renderMode().name(),
 				event.supportedRenderModes().stream().map(RenderMode::name)
 				.toArray(size -> new String[size]),
-				content.toString());
+				content.toString(), event.isForeground());
 	}
 
 	public void onDeletePortlet(DeletePortlet event,

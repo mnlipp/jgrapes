@@ -39,11 +39,12 @@ public class RenderPortletFromProvider extends RenderPortlet {
 	 * @param mode the view mode that is to be updated
 	 * @param supportedModes the modes supported by the portlet
 	 * @param provider the content provider
+	 * @param foreground if the portlet is to be put in the foreground
 	 */
 	public RenderPortletFromProvider(
 			String portletId, RenderMode mode, Set<RenderMode> supportedModes,
-			ContentProvider provider) {
-		super(portletId, mode, supportedModes);
+			ContentProvider provider, boolean foreground) {
+		super(portletId, mode, supportedModes, foreground);
 		this.provider = provider;
 	}
 

@@ -98,7 +98,7 @@ var JGPortal = {
         }
     }
     
-	function updatePreview(portletId, modes, content) {
+	function updatePreview(portletId, modes, content, foreground) {
 		let portlet = findPortletPreview(portletId);
 		if (!portlet) {
 			portlet = $( '<div class="portlet">\
@@ -125,7 +125,7 @@ var JGPortal = {
 					if(findPortletView(portletId)) { 
 					    activatePortletView(portletId);
 					} else {
-					    JGPortal.sendRenderPortlet(portletId, "View");
+					    JGPortal.sendRenderPortlet(portletId, "View", true);
 					}
 				});
 			}
@@ -138,6 +138,9 @@ var JGPortal = {
 		let portletContent = portlet.find(".portlet-content");
 		portletContent.children().detach();
 		portletContent.append(newContent);
+		if (foreground) {
+		    $( "#tabs" ).tabs( "option", "active", 0 );
+		}
 	};
 
 	function layoutChanged() {
@@ -167,7 +170,7 @@ var JGPortal = {
         "<span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>";
     var tabCounter = 1;
 
-	function updateView(portletId, modes, content) {
+	function updateView(portletId, modes, content, foreground) {
 		let portletView = findPortletView(portletId);
 		let newContent = $(content);
 		if (portletView) {
@@ -188,14 +191,16 @@ var JGPortal = {
 	        tabs.tabs( "refresh" );
 	        layoutChanged();
 		}
-		activatePortletView(portletId);
+		if (foreground) {
+		    activatePortletView(portletId);
+		}
     }
 	
-	function updatePortlet(portletId, mode, modes, content) {
+	function updatePortlet(portletId, mode, modes, content, foreground) {
 		if (mode === "Preview" || mode === "DeleteablePreview") {
-			updatePreview(portletId, modes, content);
+			updatePreview(portletId, modes, content, foreground);
 		} else if (mode === "View") {
-			updateView(portletId, modes, content);
+			updateView(portletId, modes, content, foreground);
 		}
 	};
 
@@ -299,9 +304,9 @@ var JGPortal = {
             "params": [ locale ]});
     };
     
-	JGPortal.sendRenderPortlet = function(portletId, mode) {
+	JGPortal.sendRenderPortlet = function(portletId, mode, foreground) {
 		wsConn.send({"jsonrpc": "2.0", "method": "renderPortlet",
-			"params": [ portletId, mode ]});
+			"params": [ portletId, mode, foreground ]});
 	};
     
     JGPortal.sendAddPortlet = function(portletType) {

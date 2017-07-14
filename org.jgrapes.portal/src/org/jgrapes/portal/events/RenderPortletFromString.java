@@ -38,11 +38,12 @@ public class RenderPortletFromString extends RenderPortlet {
 	 * @param supportedModes the modes supported by the portlet
 	 * @param content a string that defines the portlet view
 	 * (as HTML)
+	 * @param foreground if the portlet is to be put in the foreground
 	 */
 	public RenderPortletFromString(
 			String portletId, RenderMode mode, Set<RenderMode> supportedModes,
-			String content) {
-		super(portletId, mode, supportedModes);
+			String content, boolean foreground) {
+		super(portletId, mode, supportedModes, foreground);
 		this.content = content;
 	}
 

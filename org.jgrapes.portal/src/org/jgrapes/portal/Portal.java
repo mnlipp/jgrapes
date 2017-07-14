@@ -171,7 +171,8 @@ public class Portal extends Component {
 		}
 		case "renderPortlet": {
 			fire(new RenderPortletRequest(view.renderSupport(), params.getString(0),
-					RenderMode.valueOf(params.getString(1))), channel);
+					RenderMode.valueOf(params.getString(1)),
+					params.getBoolean(2)), channel);
 			break;
 		}
 		case "retrievedData": {

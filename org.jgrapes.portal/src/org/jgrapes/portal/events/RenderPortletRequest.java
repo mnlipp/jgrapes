@@ -51,6 +51,7 @@ public class RenderPortletRequest extends Event<Void> {
 	private RenderSupport renderSupport;	
 	private String portletId;
 	private RenderMode renderMode;
+	private boolean foreground;
 
 	/**
 	 * Creates a new request.
@@ -60,10 +61,11 @@ public class RenderPortletRequest extends Event<Void> {
 	 * @param renderMode the requested mode
 	 */
 	public RenderPortletRequest(RenderSupport renderSupport, 
-			String portletId, RenderMode renderMode) {
+			String portletId, RenderMode renderMode, boolean foreground) {
 		this.renderSupport = renderSupport;
 		this.portletId = portletId;
 		this.renderMode = renderMode;
+		this.foreground = foreground;
 	}
 
 	/**
@@ -93,5 +95,12 @@ public class RenderPortletRequest extends Event<Void> {
 		return renderMode;
 	}
 	
-
+	/**
+	 * Indicates if portelt is to be put in foreground.
+	 * 
+	 * @return the result
+	 */
+	public boolean isForeground() {
+		return foreground;
+	}
 }

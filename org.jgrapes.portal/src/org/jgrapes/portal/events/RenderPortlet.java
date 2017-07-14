@@ -31,6 +31,7 @@ public abstract class RenderPortlet extends Event<Void> {
 	private String portletId;
 	private RenderMode renderMode;
 	private Set<RenderMode> supportedModes;
+	private boolean foreground;
 
 	/**
 	 * Creates a new event.
@@ -40,11 +41,12 @@ public abstract class RenderPortlet extends Event<Void> {
 	 * @param supportedModes the modes supported by the portlet
 	 */
 	public RenderPortlet(String portletId, RenderMode mode,
-			Set<RenderMode> supportedModes) {
+			Set<RenderMode> supportedModes, boolean foreground) {
 		super();
 		this.portletId = portletId;
 		this.renderMode = mode;
 		this.supportedModes = supportedModes;
+		this.foreground = foreground;
 	}
 
 	/**
@@ -72,5 +74,14 @@ public abstract class RenderPortlet extends Event<Void> {
 	 */
 	public Set<RenderMode> supportedRenderModes() {
 		return supportedModes;
+	}
+
+	/**
+	 * Indicates if portelt is to be put in foreground.
+	 * 
+	 * @return the result
+	 */
+	public boolean isForeground() {
+		return foreground;
 	}
 }
