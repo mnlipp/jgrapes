@@ -138,7 +138,7 @@ var JGPortal = {
 			    let col = JGPortal.lastPreviewLayout[index];
 			    for (let i = 0; i < col.length; i++) {
 			        if (col[i] === portletId) {
-			            $( this ).prepend(portlet);
+			            $( this ).append(portlet);
 			            inserted = true;
 			            return false;
 			        }
