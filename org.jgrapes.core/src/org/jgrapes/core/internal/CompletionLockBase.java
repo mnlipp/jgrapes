@@ -45,6 +45,9 @@ public abstract class CompletionLockBase {
 
 	/**
 	 * Removes this completion lock from the event that it was created for.
+	 * 
+	 * This method may be invoked even if the completion lock has already
+	 * been removed. This allows locks to be used for disjunctive wait.
 	 */
 	public void remove() {
 		event.removeCompletionLock(this);
