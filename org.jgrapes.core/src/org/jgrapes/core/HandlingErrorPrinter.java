@@ -25,7 +25,17 @@ public class HandlingErrorPrinter extends Component {
 
 	@Handler(channels=Channel.class)
 	public void printError(HandlingError event) {
-		System.err.println("Error handling " + event.event());
-		event.throwable().printStackTrace();
+		String msg;
+		try {
+			msg = event.event().toString();
+		} catch (Throwable t) {
+			msg = "Cannot convert event to string: " + t.getMessage();
+		}
+		System.err.println(msg);
+		if (event.throwable() == null) {
+			System.err.println("No stack trace available.");			
+		} else {
+			event.throwable().printStackTrace();
+		}
 	}
 }
