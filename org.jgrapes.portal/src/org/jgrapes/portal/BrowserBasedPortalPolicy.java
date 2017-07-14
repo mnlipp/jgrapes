@@ -35,9 +35,11 @@ import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.portal.events.DataRetrieved;
+import org.jgrapes.portal.events.LastPortalLayout;
 import org.jgrapes.portal.events.PortalLayoutChanged;
 import org.jgrapes.portal.events.PortalPrepared;
 import org.jgrapes.portal.events.PortalReady;
+import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.events.RetrieveDataFromPortal;
 import org.jgrapes.portal.events.StoreDataInPortal;
 import org.jgrapes.portal.util.JsonUtil;
@@ -73,7 +75,8 @@ public class BrowserBasedPortalPolicy extends Component {
 	 */
 	@Handler
 	public void onPortalReady(PortalReady event, IOSubchannel channel) {
-		lookupPortalSession(channel).ifPresent(ps -> ps.onPortalReady(event));
+		lookupPortalSession(channel).ifPresent(
+				ps -> ps.onPortalReady(event, channel));
 	}
 
 	@Handler
@@ -88,37 +91,29 @@ public class BrowserBasedPortalPolicy extends Component {
 	@Handler
 	public void onPortalPrepared(PortalPrepared event, IOSubchannel channel) {
 		lookupPortalSession(channel).ifPresent(
-				ps -> ps.onPortalPrepared(event));
+				ps -> ps.onPortalPrepared(event, channel));
 	}
 
 	@Handler
 	public void onPortalLayoutChanged(PortalLayoutChanged event, 
 			LinkedIOSubchannel channel) {
 		lookupPortalSession(channel).ifPresent(
-				ps -> ps.onPortalLayoutChanged(event));
+				ps -> ps.onPortalLayoutChanged(event, channel));
 	}
 	
 	private Optional<PortalSession> lookupPortalSession(IOSubchannel channel) {
 		return channel.associated(Session.class)
 			.map(session -> (PortalSession)session.computeIfAbsent(
 					BrowserBasedPortalPolicy.class, 
-					k -> new PortalSession(channel)));
+					k -> new PortalSession()));
 	}
 	
 	private class PortalSession {
 
-		private IOSubchannel channel;
 		private CompletionLock preparedLock;
 		private Map<String,Object> persisted = null;
 		
-		/**
-		 * @param channel
-		 */
-		public PortalSession(IOSubchannel channel) {
-			this.channel = channel;
-		}
-
-		private void storeState() {
+		private void storeState(IOSubchannel channel) {
 			JsonArray jsonData = JsonUtil.toJsonArray(persisted);
 			StringWriter out = new StringWriter(); 
 			try (JsonWriter jsonWriter = Json.createWriter(out)) {
@@ -128,31 +123,57 @@ public class BrowserBasedPortalPolicy extends Component {
 					out.toString()), channel);
 		}
 
-		public void onPortalReady(PortalReady event) {
+		public void onPortalReady(PortalReady event, IOSubchannel channel) {
 			if (persisted != null) {
 				return;
 			}
-			preparedLock = new CompletionLock(event);
+			preparedLock = new CompletionLock(event, 3000);
 			channel.respond(new RetrieveDataFromPortal(
 					BrowserBasedPortalPolicy.class.getName()));
 		}
 		
 		public void onDataRetrieved(DataRetrieved event) {
-			persisted = new HashMap<>();
+			if (persisted == null && event.data() != null) {
+				persisted = new HashMap<>();
+			}
 			preparedLock.remove();
 		}
 		
-		public void onPortalPrepared(PortalPrepared event) {
+		public void onPortalPrepared(
+				PortalPrepared event, IOSubchannel channel) {
 			if (persisted == null) {
+				// Retrieval was not successful
 				persisted = new HashMap<>();
 			}
-			System.out.println("prepared");
+			// Make sure data is consistent
+			String[][] previewLayout = (String[][])persisted.computeIfAbsent(
+					"previewLayout", k -> { return new String[0][0]; });
+			String[] tabsLayout = (String[])persisted.computeIfAbsent(
+					"tabsLayout", k -> { return new String[0]; });
+
+			// Update layout
+			channel.respond(new LastPortalLayout(previewLayout, tabsLayout));
+			
+			// Restore portlets
+			for (String portletId: tabsLayout) {
+				fire(new RenderPortletRequest(
+						event.event().renderSupport(), portletId,
+						Portlet.RenderMode.View), channel);
+			}
+			for (String[] column: previewLayout) {
+				for (String portletId: column) {
+					fire(new RenderPortletRequest(
+							event.event().renderSupport(), portletId,
+							Portlet.RenderMode.Preview), channel);
+				}
+			}
 		}
 		
-		public void onPortalLayoutChanged(PortalLayoutChanged event) {
+		public void onPortalLayoutChanged(
+				PortalLayoutChanged event, IOSubchannel channel) {
 			persisted.put("previewLayout", event.previewLayout());
 			persisted.put("tabsLayout", event.tabsLayout());
-			storeState();
+			storeState(channel);
 		}
 	}
 }

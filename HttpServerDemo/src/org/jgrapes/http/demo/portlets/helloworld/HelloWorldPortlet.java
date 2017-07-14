@@ -151,6 +151,7 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 					portletModel.getPortletId(), DeleteablePreview, MODES,
 					newContentProvider(tpl, 
 							freemarkerModel(baseModel, portletModel, channel))));
+			break;
 		}
 		case View: {
 			Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
@@ -158,13 +159,14 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 					portletModel.getPortletId(), View, MODES,
 					newContentProvider(tpl, 
 							freemarkerModel(baseModel, portletModel, channel))));
+			channel.respond(new NotifyPortletView(getClass().getName(),
+					portletModel.getPortletId(), "setWorldVisible",
+					portletModel.isWorldVisible()));
+			break;
 		}
 		default:
 			break;
 		}	
-		channel.respond(new NotifyPortletView(getClass().getName(),
-				portletModel.getPortletId(), "setWorldVisible",
-				portletModel.isWorldVisible()));
 	}
 	
 	@Handler
