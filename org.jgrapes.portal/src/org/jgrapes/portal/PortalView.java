@@ -194,14 +194,12 @@ public class PortalView extends Component {
 	}
 	
 	private LinkedIOSubchannel portalChannel(IOSubchannel channel) {
-		Optional<? extends LinkedIOSubchannel> portalChannel
-			= LinkedIOSubchannel.downstreamChannel(portal, channel);
-		if (portalChannel.isPresent()) {
-			return portalChannel.get();
-		}
-		LinkedIOSubchannel newPortalChannel
-			= new LinkedIOSubchannel(portal, channel);
-		return newPortalChannel;
+		@SuppressWarnings("unchecked")
+		Optional<LinkedIOSubchannel> portalChannel
+			= (Optional<LinkedIOSubchannel>)LinkedIOSubchannel
+				.downstreamChannel(portal, channel);
+		return portalChannel.orElseGet(
+				() -> new LinkedIOSubchannel(portal, channel));
 	}
 	
 	@RequestHandler(dynamic=true)
