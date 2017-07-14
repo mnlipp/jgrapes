@@ -5,7 +5,8 @@
  * that are provided by the portal.
  */
 var JGPortal = {
-
+    lastPreviewLayout: [[], [], []],
+    lastTabsLayout: [],
 };
 
 (function () {
@@ -129,7 +130,23 @@ var JGPortal = {
 					}
 				});
 			}
-			$( ".column" ).first().prepend(portlet);
+			let inserted = false;
+			$( ".column" ).each(function(index) {
+			    if (index >= JGPortal.lastPreviewLayout.length) {
+			        return false;
+			    }
+			    let col = JGPortal.lastPreviewLayout[index];
+			    for (let i = 0; i < col.length; i++) {
+			        if (col[i] === portletId) {
+			            $( this ).prepend(portlet);
+			            inserted = true;
+			            return false;
+			        }
+			    }
+			});
+			if (!inserted) {
+			    $( ".column" ).first().prepend(portlet);
+			}
 			layoutChanged();
 		}
 		let newContent = $(content);
@@ -241,6 +258,10 @@ var JGPortal = {
 	    'addPortletType': addPortletType,
         'deletePortlet': deletePortlet,
 	    'invokePortletMethod': invokePortletMethod,
+	    'lastPortalLayout': function(previewLayout, tabsLayout) {
+	        JGPortal.lastPreviewLayout = previewLayout;
+	        JGPortal.lastTabsLayout = tabsLayout;
+	    },
 		'reload': function() { window.location.reload(true); },
         'retrieveData': retrieveData,
 		'storeData': storeData,

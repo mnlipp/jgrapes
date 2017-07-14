@@ -89,6 +89,7 @@ import org.jgrapes.portal.Portlet.RenderMode;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.JsonRequest;
+import org.jgrapes.portal.events.LastPortalLayout;
 import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
@@ -182,6 +183,7 @@ public class PortalView extends Component {
 		Handler.Evaluator.add(this, "onSetLocale", portal.channel());
 		Handler.Evaluator.add(this, "onSetTheme", portal.channel());
 		Handler.Evaluator.add(this, "onRetrieveDataFromPortal", portal.channel());
+		Handler.Evaluator.add(this, "onLastPortalLayout", portal.channel());
 	}
 
 	void setResourceSupplier(
@@ -520,6 +522,14 @@ public class PortalView extends Component {
 					throws InterruptedException, IOException {
 		sendNotification(channel, "retrieveData",
 				portal.prefix() + event.path());
+	}
+
+	@Handler(dynamic=true)
+	public void onLastPortalLayout(
+			LastPortalLayout event, LinkedIOSubchannel channel) 
+					throws InterruptedException, IOException {
+		sendNotification(channel, "lastPortalLayout",
+				event.previewLayout(), event.tabsLayout());
 	}
 	
 	void sendNotification(LinkedIOSubchannel channel,
