@@ -6,6 +6,7 @@
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
 </listAttribute>
+<stringAttribute key="org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE" value="${workspace_loc:/HttpServerDemo}/console.log"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.jgrapes.http.demo.httpserver.HttpServerDemo"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="HttpServerDemo"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Djava.util.logging.config.file=jul-debug.properties"/>
