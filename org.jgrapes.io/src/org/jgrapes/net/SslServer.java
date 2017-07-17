@@ -213,7 +213,8 @@ public class SslServer extends Component {
 						if (runnable == null) {
 							break;
 						}
-						runnable.run();
+						upstreamChannel().responsePipeline()
+							.executorService().submit(runnable);
 					}
 					continue;
 					
