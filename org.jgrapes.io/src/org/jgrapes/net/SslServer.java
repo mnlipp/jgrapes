@@ -190,11 +190,13 @@ public class SslServer extends Component {
 			
 			// Create buffer pools, adding 50 to application buffer size, see 
 			// https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/samples/sslengine/SSLEngineSimpleDemo.java
-			int bufSize = sslEngine.getSession().getApplicationBufferSize() + 50;
+			int decBufSize = sslEngine.getSession()
+					.getApplicationBufferSize() + 50;
 			downstreamPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					() -> { return ByteBuffer.allocate(bufSize); }, 2); 
+					() -> { return ByteBuffer.allocate(decBufSize); }, 2);
+			int encBufSize = sslEngine.getSession().getPacketBufferSize();
 			setByteBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					() -> { return ByteBuffer.allocate(bufSize); }, 2));
+					() -> { return ByteBuffer.allocate(encBufSize); }, 2));
 		}
 		
 		public void sendDownstream(Input<ManagedByteBuffer> event)
