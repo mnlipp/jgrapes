@@ -55,14 +55,16 @@ class SynchronousEventProcessor extends EventProcessor {
 	 */
 	@Override
 	public synchronized void run() {
-		// Save current event pipeline because a SynchronousEventPipeline
-		// can be called while handling an event (from another event 
-		// processor).
+		// Save current event pipeline and currently handled event
+		// because a SynchronousEventPipeline can be called while 
+		// handling an event (from another event processor).
 		InternalEventPipeline currentPipeline 
 			= FeedBackPipelineFilter.getAssociatedPipeline();
+		EventBase<?> currentEvent = currentlyHandling.get();
 		try {
 			super.run();
 		} finally {
+			currentlyHandling.set(currentEvent);
 			FeedBackPipelineFilter.setAssociatedPipeline(currentPipeline);;
 		}
 	}
