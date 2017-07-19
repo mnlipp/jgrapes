@@ -22,13 +22,12 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletionEvent;
 
 /**
- * This event is the completed event for the {@link PortalReady}
+ * This event is the completed event for the {@link PortalPrepared}
  * event.
  */
-public class PortalPrepared extends CompletionEvent<PortalReady> {
+public class PortalConfigured extends CompletionEvent<PortalPrepared> {
 
-	public PortalPrepared(PortalReady monitoredEvent, Channel... channels) {
+	public PortalConfigured(PortalPrepared monitoredEvent, Channel... channels) {
 		super(monitoredEvent, channels);
-		new PortalConfigured(this, channels);
 	}
 }

@@ -91,6 +91,7 @@ import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.JsonRequest;
 import org.jgrapes.portal.events.LastPortalLayout;
 import org.jgrapes.portal.events.NotifyPortletView;
+import org.jgrapes.portal.events.PortalConfigured;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
@@ -184,6 +185,7 @@ public class PortalView extends Component {
 		Handler.Evaluator.add(this, "onSetTheme", portal.channel());
 		Handler.Evaluator.add(this, "onRetrieveDataFromPortal", portal.channel());
 		Handler.Evaluator.add(this, "onLastPortalLayout", portal.channel());
+		Handler.Evaluator.add(this, "onPortalConfigured", portal.channel());
 	}
 
 	void setResourceSupplier(
@@ -484,6 +486,13 @@ public class PortalView extends Component {
 		sendNotification(channel, "invokePortletMethod",
 				event.portletClass(), event.portletId(), 
 				event.method(), event.params());
+	}
+
+	@Handler(dynamic=true)
+	public void onPortalConfigured(
+			PortalConfigured event, LinkedIOSubchannel channel) 
+					throws InterruptedException, IOException {
+		sendNotification(channel, "portalConfigured");
 	}
 	
 	@Handler(dynamic=true)

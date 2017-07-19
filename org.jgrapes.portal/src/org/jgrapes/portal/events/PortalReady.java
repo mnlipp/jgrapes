@@ -39,17 +39,12 @@ import org.jgrapes.portal.RenderSupport;
  * 
  * Browser -> Portal: "portalReady"
  * activate Portal
- * Portal -> PortletA: PortalReady
- * activate PortletA
- * PortletA -> Portal: AddPortletType 
- * activate Portal
- * Portal -> Browser: "addPortletType"
- * deactivate Portal
  * 
- * loop for all remaining portlets
+ * loop for all portlets
  *     Portal -> PortletX: PortalReady
  *     activate PortletX
  *     PortletX -> Portal: AddPortletType 
+ *     deactivate PortletX
  *     activate Portal
  *     Portal -> Browser: "addPortletType"
  *     deactivate Portal
@@ -59,13 +54,19 @@ import org.jgrapes.portal.RenderSupport;
  * System -> PortalPolicy: PortalPrepared
  * deactivate Portal
  * activate PortalPolicy
- * PortalPolicy -> PortletA: RenderPortletRequest
+ * loop for all portlets to be displayed
+ *     PortalPolicy -> PortletY: RenderPortletRequest
+ *     activate PortletY
+ *     PortletY -> Portal: RenderPortlet
+ *     deactivate PortletY
+ *     activate Portal
+ *     Portal -> Browser: "renderPortlet"
+ *     deactivate Portal
+ * end
  * deactivate PortalPolicy
- * activate PortletA
- * PortletA -> Portal: RenderPortlet
- * deactivate PortletA
+ * System -> Portal: PortalConfigured
  * activate Portal
- * Portal -> Browser: "renderPortlet"
+ * Portal -> Browser: "portalConfigured"
  * deactivate Portal
  * 
  * @enduml

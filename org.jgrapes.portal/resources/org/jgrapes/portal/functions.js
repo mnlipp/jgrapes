@@ -11,6 +11,7 @@ var JGPortal = {
 
 (function () {
 
+    var portalIsConfigured = false;
     var portletFunctionRegistry = {};
     
     JGPortal.registerPortletMethod = function(portletClass, methodName, method) {
@@ -27,6 +28,11 @@ var JGPortal = {
         if (f) {
             f(portletId, params);
         }
+    }
+
+    function portalConfigured() {
+        portalIsConfigured = true;
+        layoutChanged();
     }
     
     function addPortletType(portletType, displayName, cssUris, scriptUris,
@@ -183,6 +189,9 @@ var JGPortal = {
 	};
 
 	function layoutChanged() {
+	    if (!portalIsConfigured) {
+	        return;
+	    }
 	    let previewLayout = [];
 	    $(".overview-panel").find(".column").each(function(column) {
 	        let colData = [];
@@ -284,6 +293,7 @@ var JGPortal = {
 	        JGPortal.lastPreviewLayout = previewLayout;
 	        JGPortal.lastTabsLayout = tabsLayout;
 	    },
+	    'portalConfigured': portalConfigured,
 		'reload': function() { window.location.reload(true); },
         'retrieveData': retrieveData,
 		'storeData': storeData,
