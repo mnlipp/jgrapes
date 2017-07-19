@@ -432,12 +432,14 @@ public class HttpServer extends Component {
 				}
 			}
 			
-			// Allocate buffer pools
+			// Allocate buffer pools. Note that decoding WebSocket network 
+			// packets may result in several WS frames that are each delivered
+			// in independent events. Therefore provide some additional buffers.
 			final int bufSize = bufferSize;
 			byteBufferPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,	
-					() -> { return ByteBuffer.allocate(bufSize); }, 2);
+					() -> { return ByteBuffer.allocate(bufSize); }, 2, 100);
 			charBufferPool = new ManagedBufferQueue<>(ManagedCharBuffer::new,	
-					() -> { return CharBuffer.allocate(bufSize); }, 2);
+					() -> { return CharBuffer.allocate(bufSize); }, 2, 100);
 		}
 		
 		public void handleNetInput(Input<ManagedByteBuffer> event) 
