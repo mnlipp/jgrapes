@@ -24,6 +24,8 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -101,11 +103,12 @@ public class SslServer extends Component {
 	 * @param encryptedChannel the channel for exchanging the encrypted data
 	 * @throws InterruptedException 
 	 * @throws SSLException 
+	 * @throws ExecutionException 
 	 */
 	@Handler(dynamic = true)
 	public void onInput(
 			Input<ManagedByteBuffer> event, IOSubchannel encryptedChannel)
-	        throws InterruptedException, SSLException {
+	        throws InterruptedException, SSLException, ExecutionException {
 		@SuppressWarnings("unchecked")
 		final Optional<PlainChannel> plainChannel = (Optional<PlainChannel>)
 				LinkedIOSubchannel.downstreamChannel(this, encryptedChannel);
@@ -174,6 +177,7 @@ public class SslServer extends Component {
 		public SSLEngine sslEngine;
 		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> downstreamPool;
 		private boolean isInputClosed = false;
+		private ByteBuffer carryOver = null;
 
 		public PlainChannel(Accepted event, IOSubchannel upstreamChannel) {
 			super(SslServer.this, upstreamChannel);
@@ -200,9 +204,15 @@ public class SslServer extends Component {
 		}
 		
 		public void sendDownstream(Input<ManagedByteBuffer> event)
-				throws SSLException, InterruptedException {
+				throws SSLException, InterruptedException, ExecutionException {
 			ManagedByteBuffer unwrapped = downstreamPool.acquire();
 			ByteBuffer input = event.buffer().duplicate();
+			if (carryOver != null) {
+				carryOver.put(input);
+				carryOver.flip();
+				input = carryOver;
+				carryOver = null;
+			}
 			SSLEngineResult unwrapResult;
 			while (true) {
 				unwrapResult = sslEngine.unwrap(
@@ -215,8 +225,13 @@ public class SslServer extends Component {
 						if (runnable == null) {
 							break;
 						}
+						// Having this handled by the response thread is 
+						// probably not really necessary, but as the delegated 
+						// task usually includes sending upstream...
+						FutureTask<Boolean> task = new FutureTask<>(runnable, true);
 						upstreamChannel().responsePipeline()
-							.executorService().submit(runnable);
+							.executorService().submit(task);
+						task.get();
 					}
 					continue;
 					
@@ -236,7 +251,7 @@ public class SslServer extends Component {
 					fireAccepted();
 					// fall through
 				case NEED_UNWRAP:
-					if (input.hasRemaining()) {
+					if (unwrapResult.getStatus() != Status.BUFFER_UNDERFLOW) {
 						continue;
 					}
 					break;
@@ -244,9 +259,21 @@ public class SslServer extends Component {
 				default:
 					break;
 				}
-				// Handshake done
-				break;
+				
+				// If we get here, handshake has completed or no input is left
+				if (unwrapResult.getStatus() != Status.OK) {
+					// Underflow, overflow or closed
+					break;
+				}
 			}
+			
+			// Just to make sure...
+			if (unwrapResult.getStatus() == Status.BUFFER_OVERFLOW) {
+				throw new IllegalStateException(
+						"Output buffer overflow occured although buffer was"
+						+ " allocated with maximum size.");
+			}
+			
 			if (unwrapped.position() == 0) {
 				// Was only handshake
 				unwrapped.unlockBuffer();
@@ -263,6 +290,16 @@ public class SslServer extends Component {
 				newEventPipeline().fire(evt, this);
 				evt.get();
 				isInputClosed = true;
+				return;
+			}
+			
+			// Check if data from incomplete packet remains in input buffer
+			if (input.hasRemaining()) {
+				// Actually, packet buffer size should be sufficient,
+				// but since this is hard to test and doesn't really matter...
+				carryOver = ByteBuffer.allocate(input.remaining()
+						+ sslEngine.getSession().getPacketBufferSize());
+				carryOver.put(input);
 			}
 		}
 
