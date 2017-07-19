@@ -6,6 +6,7 @@ dependencies {
         test {
             resources {
                 srcDir 'test'
+				srcDir 'test-resources'
             }
         }
     }
