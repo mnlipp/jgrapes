@@ -484,6 +484,7 @@ public class TcpServer extends Component implements NioHandler {
 				return;
 			}
 			// EOF (-1) from client
+			buffer.unlockBuffer();
 			synchronized (nioChannel) {
 				if (nioChannel.socket().isOutputShutdown()) {
 					// Client confirms our close, complete close
