@@ -34,7 +34,39 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	private Supplier<T> bufferFactory = null;
 	private BlockingQueue<W> queue;
 	private int bufferSize;
+	private int minBufs;
+	private int maxBufs;
+	private int createdBufs;
 	
+	/**
+	 * Create a pool that contains a varying number of (wrapped) buffers.
+	 * The minimum number of buffers specified will be pre-allocated
+	 * upon the creation of the queue. When acquiring buffers, those will be
+	 * handed out first. If no buffers are left in the queue, additional 
+	 * buffers are created up to the given maximum for the total number of
+	 * buffers. Recollected buffers are put in the queue until it holds
+	 * the specified minimum. Any additional recollected buffers are
+	 * discarded. 
+	 * 
+	 * @param wrapper the function that converts buffers to managed buffers
+	 * @param bufferFactory a function that creates a new buffer
+	 * @param buffersMin the minimum number of buffers
+	 * @param buffersMax the maximum number of buffers
+	 */
+	public ManagedBufferQueue(BiFunction<T,BufferCollector, W> wrapper, 
+			Supplier<T> bufferFactory, int buffersMin, int buffersMax) {
+		this.wrapper = wrapper;
+		this.bufferFactory = bufferFactory;
+		minBufs = buffersMin;
+		maxBufs = buffersMax;
+		createdBufs = 0;
+		queue = new ArrayBlockingQueue<W>(Math.max(1, buffersMin));
+		for (int i = 0; i < Math.max(1, buffersMin); i++) {
+			queue.add(createBuffer());
+		}
+		bufferSize = queue.peek().capacity();
+	}
+
 	/**
 	 * Create a pool that contains the given number of (wrapped) buffers.
 	 * 
@@ -44,23 +76,12 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 */
 	public ManagedBufferQueue(BiFunction<T,BufferCollector, W> wrapper, 
 			Supplier<T> bufferFactory, int buffers) {
-		this.wrapper = wrapper;
-		this.bufferFactory = bufferFactory;
-		queue = new ArrayBlockingQueue<W>(buffers);
-		for (int i = 0; i < buffers; i++) {
-			addBuffer(this.bufferFactory.get());
-		}
-		bufferSize = queue.peek().capacity();
+		this(wrapper, bufferFactory, buffers, buffers);
 	}
 
-	/**
-	 * Wraps the given buffer as {@link ManagedBuffer} and adds it to the
-	 * pool. 
-	 * 
-	 * @param buffer the buffer to add
-	 */
-	public void addBuffer(T buffer) {
-		queue.add(wrapper.apply(buffer, this));
+	private W createBuffer() {
+		createdBufs += 1;
+		return wrapper.apply(this.bufferFactory.get(), this);
 	}
 
 	/**
@@ -81,6 +102,9 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @throws InterruptedException if the current thread is interrupted
 	 */
 	public W acquire() throws InterruptedException {
+		if (queue.size() == 0 && createdBufs < maxBufs) {
+			return createBuffer();
+		}
 		return queue.take();
 	}
 	
@@ -91,11 +115,17 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 */
 	@Override
 	public void recollect(ManagedBuffer<?> buffer) {
-		buffer.clear();
-		buffer.lockBuffer();
-		@SuppressWarnings("unchecked")
-		W buf = (W)buffer;
-		queue.add(buf);
+		if (queue.size() < minBufs) {
+			// Enqueue
+			buffer.clear();
+			buffer.lockBuffer();
+			@SuppressWarnings("unchecked")
+			W buf = (W)buffer;
+			queue.add(buf);
+		} else {
+			// Discard
+			createdBufs -= 1;
+		}
 	}
 
 	/* (non-Javadoc)
