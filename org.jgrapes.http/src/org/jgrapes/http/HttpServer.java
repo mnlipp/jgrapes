@@ -472,15 +472,19 @@ public class HttpServer extends Component {
 						break;
 					}
 				}
-				if (bodyData != null && bodyData.position() > 0) {
-					bodyData.flip();
-					fire(new Input<>(bodyData, !result.isOverflow() 
-							&& !result.isUnderflow()), this);
+				if (bodyData != null) {
+					if (bodyData.position() > 0) {
+						bodyData.flip();
+						fire(new Input<>(bodyData, !result.isOverflow() 
+								&& !result.isUnderflow()), this);
+					} else {
+						bodyData.unlockBuffer();
+					}
+					bodyData = null;
 				}
 				if (result.isOverflow()) {
-					// Determine what kind of buffer we need
+					// Get appropriate type of buffer
 					bodyData = currentPool.acquire();
-					continue;
 				}
 			}
 		}
