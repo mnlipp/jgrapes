@@ -361,7 +361,7 @@ public class TcpServer extends Component implements NioHandler {
 	/**
 	 * The internal representation of a connected client. 
 	 */
-	public class TcpChannel 
+	private class TcpChannel 
 		extends DefaultSubchannel implements NioHandler {
 
 		private SocketChannel nioChannel;
