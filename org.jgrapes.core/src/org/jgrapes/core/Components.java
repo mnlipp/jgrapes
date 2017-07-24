@@ -312,7 +312,7 @@ public class Components {
 				Comparator.comparing(Timer::scheduledFor)); 
 
 		public Scheduler() {
-			setName("Components.Scheduler");
+			setName("Components.Scheduler#" + objectId(this));
 			setDaemon(true);
 			start();
 		}
@@ -320,6 +320,17 @@ public class Components {
 		public Timer schedule(
 				TimeoutHandler timeoutHandler, Instant scheduledFor) {
 			Timer timer = new Timer(this, timeoutHandler, scheduledFor);
+			synchronized (this) {
+				timers.add(timer);
+				notify();
+			}
+			return timer;
+		}
+		
+		public Timer schedule(
+				TimeoutHandler timeoutHandler, Duration scheduledFor) {
+			Timer timer = new Timer(this, timeoutHandler, 
+					Instant.now().plus(scheduledFor));
 			synchronized (this) {
 				timers.add(timer);
 				notify();
@@ -373,6 +384,19 @@ public class Components {
 	 */
 	public static Timer schedule(
 			TimeoutHandler timeoutHandler, Instant scheduledFor) {
+		return scheduler.schedule(timeoutHandler, scheduledFor);
+	}
+
+	/**
+	 * Schedules the given timeout handler for the given 
+	 * offset from now. 
+	 * 
+	 * @param timeoutHandler the handler
+	 * @param scheduledFor the time to wait
+	 * @return the timer
+	 */
+	public static Timer schedule(
+			TimeoutHandler timeoutHandler, Duration scheduledFor) {
 		return scheduler.schedule(timeoutHandler, scheduledFor);
 	}
 }
