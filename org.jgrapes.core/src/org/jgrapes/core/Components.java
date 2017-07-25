@@ -327,17 +327,6 @@ public class Components {
 			return timer;
 		}
 		
-		public Timer schedule(
-				TimeoutHandler timeoutHandler, Duration scheduledFor) {
-			Timer timer = new Timer(this, timeoutHandler, 
-					Instant.now().plus(scheduledFor));
-			synchronized (this) {
-				timers.add(timer);
-				notify();
-			}
-			return timer;
-		}
-		
 		private void cancel(Timer timer) {
 			synchronized (this) {
 				timers.remove(timer);
@@ -397,6 +386,7 @@ public class Components {
 	 */
 	public static Timer schedule(
 			TimeoutHandler timeoutHandler, Duration scheduledFor) {
-		return scheduler.schedule(timeoutHandler, scheduledFor);
+		return scheduler.schedule(
+				timeoutHandler, Instant.now().plus(scheduledFor));
 	}
 }
