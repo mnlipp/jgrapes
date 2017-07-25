@@ -312,7 +312,7 @@ public class Components {
 				Comparator.comparing(Timer::scheduledFor)); 
 
 		public Scheduler() {
-			setName("Components.Scheduler#" + objectId(this));
+			setName("Components.Scheduler");
 			setDaemon(true);
 			start();
 		}
