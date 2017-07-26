@@ -54,6 +54,7 @@ import org.jdrupes.httpcodec.types.MediaType;
 import org.jdrupes.httpcodec.types.StringList;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.OptionsRequest;
 import org.jgrapes.http.events.Request;
@@ -432,14 +433,21 @@ public class HttpServer extends Component {
 				}
 			}
 			
-			// Allocate buffer pools. Note that decoding WebSocket network 
-			// packets may result in several WS frames that are each delivered
-			// in independent events. Therefore provide some additional buffers.
+			String channelName = Components.objectName(HttpServer.this)
+					+ "." + Components.objectName(this);
+			byteBufferPool().setName(channelName + ".upstream.byteBuffers");
+			charBufferPool().setName(channelName + ".upstream.charBuffers");
+			// Allocate downstream buffer pools. Note that decoding WebSocket
+			// network packets may result in several WS frames that are each 
+			// delivered in independent events. Therefore provide some 
+			// additional buffers.
 			final int bufSize = bufferSize;
 			byteBufferPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,	
-					() -> { return ByteBuffer.allocate(bufSize); }, 2, 100);
+					() -> { return ByteBuffer.allocate(bufSize); }, 2, 100)
+					.setName(channelName + ".downstream.byteBuffers");
 			charBufferPool = new ManagedBufferQueue<>(ManagedCharBuffer::new,	
-					() -> { return CharBuffer.allocate(bufSize); }, 2, 100);
+					() -> { return CharBuffer.allocate(bufSize); }, 2, 100)
+					.setName(channelName + ".downstream.charBuffers");
 		}
 		
 		public void handleNetInput(Input<ManagedByteBuffer> event) 

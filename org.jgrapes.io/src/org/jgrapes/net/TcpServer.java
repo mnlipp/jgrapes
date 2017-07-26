@@ -384,15 +384,19 @@ public class TcpServer extends Component implements NioHandler {
 				downPipeline = newEventPipeline();
 			}
 
+			String channelName = Components.objectName(TcpServer.this)
+					+ "." + Components.objectName(this);
 			int writeBufferSize = bufferSize == 0 
 					? nioChannel.socket().getSendBufferSize() : bufferSize;
 			setByteBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					() -> { return ByteBuffer.allocate(writeBufferSize); }, 2));
+					() -> { return ByteBuffer.allocate(writeBufferSize); }, 2)
+					.setName(channelName + ".upstream.buffers"));
 			
 			int readBufferSize = bufferSize == 0 
 					? nioChannel.socket().getReceiveBufferSize() : bufferSize;
 			readBuffers = new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					() -> { return ByteBuffer.allocate(readBufferSize); }, 2);
+					() -> { return ByteBuffer.allocate(readBufferSize); }, 2)
+					.setName(channelName + ".downstream.buffers");
 			
 			// Register with dispatcher
 			nioChannel.configureBlocking(false);

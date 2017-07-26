@@ -220,7 +220,9 @@ public interface IOSubchannel extends Channel, Associator {
 		public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> byteBufferPool() {
 			if (byteBufferPool == null) {
 				byteBufferPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,
-						() -> { return ByteBuffer.allocate(4096); }, 2);
+						() -> { return ByteBuffer.allocate(4096); }, 2)
+						.setName(Components.objectName(this)
+								+ ".upstream.byteBuffers");
 			}
 			return byteBufferPool;
 		}
@@ -232,7 +234,9 @@ public interface IOSubchannel extends Channel, Associator {
 		public ManagedBufferQueue<ManagedCharBuffer, CharBuffer> charBufferPool() {
 			if (charBufferPool == null) {
 				charBufferPool = new ManagedBufferQueue<>(ManagedCharBuffer::new,
-						() -> { return CharBuffer.allocate(4096); }, 2); 
+						() -> { return CharBuffer.allocate(4096); }, 2)
+						.setName(Components.objectName(this)
+								+ ".upstream.charBuffers");
 			}
 			return charBufferPool;
 		}

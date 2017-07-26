@@ -18,11 +18,36 @@
 
 package org.jgrapes.io.util;
 
+import java.beans.ConstructorProperties;
+import java.lang.management.ManagementFactory;
 import java.nio.Buffer;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IntSummaryStatistics;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.WeakHashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
+
+import org.jgrapes.core.Components;
+import org.jgrapes.core.Components.Timer;
 
 /**
  * A queue based buffer pool.
@@ -30,45 +55,69 @@ import java.util.function.Supplier;
 public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	implements BufferCollector {
 
+	private static long defaultDrainDelay = 1000;
+	private static Set<ManagedBufferQueue<?,?>> allQueues
+		= Collections.synchronizedSet(
+				Collections.newSetFromMap(
+						new WeakHashMap<ManagedBufferQueue<?, ?>, Boolean>()));
+	
+	private String name = Components.objectName(this);
 	private BiFunction<T, BufferCollector,W> wrapper = null;
 	private Supplier<T> bufferFactory = null;
 	private BlockingQueue<W> queue;
-	private int bufferSize;
-	private int minBufs;
-	private int maxBufs;
-	private int createdBufs;
+	private int bufferSize = -1;
+	private int preservedBufs;
+	private int maximumBufs;
+	private AtomicInteger createdBufs;
+	private long drainDelay = -1;
+	private AtomicReference<Timer> idleTimer = new AtomicReference<>(null);
+	
+	/**
+	 * Sets the default delay after which buffers are removed from
+	 * the queue.
+	 * 
+	 * @param delay the delay
+	 */
+	public static void setDefaultDrainDelay(long delay) {
+		defaultDrainDelay = delay;
+	}
+	
+	/**
+	 * Returns the default drain delay.
+	 * 
+	 * @return the delay
+	 */
+	public static long defaultDrainDelay() {
+		return defaultDrainDelay;
+	}
 	
 	/**
 	 * Create a pool that contains a varying number of (wrapped) buffers.
-	 * The minimum number of buffers specified will be pre-allocated
-	 * upon the creation of the queue. When acquiring buffers, those will be
-	 * handed out first. If no buffers are left in the queue, additional 
-	 * buffers are created up to the given maximum for the total number of
-	 * buffers. Recollected buffers are put in the queue until it holds
-	 * the specified minimum. Any additional recollected buffers are
-	 * discarded. 
+	 * The queue is initially empty. When buffers are requested and none 
+	 * are left in the queue, new buffers are created up to the given 
+	 * upper limit. Recollected buffers are put in the queue until it holds
+	 * the number specified by the lower threshold. Any additional 
+	 * recollected buffers are discarded. 
 	 * 
 	 * @param wrapper the function that converts buffers to managed buffers
 	 * @param bufferFactory a function that creates a new buffer
-	 * @param buffersMin the minimum number of buffers
-	 * @param buffersMax the maximum number of buffers
+	 * @param lowerThreshold the number of buffers kept in the queue
+	 * @param upperLimit the maximum number of buffers
 	 */
 	public ManagedBufferQueue(BiFunction<T,BufferCollector, W> wrapper, 
-			Supplier<T> bufferFactory, int buffersMin, int buffersMax) {
+			Supplier<T> bufferFactory, int lowerThreshold, int upperLimit) {
 		this.wrapper = wrapper;
 		this.bufferFactory = bufferFactory;
-		minBufs = buffersMin;
-		maxBufs = buffersMax;
-		createdBufs = 0;
-		queue = new ArrayBlockingQueue<W>(Math.max(1, buffersMin));
-		for (int i = 0; i < Math.max(1, buffersMin); i++) {
-			queue.add(createBuffer());
-		}
-		bufferSize = queue.peek().capacity();
+		preservedBufs = lowerThreshold;
+		maximumBufs = upperLimit;
+		createdBufs = new AtomicInteger();
+		queue = new ArrayBlockingQueue<W>(lowerThreshold);
+		allQueues.add(this);
 	}
 
 	/**
-	 * Create a pool that contains the given number of (wrapped) buffers.
+	 * Create a pool that keeps up to the given number of (wrapped) buffers
+	 * in the queue and also uses that number as upper limit.
 	 * 
 	 * @param wrapper the function that converts buffers to managed buffers
 	 * @param bufferFactory a function that creates a new buffer
@@ -79,9 +128,43 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 		this(wrapper, bufferFactory, buffers, buffers);
 	}
 
+	/**
+	 * Sets a name for this queue (to be used in status reports).
+	 * 
+	 * @param name the name
+	 * @return the object for easy chaining
+	 */
+	public ManagedBufferQueue<W, T> setName(String name) {
+		this.name = name;
+		return this;
+	}
+
+	/**
+	 * Returns the name of this queue.
+	 * 
+	 * @return the name
+	 */
+	public String name() {
+		return name;
+	}
+
+	/**
+	 * Sets the delay after which buffers are removed from
+	 * the queue.
+	 * 
+	 * @param delay the delay
+	 * @return the object for easy chaining
+	 */
+	public ManagedBufferQueue<W, T> setDrainDelay(long delay) {
+		this.drainDelay = delay;
+		return this;
+	}
+	
 	private W createBuffer() {
-		createdBufs += 1;
-		return wrapper.apply(this.bufferFactory.get(), this);
+		createdBufs.incrementAndGet();
+		W buffer = wrapper.apply(this.bufferFactory.get(), this);
+		bufferSize = buffer.capacity();
+		return buffer;
 	}
 
 	/**
@@ -90,6 +173,9 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @return the buffer size
 	 */
 	public int bufferSize() {
+		if (bufferSize < 0) {
+			recollect(createBuffer());
+		}
 		return bufferSize;
 	}
 
@@ -102,7 +188,11 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @throws InterruptedException if the current thread is interrupted
 	 */
 	public W acquire() throws InterruptedException {
-		if (queue.size() == 0 && createdBufs < maxBufs) {
+		if (createdBufs.get() < maximumBufs) {
+			W buffer = queue.poll();
+			if (buffer != null) {
+				return buffer;
+			}
 			return createBuffer();
 		}
 		return queue.take();
@@ -115,19 +205,34 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 */
 	@Override
 	public void recollect(ManagedBuffer<?> buffer) {
-		if (queue.size() < minBufs) {
-			// Enqueue
-			buffer.clear();
-			buffer.lockBuffer();
-			@SuppressWarnings("unchecked")
-			W buf = (W)buffer;
-			queue.add(buf);
-		} else {
-			// Discard
-			createdBufs -= 1;
+		if (queue.size() < preservedBufs) {
+			long effectiveDrainDelay 
+				= drainDelay > 0 ? drainDelay : defaultDrainDelay;
+			if (effectiveDrainDelay > 0) {
+				// Enqueue
+				buffer.clear();
+				buffer.lockBuffer();
+				@SuppressWarnings("unchecked")
+				W buf = (W)buffer;
+				queue.add(buf);
+				Timer old = idleTimer.getAndSet(Components.schedule(this::drain, 
+						Duration.ofMillis(effectiveDrainDelay)));
+				if (old != null) {
+					old.cancel();
+				}
+				return;
+			}
+		}
+		// Discard
+		createdBufs.decrementAndGet();
+	}
+	
+	private void drain(Instant scheduledFor) {
+		while(queue.poll() != null) {
+			createdBufs.decrementAndGet();
 		}
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -143,5 +248,183 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 		return builder.toString();
 	}
 	
+	/**
+	 * An MBean interface for getting information about the managed
+	 * buffer queues.
+	 */
+	public static interface ManagedBufferQueueMXBean {
+
+		/**
+		 * Information about a single managed queue.
+		 */
+		public static class QueueInfo {
+			private int created;
+			private int queued;
+			private int bufferSize;
+			
+			@ConstructorProperties({"created", "queued", "bufferSize"})
+			public QueueInfo(int created, int queued, int bufferSize) {
+				this.created = created;
+				this.queued = queued;
+				this.bufferSize = bufferSize;
+			}
+
+			/**
+			 * The number of buffers created by this queue.
+			 * 
+			 * @return the value
+			 */
+			public int getCreated() {
+				return created;
+			}
+
+			/**
+			 * The number of buffers queued (ready to be acquired).
+			 * 
+			 * @return the value
+			 */
+			public int getQueued() {
+				return queued;
+			}
+
+			/**
+			 * The size of the buffers in items.
+			 * 
+			 * @return
+			 */
+			public int getBufferSize() {
+				return bufferSize;
+			}
+		}
+
+		public static class QueueInfos {
+			private SortedMap<String,QueueInfo> allQueues;
+			private SortedMap<String,QueueInfo> queuingQueues;
+			private SortedMap<String,QueueInfo> nonEmptyQueues;
+
+			public QueueInfos(Set<ManagedBufferQueue<?, ?>> queues) {
+				allQueues = new TreeMap<>();
+				queuingQueues = new TreeMap<>();
+				nonEmptyQueues = new TreeMap<>();
+				
+				Map<String, Integer> dupsNext = new HashMap<>();
+				for (ManagedBufferQueue<?,?> mbq: queues) {
+					String key = mbq.name();
+					QueueInfo qi = new QueueInfo(
+							mbq.createdBufs.get(), mbq.queue.size(), mbq.bufferSize());
+					if (allQueues.containsKey(key) || dupsNext.containsKey(key)) {
+						if (allQueues.containsKey(key)) {
+							// Found first duplicate, rename
+							allQueues.put(key + "#1", allQueues.get(key));
+							allQueues.remove(key);
+							dupsNext.put(key, 2);
+						}
+						allQueues.put(key + "#"
+								+ (dupsNext.put(key, dupsNext.get(key) + 1)), qi);
+					} else {
+						allQueues.put(key, qi);
+					}
+				}
+				for (Map.Entry<String,QueueInfo> e: allQueues.entrySet()) {
+					QueueInfo qi = e.getValue();
+					if (qi.getQueued() > 0) {
+						queuingQueues.put(e.getKey(), qi);
+					}
+					if (qi.getCreated() > 0) {
+						nonEmptyQueues.put(e.getKey(), qi);
+					}
+				}
+			}
+			
+			public SortedMap<String, QueueInfo> getAllQueues() {
+				return allQueues;
+			}
+
+			public SortedMap<String, QueueInfo> getQueuingQueues() {
+				return queuingQueues;
+			}
+
+			public SortedMap<String, QueueInfo> getNonEmptyQueues() {
+				return nonEmptyQueues;
+			}
+		}
+		
+		/**
+		 * Set the default drain delay.
+		 * 
+		 * @param millis the drain delay in milli seconds
+		 */
+		void setDefaultDrainDelay(long millis);
+
+		/**
+		 * Returns the drain delay in milli seconds.
+		 * 
+		 * @return the value
+		 */
+		long getDefaultDrainDelay();
+
+		/**
+		 * Informations about the queues.
+		 * 
+		 * @return the map
+		 */
+		QueueInfos getQueueInfos();
+
+		/**
+		 * Summary information about the queued buffers.
+		 * 
+		 * @return the values
+		 */
+		IntSummaryStatistics getQueuedPerQueueStatistics();
+
+		/**
+		 * Summary information about the created buffers.
+		 * 
+		 * @return the values
+		 */
+		IntSummaryStatistics getCreatedPerQueueStatistics();
+	}
 	
+	public static class MBeanView implements ManagedBufferQueueMXBean {
+
+		@Override
+		public void setDefaultDrainDelay(long millis) {
+			ManagedBufferQueue.setDefaultDrainDelay(millis);
+		}
+
+		@Override
+		public long getDefaultDrainDelay() {
+			return ManagedBufferQueue.defaultDrainDelay();
+		}
+
+		
+		@Override
+		public QueueInfos getQueueInfos() {
+			return new QueueInfos(allQueues);
+		}
+
+		@Override
+		public IntSummaryStatistics getQueuedPerQueueStatistics() {
+			return allQueues.stream().collect(
+					Collectors.summarizingInt(mbq -> mbq.queue.size()));
+		}
+		
+		@Override
+		public IntSummaryStatistics getCreatedPerQueueStatistics() {
+			return allQueues.stream().collect(
+					Collectors.summarizingInt(mbq -> mbq.createdBufs.get()));
+		}
+	}
+	
+	static {
+		try {
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); 
+			ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="
+					+ ManagedBufferQueue.class.getSimpleName());
+			mbs.registerMBean(new MBeanView(), mxbeanName);
+		} catch (MalformedObjectNameException | InstanceAlreadyExistsException
+				| MBeanRegistrationException | NotCompliantMBeanException e) {
+			// Does not happen
+		}		
+	}
 }

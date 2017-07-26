@@ -40,6 +40,7 @@ import javax.net.ssl.SSLException;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
@@ -191,16 +192,20 @@ public class SslServer extends Component {
 				sslEngine = sslContext.createSSLEngine();
 			}
 			sslEngine.setUseClientMode(false);
-			
+
+			String channelName = Components.objectName(SslServer.this)
+					+ "." + Components.objectName(this);
 			// Create buffer pools, adding 50 to application buffer size, see 
 			// https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/samples/sslengine/SSLEngineSimpleDemo.java
 			int decBufSize = sslEngine.getSession()
 					.getApplicationBufferSize() + 50;
 			downstreamPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					() -> { return ByteBuffer.allocate(decBufSize); }, 2);
+					() -> { return ByteBuffer.allocate(decBufSize); }, 2)
+					.setName(channelName + ".downstream.buffers");
 			int encBufSize = sslEngine.getSession().getPacketBufferSize();
 			setByteBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer::new,
-					() -> { return ByteBuffer.allocate(encBufSize); }, 2));
+					() -> { return ByteBuffer.allocate(encBufSize); }, 2)
+					.setName(channelName + ".upstream.buffers"));
 		}
 		
 		public void sendDownstream(Input<ManagedByteBuffer> event)
