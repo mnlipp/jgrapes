@@ -22,8 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.PriorityQueue;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -308,8 +307,9 @@ public class Components {
 	 */
 	private static class Scheduler extends Thread {
 
-		private SortedSet<Timer> timers = new TreeSet<>(
-				Comparator.comparing(Timer::scheduledFor)); 
+		private PriorityQueue<Timer> timers 
+			= new PriorityQueue<>(10,
+					Comparator.comparing(Timer::scheduledFor)); 
 
 		public Scheduler() {
 			setName("Components.Scheduler");
@@ -339,12 +339,12 @@ public class Components {
 			while (true) {
 				Instant now = Instant.now();
 				synchronized (this) {
-					while (timers.size() > 0) {
-						final Timer first = timers.first();
-						if (first.scheduledFor().isAfter(now)) {
+					while (true) {
+						final Timer first = timers.peek();
+						if (first == null || first.scheduledFor().isAfter(now)) {
 							break;
 						}
-						timers.remove(first);
+						timers.poll();
 						new Thread(() -> first.timeoutHandler()
 								.timeout(first.scheduledFor())).start();
 					}
@@ -353,7 +353,7 @@ public class Components {
 							wait();
 						} else {
 							wait(Math.max(1, Duration.between(now, 
-									timers.first().scheduledFor()).toMillis()));
+									timers.peek().scheduledFor()).toMillis()));
 						}
 					} catch (Throwable e) {
 					}
