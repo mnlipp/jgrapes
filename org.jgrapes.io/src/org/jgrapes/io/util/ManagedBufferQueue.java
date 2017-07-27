@@ -186,7 +186,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 		for (Iterator<BufferMonitor> itr = monitoredBuffers.iterator(); 
 				itr.hasNext(); ) {
 			BufferMonitor monitor = itr.next();
-			if (buffer.equals(monitor.get())) {
+			if (buffer == monitor.get()) {
 				itr.remove();
 				break;
 			}
