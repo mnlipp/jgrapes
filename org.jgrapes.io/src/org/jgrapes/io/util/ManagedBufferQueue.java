@@ -20,12 +20,16 @@ package org.jgrapes.io.util;
 
 import java.beans.ConstructorProperties;
 import java.lang.management.ManagementFactory;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.nio.Buffer;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -37,6 +41,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javax.management.InstanceAlreadyExistsException;
@@ -55,15 +61,22 @@ import org.jgrapes.core.Components.Timer;
 public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	implements BufferCollector {
 
+	protected static final Logger logger 
+		= Logger.getLogger(ManagedBufferQueue.class.getName());
+	
 	private static long defaultDrainDelay = 1000;
 	private static Set<ManagedBufferQueue<?,?>> allQueues
 		= Collections.synchronizedSet(
 				Collections.newSetFromMap(
 						new WeakHashMap<ManagedBufferQueue<?, ?>, Boolean>()));
+	private static ReferenceQueue<ManagedBuffer<?>> orphanedBuffers 
+		= new ReferenceQueue<>();
 	
 	private String name = Components.objectName(this);
 	private BiFunction<T, BufferCollector,W> wrapper = null;
 	private Supplier<T> bufferFactory = null;
+	private List<BufferMonitor> monitoredBuffers
+		= Collections.synchronizedList(new LinkedList<>());
 	private BlockingQueue<W> queue;
 	private int bufferSize = -1;
 	private int preservedBufs;
@@ -71,7 +84,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	private AtomicInteger createdBufs;
 	private long drainDelay = -1;
 	private AtomicReference<Timer> idleTimer = new AtomicReference<>(null);
-	
+		
 	/**
 	 * Sets the default delay after which buffers are removed from
 	 * the queue.
@@ -163,10 +176,23 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	private W createBuffer() {
 		createdBufs.incrementAndGet();
 		W buffer = wrapper.apply(this.bufferFactory.get(), this);
+		monitoredBuffers.add(new BufferMonitor(buffer));
 		bufferSize = buffer.capacity();
 		return buffer;
 	}
 
+	private void removeBuffer(ManagedBuffer<?> buffer) {
+		createdBufs.decrementAndGet();
+		for (Iterator<BufferMonitor> itr = monitoredBuffers.iterator(); 
+				itr.hasNext(); ) {
+			BufferMonitor monitor = itr.next();
+			if (buffer.equals(monitor.get())) {
+				itr.remove();
+				break;
+			}
+		}
+	}
+	
 	/**
 	 * Returns the size of the buffers managed by this queue.
 	 * 
@@ -174,7 +200,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 */
 	public int bufferSize() {
 		if (bufferSize < 0) {
-			recollect(createBuffer());
+			createBuffer().unlockBuffer();
 		}
 		return bufferSize;
 	}
@@ -224,12 +250,17 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 			}
 		}
 		// Discard
-		createdBufs.decrementAndGet();
+		removeBuffer(buffer);
 	}
 	
-	private void drain(Instant scheduledFor) {
-		while(queue.poll() != null) {
-			createdBufs.decrementAndGet();
+	private void drain(Timer timer) {
+		idleTimer.set(null);
+		while(true) {
+			ManagedBuffer<?> buffer = queue.poll();
+			if (buffer == null) {
+				break;
+			}
+			removeBuffer(buffer);
 		}
 	}
 	
@@ -246,6 +277,72 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 		}
 		builder.append("]");
 		return builder.toString();
+	}
+
+	private class BufferMonitor extends WeakReference<ManagedBuffer<?>> {
+
+		private StackTraceElement[] createdBy;
+		
+		public BufferMonitor(ManagedBuffer<?> referent) {
+			super(referent, orphanedBuffers);
+			if (logger.isLoggable(Level.FINE)) {
+				createdBy = Thread.currentThread().getStackTrace();
+			}
+		}
+
+		public ManagedBufferQueue<?, ?> manager() {
+			return ManagedBufferQueue.this;
+		}
+		
+		public StackTraceElement[] createdBy() {
+			return createdBy;
+		}
+	}
+	
+	private static class OrphanedCollector extends Thread {
+		
+		public OrphanedCollector() {
+			setName(ManagedBufferQueue.class.getSimpleName() + ".Collector");
+			setDaemon(true);
+			start();
+		}
+
+		@Override
+		public void run() {
+			while(true) {
+				try {
+					@SuppressWarnings("rawtypes")
+					ManagedBufferQueue.BufferMonitor monitor 
+						= (ManagedBufferQueue.BufferMonitor)orphanedBuffers
+							.remove();
+					ManagedBufferQueue<?,?> mbq = monitor.manager();
+					// Managed buffer has not been properly recollected, fix.
+					mbq.monitoredBuffers.remove(monitor);
+					mbq.createdBufs.decrementAndGet();
+					// Create warning
+					if (logger.isLoggable(Level.WARNING)) {
+						final StringBuilder msg = new StringBuilder(
+								"Orphaned buffer from queue " + mbq.name());
+						StackTraceElement[] st = monitor.createdBy();
+						if (st != null) {
+							msg.append(", created");
+							for (StackTraceElement e: st) {
+								msg.append(System.lineSeparator());
+								msg.append("\tat ");
+								msg.append(e.toString());
+							}
+						}
+						logger.warning(msg.toString());
+					}
+				} catch (InterruptedException e) {
+					break;
+				}
+			}
+		}
+	}
+	
+	static {
+		new OrphanedCollector();
 	}
 	
 	/**
@@ -297,6 +394,9 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 			}
 		}
 
+		/**
+		 * Three views on the existing queues.
+		 */
 		public static class QueueInfos {
 			private SortedMap<String,QueueInfo> allQueues;
 			private SortedMap<String,QueueInfo> queuingQueues;
@@ -336,14 +436,25 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 				}
 			}
 			
+			/**
+			 * All queues.
+			 */
 			public SortedMap<String, QueueInfo> getAllQueues() {
 				return allQueues;
 			}
 
+			/**
+			 * Queues that have at least managed buffer enqueued
+			 * (ready to be acquired).
+			 */
 			public SortedMap<String, QueueInfo> getQueuingQueues() {
 				return queuingQueues;
 			}
 
+			/**
+			 * Queues that have at least one associated buffer
+			 * (enqueued or in use).
+			 */
 			public SortedMap<String, QueueInfo> getNonEmptyQueues() {
 				return nonEmptyQueues;
 			}
@@ -385,7 +496,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 		IntSummaryStatistics getCreatedPerQueueStatistics();
 	}
 	
-	public static class MBeanView implements ManagedBufferQueueMXBean {
+	private static class MBeanView implements ManagedBufferQueueMXBean {
 
 		@Override
 		public void setDefaultDrainDelay(long millis) {
