@@ -257,7 +257,7 @@ public class Components {
 		 * 
 		 * @param scheduledFor the time that the handler was scheduled for
 		 */
-		void timeout(Instant scheduledFor);
+		void timeout(Timer timer);
 	}
 
 	/**
@@ -346,7 +346,7 @@ public class Components {
 						}
 						timers.poll();
 						new Thread(() -> first.timeoutHandler()
-								.timeout(first.scheduledFor())).start();
+								.timeout(first)).start();
 					}
 					try {
 						if (timers.size() == 0) {
