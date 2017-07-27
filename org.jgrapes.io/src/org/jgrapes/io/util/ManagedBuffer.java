@@ -60,6 +60,15 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * Return the buffer's manager.
+	 * 
+	 * @return the manager
+	 */
+	public BufferCollector manager() {
+		return manager;
+	}
+	
+	/**
 	 * Increases the buffer's lock count.
 	 * 
 	 * @return the managed buffer for easy chaining
