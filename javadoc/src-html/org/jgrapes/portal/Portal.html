@@ -179,42 +179,43 @@
 <span class="sourceLineNo">171</span>                }<a name="line.171"></a>
 <span class="sourceLineNo">172</span>                case "renderPortlet": {<a name="line.172"></a>
 <span class="sourceLineNo">173</span>                        fire(new RenderPortletRequest(view.renderSupport(), params.getString(0),<a name="line.173"></a>
-<span class="sourceLineNo">174</span>                                        RenderMode.valueOf(params.getString(1))), channel);<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                        break;<a name="line.175"></a>
-<span class="sourceLineNo">176</span>                }<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                case "retrievedData": {<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                        String path = params.getString(0);<a name="line.178"></a>
-<span class="sourceLineNo">179</span>                        if (!path.startsWith(prefix.getPath())) {<a name="line.179"></a>
-<span class="sourceLineNo">180</span>                                return;<a name="line.180"></a>
-<span class="sourceLineNo">181</span>                        }<a name="line.181"></a>
-<span class="sourceLineNo">182</span>                        path = path.substring(prefix.getPath().length());<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                        String value = null;<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                        if (!params.isNull(1)) {<a name="line.184"></a>
-<span class="sourceLineNo">185</span>                                value = params.getString(1);<a name="line.185"></a>
-<span class="sourceLineNo">186</span>                        }<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                        fire(new DataRetrieved(path, value), channel);<a name="line.187"></a>
-<span class="sourceLineNo">188</span>                        break;<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                }<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                case "setLocale": {<a name="line.190"></a>
-<span class="sourceLineNo">191</span>                        fire(new SetLocale(Locale.forLanguageTag(params.getString(0))),<a name="line.191"></a>
-<span class="sourceLineNo">192</span>                                        channel);<a name="line.192"></a>
-<span class="sourceLineNo">193</span>                        break;<a name="line.193"></a>
-<span class="sourceLineNo">194</span>                }<a name="line.194"></a>
-<span class="sourceLineNo">195</span>                case "setTheme": {<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                        fire(new SetTheme(params.getString(0)), channel);<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                        break;<a name="line.197"></a>
-<span class="sourceLineNo">198</span>                }<a name="line.198"></a>
-<span class="sourceLineNo">199</span>                case "sendToPortlet": {<a name="line.199"></a>
-<span class="sourceLineNo">200</span>                        fire(new NotifyPortletModel(view.renderSupport(), params.getString(0),<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                                        params.getString(1), params.size() &lt;= 2<a name="line.201"></a>
-<span class="sourceLineNo">202</span>                                        ? JsonValue.EMPTY_JSON_ARRAY : params.getJsonArray(2)),<a name="line.202"></a>
-<span class="sourceLineNo">203</span>                                        channel);<a name="line.203"></a>
-<span class="sourceLineNo">204</span>                        break;<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                }<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                }               <a name="line.206"></a>
-<span class="sourceLineNo">207</span>        }<a name="line.207"></a>
-<span class="sourceLineNo">208</span>        <a name="line.208"></a>
-<span class="sourceLineNo">209</span>}<a name="line.209"></a>
+<span class="sourceLineNo">174</span>                                        RenderMode.valueOf(params.getString(1)),<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                                        params.getBoolean(2)), channel);<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                        break;<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                }<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                case "retrievedData": {<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                        String path = params.getString(0);<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                        if (!path.startsWith(prefix.getPath())) {<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                                return;<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                        }<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                        path = path.substring(prefix.getPath().length());<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                        String value = null;<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                        if (!params.isNull(1)) {<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                                value = params.getString(1);<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                        }<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                        fire(new DataRetrieved(path, value), channel);<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                        break;<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                }<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                case "setLocale": {<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                        fire(new SetLocale(Locale.forLanguageTag(params.getString(0))),<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                                        channel);<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                        break;<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                }<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                case "setTheme": {<a name="line.196"></a>
+<span class="sourceLineNo">197</span>                        fire(new SetTheme(params.getString(0)), channel);<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                        break;<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                }<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                case "sendToPortlet": {<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                        fire(new NotifyPortletModel(view.renderSupport(), params.getString(0),<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                                        params.getString(1), params.size() &lt;= 2<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                                        ? JsonValue.EMPTY_JSON_ARRAY : params.getJsonArray(2)),<a name="line.203"></a>
+<span class="sourceLineNo">204</span>                                        channel);<a name="line.204"></a>
+<span class="sourceLineNo">205</span>                        break;<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                }<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                }               <a name="line.207"></a>
+<span class="sourceLineNo">208</span>        }<a name="line.208"></a>
+<span class="sourceLineNo">209</span>        <a name="line.209"></a>
+<span class="sourceLineNo">210</span>}<a name="line.210"></a>
 
 
 
