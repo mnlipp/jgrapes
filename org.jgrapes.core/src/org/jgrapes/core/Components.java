@@ -255,7 +255,7 @@ public class Components {
 		/**
 		 * Invoked when the timeout occurs.
 		 * 
-		 * @param scheduledFor the time that the handler was scheduled for
+		 * @param timer the timer that has timed out and needs handling
 		 */
 		void timeout(Timer timer);
 	}

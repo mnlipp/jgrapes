@@ -442,7 +442,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			/**
 			 * The size of the buffers in items.
 			 * 
-			 * @return
+			 * @return the buffer size
 			 */
 			public int getBufferSize() {
 				return bufferSize;
