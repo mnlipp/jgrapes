@@ -539,7 +539,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		 * 
 		 * @return the values
 		 */
-		IntSummaryStatistics getInPoolPerPoolStatistics();
+		IntSummaryStatistics getPooledPerPoolStatistics();
 
 		/**
 		 * Summary information about the created buffers.
@@ -577,7 +577,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		}
 
 		@Override
-		public IntSummaryStatistics getInPoolPerPoolStatistics() {
+		public IntSummaryStatistics getPooledPerPoolStatistics() {
 			return allPools.stream().collect(
 					Collectors.summarizingInt(mbp -> mbp.queue.size()));
 		}
