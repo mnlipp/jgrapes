@@ -91,10 +91,6 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		= Logger.getLogger(ManagedBufferPool.class.getName());
 	
 	private static long defaultDrainDelay = 1000;
-	private static Set<ManagedBufferPool<?,?>> allQueues
-		= Collections.synchronizedSet(
-				Collections.newSetFromMap(
-						new WeakHashMap<ManagedBufferPool<?, ?>, Boolean>()));
 	
 	private String name = Components.objectName(this);
 	private BiFunction<T, BufferCollector,W> wrapper = null;
@@ -110,7 +106,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		
 	/**
 	 * Sets the default delay after which buffers are removed from
-	 * the queue.
+	 * the pool.
 	 * 
 	 * @param delay the delay
 	 */
@@ -129,15 +125,15 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	
 	/**
 	 * Create a pool that contains a varying number of (wrapped) buffers.
-	 * The queue is initially empty. When buffers are requested and none 
-	 * are left in the queue, new buffers are created up to the given 
-	 * upper limit. Recollected buffers are put in the queue until it holds
+	 * The pool is initially empty. When buffers are requested and none 
+	 * are left in the pool, new buffers are created up to the given 
+	 * upper limit. Recollected buffers are put in the pool until it holds
 	 * the number specified by the lower threshold. Any additional 
 	 * recollected buffers are discarded. 
 	 * 
 	 * @param wrapper the function that converts buffers to managed buffers
 	 * @param bufferFactory a function that creates a new buffer
-	 * @param lowerThreshold the number of buffers kept in the queue
+	 * @param lowerThreshold the number of buffers kept in the pool
 	 * @param upperLimit the maximum number of buffers
 	 */
 	public ManagedBufferPool(BiFunction<T,BufferCollector, W> wrapper, 
@@ -148,12 +144,12 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		maximumBufs = upperLimit;
 		createdBufs = new AtomicInteger();
 		queue = new ArrayBlockingQueue<W>(lowerThreshold);
-		allQueues.add(this);
+		MBeanView.addPool(this);
 	}
 
 	/**
 	 * Create a pool that keeps up to the given number of (wrapped) buffers
-	 * in the queue and also uses that number as upper limit.
+	 * in the pool and also uses that number as upper limit.
 	 * 
 	 * @param wrapper the function that converts buffers to managed buffers
 	 * @param bufferFactory a function that creates a new buffer
@@ -165,7 +161,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	}
 
 	/**
-	 * Sets a name for this queue (to be used in status reports).
+	 * Sets a name for this pool (to be used in status reports).
 	 * 
 	 * @param name the name
 	 * @return the object for easy chaining
@@ -176,7 +172,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	}
 
 	/**
-	 * Returns the name of this queue.
+	 * Returns the name of this pool.
 	 * 
 	 * @return the name
 	 */
@@ -186,7 +182,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 
 	/**
 	 * Sets the delay after which buffers are removed from
-	 * the queue.
+	 * the pool.
 	 * 
 	 * @param delay the delay
 	 * @return the object for easy chaining
@@ -229,13 +225,13 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 				}
 			}
 			if (!found) {
-				logger.warning("Attempt to remove unknown buffer from queue.");
+				logger.warning("Attempt to remove unknown buffer from pool.");
 			}
 		}
 	}
 	
 	/**
-	 * Returns the size of the buffers managed by this queue.
+	 * Returns the size of the buffers managed by this pool.
 	 * 
 	 * @return the buffer size
 	 */
@@ -370,14 +366,14 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 					ManagedBufferPool.BufferMonitor monitor 
 						= (ManagedBufferPool.BufferMonitor)orphanedBuffers
 							.remove();
-					ManagedBufferPool<?,?> mbq = monitor.manager();
+					ManagedBufferPool<?,?> mbp = monitor.manager();
 					// Managed buffer has not been properly recollected, fix.
-					mbq.monitoredBuffers.remove(monitor);
-					mbq.createdBufs.decrementAndGet();
+					mbp.monitoredBuffers.remove(monitor);
+					mbp.createdBufs.decrementAndGet();
 					// Create warning
 					if (logger.isLoggable(Level.WARNING)) {
 						final StringBuilder msg = new StringBuilder(
-								"Orphaned buffer from queue " + mbq.name());
+								"Orphaned buffer from pool " + mbp.name());
 						StackTraceElement[] st = monitor.createdBy();
 						if (st != null) {
 							msg.append(", created");
@@ -402,27 +398,29 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	
 	/**
 	 * An MBean interface for getting information about the managed
-	 * buffer queues.
+	 * buffer pools. Note that created buffer pools are tracked using
+	 * weak references. Therefore, the MBean may report more pools than
+	 * are really in use. 
 	 */
-	public static interface ManagedBufferQueueMXBean {
+	public static interface ManagedBufferPoolMXBean {
 
 		/**
-		 * Information about a single managed queue.
+		 * Information about a single managed pool.
 		 */
-		public static class QueueInfo {
+		public static class PoolInfo {
 			private int created;
-			private int queued;
+			private int pooled;
 			private int bufferSize;
 			
-			@ConstructorProperties({"created", "queued", "bufferSize"})
-			public QueueInfo(int created, int queued, int bufferSize) {
+			@ConstructorProperties({"created", "pooled", "bufferSize"})
+			public PoolInfo(int created, int pooled, int bufferSize) {
 				this.created = created;
-				this.queued = queued;
+				this.pooled = pooled;
 				this.bufferSize = bufferSize;
 			}
 
 			/**
-			 * The number of buffers created by this queue.
+			 * The number of buffers created by this pool.
 			 * 
 			 * @return the value
 			 */
@@ -431,12 +429,12 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			}
 
 			/**
-			 * The number of buffers queued (ready to be acquired).
+			 * The number of buffers pooled (ready to be acquired).
 			 * 
 			 * @return the value
 			 */
-			public int getQueued() {
-				return queued;
+			public int getPooled() {
+				return pooled;
 			}
 
 			/**
@@ -450,68 +448,68 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		}
 
 		/**
-		 * Three views on the existing queues.
+		 * Three views on the existing pool.
 		 */
-		public static class QueueInfos {
-			private SortedMap<String,QueueInfo> allQueues;
-			private SortedMap<String,QueueInfo> queuingQueues;
-			private SortedMap<String,QueueInfo> nonEmptyQueues;
+		public static class PoolInfos {
+			private SortedMap<String,PoolInfo> allPools;
+			private SortedMap<String,PoolInfo> nonEmptyPools;
+			private SortedMap<String,PoolInfo> usedPools;
 
-			public QueueInfos(Set<ManagedBufferPool<?, ?>> queues) {
-				allQueues = new TreeMap<>();
-				queuingQueues = new TreeMap<>();
-				nonEmptyQueues = new TreeMap<>();
+			public PoolInfos(Set<ManagedBufferPool<?, ?>> pools) {
+				allPools = new TreeMap<>();
+				nonEmptyPools = new TreeMap<>();
+				usedPools = new TreeMap<>();
 				
 				Map<String, Integer> dupsNext = new HashMap<>();
-				for (ManagedBufferPool<?,?> mbq: queues) {
-					String key = mbq.name();
-					QueueInfo qi = new QueueInfo(
-							mbq.createdBufs.get(), mbq.queue.size(), mbq.bufferSize());
-					if (allQueues.containsKey(key) || dupsNext.containsKey(key)) {
-						if (allQueues.containsKey(key)) {
+				for (ManagedBufferPool<?,?> mbp: pools) {
+					String key = mbp.name();
+					PoolInfo qi = new PoolInfo(
+							mbp.createdBufs.get(), mbp.queue.size(), mbp.bufferSize());
+					if (allPools.containsKey(key) || dupsNext.containsKey(key)) {
+						if (allPools.containsKey(key)) {
 							// Found first duplicate, rename
-							allQueues.put(key + "#1", allQueues.get(key));
-							allQueues.remove(key);
+							allPools.put(key + "#1", allPools.get(key));
+							allPools.remove(key);
 							dupsNext.put(key, 2);
 						}
-						allQueues.put(key + "#"
+						allPools.put(key + "#"
 								+ (dupsNext.put(key, dupsNext.get(key) + 1)), qi);
 					} else {
-						allQueues.put(key, qi);
+						allPools.put(key, qi);
 					}
 				}
-				for (Map.Entry<String,QueueInfo> e: allQueues.entrySet()) {
-					QueueInfo qi = e.getValue();
-					if (qi.getQueued() > 0) {
-						queuingQueues.put(e.getKey(), qi);
+				for (Map.Entry<String,PoolInfo> e: allPools.entrySet()) {
+					PoolInfo qi = e.getValue();
+					if (qi.getPooled() > 0) {
+						nonEmptyPools.put(e.getKey(), qi);
 					}
 					if (qi.getCreated() > 0) {
-						nonEmptyQueues.put(e.getKey(), qi);
+						usedPools.put(e.getKey(), qi);
 					}
 				}
 			}
 			
 			/**
-			 * All queues.
+			 * All pools.
 			 */
-			public SortedMap<String, QueueInfo> getAllQueues() {
-				return allQueues;
+			public SortedMap<String, PoolInfo> getAllPools() {
+				return allPools;
 			}
 
 			/**
-			 * Queues that have at least managed buffer enqueued
+			 * Pools that have at least managed buffer enqueued
 			 * (ready to be acquired).
 			 */
-			public SortedMap<String, QueueInfo> getQueuingQueues() {
-				return queuingQueues;
+			public SortedMap<String, PoolInfo> getNonEmptyPools() {
+				return nonEmptyPools;
 			}
 
 			/**
-			 * Queues that have at least one associated buffer
-			 * (enqueued or in use).
+			 * Pools that have at least one associated buffer
+			 * (in pool or in use).
 			 */
-			public SortedMap<String, QueueInfo> getNonEmptyQueues() {
-				return nonEmptyQueues;
+			public SortedMap<String, PoolInfo> getUsedPools() {
+				return usedPools;
 			}
 		}
 		
@@ -530,29 +528,38 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		long getDefaultDrainDelay();
 
 		/**
-		 * Informations about the queues.
+		 * Informations about the pools.
 		 * 
 		 * @return the map
 		 */
-		QueueInfos getQueueInfos();
+		PoolInfos getPoolInfos();
 
 		/**
-		 * Summary information about the queued buffers.
+		 * Summary information about the pooled buffers.
 		 * 
 		 * @return the values
 		 */
-		IntSummaryStatistics getQueuedPerQueueStatistics();
+		IntSummaryStatistics getInPoolPerPoolStatistics();
 
 		/**
 		 * Summary information about the created buffers.
 		 * 
 		 * @return the values
 		 */
-		IntSummaryStatistics getCreatedPerQueueStatistics();
+		IntSummaryStatistics getCreatedPerPoolStatistics();
 	}
 	
-	private static class MBeanView implements ManagedBufferQueueMXBean {
+	private static class MBeanView implements ManagedBufferPoolMXBean {
 
+		private static Set<ManagedBufferPool<?,?>> allPools
+			= Collections.synchronizedSet(
+				Collections.newSetFromMap(
+						new WeakHashMap<ManagedBufferPool<?, ?>, Boolean>()));
+
+		public static void addPool(ManagedBufferPool<?, ?> pool) {
+			allPools.add(pool);
+		}
+		
 		@Override
 		public void setDefaultDrainDelay(long millis) {
 			ManagedBufferPool.setDefaultDrainDelay(millis);
@@ -565,20 +572,20 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 
 		
 		@Override
-		public QueueInfos getQueueInfos() {
-			return new QueueInfos(allQueues);
+		public PoolInfos getPoolInfos() {
+			return new PoolInfos(allPools);
 		}
 
 		@Override
-		public IntSummaryStatistics getQueuedPerQueueStatistics() {
-			return allQueues.stream().collect(
-					Collectors.summarizingInt(mbq -> mbq.queue.size()));
+		public IntSummaryStatistics getInPoolPerPoolStatistics() {
+			return allPools.stream().collect(
+					Collectors.summarizingInt(mbp -> mbp.queue.size()));
 		}
 		
 		@Override
-		public IntSummaryStatistics getCreatedPerQueueStatistics() {
-			return allQueues.stream().collect(
-					Collectors.summarizingInt(mbq -> mbq.createdBufs.get()));
+		public IntSummaryStatistics getCreatedPerPoolStatistics() {
+			return allPools.stream().collect(
+					Collectors.summarizingInt(mbp -> mbp.createdBufs.get()));
 		}
 	}
 	
