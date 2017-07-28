@@ -69,14 +69,11 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 		= Collections.synchronizedSet(
 				Collections.newSetFromMap(
 						new WeakHashMap<ManagedBufferQueue<?, ?>, Boolean>()));
-	private static ReferenceQueue<ManagedBuffer<?>> orphanedBuffers 
-		= new ReferenceQueue<>();
 	
 	private String name = Components.objectName(this);
 	private BiFunction<T, BufferCollector,W> wrapper = null;
 	private Supplier<T> bufferFactory = null;
-	private List<BufferMonitor> monitoredBuffers
-		= Collections.synchronizedList(new LinkedList<>());
+	private Map<Integer,List<BufferMonitor>> monitoredBuffers = new HashMap<>();
 	private BlockingQueue<W> queue;
 	private int bufferSize = -1;
 	private int preservedBufs;
@@ -176,19 +173,37 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	private W createBuffer() {
 		createdBufs.incrementAndGet();
 		W buffer = wrapper.apply(this.bufferFactory.get(), this);
-		monitoredBuffers.add(new BufferMonitor(buffer));
+		BufferMonitor monitor = new BufferMonitor(buffer);
+		synchronized (monitoredBuffers) {
+			monitoredBuffers.computeIfAbsent(System.identityHashCode(buffer), 
+					key -> new LinkedList<>()).add(monitor);
+		}
 		bufferSize = buffer.capacity();
 		return buffer;
 	}
 
 	private void removeBuffer(ManagedBuffer<?> buffer) {
 		createdBufs.decrementAndGet();
-		for (Iterator<BufferMonitor> itr = monitoredBuffers.iterator(); 
-				itr.hasNext(); ) {
-			BufferMonitor monitor = itr.next();
-			if (buffer == monitor.get()) {
-				itr.remove();
-				break;
+		synchronized (monitoredBuffers) {
+			int hashCode = System.identityHashCode(buffer);
+			List<BufferMonitor> candidates = monitoredBuffers.get(hashCode);
+			boolean found = false;
+			if (candidates != null) {
+				for (Iterator<BufferMonitor> itr = candidates.iterator(); 
+					itr.hasNext(); ) {
+					BufferMonitor monitor = itr.next();
+					if (buffer == monitor.get()) {
+						itr.remove();
+						found = true;
+						break;
+					}
+				}
+				if (candidates.isEmpty()) {
+					monitoredBuffers.remove(hashCode);
+				}
+			}
+			if (!found) {
+				logger.warning("Attempt to remove unknown buffer from queue.");
 			}
 		}
 	}
@@ -279,12 +294,24 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 		return builder.toString();
 	}
 
+	/**
+	 * Identifying leaking buffers, i.e. buffers that are not properly 
+	 * returned to the pool is possibly one of the biggest debug problems. 
+	 * Therefore, all buffers handed out are tracked using this class, 
+	 * essentially a weak reference. Instances are created for each 
+	 * buffer and removed when the buffer is returned to the pool.
+	 * 
+	 * If the weak reference is collected by the garbage collector,
+	 * this means that the buffer has not been returned. This condition
+	 * is watched for by the {@link OrphanedCollector} and produces
+	 * a warning.
+	 */
 	private class BufferMonitor extends WeakReference<ManagedBuffer<?>> {
 
 		private StackTraceElement[] createdBy;
 		
 		public BufferMonitor(ManagedBuffer<?> referent) {
-			super(referent, orphanedBuffers);
+			super(referent, OrphanedCollector.orphanedBuffers);
 			if (logger.isLoggable(Level.FINE)) {
 				createdBy = Thread.currentThread().getStackTrace();
 			}
@@ -300,6 +327,9 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	}
 	
 	private static class OrphanedCollector extends Thread {
+		
+		private static ReferenceQueue<ManagedBuffer<?>> orphanedBuffers 
+			= new ReferenceQueue<>();
 		
 		public OrphanedCollector() {
 			setName(ManagedBufferQueue.class.getSimpleName() + ".Collector");
