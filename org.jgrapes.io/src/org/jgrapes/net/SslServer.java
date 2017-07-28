@@ -49,7 +49,7 @@ import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
-import org.jgrapes.io.util.ManagedBufferQueue;
+import org.jgrapes.io.util.ManagedBufferPool;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.events.Accepted;
 
@@ -176,7 +176,7 @@ public class SslServer extends Component {
 		public SocketAddress localAddress;
 		public SocketAddress remoteAddress;
 		public SSLEngine sslEngine;
-		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> downstreamPool;
+		private ManagedBufferPool<ManagedByteBuffer, ByteBuffer> downstreamPool;
 		private boolean isInputClosed = false;
 		private ByteBuffer carryOver = null;
 
@@ -199,11 +199,11 @@ public class SslServer extends Component {
 			// https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/samples/sslengine/SSLEngineSimpleDemo.java
 			int decBufSize = sslEngine.getSession()
 					.getApplicationBufferSize() + 50;
-			downstreamPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,
+			downstreamPool = new ManagedBufferPool<>(ManagedByteBuffer::new,
 					() -> { return ByteBuffer.allocate(decBufSize); }, 2)
 					.setName(channelName + ".downstream.buffers");
 			int encBufSize = sslEngine.getSession().getPacketBufferSize();
-			setByteBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer::new,
+			setByteBufferPool(new ManagedBufferPool<>(ManagedByteBuffer::new,
 					() -> { return ByteBuffer.allocate(encBufSize); }, 2)
 					.setName(channelName + ".upstream.buffers"));
 		}

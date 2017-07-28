@@ -31,7 +31,7 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
-import org.jgrapes.io.util.ManagedBufferQueue;
+import org.jgrapes.io.util.ManagedBufferPool;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.ManagedCharBuffer;
 
@@ -103,14 +103,14 @@ public interface IOSubchannel extends Channel, Associator {
 	 * 
 	 * @return the buffer pool
 	 */
-	public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> byteBufferPool();
+	public ManagedBufferPool<ManagedByteBuffer, ByteBuffer> byteBufferPool();
 	
 	/**
 	 * Get the subchannel's char buffer pool.
 	 * 
 	 * @return the buffer pool
 	 */
-	public ManagedBufferQueue<ManagedCharBuffer, CharBuffer> charBufferPool();
+	public ManagedBufferPool<ManagedCharBuffer, CharBuffer> charBufferPool();
 	
 	/**
 	 * Fires the given event on this subchannel using the subchannel's response
@@ -157,8 +157,8 @@ public interface IOSubchannel extends Channel, Associator {
 	public static class DefaultSubchannel implements IOSubchannel {
 		private Channel mainChannel;
 		private EventPipeline responsePipeline;
-		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> byteBufferPool;
-		private ManagedBufferQueue<ManagedCharBuffer, CharBuffer> charBufferPool;
+		private ManagedBufferPool<ManagedByteBuffer, ByteBuffer> byteBufferPool;
+		private ManagedBufferPool<ManagedCharBuffer, CharBuffer> charBufferPool;
 		private Map<Object,Object> contextData = null;
 		
 		/**
@@ -188,12 +188,12 @@ public interface IOSubchannel extends Channel, Associator {
 		}
 
 		protected void setByteBufferPool(
-				ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> bufferPool) {
+				ManagedBufferPool<ManagedByteBuffer, ByteBuffer> bufferPool) {
 			this.byteBufferPool = bufferPool;
 		}
 		
 		protected void setCharBufferPool(
-				ManagedBufferQueue<ManagedCharBuffer, CharBuffer> bufferPool) {
+				ManagedBufferPool<ManagedCharBuffer, CharBuffer> bufferPool) {
 			this.charBufferPool = bufferPool;
 		}
 		
@@ -217,9 +217,9 @@ public interface IOSubchannel extends Channel, Associator {
 		 * Returns the buffer pool set. If no buffer pool has been set, a
 		 * buffer pool with with two buffers of size 4096 is created.
 		 */
-		public ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> byteBufferPool() {
+		public ManagedBufferPool<ManagedByteBuffer, ByteBuffer> byteBufferPool() {
 			if (byteBufferPool == null) {
-				byteBufferPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,
+				byteBufferPool = new ManagedBufferPool<>(ManagedByteBuffer::new,
 						() -> { return ByteBuffer.allocate(4096); }, 2)
 						.setName(Components.objectName(this)
 								+ ".upstream.byteBuffers");
@@ -231,9 +231,9 @@ public interface IOSubchannel extends Channel, Associator {
 		 * Returns the buffer pool set. If no buffer pool has been set, a
 		 * buffer pool with with two buffers of size 4096 is created.
 		 */
-		public ManagedBufferQueue<ManagedCharBuffer, CharBuffer> charBufferPool() {
+		public ManagedBufferPool<ManagedCharBuffer, CharBuffer> charBufferPool() {
 			if (charBufferPool == null) {
-				charBufferPool = new ManagedBufferQueue<>(ManagedCharBuffer::new,
+				charBufferPool = new ManagedBufferPool<>(ManagedCharBuffer::new,
 						() -> { return CharBuffer.allocate(4096); }, 2)
 						.setName(Components.objectName(this)
 								+ ".upstream.charBuffers");

@@ -69,7 +69,7 @@ import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
-import org.jgrapes.io.util.ManagedBufferQueue;
+import org.jgrapes.io.util.ManagedBufferPool;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.net.TcpServer;
@@ -404,9 +404,9 @@ public class HttpServer extends Component {
 		private ManagedByteBuffer outBuffer;
 		private boolean secure;
 		private List<String> snis = Collections.emptyList();
-		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> byteBufferPool;
-		private ManagedBufferQueue<ManagedCharBuffer, CharBuffer> charBufferPool;
-		private ManagedBufferQueue<?, ?> currentPool = null;
+		private ManagedBufferPool<ManagedByteBuffer, ByteBuffer> byteBufferPool;
+		private ManagedBufferPool<ManagedCharBuffer, CharBuffer> charBufferPool;
+		private ManagedBufferPool<?, ?> currentPool = null;
 		private boolean switchedToWebSocket = false;
 		private WsMessageHeader currentWsMessage = null;
 
@@ -442,10 +442,10 @@ public class HttpServer extends Component {
 			// delivered in independent events. Therefore provide some 
 			// additional buffers.
 			final int bufSize = bufferSize;
-			byteBufferPool = new ManagedBufferQueue<>(ManagedByteBuffer::new,	
+			byteBufferPool = new ManagedBufferPool<>(ManagedByteBuffer::new,	
 					() -> { return ByteBuffer.allocate(bufSize); }, 2, 100)
 					.setName(channelName + ".downstream.byteBuffers");
-			charBufferPool = new ManagedBufferQueue<>(ManagedCharBuffer::new,	
+			charBufferPool = new ManagedBufferPool<>(ManagedCharBuffer::new,	
 					() -> { return CharBuffer.allocate(bufSize); }, 2, 100)
 					.setName(channelName + ".downstream.charBuffers");
 		}

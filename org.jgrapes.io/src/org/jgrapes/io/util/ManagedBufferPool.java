@@ -54,21 +54,47 @@ import javax.management.ObjectName;
 
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Components.Timer;
+import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.events.Output;
 
 /**
- * A queue based buffer pool.
+ * A queue based buffer pool. Using buffers from a pool is an important
+ * feature for limiting the computational resources for an {@link IOSubchannel}.
+ * A producer of {@link Output} events that simply creates its own buffers
+ * may produce and enqueue a large number of events that are not consumed
+ * as fast as they are produced. 
+ * 
+ * Using a buffer pool with a typical size of two synchronizes the 
+ * producer and the consumers of events nicely. The producer
+ * (thread) holds one buffer and fills it, the consumer (thread) holds 
+ * the other buffer and works with its content. If the producer finishes
+ * before the consumer, it has to stop until the consumer has processed 
+ * previous event and releases the buffer. The consumer can continue
+ * without delay, because the data has already been prepared and enqueued
+ * as the next event.
+ * 
+ * One of the biggest problems when using a pool can be to identify 
+ * leaking buffers, i.e. buffers that are not properly returned to the pool.
+ * This implementation therefore tracks all created buffers 
+ * (with a small overhead) and logs a warning if a buffer is no longer
+ * used (referenced) but has not been returned to the pool. If the
+ * log level for {@link ManagedBufferPool} is set to {@link Level#FINE},
+ * the warning also includes a stack trace of the call to {@link #acquire()}
+ * that handed out the buffer. Providing this information in addition 
+ * obviously requires a larger overhead and is therefore limited to the
+ * finer log levels.  
  */
-public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
+public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	implements BufferCollector {
 
 	protected static final Logger logger 
-		= Logger.getLogger(ManagedBufferQueue.class.getName());
+		= Logger.getLogger(ManagedBufferPool.class.getName());
 	
 	private static long defaultDrainDelay = 1000;
-	private static Set<ManagedBufferQueue<?,?>> allQueues
+	private static Set<ManagedBufferPool<?,?>> allQueues
 		= Collections.synchronizedSet(
 				Collections.newSetFromMap(
-						new WeakHashMap<ManagedBufferQueue<?, ?>, Boolean>()));
+						new WeakHashMap<ManagedBufferPool<?, ?>, Boolean>()));
 	
 	private String name = Components.objectName(this);
 	private BiFunction<T, BufferCollector,W> wrapper = null;
@@ -114,7 +140,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @param lowerThreshold the number of buffers kept in the queue
 	 * @param upperLimit the maximum number of buffers
 	 */
-	public ManagedBufferQueue(BiFunction<T,BufferCollector, W> wrapper, 
+	public ManagedBufferPool(BiFunction<T,BufferCollector, W> wrapper, 
 			Supplier<T> bufferFactory, int lowerThreshold, int upperLimit) {
 		this.wrapper = wrapper;
 		this.bufferFactory = bufferFactory;
@@ -133,7 +159,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @param bufferFactory a function that creates a new buffer
 	 * @param buffers the number of buffers
 	 */
-	public ManagedBufferQueue(BiFunction<T,BufferCollector, W> wrapper, 
+	public ManagedBufferPool(BiFunction<T,BufferCollector, W> wrapper, 
 			Supplier<T> bufferFactory, int buffers) {
 		this(wrapper, bufferFactory, buffers, buffers);
 	}
@@ -144,7 +170,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @param name the name
 	 * @return the object for easy chaining
 	 */
-	public ManagedBufferQueue<W, T> setName(String name) {
+	public ManagedBufferPool<W, T> setName(String name) {
 		this.name = name;
 		return this;
 	}
@@ -165,7 +191,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @param delay the delay
 	 * @return the object for easy chaining
 	 */
-	public ManagedBufferQueue<W, T> setDrainDelay(long delay) {
+	public ManagedBufferPool<W, T> setDrainDelay(long delay) {
 		this.drainDelay = delay;
 		return this;
 	}
@@ -285,7 +311,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("ManagedBufferQueue [");
+		builder.append("ManagedBufferPool [");
 		if (queue != null) {
 			builder.append("queue=");
 			builder.append(queue);
@@ -295,9 +321,8 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 	}
 
 	/**
-	 * Identifying leaking buffers, i.e. buffers that are not properly 
-	 * returned to the pool is possibly one of the biggest debug problems. 
-	 * Therefore, all buffers handed out are tracked using this class, 
+	 * To identify buffers not returned to the pool, 
+	 * all buffers handed out are tracked using this class, 
 	 * essentially a weak reference. Instances are created for each 
 	 * buffer and removed when the buffer is returned to the pool.
 	 * 
@@ -317,8 +342,8 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 			}
 		}
 
-		public ManagedBufferQueue<?, ?> manager() {
-			return ManagedBufferQueue.this;
+		public ManagedBufferPool<?, ?> manager() {
+			return ManagedBufferPool.this;
 		}
 		
 		public StackTraceElement[] createdBy() {
@@ -332,7 +357,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 			= new ReferenceQueue<>();
 		
 		public OrphanedCollector() {
-			setName(ManagedBufferQueue.class.getSimpleName() + ".Collector");
+			setName(ManagedBufferPool.class.getSimpleName() + ".Collector");
 			setDaemon(true);
 			start();
 		}
@@ -342,10 +367,10 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 			while(true) {
 				try {
 					@SuppressWarnings("rawtypes")
-					ManagedBufferQueue.BufferMonitor monitor 
-						= (ManagedBufferQueue.BufferMonitor)orphanedBuffers
+					ManagedBufferPool.BufferMonitor monitor 
+						= (ManagedBufferPool.BufferMonitor)orphanedBuffers
 							.remove();
-					ManagedBufferQueue<?,?> mbq = monitor.manager();
+					ManagedBufferPool<?,?> mbq = monitor.manager();
 					// Managed buffer has not been properly recollected, fix.
 					mbq.monitoredBuffers.remove(monitor);
 					mbq.createdBufs.decrementAndGet();
@@ -432,13 +457,13 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 			private SortedMap<String,QueueInfo> queuingQueues;
 			private SortedMap<String,QueueInfo> nonEmptyQueues;
 
-			public QueueInfos(Set<ManagedBufferQueue<?, ?>> queues) {
+			public QueueInfos(Set<ManagedBufferPool<?, ?>> queues) {
 				allQueues = new TreeMap<>();
 				queuingQueues = new TreeMap<>();
 				nonEmptyQueues = new TreeMap<>();
 				
 				Map<String, Integer> dupsNext = new HashMap<>();
-				for (ManagedBufferQueue<?,?> mbq: queues) {
+				for (ManagedBufferPool<?,?> mbq: queues) {
 					String key = mbq.name();
 					QueueInfo qi = new QueueInfo(
 							mbq.createdBufs.get(), mbq.queue.size(), mbq.bufferSize());
@@ -530,12 +555,12 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 
 		@Override
 		public void setDefaultDrainDelay(long millis) {
-			ManagedBufferQueue.setDefaultDrainDelay(millis);
+			ManagedBufferPool.setDefaultDrainDelay(millis);
 		}
 
 		@Override
 		public long getDefaultDrainDelay() {
-			return ManagedBufferQueue.defaultDrainDelay();
+			return ManagedBufferPool.defaultDrainDelay();
 		}
 
 		
@@ -561,7 +586,7 @@ public class ManagedBufferQueue<W extends ManagedBuffer<T>, T extends Buffer>
 		try {
 			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); 
 			ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="
-					+ ManagedBufferQueue.class.getSimpleName());
+					+ ManagedBufferPool.class.getSimpleName());
 			mbs.registerMBean(new MBeanView(), mxbeanName);
 		} catch (MalformedObjectNameException | InstanceAlreadyExistsException
 				| MBeanRegistrationException | NotCompliantMBeanException e) {

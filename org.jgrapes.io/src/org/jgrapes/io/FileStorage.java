@@ -50,7 +50,7 @@ import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.SaveInput;
 import org.jgrapes.io.events.SaveOutput;
 import org.jgrapes.io.events.StreamFile;
-import org.jgrapes.io.util.ManagedBufferQueue;
+import org.jgrapes.io.util.ManagedBufferPool;
 import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
@@ -120,7 +120,7 @@ public class FileStorage extends Component {
 		private final IOSubchannel channel;
 		private Path path;
 		private AsynchronousFileChannel ioChannel = null;
-		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> ioBuffers;
+		private ManagedBufferPool<ManagedByteBuffer, ByteBuffer> ioBuffers;
 		private long offset = 0;
 		private CompletionHandler<Integer, ManagedByteBuffer> 
 			readCompletionHandler = new ReadCompletionHandler();
@@ -145,7 +145,7 @@ public class FileStorage extends Component {
 			registerAsGenerator();
 			channel.respond(new FileOpened(event.path(), event.options()));
 			// Reading from file
-			ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer::new,
+			ioBuffers = new ManagedBufferPool<>(ManagedByteBuffer::new,
 					() -> {return ByteBuffer.allocateDirect(bufferSize); }, 2);
 			ManagedByteBuffer buffer = ioBuffers.acquire();
 			synchronized (ioChannel) {
@@ -211,7 +211,7 @@ public class FileStorage extends Component {
 		 */
 		private void runReaderThread(StreamFile event) 
 				throws IOException {
-			ioBuffers = new ManagedBufferQueue<>(ManagedByteBuffer::new,
+			ioBuffers = new ManagedBufferPool<>(ManagedByteBuffer::new,
 					() -> { return ByteBuffer.allocateDirect(bufferSize); }, 2);
 			final SeekableByteChannel ioChannel 
 				= Files.newByteChannel(event.path(), event.options());

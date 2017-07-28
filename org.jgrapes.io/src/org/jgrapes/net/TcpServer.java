@@ -52,7 +52,7 @@ import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.NioRegistration.Registration;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.AvailabilityListener;
-import org.jgrapes.io.util.ManagedBufferQueue;
+import org.jgrapes.io.util.ManagedBufferPool;
 import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.events.Accepted;
@@ -366,7 +366,7 @@ public class TcpServer extends Component implements NioHandler {
 
 		private SocketChannel nioChannel;
 		private EventPipeline downPipeline;
-		private ManagedBufferQueue<ManagedByteBuffer, ByteBuffer> readBuffers;
+		private ManagedBufferPool<ManagedByteBuffer, ByteBuffer> readBuffers;
 		private Registration registration = null;
 		private Queue<ManagedByteBuffer.Reader> pendingWrites = new ArrayDeque<>();
 		private boolean pendingClose = false;
@@ -388,13 +388,13 @@ public class TcpServer extends Component implements NioHandler {
 					+ "." + Components.objectName(this);
 			int writeBufferSize = bufferSize == 0 
 					? nioChannel.socket().getSendBufferSize() : bufferSize;
-			setByteBufferPool(new ManagedBufferQueue<>(ManagedByteBuffer::new,
+			setByteBufferPool(new ManagedBufferPool<>(ManagedByteBuffer::new,
 					() -> { return ByteBuffer.allocate(writeBufferSize); }, 2)
 					.setName(channelName + ".upstream.buffers"));
 			
 			int readBufferSize = bufferSize == 0 
 					? nioChannel.socket().getReceiveBufferSize() : bufferSize;
-			readBuffers = new ManagedBufferQueue<>(ManagedByteBuffer::new,
+			readBuffers = new ManagedBufferPool<>(ManagedByteBuffer::new,
 					() -> { return ByteBuffer.allocate(readBufferSize); }, 2)
 					.setName(channelName + ".downstream.buffers");
 			
