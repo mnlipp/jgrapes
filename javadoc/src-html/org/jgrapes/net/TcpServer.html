@@ -60,7 +60,7 @@
 <span class="sourceLineNo">052</span>import org.jgrapes.io.events.NioRegistration.Registration;<a name="line.52"></a>
 <span class="sourceLineNo">053</span>import org.jgrapes.io.events.Output;<a name="line.53"></a>
 <span class="sourceLineNo">054</span>import org.jgrapes.io.util.AvailabilityListener;<a name="line.54"></a>
-<span class="sourceLineNo">055</span>import org.jgrapes.io.util.ManagedBufferQueue;<a name="line.55"></a>
+<span class="sourceLineNo">055</span>import org.jgrapes.io.util.ManagedBufferPool;<a name="line.55"></a>
 <span class="sourceLineNo">056</span>import org.jgrapes.io.util.ManagedByteBuffer;<a name="line.56"></a>
 <span class="sourceLineNo">057</span>import org.jgrapes.io.util.PermitsPool;<a name="line.57"></a>
 <span class="sourceLineNo">058</span>import org.jgrapes.net.events.Accepted;<a name="line.58"></a>
@@ -374,7 +374,7 @@
 <span class="sourceLineNo">366</span><a name="line.366"></a>
 <span class="sourceLineNo">367</span>                private SocketChannel nioChannel;<a name="line.367"></a>
 <span class="sourceLineNo">368</span>                private EventPipeline downPipeline;<a name="line.368"></a>
-<span class="sourceLineNo">369</span>                private ManagedBufferQueue&lt;ManagedByteBuffer, ByteBuffer&gt; readBuffers;<a name="line.369"></a>
+<span class="sourceLineNo">369</span>                private ManagedBufferPool&lt;ManagedByteBuffer, ByteBuffer&gt; readBuffers;<a name="line.369"></a>
 <span class="sourceLineNo">370</span>                private Registration registration = null;<a name="line.370"></a>
 <span class="sourceLineNo">371</span>                private Queue&lt;ManagedByteBuffer.Reader&gt; pendingWrites = new ArrayDeque&lt;&gt;();<a name="line.371"></a>
 <span class="sourceLineNo">372</span>                private boolean pendingClose = false;<a name="line.372"></a>
@@ -396,13 +396,13 @@
 <span class="sourceLineNo">388</span>                                        + "." + Components.objectName(this);<a name="line.388"></a>
 <span class="sourceLineNo">389</span>                        int writeBufferSize = bufferSize == 0 <a name="line.389"></a>
 <span class="sourceLineNo">390</span>                                        ? nioChannel.socket().getSendBufferSize() : bufferSize;<a name="line.390"></a>
-<span class="sourceLineNo">391</span>                        setByteBufferPool(new ManagedBufferQueue&lt;&gt;(ManagedByteBuffer::new,<a name="line.391"></a>
+<span class="sourceLineNo">391</span>                        setByteBufferPool(new ManagedBufferPool&lt;&gt;(ManagedByteBuffer::new,<a name="line.391"></a>
 <span class="sourceLineNo">392</span>                                        () -&gt; { return ByteBuffer.allocate(writeBufferSize); }, 2)<a name="line.392"></a>
 <span class="sourceLineNo">393</span>                                        .setName(channelName + ".upstream.buffers"));<a name="line.393"></a>
 <span class="sourceLineNo">394</span>                        <a name="line.394"></a>
 <span class="sourceLineNo">395</span>                        int readBufferSize = bufferSize == 0 <a name="line.395"></a>
 <span class="sourceLineNo">396</span>                                        ? nioChannel.socket().getReceiveBufferSize() : bufferSize;<a name="line.396"></a>
-<span class="sourceLineNo">397</span>                        readBuffers = new ManagedBufferQueue&lt;&gt;(ManagedByteBuffer::new,<a name="line.397"></a>
+<span class="sourceLineNo">397</span>                        readBuffers = new ManagedBufferPool&lt;&gt;(ManagedByteBuffer::new,<a name="line.397"></a>
 <span class="sourceLineNo">398</span>                                        () -&gt; { return ByteBuffer.allocate(readBufferSize); }, 2)<a name="line.398"></a>
 <span class="sourceLineNo">399</span>                                        .setName(channelName + ".downstream.buffers");<a name="line.399"></a>
 <span class="sourceLineNo">400</span>                        <a name="line.400"></a>

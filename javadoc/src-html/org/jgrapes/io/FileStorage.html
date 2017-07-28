@@ -58,7 +58,7 @@
 <span class="sourceLineNo">050</span>import org.jgrapes.io.events.SaveInput;<a name="line.50"></a>
 <span class="sourceLineNo">051</span>import org.jgrapes.io.events.SaveOutput;<a name="line.51"></a>
 <span class="sourceLineNo">052</span>import org.jgrapes.io.events.StreamFile;<a name="line.52"></a>
-<span class="sourceLineNo">053</span>import org.jgrapes.io.util.ManagedBufferQueue;<a name="line.53"></a>
+<span class="sourceLineNo">053</span>import org.jgrapes.io.util.ManagedBufferPool;<a name="line.53"></a>
 <span class="sourceLineNo">054</span>import org.jgrapes.io.util.ManagedByteBuffer;<a name="line.54"></a>
 <span class="sourceLineNo">055</span><a name="line.55"></a>
 <span class="sourceLineNo">056</span>/**<a name="line.56"></a>
@@ -128,7 +128,7 @@
 <span class="sourceLineNo">120</span>                private final IOSubchannel channel;<a name="line.120"></a>
 <span class="sourceLineNo">121</span>                private Path path;<a name="line.121"></a>
 <span class="sourceLineNo">122</span>                private AsynchronousFileChannel ioChannel = null;<a name="line.122"></a>
-<span class="sourceLineNo">123</span>                private ManagedBufferQueue&lt;ManagedByteBuffer, ByteBuffer&gt; ioBuffers;<a name="line.123"></a>
+<span class="sourceLineNo">123</span>                private ManagedBufferPool&lt;ManagedByteBuffer, ByteBuffer&gt; ioBuffers;<a name="line.123"></a>
 <span class="sourceLineNo">124</span>                private long offset = 0;<a name="line.124"></a>
 <span class="sourceLineNo">125</span>                private CompletionHandler&lt;Integer, ManagedByteBuffer&gt; <a name="line.125"></a>
 <span class="sourceLineNo">126</span>                        readCompletionHandler = new ReadCompletionHandler();<a name="line.126"></a>
@@ -153,7 +153,7 @@
 <span class="sourceLineNo">145</span>                        registerAsGenerator();<a name="line.145"></a>
 <span class="sourceLineNo">146</span>                        channel.respond(new FileOpened(event.path(), event.options()));<a name="line.146"></a>
 <span class="sourceLineNo">147</span>                        // Reading from file<a name="line.147"></a>
-<span class="sourceLineNo">148</span>                        ioBuffers = new ManagedBufferQueue&lt;&gt;(ManagedByteBuffer::new,<a name="line.148"></a>
+<span class="sourceLineNo">148</span>                        ioBuffers = new ManagedBufferPool&lt;&gt;(ManagedByteBuffer::new,<a name="line.148"></a>
 <span class="sourceLineNo">149</span>                                        () -&gt; {return ByteBuffer.allocateDirect(bufferSize); }, 2);<a name="line.149"></a>
 <span class="sourceLineNo">150</span>                        ManagedByteBuffer buffer = ioBuffers.acquire();<a name="line.150"></a>
 <span class="sourceLineNo">151</span>                        synchronized (ioChannel) {<a name="line.151"></a>
@@ -219,7 +219,7 @@
 <span class="sourceLineNo">211</span>                 */<a name="line.211"></a>
 <span class="sourceLineNo">212</span>                private void runReaderThread(StreamFile event) <a name="line.212"></a>
 <span class="sourceLineNo">213</span>                                throws IOException {<a name="line.213"></a>
-<span class="sourceLineNo">214</span>                        ioBuffers = new ManagedBufferQueue&lt;&gt;(ManagedByteBuffer::new,<a name="line.214"></a>
+<span class="sourceLineNo">214</span>                        ioBuffers = new ManagedBufferPool&lt;&gt;(ManagedByteBuffer::new,<a name="line.214"></a>
 <span class="sourceLineNo">215</span>                                        () -&gt; { return ByteBuffer.allocateDirect(bufferSize); }, 2);<a name="line.215"></a>
 <span class="sourceLineNo">216</span>                        final SeekableByteChannel ioChannel <a name="line.216"></a>
 <span class="sourceLineNo">217</span>                                = Files.newByteChannel(event.path(), event.options());<a name="line.217"></a>
