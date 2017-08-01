@@ -37,7 +37,8 @@
  * images etc. all information is then exchanged using a web socket connection
  * that is established immediately after the initial HTML has been loaded.
  * 
- * The following diagram shows the details for the portal bootstrap.
+ * The following diagram shows the details of the portal bootstrap to 
+ * the first JSON message.
  * 
  * ![Event Sequence](PortalBootSeq.svg)
  * 
@@ -54,14 +55,21 @@
  * converts it to a higher level event that is again fired on the portal 
  * channel.
  * 
+ * The following diagram shows the sequence of events following the
+ * portal ready message. Note that the documentation of the events uses a 
+ * slightly simplified version of the sequence diagram that combines the 
+ * {@link org.jgrapes.portal.PortalView} and the 
+ * {@link org.jgrapes.portal.Portal} into a single object.
+ * 
+ * ![Event Sequence](PortalReadySeq.svg)
+ * 
  * Portlets trigger actions on the browser by firing events on the portal 
  * channel. The events are forward to the {@link org.jgrapes.portal.PortalView}
  * that converts them to JSON RPCs that are serialized and sent on the web 
  * socket (as {@link org.jgrapes.io.events.Output} events). 
  * 
  * Details about the handling of the different events can be found in their 
- * respective JavaDoc. Note that the documentation of the events uses a 
- * slightly simplified version of the sequence diagram that combines the 
+ * respective JavaDoc. The diagrams used there also combine the 
  * {@link org.jgrapes.portal.PortalView} and the 
  * {@link org.jgrapes.portal.Portal} into a single object.
  * 
@@ -84,25 +92,47 @@
  * Browser -> PortalView: "GET <Upgrade to WebSocket>"
  * activate PortalView
  * Browser -> PortalView: JSON RPC (Input)
- * activate PortalView
  * Browser -> PortalView: JSON RPC (Input)
  * deactivate Browser
  * PortalView -> Portal: JsonRequest("portalReady")
  * deactivate PortalView
  * activate Portal
- * Portal -> Portlet: PortalReady
- * deactivate Portal
- * activate Portlet
- * Portlet -> Portal: AddPortletType
- * deactivate Portlet
+ * @enduml
+ * 
+ * @startuml PortalReadySeq.svg
+ * hide footbox
+ * 
+ * Browser -> Portal: "portalReady"
  * activate Portal
- * Portal -> PortalView: toJsonRpc(AddPortletType)
+ * 
+ * loop for all portlets
+ *     Portal -> PortletX: PortalReady
+ *     activate PortletX
+ *     PortletX -> Portal: AddPortletType 
+ *     deactivate PortletX
+ *     activate Portal
+ *     Portal -> Browser: "addPortletType"
+ *     deactivate Portal
+ * end
+ * 
+ * actor System
+ * System -> PortalPolicy: PortalPrepared
  * deactivate Portal
- * activate PortalView
- * PortalView -> Browser: JSON RPC (Output)
- * deactivate PortalView
- * activate Browser
- * deactivate Browser
+ * activate PortalPolicy
+ * loop for all portlets to be displayed
+ *     PortalPolicy -> PortletY: RenderPortletRequest
+ *     activate PortletY
+ *     PortletY -> Portal: RenderPortlet
+ *     deactivate PortletY
+ *     activate Portal
+ *     Portal -> Browser: "renderPortlet"
+ *     deactivate Portal
+ * end
+ * deactivate PortalPolicy
+ * System -> Portal: PortalConfigured
+ * activate Portal
+ * Portal -> Browser: "portalConfigured"
+ * deactivate Portal
  * 
  * @enduml
  */

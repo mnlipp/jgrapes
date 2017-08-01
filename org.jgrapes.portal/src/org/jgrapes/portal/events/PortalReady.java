@@ -31,45 +31,6 @@ import org.jgrapes.portal.RenderSupport;
  * event is generated as {@link CompletionEvent}. A portal policy component
  * should respond to this event and trigger the rendering of the portlets
  * that are to be displayed in the current portal state.
- * 
- * ![Event Sequence](PortalReadySeq.svg)
- * 
- * @startuml PortalReadySeq.svg
- * hide footbox
- * 
- * Browser -> Portal: "portalReady"
- * activate Portal
- * 
- * loop for all portlets
- *     Portal -> PortletX: PortalReady
- *     activate PortletX
- *     PortletX -> Portal: AddPortletType 
- *     deactivate PortletX
- *     activate Portal
- *     Portal -> Browser: "addPortletType"
- *     deactivate Portal
- * end
- * 
- * actor System
- * System -> PortalPolicy: PortalPrepared
- * deactivate Portal
- * activate PortalPolicy
- * loop for all portlets to be displayed
- *     PortalPolicy -> PortletY: RenderPortletRequest
- *     activate PortletY
- *     PortletY -> Portal: RenderPortlet
- *     deactivate PortletY
- *     activate Portal
- *     Portal -> Browser: "renderPortlet"
- *     deactivate Portal
- * end
- * deactivate PortalPolicy
- * System -> Portal: PortalConfigured
- * activate Portal
- * Portal -> Browser: "portalConfigured"
- * deactivate Portal
- * 
- * @enduml
  */
 public class PortalReady extends Event<Void> {
 
