@@ -19,6 +19,8 @@
 package org.jgrapes.net;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -27,9 +29,21 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.IntSummaryStatistics;
 import java.util.Queue;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
+
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -66,7 +80,7 @@ import org.jgrapes.net.events.Ready;
  */
 public class TcpServer extends Component implements NioHandler {
 
-	private SocketAddress serverAddress = null;
+	private InetSocketAddress serverAddress = null;
 	private ServerSocketChannel serverSocketChannel = null;
 	private int bufferSize = 0;
 	private Set<TcpChannel> channels = new HashSet<>();
@@ -91,7 +105,7 @@ public class TcpServer extends Component implements NioHandler {
 	 * Creates a new server, using itself as component channel. 
 	 */
 	public TcpServer() {
-		super();
+		MBeanView.addServer(this);
 	}
 
 	/**
@@ -101,6 +115,7 @@ public class TcpServer extends Component implements NioHandler {
 	 */
 	public TcpServer(Channel componentChannel) {
 		super(componentChannel);
+		MBeanView.addServer(this);
 	}
 	
 	/**
@@ -110,7 +125,7 @@ public class TcpServer extends Component implements NioHandler {
 	 * @param serverAddress the address to bind to
 	 * @return the TCP server for easy chaining
 	 */
-	public TcpServer setServerAddress(SocketAddress serverAddress) {
+	public TcpServer setServerAddress(InetSocketAddress serverAddress) {
 		this.serverAddress = serverAddress;
 		return this;
 	}
@@ -122,10 +137,10 @@ public class TcpServer extends Component implements NioHandler {
 	 * 
 	 * @return the serverAddress
 	 */
-	public SocketAddress serverAddress() {
+	public InetSocketAddress serverAddress() {
 		try {
 			return serverSocketChannel == null ? serverAddress
-					: serverSocketChannel.getLocalAddress();
+					: (InetSocketAddress)serverSocketChannel.getLocalAddress();
 		} catch (IOException e) {
 			return serverAddress;
 		}
@@ -596,6 +611,97 @@ public class TcpServer extends Component implements NioHandler {
 		public String toString() {
 			return IOSubchannel.toString(this);
 		}
+	}
+	
+	/**
+	 * An MBean interface for getting information about the TCP servers
+	 * and established connections.
+	 */
+	public static interface TcpServerMXBean {
+		
+		public static class ChannelInfo {
+			
+			private TcpChannel channel;
+			
+			public ChannelInfo(TcpChannel channel) {
+				this.channel = channel;
+			}
+			
+			public String getDownstreamPool() {
+				return channel.readBuffers.name();
+			}
+			
+			public String getUpstreamPool() {
+				return channel.byteBufferPool().name();
+			}
+		}
+		
+		public static class TcpServerInfo {
+
+			private TcpServer server;
+			
+			public TcpServerInfo(TcpServer server) {
+				this.server = server;
+			}
+			
+			public int getPort() {
+				return ((InetSocketAddress)server.serverAddress()).getPort();
+			}
+			
+			public SortedMap<String,ChannelInfo> getChannels() {
+				SortedMap<String,ChannelInfo> result = new TreeMap<>();
+				for (TcpChannel channel: server.channels) {
+					result.put(channel.nioChannel.socket()
+							.getRemoteSocketAddress().toString(), 
+							new ChannelInfo(channel));
+				}
+				return result;
+			}
+		}
+		
+		IntSummaryStatistics getConnectionsPerServerStatistics();
+		
+		SortedMap<String,TcpServerInfo> getServers();
+	}
+	
+	private static class MBeanView implements TcpServerMXBean {
+		private static Set<TcpServer> allServers
+			= Collections.synchronizedSet(
+					Collections.newSetFromMap(
+							new WeakHashMap<TcpServer, Boolean>()));
+		
+		public static void addServer(TcpServer server) {
+			allServers.add(server);
+		}
+		
+		@Override
+		public IntSummaryStatistics getConnectionsPerServerStatistics() {
+			return allServers.stream().collect(
+					Collectors.summarizingInt(srv -> srv.channels.size()));
+		}
+
+		@Override
+		public SortedMap<String,TcpServerInfo> getServers() {
+			SortedMap<String,TcpServerInfo> result = new TreeMap<>();
+			for (TcpServer server: allServers) {
+				int port = server.serverAddress().getPort();
+				result.put(Components.objectName(server) + " (:" + port + ")",
+						new TcpServerInfo(server));
+			}
+			return result;
+		}
+	}
+
+	static {
+		try {
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); 
+			ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="
+					+ TcpServer.class.getSimpleName());
+			mbs.registerMBean(new MBeanView(), mxbeanName);
+		} catch (MalformedObjectNameException | InstanceAlreadyExistsException
+				| MBeanRegistrationException | NotCompliantMBeanException e) {
+			// Does not happen
+		}		
 	}
 	
 }

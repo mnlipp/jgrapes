@@ -21,7 +21,7 @@ package org.jgrapes.http;
 import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -125,7 +125,7 @@ public class HttpServer extends Component {
 	 * @param fallbacks fall backs
 	 */
 	@SafeVarargs
-	public HttpServer(Channel appChannel, SocketAddress serverAddress,
+	public HttpServer(Channel appChannel, InetSocketAddress serverAddress,
 	        Class<? extends Request>... fallbacks) {
 		super(appChannel);
 		this.providedFallbacks = Arrays.asList(fallbacks);
