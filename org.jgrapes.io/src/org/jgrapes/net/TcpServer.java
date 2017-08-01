@@ -132,7 +132,7 @@ public class TcpServer extends Component implements NioHandler {
 
 	/**
 	 * Returns the server address. Before starting, the address is the
-	 * address set with {@link #setServerAddress(SocketAddress)}. After
+	 * address set with {@link #setServerAddress(InetSocketAddress)}. After
 	 * starting the address is obtained from the created socket.  
 	 * 
 	 * @return the serverAddress
