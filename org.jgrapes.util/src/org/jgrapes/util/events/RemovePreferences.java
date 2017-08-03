@@ -19,54 +19,38 @@
 package org.jgrapes.util.events;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.jgrapes.core.Event;
 
 /**
- * An event to indicate that preferences values have been updated.
+ * Indicates the removal of all preference starting with the given paths.
  */
-public class UpdatePreferences extends Event<Void> {
+public class RemovePreferences extends Event<Void> {
 
-	private Map<String,Map<String,String>> paths = new HashMap<>();
+	private Set<String> paths = new HashSet<>();
 
 	/**
-	 * Add new (updated) preferences to the event.
+	 * Adds a new path to the removed paths.
 	 * 
-	 * @param path the preference's path
-	 * @param key the key of the preference
-	 * @param value the value of the preference
+	 * @param path the path
 	 * @return the event for easy chaining
 	 */
-	public UpdatePreferences add(String path, String key, String value) {
+	public RemovePreferences add(String path) {
 		if (path == null) {
 			path = "";
 		}
-		Map<String,String> scoped = paths
-				.computeIfAbsent(path, s -> new HashMap<String,String>());
-		scoped.put(key, value);
+		paths.add(path);
 		return this;
 	}
 
 	/**
-	 * Return all paths affected by this event.
+	 * Returns all removed paths.
 	 * 
 	 * @return the paths
 	 */
 	public Set<String> paths() {
-		return Collections.unmodifiableSet(paths.keySet());
-	}
-	
-	/**
-	 * Return the preferences for a given path.
-	 * 
-	 * @param path the path
-	 * @return the updated preferences
-	 */
-	public Map<String,String> preferences(String path) {
-		return Collections.unmodifiableMap(
-				paths.getOrDefault(path, Collections.emptyMap()));
+		return Collections.unmodifiableSet(paths);
 	}
 }

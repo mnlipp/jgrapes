@@ -12,6 +12,7 @@ import org.jgrapes.core.annotation.Handler
 import org.jgrapes.core.events.Start
 import org.jgrapes.util.PreferencesStore
 import org.jgrapes.util.events.InitialPreferences
+import org.jgrapes.util.events.RemovePreferences
 import org.jgrapes.util.events.UpdatePreferences
 
 import groovy.transform.CompileStatic
@@ -23,14 +24,16 @@ class PreferencesTests extends Specification {
 	}
 	
 	class App extends Component {
-		
+
+		public String appPath;		
 		public int value = 0;
-		public boolean foundInvisible;
+		public int subValue = 0;
 		
 		@Handler
 		public void onInitialPrefs(InitialPreferences event) {
+			appPath = event.applicationPath();
 			value = Integer.parseInt(event.preferences("").get("answer"))
-			foundInvisible = event.preferences(".hidden").size() != 0
+			subValue = Integer.parseInt(event.preferences("sub/tree").get("value"))
 		}
 		
 		@Handler
@@ -43,28 +46,43 @@ class PreferencesTests extends Specification {
 		setup: "Create app"
 		App app = new App();
 		app.attach(new PreferencesStore(app, getClass()))
-		Preferences prefs = Preferences.userNodeForPackage(getClass())
-			.node(getClass().getSimpleName())
-		prefs.put("answer", "42")
-		prefs.node(".hidden").put("invisible", "True")
+		Preferences base = Preferences.userNodeForPackage(getClass())
+			.node(getClass().getSimpleName()).node("PreferencesStore")
+		base.put("answer", "42")
+		base.node("sub/tree").put("value", "24")
+		base.flush();
 
 		when: "Start"
 		Components.start(app)
 		Components.awaitExhaustion();
 
-		then: "Value must be set"
+		then: "Values must be set"
+		app.appPath == Preferences.userNodeForPackage(getClass())
+			.node(getClass().getSimpleName()).absolutePath()
 		app.value == 42
-		!app.foundInvisible
+		app.subValue == 24
 
 		when: "UpdatePreferences fired"
 		app.fire(new Update(), app)
 		Components.awaitExhaustion();
 		
-		then: "Preference must be updated"
-		prefs.get("updated", "") == "new"
+		then: "Preference must have been updated"
+		base.get("updated", "") == "new"
+
+		when: "Remove sub tree"
+		app.fire(new RemovePreferences().add("sub"), app)
+		Components.awaitExhaustion();
 		
-		cleanup:
-		prefs.removeNode()
+		then: "Sub tree must have been removed"
+		!base.nodeExists("sub")
+		base.nodeExists("")
+		
+		when: "Remove test preferences"
+		app.fire(new RemovePreferences().add(""), app)
+		Components.awaitExhaustion();
+		
+		then: "Preferences must have been removed"
+		!base.nodeExists("")
 	}
 	
 }

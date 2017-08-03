@@ -28,17 +28,23 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.util.events.InitialPreferences;
+import org.jgrapes.util.events.RemovePreferences;
 import org.jgrapes.util.events.UpdatePreferences;
 
 /**
- * This component provides a store for application preferences.
+ * This component provides a store for application preferences. Preferences
+ * are maps of key value pairs that are associated with a path. A common
+ * base path is passed to the component on creation. Components store 
+ * their preferences using paths relative to that base path. Usually
+ * the relative path simply corresponds to the comoponent's class name, 
+ * though no restrictions for choosing the relative path exist.
  * 
- * The component reads the initial values from a Java {@link Preferences}
- * node. During application bootstrap, it intercepts the {@link Start} 
- * event using a handler with  priority 999999. When receiving this event, 
- * it fires all known preferences values (skipping nodes whose name
- * starts with a dot) on its channel as an {@link InitialPreferences} 
- * event. Then, it re-fires the intercepted {@link Start} event. 
+ * The component reads the initial values from the Java {@link Preferences}
+ * tree denoted by the base path. During application bootstrap, it 
+ * intercepts the {@link Start} event using a handler with  priority 
+ * 999999. When receiving this event, it fires all known preferences 
+ * values on its channel as an {@link InitialPreferences} event. 
+ * Then, it re-fires the intercepted {@link Start} event. 
  * 
  * Components that depend on preference values define handlers
  * for {@link UpdatePreferences} events and adapt themselves to the values 
@@ -58,17 +64,17 @@ public class PreferencesStore extends Component {
 	
 	/**
 	 * Creates a new component base with its channel set to the given 
-	 * channel.
+	 * channel and a base path derived from the given class.
 	 *  
 	 * @param componentChannel the channel 
-	 * @param node the preferences node, formed by replacing
-	 * each dot in the class's full name with a slash and
-	 * prepending a slash
+	 * @param appClass the application class; the base path
+	 * is formed by replacing each dot in the class's full name with 
+	 * a slash, prepending a slash, and appending "`/PreferencesStore`".
 	 */
-	public PreferencesStore(Channel componentChannel, Class<?> node) {
+	public PreferencesStore(Channel componentChannel, Class<?> appClass) {
 		super(componentChannel);
-		preferences = Preferences.userNodeForPackage(node)
-				.node(node.getSimpleName());
+		preferences = Preferences.userNodeForPackage(appClass)
+				.node(appClass.getSimpleName()).node("PreferencesStore");
 	}
 
 	@Handler(priority=999999)
@@ -79,26 +85,23 @@ public class PreferencesStore extends Component {
 		started = true;
 		event.cancel(false);
 		InitialPreferences updEvt 
-			= new InitialPreferences(preferences.absolutePath());
+			= new InitialPreferences(preferences.parent().absolutePath());
 		addPrefs(updEvt, preferences.absolutePath(), preferences);
 		fire(updEvt);
 		fire(new Start(), event.channels());
 	}
 
 	private void addPrefs(
-			UpdatePreferences updEvt, String appPath, Preferences node) 
+			InitialPreferences updEvt, String rootPath, Preferences node) 
 					throws BackingStoreException {
 		String nodePath = node.absolutePath();
 		String relPath = nodePath.substring(Math.min(
-				appPath.length() + 1, nodePath.length()));
+				rootPath.length() + 1, nodePath.length()));
 		for (String key: node.keys()) {
 			updEvt.add(relPath, key, node.get(key, null));
 		}
 		for (String child: node.childrenNames()) {
-			if (child.startsWith(".")) {
-				continue;
-			}
-			addPrefs(updEvt, appPath, node.node(child));
+			addPrefs(updEvt, rootPath, node.node(child));
 		}
 	}
 	
@@ -118,6 +121,15 @@ public class PreferencesStore extends Component {
 				event.preferences(path).entrySet()) {
 				preferences.node(path).put(e.getKey(), e.getValue());
 			}
+		}
+		preferences.flush();
+	}
+	
+	@Handler
+	public void onRemovePreferences(RemovePreferences event) 
+			throws BackingStoreException {
+		for (String path: event.paths()) {
+			preferences.node(path).removeNode();
 		}
 		preferences.flush();
 	}
