@@ -83,6 +83,10 @@ class PreferencesTests extends Specification {
 		
 		then: "Preferences must have been removed"
 		!base.nodeExists("")
+		
+		cleanup:
+		Preferences.userNodeForPackage(getClass())
+			.node(getClass().getSimpleName()).removeNode()
 	}
 	
 }
