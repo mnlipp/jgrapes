@@ -28,7 +28,7 @@ import org.jgrapes.core.Event;
 /**
  * An event to indicate that preferences values have been updated.
  */
-public class UpdatePreferences extends Event<Void> {
+public class PreferencesUpdate extends Event<Void> {
 
 	private Map<String,Map<String,String>> paths = new HashMap<>();
 
@@ -40,7 +40,7 @@ public class UpdatePreferences extends Event<Void> {
 	 * @param value the value of the preference
 	 * @return the event for easy chaining
 	 */
-	public UpdatePreferences add(String path, String key, String value) {
+	public PreferencesUpdate add(String path, String key, String value) {
 		if (path == null) {
 			path = "";
 		}

@@ -27,9 +27,9 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.util.events.InitialPreferences;
-import org.jgrapes.util.events.RemovePreferences;
-import org.jgrapes.util.events.UpdatePreferences;
+import org.jgrapes.util.events.PreferencesInitialized;
+import org.jgrapes.util.events.PreferencesRemoval;
+import org.jgrapes.util.events.PreferencesUpdate;
 
 /**
  * This component provides a store for application preferences. Preferences
@@ -43,18 +43,18 @@ import org.jgrapes.util.events.UpdatePreferences;
  * tree denoted by the base path. During application bootstrap, it 
  * intercepts the {@link Start} event using a handler with  priority 
  * 999999. When receiving this event, it fires all known preferences 
- * values on its channel as an {@link InitialPreferences} event. 
+ * values on its channel as an {@link PreferencesInitialized} event. 
  * Then, it re-fires the intercepted {@link Start} event. 
  * 
  * Components that depend on preference values define handlers
- * for {@link UpdatePreferences} events and adapt themselves to the values 
+ * for {@link PreferencesUpdate} events and adapt themselves to the values 
  * received. Note that due to the intercepted {@link Start} event, the initial
  * preferences values are received before the {@link Start} event, so
  * components' configurations can be rearranged before they actually
  * start doing something.
  *
  * Besides initially publishing the stored preferences values,
- * the component also listens for {@link UpdatePreferences} events
+ * the component also listens for {@link PreferencesUpdate} events
  * fired by other components and updates the preferences store.
  */
 public class PreferencesStore extends Component {
@@ -84,15 +84,15 @@ public class PreferencesStore extends Component {
 		}
 		started = true;
 		event.cancel(false);
-		InitialPreferences updEvt 
-			= new InitialPreferences(preferences.parent().absolutePath());
+		PreferencesInitialized updEvt 
+			= new PreferencesInitialized(preferences.parent().absolutePath());
 		addPrefs(updEvt, preferences.absolutePath(), preferences);
 		fire(updEvt);
 		fire(new Start(), event.channels());
 	}
 
 	private void addPrefs(
-			InitialPreferences updEvt, String rootPath, Preferences node) 
+			PreferencesInitialized updEvt, String rootPath, Preferences node) 
 					throws BackingStoreException {
 		String nodePath = node.absolutePath();
 		String relPath = nodePath.substring(Math.min(
@@ -111,9 +111,9 @@ public class PreferencesStore extends Component {
 	}
 	
 	@Handler
-	public void onUpdatePreferences(UpdatePreferences event) 
+	public void onUpdatePreferences(PreferencesUpdate event) 
 			throws BackingStoreException {
-		if (event instanceof InitialPreferences) {
+		if (event instanceof PreferencesInitialized) {
 			return;
 		}
 		for (String path: event.paths()) {
@@ -126,7 +126,7 @@ public class PreferencesStore extends Component {
 	}
 	
 	@Handler
-	public void onRemovePreferences(RemovePreferences event) 
+	public void onRemovePreferences(PreferencesRemoval event) 
 			throws BackingStoreException {
 		for (String path: event.paths()) {
 			preferences.node(path).removeNode();

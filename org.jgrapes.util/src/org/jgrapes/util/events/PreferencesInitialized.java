@@ -21,12 +21,12 @@ package org.jgrapes.util.events;
 import org.jgrapes.util.PreferencesStore;
 
 /**
- * A special {@link UpdatePreferences} event that is used for
+ * A special {@link PreferencesUpdate} event that is used for
  * reporting the properties on startup. Components that distinguish
  * the initial value propagation from real changes simply handle
- * the {@link UpdatePreferences} events. 
+ * the {@link PreferencesUpdate} events. 
  */
-public class InitialPreferences extends UpdatePreferences {
+public class PreferencesInitialized extends PreferencesUpdate {
 
 	private String applicationPath;
 	
@@ -35,7 +35,7 @@ public class InitialPreferences extends UpdatePreferences {
 	 * (i.e. the base path without the trailing "`PreferencesStore`",
 	 * see {@link PreferencesStore}) is passed as additional information.
 	 */
-	public InitialPreferences(String applicationPath) {
+	public PreferencesInitialized(String applicationPath) {
 		this.applicationPath = applicationPath;
 	}
 

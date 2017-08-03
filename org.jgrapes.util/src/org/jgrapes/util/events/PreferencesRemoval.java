@@ -27,7 +27,7 @@ import org.jgrapes.core.Event;
 /**
  * Indicates the removal of all preference starting with the given paths.
  */
-public class RemovePreferences extends Event<Void> {
+public class PreferencesRemoval extends Event<Void> {
 
 	private Set<String> paths = new HashSet<>();
 
@@ -37,7 +37,7 @@ public class RemovePreferences extends Event<Void> {
 	 * @param path the path
 	 * @return the event for easy chaining
 	 */
-	public RemovePreferences add(String path) {
+	public PreferencesRemoval add(String path) {
 		if (path == null) {
 			path = "";
 		}
