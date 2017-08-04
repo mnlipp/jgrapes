@@ -29,9 +29,9 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 
 /**
- * A JSON request from the portal view (browser) to the portal. 
+ * A JSON notification from the portal view (browser) to the portal. 
  */
-public class JsonRequest extends Event<Void> {
+public class JsonInput extends Event<Void> {
 
 	private String method;
 	private JsonStructure params;
@@ -42,7 +42,7 @@ public class JsonRequest extends Event<Void> {
 	 * 
 	 * @param requestData a request as defined by the JSON RPC specification 
 	 */
-	public JsonRequest(JsonObject requestData) {
+	public JsonInput(JsonObject requestData) {
 		method = requestData.getString("method");
 		params = (JsonStructure)requestData.get("params");
 		id = Optional.ofNullable(requestData.get("id"));

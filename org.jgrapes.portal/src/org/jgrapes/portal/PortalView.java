@@ -88,7 +88,7 @@ import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.portal.Portlet.RenderMode;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
-import org.jgrapes.portal.events.JsonRequest;
+import org.jgrapes.portal.events.JsonInput;
 import org.jgrapes.portal.events.LastPortalLayout;
 import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalConfigured;
@@ -595,7 +595,7 @@ public class PortalView extends Component {
 			public void run() {
 				try (Reader in = reader) {
 					JsonReader reader = Json.createReader(in);
-					fire(new JsonRequest(reader.readObject()), channel);
+					fire(new JsonInput(reader.readObject()), channel);
 				} catch (IOException e) {
 					// Shouldn't happen
 				}

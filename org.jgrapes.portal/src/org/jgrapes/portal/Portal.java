@@ -38,7 +38,7 @@ import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DataRetrieved;
 import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.DeletePortletRequest;
-import org.jgrapes.portal.events.JsonRequest;
+import org.jgrapes.portal.events.JsonInput;
 import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalLayoutChanged;
@@ -137,7 +137,7 @@ public class Portal extends Component {
 	}
 
 	@Handler
-	public void onJsonRequest(JsonRequest event, LinkedIOSubchannel channel) 
+	public void onJsonRequest(JsonInput event, LinkedIOSubchannel channel) 
 			throws InterruptedException, IOException {
 		// Send events to portlets on portal's channel
 		JsonArray params = (JsonArray)event.params();

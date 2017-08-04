@@ -48,7 +48,7 @@
  * The {@link org.jgrapes.portal.PortalView} processes 
  * {@link org.jgrapes.io.events.Input} events with a serialized JSON RPC data
  * from the web socket until the complete JSON RPCnotification has been 
- * received. The notification (a {@link org.jgrapes.portal.events.JsonRequest}
+ * received. The notification (a {@link org.jgrapes.portal.events.JsonInput}
  * from the servers point of view) is then fired on the portal channel, 
  * which allows it to be intercepted by additional components. Usually, 
  * however, it is handled by the {@link org.jgrapes.portal.Portal} that 
@@ -94,7 +94,7 @@
  * Browser -> PortalView: JSON RPC (Input)
  * Browser -> PortalView: JSON RPC (Input)
  * deactivate Browser
- * PortalView -> Portal: JsonRequest("portalReady")
+ * PortalView -> Portal: JsonInput("portalReady")
  * deactivate PortalView
  * activate Portal
  * @enduml
