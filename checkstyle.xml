@@ -90,7 +90,7 @@
     <module name="NoFinalizer"/>
     <module name="AbbreviationAsWordInName">
       <property name="allowedAbbreviationLength" value="1"/>
-      <property name="allowedAbbreviations" value="IO,MX"/>
+      <property name="allowedAbbreviations" value="IO,MX,KV"/>
       <property name="ignoreFinal" value="false"/>
     </module>
     <module name="OverloadMethodsDeclarationOrder"/>
