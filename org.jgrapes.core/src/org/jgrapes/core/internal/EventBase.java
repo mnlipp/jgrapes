@@ -150,7 +150,7 @@ public abstract class EventBase<T>
 	 * @return the result
 	 */
 	protected boolean enqueued() {
-		return openCount.get() > 0;
+		return processedBy != null || completed || cancelled;
 	}
 
 	/**
