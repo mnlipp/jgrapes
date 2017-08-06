@@ -37,17 +37,17 @@
  * images etc. all information is then exchanged using a web socket connection
  * that is established immediately after the initial HTML has been loaded.
  * 
- * The following diagram shows the details of the portal bootstrap to 
- * the first JSON message.
+ * The following diagram shows the start of the 
+ * portal bootstrap to the first JSON messages.
  * 
- * ![Event Sequence](PortalBootSeq.svg)
+ * ![Event Sequence](PortalBootSeq.sv4g)
  * 
  * After the portal page has loaded and the web socket connection has been
  * established, all information is exchanged using 
  * [JSON RPC notifications](http://www.jsonrpc.org/specification#notification). 
  * The {@link org.jgrapes.portal.PortalView} processes 
- * {@link org.jgrapes.io.events.Input} events with a serialized JSON RPC data
- * from the web socket until the complete JSON RPCnotification has been 
+ * {@link org.jgrapes.io.events.Input} events with serialized JSON RPC data
+ * from the web socket until the complete JSON RPC notification has been 
  * received. The notification (a {@link org.jgrapes.portal.events.JsonInput}
  * from the servers point of view) is then fired on the portal channel, 
  * which allows it to be intercepted by additional components. Usually, 
@@ -55,11 +55,19 @@
  * converts it to a higher level event that is again fired on the portal 
  * channel.
  * 
- * The following diagram shows the sequence of events following the
+ * Components usually respond by sending higher level events on the portal
+ * channel. The events are handled by the portal which converts them to
+ * {@link org.jgrapes.portal.events.JsonOutput} events. These are
+ * processed by the {@link org.jgrapes.portal.PortalView} which
+ * serializes the data and sends it to the websocket using 
+ * {@link org.jgrapes.io.events.Output} events.
+ * 
+ * The following diagram shows the somplete sequence of events following the
  * portal ready message. Note that the documentation of the events uses a 
  * slightly simplified version of the sequence diagram that combines the 
  * {@link org.jgrapes.portal.PortalView} and the 
- * {@link org.jgrapes.portal.Portal} into a single object.
+ * {@link org.jgrapes.portal.Portal} into a single object and leaves out the
+ * details about the JSON serielization/deserialization.
  * 
  * ![Event Sequence](PortalReadySeq.svg)
  * 
@@ -91,12 +99,26 @@
  * deactivate PortalView
  * Browser -> PortalView: "GET <Upgrade to WebSocket>"
  * activate PortalView
- * Browser -> PortalView: JSON RPC (Input)
- * Browser -> PortalView: JSON RPC (Input)
+ * loop while request data
+ *     Browser -> PortalView: Input (JSON RPC)
+ * end
  * deactivate Browser
  * PortalView -> Portal: JsonInput("portalReady")
  * deactivate PortalView
  * activate Portal
+ * Portal -> PortalPolicy: PortalReady
+ * deactivate Portal
+ * activate PortalPolicy
+ * PortalPolicy -> Portal: LastPortalLayout
+ * deactivate PortalPolicy
+ * activate Portal
+ * Portal -> PortalView: JsonOutput("lastPortalLayout")
+ * deactivate Portal
+ * activate PortalView
+ * loop while request data
+ *     PortalView -> Browser: Output (JSON RPC)
+ * end
+ * deactivate PortalView
  * @enduml
  * 
  * @startuml PortalReadySeq.svg
@@ -119,6 +141,8 @@
  * System -> PortalPolicy: PortalPrepared
  * deactivate Portal
  * activate PortalPolicy
+ * PortalPolicy -> Portal: LastPortalLayout
+ * Portal -> Browser: "lastPortalLayout"
  * loop for all portlets to be displayed
  *     PortalPolicy -> PortletY: RenderPortletRequest
  *     activate PortletY

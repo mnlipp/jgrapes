@@ -28,9 +28,8 @@ import org.jgrapes.portal.RenderSupport;
  * adding their types (using {@link AddPortletType} events).
  * 
  * After the portal ready event has been processed, a {@link PortalPrepared}
- * event is generated as {@link CompletionEvent}. A portal policy component
- * should respond to this event and trigger the rendering of the portlets
- * that are to be displayed in the current portal state.
+ * event is generated as its {@link CompletionEvent}. All further action is 
+ * triggered by the {@link PortalPrepared} event.
  */
 public class PortalReady extends Event<Void> {
 

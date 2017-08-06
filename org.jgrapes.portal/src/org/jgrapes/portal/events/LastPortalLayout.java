@@ -21,7 +21,7 @@ package org.jgrapes.portal.events;
 import org.jgrapes.core.Event;
 
 /**
- * Sent by the server to the browser in response to {@link PortalReady} 
+ * Sent by the server to the browser in response to {@link PortalPrepared} 
  * (see this event's description for details). The provided information
  * enables the portal to restore portlets to their previous positions.
  */

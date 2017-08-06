@@ -35,12 +35,14 @@ import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.portal.Portlet.RenderMode;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
-import org.jgrapes.portal.events.DataRetrieved;
 import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.DeletePortletRequest;
 import org.jgrapes.portal.events.JsonInput;
+import org.jgrapes.portal.events.JsonOutput;
+import org.jgrapes.portal.events.LastPortalLayout;
 import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.NotifyPortletView;
+import org.jgrapes.portal.events.PortalConfigured;
 import org.jgrapes.portal.events.PortalLayoutChanged;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.PortletResourceResponse;
@@ -137,7 +139,7 @@ public class Portal extends Component {
 	}
 
 	@Handler
-	public void onJsonRequest(JsonInput event, LinkedIOSubchannel channel) 
+	public void onJsonInput(JsonInput event, LinkedIOSubchannel channel) 
 			throws InterruptedException, IOException {
 		// Send events to portlets on portal's channel
 		JsonArray params = (JsonArray)event.params();
@@ -175,19 +177,6 @@ public class Portal extends Component {
 					params.getBoolean(2)), channel);
 			break;
 		}
-		case "retrievedData": {
-			String path = params.getString(0);
-			if (!path.startsWith(prefix.getPath())) {
-				return;
-			}
-			path = path.substring(prefix.getPath().length());
-			String value = null;
-			if (!params.isNull(1)) {
-				value = params.getString(1);
-			}
-			fire(new DataRetrieved(path, value), channel);
-			break;
-		}
 		case "setLocale": {
 			fire(new SetLocale(Locale.forLanguageTag(params.getString(0))),
 					channel);
@@ -205,6 +194,21 @@ public class Portal extends Component {
 			break;
 		}
 		}		
+	}
+	
+	@Handler
+	public void onPortalConfigured(
+			PortalConfigured event, LinkedIOSubchannel channel) 
+					throws InterruptedException, IOException {
+		fire(new JsonOutput("portalConfigured"), channel);
+	}
+	
+	@Handler
+	public void onLastPortalLayout(
+			LastPortalLayout event, LinkedIOSubchannel channel) 
+					throws InterruptedException, IOException {
+		fire(new JsonOutput("lastPortalLayout",
+				event.previewLayout(), event.tabsLayout()), channel);
 	}
 	
 }

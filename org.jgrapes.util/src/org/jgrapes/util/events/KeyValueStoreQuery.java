@@ -16,37 +16,32 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.jgrapes.portal.events;
+package org.jgrapes.util.events;
+
+import java.util.Map;
 
 import org.jgrapes.core.Event;
 
 /**
  * 
  */
-public class StoreDataInPortal extends Event<Void> {
+public class KeyValueStoreQuery extends Event<Map<String,String>> {
 
-	private String path;
-	private String data;
+	private String key;
+
+	/**
+	 * @param key
+	 */
+	public KeyValueStoreQuery(String key) {
+		this.key = key;
+	}
+
+	/**
+	 * @return the key
+	 */
+	public String query() {
+		return key;
+	}
 	
-	/**
-	 */
-	public StoreDataInPortal(String path, String data) {
-		this.path = path;
-		this.data = data;
-	}
-
-	/**
-	 * @return the path
-	 */
-	public String path() {
-		return path;
-	}
-
-	/**
-	 * @return the data
-	 */
-	public String data() {
-		return data;
-	}
-
+	
 }

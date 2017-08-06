@@ -267,18 +267,31 @@ var JGPortal = {
         layoutChanged();
 	}
 
-	function retrieveData(path) {
-	    let result = null;
+	function retrieveLocalData(path) {
+	    let result = [];
 	    try {
-	        result = localStorage.getItem(path);
+	        let keys = localStorage.getItem(path);
+	        keys = JSON.parse(keys);
+	        for (let i in keys) {
+	            let key = keys[i];
+	            let value = localStorage.getItem(path + key);
+	            result.push([ key, value ])
+	        }
 	    } catch (e) {
 	    }
-	    JGPortal.sendData(path, result);
+	    JGPortal.sendLocalData(result);
 	}
 	
-    function storeData(path, data) {
+    function storeLocalData(actions) {
         try {
-            localStorage.setItem(path, data);
+            for (let i in actions) {
+                let action = actions[i];
+                if (action[0] === "u") {
+                    localStorage.setItem(action[1], action[2]);
+                } else if (action[0] === "d") {
+                    localStorage.removeItem(action[1]);
+                }
+            }
         } catch (e) {
         }
     }
@@ -295,8 +308,8 @@ var JGPortal = {
 	    },
 	    'portalConfigured': portalConfigured,
 		'reload': function() { window.location.reload(true); },
-        'retrieveData': retrieveData,
-		'storeData': storeData,
+        'retrieveLocalData': retrieveLocalData,
+		'storeLocalData': storeLocalData,
         'updatePortlet': updatePortlet,
 	};
 	
@@ -387,9 +400,9 @@ var JGPortal = {
             "params": [ previewLayout, tabLayout ]});
     };
     
-    JGPortal.sendData = function(path, data) {
-        wsConn.send({"jsonrpc": "2.0", "method": "retrievedData",
-            "params": [ path, data ]});
+    JGPortal.sendLocalData = function(data) {
+        wsConn.send({"jsonrpc": "2.0", "method": "retrievedLocalData",
+            "params": [ data ]});
     };
     
 })();

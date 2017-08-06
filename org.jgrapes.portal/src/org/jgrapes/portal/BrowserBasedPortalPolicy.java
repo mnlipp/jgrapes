@@ -18,36 +18,38 @@
 
 package org.jgrapes.portal;
 
-import java.io.StringWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonWriter;
-
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.util.LinkedIOSubchannel;
-import org.jgrapes.portal.events.DataRetrieved;
 import org.jgrapes.portal.events.LastPortalLayout;
 import org.jgrapes.portal.events.PortalLayoutChanged;
 import org.jgrapes.portal.events.PortalPrepared;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortletRequest;
-import org.jgrapes.portal.events.RetrieveDataFromPortal;
-import org.jgrapes.portal.events.StoreDataInPortal;
-import org.jgrapes.portal.util.JsonUtil;
+import org.jgrapes.util.events.KeyValueStoreQuery;
+import org.jgrapes.util.events.KeyValueStoreUpdate;
 
 /**
  * 
  */
 public class BrowserBasedPortalPolicy extends Component {
+
+	private static final String DATA_KEY 
+		= "/" + BrowserBasedPortalPolicy.class.getName();
 
 	/**
 	 * Creates a new component with its channel set to
@@ -74,18 +76,12 @@ public class BrowserBasedPortalPolicy extends Component {
 	 * @throws InterruptedException
 	 */
 	@Handler
-	public void onPortalReady(PortalReady event, IOSubchannel channel) {
-		lookupPortalSession(channel).ifPresent(
-				ps -> ps.onPortalReady(event, channel));
-	}
-
-	@Handler
-	public void onDataRetrieved(DataRetrieved event, IOSubchannel channel) {
-		if (!event.path().equals(BrowserBasedPortalPolicy.class.getName())) {
-			return;
+	public void onPortalReady(PortalReady event, IOSubchannel channel) 
+			throws InterruptedException {
+		Optional<PortalSession> session = lookupPortalSession(channel);
+		if(session.isPresent()) {
+				session.get().onPortalReady(event, channel);
 		}
-		lookupPortalSession(channel).ifPresent(
-				ps -> ps.onDataRetrieved(event));
 	}
 
 	@Handler
@@ -110,33 +106,28 @@ public class BrowserBasedPortalPolicy extends Component {
 	
 	private class PortalSession {
 
-		private CompletionLock preparedLock;
 		private Map<String,Object> persisted = null;
 		
-		private void storeState(IOSubchannel channel) {
-			JsonArray jsonData = JsonUtil.toJsonArray(persisted);
-			StringWriter out = new StringWriter(); 
-			try (JsonWriter jsonWriter = Json.createWriter(out)) {
-				jsonWriter.write(jsonData);
-			}
-			fire(new StoreDataInPortal(BrowserBasedPortalPolicy.class.getName(),
-					out.toString()), channel);
-		}
-
-		public void onPortalReady(PortalReady event, IOSubchannel channel) {
+		public void onPortalReady(PortalReady event, IOSubchannel channel) 
+				throws InterruptedException {
 			if (persisted != null) {
 				return;
 			}
-			preparedLock = new CompletionLock(event, 3000);
-			channel.respond(new RetrieveDataFromPortal(
-					BrowserBasedPortalPolicy.class.getName()));
-		}
-		
-		public void onDataRetrieved(DataRetrieved event) {
-			if (persisted == null && event.data() != null) {
-				persisted = new HashMap<>();
+			Map<String,String> data = newEventPipeline().fire(
+					new KeyValueStoreQuery(DATA_KEY), channel).get();
+			if (!data.containsKey(DATA_KEY)) {
+				return;
 			}
-			preparedLock.remove();
+			try (ObjectInputStream in = new ObjectInputStream(
+					Base64.getDecoder().wrap(
+							new ByteArrayInputStream(
+									data.get(DATA_KEY).getBytes("utf-8"))))) {
+				@SuppressWarnings("unchecked")
+				Map<String,Object> restored = (Map<String,Object>)in.readObject();
+				persisted = restored;
+			} catch (IOException | ClassNotFoundException e) {
+				// cannot happen
+			}
 		}
 		
 		public void onPortalPrepared(
@@ -175,5 +166,23 @@ public class BrowserBasedPortalPolicy extends Component {
 			persisted.put("tabsLayout", event.tabsLayout());
 			storeState(channel);
 		}
+		
+		private void storeState(IOSubchannel channel) {
+			ByteArrayOutputStream encoded = new ByteArrayOutputStream();
+			try (ObjectOutputStream out = new ObjectOutputStream(
+					Base64.getEncoder().wrap(encoded))) {
+				out.writeObject(persisted);
+			} catch (IOException e) {
+				// cannot happen
+			}
+			try {
+				String data = encoded.toString("utf-8");
+				fire(new KeyValueStoreUpdate()
+						.update(DATA_KEY, data), channel);
+			} catch (UnsupportedEncodingException e) {
+				// cannot happen
+			}
+		}
+
 	}
 }

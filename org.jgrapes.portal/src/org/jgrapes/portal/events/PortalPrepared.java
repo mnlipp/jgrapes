@@ -22,8 +22,11 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletionEvent;
 
 /**
- * This event is the completed event for the {@link PortalReady}
- * event.
+ * This event is the completion event for the {@link PortalReady}
+ * event. A portal policy component should handle this event 
+ * by sending the last known layout to the portal 
+ * and triggering the rendering of the portlets
+ * that are to be displayed in that layout.
  */
 public class PortalPrepared extends CompletionEvent<PortalReady> {
 

@@ -89,17 +89,14 @@ import org.jgrapes.portal.Portlet.RenderMode;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.JsonInput;
-import org.jgrapes.portal.events.LastPortalLayout;
+import org.jgrapes.portal.events.JsonOutput;
 import org.jgrapes.portal.events.NotifyPortletView;
-import org.jgrapes.portal.events.PortalConfigured;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
-import org.jgrapes.portal.events.RetrieveDataFromPortal;
 import org.jgrapes.portal.events.SetLocale;
 import org.jgrapes.portal.events.SetTheme;
-import org.jgrapes.portal.events.StoreDataInPortal;
 import org.jgrapes.portal.themes.base.Provider;
 import org.jgrapes.portal.util.JsonUtil;
 
@@ -180,12 +177,9 @@ public class PortalView extends Component {
 		portalBaseModel = Collections.unmodifiableMap(portalBaseModel);
 
 		// Handlers attached to the portal side channel
-		Handler.Evaluator.add(this, "onStoreDataInPortal", portal.channel());
+		Handler.Evaluator.add(this, "onJsonOutput", portal.channel());
 		Handler.Evaluator.add(this, "onSetLocale", portal.channel());
 		Handler.Evaluator.add(this, "onSetTheme", portal.channel());
-		Handler.Evaluator.add(this, "onRetrieveDataFromPortal", portal.channel());
-		Handler.Evaluator.add(this, "onLastPortalLayout", portal.channel());
-		Handler.Evaluator.add(this, "onPortalConfigured", portal.channel());
 	}
 
 	void setResourceSupplier(
@@ -489,13 +483,6 @@ public class PortalView extends Component {
 	}
 
 	@Handler(dynamic=true)
-	public void onPortalConfigured(
-			PortalConfigured event, LinkedIOSubchannel channel) 
-					throws InterruptedException, IOException {
-		sendNotification(channel, "portalConfigured");
-	}
-	
-	@Handler(dynamic=true)
 	public void onSetLocale(SetLocale event, LinkedIOSubchannel channel)
 			throws InterruptedException, IOException {
 		supportedLocales.stream()
@@ -517,28 +504,14 @@ public class PortalView extends Component {
 	}
 	
 	@Handler(dynamic=true)
-	public void onStoreDataInPortal(
-			StoreDataInPortal event, LinkedIOSubchannel channel) 
-					throws InterruptedException, IOException {
-		sendNotification(channel, "storeData",
-				portal.prefix().getPath() + event.path(),
-				event.data());
-	}
-	
-	@Handler(dynamic=true)
-	public void onRetrieveDataFromPortal(
-			RetrieveDataFromPortal event, LinkedIOSubchannel channel) 
-					throws InterruptedException, IOException {
-		sendNotification(channel, "retrieveData",
-				portal.prefix() + event.path());
-	}
-
-	@Handler(dynamic=true)
-	public void onLastPortalLayout(
-			LastPortalLayout event, LinkedIOSubchannel channel) 
-					throws InterruptedException, IOException {
-		sendNotification(channel, "lastPortalLayout",
-				event.previewLayout(), event.tabsLayout());
+	public void onJsonOutput(JsonOutput event, LinkedIOSubchannel channel)
+			throws InterruptedException, IOException {
+		IOSubchannel upstream = channel.upstreamChannel();
+		@SuppressWarnings("resource")
+		CharBufferWriter out = new CharBufferWriter(upstream, 
+				upstream.responsePipeline()).suppressClose();
+		Json.createWriter(out).write(event.requestData());
+		out.close();
 	}
 	
 	void sendNotification(LinkedIOSubchannel channel,
