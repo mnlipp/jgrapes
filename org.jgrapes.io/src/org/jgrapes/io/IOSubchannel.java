@@ -253,7 +253,11 @@ public interface IOSubchannel extends Channel, Associator {
 			if (contextData == null) {
 				contextData = new ConcurrentHashMap<>();
 			}
-			contextData.put(by, with);
+			if (with != null) {
+				contextData.put(by, with);
+			} else {
+				contextData.remove(by);
+			}
 			return this;
 		}
 

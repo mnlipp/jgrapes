@@ -482,7 +482,11 @@ public abstract class EventBase<T>
 		if (contextData == null) {
 			contextData = new ConcurrentHashMap<>();
 		}
-		contextData.put(by, with);
+		if (with != null) {
+			contextData.put(by, with);
+		} else {
+			contextData.remove(by);
+		}
 		return (Event<T>)this;
 	}
 

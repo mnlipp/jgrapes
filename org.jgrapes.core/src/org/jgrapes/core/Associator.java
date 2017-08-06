@@ -32,6 +32,8 @@ public interface Associator {
 	 * anything that represents an id can be used as value for 
 	 * parameter `name`, it does not necessarily have to be a string.
 	 * 
+	 * Passing `null` as parameter `with` clears the association.
+	 * 
 	 * @param by the "name"
 	 * @param with the object to be associated
 	 * @return the sub channel for easy chaining
