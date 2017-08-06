@@ -23,20 +23,39 @@ import java.util.Map;
 import org.jgrapes.core.Event;
 
 /**
- * 
+ * A query event for a key/value store.
  */
 public class KeyValueStoreQuery extends Event<Map<String,String>> {
 
 	private String key;
 
 	/**
-	 * @param key
+	 * Creates a new event that queries using the given key. The
+	 * result of the event is a map with the retrieved entries.
+	 * 
+	 * @param key the key
 	 */
 	public KeyValueStoreQuery(String key) {
 		this.key = key;
 	}
 
 	/**
+	 * Convenience constructor for creating a new event with
+	 * a completion event of type {@link KeyValueStoreData}.
+	 * 
+	 * @param key the key
+	 * @param completionEvent
+	 */
+	public KeyValueStoreQuery(String key, boolean completionEvent) {
+		this(key);
+		if (completionEvent) {
+			new KeyValueStoreData(this);
+		}
+	}
+
+	/**
+	 * Returns the key used for the query.
+	 * 
 	 * @return the key
 	 */
 	public String query() {
