@@ -136,7 +136,7 @@ public abstract class AbstractPortlet extends Component {
 	}
 	
 	/**
-	 * Adds the given portlet model to the session.
+	 * Removes the given portlet model from the session.
 	 * 
 	 * @param channel the channel, used to access the session
 	 * @param model the model
