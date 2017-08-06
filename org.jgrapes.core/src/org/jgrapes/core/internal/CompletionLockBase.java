@@ -53,7 +53,7 @@ public abstract class CompletionLockBase {
 		event.removeCompletionLock(this);
 	}
 	
-	CompletionLockBase startTimer(EventBase<?> event) {
+	CompletionLockBase startTimer() {
 		if (timeout == 0) {
 			return this;
 		}

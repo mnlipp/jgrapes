@@ -297,7 +297,7 @@ public abstract class EventBase<T>
 		}
 		if (completionLocks.add(lock)) {
 			openCount.incrementAndGet();
-			lock.startTimer(this);
+			lock.startTimer();
 		}
 		return (Event<T>)this;
 	}
