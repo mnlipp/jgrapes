@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.Session;
@@ -40,6 +41,7 @@ import org.jgrapes.portal.events.PortalLayoutChanged;
 import org.jgrapes.portal.events.PortalPrepared;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortletRequest;
+import org.jgrapes.util.events.KeyValueStoreData;
 import org.jgrapes.util.events.KeyValueStoreQuery;
 import org.jgrapes.util.events.KeyValueStoreUpdate;
 
@@ -80,8 +82,15 @@ public class BrowserBasedPortalPolicy extends Component {
 			throws InterruptedException {
 		Optional<PortalSession> session = lookupPortalSession(channel);
 		if(session.isPresent()) {
-				session.get().onPortalReady(event, channel);
+			session.get().onPortalReady(event, channel);
 		}
+	}
+
+	@Handler
+	public void onKeyValueStoreData(
+			KeyValueStoreData event, IOSubchannel channel) {
+		lookupPortalSession(channel).ifPresent(
+				ps -> ps.onKeyValueStoreData(event, channel));
 	}
 
 	@Handler
@@ -106,6 +115,7 @@ public class BrowserBasedPortalPolicy extends Component {
 	
 	private class PortalSession {
 
+		private CompletionLock readyLock;
 		private Map<String,Object> persisted = null;
 		
 		public void onPortalReady(PortalReady event, IOSubchannel channel) 
@@ -113,21 +123,32 @@ public class BrowserBasedPortalPolicy extends Component {
 			if (persisted != null) {
 				return;
 			}
-			Map<String,String> data = newEventPipeline().fire(
-					new KeyValueStoreQuery(DATA_KEY), channel).get();
-			if (!data.containsKey(DATA_KEY)) {
+			KeyValueStoreQuery query = new KeyValueStoreQuery(DATA_KEY, true);
+			readyLock = new CompletionLock(event, 3000);
+			fire(query, channel);
+		}
+
+		public void onKeyValueStoreData(
+				KeyValueStoreData event, IOSubchannel channel) {
+			if (!event.event().query().equals(DATA_KEY)) {
 				return;
 			}
-			try (ObjectInputStream in = new ObjectInputStream(
-					Base64.getDecoder().wrap(
-							new ByteArrayInputStream(
-									data.get(DATA_KEY).getBytes("utf-8"))))) {
-				@SuppressWarnings("unchecked")
-				Map<String,Object> restored = (Map<String,Object>)in.readObject();
-				persisted = restored;
-			} catch (IOException | ClassNotFoundException e) {
-				// cannot happen
+			String data = event.data().get(DATA_KEY);
+			if (data != null) {
+				try (ObjectInputStream in = new ObjectInputStream(
+						Base64.getDecoder().wrap(
+								new ByteArrayInputStream(
+										data.getBytes("utf-8"))))) {
+					@SuppressWarnings("unchecked")
+					Map<String,Object> restored 
+						= (Map<String,Object>)in.readObject();
+					persisted = restored;
+				} catch (IOException | ClassNotFoundException e) {
+					// cannot happen
+				}
 			}
+			readyLock.remove();
+			readyLock = null;
 		}
 		
 		public void onPortalPrepared(
