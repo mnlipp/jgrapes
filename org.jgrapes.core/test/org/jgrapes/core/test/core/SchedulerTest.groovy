@@ -15,12 +15,11 @@ class SchedulerTest extends Specification {
 		boolean hit2 = false;
 		
 		when: "Schedule and wait for first"
-		Closure<Void> setHit1 = { Instant scheduledFor -> hit1 = true };
-		Components.schedule(setHit1,
-			Instant.now().plusMillis(500));
-		Components.schedule({ scheduledFor -> hit2 = true },
+		Closure<Void> setHit1 = { expiredTimer -> hit1 = true };
+		Components.schedule(setHit1, Instant.now().plusMillis(500));
+		Components.schedule({ expiredTimer -> hit2 = true },
 			Instant.now().plusMillis(1000));
-		Timer timer3 = Components.schedule({ scheduledFor -> hit1 = false },
+		Timer timer3 = Components.schedule({ expiredTimer -> hit1 = false },
 			Instant.now().plusMillis(1500));
 		Thread.sleep(750);
 		
