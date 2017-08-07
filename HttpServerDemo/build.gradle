@@ -2,7 +2,6 @@ buildscript {
 	
 	repositories {
 		mavenCentral()
-		mavenLocal()
 		maven { url 'https://jitpack.io' }
 	}
 	
@@ -10,6 +9,10 @@ buildscript {
 		classpath 'com.fizzed:rocker-compiler:0.20.0'
 	}
   }
+
+repositories {
+	maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+}
 
 dependencies {
 
