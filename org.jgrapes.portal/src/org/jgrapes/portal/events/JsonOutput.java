@@ -18,33 +18,24 @@
 
 package org.jgrapes.portal.events;
 
-import javax.json.Json;
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
+import java.io.Writer;
 
+import javax.json.Json;
+import javax.json.stream.JsonGenerator;
+
+import org.jdrupes.json.JsonEncoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
-import org.jgrapes.portal.util.JsonUtil;
 
 /**
  * A JSON request from the server to the browser. 
  */
 public class JsonOutput extends Event<Void> {
 
-	private JsonObject requestData;
+	private String method;
+	private Object[] params;
 	
-	/**
-	 * Create a new request from the given data. This constructor provides
-	 * complete control of the data to be sent.
-	 * 
-	 * @param requestData a request as defined by the JSON RPC specification 
-	 */
-	public JsonOutput(JsonObject requestData) {
-		this.requestData = requestData;
-	}
-
 	/**
 	 * Create a new request that invokes the given method with the
 	 * given parameters.
@@ -53,20 +44,24 @@ public class JsonOutput extends Event<Void> {
 	 * @param params the parameters
 	 */
 	public JsonOutput(String method, Object... params) {
-		JsonBuilderFactory factory = Json.createBuilderFactory(null);
-		JsonObjectBuilder notification = factory.createObjectBuilder()
-				.add("jsonrpc", "2.0").add("method", method);
-		if (params.length > 0) {
-			notification.add("params", JsonUtil.toJsonArray(params));
-		}
-		requestData = notification.build();
+		this.method = method;
+		this.params = params;
 	}
 	
 	/**
 	 * @return the requestData
 	 */
-	public JsonObject requestData() {
-		return requestData;
+	public void toJson(Writer writer) {
+		JsonGenerator generator = Json.createGenerator(writer);
+		generator.writeStartObject();
+		generator.write("jsonrpc", "2.0");
+		generator.write("method", method);
+		if (params.length > 0) {
+			generator.writeKey("params");
+			JsonEncoder.create(generator).writeArray(params);
+		}
+		generator.writeEnd();
+		generator.flush();
 	}
 
 	/* (non-Javadoc)
@@ -78,7 +73,7 @@ public class JsonOutput extends Event<Void> {
 		builder.append(Components.objectName(this));
 		builder.append(" [");
 		builder.append("method=");
-		builder.append(requestData.getString("method"));
+		builder.append(method);
 		if (channels != null) {
 			builder.append(", channels=");
 			builder.append(Channel.toString(channels));

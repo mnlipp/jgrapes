@@ -58,9 +58,8 @@ import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 import javax.json.Json;
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.stream.JsonGenerator;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
@@ -69,6 +68,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.Directive;
 import org.jdrupes.httpcodec.types.MediaType;
+import org.jdrupes.json.JsonEncoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
@@ -98,7 +98,6 @@ import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.SetLocale;
 import org.jgrapes.portal.events.SetTheme;
 import org.jgrapes.portal.themes.base.Provider;
-import org.jgrapes.portal.util.JsonUtil;
 
 /**
  * 
@@ -510,24 +509,27 @@ public class PortalView extends Component {
 		@SuppressWarnings("resource")
 		CharBufferWriter out = new CharBufferWriter(upstream, 
 				upstream.responsePipeline()).suppressClose();
-		Json.createWriter(out).write(event.requestData());
+		event.toJson(out);
 		out.close();
 	}
 	
 	void sendNotification(LinkedIOSubchannel channel,
 	        String method, Object... params)
 	        		throws InterruptedException, IOException {
-		JsonBuilderFactory factory = Json.createBuilderFactory(null);
-		JsonObjectBuilder notification = factory.createObjectBuilder()
-				.add("jsonrpc", "2.0").add("method", method);
-		if (params.length > 0) {
-			notification.add("params", JsonUtil.toJsonArray(params));
-		}
 		IOSubchannel upstream = channel.upstreamChannel();
 		@SuppressWarnings("resource")
 		CharBufferWriter out = new CharBufferWriter(upstream, 
 				upstream.responsePipeline()).suppressClose();
-		Json.createWriter(out).write(notification.build());
+		JsonGenerator generator = Json.createGenerator(out);
+		generator.writeStartObject();
+		generator.write("jsonrpc", "2.0");
+		generator.write("method", method);
+		if (params.length > 0) {
+			generator.writeKey("params");
+			JsonEncoder.create(generator).writeArray(params);
+		}
+		generator.writeEnd();
+		generator.flush();
 		out.close();
 	}
 

@@ -26,6 +26,7 @@ import java.util.Map;
 
 import javax.json.JsonArray;
 
+import org.jdrupes.json.JsonEncoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
@@ -36,7 +37,6 @@ import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.portal.events.JsonInput;
 import org.jgrapes.portal.events.JsonOutput;
 import org.jgrapes.portal.events.PortalReady;
-import org.jgrapes.portal.util.JsonUtil;
 import org.jgrapes.util.events.KeyValueStoreQuery;
 import org.jgrapes.util.events.KeyValueStoreUpdate;
 import org.jgrapes.util.events.KeyValueStoreUpdate.Action;
@@ -123,7 +123,8 @@ public class PortalLocalBackedKVStore extends Component {
 			}
 		}
 		actions.add(new String[] { "u", keyStart, 
-				JsonUtil.toJsonArray(data.keySet().toArray()).toString() });
+				JsonEncoder.create().writeArray(
+						data.keySet().toArray()).toJson() });
 		fire(new JsonOutput("storeLocalData", 
 				new Object[] { actions.toArray() }), channel);
 	}
