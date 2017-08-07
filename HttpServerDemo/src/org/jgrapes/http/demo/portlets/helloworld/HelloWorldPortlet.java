@@ -184,16 +184,16 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 	
 		event.stop();
 		HelloWorldModel portletModel = (HelloWorldModel)optPortletModel.get();
-		portletModel.setVisible(!portletModel.isWorldVisible());
+		portletModel.setWorldVisible(!portletModel.isWorldVisible());
 		
 		channel.respond(new NotifyPortletView(getClass().getName(),
 				portletModel.getPortletId(), "setWorldVisible", 
 				portletModel.isWorldVisible()));
 	}
 	
-	public class HelloWorldModel extends PortletModelBean {
+	public static class HelloWorldModel extends PortletModelBean {
 
-		private boolean visible = true;
+		private boolean worldVisible = true;
 		
 		public HelloWorldModel() {
 		}
@@ -201,12 +201,12 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		/**
 		 * @param visible the visible to set
 		 */
-		public void setVisible(boolean visible) {
-			this.visible = visible;
+		public void setWorldVisible(boolean visible) {
+			this.worldVisible = visible;
 		}
 
 		public boolean isWorldVisible() {
-			return visible;
+			return worldVisible;
 		}
 	}
 	
