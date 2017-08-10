@@ -23,7 +23,7 @@ import java.io.Writer;
 import javax.json.Json;
 import javax.json.stream.JsonGenerator;
 
-import org.jdrupes.json.JsonEncoder;
+import org.jdrupes.json.JsonBeanEncoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
@@ -58,7 +58,7 @@ public class JsonOutput extends Event<Void> {
 		generator.write("method", method);
 		if (params.length > 0) {
 			generator.writeKey("params");
-			JsonEncoder.create(generator).writeArray(params);
+			JsonBeanEncoder.create(generator).writeArray(params);
 		}
 		generator.writeEnd();
 		generator.flush();

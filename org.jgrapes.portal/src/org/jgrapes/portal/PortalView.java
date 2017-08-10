@@ -68,7 +68,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.Directive;
 import org.jdrupes.httpcodec.types.MediaType;
-import org.jdrupes.json.JsonEncoder;
+import org.jdrupes.json.JsonBeanEncoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
@@ -526,7 +526,7 @@ public class PortalView extends Component {
 		generator.write("method", method);
 		if (params.length > 0) {
 			generator.writeKey("params");
-			JsonEncoder.create(generator).writeArray(params);
+			JsonBeanEncoder.create(generator).writeArray(params);
 		}
 		generator.writeEnd();
 		generator.flush();

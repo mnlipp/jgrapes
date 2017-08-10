@@ -18,6 +18,7 @@
 
 package org.jgrapes.http.demo.portlets.helloworld;
 
+import org.jdrupes.json.JsonBeanEncoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
@@ -103,6 +104,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		event.stop();
 		HelloWorldModel portletModel 
 			= addToSession(channel, new HelloWorldModel());
+		String jsonState = JsonBeanEncoder.create()
+				.writeObject(portletModel).toJson();
 		Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
 		Map<String, Object> baseModel 
 			= freemarkerBaseModel(event.renderSupport());

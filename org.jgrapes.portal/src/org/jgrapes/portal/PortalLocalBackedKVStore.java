@@ -26,7 +26,7 @@ import java.util.Map;
 
 import javax.json.JsonArray;
 
-import org.jdrupes.json.JsonEncoder;
+import org.jdrupes.json.JsonBeanEncoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
@@ -123,7 +123,7 @@ public class PortalLocalBackedKVStore extends Component {
 			}
 		}
 		actions.add(new String[] { "u", keyStart, 
-				JsonEncoder.create().writeArray(
+				JsonBeanEncoder.create().writeArray(
 						data.keySet().toArray()).toJson() });
 		fire(new JsonOutput("storeLocalData", 
 				new Object[] { actions.toArray() }), channel);
