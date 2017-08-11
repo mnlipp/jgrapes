@@ -33,7 +33,6 @@ import java.io.OutputStreamWriter;
 import java.io.PipedReader;
 import java.io.PipedWriter;
 import java.io.Reader;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -41,7 +40,6 @@ import java.nio.CharBuffer;
 import java.text.Collator;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -59,7 +57,6 @@ import java.util.stream.StreamSupport;
 
 import javax.json.Json;
 import javax.json.JsonReader;
-import javax.json.stream.JsonGenerator;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
@@ -68,7 +65,6 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.Directive;
 import org.jdrupes.httpcodec.types.MediaType;
-import org.jdrupes.json.JsonBeanEncoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
@@ -85,16 +81,10 @@ import org.jgrapes.io.util.CharBufferWriter;
 import org.jgrapes.io.util.InputStreamPipeline;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedCharBuffer;
-import org.jgrapes.portal.Portlet.RenderMode;
-import org.jgrapes.portal.events.AddPortletType;
-import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.JsonInput;
 import org.jgrapes.portal.events.JsonOutput;
-import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
-import org.jgrapes.portal.events.RenderPortletFromProvider;
-import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.SetLocale;
 import org.jgrapes.portal.events.SetTheme;
 import org.jgrapes.portal.themes.base.Provider;
@@ -414,51 +404,6 @@ public class PortalView extends Component {
 				event.buffer().backingBuffer(), event.isEndOfRecord());
 	}
 	
-	void onAddPortletType(
-			AddPortletType event, LinkedIOSubchannel channel)
-					throws InterruptedException, IOException {
-		sendNotification(channel, "addPortletType",
-				event.portletType(),
-				event.displayName(),
-				Arrays.stream(event.cssUris()).map(uri -> 
-				renderSupport.portletResource(
-						event.portletType(), uri).toString())
-				.toArray(String[]::new),
-				Arrays.stream(event.scriptUris()).map(uri -> 
-				renderSupport.portletResource(event.portletType(), uri).toString())
-				.toArray(String[]::new),
-				event.isInstantiable());
-	}
-	
-	void onRenderPortlet(
-			RenderPortletFromString event, LinkedIOSubchannel channel) 
-					throws InterruptedException, IOException {
-		sendNotification(channel, "updatePortlet",
-				event.portletId(), event.renderMode().name(),
-				event.supportedRenderModes().stream().map(RenderMode::name)
-				.toArray(size -> new String[size]),
-				((RenderPortletFromString)event).content());
-	}
-
-	void onRenderPortlet(
-			RenderPortletFromProvider event, LinkedIOSubchannel channel) 
-					throws InterruptedException, IOException {
-		StringWriter content = new StringWriter();
-		event.provider().writeTo(content);
-		sendNotification(channel, "updatePortlet",
-				event.portletId(), event.renderMode().name(),
-				event.supportedRenderModes().stream().map(RenderMode::name)
-				.toArray(size -> new String[size]),
-				content.toString(), event.isForeground());
-	}
-
-	public void onDeletePortlet(DeletePortlet event,
-	        LinkedIOSubchannel channel) 
-	        		throws InterruptedException, IOException {
-		sendNotification(channel, "deletePortlet",
-				event.portletId());
-	}
-
 	public void onPortletResourceResponse(PortletResourceResponse event,
 	        LinkedIOSubchannel channel) {
 		HttpRequest request = event.request().httpRequest();
@@ -473,14 +418,6 @@ public class PortalView extends Component {
 						event.stream(), channel.upstreamChannel()));
 	}
 
-	public void onNotifyPortletView(NotifyPortletView event,
-	        LinkedIOSubchannel channel) 
-	        		throws InterruptedException, IOException {
-		sendNotification(channel, "invokePortletMethod",
-				event.portletClass(), event.portletId(), 
-				event.method(), event.params());
-	}
-
 	@Handler(dynamic=true)
 	public void onSetLocale(SetLocale event, LinkedIOSubchannel channel)
 			throws InterruptedException, IOException {
@@ -488,7 +425,7 @@ public class PortalView extends Component {
 			.filter(l -> l.equals(event.locale())).findFirst()
 			.ifPresent(l ->	channel.associated(Selection.class)
 					.map(s -> s.prefer(l)));
-		sendNotification(channel, "reload");
+		fire(new JsonOutput("reload"), channel);
 	}
 	
 	@Handler(dynamic=true)
@@ -499,7 +436,7 @@ public class PortalView extends Component {
 			.ifPresent(themeProvider ->  
 				channel.associated(Session.class).map(session ->
 					session.put("themeProvider", themeProvider)));
-		sendNotification(channel, "reload");
+		fire(new JsonOutput("reload"), channel);
 	}
 	
 	@Handler(dynamic=true)
@@ -513,26 +450,6 @@ public class PortalView extends Component {
 		out.close();
 	}
 	
-	void sendNotification(LinkedIOSubchannel channel,
-	        String method, Object... params)
-	        		throws InterruptedException, IOException {
-		IOSubchannel upstream = channel.upstreamChannel();
-		@SuppressWarnings("resource")
-		CharBufferWriter out = new CharBufferWriter(upstream, 
-				upstream.responsePipeline()).suppressClose();
-		JsonGenerator generator = Json.createGenerator(out);
-		generator.writeStartObject();
-		generator.write("jsonrpc", "2.0");
-		generator.write("method", method);
-		if (params.length > 0) {
-			generator.writeKey("params");
-			JsonBeanEncoder.create(generator).writeArray(params);
-		}
-		generator.writeEnd();
-		generator.flush();
-		out.close();
-	}
-
 	private class PortalInfo {
 
 		private PipedWriter decodeWriter;

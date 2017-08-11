@@ -19,7 +19,9 @@
 package org.jgrapes.portal;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.function.Function;
@@ -98,31 +100,52 @@ public class Portal extends Component {
 	}
 	
 	@Handler
-	public void onRenderPortlet(RenderPortletFromString result,
+	public void onRenderPortlet(RenderPortletFromString event,
 			LinkedIOSubchannel channel) 
 					throws InterruptedException, IOException {
-		view.onRenderPortlet(result, channel);
+		fire(new JsonOutput("updatePortlet",
+				event.portletId(), event.renderMode().name(),
+				event.supportedRenderModes().stream().map(RenderMode::name)
+				.toArray(size -> new String[size]),
+				event.content()), channel);
 	}
 	
 	@Handler
-	public void onRenderPortlet(RenderPortletFromProvider result,
+	public void onRenderPortlet(RenderPortletFromProvider event,
 			LinkedIOSubchannel channel) 
 					throws InterruptedException, IOException {
-		view.onRenderPortlet(result, channel);
+		StringWriter content = new StringWriter();
+		event.provider().writeTo(content);
+		fire(new JsonOutput("updatePortlet",
+				event.portletId(), event.renderMode().name(),
+				event.supportedRenderModes().stream().map(RenderMode::name)
+				.toArray(size -> new String[size]),
+				content.toString(), event.isForeground()), channel);
 	}
 	
 	@Handler
-	public void onAddPortletResources(
+	public void onAddPortletType(
 			AddPortletType event, LinkedIOSubchannel channel)
 					throws InterruptedException, IOException {
-		view.onAddPortletType(event, channel);
+		fire(new JsonOutput("addPortletType",
+				event.portletType(),
+				event.displayName(),
+				Arrays.stream(event.cssUris()).map(uri -> 
+					view.renderSupport().portletResource(
+							event.portletType(), uri).toString())
+				.toArray(String[]::new),
+				Arrays.stream(event.scriptUris()).map(uri -> 
+					view.renderSupport().portletResource(
+							event.portletType(), uri).toString())
+				.toArray(String[]::new),
+				event.isInstantiable()), channel);
 	}
 	
 	@Handler
 	public void onDeletePortlet(
 			DeletePortlet event, LinkedIOSubchannel channel) 
 					throws InterruptedException, IOException {
-		view.onDeletePortlet(event, channel);
+		fire(new JsonOutput("deletePortlet", event.portletId()), channel);
 	}
 	
 	@Handler
@@ -135,7 +158,9 @@ public class Portal extends Component {
 	public void onNotifyPortletView(
 			NotifyPortletView event, LinkedIOSubchannel channel) 
 					throws InterruptedException, IOException {
-		view.onNotifyPortletView(event, channel);
+		fire(new JsonOutput("invokePortletMethod",
+				event.portletClass(), event.portletId(), 
+				event.method(), event.params()), channel);
 	}
 
 	@Handler
