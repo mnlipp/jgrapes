@@ -272,11 +272,16 @@ var JGPortal = {
 	    try {
 	        let keys = localStorage.getItem(path);
 	        keys = JSON.parse(keys);
+	        let newKeys = []; // cleanup unused used
 	        for (let i in keys) {
 	            let key = keys[i];
 	            let value = localStorage.getItem(path + key);
-	            result.push([ key, value ])
+	            if (value) {
+	                newKeys.push(key);
+	                result.push([ key, value ])
+	            }
 	        }
+	        localStorage.setItem(path, JSON.stringify(newKeys));
 	    } catch (e) {
 	    }
 	    JGPortal.sendLocalData(result);
