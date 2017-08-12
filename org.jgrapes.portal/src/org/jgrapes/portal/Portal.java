@@ -47,7 +47,6 @@ import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalConfigured;
 import org.jgrapes.portal.events.PortalLayoutChanged;
 import org.jgrapes.portal.events.PortalReady;
-import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletFromString;
 import org.jgrapes.portal.events.RenderPortletRequest;
@@ -146,12 +145,6 @@ public class Portal extends Component {
 			DeletePortlet event, LinkedIOSubchannel channel) 
 					throws InterruptedException, IOException {
 		fire(new JsonOutput("deletePortlet", event.portletId()), channel);
-	}
-	
-	@Handler
-	public void onPortletResourceResponse(
-			PortletResourceResponse event, LinkedIOSubchannel channel) {
-		view.onPortletResourceResponse(event, channel);
 	}
 	
 	@Handler 

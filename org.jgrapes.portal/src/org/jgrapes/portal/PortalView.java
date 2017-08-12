@@ -166,6 +166,8 @@ public class PortalView extends Component {
 		portalBaseModel = Collections.unmodifiableMap(portalBaseModel);
 
 		// Handlers attached to the portal side channel
+		Handler.Evaluator.add(
+				this, "onPortletResourceResponse", portal.channel());
 		Handler.Evaluator.add(this, "onJsonOutput", portal.channel());
 		Handler.Evaluator.add(this, "onSetLocale", portal.channel());
 		Handler.Evaluator.add(this, "onSetTheme", portal.channel());
@@ -404,6 +406,7 @@ public class PortalView extends Component {
 				event.buffer().backingBuffer(), event.isEndOfRecord());
 	}
 	
+	@Handler(dynamic=true)
 	public void onPortletResourceResponse(PortletResourceResponse event,
 	        LinkedIOSubchannel channel) {
 		HttpRequest request = event.request().httpRequest();

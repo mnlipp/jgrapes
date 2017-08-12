@@ -18,8 +18,11 @@
 
 package org.jgrapes.http.demo.portlets.helloworld;
 
+import org.jdrupes.json.JsonBeanDecoder;
 import org.jdrupes.json.JsonBeanEncoder;
+import org.jdrupes.json.JsonDecodeException;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
@@ -36,6 +39,9 @@ import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.freemarker.FreeMarkerPortlet;
+import org.jgrapes.util.events.KeyValueStoreData;
+import org.jgrapes.util.events.KeyValueStoreQuery;
+import org.jgrapes.util.events.KeyValueStoreUpdate;
 
 import freemarker.core.ParseException;
 import freemarker.template.MalformedTemplateNameException;
@@ -58,6 +64,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 
 	private final static Set<RenderMode> MODES = RenderMode.asSet(
 			DeleteablePreview, View);
+	private final static String STORAGE_PATH = "/portlets/" 
+			+ HelloWorldPortlet.class.getName()	+ "/";
 	
 	/**
 	 * Creates a new component with its channel set to
@@ -91,6 +99,26 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 				.addScript(PortalView.uriFromPath("HelloWorld-functions.js"))
 				.addCss(PortalView.uriFromPath("HelloWorld-style.css"))
 				.setInstantiable());
+		KeyValueStoreQuery query = new KeyValueStoreQuery(STORAGE_PATH, true);
+		channel.setAssociated(
+				HelloWorldPortlet.class, new CompletionLock(event, 3000));
+		fire(query, channel);
+	}
+
+	@Handler
+	public void onKeyValueStoreData(
+			KeyValueStoreData event, IOSubchannel channel) 
+					throws JsonDecodeException {
+		if (!event.event().query().equals(STORAGE_PATH)) {
+			return;
+		}
+		channel.associated(HelloWorldPortlet.class, CompletionLock.class)
+			.ifPresent(lock -> lock.remove());
+		for (String json: event.data().values()) {
+			HelloWorldModel model = JsonBeanDecoder.create(json)
+					.readObject(HelloWorldModel.class);
+			addToSession(channel, model);
+		}
 	}
 	
 	@Handler
@@ -103,9 +131,11 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		
 		event.stop();
 		HelloWorldModel portletModel 
-			= addToSession(channel, new HelloWorldModel());
+				= addToSession(channel, new HelloWorldModel());
 		String jsonState = JsonBeanEncoder.create()
 				.writeObject(portletModel).toJson();
+		channel.respond(new KeyValueStoreUpdate().update(STORAGE_PATH 
+				+ portletModel.getPortletId(), jsonState));
 		Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
 		Map<String, Object> baseModel 
 			= freemarkerBaseModel(event.renderSupport());
@@ -127,6 +157,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 	
 		event.stop();
 		removeFromSession(channel, optPortletModel.get());
+		channel.respond(new KeyValueStoreUpdate().delete(STORAGE_PATH 
+				+ optPortletModel.get().getPortletId()));
 		channel.respond(new DeletePortlet(
 				optPortletModel.get().getPortletId()));
 	}
@@ -189,6 +221,10 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		HelloWorldModel portletModel = (HelloWorldModel)optPortletModel.get();
 		portletModel.setWorldVisible(!portletModel.isWorldVisible());
 		
+		String jsonState = JsonBeanEncoder.create()
+				.writeObject(portletModel).toJson();
+		channel.respond(new KeyValueStoreUpdate().update(STORAGE_PATH 
+				+ portletModel.getPortletId(), jsonState));
 		channel.respond(new NotifyPortletView(getClass().getName(),
 				portletModel.getPortletId(), "setWorldVisible", 
 				portletModel.isWorldVisible()));
