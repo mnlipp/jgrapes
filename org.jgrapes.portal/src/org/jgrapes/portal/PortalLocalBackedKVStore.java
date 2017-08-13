@@ -26,7 +26,6 @@ import java.util.Map;
 
 import javax.json.JsonArray;
 
-import org.jdrupes.json.JsonBeanEncoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
@@ -78,7 +77,7 @@ public class PortalLocalBackedKVStore extends Component {
 		event.cancel(false);
 		channel.setAssociated(PortalLocalBackedKVStore.class, event);
 		String keyStart = portalPrefix 
-				+ PortalLocalBackedKVStore.class.getName();
+				+ PortalLocalBackedKVStore.class.getName() + "/";
 		fire(new JsonOutput("retrieveLocalData", keyStart), channel);
 	}
 	
@@ -88,13 +87,18 @@ public class PortalLocalBackedKVStore extends Component {
 		if (!event.method().equals("retrievedLocalData")) {
 			return;
 		}
+		final String keyStart = portalPrefix 
+				+ PortalLocalBackedKVStore.class.getName() + "/";
 		channel.associated(PortalLocalBackedKVStore.class, PortalReady.class)
 			.ifPresent(origEvent -> {
 				JsonArray params = (JsonArray)event.params();
-				data.clear();
 				params.getJsonArray(0).forEach(item -> {
 					JsonArray kvPair = (JsonArray)item;
-					data.put(kvPair.getString(0), kvPair.getString(1));
+					String key = kvPair.getString(0);
+					if (key.startsWith(keyStart)) {
+						data.put(kvPair.getString(0).substring(
+								keyStart.length() - 1), kvPair.getString(1));
+					}
 				});
 				retrieved = true;
 				channel.setAssociated(PortalLocalBackedKVStore.class, null);
@@ -122,9 +126,6 @@ public class PortalLocalBackedKVStore extends Component {
 				data.remove(action.key());
 			}
 		}
-		actions.add(new String[] { "u", keyStart, 
-				JsonBeanEncoder.create().writeArray(
-						data.keySet().toArray()).toJson() });
 		fire(new JsonOutput("storeLocalData", 
 				new Object[] { actions.toArray() }), channel);
 	}

@@ -270,18 +270,20 @@ var JGPortal = {
 	function retrieveLocalData(path) {
 	    let result = [];
 	    try {
-	        let keys = localStorage.getItem(path);
-	        keys = JSON.parse(keys);
-	        let newKeys = []; // cleanup unused used
-	        for (let i in keys) {
-	            let key = keys[i];
-	            let value = localStorage.getItem(path + key);
-	            if (value) {
-	                newKeys.push(key);
-	                result.push([ key, value ])
+	        for(let i = 0; i < localStorage.length; i++) {
+	            let key = localStorage.key(i);
+	            if (!path.endsWith("/")) {
+	                if (key !== path) {
+	                    continue;
+	                }
+	            } else {
+	                if (!key.startsWith(path)) {
+	                    continue;
+	                }
 	            }
+	            let value = localStorage.getItem(key);
+	            result.push([ key, value ])
 	        }
-	        localStorage.setItem(path, JSON.stringify(newKeys));
 	    } catch (e) {
 	    }
 	    JGPortal.sendLocalData(result);
