@@ -144,10 +144,10 @@
  * PortalPolicy -> Portal: LastPortalLayout
  * Portal -> Browser: "lastPortalLayout"
  * loop for all portlets to be displayed
- *     PortalPolicy -> PortletY: RenderPortletRequest
- *     activate PortletY
- *     PortletY -> Portal: RenderPortlet
- *     deactivate PortletY
+ *     PortalPolicy -> PortletX: RenderPortletRequest
+ *     activate PortletX
+ *     PortletX -> Portal: RenderPortlet
+ *     deactivate PortletX
  *     activate Portal
  *     Portal -> Browser: "renderPortlet"
  *     deactivate Portal
