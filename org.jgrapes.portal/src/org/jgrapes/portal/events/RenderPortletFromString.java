@@ -33,6 +33,7 @@ public class RenderPortletFromString extends RenderPortlet {
 	/**
 	 * Creates a new event.
 	 * 
+	 * @param portletClass the portlet class
 	 * @param portletId the id of the portlet
 	 * @param mode the view mode that is to be updated
 	 * @param supportedModes the modes supported by the portlet
@@ -40,10 +41,10 @@ public class RenderPortletFromString extends RenderPortlet {
 	 * (as HTML)
 	 * @param foreground if the portlet is to be put in the foreground
 	 */
-	public RenderPortletFromString(
+	public RenderPortletFromString(Class<?> portletClass,
 			String portletId, RenderMode mode, Set<RenderMode> supportedModes,
 			String content, boolean foreground) {
-		super(portletId, mode, supportedModes, foreground);
+		super(portletClass, portletId, mode, supportedModes, foreground);
 		this.content = content;
 	}
 

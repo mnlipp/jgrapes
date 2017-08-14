@@ -28,13 +28,16 @@ import org.jgrapes.http.demo.portlets.helloworld.HelloWorldPortlet;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.Portlet;
 import org.jgrapes.portal.events.AddPortletRequest;
-import org.jgrapes.portal.events.PortalPrepared;
+import org.jgrapes.portal.events.PortalConfigured;
+import org.jgrapes.portal.events.RenderPortlet;
 
 /**
  * 
  */
 public class NewPortalSessionPolicy extends Component {
 
+	private final String renderedFlagName = getClass().getName() + ".rendered";
+	
 	/**
 	 * Creates a new component with its channel set to
 	 * itself.
@@ -52,18 +55,23 @@ public class NewPortalSessionPolicy extends Component {
 	}
 
 	@Handler
-	public void onPortalPrepared(PortalPrepared event, IOSubchannel channel) 
+	public void onRenderPortlet(RenderPortlet event, IOSubchannel channel) {
+		channel.associated(Session.class).ifPresent(session -> 
+			session.put(renderedFlagName, true));
+	}
+	
+	@Handler
+	public void onPortalConfigured(PortalConfigured event, IOSubchannel channel) 
 			throws InterruptedException {
 		Optional<Session> optSession = channel.associated(Session.class);
 		if (optSession.isPresent()) {
-			final String flagName = getClass().getName() + ".processed";
-			if ((Boolean)optSession.get().getOrDefault(flagName, false)) {
+			if ((Boolean)optSession.get().getOrDefault(
+					renderedFlagName, false)) {
 				return;
 			}
-			fire(new AddPortletRequest(event.event().renderSupport(), 
+			fire(new AddPortletRequest(event.event().event().renderSupport(), 
 					HelloWorldPortlet.class.getName(), 
 					Portlet.RenderMode.DeleteablePreview), channel);
-			optSession.get().put(flagName, true);
 		};
 	}
 

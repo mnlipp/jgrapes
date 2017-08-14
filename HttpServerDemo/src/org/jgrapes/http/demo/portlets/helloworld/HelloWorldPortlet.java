@@ -140,8 +140,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		Map<String, Object> baseModel 
 			= freemarkerBaseModel(event.renderSupport());
 		channel.respond(new RenderPortletFromProvider(
-				portletModel.getPortletId(), DeleteablePreview, 
-				MODES, newContentProvider(tpl, 
+				HelloWorldPortlet.class, portletModel.getPortletId(),
+				DeleteablePreview, MODES, newContentProvider(tpl, 
 						freemarkerModel(baseModel, portletModel, channel)),
 				true));
 	}
@@ -184,8 +184,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		case DeleteablePreview: {
 			Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
 			channel.respond(new RenderPortletFromProvider(
-					portletModel.getPortletId(), DeleteablePreview, MODES,
-					newContentProvider(tpl, 
+					HelloWorldPortlet.class, portletModel.getPortletId(), 
+					DeleteablePreview, MODES,	newContentProvider(tpl, 
 							freemarkerModel(baseModel, portletModel, channel)),
 					event.isForeground()));
 			break;
@@ -193,8 +193,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		case View: {
 			Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
 			channel.respond(new RenderPortletFromProvider(
-					portletModel.getPortletId(), View, MODES,
-					newContentProvider(tpl, 
+					HelloWorldPortlet.class, portletModel.getPortletId(), 
+					View, MODES, newContentProvider(tpl, 
 							freemarkerModel(baseModel, portletModel, channel)),
 					event.isForeground()));
 			channel.respond(new NotifyPortletView(getClass().getName(),

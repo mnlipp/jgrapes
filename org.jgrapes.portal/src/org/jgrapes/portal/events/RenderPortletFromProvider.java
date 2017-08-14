@@ -35,16 +35,17 @@ public class RenderPortletFromProvider extends RenderPortlet {
 	/**
 	 * Creates a new event.
 	 * 
+	 * @param portletClass the portlet class
 	 * @param portletId the id of the portlet
 	 * @param mode the view mode that is to be updated
 	 * @param supportedModes the modes supported by the portlet
 	 * @param provider the content provider
 	 * @param foreground if the portlet is to be put in the foreground
 	 */
-	public RenderPortletFromProvider(
+	public RenderPortletFromProvider(Class<?> portletClass,
 			String portletId, RenderMode mode, Set<RenderMode> supportedModes,
 			ContentProvider provider, boolean foreground) {
-		super(portletId, mode, supportedModes, foreground);
+		super(portletClass, portletId, mode, supportedModes, foreground);
 		this.provider = provider;
 	}
 
