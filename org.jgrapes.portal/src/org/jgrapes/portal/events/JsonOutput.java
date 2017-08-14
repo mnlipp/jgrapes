@@ -49,7 +49,9 @@ public class JsonOutput extends Event<Void> {
 	}
 	
 	/**
-	 * @return the requestData
+	 * Writes the event's JSON data to th egiven writer.
+	 * 
+	 * @param writer the writer
 	 */
 	public void toJson(Writer writer) {
 		JsonGenerator generator = Json.createGenerator(writer);
