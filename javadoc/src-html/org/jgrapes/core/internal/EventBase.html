@@ -158,7 +158,7 @@
 <span class="sourceLineNo">150</span>         * @return the result<a name="line.150"></a>
 <span class="sourceLineNo">151</span>         */<a name="line.151"></a>
 <span class="sourceLineNo">152</span>        protected boolean enqueued() {<a name="line.152"></a>
-<span class="sourceLineNo">153</span>                return openCount.get() &gt; 0;<a name="line.153"></a>
+<span class="sourceLineNo">153</span>                return processedBy != null || completed || cancelled;<a name="line.153"></a>
 <span class="sourceLineNo">154</span>        }<a name="line.154"></a>
 <span class="sourceLineNo">155</span><a name="line.155"></a>
 <span class="sourceLineNo">156</span>        /**<a name="line.156"></a>
@@ -305,7 +305,7 @@
 <span class="sourceLineNo">297</span>                }<a name="line.297"></a>
 <span class="sourceLineNo">298</span>                if (completionLocks.add(lock)) {<a name="line.298"></a>
 <span class="sourceLineNo">299</span>                        openCount.incrementAndGet();<a name="line.299"></a>
-<span class="sourceLineNo">300</span>                        lock.startTimer(this);<a name="line.300"></a>
+<span class="sourceLineNo">300</span>                        lock.startTimer();<a name="line.300"></a>
 <span class="sourceLineNo">301</span>                }<a name="line.301"></a>
 <span class="sourceLineNo">302</span>                return (Event&lt;T&gt;)this;<a name="line.302"></a>
 <span class="sourceLineNo">303</span>        }<a name="line.303"></a>
@@ -490,19 +490,23 @@
 <span class="sourceLineNo">482</span>                if (contextData == null) {<a name="line.482"></a>
 <span class="sourceLineNo">483</span>                        contextData = new ConcurrentHashMap&lt;&gt;();<a name="line.483"></a>
 <span class="sourceLineNo">484</span>                }<a name="line.484"></a>
-<span class="sourceLineNo">485</span>                contextData.put(by, with);<a name="line.485"></a>
-<span class="sourceLineNo">486</span>                return (Event&lt;T&gt;)this;<a name="line.486"></a>
-<span class="sourceLineNo">487</span>        }<a name="line.487"></a>
-<span class="sourceLineNo">488</span><a name="line.488"></a>
-<span class="sourceLineNo">489</span>        @Override<a name="line.489"></a>
-<span class="sourceLineNo">490</span>        public &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type) {<a name="line.490"></a>
-<span class="sourceLineNo">491</span>                if (contextData == null) {<a name="line.491"></a>
-<span class="sourceLineNo">492</span>                        return Optional.empty();<a name="line.492"></a>
-<span class="sourceLineNo">493</span>                }<a name="line.493"></a>
-<span class="sourceLineNo">494</span>                return Optional.ofNullable(type.cast(contextData.get(by)));<a name="line.494"></a>
-<span class="sourceLineNo">495</span>        }<a name="line.495"></a>
-<span class="sourceLineNo">496</span>        <a name="line.496"></a>
-<span class="sourceLineNo">497</span>}<a name="line.497"></a>
+<span class="sourceLineNo">485</span>                if (with != null) {<a name="line.485"></a>
+<span class="sourceLineNo">486</span>                        contextData.put(by, with);<a name="line.486"></a>
+<span class="sourceLineNo">487</span>                } else {<a name="line.487"></a>
+<span class="sourceLineNo">488</span>                        contextData.remove(by);<a name="line.488"></a>
+<span class="sourceLineNo">489</span>                }<a name="line.489"></a>
+<span class="sourceLineNo">490</span>                return (Event&lt;T&gt;)this;<a name="line.490"></a>
+<span class="sourceLineNo">491</span>        }<a name="line.491"></a>
+<span class="sourceLineNo">492</span><a name="line.492"></a>
+<span class="sourceLineNo">493</span>        @Override<a name="line.493"></a>
+<span class="sourceLineNo">494</span>        public &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type) {<a name="line.494"></a>
+<span class="sourceLineNo">495</span>                if (contextData == null) {<a name="line.495"></a>
+<span class="sourceLineNo">496</span>                        return Optional.empty();<a name="line.496"></a>
+<span class="sourceLineNo">497</span>                }<a name="line.497"></a>
+<span class="sourceLineNo">498</span>                return Optional.ofNullable(type.cast(contextData.get(by)));<a name="line.498"></a>
+<span class="sourceLineNo">499</span>        }<a name="line.499"></a>
+<span class="sourceLineNo">500</span>        <a name="line.500"></a>
+<span class="sourceLineNo">501</span>}<a name="line.501"></a>
 
 
 

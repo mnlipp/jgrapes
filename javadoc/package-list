@@ -20,6 +20,5 @@ org.jgrapes.portal.freemarker
 org.jgrapes.portal.themes.base
 org.jgrapes.portal.themes.blacktie
 org.jgrapes.portal.themes.blitzer
-org.jgrapes.portal.util
 org.jgrapes.util
 org.jgrapes.util.events
