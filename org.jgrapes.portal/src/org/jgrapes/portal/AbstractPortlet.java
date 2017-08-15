@@ -165,6 +165,7 @@ public abstract class AbstractPortlet extends Component {
 	protected Function<Locale,ResourceBundle> resourceSupplier() {
 		return locale -> ResourceBundle.getBundle(
 			getClass().getPackage().getName() + ".l10n", locale, 
+			getClass().getClassLoader(),
 				ResourceBundle.Control.getNoFallbackControl(
 						ResourceBundle.Control.FORMAT_DEFAULT));
 		
