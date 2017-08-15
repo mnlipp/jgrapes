@@ -15,15 +15,30 @@ api_version = 0.1.0.${tstamp}
 
 testbin=bin
 
--fixupmessages: \
-    "Found source folder 'resources' that is not on bnd's source path", \
-    "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \
-    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable."
+Require-Capability: \
+    osgi.extender; filter:="(osgi.extender=osgi.serviceloader.registrar)", \
+    osgi.extender; filter:="(osgi.extender=osgi.serviceloader.processor)", \
+    osgi.serviceloader; \
+        filter:="(osgi.serviceloader=org.jgrapes.portal.ThemeProvider)"; \
+            cardinality:=multiple
+
+Provide-Capability: osgi.serviceloader; \
+    osgi.serviceloader=org.jgrapes.portal.ThemeProvider
+
+Private-Package: \
+    org.jgrapes.portal.lib,\
+    org.jgrapes.portal.lib.*, \
+    org.jgrapes.portal.themes.*
     
 Export-Package: \
 	org.jgrapes.portal,\
-	org.jgrapes.portal.themes.base,\
 	org.jgrapes.portal.util,\
 	org.jgrapes.portal.events,\
 	org.jgrapes.portal.freemarker
+
+-includeresource: resources
+
+-fixupmessages: \
+    "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \
+    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable."
 	
