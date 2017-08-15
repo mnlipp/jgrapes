@@ -24,4 +24,6 @@ Export-Package: \
 	org.jgrapes.portal,\
 	org.jgrapes.portal.themes.base,\
 	org.jgrapes.portal.util,\
-	org.jgrapes.portal.events
+	org.jgrapes.portal.events,\
+	org.jgrapes.portal.freemarker
+	
