@@ -38,6 +38,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.internal.EventBase;
+import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.DiscardSession;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.WebSocketAccepted;
@@ -53,7 +54,8 @@ import org.jgrapes.io.IOSubchannel;
 public class InMemorySessionManager extends Component {
 
 	private static SecureRandom secureRandom = new SecureRandom();
-	
+
+	private String path = "/";
 	private String idName = "id";
 	@SuppressWarnings("serial")
 	private LinkedHashMap<String,Session> sessionsById 
@@ -71,19 +73,53 @@ public class InMemorySessionManager extends Component {
 	
 	/**
 	 * Creates a new session manager with its channel set to
-	 * itself.
+	 * itself and the scope set to "/".
 	 */
 	public InMemorySessionManager() {
+		this("/");
+	}
+
+	/**
+	 * Creates a new session manager with its channel set to
+	 * itself and the scope to scope.
+	 * 
+	 * @param scope the scope
+	 */
+	public InMemorySessionManager(String scope) {
+		this(Channel.SELF, scope);
+	}
+
+	/**
+	 * Creates a new session manager with its channel set to
+	 * the given channel and the scope to "/".
+	 * 
+	 * @param componentChannel the component channel
+	 */
+	public InMemorySessionManager(Channel componentChannel) {
+		this(componentChannel, "/");
 	}
 
 	/**
 	 * Creates a new session manager with its channel set to the given 
-	 * channel.
+	 * channel and the path set to path.
 	 * 
-	 * @param componentChannel the channel
+	 * @param componentChannel the component channel
+	 * @param scope the scope
 	 */
-	public InMemorySessionManager(Channel componentChannel) {
+	public InMemorySessionManager(Channel componentChannel, String scope) {
 		super(componentChannel);
+		if (scope.equals("/") || !scope.endsWith("/")) {
+			path = scope;
+		} else {
+			path = scope.substring(0, scope.length() - 1);
+		}
+		String pattern;
+		if (path.equals("/")) {
+			pattern = "/**";
+		} else {
+			pattern = path + "|" + path + "/**";
+		}
+		RequestHandler.Evaluator.add(this, "onRequest", pattern);
 	}
 
 	/**
@@ -176,7 +212,7 @@ public class InMemorySessionManager extends Component {
 	 * 
 	 * @param event the event
 	 */
-	@Handler(priority=1000)
+	@RequestHandler(priority=1000, dynamic=true)
 	public void onRequest(Request event) {
 		final HttpRequest request = event.httpRequest();
 		Optional<String> requestedSessionId = request.findValue(
@@ -250,6 +286,7 @@ public class InMemorySessionManager extends Component {
 		}
 		String sessionId = sessionIdBuilder.toString();
 		HttpCookie sessionCookie = new HttpCookie(idName, sessionId);
+		sessionCookie.setPath("/");
 		sessionCookie.setHttpOnly(true);
 		response.computeIfAbsent(HttpField.SET_COOKIE, CookieList::new)
 			.value().add(sessionCookie);

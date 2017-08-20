@@ -38,6 +38,7 @@ import org.jgrapes.core.Associator;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
@@ -48,6 +49,7 @@ import org.jgrapes.io.IOSubchannel;
  */
 public class LanguageSelector extends Component {
 
+	private String path;
 	private static final DefaultMultiValueConverter<List<Locale>, Locale> 
 		LOCALE_LIST = new DefaultMultiValueConverter<>(
 				ArrayList<Locale>::new, Converters.LANGUAGE);
@@ -55,19 +57,53 @@ public class LanguageSelector extends Component {
 	
 	/**
 	 * Creates a new language selector component with its channel set to
-	 * itself.
+	 * itself and the scope set to "/".
 	 */
 	public LanguageSelector() {
+		this ("/");
+	}
+
+	/**
+	 * Creates a new language selector component with its channel set to
+	 * itself and the scope set to the given value.
+	 * 
+	 * @param scope the scope
+	 */
+	public LanguageSelector(String scope) {
+		this (Channel.SELF, scope);
 	}
 
 	/**
 	 * Creates a new language selector component with its channel set 
-	 * to the given channel.
+	 * to the given channel and the scope to "/".
 	 * 
-	 * @param componentChannel
+	 * @param componentChannel the component channel
 	 */
 	public LanguageSelector(Channel componentChannel) {
+		this(componentChannel, "/");
+	}
+
+	/**
+	 * Creates a new language selector component with its channel set 
+	 * to the given channel and the scope to the given scope.
+	 * 
+	 * @param componentChannel the component channel
+	 * @param scope the scope
+	 */
+	public LanguageSelector(Channel componentChannel, String scope) {
 		super(componentChannel);
+		if (scope.equals("/") || !scope.endsWith("/")) {
+			path = scope;
+		} else {
+			path = scope.substring(0, scope.length() - 1);
+		}
+		String pattern;
+		if (path.equals("/")) {
+			pattern = "/**";
+		} else {
+			pattern = path + "|" + path + "/**";
+		}
+		RequestHandler.Evaluator.add(this, "onRequest", pattern);
 	}
 
 	/**
@@ -96,7 +132,7 @@ public class LanguageSelector extends Component {
 	 * 
 	 * @param event the event
 	 */
-	@Handler(priority=990)
+	@RequestHandler(priority=990, dynamic=true)
 	public void onRequest(Request event) {
 		final HttpRequest request = event.httpRequest();
 		final Selection selection = event.associated(Session.class)
@@ -219,6 +255,7 @@ public class LanguageSelector extends Component {
 			this.locales = list.toArray(new Locale[list.size()]);
 			HttpCookie localesCookie = new HttpCookie(cookieName,
 					LOCALE_LIST.asFieldValue(list));
+			localesCookie.setPath(path);
 			Request req = currentEvent.get();
 			if (req != null) {
 				req.httpRequest().response().ifPresent(resp -> {
