@@ -45,7 +45,23 @@ import org.jgrapes.io.IOSubchannel;
 
 /**
  * A component that attempts to derive information about language preferences
- * from requests.
+ * from requests and make them available as a {@link Selection} object
+ * associated with the event using `Selection.class` as association identifier.
+ * 
+ * The component first checks if the event has an associated {@link Session}
+ * and whether that session has a value with key {@link Selection}.class. If
+ * such an entry exists, its value is assumed to be a {@link Selection} 
+ * which is (re-)used for all subsequent operations. Else, a new
+ * {@link Selection} object is created and associated with the session, if
+ * a session exists.
+ * 
+ * The selector tracks requests with the spcified scope. The scope is a
+ * URL prefix that has to be matched by the request, usually "/".
+ * If no cookie with the specified name (see {@link #cookieName()}) is found,
+ * a new cookie with that name and a path equal to the scope is created.
+ * The cookie's value is a list of locales. The initial value is derived from
+ * the Accept-Language header. The cookie's value os updated whenever
+ * the preferences change (see {@link Selection#prefer(Locale)}).
  */
 public class LanguageSelector extends Component {
 
@@ -118,7 +134,7 @@ public class LanguageSelector extends Component {
 	}
 
 	/**
-	 * Returns the cookie name.
+	 * Returns the cookie name. Defaults to the class name.
 	 * 
 	 * @return the cookie name
 	 */

@@ -48,6 +48,13 @@ import org.jgrapes.io.IOSubchannel;
  * A in memory session manager. The event is associated with a 
  * {@link Session} object using `Session.class` as association identifier.
  * 
+ * The manager tracks requests with the specified scope. The scope is a
+ * URL prefix that has to be matched by the request, usually "/".
+ * If no cookie with the id name (see {@link #idName()}) is found,
+ * a new cookie with that name and a path equal to the scope is created.
+ * The cookies values is the unique session id that is used to lookup
+ * the session object.
+ * 
  * @see EventBase#setAssociated(Object, Object)
  * @see "[OWASP Session Management Cheat Sheet](https://www.owasp.org/index.php/Session_Management_Cheat_Sheet)"
  */
