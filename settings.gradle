@@ -6,5 +6,11 @@ include 'org.jgrapes.io'
 include 'org.jgrapes.http'
 include 'org.jgrapes.http.rocker'
 include 'org.jgrapes.portal'
+for (File file: rootDir.listFiles()) {
+	if (file.isDirectory() && 
+		file.name.startsWith("org.jgrapes.portal.themes.") ) { 
+		include file.name
+	}
+}
 include 'HttpServerDemo'
 

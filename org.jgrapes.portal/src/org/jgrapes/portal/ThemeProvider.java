@@ -33,12 +33,15 @@ public abstract class ThemeProvider {
 	public abstract String themeId();
 
 	/**
-	 * Return the name of the theme. The default implementation returns the id.
+	 * Return the name of the theme. The default implementation 
+	 * uses the theme id, replaces underscores with spaces and
+	 * capitalizes the first character.
 	 * 
 	 * @return the result
 	 */
 	public String themeName() {
-		return themeId();
+		return (Character.toUpperCase(themeId().charAt(0))
+				+ themeId().substring(1)).replace('_', ' ');
 	}
 
 	/**

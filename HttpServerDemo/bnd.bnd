@@ -22,7 +22,20 @@ Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 	org.jdrupes.json;version=latest,\
 	org.freemarker.freemarker;version=2.3.26,\
 	org.glassfish.javax.json,\
-	org.jgrapes.util;version=latest
+	org.jgrapes.util;version=latest,\
+	org.jgrapes.portal.themes.blacktie;version=latest,\
+	org.jgrapes.portal.themes.blitzer;version=latest,\
+	org.jgrapes.portal.themes.cupertino;version=latest,\
+	org.jgrapes.portal.themes.eggplant;version=latest,\
+	org.jgrapes.portal.themes.flick;version=latest,\
+	org.jgrapes.portal.themes.humanity;version=latest,\
+	org.jgrapes.portal.themes.overcast;version=latest,\
+	org.jgrapes.portal.themes.redmond;version=latest,\
+	org.jgrapes.portal.themes.smoothness;version=latest,\
+	org.jgrapes.portal.themes.start;version=latest,\
+	org.jgrapes.portal.themes.sunny;version=latest,\
+	org.jgrapes.portal.themes.trontastic;version=latest,\
+	org.jgrapes.portal.themes.vader;version=latest
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'

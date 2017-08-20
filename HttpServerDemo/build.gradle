@@ -18,6 +18,19 @@ dependencies {
 
     compile project(':org.jgrapes.util')
     compile project(':org.jgrapes.portal')
+    compile project(':org.jgrapes.portal.themes.blacktie')
+    compile project(':org.jgrapes.portal.themes.blitzer')
+    compile project(':org.jgrapes.portal.themes.cupertino')
+    compile project(':org.jgrapes.portal.themes.eggplant')
+    compile project(':org.jgrapes.portal.themes.flick')
+    compile project(':org.jgrapes.portal.themes.humanity')
+    compile project(':org.jgrapes.portal.themes.overcast')
+    compile project(':org.jgrapes.portal.themes.redmond')
+    compile project(':org.jgrapes.portal.themes.smoothness')
+    compile project(':org.jgrapes.portal.themes.start')
+    compile project(':org.jgrapes.portal.themes.sunny')
+    compile project(':org.jgrapes.portal.themes.trontastic')
+    compile project(':org.jgrapes.portal.themes.vader')
 	compile 'org.osgi:osgi.core:6.0.0'
 }
 
