@@ -45,23 +45,31 @@ import org.jgrapes.io.IOSubchannel;
 
 /**
  * A component that attempts to derive information about language preferences
- * from requests and make them available as a {@link Selection} object
- * associated with the event using `Selection.class` as association identifier.
+ * from requests in the specified scope (usually "/") and make them 
+ * available as a {@link Selection} object associated with the request 
+ * event using `Selection.class` as association identifier.
  * 
  * The component first checks if the event has an associated {@link Session}
- * and whether that session has a value with key {@link Selection}.class. If
- * such an entry exists, its value is assumed to be a {@link Selection} 
+ * and whether that session has a value with key `Selection.class`. If
+ * such an entry exists, its value is assumed to be a {@link Selection} object
  * which is (re-)used for all subsequent operations. Else, a new
- * {@link Selection} object is created and associated with the session, if
- * a session exists.
+ * {@link Selection} object is created (and associated with the session, if
+ * a session exists).
  * 
- * The selector tracks requests with the spcified scope. The scope is a
- * URL prefix that has to be matched by the request, usually "/".
- * If no cookie with the specified name (see {@link #cookieName()}) is found,
- * a new cookie with that name and a path equal to the scope is created.
- * The cookie's value is a list of locales. The initial value is derived from
- * the Accept-Language header. The cookie's value os updated whenever
- * the preferences change (see {@link Selection#prefer(Locale)}).
+ * If the {@link Selection} represents explicitly set values, it is used as
+ * result (i.e. as object associated with the event by `Selection.class`).
+ * 
+ * Else, the selector tries to derive the language preferences from the
+ * request. It first checks for a cookie with the specified name
+ * (see {@link #cookieName()}). If a cookie is found, its value is
+ * used to set the preferred locales. If no cookie is found, 
+ * the values derived from the `Accept-Language header` are set
+ * as fall-backs.
+ * 
+ * Whenever the language preferences 
+ * change (see {@link Selection#prefer(Locale)}), a cookie with the
+ * specified name and a path value set to the scope is created or
+ * updated accordingly. 
  */
 public class LanguageSelector extends Component {
 
