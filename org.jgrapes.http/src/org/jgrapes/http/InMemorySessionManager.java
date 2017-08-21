@@ -124,7 +124,7 @@ public class InMemorySessionManager extends Component {
 		if (path.equals("/")) {
 			pattern = "/**";
 		} else {
-			pattern = path + "|" + path + "/**";
+			pattern = path + "," + path + "/**";
 		}
 		RequestHandler.Evaluator.add(this, "onRequest", pattern);
 	}

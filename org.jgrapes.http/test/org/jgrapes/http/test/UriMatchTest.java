@@ -95,17 +95,33 @@ public class UriMatchTest {
 		URI request = new URI(
 				null, null, null, -1, "/test", null, null);
 		assertTrue(ResourcePattern.matches("/test", request));
+		assertFalse(ResourcePattern.matches("/test/", request));
 		assertFalse(ResourcePattern.matches("/", request));
 		assertTrue(ResourcePattern.matches("/*", request));
 		assertTrue(ResourcePattern.matches("/**", request));
 		assertFalse(ResourcePattern.matches("/test/*", request));
-		assertTrue(ResourcePattern.matches("/test/**", request));
+		assertFalse(ResourcePattern.matches("/test/**", request));
 		assertFalse(ResourcePattern.matches("/test1/**", request));
-		assertTrue(ResourcePattern.matches("/test1/**,/test/**", request));
+		assertTrue(ResourcePattern.matches("/test,/test/**", request));
 	}
 
 	@Test
 	public void testPath2() throws URISyntaxException, ParseException {
+		URI request = new URI(
+				null, null, null, -1, "/test/", null, null);
+		assertFalse(ResourcePattern.matches("/test", request));
+		assertTrue(ResourcePattern.matches("/test/", request));
+		assertFalse(ResourcePattern.matches("/", request));
+		assertFalse(ResourcePattern.matches("/*", request));
+		assertTrue(ResourcePattern.matches("/**", request));
+		assertTrue(ResourcePattern.matches("/test/*", request));
+		assertTrue(ResourcePattern.matches("/test/**", request));
+		assertFalse(ResourcePattern.matches("/test1/**", request));
+		assertTrue(ResourcePattern.matches("/test,/test/**", request));
+	}
+
+	@Test
+	public void testPath3() throws URISyntaxException, ParseException {
 		URI request = new URI(
 				null, null, null, -1, "/test/Test.html", null, null);
 		assertTrue(ResourcePattern.matches("/test/Test.html", request));

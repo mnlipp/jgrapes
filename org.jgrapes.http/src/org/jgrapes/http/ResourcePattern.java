@@ -22,11 +22,14 @@ import java.net.URI;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.Spliterators.AbstractSpliterator;
 import java.util.StringTokenizer;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.StreamSupport;
 
 /**
  * A resource pattern can be used to filter URIs. A pattern looks  
@@ -36,7 +39,7 @@ import java.util.regex.Pattern;
  *  * The <em>scheme</em> may be a single protocol name or a list
  *    of protocol names separated by commas, or an asterisk, which is matched
  *    by URIs with any scheme. The scheme part ({@code scheme://}) is optional 
- *    in a pattern. Omitting it is equivalent to specifiying an asterisk.
+ *    in a pattern. Omitting it is equivalent to specifying an asterisk.
  *    
  *  * The <em>host</em> may be a host name or an IP address or an asterisk.
  *    Unless the value is an asterisk, filtered URIs must match the value
@@ -50,15 +53,15 @@ import java.util.regex.Pattern;
  *    
  *  * If the scheme part is omitted, the {@code host:port} part may 
  *    completely be left out as well, which is
- *    equivalent to specifiying an asterisk for both host and port.
+ *    equivalent to specifying an asterisk for both host and port.
  *    
  *  * The optional path part consist of one or more path separated by commas.
  *  
  *    Each path consists of a sequence of names and asterisks separated
  *    by slashes or a vertical bar ("|"). A name must be matched by the 
  *    corresponding path element of filtered URIs, an asterisk is matched by 
- *    any corresponding path element
- *    (which, however, must exist in the filtered URI). The final element in 
+ *    any corresponding path element (which, however, must exist in the 
+ *    filtered URI). The final element in 
  *    the path of a pattern may be two asterisks ({@code **}), which matches 
  *    any remaining path elements in the filtered URI.
  *    
@@ -123,6 +126,9 @@ public class ResourcePattern {
 						segs.add(token);
 						continue;
 					}
+				}
+				if (paths[i].endsWith("/") || paths[i].endsWith("|")) {
+					segs.add("");
 				}
 				pathPatternElements[i] = segs.toArray(new String[segs.size()]);
 			}
@@ -193,10 +199,10 @@ public class ResourcePattern {
 				return -1;
 			}
 		}
-		
-		String[] reqElements = Collections.list(
-				new StringTokenizer(resource.getPath(), "/"))
-				.toArray(new String[0]);
+
+		String[] reqElements = StreamSupport.stream(
+				new PathSpliterator(resource.getPath()), false)
+				.toArray(size -> new String[size]);
 		for (int pathIdx = 0; pathIdx < pathPatternElements.length; pathIdx++) {
 			if (matchPath(pathPatternElements[pathIdx], reqElements)) {
 				return prefixSegs[pathIdx];
@@ -226,11 +232,11 @@ public class ResourcePattern {
 				return reqIdx == reqElements.length;
 			}
 			String matchElement = patternElements[pathIdx++];
-			if (matchElement.equals("**")) {
-				return true;
-			}
 			if (reqIdx == reqElements.length) {
 				return false;
+			}
+			if (matchElement.equals("**")) {
+				return true;
 			}
 			String reqElement = reqElements[reqIdx++];
 			if (!matchElement.equals("*") && !matchElement.equals(reqElement)) {
@@ -288,5 +294,57 @@ public class ResourcePattern {
 		return true;
 	}
 	
-	
+	/**
+	 * Returns the segments of the path. If the path ends with a slash,
+	 * an empty string is returned as final segment.
+	 */
+	public static class PathSpliterator extends AbstractSpliterator<String> {
+		private StringTokenizer tokenizer;
+		private boolean endsWithSlash;
+
+		/**
+		 * Creates a new spliterator for the given path, using "/"
+		 * as path separator.
+		 * 
+		 * @param path the path
+		 */
+		public PathSpliterator(String path) {
+			this(path, "/");
+		}
+		
+		/**
+		 * Creates a new spliterator for the given path, using 
+		 * the character from delimiters as seperators.
+		 * 
+		 * @param path the path
+		 * @param delimiters the delimiters
+		 */
+		public PathSpliterator(String path, String delimiters) {
+			super(Long.MAX_VALUE, Spliterator.ORDERED 
+					| Spliterator.IMMUTABLE);
+			tokenizer = new StringTokenizer(path, delimiters);
+			endsWithSlash = path.endsWith("/");
+		}
+
+		/* (non-Javadoc)
+		 * @see java.util.Spliterator#tryAdvance(java.util.function.Consumer)
+		 */
+		@Override
+		public boolean tryAdvance(Consumer<? super String> consumer) {
+			if (tokenizer == null) {
+				return false;
+			}
+			if (tokenizer.hasMoreTokens()) {
+				consumer.accept(tokenizer.nextToken());
+				return true;
+			}
+			tokenizer = null;
+			if (endsWithSlash) {
+				consumer.accept("");
+				return true;
+			}
+			return false;
+		}
+		
+	}
 }

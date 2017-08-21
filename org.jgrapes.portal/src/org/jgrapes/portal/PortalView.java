@@ -33,11 +33,13 @@ import java.io.OutputStreamWriter;
 import java.io.PipedReader;
 import java.io.PipedWriter;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.CharBuffer;
 import java.text.Collator;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,6 +78,7 @@ import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Input;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ByteBufferOutputStream;
 import org.jgrapes.io.util.CharBufferWriter;
 import org.jgrapes.io.util.InputStreamPipeline;
@@ -141,7 +144,10 @@ public class PortalView extends Component {
 			}
 		}
 		
-		RequestHandler.Evaluator.add(this, "onGet", portal.prefix() + "/**");
+		RequestHandler.Evaluator.add(this, "onGet",	portal.prefix() + "**");
+		RequestHandler.Evaluator.add(this, "onGetRedirect",
+				portal.prefix().getPath().substring(
+						0, portal.prefix().getPath().length() - 1));
 		
 		// Create portal model
 		portalBaseModel.put("resourceUrl", new TemplateMethodModelEx() {
@@ -189,6 +195,23 @@ public class PortalView extends Component {
 				.downstreamChannel(portal, channel);
 		return portalChannel.orElseGet(
 				() -> new LinkedIOSubchannel(portal, channel));
+	}
+
+	@RequestHandler(dynamic=true)
+	public void onGetRedirect(GetRequest event, IOSubchannel channel) 
+			throws InterruptedException, IOException, ParseException {
+		HttpResponse response = event.httpRequest().response().get();
+		response.setStatus(HttpStatus.MOVED_PERMANENTLY)
+			.setContentType("text", "plain", "utf-8")
+			.setField(HttpField.LOCATION, portal.prefix());
+		fire(new Response(response), channel);
+		try {
+			fire(Output.wrap(portal.prefix().toString()
+					.getBytes("utf-8"), true), channel);
+		} catch (UnsupportedEncodingException e) {
+			// Supported by definition
+		}
+		event.stop();
 	}
 	
 	@RequestHandler(dynamic=true)

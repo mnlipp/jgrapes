@@ -20,7 +20,8 @@ package org.jgrapes.http.events;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.StringTokenizer;
+import java.util.Iterator;
+import java.util.stream.StreamSupport;
 
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
@@ -28,6 +29,7 @@ import org.jgrapes.core.CompletionEvent;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.http.ResourcePattern;
+import org.jgrapes.http.ResourcePattern.PathSpliterator;
 
 /**
  *
@@ -65,13 +67,14 @@ public class Request extends Event<Void> {
 			URI headerInfo = new URI(protocol, null, 
 					request.host(), request.port(), null, null, null);
 			uri = headerInfo.resolve(request.requestUri());
-			StringTokenizer st = new StringTokenizer(uri.getPath(), "/");
+			Iterator<String> segs = StreamSupport.stream(
+					new PathSpliterator(uri.getPath()), false).iterator();
 			StringBuilder mp = new StringBuilder();
-			for (int i = 0; i < matchLevels && st.hasMoreTokens(); i++) {
+			for (int i = 0; i < matchLevels && segs.hasNext(); i++) {
 				mp.append("/");
-				mp.append(st.nextToken());
+				mp.append(segs.next());
 			}
-			if (st.hasMoreTokens()) {
+			if (segs.hasNext()) {
 				mp.append("/**");
 			}
 			String matchPath = mp.toString();
