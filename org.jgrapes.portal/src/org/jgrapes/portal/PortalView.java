@@ -67,7 +67,9 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.Directive;
 import org.jdrupes.httpcodec.types.MediaType;
+import org.jdrupes.json.JsonDecodeException;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.LanguageSelector.Selection;
@@ -86,11 +88,15 @@ import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.portal.events.JsonInput;
 import org.jgrapes.portal.events.JsonOutput;
+import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.SetLocale;
 import org.jgrapes.portal.events.SetTheme;
 import org.jgrapes.portal.themes.base.Provider;
+import org.jgrapes.util.events.KeyValueStoreData;
+import org.jgrapes.util.events.KeyValueStoreQuery;
+import org.jgrapes.util.events.KeyValueStoreUpdate;
 
 /**
  * 
@@ -172,6 +178,8 @@ public class PortalView extends Component {
 		portalBaseModel = Collections.unmodifiableMap(portalBaseModel);
 
 		// Handlers attached to the portal side channel
+		Handler.Evaluator.add(this, "onPortalReady", portal.channel());
+		Handler.Evaluator.add(this, "onKeyValueStoreData", portal.channel());
 		Handler.Evaluator.add(
 				this, "onPortletResourceResponse", portal.channel());
 		Handler.Evaluator.add(this, "onJsonOutput", portal.channel());
@@ -430,6 +438,32 @@ public class PortalView extends Component {
 	}
 	
 	@Handler(dynamic=true)
+	public void onPortalReady(PortalReady event, IOSubchannel channel) {
+		KeyValueStoreQuery query = new KeyValueStoreQuery(
+				"/themeProvider", true);
+		channel.setAssociated(this, new CompletionLock(event, 3000));
+		fire(query, channel);
+	}
+
+	@Handler(dynamic=true)
+	public void onKeyValueStoreData(
+			KeyValueStoreData event, IOSubchannel channel) 
+					throws JsonDecodeException {
+		if (!event.event().query().equals("/themeProvider")) {
+			return;
+		}
+		channel.associated(this, CompletionLock.class)
+			.ifPresent(lock -> lock.remove());
+		String themeId = event.data().values().iterator().next();
+		ThemeProvider themeProvider = channel.associated(Session.class)
+				.map(session -> (ThemeProvider)session.get("themeProvider"))
+				.orElse(baseTheme);
+		if (!themeProvider.themeId().equals(themeId)) {
+			fire(new SetTheme(themeId), channel);
+		}
+	}
+	
+	@Handler(dynamic=true)
 	public void onPortletResourceResponse(PortletResourceResponse event,
 	        LinkedIOSubchannel channel) {
 		HttpRequest request = event.request().httpRequest();
@@ -462,6 +496,8 @@ public class PortalView extends Component {
 			.ifPresent(themeProvider ->  
 				channel.associated(Session.class).map(session ->
 					session.put("themeProvider", themeProvider)));
+		channel.respond(new KeyValueStoreUpdate().update(
+				"/themeProvider", event.theme())).get();
 		fire(new JsonOutput("reload"), channel);
 	}
 	
