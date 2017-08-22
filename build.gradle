@@ -192,6 +192,9 @@ subprojects {
 			}
 		}
 	}
+	
+	tasks.withType(MavenPublication).all { enabled = false }
+	
 }
 
 configurations {
