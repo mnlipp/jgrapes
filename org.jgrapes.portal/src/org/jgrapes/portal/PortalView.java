@@ -491,13 +491,14 @@ public class PortalView extends Component {
 	@Handler(dynamic=true)
 	public void onSetTheme(SetTheme event, LinkedIOSubchannel channel)
 			throws InterruptedException, IOException {
-		StreamSupport.stream(themeLoader.spliterator(), false)
+		ThemeProvider themeProvider = StreamSupport
+			.stream(themeLoader.spliterator(), false)
 			.filter(t -> t.themeId().equals(event.theme())).findFirst()
-			.ifPresent(themeProvider ->  
-				channel.associated(Session.class).map(session ->
-					session.put("themeProvider", themeProvider)));
+			.orElse(baseTheme);
+		channel.associated(Session.class).ifPresent(session ->
+					session.put("themeProvider", themeProvider));
 		channel.respond(new KeyValueStoreUpdate().update(
-				"/themeProvider", event.theme())).get();
+				"/themeProvider", themeProvider.themeId())).get();
 		fire(new JsonOutput("reload"), channel);
 	}
 	
