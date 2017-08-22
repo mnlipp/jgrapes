@@ -16,25 +16,24 @@ api_version = 0.1.0.${tstamp}
 testbin=bin
 
 Require-Capability: \
-    osgi.extender; filter:="(osgi.extender=osgi.serviceloader.registrar)", \
-    osgi.extender; filter:="(osgi.extender=osgi.serviceloader.processor)", \
+    osgi.extender; filter:="(&(osgi.extender=osgi.serviceloader.registrar)\
+        (version>=1.0)(!(version>=2.0)))", \
+    osgi.extender; filter:="(&(osgi.extender=osgi.serviceloader.processor)\
+        (version>=1.0)(!(version>=2.0)))", \
     osgi.serviceloader; \
         filter:="(osgi.serviceloader=org.jgrapes.portal.ThemeProvider)"; \
             cardinality:=multiple
 
 Provide-Capability: osgi.serviceloader; \
-    osgi.serviceloader=org.jgrapes.portal.ThemeProvider
+    osgi.serviceloader=org.jgrapes.portal.ThemeProvider; \
+    uses:="org.jgrapes.portal"
 
-Private-Package: \
-    org.jgrapes.portal.lib,\
-    org.jgrapes.portal.lib.*, \
-    org.jgrapes.portal.themes.*
-    
 Export-Package: \
 	org.jgrapes.portal,\
 	org.jgrapes.portal.util,\
 	org.jgrapes.portal.events,\
-	org.jgrapes.portal.freemarker
+	org.jgrapes.portal.freemarker,\
+	org.jgrapes.portal.themes.*
 
 -includeresource: resources
 

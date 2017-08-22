@@ -104,7 +104,7 @@ import org.jgrapes.util.events.KeyValueStoreUpdate;
 public class PortalView extends Component {
 
 	private Portal portal;
-	private static ServiceLoader<ThemeProvider> themeLoader 
+	private ServiceLoader<ThemeProvider> themeLoader 
 		= ServiceLoader.load(ThemeProvider.class);
 	private static Configuration fmConfig = null;
 	
