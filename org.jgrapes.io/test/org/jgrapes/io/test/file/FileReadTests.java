@@ -18,8 +18,10 @@
 
 package org.jgrapes.io.test.file;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -44,12 +46,10 @@ import org.junit.Test;
  */
 public class FileReadTests {
 
-	public static int msgCount = 0;
-	
-	static long collected = 0;
-	static StringBuilder collectedText = new StringBuilder();
-	
 	public static class Consumer extends Component {
+		
+		public long collected = 0;
+		public StringBuilder collectedText = new StringBuilder();
 		
 		public Consumer() {
 			super(Channel.SELF);
@@ -102,7 +102,8 @@ public class FileReadTests {
 	
 	@Test
 	public void testRead() 
-		throws URISyntaxException, InterruptedException, ExecutionException {
+		throws URISyntaxException, InterruptedException, ExecutionException, 
+		UnsupportedEncodingException, IOException {
 		Consumer consumer = new Consumer();
 		Path filePath = Paths.get(getClass().getResource("test.txt").toURI());
 		final long fileSize = filePath.toFile().length();
@@ -114,7 +115,10 @@ public class FileReadTests {
 		app.fire(new StreamFile(filePath, StandardOpenOption.READ),
 		        IOSubchannel.defaultInstance(consumer)).get();
 		Components.awaitExhaustion();
-		assertEquals(fileSize, collected);
+		assertEquals(fileSize, consumer.collected);
+		String content = new String(Files.readAllBytes(
+				Paths.get(getClass().getResource("test.txt").toURI())), "ascii");
+		assertEquals(content,  consumer.collectedText.toString());
 		assertEquals(StateChecker.State.CLOSED, sc.state);
 		Components.checkAssertions();
 	}
