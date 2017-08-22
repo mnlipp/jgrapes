@@ -1,0 +1,54 @@
+Bundle-Name: JGrapes UPnP Server
+Bundle-SymbolicName: UPnPServer
+Bundle-Version: 0.0.1.${tstamp}
+Bundle-Copyright: Michael N. Lipp (c) 2017
+Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
+
+-buildpath: osgi.core;version=6.0
+
+-runfw: org.apache.felix.framework;version='[5,6)'
+-runbundles: \
+	org.apache.felix.gogo.command;version='[1.0.2,1.0.3)',\
+	org.apache.felix.gogo.runtime;version='[1.0.6,1.0.7)',\
+	org.apache.felix.gogo.shell;version='[1.0.0,1.0.1)',\
+	org.apache.aries.spifly.dynamic.bundle;version=1.0.8,\
+	org.apache.aries.util;version=1.1.3,\
+	org.objectweb.asm.all;version=5.0.4,\
+	org.jgrapes.core;version=latest,\
+	org.jgrapes.io;version=latest,\
+	org.jgrapes.http;version=latest,\
+	org.jgrapes.portal;version=latest,\
+	org.jdrupes.httpcodec;version=latest,\
+	org.jdrupes.json;version=latest,\
+	org.freemarker.freemarker;version=2.3.26,\
+	org.glassfish.javax.json,\
+	org.jgrapes.util;version=latest,\
+	org.jgrapes.portal.themes.blacktie;version=latest,\
+	org.jgrapes.portal.themes.blitzer;version=latest,\
+	org.jgrapes.portal.themes.cupertino;version=latest,\
+	org.jgrapes.portal.themes.eggplant;version=latest,\
+	org.jgrapes.portal.themes.flick;version=latest,\
+	org.jgrapes.portal.themes.humanity;version=latest,\
+	org.jgrapes.portal.themes.overcast;version=latest,\
+	org.jgrapes.portal.themes.redmond;version=latest,\
+	org.jgrapes.portal.themes.smoothness;version=latest,\
+	org.jgrapes.portal.themes.start;version=latest,\
+	org.jgrapes.portal.themes.sunny;version=latest,\
+	org.jgrapes.portal.themes.trontastic;version=latest,\
+	org.jgrapes.portal.themes.vader;version=latest,\
+	org.apache.felix.upnp.basedriver,\
+	org.osgi.service.upnp;version=1.2.0
+-runrequires: \
+	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
+	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)'
+-runprogramargs: -console
+-runproperties: java.util.logging.config.file=jul-debug.properties
+-runee: JavaSE-1.8
+
+Bundle-Activator: org.jgrapes.upnpserver.Application
+
+-fixupmessages: \
+    "Found source folder 'resources' that is not on bnd's source path 'src'", \
+    "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \
+    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable."
+-runvm: -Dfelix.upnpbase.cyberdomo.net.loopback=true
