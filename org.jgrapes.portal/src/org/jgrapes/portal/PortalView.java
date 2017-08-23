@@ -104,8 +104,7 @@ import org.jgrapes.util.events.KeyValueStoreUpdate;
 public class PortalView extends Component {
 
 	private Portal portal;
-	private ServiceLoader<ThemeProvider> themeLoader 
-		= ServiceLoader.load(ThemeProvider.class);
+	private ServiceLoader<ThemeProvider> themeLoader;
 	private static Configuration fmConfig = null;
 	
 	private Function<Locale,ResourceBundle> resourceSupplier;
@@ -170,11 +169,6 @@ public class PortalView extends Component {
 			}
 		});
 		
-		portalBaseModel.put("themeInfos", 
-				StreamSupport.stream(themeLoader.spliterator(), false)
-				.map(t -> new ThemeInfo(t.themeId(), t.themeName()))
-				.sorted().toArray(size -> new ThemeInfo[size]));
-		
 		portalBaseModel = Collections.unmodifiableMap(portalBaseModel);
 
 		// Handlers attached to the portal side channel
@@ -187,6 +181,19 @@ public class PortalView extends Component {
 		Handler.Evaluator.add(this, "onSetTheme", portal.channel());
 	}
 
+	/**
+	 * The service loader must be created lazily, else the OSGi
+	 * service mediator doesn't work properly.
+	 * 
+	 * @return
+	 */
+	private ServiceLoader<ThemeProvider> themeLoader() {
+		if (themeLoader != null) {
+			return themeLoader;
+		}
+		return themeLoader = ServiceLoader.load(ThemeProvider.class);
+	}
+	
 	void setResourceSupplier(
 			Function<Locale,ResourceBundle> resourceSupplier) {
 		this.resourceSupplier = resourceSupplier;
@@ -341,6 +348,16 @@ public class PortalView extends Component {
 					return key;
 				}
 			});
+
+			// Add themes. Doing this on every reload allows themes
+			// to be added dynamically. Note that we must load again
+			// (not reload) in order for this to work in an OSGi environment.
+			themeLoader = ServiceLoader.load(ThemeProvider.class);
+			portalModel.put("themeInfos", 
+					StreamSupport.stream(themeLoader().spliterator(), false)
+					.map(t -> new ThemeInfo(t.themeId(), t.themeName()))
+					.sorted().toArray(size -> new ThemeInfo[size]));
+			
 			Template tpl = fmConfig.getTemplate("portal.ftlh");
 			tpl.process(portalModel, out);
 		} catch (TemplateException e) {
@@ -492,7 +509,7 @@ public class PortalView extends Component {
 	public void onSetTheme(SetTheme event, LinkedIOSubchannel channel)
 			throws InterruptedException, IOException {
 		ThemeProvider themeProvider = StreamSupport
-			.stream(themeLoader.spliterator(), false)
+			.stream(themeLoader().spliterator(), false)
 			.filter(t -> t.themeId().equals(event.theme())).findFirst()
 			.orElse(baseTheme);
 		channel.associated(Session.class).ifPresent(session ->
