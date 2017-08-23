@@ -16,10 +16,8 @@ api_version = 0.1.0.${tstamp}
 testbin=bin
 
 Require-Capability: \
-    osgi.extender; filter:="(&(osgi.extender=osgi.serviceloader.registrar)\
-        (version>=1.0)(!(version>=2.0)))", \
-    osgi.extender; filter:="(&(osgi.extender=osgi.serviceloader.processor)\
-        (version>=1.0)(!(version>=2.0)))", \
+    osgi.extender; filter:="(osgi.extender=osgi.serviceloader.registrar)", \
+    osgi.extender; filter:="(osgi.extender=osgi.serviceloader.processor)", \
     osgi.serviceloader; \
         filter:="(osgi.serviceloader=org.jgrapes.portal.ThemeProvider)"; \
             cardinality:=multiple
