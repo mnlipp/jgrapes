@@ -79,6 +79,7 @@ import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ByteBufferOutputStream;
@@ -569,7 +570,7 @@ public class PortalView extends Component {
 					JsonReader reader = Json.createReader(in);
 					fire(new JsonInput(reader.readObject()), channel);
 				} catch (IOException e) {
-					// Shouldn't happen
+					fire(new IOError(null, e));
 				}
 			}
 		}
