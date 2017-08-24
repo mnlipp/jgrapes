@@ -472,6 +472,9 @@ public class PortalView extends Component {
 		}
 		channel.associated(this, CompletionLock.class)
 			.ifPresent(lock -> lock.remove());
+		if (!event.data().values().iterator().hasNext()) {
+			return;
+		}
 		String themeId = event.data().values().iterator().next();
 		ThemeProvider themeProvider = channel.associated(Session.class)
 				.map(session -> (ThemeProvider)session.get("themeProvider"))
