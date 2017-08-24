@@ -12,7 +12,7 @@ Export-Package: \
 	org.jgrapes.core.annotation,\
 	org.jgrapes.core.events
 
-Private-Package: \
+-privatepackage: privatepackage: \
     org.jgrapes.core.internal
 
 -sources: true
