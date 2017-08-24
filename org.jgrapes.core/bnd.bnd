@@ -12,7 +12,8 @@ Export-Package: \
 	org.jgrapes.core.annotation,\
 	org.jgrapes.core.events
 
--privatepackage: org.jgrapes.core.internal
+Private-Package: \
+    org.jgrapes.core.internal
 
 -sources: true
 -runee: JavaSE-1.8
