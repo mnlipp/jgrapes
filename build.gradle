@@ -110,11 +110,18 @@ subprojects {
         }
     }
 
+	jar {
+		// This shouldn't be necessary, but with gradle 4.1, it is.
+		version project.version
+    }
+
 	// Additional jars for publishing
 		
 	task sourcesJar(type: Jar) {
 		from sourceSets.main.allJava
 		classifier "sources"
+		// This shouldn't be necessary, but with gradle 4.1, it is.
+		version project.version
 	}
 	
 	task javadocJar(type: Jar) {
@@ -122,6 +129,8 @@ subprojects {
 			include 'README.md'
 		}
 		classifier "javadoc"
+		// This shouldn't be necessary, but with gradle 4.1, it is.
+		version project.version
 	}
 	
 	// MavenPublishing (new), incomplete, works only for local.
@@ -193,7 +202,16 @@ subprojects {
 		}
 	}
 	
-	tasks.withType(MavenPublication).all { enabled = false }
+	afterEvaluate {
+		println "Checking " + project.name
+		if(!project.name.startsWith("org.jgrapes")) {
+			tasks.matching { it.group == "upload" ||
+				it.group == "publishing" }.all {
+				// println "Disabling " + project.name + ":" + it.name 
+				enabled = false
+			}
+		}
+	}
 	
 }
 
