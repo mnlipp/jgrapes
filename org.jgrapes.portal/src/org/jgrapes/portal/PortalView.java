@@ -72,6 +72,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.events.Error;
 import org.jgrapes.http.LanguageSelector.Selection;
 import org.jgrapes.http.Session;
 import org.jgrapes.http.annotation.RequestHandler;
@@ -79,7 +80,6 @@ import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ByteBufferOutputStream;
@@ -569,8 +569,8 @@ public class PortalView extends Component {
 				try (Reader in = reader) {
 					JsonReader reader = Json.createReader(in);
 					fire(new JsonInput(reader.readObject()), channel);
-				} catch (IOException e) {
-					fire(new IOError(null, e));
+				} catch (Throwable e) {
+					fire(new Error(null, e));
 				}
 			}
 		}
