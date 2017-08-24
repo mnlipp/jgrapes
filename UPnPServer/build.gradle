@@ -16,7 +16,7 @@ repositories {
 dependencies {
 
     compile project(':org.jgrapes.util')
-    compile project(':org.jgrapes.portal')
+    compile project(':org.jgrapes.osgi.portal')
     compile project(':org.jgrapes.portal.themes.blacktie')
     compile project(':org.jgrapes.portal.themes.blitzer')
     compile project(':org.jgrapes.portal.themes.cupertino')
