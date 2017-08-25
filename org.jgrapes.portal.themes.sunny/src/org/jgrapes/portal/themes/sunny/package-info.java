@@ -19,5 +19,4 @@
 /**
  * 
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.portal.themes.sunny;

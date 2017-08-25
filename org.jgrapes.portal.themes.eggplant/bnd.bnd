@@ -8,7 +8,6 @@ Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 Require-Bundle: org.jgrapes.portal
 
 base_version = ${versionmask;===;${Bundle-Version}}
-api_version = 1.0.0.${tstamp}
 
 -sources: true
 -runee: JavaSE-1.8
