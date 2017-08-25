@@ -31,7 +31,7 @@ Export-Package: \
 	org.jgrapes.portal.util,\
 	org.jgrapes.portal.events,\
 	org.jgrapes.portal.freemarker,\
-	org.jgrapes.portal.themes.*
+	org.jgrapes.portal.themes.base
 
 -includeresource: resources
 
