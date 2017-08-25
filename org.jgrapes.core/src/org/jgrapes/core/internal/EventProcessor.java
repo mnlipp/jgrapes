@@ -92,7 +92,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	}
 
 	@Override
-	public synchronized void run() {
+	public void run() {
 		try {
 			if (queue.isEmpty()) {
 				return;
