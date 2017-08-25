@@ -13,18 +13,18 @@ Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 	org.apache.aries.util;version='[1.0.0,1.0.1)',\
 	org.apache.felix.gogo.command;version='[1.0.2,1.0.3)',\
 	org.apache.felix.gogo.shell;version='[1.0.0,1.0.1)',\
-	UPnPServer;version=snapshot,\
+	UPnPServer;version=latest,\
+	org.glassfish.javax.json;version=1.1.0,\
 	javax.json-api;version='[1.1.0,1.1.1)',\
 	org.apache.felix.gogo.runtime;version='[1.0.0,1.0.1)',\
 	org.freemarker.freemarker;version='[2.3.26,2.3.27)',\
-	org.jdrupes.httpcodec;version='[0.9.13,0.9.14)',\
-	org.jdrupes.json;version='[1.0.2,1.0.3)',\
-	org.jgrapes.core;version=snapshot,\
-	org.jgrapes.http;version=snapshot,\
-	org.jgrapes.io;version=snapshot,\
-	org.jgrapes.portal;version=snapshot,\
-	org.jgrapes.util;version=snapshot,\
-	json;version='[20160212.0.0,20160212.0.1)',\
+	org.jdrupes.httpcodec;version=latest,\
+	org.jdrupes.json;version=latest,\
+	org.jgrapes.core;version=latest,\
+	org.jgrapes.http;version=latest,\
+	org.jgrapes.io;version=latest,\
+	org.jgrapes.portal;version=latest,\
+	org.jgrapes.util;version=latest,\
 	org.apache.commons.fileupload;version='[1.3.2,1.3.3)',\
 	org.apache.commons.io;version='[2.5.0,2.5.1)',\
 	org.apache.felix.configadmin;version='[1.8.8,1.8.9)',\
@@ -32,13 +32,14 @@ Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 	org.apache.felix.http.servlet-api;version='[1.1.2,1.1.3)',\
 	org.apache.felix.scr;version='[2.0.2,2.0.3)',\
 	org.apache.felix.webconsole;version='[4.2.16,4.2.17)',\
-	org.jgrapes.portal.themes.sunny;version=snapshot,\
+	org.jgrapes.portal.themes.sunny;version=latest,\
 	org.osgi.compendium;version='[4.1.0,4.1.1)',\
 	org.osgi.service.event;version='[1.3.1,1.3.2)',\
 	org.osgi.service.metatype;version='[1.3.0,1.3.1)',\
 	osgi.enroute.bostock.d3.webresource;version='[3.5.6,3.5.7)',\
 	osgi.enroute.web.simple.provider;version='[2.0.0,2.0.1)',\
 	osgi.enroute.webconsole.xray.provider;version='[2.0.0,2.0.1)',\
+    json,\
 	org.jgrapes.portal.themes.blacktie;version=latest,\
 	org.jgrapes.portal.themes.blitzer;version=latest,\
 	org.jgrapes.portal.themes.cupertino;version=latest,\
@@ -61,12 +62,14 @@ Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 	org.jgrapes.portal.themes.trontastic;version=latest,\
 	org.jgrapes.portal.themes.uidarkness;version=latest,\
 	org.jgrapes.portal.themes.uilightness;version=latest,\
-	org.jgrapes.portal.themes.vader;version=latest
+	org.jgrapes.portal.themes.vader;version=latest,\
+	org.jgrapes.osgi.portlets.bundles;version=latest,\
+	org.jgrapes.osgi.portal;version=latest
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
-    osgi.identity;filter:='(osgi.identity=UPnPServer)',\
-    osgi.identity;filter:='(osgi.identity=osgi.enroute.webconsole.xray.provider)'
+	osgi.identity;filter:='(osgi.identity=UPnPServer)',\
+	osgi.identity;filter:='(osgi.identity=osgi.enroute.webconsole.xray.provider)'
 -runprogramargs: -console
 -runproperties: \
 	java.util.logging.config.file=jul-debug.properties,\

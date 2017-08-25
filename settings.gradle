@@ -12,5 +12,7 @@ for (File file: rootDir.listFiles()) {
 		include file.name
 	}
 }
+include 'org.jgrapes.osgi.portal'
+//include 'org.jgrapes.osgi.portlets.bundles'
 include 'HttpServerDemo'
 include 'UPnPServer'

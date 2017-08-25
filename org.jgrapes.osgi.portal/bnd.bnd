@@ -1,0 +1,23 @@
+Bundle-Name: JGrapes OSGi Portal Components
+Bundle-SymbolicName: org.jgrapes.osgi.portal
+Bundle-Version: 0.9.0.${tstamp}
+Bundle-Copyright: Michael N. Lipp (c) 2017
+Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
+
+base_version = ${versionmask;===;${Bundle-Version}}
+api_version = 0.1.0.${tstamp}
+
+Export-Package: \
+	org.jgrapes.osgi.portal
+
+-sources: true
+-runee: JavaSE-1.8
+
+-dsannotations: 
+
+testbin=bin
+
+-fixupmessages: \
+    "Found source folder 'resources' that is not on bnd's source path 'src'", \
+    "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \
+    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable."
