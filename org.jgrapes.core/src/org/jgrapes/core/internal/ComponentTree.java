@@ -20,8 +20,8 @@ package org.jgrapes.core.internal;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,7 +45,8 @@ class ComponentTree {
 				+ ".handlerTracking");	
 	
 	private ComponentVertex root;
-	private Map<CacheKey,HandlerList> handlerCache = new HashMap<>();
+	// Several event processors may call dispatch and update the cache
+	private Map<CacheKey,HandlerList> handlerCache = new ConcurrentHashMap<>();
 	private InternalEventPipeline eventPipeline;
 	private static HandlingErrorPrinter fallbackErrorHandler 
 		= new HandlingErrorPrinter();

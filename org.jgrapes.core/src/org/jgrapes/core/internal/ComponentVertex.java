@@ -237,6 +237,7 @@ public abstract class ComponentVertex implements Manager {
 						tree.mergeEvents(childTree);
 					}
 				}
+				tree.clearHandlerCache();
 			}
 		}
 		Channel parentChan = channel();
