@@ -180,26 +180,23 @@ class ComponentTree {
 	private HandlerList getEventHandlers(
 			EventBase<?> event, Channel[] channels) {
 		CacheKey key = new CacheKey(event, channels);
-		HandlerList hdlrs = handlerCache.get(key);
-		if (hdlrs != null) {
-			return hdlrs;
-		}
-		hdlrs = new HandlerList();
-		root.collectHandlers(hdlrs, event, channels);
-		// Make sure that errors are reported.
-		if (hdlrs.isEmpty()) {
-			if (event instanceof HandlingError) {
-				((ComponentVertex)fallbackErrorHandler)
-					.collectHandlers(hdlrs, event, channels);
-			} else {
-				if (handlerTracking.isLoggable(Level.FINER)) {
-					DUMMY_HANDLER.collectHandlers(hdlrs, event, channels);
+		return handlerCache.computeIfAbsent(key, k -> {
+			HandlerList hdlrs = new HandlerList();
+			root.collectHandlers(hdlrs, event, channels);
+			// Make sure that errors are reported.
+			if (hdlrs.isEmpty()) {
+				if (event instanceof HandlingError) {
+					((ComponentVertex)fallbackErrorHandler)
+						.collectHandlers(hdlrs, event, channels);
+				} else {
+					if (handlerTracking.isLoggable(Level.FINER)) {
+						DUMMY_HANDLER.collectHandlers(hdlrs, event, channels);
+					}
 				}
 			}
-		}
-		Collections.sort(hdlrs);
-		handlerCache.put(key, hdlrs);
-		return hdlrs;
+			Collections.sort(hdlrs);
+			return hdlrs;
+		});
 	}
 	
 	void clearHandlerCache() {
