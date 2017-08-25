@@ -12,6 +12,7 @@ import org.jgrapes.core.annotation.Handler
 import org.jgrapes.core.events.Start
 import org.jgrapes.core.events.Started
 
+import groovy.transform.InheritConstructors
 import spock.lang.Specification
 
 class CacheTest extends Specification {
@@ -19,6 +20,7 @@ class CacheTest extends Specification {
 	class App extends Component {
 	}
 
+	@InheritConstructors
 	class TestEvent extends Event<Void> {
 	}
 	
