@@ -117,7 +117,7 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	 * @return the model
 	 */
 	protected Map<String,Object> freemarkerModel(Map<String,Object> baseModel,
-			PortletModelBean portletModel, IOSubchannel channel) {
+			PortletBaseModel portletModel, IOSubchannel channel) {
 		final Map<String,Object> model = new HashMap<>(baseModel);
 		model.put("portlet", portletModel);
 		Locale locale = channel.associated(Selection.class)

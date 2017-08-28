@@ -18,7 +18,9 @@
 
 package org.jgrapes.portal;
 
+import java.beans.ConstructorProperties;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
@@ -33,11 +35,27 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.portal.events.AddPortletRequest;
+import org.jgrapes.portal.events.DeletePortletRequest;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
+import org.jgrapes.portal.events.RenderPortletRequest;
 
 /**
- * Provides a base class for implementing portlet components. 
+ * Provides a base class for implementing portlet components that
+ * maintain a model for each portlet as a JavaBean in the session.
+ * 
+ * Method {@link #addToSession(IOSubchannel, PortletBaseModel) adds
+ * a model for the portlet type (as derived from {@link #type()}) 
+ * to the session associated with the channel. Method
+ * {@link #modelFromSession(IOSubchannel, String)} retrieves a model,
+ * {@link AbstractPortlet#removeFromSession(IOSubchannel, PortletBaseModel)}
+ * removes it.
+ * 
+ * Using these methods, this class also provides basic event handlers that
+ * implement e.g. the necessary lookup of a session required by every portlet
+ * that uses a portlet model.
+ * 
  */
 public abstract class AbstractPortlet extends Component {	
 	
@@ -52,6 +70,41 @@ public abstract class AbstractPortlet extends Component {
 	}
 
 	/**
+	 * Returns the portlet type. The default implementation
+	 * returns the class' name.
+	 * 
+	 * @return the type
+	 */
+	protected String type() {
+		return getClass().getName();
+	}
+	
+	/**
+	 * Generates a new unique portlet id.
+	 * 
+	 * @return the portlet id
+	 */
+	protected String generatePortletId() {
+		return UUID.randomUUID().toString();
+	}
+	
+	/**
+	 * Creates new portlet model bean. Should be 
+	 * overridden by sub classes that need a derived model with more 
+	 * information than the base model.
+	 * 
+	 * The default implementation creates a model with
+	 * `new PortletBaseModel(generatePortletId())`.
+	 * 
+	 * @return the model bean
+	 */
+	protected PortletBaseModel createPortletModel() {
+		PortletBaseModel portletModel = new PortletBaseModel(
+				generatePortletId());
+		return portletModel;
+	}
+	
+	/**
 	 * A default handler for resource requests. Searches for
 	 * a file with the requested URI in the portlets class path. 
 	 * 
@@ -62,7 +115,7 @@ public abstract class AbstractPortlet extends Component {
 	public void onResourceRequest(
 			PortletResourceRequest event, IOSubchannel channel) {
 		// For me?
-		if (!event.portletClass().equals(getClass().getName())) {
+		if (!event.portletClass().equals(type())) {
 			return;
 		}
 		
@@ -81,23 +134,25 @@ public abstract class AbstractPortlet extends Component {
 	}
 
 	/**
-	 * Returns all portlet models of this portlet's class from the
+	 * Returns all portlet models of this portlet's type from the
 	 * session.
 	 * 
 	 * @param channel the channel, used to access the session
 	 * @return the models
 	 */
 	@SuppressWarnings("unchecked")
-	protected Collection<PortletModelBean> modelsFromSession(
+	protected Collection<PortletBaseModel> modelsFromSession(
 			IOSubchannel channel) {
 		return channel.associated(Session.class).map(session ->
-			((Map<String,PortletModelBean>)session.computeIfAbsent(getClass(),
-					k -> new HashMap<>())).values())
+				((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
+						(Map<Object,?>)session)
+				.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
+				.computeIfAbsent(type(), t -> new HashMap<>()).values())
 			.orElseThrow(() -> new IllegalStateException("Session is missing."));
 	}
 	
 	/**
-	 * Returns the portlet model of this portlet's class with the given id
+	 * Returns the portlet model of this portlet's type with the given id
 	 * from the session.
 	 * 
 	 * @param channel the channel, used to access the session
@@ -105,32 +160,37 @@ public abstract class AbstractPortlet extends Component {
 	 * @return the models
 	 */
 	@SuppressWarnings("unchecked")
-	protected Optional<PortletModelBean> modelFromSession(
+	protected Optional<PortletBaseModel> modelFromSession(
 			IOSubchannel channel, String portletId) {
 		return channel.associated(Session.class).map(session ->
 			Optional.ofNullable(
-					((Map<String,PortletModelBean>)session.computeIfAbsent(
-							getClass(), k -> new HashMap<>()))
+					((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
+							(Map<Object,?>)session)
+					.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
+					.computeIfAbsent(type(), t -> new HashMap<>())
 					.get(portletId)))
 			.orElseThrow(() -> new IllegalStateException("Session is missing."));
 	}
 
 	/**
-	 * Adds the given portlet model to the session.
+	 * Adds the given portlet model to the session using the {@link type()}
+	 * and the model's {@link PortletBaseModel#getPortletId()} as keys.
 	 * 
 	 * @param channel the channel, used to access the session
 	 * @param model the model
 	 * @return the model
 	 */
 	@SuppressWarnings("unchecked")
-	protected <T extends PortletModelBean> T addToSession(
+	protected <T extends PortletBaseModel> T addToSession(
 			IOSubchannel channel, T model) {
 		Optional<Session> optSession = channel.associated(Session.class);
 		if (!optSession.isPresent()) {
 			throw new IllegalStateException("Session is missing.");
 		}
-		((Map<String,PortletModelBean>)optSession.get()
-				.computeIfAbsent(getClass(), k -> new HashMap<>()))
+		((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
+				(Map<Object,?>)optSession.get())
+			.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
+			.computeIfAbsent(type(), t -> new HashMap<>())
 			.put(model.getPortletId(), model);
 		return model;
 	}
@@ -143,14 +203,16 @@ public abstract class AbstractPortlet extends Component {
 	 * @return the model
 	 */
 	@SuppressWarnings("unchecked")
-	protected <T extends PortletModelBean> T removeFromSession(
+	protected <T extends PortletBaseModel> T removeFromSession(
 			IOSubchannel channel, T model) {
 		Optional<Session> optSession = channel.associated(Session.class);
 		if (!optSession.isPresent()) {
 			throw new IllegalStateException("Session is missing.");
 		}
-		((Map<String,PortletModelBean>)optSession.get()
-				.computeIfAbsent(getClass(), k -> new HashMap<>()))
+		((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
+				(Map<Object,?>)optSession.get())
+			.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
+			.computeIfAbsent(type(), t -> new HashMap<>())
 			.remove(model.getPortletId());
 		return model;
 	}
@@ -170,29 +232,131 @@ public abstract class AbstractPortlet extends Component {
 						ResourceBundle.Control.FORMAT_DEFAULT));
 		
 	}
+
+	/**
+	 * Checks if the request applies to this component. If so, stops the event,
+	 * calls {@link #createPortletModel()} to create a new model bean, adds it
+	 * to the session and call {@link #doAddPortlet(PortletBaseModel)}
+	 * with the newly created model bean. 
+	 * 
+	 * @param event the event
+	 * @param channel the channel
+	 */
+	@Handler
+	public void onAddPortletRequest(AddPortletRequest event,
+			IOSubchannel channel) throws Exception {
+		if (!event.portletType().equals(type())) {
+			return;
+		}
+		
+		event.stop();
+		PortletBaseModel portletModel= addToSession(channel, createPortletModel());
+		doAddPortlet(event, channel, portletModel);
+	}
+
+	/**
+	 * Called by {@link #onAddPortletRequest} to complete adding the portlet.
+	 * 
+	 * @param event the event
+	 * @param channel the channel
+	 * @param portletModel the model bean
+	 */
+	protected abstract void doAddPortlet(AddPortletRequest event, 
+			IOSubchannel channel, PortletBaseModel portletModel) throws Exception;
+	
+	/**
+	 * Checks if the request applies to this component. If so, stops the event,
+	 * removes the portlet model bean from the session
+	 * and calls {@link #doDeletePortlet(PortletBaseModel)}
+	 * with the model. 
+	 * 
+	 * @param event the event
+	 * @param channel the channel
+	 */
+	@Handler
+	public void onDeletePortletRequest(DeletePortletRequest event, 
+			IOSubchannel channel) throws Exception {
+		Optional<PortletBaseModel> optPortletModel 
+			= modelFromSession(channel, event.portletId());
+		if (!optPortletModel.isPresent()) {
+			return;
+		}
+		event.stop();
+
+		PortletBaseModel portletModel = optPortletModel.get();
+		removeFromSession(channel, portletModel);
+		doDeletePortlet(event, channel, portletModel);
+	}
+	
+	/**
+	 * Called by {@link #onDeletePortletRequest} to complete deleting
+	 * the portlet.
+	 * 
+	 * @param event the event
+	 * @param channel the channel
+	 * @param portletModel the model bean
+	 */
+	protected abstract void doDeletePortlet(DeletePortletRequest event, 
+			IOSubchannel channel, PortletBaseModel portletModel) throws Exception;
+	
+	/**
+	 * Checks if the request applies to this component by calling
+	 * {@link #modelFromSession(IOSubchannel, String)}. If a model
+	 * is found, stops the event, and calls 
+	 * {@link #doRenderPortlet(PortletBaseModel)} with the model. 
+	 * 
+	 * Some portlets that do not persist their models between sessions
+	 * (e.g. because the model only references data maintained elsewhere)
+	 * should override {@link #modelFromSession(IOSubchannel, String)}
+	 * in such a way that it creates the requested model if it doesn't 
+	 * exist yet.
+	 * 
+	 * @param event the event
+	 * @param channel the channel
+	 */
+	@Handler
+	public void onRenderPortlet(RenderPortletRequest event,
+			IOSubchannel channel) throws Exception {
+		Optional<PortletBaseModel> optPortletModel 
+			= modelFromSession(channel, event.portletId());
+		if (!optPortletModel.isPresent()) {
+			return;
+		}
+		
+		event.stop();
+		doRenderPortlet(event, channel, optPortletModel.get());
+	}
+
+	/**
+	 * Called by {@link #onRenderPortlet} to complete rendering
+	 * the portlet.
+	 * 
+	 * @param event the event
+	 * @param channel the channel
+	 * @param portletModel the model bean
+	 */
+	protected abstract void doRenderPortlet(RenderPortletRequest event, 
+			IOSubchannel channel, PortletBaseModel portletModel) throws Exception;
 	
 	/**
 	 * Defines the portlet model following the JavaBean conventions.
-	 * Portlet models should follow these cpnventions because
-	 * many template engines rely on this. 
+	 * 
+	 * Portlet models should follow these conventions because
+	 * many template engines rely on them and to support serialization
+	 * to portable formats. 
 	 */
-	public abstract static class PortletModelBean {
+	@SuppressWarnings("serial")
+	public static class PortletBaseModel implements Serializable {
 
-		private String portletId;
-
-		/**
-		 * Creates a new model with a new unique portlet id.
-		 */
-		public PortletModelBean() {
-			portletId = UUID.randomUUID().toString();
-		}
+		protected String portletId;
 
 		/**
-		 * Creates a new model with the given portlet id.
+		 * Creates a new model with the given type and id.
 		 * 
 		 * @param portletId the portlet id
 		 */
-		public PortletModelBean(String portletId) {
+		@ConstructorProperties({"portletId"})
+		public PortletBaseModel(String portletId) {
 			this.portletId = portletId;
 		}
 

@@ -28,7 +28,6 @@ import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.DeletePortletRequest;
-import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletRequest;
@@ -57,14 +56,6 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 			DeleteablePreview, View);
 	
 	/**
-	 * Creates a new component with its channel set to
-	 * itself.
-	 */
-	public BundleListPortlet() {
-		this(Channel.SELF);
-	}
-
-	/**
 	 * Creates a new component with its channel set to the given 
 	 * channel.
 	 * 
@@ -76,29 +67,50 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 		super(componentChannel);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#generatePortletId()
+	 */
+	@Override
+	protected String generatePortletId() {
+		return type() + "-" + super.generatePortletId();
+	}
+
 	@Handler
 	public void onPortalReady(PortalReady event, IOSubchannel channel) 
 			throws TemplateNotFoundException, MalformedTemplateNameException, 
 			ParseException, IOException {
 		ResourceBundle resourceBundle = resourceSupplier().apply(
 				LanguageSelector.associatedLocale(channel));
-		// Add HelloWorldPortlet resources to page
-		channel.respond(new AddPortletType(getClass().getName())
+		// Add portlet resources to page
+		channel.respond(new AddPortletType(type())
 				.setDisplayName(resourceBundle.getString("portletName"))
 				.setInstantiable());
 	}
-
-	@Handler
-	public void onAddPortletRequest(AddPortletRequest event,
-			IOSubchannel channel) throws TemplateNotFoundException, 
-				MalformedTemplateNameException, ParseException, IOException {
-		if (!event.portletType().equals(BundleListPortlet.class.getName())) {
-			return;
+	
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#modelFromSession(org.jgrapes.io.IOSubchannel, java.lang.String)
+	 */
+	@Override
+	protected Optional<PortletBaseModel> modelFromSession(IOSubchannel channel,
+	        String portletId) {
+		Optional<PortletBaseModel> optModel 
+			= super.modelFromSession(channel, portletId);
+		if (optModel.isPresent()) {
+			return optModel;
 		}
-		
-		event.stop();
-		BundlesModel portletModel 
-				= addToSession(channel, new BundlesModel());
+		if (portletId.startsWith(type() + "-")) {
+			return Optional.of(addToSession(
+					channel, new PortletBaseModel(portletId)));
+		}
+		return Optional.empty();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#doAddPortlet(org.jgrapes.portal.events.AddPortletRequest, org.jgrapes.io.IOSubchannel, org.jgrapes.portal.AbstractPortlet.PortletModelBean)
+	 */
+	@Override
+	protected void doAddPortlet(AddPortletRequest event, IOSubchannel channel,
+	        PortletBaseModel portletModel) throws Exception {
 		Template tpl = freemarkerConfig().getTemplate("Bundles-preview.ftlh");
 		Map<String, Object> baseModel 
 			= freemarkerBaseModel(event.renderSupport());
@@ -109,93 +121,53 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 				true));
 	}
 
-	@Handler
-	public void onDeletePortletRequest(DeletePortletRequest event, 
-			IOSubchannel channel) {
-		Optional<PortletModelBean> optPortletModel 
-			= modelFromSession(channel, event.portletId());
-		if (!optPortletModel.isPresent()) {
-			return;
-		}
 	
-		event.stop();
-		removeFromSession(channel, optPortletModel.get());
-		channel.respond(new DeletePortlet(
-				optPortletModel.get().getPortletId()));
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#doDeletePortlet(org.jgrapes.portal.events.DeletePortletRequest, org.jgrapes.io.IOSubchannel, org.jgrapes.portal.AbstractPortlet.PortletModelBean)
+	 */
+	@Override
+	protected void doDeletePortlet(DeletePortletRequest event,
+	        IOSubchannel channel, PortletBaseModel portletModel)
+	        throws Exception {
+		channel.respond(new DeletePortlet(portletModel.getPortletId()));
 	}
 	
-	@Handler
-	public void onRenderPortlet(RenderPortletRequest event,
-			IOSubchannel channel) 
-					throws TemplateNotFoundException, 
-					MalformedTemplateNameException, ParseException, 
-					IOException {
-		Optional<PortletModelBean> optPortletModel 
-			= modelFromSession(channel, event.portletId());
-		if (!optPortletModel.isPresent()) {
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#doRenderPortlet(org.jgrapes.portal.events.RenderPortletRequest, org.jgrapes.io.IOSubchannel, org.jgrapes.portal.AbstractPortlet.PortletModelBean)
+	 */
+	@Override
+	protected void doRenderPortlet(RenderPortletRequest event,
+	        IOSubchannel channel, PortletBaseModel retrievedModel)
+	        throws Exception {
+		if (!event.portletId().startsWith(getClass().getName() + "-")) {
 			return;
 		}
 		
-		event.stop();
 		Map<String, Object> baseModel 
 			= freemarkerBaseModel(event.renderSupport());
-		BundlesModel portletModel = (BundlesModel)optPortletModel.get();
 		switch (event.renderMode()) {
 		case Preview:
 		case DeleteablePreview: {
 			Template tpl = freemarkerConfig().getTemplate("Bundles-preview.ftlh");
 			channel.respond(new RenderPortletFromProvider(
-					BundleListPortlet.class, portletModel.getPortletId(), 
+					BundleListPortlet.class, retrievedModel.getPortletId(), 
 					DeleteablePreview, MODES,	newContentProvider(tpl, 
-							freemarkerModel(baseModel, portletModel, channel)),
+							freemarkerModel(baseModel, retrievedModel, channel)),
 					event.isForeground()));
 			break;
 		}
 		case View: {
 			Template tpl = freemarkerConfig().getTemplate("Bundles-view.ftlh");
 			channel.respond(new RenderPortletFromProvider(
-					BundleListPortlet.class, portletModel.getPortletId(), 
+					BundleListPortlet.class, retrievedModel.getPortletId(), 
 					View, MODES, newContentProvider(tpl, 
-							freemarkerModel(baseModel, portletModel, channel)),
+							freemarkerModel(baseModel, retrievedModel, channel)),
 					event.isForeground()));
 			break;
 		}
 		default:
 			break;
 		}	
-	}
-	
-	@Handler
-	public void onChangePortletModel(NotifyPortletModel event,
-			IOSubchannel channel) throws TemplateNotFoundException, 
-			MalformedTemplateNameException, ParseException, IOException {
-		Optional<PortletModelBean> optPortletModel 
-			= modelFromSession(channel, event.portletId());
-		if (!optPortletModel.isPresent()) {
-			return;
-		}
-	
-		event.stop();
-		BundlesModel portletModel = (BundlesModel)optPortletModel.get();
-	}
-	
-	public static class BundlesModel extends PortletModelBean {
-
-		private boolean worldVisible = true;
-		
-		public BundlesModel() {
-		}
-		
-		/**
-		 * @param visible the visible to set
-		 */
-		public void setWorldVisible(boolean visible) {
-			this.worldVisible = visible;
-		}
-
-		public boolean isWorldVisible() {
-			return worldVisible;
-		}
 	}
 	
 }

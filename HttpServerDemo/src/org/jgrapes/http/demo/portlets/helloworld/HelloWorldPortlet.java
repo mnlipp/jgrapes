@@ -51,6 +51,7 @@ import freemarker.template.TemplateNotFoundException;
 import static org.jgrapes.portal.Portlet.*;
 import static org.jgrapes.portal.Portlet.RenderMode.*;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
@@ -94,7 +95,7 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		ResourceBundle resourceBundle = resourceSupplier().apply(
 				LanguageSelector.associatedLocale(channel));
 		// Add HelloWorldPortlet resources to page
-		channel.respond(new AddPortletType(getClass().getName())
+		channel.respond(new AddPortletType(type())
 				.setDisplayName(resourceBundle.getString("portletName"))
 				.addScript(PortalView.uriFromPath("HelloWorld-functions.js"))
 				.addCss(PortalView.uriFromPath("HelloWorld-style.css"))
@@ -121,17 +122,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		}
 	}
 	
-	@Handler
-	public void onAddPortletRequest(AddPortletRequest event,
-			IOSubchannel channel) throws TemplateNotFoundException, 
-				MalformedTemplateNameException, ParseException, IOException {
-		if (!event.portletType().equals(getClass().getName())) {
-			return;
-		}
-		
-		event.stop();
-		HelloWorldModel portletModel 
-				= addToSession(channel, new HelloWorldModel());
+	public void doAddPortlet(AddPortletRequest event,
+			IOSubchannel channel, PortletBaseModel portletModel) throws Exception {
 		String jsonState = JsonBeanEncoder.create()
 				.writeObject(portletModel).toJson();
 		channel.respond(new KeyValueStoreUpdate().update(STORAGE_PATH 
@@ -146,39 +138,28 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 				true));
 	}
 
-	@Handler
-	public void onDeletePortletRequest(DeletePortletRequest event, 
-			IOSubchannel channel) {
-		Optional<PortletModelBean> optPortletModel 
-			= modelFromSession(channel, event.portletId());
-		if (!optPortletModel.isPresent()) {
-			return;
-		}
-	
-		event.stop();
-		removeFromSession(channel, optPortletModel.get());
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#doDeletePortlet(org.jgrapes.portal.events.DeletePortletRequest, org.jgrapes.io.IOSubchannel, org.jgrapes.portal.AbstractPortlet.PortletModelBean)
+	 */
+	@Override
+	protected void doDeletePortlet(DeletePortletRequest event,
+	        IOSubchannel channel, PortletBaseModel portletModel) throws Exception {
 		channel.respond(new KeyValueStoreUpdate().delete(STORAGE_PATH 
-				+ optPortletModel.get().getPortletId()));
+				+ portletModel.getPortletId()));
 		channel.respond(new DeletePortlet(
-				optPortletModel.get().getPortletId()));
+				portletModel.getPortletId()));
 	}
 	
-	@Handler
-	public void onRenderPortlet(RenderPortletRequest event,
-			IOSubchannel channel) 
-					throws TemplateNotFoundException, 
-					MalformedTemplateNameException, ParseException, 
-					IOException {
-		Optional<PortletModelBean> optPortletModel 
-			= modelFromSession(channel, event.portletId());
-		if (!optPortletModel.isPresent()) {
-			return;
-		}
-		
-		event.stop();
-		Map<String, Object> baseModel 
-			= freemarkerBaseModel(event.renderSupport());
-		HelloWorldModel portletModel = (HelloWorldModel)optPortletModel.get();
+	
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#doRenderPortlet(org.jgrapes.portal.events.RenderPortletRequest, org.jgrapes.io.IOSubchannel, org.jgrapes.portal.AbstractPortlet.PortletModelBean)
+	 */
+	@Override
+	protected void doRenderPortlet(RenderPortletRequest event,
+	        IOSubchannel channel, PortletBaseModel retrievedModel)
+	        throws Exception {
+		HelloWorldModel portletModel = (HelloWorldModel)retrievedModel;
+		Map<String, Object> baseModel = freemarkerBaseModel(event.renderSupport());
 		switch (event.renderMode()) {
 		case Preview:
 		case DeleteablePreview: {
@@ -197,7 +178,7 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 					View, MODES, newContentProvider(tpl, 
 							freemarkerModel(baseModel, portletModel, channel)),
 					event.isForeground()));
-			channel.respond(new NotifyPortletView(getClass().getName(),
+			channel.respond(new NotifyPortletView(type(),
 					portletModel.getPortletId(), "setWorldVisible",
 					portletModel.isWorldVisible()));
 			break;
@@ -211,7 +192,7 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 	public void onChangePortletModel(NotifyPortletModel event,
 			IOSubchannel channel) throws TemplateNotFoundException, 
 			MalformedTemplateNameException, ParseException, IOException {
-		Optional<PortletModelBean> optPortletModel 
+		Optional<PortletBaseModel> optPortletModel 
 			= modelFromSession(channel, event.portletId());
 		if (!optPortletModel.isPresent()) {
 			return;
@@ -225,18 +206,34 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 				.writeObject(portletModel).toJson();
 		channel.respond(new KeyValueStoreUpdate().update(STORAGE_PATH 
 				+ portletModel.getPortletId(), jsonState));
-		channel.respond(new NotifyPortletView(getClass().getName(),
+		channel.respond(new NotifyPortletView(type(),
 				portletModel.getPortletId(), "setWorldVisible", 
 				portletModel.isWorldVisible()));
 	}
 	
-	public static class HelloWorldModel extends PortletModelBean {
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#createModelBean()
+	 */
+	@Override
+	protected PortletBaseModel createPortletModel() {
+		return new HelloWorldModel(generatePortletId());
+	}
+
+	@SuppressWarnings("serial")
+	public static class HelloWorldModel extends PortletBaseModel {
 
 		private boolean worldVisible = true;
 		
-		public HelloWorldModel() {
+		/**
+		 * Creates a new model with the given type and id.
+		 * 
+		 * @param portletId the portlet id
+		 */
+		@ConstructorProperties({"portletId"})
+		public HelloWorldModel(String portletId) {
+			super(portletId);
 		}
-		
+
 		/**
 		 * @param visible the visible to set
 		 */
