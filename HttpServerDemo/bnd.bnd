@@ -23,7 +23,7 @@ Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 	org.jgrapes.io;version=snapshot,\
 	org.jgrapes.portal;version=snapshot,\
 	org.jgrapes.util;version=snapshot,\
-	org.jdrupes.httpcodec;version='[0.9.13,0.9.14)',\
+	org.jdrupes.httpcodec;version=latest,\
 	org.jgrapes.portal.themes.blacktie;version=latest,\
 	org.jgrapes.portal.themes.blitzer;version=latest,\
 	org.jgrapes.portal.themes.cupertino;version=latest,\
