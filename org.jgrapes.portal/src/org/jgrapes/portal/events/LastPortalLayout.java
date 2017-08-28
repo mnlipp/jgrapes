@@ -18,6 +18,8 @@
 
 package org.jgrapes.portal.events;
 
+import java.util.List;
+
 import org.jgrapes.core.Event;
 
 /**
@@ -27,14 +29,15 @@ import org.jgrapes.core.Event;
  */
 public class LastPortalLayout extends Event<Void> {
 
-	private String[][] previewLayout;
-	private String[] tabsLayout;
+	private List<List<String>> previewLayout;
+	private List<String> tabsLayout;
 	
 	/**
 	 * @param previewLayout
 	 * @param tabsLayout
 	 */
-	public LastPortalLayout(String[][] previewLayout, String[] tabsLayout) {
+	public LastPortalLayout(
+			List<List<String>> previewLayout, List<String> tabsLayout) {
 		this.previewLayout = previewLayout;
 		this.tabsLayout = tabsLayout;
 	}
@@ -42,14 +45,14 @@ public class LastPortalLayout extends Event<Void> {
 	/**
 	 * @return the previewLayout
 	 */
-	public String[][] previewLayout() {
+	public List<List<String>> previewLayout() {
 		return previewLayout;
 	}
 
 	/**
 	 * @return the tabsLayout
 	 */
-	public String[] tabsLayout() {
+	public List<String> tabsLayout() {
 		return tabsLayout;
 	}
 

@@ -22,9 +22,11 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.json.JsonArray;
 import javax.json.JsonString;
@@ -177,14 +179,14 @@ public class Portal extends Component {
 			break;
 		}
 		case "portalLayout": {
-			String[][] previewLayout = params.getJsonArray(0)
+			List<List<String>> previewLayout = params.getJsonArray(0)
 					.getValuesAs(column -> ((JsonArray)column)
 							.getValuesAs(JsonString::getString)
-							.stream().toArray(s -> new String[s]))
-					.stream().toArray(s -> new String[s][]);
-			String[] tabsLayout = params.getJsonArray(1)
+							.stream().collect(Collectors.toList()))
+					.stream().collect(Collectors.toList());
+			List<String> tabsLayout = params.getJsonArray(1)
 					.getValuesAs(JsonString::getString)
-					.stream().toArray(s -> new String[s]);
+					.stream().collect(Collectors.toList());
 			fire(new PortalLayoutChanged(
 					previewLayout, tabsLayout), channel);
 			break;

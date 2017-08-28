@@ -18,17 +18,15 @@
 
 package org.jgrapes.portal;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.jdrupes.json.JsonBeanDecoder;
+import org.jdrupes.json.JsonBeanEncoder;
+import org.jdrupes.json.JsonDecodeException;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Component;
@@ -88,9 +86,12 @@ public class BrowserBasedPortalPolicy extends Component {
 
 	@Handler
 	public void onKeyValueStoreData(
-			KeyValueStoreData event, IOSubchannel channel) {
-		lookupPortalSession(channel).ifPresent(
-				ps -> ps.onKeyValueStoreData(event, channel));
+			KeyValueStoreData event, IOSubchannel channel) 
+					throws JsonDecodeException {
+		Optional<PortalSession> optSession = lookupPortalSession(channel);
+		if (optSession.isPresent()) {
+			optSession.get().onKeyValueStoreData(event, channel);
+		}
 	}
 
 	@Handler
@@ -129,23 +130,18 @@ public class BrowserBasedPortalPolicy extends Component {
 		}
 
 		public void onKeyValueStoreData(
-				KeyValueStoreData event, IOSubchannel channel) {
+				KeyValueStoreData event, IOSubchannel channel) 
+						throws JsonDecodeException {
 			if (!event.event().query().equals(DATA_KEY)) {
 				return;
 			}
 			String data = event.data().get(DATA_KEY);
 			if (data != null) {
-				try (ObjectInputStream in = new ObjectInputStream(
-						Base64.getDecoder().wrap(
-								new ByteArrayInputStream(
-										data.getBytes("utf-8"))))) {
-					@SuppressWarnings("unchecked")
-					Map<String,Object> restored 
-						= (Map<String,Object>)in.readObject();
-					persisted = restored;
-				} catch (IOException | ClassNotFoundException e) {
-					// cannot happen
-				}
+				JsonBeanDecoder decoder = JsonBeanDecoder.create(data);
+				@SuppressWarnings("unchecked")
+				Class<Map<String,Object>> cls 
+					= (Class<Map<String,Object>>)(Class<?>)HashMap.class;
+				persisted = decoder.readObject(cls);
 			}
 			readyLock.remove();
 			readyLock = null;
@@ -158,10 +154,13 @@ public class BrowserBasedPortalPolicy extends Component {
 				persisted = new HashMap<>();
 			}
 			// Make sure data is consistent
-			String[][] previewLayout = (String[][])persisted.computeIfAbsent(
-					"previewLayout", k -> { return new String[0][0]; });
-			String[] tabsLayout = (String[])persisted.computeIfAbsent(
-					"tabsLayout", k -> { return new String[0]; });
+			@SuppressWarnings("unchecked")
+			List<List<String>> previewLayout = (List<List<String>>)persisted
+				.computeIfAbsent(
+					"previewLayout", k -> { return Collections.emptyList(); });
+			@SuppressWarnings("unchecked")
+			List<String> tabsLayout = (List<String>)persisted.computeIfAbsent(
+					"tabsLayout", k -> { return Collections.emptyList(); });
 
 			// Update layout
 			channel.respond(new LastPortalLayout(previewLayout, tabsLayout));
@@ -172,7 +171,7 @@ public class BrowserBasedPortalPolicy extends Component {
 						event.event().renderSupport(), portletId,
 						Portlet.RenderMode.View, false), channel);
 			}
-			for (String[] column: previewLayout) {
+			for (List<String> column: previewLayout) {
 				for (String portletId: column) {
 					fire(new RenderPortletRequest(
 							event.event().renderSupport(), portletId,
@@ -189,20 +188,10 @@ public class BrowserBasedPortalPolicy extends Component {
 		}
 		
 		private void storeState(IOSubchannel channel) {
-			ByteArrayOutputStream encoded = new ByteArrayOutputStream();
-			try (ObjectOutputStream out = new ObjectOutputStream(
-					Base64.getEncoder().wrap(encoded))) {
-				out.writeObject(persisted);
-			} catch (IOException e) {
-				// cannot happen
-			}
-			try {
-				String data = encoded.toString("utf-8");
-				fire(new KeyValueStoreUpdate()
-						.update(DATA_KEY, data), channel);
-			} catch (UnsupportedEncodingException e) {
-				// cannot happen
-			}
+			JsonBeanEncoder encoder = JsonBeanEncoder.create();
+			encoder.writeObject(persisted);
+			fire(new KeyValueStoreUpdate()
+						.update(DATA_KEY, encoder.toJson()), channel);
 		}
 
 	}
