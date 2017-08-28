@@ -52,9 +52,9 @@ import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
+import org.jgrapes.portal.KVStoreBasedPortalPolicy;
 import org.jgrapes.portal.Portal;
 import org.jgrapes.portal.PortalLocalBackedKVStore;
-import org.jgrapes.portal.BrowserBasedPortalPolicy;
 import org.jgrapes.util.PreferencesStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -123,7 +123,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
 							ResourceBundle.Control.FORMAT_DEFAULT)));
 		portal.attach(new PortalLocalBackedKVStore(
 				portal, portal.prefix().getPath()));
-		portal.attach(new BrowserBasedPortalPolicy(portal));
+		portal.attach(new KVStoreBasedPortalPolicy(portal));
 		portal.attach(new NewPortalSessionPolicy(portal));
 		portal.attach(new HelloWorldPortlet(portal));
 		Components.start(app);

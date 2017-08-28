@@ -50,9 +50,9 @@ import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.osgi.portal.PortletCollector;
+import org.jgrapes.portal.KVStoreBasedPortalPolicy;
 import org.jgrapes.portal.Portal;
 import org.jgrapes.portal.PortalLocalBackedKVStore;
-import org.jgrapes.portal.BrowserBasedPortalPolicy;
 import org.jgrapes.util.PreferencesStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -121,7 +121,7 @@ public class Application extends Component implements BundleActivator {
 							ResourceBundle.Control.FORMAT_DEFAULT)));
 		portal.attach(new PortalLocalBackedKVStore(
 				portal, portal.prefix().getPath()));
-		portal.attach(new BrowserBasedPortalPolicy(portal));
+		portal.attach(new KVStoreBasedPortalPolicy(portal));
 		portal.attach(new NewPortalSessionPolicy(portal));
 		portal.attach(new PortletCollector(portal, context));
 		Components.start(app);

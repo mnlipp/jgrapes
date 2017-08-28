@@ -46,16 +46,16 @@ import org.jgrapes.util.events.KeyValueStoreUpdate;
 /**
  * 
  */
-public class BrowserBasedPortalPolicy extends Component {
+public class KVStoreBasedPortalPolicy extends Component {
 
 	private static final String DATA_KEY 
-		= "/" + BrowserBasedPortalPolicy.class.getName();
+		= "/" + KVStoreBasedPortalPolicy.class.getName();
 
 	/**
 	 * Creates a new component with its channel set to
 	 * itself.
 	 */
-	public BrowserBasedPortalPolicy() {
+	public KVStoreBasedPortalPolicy() {
 	}
 
 	/**
@@ -63,7 +63,7 @@ public class BrowserBasedPortalPolicy extends Component {
 	 * 
 	 * @param componentChannel
 	 */
-	public BrowserBasedPortalPolicy(Channel componentChannel) {
+	public KVStoreBasedPortalPolicy(Channel componentChannel) {
 		super(componentChannel);
 	}
 
@@ -110,7 +110,7 @@ public class BrowserBasedPortalPolicy extends Component {
 	private Optional<PortalSession> lookupPortalSession(IOSubchannel channel) {
 		return channel.associated(Session.class)
 			.map(session -> (PortalSession)session.computeIfAbsent(
-					BrowserBasedPortalPolicy.class, 
+					KVStoreBasedPortalPolicy.class, 
 					k -> new PortalSession()));
 	}
 	
