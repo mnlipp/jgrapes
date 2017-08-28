@@ -17,7 +17,7 @@ Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 	HttpServerDemo;version=snapshot,\
 	org.freemarker.freemarker;version='[2.3.26,2.3.27)',\
 	org.glassfish.javax.json;version='[1.1.0,1.1.1)',\
-	org.jdrupes.json;version='[1.0.2,1.0.3)',\
+	org.jdrupes.json;version=latest,\
 	org.jgrapes.core;version=snapshot,\
 	org.jgrapes.http;version=snapshot,\
 	org.jgrapes.io;version=snapshot,\
