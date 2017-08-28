@@ -40,7 +40,7 @@
  * The following diagram shows the start of the 
  * portal bootstrap to the first JSON messages.
  * 
- * ![Event Sequence](PortalBootSeq.sv4g)
+ * ![Boot Event Sequence](PortalBootSeq.svg)
  * 
  * After the portal page has loaded and the web socket connection has been
  * established, all information is exchanged using 
@@ -69,7 +69,7 @@
  * {@link org.jgrapes.portal.Portal} into a single object and leaves out the
  * details about the JSON serielization/deserialization.
  * 
- * ![Event Sequence](PortalReadySeq.svg)
+ * ![Portal Ready Event Sequence](PortalReadySeq.svg)
  * 
  * Portlets trigger actions on the browser by firing events on the portal 
  * channel. The events are forward to the {@link org.jgrapes.portal.PortalView}
