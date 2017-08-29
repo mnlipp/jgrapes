@@ -18,6 +18,7 @@
 
 package org.jgrapes.portal;
 
+import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -48,9 +49,6 @@ import org.jgrapes.util.events.KeyValueStoreUpdate;
  */
 public class KVStoreBasedPortalPolicy extends Component {
 
-	private static final String DATA_KEY 
-		= "/" + KVStoreBasedPortalPolicy.class.getName();
-
 	/**
 	 * Creates a new component with its channel set to
 	 * itself.
@@ -67,6 +65,11 @@ public class KVStoreBasedPortalPolicy extends Component {
 		super(componentChannel);
 	}
 
+	private String storagePath(Session session) {
+		return "/" + session.getOrDefault(Principal.class, "").toString()
+				+ "/" + KVStoreBasedPortalPolicy.class.getName();
+	}
+	
 	/**
 	 * Intercept the {@link PortalReady} event. Request the 
 	 * session data from the portal and resume.
@@ -111,20 +114,26 @@ public class KVStoreBasedPortalPolicy extends Component {
 		return channel.associated(Session.class)
 			.map(session -> (PortalSession)session.computeIfAbsent(
 					KVStoreBasedPortalPolicy.class, 
-					k -> new PortalSession()));
+					k -> new PortalSession(session)));
 	}
 	
 	private class PortalSession {
 
+		private Session session;
 		private CompletionLock readyLock;
 		private Map<String,Object> persisted = null;
+		
+		public PortalSession(Session session) {
+			this.session = session;
+		}
 		
 		public void onPortalReady(PortalReady event, IOSubchannel channel) 
 				throws InterruptedException {
 			if (persisted != null) {
 				return;
 			}
-			KeyValueStoreQuery query = new KeyValueStoreQuery(DATA_KEY, true);
+			KeyValueStoreQuery query = new KeyValueStoreQuery(
+					storagePath(session), true);
 			readyLock = new CompletionLock(event, 3000);
 			fire(query, channel);
 		}
@@ -132,10 +141,10 @@ public class KVStoreBasedPortalPolicy extends Component {
 		public void onKeyValueStoreData(
 				KeyValueStoreData event, IOSubchannel channel) 
 						throws JsonDecodeException {
-			if (!event.event().query().equals(DATA_KEY)) {
+			if (!event.event().query().equals(storagePath(session))) {
 				return;
 			}
-			String data = event.data().get(DATA_KEY);
+			String data = event.data().get(storagePath(session));
 			if (data != null) {
 				JsonBeanDecoder decoder = JsonBeanDecoder.create(data);
 				@SuppressWarnings("unchecked")
@@ -184,14 +193,12 @@ public class KVStoreBasedPortalPolicy extends Component {
 				PortalLayoutChanged event, IOSubchannel channel) {
 			persisted.put("previewLayout", event.previewLayout());
 			persisted.put("tabsLayout", event.tabsLayout());
-			storeState(channel);
-		}
-		
-		private void storeState(IOSubchannel channel) {
+			
+			// Now store.
 			JsonBeanEncoder encoder = JsonBeanEncoder.create();
 			encoder.writeObject(persisted);
 			fire(new KeyValueStoreUpdate()
-						.update(DATA_KEY, encoder.toJson()), channel);
+					.update(storagePath(session), encoder.toJson()), channel);
 		}
 
 	}

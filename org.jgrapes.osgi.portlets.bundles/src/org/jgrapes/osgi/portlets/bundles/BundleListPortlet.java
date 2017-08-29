@@ -23,6 +23,7 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.LanguageSelector;
+import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
@@ -91,16 +92,16 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 	 * @see org.jgrapes.portal.AbstractPortlet#modelFromSession(org.jgrapes.io.IOSubchannel, java.lang.String)
 	 */
 	@Override
-	protected Optional<PortletBaseModel> modelFromSession(IOSubchannel channel,
-	        String portletId) {
+	protected Optional<PortletBaseModel> modelFromSession(
+			Session session, String portletId) {
 		Optional<PortletBaseModel> optModel 
-			= super.modelFromSession(channel, portletId);
+			= super.modelFromSession(session, portletId);
 		if (optModel.isPresent()) {
 			return optModel;
 		}
 		if (portletId.startsWith(type() + "-")) {
 			return Optional.of(addToSession(
-					channel, new PortletBaseModel(portletId)));
+					session, new PortletBaseModel(portletId)));
 		}
 		return Optional.empty();
 	}
@@ -110,7 +111,7 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 	 */
 	@Override
 	protected void doAddPortlet(AddPortletRequest event, IOSubchannel channel,
-	        PortletBaseModel portletModel) throws Exception {
+	        Session session, PortletBaseModel portletModel) throws Exception {
 		Template tpl = freemarkerConfig().getTemplate("Bundles-preview.ftlh");
 		Map<String, Object> baseModel 
 			= freemarkerBaseModel(event.renderSupport());
@@ -127,7 +128,7 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 	 */
 	@Override
 	protected void doDeletePortlet(DeletePortletRequest event,
-	        IOSubchannel channel, PortletBaseModel portletModel)
+	        IOSubchannel channel, Session session, PortletBaseModel portletModel)
 	        throws Exception {
 		channel.respond(new DeletePortlet(portletModel.getPortletId()));
 	}
@@ -137,7 +138,7 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 	 */
 	@Override
 	protected void doRenderPortlet(RenderPortletRequest event,
-	        IOSubchannel channel, PortletBaseModel retrievedModel)
+	        IOSubchannel channel, Session session, PortletBaseModel retrievedModel)
 	        throws Exception {
 		if (!event.portletId().startsWith(getClass().getName() + "-")) {
 			return;

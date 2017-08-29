@@ -161,15 +161,13 @@ public abstract class AbstractPortlet extends Component {
 	 */
 	@SuppressWarnings("unchecked")
 	protected Optional<PortletBaseModel> modelFromSession(
-			IOSubchannel channel, String portletId) {
-		return channel.associated(Session.class).map(session ->
-			Optional.ofNullable(
+			Session session, String portletId) {
+		return Optional.ofNullable(
 					((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
 							(Map<Object,?>)session)
 					.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
 					.computeIfAbsent(type(), t -> new HashMap<>())
-					.get(portletId)))
-			.orElseThrow(() -> new IllegalStateException("Session is missing."));
+					.get(portletId));
 	}
 
 	/**
@@ -182,13 +180,9 @@ public abstract class AbstractPortlet extends Component {
 	 */
 	@SuppressWarnings("unchecked")
 	protected <T extends PortletBaseModel> T addToSession(
-			IOSubchannel channel, T model) {
-		Optional<Session> optSession = channel.associated(Session.class);
-		if (!optSession.isPresent()) {
-			throw new IllegalStateException("Session is missing.");
-		}
+			Session session, T model) {
 		((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
-				(Map<Object,?>)optSession.get())
+				(Map<Object,?>)session)
 			.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
 			.computeIfAbsent(type(), t -> new HashMap<>())
 			.put(model.getPortletId(), model);
@@ -204,13 +198,9 @@ public abstract class AbstractPortlet extends Component {
 	 */
 	@SuppressWarnings("unchecked")
 	protected <T extends PortletBaseModel> T removeFromSession(
-			IOSubchannel channel, T model) {
-		Optional<Session> optSession = channel.associated(Session.class);
-		if (!optSession.isPresent()) {
-			throw new IllegalStateException("Session is missing.");
-		}
+			Session session, T model) {
 		((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
-				(Map<Object,?>)optSession.get())
+				(Map<Object,?>)session)
 			.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
 			.computeIfAbsent(type(), t -> new HashMap<>())
 			.remove(model.getPortletId());
@@ -248,10 +238,11 @@ public abstract class AbstractPortlet extends Component {
 		if (!event.portletType().equals(type())) {
 			return;
 		}
-		
 		event.stop();
-		PortletBaseModel portletModel= addToSession(channel, createPortletModel());
-		doAddPortlet(event, channel, portletModel);
+		Session session = session(channel);
+		PortletBaseModel portletModel= addToSession(
+				session, createPortletModel());
+		doAddPortlet(event, channel, session, portletModel);
 	}
 
 	/**
@@ -259,10 +250,12 @@ public abstract class AbstractPortlet extends Component {
 	 * 
 	 * @param event the event
 	 * @param channel the channel
+	 * @param session the session
 	 * @param portletModel the model bean
 	 */
 	protected abstract void doAddPortlet(AddPortletRequest event, 
-			IOSubchannel channel, PortletBaseModel portletModel) throws Exception;
+			IOSubchannel channel, Session session, 
+			PortletBaseModel portletModel) throws Exception;
 	
 	/**
 	 * Checks if the request applies to this component. If so, stops the event,
@@ -276,16 +269,16 @@ public abstract class AbstractPortlet extends Component {
 	@Handler
 	public void onDeletePortletRequest(DeletePortletRequest event, 
 			IOSubchannel channel) throws Exception {
+		Session session = session(channel);
 		Optional<PortletBaseModel> optPortletModel 
-			= modelFromSession(channel, event.portletId());
+			= modelFromSession(session, event.portletId());
 		if (!optPortletModel.isPresent()) {
 			return;
 		}
 		event.stop();
-
 		PortletBaseModel portletModel = optPortletModel.get();
-		removeFromSession(channel, portletModel);
-		doDeletePortlet(event, channel, portletModel);
+		removeFromSession(session, portletModel);
+		doDeletePortlet(event, channel, session, portletModel);
 	}
 	
 	/**
@@ -294,10 +287,12 @@ public abstract class AbstractPortlet extends Component {
 	 * 
 	 * @param event the event
 	 * @param channel the channel
+	 * @param session the session
 	 * @param portletModel the model bean
 	 */
 	protected abstract void doDeletePortlet(DeletePortletRequest event, 
-			IOSubchannel channel, PortletBaseModel portletModel) throws Exception;
+			IOSubchannel channel, Session session, 
+			PortletBaseModel portletModel) throws Exception;
 	
 	/**
 	 * Checks if the request applies to this component by calling
@@ -317,14 +312,14 @@ public abstract class AbstractPortlet extends Component {
 	@Handler
 	public void onRenderPortlet(RenderPortletRequest event,
 			IOSubchannel channel) throws Exception {
+		Session session = session(channel);
 		Optional<PortletBaseModel> optPortletModel 
-			= modelFromSession(channel, event.portletId());
+			= modelFromSession(session, event.portletId());
 		if (!optPortletModel.isPresent()) {
 			return;
 		}
-		
 		event.stop();
-		doRenderPortlet(event, channel, optPortletModel.get());
+		doRenderPortlet(event, channel, session, optPortletModel.get());
 	}
 
 	/**
@@ -336,7 +331,20 @@ public abstract class AbstractPortlet extends Component {
 	 * @param portletModel the model bean
 	 */
 	protected abstract void doRenderPortlet(RenderPortletRequest event, 
-			IOSubchannel channel, PortletBaseModel portletModel) throws Exception;
+			IOSubchannel channel, Session session, 
+			PortletBaseModel portletModel) throws Exception;
+	
+	/**
+	 * Convenience method that returns the session associated with
+	 * the channel.
+	 * 
+	 * @return the session
+	 * @throws IllegalStateException if no session is found
+	 */
+	public Session session(IOSubchannel channel) {
+		return channel.associated(Session.class).orElseThrow(
+				() -> new IllegalStateException("Session is missing."));
+	}
 	
 	/**
 	 * Defines the portlet model following the JavaBean conventions.

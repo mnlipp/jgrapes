@@ -38,6 +38,7 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.CharBuffer;
+import java.security.Principal;
 import java.text.Collator;
 import java.text.ParseException;
 import java.time.Instant;
@@ -516,10 +517,14 @@ public class PortalView extends Component {
 			.stream(themeLoader().spliterator(), false)
 			.filter(t -> t.themeId().equals(event.theme())).findFirst()
 			.orElse(baseTheme);
-		channel.associated(Session.class).ifPresent(session ->
-					session.put("themeProvider", themeProvider));
-		channel.respond(new KeyValueStoreUpdate().update(
-				"/themeProvider", themeProvider.themeId())).get();
+		Optional<Session> optSession = channel.associated(Session.class);
+		if (optSession.isPresent()) {
+			Session session = optSession.get();
+			session.put("themeProvider", themeProvider);
+			channel.respond(new KeyValueStoreUpdate().update(
+				"/" + session.getOrDefault(Principal.class, "").toString() 
+				+ "/themeProvider", themeProvider.themeId())).get();
+		}
 		fire(new JsonOutput("reload"), channel);
 	}
 	
