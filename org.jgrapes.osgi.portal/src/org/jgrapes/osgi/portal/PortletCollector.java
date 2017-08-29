@@ -18,6 +18,8 @@
 
 package org.jgrapes.osgi.portal;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.StreamSupport;
 
 import org.jgrapes.core.Channel;
@@ -64,7 +66,9 @@ public class PortletCollector extends Component
 				.filter(c -> c.getClass()
 						.equals(portletFactory.componentType()))
 				.count() == 0) {
-			attach(portletFactory.create(channel()));
+			Map<Object,Object> props = new HashMap<>();
+			props.put(BundleContext.class, context);
+			attach(portletFactory.create(channel(), props));
 		}
 		return portletFactory;
 	}
