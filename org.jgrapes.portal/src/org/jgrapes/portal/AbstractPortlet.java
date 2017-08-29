@@ -45,11 +45,11 @@ import org.jgrapes.portal.events.RenderPortletRequest;
  * Provides a base class for implementing portlet components that
  * maintain a model for each portlet as a JavaBean in the session.
  * 
- * Method {@link #addToSession(IOSubchannel, PortletBaseModel) adds
+ * Method {@link #addToSession} adds
  * a model for the portlet type (as derived from {@link #type()}) 
  * to the session associated with the channel. Method
- * {@link #modelFromSession(IOSubchannel, String)} retrieves a model,
- * {@link AbstractPortlet#removeFromSession(IOSubchannel, PortletBaseModel)}
+ * {@link #modelFromSession} retrieves a model,
+ * {@link AbstractPortlet#removeFromSession}
  * removes it.
  * 
  * Using these methods, this class also provides basic event handlers that
@@ -155,7 +155,7 @@ public abstract class AbstractPortlet extends Component {
 	 * Returns the portlet model of this portlet's type with the given id
 	 * from the session.
 	 * 
-	 * @param channel the channel, used to access the session
+	 * @param session the session to use
 	 * @param portletId the portel id
 	 * @return the models
 	 */
@@ -163,18 +163,18 @@ public abstract class AbstractPortlet extends Component {
 	protected Optional<PortletBaseModel> modelFromSession(
 			Session session, String portletId) {
 		return Optional.ofNullable(
-					((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
-							(Map<Object,?>)session)
-					.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
-					.computeIfAbsent(type(), t -> new HashMap<>())
-					.get(portletId));
+				((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
+						(Map<Object,?>)session)
+				.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
+				.computeIfAbsent(type(), t -> new HashMap<>())
+				.get(portletId));
 	}
 
 	/**
-	 * Adds the given portlet model to the session using the {@link type()}
+	 * Adds the given portlet model to the session using the {@link #type()}
 	 * and the model's {@link PortletBaseModel#getPortletId()} as keys.
 	 * 
-	 * @param channel the channel, used to access the session
+	 * @param session the session to use
 	 * @param model the model
 	 * @return the model
 	 */
@@ -192,7 +192,7 @@ public abstract class AbstractPortlet extends Component {
 	/**
 	 * Removes the given portlet model from the session.
 	 * 
-	 * @param channel the channel, used to access the session
+	 * @param session the session to use
 	 * @param model the model
 	 * @return the model
 	 */
@@ -226,7 +226,7 @@ public abstract class AbstractPortlet extends Component {
 	/**
 	 * Checks if the request applies to this component. If so, stops the event,
 	 * calls {@link #createPortletModel()} to create a new model bean, adds it
-	 * to the session and call {@link #doAddPortlet(PortletBaseModel)}
+	 * to the session and call {@link #doAddPortlet}
 	 * with the newly created model bean. 
 	 * 
 	 * @param event the event
@@ -260,7 +260,7 @@ public abstract class AbstractPortlet extends Component {
 	/**
 	 * Checks if the request applies to this component. If so, stops the event,
 	 * removes the portlet model bean from the session
-	 * and calls {@link #doDeletePortlet(PortletBaseModel)}
+	 * and calls {@link #doDeletePortlet}
 	 * with the model. 
 	 * 
 	 * @param event the event
@@ -296,13 +296,13 @@ public abstract class AbstractPortlet extends Component {
 	
 	/**
 	 * Checks if the request applies to this component by calling
-	 * {@link #modelFromSession(IOSubchannel, String)}. If a model
+	 * {@link #modelFromSession}. If a model
 	 * is found, stops the event, and calls 
-	 * {@link #doRenderPortlet(PortletBaseModel)} with the model. 
+	 * {@link #doRenderPortlet} with the model. 
 	 * 
 	 * Some portlets that do not persist their models between sessions
 	 * (e.g. because the model only references data maintained elsewhere)
-	 * should override {@link #modelFromSession(IOSubchannel, String)}
+	 * should override {@link #modelFromSession}
 	 * in such a way that it creates the requested model if it doesn't 
 	 * exist yet.
 	 * 
