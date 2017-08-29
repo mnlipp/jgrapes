@@ -45,7 +45,64 @@ import org.jgrapes.util.events.KeyValueStoreQuery;
 import org.jgrapes.util.events.KeyValueStoreUpdate;
 
 /**
+ * A component that restores the portal layout,
+ * using key/value events for persisting the data between sessions.
  * 
+ * ![Boot Event Sequence](KVPPBootSeq.svg)
+ * 
+ * This component requires another component that handles the key/value
+ * store events ({@link KeyValueStoreUpdate}, {@link KeyValueStoreQuery})
+ * used by this component for handling persistence. When the portal becomes
+ * ready, this policy sends a query for the persisted data. To ensure
+ * that the data is available before the boot sequence continues, the 
+ * completion of the {@link PortalReady} event is delayed (using a 
+ * {@link CompletionLock}) until the requested data becomes available.
+ * 
+ * When the portal has been prepared, the policy sends the last layout
+ * as retrieved from persistent storage to the portal and then generates
+ * render events for all portlets contained in this layout.
+ * 
+ * Each time the layout is changed in the portal, the portal sends the
+ * new layout data and this component updates the persistent storage
+ * accordingly.
+ * 
+ * @startuml KVPPBootSeq.svg
+ * hide footbox
+ * 
+ * Browser -> Portal: "portalReady"
+ * activate Portal
+ * Portal -> KVStoreBasedPortalPolicy: PortalReady
+ * deactivate Portal
+ * activate KVStoreBasedPortalPolicy
+ * KVStoreBasedPortalPolicy -> "KV Store": KeyValueStoreQuery
+ * deactivate KVStoreBasedPortalPolicy
+ * activate "KV Store"
+ * "KV Store" -> KVStoreBasedPortalPolicy: KeyValueStoreData
+ * deactivate "KV Store"
+ * 
+ * actor System
+ * System -> KVStoreBasedPortalPolicy: PortalPrepared
+ * activate KVStoreBasedPortalPolicy
+ * KVStoreBasedPortalPolicy -> Portal: LastPortalLayout
+ * Portal -> Browser: "lastPortalLayout"
+ * loop for all portlets to be displayed
+ *     KVStoreBasedPortalPolicy -> PortletX: RenderPortletRequest
+ *     activate PortletX
+ *     PortletX -> Portal: RenderPortlet
+ *     deactivate PortletX
+ *     activate Portal
+ *     Portal -> Browser: "renderPortlet"
+ *     deactivate Portal
+ * end
+ * deactivate KVStoreBasedPortalPolicy
+ * 
+ * Browser -> Portal: "portalLayout"
+ * Portal -> KVStoreBasedPortalPolicy: PortalLayoutChanged
+ * activate KVStoreBasedPortalPolicy
+ * KVStoreBasedPortalPolicy -> "KV Store": KeyValueStoreUpdate
+ * deactivate KVStoreBasedPortalPolicy
+ * 
+ * @enduml
  */
 public class KVStoreBasedPortalPolicy extends Component {
 

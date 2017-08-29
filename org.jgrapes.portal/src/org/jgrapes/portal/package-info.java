@@ -18,8 +18,15 @@
 
 /**
  * The portal package provides a portal implementation for the
- * JGrapes framework. The {@link org.jgrapes.portal.Portal} component 
- * is conceptually the main component. It exchanges events 
+ * JGrapes framework. 
+ * 
+ * [TOC formatted]
+ *
+ * Portal and PortalView
+ * --------------------- 
+ * 
+ * The {@link org.jgrapes.portal.Portal} component 
+ * is conceptually the main component of the portal. It exchanges events 
  * with the portlets, usually using a channel that is independent
  * of the  channel used for HTTP Input/Output.
  *
@@ -36,6 +43,9 @@
  * Aside from requests for static resources like JavaScript libraries, CSS,
  * images etc. all information is then exchanged using a web socket connection
  * that is established immediately after the initial HTML has been loaded.
+ * 
+ * Data exchange
+ * -------------
  * 
  * The following diagram shows the start of the 
  * portal bootstrap to the first JSON messages.
@@ -62,12 +72,15 @@
  * serializes the data and sends it to the websocket using 
  * {@link org.jgrapes.io.events.Output} events.
  * 
- * The following diagram shows the somplete sequence of events following the
+ * Boot sequence
+ * -------------
+ * 
+ * The following diagram shows the complete sequence of events following the
  * portal ready message. Note that the documentation of the events uses a 
  * slightly simplified version of the sequence diagram that combines the 
  * {@link org.jgrapes.portal.PortalView} and the 
  * {@link org.jgrapes.portal.Portal} into a single object and leaves out the
- * details about the JSON serielization/deserialization.
+ * details about the JSON serialization/deserialization.
  * 
  * ![Portal Ready Event Sequence](PortalReadySeq.svg)
  * 
@@ -77,9 +90,25 @@
  * socket (as {@link org.jgrapes.io.events.Output} events). 
  * 
  * Details about the handling of the different events can be found in their 
- * respective JavaDoc. The diagrams used there also combine the 
+ * respective JavaDoc or in the documentation of the components that handle
+ * them. The diagrams used there combine the 
  * {@link org.jgrapes.portal.PortalView} and the 
- * {@link org.jgrapes.portal.Portal} into a single object.
+ * {@link org.jgrapes.portal.Portal} into a single object just as this one.
+ * 
+ * Portal Policies
+ * ===============
+ * 
+ * Portal policy components are responsible for establishing the initial
+ * set of portlets shown after the portal page has loaded. Usually,
+ * there will be a portal policy component that restores the layout from the
+ * previous session. {@link org.jgrapes.portal.KVStoreBasedPortalPolicy}
+ * is an example of such a component.
+ * 
+ * There can be more than one portal policy component. A common use case
+ * is to have one policy component that maintains the portal layout
+ * and another component that ensures that the portal is not empty when
+ * a new session is initially created. The Demo includes such a component.
+ * 
  * 
  * @startuml PortalBootSeq.svg
  * hide footbox
