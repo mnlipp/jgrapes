@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.portal.PortletFactory;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.ServiceScope;
 
 /**
@@ -45,7 +46,8 @@ public class BundleListPortletFactory
 	@Override
 	public BundleListPortlet create(Channel componentChannel,
 	        Map<Object, Object> properties) {
-		return new BundleListPortlet(componentChannel);
+		return new BundleListPortlet(componentChannel, 
+				(BundleContext)properties.get(BundleContext.class));
 	}
 
 }

@@ -33,6 +33,8 @@ import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortletFromProvider;
 import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.freemarker.FreeMarkerPortlet;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 
 import freemarker.core.ParseException;
 import freemarker.template.MalformedTemplateNameException;
@@ -42,6 +44,7 @@ import freemarker.template.TemplateNotFoundException;
 import static org.jgrapes.portal.Portlet.*;
 import static org.jgrapes.portal.Portlet.RenderMode.*;
 
+import java.beans.Transient;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
@@ -55,6 +58,7 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 
 	private final static Set<RenderMode> MODES = RenderMode.asSet(
 			DeleteablePreview, View);
+	private BundleContext context;
 	
 	/**
 	 * Creates a new component with its channel set to the given 
@@ -64,8 +68,9 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 	 * handlers listen on by default and that 
 	 * {@link Manager#fire(Event, Channel...)} sends the event to 
 	 */
-	public BundleListPortlet(Channel componentChannel) {
+	public BundleListPortlet(Channel componentChannel, BundleContext context) {
 		super(componentChannel);
+		this.context = context;
 	}
 
 	/* (non-Javadoc)
@@ -74,6 +79,16 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 	@Override
 	protected String generatePortletId() {
 		return type() + "-" + super.generatePortletId();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#createPortletModel()
+	 */
+	@Override
+	protected PortletBaseModel createPortletModel() {
+		BundleListModel model = new BundleListModel(generatePortletId());
+		model.bundles = context.getBundles();
+		return model;
 	}
 
 	@Handler
@@ -100,8 +115,9 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 			return optModel;
 		}
 		if (portletId.startsWith(type() + "-")) {
-			return Optional.of(addToSession(
-					session, new PortletBaseModel(portletId)));
+			BundleListModel model = new BundleListModel(portletId);
+			model.bundles = context.getBundles();
+			return Optional.of(addToSession(session, model));
 		}
 		return Optional.empty();
 	}
@@ -171,4 +187,18 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 		}	
 	}
 	
+	@SuppressWarnings("serial")
+	public class BundleListModel extends PortletBaseModel {
+
+		private Bundle[] bundles;
+		
+		public BundleListModel(String portletId) {
+			super(portletId);
+		}
+
+		@Transient
+		public Bundle[] getBundles() {
+			return bundles;
+		}
+	}
 }
