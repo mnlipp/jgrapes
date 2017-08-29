@@ -125,7 +125,7 @@
 <span class="sourceLineNo">117</span>         * @return the model<a name="line.117"></a>
 <span class="sourceLineNo">118</span>         */<a name="line.118"></a>
 <span class="sourceLineNo">119</span>        protected Map&lt;String,Object&gt; freemarkerModel(Map&lt;String,Object&gt; baseModel,<a name="line.119"></a>
-<span class="sourceLineNo">120</span>                        PortletModelBean portletModel, IOSubchannel channel) {<a name="line.120"></a>
+<span class="sourceLineNo">120</span>                        PortletBaseModel portletModel, IOSubchannel channel) {<a name="line.120"></a>
 <span class="sourceLineNo">121</span>                final Map&lt;String,Object&gt; model = new HashMap&lt;&gt;(baseModel);<a name="line.121"></a>
 <span class="sourceLineNo">122</span>                model.put("portlet", portletModel);<a name="line.122"></a>
 <span class="sourceLineNo">123</span>                Locale locale = channel.associated(Selection.class)<a name="line.123"></a>
