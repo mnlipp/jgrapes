@@ -6,7 +6,7 @@
  */
 var JGPortal = {
     lastPreviewLayout: [[], [], []],
-    lastTabsLayout: [],
+    lastTabsLayout: []
 };
 
 (function () {
@@ -411,5 +411,31 @@ var JGPortal = {
         wsConn.send({"jsonrpc": "2.0", "method": "retrievedLocalData",
             "params": [ data ]});
     };
+    
+})();
+
+(function() {
+
+    JGPortal.tooltip = function(nodeSet) {
+        nodeSet.tooltip({
+            items: "[data-tooltipId], [title]",
+            content: function() {
+                let element = $( this );
+                if ( element.is( "[data-tooltipId]" ) ) {
+                    let id = element.attr("data-tooltipId");
+                    let tooltip = $( "#" + id );
+                    if (tooltip) {
+                        tooltip = tooltip.clone(true);
+                        tooltip.removeClass("jgrapes-tooltip-prototype")
+                        return tooltip;
+                    }
+                    return "<#" + id + ">";
+                }
+                if ( element.is( "[title]" ) ) {
+                    return "My " + element.attr( "title" );
+                }
+            }
+        });
+    }
     
 })();

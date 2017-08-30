@@ -10,10 +10,12 @@
   <title>${_("portalTitle")}</title>
 
   <!-- CSS -->
+  <!-- Portal -->
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/structure.css')}">
   <!-- jQuery / jQuery UI and extensions -->
-  <link rel="stylesheet" href="${resourceUrl('theme-resource/jquery-ui.min.css')}"></script>
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-iconfont-2.3.2/jquery-ui-1.12.icon-font.min.css')}"></script>
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.min.css')}"></script>
+  <link rel="stylesheet" href="${resourceUrl('theme-resource/jquery-ui.min.css')}">
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-iconfont-2.3.2/jquery-ui-1.12.icon-font.min.css')}">
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.min.css')}">
 
   <!-- Portal -->
   <link rel="stylesheet" href="${resourceUrl('portal-resource/normalize.css')}">
