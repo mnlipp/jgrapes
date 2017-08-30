@@ -25,6 +25,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.LanguageSelector;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
@@ -44,7 +45,6 @@ import freemarker.template.TemplateNotFoundException;
 import static org.jgrapes.portal.Portlet.*;
 import static org.jgrapes.portal.Portlet.RenderMode.*;
 
-import java.beans.Transient;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
@@ -100,6 +100,8 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 		// Add portlet resources to page
 		channel.respond(new AddPortletType(type())
 				.setDisplayName(resourceBundle.getString("portletName"))
+				.addScript(PortalView.uriFromPath("Bundles-functions.js"))
+				.addCss(PortalView.uriFromPath("Bundles-style.css"))
 				.setInstantiable());
 	}
 	
@@ -196,8 +198,7 @@ public class BundleListPortlet extends FreeMarkerPortlet {
 			super(portletId);
 		}
 
-		@Transient
-		public Bundle[] getBundles() {
+		public Bundle[] bundles() {
 			return bundles;
 		}
 	}
