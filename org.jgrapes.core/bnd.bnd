@@ -10,7 +10,8 @@ api_version = 0.1.0.${tstamp}
 Export-Package: \
 	org.jgrapes.core,\
 	org.jgrapes.core.annotation,\
-	org.jgrapes.core.events
+	org.jgrapes.core.events,\
+	org.jgrapes.core.internal
 
 -privatepackage: \
     org.jgrapes.core.internal
