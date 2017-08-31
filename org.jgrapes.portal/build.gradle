@@ -13,9 +13,6 @@ repositories {
 	maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
 }
 
-// Override default
-version = "0.0.1-SNAPSHOT"
-
 webResource {
 	base {
 		// Change base directories for src/dest
