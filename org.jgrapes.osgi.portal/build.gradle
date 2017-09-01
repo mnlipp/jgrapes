@@ -1,7 +1,0 @@
-dependencies {
-	
-	compile project(':org.jgrapes.portal')
-	compile 'org.osgi:osgi.core:6.0.0'
-
-}
-	
