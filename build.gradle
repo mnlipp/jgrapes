@@ -55,6 +55,9 @@ subprojects {
 			ext.set("bnd", processor.getFlattenedProperties());
 		}
 		
+		// Maintain the version in the bnd.bnd. Else, bndtools won't
+		// generate a proper Bundle-Version header for incrementally 
+		// built jars.
 		version = bnd.base_version + "-SNAPSHOT"
 	}
 
