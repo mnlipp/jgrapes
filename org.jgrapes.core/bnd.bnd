@@ -13,9 +13,6 @@ Export-Package: \
 	org.jgrapes.core.events,\
 	org.jgrapes.core.internal
 
--privatepackage: \
-    org.jgrapes.core.internal
-
 -sources: true
 -runee: JavaSE-1.8
 
