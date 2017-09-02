@@ -8,9 +8,12 @@ Welcome to JGrapes
 
 JGrapes is an event driven component framework. See the
 framework's <a href="javadoc/index.html" target="_top">Javadoc</a>
-for a detailed description. Make sure to read the "Overview"
+for a detailed description. Make sure to read the 
+["Overview"](http://mnlipp.github.io/jgrapes/javadoc/overview-summary.html#jgrapes)
 section first.
 
 Note that the OSGi dependent components have their own 
 <a href="javadoc-osgi/index.html" target="_top">Javadoc</a>. Make sure 
-to read the "Overview" section first.
+to read the 
+["Overview"](http://mnlipp.github.io/jgrapes/javadoc-osgi/overview-summary.html#jgrapes-osgi)
+section first.
