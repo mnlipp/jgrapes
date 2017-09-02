@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    {% seo %}
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>The JGrapes component framework</h1>
+        <h3>By <a href="https://github.com/mnlipp">Michael N. Lipp</a></h3>
+        <p></p>
+
+
+        <p class="view"><a href="https://github.com/mnlipp/jgrapes">View GitHub Project</a></p>
+
+        <p></p>
+
+        <p class="part-entry"><a href="index.md">Overview</a></p>
+
+      </header>
+      <section>
+        <div class="post-date"><span class="post-meta">{{ page.date | date: "%b %-d, %Y" }}</span></div>
+        {{ content }}
+      </section>
+      <footer>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <link rel="stylesheet" href="stylesheets/syntax.css">
+    <script type="text/javascript">
+      {% include scale.fix.js %}
+    </script>
+    
+    {% include piwik.html %}
+
+  </body>
+</html>
