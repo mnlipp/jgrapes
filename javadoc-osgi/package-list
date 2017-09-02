@@ -1,0 +1,7 @@
+org.jgrapes.osgi.factory.core
+org.jgrapes.osgi.factory.http
+org.jgrapes.osgi.factory.portlet
+org.jgrapes.osgi.httpserver
+org.jgrapes.osgi.portal
+org.jgrapes.osgi.portlets.bundles
+org.jgrapes.osgi.upnpserver
