@@ -18,29 +18,29 @@ dependencies {
 
     compile project(':org.jgrapes.util')
     compile project(':org.jgrapes.portal')
-    compile project(':org.jgrapes.portal.themes.blacktie')
-    compile project(':org.jgrapes.portal.themes.blitzer')
-    compile project(':org.jgrapes.portal.themes.cupertino')
-    compile project(':org.jgrapes.portal.themes.darkhive')
-    compile project(':org.jgrapes.portal.themes.dotluv')
-    compile project(':org.jgrapes.portal.themes.eggplant')
-    compile project(':org.jgrapes.portal.themes.excitebike')
-    compile project(':org.jgrapes.portal.themes.flick')
-    compile project(':org.jgrapes.portal.themes.hotsneaks')
-    compile project(':org.jgrapes.portal.themes.humanity')
-    compile project(':org.jgrapes.portal.themes.lefrog')
-    compile project(':org.jgrapes.portal.themes.mintchoc')
-    compile project(':org.jgrapes.portal.themes.overcast')
-    compile project(':org.jgrapes.portal.themes.peppergrinder')
-    compile project(':org.jgrapes.portal.themes.redmond')
-    compile project(':org.jgrapes.portal.themes.smoothness')
-    compile project(':org.jgrapes.portal.themes.southstreet')
-    compile project(':org.jgrapes.portal.themes.swankypurse')
-    compile project(':org.jgrapes.portal.themes.start')
-    compile project(':org.jgrapes.portal.themes.sunny')
-    compile project(':org.jgrapes.portal.themes.trontastic')
-    compile project(':org.jgrapes.portal.themes.uidarkness')
-    compile project(':org.jgrapes.portal.themes.uilightness')
-    compile project(':org.jgrapes.portal.themes.vader')
+    compile 'org.jgrapes:org.jgrapes.portal.themes.blacktie:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.blitzer:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.cupertino:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.darkhive:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.dotluv:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.eggplant:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.excitebike:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.flick:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.hotsneaks:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.humanity:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.lefrog:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.mintchoc:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.overcast:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.peppergrinder:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.redmond:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.smoothness:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.southstreet:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.swankypurse:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.start:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.sunny:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.trontastic:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.uidarkness:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.uilightness:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.vader:1.0.0-SNAPSHOT'
 	compile 'org.osgi:osgi.core:6.0.0'
 }

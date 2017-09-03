@@ -1,9 +1,0 @@
-dependencies {
-	compile project(':org.jgrapes.portal')
-}
-
-jar {
-    into('META-INF') {
-        from 'resources/META-INF'
-    }
-}
