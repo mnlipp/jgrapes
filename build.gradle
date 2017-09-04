@@ -158,8 +158,37 @@ subprojects {
 				from components.java
 				artifact sourcesJar
 				artifact javadocJar
+				
+				// Until https://github.com/gradle/gradle/issues/1232 is fixed:
+				pom.withXml {
+					// Generate map of resolved versions
+					Map resolvedVersionMap = [:]
+					Set<ResolvedArtifact> resolvedArtifacts = configurations.compile.getResolvedConfiguration().getResolvedArtifacts()
+					resolvedArtifacts.each {
+						ModuleVersionIdentifier mvi = it.getModuleVersion().getId();
+						resolvedVersionMap.put("${mvi.getGroup()}:${mvi.getName()}", mvi.getVersion())
+					}
+					Set<ResolvedArtifact> testResolved = configurations.testCompile.getResolvedConfiguration().getResolvedArtifacts()
+					testResolved.each {
+						ModuleVersionIdentifier mvi = it.getModuleVersion().getId();
+						resolvedVersionMap.put("${mvi.getGroup()}:${mvi.getName()}", mvi.getVersion())
+					}
+		
+					// Update dependencies with resolved versions
+					if (asNode().dependencies) {
+						asNode().dependencies.first().each {
+							def groupId = it.get("groupId").first().value().first()
+							def artifactId = it.get("artifactId").first().value().first()
+							it.get("version").first().value = resolvedVersionMap.get("${groupId}:${artifactId}")
+						}
+					}
+				}
+		
 				def projectName = project.name
 				def projectDescription = project.description
+				if (projectDescription == null || projectDescription == "") {
+					projectDescription = "(No description)"
+				}
 				pom.withXml {
 					asNode().with {
 						appendNode('name', projectName)
