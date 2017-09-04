@@ -1,0 +1,32 @@
+archivesBaseName = "jgrapes-libs"
+version = "0.0.0" + (snapshot ? "-SNAPSHOT" : "")
+
+dependencies {
+
+    compile project(':org.jgrapes.util')
+    compile project(':org.jgrapes.portal')
+    compile 'org.jgrapes:org.jgrapes.portal.themes.blacktie:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.blitzer:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.cupertino:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.darkhive:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.dotluv:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.eggplant:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.excitebike:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.flick:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.hotsneaks:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.humanity:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.lefrog:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.mintchoc:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.overcast:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.peppergrinder:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.redmond:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.smoothness:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.southstreet:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.swankypurse:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.start:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.sunny:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.trontastic:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.uidarkness:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.uilightness:1.0.0-SNAPSHOT'
+    compile 'org.jgrapes:org.jgrapes.portal.themes.vader:1.0.0-SNAPSHOT'
+}

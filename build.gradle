@@ -40,12 +40,15 @@ allprojects {
 subprojects {
 
     apply plugin: 'biz.aQute.bnd.builder'
+	apply plugin: 'signing'
 	apply plugin: 'maven'
 	apply plugin: 'maven-publish'
 	
     tasks.withType(Javadoc).all { enabled = false }
 
 	group = 'org.jgrapes'
+	
+	ext.snapshot = true
 	
 	if (project.file("bnd.bnd").exists()) {
 		// The builder plugin doesn't provide access to the bnd properties.
@@ -58,9 +61,9 @@ subprojects {
 		// Maintain the version in the bnd.bnd. Else, bndtools won't
 		// generate a proper Bundle-Version header for incrementally 
 		// built jars.
-		version = bnd.base_version + "-SNAPSHOT"
+		version = bnd.base_version + (snapshot ? "-SNAPSHOT" : "")
 	}
-
+	
     dependencies {
         compileOnly 'org.osgi:org.osgi.annotation:6.0.0'
         testCompile 'junit:junit:4.12', 'net.jodah:concurrentunit:0.4.2'
@@ -114,8 +117,11 @@ subprojects {
     }
 
 	jar {
-		// This shouldn't be necessary, but with gradle 4.1, it is.
-		version project.version
+		dependsOn "generatePomFileForMavenJavaPublication"
+//		into("META-INF/maven/$project.group/$project.name") {
+//			from generatePomFileForMavenJavaPublication
+//			rename ".*", "pom.xml"
+//		}
     }
 
 	// Additional jars for publishing
@@ -123,8 +129,6 @@ subprojects {
 	task sourcesJar(type: Jar) {
 		from sourceSets.main.allJava
 		classifier "sources"
-		// This shouldn't be necessary, but with gradle 4.1, it is.
-		version project.version
 	}
 	
 	task javadocJar(type: Jar) {
@@ -132,12 +136,20 @@ subprojects {
 			include 'README.md'
 		}
 		classifier "javadoc"
-		// This shouldn't be necessary, but with gradle 4.1, it is.
-		version project.version
 	}
 	
 	// MavenPublishing (new), incomplete, works only for local.
 	
+	artifacts {
+		archives jar
+		archives sourcesJar
+		archives javadocJar
+	}
+
+	signing {
+		sign configurations.archives
+	}
+
 	publishing {
 		
 		publications {
@@ -146,71 +158,95 @@ subprojects {
 				from components.java
 				artifact sourcesJar
 				artifact javadocJar
+				def projectName = project.name
+				def projectDescription = project.description
+				pom.withXml {
+					asNode().with {
+						appendNode('name', projectName)
+						appendNode('description', projectDescription)
+						appendNode('url', 'http://mnlipp.github.io/jgrapes/')
+						appendNode('scm').with {
+							appendNode('url', 'scm:git@github.com:mnlipp/jgrapes.git')
+							appendNode('connection', 'scm:git@github.com:mnlipp/jgrapes.git')
+							appendNode('developerConnection', 'git@github.com:mnlipp/jgrapes.git')
+						}
+						appendNode('licenses').with {
+							appendNode('license').with {
+								appendNode('name', 'GPL 3.0')
+								appendNode('url', 'https://www.gnu.org/licenses/gpl-3.0.en.html')
+								appendNode('distribution', 'repo')
+							}
+						}
+						appendNode('developers').with {
+							appendNode('developer').with {
+								appendNode('id', 'mnlipp')
+								appendNode('name', 'Michael N. Lipp')
+							}
+						}
+					}
+				}
+				
+				// sign the pom
+				pom.withXml {
+					def pomFile = file("${project.buildDir}/generated-pom.xml")
+					writeTo(pomFile)
+					def pomAscFile = signing.sign(pomFile).signatureFiles[0]
+					artifact(pomAscFile) {
+						classifier = null
+						extension = 'pom.asc'
+					}
+					pomFile.delete()
+				}
+	
+				// sign the artifacts
+				project.tasks.signArchives.signatureFiles.each {
+					artifact(it) {
+						def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
+						if (matcher.find()) {
+							classifier = matcher.group(1)
+						} else {
+							classifier = null
+						}
+						extension = 'jar.asc'
+					}
+				}
+			}
+		}
+		repositories {
+			maven {
+				name "snapshot"
+				url "https://oss.sonatype.org/content/repositories/snapshots/"
+				credentials {
+					username project.properties['sonatypeUsername'] ?: "nouser"
+					password project.properties['sonatypePassword'] ?: "nopass"
+				}
+			}
+			maven {
+				name "release"
+				url "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+				credentials {
+					username project.properties['sonatypeUsername'] ?: "nouser"
+					password project.properties['sonatypePassword'] ?: "nopass"
+				}
 			}
 		}
 	}
 
-	// MavenPublishing (original), still needed for remote 
-
-	uploadArchives {
-		repositories {
-			mavenDeployer {
-				beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
- 
-				pom.project {
-			
-					name project.name
-					artifactId project.archivesBaseName
-					packaging 'pom'
-					description project.description
-					url 'http://mnlipp.github.io/jgrapes/'
- 
-					scm {
-						url 'scm:git@github.com:mnlipp/jgrapes.git'
-						connection 'scm:git@github.com:mnlipp/jgrapes.git'
-						developerConnection 'git@github.com:mnlipp/jgrapes.git'
-					}
- 
-					licenses {
-						license {
-							name 'GPL 3.0'
-							url 'https://www.gnu.org/licenses/gpl-3.0.en.html'
-							distribution 'repo'
-						}
-					}
- 
-					developers {
-						developer {
-							id 'mnlipp'
-							name 'Michael N. Lipp'
-						}
-					}
-				}
-			
-				artifacts {
-					archives jar
-					archives sourcesJar
-					archives javadocJar
-				}
-
-				repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-					authentication(userName: project.properties['sonatypeUsername'] ?: "nouser", 
-						password: project.properties['sonatypePassword'] ?: "nopass")
-				}
-				snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-					authentication(userName: project.properties['sonatypeUsername'] ?: "nouser", 
-						password: project.properties['sonatypePassword'] ?: "nopass")
-				}
-			}
+	model {
+		tasks.publishMavenJavaPublicationToMavenLocal {
+			dependsOn(project.tasks.signArchives)
+		}
+		tasks.publishMavenJavaPublicationToSnapshotRepository {
+			dependsOn(project.tasks.signArchives)
+		}
+		tasks.publishMavenJavaPublicationToReleaseRepository {
+			dependsOn(project.tasks.signArchives)
 		}
 	}
 	
 	afterEvaluate {
-		println "Checking " + project.name
 		if(!project.name.startsWith("org.jgrapes")) {
-			tasks.matching { it.group == "upload" ||
-				it.group == "publishing" }.all {
-				// println "Disabling " + project.name + ":" + it.name 
+			tasks.matching { it.group == "publishing" }.all {
 				enabled = false
 			}
 		}
