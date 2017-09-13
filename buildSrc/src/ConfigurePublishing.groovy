@@ -9,6 +9,11 @@ class ConfigurePublishing implements Plugin<Project> {
 	
 	void apply(Project project) {
 
+		project.configure(project) {
+			apply plugin: "signing"
+			apply plugin: "maven-publish"
+		}
+		
 		project.extensions.create("configurePublishing", ConfigurePublishingExtension)
 				
 		if (project.hasProperty("signing.keyId")) {
