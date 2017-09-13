@@ -93,7 +93,6 @@ public class FileInputWriteTests {
 	public void testWrite()
 	        throws IOException, InterruptedException, ExecutionException {
 		Path filePath = Files.createTempFile("jgrapes-", ".txt");
-		filePath.toFile().deleteOnExit();
 		Producer producer = new Producer();
 		FileStorage app = new FileStorage(producer, 512);
 		app.attach(producer);
@@ -118,5 +117,6 @@ public class FileInputWriteTests {
 		}
 		assertEquals(StateChecker.State.CLOSED, sc.state);
 		Components.checkAssertions();
+		filePath.toFile().deleteOnExit();
 	}
 }
