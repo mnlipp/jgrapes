@@ -139,7 +139,7 @@ subprojects {
 	}
 
 	signing {
-		if (!isTravisBuild) {
+		if (project.hasProperty("signing.keyId")) {
 			sign configurations.archives
 		}
 	}
@@ -257,14 +257,16 @@ subprojects {
 	}
 
 	model {
-		tasks.publishMavenJavaPublicationToMavenLocal {
-			dependsOn(project.tasks.signArchives)
-		}
-		tasks.publishMavenJavaPublicationToSnapshotRepository {
-			dependsOn(project.tasks.signArchives)
-		}
-		tasks.publishMavenJavaPublicationToReleaseRepository {
-			dependsOn(project.tasks.signArchives)
+		if (project.hasProperty("signing.keyId")) {
+			tasks.publishMavenJavaPublicationToMavenLocal {
+				dependsOn(project.tasks.signArchives)
+			}
+			tasks.publishMavenJavaPublicationToSnapshotRepository {
+				dependsOn(project.tasks.signArchives)
+			}
+			tasks.publishMavenJavaPublicationToReleaseRepository {
+				dependsOn(project.tasks.signArchives)
+			}
 		}
 	}
 	
