@@ -139,7 +139,9 @@ subprojects {
 	}
 
 	signing {
-		sign configurations.archives
+		if (!isTravisBuild) {
+			sign configurations.archives
+		}
 	}
 
 	publishing {
