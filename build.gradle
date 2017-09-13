@@ -116,13 +116,6 @@ subprojects {
         }
     }
 
-	jar {
-		into( { "META-INF/maven/$project.group/$project.archivesBaseName" } ) {
-			from { generatePomFileForMavenJavaPublication }
-			rename ".*", "pom.xml"
-		}
-    }
-
 	// Additional jars for publishing
 		
 	task sourcesJar(type: Jar) {
