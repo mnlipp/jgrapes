@@ -1,0 +1,20 @@
+// Configure sensible layout
+sourceSets {
+	main {
+		groovy {
+			srcDir 'src'
+		}
+		resources {
+			srcDir 'resources'
+		}
+	}
+
+	test {
+		groovy {
+			srcDir 'test'
+		}
+		resources {
+			srcDir 'resources'
+		}
+	}
+}

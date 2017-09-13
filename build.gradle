@@ -117,7 +117,7 @@ subprojects {
     }
 
 	// Additional jars for publishing
-		
+
 	task sourcesJar(type: Jar) {
 		from sourceSets.main.allJava
 		classifier "sources"
@@ -132,112 +132,8 @@ subprojects {
 	
 	// MavenPublishing (new)
 	
-	artifacts {
-		archives jar
-		archives sourcesJar
-		archives javadocJar
-	}
-
-	signing {
-		if (project.hasProperty("signing.keyId")) {
-			sign configurations.archives
-		}
-	}
-
 	publishing {
 		
-		publications {
-			mavenJava(MavenPublication) {
-				artifactId = archivesBaseName
-				from components.java
-				artifact sourcesJar
-				artifact javadocJar
-				pom.packaging "jar"
-				
-				// Until https://github.com/gradle/gradle/issues/1232 is fixed:
-				pom.withXml {
-					// Generate map of resolved versions
-					Map resolvedVersionMap = [:]
-					Set<ResolvedArtifact> resolvedArtifacts = configurations.compile.getResolvedConfiguration().getResolvedArtifacts()
-					resolvedArtifacts.each {
-						ModuleVersionIdentifier mvi = it.getModuleVersion().getId();
-						resolvedVersionMap.put("${mvi.getGroup()}:${mvi.getName()}", mvi.getVersion())
-					}
-					Set<ResolvedArtifact> testResolved = configurations.testCompile.getResolvedConfiguration().getResolvedArtifacts()
-					testResolved.each {
-						ModuleVersionIdentifier mvi = it.getModuleVersion().getId();
-						resolvedVersionMap.put("${mvi.getGroup()}:${mvi.getName()}", mvi.getVersion())
-					}
-		
-					// Update dependencies with resolved versions
-					if (asNode().dependencies) {
-						asNode().dependencies.first().each {
-							def groupId = it.get("groupId").first().value().first()
-							def artifactId = it.get("artifactId").first().value().first()
-							it.get("version").first().value = resolvedVersionMap.get("${groupId}:${artifactId}")
-						}
-					}
-				}
-		
-				def projectName = project.name
-				def projectDescription = project.description
-				if (projectDescription == null || projectDescription == "") {
-					projectDescription = "(No description)"
-				}
-				pom.withXml {
-					asNode().with {
-						appendNode('name', projectName)
-						appendNode('description', projectDescription)
-						appendNode('url', 'http://mnlipp.github.io/jgrapes/')
-						appendNode('scm').with {
-							appendNode('url', 'scm:git@github.com:mnlipp/jgrapes.git')
-							appendNode('connection', 'scm:git@github.com:mnlipp/jgrapes.git')
-							appendNode('developerConnection', 'git@github.com:mnlipp/jgrapes.git')
-						}
-						appendNode('licenses').with {
-							appendNode('license').with {
-								appendNode('name', 'GPL 3.0')
-								appendNode('url', 'https://www.gnu.org/licenses/gpl-3.0.en.html')
-								appendNode('distribution', 'repo')
-							}
-						}
-						appendNode('developers').with {
-							appendNode('developer').with {
-								appendNode('id', 'mnlipp')
-								appendNode('name', 'Michael N. Lipp')
-							}
-						}
-					}
-				}
-				
-				if (project.hasProperty("signing.keyId")) {
-					// sign the pom
-					pom.withXml {
-						def pomFile = file("${project.buildDir}/generated-pom.xml")
-						writeTo(pomFile)
-						def pomAscFile = signing.sign(pomFile).signatureFiles[0]
-						artifact(pomAscFile) {
-							classifier = null
-							extension = 'pom.asc'
-						}
-						pomFile.delete()
-					}
-	
-					// sign the artifacts
-					project.tasks.signArchives.signatureFiles.each {
-						artifact(it) {
-							def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
-							if (matcher.find()) {
-								classifier = matcher.group(1)
-							} else {
-								classifier = null
-							}
-							extension = 'jar.asc'
-						}
-					}
-				}
-			}
-		}
 		repositories {
 			maven {
 				name "snapshot"
@@ -258,16 +154,31 @@ subprojects {
 		}
 	}
 
-	model {
-		if (project.hasProperty("signing.keyId")) {
-			tasks.publishMavenJavaPublicationToMavenLocal {
-				dependsOn(project.tasks.signArchives)
-			}
-			tasks.publishMavenJavaPublicationToSnapshotRepository {
-				dependsOn(project.tasks.signArchives)
-			}
-			tasks.publishMavenJavaPublicationToReleaseRepository {
-				dependsOn(project.tasks.signArchives)
+	// Additional configuration of publishing
+	apply plugin: ConfigurePublishing
+
+	configurePublishing {
+		withPomXml {
+			asNode().with {
+				appendNode('url', 'http://mnlipp.github.io/jgrapes/')
+				appendNode('scm').with {
+					appendNode('url', 'scm:git@github.com:mnlipp/jgrapes.git')
+					appendNode('connection', 'scm:git@github.com:mnlipp/jgrapes.git')
+					appendNode('developerConnection', 'git@github.com:mnlipp/jgrapes.git')
+				}
+				appendNode('licenses').with {
+					appendNode('license').with {
+						appendNode('name', 'GPL 3.0')
+						appendNode('url', 'https://www.gnu.org/licenses/gpl-3.0.en.html')
+						appendNode('distribution', 'repo')
+					}
+				}
+				appendNode('developers').with {
+					appendNode('developer').with {
+						appendNode('id', 'mnlipp')
+						appendNode('name', 'Michael N. Lipp')
+					}
+				}
 			}
 		}
 	}
