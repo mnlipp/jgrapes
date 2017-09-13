@@ -117,11 +117,10 @@ subprojects {
     }
 
 	jar {
-		dependsOn "generatePomFileForMavenJavaPublication"
-//		into("META-INF/maven/$project.group/$project.name") {
-//			from generatePomFileForMavenJavaPublication
-//			rename ".*", "pom.xml"
-//		}
+		into( { "META-INF/maven/$project.group/$project.archivesBaseName" } ) {
+			from { generatePomFileForMavenJavaPublication }
+			rename ".*", "pom.xml"
+		}
     }
 
 	// Additional jars for publishing
@@ -138,7 +137,7 @@ subprojects {
 		classifier "javadoc"
 	}
 	
-	// MavenPublishing (new), incomplete, works only for local.
+	// MavenPublishing (new)
 	
 	artifacts {
 		archives jar
@@ -158,6 +157,7 @@ subprojects {
 				from components.java
 				artifact sourcesJar
 				artifact javadocJar
+				pom.packaging "jar"
 				
 				// Until https://github.com/gradle/gradle/issues/1232 is fixed:
 				pom.withXml {
