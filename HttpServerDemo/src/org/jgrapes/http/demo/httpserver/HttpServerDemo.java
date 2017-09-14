@@ -116,7 +116,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		app.attach(new PostProcessor(app.channel()));
 		app.attach(new WsEchoServer(app.channel()));
 		Portal portal = app.attach(new Portal(Channel.SELF, app.channel(), 
-				new URI("/portal/"))).setResourceSupplier(l -> 
+				new URI("/portal/"))).setResourceBundleSupplier(l -> 
 				ResourceBundle.getBundle(
 					getClass().getPackage().getName() + ".portal-l10n", l,
 					ResourceBundle.Control.getNoFallbackControl(

@@ -55,6 +55,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -109,7 +110,9 @@ public class PortalView extends Component {
 	private ServiceLoader<ThemeProvider> themeLoader;
 	private static Configuration fmConfig = null;
 	
-	private Function<Locale,ResourceBundle> resourceSupplier;
+	private Function<Locale,ResourceBundle> resourceBundleSupplier;
+	private BiFunction<ThemeProvider,String,InputStream> fallbackResourceSupplier
+		= (themeProvider, resource) -> { return null; };
 	private Set<Locale> supportedLocales;
 	
 	private ThemeProvider baseTheme;
@@ -138,8 +141,8 @@ public class PortalView extends Component {
 			if (locale.getLanguage().equals("")) {
 				continue;
 			}
-			if (resourceSupplier != null) {
-				ResourceBundle rb = resourceSupplier.apply(locale);
+			if (resourceBundleSupplier != null) {
+				ResourceBundle rb = resourceBundleSupplier.apply(locale);
 				if (rb.getLocale().equals(locale)) {
 					supportedLocales.add(locale);
 				}
@@ -196,9 +199,14 @@ public class PortalView extends Component {
 		return themeLoader = ServiceLoader.load(ThemeProvider.class);
 	}
 	
-	void setResourceSupplier(
-			Function<Locale,ResourceBundle> resourceSupplier) {
-		this.resourceSupplier = resourceSupplier;
+	void setResourceBundleSupplier(
+			Function<Locale,ResourceBundle> supplier) {
+		this.resourceBundleSupplier = supplier;
+	}
+	
+	void setFallbackResourceSupplier(
+			BiFunction<ThemeProvider,String,InputStream> supplier) {
+		this.fallbackResourceSupplier = supplier;
 	}
 	
 	RenderSupport renderSupport() {
@@ -321,8 +329,8 @@ public class PortalView extends Component {
 			portalModel.put("supportedLanguages", languages);
 
 			// Add localization
-			final ResourceBundle additionalResources = resourceSupplier == null
-					? null : resourceSupplier.apply(locale);
+			final ResourceBundle additionalResources = resourceBundleSupplier == null
+					? null : resourceBundleSupplier.apply(locale);
 			final ResourceBundle baseResources = ResourceBundle.getBundle(
 					getClass().getPackage().getName() + ".l10n", locale,
 					ResourceBundle.Control.getNoFallbackControl(
@@ -390,32 +398,35 @@ public class PortalView extends Component {
 
 	private void sendThemeResource(GetRequest event, IOSubchannel channel,
 			String resource) {
+		// Get resource
+		ThemeProvider themeProvider = event.associated(Session.class)
+		        .map(session -> (ThemeProvider) session.get("themeProvider"))
+		        .orElse(baseTheme);
+		InputStream resIn;
 		try {
-			// Get resource
-			ThemeProvider themeProvider = event.associated(Session.class)
-					.map(session -> (ThemeProvider)session.get("themeProvider"))
-					.orElse(baseTheme);
-			InputStream resIn;
-			try {
-				resIn = themeProvider.getResourceAsStream(resource);
-			} catch (ResourceNotFoundException e) {
-				resIn = baseTheme.getResourceAsStream(resource);
-			}
-			
-			// Send header
-			HttpResponse response = event.httpRequest().response().get();
-			prepareResourceResponse(response, event.requestUri());
-			channel.respond(new Response(response));
-		
-			// Send content
-			activeEventPipeline().executorService()
-				.submit(new InputStreamPipeline(resIn, channel));
-		
-			// Done
-			event.stop();
+			resIn = themeProvider.getResourceAsStream(resource);
 		} catch (ResourceNotFoundException e) {
-			return;
+			try {
+				resIn = baseTheme.getResourceAsStream(resource);
+			} catch (ResourceNotFoundException e1) {
+				resIn = fallbackResourceSupplier.apply(themeProvider, resource);
+				if (resIn == null) {
+					return;
+				}
+			}
 		}
+
+		// Send header
+		HttpResponse response = event.httpRequest().response().get();
+		prepareResourceResponse(response, event.requestUri());
+		channel.respond(new Response(response));
+
+		// Send content
+		activeEventPipeline().executorService()
+		        .submit(new InputStreamPipeline(resIn, channel));
+
+		// Done
+		event.stop();
 	}
 
 	public static void prepareResourceResponse(

@@ -19,12 +19,14 @@
 package org.jgrapes.portal;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -94,9 +96,15 @@ public class Portal extends Component {
 		return prefix;
 	}
 
-	public Portal setResourceSupplier(
+	public Portal setResourceBundleSupplier(
 			Function<Locale,ResourceBundle> supplier) {
-		view.setResourceSupplier(supplier);
+		view.setResourceBundleSupplier(supplier);
+		return this;
+	}
+	
+	public Portal setFallbackResourceSupplier(
+			BiFunction<ThemeProvider,String,InputStream> supplier) {
+		view.setFallbackResourceSupplier(supplier);
 		return this;
 	}
 	

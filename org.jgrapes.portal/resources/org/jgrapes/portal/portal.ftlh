@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
   <!-- Portal -->
-  <link rel="shortcut icon" href="${resourceUrl('theme-resource/icons/favicon.ico')}">
+  <link rel="icon" href="${resourceUrl('theme-resource/favicon.ico')}">
   <title>${_("portalTitle")}</title>
 
   <!-- CSS -->
