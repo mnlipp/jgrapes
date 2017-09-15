@@ -96,6 +96,40 @@
     // With everything prepared, send portal ready
     JGPortal.sendPortalReady();
 
+    // Localize data tables
+    $.extend( $.fn.dataTable.defaults, {
+        "language": {
+            "decimal":        "",
+            "emptyTable":     '${_("DataTablesNoData")}',
+            "info":           '${_("DataTablesInfo")}',
+            "infoEmpty":      '${_("DataTablesInfoEmpty")}',
+            "infoFiltered":   '${_("DataTablesInfoFiltered")}',
+            "infoPostFix":    "",
+            "thousands":      "",
+            "lengthMenu":     '${_("DataTablesLengthMenu")}',
+            "lengthAll":      '${_("DataTablesLengthAll")}',
+            "loadingRecords": '${_("DataTablesLoading")}',
+            "processing":     '${_("DataTablesProcessing")}',
+            "search":         '${_("DataTablesSearch")}',
+            "zeroRecords":    '${_("DataTablesZeroRecords")}',
+            "paginate": {
+                "first":    '${_("DataTablesFirst")}',
+                "previous": '${_("DataTablesPrevious")}',
+                "next":     '${_("DataTablesNext")}',
+                "last":     '${_("DataTablesLast")}'
+            },
+            "aria": {
+                "sortAscending":  '${_("DataTablesSortAscending")}',
+                "sortDescending": '${_("DataTablesSortDecending")}',
+                "paginate": {
+                    "first":    '${_("DataTablesFirst")}',
+                    "previous": '${_("DataTablesPrevious")}',
+                    "next":     '${_("DataTablesNext")}',
+                    "last":     '${_("DataTablesLast")}'
+                }
+            }
+        }
+    } );
   } );
   </script>
   
