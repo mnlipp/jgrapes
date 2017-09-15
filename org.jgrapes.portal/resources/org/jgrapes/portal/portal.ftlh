@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="${resourceUrl('theme-resource/jquery-ui.min.css')}">
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-iconfont-2.3.2/jquery-ui-1.12.icon-font.min.css')}">
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.min.css')}">
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/datatables/datatables.min.css')}">
 
   <!-- Portal -->
   <link rel="stylesheet" href="${resourceUrl('portal-resource/normalize.css')}">
@@ -42,6 +43,7 @@
   <script src="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui.min.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/jquery.ui.touch-punch.min.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/datatables/datatables.min.js')}"></script>
 
   <!-- Portal -->
   <script src="${resourceUrl('portal-resource/functions.js')}"></script>
