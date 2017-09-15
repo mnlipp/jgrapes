@@ -1,4 +1,4 @@
-<div class="HelloWorld-view" data-portletTitle="${_("portletName")}">
+<div class="HelloWorld-view" data-portlet-title="${_("portletName")}">
     <div style="font-size: 400%">${_("HelloWorld")} 
         <img class="helloWorldIcon" style='vertical-align: bottom;'
             src="${portletResource('globe.ico')}">

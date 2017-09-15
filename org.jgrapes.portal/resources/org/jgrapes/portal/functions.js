@@ -71,7 +71,7 @@ var JGPortal = {
     addPortletType.callsBackMessageHandled = true;
 
     function findPortletPreview(portletId) {
-        let matches = $( ".portlet[data-portletId='" + portletId + "']" );
+        let matches = $( ".portlet[data-portlet-id='" + portletId + "']" );
         if (matches.length === 1) {
             return $( matches[0] );
         }
@@ -81,7 +81,7 @@ var JGPortal = {
     
     function findPortletView(portletId) {
         let tabs = $( "#tabs" ).tabs();
-        let matches = tabs.find("> div[data-portletId='" + portletId + "']" );
+        let matches = tabs.find("> div[data-portlet-id='" + portletId + "']" );
         if (matches.length === 1) {
             return $( matches[0] );
         }
@@ -93,7 +93,7 @@ var JGPortal = {
         let tabs = $( "#tabs" ).tabs();
         let portletIndex = undefined;
         let matches = tabs.find("> div").filter(function(index) {
-            if ($(this).attr("data-portletId") === portletId) {
+            if ($(this).attr("data-portlet-id") === portletId) {
                 portletIndex = index;
                 return true;
             } else {
@@ -124,7 +124,7 @@ var JGPortal = {
 <div class="portlet-header"><span class="portlet-header-text"></span></div>\
 <div class="portlet-content"></div>\
 </div>');
-			portlet.attr("data-portletId", portletId);
+			portlet.attr("data-portlet-id", portletId);
 			portlet.addClass( "ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" );
 			let portletHeader = portlet.find( ".portlet-header" );
 			portletHeader.addClass( "ui-widget-header ui-corner-all" );
@@ -132,7 +132,7 @@ var JGPortal = {
                 portletHeader.prepend( "<span class='ui-icon ui-icon-delete portlet-delete'></span>");
                 portletHeader.find(".portlet-delete").on( "click", function() {
                     let icon = $( this );
-                    let portletId = icon.closest( ".portlet" ).attr("data-portletId");
+                    let portletId = icon.closest( ".portlet" ).attr("data-portlet-id");
                     JGPortal.sendDeletePortlet(portletId);
                 });
             }
@@ -140,7 +140,7 @@ var JGPortal = {
 				portletHeader.prepend( "<span class='ui-icon ui-icon-fullscreen portlet-expand'></span>");
 				portletHeader.find(".portlet-expand").on( "click", function() {
 					let icon = $( this );
-					let portletId = icon.closest( ".portlet" ).attr("data-portletId");
+					let portletId = icon.closest( ".portlet" ).attr("data-portlet-id");
 					if(findPortletView(portletId)) { 
 					    activatePortletView(portletId);
 					} else {
@@ -158,7 +158,7 @@ var JGPortal = {
                 if (isBefore(colData, portletId, portletId)) {
                     $( this ).find(".portlet").each(function(rowIndex) {
                         let item = $( this );
-                        let itemId = item.attr("data-portletId");
+                        let itemId = item.attr("data-portlet-id");
                         if (!isBefore(colData, itemId, portletId)) {
                             item.before(portlet);
                             inserted = true;
@@ -179,7 +179,7 @@ var JGPortal = {
 		}
 		let newContent = $(content);
 		let portletHeaderText = portlet.find(".portlet-header-text");
-		portletHeaderText.text(newContent.attr("data-portletTitle"));
+		portletHeaderText.text(newContent.attr("data-portlet-title"));
 		let portletContent = portlet.find(".portlet-content");
 		portletContent.children().detach();
 		portletContent.append(newContent);
@@ -196,8 +196,8 @@ var JGPortal = {
 	    $(".overview-panel").find(".column").each(function(column) {
 	        let colData = [];
 	        previewLayout.push(colData);
-	        $(this).find("div.portlet[data-portletId]").each(function(row) {
-	            colData.push($(this).attr("data-portletId"));
+	        $(this).find("div.portlet[data-portlet-id]").each(function(row) {
+	            colData.push($(this).attr("data-portlet-id"));
 	        });
 	    });
 	    let tabsLayout = [];
@@ -205,7 +205,7 @@ var JGPortal = {
         tabs.find(".ui-tabs-nav .ui-tabs-tab").each(function(index) {
             if (index > 0) {
                 let tabId = $(this).attr("aria-controls");
-                let portletId = tabs.find("#" + tabId).attr("data-portletId");
+                let portletId = tabs.find("#" + tabId).attr("data-portlet-id");
                 tabsLayout.push(portletId);
             }
         });
@@ -229,12 +229,12 @@ var JGPortal = {
 			tabCounter += 1;
 	        let id = "tabs-" + tabCounter;
 	        let li = $( tabTemplate.replace( /@\{href\}/g, "#" + id )
-	                  .replace( /@\{label\}/g, newContent.attr("data-portletTitle")) );
+	                  .replace( /@\{label\}/g, newContent.attr("data-portlet-title")) );
 	        let tabItems = tabs.find( ".ui-tabs-nav" );
 	        tabItems.append( li );
 	        portletView = $( "<div id='" + id + "'></div>" );
             portletView.append(newContent);
-			portletView.attr("data-portletId", portletId);
+			portletView.attr("data-portlet-id", portletId);
 	        tabs.append( portletView );
 	        tabs.tabs( "refresh" );
 	        layoutChanged();
@@ -418,11 +418,11 @@ var JGPortal = {
 
     JGPortal.tooltip = function(nodeSet) {
         nodeSet.tooltip({
-            items: "[data-tooltipId], [title]",
+            items: "[data-tooltip-id], [title]",
             content: function() {
                 let element = $( this );
-                if ( element.is( "[data-tooltipId]" ) ) {
-                    let id = element.attr("data-tooltipId");
+                if ( element.is( "[data-tooltip-id]" ) ) {
+                    let id = element.attr("data-tooltip-id");
                     let tooltip = $( "#" + id );
                     if (tooltip) {
                         tooltip = tooltip.clone(true);
