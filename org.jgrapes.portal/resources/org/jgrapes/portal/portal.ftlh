@@ -97,39 +97,16 @@
     JGPortal.sendPortalReady();
 
     // Localize data tables
-    $.extend( $.fn.dataTable.defaults, {
-        "language": {
-            "decimal":        "",
-            "emptyTable":     '${_("DataTablesNoData")}',
-            "info":           '${_("DataTablesInfo")}',
-            "infoEmpty":      '${_("DataTablesInfoEmpty")}',
-            "infoFiltered":   '${_("DataTablesInfoFiltered")}',
-            "infoPostFix":    "",
-            "thousands":      "",
-            "lengthMenu":     '${_("DataTablesLengthMenu")}',
-            "lengthAll":      '${_("DataTablesLengthAll")}',
-            "loadingRecords": '${_("DataTablesLoading")}',
-            "processing":     '${_("DataTablesProcessing")}',
-            "search":         '${_("DataTablesSearch")}',
-            "zeroRecords":    '${_("DataTablesZeroRecords")}',
-            "paginate": {
-                "first":    '${_("DataTablesFirst")}',
-                "previous": '${_("DataTablesPrevious")}',
-                "next":     '${_("DataTablesNext")}',
-                "last":     '${_("DataTablesLast")}'
-            },
-            "aria": {
-                "sortAscending":  '${_("DataTablesSortAscending")}',
-                "sortDescending": '${_("DataTablesSortDecending")}',
-                "paginate": {
-                    "first":    '${_("DataTablesFirst")}',
-                    "previous": '${_("DataTablesPrevious")}',
-                    "next":     '${_("DataTablesNext")}',
-                    "last":     '${_("DataTablesLast")}'
-                }
-            }
-        }
+    
+    // Add item
+    $.fn.dataTable.defaults.oLanguage._hungarianMap["lengthAll"] = "sLengthAll";
+    // Fallback
+    $.extend( $.fn.dataTable.defaults.oLanguage, {
+        "sLengthAll":      'all',
     } );
+    // From l10n
+    $.extend( $.fn.dataTable.defaults.oLanguage, ${_("DataTablesL10n")?no_esc} );
+    
   } );
   </script>
   
