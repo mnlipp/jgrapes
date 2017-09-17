@@ -323,7 +323,7 @@ var JGPortal = {
 	        if (messageQueue.length === 0 || messageQueueLocks > 0) {
 	            break;
 	        }
-	        var message = messageQueue[0]; 
+	        var message = messageQueue.shift(); 
 	        var handler = messageHandlers[message.method];
 	        if (!handler) {
 	            return;
@@ -333,7 +333,6 @@ var JGPortal = {
 	        } else {
 	            handler();
 	        }
-	        messageQueue.shift();
 	    }
 	};
 
