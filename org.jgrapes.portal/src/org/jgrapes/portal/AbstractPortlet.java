@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.UUID;
-import java.util.function.Function;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -221,19 +220,18 @@ public abstract class AbstractPortlet extends Component {
 	}
 	
 	/**
-	 * Provides a supplier for a resource bundle for localization.
+	 * Provides resource bundle for localization.
 	 * The default implementation looks up a bundle using the
 	 * package name plus "l10n" as base name.
 	 * 
-	 * @return the supplier
+	 * @return the resource bundle
 	 */
-	protected Function<Locale,ResourceBundle> resourceSupplier() {
-		return locale -> ResourceBundle.getBundle(
+	protected ResourceBundle resourceBundle(Locale locale) {
+		return ResourceBundle.getBundle(
 			getClass().getPackage().getName() + ".l10n", locale, 
 			getClass().getClassLoader(),
 				ResourceBundle.Control.getNoFallbackControl(
 						ResourceBundle.Control.FORMAT_DEFAULT));
-		
 	}
 
 	/**

@@ -26,7 +26,6 @@ import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.http.LanguageSelector;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.PortalView;
@@ -89,8 +88,7 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 	public void onPortalReady(PortalReady event, IOSubchannel channel) 
 			throws TemplateNotFoundException, MalformedTemplateNameException, 
 			ParseException, IOException {
-		ResourceBundle resourceBundle = resourceSupplier().apply(
-				LanguageSelector.associatedLocale(channel));
+		ResourceBundle resourceBundle = resourceBundle(locale(channel));
 		// Add HelloWorldPortlet resources to page
 		channel.respond(new AddPortletType(type())
 				.setDisplayName(resourceBundle.getString("portletName"))

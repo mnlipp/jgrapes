@@ -121,7 +121,7 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 		model.put("portlet", portletModel);
 		Locale locale = locale(channel);
 		model.put("locale", locale);
-		final ResourceBundle resourceBundle = resourceSupplier().apply(locale);
+		final ResourceBundle resourceBundle = resourceBundle(locale);
 		model.put("_", new TemplateMethodModelEx() {
 			@Override
 			public Object exec(@SuppressWarnings("rawtypes") List arguments)
