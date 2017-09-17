@@ -38,7 +38,6 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.http.LanguageSelector.Selection;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.AbstractPortlet;
 import org.jgrapes.portal.PortalView;
@@ -120,8 +119,7 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 			PortletBaseModel portletModel, IOSubchannel channel) {
 		final Map<String,Object> model = new HashMap<>(baseModel);
 		model.put("portlet", portletModel);
-		Locale locale = channel.associated(Selection.class)
-				.map(s -> s.get()[0]).orElse(Locale.getDefault());
+		Locale locale = locale(channel);
 		model.put("locale", locale);
 		final ResourceBundle resourceBundle = resourceSupplier().apply(locale);
 		model.put("_", new TemplateMethodModelEx() {

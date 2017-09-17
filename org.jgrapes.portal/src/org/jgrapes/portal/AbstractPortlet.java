@@ -33,6 +33,7 @@ import java.util.function.Function;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.LanguageSelector.Selection;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.events.AddPortletRequest;
@@ -86,6 +87,18 @@ public abstract class AbstractPortlet extends Component {
 	 */
 	protected String generatePortletId() {
 		return UUID.randomUUID().toString();
+	}
+	
+	/**
+	 * Returns the locale associated with the channel or the default
+	 * locale if none is associated.
+	 * 
+	 * @param channel the channel
+	 * @return the locale
+	 */
+	protected Locale locale(IOSubchannel channel) {
+		return channel.associated(Selection.class)
+				.map(s -> s.get()[0]).orElse(Locale.getDefault());
 	}
 	
 	/**
