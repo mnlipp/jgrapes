@@ -24,9 +24,9 @@ var JGPortal = {
     }
     
     function invokePortletMethod(portletClass, portletId, method, params) {
-        let f = portletFunctionRegistry[portletClass][method];
+        var f = portletFunctionRegistry[portletClass][method];
         if (f) {
-            f(portletId, params);
+            return f(portletId, params);
         }
     }
 
@@ -67,8 +67,8 @@ var JGPortal = {
                 + '<div class="ui-menu-item-wrapper" data-portlet-type="' 
                 + portletType + '">' + displayName + '</div></li>');
         $("#addon-menu-list").append(item);
+        return true;
     };
-    addPortletType.callsBackMessageHandled = true;
 
     function findPortletPreview(portletId) {
         let matches = $( ".portlet[data-portlet-id='" + portletId + "']" );
@@ -322,33 +322,38 @@ var JGPortal = {
 	
 	var messageQueue = [];
 	
-	function handleNextMessage () {
-	    var message = messageQueue[0]; 
-	    var handler = messageHandlers[message.method];
-        if (!handler) {
-            return;
-        }
-        if (message.hasOwnProperty("params")) {
-            handler(...message.params);
-        } else {
-            handler();
-        }
-        if (!handler.callsBackMessageHandled) {
-            messageHandled();
-        }
+	function handleMessages () {
+	    while (true) {
+	        if (messageQueue.length === 0) {
+	            break;
+	        }
+	        var message = messageQueue[0]; 
+	        var handler = messageHandlers[message.method];
+	        if (!handler) {
+	            return;
+	        }
+	        var result;
+	        if (message.hasOwnProperty("params")) {
+	            result = handler(...message.params);
+	        } else {
+	            result = handler();
+	        }
+	        if (result === true) {
+	            break;
+	        }
+	        messageQueue.shift();
+	    }
 	};
 
 	function messageHandled() {
 	    messageQueue.shift();
-	    if (messageQueue.length !== 0) {
-	        handleNextMessage();
-	    }
+	    handleMessages();
 	};
 	
 	JGPortal.handleMessage = function(message) {
 	    messageQueue.push(message);
 	    if (messageQueue.length === 1) {
-	        handleNextMessage();
+	        handleMessages();
 	    }
     };
 	
