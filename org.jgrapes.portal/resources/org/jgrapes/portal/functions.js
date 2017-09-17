@@ -5,12 +5,13 @@
  * that are provided by the portal.
  */
 var JGPortal = {
-    lastPreviewLayout: [[], [], []],
-    lastTabsLayout: []
 };
 
 (function () {
 
+    var lastPreviewLayout = [[], [], []];
+    var lastTabsLayout = [];
+    
     var portalIsConfigured = false;
     var portletFunctionRegistry = {};
     
@@ -26,7 +27,7 @@ var JGPortal = {
     function invokePortletMethod(portletClass, portletId, method, params) {
         var f = portletFunctionRegistry[portletClass][method];
         if (f) {
-            return f(portletId, params);
+            f(portletId, params);
         }
     }
 
@@ -44,19 +45,14 @@ var JGPortal = {
             }
         }
         // Don't use jquery, https://stackoverflow.com/questions/610995/cant-append-script-element
-        pendingResourcesCallbacks = scriptUris.length;
-        if (pendingResourcesCallbacks === 0) {
-            messageHandled();
-        }
         for (let index in scriptUris) {
             let uri = scriptUris[index];
             if ($("head > script[src='" + uri + "']").length === 0) {
                 let script = document.createElement("script");
                 script.src = uri;
+                JGPortal.lockMessageQueue();
                 script.addEventListener('load', function() {
-                    if (--pendingResourcesCallbacks === 0) {
-                        messageHandled();
-                    }
+                    JGPortal.unlockMessageQueue();
                 });
                 let head = $("head").get()[0];
                 head.appendChild(script);
@@ -67,7 +63,6 @@ var JGPortal = {
                 + '<div class="ui-menu-item-wrapper" data-portlet-type="' 
                 + portletType + '">' + displayName + '</div></li>');
         $("#addon-menu-list").append(item);
-        return true;
     };
 
     function findPortletPreview(portletId) {
@@ -150,10 +145,10 @@ var JGPortal = {
 			}
 			let inserted = false;
 			$( ".column" ).each(function(colIndex) {
-			    if (colIndex >= JGPortal.lastPreviewLayout.length) {
+			    if (colIndex >= lastPreviewLayout.length) {
 			        return false;
 			    }
-			    let colData = JGPortal.lastPreviewLayout[colIndex];
+			    let colData = lastPreviewLayout[colIndex];
                 // Hack to check if portletId is in colData
                 if (isBefore(colData, portletId, portletId)) {
                     $( this ).find(".portlet").each(function(rowIndex) {
@@ -310,8 +305,8 @@ var JGPortal = {
         'deletePortlet': deletePortlet,
 	    'invokePortletMethod': invokePortletMethod,
 	    'lastPortalLayout': function(previewLayout, tabsLayout) {
-	        JGPortal.lastPreviewLayout = previewLayout;
-	        JGPortal.lastTabsLayout = tabsLayout;
+	        lastPreviewLayout = previewLayout;
+	        lastTabsLayout = tabsLayout;
 	    },
 	    'portalConfigured': portalConfigured,
 		'reload': function() { window.location.reload(true); },
@@ -321,10 +316,11 @@ var JGPortal = {
 	};
 	
 	var messageQueue = [];
+	var messageQueueLocks = 0;
 	
 	function handleMessages () {
 	    while (true) {
-	        if (messageQueue.length === 0) {
+	        if (messageQueue.length === 0 || messageQueueLocks > 0) {
 	            break;
 	        }
 	        var message = messageQueue[0]; 
@@ -332,24 +328,26 @@ var JGPortal = {
 	        if (!handler) {
 	            return;
 	        }
-	        var result;
 	        if (message.hasOwnProperty("params")) {
-	            result = handler(...message.params);
+	            handler(...message.params);
 	        } else {
-	            result = handler();
-	        }
-	        if (result === true) {
-	            break;
+	            handler();
 	        }
 	        messageQueue.shift();
 	    }
 	};
 
-	function messageHandled() {
-	    messageQueue.shift();
-	    handleMessages();
-	};
+	JGPortal.lockMessageQueue = function() {
+	    messageQueueLocks += 1;
+	}
 	
+    JGPortal.unlockMessageQueue = function() {
+        messageQueueLocks -= 1;
+        if (messageQueueLocks == 0) {
+            handleMessages();
+        }
+    }
+    
 	JGPortal.handleMessage = function(message) {
 	    messageQueue.push(message);
 	    if (messageQueue.length === 1) {
