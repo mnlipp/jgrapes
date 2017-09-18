@@ -117,8 +117,9 @@ public abstract class AbstractPortlet extends Component {
 	}
 	
 	/**
-	 * A default handler for resource requests. Searches for
-	 * a file with the requested URI in the portlets class path. 
+	 * A default handler for resource requests. Checks that the request
+	 * is directed at this portlet, calls {@link #doGetResource}
+	 * and sends the response event. 
 	 * 
 	 * @param event the resource request event
 	 * @param channel the channel that the request was recived on
@@ -131,9 +132,7 @@ public abstract class AbstractPortlet extends Component {
 			return;
 		}
 		
-		// Look for content
-		InputStream in = this.getClass().getResourceAsStream(
-				event.resourceUri().getPath());
+		InputStream in = doGetResource(event);
 		if (in == null) {
 			return;
 		}
@@ -145,6 +144,19 @@ public abstract class AbstractPortlet extends Component {
 		event.setResult(true);
 	}
 
+	/**
+	 * Tries to find an input stream that delivers the requested
+	 * resource. The default implementation searches for
+	 * a file with the requested URI in the portlets class path.
+	 * 
+	 * @param event the event
+	 * @return the input stream or `null`
+	 */
+	protected InputStream doGetResource(PortletResourceRequest event) {
+		return this.getClass().getResourceAsStream(
+				event.resourceUri().getPath());
+	}
+	
 	/**
 	 * Returns all portlet models of this portlet's type from the
 	 * session.
