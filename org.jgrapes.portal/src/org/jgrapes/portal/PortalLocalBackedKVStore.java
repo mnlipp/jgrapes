@@ -78,7 +78,7 @@ public class PortalLocalBackedKVStore extends Component {
 		channel.setAssociated(PortalLocalBackedKVStore.class, event);
 		String keyStart = portalPrefix 
 				+ PortalLocalBackedKVStore.class.getName() + "/";
-		fire(new JsonOutput("retrieveLocalData", keyStart), channel);
+		channel.respond(new JsonOutput("retrieveLocalData", keyStart));
 	}
 	
 	@Handler
@@ -126,8 +126,8 @@ public class PortalLocalBackedKVStore extends Component {
 				data.remove(action.key());
 			}
 		}
-		fire(new JsonOutput("storeLocalData", 
-				new Object[] { actions.toArray() }), channel);
+		channel.respond(new JsonOutput("storeLocalData", 
+				new Object[] { actions.toArray() }));
 	}
 
 	@Handler
