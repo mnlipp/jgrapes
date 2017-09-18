@@ -14,6 +14,30 @@ var JGPortal = {
     
     var portalIsConfigured = false;
     var portletFunctionRegistry = {};
+
+    var log = {
+        debug: function(message) {
+            if (console && console.debug) {
+                console.debug(message)
+            }
+        },
+        info: function(message) {
+            if (console && console.info) {
+                console.info(message)
+            }
+        },
+        warn: function(message) {
+            if (console && console.warn) {
+                console.warn(message)
+            }
+        },
+        error: function(message) {
+            if (console && console.error) {
+                console.error(message)
+            }
+        }
+    }
+    JGPortal.log = log;
     
     JGPortal.registerPortletMethod = function(portletClass, methodName, method) {
         let classRegistry = portletFunctionRegistry[portletClass];
@@ -326,7 +350,8 @@ var JGPortal = {
 	        var message = messageQueue.shift(); 
 	        var handler = messageHandlers[message.method];
 	        if (!handler) {
-	            return;
+	            log.error("No handler for invoked method " + message.method);
+	            continue;
 	        }
 	        if (message.hasOwnProperty("params")) {
 	            handler(...message.params);
@@ -354,63 +379,58 @@ var JGPortal = {
 	    }
     };
 	
-})();
-
-(function() {
-	var wsConn;
-	
-	var loc = (window.location.protocol === "https:" ? "wss:" : "ws") +
+	var wsLoc = (window.location.protocol === "https:" ? "wss:" : "ws") +
 		"//" + window.location.host + window.location.pathname;
-	wsConn = $.simpleWebSocket({ "url": loc })
+	var webSocketConnection = $.simpleWebSocket({ "url": wsLoc })
 			.listen(JGPortal.handleMessage);
-	wsConn.connect();
+	webSocketConnection.connect();
 
 	JGPortal.sendPortalReady = function() {
-		wsConn.send({"jsonrpc": "2.0", "method": "portalReady"});
+		webSocketConnection.send({"jsonrpc": "2.0", "method": "portalReady"});
 	};
 	
     JGPortal.sendSetTheme = function(themeId) {
-        wsConn.send({"jsonrpc": "2.0", "method": "setTheme",
+        webSocketConnection.send({"jsonrpc": "2.0", "method": "setTheme",
             "params": [ themeId ]});
     };
     
     JGPortal.sendSetLocale = function(locale) {
-        wsConn.send({"jsonrpc": "2.0", "method": "setLocale",
+        webSocketConnection.send({"jsonrpc": "2.0", "method": "setLocale",
             "params": [ locale ]});
     };
     
 	JGPortal.sendRenderPortlet = function(portletId, mode, foreground) {
-		wsConn.send({"jsonrpc": "2.0", "method": "renderPortlet",
+		webSocketConnection.send({"jsonrpc": "2.0", "method": "renderPortlet",
 			"params": [ portletId, mode, foreground ]});
 	};
     
     JGPortal.sendAddPortlet = function(portletType) {
-        wsConn.send({"jsonrpc": "2.0", "method": "addPortlet",
+        webSocketConnection.send({"jsonrpc": "2.0", "method": "addPortlet",
             "params": [ portletType, "Preview" ]});
     };
     
     JGPortal.sendDeletePortlet = function(portletId) {
-        wsConn.send({"jsonrpc": "2.0", "method": "deletePortlet",
+        webSocketConnection.send({"jsonrpc": "2.0", "method": "deletePortlet",
             "params": [ portletId ]});
     };
     
     JGPortal.sendToPortlet = function(portletId, method, params) {
         if (params === undefined) {
-            wsConn.send({"jsonrpc": "2.0", "method": "sendToPortlet",
+            webSocketConnection.send({"jsonrpc": "2.0", "method": "sendToPortlet",
                 "params": [ portletId, method ]});
         } else {
-            wsConn.send({"jsonrpc": "2.0", "method": "sendToPortlet",
+            webSocketConnection.send({"jsonrpc": "2.0", "method": "sendToPortlet",
                 "params": [ portletId, method, params ]});
         }
     };
     
     JGPortal.sendLayout = function(previewLayout, tabLayout) {
-        wsConn.send({"jsonrpc": "2.0", "method": "portalLayout",
+        webSocketConnection.send({"jsonrpc": "2.0", "method": "portalLayout",
             "params": [ previewLayout, tabLayout ]});
     };
     
     JGPortal.sendLocalData = function(data) {
-        wsConn.send({"jsonrpc": "2.0", "method": "retrievedLocalData",
+        webSocketConnection.send({"jsonrpc": "2.0", "method": "retrievedLocalData",
             "params": [ data ]});
     };
     
