@@ -196,7 +196,7 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 			IOSubchannel channel) throws TemplateNotFoundException, 
 			MalformedTemplateNameException, ParseException, IOException {
 		Session session = session(channel);
-		Optional<PortletBaseModel> optPortletModel 
+		Optional<? extends PortletBaseModel> optPortletModel 
 			= modelFromSession(session, event.portletId());
 		if (!optPortletModel.isPresent()) {
 			return;

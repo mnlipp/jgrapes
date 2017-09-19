@@ -184,7 +184,7 @@ public abstract class AbstractPortlet extends Component {
 	 * @return the models
 	 */
 	@SuppressWarnings("unchecked")
-	protected Optional<PortletBaseModel> modelFromSession(
+	protected Optional<? extends PortletBaseModel> modelFromSession(
 			Session session, String portletId) {
 		return Optional.ofNullable(
 				((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
@@ -293,7 +293,7 @@ public abstract class AbstractPortlet extends Component {
 	public void onDeletePortletRequest(DeletePortletRequest event, 
 			IOSubchannel channel) throws Exception {
 		Session session = session(channel);
-		Optional<PortletBaseModel> optPortletModel 
+		Optional<? extends PortletBaseModel> optPortletModel 
 			= modelFromSession(session, event.portletId());
 		if (!optPortletModel.isPresent()) {
 			return;
@@ -336,7 +336,7 @@ public abstract class AbstractPortlet extends Component {
 	public void onRenderPortlet(RenderPortletRequest event,
 			IOSubchannel channel) throws Exception {
 		Session session = session(channel);
-		Optional<PortletBaseModel> optPortletModel 
+		Optional<? extends PortletBaseModel> optPortletModel 
 			= modelFromSession(session, event.portletId());
 		if (!optPortletModel.isPresent()) {
 			return;
