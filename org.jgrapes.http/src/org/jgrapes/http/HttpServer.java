@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -376,6 +377,17 @@ public class HttpServer extends Component {
 		event.stop();
 	}
 
+	/**
+	 * Send the response indicating that the protocol switch was accepted
+	 * and causes subsequent data to be handled as {@link Input} and
+	 * {@link Output} events on the channel.
+	 * 
+	 * As a convenience, the channel is associates with the URI that
+	 * was used to request the protocol switch using {@link URI} as key.
+	 * 
+	 * @param event the event
+	 * @param appChannel the channel
+	 */
 	@Handler
 	public void onWebSocketAccepted(
 			WebSocketAccepted event, AppChannel appChannel) {
@@ -598,6 +610,8 @@ public class HttpServer extends Component {
 		public void handleWebSocketAccepted(
 				WebSocketAccepted event, AppChannel appChannel) {
 			switchedToWebSocket = true;
+			appChannel.setAssociated(URI.class, 
+					event.requestEvent().requestUri());
 			final HttpResponse response = event.requestEvent()
 					.httpRequest().response().get()
 					.setStatus(HttpStatus.SWITCHING_PROTOCOLS)
