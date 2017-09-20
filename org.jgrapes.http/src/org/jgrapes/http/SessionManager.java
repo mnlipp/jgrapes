@@ -22,10 +22,7 @@ import java.net.HttpCookie;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
-import java.util.WeakHashMap;
 
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
@@ -43,7 +40,6 @@ import org.jgrapes.http.events.DiscardSession;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Closed;
 
 /**
  * A base class for session managers. A session manager associates 
@@ -62,10 +58,7 @@ import org.jgrapes.io.events.Closed;
  * is automatically associated with the {@link IOSubchannel} that
  * is subsequently used for the web socket events. This allows
  * handlers for web socket messages to access the session like
- * {@link Request} handlers. The session manager also maintains an
- * entry with key {@link IOSubchannel} class in the session that
- * has as value the {@link Set} of all web socket connections associated 
- * with the session.
+ * {@link Request} handlers.
  * 
  * @see EventBase#setAssociated(Object, Object)
  * @see "[OWASP Session Management Cheat Sheet](https://www.owasp.org/index.php/Session_Management_Cheat_Sheet)"
@@ -314,33 +307,19 @@ public abstract class SessionManager extends Component {
 	public void discard(DiscardSession event) {
 		removeSession(event.session().id());
 	}
-	
+
+	/**
+	 * Associates the channel with the session from the upgrade request.
+	 * 
+	 * @param event the event
+	 * @param channel the channel
+	 */
 	@Handler(priority=1000)
 	public void onWebSocketAccepted(
 			WebSocketAccepted event, IOSubchannel channel) {
 		event.requestEvent().associated(Session.class)
 			.ifPresent(session -> {
 				channel.setAssociated(Session.class, session);
-				@SuppressWarnings("unchecked")
-				Set<IOSubchannel> channels = (Set<IOSubchannel>)session
-						.computeIfAbsent(IOSubchannel.class, 
-								k -> Collections.newSetFromMap(
-										new WeakHashMap<IOSubchannel,Boolean>()));
-				channels.add(channel);
 			});
 	}
-	
-	@Handler
-	public void onClosed(Closed event, IOSubchannel channel) {
-		channel.associated(Session.class).ifPresent(session -> {
-			@SuppressWarnings("unchecked")
-			Set<IOSubchannel> channels = (Set<IOSubchannel>)session
-					.computeIfAbsent(IOSubchannel.class, 
-							k -> Collections.newSetFromMap(
-									new WeakHashMap<IOSubchannel,Boolean>()));
-			channels.remove(channel);
-		});
-		
-	}
-
 }
