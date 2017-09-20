@@ -82,6 +82,7 @@ import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ByteBufferOutputStream;
@@ -465,6 +466,17 @@ public class PortalView extends Component {
 		}
 		optPortalInfo.get().toEvent(portalChannel(channel),
 				event.buffer().backingBuffer(), event.isEndOfRecord());
+	}
+	
+	/**
+	 * Forward the {@link Closed} event to the portal channel.
+	 * 
+	 * @param event the event
+	 * @param channel the channel
+	 */
+	@Handler
+	public void onClosed(Closed event, IOSubchannel channel) {
+		fire(new Closed(), portalChannel(channel));
 	}
 	
 	@Handler(dynamic=true)
