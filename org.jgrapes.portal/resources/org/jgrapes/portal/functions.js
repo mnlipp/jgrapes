@@ -454,7 +454,7 @@ var JGPortal = {
                     return "<#" + id + ">";
                 }
                 if ( element.is( "[title]" ) ) {
-                    return "My " + element.attr( "title" );
+                    return element.attr( "title" );
                 }
             }
         });
