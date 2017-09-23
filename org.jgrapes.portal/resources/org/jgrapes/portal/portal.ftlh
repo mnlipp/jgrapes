@@ -44,6 +44,7 @@
   <script src="${resourceUrl('portal-resource/lib/jquery.ui.touch-punch.min.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/datatables/datatables.min.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/datatables/processing().js')}"></script>
 
   <!-- Portal -->
   <script src="${resourceUrl('portal-resource/functions.js')}"></script>
