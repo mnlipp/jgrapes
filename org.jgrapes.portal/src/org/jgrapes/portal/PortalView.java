@@ -484,8 +484,11 @@ public class PortalView extends Component {
 	
 	@Handler(dynamic=true)
 	public void onPortalReady(PortalReady event, IOSubchannel channel) {
+		String principal = channel.associated(Session.class).map(session ->
+				session.getOrDefault(Principal.class, "").toString())
+				.orElse("");
 		KeyValueStoreQuery query = new KeyValueStoreQuery(
-				"/themeProvider", true);
+				"/" + principal + "/themeProvider", true);
 		channel.setAssociated(this, new CompletionLock(event, 3000));
 		fire(query, channel);
 	}
@@ -494,7 +497,13 @@ public class PortalView extends Component {
 	public void onKeyValueStoreData(
 			KeyValueStoreData event, IOSubchannel channel) 
 					throws JsonDecodeException {
-		if (!event.event().query().equals("/themeProvider")) {
+		Optional<Session> optSession = channel.associated(Session.class);
+		if (!optSession.isPresent()) {
+			return;
+		}
+		Session session = optSession.get();
+		String principal = session.getOrDefault(Principal.class, "").toString();
+		if (!event.event().query().equals("/" + principal + "/themeProvider")) {
 			return;
 		}
 		channel.associated(this, CompletionLock.class)
@@ -503,12 +512,12 @@ public class PortalView extends Component {
 			return;
 		}
 		String requestedThemeId = event.data().values().iterator().next();
-		ThemeProvider themeProvider = event.associated(Session.class).flatMap(
-				session -> Optional.ofNullable(session.get("themeProvider")).flatMap(
+		ThemeProvider themeProvider = Optional.ofNullable(
+				session.get("themeProvider")).flatMap(
 						themeId -> StreamSupport
 						.stream(themeLoader().spliterator(), false)
 						.filter(t -> t.themeId().equals(themeId)).findFirst()
-				)).orElse(baseTheme);
+				).orElse(baseTheme);
 		if (!themeProvider.themeId().equals(requestedThemeId)) {
 			fire(new SetTheme(requestedThemeId), channel);
 		}
