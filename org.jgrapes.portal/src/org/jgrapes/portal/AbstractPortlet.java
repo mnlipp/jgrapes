@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -158,6 +159,32 @@ public abstract class AbstractPortlet extends Component {
 	}
 	
 	/**
+	 * Called before the model is inserted into the session. May be used
+	 * to convert the model to a representation that is better suited
+	 * for long term persistence. 
+	 * 
+	 * The default implementation return the argument.
+	 * 
+	 * @param model the model
+	 * @return the alternate representation
+	 */
+	protected Serializable modelToSessionData(Serializable model) {
+		return model;
+	}
+
+	/**
+	 * Inverts the effect of {@link #modelFromSession(Session, String).
+	 * 
+	 * The default implementation return the argument.
+	 * 
+	 * @param data the data
+	 * @return the model
+	 */
+	protected PortletBaseModel modelFromSessionData(Serializable data) {
+		return (PortletBaseModel)data;
+	}
+	
+	/**
 	 * Returns all portlet models of this portlet's type from the
 	 * session.
 	 * 
@@ -168,10 +195,12 @@ public abstract class AbstractPortlet extends Component {
 	protected Collection<PortletBaseModel> modelsFromSession(
 			IOSubchannel channel) {
 		return channel.associated(Session.class).map(session ->
-				((Map<Serializable,Map<Serializable,Map<String,PortletBaseModel>>>)
+				((Map<Serializable,Map<Serializable,Map<String,Serializable>>>)
 						(Map<Serializable,?>)session)
 				.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
-				.computeIfAbsent(type(), t -> new HashMap<>()).values())
+				.computeIfAbsent(type(), t -> new HashMap<>()).values()
+				.stream().map(data -> modelFromSessionData(data))
+				.collect(Collectors.toList()))
 			.orElseThrow(() -> new IllegalStateException("Session is missing."));
 	}
 	
@@ -191,7 +220,7 @@ public abstract class AbstractPortlet extends Component {
 						(Map<Serializable,?>)session)
 				.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
 				.computeIfAbsent(type(), t -> new HashMap<>())
-				.get(portletId));
+				.get(portletId)).map(data -> modelFromSessionData(data));
 	}
 
 	/**
@@ -205,11 +234,11 @@ public abstract class AbstractPortlet extends Component {
 	@SuppressWarnings("unchecked")
 	protected <T extends PortletBaseModel> T addToSession(
 			Session session, T model) {
-		((Map<Serializable,Map<Serializable,Map<String,PortletBaseModel>>>)
+		((Map<Serializable,Map<Serializable,Map<String,Serializable>>>)
 				(Map<Serializable,?>)session)
 			.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
 			.computeIfAbsent(type(), t -> new HashMap<>())
-			.put(model.getPortletId(), model);
+			.put(model.getPortletId(), modelToSessionData(model));
 		return model;
 	}
 	
@@ -263,7 +292,7 @@ public abstract class AbstractPortlet extends Component {
 	/**
 	 * Checks if the request applies to this component. If so, stops the event,
 	 * calls {@link #createPortletModel()} to create a new model bean, adds it
-	 * to the session and call {@link #doAddPortlet}
+	 * to the session and calls {@link #doAddPortlet}
 	 * with the newly created model bean. 
 	 * 
 	 * @param event the event
