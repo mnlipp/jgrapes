@@ -400,9 +400,12 @@ public class PortalView extends Component {
 	private void sendThemeResource(GetRequest event, IOSubchannel channel,
 			String resource) {
 		// Get resource
-		ThemeProvider themeProvider = event.associated(Session.class)
-		        .map(session -> (ThemeProvider) session.get("themeProvider"))
-		        .orElse(baseTheme);
+		ThemeProvider themeProvider = event.associated(Session.class).flatMap(
+				session -> Optional.ofNullable(session.get("themeProvider")).flatMap(
+						themeId -> StreamSupport
+						.stream(themeLoader().spliterator(), false)
+						.filter(t -> t.themeId().equals(themeId)).findFirst()
+				)).orElse(baseTheme);
 		InputStream resIn;
 		try {
 			resIn = themeProvider.getResourceAsStream(resource);
@@ -499,12 +502,15 @@ public class PortalView extends Component {
 		if (!event.data().values().iterator().hasNext()) {
 			return;
 		}
-		String themeId = event.data().values().iterator().next();
-		ThemeProvider themeProvider = channel.associated(Session.class)
-				.map(session -> (ThemeProvider)session.get("themeProvider"))
-				.orElse(baseTheme);
-		if (!themeProvider.themeId().equals(themeId)) {
-			fire(new SetTheme(themeId), channel);
+		String requestedThemeId = event.data().values().iterator().next();
+		ThemeProvider themeProvider = event.associated(Session.class).flatMap(
+				session -> Optional.ofNullable(session.get("themeProvider")).flatMap(
+						themeId -> StreamSupport
+						.stream(themeLoader().spliterator(), false)
+						.filter(t -> t.themeId().equals(themeId)).findFirst()
+				)).orElse(baseTheme);
+		if (!themeProvider.themeId().equals(requestedThemeId)) {
+			fire(new SetTheme(requestedThemeId), channel);
 		}
 	}
 	
@@ -543,7 +549,7 @@ public class PortalView extends Component {
 		Optional<Session> optSession = channel.associated(Session.class);
 		if (optSession.isPresent()) {
 			Session session = optSession.get();
-			session.put("themeProvider", themeProvider);
+			session.put("themeProvider", themeProvider.themeId());
 			channel.respond(new KeyValueStoreUpdate().update(
 				"/" + session.getOrDefault(Principal.class, "").toString() 
 				+ "/themeProvider", themeProvider.themeId())).get();

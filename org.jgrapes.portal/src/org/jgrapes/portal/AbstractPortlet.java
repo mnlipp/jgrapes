@@ -168,8 +168,8 @@ public abstract class AbstractPortlet extends Component {
 	protected Collection<PortletBaseModel> modelsFromSession(
 			IOSubchannel channel) {
 		return channel.associated(Session.class).map(session ->
-				((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
-						(Map<Object,?>)session)
+				((Map<Serializable,Map<Serializable,Map<String,PortletBaseModel>>>)
+						(Map<Serializable,?>)session)
 				.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
 				.computeIfAbsent(type(), t -> new HashMap<>()).values())
 			.orElseThrow(() -> new IllegalStateException("Session is missing."));
@@ -187,8 +187,8 @@ public abstract class AbstractPortlet extends Component {
 	protected Optional<? extends PortletBaseModel> modelFromSession(
 			Session session, String portletId) {
 		return Optional.ofNullable(
-				((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
-						(Map<Object,?>)session)
+				((Map<Serializable,Map<Serializable,Map<String,PortletBaseModel>>>)
+						(Map<Serializable,?>)session)
 				.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
 				.computeIfAbsent(type(), t -> new HashMap<>())
 				.get(portletId));
@@ -205,8 +205,8 @@ public abstract class AbstractPortlet extends Component {
 	@SuppressWarnings("unchecked")
 	protected <T extends PortletBaseModel> T addToSession(
 			Session session, T model) {
-		((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
-				(Map<Object,?>)session)
+		((Map<Serializable,Map<Serializable,Map<String,PortletBaseModel>>>)
+				(Map<Serializable,?>)session)
 			.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
 			.computeIfAbsent(type(), t -> new HashMap<>())
 			.put(model.getPortletId(), model);
@@ -223,12 +223,26 @@ public abstract class AbstractPortlet extends Component {
 	@SuppressWarnings("unchecked")
 	protected <T extends PortletBaseModel> T removeFromSession(
 			Session session, T model) {
-		((Map<Object,Map<Object,Map<String,PortletBaseModel>>>)
-				(Map<Object,?>)session)
+		((Map<Serializable,Map<Serializable,Map<String,PortletBaseModel>>>)
+				(Map<Serializable,?>)session)
 			.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
 			.computeIfAbsent(type(), t -> new HashMap<>())
 			.remove(model.getPortletId());
 		return model;
+	}
+
+	/**
+	 * Remove all models belonging to this type of portlet
+	 * from the session.
+	 * 
+	 * @param session the session
+	 */
+	@SuppressWarnings("unchecked")
+	protected void removeAllModelsFromSession(Session session) {
+		((Map<Serializable,Map<Serializable,Map<String,PortletBaseModel>>>)
+				(Map<Serializable,?>)session)
+			.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
+			.computeIfAbsent(type(), t -> new HashMap<>()).clear();
 	}
 	
 	/**

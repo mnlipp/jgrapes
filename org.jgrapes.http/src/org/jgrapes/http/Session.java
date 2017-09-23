@@ -18,6 +18,7 @@
 
 package org.jgrapes.http;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashMap;
 
@@ -25,7 +26,7 @@ import java.util.HashMap;
  * Represents a session.
  */
 @SuppressWarnings("serial")
-public class Session extends HashMap<Object, Object> {
+public class Session extends HashMap<Serializable, Serializable> {
 
 	private String id;
 	private Instant createdAt;

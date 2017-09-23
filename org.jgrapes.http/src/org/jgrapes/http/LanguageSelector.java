@@ -18,6 +18,7 @@
 
 package org.jgrapes.http;
 
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.net.HttpCookie;
 import java.text.ParseException;
@@ -217,7 +218,8 @@ public class LanguageSelector extends Component {
 				.map(s -> s.get()[0]).orElse(Locale.getDefault());
 	}
 	
-	public class Selection {
+	@SuppressWarnings("serial")
+	public class Selection implements Serializable {
 		private WeakReference<Request> currentEvent;
 		private boolean explicitlySet;
 		private Locale[] locales;
