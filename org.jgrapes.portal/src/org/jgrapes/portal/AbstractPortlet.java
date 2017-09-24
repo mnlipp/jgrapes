@@ -463,5 +463,45 @@ public abstract class AbstractPortlet extends Component {
 		public String getPortletId() {
 			return portletId;
 		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+			        + ((portletId == null) ? 0 : portletId.hashCode());
+			return result;
+		}
+
+		/**
+		 * Two objects are equal if they have equal portlet ids.
+		 * 
+		 * @param obj the other object
+		 * @return the result
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			PortletBaseModel other = (PortletBaseModel) obj;
+			if (portletId == null) {
+				if (other.portletId != null) {
+					return false;
+				}
+			} else if (!portletId.equals(other.portletId)) {
+				return false;
+			}
+			return true;
+		}
 	}
 }
