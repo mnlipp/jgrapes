@@ -53,6 +53,7 @@ import static org.jgrapes.portal.Portlet.RenderMode.*;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
+import java.io.Serializable;
 import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
@@ -120,13 +121,15 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		for (String json: event.data().values()) {
 			HelloWorldModel model = JsonBeanDecoder.create(json)
 					.readObject(HelloWorldModel.class);
-			addToSession(session, model);
+			putInSession(session, model);
 		}
 	}
 	
+	@Override
 	public void doAddPortlet(AddPortletRequest event,
-			IOSubchannel channel, Session session,
-			PortletBaseModel portletModel) throws Exception {
+			IOSubchannel channel, Session session) throws Exception {
+		HelloWorldModel portletModel = stateFromSession(
+				session, generatePortletId(), id -> new HelloWorldModel(id));
 		String jsonState = JsonBeanEncoder.create()
 				.writeObject(portletModel).toJson();
 		channel.respond(new KeyValueStoreUpdate().update(storagePath(session) 
@@ -146,11 +149,11 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 	 */
 	@Override
 	protected void doDeletePortlet(DeletePortletRequest event,
-	        IOSubchannel channel, Session session, PortletBaseModel portletModel)
-	        		throws Exception {
+	        IOSubchannel channel, Session session, 
+	        String portletId, Serializable portletState) throws Exception {
 		channel.respond(new KeyValueStoreUpdate().delete(
-				storagePath(session) + portletModel.getPortletId()));
-		channel.respond(new DeletePortlet(portletModel.getPortletId()));
+				storagePath(session) + portletId));
+		channel.respond(new DeletePortlet(portletId));
 	}
 	
 	
@@ -159,9 +162,9 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 	 */
 	@Override
 	protected void doRenderPortlet(RenderPortletRequest event,
-	        IOSubchannel channel, Session session, PortletBaseModel retrievedModel)
-	        throws Exception {
-		HelloWorldModel portletModel = (HelloWorldModel)retrievedModel;
+	        IOSubchannel channel, Session session, 
+	        String portletId, Serializable retrievedState) throws Exception {
+		HelloWorldModel portletModel = (HelloWorldModel)retrievedState;
 		Map<String, Object> baseModel = freemarkerBaseModel(event.renderSupport());
 		switch (event.renderMode()) {
 		case Preview:
@@ -196,14 +199,14 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 			IOSubchannel channel) throws TemplateNotFoundException, 
 			MalformedTemplateNameException, ParseException, IOException {
 		Session session = session(channel);
-		Optional<? extends PortletBaseModel> optPortletModel 
-			= modelFromSession(session, event.portletId());
+		Optional<HelloWorldModel> optPortletModel 
+			= stateFromSession(session, event.portletId(), HelloWorldModel.class);
 		if (!optPortletModel.isPresent()) {
 			return;
 		}
 	
 		event.stop();
-		HelloWorldModel portletModel = (HelloWorldModel)optPortletModel.get();
+		HelloWorldModel portletModel = optPortletModel.get();
 		portletModel.setWorldVisible(!portletModel.isWorldVisible());
 		
 		String jsonState = JsonBeanEncoder.create()
@@ -215,14 +218,6 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 				portletModel.isWorldVisible()));
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.jgrapes.portal.AbstractPortlet#createModelBean()
-	 */
-	@Override
-	protected PortletBaseModel createPortletModel() {
-		return new HelloWorldModel(generatePortletId());
-	}
-
 	@SuppressWarnings("serial")
 	public static class HelloWorldModel extends PortletBaseModel {
 
