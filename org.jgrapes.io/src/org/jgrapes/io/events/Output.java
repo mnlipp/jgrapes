@@ -66,6 +66,21 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	}
 
 	/**
+	 * Create a new event from an existing event. This constructor
+	 * is useful if the data is to be forwarded to another channel
+	 * by a new event.
+	 * 
+	 * The buffer is reused in the new event (the lock count is 
+	 * incremented).
+	 * 
+	 * @param event the existing event
+	 */
+	public Output(Output<T> event) {
+		this(event.buffer(), false, event.isEndOfRecord());
+		event.buffer().lockBuffer();
+	}
+	
+	/**
 	 * Convenience method that wraps a String in a 
 	 * {@code Write<ManagedCharBuffer} event.
 	 * 

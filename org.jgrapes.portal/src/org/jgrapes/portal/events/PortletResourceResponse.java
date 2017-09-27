@@ -18,17 +18,15 @@
 
 package org.jgrapes.portal.events;
 
-import java.io.InputStream;
-
 import org.jgrapes.core.Event;
 
 /**
- * A response to a {@link PortletResourceRequest}.
+ * A response to a {@link PortletResourceRequest}. See
+ * the description of {@link AddPortletType} for details. 
  */
 public class PortletResourceResponse extends Event<Void> {
 
 	private PortletResourceRequest request;
-	private InputStream stream;
 
 	/**
 	 * Creates a new response.
@@ -36,10 +34,8 @@ public class PortletResourceResponse extends Event<Void> {
 	 * @param request the request
 	 * @param stream the data stream to be sent to the portal view (browser)
 	 */
-	public PortletResourceResponse(
-			PortletResourceRequest request, InputStream stream) {
+	public PortletResourceResponse(PortletResourceRequest request) {
 		this.request = request;
-		this.stream = stream;
 	}
 
 	/**
@@ -49,15 +45,6 @@ public class PortletResourceResponse extends Event<Void> {
 	 */
 	public PortletResourceRequest request() {
 		return request;
-	}
-
-	/**
-	 * Returns the data stream.
-	 * 
-	 * @return the stream
-	 */
-	public InputStream stream() {
-		return stream;
 	}
 
 }

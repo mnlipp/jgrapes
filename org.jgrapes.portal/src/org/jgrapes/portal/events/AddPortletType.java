@@ -26,7 +26,51 @@ import org.jgrapes.core.Event;
 
 /**
  * Adds a portlet type with its global resources (JavaScript and/or CSS) 
- * to the portal page.
+ * to the portal page. Specifying global resources result in the respective
+ * `&lt;link .../&gt;` or `&lt;script ...&gt;&lt/script&gt;` nodes
+ * being added to the page's `&lt;head&gt;` section.
+ * 
+ * This in turn causes the browser to issue send `GET` request that
+ * (usually) refer to the portlet's resources. These requests are
+ * converted to {@link PortletResourceRequest}s by the portal and
+ * sent to the portlets, which must respond to theses requests.
+ * 
+ * The complete sequence of events is shown in the diagram.
+ * 
+ * ![Portal Ready Event Sequence](AddPortletTypeSeq.svg)
+ * 
+ * Of course, due to internal buffering, the "Response Header" data
+ * and the "Response body" data may collapse in a single message
+ * that is sent to the browser (in case of a small resource).
+ * 
+ * @startuml AddPortletTypeSeq.svg
+ * hide footbox
+ * 
+ * activate PortletX
+ * PortletX -> Portal: AddPortletType 
+ * deactivate PortletX
+ * activate Portal
+ * Portal -> Browser: "addPortletType"
+ * activate Browser
+ * deactivate Portal
+ * deactivate Portal
+ * Browser -> Portal: "GET <portlet resource1 URL>"
+ * activate Portal
+ * Portal -> PortletX: PortletResourceRequest
+ * activate PortletX
+ * PortletX -> Portal: PortletResourceResponse
+ * Portal -> Browser: "Response Header"
+ * deactivate Portal
+ * loop until end of data
+ *     PortletX -> Portal: Output
+ *     activate Portal
+ *     Portal -> Browser: "Response body"
+ *     deactivate Portal
+ * end loop
+ * deactivate PortletX
+ * deactivate Browser
+ * 
+ * @enduml
  */
 public class AddPortletType extends Event<Void> {
 

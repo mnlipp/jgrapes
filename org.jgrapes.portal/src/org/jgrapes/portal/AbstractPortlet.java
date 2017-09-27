@@ -36,6 +36,8 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.LanguageSelector.Selection;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.events.Output;
+import org.jgrapes.io.util.InputStreamPipeline;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.DeletePortletRequest;
 import org.jgrapes.portal.events.PortletResourceRequest;
@@ -111,8 +113,7 @@ public abstract class AbstractPortlet extends Component {
 	
 	/**
 	 * A default handler for resource requests. Checks that the request
-	 * is directed at this portlet, calls {@link #doGetResource}
-	 * and sends the response event. 
+	 * is directed at this portlet, and calls {@link #doGetResource}.
 	 * 
 	 * @param event the resource request event
 	 * @param channel the channel that the request was recived on
@@ -125,29 +126,33 @@ public abstract class AbstractPortlet extends Component {
 			return;
 		}
 		
-		InputStream in = doGetResource(event);
-		if (in == null) {
-			return;
-		}
-
-		// Respond
-		channel.respond(new PortletResourceResponse(event, in));
-		
-		// Done
-		event.setResult(true);
+		doGetResource(event, channel);
 	}
 
 	/**
-	 * Tries to find an input stream that delivers the requested
-	 * resource. The default implementation searches for
-	 * a file with the requested URI in the portlets class path.
+	 * Generates the reponse event for a resource request
+	 * (a {@link PortletResourceResponse} and at least one
+	 * {@link Output} event.
 	 * 
-	 * @param event the event
-	 * @return the input stream or `null`
+	 * The default implementation searches for
+	 * a file with the requested URI in the portlets class path
+	 * and sends its content if found.
+	 * 
+	 * @param event the event. The result will be set to
+	 * `true` on success
 	 */
-	protected InputStream doGetResource(PortletResourceRequest event) {
-		return this.getClass().getResourceAsStream(
+	protected void doGetResource(PortletResourceRequest event,
+			IOSubchannel channel) {
+		InputStream stream = this.getClass().getResourceAsStream(
 				event.resourceUri().getPath());
+		if (stream == null) {
+			return;
+		}
+		
+		// Found resource, send.
+		channel.respond(new PortletResourceResponse(event));
+		new InputStreamPipeline(stream, channel).suppressClose().run();
+		event.setResult(true);
 	}
 	
 	/**

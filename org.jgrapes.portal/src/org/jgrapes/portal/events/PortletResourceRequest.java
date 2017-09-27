@@ -26,6 +26,9 @@ import org.jgrapes.io.IOSubchannel;
 
 /**
  * An event that signals the request of a resource by the portal (browser).
+ * Resource request from the browser for a portlet resource are usually
+ * generated during portal boot. See the description of
+ * {@link AddPortletType} for details.
  */
 public class PortletResourceRequest extends Event<Boolean> {
 

@@ -75,10 +75,10 @@
  * Boot sequence
  * -------------
  * 
- * The following diagram shows the complete sequence of events following the
- * portal ready message. Note that the documentation of the events uses a 
- * slightly simplified version of the sequence diagram that combines the 
- * {@link org.jgrapes.portal.PortalView} and the 
+ * The following diagram shows the complete mandatory sequence of events 
+ * following the portal ready message. Note that the documentation of 
+ * the events uses a slightly simplified version of the sequence 
+ * diagram that combines the {@link org.jgrapes.portal.PortalView} and the 
  * {@link org.jgrapes.portal.Portal} into a single object and leaves out the
  * details about the JSON serialization/deserialization.
  * 
@@ -94,6 +94,12 @@
  * them. The diagrams used there combine the 
  * {@link org.jgrapes.portal.PortalView} and the 
  * {@link org.jgrapes.portal.Portal} into a single object just as this one.
+ * 
+ * The diagram leaves out some optional message exchanges
+ * that may occur in response to a 
+ * {@link org.jgrapes.portal.events.AddPortletType} event.
+ * The complete sequence of events is documented at the event's 
+ * class description.
  * 
  * Portal Policies
  * ===============

@@ -182,6 +182,7 @@ public class PortalView extends Component {
 		Handler.Evaluator.add(this, "onKeyValueStoreData", portal.channel());
 		Handler.Evaluator.add(
 				this, "onPortletResourceResponse", portal.channel());
+		Handler.Evaluator.add(this, "onOutput", portal.channel());
 		Handler.Evaluator.add(this, "onJsonOutput", portal.channel());
 		Handler.Evaluator.add(this, "onSetLocale", portal.channel());
 		Handler.Evaluator.add(this, "onSetTheme", portal.channel());
@@ -531,13 +532,13 @@ public class PortalView extends Component {
 		HttpResponse response = request.response().get();
 		prepareResourceResponse(response, request.requestUri());
 		channel.upstreamChannel().respond(new Response(response));
-		
-		// Send content
-		activeEventPipeline().executorService().submit(
-				new InputStreamPipeline(
-						event.stream(), channel.upstreamChannel()));
 	}
 
+	@Handler(dynamic=true)
+	public void onOutput(Output<?> event, LinkedIOSubchannel channel) {
+		channel.upstreamChannel().respond(new Output<>(event));
+	}
+	
 	@Handler(dynamic=true)
 	public void onSetLocale(SetLocale event, LinkedIOSubchannel channel)
 			throws InterruptedException, IOException {
