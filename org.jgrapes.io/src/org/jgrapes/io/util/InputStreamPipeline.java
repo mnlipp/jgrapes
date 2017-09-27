@@ -21,7 +21,7 @@ public class InputStreamPipeline implements Runnable {
 
 	/**
 	 * Creates a new pipeline that sends the data from the given input stream
-	 * as events on thegiven channel.
+	 * as events on the given channel.
 	 * 
 	 * @param in the input stream to read from
 	 * @param channel the channel to send to

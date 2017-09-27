@@ -30,7 +30,7 @@ import org.jgrapes.io.events.Output;
 
 /**
  * An {@link Writer} that is backed by {@link CharBuffer}s obtained from a
- * queue. When a byte buffer is full, a {@link Output} event (default) is
+ * queue. When a byte buffer is full, an {@link Output} event (default) is
  * generated and a new buffer is fetched from the queue.
  */
 public class CharBufferWriter extends Writer {
