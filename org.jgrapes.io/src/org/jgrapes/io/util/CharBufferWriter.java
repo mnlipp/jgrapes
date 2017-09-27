@@ -49,12 +49,8 @@ public class CharBufferWriter extends Writer {
 	 *            the channel to fire events on
 	 * @param eventPipeline
 	 *            the event pipeline used for firing events
-	 * @throws InterruptedException
-	 *             if the current is interrupted while trying to get a new
-	 *             buffer from the queue
 	 */
-	public CharBufferWriter(IOSubchannel channel, EventPipeline eventPipeline)
-		throws InterruptedException {
+	public CharBufferWriter(IOSubchannel channel, EventPipeline eventPipeline) {
 		this.channel = channel;
 		this.eventPipeline = eventPipeline;
 		sendInputEvents = false;
