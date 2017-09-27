@@ -18,10 +18,13 @@
 
 package org.jgrapes.portal;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -51,8 +54,7 @@ import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalConfigured;
 import org.jgrapes.portal.events.PortalLayoutChanged;
 import org.jgrapes.portal.events.PortalReady;
-import org.jgrapes.portal.events.RenderPortletFromProvider;
-import org.jgrapes.portal.events.RenderPortletFromString;
+import org.jgrapes.portal.events.RenderPortlet;
 import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.events.SetLocale;
 import org.jgrapes.portal.events.SetTheme;
@@ -109,22 +111,21 @@ public class Portal extends Component {
 	}
 	
 	@Handler
-	public void onRenderPortlet(RenderPortletFromString event,
-			LinkedIOSubchannel channel) 
-					throws InterruptedException, IOException {
-		fire(new JsonOutput("updatePortlet",
-				event.portletId(), event.renderMode().name(),
-				event.supportedRenderModes().stream().map(RenderMode::name)
-				.toArray(size -> new String[size]),
-				event.content()), channel);
-	}
-	
-	@Handler
-	public void onRenderPortlet(RenderPortletFromProvider event,
+	public void onRenderPortlet(RenderPortlet event,
 			LinkedIOSubchannel channel) 
 					throws InterruptedException, IOException {
 		StringWriter content = new StringWriter();
-		event.provider().writeTo(content);
+		CharBuffer buffer = CharBuffer.allocate(8192);
+		try (Reader in = new BufferedReader(event.contentReader())) {
+			while (true) {
+				if (in.read(buffer) < 0) {
+					break;
+				}
+				buffer.flip();
+				content.append(buffer);
+				buffer.clear();
+			}
+		}
 		fire(new JsonOutput("updatePortlet",
 				event.portletId(), event.renderMode().name(),
 				event.supportedRenderModes().stream().map(RenderMode::name)

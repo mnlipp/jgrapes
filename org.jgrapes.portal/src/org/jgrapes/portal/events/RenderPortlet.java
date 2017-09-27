@@ -18,6 +18,7 @@
 
 package org.jgrapes.portal.events;
 
+import java.io.Reader;
 import java.util.Set;
 import org.jgrapes.core.Event;
 
@@ -26,13 +27,14 @@ import static org.jgrapes.portal.Portlet.*;
 /**
  * Send to the portal view for adding or updating a complete portlet view.
  */
-public abstract class RenderPortlet extends Event<Void> {
+public class RenderPortlet extends Event<Void> {
 
 	private Class<?> portletClass;
 	private String portletId;
 	private RenderMode renderMode;
 	private Set<RenderMode> supportedModes;
 	private boolean foreground;
+	private Reader contentReader;
 
 	/**
 	 * Creates a new event.
@@ -44,12 +46,13 @@ public abstract class RenderPortlet extends Event<Void> {
 	 */
 	public RenderPortlet(Class<?> portletClass, String portletId, 
 			RenderMode mode, Set<RenderMode> supportedModes, 
-			boolean foreground) {
+			boolean foreground, Reader contentReader) {
 		this.portletClass = portletClass;
 		this.portletId = portletId;
 		this.renderMode = mode;
 		this.supportedModes = supportedModes;
 		this.foreground = foreground;
+		this.contentReader = contentReader;
 	}
 
 	public Class<?> portletClass() {
@@ -90,5 +93,14 @@ public abstract class RenderPortlet extends Event<Void> {
 	 */
 	public boolean isForeground() {
 		return foreground;
+	}
+
+	/**
+	 * Returns the content reader.
+	 * 
+	 * @return the content reader
+	 */
+	public Reader contentReader() {
+		return contentReader;
 	}
 }

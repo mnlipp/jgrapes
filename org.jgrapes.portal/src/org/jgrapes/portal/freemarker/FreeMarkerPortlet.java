@@ -28,6 +28,9 @@ import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 
 import java.io.IOException;
+import java.io.PipedReader;
+import java.io.PipedWriter;
+import java.io.Reader;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,7 +45,6 @@ import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.AbstractPortlet;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.RenderSupport;
-import org.jgrapes.portal.events.RenderPortletFromProvider.ContentProvider;
 
 /**
  * 
@@ -143,19 +145,28 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 		return model;
 	}
 	
-	protected ContentProvider newContentProvider(
-			Template template, Map<String,Object> dataModel) {
-		return new ContentProvider() {
-			
-			@Override
-			public void writeTo(Writer out) throws IOException {
-				try {
-					template.process(dataModel, out);
-				} catch (TemplateException e) {
-					throw new IOException(e);
+	public Reader templateProcessor(Template template, Object dataModel) {
+		try {
+			PipedReader reader = new PipedReader();
+			Writer writer = new PipedWriter(reader);
+			new Thread(new Runnable() {
+
+				/* (non-Javadoc)
+				 * @see java.lang.Runnable#run()
+				 */
+				@Override
+				public void run() {
+					try (Writer out = writer) {
+						template.process(dataModel, out);
+					} catch (TemplateException | IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
-			}
-		};
+			}).start();
+			return reader;
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
 	}
-	
 }
