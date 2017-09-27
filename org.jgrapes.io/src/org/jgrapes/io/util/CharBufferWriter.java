@@ -43,7 +43,7 @@ public class CharBufferWriter extends Writer {
 	
 	/**
 	 * Creates a new instance that uses {@link Output} events to dispatch
-	 * buffers.
+	 * buffers on the given channel, using the given event pipeline.
 	 * 
 	 * @param channel
 	 *            the channel to fire events on
@@ -56,6 +56,17 @@ public class CharBufferWriter extends Writer {
 		sendInputEvents = false;
 		sendClose = true;
 		buffer = null;
+	}
+
+	/**
+	 * Creates a new instance that uses {@link Output} events to dispatch
+	 * buffers on the given channel using the channel's response pipeline.
+	 * 
+	 * @param channel
+	 *            the channel to fire events on
+	 */
+	public CharBufferWriter(IOSubchannel channel) {
+		this(channel, channel.responsePipeline());
 	}
 
 	/**

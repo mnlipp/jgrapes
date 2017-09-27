@@ -44,7 +44,7 @@ public class ByteBufferOutputStream extends OutputStream {
 
 	/**
 	 * Creates a new instance that uses {@link Output} events to dispatch
-	 * buffers.
+	 * buffers on the given channel, using the given event pipeline.
 	 * 
 	 * @param channel
 	 *            the channel to fire events on
@@ -60,6 +60,17 @@ public class ByteBufferOutputStream extends OutputStream {
 		buffer = null;
 	}
 
+	/**
+	 * Creates a new instance that uses {@link Output} events to dispatch
+	 * buffers on the given channel, using the channel's response pipeline.
+	 * 
+	 * @param channel
+	 *            the channel to fire events on
+	 */
+	public ByteBufferOutputStream(IOSubchannel channel) {
+		this(channel, channel.responsePipeline());
+	}
+	
 	/**
 	 * Causes the data to be fired as {@link Input} events rather
 	 * than the usual {@link Output} events. 
