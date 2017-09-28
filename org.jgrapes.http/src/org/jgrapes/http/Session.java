@@ -21,6 +21,10 @@ package org.jgrapes.http;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Locale;
+import java.util.Optional;
+
+import org.jgrapes.http.LanguageSelector.Selection;
 
 /**
  * Represents a session.
@@ -75,6 +79,17 @@ public class Session extends HashMap<Serializable, Serializable> {
 		this.lastUsedAt = Instant.now();
 	}
 
+	/**
+	 * Convenience method for retrieving the locale 
+	 * set by {@link LanguageSelector} from the session.
+	 * 
+	 * @return the locale
+	 */
+	public Locale locale() {
+		return Optional.ofNullable((Selection)get(Selection.class))
+				.map(selection -> selection.get()[0]).orElse(Locale.getDefault());
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
