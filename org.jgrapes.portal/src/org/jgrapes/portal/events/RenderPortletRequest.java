@@ -18,8 +18,6 @@
 
 package org.jgrapes.portal.events;
 
-import org.jgrapes.core.Event;
-
 import static org.jgrapes.portal.Portlet.*;
 
 import org.jgrapes.portal.RenderSupport;
@@ -46,11 +44,9 @@ import org.jgrapes.portal.RenderSupport;
  * 
  * @enduml
  */
-public class RenderPortletRequest extends Event<Void> {
+public class RenderPortletRequest extends RenderPortletRequestBase {
 
-	private RenderSupport renderSupport;	
 	private String portletId;
-	private RenderMode renderMode;
 	private boolean foreground;
 
 	/**
@@ -62,19 +58,9 @@ public class RenderPortletRequest extends Event<Void> {
 	 */
 	public RenderPortletRequest(RenderSupport renderSupport, 
 			String portletId, RenderMode renderMode, boolean foreground) {
-		this.renderSupport = renderSupport;
+		super(renderSupport, renderMode);
 		this.portletId = portletId;
-		this.renderMode = renderMode;
 		this.foreground = foreground;
-	}
-
-	/**
-	 * Returns the render support.
-	 * 
-	 * @return the render support
-	 */
-	public RenderSupport renderSupport() {
-		return renderSupport;
 	}
 
 	/**
@@ -86,15 +72,6 @@ public class RenderPortletRequest extends Event<Void> {
 		return portletId;
 	}
 
-	/**
-	 * Returns the requested render mode.
-	 * 
-	 * @return the render mode
-	 */
-	public RenderMode renderMode() {
-		return renderMode;
-	}
-	
 	/**
 	 * Indicates if portelt is to be put in foreground.
 	 * 

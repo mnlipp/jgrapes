@@ -45,6 +45,7 @@ import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.AbstractPortlet;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.RenderSupport;
+import org.jgrapes.portal.events.RenderPortletRequestBase;
 
 /**
  * 
@@ -76,14 +77,21 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	}
 	
 	/**
-	 * Creates the request independant part of the freemarker model. The
+	 * Creates the request independent part of the freemarker model. The
 	 * result is cached as unmodifiable map as it can safely be assumed
 	 * that the render support does not change for a given portal.
+	 * 
+	 * This model provides:
+	 *  * The function `portletResource` that makes 
+	 *    {@link RenderSupport#portletResource(String, java.net.URI)}
+	 *    available in the template. The first argument is set to the name
+	 *    of the portlet, only the second must be supplied when the function
+	 *    is invoked in a template.
 	 * 
 	 * @param renderSupport the render support from the portal
 	 * @return the result
 	 */
-	protected Map<String,Object> freemarkerBaseModel(
+	protected Map<String,Object> fmTypeModel(
 			RenderSupport renderSupport) {
 		if (fmModel == null) {
 			fmModel = new HashMap<>();
@@ -109,18 +117,19 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	}
 
 	/**
-	 * Build a freemarker model from the given base model, portlet model
-	 * and the information associated with the channel.
+	 * Build a freemarker model holdiung the information associated 
+	 * with the session.
 	 * 
-	 * @param baseModel the base model
-	 * @param portletModel the portlet model
+	 * This model provides:
+	 *  * The `locale` (of type {@link Locale}).
+	 *  * A function `_` that looks up the given key in the portlet's
+	 *    resource bundle.
+	 *    
 	 * @param channel the channel
 	 * @return the model
 	 */
-	protected Map<String,Object> freemarkerModel(Map<String,Object> baseModel,
-			PortletBaseModel portletModel, IOSubchannel channel) {
-		final Map<String,Object> model = new HashMap<>(baseModel);
-		model.put("portlet", portletModel);
+	protected Map<String,Object> fmSessionModel(IOSubchannel channel) {
+		final Map<String,Object> model = new HashMap<>();
 		Locale locale = locale(channel);
 		model.put("locale", locale);
 		final ResourceBundle resourceBundle = resourceBundle(locale);
@@ -145,6 +154,51 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 		return model;
 	}
 	
+	/**
+	 * Build a freemarker model for the current request.
+	 * 
+	 * This model provides:
+	 *  * The `event` property (of type {@link RenderPortletRequest}).
+	 *  * The `portlet` property (of type {@link PortletBaseModel}).
+	 *    
+	 * @param event the event
+	 * @param channel the channel
+	 * @param portletModel the portlet model
+	 * @return the model
+	 */
+	protected Map<String,Object> fmPortletModel(RenderPortletRequestBase event, 
+			IOSubchannel channel, PortletBaseModel portletModel) {
+		final Map<String,Object> model = new HashMap<>();
+		model.put("event", event);
+		model.put("portlet", portletModel);
+		return model;
+	}
+	
+	/**
+	 * Build a freemarker model that combines {@link #fmTypeModel},
+	 * {@link #fmSessionModel} and {@link #fmPortletModel}.
+	 * 
+	 * @param event the event
+	 * @param channel the channel
+	 * @param portletModel the portlet model
+	 * @return the model
+	 */
+	protected Map<String,Object> fmModel(RenderPortletRequestBase event,
+			IOSubchannel channel, PortletBaseModel portletModel) {
+		final Map<String,Object> model = fmSessionModel(channel);
+		model.putAll(fmTypeModel(event.renderSupport()));
+		model.putAll(fmPortletModel(event, channel, portletModel));
+		return model;
+	}
+	
+	/**
+	 * Creates a reader that delivers the result of processing the given
+	 * template with the given data.
+	 * 
+	 * @param template the template
+	 * @param dataModel the data
+	 * @return the stream with the resulting data
+	 */
 	public Reader templateProcessor(Template template, Object dataModel) {
 		try {
 			PipedReader reader = new PipedReader();
@@ -159,7 +213,6 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 					try (Writer out = writer) {
 						template.process(dataModel, out);
 					} catch (TemplateException | IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}

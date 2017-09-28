@@ -18,57 +18,45 @@
 
 package org.jgrapes.portal.events;
 
+import org.jgrapes.core.Event;
 import org.jgrapes.portal.Portlet.RenderMode;
 import org.jgrapes.portal.RenderSupport;
 
-
 /**
- * Sent to the portal (server) for adding a new portlet instance of a given 
- * type. The portal usually responds with a {@link RenderPortlet}.
- * 
- * ![Event Sequence](AddPortletRequestSeq.svg)
- * 
- * @startuml AddPortletRequestSeq.svg
- * hide footbox
- * 
- * Browser -> Portal: "addPortlet"
- * activate Portal
- * Portal -> Portlet: AddPortletRequest
- * deactivate Portal
- * activate Portlet
- * Portlet -> Portal: RenderPortlet
- * deactivate Portlet
- * activate Portal
- * Portal -> Browser: "renderPortlet"
- * deactivate Portal
- * 
- * @enduml
- * 
+ * The base class for events that result in a portlet being rendered.
  */
-public class AddPortletRequest extends RenderPortletRequestBase {
+public abstract class RenderPortletRequestBase extends Event<Void> {
+	private RenderSupport renderSupport;
+	private RenderMode renderMode;
 
-	private String portletType;
-	
 	/**
 	 * Creates a new event.
 	 * 
 	 * @param renderSupport the render support
-	 * @param portletType the type of the portlet
 	 * @param mode the view mode that is requested
 	 */
-	public AddPortletRequest(RenderSupport renderSupport, String portletType,
-	        RenderMode mode) {
-		super(renderSupport, mode);
-		this.portletType = portletType;
+	public RenderPortletRequestBase(
+			RenderSupport renderSupport, RenderMode mode) {
+		this.renderSupport = renderSupport;
+		this.renderMode = mode;
 	}
 
 	/**
-	 * Returns the portlet type
+	 * Returns the render support.
 	 * 
-	 * @return the portlet type
+	 * @return the render support
 	 */
-	public String portletType() {
-		return portletType;
+	public RenderSupport renderSupport() {
+		return renderSupport;
+	}
+	
+	/**
+	 * Returns the render mode.
+	 * 
+	 * @return the render mode
+	 */
+	public RenderMode renderMode() {
+		return renderMode;
 	}
 
 }

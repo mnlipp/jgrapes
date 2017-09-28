@@ -55,7 +55,6 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.Principal;
-import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -135,12 +134,10 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		channel.respond(new KeyValueStoreUpdate().update(storagePath(session) 
 				+ portletModel.getPortletId(), jsonState));
 		Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
-		Map<String, Object> baseModel 
-			= freemarkerBaseModel(event.renderSupport());
 		channel.respond(new RenderPortlet(
 				HelloWorldPortlet.class, portletModel.getPortletId(),
 				DeleteablePreview, MODES, true, templateProcessor(tpl, 
-						freemarkerModel(baseModel, portletModel, channel))));
+						fmModel(event, channel, portletModel))));
 	}
 
 	/* (non-Javadoc)
@@ -164,7 +161,6 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 	        IOSubchannel channel, Session session, 
 	        String portletId, Serializable retrievedState) throws Exception {
 		HelloWorldModel portletModel = (HelloWorldModel)retrievedState;
-		Map<String, Object> baseModel = freemarkerBaseModel(event.renderSupport());
 		switch (event.renderMode()) {
 		case Preview:
 		case DeleteablePreview: {
@@ -172,16 +168,16 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 			channel.respond(new RenderPortlet(
 					HelloWorldPortlet.class, portletModel.getPortletId(), 
 					DeleteablePreview, MODES,	event.isForeground(),
-					templateProcessor(tpl, 
-							freemarkerModel(baseModel, portletModel, channel))));
+					templateProcessor(
+							tpl, fmModel(event, channel, portletModel))));
 			break;
 		}
 		case View: {
 			Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
 			channel.respond(new RenderPortlet(
 					HelloWorldPortlet.class, portletModel.getPortletId(), 
-					View, MODES, event.isForeground(), templateProcessor(tpl, 
-							freemarkerModel(baseModel, portletModel, channel))));
+					View, MODES, event.isForeground(), templateProcessor(
+							tpl, fmModel(event, channel, portletModel))));
 			channel.respond(new NotifyPortletView(type(),
 					portletModel.getPortletId(), "setWorldVisible",
 					portletModel.isWorldVisible()));
