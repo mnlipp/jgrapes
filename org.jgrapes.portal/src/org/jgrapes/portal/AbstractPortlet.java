@@ -140,6 +140,7 @@ public abstract class AbstractPortlet extends Component {
 	 * 
 	 * @param event the event. The result will be set to
 	 * `true` on success
+	 * @param channel the channel
 	 */
 	protected void doGetResource(PortletResourceRequest event,
 			IOSubchannel channel) {
