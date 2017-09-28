@@ -23,6 +23,7 @@ import java.net.URI;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Event;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.portal.RenderSupport;
 
 /**
  * An event that signals the request of a resource by the portal (browser).
@@ -36,6 +37,7 @@ public class PortletResourceRequest extends Event<Boolean> {
 	private IOSubchannel httpChannel;
 	private String portletType;
 	private URI resourceUri;
+	private RenderSupport renderSupport;
 
 	/**
 	 * Creates a new request.
@@ -44,13 +46,16 @@ public class PortletResourceRequest extends Event<Boolean> {
 	 * @param resourceUri the requested resource
 	 * @param httpRequest the original HTTP request
 	 * @param httpChannel the channel that the HTTP request was received on
+	 * @param renderSupport the render support
 	 */
 	public PortletResourceRequest(String portletType, URI resourceUri,
-			HttpRequest httpRequest, IOSubchannel httpChannel) {
+			HttpRequest httpRequest, IOSubchannel httpChannel,
+			RenderSupport renderSupport) {
 		this.portletType = portletType;
 		this.resourceUri = resourceUri;
 		this.httpRequest = httpRequest;
 		this.httpChannel = httpChannel;
+		this.renderSupport = renderSupport;
 	}
 
 	/**
@@ -81,5 +86,14 @@ public class PortletResourceRequest extends Event<Boolean> {
 	 */
 	public URI resourceUri() {
 		return resourceUri;
+	}
+	
+	/**
+	 * Returns the render support.
+	 * 
+	 * @return the render support
+	 */
+	public RenderSupport renderSupport() {
+		return renderSupport;
 	}
 }
