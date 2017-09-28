@@ -27,15 +27,19 @@ import org.jgrapes.core.Event;
 public class PortletResourceResponse extends Event<Void> {
 
 	private PortletResourceRequest request;
+	private boolean dynamic;
 
 	/**
 	 * Creates a new response.
 	 * 
 	 * @param request the request
-	 * @param stream the data stream to be sent to the portal view (browser)
+	 * @param dynamic indicates that the response is dynamic, i.e.
+	 * must not be cached
 	 */
-	public PortletResourceResponse(PortletResourceRequest request) {
+	public PortletResourceResponse(PortletResourceRequest request,
+			boolean dynamic) {
 		this.request = request;
+		this.dynamic = dynamic;
 	}
 
 	/**
@@ -47,4 +51,7 @@ public class PortletResourceResponse extends Event<Void> {
 		return request;
 	}
 
+	public boolean dynamic() {
+		return dynamic;
+	}
 }

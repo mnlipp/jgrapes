@@ -387,7 +387,7 @@ public class PortalView extends Component {
 		
 		// Send header
 		HttpResponse response = event.httpRequest().response().get();
-		prepareResourceResponse(response, event.requestUri());
+		prepareResourceResponse(response, event.requestUri(), false);
 		channel.respond(new Response(response));
 		
 		// Send content
@@ -423,7 +423,7 @@ public class PortalView extends Component {
 
 		// Send header
 		HttpResponse response = event.httpRequest().response().get();
-		prepareResourceResponse(response, event.requestUri());
+		prepareResourceResponse(response, event.requestUri(), false);
 		channel.respond(new Response(response));
 
 		// Send content
@@ -435,11 +435,15 @@ public class PortalView extends Component {
 	}
 
 	public static void prepareResourceResponse(
-			HttpResponse response, URI request) {
+			HttpResponse response, URI request, boolean noCache) {
 		response.setContentType(request);
 		// Set max age in cache-control header
 		List<Directive> directives = new ArrayList<>();
-		directives.add(new Directive("max-age", 600));
+		if (noCache) {
+			directives.add(new Directive("no-cache"));
+		} else {
+			directives.add(new Directive("max-age", 600));
+		}
 		response.setField(HttpField.CACHE_CONTROL, directives);
 		response.setField(HttpField.LAST_MODIFIED, Instant.now());
 
@@ -535,7 +539,7 @@ public class PortalView extends Component {
 		HttpRequest request = event.request().httpRequest();
 		// Send header
 		HttpResponse response = request.response().get();
-		prepareResourceResponse(response, request.requestUri());
+		prepareResourceResponse(response, request.requestUri(), event.dynamic());
 		channel.upstreamChannel().respond(new Response(response));
 	}
 

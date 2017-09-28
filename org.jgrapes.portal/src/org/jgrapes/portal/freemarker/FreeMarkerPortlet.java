@@ -39,12 +39,17 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.util.CharBufferWriter;
 import org.jgrapes.portal.AbstractPortlet;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.RenderSupport;
+import org.jgrapes.portal.events.PortletResourceRequest;
+import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletRequestBase;
 
 /**
@@ -52,6 +57,9 @@ import org.jgrapes.portal.events.RenderPortletRequestBase;
  */
 public abstract class FreeMarkerPortlet extends AbstractPortlet {
 
+	static final Pattern templatePattern 
+		= Pattern.compile(".*\\.ftl\\.[a-z]+$");
+	
 	private Configuration fmConfig = null;
 	private Map<String,Object> fmModel = null;
 	
@@ -122,17 +130,19 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	 * 
 	 * This model provides:
 	 *  * The `locale` (of type {@link Locale}).
+	 *  * The `resourceBundle` (of type {@link ResourceBundle}).
 	 *  * A function `_` that looks up the given key in the portlet's
 	 *    resource bundle.
 	 *    
 	 * @param channel the channel
 	 * @return the model
 	 */
-	protected Map<String,Object> fmSessionModel(IOSubchannel channel) {
+	protected Map<String,Object> fmSessionModel(Session session) {
 		final Map<String,Object> model = new HashMap<>();
-		Locale locale = locale(channel);
+		Locale locale = session.locale();
 		model.put("locale", locale);
 		final ResourceBundle resourceBundle = resourceBundle(locale);
+		model.put("resourceBundle", resourceBundle);
 		model.put("_", new TemplateMethodModelEx() {
 			@Override
 			public Object exec(@SuppressWarnings("rawtypes") List arguments)
@@ -185,11 +195,45 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	 */
 	protected Map<String,Object> fmModel(RenderPortletRequestBase event,
 			IOSubchannel channel, PortletBaseModel portletModel) {
-		final Map<String,Object> model = fmSessionModel(channel);
+		final Map<String,Object> model = fmSessionModel(session(channel));
 		model.putAll(fmTypeModel(event.renderSupport()));
 		model.putAll(fmPortletModel(event, channel, portletModel));
 		return model;
 	}
+
+	/**
+	 * Checks if the path of the requested resource ends with
+	 * `*.ftl.*`. If so, processes the template with the
+	 * {@link #fmTypeModel(RenderSupport)} and 
+	 * {@link FreeMarkerPortlet#fmSessionModel(IOSubchannel)} and
+	 * sends the result. Else, invoke the super class' method. 
+	 * 
+	 * @param event the event. The result will be set to
+	 * `true` on success
+	 * @param channel the channel
+	 */
+	@SuppressWarnings("resource")
+	@Override
+	protected void doGetResource(PortletResourceRequest event, IOSubchannel channel) {
+		if (!templatePattern.matcher(event.resourceUri().getPath()).matches()) {
+			super.doGetResource(event, channel);
+			return;
+		}
+		try {
+			Template tpl = freemarkerConfig().getTemplate(event.resourceUri().getPath());
+			Map<String, Object> model = fmSessionModel(
+					event.associated(Session.class).get());
+			model.putAll(fmTypeModel(event.renderSupport()));
+			channel.respond(new PortletResourceResponse(event, true));
+			Writer out = new CharBufferWriter(channel).suppressClose();
+			tpl.process(model, out);
+			out.close();
+			event.setResult(true);
+		} catch (TemplateException | IOException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
 	
 	/**
 	 * Creates a reader that delivers the result of processing the given

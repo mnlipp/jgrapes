@@ -151,7 +151,7 @@ public abstract class AbstractPortlet extends Component {
 		}
 		
 		// Found resource, send.
-		channel.respond(new PortletResourceResponse(event));
+		channel.respond(new PortletResourceResponse(event, false));
 		new InputStreamPipeline(stream, channel).suppressClose().run();
 		event.setResult(true);
 	}
