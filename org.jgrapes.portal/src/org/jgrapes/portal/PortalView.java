@@ -451,11 +451,16 @@ public class PortalView extends Component {
 		String resPath = resource.getPath();
 		int sep = resPath.indexOf('/');
 		// Send events to portlets on portal's channel
+		PortletResourceRequest portletRequest = new PortletResourceRequest(
+				resPath.substring(0, sep), 
+				uriFromPath(resPath.substring(sep + 1)),
+				event.httpRequest(), channel, renderSupport());
+		// Make session available (associate with event, this is not
+		// a websocket request).
+		event.associated(Session.class).ifPresent(
+				session -> portletRequest.setAssociated(Session.class, session));
 		if (Boolean.TRUE.equals(newEventPipeline().fire(
-				new PortletResourceRequest(resPath.substring(0, sep), 
-						uriFromPath(resPath.substring(sep + 1)),
-						event.httpRequest(), channel), portalChannel(channel))
-				.get())) {
+				portletRequest, portalChannel(channel)).get())) {
 			event.stop();
 		}
 	}
