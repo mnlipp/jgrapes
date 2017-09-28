@@ -50,6 +50,7 @@ import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.RenderSupport;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
+import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.events.RenderPortletRequestBase;
 
 /**
@@ -134,7 +135,7 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	 *  * A function `_` that looks up the given key in the portlet's
 	 *    resource bundle.
 	 *    
-	 * @param channel the channel
+	 * @param session the session
 	 * @return the model
 	 */
 	protected Map<String,Object> fmSessionModel(Session session) {
@@ -205,7 +206,7 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	 * Checks if the path of the requested resource ends with
 	 * `*.ftl.*`. If so, processes the template with the
 	 * {@link #fmTypeModel(RenderSupport)} and 
-	 * {@link FreeMarkerPortlet#fmSessionModel(IOSubchannel)} and
+	 * {@link #fmSessionModel(Session)} and
 	 * sends the result. Else, invoke the super class' method. 
 	 * 
 	 * @param event the event. The result will be set to
