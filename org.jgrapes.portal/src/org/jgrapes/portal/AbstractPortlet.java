@@ -40,6 +40,7 @@ import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.InputStreamPipeline;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.DeletePortletRequest;
+import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletRequest;
@@ -437,6 +438,42 @@ public abstract class AbstractPortlet extends Component {
 	public Session session(IOSubchannel channel) {
 		return channel.associated(Session.class).orElseThrow(
 				() -> new IllegalStateException("Session is missing."));
+	}
+	
+	/**
+	 * Checks if the request applies to this component by calling
+	 * {@link #stateFromSession(Session, String, Class)}. If a model
+	 * is found, calls {@link #doNotifyPortletModel} with the state 
+	 * information. 
+	 * 
+	 * @param event the event
+	 * @param channel the channel
+	 */
+	@Handler
+	public void onNotifyPortletModel(NotifyPortletModel event,
+			IOSubchannel channel) throws Exception {
+		Session session = session(channel);
+		Optional<? extends Serializable> optPortletState 
+			= stateFromSession(session, event.portletId(), Serializable.class);
+		if (!optPortletState.isPresent()) {
+			return;
+		}
+		
+		doNotifyPortletModel(event, channel, session, optPortletState.get());
+	}
+
+	/**
+	 * Called by {@link #onNotifyPortletModel} to complete handling
+	 * the notification. The default implementation does nothing.
+	 * 
+	 * @param event the event
+	 * @param channel the channel
+	 * @param session the session
+	 * @param portletState the portletState
+	 */
+	protected void doNotifyPortletModel(NotifyPortletModel event, 
+			IOSubchannel channel, Session session,  
+			Serializable portletState) throws Exception {
 	}
 	
 	/**

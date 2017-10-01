@@ -188,19 +188,15 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		}	
 	}
 	
-	@Handler
-	public void onChangePortletModel(NotifyPortletModel event,
-			IOSubchannel channel) throws TemplateNotFoundException, 
-			MalformedTemplateNameException, ParseException, IOException {
-		Session session = session(channel);
-		Optional<HelloWorldModel> optPortletModel 
-			= stateFromSession(session, event.portletId(), HelloWorldModel.class);
-		if (!optPortletModel.isPresent()) {
-			return;
-		}
-	
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#doNotifyPortletModel(org.jgrapes.portal.events.NotifyPortletModel, org.jgrapes.io.IOSubchannel, org.jgrapes.http.Session, java.io.Serializable)
+	 */
+	@Override
+	protected void doNotifyPortletModel(NotifyPortletModel event,
+	        IOSubchannel channel, Session session, Serializable portletState)
+	        throws Exception {
 		event.stop();
-		HelloWorldModel portletModel = optPortletModel.get();
+		HelloWorldModel portletModel = (HelloWorldModel)portletState;
 		portletModel.setWorldVisible(!portletModel.isWorldVisible());
 		
 		String jsonState = JsonBeanEncoder.create()
@@ -211,7 +207,7 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 				portletModel.getPortletId(), "setWorldVisible", 
 				portletModel.isWorldVisible()));
 	}
-	
+
 	@SuppressWarnings("serial")
 	public static class HelloWorldModel extends PortletBaseModel {
 
