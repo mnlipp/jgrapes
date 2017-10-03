@@ -46,7 +46,10 @@ class ConfigurePublishing implements Plugin<Project> {
 							asNode().dependencies.first().each {
 								def groupId = it.get("groupId").first().value().first()
 								def artifactId = it.get("artifactId").first().value().first()
-								it.get("version").first().value = resolvedVersionMap.get("${groupId}:${artifactId}")
+								def version = it.get("version").first().value()[0];
+								if (!version.startsWith('(') && !version.startsWith('[')) {
+									it.get("version").first().value = resolvedVersionMap.get("${groupId}:${artifactId}")
+								}
 							}
 						}
 					}
