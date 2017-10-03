@@ -18,7 +18,7 @@ packages (org.jgrapes.core, ...util, ...io etc.). The jars have augmented
 manifests that allow them to be used without wrapping as OSGi bundles, 
 but they do not depend in any way on the OSGi framework.
 
-The framework requires Java 8 SE. Binaries are currently made
+JGrapes requires Java 8 SE. Binaries are currently made
 available at maven central.
 
 ```gradle
