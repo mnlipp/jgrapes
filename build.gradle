@@ -48,7 +48,7 @@ subprojects {
 
 	group = 'org.jgrapes'
 	
-	ext.snapshot = false // true
+	ext.snapshot = true
 	
 	if (project.file("bnd.bnd").exists()) {
 		// The builder plugin doesn't provide access to the bnd properties.
