@@ -1,5 +1,5 @@
 archivesBaseName = "jgrapes-libs"
-version = "0.0.0" + (snapshot ? "-SNAPSHOT" : "")
+version = "0.0.1" + (snapshot ? "-SNAPSHOT" : "")
 
 dependencies {
 
