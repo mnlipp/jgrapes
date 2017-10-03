@@ -15,7 +15,7 @@ See the [project's home page](http://mnlipp.github.io/jgrapes/).
 
 This repository comprises the sources for jars that provide the basic
 packages (org.jgrapes.core, ...util, ...io etc.). The jars have augmented
-manifests that allows them to be used without wrapping as OSGi bundles, 
+manifests that allow them to be used without wrapping as OSGi bundles, 
 but they do not depend in any way on the OSGi framework.
 
 The framework requires Java 8 SE. Binaries are currently made
