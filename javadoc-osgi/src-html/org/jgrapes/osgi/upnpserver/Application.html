@@ -117,7 +117,7 @@
 <span class="sourceLineNo">109</span>                app.attach(new LanguageSelector(app.channel()));<a name="line.109"></a>
 <span class="sourceLineNo">110</span>                app.attach(new FileStorage(app.channel(), 65536));<a name="line.110"></a>
 <span class="sourceLineNo">111</span>                Portal portal = app.attach(new Portal(Channel.SELF, app.channel(), <a name="line.111"></a>
-<span class="sourceLineNo">112</span>                                new URI("/portal/"))).setResourceSupplier(l -&gt; <a name="line.112"></a>
+<span class="sourceLineNo">112</span>                                new URI("/portal/"))).setResourceBundleSupplier(l -&gt; <a name="line.112"></a>
 <span class="sourceLineNo">113</span>                                ResourceBundle.getBundle(<a name="line.113"></a>
 <span class="sourceLineNo">114</span>                                        getClass().getPackage().getName() + ".portal-l10n", l,<a name="line.114"></a>
 <span class="sourceLineNo">115</span>                                        ResourceBundle.Control.getNoFallbackControl(<a name="line.115"></a>

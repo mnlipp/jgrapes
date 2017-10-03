@@ -86,7 +86,7 @@
 <span class="sourceLineNo">078</span>                channel.setAssociated(PortalLocalBackedKVStore.class, event);<a name="line.78"></a>
 <span class="sourceLineNo">079</span>                String keyStart = portalPrefix <a name="line.79"></a>
 <span class="sourceLineNo">080</span>                                + PortalLocalBackedKVStore.class.getName() + "/";<a name="line.80"></a>
-<span class="sourceLineNo">081</span>                fire(new JsonOutput("retrieveLocalData", keyStart), channel);<a name="line.81"></a>
+<span class="sourceLineNo">081</span>                channel.respond(new JsonOutput("retrieveLocalData", keyStart));<a name="line.81"></a>
 <span class="sourceLineNo">082</span>        }<a name="line.82"></a>
 <span class="sourceLineNo">083</span>        <a name="line.83"></a>
 <span class="sourceLineNo">084</span>        @Handler<a name="line.84"></a>
@@ -134,8 +134,8 @@
 <span class="sourceLineNo">126</span>                                data.remove(action.key());<a name="line.126"></a>
 <span class="sourceLineNo">127</span>                        }<a name="line.127"></a>
 <span class="sourceLineNo">128</span>                }<a name="line.128"></a>
-<span class="sourceLineNo">129</span>                fire(new JsonOutput("storeLocalData", <a name="line.129"></a>
-<span class="sourceLineNo">130</span>                                new Object[] { actions.toArray() }), channel);<a name="line.130"></a>
+<span class="sourceLineNo">129</span>                channel.respond(new JsonOutput("storeLocalData", <a name="line.129"></a>
+<span class="sourceLineNo">130</span>                                new Object[] { actions.toArray() }));<a name="line.130"></a>
 <span class="sourceLineNo">131</span>        }<a name="line.131"></a>
 <span class="sourceLineNo">132</span><a name="line.132"></a>
 <span class="sourceLineNo">133</span>        @Handler<a name="line.133"></a>
