@@ -5,11 +5,11 @@ JGrapes
 
 | Package | Maven |
 | ------- | ----- |
-| Core    | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.core.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.core%22)
-| Util    | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.util.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.util%22)
-| Io      | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.io.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.io%22)
-| Http    | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.http.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.http%22)
-| Portal  | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.portal.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.portal%22)
+| core    | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.core.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.core%22)
+| util    | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.util.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.util%22)
+| io      | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.io.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.io%22)
+| http    | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.http.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.http%22)
+| portal  | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.portal.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.portal%22)
 
 See the [project's home page](http://mnlipp.github.io/jgrapes/).
 
@@ -17,6 +17,21 @@ This repository comprises the sources for jars that provide the basic
 packages (org.jgrapes.core, ...util, ...io etc.). The jars have augmented
 manifests that allows them to be used without wrapping as OSGi bundles, 
 but they do not depend in any way on the OSGi framework.
+
+The framework requires Java 8 SE. Binaries are currently made
+available at maven central.
+
+```gradle
+repositories {
+        mavenCentral()
+}
+
+dependencies {
+        compile 'org.jgrapes:org.jgrapes.PACKAGE:X.Y.Z'
+}
+```
+
+(See badge above for the latest version.)
 
 Additional themes for the portal component are maintained in an
 [independent repository](https://github.com/mnlipp/jgrapes-portal-themes).
