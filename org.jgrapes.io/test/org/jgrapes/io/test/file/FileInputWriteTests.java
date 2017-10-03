@@ -101,6 +101,7 @@ public class FileInputWriteTests {
 		app.fire(new SaveInput(filePath, StandardOpenOption.WRITE),
 		        IOSubchannel.defaultInstance(producer));
 		Components.awaitExhaustion();
+		assertEquals(StateChecker.State.CLOSED, sc.state);
 		try (BufferedReader br = new BufferedReader(
 		        new FileReader(filePath.toFile()))) {
 			int expect = 1;
