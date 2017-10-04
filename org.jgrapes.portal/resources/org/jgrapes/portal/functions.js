@@ -58,6 +58,7 @@ var JGPortal = {
     function portalConfigured() {
         portalIsConfigured = true;
         layoutChanged();
+        $("body").faLoading('remove');
     }
     
     function addPortletType(portletType, displayName, cssUris, scriptUris,

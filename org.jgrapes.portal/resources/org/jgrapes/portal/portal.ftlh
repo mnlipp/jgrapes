@@ -17,6 +17,8 @@
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-iconfont-2.3.2/jquery-ui-1.12.icon-font.min.css')}">
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.min.css')}">
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/datatables/datatables.min.css')}">
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/font-awesome-4.7.0/css/font-awesome.min.css')}"/>
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-fa-loading-0.3/jquery.faloading.min.css')}">
 
   <!-- Portal -->
   <link rel="stylesheet" href="${resourceUrl('portal-resource/normalize.css')}">
@@ -45,12 +47,19 @@
   <script src="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/datatables/datatables.min.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/datatables/processing().js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/jquery-fa-loading-0.3/jquery.faloading.js')}"></script>
 
   <!-- Portal -->
   <script src="${resourceUrl('portal-resource/functions.js')}"></script>
 
   <script>
   $( function() {
+    $("body").faLoading({
+        icon: "fa-circle-o-notch",
+        spin: true,
+        text: false
+    });
+  
     // Top bar
     $( "#theme-menu" ).on("click", "[data-theme-id]", function() {
       JGPortal.sendSetTheme($(this).data("theme-id"));

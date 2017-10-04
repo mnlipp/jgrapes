@@ -57,3 +57,7 @@
     height: 50px;
 }
   
+.jq-fa-loading.icon-only .fa-loading-content {
+    box-shadow: initial;
+    background: initial;
+}  
