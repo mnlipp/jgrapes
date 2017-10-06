@@ -117,8 +117,10 @@ public class PortalView extends Component {
 	private Set<Locale> supportedLocales;
 	
 	private ThemeProvider baseTheme;
-	private Map<String,Object> portalBaseModel = new HashMap<>();
+	private Map<String,Object> portalBaseModel;
 	private RenderSupport renderSupport = new RenderSupportImpl();
+	private boolean useMinifiedResources = true;
+
 
 	/**
 	 * @param componentChannel
@@ -160,7 +162,22 @@ public class PortalView extends Component {
 				portal.prefix().getPath().substring(
 						0, portal.prefix().getPath().length() - 1));
 		
+		portalBaseModel = createPortalBaseModel();
+
+		// Handlers attached to the portal side channel
+		Handler.Evaluator.add(this, "onPortalReady", portal.channel());
+		Handler.Evaluator.add(this, "onKeyValueStoreData", portal.channel());
+		Handler.Evaluator.add(
+				this, "onPortletResourceResponse", portal.channel());
+		Handler.Evaluator.add(this, "onOutput", portal.channel());
+		Handler.Evaluator.add(this, "onJsonOutput", portal.channel());
+		Handler.Evaluator.add(this, "onSetLocale", portal.channel());
+		Handler.Evaluator.add(this, "onSetTheme", portal.channel());
+	}
+
+	private Map<String,Object> createPortalBaseModel() {
 		// Create portal model
+		portalBaseModel = new HashMap<>();
 		portalBaseModel.put("resourceUrl", new TemplateMethodModelEx() {
 			@Override
 			public Object exec(@SuppressWarnings("rawtypes") List arguments)
@@ -174,18 +191,25 @@ public class PortalView extends Component {
 						((SimpleScalar)args.get(0)).getAsString()).getRawPath();
 			}
 		});
-		
-		portalBaseModel = Collections.unmodifiableMap(portalBaseModel);
+		portalBaseModel.put("useMinifiedResources", useMinifiedResources);
+		portalBaseModel.put("minifiedExtension", 
+				useMinifiedResources ? ".min" : "");
+		return Collections.unmodifiableMap(portalBaseModel);
+	}
 
-		// Handlers attached to the portal side channel
-		Handler.Evaluator.add(this, "onPortalReady", portal.channel());
-		Handler.Evaluator.add(this, "onKeyValueStoreData", portal.channel());
-		Handler.Evaluator.add(
-				this, "onPortletResourceResponse", portal.channel());
-		Handler.Evaluator.add(this, "onOutput", portal.channel());
-		Handler.Evaluator.add(this, "onJsonOutput", portal.channel());
-		Handler.Evaluator.add(this, "onSetLocale", portal.channel());
-		Handler.Evaluator.add(this, "onSetTheme", portal.channel());
+	/**
+	 * @return the useMinifiedResources
+	 */
+	public boolean useMinifiedResources() {
+		return useMinifiedResources;
+	}
+
+	/**
+	 * @param useMinifiedResources the useMinifiedResources to set
+	 */
+	public void setUseMinifiedResources(boolean useMinifiedResources) {
+		this.useMinifiedResources = useMinifiedResources;
+		portalBaseModel = createPortalBaseModel();
 	}
 
 	/**

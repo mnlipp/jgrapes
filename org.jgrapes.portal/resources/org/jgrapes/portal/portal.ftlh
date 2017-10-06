@@ -13,12 +13,12 @@
   <!-- Portal -->
   <link rel="stylesheet" href="${resourceUrl('portal-resource/structure.css')}">
   <!-- jQuery / jQuery UI and extensions -->
-  <link rel="stylesheet" href="${resourceUrl('theme-resource/jquery-ui.min.css')}">
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-iconfont-2.3.2/jquery-ui-1.12.icon-font.min.css')}">
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.min.css')}">
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/datatables/datatables.min.css')}">
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/font-awesome-4.7.0/css/font-awesome.min.css')}"/>
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-fa-loading-0.3/jquery.faloading.min.css')}">
+  <link rel="stylesheet" href="${resourceUrl('theme-resource/jquery-ui' + minifiedExtension + '.css')}">
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-iconfont-2.3.2/jquery-ui-1.12.icon-font' + minifiedExtension + '.css')}">
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown' + minifiedExtension + '.css')}">
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/datatables/datatables' + minifiedExtension + '.css')}">
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/font-awesome-4.7.0/css/font-awesome' + minifiedExtension + '.css')}"/>
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-fa-loading-0.3/jquery.faloading' + minifiedExtension + '.css')}">
 
   <!-- Portal -->
   <link rel="stylesheet" href="${resourceUrl('portal-resource/normalize.css')}">
@@ -39,15 +39,15 @@
   
   <!-- Scripts(s) --> 
   <!-- JQuery and extensions -->
-  <script src="${resourceUrl('portal-resource/lib/jquery-3.2.1.js')}"></script>
-  <script src="${resourceUrl('portal-resource/lib/jquery.simple.websocket.min.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/jquery-3.2.1' + minifiedExtension + '.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/jquery.simple.websocket' + minifiedExtension + '.js')}"></script>
   <!-- JQuery UI and extensions -->
-  <script src="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui.min.js')}"></script>
-  <script src="${resourceUrl('portal-resource/lib/jquery.ui.touch-punch.min.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui' + minifiedExtension + '.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/jquery.ui.touch-punch' + minifiedExtension + '.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.js')}"></script>
-  <script src="${resourceUrl('portal-resource/lib/datatables/datatables.min.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/datatables/datatables' + minifiedExtension + '.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/datatables/processing().js')}"></script>
-  <script src="${resourceUrl('portal-resource/lib/jquery-fa-loading-0.3/jquery.faloading.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/jquery-fa-loading-0.3/jquery.faloading' + minifiedExtension + '.js')}"></script>
 
   <!-- Portal -->
   <script src="${resourceUrl('portal-resource/functions.js')}"></script>

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.nio.CharBuffer;
 import java.util.Arrays;
@@ -36,9 +37,16 @@ import java.util.stream.Collectors;
 import javax.json.JsonArray;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.portal.Portlet.RenderMode;
@@ -64,6 +72,8 @@ import org.jgrapes.portal.events.SetTheme;
  */
 public class Portal extends Component {
 
+	static MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
+	
 	private URI prefix;
 	private PortalView view;
 	
@@ -89,6 +99,14 @@ public class Portal extends Component {
 		this.prefix = URI.create(prefix.getPath().endsWith("/") 
 				? prefix.getPath() : (prefix.getPath() + "/"));
 		view = attach(new PortalView(this, viewChannel));
+		try {
+			ObjectName mxbeanName = new ObjectName("org.jgrapes.portal:type="
+					+ Portal.class.getSimpleName() + "#" + Components.objectId(this));
+			mbeanServer.registerMBean(new MBeanView(), mxbeanName);
+		} catch (InstanceAlreadyExistsException | MBeanRegistrationException
+		        | NotCompliantMBeanException | MalformedObjectNameException e) {
+			// Won't happen.
+		}
 	}
 
 	/**
@@ -240,4 +258,43 @@ public class Portal extends Component {
 				event.previewLayout(), event.tabsLayout()), channel);
 	}
 	
+	/**
+	 * An MBean interface for the portal component.
+	 */
+	public static interface ManagedPortalMXBean {
+		
+		/**
+		 * Indicates if minified resources are sent to the browser.
+		 * 
+		 * @return the result
+		 */
+		boolean getUseMinifiedResources();
+		
+		/**
+		 * Determines if minified resources are sent to the browser.
+		 * 
+		 * @param useMinified
+		 */
+		void setUseMinifiedResources(boolean useMinified);
+	}
+	
+	private class MBeanView implements ManagedPortalMXBean {
+
+		/* (non-Javadoc)
+		 * @see org.jgrapes.portal.Portal.ManagedPortalMXBean#getUseMinifiedResources()
+		 */
+		@Override
+		public boolean getUseMinifiedResources() {
+			return view.useMinifiedResources();
+		}
+
+		/* (non-Javadoc)
+		 * @see org.jgrapes.portal.Portal.ManagedPortalMXBean#setUseMinifiedResources(boolean)
+		 */
+		@Override
+		public void setUseMinifiedResources(boolean useMinifiedResources) {
+			view.setUseMinifiedResources(useMinifiedResources);
+		}
+		
+	}
 }
