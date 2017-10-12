@@ -140,10 +140,10 @@ var JGPortal = {
 	function updatePreview(portletId, modes, content, foreground) {
 		let portlet = findPortletPreview(portletId);
 		if (!portlet) {
-			portlet = $( '<div class="portlet">\
-<div class="portlet-header"><span class="portlet-header-text"></span></div>\
-<div class="portlet-content"></div>\
-</div>');
+			portlet = $( '<div class="portlet">'
+			        + '<div class="portlet-header"><span class="portlet-header-text"></span></div>'
+			        + '<div class="portlet-content"></div>'
+			        + '</div>');
 			portlet.attr("data-portlet-id", portletId);
 			portlet.addClass( "ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" );
 			let portletHeader = portlet.find( ".portlet-header" );
