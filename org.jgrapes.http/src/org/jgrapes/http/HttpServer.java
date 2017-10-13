@@ -530,6 +530,8 @@ public class HttpServer extends Component {
 						if (acceptNoSni && snis.isEmpty()) {
 							convertHostToNumerical(httpRequest);
 						} else {
+							System.err.println("SNIs: " + snis);
+							System.err.println("Host: " + httpRequest.host());
 							sendResponse(httpRequest.response().get(),
 							        this, 421, "Misdirected Request");
 							return false;
