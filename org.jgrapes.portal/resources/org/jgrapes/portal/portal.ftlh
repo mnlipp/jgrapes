@@ -10,6 +10,7 @@
   <title>${_("portalTitle")}</title>
 
   <!-- CSS -->
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/normalize.css')}">
   <!-- Portal -->
   <link rel="stylesheet" href="${resourceUrl('portal-resource/structure.css')}">
   <!-- jQuery / jQuery UI and extensions -->
@@ -21,7 +22,6 @@
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-fa-loading-0.3/jquery.faloading' + minifiedExtension + '.css')}">
 
   <!-- Portal -->
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/normalize.css')}">
   <link rel="stylesheet" href="${resourceUrl('theme-resource/portal.css')}">
   <style>
   body {
