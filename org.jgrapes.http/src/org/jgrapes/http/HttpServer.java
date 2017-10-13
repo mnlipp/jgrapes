@@ -194,7 +194,7 @@ public class HttpServer extends Component {
 	 * 
 	 * Note that in request accepted without SNI, the `Host` header field
 	 * will be modified to contain the IP-address of the indicated host
-	 * to prevent accidental matching wit virtual host names.  
+	 * to prevent accidental matching with virtual host names.  
 	 * 
 	 * @param acceptNoSni the value to set
 	 * @return the http server for easy chaining
