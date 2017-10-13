@@ -10,7 +10,7 @@
   <title>${_("portalTitle")}</title>
 
   <!-- CSS -->
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/normalize.css')}">
+  <link rel="stylesheet" href="${resourceUrl('portal-resource/normalize-7.0.0.css')}">
   <!-- Portal -->
   <link rel="stylesheet" href="${resourceUrl('portal-resource/structure.css')}">
   <!-- jQuery / jQuery UI and extensions -->
