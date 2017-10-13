@@ -40,3 +40,9 @@ The JGrapes OSGi components that do depend on the OSGi framework and
 provide JGrapes based OSGi services can be found in a
 [seperate repository](https://github.com/mnlipp/jgrapes-osgi) because
 they profit from a different top-level build approach. 
+
+
+<!-- Piwik Image Tracker-->
+<img src="https://piwik.mnl.de/piwik.php?idsite=10&rec=1" style="border:0" alt="" />
+<!-- End Piwik -->
+
