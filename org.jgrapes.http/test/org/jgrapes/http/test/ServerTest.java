@@ -3,7 +3,6 @@ package org.jgrapes.http.test;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -122,11 +121,6 @@ public class ServerTest {
 			return addr;
 		}
 	
-		public InetAddress getAddress()
-		        throws InterruptedException, ExecutionException {
-			return getSocketAddress().getAddress();
-		}
-	
 		public int getPort()
 		        throws InterruptedException, ExecutionException {
 			return getSocketAddress().getPort();
@@ -187,8 +181,7 @@ public class ServerTest {
 			TimeoutException {
 		Waiter waiter = new Waiter();
 		
-		URL url = new URL("https", server.getAddress().getHostAddress(), 
-				server.getPort(), "/");
+		URL url = new URL("https", "localhost", server.getPort(), "/");
 		
 		final List<Thread> threads = new ArrayList<>();
 		AtomicInteger waiting = new AtomicInteger(0);
