@@ -43,4 +43,5 @@ dependencies {
     compile 'org.jgrapes:org.jgrapes.portal.themes.uilightness:1.0.0-SNAPSHOT'
     compile 'org.jgrapes:org.jgrapes.portal.themes.vader:1.0.0-SNAPSHOT'
 	compile 'org.osgi:osgi.core:6.0.0'
+    compile project(':org.jgrapes.portlets.sysinfo')
 }

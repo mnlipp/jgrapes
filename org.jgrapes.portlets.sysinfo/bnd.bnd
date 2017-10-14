@@ -1,0 +1,18 @@
+Bundle-Name: JGrapes System Info Portlet
+Bundle-SymbolicName: org.jgrapes.portlets.sysinfo
+Bundle-Version: 0.9.1.${tstamp}
+Bundle-Copyright: Michael N. Lipp (c) 2017
+Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
+
+base_version = ${versionmask;===;${Bundle-Version}}
+api_version = 0.1.0.${tstamp}
+
+-sources: true
+-runee: JavaSE-1.8
+
+testbin=bin
+
+-fixupmessages: \
+    "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.",\
+    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable.",\
+    "Export org.jgrapes.core,  has 1,  private references "
