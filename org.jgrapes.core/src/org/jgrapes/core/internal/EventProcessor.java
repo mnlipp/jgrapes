@@ -112,9 +112,9 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 				}
 			}
 		} finally {
-			GeneratorRegistry.instance().remove(this);
 			currentlyHandling.set(null);;
 			FeedBackPipelineFilter.setAssociatedPipeline(null);
+			GeneratorRegistry.instance().remove(this);
 		}
 	}
 
