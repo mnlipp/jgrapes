@@ -16,5 +16,4 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-@org.osgi.annotation.versioning.Version("1.0.0")
 package org.jgrapes.http.demo.portlets.helloworld;
