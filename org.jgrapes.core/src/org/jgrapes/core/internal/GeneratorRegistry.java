@@ -57,7 +57,8 @@ public class GeneratorRegistry {
 		running += 1;
 		if (generators != null) {
 			generators.put(obj, null);
-			generatorTracking.finest("Added generator " + obj + ".");
+			generatorTracking.finest("Added generator " + obj 
+					+ ", " + generators.size() + " registered.");
 		}
 		if (running == 1) {
 			keepAlive = new Thread("GeneratorRegistry") {
@@ -80,7 +81,8 @@ public class GeneratorRegistry {
 		running -= 1;
 		if (generators != null) {
 			generators.remove(obj);
-			generatorTracking.finest("Removed generator " + obj + ".");
+			generatorTracking.finest("Removed generator " + obj 
+					+ ", " + generators.size() + " registered.");
 		}
 		if (running == 0) {
 			keepAlive.interrupt();
@@ -102,10 +104,14 @@ public class GeneratorRegistry {
 		while (running > 0) {
 			if (generators != null) {
 				generatorTracking.fine(
-						"Waiting, generators: " + generators.keySet());
+						"Thread " + Thread.currentThread().getName() 
+						+ " is waiting, " + generators.size() 
+						+ " generators registered: " + generators.keySet());
 			}
 			wait();
 		}
+		generatorTracking.finest("Thread " + Thread.currentThread().getName() 
+				+ " continues.");
 	}
 	
 	public synchronized boolean awaitExhaustion(long timeout) 
