@@ -12,3 +12,12 @@ dependencies {
     }
 
 }
+
+test {
+	// set a system property for the test JVM(s)
+	systemProperty 'java.util.logging.config.file', 'jul-debug.properties'
+  
+	// show standard out and standard error of the test JVM(s) on the console
+	testLogging.showStandardStreams = true
+  
+}
