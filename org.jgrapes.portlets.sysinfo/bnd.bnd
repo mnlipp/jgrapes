@@ -10,9 +10,11 @@ api_version = 0.1.0.${tstamp}
 -sources: true
 -runee: JavaSE-1.8
 
+-includeresource: resources
+
 testbin=bin
 
 -fixupmessages: \
+    "Found source folder 'resources' that is not on bnd's source path 'src'", \
     "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.",\
-    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable.",\
-    "Export org.jgrapes.core,  has 1,  private references "
+    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable."

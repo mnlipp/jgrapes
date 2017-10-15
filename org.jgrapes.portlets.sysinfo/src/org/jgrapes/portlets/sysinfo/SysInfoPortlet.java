@@ -18,11 +18,7 @@
 
 package org.jgrapes.portlets.sysinfo;
 
-import org.jdrupes.json.JsonBeanDecoder;
-import org.jdrupes.json.JsonBeanEncoder;
-import org.jdrupes.json.JsonDecodeException;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
@@ -33,15 +29,10 @@ import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.DeletePortletRequest;
-import org.jgrapes.portal.events.NotifyPortletModel;
-import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortlet;
 import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.freemarker.FreeMarkerPortlet;
-import org.jgrapes.util.events.KeyValueStoreData;
-import org.jgrapes.util.events.KeyValueStoreQuery;
-import org.jgrapes.util.events.KeyValueStoreUpdate;
 
 import freemarker.core.ParseException;
 import freemarker.template.MalformedTemplateNameException;
@@ -54,8 +45,8 @@ import static org.jgrapes.portal.Portlet.RenderMode.*;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.Serializable;
-import java.security.Principal;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -79,11 +70,6 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 		super(componentChannel);
 	}
 
-	private String storagePath(Session session) {
-		return "/" + session.getOrDefault(Principal.class, "").toString()
-			+ "/portlets/" + SysInfoPortlet.class.getName()	+ "/";
-	}
-	
 	@Handler
 	public void onPortalReady(PortalReady event, IOSubchannel channel) 
 			throws TemplateNotFoundException, MalformedTemplateNameException, 
@@ -95,69 +81,48 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 				.addScript(PortalView.uriFromPath("SysInfo-functions.js"))
 				.addCss(PortalView.uriFromPath("SysInfo-style.css"))
 				.setInstantiable());
-		Optional<Session> optSession = channel.associated(Session.class);
-		if (optSession.isPresent()) {
-			KeyValueStoreQuery query = new KeyValueStoreQuery(
-					storagePath(optSession.get()), true);
-			channel.setAssociated(
-					SysInfoPortlet.class, new CompletionLock(event, 3000));
-			fire(query, channel);
-		}
 	}
 
-	@Handler
-	public void onKeyValueStoreData(
-			KeyValueStoreData event, IOSubchannel channel) 
-					throws JsonDecodeException {
-		Optional<Session> optSession = channel.associated(Session.class);
-		if (!optSession.isPresent() ||
-				!event.event().query().equals(storagePath(optSession.get()))) {
-			return;
-		}
-		channel.associated(SysInfoPortlet.class, CompletionLock.class)
-			.ifPresent(lock -> lock.remove());
-		Session session = session(channel);
-		for (String json: event.data().values()) {
-			SysInfoModel model = JsonBeanDecoder.create(json)
-					.readObject(SysInfoModel.class);
-			putInSession(session, model);
-		}
-	}
-	
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#generatePortletId()
+	 */
 	@Override
-	public void doAddPortlet(AddPortletRequest event,
+	protected String generatePortletId() {
+		return type() + "-" + super.generatePortletId();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#modelFromSession(org.jgrapes.io.IOSubchannel, java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	protected <T extends Serializable> Optional<T> stateFromSession(
+			Session session, String portletId, Class<T> type) {
+		if (portletId.startsWith(type() + "-")) {
+			return Optional.of((T)new SysInfoModel(portletId));
+		}
+		return Optional.empty();
+	}
+
+	@Override
+	public SysInfoModel doAddPortlet(AddPortletRequest event,
 			IOSubchannel channel, Session session) throws Exception {
-		SysInfoModel portletModel = stateFromSession(
-				session, generatePortletId(), id -> new SysInfoModel(id));
-		String jsonState = JsonBeanEncoder.create()
-				.writeObject(portletModel).toJson();
-		channel.respond(new KeyValueStoreUpdate().update(storagePath(session) 
-				+ portletModel.getPortletId(), jsonState));
+		String portletId = generatePortletId();
+		SysInfoModel portletModel = putInSession(
+				session, new SysInfoModel(portletId));
 		Template tpl = freemarkerConfig().getTemplate("SysInfo-preview.ftlh");
 		channel.respond(new RenderPortlet(
 				SysInfoPortlet.class, portletModel.getPortletId(),
 				DeleteablePreview, MODES, true, templateProcessor(tpl, 
 						fmModel(event, channel, portletModel))));
+		return portletModel;
 	}
-
-	/* (non-Javadoc)
-	 * @see org.jgrapes.portal.AbstractPortlet#doDeletePortlet(org.jgrapes.portal.events.DeletePortletRequest, org.jgrapes.io.IOSubchannel, org.jgrapes.portal.AbstractPortlet.PortletModelBean)
-	 */
-	@Override
-	protected void doDeletePortlet(DeletePortletRequest event,
-	        IOSubchannel channel, Session session, 
-	        String portletId, Serializable portletState) throws Exception {
-		channel.respond(new KeyValueStoreUpdate().delete(
-				storagePath(session) + portletId));
-		channel.respond(new DeletePortlet(portletId));
-	}
-	
 	
 	/* (non-Javadoc)
 	 * @see org.jgrapes.portal.AbstractPortlet#doRenderPortlet(org.jgrapes.portal.events.RenderPortletRequest, org.jgrapes.io.IOSubchannel, org.jgrapes.portal.AbstractPortlet.PortletModelBean)
 	 */
 	@Override
-	protected void doRenderPortlet(RenderPortletRequest event,
+	protected SysInfoModel doRenderPortlet(RenderPortletRequest event,
 	        IOSubchannel channel, Session session, 
 	        String portletId, Serializable retrievedState) throws Exception {
 		SysInfoModel portletModel = (SysInfoModel)retrievedState;
@@ -178,41 +143,27 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 					SysInfoPortlet.class, portletModel.getPortletId(), 
 					View, MODES, event.isForeground(), templateProcessor(
 							tpl, fmModel(event, channel, portletModel))));
-			channel.respond(new NotifyPortletView(type(),
-					portletModel.getPortletId(), "setWorldVisible",
-					portletModel.isWorldVisible()));
 			break;
 		}
 		default:
 			break;
 		}	
+		return portletModel;
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.jgrapes.portal.AbstractPortlet#doNotifyPortletModel(org.jgrapes.portal.events.NotifyPortletModel, org.jgrapes.io.IOSubchannel, org.jgrapes.http.Session, java.io.Serializable)
+	 * @see org.jgrapes.portal.AbstractPortlet#doDeletePortlet(org.jgrapes.portal.events.DeletePortletRequest, org.jgrapes.io.IOSubchannel, org.jgrapes.portal.AbstractPortlet.PortletModelBean)
 	 */
 	@Override
-	protected void doNotifyPortletModel(NotifyPortletModel event,
-	        IOSubchannel channel, Session session, Serializable portletState)
-	        throws Exception {
-		event.stop();
-		SysInfoModel portletModel = (SysInfoModel)portletState;
-		portletModel.setWorldVisible(!portletModel.isWorldVisible());
-		
-		String jsonState = JsonBeanEncoder.create()
-				.writeObject(portletModel).toJson();
-		channel.respond(new KeyValueStoreUpdate().update(storagePath(session) 
-				+ portletModel.getPortletId(), jsonState));
-		channel.respond(new NotifyPortletView(type(),
-				portletModel.getPortletId(), "setWorldVisible", 
-				portletModel.isWorldVisible()));
+	protected void doDeletePortlet(DeletePortletRequest event,
+	        IOSubchannel channel, Session session, 
+	        String portletId, Serializable retrievedState) throws Exception {
+		channel.respond(new DeletePortlet(portletId));
 	}
-
+	
 	@SuppressWarnings("serial")
 	public static class SysInfoModel extends PortletBaseModel {
 
-		private boolean worldVisible = true;
-		
 		/**
 		 * Creates a new model with the given type and id.
 		 * 
@@ -223,15 +174,12 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 			super(portletId);
 		}
 
-		/**
-		 * @param visible the visible to set
-		 */
-		public void setWorldVisible(boolean visible) {
-			this.worldVisible = visible;
+		public Properties systemProperties() {
+			return System.getProperties();
 		}
-
-		public boolean isWorldVisible() {
-			return worldVisible;
+		
+		public Runtime runtime() {
+			return Runtime.getRuntime();
 		}
 	}
 	
