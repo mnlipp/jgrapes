@@ -35,15 +35,15 @@
       </tr>
       <tr>
         <td>${_("maxMemory")}</td>
-        <td><td>
+        <td class="maxMemory"><td>
       </tr>
       <tr>
         <td>${_("totalMemory")}</td>
-        <td><td>
+        <td class="totalMemory"><td>
       </tr>
       <tr>
         <td>${_("freeMemory")}</td>
-        <td><td>
+        <td class="freeMemory"><td>
       </tr>
     </tbody>
   </table>

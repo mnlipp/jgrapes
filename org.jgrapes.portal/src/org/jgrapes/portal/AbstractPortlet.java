@@ -21,6 +21,7 @@ package org.jgrapes.portal;
 import java.beans.ConstructorProperties;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -71,7 +72,7 @@ import org.jgrapes.portal.events.RenderPortletRequest;
  */
 public abstract class AbstractPortlet extends Component {	
 
-	private Map<IOSubchannel,Set<Serializable>> listenersByChannel 
+	private Map<IOSubchannel,Set<Serializable>> modelsByChannel 
 		= Collections.synchronizedMap(new WeakHashMap<>());
 
 	/**
@@ -174,8 +175,8 @@ public abstract class AbstractPortlet extends Component {
 		return UUID.randomUUID().toString();
 	}
 	
-	private Set<Serializable> listenersOfChannel(IOSubchannel channel) {
-		return listenersByChannel.computeIfAbsent(
+	private Set<Serializable> modelsOfChannel(IOSubchannel channel) {
+		return modelsByChannel.computeIfAbsent(
 				channel, c -> Collections.newSetFromMap(new WeakHashMap<>()));
 	}
 	
@@ -187,8 +188,11 @@ public abstract class AbstractPortlet extends Component {
 	public Map<IOSubchannel,Set<Serializable>> statesByChannel() {
 		Map<IOSubchannel,Set<Serializable>> result = new HashMap<>();
 		for (Map.Entry<IOSubchannel,Set<Serializable>> entry:
-			listenersByChannel.entrySet()) {
-			result.put(entry.getKey(), new HashSet<>(entry.getValue()));
+			modelsByChannel.entrySet()) {
+			Set<Serializable> states = new HashSet<>(entry.getValue());
+			if (states.size() > 0) {
+				result.put(entry.getKey(), states);
+			}
 		}
 		return result;
 	}
@@ -280,7 +284,7 @@ public abstract class AbstractPortlet extends Component {
 			.computeIfAbsent(type(), t -> new HashMap<>())
 			.remove(portletId);
 		if (state != null) {
-			for (Set<Serializable> states: listenersByChannel.values()) {
+			for (Set<Serializable> states: modelsByChannel.values()) {
 				states.remove(state);
 			}
 		}
@@ -321,7 +325,7 @@ public abstract class AbstractPortlet extends Component {
 		Session session = session(channel);
 		Serializable state = doAddPortlet(event, channel, session);
 		if (state != null) {
-			listenersOfChannel(channel).add(state);
+			modelsOfChannel(channel).add(state);
 		}
 	}
 
@@ -407,7 +411,7 @@ public abstract class AbstractPortlet extends Component {
 		Serializable state = doRenderPortlet(event, channel, session, 
 				event.portletId(), optPortletState.get());
 		if (state != null) {
-			listenersOfChannel(channel).add(state);
+			modelsOfChannel(channel).add(state);
 		}
 	}
 
@@ -458,7 +462,6 @@ public abstract class AbstractPortlet extends Component {
 		if (!optPortletState.isPresent()) {
 			return;
 		}
-		
 		doNotifyPortletModel(event, channel, session, optPortletState.get());
 	}
 
@@ -478,7 +481,45 @@ public abstract class AbstractPortlet extends Component {
 	
 	@Handler
 	public void onClosed(Closed event, IOSubchannel channel) {
-		listenersByChannel.remove(channel);
+		modelsByChannel.remove(channel);
+	}
+
+	/**
+	 * Utility method to format a memory size to a maximum
+	 * of 4 digits.
+	 * 
+	 * @param locale
+	 * @param size
+	 * @return
+	 */
+	public static String formatMemorySize(Locale locale, long size) {
+		int scale = 0;
+		while (size > 10000 && scale < 5) {
+				size = size / 1024;
+				scale += 1;
+		}
+		String unit = "PiB";
+		switch (scale) {
+		case 0:
+			unit = "B";
+			break;
+		case 1:
+			unit = "kiB";
+			break;
+		case 2:
+			unit = "MiB";
+			break;
+		case 3:
+			unit = "GiB";
+			break;
+		case 4:
+			unit = "TiB";
+			break;
+		default:
+			break;
+		}
+		return NumberFormat.getInstance(locale).format(size) + " " + unit;
+		
 	}
 	
 	/**

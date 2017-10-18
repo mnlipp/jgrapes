@@ -29,6 +29,7 @@ import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.DeletePortletRequest;
+import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortlet;
 import org.jgrapes.portal.events.RenderPortletRequest;
@@ -45,6 +46,8 @@ import static org.jgrapes.portal.Portlet.RenderMode.*;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -115,6 +118,10 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 				SysInfoPortlet.class, portletModel.getPortletId(),
 				DeleteablePreview, MODES, true, templateProcessor(tpl, 
 						fmModel(event, channel, portletModel))));
+		updateView(channel, portletModel, locale(channel));
+		if (updateThread == null) {
+			updateThread = new UpdateThread();
+		}
 		return portletModel;
 	}
 	
@@ -126,6 +133,7 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 	        IOSubchannel channel, Session session, 
 	        String portletId, Serializable retrievedState) throws Exception {
 		SysInfoModel portletModel = (SysInfoModel)retrievedState;
+		Locale locale = locale(channel);
 		switch (event.renderMode()) {
 		case Preview:
 		case DeleteablePreview: {
@@ -135,6 +143,7 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 					DeleteablePreview, MODES,	event.isForeground(),
 					templateProcessor(
 							tpl, fmModel(event, channel, portletModel))));
+			updateView(channel, portletModel, locale);
 			break;
 		}
 		case View: {
@@ -147,8 +156,21 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 		}
 		default:
 			break;
-		}	
+		}
+		if (updateThread == null) {
+			updateThread = new UpdateThread();
+		}
 		return portletModel;
+	}
+
+	private void updateView(IOSubchannel channel, SysInfoModel portletModel,
+	        Locale locale) {
+		Runtime runtime = Runtime.getRuntime();
+		channel.respond(new NotifyPortletView(type(),
+				portletModel.getPortletId(), "updateMemorySizes",
+				formatMemorySize(locale, runtime.maxMemory()), 
+				formatMemorySize(locale, runtime.totalMemory()), 
+				formatMemorySize(locale, runtime.freeMemory())));
 	}
 	
 	/* (non-Javadoc)
@@ -159,6 +181,50 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 	        IOSubchannel channel, Session session, 
 	        String portletId, Serializable retrievedState) throws Exception {
 		channel.respond(new DeletePortlet(portletId));
+		if (statesByChannel().size() == 0 && updateThread != null) {
+			updateThread.stopRunning();
+			updateThread = null;
+		}
+	}
+	
+	private UpdateThread updateThread = null;
+	
+	private class UpdateThread extends Thread {
+		private boolean running = true;
+		
+		/**
+		 * 
+		 */
+		public UpdateThread() {
+			start();
+		}
+
+		public void stopRunning() {
+			running = false;
+			interrupt();
+		}
+
+		@Override
+		public void run() {
+			while (running) {
+				try {
+					sleep(1000);
+					for (Map.Entry<IOSubchannel,Set<Serializable>> e:
+						statesByChannel().entrySet()) {
+						IOSubchannel channel = e.getKey();
+						Locale locale = locale(channel);
+						for (Serializable state: e.getValue()) {
+							if (!(state instanceof SysInfoModel)) {
+								continue;
+							}
+							SysInfoModel portletModel = (SysInfoModel)state;
+							updateView(channel, portletModel, locale);
+						}
+					}
+				} catch (InterruptedException e1) {
+				}
+			}
+		}
 	}
 	
 	@SuppressWarnings("serial")

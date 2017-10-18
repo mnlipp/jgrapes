@@ -19,6 +19,7 @@
 package org.jgrapes.portal.freemarker;
 
 import freemarker.template.Configuration;
+import freemarker.template.SimpleNumber;
 import freemarker.template.SimpleScalar;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -160,6 +161,19 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 					// no luck
 				}
 				return key;
+			}
+		});
+		model.put("formatMemorySize", new TemplateMethodModelEx() {
+			@Override
+			public Object exec(@SuppressWarnings("rawtypes") List arguments)
+					throws TemplateModelException {
+				@SuppressWarnings("unchecked")
+				List<TemplateModel> args = (List<TemplateModel>)arguments;
+				if (!(args.get(0) instanceof SimpleNumber)) {
+					throw new TemplateModelException("Not a number.");
+				}
+				long size = ((SimpleNumber)args.get(0)).getAsNumber().longValue();
+				return formatMemorySize(locale, size);
 			}
 		});
 		return model;
