@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.HandlerScope;
@@ -58,8 +59,51 @@ class VerboseHandlerReference extends HandlerReference {
 	 */
 	@Override
 	public void invoke(EventBase<?> event) throws Throwable {
+		if (component == ComponentTree.DUMMY_HANDLER) {
+			reportInvocation(event, false);
+			return;
+		}
+		long invocation;
+		switch (method.type().parameterCount()) {
+		case 0:
+			// No parameters
+			invocation = reportInvocation(event, false);
+			method.invoke();
+			reportResult(event, invocation);
+			break;
+			
+		case 1:
+			// Event parameter
+			invocation = reportInvocation(event, false);
+			method.invoke(event);
+			reportResult(event, invocation);
+			break;
+
+		case 2:
+			// Event and channel
+			Class<?> channelParam = method.type().parameterType(1);
+			boolean handlerFound = false;
+			for (Channel channel: event.channels()) {
+				if (channelParam.isAssignableFrom(channel.getClass())) {
+					handlerFound = true;
+					invocation = reportInvocation(event, false);
+					method.invoke(event, channel);
+					reportResult(event, invocation);
+				}
+			}
+			if (!handlerFound) {
+				reportInvocation(event, true);
+			}
+			break;
+			
+		default:
+			throw new IllegalStateException("Handle not usable");
+		}
+	}
+
+	private long reportInvocation(EventBase<?> event, boolean noChannel) {
+		long invocation = 0; 
 		StringBuilder builder = new StringBuilder();
-		long invocation = 0;
 		if (handlerTracking.isLoggable(Level.FINEST)) {
 			invocation = invocationCounter.getAndIncrement();
 			builder.append('[');
@@ -74,12 +118,20 @@ class VerboseHandlerReference extends HandlerReference {
 		if (component == ComponentTree.DUMMY_HANDLER) {
 			builder.append(" (unhandled)");
 		} else {
-			builder.append(" >> " + this);
+			builder.append(" >> ");
+			if (noChannel) {
+				builder.append("No matching channels: ");
+			}
+			builder.append(this.toString());
 		}
-		handlerTracking.fine(builder.toString());
-		super.invoke(event);
+		String trackMsg = builder.toString();
+		handlerTracking.fine(trackMsg);
+		return invocation;
+	}
+	
+	private void reportResult(EventBase<?> event, long invocation) {
 		if (handlerTracking.isLoggable(Level.FINEST)) {
-			builder.setLength(0);
+			StringBuilder builder = new StringBuilder();
 			builder.append("Result [");
 			builder.append(Long.toString(invocation));
 			builder.append("]: " + (event.currentResults() == null ? "null"

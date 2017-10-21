@@ -39,7 +39,7 @@ class HandlerReference implements Comparable<HandlerReference> {
 			+ ".handlerTracking");
 	
 	private HandlerScope filter;
-	private MethodHandle method;
+	protected MethodHandle method;
 	private int priority;
 	
 	/**
@@ -106,6 +106,7 @@ class HandlerReference implements Comparable<HandlerReference> {
 	 * @param event the event
 	 */
 	public void invoke(EventBase<?> event) throws Throwable {
+		// ADAPT VERBOSEHANDLERREFERENCE TO ANY CHANGES MADE HERE
 		switch (method.type().parameterCount()) {
 		case 0:
 			// No parameters
