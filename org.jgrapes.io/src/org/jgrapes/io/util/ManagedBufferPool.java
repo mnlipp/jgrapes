@@ -31,12 +31,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
@@ -91,11 +93,12 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		= Logger.getLogger(ManagedBufferPool.class.getName());
 	
 	private static long defaultDrainDelay = 1000;
+	private static long acquireWarningLimit = 1000;
 	
 	private String name = Components.objectName(this);
 	private BiFunction<T, BufferCollector,W> wrapper = null;
 	private Supplier<T> bufferFactory = null;
-	private Map<Integer,List<BufferMonitor>> monitoredBuffers = new HashMap<>();
+	private Map<Integer,List<BufferMonitor>> bufferMonitors = new HashMap<>();
 	private BlockingQueue<W> queue;
 	private int bufferSize = -1;
 	private int preservedBufs;
@@ -196,19 +199,24 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		createdBufs.incrementAndGet();
 		W buffer = wrapper.apply(this.bufferFactory.get(), this);
 		BufferMonitor monitor = new BufferMonitor(buffer);
-		synchronized (monitoredBuffers) {
-			monitoredBuffers.computeIfAbsent(System.identityHashCode(buffer), 
+		synchronized (bufferMonitors) {
+			bufferMonitors.computeIfAbsent(System.identityHashCode(buffer), 
 					key -> new LinkedList<>()).add(monitor);
 		}
 		bufferSize = buffer.capacity();
 		return buffer;
 	}
 
+	/**
+	 * Removes the buffer from the pool.
+	 * 
+	 * @param buffer the buffer to remove
+	 */
 	private void removeBuffer(ManagedBuffer<?> buffer) {
 		createdBufs.decrementAndGet();
-		synchronized (monitoredBuffers) {
+		synchronized (bufferMonitors) {
 			int hashCode = System.identityHashCode(buffer);
-			List<BufferMonitor> candidates = monitoredBuffers.get(hashCode);
+			List<BufferMonitor> candidates = bufferMonitors.get(hashCode);
 			boolean found = false;
 			if (candidates != null) {
 				for (Iterator<BufferMonitor> itr = candidates.iterator(); 
@@ -221,13 +229,41 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 					}
 				}
 				if (candidates.isEmpty()) {
-					monitoredBuffers.remove(hashCode);
+					bufferMonitors.remove(hashCode);
 				}
 			}
 			if (!found) {
 				logger.warning("Attempt to remove unknown buffer from pool.");
 			}
 		}
+	}
+	
+	/**
+	 * Removes a buffer monitor from the pool. This is needed to clean
+	 * up the monitors of orphaned buffers.
+	 * 
+	 * @param monitor
+	 */
+	private void removeBufferMonitor(
+			ManagedBufferPool<?,?>.BufferMonitor monitor) {
+		synchronized (bufferMonitors) {
+			for (Iterator<Integer> hci = bufferMonitors.keySet().iterator();
+					hci.hasNext();) {
+				List<BufferMonitor> candidates = bufferMonitors.get(hci.next());
+				for (Iterator<BufferMonitor> itr = candidates.iterator(); 
+					itr.hasNext(); ) {
+					BufferMonitor candidate = itr.next();
+					if (candidate == monitor) {
+						itr.remove();
+						break;
+					}
+				}
+				if (candidates.isEmpty()) {
+					hci.remove();
+				}
+			}
+		}
+		
 	}
 	
 	/**
@@ -244,19 +280,33 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 
 	/**
 	 * Acquires a managed buffer from the pool. If the pool is empty,
-	 * waits for a buffer to become available. The buffer has a lock count
-	 * of one.
+	 * waits for a buffer to become available. The acquired buffer has 
+	 * a lock count of one.
 	 * 
 	 * @return the acquired buffer
 	 * @throws InterruptedException if the current thread is interrupted
 	 */
 	public W acquire() throws InterruptedException {
+		// Stop draining, because we obviously need this kind of buffers 
+		Optional.ofNullable(idleTimer.getAndSet(null)).ifPresent(
+				timer -> timer.cancel());
 		if (createdBufs.get() < maximumBufs) {
+			// Haven't reached maximum, so if no buffer is queued, create one.
 			W buffer = queue.poll();
 			if (buffer != null) {
 				return buffer;
 			}
 			return createBuffer();
+		}
+		// Wait for buffer to become available.
+		if (logger.isLoggable(Level.FINE)) {
+			// If configured, log message after waiting some time.
+			W buffer = queue.poll(acquireWarningLimit, TimeUnit.MILLISECONDS);
+			if (buffer != null) {
+				return buffer;
+			}
+			logger.fine("Waiting > " + acquireWarningLimit + "ms for buffer: " 
+						+ Thread.currentThread().getName());
 		}
 		return queue.take();
 	}
@@ -362,14 +412,13 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		public void run() {
 			while(true) {
 				try {
-					@SuppressWarnings("rawtypes")
-					ManagedBufferPool.BufferMonitor monitor 
-						= (ManagedBufferPool.BufferMonitor)orphanedBuffers
+					ManagedBufferPool<?,?>.BufferMonitor monitor 
+						= (ManagedBufferPool<?,?>.BufferMonitor)orphanedBuffers
 							.remove();
 					ManagedBufferPool<?,?> mbp = monitor.manager();
 					// Managed buffer has not been properly recollected, fix.
-					mbp.monitoredBuffers.remove(monitor);
 					mbp.createdBufs.decrementAndGet();
+					mbp.removeBufferMonitor(monitor);
 					// Create warning
 					if (logger.isLoggable(Level.WARNING)) {
 						final StringBuilder msg = new StringBuilder(
@@ -528,6 +577,20 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		long getDefaultDrainDelay();
 
 		/**
+		 * Set the acquire warning limit.
+		 * 
+		 * @param millis the limit
+		 */
+		void setAcquireWarningLimit(long millis);
+
+		/**
+		 * Returns the acquire warning limit.
+		 * 
+		 * @return the value
+		 */
+		long getAcquireWarningLimit();
+
+		/**
 		 * Informations about the pools.
 		 * 
 		 * @return the map
@@ -570,6 +633,15 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			return ManagedBufferPool.defaultDrainDelay();
 		}
 
+		@Override
+		public void setAcquireWarningLimit(long millis) {
+			ManagedBufferPool.acquireWarningLimit = millis;
+		}
+
+		@Override
+		public long getAcquireWarningLimit() {
+			return ManagedBufferPool.acquireWarningLimit;
+		}
 		
 		@Override
 		public PoolInfos getPoolInfos() {
