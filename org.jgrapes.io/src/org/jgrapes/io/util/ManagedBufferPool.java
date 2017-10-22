@@ -92,7 +92,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	protected static final Logger logger 
 		= Logger.getLogger(ManagedBufferPool.class.getName());
 	
-	private static long defaultDrainDelay = 1000;
+	private static long defaultDrainDelay = 1500;
 	private static long acquireWarningLimit = 1000;
 	
 	private String name = Components.objectName(this);
@@ -109,9 +109,9 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		
 	/**
 	 * Sets the default delay after which buffers are removed from
-	 * the pool.
+	 * the pool. The default value is 1500ms.
 	 * 
-	 * @param delay the delay
+	 * @param delay the delay in ms
 	 */
 	public static void setDefaultDrainDelay(long delay) {
 		defaultDrainDelay = delay;
