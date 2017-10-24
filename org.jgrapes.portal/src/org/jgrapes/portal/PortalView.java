@@ -539,7 +539,7 @@ public class PortalView extends Component {
 	 * Handles the closed event from the web socket.
 	 * 
 	 * @param event the event
-	 * @param channel the channel
+	 * @param wsChannel the WebSocket channel
 	 */
 	@Handler
 	public void onClosed(Closed event, IOSubchannel wsChannel) {

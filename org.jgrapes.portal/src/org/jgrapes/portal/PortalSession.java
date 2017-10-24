@@ -71,9 +71,9 @@ public class PortalSession extends DefaultSubchannel {
 	 * Lookup (and create if not found) the portal browserSession channel
 	 * for the given portal browserSession id.
 	 * 
-	 * @param component the component to pass to 
-	 * {@link DefaultSubchannel#DefaultSubchannel(Manager)} if a new
-	 * channel is created, usually the portal
+	 * @param component the component to pass to the super 
+	 * class' constructor if a new channel is created, usually 
+	 * the portal
 	 * @param portalSessionId the browserSession id
 	 * @return the channel
 	 */
