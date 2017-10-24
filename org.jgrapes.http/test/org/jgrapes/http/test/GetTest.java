@@ -120,9 +120,7 @@ public class GetTest {
 	@Test
 	public void testGetRoot() 
 			throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", server.getAddress().getHostAddress(), 
-				server.getPort(), "/");
-		System.out.println("Connecting to: " + url);
+		URL url = new URL("http", "localhost", server.getPort(), "/");
 		Thread reader = Thread.currentThread();
 		final Thread watchdog = new Thread() {
 			@Override
@@ -155,8 +153,7 @@ public class GetTest {
 	@Test
 	public void testGetTop() 
 			throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", server.getAddress().getHostAddress(), 
-				server.getPort(), "/top");
+		URL url = new URL("http", "localhost", server.getPort(), "/top");
 		Thread reader = Thread.currentThread();
 		Thread watchdog = new Thread() {
 			@Override
@@ -190,8 +187,7 @@ public class GetTest {
 	@Test
 	public void testGetTopPlus() 
 			throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", server.getAddress().getHostAddress(), 
-				server.getPort(), "/top/plus");
+		URL url = new URL("http", "localhost", server.getPort(), "/top/plus");
 		Thread reader = Thread.currentThread();
 		Thread watchdog = new Thread() {
 			@Override
@@ -221,8 +217,7 @@ public class GetTest {
 	@Test
 	public void testGetDynamic() 
 			throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", server.getAddress().getHostAddress(), 
-				server.getPort(), "/dynamic");
+		URL url = new URL("http", "localhost", server.getPort(), "/dynamic");
 		Thread reader = Thread.currentThread();
 		Thread watchdog = new Thread() {
 			@Override
