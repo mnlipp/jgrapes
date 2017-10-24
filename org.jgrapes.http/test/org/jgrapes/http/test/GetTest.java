@@ -122,6 +122,7 @@ public class GetTest {
 			throws IOException, InterruptedException, ExecutionException {
 		URL url = new URL("http", server.getAddress().getHostAddress(), 
 				server.getPort(), "/");
+		System.out.println("Connecting to: " + url);
 		Thread reader = Thread.currentThread();
 		final Thread watchdog = new Thread() {
 			@Override
