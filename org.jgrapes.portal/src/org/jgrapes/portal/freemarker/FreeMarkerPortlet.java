@@ -50,6 +50,7 @@ import org.jgrapes.portal.AbstractPortlet;
 import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.RenderSupport;
+import org.jgrapes.portal.Utils;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletRequest;
@@ -180,7 +181,7 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 					throw new TemplateModelException("Not a number.");
 				}
 				long size = ((SimpleNumber)args.get(0)).getAsNumber().longValue();
-				return formatMemorySize(locale, size);
+				return Utils.formatMemorySize(locale, size);
 			}
 		});
 		return model;

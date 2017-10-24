@@ -26,6 +26,7 @@ import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.PortalView;
+import org.jgrapes.portal.Utils;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
@@ -168,9 +169,9 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 		Runtime runtime = Runtime.getRuntime();
 		channel.respond(new NotifyPortletView(type(),
 				portletId, "updateMemorySizes",
-				formatMemorySize(locale, runtime.maxMemory()), 
-				formatMemorySize(locale, runtime.totalMemory()), 
-				formatMemorySize(locale, runtime.freeMemory())));
+				Utils.formatMemorySize(locale, runtime.maxMemory()), 
+				Utils.formatMemorySize(locale, runtime.totalMemory()), 
+				Utils.formatMemorySize(locale, runtime.freeMemory())));
 	}
 	
 	/* (non-Javadoc)
