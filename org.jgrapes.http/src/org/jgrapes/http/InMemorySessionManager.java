@@ -71,7 +71,7 @@ public class InMemorySessionManager extends SessionManager {
 	}
 
 	protected Session createSession(String sessionId) {
-		Session session = new Session(sessionId);
+		Session session = new InMemorySession(sessionId);
 		Instant now = Instant.now();
 		synchronized (this) {
 			if (absoluteTimeout() > 0) {

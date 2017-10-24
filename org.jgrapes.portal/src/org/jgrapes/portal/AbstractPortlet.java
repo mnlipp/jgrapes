@@ -22,11 +22,11 @@ import java.beans.ConstructorProperties;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +38,6 @@ import java.util.WeakHashMap;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.http.LanguageSelector.Selection;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Closed;
@@ -53,36 +52,46 @@ import org.jgrapes.portal.events.RenderPortletRequest;
 
 /**
  * Provides a base class for implementing portlet components that
- * maintain the portlet's state in the session.
+ * maintain the portlet's state in the browser session.
  * 
  * Method {@link #putInSession(Session, String, Serializable)} puts
- * arbitrary state information for the portlet type (as derived from 
- * {@link #type()}) in the session associated with the channel.
+ * arbitrary state information for the portlet type (obtained from 
+ * {@link #type()}) in the browser session associated with the channel.
  * 
  * Method {@link #stateFromSession(Session, String, Class)}
  * retrieves the state information from the session if it exists.
  * 
- * Method {@link #removeFromSession(Session, String)} removes
- * state information from the session.
+ * Method {@link #removeState(Session, String)} removes
+ * any state information associated with the given portlet id.
  * 
- * Using these methods, this class also provides basic event handlers that
- * implement e.g. the necessary lookup of a session required by every portlet
- * that uses portlet state information. In addition, the association
- * between state information and the channel can be tracked.
+ * Using these methods, the class provides basic event handlers that
+ * perform e.g. the necessary lookup of the state information and
+ * pass it to the methods to be implemented by the derived
+ * portlet (see {@link #doAddPortlet}, {@link #doDeletePortlet},
+ * {@link #doRenderPortlet} etc.).
+ * 
+ * In addition, the class provides support for tracking the 
+ * relationship between {@link PortalSession}s and the ids 
+ * of portlets displayed in the portal session. 
  */
 public abstract class AbstractPortlet extends Component {	
 
-	private Map<IOSubchannel,Set<Serializable>> modelsByChannel 
-		= Collections.synchronizedMap(new WeakHashMap<>());
+	private Map<PortalSession,Set<String>> portletIdsByPortalSession = null;
 
 	/**
 	 * Creates a new component that listens for new events
 	 * on the given channel.
 	 * 
 	 * @param channel the channel to listen on
+	 * @param trackPortalSessions if set, track the relationship between
+	 * portal sessions and portlet ids
 	 */
-	public AbstractPortlet(Channel channel) {
+	public AbstractPortlet(Channel channel, boolean trackPortalSessions) {
 		super(channel);
+		if (trackPortalSessions) {
+			portletIdsByPortalSession = Collections.synchronizedMap(
+					new WeakHashMap<>());
+		}
 	}
 
 	/**
@@ -93,18 +102,6 @@ public abstract class AbstractPortlet extends Component {
 	 */
 	protected String type() {
 		return getClass().getName();
-	}
-	
-	/**
-	 * Returns the locale associated with the channel or the default
-	 * locale if none is associated.
-	 * 
-	 * @param channel the channel
-	 * @return the locale
-	 */
-	protected Locale locale(IOSubchannel channel) {
-		return channel.associated(Selection.class)
-				.map(s -> s.get()[0]).orElse(Locale.getDefault());
 	}
 	
 	/**
@@ -152,7 +149,7 @@ public abstract class AbstractPortlet extends Component {
 	}
 	
 	/**
-	 * Provides resource bundle for localization.
+	 * Provides a resource bundle for localization.
 	 * The default implementation looks up a bundle using the
 	 * package name plus "l10n" as base name.
 	 * 
@@ -175,26 +172,17 @@ public abstract class AbstractPortlet extends Component {
 		return UUID.randomUUID().toString();
 	}
 	
-	private Set<Serializable> modelsOfChannel(IOSubchannel channel) {
-		return modelsByChannel.computeIfAbsent(
-				channel, c -> Collections.newSetFromMap(new WeakHashMap<>()));
-	}
-	
 	/**
 	 * Returns the tracked models and channels.
 	 * 
 	 * @return the result
 	 */
-	public Map<IOSubchannel,Set<Serializable>> statesByChannel() {
-		Map<IOSubchannel,Set<Serializable>> result = new HashMap<>();
-		for (Map.Entry<IOSubchannel,Set<Serializable>> entry:
-			modelsByChannel.entrySet()) {
-			Set<Serializable> states = new HashSet<>(entry.getValue());
-			if (states.size() > 0) {
-				result.put(entry.getKey(), states);
-			}
+	protected Map<PortalSession,Set<String>> portletIdsByPortalSession() {
+		// Create copy to get a non-weak map.
+		if (portletIdsByPortalSession != null) {
+			return new HashMap<>(portletIdsByPortalSession);
 		}
-		return result;
+		return Collections.emptyMap();
 	}
 	
 	/**
@@ -271,41 +259,36 @@ public abstract class AbstractPortlet extends Component {
 	
 	/**
 	 * Removes the portlet state of the portlet with the given id
-	 * from the session.
+	 * from the session. 
 	 * 
 	 * @param session the session to use
 	 * @param portletId the portlet id
+	 * @return the removed state if state existed
 	 */
 	@SuppressWarnings("unchecked")
-	protected void removeFromSession(Session session, String portletId) {
+	protected Optional<? extends Serializable> removeState(
+			Session session, String portletId) {
 		Serializable state = ((Map<Serializable,Map<Serializable,Map<String,Serializable>>>)
 				(Map<Serializable,?>)session)
 			.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
 			.computeIfAbsent(type(), t -> new HashMap<>())
 			.remove(portletId);
-		if (state != null) {
-			for (Set<Serializable> states: modelsByChannel.values()) {
-				states.remove(state);
-			}
-		}
+		return Optional.ofNullable(state);
 	}
 
 	/**
-	 * Remove all models belonging to this type of portlet
-	 * from the session.
+	 * Returns the set of portlet ids associated with the portal session.
+	 * The set is created if it doesn't exist yet.
 	 * 
-	 * @param session the session
+	 * @param portalSession the portal session
+	 * @return the set
 	 */
-	@SuppressWarnings("unchecked")
-	protected void removeAllModelsFromSession(Session session) {
-		Collection<String> ids = new ArrayList<>(
-				((Map<Serializable,Map<Serializable,Map<String,Serializable>>>)
-						(Map<Serializable,?>)session)
-				.computeIfAbsent(AbstractPortlet.class, ac -> new HashMap<>())
-				.computeIfAbsent(type(), t -> new HashMap<>()).keySet());
-		for (String id: ids) {
-			removeFromSession(session, id);
+	private Set<String> portletIdsOfPortalSession(PortalSession portalSession) {
+		if (portletIdsByPortalSession != null) {
+			return portletIdsByPortalSession.computeIfAbsent(
+					portalSession, ps -> new HashSet<>());
 		}
+		return Collections.emptySet();
 	}
 	
 	/**
@@ -313,19 +296,18 @@ public abstract class AbstractPortlet extends Component {
 	 * and calls {@link #doAddPortlet}. 
 	 * 
 	 * @param event the event
-	 * @param channel the channel
+	 * @param portalSession the channel
 	 */
 	@Handler
 	public void onAddPortletRequest(AddPortletRequest event,
-			IOSubchannel channel) throws Exception {
+			PortalSession portalSession) throws Exception {
 		if (!event.portletType().equals(type())) {
 			return;
 		}
 		event.stop();
-		Session session = session(channel);
-		Serializable state = doAddPortlet(event, channel, session);
-		if (state != null) {
-			modelsOfChannel(channel).add(state);
+		String portletId = doAddPortlet(event, portalSession);
+		if (portletIdsByPortalSession != null) {
+			portletIdsOfPortalSession(portalSession).add(portletId);
 		}
 	}
 
@@ -335,38 +317,51 @@ public abstract class AbstractPortlet extends Component {
 	 * call {@link #putInSession(Session, String, Serializable)} to create
 	 * the state and put it in the session.
 	 * 
-	 * If the method returns the state information, an association between
-	 * the state and the channel will be created.
-	 * 
 	 * @param event the event
-	 * @param channel the channel
-	 * @param session the session
-	 * @return the state information (optional)
+	 * @param portalSession the channel
+	 * @return the id of the created portlet
 	 */
-	protected abstract Serializable doAddPortlet(AddPortletRequest event, 
-			IOSubchannel channel, Session session) throws Exception;
+	protected abstract String doAddPortlet(AddPortletRequest event, 
+			PortalSession portalSession) throws Exception;
 	
 	/**
 	 * Checks if the request applies to this component. If so, stops 
-	 * the event, removes the portlet model bean from the session
-	 * and calls {@link #doDeletePortlet} with the model. 
+	 * the event, removes the portlet state from the browser session
+	 * and calls {@link #doDeletePortlet} with the state.
+	 * 
+	 * If the association of {@link PortalSession}s and portlet ids
+	 * is tracked for this portlet, any existing association is
+	 * also removed.
 	 * 
 	 * @param event the event
-	 * @param channel the channel
+	 * @param portalSession the portal session
 	 */
 	@Handler
 	public void onDeletePortletRequest(DeletePortletRequest event, 
-			IOSubchannel channel) throws Exception {
-		Session session = session(channel);
+			PortalSession portalSession) throws Exception {
+		String portletId = event.portletId();
 		Optional<? extends Serializable> optPortletState 
-			= stateFromSession(session, event.portletId(), Serializable.class);
+			= stateFromSession(portalSession.browserSession(), 
+					event.portletId(), Serializable.class);
 		if (!optPortletState.isPresent()) {
 			return;
 		}
+		removeState(portalSession.browserSession(), portletId);
+		if (!optPortletState.isPresent()) {
+			return;
+		}
+		if (portletIdsByPortalSession != null) {
+			for (Iterator<PortalSession> psi = portletIdsByPortalSession
+					.keySet().iterator(); psi.hasNext();) {
+				Set<String> idSet = portletIdsByPortalSession.get(psi.next());
+				idSet.remove(portletId);
+				if (idSet.isEmpty()) {
+					psi.remove();
+				}
+			}
+		}
 		event.stop();
-		Serializable portletState = optPortletState.get();
-		removeFromSession(session, event.portletId());
-		doDeletePortlet(event, channel, session, event.portletId(), portletState);
+		doDeletePortlet(event, portalSession, event.portletId(), optPortletState.get());
 	}
 	
 	/**
@@ -375,12 +370,11 @@ public abstract class AbstractPortlet extends Component {
 	 * 
 	 * @param event the event
 	 * @param channel the channel
-	 * @param session the session
 	 * @param portletId the portlet id
 	 * @param portletState the portlet state
 	 */
 	protected abstract void doDeletePortlet(DeletePortletRequest event, 
-			IOSubchannel channel, Session session, String portletId, 
+			PortalSession channel, String portletId, 
 			Serializable portletState) throws Exception;
 	
 	/**
@@ -396,23 +390,22 @@ public abstract class AbstractPortlet extends Component {
 	 * exist yet.
 	 * 
 	 * @param event the event
-	 * @param channel the channel
+	 * @param portalSession the portal session
 	 */
 	@Handler
 	public void onRenderPortlet(RenderPortletRequest event,
-			IOSubchannel channel) throws Exception {
-		Session session = session(channel);
+			PortalSession portalSession) throws Exception {
 		Optional<? extends Serializable> optPortletState 
-			= stateFromSession(session, event.portletId(), Serializable.class);
+			= stateFromSession(portalSession.browserSession(), 
+					event.portletId(), Serializable.class);
 		if (!optPortletState.isPresent()) {
 			return;
 		}
 		event.stop();
-		Serializable state = doRenderPortlet(event, channel, session, 
-				event.portletId(), optPortletState.get());
-		if (state != null) {
-			modelsOfChannel(channel).add(state);
+		if (portletIdsByPortalSession != null) {
+			portletIdsOfPortalSession(portalSession).add(event.portletId());
 		}
+		doRenderPortlet(event, portalSession, event.portletId(), optPortletState.get());
 	}
 
 	/**
@@ -426,23 +419,10 @@ public abstract class AbstractPortlet extends Component {
 	 * @param channel the channel
 	 * @param portletId the portlet id
 	 * @param portletState the portletState
-	 * @return the state information (optional)
 	 */
-	protected abstract Serializable doRenderPortlet(RenderPortletRequest event, 
-			IOSubchannel channel, Session session, String portletId, 
+	protected abstract void doRenderPortlet(RenderPortletRequest event, 
+			PortalSession channel, String portletId, 
 			Serializable portletState) throws Exception;
-	
-	/**
-	 * Convenience method that returns the session associated with
-	 * the channel.
-	 * 
-	 * @return the session
-	 * @throws IllegalStateException if no session is found
-	 */
-	public Session session(IOSubchannel channel) {
-		return channel.associated(Session.class).orElseThrow(
-				() -> new IllegalStateException("Session is missing."));
-	}
 	
 	/**
 	 * Checks if the request applies to this component by calling
@@ -455,14 +435,13 @@ public abstract class AbstractPortlet extends Component {
 	 */
 	@Handler
 	public void onNotifyPortletModel(NotifyPortletModel event,
-			IOSubchannel channel) throws Exception {
-		Session session = session(channel);
+			PortalSession channel) throws Exception {
 		Optional<? extends Serializable> optPortletState 
-			= stateFromSession(session, event.portletId(), Serializable.class);
+			= stateFromSession(channel.browserSession(), event.portletId(), Serializable.class);
 		if (!optPortletState.isPresent()) {
 			return;
 		}
-		doNotifyPortletModel(event, channel, session, optPortletState.get());
+		doNotifyPortletModel(event, channel, optPortletState.get());
 	}
 
 	/**
@@ -471,17 +450,18 @@ public abstract class AbstractPortlet extends Component {
 	 * 
 	 * @param event the event
 	 * @param channel the channel
-	 * @param session the session
 	 * @param portletState the portletState
 	 */
 	protected void doNotifyPortletModel(NotifyPortletModel event, 
-			IOSubchannel channel, Session session,  
-			Serializable portletState) throws Exception {
+			PortalSession channel, Serializable portletState)
+					throws Exception {
 	}
 	
 	@Handler
-	public void onClosed(Closed event, IOSubchannel channel) {
-		modelsByChannel.remove(channel);
+	public void onClosed(Closed event, PortalSession channel) {
+		if (portletIdsByPortalSession != null) {
+			portletIdsByPortalSession.remove(channel);
+		}
 	}
 
 	/**

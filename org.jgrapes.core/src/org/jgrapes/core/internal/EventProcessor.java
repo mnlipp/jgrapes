@@ -93,10 +93,13 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 
 	@Override
 	public void run() {
+		String origName = Thread.currentThread().getName();
 		try {
 			if (queue.isEmpty()) {
 				return;
 			}
+			Thread.currentThread().setName(
+					origName + " (P" + Components.objectId(this) + ")");
 			FeedBackPipelineFilter.setAssociatedPipeline(this);
 			while (true) {
 				EventChannelsTuple next = queue.peek();
@@ -112,6 +115,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 				}
 			}
 		} finally {
+			Thread.currentThread().setName(origName);
 			currentlyHandling.set(null);;
 			FeedBackPipelineFilter.setAssociatedPipeline(null);
 			GeneratorRegistry.instance().remove(this);

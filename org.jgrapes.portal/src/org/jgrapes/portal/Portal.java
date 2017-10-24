@@ -48,7 +48,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.io.util.LinkedIOSubchannel;
+import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.Portlet.RenderMode;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
@@ -129,9 +129,8 @@ public class Portal extends Component {
 	}
 	
 	@Handler
-	public void onRenderPortlet(RenderPortlet event,
-			LinkedIOSubchannel channel) 
-					throws InterruptedException, IOException {
+	public void onRenderPortlet(RenderPortlet event, IOSubchannel channel) 
+			throws InterruptedException, IOException {
 		StringWriter content = new StringWriter();
 		CharBuffer buffer = CharBuffer.allocate(8192);
 		try (Reader in = new BufferedReader(event.contentReader())) {
@@ -152,9 +151,8 @@ public class Portal extends Component {
 	}
 	
 	@Handler
-	public void onAddPortletType(
-			AddPortletType event, LinkedIOSubchannel channel)
-					throws InterruptedException, IOException {
+	public void onAddPortletType(AddPortletType event, IOSubchannel channel)
+			throws InterruptedException, IOException {
 		fire(new JsonOutput("addPortletType",
 				event.portletType(),
 				event.displayName(),
@@ -170,15 +168,14 @@ public class Portal extends Component {
 	}
 	
 	@Handler
-	public void onDeletePortlet(
-			DeletePortlet event, LinkedIOSubchannel channel) 
+	public void onDeletePortlet(DeletePortlet event, IOSubchannel channel) 
 					throws InterruptedException, IOException {
 		fire(new JsonOutput("deletePortlet", event.portletId()), channel);
 	}
 	
 	@Handler 
 	public void onNotifyPortletView(
-			NotifyPortletView event, LinkedIOSubchannel channel) 
+			NotifyPortletView event, IOSubchannel channel) 
 					throws InterruptedException, IOException {
 		fire(new JsonOutput("invokePortletMethod",
 				event.portletClass(), event.portletId(), 
@@ -186,7 +183,7 @@ public class Portal extends Component {
 	}
 
 	@Handler
-	public void onJsonInput(JsonInput event, LinkedIOSubchannel channel) 
+	public void onJsonInput(JsonInput event, IOSubchannel channel) 
 			throws InterruptedException, IOException {
 		// Send events to portlets on portal's channel
 		JsonArray params = (JsonArray)event.params();
@@ -245,14 +242,14 @@ public class Portal extends Component {
 	
 	@Handler
 	public void onPortalConfigured(
-			PortalConfigured event, LinkedIOSubchannel channel) 
+			PortalConfigured event, IOSubchannel channel) 
 					throws InterruptedException, IOException {
 		fire(new JsonOutput("portalConfigured"), channel);
 	}
 	
 	@Handler
 	public void onLastPortalLayout(
-			LastPortalLayout event, LinkedIOSubchannel channel) 
+			LastPortalLayout event, IOSubchannel channel) 
 					throws InterruptedException, IOException {
 		fire(new JsonOutput("lastPortalLayout",
 				event.previewLayout(), event.tabsLayout()), channel);

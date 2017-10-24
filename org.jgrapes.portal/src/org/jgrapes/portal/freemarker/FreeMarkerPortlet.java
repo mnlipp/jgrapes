@@ -47,6 +47,7 @@ import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.util.CharBufferWriter;
 import org.jgrapes.portal.AbstractPortlet;
+import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.RenderSupport;
 import org.jgrapes.portal.events.PortletResourceRequest;
@@ -66,10 +67,16 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	private Map<String,Object> fmModel = null;
 	
 	/**
+	 * Creates a new component that listens for new events
+	 * on the given channel.
+	 * 
 	 * @param componentChannel
+	 * @param trackPortalSessions if set, track the relationship between
+	 * portal sessions and portelt ids
 	 */
-	public FreeMarkerPortlet(Channel componentChannel) {
-		super(componentChannel);
+	public FreeMarkerPortlet(Channel componentChannel, 
+			boolean trackPortalSessions) {
+		super(componentChannel, trackPortalSessions);
 	}
 
 	protected Configuration freemarkerConfig() {
@@ -209,8 +216,8 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	 * @return the model
 	 */
 	protected Map<String,Object> fmModel(RenderPortletRequestBase event,
-			IOSubchannel channel, PortletBaseModel portletModel) {
-		final Map<String,Object> model = fmSessionModel(session(channel));
+			PortalSession channel, PortletBaseModel portletModel) {
+		final Map<String,Object> model = fmSessionModel(channel.browserSession());
 		model.putAll(fmTypeModel(event.renderSupport()));
 		model.putAll(fmPortletModel(event, channel, portletModel));
 		return model;

@@ -38,6 +38,164 @@ var JGPortal = {
         }
     }
     JGPortal.log = log;
+
+    // https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+    function generateUUID() {
+        var d = new Date().getTime();
+        if(window.performance && typeof window.performance.now === "function"){
+            d += performance.now();; //use high-precision timer if available
+        }
+        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = (d + Math.random()*16)%16 | 0;
+            d = Math.floor(d/16);
+            return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+        });
+        return uuid;
+    };
+
+    // ///////////////////
+    // WebSocket "wrapper"
+    // ///////////////////
+    
+    var PortalWebSocket = function(location) {
+        this._location = location;
+        this._sendQueue = [];
+        this._recvQueue = [];
+        this._recvQueueLocks = 0;
+        this._messageHandlers = {};
+        this._timeout = null;
+        this._portalSessionId = sessionStorage.getItem("org.jgrapes.portal.sessionId");
+        if (!this._portalSessionId) {
+            this._portalSessionId = generateUUID();
+            sessionStorage.setItem("org.jgrapes.portal.sessionId", this._portalSessionId);
+        }
+    };
+
+    PortalWebSocket.prototype.portalSessionId = function() {
+        return this._portalSessionId;
+    };
+    
+    PortalWebSocket.prototype._connect = function() {
+        this._ws = new WebSocket(this._location);
+        if (this._ws.readyState === 3) {
+            this._initiateReconnect();
+            return;
+        }
+        let self = this;
+        this._ws.onopen = function() {
+            self._ws.send(JSON.stringify({"jsonrpc": "2.0", "method": "connect",
+                "params": [ self._portalSessionId ]}));
+            self._drainSendQueue();
+        }
+        this._ws.onclose = function(event) {
+            self._initiateReconnect();
+        }
+        this._ws.onerror = function(event) {
+            self._initiateReconnect();
+        }
+        this._ws.onmessage = function(event) {
+            var msg = JSON.parse(event.data);
+            self._recvQueue.push(msg);
+            if (self._recvQueue.length === 1) {
+                self._handleMessages();
+            }
+        }
+    }
+
+    PortalWebSocket.prototype.connect = function() {
+        this._connect();
+    } 
+    
+    PortalWebSocket.prototype.close = function() {
+        this.send({"jsonrpc": "2.0", "method": "disconnect",
+            "params": [ this._portalSessionId ]});
+        this._ws.close();
+    }
+
+    PortalWebSocket.prototype._initiateReconnect = function() {
+        if (!this._timeout) {
+            let self = this;
+            this._timeout = setTimeout(function() {
+                self._timeout = null;
+                self._connect();
+            })
+        }
+    }
+    
+    PortalWebSocket.prototype._drainSendQueue = function() {
+        while (this._ws.readyState == 1 && this._sendQueue.length > 0) {
+            let msg = this._sendQueue[0];
+            try {
+                this._ws.send(msg);
+                this._sendQueue.shift();
+            } catch (e) {
+                log.warn(e);
+            }
+        }
+    }
+    
+    PortalWebSocket.prototype.send = function(data) {
+        this._sendQueue.push(JSON.stringify(data));
+        this._drainSendQueue();
+    }
+
+    PortalWebSocket.prototype.addMessageHandler = function(method, handler) {
+        this._messageHandlers[method] = handler;
+    }
+    
+    PortalWebSocket.prototype._handleMessages = function() {
+        while (true) {
+            if (this._recvQueue.length === 0 || this._recvQueueLocks > 0) {
+                break;
+            }
+            var message = this._recvQueue.shift(); 
+            var handler = this._messageHandlers[message.method];
+            if (!handler) {
+                log.error("No handler for invoked method " + message.method);
+                continue;
+            }
+            if (message.hasOwnProperty("params")) {
+                handler(...message.params);
+            } else {
+                handler();
+            }
+        }
+    };
+    
+    PortalWebSocket.prototype.lockMessageReceiver = function() {
+        this._recvQueueLocks += 1;
+    }
+    
+    PortalWebSocket.prototype.unlockMessageReceiver = function() {
+        this._recvQueueLocks -= 1;
+        if (this._recvQueueLocks == 0) {
+            this._handleMessages();
+        }
+    }
+    
+    var wsLoc = (window.location.protocol === "https:" ? "wss:" : "ws") +
+        "//" + window.location.host + window.location.pathname;
+    
+    var webSocketConnection = new PortalWebSocket(wsLoc);
+    JGPortal.lockMessageQueue = function() {
+        webSocketConnection.lockMessageReceiver();
+    }
+    JGPortal.unlockMessageQueue = function() {
+        webSocketConnection.unlockMessageReceiver();
+    }
+
+    // Portal handlers/functions
+    
+    webSocketConnection.addMessageHandler('lastPortalLayout',
+        function(previewLayout, tabsLayout) {
+            lastPreviewLayout = previewLayout;
+            lastTabsLayout = tabsLayout;
+        });
+    
+    webSocketConnection.addMessageHandler('reload',
+        function() { 
+            window.location.reload(true);
+        });
     
     JGPortal.registerPortletMethod = function(portletClass, methodName, method) {
         let classRegistry = portletFunctionRegistry[portletClass];
@@ -47,48 +205,51 @@ var JGPortal = {
         }
         classRegistry[methodName] = method;
     }
-    
-    function invokePortletMethod(portletClass, portletId, method, params) {
-        var f = portletFunctionRegistry[portletClass][method];
-        if (f) {
-            f(portletId, params);
-        }
-    }
 
-    function portalConfigured() {
-        portalIsConfigured = true;
-        layoutChanged();
-        $("body").faLoading('remove');
-    }
+    webSocketConnection.addMessageHandler('invokePortletMethod',
+        function invokePortletMethod(portletClass, portletId, method, params) {
+            var f = portletFunctionRegistry[portletClass][method];
+            if (f) {
+                f(portletId, params);
+            }
+        });
+
+    webSocketConnection.addMessageHandler('portalConfigured',
+        function portalConfigured() {
+            portalIsConfigured = true;
+            layoutChanged();
+            $("body").faLoading('remove');
+        });
     
-    function addPortletType(portletType, displayName, cssUris, scriptUris,
-            isInstantiable) {
-        for (let index in cssUris) {
-            let uri = cssUris[index];
-            if ($("head > link[href='" + uri + "']").length === 0) {
-                $("head link[href$='/portal.css']:last").after("<link rel='stylesheet' href='" + uri + "'>");
+    webSocketConnection.addMessageHandler('addPortletType',
+        function addPortletType(portletType, displayName, cssUris, scriptUris,
+                isInstantiable) {
+            for (let index in cssUris) {
+                let uri = cssUris[index];
+                if ($("head > link[href='" + uri + "']").length === 0) {
+                    $("head link[href$='/portal.css']:last").after("<link rel='stylesheet' href='" + uri + "'>");
+                }
             }
-        }
-        // Don't use jquery, https://stackoverflow.com/questions/610995/cant-append-script-element
-        for (let index in scriptUris) {
-            let uri = scriptUris[index];
-            if ($("head > script[src='" + uri + "']").length === 0) {
-                let script = document.createElement("script");
-                script.src = uri;
-                JGPortal.lockMessageQueue();
-                script.addEventListener('load', function() {
-                    JGPortal.unlockMessageQueue();
-                });
-                let head = $("head").get()[0];
-                head.appendChild(script);
+            // Don't use jquery, https://stackoverflow.com/questions/610995/cant-append-script-element
+            for (let index in scriptUris) {
+                let uri = scriptUris[index];
+                if ($("head > script[src='" + uri + "']").length === 0) {
+                    let script = document.createElement("script");
+                    script.src = uri;
+                    JGPortal.lockMessageQueue();
+                    script.addEventListener('load', function() {
+                        JGPortal.unlockMessageQueue();
+                    });
+                    let head = $("head").get()[0];
+                    head.appendChild(script);
+                }
             }
-        }
-        // Add to menu
-        let item = $('<li class="ui-menu-item">'
-                + '<div class="ui-menu-item-wrapper" data-portlet-type="' 
-                + portletType + '">' + displayName + '</div></li>');
-        $("#addon-menu-list").append(item);
-    };
+            // Add to menu
+            let item = $('<li class="ui-menu-item">'
+                    + '<div class="ui-menu-item-wrapper" data-portlet-type="' 
+                    + portletType + '">' + displayName + '</div></li>');
+            $("#addon-menu-list").append(item);
+        });
 
     function findPortletPreview(portletId) {
         let matches = $( ".portlet[data-portlet-id='" + portletId + "']" );
@@ -264,127 +425,78 @@ var JGPortal = {
 		}
     }
 	
-	function updatePortlet(portletId, mode, modes, content, foreground) {
-		if (mode === "Preview" || mode === "DeleteablePreview") {
-			updatePreview(portletId, modes, content, foreground);
-		} else if (mode === "View") {
-			updateView(portletId, modes, content, foreground);
-		}
-	};
+    webSocketConnection.addMessageHandler('updatePortlet',
+	    function updatePortlet(portletId, mode, modes, content, foreground) {
+		    if (mode === "Preview" || mode === "DeleteablePreview") {
+		        updatePreview(portletId, modes, content, foreground);
+		    } else if (mode === "View") {
+		        updateView(portletId, modes, content, foreground);
+		    }
+	    });
 
-	function deletePortlet(portletId) {
-        let portletView = findPortletView(portletId);
-        if (portletView) {
-            let panelId = portletView.closest(".ui-tabs-panel").remove().attr("id");
-            let tabs = $( "#tabs" ).tabs();
-            tabs.find("li[aria-controls='" + panelId + "']").remove();
-            $( "#tabs" ).tabs().tabs( "refresh" );
-        }
-        let portlet = findPortletPreview(portletId);
-        if (portlet) {
-            portlet.remove();
-        }
-        layoutChanged();
-	}
-
-	function retrieveLocalData(path) {
-	    let result = [];
-	    try {
-	        for(let i = 0; i < localStorage.length; i++) {
-	            let key = localStorage.key(i);
-	            if (!path.endsWith("/")) {
-	                if (key !== path) {
-	                    continue;
-	                }
-	            } else {
-	                if (!key.startsWith(path)) {
-	                    continue;
-	                }
-	            }
-	            let value = localStorage.getItem(key);
-	            result.push([ key, value ])
-	        }
-	    } catch (e) {
-	    }
-	    JGPortal.sendLocalData(result);
-	}
-	
-    function storeLocalData(actions) {
-        try {
-            for (let i in actions) {
-                let action = actions[i];
-                if (action[0] === "u") {
-                    localStorage.setItem(action[1], action[2]);
-                } else if (action[0] === "d") {
-                    localStorage.removeItem(action[1]);
-                }
+    webSocketConnection.addMessageHandler('deletePortlet',
+        function deletePortlet(portletId) {
+            let portletView = findPortletView(portletId);
+            if (portletView) {
+                let panelId = portletView.closest(".ui-tabs-panel").remove().attr("id");
+                let tabs = $( "#tabs" ).tabs();
+                tabs.find("li[aria-controls='" + panelId + "']").remove();
+                $( "#tabs" ).tabs().tabs( "refresh" );
             }
-        } catch (e) {
-        }
-    }
-    
-	var pendingResourcesCallbacks = 0;
-	
-	var messageHandlers = {
-	    'addPortletType': addPortletType,
-        'deletePortlet': deletePortlet,
-	    'invokePortletMethod': invokePortletMethod,
-	    'lastPortalLayout': function(previewLayout, tabsLayout) {
-	        lastPreviewLayout = previewLayout;
-	        lastTabsLayout = tabsLayout;
-	    },
-	    'portalConfigured': portalConfigured,
-		'reload': function() { window.location.reload(true); },
-        'retrieveLocalData': retrieveLocalData,
-		'storeLocalData': storeLocalData,
-        'updatePortlet': updatePortlet,
-	};
-	
-	var messageQueue = [];
-	var messageQueueLocks = 0;
-	
-	function handleMessages () {
-	    while (true) {
-	        if (messageQueue.length === 0 || messageQueueLocks > 0) {
-	            break;
-	        }
-	        var message = messageQueue.shift(); 
-	        var handler = messageHandlers[message.method];
-	        if (!handler) {
-	            log.error("No handler for invoked method " + message.method);
-	            continue;
-	        }
-	        if (message.hasOwnProperty("params")) {
-	            handler(...message.params);
-	        } else {
-	            handler();
-	        }
-	    }
-	};
+            let portlet = findPortletPreview(portletId);
+            if (portlet) {
+                portlet.remove();
+            }
+            layoutChanged();
+	    });
 
-	JGPortal.lockMessageQueue = function() {
-	    messageQueueLocks += 1;
-	}
+    webSocketConnection.addMessageHandler('retrieveLocalData',
+	    function retrieveLocalData(path) {
+	        let result = [];
+	        try {
+	            for(let i = 0; i < localStorage.length; i++) {
+	                let key = localStorage.key(i);
+	                if (!path.endsWith("/")) {
+	                    if (key !== path) {
+	                        continue;
+	                    }
+	                } else {
+	                    if (!key.startsWith(path)) {
+	                        continue;
+	                    }
+	                }
+	                let value = localStorage.getItem(key);
+	                result.push([ key, value ])
+	            }
+	        } catch (e) {
+	            log.error(e);
+	        }
+	        JGPortal.sendLocalData(result);
+	    });
 	
-    JGPortal.unlockMessageQueue = function() {
-        messageQueueLocks -= 1;
-        if (messageQueueLocks == 0) {
-            handleMessages();
-        }
-    }
+    webSocketConnection.addMessageHandler('storeLocalData',
+        function storeLocalData(actions) {
+            try {
+                for (let i in actions) {
+                    let action = actions[i];
+                    if (action[0] === "u") {
+                        localStorage.setItem(action[1], action[2]);
+                    } else if (action[0] === "d") {
+                        localStorage.removeItem(action[1]);
+                    }
+                }
+            } catch (e) {
+                log.error(e);
+            }
+        });
     
-	JGPortal.handleMessage = function(message) {
-	    messageQueue.push(message);
-	    if (messageQueue.length === 1) {
-	        handleMessages();
-	    }
-    };
-	
-	var wsLoc = (window.location.protocol === "https:" ? "wss:" : "ws") +
-		"//" + window.location.host + window.location.pathname;
-	var webSocketConnection = $.simpleWebSocket({ "url": wsLoc })
-			.listen(JGPortal.handleMessage);
+    // Everything set up, connect web socket
 	webSocketConnection.connect();
+
+	$( window ).on("unload", function() {
+	    webSocketConnection.close();
+	});
+	
 
 	JGPortal.sendPortalReady = function() {
 		webSocketConnection.send({"jsonrpc": "2.0", "method": "portalReady"});

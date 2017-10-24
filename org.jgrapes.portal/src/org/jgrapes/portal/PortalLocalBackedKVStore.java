@@ -32,7 +32,6 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.portal.events.JsonInput;
 import org.jgrapes.portal.events.JsonOutput;
 import org.jgrapes.portal.events.PortalReady;
@@ -82,7 +81,7 @@ public class PortalLocalBackedKVStore extends Component {
 	}
 	
 	@Handler
-	public void onJsonInput(JsonInput event, LinkedIOSubchannel channel) 
+	public void onJsonInput(JsonInput event, IOSubchannel channel) 
 			throws InterruptedException, IOException {
 		if (!event.method().equals("retrievedLocalData")) {
 			return;
@@ -109,7 +108,7 @@ public class PortalLocalBackedKVStore extends Component {
 		
 	@Handler
 	public void onKeyValueStoreUpdate(
-			KeyValueStoreUpdate event, LinkedIOSubchannel channel) 
+			KeyValueStoreUpdate event, IOSubchannel channel) 
 					throws InterruptedException, IOException {
 		List<String[]> actions = new ArrayList<>();
 		String keyStart = portalPrefix 

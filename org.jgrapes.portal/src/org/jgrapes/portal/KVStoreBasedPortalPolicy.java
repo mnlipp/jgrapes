@@ -34,7 +34,6 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.portal.events.LastPortalLayout;
 import org.jgrapes.portal.events.PortalLayoutChanged;
 import org.jgrapes.portal.events.PortalPrepared;
@@ -124,57 +123,53 @@ public class KVStoreBasedPortalPolicy extends Component {
 
 	/**
 	 * Intercept the {@link PortalReady} event. Request the 
-	 * session data from the portal and resume.
+	 * session data from the key/value store and resume.
 	 * 
 	 * @param event
 	 * @param channel
 	 * @throws InterruptedException
 	 */
 	@Handler
-	public void onPortalReady(PortalReady event, IOSubchannel channel) 
+	public void onPortalReady(PortalReady event, PortalSession channel) 
 			throws InterruptedException {
-		Optional<PortalSession> session = lookupPortalSession(channel);
-		if(session.isPresent()) {
-			session.get().onPortalReady(event, channel);
-		}
+		PortalSessionDataStore sessionDs = channel.associated(
+				PortalSessionDataStore.class, 
+				() -> new PortalSessionDataStore(channel.browserSession()));
+		sessionDs.onPortalReady(event, channel);
 	}
 
 	@Handler
 	public void onKeyValueStoreData(
-			KeyValueStoreData event, IOSubchannel channel) 
+			KeyValueStoreData event, PortalSession channel) 
 					throws JsonDecodeException {
-		Optional<PortalSession> optSession = lookupPortalSession(channel);
-		if (optSession.isPresent()) {
-			optSession.get().onKeyValueStoreData(event, channel);
+		Optional<PortalSessionDataStore> optSessionDs 
+			= channel.associated(PortalSessionDataStore.class);
+		if (optSessionDs.isPresent()) {
+			optSessionDs.get().onKeyValueStoreData(event, channel);
 		}
 	}
 
 	@Handler
-	public void onPortalPrepared(PortalPrepared event, IOSubchannel channel) {
-		lookupPortalSession(channel).ifPresent(
+	public void onPortalPrepared(
+			PortalPrepared event, PortalSession channel) {
+		channel.associated(PortalSessionDataStore.class).ifPresent(
 				ps -> ps.onPortalPrepared(event, channel));
 	}
 
 	@Handler
 	public void onPortalLayoutChanged(PortalLayoutChanged event, 
-			LinkedIOSubchannel channel) {
-		lookupPortalSession(channel).ifPresent(
+			PortalSession channel) {
+		channel.associated(PortalSessionDataStore.class).ifPresent(
 				ps -> ps.onPortalLayoutChanged(event, channel));
 	}
 	
-	private Optional<PortalSession> lookupPortalSession(IOSubchannel channel) {
-		return channel.associated(Session.class).map(
-				session -> channel.associated(PortalSession.class, 
-						() -> new PortalSession(session)));
-	}
-	
-	private class PortalSession {
+	private class PortalSessionDataStore {
 
 		private String storagePath;
 		private CompletionLock readyLock;
 		private Map<String,Object> persisted = null;
 		
-		public PortalSession(Session session) {
+		public PortalSessionDataStore(Session session) {
 			storagePath = "/" 
 					+ session.getOrDefault(Principal.class, "").toString()
 					+ "/" + KVStoreBasedPortalPolicy.class.getName();

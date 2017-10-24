@@ -55,11 +55,15 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 import javax.json.Json;
+import javax.json.JsonObject;
 import javax.json.JsonReader;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
@@ -74,7 +78,6 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.core.events.Error;
 import org.jgrapes.http.LanguageSelector.Selection;
 import org.jgrapes.http.Session;
 import org.jgrapes.http.annotation.RequestHandler;
@@ -120,7 +123,6 @@ public class PortalView extends Component {
 	private Map<String,Object> portalBaseModel;
 	private RenderSupport renderSupport = new RenderSupportImpl();
 	private boolean useMinifiedResources = true;
-
 
 	/**
 	 * @param componentChannel
@@ -239,7 +241,7 @@ public class PortalView extends Component {
 		return renderSupport;
 	}
 	
-	private LinkedIOSubchannel portalChannel(IOSubchannel channel) {
+	private IOSubchannel portalChannel(IOSubchannel channel) {
 		@SuppressWarnings("unchecked")
 		Optional<LinkedIOSubchannel> portalChannel
 			= (Optional<LinkedIOSubchannel>)LinkedIOSubchannel
@@ -288,7 +290,7 @@ public class PortalView extends Component {
 					HttpField.UPGRADE, Converters.STRING_LIST)
 					.map(f -> f.value().containsIgnoreCase("websocket"))
 					.orElse(false)) {
-				channel.setAssociated(this, new PortalInfo());
+				channel.setAssociated(this, new WsInputReader());
 				channel.respond(new WebSocketAccepted(event));
 				event.stop();
 				return;
@@ -494,26 +496,60 @@ public class PortalView extends Component {
 	}
 	
 	@Handler
-	public void onInput(Input<ManagedCharBuffer> event, IOSubchannel channel)
+	public void onInput(Input<ManagedCharBuffer> event, IOSubchannel wsChannel)
 			throws IOException {
-		Optional<PortalInfo> optPortalInfo 
-			= channel.associated(this, PortalInfo.class);
-		if (!optPortalInfo.isPresent()) {
+		Optional<WsInputReader> optWsInputReader 
+			= wsChannel.associated(this, WsInputReader.class);
+		if (!optWsInputReader.isPresent()) {
 			return;
 		}
-		optPortalInfo.get().toEvent(portalChannel(channel),
-				event.buffer().backingBuffer(), event.isEndOfRecord());
+		JsonObject json = optWsInputReader.get().toJsonObject(event);
+		if (json != null) {
+			// Fully decoded JSON available.
+			Optional<PortalSession> psc = wsChannel.associated(
+					PortalSession.class);
+			if (psc.isPresent()) {
+				// Portal session established, check for special disconnect
+				if ("disconnect".equals(json.getString("method"))
+						&& psc.get().portalSessionId().equals(
+								json.getJsonArray("params").getString(0))) {
+					return;
+				}
+				// Ordinary message from portal (view) to server.
+				fire(new JsonInput(json), psc.get());
+				return;
+			}
+			// No portal session established, attempt to do so?
+			if ("connect".equals(json.getString("method"))) {
+				Optional<Session> optSession = wsChannel.associated(Session.class);
+				if (!optSession.isPresent()) {
+					return;
+				}
+				String portalSessionId = json.getJsonArray("params").getString(0);
+				PortalSession channel = PortalSession
+						.findOrCreate(portalSessionId, portal)
+						.setUpstreamChannel(wsChannel)
+						.setSession(optSession.get());
+				wsChannel.setAssociated(PortalSession.class, channel);
+			}
+		}
 	}
 	
 	/**
-	 * Forward the {@link Closed} event to the portal channel.
+	 * Handles the closed event from the web socket.
 	 * 
 	 * @param event the event
 	 * @param channel the channel
 	 */
 	@Handler
-	public void onClosed(Closed event, IOSubchannel channel) {
-		fire(new Closed(), portalChannel(channel));
+	public void onClosed(Closed event, IOSubchannel wsChannel) {
+		wsChannel.associated(PortalSession.class).ifPresent(psc -> {
+			psc.upstreamChannel().ifPresent(upstream -> {
+				if (upstream.equals(wsChannel)) {
+					psc.setUpstreamChannel(null);
+				}
+			});
+		});
 	}
 	
 	@Handler(dynamic=true)
@@ -529,13 +565,9 @@ public class PortalView extends Component {
 
 	@Handler(dynamic=true)
 	public void onKeyValueStoreData(
-			KeyValueStoreData event, IOSubchannel channel) 
+			KeyValueStoreData event, PortalSession channel) 
 					throws JsonDecodeException {
-		Optional<Session> optSession = channel.associated(Session.class);
-		if (!optSession.isPresent()) {
-			return;
-		}
-		Session session = optSession.get();
+		Session session = channel.browserSession();
 		String principal = session.getOrDefault(Principal.class, "").toString();
 		if (!event.event().query().equals("/" + principal + "/themeProvider")) {
 			return;
@@ -583,74 +615,79 @@ public class PortalView extends Component {
 	}
 	
 	@Handler(dynamic=true)
-	public void onSetTheme(SetTheme event, LinkedIOSubchannel channel)
+	public void onSetTheme(SetTheme event, PortalSession channel)
 			throws InterruptedException, IOException {
 		ThemeProvider themeProvider = StreamSupport
 			.stream(themeLoader().spliterator(), false)
 			.filter(t -> t.themeId().equals(event.theme())).findFirst()
 			.orElse(baseTheme);
-		Optional<Session> optSession = channel.associated(Session.class);
-		if (optSession.isPresent()) {
-			Session session = optSession.get();
-			session.put("themeProvider", themeProvider.themeId());
-			channel.respond(new KeyValueStoreUpdate().update(
-				"/" + session.getOrDefault(Principal.class, "").toString() 
+		channel.browserSession().put("themeProvider", themeProvider.themeId());
+		channel.respond(new KeyValueStoreUpdate().update(
+				"/" + channel.browserSession().getOrDefault(Principal.class, "").toString() 
 				+ "/themeProvider", themeProvider.themeId())).get();
-		}
 		fire(new JsonOutput("reload"), channel);
 	}
 	
 	@Handler(dynamic=true)
-	public void onJsonOutput(JsonOutput event, LinkedIOSubchannel channel)
+	public void onJsonOutput(JsonOutput event, PortalSession channel)
 			throws InterruptedException, IOException {
-		IOSubchannel upstream = channel.upstreamChannel();
-		@SuppressWarnings("resource")
-		CharBufferWriter out = new CharBufferWriter(upstream, 
-				upstream.responsePipeline()).suppressClose();
-		event.toJson(out);
-		out.close();
+		Optional<IOSubchannel> optUpstream = channel.upstreamChannel();
+		if (optUpstream.isPresent()) {
+			IOSubchannel upstream = optUpstream.get();
+			@SuppressWarnings("resource")
+			CharBufferWriter out = new CharBufferWriter(upstream, 
+					upstream.responsePipeline()).suppressClose();
+			event.toJson(out);
+			out.close();
+		}
 	}
 	
-	private class PortalInfo {
+	private class WsInputReader {
 
 		private PipedWriter decodeWriter;
+		private Future<JsonObject> decodeResult;
 		
-		public void toEvent(IOSubchannel channel, CharBuffer buffer,
-				boolean last) throws IOException {
+		public JsonObject toJsonObject(Input<ManagedCharBuffer> event)
+						throws IOException {
+			CharBuffer buffer = event.buffer().backingBuffer();
 			if (decodeWriter == null) {
 				decodeWriter = new PipedWriter();
 				PipedReader reader = new PipedReader(
 						decodeWriter, buffer.capacity());
-				activeEventPipeline().executorService()
-					.submit(new DecodeTask(reader, channel));
+				decodeResult = activeEventPipeline().executorService()
+					.submit(new DecodeTask(reader));
 			}
 			decodeWriter.append(buffer);
-			if (last) {
+			if (event.isEndOfRecord()) {
 				decodeWriter.close();
 				decodeWriter = null;
+				try {
+					return decodeResult.get();
+				} catch (ExecutionException e) {
+					if (e.getCause() instanceof IOException) {
+						throw (IOException)e.getCause();
+					}
+					throw new IOException(e);
+				} catch (InterruptedException e) {
+					throw new IOException(e);
+				}
 			}
+			return null;
 		}
 		
-		private class DecodeTask implements Runnable {
+		private class DecodeTask implements Callable<JsonObject> {
 
-			IOSubchannel channel;
 			private Reader reader;
 			
-			public DecodeTask(Reader reader, IOSubchannel channel) {
+			public DecodeTask(Reader reader) {
 				this.reader = reader;
-				this.channel = channel;
 			}
 
-			/* (non-Javadoc)
-			 * @see java.lang.Runnable#run()
-			 */
 			@Override
-			public void run() {
+			public JsonObject call() throws IOException {
 				try (Reader in = reader) {
 					JsonReader reader = Json.createReader(in);
-					fire(new JsonInput(reader.readObject()), channel);
-				} catch (Throwable e) {
-					fire(new Error(null, e));
+					return reader.readObject();
 				}
 			}
 		}

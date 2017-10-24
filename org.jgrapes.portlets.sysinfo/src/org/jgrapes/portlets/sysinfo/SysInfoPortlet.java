@@ -24,6 +24,7 @@ import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
@@ -70,16 +71,16 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 	 * {@link Manager#fire(Event, Channel...)} sends the event to 
 	 */
 	public SysInfoPortlet(Channel componentChannel) {
-		super(componentChannel);
+		super(componentChannel, true);
 	}
 
 	@Handler
-	public void onPortalReady(PortalReady event, IOSubchannel channel) 
+	public void onPortalReady(PortalReady event, PortalSession portalSession) 
 			throws TemplateNotFoundException, MalformedTemplateNameException, 
 			ParseException, IOException {
-		ResourceBundle resourceBundle = resourceBundle(locale(channel));
+		ResourceBundle resourceBundle = resourceBundle(portalSession.locale());
 		// Add SysInfoPortlet resources to page
-		channel.respond(new AddPortletType(type())
+		portalSession.respond(new AddPortletType(type())
 				.setDisplayName(resourceBundle.getString("portletName"))
 				.addScript(PortalView.uriFromPath("SysInfo-functions.js"))
 				.addCss(PortalView.uriFromPath("SysInfo-style.css"))
@@ -108,50 +109,50 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 	}
 
 	@Override
-	public SysInfoModel doAddPortlet(AddPortletRequest event,
-			IOSubchannel channel, Session session) throws Exception {
+	public String doAddPortlet(AddPortletRequest event,
+			PortalSession portalSession) throws Exception {
 		String portletId = generatePortletId();
 		SysInfoModel portletModel = putInSession(
-				session, new SysInfoModel(portletId));
+				portalSession.browserSession(), new SysInfoModel(portletId));
 		Template tpl = freemarkerConfig().getTemplate("SysInfo-preview.ftlh");
-		channel.respond(new RenderPortlet(
+		portalSession.respond(new RenderPortlet(
 				SysInfoPortlet.class, portletModel.getPortletId(),
 				DeleteablePreview, MODES, true, templateProcessor(tpl, 
-						fmModel(event, channel, portletModel))));
-		updateView(channel, portletModel, locale(channel));
+						fmModel(event, portalSession, portletModel))));
+		updateView(portalSession, portletId, portalSession.locale());
 		if (updateThread == null) {
 			updateThread = new UpdateThread();
 		}
-		return portletModel;
+		return portletId;
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.jgrapes.portal.AbstractPortlet#doRenderPortlet(org.jgrapes.portal.events.RenderPortletRequest, org.jgrapes.io.IOSubchannel, org.jgrapes.portal.AbstractPortlet.PortletModelBean)
 	 */
 	@Override
-	protected SysInfoModel doRenderPortlet(RenderPortletRequest event,
-	        IOSubchannel channel, Session session, 
-	        String portletId, Serializable retrievedState) throws Exception {
+	protected void doRenderPortlet(RenderPortletRequest event,
+	        PortalSession portalSession, String portletId, 
+	        Serializable retrievedState) throws Exception {
 		SysInfoModel portletModel = (SysInfoModel)retrievedState;
-		Locale locale = locale(channel);
+		Locale locale = portalSession.locale();
 		switch (event.renderMode()) {
 		case Preview:
 		case DeleteablePreview: {
 			Template tpl = freemarkerConfig().getTemplate("SysInfo-preview.ftlh");
-			channel.respond(new RenderPortlet(
+			portalSession.respond(new RenderPortlet(
 					SysInfoPortlet.class, portletModel.getPortletId(), 
 					DeleteablePreview, MODES,	event.isForeground(),
 					templateProcessor(
-							tpl, fmModel(event, channel, portletModel))));
-			updateView(channel, portletModel, locale);
+							tpl, fmModel(event, portalSession, portletModel))));
+			updateView(portalSession, portletModel.getPortletId(), locale);
 			break;
 		}
 		case View: {
 			Template tpl = freemarkerConfig().getTemplate("SysInfo-view.ftlh");
-			channel.respond(new RenderPortlet(
+			portalSession.respond(new RenderPortlet(
 					SysInfoPortlet.class, portletModel.getPortletId(), 
 					View, MODES, event.isForeground(), templateProcessor(
-							tpl, fmModel(event, channel, portletModel))));
+							tpl, fmModel(event, portalSession, portletModel))));
 			break;
 		}
 		default:
@@ -160,14 +161,13 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 		if (updateThread == null) {
 			updateThread = new UpdateThread();
 		}
-		return portletModel;
 	}
 
-	private void updateView(IOSubchannel channel, SysInfoModel portletModel,
+	private void updateView(IOSubchannel channel, String portletId,
 	        Locale locale) {
 		Runtime runtime = Runtime.getRuntime();
 		channel.respond(new NotifyPortletView(type(),
-				portletModel.getPortletId(), "updateMemorySizes",
+				portletId, "updateMemorySizes",
 				formatMemorySize(locale, runtime.maxMemory()), 
 				formatMemorySize(locale, runtime.totalMemory()), 
 				formatMemorySize(locale, runtime.freeMemory())));
@@ -178,10 +178,10 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 	 */
 	@Override
 	protected void doDeletePortlet(DeletePortletRequest event,
-	        IOSubchannel channel, Session session, 
-	        String portletId, Serializable retrievedState) throws Exception {
+	        PortalSession channel, String portletId, 
+	        Serializable retrievedState) throws Exception {
 		channel.respond(new DeletePortlet(portletId));
-		if (statesByChannel().size() == 0 && updateThread != null) {
+		if (portletIdsByPortalSession().size() == 0 && updateThread != null) {
 			updateThread.stopRunning();
 			updateThread = null;
 		}
@@ -209,16 +209,12 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 			while (running) {
 				try {
 					sleep(1000);
-					for (Map.Entry<IOSubchannel,Set<Serializable>> e:
-						statesByChannel().entrySet()) {
-						IOSubchannel channel = e.getKey();
-						Locale locale = locale(channel);
-						for (Serializable state: e.getValue()) {
-							if (!(state instanceof SysInfoModel)) {
-								continue;
-							}
-							SysInfoModel portletModel = (SysInfoModel)state;
-							updateView(channel, portletModel, locale);
+					for (Map.Entry<PortalSession,Set<String>> e:
+						portletIdsByPortalSession().entrySet()) {
+						PortalSession portalSession = e.getKey();
+						Locale locale = portalSession.locale();
+						for (String portletId: e.getValue()) {
+							updateView(portalSession, portletId, locale);
 						}
 					}
 				} catch (InterruptedException e1) {

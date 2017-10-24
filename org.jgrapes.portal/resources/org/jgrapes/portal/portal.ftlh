@@ -40,7 +40,6 @@
   <!-- Scripts(s) --> 
   <!-- JQuery and extensions -->
   <script src="${resourceUrl('portal-resource/lib/jquery-3.2.1' + minifiedExtension + '.js')}"></script>
-  <script src="${resourceUrl('portal-resource/lib/jquery.simple.websocket' + minifiedExtension + '.js')}"></script>
   <!-- JQuery UI and extensions -->
   <script src="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui' + minifiedExtension + '.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/jquery.ui.touch-punch' + minifiedExtension + '.js')}"></script>

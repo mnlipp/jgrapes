@@ -20,100 +20,85 @@ package org.jgrapes.http;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jgrapes.http.LanguageSelector.Selection;
 
 /**
- * Represents a session.
+ * Represents a browser session. Session objects are used to store
+ * data related to the browser session. Servers with a small number
+ * of clients usually keep session objects and the associated data
+ * in memory. Servers with a large number of clients may choose to
+ * only keep a LRU cache of session objects in memory and swap
+ * out (persist) other session objects. Therefore the keys and
+ * values stored using a session object must be serializable.
+ * 
+ * Occasionally, data associated with a session object is already
+ * persisted anyway, because its lifetime is beyond that of a session.
+ * To avoid persisting such data twice, the session provides a special
+ * area for "transient data". If components choose to store data
+ * in this area, they must always check before use if the data is
+ * available and recover it if necessary. Using this approach, the
+ * components automatically profit from the LRU caching mechanism
+ * provided by the session manager. As an alternative, components
+ * can use the session {@link #id()} as key to manage the data
+ * on their own.
+ * 
+ * Implementations should override {@link Object#hashCode()}
+ * and {@link Object#equals(Object)} in such a way
+ * that the session id is the only relevant attribute (cannot be
+ * done by default methods of the interface).
  */
-@SuppressWarnings("serial")
-public class Session extends HashMap<Serializable, Serializable> {
-
-	private String id;
-	private Instant createdAt;
-	private Instant lastUsedAt;
-	
-	/**
-	 * Create a new session.
-	 */
-	public Session(String id) {
-		this.id = id;
-		createdAt = Instant.now();
-		lastUsedAt = createdAt;
-	}
+public interface Session extends Map<Serializable, Serializable> {
 
 	/**
 	 * Returns the session id.
 	 * 
 	 * @return the id
 	 */
-	public String id() {
-		return id;
-	}
+	String id();
 	
 	/**
 	 * Returns the creation time stamp.
 	 * 
 	 * @return the creation time stamp
 	 */
-	public Instant createdAt() {
-		return createdAt;
-	}
+	Instant createdAt();
 
 	/**
 	 * Returns the last used (referenced in request) time stamp. 
 	 * 
 	 * @return the last used timestamp
 	 */
-	public Instant lastUsedAt() {
-		return lastUsedAt;
-	}
+	Instant lastUsedAt();
 
 	/**
 	 * Updates the last used time stamp.
 	 */
-	void updateLastUsedAt() {
-		this.lastUsedAt = Instant.now();
-	}
+	void updateLastUsedAt();
 
+	/**
+	 * Return the storage area for transient data. Usually implemented
+	 * by a {@link ConcurrentHashMap}. Other implementations must
+	 * at least provide the same support for concurrency as 
+	 * {@link ConcurrentHashMap}.
+	 * 
+	 * @return the storage area
+	 */
+	Map<?,?> transientData();
+	
 	/**
 	 * Convenience method for retrieving the locale 
 	 * set by {@link LanguageSelector} from the session.
 	 * 
 	 * @return the locale
 	 */
-	public Locale locale() {
+	default Locale locale() {
 		return Optional.ofNullable((Selection)get(Selection.class))
 				.map(selection -> selection.get()[0]).orElse(Locale.getDefault());
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return id.hashCode();
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		Session other = (Session) obj;
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
-			return false;
-		}
-		return true;
-	}
 }
