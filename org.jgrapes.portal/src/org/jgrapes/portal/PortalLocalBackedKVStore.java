@@ -31,7 +31,6 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.events.JsonInput;
 import org.jgrapes.portal.events.JsonOutput;
 import org.jgrapes.portal.events.PortalReady;
@@ -47,8 +46,6 @@ import org.jgrapes.util.events.KeyValueStoreUpdate.Update;
 public class PortalLocalBackedKVStore extends Component {
 
 	private String portalPrefix;
-	boolean retrieved = false;
-	private Map<String,String> data = new HashMap<>();
 	
 	/**
 	 * Create a new key/value store that uses the browser's local storage
@@ -67,9 +64,10 @@ public class PortalLocalBackedKVStore extends Component {
 	}
 
 	@Handler(priority=1000)
-	public void onPortalReady(PortalReady event, IOSubchannel channel) 
+	public void onPortalReady(PortalReady event, PortalSession channel) 
 			throws InterruptedException {
-		if (retrieved) {
+		if (channel.browserSession().containsKey(
+				PortalLocalBackedKVStore.class)) {
 			return;
 		}
 		// Remove portal ready event from queue and save it
@@ -81,11 +79,15 @@ public class PortalLocalBackedKVStore extends Component {
 	}
 	
 	@Handler
-	public void onJsonInput(JsonInput event, IOSubchannel channel) 
+	public void onJsonInput(JsonInput event, PortalSession channel) 
 			throws InterruptedException, IOException {
 		if (!event.method().equals("retrievedLocalData")) {
 			return;
 		}
+		@SuppressWarnings("unchecked")
+		Map<String,String> data = (Map<String,String>)channel
+			.browserSession().computeIfAbsent(
+					PortalLocalBackedKVStore.class, k -> new HashMap<>());
 		final String keyStart = portalPrefix 
 				+ PortalLocalBackedKVStore.class.getName() + "/";
 		channel.associated(PortalLocalBackedKVStore.class, PortalReady.class)
@@ -99,7 +101,6 @@ public class PortalLocalBackedKVStore extends Component {
 								keyStart.length() - 1), kvPair.getString(1));
 					}
 				});
-				retrieved = true;
 				channel.setAssociated(PortalLocalBackedKVStore.class, null);
 				// Let others process the portal ready event
 				fire(new PortalReady(origEvent.renderSupport()), channel);
@@ -108,8 +109,12 @@ public class PortalLocalBackedKVStore extends Component {
 		
 	@Handler
 	public void onKeyValueStoreUpdate(
-			KeyValueStoreUpdate event, IOSubchannel channel) 
+			KeyValueStoreUpdate event, PortalSession channel) 
 					throws InterruptedException, IOException {
+		@SuppressWarnings("unchecked")
+		Map<String,String> data = (Map<String,String>)channel
+			.browserSession().computeIfAbsent(
+					PortalLocalBackedKVStore.class,	k -> new HashMap<>());
 		List<String[]> actions = new ArrayList<>();
 		String keyStart = portalPrefix 
 				+ PortalLocalBackedKVStore.class.getName();
@@ -130,17 +135,23 @@ public class PortalLocalBackedKVStore extends Component {
 	}
 
 	@Handler
-	public void onKeyValueStoreQuery(KeyValueStoreQuery event) {
+	public void onKeyValueStoreQuery(
+			KeyValueStoreQuery event, PortalSession channel) {
 		Map<String,String> result = new HashMap<>();
-		if (!event.query().endsWith("/")) {
-			// Single value
-			if (data.containsKey(event.query())) {
-				result.put(event.query(), data.get(event.query()));
-			}
-		} else {
-			for (Map.Entry<String, String> e: data.entrySet()) {
-				if (e.getKey().startsWith(event.query())) {
-					result.put(e.getKey(), e.getValue());
+		@SuppressWarnings("unchecked")
+		Map<String,String> data = (Map<String,String>)channel
+			.browserSession().get(PortalLocalBackedKVStore.class);
+		if (data != null) {
+			if (!event.query().endsWith("/")) {
+				// Single value
+				if (data.containsKey(event.query())) {
+					result.put(event.query(), data.get(event.query()));
+				}
+			} else {
+				for (Map.Entry<String, String> e: data.entrySet()) {
+					if (e.getKey().startsWith(event.query())) {
+						result.put(e.getKey(), e.getValue());
+					}
 				}
 			}
 		}
