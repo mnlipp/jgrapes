@@ -553,10 +553,9 @@ public class PortalView extends Component {
 	}
 	
 	@Handler(dynamic=true)
-	public void onPortalReady(PortalReady event, IOSubchannel channel) {
-		String principal = channel.associated(Session.class).map(session ->
-				session.getOrDefault(Principal.class, "").toString())
-				.orElse("");
+	public void onPortalReady(PortalReady event, PortalSession channel) {
+		String principal = 	channel.browserSession()
+				.getOrDefault(Principal.class, "").toString();
 		KeyValueStoreQuery query = new KeyValueStoreQuery(
 				"/" + principal + "/themeProvider", true);
 		channel.setAssociated(this, new CompletionLock(event, 3000));
