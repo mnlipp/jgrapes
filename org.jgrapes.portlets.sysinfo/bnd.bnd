@@ -3,6 +3,7 @@ Bundle-SymbolicName: org.jgrapes.portlets.sysinfo
 Bundle-Version: 0.9.1.${tstamp}
 Bundle-Copyright: Michael N. Lipp (c) 2017
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
+Export-Package: org.jgrapes.portlets.sysinfo
 
 base_version = ${versionmask;===;${Bundle-Version}}
 api_version = 0.1.0.${tstamp}
