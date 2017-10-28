@@ -43,4 +43,30 @@ class SchedulerTest extends Specification {
 		hit2;
 	}
 
+	void "Scheduler Reschedule Test"() {
+		setup: "Initialize controlled variables"
+		boolean hit1 = false;
+		
+		when: "Schedule and wait for before hit"
+		Timer timer = Components.schedule({ expiredTimer -> hit1 = true },
+			Instant.now().plusMillis(500));
+		Thread.sleep(250);
+		
+		then: "Not hit"
+		!hit1;
+		
+		when: "Reschedule and wait after initial timeout"
+		timer.reschedule(Instant.now().plusMillis(750))
+		Thread.sleep(500);
+		
+		then:
+		!hit1;
+		
+		when: "Wait for timeout"
+		Thread.sleep(500);
+		
+		then: "Hit"
+		hit1;
+	}
+
 }

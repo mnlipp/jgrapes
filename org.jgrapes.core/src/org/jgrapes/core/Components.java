@@ -277,6 +277,24 @@ public class Components {
 		}
 
 		/**
+		 * Reschedules the timer for the given instant.
+		 * 
+		 * @param scheduledFor the instant
+		 */
+		public void reschedule(Instant scheduledFor) {
+			scheduler.reschedule(this, scheduledFor);
+		}
+
+		/**
+		 * Reschedules the timer for the given duration after now.
+		 * 
+		 * @param scheduledFor the timeout
+		 */
+		public void reschedule(Duration scheduledFor) {
+			reschedule(Instant.now().plus(scheduledFor));			
+		}
+		
+		/**
 		 * Returns the timeout handler of this timer.
 		 * 
 		 * @return the handler
@@ -325,6 +343,15 @@ public class Components {
 				notify();
 			}
 			return timer;
+		}
+
+		private void reschedule(Timer timer, Instant scheduledFor) {
+			synchronized (this) {
+				timers.remove(timer);
+				timer.scheduledFor = scheduledFor;
+				timers.add(timer);
+				notify();
+			}
 		}
 		
 		private void cancel(Timer timer) {
