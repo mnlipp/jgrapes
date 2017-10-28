@@ -19,7 +19,6 @@
 package org.jgrapes.portal.freemarker;
 
 import freemarker.template.Configuration;
-import freemarker.template.SimpleNumber;
 import freemarker.template.SimpleScalar;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -51,7 +50,6 @@ import org.jgrapes.portal.AbstractPortlet.PortletBaseModel;
 import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.RenderSupport;
-import org.jgrapes.portal.Utils;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.RenderPortletRequest;
