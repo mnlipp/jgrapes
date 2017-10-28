@@ -172,19 +172,6 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 				return key;
 			}
 		});
-		model.put("formatMemorySize", new TemplateMethodModelEx() {
-			@Override
-			public Object exec(@SuppressWarnings("rawtypes") List arguments)
-					throws TemplateModelException {
-				@SuppressWarnings("unchecked")
-				List<TemplateModel> args = (List<TemplateModel>)arguments;
-				if (!(args.get(0) instanceof SimpleNumber)) {
-					throw new TemplateModelException("Not a number.");
-				}
-				long size = ((SimpleNumber)args.get(0)).getAsNumber().longValue();
-				return Utils.formatMemorySize(locale, size);
-			}
-		});
 		return model;
 	}
 	

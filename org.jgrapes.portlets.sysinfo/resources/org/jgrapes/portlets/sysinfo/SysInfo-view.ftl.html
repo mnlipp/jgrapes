@@ -1,0 +1,44 @@
+<div data-portlet-title="${_("portletName")}" class="jgrapes-portlets-sysinfo-view">
+  <table>
+    <tbody>
+      <tr>
+        <td>${_("jre")}:</td>
+        <td>${portlet.systemProperties()["java.vendor"!""]}
+            (${portlet.systemProperties()["java.version"]!""})</td>
+      </tr>
+      <tr>
+        <td>${_("jvm")}:</td>
+        <td>${portlet.systemProperties()["java.vm.vendor"]!""}, 
+            ${portlet.systemProperties()["java.vm.name"]!""} 
+            (${portlet.systemProperties()["java.vm.version"!""]})</td>
+      </tr>
+      <tr>
+        <td>${_("os")}:</td>
+        <td>${portlet.systemProperties()["os.name"!""]}
+            (${portlet.systemProperties()["os.arch"!""]})
+            ${portlet.systemProperties()["os.version"!""]}</td>
+      </tr>
+      <tr>
+        <td>${_("maxMemory")}:</td>
+        <td class="maxMemory"></td>
+      </tr>
+      <tr>
+        <td>${_("totalMemory")}:</td>
+        <td class="totalMemory"></td>
+      </tr>
+      <tr>
+        <td>${_("freeMemory")}:</td>
+        <td class="freeMemory"></td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <div class="memoryChart-wrapper">
+    <canvas class="memoryChart"></canvas>
+  </div>
+  
+</div>
+
+<script>
+    orgJGrapesPortletsSysInfo.initMemoryChart($( '[data-portlet-id="${portlet.portletId}"] .memoryChart' ));
+</script>

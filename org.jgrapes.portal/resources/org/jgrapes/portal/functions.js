@@ -9,12 +9,6 @@ var JGPortal = {
 
 (function () {
 
-    var lastPreviewLayout = [[], [], []];
-    var lastTabsLayout = [];
-    
-    var portalIsConfigured = false;
-    var portletFunctionRegistry = {};
-
     var log = {
         debug: function(message) {
             if (console && console.debug) {
@@ -53,6 +47,50 @@ var JGPortal = {
         return uuid;
     };
 
+    /**
+     * Utility method to format a memory size to a maximum
+     * of 4 digits.
+     */
+    JGPortal.formatMemorySize = function(size, digits, lang) {
+        if (lang === undefined) {
+            lang = digits;
+            digits = -1;
+        }
+        let scale = 0;
+        while (size > 10000 && scale < 5) {
+                size = size / 1024;
+                scale += 1;
+        }
+        let unit = "PiB";
+        switch (scale) {
+        case 0:
+            unit = "B";
+            break;
+        case 1:
+            unit = "kiB";
+            break;
+        case 2:
+            unit = "MiB";
+            break;
+        case 3:
+            unit = "GiB";
+            break;
+        case 4:
+            unit = "TiB";
+            break;
+        default:
+            break;
+        }
+        if (digits >= 0) {
+            return new Intl.NumberFormat(lang, {
+                minimumFractionDigits: digits,
+                maximumFractionDigits: digits
+            }).format(size) + " " + unit;
+        }
+        return new Intl.NumberFormat(lang).format(size) + " " + unit;
+    }
+    
+    
     // ///////////////////
     // WebSocket "wrapper"
     // ///////////////////
@@ -186,6 +224,12 @@ var JGPortal = {
 
     // Portal handlers/functions
     
+    var lastPreviewLayout = [[], [], []];
+    var lastTabsLayout = [];
+    
+    var portalIsConfigured = false;
+    var portletFunctionRegistry = {};
+    
     webSocketConnection.addMessageHandler('lastPortalLayout',
         function(previewLayout, tabsLayout) {
             lastPreviewLayout = previewLayout;
@@ -208,9 +252,12 @@ var JGPortal = {
 
     webSocketConnection.addMessageHandler('invokePortletMethod',
         function invokePortletMethod(portletClass, portletId, method, params) {
-            var f = portletFunctionRegistry[portletClass][method];
-            if (f) {
-                f(portletId, params);
+            let classRegistry = portletFunctionRegistry[portletClass];
+            if (classRegistry) {
+                let f = classRegistry[method];
+                if (f) {
+                    f(portletId, params);
+                }
             }
         });
 

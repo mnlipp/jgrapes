@@ -47,6 +47,8 @@
   <script src="${resourceUrl('portal-resource/lib/datatables/datatables' + minifiedExtension + '.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/datatables/processing().js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/jquery-fa-loading-0.3/jquery.faloading' + minifiedExtension + '.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/moment-js-2.19.1/moment-with-locales' + minifiedExtension + '.js')}"></script>
+  <script src="${resourceUrl('portal-resource/lib/chart-js-2.7.0/Chart' + minifiedExtension + '.js')}"></script>
 
   <!-- Portal -->
   <script src="${resourceUrl('portal-resource/functions.js')}"></script>
