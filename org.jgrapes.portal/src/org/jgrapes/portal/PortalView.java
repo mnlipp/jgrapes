@@ -604,12 +604,11 @@ public class PortalView extends Component {
 	}
 	
 	@Handler(dynamic=true)
-	public void onSetLocale(SetLocale event, LinkedIOSubchannel channel)
+	public void onSetLocale(SetLocale event, PortalSession channel)
 			throws InterruptedException, IOException {
 		supportedLocales.stream()
 			.filter(l -> l.equals(event.locale())).findFirst()
-			.ifPresent(l ->	channel.associated(Selection.class)
-					.map(s -> s.prefer(l)));
+			.ifPresent(l ->	channel.setLocale(l));
 		fire(new JsonOutput("reload"), channel);
 	}
 	

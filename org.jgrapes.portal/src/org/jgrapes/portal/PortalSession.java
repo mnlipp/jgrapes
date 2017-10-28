@@ -152,4 +152,14 @@ public class PortalSession extends DefaultSubchannel {
 	public Locale locale() {
 		return locale;
 	}
+
+	/**
+	 * Set the locale on the upstream channel.
+	 * 
+	 * @param locale the locale to set
+	 */
+	public void setLocale(Locale locale) {
+		upstreamChannel().ifPresent(u -> 
+			u.associated(Selection.class).ifPresent(s -> s.prefer(locale)));
+	}
 }
