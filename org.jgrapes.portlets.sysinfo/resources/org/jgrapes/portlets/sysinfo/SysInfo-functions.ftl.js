@@ -8,6 +8,11 @@ var orgJGrapesPortletsSysInfo = {
     let maxMemoryData = [];
     let totalMemoryData = [];
     let freeMemoryData = [];
+    for (let i = -300; i <= 0; i++) {
+        maxMemoryData.push(NaN);
+        totalMemoryData.push(NaN);
+        freeMemoryData.push(NaN);
+    }
     
     JGPortal.registerPortletMethod(
             "org.jgrapes.portlets.sysinfo.SysInfoPortlet",
@@ -55,9 +60,6 @@ var orgJGrapesPortletsSysInfo = {
         let labels = [];
         for (let i = -300; i <= 0; i++) {
             labels.push(i + "s");
-            maxMemoryData.push(NaN);
-            totalMemoryData.push(NaN);
-            freeMemoryData.push(NaN);
         }
         let lang = chartCanvas.closest('[lang]').attr('lang') || 'en'
         var chart = new Chart(ctx, {
