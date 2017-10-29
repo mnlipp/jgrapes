@@ -21,6 +21,8 @@ package org.jgrapes.portal;
 import java.beans.ConstructorProperties;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,6 +38,8 @@ import java.util.WeakHashMap;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
+import org.jgrapes.core.Components.Timer;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
@@ -47,6 +51,7 @@ import org.jgrapes.portal.events.DeletePortletRequest;
 import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
+import org.jgrapes.portal.events.RefreshPortletViews;
 import org.jgrapes.portal.events.RenderPortletRequest;
 
 /**
@@ -71,11 +76,14 @@ import org.jgrapes.portal.events.RenderPortletRequest;
  * 
  * In addition, the class provides support for tracking the 
  * relationship between {@link PortalSession}s and the ids 
- * of portlets displayed in the portal session. 
+ * of portlets displayed in the portal session and support for
+ * periodic updates.
  */
 public abstract class AbstractPortlet extends Component {	
 
 	private Map<PortalSession,Set<String>> portletIdsByPortalSession = null;
+	private Duration refreshInterval = null;
+	private Timer refreshTimer = null;
 
 	/**
 	 * Creates a new component that listens for new events
@@ -93,6 +101,44 @@ public abstract class AbstractPortlet extends Component {
 		}
 	}
 
+	/**
+	 * If set to a value different from `null` causes periodic
+	 * {@link RefreshPortletViews} events to be generated if at least
+	 * one {@link PortalSession} is being tracked.
+	 * 
+	 * @param interval the refresh interval
+	 * @return the portlet for easy chaining
+	 */
+	public AbstractPortlet setPeriodicRefresh(Duration interval) {
+		refreshInterval = interval;
+		if (refreshTimer != null) {
+			refreshTimer.cancel();
+			refreshTimer = null;
+		}
+		updateRefresh();
+		return this;
+	}
+	
+	private void updateRefresh() {
+		if (refreshInterval == null || portletIdsByPortalSession == null
+				|| portletIdsByPortalSession.size() == 0) {
+			// At least one of the prerequisits is missing, terminate
+			if (refreshTimer != null) {
+				refreshTimer.cancel();
+				refreshTimer = null;
+			}
+			return;
+		}
+		if (refreshTimer != null) {
+			// Already running.
+			return;
+		}
+		refreshTimer = Components.schedule(t -> { 
+			fire(new RefreshPortletViews(), this);
+			t.reschedule(t.scheduledFor().plus(refreshInterval));
+		}, Instant.now().plus(refreshInterval));
+	}
+	
 	/**
 	 * Returns the portlet type. The default implementation
 	 * returns the class' name.
@@ -307,6 +353,7 @@ public abstract class AbstractPortlet extends Component {
 		String portletId = doAddPortlet(event, portalSession);
 		if (portletIdsByPortalSession != null) {
 			portletIdsOfPortalSession(portalSession).add(portletId);
+			updateRefresh();
 		}
 	}
 
@@ -358,6 +405,7 @@ public abstract class AbstractPortlet extends Component {
 					psi.remove();
 				}
 			}
+			updateRefresh();
 		}
 		event.stop();
 		doDeletePortlet(event, portalSession, event.portletId(), optPortletState.get());
@@ -403,6 +451,7 @@ public abstract class AbstractPortlet extends Component {
 		event.stop();
 		if (portletIdsByPortalSession != null) {
 			portletIdsOfPortalSession(portalSession).add(event.portletId());
+			updateRefresh();
 		}
 		doRenderPortlet(event, portalSession, event.portletId(), optPortletState.get());
 	}
@@ -469,6 +518,7 @@ public abstract class AbstractPortlet extends Component {
 	public final void onClosed(Closed event, PortalSession portalSession) {
 		if (portletIdsByPortalSession != null) {
 			portletIdsByPortalSession.remove(portalSession);
+			updateRefresh();
 		}
 		afterOnClosed(event, portalSession);
 	}

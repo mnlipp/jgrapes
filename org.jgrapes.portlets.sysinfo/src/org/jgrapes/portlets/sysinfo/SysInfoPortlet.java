@@ -24,7 +24,6 @@ import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Closed;
 import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.events.AddPortletRequest;
@@ -33,6 +32,7 @@ import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.DeletePortletRequest;
 import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalReady;
+import org.jgrapes.portal.events.RefreshPortletViews;
 import org.jgrapes.portal.events.RenderPortlet;
 import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.freemarker.FreeMarkerPortlet;
@@ -48,6 +48,7 @@ import static org.jgrapes.portal.Portlet.RenderMode.*;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -73,6 +74,8 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 	 */
 	public SysInfoPortlet(Channel componentChannel) {
 		super(componentChannel, true);
+		setPeriodicRefresh(Duration.ofSeconds(1));
+		Handler.Evaluator.add(this, "onRefreshPortletViews", this);
 	}
 
 	@Handler
@@ -121,9 +124,6 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 				DeleteablePreview, MODES, true, templateProcessor(tpl, 
 						fmModel(event, portalSession, portletModel))));
 		updateView(portalSession, portletId, portalSession.locale());
-		if (updateThread == null) {
-			updateThread = new UpdateThread();
-		}
 		return portletId;
 	}
 	
@@ -159,9 +159,6 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 		default:
 			break;
 		}
-		if (updateThread == null) {
-			updateThread = new UpdateThread();
-		}
 	}
 
 	private void updateView(IOSubchannel channel, String portletId,
@@ -180,52 +177,16 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 	        PortalSession channel, String portletId, 
 	        Serializable retrievedState) throws Exception {
 		channel.respond(new DeletePortlet(portletId));
-		if (portletIdsByPortalSession().size() == 0 && updateThread != null) {
-			updateThread.stopRunning();
-			updateThread = null;
-		}
 	}
 
-	@Override
-	public void afterOnClosed(Closed event, PortalSession channel) {
-		if (portletIdsByPortalSession().size() == 0 && updateThread != null) {
-			updateThread.stopRunning();
-			updateThread = null;
-		}
-	}
-	
-	private UpdateThread updateThread = null;
-	
-	private class UpdateThread extends Thread {
-		private boolean running = true;
-		
-		/**
-		 * 
-		 */
-		public UpdateThread() {
-			start();
-		}
-
-		public void stopRunning() {
-			running = false;
-			interrupt();
-		}
-
-		@Override
-		public void run() {
-			while (running) {
-				try {
-					sleep(1000);
-					for (Map.Entry<PortalSession,Set<String>> e:
-						portletIdsByPortalSession().entrySet()) {
-						PortalSession portalSession = e.getKey();
-						Locale locale = portalSession.locale();
-						for (String portletId: e.getValue()) {
-							updateView(portalSession, portletId, locale);
-						}
-					}
-				} catch (InterruptedException e1) {
-				}
+	@Handler(dynamic=true)
+	public void onRefreshPortletViews(RefreshPortletViews event) {
+		for (Map.Entry<PortalSession, Set<String>> e : portletIdsByPortalSession()
+		        .entrySet()) {
+			PortalSession portalSession = e.getKey();
+			Locale locale = portalSession.locale();
+			for (String portletId : e.getValue()) {
+				updateView(portalSession, portletId, locale);
 			}
 		}
 	}
