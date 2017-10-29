@@ -32,7 +32,6 @@ import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.DeletePortletRequest;
 import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalReady;
-import org.jgrapes.portal.events.RefreshPortletViews;
 import org.jgrapes.portal.events.RenderPortlet;
 import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.freemarker.FreeMarkerPortlet;
@@ -75,7 +74,6 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 	public SysInfoPortlet(Channel componentChannel) {
 		super(componentChannel, true);
 		setPeriodicRefresh(Duration.ofSeconds(1));
-		Handler.Evaluator.add(this, "onRefreshPortletViews", this);
 	}
 
 	@Handler
@@ -179,8 +177,8 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 		channel.respond(new DeletePortlet(portletId));
 	}
 
-	@Handler(dynamic=true)
-	public void onRefreshPortletViews(RefreshPortletViews event) {
+	@Override
+	public void doRefreshPortletViews() {
 		for (Map.Entry<PortalSession, Set<String>> e : portletIdsByPortalSession()
 		        .entrySet()) {
 			PortalSession portalSession = e.getKey();

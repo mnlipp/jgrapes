@@ -51,7 +51,6 @@ import org.jgrapes.portal.events.DeletePortletRequest;
 import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
-import org.jgrapes.portal.events.RefreshPortletViews;
 import org.jgrapes.portal.events.RenderPortletRequest;
 
 /**
@@ -102,9 +101,9 @@ public abstract class AbstractPortlet extends Component {
 	}
 
 	/**
-	 * If set to a value different from `null` causes periodic
-	 * {@link RefreshPortletViews} events to be generated if at least
-	 * one {@link PortalSession} is being tracked.
+	 * If set to a value different from `null` causes 
+	 * {@link #doRefreshPortlets()} to be called periodically
+	 * if at least one {@link PortalSession} is being tracked.
 	 * 
 	 * @param interval the refresh interval
 	 * @return the portlet for easy chaining
@@ -133,10 +132,18 @@ public abstract class AbstractPortlet extends Component {
 			// Already running.
 			return;
 		}
-		refreshTimer = Components.schedule(t -> { 
-			fire(new RefreshPortletViews(), this);
+		refreshTimer = Components.schedule(t -> {
 			t.reschedule(t.scheduledFor().plus(refreshInterval));
+			doRefreshPortletViews();
 		}, Instant.now().plus(refreshInterval));
+	}
+
+	/**
+	 * Called periodically if periodical refreshs are enabled.
+	 * See {@link #setPeriodicRefresh(Duration)}. The default
+	 * implementation does nothing.
+	 */
+	protected void doRefreshPortletViews() {
 	}
 	
 	/**
