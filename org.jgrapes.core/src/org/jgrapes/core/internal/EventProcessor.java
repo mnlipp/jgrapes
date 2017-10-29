@@ -19,7 +19,6 @@
 package org.jgrapes.core.internal;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
@@ -31,9 +30,6 @@ import org.jgrapes.core.EventPipeline;
  */
 public class EventProcessor implements InternalEventPipeline, Runnable {
 
-	static ExecutorService defaultExecutorService 
-		= Executors.newCachedThreadPool();
-	
 	protected static ThreadLocal<EventBase<?>> 
 		currentlyHandling = new ThreadLocal<>();
 	
@@ -43,7 +39,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	protected EventQueue queue = new EventQueue();
 	
 	EventProcessor(ComponentTree tree) {
-		this(tree, defaultExecutorService);
+		this(tree, Components.defaultExecutorService());
 	}
 
 	EventProcessor(ComponentTree tree, ExecutorService executorService) {

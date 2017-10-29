@@ -24,6 +24,8 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.WeakHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
@@ -42,6 +44,38 @@ public class Components {
 	private Components() {
 	}
 	
+	private static ExecutorService defaultExecutorService 
+		= Executors.newCachedThreadPool();
+
+	private static ExecutorService timerExecutorService
+		= defaultExecutorService;
+	
+	/**
+	 * Return the default executor service for the framework.
+	 * 
+	 * @return the defaultExecutorService
+	 */
+	public static ExecutorService defaultExecutorService() {
+		return defaultExecutorService;
+	}
+
+	/**
+	 * Set the default executor service for the framework. The default 
+	 * value is a cached thread pool (see @link 
+	 * {@link Executors#newCachedThreadPool()}).
+	 * 
+	 * @param defaultExecutorService the executor service to set
+	 */
+	public static void setDefaultExecutorService(
+	        ExecutorService defaultExecutorService) {
+		// If the timer executor service is set to the default
+		// executor service, adjust it to the new value as well.
+		if (timerExecutorService == Components.defaultExecutorService) {
+			timerExecutorService = defaultExecutorService;
+		}
+		Components.defaultExecutorService = defaultExecutorService;
+	}
+
 	/**
 	 * Returns a component's manager. For a component that inherits
 	 * from {@link org.jgrapes.core.Component} this method simply returns
@@ -321,6 +355,26 @@ public class Components {
 	}
 
 	/**
+	 * Returns the executor service used for executing timers.
+	 * 
+	 * @return the timer executor service
+	 */
+	public static ExecutorService timerExecutorService() {
+		return timerExecutorService;
+	}
+
+	/**
+	 * Sets the executor service used for executing timers.
+	 * Defaults to the {@link #defaultExecutorService()}.
+	 * 
+	 * @param timerExecutorService the timerExecutorService to set
+	 */
+	public static void setTimerExecutorService(
+	        ExecutorService timerExecutorService) {
+		Components.timerExecutorService = timerExecutorService;
+	}
+
+	/**
 	 * A general purpose scheduler.
 	 */
 	private static class Scheduler extends Thread {
@@ -372,8 +426,8 @@ public class Components {
 							break;
 						}
 						timers.poll();
-						new Thread(() -> first.timeoutHandler()
-								.timeout(first)).start();
+						timerExecutorService.submit( 
+								() -> first.timeoutHandler().timeout(first));
 					}
 					try {
 						if (timers.size() == 0) {
