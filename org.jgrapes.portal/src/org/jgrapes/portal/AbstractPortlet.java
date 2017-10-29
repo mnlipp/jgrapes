@@ -102,7 +102,7 @@ public abstract class AbstractPortlet extends Component {
 
 	/**
 	 * If set to a value different from `null` causes 
-	 * {@link #doRefreshPortlets()} to be called periodically
+	 * {@link #doRefreshPortletViews()} to be called periodically
 	 * if at least one {@link PortalSession} is being tracked.
 	 * 
 	 * @param interval the refresh interval
