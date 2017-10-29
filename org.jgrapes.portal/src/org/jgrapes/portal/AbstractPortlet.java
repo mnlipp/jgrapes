@@ -111,7 +111,7 @@ public abstract class AbstractPortlet extends Component {
 	 * @param channel the channel that the request was recived on
 	 */
 	@Handler
-	public void onResourceRequest(
+	public final void onResourceRequest(
 			PortletResourceRequest event, IOSubchannel channel) {
 		// For me?
 		if (!event.portletClass().equals(type())) {
@@ -298,7 +298,7 @@ public abstract class AbstractPortlet extends Component {
 	 * @param portalSession the channel
 	 */
 	@Handler
-	public void onAddPortletRequest(AddPortletRequest event,
+	public final void onAddPortletRequest(AddPortletRequest event,
 			PortalSession portalSession) throws Exception {
 		if (!event.portletType().equals(type())) {
 			return;
@@ -336,7 +336,7 @@ public abstract class AbstractPortlet extends Component {
 	 * @param portalSession the portal session
 	 */
 	@Handler
-	public void onDeletePortletRequest(DeletePortletRequest event, 
+	public final void onDeletePortletRequest(DeletePortletRequest event, 
 			PortalSession portalSession) throws Exception {
 		String portletId = event.portletId();
 		Optional<? extends Serializable> optPortletState 
@@ -392,7 +392,7 @@ public abstract class AbstractPortlet extends Component {
 	 * @param portalSession the portal session
 	 */
 	@Handler
-	public void onRenderPortlet(RenderPortletRequest event,
+	public final void onRenderPortlet(RenderPortletRequest event,
 			PortalSession portalSession) throws Exception {
 		Optional<? extends Serializable> optPortletState 
 			= stateFromSession(portalSession.browserSession(), 
@@ -433,7 +433,7 @@ public abstract class AbstractPortlet extends Component {
 	 * @param channel the channel
 	 */
 	@Handler
-	public void onNotifyPortletModel(NotifyPortletModel event,
+	public final void onNotifyPortletModel(NotifyPortletModel event,
 			PortalSession channel) throws Exception {
 		Optional<? extends Serializable> optPortletState 
 			= stateFromSession(channel.browserSession(), event.portletId(), Serializable.class);
@@ -456,13 +456,35 @@ public abstract class AbstractPortlet extends Component {
 					throws Exception {
 	}
 	
+	/**
+	 * Removes the {@link PortalSession} from the set of tracked sessions.
+	 * If derived portlets need to perform extra actions when a
+	 * portalSession is closed, they have to override 
+	 * {@link #afterOnClosed(Closed, PortalSession)}.
+	 * 
+	 * @param event the closed event
+	 * @param portalSession the portal session
+	 */
 	@Handler
-	public void onClosed(Closed event, PortalSession channel) {
+	public final void onClosed(Closed event, PortalSession portalSession) {
 		if (portletIdsByPortalSession != null) {
-			portletIdsByPortalSession.remove(channel);
+			portletIdsByPortalSession.remove(portalSession);
 		}
+		afterOnClosed(event, portalSession);
 	}
 
+	/**
+	 * Invoked by {@link #onClosed(Closed, PortalSession)} after
+	 * the portal session has been removed from the set of
+	 * tracked sessions. The default implementation does
+	 * nothing.
+	 * 
+	 * @param event the closed event
+	 * @param portalSession the portal session
+	 */
+	protected void afterOnClosed(Closed event, PortalSession portalSession) {
+	}
+	
 	/**
 	 * Defines the portlet model following the JavaBean conventions.
 	 * 

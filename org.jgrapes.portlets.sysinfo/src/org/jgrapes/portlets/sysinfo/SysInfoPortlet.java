@@ -24,6 +24,7 @@ import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.events.AddPortletRequest;
@@ -179,6 +180,14 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 	        PortalSession channel, String portletId, 
 	        Serializable retrievedState) throws Exception {
 		channel.respond(new DeletePortlet(portletId));
+		if (portletIdsByPortalSession().size() == 0 && updateThread != null) {
+			updateThread.stopRunning();
+			updateThread = null;
+		}
+	}
+
+	@Override
+	public void afterOnClosed(Closed event, PortalSession channel) {
 		if (portletIdsByPortalSession().size() == 0 && updateThread != null) {
 			updateThread.stopRunning();
 			updateThread = null;

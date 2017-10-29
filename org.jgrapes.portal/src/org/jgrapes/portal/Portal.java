@@ -115,15 +115,53 @@ public class Portal extends Component {
 		return prefix;
 	}
 
+	/**
+	 * Sets a function for obtaining a resource bundle for
+	 * a given locale.
+	 * 
+	 * @param supplier the function
+	 * @return the portal fo reasy chaining
+	 */
 	public Portal setResourceBundleSupplier(
 			Function<Locale,ResourceBundle> supplier) {
 		view.setResourceBundleSupplier(supplier);
 		return this;
 	}
 	
+	/**
+	 * Sets a function for obtaining a fallback resource bundle for
+	 * a given locale.
+	 * 
+	 * @param supplier the function
+	 * @return the portal fo reasy chaining
+	 */
 	public Portal setFallbackResourceSupplier(
 			BiFunction<ThemeProvider,String,InputStream> supplier) {
 		view.setFallbackResourceSupplier(supplier);
+		return this;
+	}
+	
+	/**
+	 * Sets the portal session timeout. This call is simply
+	 * forwarded to the {@link PortalView}.
+	 * 
+	 * @param timeout the timeout in milli seconds
+	 * @return the portal for easy chaining
+	 */
+	public Portal setPortalSessionTimeout(long timeout) {
+		view.setPortalSessionTimeout(timeout);
+		return this;
+	}
+	
+	/**
+	 * Sets the portal session refresh interval.This call is simply
+	 * forwarded to the {@link PortalView}.
+	 * 
+	 * @param interval the interval in milli seconds
+	 * @return the portal for easy chaining
+	 */
+	public Portal setPortalSessionRefreshInterval(long interval) {
+		view.setPortalSessionRefreshInterval(interval);
 		return this;
 	}
 	

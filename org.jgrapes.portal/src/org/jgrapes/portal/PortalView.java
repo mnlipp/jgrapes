@@ -123,6 +123,8 @@ public class PortalView extends Component {
 	private Map<String,Object> portalBaseModel;
 	private RenderSupport renderSupport = new RenderSupportImpl();
 	private boolean useMinifiedResources = true;
+	private long portalSessionTimeout = 45000;
+	private long portalSessionRefreshInterval = 30000;
 
 	/**
 	 * @param componentChannel
@@ -196,7 +198,33 @@ public class PortalView extends Component {
 		portalBaseModel.put("useMinifiedResources", useMinifiedResources);
 		portalBaseModel.put("minifiedExtension", 
 				useMinifiedResources ? ".min" : "");
+		portalBaseModel.put(
+				"portalSessionRefreshInterval", portalSessionRefreshInterval);
 		return Collections.unmodifiableMap(portalBaseModel);
+	}
+
+	/**
+	 * Sets the portal session timeout. The value defaults to 45 seconds.
+	 * 
+	 * @param timeout the timeout in milli seconds
+	 * @return the portal view for easy chaining
+	 */
+	public PortalView setPortalSessionTimeout(long timeout) {
+		portalSessionTimeout = timeout;
+		return this;
+	}
+
+	/**
+	 * Sets the portal session refresh interval. The value defaults to
+	 * 30 seconds.
+	 * 
+	 * @param interval the interval in milli seconds
+	 * @return the portal view for easy chaining
+	 */
+	public PortalView setPortalSessionRefreshInterval(long interval) {
+		portalSessionRefreshInterval = interval;
+		portalBaseModel = createPortalBaseModel();
+		return this;
 	}
 
 	/**
@@ -513,9 +541,14 @@ public class PortalView extends Component {
 				if ("disconnect".equals(json.getString("method"))
 						&& psc.get().portalSessionId().equals(
 								json.getJsonArray("params").getString(0))) {
+					psc.get().close();
 					return;
 				}
 				// Ordinary message from portal (view) to server.
+				psc.get().refresh();
+				if("keepAlive".equals(json.getString("method"))) {
+					return;
+				}
 				fire(new JsonInput(json), psc.get());
 				return;
 			}
@@ -527,8 +560,9 @@ public class PortalView extends Component {
 				}
 				String portalSessionId = json.getJsonArray("params").getString(0);
 				PortalSession channel = PortalSession
-						.findOrCreate(portalSessionId, portal)
+						.findOrCreate(portalSessionId, portal, portalSessionTimeout)
 						.setUpstreamChannel(wsChannel)
+						.setEventPipeline(activeEventPipeline())
 						.setSession(optSession.get());
 				wsChannel.setAssociated(PortalSession.class, channel);
 			}

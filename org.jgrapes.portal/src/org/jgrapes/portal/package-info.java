@@ -17,8 +17,8 @@
  */
 
 /**
- * The portal package provides a portal implementation for the
- * JGrapes framework. 
+ * The portal package provides a portal implementation based on the
+ * core, io and http packages of the JGrapes framework. 
  * 
  * [TOC formatted]
  *
@@ -59,14 +59,16 @@
  * {@link org.jgrapes.io.events.Input} events with serialized JSON RPC data
  * from the web socket until the complete JSON RPC notification has been 
  * received. The notification (a {@link org.jgrapes.portal.events.JsonInput}
- * from the servers point of view) is then fired on the portal channel, 
- * which allows it to be intercepted by additional components. Usually, 
- * however, it is handled by the {@link org.jgrapes.portal.Portal} that 
- * converts it to a higher level event that is again fired on the portal 
- * channel.
+ * from the servers point of view) is then fired on the 
+ * {@link org.jgrapes.portal.PortalSession} channel, which allows it to 
+ * be intercepted by additional components. Usually, however, it is 
+ * handled by the {@link org.jgrapes.portal.Portal} that converts it 
+ * to a higher level event that is again fired on the
+ * {@link org.jgrapes.portal.PortalSession} channel.
  * 
- * Components usually respond by sending higher level events on the portal
- * channel. The events are handled by the portal which converts them to
+ * Components respond by sending higher level events on the 
+ * {@link org.jgrapes.portal.PortalSession} channel.
+ * The events are handled by the portal which converts them to
  * {@link org.jgrapes.portal.events.JsonOutput} events. These are
  * processed by the {@link org.jgrapes.portal.PortalView} which
  * serializes the data and sends it to the websocket using 

@@ -119,13 +119,19 @@ var JGPortal = {
             this._initiateReconnect();
             return;
         }
+        let refreshTimer = null;
         let self = this;
         this._ws.onopen = function() {
             self._ws.send(JSON.stringify({"jsonrpc": "2.0", "method": "connect",
                 "params": [ self._portalSessionId ]}));
             self._drainSendQueue();
+            setInterval(function() {
+                refreshTimer = self.send({"jsonrpc": "2.0", "method": "keepAlive",
+                    "params": []});                
+                }, JGPortal.portalSessionRefreshInterval);
         }
         this._ws.onclose = function(event) {
+            clearInterval(refreshTimer);
             self._initiateReconnect();
         }
         this._ws.onerror = function(event) {

@@ -55,6 +55,8 @@
 
   <script>
   $( function() {
+    JGPortal.portalSessionRefreshInterval = ${portalSessionRefreshInterval?c};
+      
     $("body").faLoading({
         icon: "fa-circle-o-notch",
         spin: true,
