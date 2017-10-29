@@ -318,7 +318,7 @@ public class FileStorage extends Component {
 				channel.respond(new IOError(event,
 				        new IllegalStateException("File is already open.")));
 			} else {
-				outputWriters.put(channel, new Writer(event, channel));
+				new Writer(event, channel);
 			}
 		}
 	}
@@ -405,6 +405,7 @@ public class FileStorage extends Component {
 				channel.respond(new IOError(event, e));
 				return;
 			}
+			outputWriters.put(channel, this);
 			channel.respond(new FileOpened(path, options));
 		}
 
