@@ -212,6 +212,7 @@ javadoc {
     source subprojects.collect {project -> project.sourceSets.main.allJava } 
 	options.addStringOption("overview", "overview.md")
 	inputs.file "overview.md"
+	options.addBooleanOption("use", true)
 	options.addBooleanOption("linksource", true)
 	options.stylesheetFile(file("stylesheet.css"))
     options.addStringOption("bottom", file("misc/javadoc.bottom.txt").text)
