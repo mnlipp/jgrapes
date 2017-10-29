@@ -178,10 +178,16 @@ public @interface Handler {
 	/**
 	 * Returns {@code true} if the annotated method defines a
 	 * dynamic handler. A dynamic handler must be added to the set of
-	 * handlers of a component explicitly at run time.
+	 * handlers of a component explicitly at run time using
+	 * {@link Evaluator#add(ComponentType, String, Object)}
+	 * or {@link Evaluator#add(ComponentType, String, Object, Object, int)}.
 	 * 
 	 * ```java
 	 * class SampleComponent extends Component {
+	 * 
+	 *     SampleComponent() {
+	 *         Handler.Evaluator.add(this, "onStartDynamic", someChannel);
+	 *     }
 	 * 
 	 *    {@literal @}Handler(dynamic=true)
 	 *     public void onStartDynamic(Start event) {
