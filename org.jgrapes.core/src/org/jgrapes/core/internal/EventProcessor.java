@@ -80,11 +80,11 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	
 	@Override
 	public void merge(InternalEventPipeline other) {
-		if (!(other instanceof EventBuffer)) {
+		if (!(other instanceof BufferingEventPipeline)) {
 			throw new IllegalArgumentException(
-					"Can only merge events from an EventBuffer.");
+					"Can only merge events from an BufferingEventPipeline.");
 		}
-		add(((EventBuffer) other).retrieveEvents());
+		add(((BufferingEventPipeline) other).retrieveEvents());
 	}
 
 	@Override

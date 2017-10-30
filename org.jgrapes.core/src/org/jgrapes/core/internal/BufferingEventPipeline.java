@@ -26,10 +26,10 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.events.Start;
 
 /**
- * The event buffer is used before a tree has been started. It simply
- * buffers all events until a {@link Start} event is added.
+ * The buffering event pipeline is used before a tree has been started. 
+ * It simply buffers all events until a {@link Start} event is added.
  */
-public class EventBuffer implements InternalEventPipeline {
+public class BufferingEventPipeline implements InternalEventPipeline {
 	
 	private ComponentTree componentTree;
 	/** Buffered events. */
@@ -38,18 +38,18 @@ public class EventBuffer implements InternalEventPipeline {
 	 * event has been detected. */
 	private InternalEventPipeline activePipeline = null;
 	
-	EventBuffer(ComponentTree componentTree) {
+	BufferingEventPipeline(ComponentTree componentTree) {
 		super();
 		this.componentTree = componentTree;
 	}
 
 	@Override
 	public synchronized void merge(InternalEventPipeline other) {
-		if (!(other instanceof EventBuffer)) {
+		if (!(other instanceof BufferingEventPipeline)) {
 			throw new IllegalArgumentException(
-					"Can only merge events from an EventBuffer.");
+					"Can only merge events from an BufferingEventPipeline.");
 		}
-		buffered.addAll(((EventBuffer) other).retrieveEvents());
+		buffered.addAll(((BufferingEventPipeline) other).retrieveEvents());
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public class EventBuffer implements InternalEventPipeline {
 		((EventBase<?>)event).generatedBy(null);
 		buffered.add(event, channels);
 		if (event instanceof Start) {
-			// Merge all events into an "standard" event processor
+			// Merge all events into a "standard" event processor
 			// and set it as default processor for the tree (with
 			// any thread specific pipelines taking precedence).
 			EventProcessor processor = new EventProcessor(componentTree);
@@ -97,7 +97,7 @@ public class EventBuffer implements InternalEventPipeline {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("EventBuffer [");
+		builder.append("BufferingEventPipeline [");
 		if (buffered != null) {
 			builder.append("buffered=");
 			builder.append(buffered);

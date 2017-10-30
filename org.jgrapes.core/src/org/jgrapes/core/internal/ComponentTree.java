@@ -81,7 +81,7 @@ class ComponentTree {
 	}
 	
 	boolean isStarted() {
-		return !(eventPipeline instanceof EventBuffer);
+		return !(eventPipeline instanceof BufferingEventPipeline);
 	}
 
 	void setEventPipeline(InternalEventPipeline pipeline) {

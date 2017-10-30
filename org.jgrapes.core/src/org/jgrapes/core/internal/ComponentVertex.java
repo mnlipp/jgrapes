@@ -188,7 +188,7 @@ public abstract class ComponentVertex implements Manager {
 			return tree;
 		}
 		tree = new ComponentTree(this);
-		tree.setEventPipeline(new EventBuffer(tree));
+		tree.setEventPipeline(new BufferingEventPipeline(tree));
 		fire(new Attached(component(), null), channel());
 		return tree;
 	}
@@ -279,7 +279,8 @@ public abstract class ComponentVertex implements Manager {
 				}
 				ComponentTree newTree 
 					= new ComponentTree(ComponentVertex.this);
-				newTree.setEventPipeline(new EventProcessor(newTree));
+				newTree.setEventPipeline(new FeedBackPipelineFilter(
+						new EventProcessor(newTree)));
 				setTree(newTree);
 			}
 			Detached evt = new Detached(component(), oldParent.component());
