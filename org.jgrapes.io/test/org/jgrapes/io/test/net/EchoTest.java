@@ -179,9 +179,9 @@ public class EchoTest {
 		}
 	
 		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
-		long waitEnd = System.nanoTime() + 3000;
+		long waitEnd = System.currentTimeMillis() + 3000;
 		while (true) {
-			long waitTime = waitEnd - System.nanoTime();
+			long waitTime = waitEnd - System.currentTimeMillis();
 			if (waitTime <= 0) {
 				fail();
 			}
@@ -265,9 +265,9 @@ public class EchoTest {
 		}
 	
 		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
-		long waitEnd = System.nanoTime() + 3000;
+		long waitEnd = System.currentTimeMillis() + 3000;
 		while (true) {
-			long waitTime = waitEnd - System.nanoTime();
+			long waitTime = waitEnd - System.currentTimeMillis();
 			if (waitTime <= 0) {
 				fail();
 			}

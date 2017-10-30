@@ -95,6 +95,8 @@ subprojects {
     }
     
     test {
+		jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=18888'
+		
         testLogging {
             events TestLogEvent.FAILED,
                    TestLogEvent.SKIPPED,
