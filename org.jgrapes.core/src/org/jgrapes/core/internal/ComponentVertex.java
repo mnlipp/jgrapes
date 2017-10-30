@@ -188,8 +188,9 @@ public abstract class ComponentVertex implements Manager {
 			return tree;
 		}
 		// Build complete tree before assigning it.
-		tree = new ComponentTree(this)
-				.setEventPipeline(new BufferingEventPipeline(tree));
+		ComponentTree newTree = new ComponentTree(this);
+		newTree.setEventPipeline(new BufferingEventPipeline(newTree));
+		tree = newTree;
 		fire(new Attached(component(), null), channel());
 		return tree;
 	}

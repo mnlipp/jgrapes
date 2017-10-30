@@ -84,9 +84,8 @@ class ComponentTree {
 		return !(eventPipeline instanceof BufferingEventPipeline);
 	}
 
-	ComponentTree setEventPipeline(InternalEventPipeline pipeline) {
+	void setEventPipeline(InternalEventPipeline pipeline) {
 		eventPipeline = pipeline;
-		return this;
 	}
 	
 	InternalEventPipeline getEventPipeline() {
