@@ -285,7 +285,7 @@ public class FileStorage extends Component {
 				channel.respond(new IOError(event,
 				        new IllegalStateException("File is already open.")));
 			} else {
-				inputWriters.put(channel, new Writer(event, channel));
+				new Writer(event, channel);
 			}
 		}
 	}
@@ -387,11 +387,15 @@ public class FileStorage extends Component {
 		public Writer(SaveInput event, IOSubchannel channel)
 		        throws InterruptedException {
 			this(event, event.path(), event.options(), channel);
+			inputWriters.put(channel, this);
+			channel.respond(new FileOpened(path, event.options()));
 		}
 
 		public Writer(SaveOutput event, IOSubchannel channel)
 		        throws InterruptedException {
 			this(event, event.path(), event.options(), channel);
+			outputWriters.put(channel, this);
+			channel.respond(new FileOpened(path, event.options()));
 		}
 
 		private Writer(Event<?> event, Path path, OpenOption[] options,
@@ -405,8 +409,6 @@ public class FileStorage extends Component {
 				channel.respond(new IOError(event, e));
 				return;
 			}
-			outputWriters.put(channel, this);
-			channel.respond(new FileOpened(path, options));
 		}
 
 		public void write(ManagedByteBuffer buffer) {
