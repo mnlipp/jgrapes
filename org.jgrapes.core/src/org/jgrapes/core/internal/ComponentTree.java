@@ -131,26 +131,34 @@ class ComponentTree {
 		// concurrently, and the cache may be cleared by a concurrent call
 		// to detach.
 		HandlerList hdlrs = handlerCache.get(key);
-		if (hdlrs == null) {
-			// Don't allow tree modifications while collecting
-			synchronized (this) {
-				hdlrs = new HandlerList();
-				root.collectHandlers(hdlrs, event, channels);
-				// Make sure that errors are reported.
-				if (hdlrs.isEmpty()) {
-					if (event instanceof HandlingError) {
-						((ComponentVertex) fallbackErrorHandler)
-						        .collectHandlers(hdlrs, event, channels);
-					} else {
-						if (handlerTracking.isLoggable(Level.FINER)) {
-							DUMMY_HANDLER.collectHandlers(hdlrs, event,
-							        channels);
-						}
+		if (hdlrs != null) {
+			return hdlrs;
+		}
+		// Don't allow tree modifications while collecting
+		synchronized (this) {
+			// Optimization for highly concurrent first-time access
+			// with the same key: another thread may have created the
+			// handlers while this one was waiting for the lock.
+			hdlrs = handlerCache.get(key);
+			if (hdlrs != null) {
+				return hdlrs;
+			}
+			hdlrs = new HandlerList();
+			root.collectHandlers(hdlrs, event, channels);
+			// Make sure that errors are reported.
+			if (hdlrs.isEmpty()) {
+				if (event instanceof HandlingError) {
+					((ComponentVertex) fallbackErrorHandler)
+					        .collectHandlers(hdlrs, event, channels);
+				} else {
+					if (handlerTracking.isLoggable(Level.FINER)) {
+						DUMMY_HANDLER.collectHandlers(hdlrs, event,
+						        channels);
 					}
 				}
-				Collections.sort(hdlrs);
-				handlerCache.put(key, hdlrs);
 			}
+			Collections.sort(hdlrs);
+			handlerCache.put(key, hdlrs);
 		}
 		return hdlrs;
 	}
