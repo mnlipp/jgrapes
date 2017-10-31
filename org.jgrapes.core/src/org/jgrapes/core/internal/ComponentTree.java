@@ -20,8 +20,8 @@ package org.jgrapes.core.internal;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,9 +44,8 @@ class ComponentTree {
 		= Logger.getLogger(ComponentType.class.getPackage().getName() 
 				+ ".handlerTracking");	
 	
-	private ComponentVertex root;
-	// Several event processors may call dispatch and update the cache
-	private Map<CacheKey,HandlerList> handlerCache = new ConcurrentHashMap<>();
+	private final ComponentVertex root;
+	private final Map<CacheKey,HandlerList> handlerCache = new HashMap<>();
 	private InternalEventPipeline eventPipeline;
 	private static HandlingErrorPrinter fallbackErrorHandler 
 		= new HandlingErrorPrinter();
@@ -125,6 +124,41 @@ class ComponentTree {
 		handlers.process(pipeline, event);
 	}
 
+	private HandlerList getEventHandlers(
+			EventBase<?> event, Channel[] channels) {
+		CacheKey key = new CacheKey(event, channels);
+		// Several event processors may call dispatch and update the cache 
+		// concurrently, and the cache may be cleared by a concurrent call
+		// to detach.
+		HandlerList hdlrs = handlerCache.get(key);
+		if (hdlrs == null) {
+			// Don't allow tree modifications while collecting
+			synchronized (this) {
+				hdlrs = new HandlerList();
+				root.collectHandlers(hdlrs, event, channels);
+				// Make sure that errors are reported.
+				if (hdlrs.isEmpty()) {
+					if (event instanceof HandlingError) {
+						((ComponentVertex) fallbackErrorHandler)
+						        .collectHandlers(hdlrs, event, channels);
+					} else {
+						if (handlerTracking.isLoggable(Level.FINER)) {
+							DUMMY_HANDLER.collectHandlers(hdlrs, event,
+							        channels);
+						}
+					}
+				}
+				Collections.sort(hdlrs);
+				handlerCache.put(key, hdlrs);
+			}
+		}
+		return hdlrs;
+	}
+	
+	synchronized void clearHandlerCache() {
+		handlerCache.clear();
+	}
+
 	private static class CacheKey {
 		private Object eventMatchValue;
 		private Object[] channelMatchValues;
@@ -177,30 +211,4 @@ class ComponentTree {
 		}
 	}
 	
-	private HandlerList getEventHandlers(
-			EventBase<?> event, Channel[] channels) {
-		CacheKey key = new CacheKey(event, channels);
-		return handlerCache.computeIfAbsent(key, k -> {
-			HandlerList hdlrs = new HandlerList();
-			root.collectHandlers(hdlrs, event, channels);
-			// Make sure that errors are reported.
-			if (hdlrs.isEmpty()) {
-				if (event instanceof HandlingError) {
-					((ComponentVertex)fallbackErrorHandler)
-						.collectHandlers(hdlrs, event, channels);
-				} else {
-					if (handlerTracking.isLoggable(Level.FINER)) {
-						DUMMY_HANDLER.collectHandlers(hdlrs, event, channels);
-					}
-				}
-			}
-			Collections.sort(hdlrs);
-			return hdlrs;
-		});
-	}
-	
-	void clearHandlerCache() {
-		handlerCache.clear();
-	}
-
 }
