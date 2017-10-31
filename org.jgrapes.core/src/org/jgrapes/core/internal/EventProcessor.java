@@ -30,13 +30,13 @@ import org.jgrapes.core.EventPipeline;
  */
 public class EventProcessor implements InternalEventPipeline, Runnable {
 
-	protected static ThreadLocal<EventBase<?>> 
+	protected final static ThreadLocal<EventBase<?>> 
 		currentlyHandling = new ThreadLocal<>();
 	
-	private ExecutorService executorService;
-	private ComponentTree componentTree;
-	private EventPipeline asEventPipeline;
-	protected EventQueue queue = new EventQueue();
+	private final ExecutorService executorService;
+	private final ComponentTree componentTree;
+	private final EventPipeline asEventPipeline;
+	protected final EventQueue queue = new EventQueue();
 	
 	EventProcessor(ComponentTree tree) {
 		this(tree, Components.defaultExecutorService());
@@ -73,7 +73,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 			source.clear();
 			if (wasEmpty) {
 				GeneratorRegistry.instance().add(this);
-				executorService.submit(this);
+				executorService.execute(this);
 			}
 		}
 	}
