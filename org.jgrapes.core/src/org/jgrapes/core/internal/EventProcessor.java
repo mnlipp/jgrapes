@@ -37,6 +37,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	private final ComponentTree componentTree;
 	private final EventPipeline asEventPipeline;
 	protected final EventQueue queue = new EventQueue();
+	private boolean isExecuting = false;
 	
 	EventProcessor(ComponentTree tree) {
 		this(tree, Components.defaultExecutorService());
@@ -52,11 +53,11 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	public <T extends Event<?>> T add(T event, Channel... channels) {
 		((EventBase<?>)event).generatedBy(currentlyHandling.get());
 		((EventBase<?>)event).processedBy(this);
-		synchronized (queue) {
-			boolean wasEmpty = queue.isEmpty();
-			queue.add(event, channels);
-			if (wasEmpty) {
+		queue.add(event, channels);
+		synchronized (this) {
+			if (!isExecuting) {
 				GeneratorRegistry.instance().add(this);
+				isExecuting = true;
 				executorService.execute(this);
 			}
 		}
@@ -64,15 +65,18 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	}
 
 	void add(EventQueue source) {
-		synchronized (queue) {
-			boolean wasEmpty = queue.isEmpty();
-			for (EventChannelsTuple entry: source) {
-				entry.event.processedBy(this);
-				queue.add(entry);
+		while (true) {
+			EventChannelsTuple entry = source.poll();
+			if (entry == null) {
+				break;
 			}
-			source.clear();
-			if (wasEmpty) {
+			entry.event.processedBy(this);
+			queue.add(entry);
+		}
+		synchronized (this) {
+			if (!isExecuting) {
 				GeneratorRegistry.instance().add(this);
+				isExecuting = true;
 				executorService.execute(this);
 			}
 		}
@@ -91,30 +95,33 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	public void run() {
 		String origName = Thread.currentThread().getName();
 		try {
-			if (queue.isEmpty()) {
-				return;
-			}
 			Thread.currentThread().setName(
 					origName + " (P" + Components.objectId(this) + ")");
 			FeedBackPipelineFilter.setAssociatedPipeline(this);
 			while (true) {
+				// No lock needed if queue is filled
 				EventChannelsTuple next = queue.peek();
+				if (next == null) {
+					synchronized (this) {
+						// Retry with lock for proper synchronization
+						next = queue.peek();
+						if (next == null) {
+							GeneratorRegistry.instance().remove(this);
+							isExecuting = false;
+							break;
+						}
+					}
+				}
 				currentlyHandling.set(next.event);
 				componentTree.dispatch(
 						asEventPipeline, next.event, next.channels);
 				currentlyHandling.get().decrementOpen();
-				synchronized (queue) {
-					queue.remove();
-					if (queue.isEmpty()) {
-						break;
-					}
-				}
+				queue.remove();
 			}
 		} finally {
 			Thread.currentThread().setName(origName);
 			currentlyHandling.set(null);;
 			FeedBackPipelineFilter.setAssociatedPipeline(null);
-			GeneratorRegistry.instance().remove(this);
 		}
 	}
 

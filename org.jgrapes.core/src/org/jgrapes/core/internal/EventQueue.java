@@ -18,8 +18,8 @@
 
 package org.jgrapes.core.internal;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.jgrapes.core.Channel;
 
@@ -28,7 +28,7 @@ import org.jgrapes.core.Channel;
  * been fired on.
  */
 @SuppressWarnings("serial")
-class EventQueue extends ArrayDeque<EventChannelsTuple> {
+class EventQueue extends ConcurrentLinkedDeque<EventChannelsTuple> {
 
 	/**
 	 * Convenience method that creates a {@link EventChannelsTuple}
