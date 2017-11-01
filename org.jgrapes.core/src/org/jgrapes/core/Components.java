@@ -418,11 +418,11 @@ public class Components {
 		@Override
 		public void run() {
 			while (true) {
-				Instant now = Instant.now();
 				synchronized (this) {
 					while (true) {
 						final Timer first = timers.peek();
-						if (first == null || first.scheduledFor().isAfter(now)) {
+						if (first == null 
+								|| first.scheduledFor().isAfter(Instant.now())) {
 							break;
 						}
 						timers.poll();
@@ -433,7 +433,7 @@ public class Components {
 						if (timers.size() == 0) {
 							wait();
 						} else {
-							wait(Math.max(1, Duration.between(now, 
+							wait(Math.max(1, Duration.between(Instant.now(), 
 									timers.peek().scheduledFor()).toMillis()));
 						}
 					} catch (Throwable e) {
