@@ -57,7 +57,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 			queue.add(event, channels);
 			if (wasEmpty) {
 				GeneratorRegistry.instance().add(this);
-				executorService.submit(this);
+				executorService.execute(this);
 			}
 		}
 		return event;
