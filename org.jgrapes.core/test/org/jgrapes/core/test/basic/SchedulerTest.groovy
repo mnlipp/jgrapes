@@ -1,4 +1,4 @@
-package org.jgrapes.core.test.core;
+package org.jgrapes.core.test.basic;
 
 import java.time.Instant
 
