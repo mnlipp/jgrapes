@@ -15,12 +15,13 @@ class SchedulerTest extends Specification {
 		boolean hit2 = false;
 		
 		when: "Schedule and wait for first"
-		Closure<Void> setHit1 = { expiredTimer -> hit1 = true };
-		Components.schedule(setHit1, Instant.now().plusMillis(500));
+		Instant startTime = Instant.now();
+		Components.schedule({ expiredTimer -> hit1 = true },
+			startTime.plusMillis(500));
 		Components.schedule({ expiredTimer -> hit2 = true },
-			Instant.now().plusMillis(1000));
+			startTime.plusMillis(1000));
 		Timer timer3 = Components.schedule({ expiredTimer -> hit1 = false },
-			Instant.now().plusMillis(1500));
+			startTime.plusMillis(1500));
 		Thread.sleep(750);
 		
 		then: "First set, second not"
@@ -63,7 +64,7 @@ class SchedulerTest extends Specification {
 		!hit1;
 		
 		when: "Wait for timeout"
-		Thread.sleep(500);
+		Thread.sleep(750);
 		
 		then: "Hit"
 		hit1;
