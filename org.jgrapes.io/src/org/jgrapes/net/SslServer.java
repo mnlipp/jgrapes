@@ -256,7 +256,11 @@ public class SslServer extends Component {
 					fireAccepted();
 					// fall through
 				case NEED_UNWRAP:
-					if (unwrapResult.getStatus() != Status.BUFFER_UNDERFLOW) {
+					// sslEngine.unwrap sometimes return NEED_UNWRAP in 
+					// combination with CLOSED, though this doesn't really
+					// make sense.
+					if (unwrapResult.getStatus() != Status.BUFFER_UNDERFLOW
+							&& unwrapResult.getStatus() != Status.CLOSED) {
 						continue;
 					}
 					break;
