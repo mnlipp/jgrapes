@@ -1,5 +1,6 @@
 package org.jgrapes.core.test.core;
 
+import java.time.Duration
 import java.time.Instant
 
 import org.jgrapes.core.Channel
@@ -21,6 +22,7 @@ class CompletionLockTest extends Specification {
 		public CompletionLock lock;
 		private long timeout = 0;
 		boolean started = false;
+		public Instant startedAt = null;
 		
 		App(long timeout) {
 			this.timeout = timeout;
@@ -29,6 +31,7 @@ class CompletionLockTest extends Specification {
 		@Handler
 		public onStart(Start event) {
 			startEvent = event;
+			startedAt = Instant.now(); 
 			if (timeout >= 0) {
 				this.lock = new CompletionLock(event, timeout);
 			}
@@ -68,17 +71,22 @@ class CompletionLockTest extends Specification {
 		
 		when: "Start App with timeout lock"
 		app = new App(750);
-		app.fire(new Start() , Channel.BROADCAST);
-		Thread.sleep(500);
+		app.fire(new Start(), Channel.BROADCAST);
+		while (app.startedAt == null) {
+			Thread.sleep(10);
+		}
+		Thread.sleep(Duration.between(app.startedAt, 
+			Instant.now().plusMillis(500)).toMillis());
 
 		then: "Not yet"
 		app.started == false;
 		
 		when: "Wait for timeout over"
-		Thread.sleep(500);
+		Components.awaitExhaustion(1500);
+		Instant completedAt = Instant.now();
 		
 		then: "Now started"
-		app.started == true;
+		Duration.between(app.startedAt, completedAt).toMillis() < 1500;
 	}
 
 }
