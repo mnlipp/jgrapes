@@ -56,6 +56,7 @@ import org.jdrupes.httpcodec.types.StringList;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.events.OptionsRequest;
 import org.jgrapes.http.events.Request;
@@ -394,6 +395,14 @@ public class HttpServer extends Component {
 		appChannel.handleWebSocketAccepted(event, appChannel);
 	}
 	
+	/**
+	 * Send a simple, prepared HTTP response.
+	 * 
+	 * @param response the response
+	 * @param appChannel the app channel to respond on
+	 * @param statusCode the status code to send
+	 * @param reasonPhrase the reason phrase to send
+	 */
 	private void sendResponse(HttpResponse response, IOSubchannel appChannel,
 			int statusCode, String reasonPhrase) {
 		response.setStatusCode(statusCode).setReasonPhrase(reasonPhrase)
@@ -401,6 +410,8 @@ public class HttpServer extends Component {
 					HttpField.CONTENT_TYPE,
 					MediaType.builder().setType("text", "plain")
 					.setParameter("charset", "utf-8").build());
+		// Act as a sub-compnent, i.e. generate events that are
+		// handled by this HTTP server as if sent from a sub-component.
 		fire(new Response(response), appChannel);
 		try {
 			fire(Output.wrap((statusCode + " " + reasonPhrase)
@@ -419,6 +430,7 @@ public class HttpServer extends Component {
 		private ManagedBufferPool<ManagedByteBuffer, ByteBuffer> byteBufferPool;
 		private ManagedBufferPool<ManagedCharBuffer, CharBuffer> charBufferPool;
 		private ManagedBufferPool<?, ?> currentPool = null;
+		private EventPipeline downPipeline;
 		private boolean switchedToWebSocket = false;
 		private WsMessageHeader currentWsMessage = null;
 
@@ -460,6 +472,9 @@ public class HttpServer extends Component {
 			charBufferPool = new ManagedBufferPool<>(ManagedCharBuffer::new,	
 					() -> { return CharBuffer.allocate(bufSize); }, 2, 100)
 					.setName(channelName + ".downstream.charBuffers");
+			
+			// Downstream pipeline
+			downPipeline = newEventPipeline();
 		}
 		
 		public void handleNetInput(Input<ManagedByteBuffer> event) 
@@ -479,7 +494,7 @@ public class HttpServer extends Component {
 							engine.currentRequest()
 							.filter(WsCloseFrame.class::isInstance)
 							.ifPresent(closeFrame -> {
-								fire(new WebSocketClosed(
+								downPipeline.fire(new WebSocketClosed(
 										(WsCloseFrame)closeFrame, AppChannel.this));
 							});
 						}
@@ -497,7 +512,7 @@ public class HttpServer extends Component {
 				if (bodyData != null) {
 					if (bodyData.position() > 0) {
 						bodyData.flip();
-						fire(new Input<>(bodyData, !result.isOverflow() 
+						downPipeline.fire(new Input<>(bodyData, !result.isOverflow() 
 								&& !result.isUnderflow()), this);
 					} else {
 						bodyData.unlockBuffer();
@@ -536,7 +551,7 @@ public class HttpServer extends Component {
 						}
 					}
 				}
-				fire(Request.fromHttpRequest(httpRequest,
+				downPipeline.fire(Request.fromHttpRequest(httpRequest,
 				        secure, matchLevels), this);
 			} else if (request instanceof WsMessageHeader) {
 				WsMessageHeader wsMessage = (WsMessageHeader)request;
@@ -584,7 +599,7 @@ public class HttpServer extends Component {
 				Codec.Result result = engine.encode(
 						Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);
 				if (result.isOverflow()) {
-					fire(new Output<>(buffer, false), upstreamChannel());
+					upstreamChannel().respond(new Output<>(buffer, false));
 					continue;
 				}
 				if (hasBody) {
@@ -594,13 +609,13 @@ public class HttpServer extends Component {
 				}
 				// Response is complete
 				if (buffer.position() > 0) {
-					fire(new Output<>(buffer, false), upstreamChannel());
+					upstreamChannel().respond(new Output<>(buffer, false));
 				} else {
 					buffer.unlockBuffer();
 				}
 				outBuffer = null;
 				if (result.closeConnection()) {
-					fire(new Close(), upstreamChannel());
+					upstreamChannel().respond(new Close());
 				}
 				break;
 			}
@@ -673,7 +688,7 @@ public class HttpServer extends Component {
 		}
 		
 		public void handleClosed(Closed event) {
-			fire(new Closed(), this);
+			downPipeline.fire(new Closed(), this);
 		}
 
 	}
