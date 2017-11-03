@@ -264,23 +264,23 @@ public class SslServer extends Component {
 						continue;
 					}
 					break;
-					
+
 				default:
 					break;
 				}
 				
+				// Just to make sure...
+				if (unwrapResult.getStatus() == Status.BUFFER_OVERFLOW) {
+					unwrapped.replaceBackingBuffer(ByteBuffer.allocate(
+							sslEngine.getSession()
+								.getApplicationBufferSize() + 50));
+				}
+			
 				// If we get here, handshake has completed or no input is left
 				if (unwrapResult.getStatus() != Status.OK) {
 					// Underflow, overflow or closed
 					break;
 				}
-			}
-			
-			// Just to make sure...
-			if (unwrapResult.getStatus() == Status.BUFFER_OVERFLOW) {
-				throw new IllegalStateException(
-						"Output buffer overflow occured although buffer was"
-						+ " allocated with maximum size.");
 			}
 			
 			if (unwrapped.position() == 0) {
