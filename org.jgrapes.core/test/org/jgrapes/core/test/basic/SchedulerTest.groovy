@@ -64,7 +64,7 @@ class SchedulerTest extends Specification {
 		!hit1;
 		
 		when: "Wait for timeout"
-		Thread.sleep(750);
+		Thread.sleep(1000);
 		
 		then: "Hit"
 		hit1;
