@@ -117,26 +117,11 @@ public class GetTest {
 		Components.checkAssertions();
 	}
 	
-	@Test
+	@Test(timeout=1500)
 	public void testGetRoot() 
 			throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", "localhost", server.getPort(), "/");
-		Thread reader = Thread.currentThread();
-		final Thread watchdog = new Thread() {
-			@Override
-			public void run() {
-				try {
-					reader.join(1000);
-					if (reader.isAlive()) {
-						reader.interrupt();
-					}
-				} catch (InterruptedException e) {
-					// Okay
-				}
-			}
-		};
 		try {
-			watchdog.start();
+			URL url = new URL("http", "localhost", server.getPort(), "/");
 			URLConnection conn = url.openConnection();
 			conn.setConnectTimeout(1000);
 			conn.setReadTimeout(1000);
@@ -144,106 +129,47 @@ public class GetTest {
 			fail();
 		} catch (FileNotFoundException e) {
 			// Expected
-		} finally {
-			watchdog.interrupt();
 		}
 		assertEquals(0, contentProvider.invocations);
 	}
 	
-	@Test
+	@Test(timeout=1500)
 	public void testGetTop() 
-			throws IOException, InterruptedException, ExecutionException {
+	        throws IOException, InterruptedException, ExecutionException {
 		URL url = new URL("http", "localhost", server.getPort(), "/top");
-		Thread reader = Thread.currentThread();
-		Thread watchdog = new Thread() {
-			@Override
-			public void run() {
-				try {
-					reader.join(1000);
-					if (reader.isAlive()) {
-						reader.interrupt();
-					}
-				} catch (InterruptedException e) {
-					// Okay
-				}
-			}
-		};
-		try {
-			watchdog.start();
-			URLConnection conn = url.openConnection();
-			conn.setConnectTimeout(1000);
-			conn.setReadTimeout(1000);
-			try (BufferedReader br = new BufferedReader(
-			        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-				String str = br.lines().findFirst().get();
-				assertEquals("Top!", str);
-			}
-		} finally {
-			watchdog.interrupt();
+		URLConnection conn = url.openConnection();
+		conn.setConnectTimeout(1000);
+		conn.setReadTimeout(1000);
+		try (BufferedReader br = new BufferedReader(
+		        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+			String str = br.lines().findFirst().get();
+			assertEquals("Top!", str);
 		}
 		assertEquals(1, contentProvider.invocations);
 	}
 
-	@Test
+	@Test(timeout=1500)
 	public void testGetTopPlus() 
-			throws IOException, InterruptedException, ExecutionException {
+	        throws IOException, InterruptedException, ExecutionException {
 		URL url = new URL("http", "localhost", server.getPort(), "/top/plus");
-		Thread reader = Thread.currentThread();
-		Thread watchdog = new Thread() {
-			@Override
-			public void run() {
-				try {
-					reader.join(1000);
-					if (reader.isAlive()) {
-						reader.interrupt();
-					}
-				} catch (InterruptedException e) {
-					// Okay
-				}
-			}
-		};
-		try {
-			watchdog.start();
-			URLConnection conn = url.openConnection();
-			conn.setConnectTimeout(1000);
-			conn.setReadTimeout(1000);
-			conn.getInputStream();
-		} finally {
-			watchdog.interrupt();
-		}
+		URLConnection conn = url.openConnection();
+		conn.setConnectTimeout(1000);
+		conn.setReadTimeout(1000);
+		conn.getInputStream();
 		assertEquals(1, contentProvider.invocations);
 	}
 
-	@Test
+	@Test(timeout=1500)
 	public void testGetDynamic() 
 			throws IOException, InterruptedException, ExecutionException {
 		URL url = new URL("http", "localhost", server.getPort(), "/dynamic");
-		Thread reader = Thread.currentThread();
-		Thread watchdog = new Thread() {
-			@Override
-			public void run() {
-				try {
-					reader.join(1000);
-					if (reader.isAlive()) {
-						reader.interrupt();
-					}
-				} catch (InterruptedException e) {
-					// Okay
-				}
-			}
-		};
-		try {
-			watchdog.start();
-			URLConnection conn = url.openConnection();
-			conn.setConnectTimeout(1000);
-			conn.setReadTimeout(1000);
-			try (BufferedReader br = new BufferedReader(
-			        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-				String str = br.lines().findFirst().get();
-				assertEquals("Dynamic!", str);
-			}
-		} finally {
-			watchdog.interrupt();
+		URLConnection conn = url.openConnection();
+		conn.setConnectTimeout(1000);
+		conn.setReadTimeout(1000);
+		try (BufferedReader br = new BufferedReader(
+		        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+			String str = br.lines().findFirst().get();
+			assertEquals("Dynamic!", str);
 		}
 		assertEquals(1, contentProvider.invocations);
 	}

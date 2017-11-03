@@ -43,27 +43,11 @@ public class NotFoundTests {
 		Components.checkAssertions();
 	}
 	
-	@Test
+	@Test(timeout=1500)
 	public void testGetRoot() 
 			throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", server.getAddress().getHostAddress(), 
-				server.getPort(), "/");
-		Thread reader = Thread.currentThread();
-		final Thread watchdog = new Thread() {
-			@Override
-			public void run() {
-				try {
-					reader.join(1000);
-					if (reader.isAlive()) {
-						reader.interrupt();
-					}
-				} catch (InterruptedException e) {
-					// Okay
-				}
-			}
-		};
 		try {
-			watchdog.start();
+			URL url = new URL("http", "localhost", server.getPort(), "/");
 			URLConnection conn = url.openConnection();
 			conn.setConnectTimeout(1000);
 			conn.setReadTimeout(1000);
@@ -71,8 +55,6 @@ public class NotFoundTests {
 			fail();
 		} catch (FileNotFoundException e) {
 			// Expected
-		} finally {
-			watchdog.interrupt();
 		}
 	}
 

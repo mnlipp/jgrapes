@@ -50,7 +50,7 @@ public class BasicTestServer extends Component {
 				this, Ready.class, networkServer.channel().defaultCriterion());
 	}
 	
-	public InetSocketAddress getSocketAddress() 
+	private InetSocketAddress getSocketAddress() 
 				throws InterruptedException, ExecutionException {
 		if (addr == null) {
 			Ready readyEvent = (Ready) readyMonitor.get();

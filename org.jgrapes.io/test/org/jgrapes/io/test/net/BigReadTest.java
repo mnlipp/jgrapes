@@ -110,7 +110,7 @@ public class BigReadTest {
 		}
 	}
 
-	@Test
+	@Test(timeout=10000)
 	public void test() throws IOException, InterruptedException, 
 			ExecutionException {
 		EchoServer app = new EchoServer();
@@ -125,27 +125,8 @@ public class BigReadTest {
 		InetSocketAddress serverAddr 
 			= ((InetSocketAddress)readyEvent.listenAddress());
 
-		// Watchdog
-		final Thread mainTread = Thread.currentThread();
-		final Thread watchdog = new Thread() {
-			@Override
-			public void run() {
-				try {
-					mainTread.join(10000);
-					if (mainTread.isAlive()) {
-						System.err.println("Watchdog kills main thread.");
-						mainTread.interrupt();
-					}
-				} catch (InterruptedException e) {
-					// Ignored
-				}
-			}
-		};
-		
 		AtomicInteger expected = new AtomicInteger(0);
-		try (Socket client = new Socket(serverAddr.getAddress(),
-		        serverAddr.getPort())) {
-			watchdog.start();
+		try (Socket client = new Socket("localhost", serverAddr.getPort())) {
 			InputStream fromServer = client.getInputStream();
 			BufferedReader in = new BufferedReader(
 			        new InputStreamReader(fromServer, "ascii"));
@@ -160,8 +141,6 @@ public class BigReadTest {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			watchdog.interrupt();
 		}
 		assertEquals(1000000, expected.get());
 		
