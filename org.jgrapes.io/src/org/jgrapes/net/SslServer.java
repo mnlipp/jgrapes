@@ -213,6 +213,15 @@ public class SslServer extends Component {
 			ManagedByteBuffer unwrapped = downstreamPool.acquire();
 			ByteBuffer input = event.buffer().duplicate();
 			if (carryOver != null) {
+				if (carryOver.remaining() < input.remaining()) {
+					// Shouldn't happen with carryOver having packet size
+					// bytes left, have seen it happen nevertheless.
+					carryOver.flip();
+					ByteBuffer extCarryOver = ByteBuffer.allocate(
+							carryOver.remaining() + input.remaining());
+					extCarryOver.put(carryOver);
+					carryOver = extCarryOver;
+				}
 				carryOver.put(input);
 				carryOver.flip();
 				input = carryOver;
@@ -307,7 +316,7 @@ public class SslServer extends Component {
 				// Actually, packet buffer size should be sufficient,
 				// but since this is hard to test and doesn't really matter...
 				carryOver = ByteBuffer.allocate(input.remaining()
-						+ sslEngine.getSession().getPacketBufferSize());
+						+ sslEngine.getSession().getPacketBufferSize() + 50);
 				carryOver.put(input);
 			}
 		}
