@@ -60,6 +60,17 @@ public abstract class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
+	 * Replace the backing buffer.
+	 * 
+	 * @param buffer the new buffer
+	 * @return the managed buffer for easy chaining
+	 */
+	public ManagedBuffer<T> replaceBackingBuffer(T buffer) {
+		backing = buffer;
+		return this;
+	}
+	
+	/**
 	 * Return the buffer's manager.
 	 * 
 	 * @return the manager
