@@ -58,7 +58,8 @@ public class GeneratorRegistry {
 		if (generators != null) {
 			generators.put(obj, null);
 			generatorTracking.finest("Added generator " + obj 
-					+ ", " + generators.size() + " registered.");
+					+ ", " + generators.size() + " generators registered: "
+					+ generators.keySet());
 		}
 		if (running == 1) {
 			keepAlive = new Thread("GeneratorRegistry") {
@@ -82,7 +83,8 @@ public class GeneratorRegistry {
 		if (generators != null) {
 			generators.remove(obj);
 			generatorTracking.finest("Removed generator " + obj 
-					+ ", " + generators.size() + " registered.");
+					+ ", " + generators.size() + " generators registered: "
+					+ generators.keySet());
 		}
 		if (running == 0) {
 			keepAlive.interrupt();
