@@ -12,18 +12,22 @@ class SchedulerTest extends Specification {
 
 	void "Basic Scheduler Test"() {
 		setup: "Initialize controlled variables"
+		def failMessages = [];
 		boolean hit1 = false;
 		boolean hit2 = false;
 		
 		when: "Schedule and wait for first"
 		Instant startTime = Instant.now();
+		System.out.println("Test started at: " + startTime);
 		Components.schedule({ expiredTimer -> hit1 = true },
 			startTime.plusMillis(500));
 		Components.schedule({ expiredTimer -> hit2 = true },
 			startTime.plusMillis(1000));
 		Timer timer3 = Components.schedule({ expiredTimer -> hit1 = false },
 			startTime.plusMillis(1500));
-		Thread.sleep(Duration.between(Instant.now(), 
+		Instant now = Instant.now();
+		failMessages.add("First check at: " + now);
+		Thread.sleep(Duration.between(now, 
 			startTime.plusMillis(750)).toMillis());
 		
 		then: "First set, second not"
@@ -31,7 +35,9 @@ class SchedulerTest extends Specification {
 		!hit2;
 		
 		when: "Waited longer"
-		Thread.sleep(Duration.between(Instant.now(), 
+		now = Instant.now();
+		failMessages.add("Second check at: " + now);
+		Thread.sleep(Duration.between(now, 
 			startTime.plusMillis(1250)).toMillis());
 		
 		then:
@@ -40,12 +46,20 @@ class SchedulerTest extends Specification {
 		
 		when: "Cancel and wait"
 		timer3.cancel();
-		Thread.sleep(Duration.between(Instant.now(), 
+		now = Instant.now();
+		failMessages.add("Final check at: " + now);
+		Thread.sleep(Duration.between(now, 
 			startTime.plusMillis(2000)).toMillis());
 		
 		then: "Nothing happened"
 		hit1;
 		hit2;
+		(failMessages = []).empty;
+		
+		cleanup:
+		failMessages.each {
+			println it;
+		}
 	}
 
 	void "Scheduler Reschedule Test"() {
