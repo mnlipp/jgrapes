@@ -1,5 +1,6 @@
 package org.jgrapes.core.test.basic;
 
+import java.time.Duration
 import java.time.Instant
 
 import org.jgrapes.core.Components
@@ -22,14 +23,16 @@ class SchedulerTest extends Specification {
 			startTime.plusMillis(1000));
 		Timer timer3 = Components.schedule({ expiredTimer -> hit1 = false },
 			startTime.plusMillis(1500));
-		Thread.sleep(750);
+		Thread.sleep(Duration.between(Instant.now(), 
+			startTime.plusMillis(750)).toMillis());
 		
 		then: "First set, second not"
 		hit1;
 		!hit2;
 		
 		when: "Waited longer"
-		Thread.sleep(500);
+		Thread.sleep(Duration.between(Instant.now(), 
+			startTime.plusMillis(1250)).toMillis());
 		
 		then:
 		hit1;
@@ -37,7 +40,8 @@ class SchedulerTest extends Specification {
 		
 		when: "Cancel and wait"
 		timer3.cancel();
-		Thread.sleep(750);
+		Thread.sleep(Duration.between(Instant.now(), 
+			startTime.plusMillis(2000)).toMillis());
 		
 		then: "Nothing happened"
 		hit1;
@@ -49,22 +53,26 @@ class SchedulerTest extends Specification {
 		boolean hit1 = false;
 		
 		when: "Schedule and wait for before hit"
+		Instant startTime = Instant.now();
 		Timer timer = Components.schedule({ expiredTimer -> hit1 = true },
-			Instant.now().plusMillis(500));
-		Thread.sleep(250);
+			startTime.plusMillis(500));
+		Thread.sleep(Duration.between(Instant.now(), 
+			startTime.plusMillis(250)).toMillis());
 		
 		then: "Not hit"
 		!hit1;
 		
 		when: "Reschedule and wait after initial timeout"
-		timer.reschedule(Instant.now().plusMillis(750))
-		Thread.sleep(500);
+		timer.reschedule(startTime.plusMillis(1000))
+		Thread.sleep(Duration.between(Instant.now(), 
+			startTime.plusMillis(750)).toMillis());
 		
 		then:
 		!hit1;
 		
 		when: "Wait for timeout"
-		Thread.sleep(1000);
+		Thread.sleep(Duration.between(Instant.now(), 
+			startTime.plusMillis(1500)).toMillis());
 		
 		then: "Hit"
 		hit1;
