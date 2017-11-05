@@ -392,52 +392,55 @@ public class Components {
 		public Timer schedule(
 				TimeoutHandler timeoutHandler, Instant scheduledFor) {
 			Timer timer = new Timer(this, timeoutHandler, scheduledFor);
-			synchronized (this) {
+			synchronized (timers) {
 				timers.add(timer);
-				notify();
+				timers.notify();
 			}
 			return timer;
 		}
 
 		private void reschedule(Timer timer, Instant scheduledFor) {
-			synchronized (this) {
+			synchronized (timers) {
 				timers.remove(timer);
 				timer.scheduledFor = scheduledFor;
 				timers.add(timer);
-				notify();
+				timers.notify();
 			}
 		}
 		
 		private void cancel(Timer timer) {
-			synchronized (this) {
+			synchronized (timers) {
 				timers.remove(timer);
-				notify();
+				timers.notify();
 			}
 		}
 		
 		@Override
 		public void run() {
 			while (true) {
-				synchronized (this) {
-					while (true) {
-						final Timer first = timers.peek();
+				while (true) {
+					final Timer first;
+					synchronized (timers) {
+						first = timers.peek();
 						if (first == null 
 								|| first.scheduledFor().isAfter(Instant.now())) {
 							break;
 						}
 						timers.poll();
-						timerExecutorService.submit( 
-								() -> first.timeoutHandler().timeout(first));
 					}
-					try {
+					timerExecutorService.submit( 
+							() -> first.timeoutHandler().timeout(first));
+				}
+				try {
+					synchronized (timers) {
 						if (timers.size() == 0) {
-							wait();
+							timers.wait();
 						} else {
-							wait(Math.max(1, Duration.between(Instant.now(), 
+							timers.wait(Math.max(1, Duration.between(Instant.now(), 
 									timers.peek().scheduledFor()).toMillis()));
 						}
-					} catch (Throwable e) {
 					}
+				} catch (Throwable e) {
 				}
 			}
 		}
