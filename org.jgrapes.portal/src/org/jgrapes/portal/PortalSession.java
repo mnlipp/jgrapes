@@ -89,6 +89,12 @@ import org.jgrapes.io.events.Closed;
  * IOSubchannel <|.. PortalSession
  *
  * PortalSession "1" *-- "*" PortalSession : maintains
+ * 
+ * package org.jgrapes.http {
+ *     class Session
+ * }
+ * 
+ * PortalSession "*" -up-> "1" Session: browser session
  * @enduml
  */
 public class PortalSession extends DefaultSubchannel {
