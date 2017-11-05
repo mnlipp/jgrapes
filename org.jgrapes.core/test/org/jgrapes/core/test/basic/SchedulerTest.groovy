@@ -20,13 +20,13 @@ class SchedulerTest extends Specification {
 		Instant startTime = Instant.now();
 		failMessages.add("Test started at: " + startTime);
 		Components.schedule({ expiredTimer -> hit1 = true },
-			startTime.plusMillis(500));
-		Components.schedule({ expiredTimer -> hit2 = true },
 			startTime.plusMillis(1000));
+		Components.schedule({ expiredTimer -> hit2 = true },
+			startTime.plusMillis(2000));
 		Timer timer3 = Components.schedule({ expiredTimer -> hit1 = false },
-			startTime.plusMillis(1500));
+			startTime.plusMillis(3000));
 		// Wait until then
-		Instant then = startTime.plusMillis(750);
+		Instant then = startTime.plusMillis(1500);
 		failMessages.add("First check scheduled for: " + then);
 		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
 		failMessages.add("First check at: " + Instant.now());
@@ -36,7 +36,7 @@ class SchedulerTest extends Specification {
 		!hit2;
 		
 		when: "Waited longer"
-		then = startTime.plusMillis(1250);
+		then = startTime.plusMillis(2500);
 		failMessages.add("Second check scheduled for: " + then);
 		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
 		failMessages.add("Second check at: " + Instant.now());
@@ -47,7 +47,7 @@ class SchedulerTest extends Specification {
 		
 		when: "Cancel and wait"
 		timer3.cancel();
-		then = startTime.plusMillis(2000);
+		then = startTime.plusMillis(4000);
 		failMessages.add("Final check scheduled for: " + then);
 		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
 		failMessages.add("Final check at: " + Instant.now());
@@ -72,8 +72,8 @@ class SchedulerTest extends Specification {
 		Instant startTime = Instant.now();
 		failMessages.add("Test started at: " + startTime);
 		Timer timer = Components.schedule({ expiredTimer -> hit1 = true },
-			startTime.plusMillis(500));
-		Instant then = startTime.plusMillis(250);		
+			startTime.plusMillis(1000));
+		Instant then = startTime.plusMillis(500);		
 		failMessages.add("First check scheduled for: " + then);
 		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
 		failMessages.add("First check at: " + Instant.now());
@@ -82,8 +82,8 @@ class SchedulerTest extends Specification {
 		!hit1;
 		
 		when: "Reschedule and wait after initial timeout"
-		timer.reschedule(startTime.plusMillis(1000));
-		then = startTime.plusMillis(750);
+		timer.reschedule(startTime.plusMillis(2000));
+		then = startTime.plusMillis(1500);
 		failMessages.add("Second check scheduled for: " + then);
 		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
 		failMessages.add("Second check at: " + Instant.now());
@@ -92,7 +92,7 @@ class SchedulerTest extends Specification {
 		!hit1;
 		
 		when: "Wait for timeout"
-		then = startTime.plusMillis(1500);
+		then = startTime.plusMillis(3000);
 		failMessages.add("Final check scheduled for: " + then);
 		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
 		failMessages.add("final check at: " + Instant.now());
