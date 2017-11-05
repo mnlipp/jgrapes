@@ -125,8 +125,8 @@ var JGPortal = {
             self._ws.send(JSON.stringify({"jsonrpc": "2.0", "method": "connect",
                 "params": [ self._portalSessionId ]}));
             self._drainSendQueue();
-            setInterval(function() {
-                refreshTimer = self.send({"jsonrpc": "2.0", "method": "keepAlive",
+            refreshTimer = setInterval(function() {
+                self.send({"jsonrpc": "2.0", "method": "keepAlive",
                     "params": []});                
                 }, JGPortal.portalSessionRefreshInterval);
         }
