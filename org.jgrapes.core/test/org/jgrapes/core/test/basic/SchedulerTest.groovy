@@ -18,27 +18,28 @@ class SchedulerTest extends Specification {
 		
 		when: "Schedule and wait for first"
 		Instant startTime = Instant.now();
-		System.out.println("Test started at: " + startTime);
+		failMessages.add("Test started at: " + startTime);
 		Components.schedule({ expiredTimer -> hit1 = true },
 			startTime.plusMillis(500));
 		Components.schedule({ expiredTimer -> hit2 = true },
 			startTime.plusMillis(1000));
 		Timer timer3 = Components.schedule({ expiredTimer -> hit1 = false },
 			startTime.plusMillis(1500));
-		Instant now = Instant.now();
-		failMessages.add("First check at: " + now);
-		Thread.sleep(Duration.between(now, 
-			startTime.plusMillis(750)).toMillis());
+		// Wait until then
+		Instant then = startTime.plusMillis(750);
+		failMessages.add("First check scheduled for: " + then);
+		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
+		failMessages.add("First check at: " + Instant.now());
 		
 		then: "First set, second not"
 		hit1;
 		!hit2;
 		
 		when: "Waited longer"
-		now = Instant.now();
-		failMessages.add("Second check at: " + now);
-		Thread.sleep(Duration.between(now, 
-			startTime.plusMillis(1250)).toMillis());
+		then = startTime.plusMillis(1250);
+		failMessages.add("Second check scheduled for: " + then);
+		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
+		failMessages.add("Second check at: " + Instant.now());
 		
 		then:
 		hit1;
@@ -46,10 +47,10 @@ class SchedulerTest extends Specification {
 		
 		when: "Cancel and wait"
 		timer3.cancel();
-		now = Instant.now();
-		failMessages.add("Final check at: " + now);
-		Thread.sleep(Duration.between(now, 
-			startTime.plusMillis(2000)).toMillis());
+		then = startTime.plusMillis(2000);
+		failMessages.add("Final check scheduled for: " + then);
+		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
+		failMessages.add("Final check at: " + Instant.now());
 		
 		then: "Nothing happened"
 		hit1;
@@ -64,32 +65,46 @@ class SchedulerTest extends Specification {
 
 	void "Scheduler Reschedule Test"() {
 		setup: "Initialize controlled variables"
+		def failMessages = [];
 		boolean hit1 = false;
 		
 		when: "Schedule and wait for before hit"
 		Instant startTime = Instant.now();
+		failMessages.add("Test started at: " + startTime);
 		Timer timer = Components.schedule({ expiredTimer -> hit1 = true },
 			startTime.plusMillis(500));
-		Thread.sleep(Duration.between(Instant.now(), 
-			startTime.plusMillis(250)).toMillis());
+		Instant then = startTime.plusMillis(250);		
+		failMessages.add("First check scheduled for: " + then);
+		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
+		failMessages.add("First check at: " + Instant.now());
 		
 		then: "Not hit"
 		!hit1;
 		
 		when: "Reschedule and wait after initial timeout"
-		timer.reschedule(startTime.plusMillis(1000))
-		Thread.sleep(Duration.between(Instant.now(), 
-			startTime.plusMillis(750)).toMillis());
+		timer.reschedule(startTime.plusMillis(1000));
+		then = startTime.plusMillis(750);
+		failMessages.add("Second check scheduled for: " + then);
+		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
+		failMessages.add("Second check at: " + Instant.now());
 		
 		then:
 		!hit1;
 		
 		when: "Wait for timeout"
-		Thread.sleep(Duration.between(Instant.now(), 
-			startTime.plusMillis(1500)).toMillis());
+		then = startTime.plusMillis(1500);
+		failMessages.add("Final check scheduled for: " + then);
+		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
+		failMessages.add("final check at: " + Instant.now());
 		
 		then: "Hit"
 		hit1;
+		(failMessages = []).empty;
+		
+		cleanup:
+		failMessages.each {
+			println it;
+		}
 	}
 
 }
