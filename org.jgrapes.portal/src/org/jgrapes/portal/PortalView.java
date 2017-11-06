@@ -323,13 +323,37 @@ public class PortalView extends Component {
 				event.stop();
 				return;
 			}
-			
 			renderPortal(event, channel);
 			return;
 		}
 		URI subUri = uriFromPath("portal-resource/").relativize(requestUri);
 		if (!subUri.equals(requestUri)) {
 			sendPortalResource(event, channel, subUri.getPath());
+			return;
+		}
+		subUri = uriFromPath("portal-session/").relativize(requestUri);
+		if (!subUri.equals(requestUri)) {
+			if (event.httpRequest().findField(
+					HttpField.UPGRADE, Converters.STRING_LIST)
+					.map(f -> f.value().containsIgnoreCase("websocket"))
+					.orElse(false)) {
+				// Establish portlet session
+				Optional<Session> optSession = event.associated(Session.class);
+				if (!optSession.isPresent()) {
+					return;
+				}
+				String portalSessionId = subUri.getPath();
+				PortalSession portalSession = PortalSession
+						.findOrCreate(portalSessionId, portal, portalSessionTimeout)
+						.setUpstreamChannel(channel)
+						.setEventPipeline(activeEventPipeline())
+						.setSession(optSession.get());
+				channel.setAssociated(PortalSession.class, portalSession);
+				// Channel now used as JSON input
+				channel.setAssociated(this, new WsInputReader());
+				channel.respond(new WebSocketAccepted(event));
+				event.stop();
+			}
 			return;
 		}
 		subUri = uriFromPath("theme-resource/").relativize(requestUri);
@@ -551,20 +575,6 @@ public class PortalView extends Component {
 				}
 				fire(new JsonInput(json), psc.get());
 				return;
-			}
-			// No portal session established, attempt to do so?
-			if ("connect".equals(json.getString("method"))) {
-				Optional<Session> optSession = wsChannel.associated(Session.class);
-				if (!optSession.isPresent()) {
-					return;
-				}
-				String portalSessionId = json.getJsonArray("params").getString(0);
-				PortalSession channel = PortalSession
-						.findOrCreate(portalSessionId, portal, portalSessionTimeout)
-						.setUpstreamChannel(wsChannel)
-						.setEventPipeline(activeEventPipeline())
-						.setSession(optSession.get());
-				wsChannel.setAssociated(PortalSession.class, channel);
 			}
 		}
 	}

@@ -95,18 +95,26 @@ var JGPortal = {
     // WebSocket "wrapper"
     // ///////////////////
     
-    var PortalWebSocket = function(location) {
-        this._location = location;
+    var PortalWebSocket = function() {
+        this._ws = null;
         this._sendQueue = [];
         this._recvQueue = [];
         this._recvQueueLocks = 0;
         this._messageHandlers = {};
-        this._timeout = null;
+        this._refreshTimer = null;
+        this._reconnectTimer = null;
+        this._connectRequested = false;
         this._portalSessionId = sessionStorage.getItem("org.jgrapes.portal.sessionId");
         if (!this._portalSessionId) {
             this._portalSessionId = generateUUID();
             sessionStorage.setItem("org.jgrapes.portal.sessionId", this._portalSessionId);
         }
+        this._location = (window.location.protocol === "https:" ? "wss:" : "ws") +
+            "//" + window.location.host + window.location.pathname;
+        if (!this._location.endsWith("/")) {
+            this._location += "/";
+        }
+        this._location += "portal-session/" + this._portalSessionId;
     };
 
     PortalWebSocket.prototype.portalSessionId = function() {
@@ -115,27 +123,36 @@ var JGPortal = {
     
     PortalWebSocket.prototype._connect = function() {
         this._ws = new WebSocket(this._location);
-        if (this._ws.readyState === 3) {
-            this._initiateReconnect();
-            return;
-        }
-        let refreshTimer = null;
         let self = this;
         this._ws.onopen = function() {
-            self._ws.send(JSON.stringify({"jsonrpc": "2.0", "method": "connect",
-                "params": [ self._portalSessionId ]}));
             self._drainSendQueue();
-            refreshTimer = setInterval(function() {
-                self.send({"jsonrpc": "2.0", "method": "keepAlive",
-                    "params": []});                
-                }, JGPortal.portalSessionRefreshInterval);
+            self._refreshTimer = setInterval(function() {
+                if (self._sendQueue.length == 0) {
+                    self.send({"jsonrpc": "2.0", "method": "keepAlive",
+                        "params": []});
+                }
+            }, JGPortal.portalSessionRefreshInterval);
         }
         this._ws.onclose = function(event) {
-            clearInterval(refreshTimer);
-            self._initiateReconnect();
+            if (self._refreshTimer !== null) {
+                clearInterval(self._refreshTimer);
+                self._refreshTimer = null;
+            }
+            this._ws = null;
+            if (this._connectRequested) {
+                // Not an intended connect
+                self._initiateReconnect();
+            }
         }
         this._ws.onerror = function(event) {
-            self._initiateReconnect();
+            if (self._refreshTimer !== null) {
+                clearInterval(self._refreshTimer);
+                self._refreshTimer = null;
+            }
+            this._ws = null;
+            if (this._connectRequested) {
+                self._initiateReconnect();
+            }
         }
         this._ws.onmessage = function(event) {
             var msg = JSON.parse(event.data);
@@ -147,22 +164,24 @@ var JGPortal = {
     }
 
     PortalWebSocket.prototype.connect = function() {
+        this._connectRequested = true;
         this._connect();
     } 
     
     PortalWebSocket.prototype.close = function() {
         this.send({"jsonrpc": "2.0", "method": "disconnect",
             "params": [ this._portalSessionId ]});
+        this._connectRequested = false;
         this._ws.close();
     }
 
     PortalWebSocket.prototype._initiateReconnect = function() {
-        if (!this._timeout) {
+        if (!this._reconnectTimer) {
             let self = this;
-            this._timeout = setTimeout(function() {
-                self._timeout = null;
+            this._reconnectTimer = setTimeout(function() {
+                self._reconnectTimer = null;
                 self._connect();
-            })
+            }, 1000);
         }
     }
     
@@ -217,10 +236,7 @@ var JGPortal = {
         }
     }
     
-    var wsLoc = (window.location.protocol === "https:" ? "wss:" : "ws") +
-        "//" + window.location.host + window.location.pathname;
-    
-    var webSocketConnection = new PortalWebSocket(wsLoc);
+    var webSocketConnection = new PortalWebSocket();
     JGPortal.lockMessageQueue = function() {
         webSocketConnection.lockMessageReceiver();
     }
@@ -546,10 +562,6 @@ var JGPortal = {
     // Everything set up, connect web socket
 	webSocketConnection.connect();
 
-	$( window ).on("unload", function() {
-	    webSocketConnection.close();
-	});
-	
 
 	JGPortal.sendPortalReady = function() {
 		webSocketConnection.send({"jsonrpc": "2.0", "method": "portalReady"});
