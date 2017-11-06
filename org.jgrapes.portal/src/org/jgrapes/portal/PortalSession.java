@@ -165,8 +165,7 @@ public class PortalSession extends DefaultSubchannel {
 	public void close() {
 		if (!closed) {
 			closed = true;
-			Optional.ofNullable(upstreamChannel.get()).ifPresent(
-					up -> up.respond(new Close()));
+			upstreamChannel().ifPresent(up -> up.respond(new Close()));
 			if (eventPipeline != null) {
 				eventPipeline.fire(new Closed(), PortalSession.this);
 			}
