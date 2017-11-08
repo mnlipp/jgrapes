@@ -5,33 +5,33 @@ var orgJGrapesPortletsSysInfo = {
 
 (function() {
 
+    let timeData = [];
     let maxMemoryData = [];
     let totalMemoryData = [];
     let freeMemoryData = [];
-    for (let i = -300; i <= 0; i++) {
-        maxMemoryData.push(NaN);
-        totalMemoryData.push(NaN);
-        freeMemoryData.push(NaN);
-    }
     
     JGPortal.registerPortletMethod(
             "org.jgrapes.portlets.sysinfo.SysInfoPortlet",
             "updateMemorySizes", function(portletId, params) {
-                maxMemoryData.shift();
-                maxMemoryData.push(params[0]);
-                totalMemoryData.shift();
-                totalMemoryData.push(params[1]);
-                freeMemoryData.shift();
-                freeMemoryData.push(params[2]);
+                if (timeData.length >= 300) {
+                    timeData.shift();
+                    maxMemoryData.shift();
+                    totalMemoryData.shift();
+                    freeMemoryData.shift();
+                }
+                timeData.push(params[0]);
+                maxMemoryData.push(params[1]);
+                totalMemoryData.push(params[2]);
+                freeMemoryData.push(params[3]);
                 let maxFormatted = "";
                 let totalFormatted = "";
                 let freeFormatted = "";
                 let portlet = JGPortal.findPortletPreview(portletId);
                 if (portlet) {
                     let lang = portlet.closest('[lang]').attr('lang') || 'en'
-                    maxFormatted = JGPortal.formatMemorySize(params[0], 1, lang);
-                    totalFormatted = JGPortal.formatMemorySize(params[1], 1, lang);
-                    freeFormatted = JGPortal.formatMemorySize(params[2], 1, lang);
+                    maxFormatted = JGPortal.formatMemorySize(params[1], 1, lang);
+                    totalFormatted = JGPortal.formatMemorySize(params[2], 1, lang);
+                    freeFormatted = JGPortal.formatMemorySize(params[3], 1, lang);
                     let col = portlet.find(".maxMemory");
                     col.html(maxFormatted);
                     col = portlet.find(".totalMemory");
@@ -57,10 +57,6 @@ var orgJGrapesPortletsSysInfo = {
 
     orgJGrapesPortletsSysInfo.initMemoryChart = function(chartCanvas) {
         var ctx = chartCanvas[0].getContext('2d');
-        let labels = [];
-        for (let i = -300; i <= 0; i++) {
-            labels.push(i + "s");
-        }
         let lang = chartCanvas.closest('[lang]').attr('lang') || 'en'
         var chart = new Chart(ctx, {
             // The type of chart we want to create
@@ -68,7 +64,7 @@ var orgJGrapesPortletsSysInfo = {
 
             // The data for our datasets
             data: {
-                labels: labels,
+                labels: timeData,
                 datasets: [{
                     lineTension: 0,
                     fill: false,
@@ -97,6 +93,16 @@ var orgJGrapesPortletsSysInfo = {
             options: {
                 maintainAspectRatio: false,
                 scales: {
+                    xAxes: [{
+                        type: 'time',
+                        distribution: 'linear',
+                        time: {
+                            displayFormats: {
+                                millisecond: 'H:mm:ss',
+                                second: 'H:mm:ss',
+                            }
+                        }
+                    }],
                     yAxes: [{
                         ticks: {
                             callback: function(value, index, values) {

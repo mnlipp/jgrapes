@@ -163,7 +163,8 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 	        Locale locale) {
 		Runtime runtime = Runtime.getRuntime();
 		channel.respond(new NotifyPortletView(type(),
-				portletId, "updateMemorySizes", runtime.maxMemory(),
+				portletId, "updateMemorySizes", 
+				System.currentTimeMillis(), runtime.maxMemory(),
 				runtime.totalMemory(), runtime.freeMemory()));
 	}
 	
