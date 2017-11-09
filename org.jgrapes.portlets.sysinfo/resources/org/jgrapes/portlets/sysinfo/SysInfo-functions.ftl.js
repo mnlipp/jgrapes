@@ -13,7 +13,7 @@ var orgJGrapesPortletsSysInfo = {
     JGPortal.registerPortletMethod(
             "org.jgrapes.portlets.sysinfo.SysInfoPortlet",
             "updateMemorySizes", function(portletId, params) {
-                if (timeData.length >= 300) {
+                if (timeData.length >= 301) {
                     timeData.shift();
                     maxMemoryData.shift();
                     totalMemoryData.shift();
@@ -27,8 +27,9 @@ var orgJGrapesPortletsSysInfo = {
                 let totalFormatted = "";
                 let freeFormatted = "";
                 let portlet = JGPortal.findPortletPreview(portletId);
+                let lang = 'en';
                 if (portlet) {
-                    let lang = portlet.closest('[lang]').attr('lang') || 'en'
+                    lang = portlet.closest('[lang]').attr('lang') || 'en'
                     maxFormatted = JGPortal.formatMemorySize(params[1], 1, lang);
                     totalFormatted = JGPortal.formatMemorySize(params[2], 1, lang);
                     freeFormatted = JGPortal.formatMemorySize(params[3], 1, lang);
@@ -50,6 +51,7 @@ var orgJGrapesPortletsSysInfo = {
                     let chartCanvas = portlet.find(".memoryChart");
                     if (portlet.find(".memoryChart").parent(":hidden").length === 0) {
                         let chart = chartCanvas.data('chartjs-chart');
+                        moment.locale(lang);
                         chart.update(0);
                     }
                 }
@@ -98,8 +100,8 @@ var orgJGrapesPortletsSysInfo = {
                         distribution: 'linear',
                         time: {
                             displayFormats: {
-                                millisecond: 'H:mm:ss',
-                                second: 'H:mm:ss',
+                                millisecond: 'LTS',
+                                second: 'LTS',
                             }
                         }
                     }],
