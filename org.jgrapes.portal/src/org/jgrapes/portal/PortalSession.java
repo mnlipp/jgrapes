@@ -57,7 +57,7 @@ import org.jgrapes.io.events.Closed;
  * 
  * {@link PortalSession} implements the {@link IOSubchannel}
  * interface. This allows the instances to be used as channels
- * for exchanging portal browserSession scoped events with the 
+ * for exchanging portal session scoped events with the 
  * {@link Portal} component. The upstream channel
  * (see {@link #upstreamChannel()}) is the channel of the
  * WebSocket. It may be unavailable if the connection has
