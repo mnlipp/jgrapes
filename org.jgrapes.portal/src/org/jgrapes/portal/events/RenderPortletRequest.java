@@ -23,8 +23,10 @@ import static org.jgrapes.portal.Portlet.*;
 import org.jgrapes.portal.RenderSupport;
 
 /**
- * Represents a request from the portal view (browser) to update
- * a portlet.
+ * Sent to the portal (server) if an existing portlet instance 
+ * should be updated. The portal server usually responds with 
+ * a {@link RenderPortlet} event that has as payload the
+ * HTML that displays the portlet on the portal page.
  * 
  * ![Event Sequence](RenderPortletRequestSeq.svg)
  * 

@@ -25,7 +25,8 @@ import org.jgrapes.core.Event;
 import static org.jgrapes.portal.Portlet.*;
 
 /**
- * Send to the portal view for adding or updating a complete portlet view.
+ * Send to the portal page for adding or updating a complete portlet
+ * representation.
  */
 public class RenderPortlet extends Event<Void> {
 

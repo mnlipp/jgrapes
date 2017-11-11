@@ -38,7 +38,7 @@ import org.jgrapes.io.events.Closed;
 
 /**
  * The server side representation of a window in the browser 
- * that displays a portal view (a portal session). An instance 
+ * that displays a portal page (a portal session). An instance 
  * is created when a new portal window opens the websocket 
  * connection to the server for the first time. If the 
  * connection between the browser and the server is lost, 

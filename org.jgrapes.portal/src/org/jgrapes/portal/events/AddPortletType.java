@@ -27,13 +27,13 @@ import org.jgrapes.core.Event;
 /**
  * Adds a portlet type with its global resources (JavaScript and/or CSS) 
  * to the portal page. Specifying global resources result in the respective
- * `&lt;link .../&gt;` or `&lt;script ...&gt;&lt/script&gt;` nodes
- * being added to the page's `&lt;head&gt;` section.
+ * `<link .../>` or `<script ...></script>` nodes
+ * being added to the page's `<head>` node.
  * 
- * This in turn causes the browser to issue send `GET` request that
+ * This in turn causes the browser to issue `GET` request that
  * (usually) refer to the portlet's resources. These requests are
  * converted to {@link PortletResourceRequest}s by the portal and
- * sent to the portlets, which must respond to theses requests.
+ * sent to the portlets, which must respond to these requests.
  * 
  * The complete sequence of events is shown in the diagram.
  * 
