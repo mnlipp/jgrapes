@@ -125,6 +125,12 @@ var JGPortal = {
         this._ws = new WebSocket(this._location);
         let self = this;
         this._ws.onopen = function() {
+            findPreviewIds().forEach(function(id) {
+                JGPortal.sendRenderPortlet(id, "Preview", false);
+            });
+            findViewIds().forEach(function(id) {
+                JGPortal.sendRenderPortlet(id, "View", false);
+            });
             self._drainSendQueue();
             self._refreshTimer = setInterval(function() {
                 if (self._sendQueue.length == 0) {
@@ -138,8 +144,8 @@ var JGPortal = {
                 clearInterval(self._refreshTimer);
                 self._refreshTimer = null;
             }
-            this._ws = null;
-            if (this._connectRequested) {
+            self._ws = null;
+            if (self._connectRequested) {
                 // Not an intended connect
                 self._initiateReconnect();
             }
@@ -149,8 +155,8 @@ var JGPortal = {
                 clearInterval(self._refreshTimer);
                 self._refreshTimer = null;
             }
-            this._ws = null;
-            if (this._connectRequested) {
+            self._ws = null;
+            if (self._connectRequested) {
                 self._initiateReconnect();
             }
         }
@@ -328,6 +334,13 @@ var JGPortal = {
         return undefined;
     };
     JGPortal.findPortletPreview = findPortletPreview;
+
+    function findPreviewIds() {
+        let ids = $( ".portlet[data-portlet-id]" ).map(function() {
+            return $( this ).attr("data-portlet-id");
+        }).get();
+        return ids;
+    }
     
     function findPortletView(portletId) {
         let tabs = $( "#tabs" ).tabs();
@@ -338,6 +351,14 @@ var JGPortal = {
         return undefined;
     };
     JGPortal.findPortletView = findPortletView;
+    
+    function findViewIds() {
+        let tabs = $( "#tabs" ).tabs();
+        let ids = tabs.find("> div[data-portlet-id]" ).map(function() {
+            return $( this ).attr("data-portlet-id");
+        }).get();
+        return ids;
+    }
     
     function activatePortletView(portletId) {
         let tabs = $( "#tabs" ).tabs();
