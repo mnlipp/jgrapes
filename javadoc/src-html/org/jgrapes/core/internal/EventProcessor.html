@@ -38,119 +38,126 @@
 <span class="sourceLineNo">030</span> */<a name="line.30"></a>
 <span class="sourceLineNo">031</span>public class EventProcessor implements InternalEventPipeline, Runnable {<a name="line.31"></a>
 <span class="sourceLineNo">032</span><a name="line.32"></a>
-<span class="sourceLineNo">033</span>        protected static ThreadLocal&lt;EventBase&lt;?&gt;&gt; <a name="line.33"></a>
+<span class="sourceLineNo">033</span>        protected final static ThreadLocal&lt;EventBase&lt;?&gt;&gt; <a name="line.33"></a>
 <span class="sourceLineNo">034</span>                currentlyHandling = new ThreadLocal&lt;&gt;();<a name="line.34"></a>
 <span class="sourceLineNo">035</span>        <a name="line.35"></a>
-<span class="sourceLineNo">036</span>        private ExecutorService executorService;<a name="line.36"></a>
-<span class="sourceLineNo">037</span>        private ComponentTree componentTree;<a name="line.37"></a>
-<span class="sourceLineNo">038</span>        private EventPipeline asEventPipeline;<a name="line.38"></a>
-<span class="sourceLineNo">039</span>        protected EventQueue queue = new EventQueue();<a name="line.39"></a>
-<span class="sourceLineNo">040</span>        <a name="line.40"></a>
-<span class="sourceLineNo">041</span>        EventProcessor(ComponentTree tree) {<a name="line.41"></a>
-<span class="sourceLineNo">042</span>                this(tree, Components.defaultExecutorService());<a name="line.42"></a>
-<span class="sourceLineNo">043</span>        }<a name="line.43"></a>
-<span class="sourceLineNo">044</span><a name="line.44"></a>
-<span class="sourceLineNo">045</span>        EventProcessor(ComponentTree tree, ExecutorService executorService) {<a name="line.45"></a>
-<span class="sourceLineNo">046</span>                this.componentTree = tree;<a name="line.46"></a>
-<span class="sourceLineNo">047</span>                this.executorService = executorService;<a name="line.47"></a>
-<span class="sourceLineNo">048</span>                asEventPipeline = new CheckingPipelineFilter(this);<a name="line.48"></a>
-<span class="sourceLineNo">049</span>        }<a name="line.49"></a>
-<span class="sourceLineNo">050</span><a name="line.50"></a>
-<span class="sourceLineNo">051</span>        @Override<a name="line.51"></a>
-<span class="sourceLineNo">052</span>        public &lt;T extends Event&lt;?&gt;&gt; T add(T event, Channel... channels) {<a name="line.52"></a>
-<span class="sourceLineNo">053</span>                ((EventBase&lt;?&gt;)event).generatedBy(currentlyHandling.get());<a name="line.53"></a>
-<span class="sourceLineNo">054</span>                ((EventBase&lt;?&gt;)event).processedBy(this);<a name="line.54"></a>
-<span class="sourceLineNo">055</span>                synchronized (queue) {<a name="line.55"></a>
-<span class="sourceLineNo">056</span>                        boolean wasEmpty = queue.isEmpty();<a name="line.56"></a>
-<span class="sourceLineNo">057</span>                        queue.add(event, channels);<a name="line.57"></a>
-<span class="sourceLineNo">058</span>                        if (wasEmpty) {<a name="line.58"></a>
+<span class="sourceLineNo">036</span>        private final ExecutorService executorService;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>        private final ComponentTree componentTree;<a name="line.37"></a>
+<span class="sourceLineNo">038</span>        private final EventPipeline asEventPipeline;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>        protected final EventQueue queue = new EventQueue();<a name="line.39"></a>
+<span class="sourceLineNo">040</span>        private boolean isExecuting = false;<a name="line.40"></a>
+<span class="sourceLineNo">041</span>        <a name="line.41"></a>
+<span class="sourceLineNo">042</span>        EventProcessor(ComponentTree tree) {<a name="line.42"></a>
+<span class="sourceLineNo">043</span>                this(tree, Components.defaultExecutorService());<a name="line.43"></a>
+<span class="sourceLineNo">044</span>        }<a name="line.44"></a>
+<span class="sourceLineNo">045</span><a name="line.45"></a>
+<span class="sourceLineNo">046</span>        EventProcessor(ComponentTree tree, ExecutorService executorService) {<a name="line.46"></a>
+<span class="sourceLineNo">047</span>                this.componentTree = tree;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>                this.executorService = executorService;<a name="line.48"></a>
+<span class="sourceLineNo">049</span>                asEventPipeline = new CheckingPipelineFilter(this);<a name="line.49"></a>
+<span class="sourceLineNo">050</span>        }<a name="line.50"></a>
+<span class="sourceLineNo">051</span><a name="line.51"></a>
+<span class="sourceLineNo">052</span>        @Override<a name="line.52"></a>
+<span class="sourceLineNo">053</span>        public &lt;T extends Event&lt;?&gt;&gt; T add(T event, Channel... channels) {<a name="line.53"></a>
+<span class="sourceLineNo">054</span>                ((EventBase&lt;?&gt;)event).generatedBy(currentlyHandling.get());<a name="line.54"></a>
+<span class="sourceLineNo">055</span>                ((EventBase&lt;?&gt;)event).processedBy(this);<a name="line.55"></a>
+<span class="sourceLineNo">056</span>                queue.add(event, channels);<a name="line.56"></a>
+<span class="sourceLineNo">057</span>                synchronized (this) {<a name="line.57"></a>
+<span class="sourceLineNo">058</span>                        if (!isExecuting) {<a name="line.58"></a>
 <span class="sourceLineNo">059</span>                                GeneratorRegistry.instance().add(this);<a name="line.59"></a>
-<span class="sourceLineNo">060</span>                                executorService.submit(this);<a name="line.60"></a>
-<span class="sourceLineNo">061</span>                        }<a name="line.61"></a>
-<span class="sourceLineNo">062</span>                }<a name="line.62"></a>
-<span class="sourceLineNo">063</span>                return event;<a name="line.63"></a>
-<span class="sourceLineNo">064</span>        }<a name="line.64"></a>
-<span class="sourceLineNo">065</span><a name="line.65"></a>
-<span class="sourceLineNo">066</span>        void add(EventQueue source) {<a name="line.66"></a>
-<span class="sourceLineNo">067</span>                synchronized (queue) {<a name="line.67"></a>
-<span class="sourceLineNo">068</span>                        boolean wasEmpty = queue.isEmpty();<a name="line.68"></a>
-<span class="sourceLineNo">069</span>                        for (EventChannelsTuple entry: source) {<a name="line.69"></a>
-<span class="sourceLineNo">070</span>                                entry.event.processedBy(this);<a name="line.70"></a>
-<span class="sourceLineNo">071</span>                                queue.add(entry);<a name="line.71"></a>
+<span class="sourceLineNo">060</span>                                isExecuting = true;<a name="line.60"></a>
+<span class="sourceLineNo">061</span>                                executorService.execute(this);<a name="line.61"></a>
+<span class="sourceLineNo">062</span>                        }<a name="line.62"></a>
+<span class="sourceLineNo">063</span>                }<a name="line.63"></a>
+<span class="sourceLineNo">064</span>                return event;<a name="line.64"></a>
+<span class="sourceLineNo">065</span>        }<a name="line.65"></a>
+<span class="sourceLineNo">066</span><a name="line.66"></a>
+<span class="sourceLineNo">067</span>        void add(EventQueue source) {<a name="line.67"></a>
+<span class="sourceLineNo">068</span>                while (true) {<a name="line.68"></a>
+<span class="sourceLineNo">069</span>                        EventChannelsTuple entry = source.poll();<a name="line.69"></a>
+<span class="sourceLineNo">070</span>                        if (entry == null) {<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                                break;<a name="line.71"></a>
 <span class="sourceLineNo">072</span>                        }<a name="line.72"></a>
-<span class="sourceLineNo">073</span>                        source.clear();<a name="line.73"></a>
-<span class="sourceLineNo">074</span>                        if (wasEmpty) {<a name="line.74"></a>
-<span class="sourceLineNo">075</span>                                GeneratorRegistry.instance().add(this);<a name="line.75"></a>
-<span class="sourceLineNo">076</span>                                executorService.submit(this);<a name="line.76"></a>
-<span class="sourceLineNo">077</span>                        }<a name="line.77"></a>
-<span class="sourceLineNo">078</span>                }<a name="line.78"></a>
-<span class="sourceLineNo">079</span>        }<a name="line.79"></a>
-<span class="sourceLineNo">080</span>        <a name="line.80"></a>
-<span class="sourceLineNo">081</span>        @Override<a name="line.81"></a>
-<span class="sourceLineNo">082</span>        public void merge(InternalEventPipeline other) {<a name="line.82"></a>
-<span class="sourceLineNo">083</span>                if (!(other instanceof EventBuffer)) {<a name="line.83"></a>
-<span class="sourceLineNo">084</span>                        throw new IllegalArgumentException(<a name="line.84"></a>
-<span class="sourceLineNo">085</span>                                        "Can only merge events from an EventBuffer.");<a name="line.85"></a>
-<span class="sourceLineNo">086</span>                }<a name="line.86"></a>
-<span class="sourceLineNo">087</span>                add(((EventBuffer) other).retrieveEvents());<a name="line.87"></a>
-<span class="sourceLineNo">088</span>        }<a name="line.88"></a>
-<span class="sourceLineNo">089</span><a name="line.89"></a>
-<span class="sourceLineNo">090</span>        @Override<a name="line.90"></a>
-<span class="sourceLineNo">091</span>        public void run() {<a name="line.91"></a>
-<span class="sourceLineNo">092</span>                String origName = Thread.currentThread().getName();<a name="line.92"></a>
-<span class="sourceLineNo">093</span>                try {<a name="line.93"></a>
-<span class="sourceLineNo">094</span>                        if (queue.isEmpty()) {<a name="line.94"></a>
-<span class="sourceLineNo">095</span>                                return;<a name="line.95"></a>
-<span class="sourceLineNo">096</span>                        }<a name="line.96"></a>
-<span class="sourceLineNo">097</span>                        Thread.currentThread().setName(<a name="line.97"></a>
-<span class="sourceLineNo">098</span>                                        origName + " (P" + Components.objectId(this) + ")");<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                        FeedBackPipelineFilter.setAssociatedPipeline(this);<a name="line.99"></a>
-<span class="sourceLineNo">100</span>                        while (true) {<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                                EventChannelsTuple next = queue.peek();<a name="line.101"></a>
-<span class="sourceLineNo">102</span>                                currentlyHandling.set(next.event);<a name="line.102"></a>
-<span class="sourceLineNo">103</span>                                componentTree.dispatch(<a name="line.103"></a>
-<span class="sourceLineNo">104</span>                                                asEventPipeline, next.event, next.channels);<a name="line.104"></a>
-<span class="sourceLineNo">105</span>                                currentlyHandling.get().decrementOpen();<a name="line.105"></a>
-<span class="sourceLineNo">106</span>                                synchronized (queue) {<a name="line.106"></a>
-<span class="sourceLineNo">107</span>                                        queue.remove();<a name="line.107"></a>
-<span class="sourceLineNo">108</span>                                        if (queue.isEmpty()) {<a name="line.108"></a>
-<span class="sourceLineNo">109</span>                                                break;<a name="line.109"></a>
-<span class="sourceLineNo">110</span>                                        }<a name="line.110"></a>
-<span class="sourceLineNo">111</span>                                }<a name="line.111"></a>
-<span class="sourceLineNo">112</span>                        }<a name="line.112"></a>
-<span class="sourceLineNo">113</span>                } finally {<a name="line.113"></a>
-<span class="sourceLineNo">114</span>                        Thread.currentThread().setName(origName);<a name="line.114"></a>
-<span class="sourceLineNo">115</span>                        currentlyHandling.set(null);;<a name="line.115"></a>
-<span class="sourceLineNo">116</span>                        FeedBackPipelineFilter.setAssociatedPipeline(null);<a name="line.116"></a>
-<span class="sourceLineNo">117</span>                        GeneratorRegistry.instance().remove(this);<a name="line.117"></a>
-<span class="sourceLineNo">118</span>                }<a name="line.118"></a>
-<span class="sourceLineNo">119</span>        }<a name="line.119"></a>
-<span class="sourceLineNo">120</span><a name="line.120"></a>
-<span class="sourceLineNo">121</span>        /* (non-Javadoc)<a name="line.121"></a>
-<span class="sourceLineNo">122</span>         * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()<a name="line.122"></a>
-<span class="sourceLineNo">123</span>         */<a name="line.123"></a>
-<span class="sourceLineNo">124</span>        @Override<a name="line.124"></a>
-<span class="sourceLineNo">125</span>        public ExecutorService executorService() {<a name="line.125"></a>
-<span class="sourceLineNo">126</span>                return executorService;<a name="line.126"></a>
-<span class="sourceLineNo">127</span>        }<a name="line.127"></a>
-<span class="sourceLineNo">128</span><a name="line.128"></a>
-<span class="sourceLineNo">129</span>        /* (non-Javadoc)<a name="line.129"></a>
-<span class="sourceLineNo">130</span>         * @see java.lang.Object#toString()<a name="line.130"></a>
-<span class="sourceLineNo">131</span>         */<a name="line.131"></a>
-<span class="sourceLineNo">132</span>        @Override<a name="line.132"></a>
-<span class="sourceLineNo">133</span>        public String toString() {<a name="line.133"></a>
-<span class="sourceLineNo">134</span>                StringBuilder builder = new StringBuilder();<a name="line.134"></a>
-<span class="sourceLineNo">135</span>                builder.append(Components.objectName(this));<a name="line.135"></a>
-<span class="sourceLineNo">136</span>                builder.append(" [");<a name="line.136"></a>
-<span class="sourceLineNo">137</span>                if (queue != null) {<a name="line.137"></a>
-<span class="sourceLineNo">138</span>                        builder.append("queue=");<a name="line.138"></a>
-<span class="sourceLineNo">139</span>                        builder.append(queue);<a name="line.139"></a>
-<span class="sourceLineNo">140</span>                }<a name="line.140"></a>
-<span class="sourceLineNo">141</span>                builder.append("]");<a name="line.141"></a>
-<span class="sourceLineNo">142</span>                return builder.toString();<a name="line.142"></a>
-<span class="sourceLineNo">143</span>        }<a name="line.143"></a>
-<span class="sourceLineNo">144</span><a name="line.144"></a>
-<span class="sourceLineNo">145</span>}<a name="line.145"></a>
+<span class="sourceLineNo">073</span>                        entry.event.processedBy(this);<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                        queue.add(entry);<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                }<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                synchronized (this) {<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                        if (!isExecuting) {<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                                GeneratorRegistry.instance().add(this);<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                                isExecuting = true;<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                                executorService.execute(this);<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                        }<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                }<a name="line.82"></a>
+<span class="sourceLineNo">083</span>        }<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        <a name="line.84"></a>
+<span class="sourceLineNo">085</span>        @Override<a name="line.85"></a>
+<span class="sourceLineNo">086</span>        public void merge(InternalEventPipeline other) {<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                if (!(other instanceof BufferingEventPipeline)) {<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                        throw new IllegalArgumentException(<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                                        "Can only merge events from an BufferingEventPipeline.");<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                }<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                add(((BufferingEventPipeline) other).retrieveEvents());<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        }<a name="line.92"></a>
+<span class="sourceLineNo">093</span><a name="line.93"></a>
+<span class="sourceLineNo">094</span>        @Override<a name="line.94"></a>
+<span class="sourceLineNo">095</span>        public void run() {<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                String origName = Thread.currentThread().getName();<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                try {<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                        Thread.currentThread().setName(<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                                        origName + " (P" + Components.objectId(this) + ")");<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                        FeedBackPipelineFilter.setAssociatedPipeline(this);<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                        while (true) {<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                                // No lock needed if queue is filled<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                                EventChannelsTuple next = queue.peek();<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                                if (next == null) {<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                                        synchronized (this) {<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                                                // Retry with lock for proper synchronization<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                                                next = queue.peek();<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                                                if (next == null) {<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                                                        GeneratorRegistry.instance().remove(this);<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                                                        isExecuting = false;<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                                                        break;<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                                                }<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                                        }<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                                }<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                                currentlyHandling.set(next.event);<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                                componentTree.dispatch(<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                                                asEventPipeline, next.event, next.channels);<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                                currentlyHandling.get().decrementOpen();<a name="line.118"></a>
+<span class="sourceLineNo">119</span>                                queue.remove();<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                        }<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                } finally {<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                        Thread.currentThread().setName(origName);<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                        currentlyHandling.set(null);;<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                        FeedBackPipelineFilter.setAssociatedPipeline(null);<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                }<a name="line.125"></a>
+<span class="sourceLineNo">126</span>        }<a name="line.126"></a>
+<span class="sourceLineNo">127</span><a name="line.127"></a>
+<span class="sourceLineNo">128</span>        /* (non-Javadoc)<a name="line.128"></a>
+<span class="sourceLineNo">129</span>         * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()<a name="line.129"></a>
+<span class="sourceLineNo">130</span>         */<a name="line.130"></a>
+<span class="sourceLineNo">131</span>        @Override<a name="line.131"></a>
+<span class="sourceLineNo">132</span>        public ExecutorService executorService() {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                return executorService;<a name="line.133"></a>
+<span class="sourceLineNo">134</span>        }<a name="line.134"></a>
+<span class="sourceLineNo">135</span><a name="line.135"></a>
+<span class="sourceLineNo">136</span>        /* (non-Javadoc)<a name="line.136"></a>
+<span class="sourceLineNo">137</span>         * @see java.lang.Object#toString()<a name="line.137"></a>
+<span class="sourceLineNo">138</span>         */<a name="line.138"></a>
+<span class="sourceLineNo">139</span>        @Override<a name="line.139"></a>
+<span class="sourceLineNo">140</span>        public String toString() {<a name="line.140"></a>
+<span class="sourceLineNo">141</span>                StringBuilder builder = new StringBuilder();<a name="line.141"></a>
+<span class="sourceLineNo">142</span>                builder.append(Components.objectName(this));<a name="line.142"></a>
+<span class="sourceLineNo">143</span>                builder.append(" [");<a name="line.143"></a>
+<span class="sourceLineNo">144</span>                if (queue != null) {<a name="line.144"></a>
+<span class="sourceLineNo">145</span>                        builder.append("queue=");<a name="line.145"></a>
+<span class="sourceLineNo">146</span>                        builder.append(queue);<a name="line.146"></a>
+<span class="sourceLineNo">147</span>                }<a name="line.147"></a>
+<span class="sourceLineNo">148</span>                builder.append("]");<a name="line.148"></a>
+<span class="sourceLineNo">149</span>                return builder.toString();<a name="line.149"></a>
+<span class="sourceLineNo">150</span>        }<a name="line.150"></a>
+<span class="sourceLineNo">151</span><a name="line.151"></a>
+<span class="sourceLineNo">152</span>}<a name="line.152"></a>
 
 
 
