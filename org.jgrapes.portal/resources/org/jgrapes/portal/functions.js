@@ -109,8 +109,8 @@ var JGPortal = {
             this._portalSessionId = generateUUID();
             sessionStorage.setItem("org.jgrapes.portal.sessionId", this._portalSessionId);
         }
-        this._location = (window.location.protocol === "https:" ? "wss:" : "ws") +
-            "//" + window.location.host + window.location.pathname;
+        this._location = (window.location.protocol === "https:" ? "wss" : "ws") +
+            "://" + window.location.host + window.location.pathname;
         if (!this._location.endsWith("/")) {
             this._location += "/";
         }
