@@ -56,6 +56,7 @@
   <script>
   $( function() {
     JGPortal.portalSessionRefreshInterval = ${portalSessionRefreshInterval?c};
+    JGPortal.portalSessionInactivityTimeout = ${portalSessionInactivityTimeout?c};
       
     $("body").faLoading({
         icon: "fa-circle-o-notch",
@@ -93,6 +94,12 @@
       JGPortal.layoutChanged();
     });
 
+    // Dialogs
+    $( "#portal-session-suspended-dialog" ).dialog({
+        autoOpen: false,
+        modal: true,
+    });
+    
     //
     // Portlet Grid
     //
@@ -188,6 +195,14 @@
 <div id="addon-menu" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right">
   <ul id="addon-menu-list" class="jq-dropdown-menu ui-menu ui-widget ui-menu-item">
   </ul>
+</div>
+
+<div id="portal-session-suspended-dialog" style="display:none;"
+  title="${_("Portal Session Suspended")}">
+  <p>
+    <span class="ui-icon ui-icon-pause" style="float:left; margin:0 7px 50px 0;"></span>
+    ${_("portalSessionSuspendedMessage")}
+  </p>
 </div>
 
 </body>

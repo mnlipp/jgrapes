@@ -123,8 +123,9 @@ public class PortalView extends Component {
 	private Map<String,Object> portalBaseModel;
 	private RenderSupport renderSupport = new RenderSupportImpl();
 	private boolean useMinifiedResources = true;
-	private long portalSessionTimeout = 45000;
+	private long portalSessionNetworkTimeout = 45000;
 	private long portalSessionRefreshInterval = 30000;
+	private long portalSessionInactivityTimeout = -1;
 
 	/**
 	 * @param componentChannel
@@ -200,29 +201,50 @@ public class PortalView extends Component {
 				useMinifiedResources ? ".min" : "");
 		portalBaseModel.put(
 				"portalSessionRefreshInterval", portalSessionRefreshInterval);
+		portalBaseModel.put(
+				"portalSessionInactivityTimeout", portalSessionInactivityTimeout);
 		return Collections.unmodifiableMap(portalBaseModel);
 	}
 
 	/**
-	 * Sets the portal session timeout. The value defaults to 45 seconds.
+	 * Sets the portal session network timeout. The portal session will be
+	 * removed if no messages have been received from the portal session
+	 * for the given number of milliseconds. The value defaults to 45 seconds.
 	 * 
 	 * @param timeout the timeout in milli seconds
 	 * @return the portal view for easy chaining
 	 */
-	public PortalView setPortalSessionTimeout(long timeout) {
-		portalSessionTimeout = timeout;
+	public PortalView setPortalSessionNetworkTimeout(long timeout) {
+		portalSessionNetworkTimeout = timeout;
 		return this;
 	}
 
 	/**
-	 * Sets the portal session refresh interval. The value defaults to
-	 * 30 seconds.
+	 * Sets the portal session refresh interval. The portal code in the
+	 * browser will send a keep alive packet if there has been no user
+	 * activity for more than the given number of milliseconds. The value 
+	 * defaults to 30 seconds.
 	 * 
-	 * @param interval the interval in milli seconds
+	 * @param interval the interval in milliseconds
 	 * @return the portal view for easy chaining
 	 */
 	public PortalView setPortalSessionRefreshInterval(long interval) {
 		portalSessionRefreshInterval = interval;
+		portalBaseModel = createPortalBaseModel();
+		return this;
+	}
+
+	/**
+	 * Sets the portal session inactivity timeout. If there has been no
+	 * user activity for more than the given number of milliseconds the
+	 * portal code stops sending keep alive packets and displays a
+	 * message to the user. The value defaults to -1 (no timeout).
+	 * 
+	 * @param timeout the timeout in milliseconds
+	 * @return the portal view for easy chaining
+	 */
+	public PortalView setPortalSessionInactivityTimeout(long timeout) {
+		portalSessionInactivityTimeout = timeout;
 		portalBaseModel = createPortalBaseModel();
 		return this;
 	}
@@ -344,7 +366,7 @@ public class PortalView extends Component {
 				}
 				String portalSessionId = subUri.getPath();
 				PortalSession portalSession = PortalSession
-						.findOrCreate(portalSessionId, portal, portalSessionTimeout)
+						.findOrCreate(portalSessionId, portal, portalSessionNetworkTimeout)
 						.setUpstreamChannel(channel)
 						.setEventPipeline(activeEventPipeline())
 						.setSession(optSession.get());

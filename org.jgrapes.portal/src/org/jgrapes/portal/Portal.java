@@ -149,7 +149,7 @@ public class Portal extends Component {
 	 * @return the portal for easy chaining
 	 */
 	public Portal setPortalSessionTimeout(long timeout) {
-		view.setPortalSessionTimeout(timeout);
+		view.setPortalSessionNetworkTimeout(timeout);
 		return this;
 	}
 	
@@ -162,6 +162,18 @@ public class Portal extends Component {
 	 */
 	public Portal setPortalSessionRefreshInterval(long interval) {
 		view.setPortalSessionRefreshInterval(interval);
+		return this;
+	}
+	
+	/**
+	 * Sets the portal session inactivity timeout.This call is simply
+	 * forwarded to the {@link PortalView}.
+	 * 
+	 * @param timeout the timeout in milli seconds
+	 * @return the portal for easy chaining
+	 */
+	public Portal setPortalSessionInactivityTimeout(long timeout) {
+		view.setPortalSessionInactivityTimeout(timeout);
 		return this;
 	}
 	

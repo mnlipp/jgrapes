@@ -102,6 +102,7 @@ var JGPortal = {
         this._recvQueueLocks = 0;
         this._messageHandlers = {};
         this._refreshTimer = null;
+        this._inactivity = 0;
         this._reconnectTimer = null;
         this._connectRequested = false;
         this._portalSessionId = sessionStorage.getItem("org.jgrapes.portal.sessionId");
@@ -134,7 +135,20 @@ var JGPortal = {
             self._drainSendQueue();
             self._refreshTimer = setInterval(function() {
                 if (self._sendQueue.length == 0) {
-                    self.send({"jsonrpc": "2.0", "method": "keepAlive",
+                    self._inactivity += JGPortal.portalSessionRefreshInterval;
+                    if (JGPortal.portalSessionInactivityTimeout > 0 &&
+                            self._inactivity >= JGPortal.portalSessionInactivityTimeout) {
+                        self.close();
+                        $( "#portal-session-suspended-dialog" ).dialog(
+                                "option", "buttons", {
+                                    Ok: function() {
+                                        $( this ).dialog( "close" );
+                                        self.connect();
+                                    }
+                                });
+                        $( "#portal-session-suspended-dialog" ).dialog( "open" );
+                    }
+                    self._send({"jsonrpc": "2.0", "method": "keepAlive",
                         "params": []});
                 }
             }, JGPortal.portalSessionRefreshInterval);
@@ -175,7 +189,7 @@ var JGPortal = {
     } 
     
     PortalWebSocket.prototype.close = function() {
-        this.send({"jsonrpc": "2.0", "method": "disconnect",
+        this._send({"jsonrpc": "2.0", "method": "disconnect",
             "params": [ this._portalSessionId ]});
         this._connectRequested = false;
         this._ws.close();
@@ -203,9 +217,14 @@ var JGPortal = {
         }
     }
     
-    PortalWebSocket.prototype.send = function(data) {
+    PortalWebSocket.prototype._send = function(data) {
         this._sendQueue.push(JSON.stringify(data));
         this._drainSendQueue();
+    }
+
+    PortalWebSocket.prototype.send = function(data) {
+        this._inactivity = 0;
+        this._send(data);
     }
 
     PortalWebSocket.prototype.addMessageHandler = function(method, handler) {
