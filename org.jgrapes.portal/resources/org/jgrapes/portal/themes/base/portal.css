@@ -37,11 +37,6 @@
     position: relative;
 }
 
-.portlet-expand {
-    float: right;
-    cursor: pointer;
-}
-
 .portlet-delete {
     float: right;
     cursor: pointer;
@@ -60,4 +55,14 @@
 .jq-fa-loading.icon-only .fa-loading-content {
     box-shadow: initial;
     background: initial;
-}  
+}
+
+.ui-notification {
+	margin: 10px 0;
+}
+
+.ui-notification .ui-notification-content {
+    border: 0;
+    margin: .5em 1em;
+}
+

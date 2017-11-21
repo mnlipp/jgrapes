@@ -99,7 +99,7 @@
         autoOpen: false,
         modal: true,
     });
-    
+
     //
     // Portlet Grid
     //
@@ -203,6 +203,14 @@
     <span class="ui-icon ui-icon-pause" style="float:left; margin:0 7px 50px 0;"></span>
     ${_("portalSessionSuspendedMessage")}
   </p>
+</div>
+
+<div id="server-connection-lost-notification" style="display:none;">
+    ${_("serverConnectionLostMessage")}
+</div>
+
+<div id="server-connection-restored-notification" style="display:none;">
+    ${_("serverConnectionRestoredMessage")}
 </div>
 
 </body>

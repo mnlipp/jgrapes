@@ -116,6 +116,7 @@ var JGPortal = {
             this._location += "/";
         }
         this._location += "portal-session/" + this._portalSessionId;
+        this._connectionLostNotification = null;
     };
 
     PortalWebSocket.prototype.portalSessionId = function() {
@@ -126,6 +127,12 @@ var JGPortal = {
         this._ws = new WebSocket(this._location);
         let self = this;
         this._ws.onopen = function() {
+            if (self._connectionLostNotification != null) {
+                self._connectionLostNotification.notification( "close" );
+                $( "#server-connection-restored-notification" ).notification({
+                    autoClose: 2000,
+                });
+            }
             findPreviewIds().forEach(function(id) {
                 JGPortal.sendRenderPortlet(id, "Preview", false);
             });
@@ -160,7 +167,17 @@ var JGPortal = {
             }
             self._ws = null;
             if (self._connectRequested) {
-                // Not an intended connect
+                // Not an intended disconnect
+                if (self._connectionLostNotification == null) {
+                    self._connectionLostNotification = 
+                        $( "#server-connection-lost-notification" ).notification({
+                            error: true,
+                            icon: "alert",
+                            destroyOnClose: false,
+                        });
+                } else {
+                    self._connectionLostNotification.notification( "open" );
+                }
                 self._initiateReconnect();
             }
         }
@@ -599,6 +616,11 @@ var JGPortal = {
             }
         });
     
+    webSocketConnection.addMessageHandler('createNotification',
+        function (content, options) {
+            $( content ).notification( options );
+        });
+    
     // Everything set up, connect web socket
 	webSocketConnection.connect();
 
@@ -678,4 +700,127 @@ var JGPortal = {
         });
     }
     
+})();
+
+(function() {
+    var notificationContainer = null;
+    var notificationCounter = 0;
+    
+    $( function() {
+        let top = $( "<div></div>" );
+        notificationContainer = $( "<div class='ui-notification-container ui-front'></div>" );
+        top.append(notificationContainer);
+        $( "body" ).prepend(top);
+    });
+    
+    $.widget( "ui.notification", {
+        
+        // Default options.
+        options: {
+            classes: {
+                "ui-notification": "ui-corner-all ui-widget-shadow",
+                "ui-notification-content": "ui-corner-all",
+            },
+            error: false,
+            icon: "circle-info",
+            autoOpen: true,
+            autoClose: null,
+            destroyOnClose: null,
+            show: {
+                effect: "blind",
+                direction: "up",
+                duration: "fast",
+            },
+            hide: { 
+                effect: "blind",
+                direction: "up",
+                duration: "fast",
+            },
+        },
+     
+        _create: function() {
+            let self = this;
+            this._isOpen = false;
+            if (this.options.destroyOnClose === null) {
+                this.options.destroyOnClose = this.options.autoOpen;
+            }
+            // Options are already merged and stored in this.options
+            let widget = $( "<div></div>" );
+            let notificationId = "ui-notification-" + ++notificationCounter;
+            widget.attr("id", notificationId);
+            this._addClass( widget, "ui-notification" );
+            widget.addClass( "ui-widget-content" );
+            widget.addClass( "ui-widget" );
+            if (this.options.error) {
+                widget.addClass( "ui-state-error" );
+            } else {
+                widget.addClass( "ui-state-highlight" );
+            }
+            
+            // Close button (must be first for overflow: hidden to work).
+            let button = $( "<button></button>");
+            button.addClass( "ui-notification-close" );
+            button.button({
+                icon: "ui-icon-close",
+                showLabel: false,
+            });
+            button.on ( "click", function() {
+                self.close();
+            } );
+            widget.append(button);
+            
+            // Prepend icon
+            if (this.options.icon) {
+                widget.append( $( '<span class="ui-notification-content ui-icon' +
+                        ' ui-icon-' + this.options.icon + '"></span>' ) );
+            }
+            let widgetContent = $( "<div></div>" );
+            this._addClass( widgetContent, "ui-notification-content" );
+            widget.append(widgetContent);
+            widgetContent.append( this.element.clone() );
+            widgetContent.find(":first-child").show();
+            widget.hide();
+
+            // Optional auto close
+            if (this.options.autoClose) {
+                setInterval(function() {
+                    self.close();
+                }, this.options.autoClose);
+            }
+            
+            // Add to container
+            this.notification = widget;
+            
+            // Open if desired
+            if (this.options.autoOpen) {
+                this.open();
+            }
+        },
+
+        open: function() {
+            notificationContainer.prepend( this.widget() );
+            this._isOpen = true;
+            this._show( this.widget(), this.options.show );
+        },
+        
+        widget: function() {
+            return this.notification;
+        },
+        
+        close: function() {
+            let self = this;
+            this._isOpen = false;
+            this._hide( this.widget(), this.options.hide, function() {
+                if (self.options.destroyOnClose) {
+                    self.destroy();
+                }
+            } );
+        },
+        
+        _destroy: function() {
+            if (this._isOpen) {
+                this.close();
+            }
+        }
+    });
 })();
