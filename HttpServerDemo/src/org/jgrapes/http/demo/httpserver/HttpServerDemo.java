@@ -55,6 +55,7 @@ import org.jgrapes.net.TcpServer;
 import org.jgrapes.portal.KVStoreBasedPortalPolicy;
 import org.jgrapes.portal.Portal;
 import org.jgrapes.portal.PortalLocalBackedKVStore;
+import org.jgrapes.portlets.markdowndisplay.MarkdownDisplayPortlet;
 import org.jgrapes.portlets.sysinfo.SysInfoPortlet;
 import org.jgrapes.util.PreferencesStore;
 import org.osgi.framework.BundleActivator;
@@ -128,6 +129,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		portal.attach(new NewPortalSessionPolicy(portal));
 		portal.attach(new HelloWorldPortlet(portal));
 		portal.attach(new SysInfoPortlet(portal));
+		portal.attach(new MarkdownDisplayPortlet(portal));
 		Components.start(app);
 	}
 
