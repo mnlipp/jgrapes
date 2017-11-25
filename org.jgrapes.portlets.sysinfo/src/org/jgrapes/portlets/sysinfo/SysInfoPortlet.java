@@ -119,8 +119,9 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 		Template tpl = freemarkerConfig().getTemplate("SysInfo-preview.ftl.html");
 		portalSession.respond(new RenderPortlet(
 				SysInfoPortlet.class, portletModel.getPortletId(),
-				DeleteablePreview, MODES, true, templateProcessor(tpl, 
-						fmModel(event, portalSession, portletModel))));
+				templateProcessor(tpl, fmModel(event, portalSession, portletModel)))
+				.setRenderMode(DeleteablePreview).setSupportedModes(MODES)
+				.setForeground(true));
 		updateView(portalSession, portletId, portalSession.locale());
 		return portletId;
 	}
@@ -140,9 +141,9 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 			Template tpl = freemarkerConfig().getTemplate("SysInfo-preview.ftl.html");
 			portalSession.respond(new RenderPortlet(
 					SysInfoPortlet.class, portletModel.getPortletId(), 
-					DeleteablePreview, MODES,	event.isForeground(),
-					templateProcessor(
-							tpl, fmModel(event, portalSession, portletModel))));
+					templateProcessor(tpl, fmModel(event, portalSession, portletModel)))
+					.setRenderMode(DeleteablePreview).setSupportedModes(MODES)
+					.setForeground(event.isForeground()));
 			updateView(portalSession, portletModel.getPortletId(), locale);
 			break;
 		}
@@ -150,8 +151,9 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 			Template tpl = freemarkerConfig().getTemplate("SysInfo-view.ftl.html");
 			portalSession.respond(new RenderPortlet(
 					SysInfoPortlet.class, portletModel.getPortletId(), 
-					View, MODES, event.isForeground(), templateProcessor(
-							tpl, fmModel(event, portalSession, portletModel))));
+					templateProcessor(tpl, fmModel(event, portalSession, portletModel)))
+					.setRenderMode(View).setSupportedModes(MODES)
+					.setForeground(event.isForeground()));
 			break;
 		}
 		default:

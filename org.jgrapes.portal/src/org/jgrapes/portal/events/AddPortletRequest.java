@@ -18,6 +18,9 @@
 
 package org.jgrapes.portal.events;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jgrapes.portal.Portlet.RenderMode;
 import org.jgrapes.portal.RenderSupport;
 
@@ -27,6 +30,9 @@ import org.jgrapes.portal.RenderSupport;
  * type should be added to the portal page. The portal server usually 
  * responds with a {@link RenderPortlet} event that has as payload the
  * HTML that displays the portlet on the portal page.
+ * 
+ * Options may be passed with the event. The interpretation
+ * of the options is completely dependant on the handling portlet. 
  * 
  * ![Event Sequence](AddPortletRequestSeq.svg)
  * 
@@ -50,6 +56,7 @@ import org.jgrapes.portal.RenderSupport;
 public class AddPortletRequest extends RenderPortletRequestBase {
 
 	private String portletType;
+	private Map<?,?> options = null;
 	
 	/**
 	 * Creates a new event.
@@ -65,6 +72,21 @@ public class AddPortletRequest extends RenderPortletRequestBase {
 	}
 
 	/**
+	 * Creates a new event.
+	 * 
+	 * @param renderSupport the render support
+	 * @param portletType the type of the portlet
+	 * @param mode the view mode that is requested
+	 * @param options additional options
+	 */
+	public AddPortletRequest(RenderSupport renderSupport, String portletType,
+	        RenderMode mode, Map<?,?> options) {
+		super(renderSupport, mode);
+		this.portletType = portletType;
+		this.options = options;
+	}
+
+	/**
 	 * Returns the portlet type
 	 * 
 	 * @return the portlet type
@@ -73,4 +95,15 @@ public class AddPortletRequest extends RenderPortletRequestBase {
 		return portletType;
 	}
 
+	/**
+	 * Returns the options. Every event returns a mutable map,
+	 * thus allowing event handlers to modify the map even if
+	 * none was passed to the constructor.
+	 */
+	public Map<?,?> options() {
+		if (options == null) {
+			options = new HashMap<>();
+		}
+		return options;
+	}
 }

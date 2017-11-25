@@ -131,8 +131,9 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 		Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
 		channel.respond(new RenderPortlet(
 				HelloWorldPortlet.class, portletModel.getPortletId(),
-				DeleteablePreview, MODES, true, templateProcessor(tpl, 
-						fmModel(event, channel, portletModel))));
+				templateProcessor(tpl, fmModel(event, channel, portletModel)))
+				.setRenderMode(DeleteablePreview).setSupportedModes(MODES)
+				.setForeground(true));
 		return portletId;
 	}
 
@@ -163,17 +164,19 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 			Template tpl = freemarkerConfig().getTemplate("HelloWorld-preview.ftlh");
 			channel.respond(new RenderPortlet(
 					HelloWorldPortlet.class, portletModel.getPortletId(), 
-					DeleteablePreview, MODES,	event.isForeground(),
-					templateProcessor(
-							tpl, fmModel(event, channel, portletModel))));
+					templateProcessor(tpl, fmModel(event, channel, portletModel)))
+					.setRenderMode(DeleteablePreview).setSupportedModes(MODES)
+					.setForeground(event.isForeground()));
+;
 			break;
 		}
 		case View: {
 			Template tpl = freemarkerConfig().getTemplate("HelloWorld-view.ftlh");
 			channel.respond(new RenderPortlet(
 					HelloWorldPortlet.class, portletModel.getPortletId(), 
-					View, MODES, event.isForeground(), templateProcessor(
-							tpl, fmModel(event, channel, portletModel))));
+					templateProcessor(tpl, fmModel(event, channel, portletModel)))
+					.setRenderMode(View).setSupportedModes(MODES)
+					.setForeground(event.isForeground()));
 			channel.respond(new NotifyPortletView(type(),
 					portletModel.getPortletId(), "setWorldVisible",
 					portletModel.isWorldVisible()));

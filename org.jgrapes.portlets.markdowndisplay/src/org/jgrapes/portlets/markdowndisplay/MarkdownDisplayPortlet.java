@@ -103,8 +103,9 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 				"MarkdownDisplay-preview.ftl.html");
 		portalSession.respond(new RenderPortlet(
 				MarkdownDisplayPortlet.class, portletModel.getPortletId(),
-				DeleteablePreview, MODES, true, templateProcessor(tpl, 
-						fmModel(event, portalSession, portletModel))));
+				templateProcessor(tpl, fmModel(event, portalSession, portletModel)))
+				.setRenderMode(DeleteablePreview).setSupportedModes(MODES)
+				.setForeground(true));
 		updateView(portalSession, portletModel, portalSession.locale());
 		return portletId;
 	}
@@ -123,9 +124,9 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 			Template tpl = freemarkerConfig().getTemplate("MarkdownDisplay-preview.ftl.html");
 			portalSession.respond(new RenderPortlet(
 					MarkdownDisplayPortlet.class, portletModel.getPortletId(), 
-					DeleteablePreview, MODES,	event.isForeground(),
-					templateProcessor(
-							tpl, fmModel(event, portalSession, portletModel))));
+					templateProcessor(tpl, fmModel(event, portalSession, portletModel)))
+					.setRenderMode(DeleteablePreview).setSupportedModes(MODES)
+					.setForeground(event.isForeground()));
 			updateView(portalSession, portletModel, portalSession.locale());
 			break;
 		}
@@ -133,8 +134,9 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 			Template tpl = freemarkerConfig().getTemplate("MarkdownDisplay-view.ftl.html");
 			portalSession.respond(new RenderPortlet(
 					MarkdownDisplayPortlet.class, portletModel.getPortletId(), 
-					View, MODES, event.isForeground(), templateProcessor(
-							tpl, fmModel(event, portalSession, portletModel))));
+					templateProcessor(tpl, fmModel(event, portalSession, portletModel)))
+					.setRenderMode(View).setSupportedModes(MODES)
+					.setForeground(event.isForeground()));
 			updateView(portalSession, portletModel, portalSession.locale());
 			break;
 		}
