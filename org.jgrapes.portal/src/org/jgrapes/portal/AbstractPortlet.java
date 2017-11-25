@@ -358,6 +358,7 @@ public abstract class AbstractPortlet extends Component {
 		}
 		event.stop();
 		String portletId = doAddPortlet(event, portalSession);
+		event.setResult(portletId);
 		if (portletIdsByPortalSession != null) {
 			portletIdsOfPortalSession(portalSession).add(portletId);
 			updateRefresh();

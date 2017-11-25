@@ -46,7 +46,7 @@ import org.jgrapes.portal.RenderSupport;
  * 
  * @enduml
  */
-public class RenderPortletRequest extends RenderPortletRequestBase {
+public class RenderPortletRequest extends RenderPortletRequestBase<Void> {
 
 	private String portletId;
 	private boolean foreground;

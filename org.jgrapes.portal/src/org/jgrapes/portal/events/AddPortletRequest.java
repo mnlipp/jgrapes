@@ -34,6 +34,8 @@ import org.jgrapes.portal.RenderSupport;
  * Options may be passed with the event. The interpretation
  * of the options is completely dependant on the handling portlet. 
  * 
+ * The event's result is the portlet id of the new portlet indtance.
+ * 
  * ![Event Sequence](AddPortletRequestSeq.svg)
  * 
  * @startuml AddPortletRequestSeq.svg
@@ -53,7 +55,7 @@ import org.jgrapes.portal.RenderSupport;
  * @enduml
  * 
  */
-public class AddPortletRequest extends RenderPortletRequestBase {
+public class AddPortletRequest extends RenderPortletRequestBase<String> {
 
 	private String portletType;
 	private Map<?,?> options = null;

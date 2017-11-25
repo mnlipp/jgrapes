@@ -185,7 +185,7 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	 * @param portletModel the portlet model
 	 * @return the model
 	 */
-	protected Map<String,Object> fmPortletModel(RenderPortletRequestBase event, 
+	protected Map<String,Object> fmPortletModel(RenderPortletRequestBase<?> event, 
 			IOSubchannel channel, PortletBaseModel portletModel) {
 		final Map<String,Object> model = new HashMap<>();
 		model.put("event", event);
@@ -202,7 +202,7 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 	 * @param portletModel the portlet model
 	 * @return the model
 	 */
-	protected Map<String,Object> fmModel(RenderPortletRequestBase event,
+	protected Map<String,Object> fmModel(RenderPortletRequestBase<?> event,
 			PortalSession channel, PortletBaseModel portletModel) {
 		final Map<String,Object> model = fmSessionModel(channel.browserSession());
 		model.putAll(fmTypeModel(event.renderSupport()));
