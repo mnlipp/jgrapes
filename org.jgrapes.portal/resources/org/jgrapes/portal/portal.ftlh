@@ -166,10 +166,14 @@
 
 <!-- The settings panel and its sub-structures -->
 <div id="settings-panel" class="jq-dropdown jq-dropdown-anchor-right">
-  <div class="jq-dropdown-panel ui-widget-content">
-    <div data-jq-dropdown="#language-menu">${_("Language")}</div>
-    <div data-jq-dropdown="#theme-menu">${_("Theme")}</div>
-  </div>
+  <ul class="jq-dropdown-panel ui-widget ui-widget-content">
+    <li class="ui-menu-item" data-jq-dropdown="#language-menu">
+      <div class="ui-menu-item-wrapper">${_("Language")}</div>
+    </li>
+    <li class="ui-menu-item" data-jq-dropdown="#theme-menu">
+      <div class="ui-menu-item-wrapper">${_("Theme")}</div>
+    </li>
+  </ul>
 </div>
 
 <div id="language-menu" class="jq-dropdown jq-dropdown-tip jq-dropdown-scroll">
