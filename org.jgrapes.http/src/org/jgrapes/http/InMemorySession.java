@@ -113,4 +113,30 @@ public class InMemorySession extends HashMap<Serializable, Serializable>
 		}
 		return true;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("InMemorySession [");
+		if (id != null) {
+			builder.append("id=");
+			builder.append(id);
+			builder.append(", ");
+		}
+		if (createdAt != null) {
+			builder.append("createdAt=");
+			builder.append(createdAt);
+			builder.append(", ");
+		}
+		if (lastUsedAt != null) {
+			builder.append("lastUsedAt=");
+			builder.append(lastUsedAt);
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+	
 }
