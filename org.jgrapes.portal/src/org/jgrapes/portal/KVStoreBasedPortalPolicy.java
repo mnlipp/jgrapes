@@ -83,7 +83,9 @@ import org.jgrapes.util.events.KeyValueStoreUpdate;
  * System -> KVStoreBasedPortalPolicy: PortalPrepared
  * activate KVStoreBasedPortalPolicy
  * KVStoreBasedPortalPolicy -> Portal: LastPortalLayout
+ * activate Portal
  * Portal -> Browser: "lastPortalLayout"
+ * deactivate Portal
  * loop for all portlets to be displayed
  *     KVStoreBasedPortalPolicy -> PortletX: RenderPortletRequest
  *     activate PortletX
