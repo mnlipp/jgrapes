@@ -26,62 +26,97 @@
 <span class="sourceLineNo">018</span><a name="line.18"></a>
 <span class="sourceLineNo">019</span>package org.jgrapes.portal.events;<a name="line.19"></a>
 <span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>import org.jgrapes.portal.Portlet.RenderMode;<a name="line.21"></a>
-<span class="sourceLineNo">022</span>import org.jgrapes.portal.RenderSupport;<a name="line.22"></a>
+<span class="sourceLineNo">021</span>import java.util.HashMap;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import java.util.Map;<a name="line.22"></a>
 <span class="sourceLineNo">023</span><a name="line.23"></a>
-<span class="sourceLineNo">024</span><a name="line.24"></a>
-<span class="sourceLineNo">025</span>/**<a name="line.25"></a>
-<span class="sourceLineNo">026</span> * Sent to the portal (server) if a new portlet instance of a given <a name="line.26"></a>
-<span class="sourceLineNo">027</span> * type should be added to the portal page. The portal server usually <a name="line.27"></a>
-<span class="sourceLineNo">028</span> * responds with a {@link RenderPortlet} event that has as payload the<a name="line.28"></a>
-<span class="sourceLineNo">029</span> * HTML that displays the portlet on the portal page.<a name="line.29"></a>
-<span class="sourceLineNo">030</span> * <a name="line.30"></a>
-<span class="sourceLineNo">031</span> * ![Event Sequence](AddPortletRequestSeq.svg)<a name="line.31"></a>
-<span class="sourceLineNo">032</span> * <a name="line.32"></a>
-<span class="sourceLineNo">033</span> * @startuml AddPortletRequestSeq.svg<a name="line.33"></a>
-<span class="sourceLineNo">034</span> * hide footbox<a name="line.34"></a>
-<span class="sourceLineNo">035</span> * <a name="line.35"></a>
-<span class="sourceLineNo">036</span> * Browser -&gt; Portal: "addPortlet"<a name="line.36"></a>
-<span class="sourceLineNo">037</span> * activate Portal<a name="line.37"></a>
-<span class="sourceLineNo">038</span> * Portal -&gt; Portlet: AddPortletRequest<a name="line.38"></a>
-<span class="sourceLineNo">039</span> * deactivate Portal<a name="line.39"></a>
-<span class="sourceLineNo">040</span> * activate Portlet<a name="line.40"></a>
-<span class="sourceLineNo">041</span> * Portlet -&gt; Portal: RenderPortlet<a name="line.41"></a>
-<span class="sourceLineNo">042</span> * deactivate Portlet<a name="line.42"></a>
-<span class="sourceLineNo">043</span> * activate Portal<a name="line.43"></a>
-<span class="sourceLineNo">044</span> * Portal -&gt; Browser: "renderPortlet"<a name="line.44"></a>
-<span class="sourceLineNo">045</span> * deactivate Portal<a name="line.45"></a>
-<span class="sourceLineNo">046</span> * <a name="line.46"></a>
-<span class="sourceLineNo">047</span> * @enduml<a name="line.47"></a>
-<span class="sourceLineNo">048</span> * <a name="line.48"></a>
-<span class="sourceLineNo">049</span> */<a name="line.49"></a>
-<span class="sourceLineNo">050</span>public class AddPortletRequest extends RenderPortletRequestBase {<a name="line.50"></a>
-<span class="sourceLineNo">051</span><a name="line.51"></a>
-<span class="sourceLineNo">052</span>        private String portletType;<a name="line.52"></a>
-<span class="sourceLineNo">053</span>        <a name="line.53"></a>
-<span class="sourceLineNo">054</span>        /**<a name="line.54"></a>
-<span class="sourceLineNo">055</span>         * Creates a new event.<a name="line.55"></a>
-<span class="sourceLineNo">056</span>         * <a name="line.56"></a>
-<span class="sourceLineNo">057</span>         * @param renderSupport the render support<a name="line.57"></a>
-<span class="sourceLineNo">058</span>         * @param portletType the type of the portlet<a name="line.58"></a>
-<span class="sourceLineNo">059</span>         * @param mode the view mode that is requested<a name="line.59"></a>
-<span class="sourceLineNo">060</span>         */<a name="line.60"></a>
-<span class="sourceLineNo">061</span>        public AddPortletRequest(RenderSupport renderSupport, String portletType,<a name="line.61"></a>
-<span class="sourceLineNo">062</span>                RenderMode mode) {<a name="line.62"></a>
-<span class="sourceLineNo">063</span>                super(renderSupport, mode);<a name="line.63"></a>
-<span class="sourceLineNo">064</span>                this.portletType = portletType;<a name="line.64"></a>
-<span class="sourceLineNo">065</span>        }<a name="line.65"></a>
-<span class="sourceLineNo">066</span><a name="line.66"></a>
-<span class="sourceLineNo">067</span>        /**<a name="line.67"></a>
-<span class="sourceLineNo">068</span>         * Returns the portlet type<a name="line.68"></a>
-<span class="sourceLineNo">069</span>         * <a name="line.69"></a>
-<span class="sourceLineNo">070</span>         * @return the portlet type<a name="line.70"></a>
-<span class="sourceLineNo">071</span>         */<a name="line.71"></a>
-<span class="sourceLineNo">072</span>        public String portletType() {<a name="line.72"></a>
-<span class="sourceLineNo">073</span>                return portletType;<a name="line.73"></a>
+<span class="sourceLineNo">024</span>import org.jgrapes.portal.Portlet.RenderMode;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import org.jgrapes.portal.RenderSupport;<a name="line.25"></a>
+<span class="sourceLineNo">026</span><a name="line.26"></a>
+<span class="sourceLineNo">027</span><a name="line.27"></a>
+<span class="sourceLineNo">028</span>/**<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * Sent to the portal (server) if a new portlet instance of a given <a name="line.29"></a>
+<span class="sourceLineNo">030</span> * type should be added to the portal page. The portal server usually <a name="line.30"></a>
+<span class="sourceLineNo">031</span> * responds with a {@link RenderPortlet} event that has as payload the<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * HTML that displays the portlet on the portal page.<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * <a name="line.33"></a>
+<span class="sourceLineNo">034</span> * Options may be passed with the event. The interpretation<a name="line.34"></a>
+<span class="sourceLineNo">035</span> * of the options is completely dependant on the handling portlet. <a name="line.35"></a>
+<span class="sourceLineNo">036</span> * <a name="line.36"></a>
+<span class="sourceLineNo">037</span> * The event's result is the portlet id of the new portlet indtance.<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * <a name="line.38"></a>
+<span class="sourceLineNo">039</span> * ![Event Sequence](AddPortletRequestSeq.svg)<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * <a name="line.40"></a>
+<span class="sourceLineNo">041</span> * @startuml AddPortletRequestSeq.svg<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * hide footbox<a name="line.42"></a>
+<span class="sourceLineNo">043</span> * <a name="line.43"></a>
+<span class="sourceLineNo">044</span> * Browser -&gt; Portal: "addPortlet"<a name="line.44"></a>
+<span class="sourceLineNo">045</span> * activate Portal<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * Portal -&gt; Portlet: AddPortletRequest<a name="line.46"></a>
+<span class="sourceLineNo">047</span> * deactivate Portal<a name="line.47"></a>
+<span class="sourceLineNo">048</span> * activate Portlet<a name="line.48"></a>
+<span class="sourceLineNo">049</span> * Portlet -&gt; Portal: RenderPortlet<a name="line.49"></a>
+<span class="sourceLineNo">050</span> * deactivate Portlet<a name="line.50"></a>
+<span class="sourceLineNo">051</span> * activate Portal<a name="line.51"></a>
+<span class="sourceLineNo">052</span> * Portal -&gt; Browser: "renderPortlet"<a name="line.52"></a>
+<span class="sourceLineNo">053</span> * deactivate Portal<a name="line.53"></a>
+<span class="sourceLineNo">054</span> * <a name="line.54"></a>
+<span class="sourceLineNo">055</span> * @enduml<a name="line.55"></a>
+<span class="sourceLineNo">056</span> * <a name="line.56"></a>
+<span class="sourceLineNo">057</span> */<a name="line.57"></a>
+<span class="sourceLineNo">058</span>public class AddPortletRequest extends RenderPortletRequestBase&lt;String&gt; {<a name="line.58"></a>
+<span class="sourceLineNo">059</span><a name="line.59"></a>
+<span class="sourceLineNo">060</span>        private String portletType;<a name="line.60"></a>
+<span class="sourceLineNo">061</span>        private Map&lt;?,?&gt; options = null;<a name="line.61"></a>
+<span class="sourceLineNo">062</span>        <a name="line.62"></a>
+<span class="sourceLineNo">063</span>        /**<a name="line.63"></a>
+<span class="sourceLineNo">064</span>         * Creates a new event.<a name="line.64"></a>
+<span class="sourceLineNo">065</span>         * <a name="line.65"></a>
+<span class="sourceLineNo">066</span>         * @param renderSupport the render support<a name="line.66"></a>
+<span class="sourceLineNo">067</span>         * @param portletType the type of the portlet<a name="line.67"></a>
+<span class="sourceLineNo">068</span>         * @param mode the view mode that is requested<a name="line.68"></a>
+<span class="sourceLineNo">069</span>         */<a name="line.69"></a>
+<span class="sourceLineNo">070</span>        public AddPortletRequest(RenderSupport renderSupport, String portletType,<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                RenderMode mode) {<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                super(renderSupport, mode);<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                this.portletType = portletType;<a name="line.73"></a>
 <span class="sourceLineNo">074</span>        }<a name="line.74"></a>
 <span class="sourceLineNo">075</span><a name="line.75"></a>
-<span class="sourceLineNo">076</span>}<a name="line.76"></a>
+<span class="sourceLineNo">076</span>        /**<a name="line.76"></a>
+<span class="sourceLineNo">077</span>         * Creates a new event.<a name="line.77"></a>
+<span class="sourceLineNo">078</span>         * <a name="line.78"></a>
+<span class="sourceLineNo">079</span>         * @param renderSupport the render support<a name="line.79"></a>
+<span class="sourceLineNo">080</span>         * @param portletType the type of the portlet<a name="line.80"></a>
+<span class="sourceLineNo">081</span>         * @param mode the view mode that is requested<a name="line.81"></a>
+<span class="sourceLineNo">082</span>         * @param options additional options<a name="line.82"></a>
+<span class="sourceLineNo">083</span>         */<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        public AddPortletRequest(RenderSupport renderSupport, String portletType,<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                RenderMode mode, Map&lt;?,?&gt; options) {<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                super(renderSupport, mode);<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                this.portletType = portletType;<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                this.options = options;<a name="line.88"></a>
+<span class="sourceLineNo">089</span>        }<a name="line.89"></a>
+<span class="sourceLineNo">090</span><a name="line.90"></a>
+<span class="sourceLineNo">091</span>        /**<a name="line.91"></a>
+<span class="sourceLineNo">092</span>         * Returns the portlet type<a name="line.92"></a>
+<span class="sourceLineNo">093</span>         * <a name="line.93"></a>
+<span class="sourceLineNo">094</span>         * @return the portlet type<a name="line.94"></a>
+<span class="sourceLineNo">095</span>         */<a name="line.95"></a>
+<span class="sourceLineNo">096</span>        public String portletType() {<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                return portletType;<a name="line.97"></a>
+<span class="sourceLineNo">098</span>        }<a name="line.98"></a>
+<span class="sourceLineNo">099</span><a name="line.99"></a>
+<span class="sourceLineNo">100</span>        /**<a name="line.100"></a>
+<span class="sourceLineNo">101</span>         * Returns the options. Every event returns a mutable map,<a name="line.101"></a>
+<span class="sourceLineNo">102</span>         * thus allowing event handlers to modify the map even if<a name="line.102"></a>
+<span class="sourceLineNo">103</span>         * none was passed to the constructor.<a name="line.103"></a>
+<span class="sourceLineNo">104</span>         */<a name="line.104"></a>
+<span class="sourceLineNo">105</span>        public Map&lt;?,?&gt; options() {<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                if (options == null) {<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                        options = new HashMap&lt;&gt;();<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                }<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                return options;<a name="line.109"></a>
+<span class="sourceLineNo">110</span>        }<a name="line.110"></a>
+<span class="sourceLineNo">111</span>}<a name="line.111"></a>
 
 
 

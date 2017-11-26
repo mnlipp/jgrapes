@@ -18,6 +18,7 @@ org.jgrapes.portal
 org.jgrapes.portal.events
 org.jgrapes.portal.freemarker
 org.jgrapes.portal.themes.base
+org.jgrapes.portlets.markdowndisplay
 org.jgrapes.portlets.sysinfo
 org.jgrapes.util
 org.jgrapes.util.events
