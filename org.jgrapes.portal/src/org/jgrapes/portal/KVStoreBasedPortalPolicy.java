@@ -96,7 +96,9 @@ import org.jgrapes.util.events.KeyValueStoreUpdate;
  * deactivate KVStoreBasedPortalPolicy
  * 
  * Browser -> Portal: "portalLayout"
+ * activate Portal
  * Portal -> KVStoreBasedPortalPolicy: PortalLayoutChanged
+ * deactivate Portal
  * activate KVStoreBasedPortalPolicy
  * KVStoreBasedPortalPolicy -> "KV Store": KeyValueStoreUpdate
  * deactivate KVStoreBasedPortalPolicy
