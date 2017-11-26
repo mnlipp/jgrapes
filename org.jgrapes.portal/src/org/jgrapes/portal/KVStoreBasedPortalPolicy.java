@@ -74,10 +74,10 @@ import org.jgrapes.util.events.KeyValueStoreUpdate;
  * deactivate Portal
  * activate KVStoreBasedPortalPolicy
  * KVStoreBasedPortalPolicy -> "KV Store": KeyValueStoreQuery
- * deactivate KVStoreBasedPortalPolicy
  * activate "KV Store"
  * "KV Store" -> KVStoreBasedPortalPolicy: KeyValueStoreData
  * deactivate "KV Store"
+ * deactivate KVStoreBasedPortalPolicy
  * 
  * actor System
  * System -> KVStoreBasedPortalPolicy: PortalPrepared
