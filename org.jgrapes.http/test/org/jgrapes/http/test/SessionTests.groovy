@@ -78,7 +78,7 @@ class SessionTests extends Specification {
 		app.lastRequest != null
 		app.lastRequest.associated(Session.class).isPresent()
 		
-		when: "Request with new session id"
+		when: "Request with the newly created session id"
 		Session newSession = app.lastRequest.associated(Session.class).get()
 		app.lastRequest = null;
 		setSessionId(request, request.response().get())
