@@ -69,10 +69,9 @@ public abstract class SessionManager extends Component {
 
 	private String idName = "id";
 	private String path = "/";
-	private int absoluteTimeout = 9*60*60;
-	private int idleTimeout = 30*60;
+	private long absoluteTimeout = 9*60*60*1000;
+	private long idleTimeout = 30*60*1000;
 	private int maxSessions = 1000;
-	
 	
 	/**
 	 * Creates a new session manager with its channel set to
@@ -179,7 +178,7 @@ public abstract class SessionManager extends Component {
 	 * @return the session manager for easy chaining
 	 */
 	public SessionManager setAbsoluteTimeout(int absoluteTimeout) {
-		this.absoluteTimeout = absoluteTimeout;
+		this.absoluteTimeout = absoluteTimeout * 1000;
 		return this;
 	}
 
@@ -187,7 +186,7 @@ public abstract class SessionManager extends Component {
 	 * @return the absolute session timeout (in seconds)
 	 */
 	public int absoluteTimeout() {
-		return absoluteTimeout;
+		return (int)(absoluteTimeout / 1000);
 	}
 
 	/**
@@ -198,7 +197,7 @@ public abstract class SessionManager extends Component {
 	 * @return the session manager for easy chaining
 	 */
 	public SessionManager setIdleTimeout(int idleTimeout) {
-		this.idleTimeout = idleTimeout;
+		this.idleTimeout = idleTimeout * 1000;
 		return this;
 	}
 
@@ -206,7 +205,7 @@ public abstract class SessionManager extends Component {
 	 * @return the idle timeout (in seconds)
 	 */
 	public int idleTimeout() {
-		return idleTimeout;
+		return (int)(idleTimeout / 1000);
 	}
 
 	/**
@@ -231,10 +230,10 @@ public abstract class SessionManager extends Component {
 					Instant now = Instant.now();
 					if ((absoluteTimeout <= 0
 							|| Duration.between(session.get().createdAt(), 
-									now).getSeconds() < absoluteTimeout)
+									now).toMillis() < absoluteTimeout)
 						&& (idleTimeout <= 0
 							|| Duration.between(session.get().lastUsedAt(),
-									now).getSeconds() < idleTimeout)) {
+									now).toMillis() < idleTimeout)) {
 						event.setAssociated(Session.class, session.get());
 						session.get().updateLastUsedAt();
 						return;
