@@ -307,7 +307,7 @@ public class StaticContentDispatcher extends Component {
 		channel.respond(new Response(response));
 		
 		// Start sending content
-		activeEventPipeline().executorService()
+		channel.responsePipeline().executorService()
 			.submit(new InputStreamPipeline(resIn, channel));
 		return true;
 	}

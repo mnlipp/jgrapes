@@ -48,7 +48,6 @@ import org.jgrapes.io.util.CharBufferWriter;
 import org.jgrapes.portal.AbstractPortlet;
 import org.jgrapes.portal.AbstractPortlet.PortletBaseModel;
 import org.jgrapes.portal.PortalSession;
-import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.RenderSupport;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
@@ -123,8 +122,7 @@ public abstract class FreeMarkerPortlet extends AbstractPortlet {
 					}
 					return renderSupport.portletResource(
 							FreeMarkerPortlet.this.getClass().getName(),
-							PortalView.uriFromPath(
-									((SimpleScalar)args.get(0)).getAsString()))
+							((SimpleScalar)args.get(0)).getAsString())
 							.getRawPath();
 				}
 			});

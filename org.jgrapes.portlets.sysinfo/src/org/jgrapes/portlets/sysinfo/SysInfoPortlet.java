@@ -26,6 +26,7 @@ import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.PortalView;
+import org.jgrapes.portal.events.AddPageResources.ScriptResource;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
@@ -84,7 +85,10 @@ public class SysInfoPortlet extends FreeMarkerPortlet {
 		// Add SysInfoPortlet resources to page
 		portalSession.respond(new AddPortletType(type())
 				.setDisplayName(resourceBundle.getString("portletName"))
-				.addScript(PortalView.uriFromPath("SysInfo-functions.ftl.js"))
+				.addScript(new ScriptResource()
+						.setRequires(new String[] {"chartjs.org"})
+						.setScriptUri(event.renderSupport().portletResource(
+								type(), "SysInfo-functions.ftl.js")))
 				.addCss(PortalView.uriFromPath("SysInfo-style.css"))
 				.setInstantiable());
 	}

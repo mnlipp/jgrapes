@@ -48,6 +48,19 @@
  * then exchanged using a web socket connection that is established
  * immediately after the initial HTML has been loaded.
  * 
+ * Page resource providers
+ * -----------------------
+ * 
+ * The initial HTML document already includes some JavaScript resources
+ * like [jQuery](http://jquery.com/) and [jQuery-UI](http://jqueryui.com/).
+ * The portlets may, however, require additional libraries in order to
+ * work. While it is possible for the portlets to add libraries, it is
+ * usually preferable to add such libraries independent from individual
+ * portlets in order to avoid duplicate loading and version conflicts.
+ * This is done by {@link org.jgrapes.portal.PageResourceProvider}s
+ * that issue {@link org.jgrapes.portal.events.AddPageResources} events
+ * on startup. See the event's description for details.
+ * 
  * Portlets
  * --------
  * 
@@ -195,6 +208,7 @@
  *   PortletBData "*" -up-* "1" Session
  * }
  * 
+ * Portal "1" -down- "*" PageResourceProvider
  * Portal "1" -down- "*" PortalPolicy
  * 
  * @enduml
@@ -244,6 +258,16 @@
  * 
  * Browser -> Portal: "portalReady"
  * activate Portal
+ * 
+ * loop for all page resource providers
+ *     Portal -> PageResourceProviderX: PortalReady
+ *     activate PageResourceProviderX
+ *     PageResourceProviderX -> Portal: AddPageResources
+ *     deactivate PageResourceProviderX
+ *     activate Portal
+ *     Portal -> Browser: "addPageResources"
+ *     deactivate Portal
+ * end
  * 
  * loop for all portlets
  *     Portal -> PortletX: PortalReady

@@ -26,6 +26,7 @@ import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.PortalView;
+import org.jgrapes.portal.events.AddPageResources.ScriptResource;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
@@ -85,7 +86,9 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 		// Add MarkdownDisplayPortlet resources to page
 		portalSession.respond(new AddPortletType(type())
 				.setDisplayName(resourceBundle.getString("portletName"))
-				.addScript(PortalView.uriFromPath("MarkdownDisplay-functions.ftl.js"))
+				.addScript(new ScriptResource().setScriptUri(
+						event.renderSupport().portletResource(type(),
+								"MarkdownDisplay-functions.ftl.js")))
 				.addCss(PortalView.uriFromPath("MarkdownDisplay-style.css"))
 				.setInstantiable());
 	}

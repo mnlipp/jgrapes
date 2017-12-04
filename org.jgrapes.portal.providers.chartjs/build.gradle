@@ -1,0 +1,6 @@
+dependencies {
+	
+	compile project(':org.jgrapes.portal')
+	
+}
+	

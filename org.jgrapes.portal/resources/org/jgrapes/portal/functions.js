@@ -286,8 +286,96 @@ var JGPortal = {
         webSocketConnection.unlockMessageReceiver();
     }
 
-    // Portal handlers/functions
+    // Portal handlers/functions (order roughly according to their
+    // usage after portal start)
     
+    let providedScriptResources = new Set(); // Names, i.e. strings
+    let unresolvedScriptRequests = []; // ScriptResource objects
+    let loadingScripts = new Set(); // uris (src attribute)
+    let unlockMessageQueueAfterLoad = false;
+
+    function mayBeStartScriptLoad (scriptResource) {
+        let stillRequired = scriptResource.requires;
+        scriptResource.requires = [];
+        stillRequired.forEach(function(required) {
+            if (!providedScriptResources.has(required)) {
+                scriptResource.requires.push(required);
+            }
+        });
+        if (scriptResource.requires.length > 0) {
+            unresolvedScriptRequests.push(scriptResource);
+            return;
+        }
+        let head = $("head").get()[0];
+        let script = document.createElement("script");
+        if (scriptResource.source) {
+            script.text = scriptResource.source;
+            // Whatever it provides is now provided
+            scriptResource.provides.forEach(function(res) {
+                providedScriptResources.add(res);
+            });
+        } else {
+            script.src = scriptResource.uri;
+            script.addEventListener('load', function(event) {
+                // Remove this from loading
+                loadingScripts.delete(script.src);
+                // Whatever it provides is now provided
+                scriptResource.provides.forEach(function(res) {
+                    providedScriptResources.add(res);
+                });
+                // Re-evaluate
+                let stillUnresolved = unresolvedScriptRequests;
+                unresolvedScriptRequests = [];
+                stillUnresolved.forEach(function(req) {
+                    mayBeStartScriptLoad(req);
+                });
+                // All done?
+                if (loadingScripts.size == 0 && unlockMessageQueueAfterLoad) {
+                    JGPortal.unlockMessageQueue();
+                }
+            });
+            // Put on script load queue to indicate load in progress
+            loadingScripts.add(script.src);
+        }
+        head.appendChild(script);
+    }
+    
+    function addPageResources(cssUris, cssSource, scriptResources) {
+        for (let index in cssUris) {
+            let uri = cssUris[index];
+            if ($("head > link[href='" + uri + "']").length === 0) {
+                $("head link[href$='/portal.css']:last").after("<link rel='stylesheet' href='" + uri + "'>");
+            }
+        }
+        if (cssSource) {
+            let style = $("style");
+            style.text(cssSource);
+            $("head link[href$='/portal.css']:last").after(style);
+        }
+        // Don't use jquery, https://stackoverflow.com/questions/610995/cant-append-script-element
+        for (let index in scriptResources) {
+            let scriptResource = scriptResources[index];
+            if (scriptResource.uri) {
+                if ($("head > script[src='" + scriptResource.uri + "']").length > 0) {
+                    continue;
+                }
+            }
+            mayBeStartScriptLoad(scriptResource);
+        }
+    }    
+    webSocketConnection.addMessageHandler('addPageResources', addPageResources);
+
+    webSocketConnection.addMessageHandler('addPortletType',
+        function addPortletType(portletType, displayName, cssUris, scriptResources,
+                isInstantiable) {
+            addPageResources(cssUris, null, scriptResources);
+            // Add to menu
+            let item = $('<li class="ui-menu-item">'
+                    + '<div class="ui-menu-item-wrapper" data-portlet-type="' 
+                    + portletType + '">' + displayName + '</div></li>');
+            $("#addon-menu-list").append(item);
+        });
+
     var lastPreviewLayout = [[], [], []];
     var lastTabsLayout = [];
     
@@ -298,6 +386,11 @@ var JGPortal = {
         function(previewLayout, tabsLayout) {
             lastPreviewLayout = previewLayout;
             lastTabsLayout = tabsLayout;
+            // Should we wait with further actions?
+            if (loadingScripts.size > 0) {
+                JGPortal.lockMessageQueue();
+                unlockMessageQueueAfterLoad = true;
+            }
         });
     
     webSocketConnection.addMessageHandler('reload',
@@ -330,36 +423,6 @@ var JGPortal = {
             portalIsConfigured = true;
             layoutChanged();
             $("body").faLoading('remove');
-        });
-    
-    webSocketConnection.addMessageHandler('addPortletType',
-        function addPortletType(portletType, displayName, cssUris, scriptUris,
-                isInstantiable) {
-            for (let index in cssUris) {
-                let uri = cssUris[index];
-                if ($("head > link[href='" + uri + "']").length === 0) {
-                    $("head link[href$='/portal.css']:last").after("<link rel='stylesheet' href='" + uri + "'>");
-                }
-            }
-            // Don't use jquery, https://stackoverflow.com/questions/610995/cant-append-script-element
-            for (let index in scriptUris) {
-                let uri = scriptUris[index];
-                if ($("head > script[src='" + uri + "']").length === 0) {
-                    let script = document.createElement("script");
-                    script.src = uri;
-                    JGPortal.lockMessageQueue();
-                    script.addEventListener('load', function() {
-                        JGPortal.unlockMessageQueue();
-                    });
-                    let head = $("head").get()[0];
-                    head.appendChild(script);
-                }
-            }
-            // Add to menu
-            let item = $('<li class="ui-menu-item">'
-                    + '<div class="ui-menu-item-wrapper" data-portlet-type="' 
-                    + portletType + '">' + displayName + '</div></li>');
-            $("#addon-menu-list").append(item);
         });
 
     function findPortletPreview(portletId) {

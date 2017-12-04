@@ -34,7 +34,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.json.Json;
 import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 import javax.management.InstanceAlreadyExistsException;
@@ -49,6 +51,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.portal.Portlet.RenderMode;
+import org.jgrapes.portal.events.AddPageResources;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
@@ -65,6 +68,7 @@ import org.jgrapes.portal.events.RenderPortlet;
 import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.events.SetLocale;
 import org.jgrapes.portal.events.SetTheme;
+import org.jgrapes.portal.events.AddPageResources.ScriptResource;
 
 /**
  * 
@@ -198,10 +202,24 @@ public class Portal extends Component {
 				.toArray(size -> new String[size]),
 				content.toString(), event.isForeground()), channel);
 	}
+
+	@Handler
+	public void onAddPageResource(AddPageResources event, PortalSession channel) {
+		JsonArrayBuilder paramBuilder = Json.createArrayBuilder();
+		for (ScriptResource scriptResource: event.scriptResources()) {
+			paramBuilder.add(scriptResource.toJsonValue());
+		}
+		fire(new JsonOutput("addPageResources", event.cssUris(), 
+				event.cssSource(), paramBuilder.build()), channel);
+	}
 	
 	@Handler
 	public void onAddPortletType(AddPortletType event, PortalSession channel)
 			throws InterruptedException, IOException {
+		JsonArrayBuilder paramBuilder = Json.createArrayBuilder();
+		for (ScriptResource scriptResource: event.scriptResources()) {
+			paramBuilder.add(scriptResource.toJsonValue());
+		}
 		fire(new JsonOutput("addPortletType",
 				event.portletType(),
 				event.displayName(),
@@ -209,10 +227,7 @@ public class Portal extends Component {
 					view.renderSupport().portletResource(
 							event.portletType(), uri).toString())
 				.toArray(String[]::new),
-				Arrays.stream(event.scriptUris()).map(uri -> 
-					view.renderSupport().portletResource(
-							event.portletType(), uri).toString())
-				.toArray(String[]::new),
+				paramBuilder.build(),
 				event.isInstantiable()), channel);
 	}
 	

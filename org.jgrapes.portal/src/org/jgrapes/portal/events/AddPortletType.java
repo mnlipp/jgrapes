@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jgrapes.core.Event;
+import org.jgrapes.portal.events.AddPageResources.ScriptResource;
 
 /**
  * Adds a portlet type with its global resources (JavaScript and/or CSS) 
@@ -77,8 +78,8 @@ public class AddPortletType extends Event<Void> {
 	private String portletType;
 	private String displayName = "";
 	private boolean instantiable = false;
-	private List<URI> scriptUris = new ArrayList<>();
 	private List<URI> cssUris = new ArrayList<>();
+	private List<ScriptResource> scriptResources = new ArrayList<>();
 	
 	/**
 	 * Create a new event for the given portlet type.
@@ -139,14 +140,13 @@ public class AddPortletType extends Event<Void> {
 	}
 
 	/**
-	 * Add the URI of a JavaScript resource that is to be added to the
-	 * header section of the portal page.
+	 * Add a script resource to be requested by the browser.
 	 * 
-	 * @param uri the URI
+	 * @param scriptResource the script resource
 	 * @return the event for easy chaining
 	 */
-	public AddPortletType addScript(URI uri) {
-		scriptUris.add(uri);
+	public AddPortletType addScript(ScriptResource scriptResource) {
+		scriptResources.add(scriptResource);
 		return this;
 	}
 
@@ -163,12 +163,12 @@ public class AddPortletType extends Event<Void> {
 	}
 
 	/**
-	 * Return all script URIs
+	 * Return all script resources.
 	 * 
 	 * @return the result
 	 */
-	public URI[] scriptUris() {
-		return scriptUris.toArray(new URI[scriptUris.size()]);
+	public ScriptResource[] scriptResources() {
+		return scriptResources.toArray(new ScriptResource[scriptResources.size()]);
 	}
 
 	/**

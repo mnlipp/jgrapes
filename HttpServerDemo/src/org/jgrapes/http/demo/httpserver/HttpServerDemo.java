@@ -55,6 +55,8 @@ import org.jgrapes.net.TcpServer;
 import org.jgrapes.portal.KVStoreBasedPortalPolicy;
 import org.jgrapes.portal.Portal;
 import org.jgrapes.portal.PortalLocalBackedKVStore;
+import org.jgrapes.portal.providers.chartjs.ChartJsProvider;
+import org.jgrapes.portal.providers.datatables.DatatablesProvider;
 import org.jgrapes.portlets.markdowndisplay.MarkdownDisplayPortlet;
 import org.jgrapes.portlets.sysinfo.SysInfoPortlet;
 import org.jgrapes.util.PreferencesStore;
@@ -128,6 +130,8 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		portal.attach(new KVStoreBasedPortalPolicy(portal));
 		portal.attach(new NewPortalSessionPolicy(portal));
 		portal.attach(new HelloWorldPortlet(portal));
+		portal.attach(new ChartJsProvider(portal));
+		portal.attach(new DatatablesProvider(portal));
 		portal.attach(new SysInfoPortlet(portal));
 		portal.attach(new MarkdownDisplayPortlet(portal));
 		Components.start(app);

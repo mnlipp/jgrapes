@@ -17,7 +17,6 @@
   <link rel="stylesheet" href="${resourceUrl('theme-resource/jquery-ui' + minifiedExtension + '.css')}">
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-ui-iconfont-2.3.2/jquery-ui-1.12.icon-font' + minifiedExtension + '.css')}">
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown' + minifiedExtension + '.css')}">
-  <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/datatables/datatables' + minifiedExtension + '.css')}">
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/font-awesome-4.7.0/css/font-awesome' + minifiedExtension + '.css')}"/>
   <link rel="stylesheet" href="${resourceUrl('portal-resource/lib/jquery-fa-loading-0.3/jquery.faloading' + minifiedExtension + '.css')}">
 
@@ -44,11 +43,8 @@
   <script src="${resourceUrl('portal-resource/lib/jquery-ui-1.12.1/jquery-ui' + minifiedExtension + '.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/jquery.ui.touch-punch' + minifiedExtension + '.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/jquery-dropdown-2.0.3/jquery.dropdown.js')}"></script>
-  <script src="${resourceUrl('portal-resource/lib/datatables/datatables' + minifiedExtension + '.js')}"></script>
-  <script src="${resourceUrl('portal-resource/lib/datatables/processing().js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/jquery-fa-loading-0.3/jquery.faloading' + minifiedExtension + '.js')}"></script>
   <script src="${resourceUrl('portal-resource/lib/moment-js-2.19.1/moment-with-locales' + minifiedExtension + '.js')}"></script>
-  <script src="${resourceUrl('portal-resource/lib/chart-js-2.7.0/Chart' + minifiedExtension + '.js')}"></script>
 
   <!-- Portal -->
   <script src="${resourceUrl('portal-resource/functions.js')}"></script>
@@ -116,17 +112,6 @@
     // With everything prepared, send portal ready
     JGPortal.sendPortalReady();
 
-    // Localize data tables
-    
-    // Add item
-    $.fn.dataTable.defaults.oLanguage._hungarianMap["lengthAll"] = "sLengthAll";
-    // Fallback
-    $.extend( $.fn.dataTable.defaults.oLanguage, {
-        "sLengthAll":      'all',
-    } );
-    // From l10n
-    $.extend( $.fn.dataTable.defaults.oLanguage, ${_("DataTablesL10n")?no_esc} );
-    
   } );
   </script>
   

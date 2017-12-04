@@ -21,6 +21,7 @@ package org.jgrapes.portal.events;
 import java.io.Writer;
 
 import javax.json.Json;
+import javax.json.JsonValue;
 import javax.json.stream.JsonGenerator;
 
 import org.jdrupes.json.JsonBeanEncoder;
@@ -60,7 +61,19 @@ public class JsonOutput extends Event<Void> {
 		generator.write("method", method);
 		if (params.length > 0) {
 			generator.writeKey("params");
-			JsonBeanEncoder.create(generator).writeArray(params);
+			generator.writeStartArray();
+			for (Object obj: params) {
+				if (obj == null) {
+					generator.writeNull();
+					continue;
+				}
+				if (obj instanceof JsonValue) {
+					generator.write((JsonValue)obj);
+					continue;
+				}
+				JsonBeanEncoder.create(generator).writeObject(obj);
+			}
+			generator.writeEnd();
 		}
 		generator.writeEnd();
 		generator.flush();

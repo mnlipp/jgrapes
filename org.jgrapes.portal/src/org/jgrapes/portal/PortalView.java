@@ -96,6 +96,7 @@ import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.portal.events.JsonInput;
 import org.jgrapes.portal.events.JsonOutput;
 import org.jgrapes.portal.events.PortalReady;
+import org.jgrapes.portal.events.PageResourceRequest;
 import org.jgrapes.portal.events.PortletResourceRequest;
 import org.jgrapes.portal.events.PortletResourceResponse;
 import org.jgrapes.portal.events.SetLocale;
@@ -353,6 +354,11 @@ public class PortalView extends Component {
 			sendPortalResource(event, channel, subUri.getPath());
 			return;
 		}
+		subUri = uriFromPath("page-resource/").relativize(requestUri);
+		if (!subUri.equals(requestUri)) {
+			requestPageResource(event, channel, subUri);
+			return;
+		}
 		subUri = uriFromPath("portal-session/").relativize(requestUri);
 		if (!subUri.equals(requestUri)) {
 			if (event.httpRequest().findField(
@@ -491,7 +497,7 @@ public class PortalView extends Component {
 		channel.respond(new Response(response));
 		
 		// Send content
-		activeEventPipeline().executorService()
+		channel.responsePipeline().executorService()
 			.submit(new InputStreamPipeline(in, channel));
 		
 		// Done
@@ -527,7 +533,7 @@ public class PortalView extends Component {
 		channel.respond(new Response(response));
 
 		// Send content
-		activeEventPipeline().executorService()
+		channel.responsePipeline().executorService()
 		        .submit(new InputStreamPipeline(resIn, channel));
 
 		// Done
@@ -550,6 +556,22 @@ public class PortalView extends Component {
 		response.setStatus(HttpStatus.OK);
 	}
 
+	private void requestPageResource(GetRequest event, IOSubchannel channel,
+			URI resource) throws InterruptedException {
+		// Send events to providers on portal's channel
+		PageResourceRequest pageResourceRequest = new PageResourceRequest(
+				uriFromPath(resource.getPath()),
+				event.httpRequest(), channel, renderSupport());
+		// Make session available (associate with event, this is not
+		// a websocket request).
+		event.associated(Session.class).ifPresent(
+				session -> pageResourceRequest.setAssociated(Session.class, session));
+		if (Boolean.TRUE.equals(newEventPipeline().fire(
+				pageResourceRequest, portalChannel(channel)).get())) {
+			event.stop();
+		}
+	}
+	
 	private void requestPortletResource(GetRequest event, IOSubchannel channel,
 			URI resource) throws InterruptedException {
 		String resPath = resource.getPath();
@@ -845,6 +867,16 @@ public class PortalView extends Component {
 			return portal.prefix().resolve(uriFromPath(
 					"portlet-resource/" + portletType + "/")).resolve(uri);
 		}
+
+		/* (non-Javadoc)
+		 * @see org.jgrapes.portal.RenderSupport#pageResource(java.net.URI)
+		 */
+		@Override
+		public URI pageResource(URI uri) {
+			return portal.prefix().resolve(uriFromPath(
+					"page-resource/")).resolve(uri);
+		}
+		
 	}
 
 }
