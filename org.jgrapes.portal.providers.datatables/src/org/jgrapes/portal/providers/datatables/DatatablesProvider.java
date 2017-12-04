@@ -24,7 +24,6 @@ import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.portal.PageResourceProvider;
 import org.jgrapes.portal.PortalSession;
-import org.jgrapes.portal.PortalView;
 import org.jgrapes.portal.events.AddPageResources;
 import org.jgrapes.portal.events.AddPageResources.ScriptResource;
 import org.jgrapes.portal.events.PortalReady;
@@ -70,6 +69,8 @@ public class DatatablesProvider extends PageResourceProvider {
 			throws TemplateNotFoundException, MalformedTemplateNameException, 
 			ParseException, IOException {
 		portalSession.respond(new AddPageResources()
+				.addCss(event.renderSupport().pageResource(
+						"datatables/datatables.css"))
 				.addScriptResource(new ScriptResource()
 						.setProvides(new String[] {"datatables.net"})
 						.setScriptUri(event.renderSupport().pageResource(
@@ -77,8 +78,7 @@ public class DatatablesProvider extends PageResourceProvider {
 				.addScriptResource(new ScriptResource()
 						.setRequires(new String[] {"datatables.net"})
 						.setScriptUri(event.renderSupport().pageResource(
-								PortalView.uriFromPath(										
-										"datatables/processing().js")))));
+								"datatables/processing().js"))));
 	}
 
 }
