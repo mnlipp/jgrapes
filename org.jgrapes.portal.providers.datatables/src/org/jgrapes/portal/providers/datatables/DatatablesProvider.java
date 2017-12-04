@@ -70,7 +70,7 @@ public class DatatablesProvider extends PageResourceProvider {
 			ParseException, IOException {
 		portalSession.respond(new AddPageResources()
 				.addCss(event.renderSupport().pageResource(
-						"datatables/datatables.css"))
+						"datatables/datatables.min.css"))
 				.addScriptResource(new ScriptResource()
 						.setProvides(new String[] {"datatables.net"})
 						.setScriptUri(event.renderSupport().pageResource(

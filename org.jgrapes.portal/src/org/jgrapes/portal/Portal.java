@@ -209,7 +209,9 @@ public class Portal extends Component {
 		for (ScriptResource scriptResource: event.scriptResources()) {
 			paramBuilder.add(scriptResource.toJsonValue());
 		}
-		fire(new JsonOutput("addPageResources", event.cssUris(), 
+		fire(new JsonOutput("addPageResources", 
+				Arrays.stream(event.cssUris()).map(
+						uri -> uri.toString()).toArray(String[]::new), 
 				event.cssSource(), paramBuilder.build()), channel);
 	}
 	
