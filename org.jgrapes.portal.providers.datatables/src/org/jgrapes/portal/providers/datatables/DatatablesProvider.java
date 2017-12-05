@@ -33,19 +33,8 @@ import freemarker.template.MalformedTemplateNameException;
 import freemarker.template.TemplateNotFoundException;
 
 import java.io.IOException;
-
-//// Localize data tables
-//
-//// Add item
-//$.fn.dataTable.defaults.oLanguage._hungarianMap["lengthAll"] = "sLengthAll";
-//// Fallback
-//$.extend( $.fn.dataTable.defaults.oLanguage, {
-//    "sLengthAll":      'all',
-//} );
-//// From l10n
-//$.extend( $.fn.dataTable.defaults.oLanguage, ${_("DataTablesL10n")?no_esc} );
-//
-
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
  * 
@@ -64,10 +53,34 @@ public class DatatablesProvider extends PageResourceProvider {
 		super(componentChannel);
 	}
 
+	/**
+	 * Provides a resource bundle for localization.
+	 * The default implementation looks up a bundle using the
+	 * package name plus "l10n" as base name.
+	 * 
+	 * @return the resource bundle
+	 */
+	protected ResourceBundle resourceBundle(Locale locale) {
+		return ResourceBundle.getBundle(
+			getClass().getPackage().getName() + ".datatables.l10n", locale, 
+			getClass().getClassLoader(),
+				ResourceBundle.Control.getNoFallbackControl(
+						ResourceBundle.Control.FORMAT_DEFAULT));
+	}
+	
 	@Handler(priority=100)
 	public void onPortalReady(PortalReady event, PortalSession portalSession) 
 			throws TemplateNotFoundException, MalformedTemplateNameException, 
 			ParseException, IOException {
+		ResourceBundle rb = resourceBundle(portalSession.locale()); 
+		String script = 
+				"$.fn.dataTable.defaults.oLanguage._hungarianMap"
+				+ "[\"lengthAll\"] = \"sLengthAll\";\n"
+				+ "$.extend( $.fn.dataTable.defaults.oLanguage, {\n"
+				+ "	'sLengthAll': 'all',\n"
+				+ "} );\n"
+				+ "$.extend( $.fn.dataTable.defaults.oLanguage, "
+				+ rb.getString("DataTablesL10n") +  ");\n";
 		portalSession.respond(new AddPageResources()
 				.addCss(event.renderSupport().pageResource(
 						"datatables/datatables.min.css"))
@@ -78,7 +91,10 @@ public class DatatablesProvider extends PageResourceProvider {
 				.addScriptResource(new ScriptResource()
 						.setRequires(new String[] {"datatables.net"})
 						.setScriptUri(event.renderSupport().pageResource(
-								"datatables/processing().js"))));
+								"datatables/processing().js")))
+				.addScriptResource(new ScriptResource()
+						.setRequires(new String[] {"datatables.net"})
+						.setScriptSource(script)));
 	}
 
 }

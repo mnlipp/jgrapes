@@ -19,6 +19,8 @@
 package org.jgrapes.portal;
 
 import java.io.InputStream;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jgrapes.core.Channel;
@@ -42,6 +44,21 @@ public abstract class PageResourceProvider extends Component {
 	 */
 	public PageResourceProvider(Channel channel) {
 		super(channel);
+	}
+
+	/**
+	 * Provides a resource bundle for localization.
+	 * The default implementation looks up a bundle using the
+	 * package name plus "l10n" as base name.
+	 * 
+	 * @return the resource bundle
+	 */
+	protected ResourceBundle resourceBundle(Locale locale) {
+		return ResourceBundle.getBundle(
+			getClass().getPackage().getName() + ".l10n", locale, 
+			getClass().getClassLoader(),
+				ResourceBundle.Control.getNoFallbackControl(
+						ResourceBundle.Control.FORMAT_DEFAULT));
 	}
 
 	/**
