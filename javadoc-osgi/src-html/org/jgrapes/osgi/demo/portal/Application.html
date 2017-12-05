@@ -51,7 +51,7 @@
 <span class="sourceLineNo">043</span>import org.jgrapes.io.util.PermitsPool;<a name="line.43"></a>
 <span class="sourceLineNo">044</span>import org.jgrapes.net.SslServer;<a name="line.44"></a>
 <span class="sourceLineNo">045</span>import org.jgrapes.net.TcpServer;<a name="line.45"></a>
-<span class="sourceLineNo">046</span>import org.jgrapes.osgi.portal.PortletCollector;<a name="line.46"></a>
+<span class="sourceLineNo">046</span>import org.jgrapes.osgi.portal.PortalComponentsCollector;<a name="line.46"></a>
 <span class="sourceLineNo">047</span>import org.jgrapes.portal.KVStoreBasedPortalPolicy;<a name="line.47"></a>
 <span class="sourceLineNo">048</span>import org.jgrapes.portal.Portal;<a name="line.48"></a>
 <span class="sourceLineNo">049</span>import org.jgrapes.portal.PortalLocalBackedKVStore;<a name="line.49"></a>
@@ -123,7 +123,7 @@
 <span class="sourceLineNo">115</span>                                portal, portal.prefix().getPath()));<a name="line.115"></a>
 <span class="sourceLineNo">116</span>                portal.attach(new KVStoreBasedPortalPolicy(portal));<a name="line.116"></a>
 <span class="sourceLineNo">117</span>                portal.attach(new NewPortalSessionPolicy(portal));<a name="line.117"></a>
-<span class="sourceLineNo">118</span>                portal.attach(new PortletCollector(portal, context));<a name="line.118"></a>
+<span class="sourceLineNo">118</span>                portal.attach(new PortalComponentsCollector(portal, context));<a name="line.118"></a>
 <span class="sourceLineNo">119</span>                Components.start(app);<a name="line.119"></a>
 <span class="sourceLineNo">120</span>        }<a name="line.120"></a>
 <span class="sourceLineNo">121</span><a name="line.121"></a>

@@ -2,9 +2,12 @@ org.jgrapes.osgi.demo.httpserver
 org.jgrapes.osgi.demo.portal
 org.jgrapes.osgi.factory.core
 org.jgrapes.osgi.factory.http
+org.jgrapes.osgi.factory.portal.provider
 org.jgrapes.osgi.factory.portlet
 org.jgrapes.osgi.http
 org.jgrapes.osgi.portal
+org.jgrapes.osgi.portal.providers.chartjs
+org.jgrapes.osgi.portal.providers.datatables
 org.jgrapes.osgi.portlets.bundles
 org.jgrapes.osgi.portlets.services
 org.jgrapes.osgi.portlets.sysinfo
