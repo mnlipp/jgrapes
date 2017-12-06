@@ -55,10 +55,12 @@ public class ChartJsProvider extends PageResourceProvider {
 	public void onPortalReady(PortalReady event, PortalSession portalSession) 
 			throws TemplateNotFoundException, MalformedTemplateNameException, 
 			ParseException, IOException {
+		String minExt = event.renderSupport()
+				.useMinifiedResources() ? ".min" : "";
 		portalSession.respond(new AddPageResources()
 				.addScriptResource(new ScriptResource()
 						.setProvides(new String[] {"chartjs.org"})
 						.setScriptUri(event.renderSupport().pageResource(
-								"chart-js-2.7.0/Chart.min.js"))));
+								"chart-js-2.7.0/Chart" + minExt + ".js"))));
 	}
 }

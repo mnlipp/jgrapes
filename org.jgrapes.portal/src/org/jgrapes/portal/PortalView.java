@@ -876,6 +876,14 @@ public class PortalView extends Component {
 			return portal.prefix().resolve(uriFromPath(
 					"page-resource/")).resolve(uri);
 		}
+
+		/* (non-Javadoc)
+		 * @see org.jgrapes.portal.RenderSupport#useMinifiedResources()
+		 */
+		@Override
+		public boolean useMinifiedResources() {
+			return useMinifiedResources;
+		}
 		
 	}
 

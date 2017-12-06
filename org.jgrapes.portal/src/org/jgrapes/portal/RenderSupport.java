@@ -75,4 +75,10 @@ public interface RenderSupport {
 		return portletResource(portletType, PortalView.uriFromPath(path));
 	}
 	
+	/**
+	 * Indicates if minified resources should be used.
+	 * 
+	 * @return the setting
+	 */
+	boolean useMinifiedResources();
 }

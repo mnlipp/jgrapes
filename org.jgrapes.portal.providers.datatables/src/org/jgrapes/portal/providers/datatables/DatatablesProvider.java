@@ -72,6 +72,8 @@ public class DatatablesProvider extends PageResourceProvider {
 	public void onPortalReady(PortalReady event, PortalSession portalSession) 
 			throws TemplateNotFoundException, MalformedTemplateNameException, 
 			ParseException, IOException {
+		String minExt = event.renderSupport()
+				.useMinifiedResources() ? ".min" : "";
 		ResourceBundle rb = resourceBundle(portalSession.locale()); 
 		String script = 
 				"$.fn.dataTable.defaults.oLanguage._hungarianMap"
@@ -83,11 +85,11 @@ public class DatatablesProvider extends PageResourceProvider {
 				+ rb.getString("DataTablesL10n") +  ");\n";
 		portalSession.respond(new AddPageResources()
 				.addCss(event.renderSupport().pageResource(
-						"datatables/datatables.min.css"))
+						"datatables/datatables" + minExt + ".css"))
 				.addScriptResource(new ScriptResource()
 						.setProvides(new String[] {"datatables.net"})
 						.setScriptUri(event.renderSupport().pageResource(
-								"datatables/datatables.min.js")))
+								"datatables/datatables" + minExt + ".js")))
 				.addScriptResource(new ScriptResource()
 						.setRequires(new String[] {"datatables.net"})
 						.setScriptUri(event.renderSupport().pageResource(
