@@ -26,6 +26,28 @@
     padding-bottom: 50px;
 }
 
+.jgrapes-widget {
+    padding: 0.3em;
+}
+
+.jgrapes-widget-header {
+    padding: 0.2em 0.3em;
+    margin-bottom: 0.5em;
+    position: relative;
+}
+
+.jgrapes-widget-content {
+    padding: 0.4em;
+}
+
+.jgrapes-widget .jgrapes-widget-content {
+    position: relative;
+    border: 0;
+    padding: .5em 1em;
+    background: none;
+    overflow: auto;
+}
+
 .portlet {
     margin: 0 1em 1em 0;
     padding: 0.3em;
@@ -42,8 +64,21 @@
     cursor: pointer;
 }
 
+.portlet-edit {
+    float: right;
+    cursor: pointer;
+}
+
 .portlet-content {
     padding: 0.4em;
+}
+
+.portlet .portlet-content {
+    position: relative;
+    border: 0;
+    padding: .5em 1em;
+    background: none;
+    overflow: auto;
 }
 
 .portlet-placeholder {

@@ -18,7 +18,11 @@
 
 package org.jgrapes.portlets.markdowndisplay;
 
+import org.jdrupes.json.JsonBeanDecoder;
+import org.jdrupes.json.JsonBeanEncoder;
+import org.jdrupes.json.JsonDecodeException;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler;
@@ -31,11 +35,15 @@ import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
 import org.jgrapes.portal.events.DeletePortlet;
 import org.jgrapes.portal.events.DeletePortletRequest;
+import org.jgrapes.portal.events.NotifyPortletModel;
 import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortlet;
 import org.jgrapes.portal.events.RenderPortletRequest;
 import org.jgrapes.portal.freemarker.FreeMarkerPortlet;
+import org.jgrapes.util.events.KeyValueStoreData;
+import org.jgrapes.util.events.KeyValueStoreQuery;
+import org.jgrapes.util.events.KeyValueStoreUpdate;
 
 import freemarker.core.ParseException;
 import freemarker.template.MalformedTemplateNameException;
@@ -59,7 +67,7 @@ import java.util.Set;
 public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 
 	private final static Set<RenderMode> MODES = RenderMode.asSet(
-			DeleteablePreview, View);
+			DeleteablePreview, View, Edit);
 	
 	/**
 	 * Creates a new component with its channel set to the given 
@@ -86,22 +94,58 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 		// Add MarkdownDisplayPortlet resources to page
 		portalSession.respond(new AddPortletType(type())
 				.setDisplayName(resourceBundle.getString("portletName"))
-				.addScript(new ScriptResource().setScriptUri(
-						event.renderSupport().portletResource(type(),
-								"MarkdownDisplay-functions.ftl.js")))
+				.addScript(new ScriptResource()
+						.setRequires(new String[] {"markdown-it.github.io",
+								"github.com/markdown-it/markdown-it-abbr",
+								"github.com/markdown-it/markdown-it-container",
+								"github.com/markdown-it/markdown-it-deflist",
+								"github.com/markdown-it/markdown-it-emoji",
+								"github.com/markdown-it/markdown-it-footnote",
+								"github.com/markdown-it/markdown-it-ins",
+								"github.com/markdown-it/markdown-it-mark",
+								"github.com/markdown-it/markdown-it-sub",
+								"github.com/markdown-it/markdown-it-sup"})
+						.setScriptUri(event.renderSupport().portletResource(
+								type(), "MarkdownDisplay-functions.ftl.js")))
 				.addCss(PortalView.uriFromPath("MarkdownDisplay-style.css"))
 				.setInstantiable());
+		KeyValueStoreQuery query = new KeyValueStoreQuery(
+				storagePath(portalSession.browserSession()), true);
+		portalSession.setAssociated(
+				MarkdownDisplayPortlet.class, new CompletionLock(event, 3000));
+		fire(query, portalSession);
 	}
 
+	@Handler
+	public void onKeyValueStoreData(
+			KeyValueStoreData event, PortalSession channel) 
+					throws JsonDecodeException {
+		if (!event.event().query().equals(storagePath(channel.browserSession()))) {
+			return;
+		}
+		channel.associated(MarkdownDisplayPortlet.class, CompletionLock.class)
+			.ifPresent(lock -> lock.remove());
+		for (String json: event.data().values()) {
+			MarkdownDisplayModel model = JsonBeanDecoder.create(json)
+					.readObject(MarkdownDisplayModel.class);
+			putInSession(channel.browserSession(), model);
+		}
+	}
+	
 	@Override
 	public String doAddPortlet(AddPortletRequest event,
 			PortalSession portalSession) throws Exception {
 		String portletId = generatePortletId();
+		ResourceBundle resourceBundle = resourceBundle(portalSession.locale());
 		MarkdownDisplayModel portletModel = putInSession(
 				portalSession.browserSession(), 
 				new MarkdownDisplayModel(portletId));
-		portletModel.setPreviewContent("Preview");
-		portletModel.setViewContent("View");
+		portletModel.setTitle(resourceBundle.getString("portletName"));
+		String jsonState = JsonBeanEncoder.create()
+				.writeObject(portletModel).toJson();
+		portalSession.respond(new KeyValueStoreUpdate().update(
+				storagePath(portalSession.browserSession()) + portletModel.getPortletId(),
+				jsonState));
 		Template tpl = freemarkerConfig().getTemplate(
 				"MarkdownDisplay-preview.ftl.html");
 		portalSession.respond(new RenderPortlet(
@@ -143,6 +187,14 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 			updateView(portalSession, portletModel, portalSession.locale());
 			break;
 		}
+		case Edit: {
+			Template tpl = freemarkerConfig().getTemplate("MarkdownDisplay-edit.ftl.html");
+			portalSession.respond(new RenderPortlet(
+					MarkdownDisplayPortlet.class, portletModel.getPortletId(), 
+					templateProcessor(tpl, fmModel(event, portalSession, portletModel)))
+					.setRenderMode(Edit).setSupportedModes(MODES));
+			break;
+		}
 		default:
 			break;
 		}
@@ -162,15 +214,43 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 	protected void doDeletePortlet(DeletePortletRequest event,
 	        PortalSession channel, String portletId, 
 	        Serializable retrievedState) throws Exception {
+		channel.respond(new KeyValueStoreUpdate().delete(
+				storagePath(channel.browserSession()) + portletId));
 		channel.respond(new DeletePortlet(portletId));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.portal.AbstractPortlet#doNotifyPortletModel(org.jgrapes.portal.events.NotifyPortletModel, org.jgrapes.io.IOSubchannel, org.jgrapes.http.Session, java.io.Serializable)
+	 */
+	@Override
+	protected void doNotifyPortletModel(NotifyPortletModel event,
+	        PortalSession portalSession, Serializable portletState)
+	        throws Exception {
+		event.stop();
+		MarkdownDisplayModel portletModel = (MarkdownDisplayModel)portletState;
+		if (!event.params().isNull(0)) {
+			portletModel.setTitle(event.params().getString(0));
+		}
+		if (!event.params().isNull(1)) {
+			portletModel.setPreviewContent(event.params().getString(1));
+		}
+		if (!event.params().isNull(2)) {
+			portletModel.setViewContent(event.params().getString(2));
+		}
+		String jsonState = JsonBeanEncoder.create()
+				.writeObject(portletModel).toJson();
+		portalSession.respond(new KeyValueStoreUpdate().update(
+				storagePath(portalSession.browserSession()) + portletModel.getPortletId(),
+				jsonState));
+		updateView(portalSession, portletModel, portalSession.locale());
 	}
 
 	@SuppressWarnings("serial")
 	public static class MarkdownDisplayModel extends PortletBaseModel {
 
-		private String title;
-		private String previewContent;
-		private String viewContent;
+		private String title = "";
+		private String previewContent = "";
+		private String viewContent = "";
 		
 		/**
 		 * Creates a new model with the given type and id.
@@ -223,8 +303,6 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 		public void setViewContent(String viewContent) {
 			this.viewContent = viewContent;
 		}
-		
-		
 	}
 	
 }

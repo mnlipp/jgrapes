@@ -1,3 +1,54 @@
 /*
  * Portlet specific styles.
  */
+
+.jgrapes-portlets-mdp-body {
+	width: 80vw;
+}
+
+.jgrapes-portlets-mdp-body textarea {
+	resize: none;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+}
+
+.jgrapes-portlets-mdp-preview-input-widget {
+	overflow: hidden;
+}
+
+.jgrapes-portlets-mdp-preview-input-widget textarea {
+    box-sizing: border-box;
+	height: 15vh;
+}
+
+.jgrapes-portlets-mdp-preview-preview-widget {
+	float: right;
+	width: 30vw;
+	margin-left: 1em;
+}
+
+.jgrapes-portlets-mdp-preview-preview {
+    box-sizing: border-box;
+	max-height: 15vh;
+}
+
+.jgrapes-portlets-mdp-view-input-widget textarea {
+    height: 15vh;
+}
+
+.jgrapes-portlets-mdp-body {
+}
+
+.jgrapes-portlets-mdp-body fieldset:not(:first-child) {
+    margin-top: 1em;
+}
+
+.jgrapes-portlets-mdp-view-preview-widget {
+	margin-top: 1em;
+}
+
+.jgrapes-portlets-mdp-view-preview {
+    height: 20vh;
+	overflow: auto;
+}
