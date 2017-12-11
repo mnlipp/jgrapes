@@ -43,3 +43,15 @@ jar {
         from 'resources/META-INF'
     }
 }
+
+apply plugin: 'com.moowork.node'
+
+ext.jsDocDestDir = "${rootProject.projectDir}/../jgrapes.gh-pages/portal/jsdoc" 
+
+task documentationjs(type: NodeTask) {
+	dependsOn(':npmInstall')
+	new File(jsDocDestDir).mkdirs()
+	script = file("${rootProject.projectDir}/node_modules/documentation/bin/documentation.js")
+	args = ["build", "--format", "html", "--output", jsDocDestDir,
+		"resources/org/jgrapes/portal/functions.js"]
+}

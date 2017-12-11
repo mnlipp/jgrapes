@@ -49,7 +49,13 @@ var JGPortal = {
 
     /**
      * Utility method to format a memory size to a maximum
-     * of 4 digits.
+     * of 4 digits for the integer part by appending the
+     * appropriate unit.
+     * 
+     * @param {integer} size the size value to format
+     * @param {integer} digits the number of digits of the factional part
+     * @param {string} lang the language (BCP 47 code, 
+     * used to determine the delimiter)
      */
     JGPortal.formatMemorySize = function(size, digits, lang) {
         if (lang === undefined) {
@@ -95,6 +101,13 @@ var JGPortal = {
     // WebSocket "wrapper"
     // ///////////////////
     
+    /**
+     * Defines a wrapper class for a web socket. An instance 
+     * creates and maintains a connection to a session on the
+     * server, i.e. it reconnects automatically to the session
+     * when the connection is lost. The connection is used to
+     * exchange JSON RPC notifications.
+     */
     var PortalWebSocket = function() {
         this._ws = null;
         this._sendQueue = [];
@@ -119,6 +132,11 @@ var JGPortal = {
         this._connectionLostNotification = null;
     };
 
+    /**
+     * Returns the unique session id used to identify the connection.
+     * 
+     * @return {string} the id
+     */
     PortalWebSocket.prototype.portalSessionId = function() {
         return this._portalSessionId;
     };
@@ -200,11 +218,17 @@ var JGPortal = {
         }
     }
 
+    /**
+     * Establishes the connection.
+     */
     PortalWebSocket.prototype.connect = function() {
         this._connectRequested = true;
         this._connect();
     } 
-    
+
+    /**
+     * Closes the connection.
+     */
     PortalWebSocket.prototype.close = function() {
         this._send({"jsonrpc": "2.0", "method": "disconnect",
             "params": [ this._portalSessionId ]});
@@ -239,11 +263,27 @@ var JGPortal = {
         this._drainSendQueue();
     }
 
+    /**
+     * Convert the passed object to its JSON representation
+     * and sends it to the server. The object should represent
+     * a JSON RPC notification.
+     * 
+     * @param  {object} data the data
+     */
     PortalWebSocket.prototype.send = function(data) {
         this._inactivity = 0;
         this._send(data);
     }
 
+    /**
+     * When a JSON RPC notification is received, its method property
+     * is matched against all added handlers. If a match is found,
+     * the associated handler function is invoked with the
+     * params values from the notification as parameters.
+     * 
+     * @param {string} method the method property to match
+     * @param {function} handler the handler function
+     */
     PortalWebSocket.prototype.addMessageHandler = function(method, handler) {
         this._messageHandlers[method] = handler;
     }
@@ -270,18 +310,32 @@ var JGPortal = {
     PortalWebSocket.prototype.lockMessageReceiver = function() {
         this._recvQueueLocks += 1;
     }
-    
+
     PortalWebSocket.prototype.unlockMessageReceiver = function() {
         this._recvQueueLocks -= 1;
         if (this._recvQueueLocks == 0) {
             this._handleMessages();
         }
     }
-    
+
+    /*
+     * The web socket connection of the current portal page.
+     */
     var webSocketConnection = new PortalWebSocket();
+    
+    /**
+     * Increses the lock count on the receiver. As long as
+     * the lock count is greater than 0, the invocation of
+     * handlers is suspended.
+     */
     JGPortal.lockMessageQueue = function() {
         webSocketConnection.lockMessageReceiver();
     }
+    
+    /**
+     * Decreases the lock count on the receiver. When the
+     * count reaches 0, the invocation of handlers is resumed.
+     */
     JGPortal.unlockMessageQueue = function() {
         webSocketConnection.unlockMessageReceiver();
     }
@@ -398,6 +452,16 @@ var JGPortal = {
             window.location.reload(true);
         });
     
+    /**
+     * Registers a portlet method that to be invoked if a
+     * JSON RPC notification with method <code>invokePortletMethod</code>
+     * is received.
+     * 
+     * @param {string} portletClass the portlet type for which
+     * the method is registered
+     * @param {string} methodName the method that is registered
+     * @param {function} method the function to invoke
+     */
     JGPortal.registerPortletMethod = function(portletClass, methodName, method) {
         let classRegistry = portletFunctionRegistry[portletClass];
         if (!classRegistry) {
@@ -446,6 +510,13 @@ var JGPortal = {
         }
         return undefined;
     };
+    
+    /**
+     * Find the <code>div</code> that displays the preview of the
+     * portlet with the given id.
+     * 
+     * @param {string} portletId the portlet id
+     */
     JGPortal.findPortletPreview = findPortletPreview;
 
     function findPreviewIds() {
@@ -463,6 +534,12 @@ var JGPortal = {
         }
         return undefined;
     };
+    /**
+     * Find the <code>div</code> that displays the view of the
+     * portlet with the given id.
+     * 
+     * @param {string} portletId the portlet id
+     */
     JGPortal.findPortletView = findPortletView;
 
     function updatePortletViewTitle(portletId, title) {
@@ -477,6 +554,13 @@ var JGPortal = {
         portletTab.empty();
         portletTab.append(title);
     }
+    
+    /**
+     * Update the title of the portlet with the given id.
+     * 
+     * @param {string} portletId the portlet id
+     * @param {string} title the new title
+     */
     JGPortal.updatePortletViewTitle = updatePortletViewTitle;
     
     function findViewIds() {
@@ -618,6 +702,10 @@ var JGPortal = {
 
 	    JGPortal.sendLayout(previewLayout, tabsLayout);
 	};
+	/**
+	 * Invoked to notify the server that the layout of the 
+	 * portal has changed.
+	 */
 	JGPortal.layoutChanged = layoutChanged;
 	
     var tabTemplate = "<li><a href='@{href}'>@{label}</a> " +
@@ -736,36 +824,75 @@ var JGPortal = {
     // Everything set up, connect web socket
 	webSocketConnection.connect();
 
-
+	/**
+	 * Sends a portal ready notification to the server.
+	 */
 	JGPortal.sendPortalReady = function() {
 		webSocketConnection.send({"jsonrpc": "2.0", "method": "portalReady"});
 	};
 	
+	/**
+	 * Sends a notification for changing the theme to the server.
+	 * 
+	 * @param {string} themeId the id of the selected theme
+	 */
     JGPortal.sendSetTheme = function(themeId) {
         webSocketConnection.send({"jsonrpc": "2.0", "method": "setTheme",
             "params": [ themeId ]});
     };
     
+    /**
+     * Sends a notification for changing the language to the server.
+     * 
+     * @param {string} locale the id of the selected locale
+     */
     JGPortal.sendSetLocale = function(locale) {
         webSocketConnection.send({"jsonrpc": "2.0", "method": "setLocale",
             "params": [ locale ]});
     };
-    
+
+    /**
+     * Sends a notification that requests the rendering of a portlet.
+     * 
+     * @param {string} portletId the portlet id
+     * @param {string} mode the requested render mode
+     * @param {boolean} foreground if the portlet is to be put in
+     * the foreground after rendering
+     */
 	JGPortal.sendRenderPortlet = function(portletId, mode, foreground) {
 		webSocketConnection.send({"jsonrpc": "2.0", "method": "renderPortlet",
 			"params": [ portletId, mode, foreground ]});
 	};
-    
+
+	/**
+	 * Sends a notification that requests the addition of a portlet.
+	 * 
+	 * @param {string} portletType the type of the portlet to add
+	 */
     JGPortal.sendAddPortlet = function(portletType) {
         webSocketConnection.send({"jsonrpc": "2.0", "method": "addPortlet",
             "params": [ portletType, "Preview" ]});
     };
-    
+
+    /**
+     * Send a notification that request the removal of a portlet.
+     * 
+     * @param {string} portletId the id of the portlet to be deleted
+     */
     JGPortal.sendDeletePortlet = function(portletId) {
         webSocketConnection.send({"jsonrpc": "2.0", "method": "deletePortlet",
             "params": [ portletId ]});
     };
-    
+
+    /**
+     * Send a notification with method <code>sendToPortlet</code>
+     * and the given portlet id, method and parameters as the 
+     * notification's parameters to the server.
+     * 
+     * @param {string} portletId the id of the portlet to send to
+     * @param {string} method the method to invoke
+     * @param params the parameters to send
+     */
     JGPortal.sendToPortlet = function(portletId, method, ...params) {
         if (params === undefined) {
             webSocketConnection.send({"jsonrpc": "2.0", "method": "sendToPortlet",
