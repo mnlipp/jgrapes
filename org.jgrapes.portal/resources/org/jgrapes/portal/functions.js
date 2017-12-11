@@ -464,6 +464,20 @@ var JGPortal = {
         return undefined;
     };
     JGPortal.findPortletView = findPortletView;
+
+    function updatePortletViewTitle(portletId, title) {
+        let tabs = $( "#tabs" ).tabs();
+        let portlet = tabs.find("> div[data-portlet-id='" + portletId + "']" );
+        if (portlet.length === 0) {
+            return;
+        }
+        portlet.find("[data-portlet-title]").attr("data-portlet-title", title);
+        let tabId = portlet.attr("id");
+        let portletTab = tabs.find("a[href='#" + tabId + "']");
+        portletTab.empty();
+        portletTab.append(title);
+    }
+    JGPortal.updatePortletViewTitle = updatePortletViewTitle;
     
     function findViewIds() {
         let tabs = $( "#tabs" ).tabs();

@@ -13,6 +13,10 @@
 	height: 100%;
 }
 
+.jgrapes-portlets-mdp-title-input {
+	width: 100%;
+}
+
 .jgrapes-portlets-mdp-preview-input-widget {
 	overflow: hidden;
 }

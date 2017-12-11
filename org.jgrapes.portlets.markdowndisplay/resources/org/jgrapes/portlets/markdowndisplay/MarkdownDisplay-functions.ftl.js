@@ -21,12 +21,16 @@ var orgJGrapesPortletsMarkdownDisplay = {
             "updateAll", function(portletId, params) {
                 let portlet = JGPortal.findPortletPreview(portletId);
                 if (portlet) {
+                    let headerText = portlet.find(".portlet-header-text");
+                    headerText.empty();
+                    headerText.append(params[0]);
                     let content = portlet.find(".jgrapes-markdownportlet-content");
                     content.empty();
                     content.append(mdProc.render(params[1]));
                 }
                 portlet = JGPortal.findPortletView(portletId);
                 if (portlet) {
+                    JGPortal.updatePortletViewTitle(portletId, params[0]);
                     let content = portlet.find(".jgrapes-markdownportlet-content");
                     content.empty();
                     content.append(mdProc.render(params[2]));
@@ -41,6 +45,9 @@ var orgJGrapesPortletsMarkdownDisplay = {
     }
     
     orgJGrapesPortletsMarkdownDisplay.init = function(dialog) {
+        // Title
+        let titleSource = dialog.find('.jgrapes-portlets-mdp-title-input');
+        
         // Preview
         let previewSource = dialog.find('.jgrapes-portlets-mdp-preview-input');
         let previewPreview = dialog.find('.jgrapes-portlets-mdp-preview-preview');
@@ -68,7 +75,7 @@ var orgJGrapesPortletsMarkdownDisplay = {
             let oet = event.originalEvent.target;
             if (oet.classList && oet.classList.contains("ui-dialog-titlebar-close")) {
                 let portletId = $(event.target).attr("data-portlet-id");
-                JGPortal.sendToPortlet(portletId, "update", null,
+                JGPortal.sendToPortlet(portletId, "update", titleSource.val(),
                         previewSource.val(), viewSource.val());
             }
         })
