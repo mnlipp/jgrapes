@@ -160,9 +160,9 @@ var JGPortal = {
             self._drainSendQueue();
             self._refreshTimer = setInterval(function() {
                 if (self._sendQueue.length == 0) {
-                    self._inactivity += JGPortal.portalSessionRefreshInterval;
-                    if (JGPortal.portalSessionInactivityTimeout > 0 &&
-                            self._inactivity >= JGPortal.portalSessionInactivityTimeout) {
+                    self._inactivity += portalSessionRefreshInterval;
+                    if (portalSessionInactivityTimeout > 0 &&
+                            self._inactivity >= portalSessionInactivityTimeout) {
                         self.close();
                         $( "#portal-session-suspended-dialog" ).dialog(
                                 "option", "buttons", {
@@ -176,7 +176,7 @@ var JGPortal = {
                     self._send({"jsonrpc": "2.0", "method": "keepAlive",
                         "params": []});
                 }
-            }, JGPortal.portalSessionRefreshInterval);
+            }, portalSessionRefreshInterval);
         }
         this._ws.onclose = function(event) {
             if (self._refreshTimer !== null) {
@@ -342,6 +342,73 @@ var JGPortal = {
 
     // Portal handlers/functions (order roughly according to their
     // usage after portal start)
+    
+    var portalSessionRefreshInterval;
+    var portalSessionInactivityTimeout;
+    
+    JGPortal.init = function(refreshInterval, inactivityTimeout) {
+        portalSessionRefreshInterval = refreshInterval;
+        portalSessionInactivityTimeout = inactivityTimeout;
+        
+        $("body").faLoading({
+            icon: "fa-circle-o-notch",
+            spin: true,
+            text: false
+        });
+      
+        // Top bar
+        $( "#theme-menu" ).on("click", "[data-theme-id]", function() {
+          JGPortal.sendSetTheme($(this).data("theme-id"));
+          $( "#theme-menu" ).jqDropdown("hide");
+        });
+        
+        $( "#language-menu" ).on("click", "[data-locale]", function() {
+          JGPortal.sendSetLocale($(this).data("locale"));
+          $( "#theme-menu" ).jqDropdown("hide");
+        });
+        
+        $( "#addon-menu" ).on("click", "[data-portlet-type]", function() {
+          JGPortal.sendAddPortlet($(this).data("portlet-type"));
+          $( "#theme-menu" ).jqDropdown("hide");
+        });
+        
+        // Tabs
+        $( "#portlet-tabs" ).tabs();
+        
+        // AddTab button
+        var tabs = $( "#portlet-tabs" ).tabs();
+
+        // Close icon: removing the tab on click
+        tabs.on( "click", "span.ui-icon-close", function() {
+          var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
+          $( "#" + panelId ).remove();
+          tabs.tabs( "refresh" );
+          layoutChanged();
+        });
+
+        // Dialogs
+        $( "#portal-session-suspended-dialog" ).dialog({
+            autoOpen: false,
+            modal: true,
+        });
+
+        //
+        // Portlet Grid
+        //
+        
+        // Prepare columns
+        $( ".column" ).sortable({
+          connectWith: ".column",
+          handle: ".portlet-header",
+          cancel: ".portlet-toggle",
+          placeholder: "portlet-placeholder ui-corner-all",
+          stop: function( event, ui ) { layoutChanged(); }
+        });
+     
+        // With everything prepared, send portal ready
+        JGPortal.sendPortalReady();
+
+    }
     
     let providedScriptResources = new Set(); // Names, i.e. strings
     let unresolvedScriptRequests = []; // ScriptResource objects
