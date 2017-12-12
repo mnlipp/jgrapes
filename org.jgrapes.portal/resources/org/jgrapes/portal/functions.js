@@ -527,7 +527,7 @@ var JGPortal = {
     }
     
     function findPortletView(portletId) {
-        let tabs = $( "#tabs" ).tabs();
+        let tabs = $( "#portlet-tabs" ).tabs();
         let matches = tabs.find("> div[data-portlet-id='" + portletId + "']" );
         if (matches.length === 1) {
             return $( matches[0] );
@@ -543,7 +543,7 @@ var JGPortal = {
     JGPortal.findPortletView = findPortletView;
 
     function updatePortletViewTitle(portletId, title) {
-        let tabs = $( "#tabs" ).tabs();
+        let tabs = $( "#portlet-tabs" ).tabs();
         let portlet = tabs.find("> div[data-portlet-id='" + portletId + "']" );
         if (portlet.length === 0) {
             return;
@@ -564,7 +564,7 @@ var JGPortal = {
     JGPortal.updatePortletViewTitle = updatePortletViewTitle;
     
     function findViewIds() {
-        let tabs = $( "#tabs" ).tabs();
+        let tabs = $( "#portlet-tabs" ).tabs();
         let ids = tabs.find("> div[data-portlet-id]" ).map(function() {
             return $( this ).attr("data-portlet-id");
         }).get();
@@ -572,7 +572,7 @@ var JGPortal = {
     }
     
     function activatePortletView(portletId) {
-        let tabs = $( "#tabs" ).tabs();
+        let tabs = $( "#portlet-tabs" ).tabs();
         let portletIndex = undefined;
         let matches = tabs.find("> div").filter(function(index) {
             if ($(this).attr("data-portlet-id") === portletId) {
@@ -674,7 +674,7 @@ var JGPortal = {
 		portletContent.append(newContent);
 		execOnLoad(newContent);
 		if (foreground) {
-		    $( "#tabs" ).tabs( "option", "active", 0 );
+		    $( "#portlet-tabs" ).tabs( "option", "active", 0 );
 		}
 	};
 
@@ -691,7 +691,7 @@ var JGPortal = {
 	        });
 	    });
 	    let tabsLayout = [];
-        let tabs = $( "#tabs" ).tabs();
+        let tabs = $( "#portlet-tabs" ).tabs();
         tabs.find(".ui-tabs-nav .ui-tabs-tab").each(function(index) {
             if (index > 0) {
                 let tabId = $(this).attr("aria-controls");
@@ -719,9 +719,9 @@ var JGPortal = {
 	        portletView.children().detach();
 	        portletView.append(newContent);
 		} else {
-	        let tabs = $( "#tabs" ).tabs();
+	        let tabs = $( "#portlet-tabs" ).tabs();
 			tabCounter += 1;
-	        let id = "tabs-" + tabCounter;
+	        let id = "portlet-tabs-" + tabCounter;
 	        let li = $( tabTemplate.replace( /@\{href\}/g, "#" + id )
 	                  .replace( /@\{label\}/g, newContent.attr("data-portlet-title")) );
 	        let tabItems = tabs.find( ".ui-tabs-nav" );
@@ -765,9 +765,9 @@ var JGPortal = {
             let portletView = findPortletView(portletId);
             if (portletView) {
                 let panelId = portletView.closest(".ui-tabs-panel").remove().attr("id");
-                let tabs = $( "#tabs" ).tabs();
+                let tabs = $( "#portlet-tabs" ).tabs();
                 tabs.find("li[aria-controls='" + panelId + "']").remove();
-                $( "#tabs" ).tabs().tabs( "refresh" );
+                $( "#portlet-tabs" ).tabs().tabs( "refresh" );
             }
             let portlet = findPortletPreview(portletId);
             if (portlet) {

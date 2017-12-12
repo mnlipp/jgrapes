@@ -30,8 +30,8 @@
   #dialog label, #dialog input { display:block; }
   #dialog label { margin-top: 0.5em; }
   #dialog input, #dialog textarea { width: 95%; }
-  #tabs { margin-top: 1em; }
-  #tabs li .ui-icon-close { float: left; margin: 0.4em 0.2em 0 0; cursor: pointer; }
+  #portlet-tabs { margin-top: 1em; }
+  #portlet-tabs li .ui-icon-close { float: left; margin: 0.4em 0.2em 0 0; cursor: pointer; }
   #add_tab { cursor: pointer; }
   
   </style> 
@@ -77,10 +77,10 @@
     });
     
     // Tabs
-    $( "#tabs" ).tabs();
+    $( "#portlet-tabs" ).tabs();
     
     // AddTab button
-    var tabs = $( "#tabs" ).tabs();
+    var tabs = $( "#portlet-tabs" ).tabs();
 
     // Close icon: removing the tab on click
     tabs.on( "click", "span.ui-icon-close", function() {
@@ -126,12 +126,12 @@
 </div>
 
 <!-- Main content: The tabs -->
-<div id="tabs">
+<div id="portlet-tabs">
   <ul>
-    <li><a href="#tabs-1">${_("Overview")}</a></li>
+    <li><a href="#portlet-tabs-1">${_("Overview")}</a></li>
   </ul>
 
-  <div id="tabs-1" class="overview-panel">
+  <div id="portlet-tabs-1" class="overview-panel">
     <div class="column">
     </div>
  
