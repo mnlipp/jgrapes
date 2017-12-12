@@ -503,21 +503,20 @@ var JGPortal = {
         }
     }
     
-    function findPortletPreview(portletId) {
-        let matches = $( ".portlet[data-portlet-id='" + portletId + "']" );
-        if (matches.length === 1) {
-            return $( matches[0] );
-        }
-        return undefined;
-    };
-    
     /**
      * Find the <code>div</code> that displays the preview of the
      * portlet with the given id.
      * 
      * @param {string} portletId the portlet id
      */
-    JGPortal.findPortletPreview = findPortletPreview;
+    JGPortal.findPortletPreview = function (portletId) {
+        let matches = $( ".portlet[data-portlet-id='" + portletId + "']" );
+        if (matches.length === 1) {
+            return $( matches[0] );
+        }
+        return undefined;
+    };
+    var findPortletPreview = JGPortal.findPortletPreview;
 
     function findPreviewIds() {
         let ids = $( ".portlet[data-portlet-id]" ).map(function() {
@@ -526,7 +525,13 @@ var JGPortal = {
         return ids;
     }
     
-    function findPortletView(portletId) {
+    /**
+     * Find the <code>div</code> that displays the view of the
+     * portlet with the given id.
+     * 
+     * @param {string} portletId the portlet id
+     */
+    JGPortal.findPortletView = function (portletId) {
         let tabs = $( "#portlet-tabs" ).tabs();
         let matches = tabs.find("> div[data-portlet-id='" + portletId + "']" );
         if (matches.length === 1) {
@@ -534,15 +539,15 @@ var JGPortal = {
         }
         return undefined;
     };
+    var findPortletView = JGPortal.findPortletView;
+
     /**
-     * Find the <code>div</code> that displays the view of the
-     * portlet with the given id.
+     * Update the title of the portlet with the given id.
      * 
      * @param {string} portletId the portlet id
+     * @param {string} title the new title
      */
-    JGPortal.findPortletView = findPortletView;
-
-    function updatePortletViewTitle(portletId, title) {
+    JGPortal.updatePortletViewTitle = function (portletId, title) {
         let tabs = $( "#portlet-tabs" ).tabs();
         let portlet = tabs.find("> div[data-portlet-id='" + portletId + "']" );
         if (portlet.length === 0) {
@@ -554,14 +559,6 @@ var JGPortal = {
         portletTab.empty();
         portletTab.append(title);
     }
-    
-    /**
-     * Update the title of the portlet with the given id.
-     * 
-     * @param {string} portletId the portlet id
-     * @param {string} title the new title
-     */
-    JGPortal.updatePortletViewTitle = updatePortletViewTitle;
     
     function findViewIds() {
         let tabs = $( "#portlet-tabs" ).tabs();
@@ -702,11 +699,6 @@ var JGPortal = {
 
 	    JGPortal.sendLayout(previewLayout, tabsLayout);
 	};
-	/**
-	 * Invoked to notify the server that the layout of the 
-	 * portal has changed.
-	 */
-	JGPortal.layoutChanged = layoutChanged;
 	
     var tabTemplate = "<li><a href='@{href}'>@{label}</a> " +
         "<span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>";
