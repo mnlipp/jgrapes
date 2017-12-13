@@ -71,6 +71,9 @@ import java.util.Set;
  */
 public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 
+	public enum Options { TITLE, PREVIEW_SOURCE, VIEW_SOURCE,
+		DELETABLE, EDITABLE_BY };
+	
 	/**
 	 * Creates a new component with its channel set to the given 
 	 * channel.
@@ -135,25 +138,26 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 		}
 	}
 
+//	public enum Options { TITLE, PREVIEW_SOURCE, VIEW_SOURCE,
+//		DELETABLE, EDITABLE_BY };
+
 	/**
 	 * Adds the portlet to the portal. The portlet supports the 
-	 * following options (see {@link AddPortletRequest#options()}:
+	 * following options (see {@link AddPortletRequest#options()}
+	 * and {@link Options}):
 	 * 
-	 * * `title` (String): The portlet title.
+	 * * `TITLE` (String): The portlet title.
 	 * 
-	 * * `previewSource` (String): The markdown source that is rendered 
+	 * * `PREVIEW_SOURCE` (String): The markdown source that is rendered 
 	 * in the portlet preview.
 	 * 
-	 * * `viewSource` (String): The markdown source that is rendered 
+	 * * `VIEW_SOURCE` (String): The markdown source that is rendered 
 	 * in the portlet view.
 	 * 
-	 * * `viewSource` (String): The markdown source that is rendered 
-	 * in the portlet view.
-	 * 
-	 * * `deletable` (Boolean): Indicates that the portlet may be 
+	 * * `DELETABLE` (Boolean): Indicates that the portlet may be 
 	 * deleted from the overview page.
 	 * 
-	 * * `editableBy` (Set&lt;Principal&gt;): The principals that may edit 
+	 * * `EDITABLE_BY` (Set&lt;Principal&gt;): The principals that may edit 
 	 * the portlet instance.
 	 */
 	@Override
@@ -166,7 +170,18 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 		MarkdownDisplayModel model = putInSession(
 				portalSession.browserSession(), 
 				new MarkdownDisplayModel(portletId));
-		model.setTitle(resourceBundle.getString("portletName"));
+		model.setTitle((String)event.options().getOrDefault(Options.TITLE, 
+				resourceBundle.getString("portletName")));
+		model.setPreviewContent((String)event.options().getOrDefault(
+				Options.PREVIEW_SOURCE,""));
+		model.setViewContent((String)event.options().getOrDefault(
+				Options.VIEW_SOURCE,""));
+		model.setDeletable((Boolean)event.options().getOrDefault(
+				Options.DELETABLE,	Boolean.TRUE));
+		@SuppressWarnings("unchecked")
+		Set<Principal> editableBy = (Set<Principal>)event.options().get(
+				Options.EDITABLE_BY);
+		model.setEditableBy(editableBy);
 		
 		// Save model
 		String jsonState = JsonBeanEncoder.create()
