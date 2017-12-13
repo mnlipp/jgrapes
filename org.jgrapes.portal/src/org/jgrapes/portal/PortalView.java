@@ -38,7 +38,6 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.CharBuffer;
-import java.security.Principal;
 import java.text.Collator;
 import java.text.ParseException;
 import java.time.Instant;
@@ -642,8 +641,8 @@ public class PortalView extends Component {
 	
 	@Handler(dynamic=true)
 	public void onPortalReady(PortalReady event, PortalSession channel) {
-		String principal = 	channel.browserSession()
-				.getOrDefault(Principal.class, "").toString();
+		String principal = 	Utils.userFromSession(channel.browserSession())
+				.map(UserPrincipal::toString).orElse("");
 		KeyValueStoreQuery query = new KeyValueStoreQuery(
 				"/" + principal + "/themeProvider", true);
 		channel.setAssociated(this, new CompletionLock(event, 3000));
@@ -655,7 +654,8 @@ public class PortalView extends Component {
 			KeyValueStoreData event, PortalSession channel) 
 					throws JsonDecodeException {
 		Session session = channel.browserSession();
-		String principal = session.getOrDefault(Principal.class, "").toString();
+		String principal = Utils.userFromSession(session)
+				.map(UserPrincipal::toString).orElse("");
 		if (!event.event().query().equals("/" + principal + "/themeProvider")) {
 			return;
 		}
@@ -709,7 +709,8 @@ public class PortalView extends Component {
 			.orElse(baseTheme);
 		channel.browserSession().put("themeProvider", themeProvider.themeId());
 		channel.respond(new KeyValueStoreUpdate().update(
-				"/" + channel.browserSession().getOrDefault(Principal.class, "").toString() 
+				"/" + Utils.userFromSession(channel.browserSession())
+				.map(UserPrincipal::toString).orElse("") 
 				+ "/themeProvider", themeProvider.themeId())).get();
 		fire(new JsonOutput("reload"), channel);
 	}

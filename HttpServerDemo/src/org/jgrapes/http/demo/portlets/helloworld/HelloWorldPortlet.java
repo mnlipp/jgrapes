@@ -29,6 +29,8 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.Session;
 import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.PortalView;
+import org.jgrapes.portal.UserPrincipal;
+import org.jgrapes.portal.Utils;
 import org.jgrapes.portal.events.AddPageResources.ScriptResource;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
@@ -55,7 +57,6 @@ import static org.jgrapes.portal.Portlet.RenderMode.*;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.Serializable;
-import java.security.Principal;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -80,7 +81,8 @@ public class HelloWorldPortlet extends FreeMarkerPortlet {
 	}
 
 	private String storagePath(Session session) {
-		return "/" + session.getOrDefault(Principal.class, "").toString()
+		return "/" + Utils.userFromSession(session)
+			.map(UserPrincipal::toString).orElse("")
 			+ "/portlets/" + HelloWorldPortlet.class.getName()	+ "/";
 	}
 	

@@ -18,29 +18,23 @@
 
 package org.jgrapes.portal;
 
-import java.util.Optional;
-
-import javax.security.auth.Subject;
-
-import org.jgrapes.http.Session;
+import java.security.Principal;
 
 /**
- * 
+ * A principal representing an identity established by a client.
  */
-public class Utils {
+public interface UserPrincipal extends Principal {
 
-	private Utils() {
-	}
+	/* (non-Javadoc)
+	 * @see java.security.Principal#getName()
+	 */
+	@Override
+	public String getName();
 
 	/**
-	 * Convenience method for retrieving the user from
-	 * a {@link Subject} associated with the session.
+	 * Returns the authentication realm.
 	 * 
-	 * @return the user principal
+	 * @return the value
 	 */
-	public static Optional<UserPrincipal> userFromSession(Session session) {
-		return Optional.ofNullable((Subject)session.get(Subject.class))
-				.flatMap(subject -> subject.getPrincipals(UserPrincipal.class)
-						.stream().findFirst());
-	}
+	public String getRealm();
 }

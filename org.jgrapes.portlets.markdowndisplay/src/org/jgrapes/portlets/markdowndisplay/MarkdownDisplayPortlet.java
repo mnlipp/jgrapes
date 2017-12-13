@@ -30,6 +30,8 @@ import org.jgrapes.http.Session;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.PortalView;
+import org.jgrapes.portal.UserPrincipal;
+import org.jgrapes.portal.Utils;
 import org.jgrapes.portal.events.AddPageResources.ScriptResource;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.AddPortletType;
@@ -62,13 +64,13 @@ import java.util.ResourceBundle;
 import java.util.Set;
 
 /**
- * 
+ * A portlet used to display information to the user. Instances
+ * may be used as a kind of note, i.e. created and configured by
+ * a user himself. A typical use case, however, is to create
+ * an instance during startup by a portal policy.
  */
 public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 
-	private final static Set<RenderMode> MODES = RenderMode.asSet(
-			DeleteablePreview, View, Edit);
-	
 	/**
 	 * Creates a new component with its channel set to the given 
 	 * channel.
@@ -82,7 +84,8 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 	}
 
 	private String storagePath(Session session) {
-		return "/" + session.getOrDefault(Principal.class, "").toString()
+		return "/" + Utils.userFromSession(session)
+			.map(UserPrincipal::toString).orElse("")
 			+ "/portlets/" + MarkdownDisplayPortlet.class.getName()	+ "/";
 	}
 	
@@ -131,29 +134,59 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 			putInSession(channel.browserSession(), model);
 		}
 	}
-	
+
+	/**
+	 * Adds the portlet to the portal. The portlet supports the 
+	 * following options (see {@link AddPortletRequest#options()}:
+	 * 
+	 * * `title` (String): The portlet title.
+	 * 
+	 * * `previewSource` (String): The markdown source that is rendered 
+	 * in the portlet preview.
+	 * 
+	 * * `viewSource` (String): The markdown source that is rendered 
+	 * in the portlet view.
+	 * 
+	 * * `viewSource` (String): The markdown source that is rendered 
+	 * in the portlet view.
+	 * 
+	 * * `deletable` (Boolean): Indicates that the portlet may be 
+	 * deleted from the overview page.
+	 * 
+	 * * `editableBy` (Set&lt;Principal&gt;): The principals that may edit 
+	 * the portlet instance.
+	 */
 	@Override
 	public String doAddPortlet(AddPortletRequest event,
 			PortalSession portalSession) throws Exception {
-		String portletId = generatePortletId();
 		ResourceBundle resourceBundle = resourceBundle(portalSession.locale());
-		MarkdownDisplayModel portletModel = putInSession(
+		
+		// Create new model
+		String portletId = generatePortletId();
+		MarkdownDisplayModel model = putInSession(
 				portalSession.browserSession(), 
 				new MarkdownDisplayModel(portletId));
-		portletModel.setTitle(resourceBundle.getString("portletName"));
+		model.setTitle(resourceBundle.getString("portletName"));
+		
+		// Save model
 		String jsonState = JsonBeanEncoder.create()
-				.writeObject(portletModel).toJson();
+				.writeObject(model).toJson();
 		portalSession.respond(new KeyValueStoreUpdate().update(
-				storagePath(portalSession.browserSession()) + portletModel.getPortletId(),
+				storagePath(portalSession.browserSession()) + model.getPortletId(),
 				jsonState));
+		
+		// Send HTML
+		Set<RenderMode> modes = renderModes(model);
 		Template tpl = freemarkerConfig().getTemplate(
 				"MarkdownDisplay-preview.ftl.html");
 		portalSession.respond(new RenderPortlet(
-				MarkdownDisplayPortlet.class, portletModel.getPortletId(),
-				templateProcessor(tpl, fmModel(event, portalSession, portletModel)))
-				.setRenderMode(DeleteablePreview).setSupportedModes(MODES)
+				MarkdownDisplayPortlet.class, model.getPortletId(),
+				templateProcessor(tpl, fmModel(event, portalSession, model)))
+				.setRenderMode(DeleteablePreview).setSupportedModes(modes)
 				.setForeground(true));
-		updateView(portalSession, portletModel, portalSession.locale());
+		
+		// Fill in data
+		updateView(portalSession, model, portalSession.locale());
 		return portletId;
 	}
 	
@@ -164,35 +197,39 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 	protected void doRenderPortlet(RenderPortletRequest event,
 	        PortalSession portalSession, String portletId, 
 	        Serializable retrievedState) throws Exception {
-		MarkdownDisplayModel portletModel = (MarkdownDisplayModel)retrievedState;
+		MarkdownDisplayModel model = (MarkdownDisplayModel)retrievedState;
+		Set<RenderMode> modes = renderModes(model);
+		if (model.getViewContent() != null && !model.getViewContent().isEmpty()) {
+			modes.add(View);
+		}
 		switch (event.renderMode()) {
 		case Preview:
 		case DeleteablePreview: {
 			Template tpl = freemarkerConfig().getTemplate("MarkdownDisplay-preview.ftl.html");
 			portalSession.respond(new RenderPortlet(
-					MarkdownDisplayPortlet.class, portletModel.getPortletId(), 
-					templateProcessor(tpl, fmModel(event, portalSession, portletModel)))
-					.setRenderMode(DeleteablePreview).setSupportedModes(MODES)
+					MarkdownDisplayPortlet.class, model.getPortletId(), 
+					templateProcessor(tpl, fmModel(event, portalSession, model)))
+					.setRenderMode(DeleteablePreview).setSupportedModes(modes)
 					.setForeground(event.isForeground()));
-			updateView(portalSession, portletModel, portalSession.locale());
+			updateView(portalSession, model, portalSession.locale());
 			break;
 		}
 		case View: {
 			Template tpl = freemarkerConfig().getTemplate("MarkdownDisplay-view.ftl.html");
 			portalSession.respond(new RenderPortlet(
-					MarkdownDisplayPortlet.class, portletModel.getPortletId(), 
-					templateProcessor(tpl, fmModel(event, portalSession, portletModel)))
-					.setRenderMode(View).setSupportedModes(MODES)
+					MarkdownDisplayPortlet.class, model.getPortletId(), 
+					templateProcessor(tpl, fmModel(event, portalSession, model)))
+					.setRenderMode(View).setSupportedModes(modes)
 					.setForeground(event.isForeground()));
-			updateView(portalSession, portletModel, portalSession.locale());
+			updateView(portalSession, model, portalSession.locale());
 			break;
 		}
 		case Edit: {
 			Template tpl = freemarkerConfig().getTemplate("MarkdownDisplay-edit.ftl.html");
 			portalSession.respond(new RenderPortlet(
-					MarkdownDisplayPortlet.class, portletModel.getPortletId(), 
-					templateProcessor(tpl, fmModel(event, portalSession, portletModel)))
-					.setRenderMode(Edit).setSupportedModes(MODES));
+					MarkdownDisplayPortlet.class, model.getPortletId(), 
+					templateProcessor(tpl, fmModel(event, portalSession, model)))
+					.setRenderMode(Edit).setSupportedModes(modes));
 			break;
 		}
 		default:
@@ -200,6 +237,18 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 		}
 	}
 
+	private Set<RenderMode> renderModes(MarkdownDisplayModel model) {
+		Set<RenderMode> modes = RenderMode.asSet(DeleteablePreview, Edit);
+		modes.add(model.isDeletable() ? DeleteablePreview : Preview);
+		if (model.getViewContent() != null && !model.getViewContent().isEmpty()) {
+			modes.add(View);
+		}
+		if (model.getEditableBy() == null) {
+			modes.add(Edit);
+		}
+		return modes;
+	}
+	
 	private void updateView(IOSubchannel channel, MarkdownDisplayModel model,
 	        Locale locale) {
 		channel.respond(new NotifyPortletView(type(),
@@ -251,6 +300,8 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 		private String title = "";
 		private String previewContent = "";
 		private String viewContent = "";
+		private boolean deletable = true;
+		private Set<Principal> editableBy = null;
 		
 		/**
 		 * Creates a new model with the given type and id.
@@ -303,6 +354,35 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 		public void setViewContent(String viewContent) {
 			this.viewContent = viewContent;
 		}
+
+		/**
+		 * @return the deletable
+		 */
+		public boolean isDeletable() {
+			return deletable;
+		}
+
+		/**
+		 * @param deletable the deletable to set
+		 */
+		public void setDeletable(boolean deletable) {
+			this.deletable = deletable;
+		}
+
+		/**
+		 * @return the editableBy
+		 */
+		public Set<Principal> getEditableBy() {
+			return editableBy;
+		}
+
+		/**
+		 * @param editableBy the editableBy to set
+		 */
+		public void setEditableBy(Set<Principal> editableBy) {
+			this.editableBy = editableBy;
+		}
+		
 	}
 	
 }

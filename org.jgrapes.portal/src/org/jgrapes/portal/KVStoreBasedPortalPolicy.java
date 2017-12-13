@@ -18,7 +18,6 @@
 
 package org.jgrapes.portal;
 
-import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -175,7 +174,8 @@ public class KVStoreBasedPortalPolicy extends Component {
 		
 		public PortalSessionDataStore(Session session) {
 			storagePath = "/" 
-					+ session.getOrDefault(Principal.class, "").toString()
+					+ Utils.userFromSession(session)
+					.map(UserPrincipal::toString).orElse("")
 					+ "/" + KVStoreBasedPortalPolicy.class.getName();
 		}
 		

@@ -58,7 +58,7 @@ import org.jgrapes.portal.RenderSupport;
 public class AddPortletRequest extends RenderPortletRequestBase<String> {
 
 	private String portletType;
-	private Map<?,?> options = null;
+	private Map<Object, Object> options = null;
 	
 	/**
 	 * Creates a new event.
@@ -85,7 +85,9 @@ public class AddPortletRequest extends RenderPortletRequestBase<String> {
 	        RenderMode mode, Map<?,?> options) {
 		super(renderSupport, mode);
 		this.portletType = portletType;
-		this.options = options;
+		@SuppressWarnings("unchecked")
+		Map<Object,Object> opts = (Map<Object,Object>)options;
+		this.options = opts;
 	}
 
 	/**
@@ -102,10 +104,22 @@ public class AddPortletRequest extends RenderPortletRequestBase<String> {
 	 * thus allowing event handlers to modify the map even if
 	 * none was passed to the constructor.
 	 */
-	public Map<?,?> options() {
+	public Map<Object,Object> options() {
 		if (options == null) {
 			options = new HashMap<>();
 		}
 		return options;
+	}
+	
+	/**
+	 * Convenience method for adding options one-by-one.
+	 * 
+	 * @param key the option key
+	 * @param value the option value
+	 * @return the event for easy chaining
+	 */
+	public AddPortletRequest addOption(Object key, Object value) {
+		options().put(key, value);
+		return this;
 	}
 }
