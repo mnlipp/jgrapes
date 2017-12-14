@@ -59,6 +59,7 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.Principal;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -71,8 +72,8 @@ import java.util.Set;
  */
 public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 
-	public enum Options { TITLE, PREVIEW_SOURCE, VIEW_SOURCE,
-		DELETABLE, EDITABLE_BY };
+	public enum Options { PORTLET_ID, TITLE, PREVIEW_SOURCE, 
+		VIEW_SOURCE, DELETABLE, EDITABLE_BY };
 	
 	/**
 	 * Creates a new component with its channel set to the given 
@@ -138,13 +139,12 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 		}
 	}
 
-//	public enum Options { TITLE, PREVIEW_SOURCE, VIEW_SOURCE,
-//		DELETABLE, EDITABLE_BY };
-
 	/**
 	 * Adds the portlet to the portal. The portlet supports the 
 	 * following options (see {@link AddPortletRequest#options()}
 	 * and {@link Options}):
+	 * 
+	 * * `PORTLET_ID` (String): The portlet id.
 	 * 
 	 * * `TITLE` (String): The portlet title.
 	 * 
@@ -166,16 +166,19 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 		ResourceBundle resourceBundle = resourceBundle(portalSession.locale());
 		
 		// Create new model
-		String portletId = generatePortletId();
+		String portletId = (String)event.options().get(Options.PORTLET_ID);
+		if (portletId == null) {
+			portletId = generatePortletId();
+		}
 		MarkdownDisplayModel model = putInSession(
 				portalSession.browserSession(), 
 				new MarkdownDisplayModel(portletId));
 		model.setTitle((String)event.options().getOrDefault(Options.TITLE, 
 				resourceBundle.getString("portletName")));
 		model.setPreviewContent((String)event.options().getOrDefault(
-				Options.PREVIEW_SOURCE,""));
+				Options.PREVIEW_SOURCE, ""));
 		model.setViewContent((String)event.options().getOrDefault(
-				Options.VIEW_SOURCE,""));
+				Options.VIEW_SOURCE, ""));
 		model.setDeletable((Boolean)event.options().getOrDefault(
 				Options.DELETABLE,	Boolean.TRUE));
 		@SuppressWarnings("unchecked")
@@ -253,7 +256,7 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 	}
 
 	private Set<RenderMode> renderModes(MarkdownDisplayModel model) {
-		Set<RenderMode> modes = RenderMode.asSet(DeleteablePreview, Edit);
+		Set<RenderMode> modes = new HashSet<>();
 		modes.add(model.isDeletable() ? DeleteablePreview : Preview);
 		if (model.getViewContent() != null && !model.getViewContent().isEmpty()) {
 			modes.add(View);
