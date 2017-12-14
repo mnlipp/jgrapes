@@ -18,18 +18,19 @@
 
 package org.jgrapes.http.demo.httpserver;
 
-import java.util.Optional;
+import java.util.Collections;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.http.Session;
-import org.jgrapes.http.demo.portlets.helloworld.HelloWorldPortlet;
-import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.portal.PortalSession;
 import org.jgrapes.portal.Portlet;
 import org.jgrapes.portal.events.AddPortletRequest;
 import org.jgrapes.portal.events.PortalConfigured;
+import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortlet;
+import org.jgrapes.portlets.markdowndisplay.MarkdownDisplayPortlet;
+import org.jgrapes.portlets.markdowndisplay.MarkdownDisplayPortlet.Options;
 
 /**
  * 
@@ -55,24 +56,29 @@ public class NewPortalSessionPolicy extends Component {
 	}
 
 	@Handler
-	public void onRenderPortlet(RenderPortlet event, IOSubchannel channel) {
-		channel.associated(Session.class).ifPresent(session -> 
-			session.put(renderedFlagName, true));
+	public void onPortalReady(PortalReady event, PortalSession portalsession) {
+		portalsession.browserSession().put(renderedFlagName, false);
 	}
 	
 	@Handler
-	public void onPortalConfigured(PortalConfigured event, IOSubchannel channel) 
+	public void onRenderPortlet(RenderPortlet event, PortalSession portalsession) {
+		portalsession.browserSession().put(renderedFlagName, true);
+	}
+	
+	@Handler
+	public void onPortalConfigured(PortalConfigured event, PortalSession portalSession) 
 			throws InterruptedException {
-		Optional<Session> optSession = channel.associated(Session.class);
-		if (optSession.isPresent()) {
-			if ((Boolean)optSession.get().getOrDefault(
+		if ((Boolean)portalSession.browserSession().getOrDefault(
 					renderedFlagName, false)) {
-				return;
-			}
-			fire(new AddPortletRequest(event.event().event().renderSupport(), 
-					HelloWorldPortlet.class.getName(), 
-					Portlet.RenderMode.DeleteablePreview), channel);
-		};
+			return;
+		}
+		fire(new AddPortletRequest(event.event().event().renderSupport(), 
+				MarkdownDisplayPortlet.class.getName(),
+				Portlet.RenderMode.Preview)
+				.addOption(Options.TITLE, "Demo Portal")
+				.addOption(Options.PREVIEW_SOURCE, "A Demo Portal")
+				.addOption(Options.EDITABLE_BY,  Collections.EMPTY_SET),
+				portalSession);
 	}
 
 }
