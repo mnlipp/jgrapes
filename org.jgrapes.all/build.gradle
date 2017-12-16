@@ -10,6 +10,7 @@ dependencies {
     compile 'org.jgrapes:org.jgrapes.portal:(,2.0)'
 	compile 'org.jgrapes:org.jgrapes.portal.providers.chartjs:(,2.0)'
 	compile 'org.jgrapes:org.jgrapes.portal.providers.datatables:(,2.0)'
+	compile 'org.jgrapes:org.jgrapes.portal.providers.markdownit:(,2.0)'
     compile 'org.jgrapes:org.jgrapes.portlets.sysinfo:(,2.0)'
     compile 'org.jgrapes:org.jgrapes.portal.themes.blacktie:(,2.0)'
     compile 'org.jgrapes:org.jgrapes.portal.themes.blitzer:(,2.0)'
