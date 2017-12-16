@@ -271,7 +271,8 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 	        Locale locale) {
 		channel.respond(new NotifyPortletView(type(),
 				model.getPortletId(), "updateAll", model.getTitle(), 
-				model.getPreviewContent(), model.getViewContent()));
+				model.getPreviewContent(), model.getViewContent(),
+				renderModes(model)));
 	}
 	
 	/* (non-Javadoc)

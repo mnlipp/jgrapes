@@ -21,6 +21,7 @@ var orgJGrapesPortletsMarkdownDisplay = {
             "updateAll", function(portletId, params) {
                 let portlet = JGPortal.findPortletPreview(portletId);
                 if (portlet) {
+                    JGPortal.updatePortletModes(portletId, params[3]);
                     let headerText = portlet.find(".portlet-header-text");
                     headerText.empty();
                     headerText.append(params[0]);

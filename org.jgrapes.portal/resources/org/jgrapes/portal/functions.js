@@ -663,6 +663,39 @@ var JGPortal = {
         return false;
     }
     
+    function setModeIcons(portlet, modes) {
+        let portletHeader = portlet.find( ".portlet-header" );
+        portletHeader.find( ".ui-icon" ).remove();
+        if (modes.includes("Edit")) {
+            portletHeader.prepend( "<span class='ui-icon ui-icon-wrench portlet-edit'></span>");
+            portletHeader.find(".portlet-edit").on( "click", function() {
+                let icon = $( this );
+                let portletId = icon.closest( ".portlet" ).attr("data-portlet-id");
+                JGPortal.sendRenderPortlet(portletId, "Edit", true);
+            });
+        }
+        if (modes.includes("DeleteablePreview")) {
+            portletHeader.prepend( "<span class='ui-icon ui-icon-delete portlet-delete'></span>");
+            portletHeader.find(".portlet-delete").on( "click", function() {
+                let icon = $( this );
+                let portletId = icon.closest( ".portlet" ).attr("data-portlet-id");
+                JGPortal.sendDeletePortlet(portletId);
+            });
+        }
+        if (modes.includes("View")) {
+            portletHeader.prepend( "<span class='ui-icon ui-icon-fullscreen portlet-expand'></span>");
+            portletHeader.find(".portlet-expand").on( "click", function() {
+                let icon = $( this );
+                let portletId = icon.closest( ".portlet" ).attr("data-portlet-id");
+                if(findPortletView(portletId)) { 
+                    activatePortletView(portletId);
+                } else {
+                    JGPortal.sendRenderPortlet(portletId, "View", true);
+                }
+            });
+        }
+    }
+    
 	function updatePreview(portletId, modes, content, foreground) {
 		let portlet = findPortletPreview(portletId);
 		if (!portlet) {
@@ -673,34 +706,7 @@ var JGPortal = {
 			portlet.attr("data-portlet-id", portletId);
 			let portletHeader = portlet.find( ".portlet-header" );
 			portletHeader.addClass( "ui-widget-header ui-corner-all" );
-            if (modes.includes("Edit")) {
-                portletHeader.prepend( "<span class='ui-icon ui-icon-wrench portlet-edit'></span>");
-                portletHeader.find(".portlet-edit").on( "click", function() {
-                    let icon = $( this );
-                    let portletId = icon.closest( ".portlet" ).attr("data-portlet-id");
-                    JGPortal.sendRenderPortlet(portletId, "Edit", true);
-                });
-            }
-            if (modes.includes("DeleteablePreview")) {
-                portletHeader.prepend( "<span class='ui-icon ui-icon-delete portlet-delete'></span>");
-                portletHeader.find(".portlet-delete").on( "click", function() {
-                    let icon = $( this );
-                    let portletId = icon.closest( ".portlet" ).attr("data-portlet-id");
-                    JGPortal.sendDeletePortlet(portletId);
-                });
-            }
-			if (modes.includes("View")) {
-				portletHeader.prepend( "<span class='ui-icon ui-icon-fullscreen portlet-expand'></span>");
-				portletHeader.find(".portlet-expand").on( "click", function() {
-					let icon = $( this );
-					let portletId = icon.closest( ".portlet" ).attr("data-portlet-id");
-					if(findPortletView(portletId)) { 
-					    activatePortletView(portletId);
-					} else {
-					    JGPortal.sendRenderPortlet(portletId, "View", true);
-					}
-				});
-			}
+			setModeIcons(portlet, modes);
 			let inserted = false;
 			$( ".column" ).each(function(colIndex) {
 			    if (colIndex >= lastPreviewLayout.length) {
@@ -741,7 +747,22 @@ var JGPortal = {
 		    $( "#portlet-tabs" ).tabs( "option", "active", 0 );
 		}
 	};
-
+	
+    /**
+     * Update the modes of the portlet with the given id.
+     * 
+     * @param {string} portletId the portlet id
+     * @param {string[]} modes the modes
+     */
+    JGPortal.updatePortletModes = function (portletId, modes) {
+        let portlet = findPortletPreview(portletId);
+        if (!portlet) {
+            return;
+        }
+        setModeIcons(portlet, modes);
+    }
+    var updatePortletModes = JGPortal.updatePortletModes; 
+    
 	function layoutChanged() {
 	    if (!portalIsConfigured) {
 	        return;
