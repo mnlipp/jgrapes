@@ -227,7 +227,7 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 			portalSession.respond(new RenderPortlet(
 					MarkdownDisplayPortlet.class, model.getPortletId(), 
 					templateProcessor(tpl, fmModel(event, portalSession, model)))
-					.setRenderMode(DeleteablePreview).setSupportedModes(modes)
+					.setRenderMode(event.renderMode()).setSupportedModes(modes)
 					.setForeground(event.isForeground()));
 			updateView(portalSession, model, portalSession.locale());
 			break;
