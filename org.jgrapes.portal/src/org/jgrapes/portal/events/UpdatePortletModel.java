@@ -22,82 +22,54 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-import org.jgrapes.portal.Portlet.RenderMode;
-import org.jgrapes.portal.RenderSupport;
+import javax.json.JsonArray;
 
+import org.jgrapes.core.Event;
 
 /**
- * Sent to the portal (server) if a new portlet instance of a given 
- * type should be added to the portal page. The portal server usually 
- * responds with a {@link RenderPortlet} event that has as payload the
- * HTML that displays the portlet on the portal page.
+ * Sent to a portlet to update some of its properties. The interpretation
+ * of the properties is completely dependent on the handling portlet.
  * 
- * Properties may be passed with the event. The interpretation
- * of the properties is completely dependent on the handling portlet. 
+ * This event has a close relationship to the {@link NotifyPortletModel}
+ * event. The latter is used by portlet's functions to send information
+ * from the portal page to the portlet model. It passes the information 
+ * as a {@link JsonArray}. The interpretation of this information is only 
+ * known by the portlet. The {@link UpdatePortletModel} event should be 
+ * used to to pass information within the application, i.e. on the server
+ * side.
  * 
- * The event's result is the portlet id of the new portlet instance.
- * 
- * ![Event Sequence](AddPortletRequestSeq.svg)
- * 
- * @startuml AddPortletRequestSeq.svg
- * hide footbox
- * 
- * Browser -> Portal: "addPortlet"
- * activate Portal
- * Portal -> Portlet: AddPortletRequest
- * deactivate Portal
- * activate Portlet
- * Portlet -> Portal: RenderPortlet
- * deactivate Portlet
- * activate Portal
- * Portal -> Browser: "renderPortlet"
- * deactivate Portal
- * 
- * @enduml
- * 
+ * Depending on the information passed, it may be good practice to 
+ * write an event handler for the portlet that converts a 
+ * {@link NotifyPortletModel} to a {@link UpdatePortletModel} that is
+ * fired on its channel instead of handling it immediately. This allows 
+ * event sent from the portal page and from other components in the 
+ * application to be handled in a uniform way.
  */
-public class AddPortletRequest extends RenderPortletRequestBase<String> {
+public class UpdatePortletModel extends Event<Void> {
 
-	private String portletType;
+	private String portletId;
 	private Map<? extends Object, ? extends Object> properties = null;
 	
 	/**
 	 * Creates a new event.
 	 * 
-	 * @param renderSupport the render support
-	 * @param portletType the type of the portlet
-	 * @param mode the view mode that is requested
+	 * @param portletId the id of the portlet
+	 * @param properties the properties to update
 	 */
-	public AddPortletRequest(RenderSupport renderSupport, String portletType,
-	        RenderMode mode) {
-		super(renderSupport, mode);
-		this.portletType = portletType;
-	}
-
-	/**
-	 * Creates a new event.
-	 * 
-	 * @param renderSupport the render support
-	 * @param portletType the type of the portlet
-	 * @param mode the view mode that is requested
-	 * @param properties optional values for properties of the portlet instance
-	 */
-	public AddPortletRequest(RenderSupport renderSupport, String portletType,
-	        RenderMode mode, Map<?,?> properties) {
-		super(renderSupport, mode);
-		this.portletType = portletType;
+	public UpdatePortletModel(String portletId, Map<?,?> properties) {
+		this.portletId = portletId;
 		@SuppressWarnings("unchecked")
 		Map<Object, Object> props = (Map<Object,Object>)properties;
 		this.properties = props;
 	}
 
 	/**
-	 * Returns the portlet type
+	 * Returns the portlet id.
 	 * 
-	 * @return the portlet type
+	 * @return the portlet id
 	 */
-	public String portletType() {
-		return portletType;
+	public String portletId() {
+		return portletId;
 	}
 
 	/**
@@ -121,7 +93,7 @@ public class AddPortletRequest extends RenderPortletRequestBase<String> {
 	 * @param value the property value
 	 * @return the event for easy chaining
 	 */
-	public AddPortletRequest addOption(Object key, Object value) {
+	public UpdatePortletModel addOption(Object key, Object value) {
 		properties().put(key, value);
 		return this;
 	}
@@ -133,7 +105,7 @@ public class AddPortletRequest extends RenderPortletRequestBase<String> {
 	 * @param key the property key
 	 * @param action the action to perform
 	 */
-	public AddPortletRequest ifPresent(
+	public UpdatePortletModel ifPresent(
 			Object key, BiConsumer<Object,Object> action) {
 		if (properties().containsKey(key)) {
 			action.accept(key, properties().get(key));

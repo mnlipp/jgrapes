@@ -42,6 +42,7 @@ import org.jgrapes.portal.events.NotifyPortletView;
 import org.jgrapes.portal.events.PortalReady;
 import org.jgrapes.portal.events.RenderPortlet;
 import org.jgrapes.portal.events.RenderPortletRequest;
+import org.jgrapes.portal.events.UpdatePortletModel;
 import org.jgrapes.portal.freemarker.FreeMarkerPortlet;
 import org.jgrapes.util.events.KeyValueStoreData;
 import org.jgrapes.util.events.KeyValueStoreQuery;
@@ -59,8 +60,10 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -72,7 +75,10 @@ import java.util.Set;
  */
 public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 
-	public enum Options { PORTLET_ID, TITLE, PREVIEW_SOURCE, 
+	/**
+	 * The supported preferences.
+	 */
+	public enum Preferences { PORTLET_ID, TITLE, PREVIEW_SOURCE, 
 		VIEW_SOURCE, DELETABLE, EDITABLE_BY };
 	
 	/**
@@ -141,8 +147,8 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 
 	/**
 	 * Adds the portlet to the portal. The portlet supports the 
-	 * following options (see {@link AddPortletRequest#options()}
-	 * and {@link Options}):
+	 * following options (see {@link AddPortletRequest#properties()}
+	 * and {@link Preferences}):
 	 * 
 	 * * `PORTLET_ID` (String): The portlet id.
 	 * 
@@ -166,24 +172,24 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 		ResourceBundle resourceBundle = resourceBundle(portalSession.locale());
 		
 		// Create new model
-		String portletId = (String)event.options().get(Options.PORTLET_ID);
+		String portletId = (String)event.properties().get(Preferences.PORTLET_ID);
 		if (portletId == null) {
 			portletId = generatePortletId();
 		}
 		MarkdownDisplayModel model = putInSession(
 				portalSession.browserSession(), 
 				new MarkdownDisplayModel(portletId));
-		model.setTitle((String)event.options().getOrDefault(Options.TITLE, 
+		model.setTitle((String)event.properties().getOrDefault(Preferences.TITLE, 
 				resourceBundle.getString("portletName")));
-		model.setPreviewContent((String)event.options().getOrDefault(
-				Options.PREVIEW_SOURCE, ""));
-		model.setViewContent((String)event.options().getOrDefault(
-				Options.VIEW_SOURCE, ""));
-		model.setDeletable((Boolean)event.options().getOrDefault(
-				Options.DELETABLE,	Boolean.TRUE));
+		model.setPreviewContent((String)event.properties().getOrDefault(
+				Preferences.PREVIEW_SOURCE, ""));
+		model.setViewContent((String)event.properties().getOrDefault(
+				Preferences.VIEW_SOURCE, ""));
+		model.setDeletable((Boolean)event.properties().getOrDefault(
+				Preferences.DELETABLE,	Boolean.TRUE));
 		@SuppressWarnings("unchecked")
-		Set<Principal> editableBy = (Set<Principal>)event.options().get(
-				Options.EDITABLE_BY);
+		Set<Principal> editableBy = (Set<Principal>)event.properties().get(
+				Preferences.EDITABLE_BY);
 		model.setEditableBy(editableBy);
 		
 		// Save model
@@ -295,24 +301,46 @@ public class MarkdownDisplayPortlet extends FreeMarkerPortlet {
 	        PortalSession portalSession, Serializable portletState)
 	        throws Exception {
 		event.stop();
-		MarkdownDisplayModel portletModel = (MarkdownDisplayModel)portletState;
+		Map<Preferences, String> properties = new HashMap<>();
 		if (!event.params().isNull(0)) {
-			portletModel.setTitle(event.params().getString(0));
+			properties.put(Preferences.TITLE, event.params().getString(0));
 		}
 		if (!event.params().isNull(1)) {
-			portletModel.setPreviewContent(event.params().getString(1));
+			properties.put(Preferences.PREVIEW_SOURCE, event.params().getString(1));
 		}
 		if (!event.params().isNull(2)) {
-			portletModel.setViewContent(event.params().getString(2));
+			properties.put(Preferences.VIEW_SOURCE, event.params().getString(2));
 		}
-		String jsonState = JsonBeanEncoder.create()
-				.writeObject(portletModel).toJson();
-		portalSession.respond(new KeyValueStoreUpdate().update(
-				storagePath(portalSession.browserSession()) + portletModel.getPortletId(),
-				jsonState));
-		updateView(portalSession, portletModel, portalSession.locale());
+		fire(new UpdatePortletModel(event.portletId(), properties), portalSession);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Handler
+	public void onUpdatePortletModel(UpdatePortletModel event, 
+			PortalSession portalSession) {
+		stateFromSession(portalSession.browserSession(), event.portletId(), 
+				MarkdownDisplayModel.class).ifPresent(model -> {
+					event.ifPresent(Preferences.TITLE, 
+							(key, value) -> model.setTitle((String)value))
+					.ifPresent(Preferences.PREVIEW_SOURCE, 
+							(key, value) -> model.setPreviewContent((String)value))
+					.ifPresent(Preferences.VIEW_SOURCE, 
+							(key, value) -> model.setViewContent((String)value))
+					.ifPresent(Preferences.DELETABLE, 
+							(key, value) -> model.setDeletable((Boolean)value))
+					.ifPresent(Preferences.EDITABLE_BY, 
+							(key, value) -> {
+								model.setEditableBy((Set<Principal>)value);
+							});
+					String jsonState = JsonBeanEncoder.create()
+							.writeObject(model).toJson();
+					portalSession.respond(new KeyValueStoreUpdate().update(
+							storagePath(portalSession.browserSession()) 
+							+ model.getPortletId(),	jsonState));
+					updateView(portalSession, model, portalSession.locale());
+				});
+	}
+	
 	@SuppressWarnings("serial")
 	public static class MarkdownDisplayModel extends PortletBaseModel {
 
