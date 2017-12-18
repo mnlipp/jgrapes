@@ -13,8 +13,6 @@ api_version = 0.1.0.${tstamp}
 
 -includeresource: resources
 
-testbin=bin
-
 -fixupmessages: \
     "Found source folder 'resources' that is not on bnd's source path 'src'", \
     "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.",\

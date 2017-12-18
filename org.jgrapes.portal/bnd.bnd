@@ -13,8 +13,6 @@ api_version = 0.1.0.${tstamp}
 
 -dsannotations: 
 
-testbin=bin
-
 Require-Capability: \
     osgi.extender; filter:="(osgi.extender=osgi.serviceloader.registrar)", \
     osgi.extender; filter:="(osgi.extender=osgi.serviceloader.processor)", \

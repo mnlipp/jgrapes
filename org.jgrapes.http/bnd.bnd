@@ -17,8 +17,6 @@ Export-Package: \
 	
 -dsannotations: 
 
-testbin=bin
-
 -fixupmessages: \
     "Found source folder 'test-resources' that is not on bnd's source path", \
     "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \

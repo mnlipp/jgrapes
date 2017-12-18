@@ -19,8 +19,6 @@ Export-Package: \
 
 -dsannotations: 
 
-testbin=bin
-
 -fixupmessages: \
     "Found source folder 'demo' that is not on bnd's source path", \
     "Found source folder 'test-resources' that is not on bnd's source path", \
