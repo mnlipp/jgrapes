@@ -49,8 +49,6 @@ subprojects {
 
 	group = 'org.jgrapes'
 	
-	ext.snapshot = true
-	
 	if (project.file("bnd.bnd").exists()) {
 		// The builder plugin doesn't provide access to the bnd properties.
 		// Provide workaround as properties in extra bnd
@@ -62,7 +60,7 @@ subprojects {
 		// Maintain the version in the bnd.bnd. Else, bndtools won't
 		// generate a proper Bundle-Version header for incrementally 
 		// built jars.
-		version = bnd.base_version + (snapshot ? "-SNAPSHOT" : "")
+		version = bnd.artifact_version
 	}
 	
     dependencies {

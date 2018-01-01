@@ -16,6 +16,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 /**
+ * Core events.
  */
 @org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.core.events;

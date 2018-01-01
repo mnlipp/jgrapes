@@ -1,11 +1,11 @@
 Bundle-Name: JGrapes Portal Chart.js Provider
 Bundle-SymbolicName: org.jgrapes.portal.providers.chartjs
-Bundle-Version: 0.9.1.${tstamp}
+Bundle-Version: 0.9.1.${tstamp}-SNAPSHOT
 Bundle-Copyright: Michael N. Lipp (c) 2017
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 Export-Package: org.jgrapes.portal.providers.chartjs
 
-base_version = ${versionmask;===;${Bundle-Version}}
+artifact_version = ${versionmask;===s;${Bundle-Version}}
 api_version = 0.9.0.${tstamp}
 
 -sources: true

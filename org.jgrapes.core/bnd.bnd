@@ -1,11 +1,11 @@
 Bundle-Name: JGrapes Core
 Bundle-SymbolicName: org.jgrapes.core
-Bundle-Version: 0.9.1.${tstamp}
+Bundle-Version: 0.9.1.${tstamp}-SNAPSHOT
 Bundle-Copyright: Michael N. Lipp (c) 2016
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 
-base_version = ${versionmask;===;${Bundle-Version}}
-api_version = 0.1.0.${tstamp}
+artifact_version = ${versionmask;===s;${Bundle-Version}}
+api_version = 0.2.0
 
 Export-Package: \
 	org.jgrapes.core,\
