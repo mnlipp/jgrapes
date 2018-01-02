@@ -1,9 +1,0 @@
-dependencies {
-
-    compile project(':org.jgrapes.http')
-
-	// We don't compile rocker templates here, 
-	// only the possibility to run rocker templates
-	compile 'com.fizzed:rocker-runtime:0.20.0'
-}
-
