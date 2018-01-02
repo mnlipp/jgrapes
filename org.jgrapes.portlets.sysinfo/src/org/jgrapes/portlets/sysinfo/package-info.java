@@ -16,5 +16,9 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * A portlet component for displaying system information in
+ * a portal.
+ */
 @org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.portlets.sysinfo;

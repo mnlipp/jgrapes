@@ -17,8 +17,8 @@
  */
 
 /**
- * The portal package provides a portal implementation based on the
- * core, io and http packages of the JGrapes framework. 
+ * Provides the components for building a portal based on the
+ * core, io and http packages. 
  * 
  * [TOC formatted]
  *

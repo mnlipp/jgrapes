@@ -16,5 +16,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Provides a component for adding the markdownit library to a portal.
+ */
 @org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.portal.providers.markdownit;

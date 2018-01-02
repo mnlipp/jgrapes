@@ -16,6 +16,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 /**
+ * Networking related I/O classes.
  */
 @org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.net;

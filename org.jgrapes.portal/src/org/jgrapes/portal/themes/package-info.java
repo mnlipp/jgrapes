@@ -17,6 +17,6 @@
  */
 
 /**
- * 
+ * Themes packages.
  */
 package org.jgrapes.portal.themes;

@@ -17,6 +17,6 @@
  */
 
 /**
- * 
+ * The base theme for the portal.
  */
 package org.jgrapes.portal.themes.base;

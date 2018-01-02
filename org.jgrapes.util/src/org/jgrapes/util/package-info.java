@@ -15,5 +15,10 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
+/**
+ * Utility components that are too small to deserve
+ * individual libraries/projects.
+ */
 @org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.util;
