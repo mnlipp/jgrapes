@@ -4,7 +4,7 @@ title: JGrapes by mnlipp
 ---
 
 Welcome to JGrapes
-================
+==================
 
 JGrapes is an event driven component framework written in Java.
 It includes support for asynchronous I/O and provides some complex 
@@ -25,6 +25,9 @@ the framework's architectural description on the
 <a href="javadoc/index.html" target="_top">overview page</a>. This
 provides an introduction to the concepts, the main classes and 
 links to the details.
+
+The JavaDoc for the portal components is available 
+<a href="javadoc-portal/index.html" target="_top">here</a>
 
 All jars have the required information in `META-INF/MANIFEST.MF`
 to use them as (library) bundles in an OSGi environment, without 

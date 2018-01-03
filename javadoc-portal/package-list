@@ -1,0 +1,11 @@
+org.jgrapes.portal
+org.jgrapes.portal.demo
+org.jgrapes.portal.demo.portlets.helloworld
+org.jgrapes.portal.events
+org.jgrapes.portal.freemarker
+org.jgrapes.portal.providers.chartjs
+org.jgrapes.portal.providers.datatables
+org.jgrapes.portal.providers.markdownit
+org.jgrapes.portal.themes.base
+org.jgrapes.portlets.markdowndisplay
+org.jgrapes.portlets.sysinfo
