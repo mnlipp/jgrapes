@@ -1,6 +1,5 @@
 Bundle-Name: JGrapes HTTP Demo
 Bundle-SymbolicName: HttpServerDemo
-Bundle-Version: 0.0.1.${tstamp}
 Bundle-Copyright: Michael N. Lipp (c) 2017
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -14,7 +13,6 @@ Bundle-Activator: org.jgrapes.http.demo.httpserver.HttpServerDemo
     "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable.", \
     "The build path does not refer to the bnd container 'aQute.bnd.classpath.container'"
     
-Private-Package: \
-	org.jgrapes.http.demo.httpserver,\
-	org.jgrapes.http.demo.portlets,\
-	org.jgrapes.http.demo.portlets.helloworld
+
+-runfw: org.apache.felix.framework;version='[5.6.10,5.6.10]'
+-runee: JavaSE-1.8

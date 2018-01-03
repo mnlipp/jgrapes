@@ -21,7 +21,6 @@ package org.jgrapes.http.demo.httpserver;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -30,7 +29,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.ResourceBundle;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -44,7 +42,6 @@ import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.InMemorySessionManager;
 import org.jgrapes.http.LanguageSelector;
 import org.jgrapes.http.StaticContentDispatcher;
-import org.jgrapes.http.demo.portlets.helloworld.HelloWorldPortlet;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.io.FileStorage;
@@ -52,14 +49,6 @@ import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
-import org.jgrapes.portal.KVStoreBasedPortalPolicy;
-import org.jgrapes.portal.Portal;
-import org.jgrapes.portal.PortalLocalBackedKVStore;
-import org.jgrapes.portal.providers.chartjs.ChartJsProvider;
-import org.jgrapes.portal.providers.datatables.DatatablesProvider;
-import org.jgrapes.portal.providers.markdownit.MarkdownItProvider;
-import org.jgrapes.portlets.markdowndisplay.MarkdownDisplayPortlet;
-import org.jgrapes.portlets.sysinfo.SysInfoPortlet;
 import org.jgrapes.util.PreferencesStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -120,22 +109,6 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc").toUri()));
 		app.attach(new PostProcessor(app.channel()));
 		app.attach(new WsEchoServer(app.channel()));
-		Portal portal = app.attach(new Portal(Channel.SELF, app.channel(), 
-				new URI("/portal/"))).setResourceBundleSupplier(l -> 
-				ResourceBundle.getBundle(
-					getClass().getPackage().getName() + ".portal-l10n", l,
-					ResourceBundle.Control.getNoFallbackControl(
-							ResourceBundle.Control.FORMAT_DEFAULT)));
-		portal.attach(new PortalLocalBackedKVStore(
-				portal, portal.prefix().getPath()));
-		portal.attach(new KVStoreBasedPortalPolicy(portal));
-		portal.attach(new NewPortalSessionPolicy(portal));
-		portal.attach(new HelloWorldPortlet(portal));
-		portal.attach(new ChartJsProvider(portal));
-		portal.attach(new DatatablesProvider(portal));
-		portal.attach(new MarkdownItProvider(portal));
-		portal.attach(new SysInfoPortlet(portal));
-		portal.attach(new MarkdownDisplayPortlet(portal));
 		Components.start(app);
 	}
 

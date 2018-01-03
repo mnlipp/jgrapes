@@ -1,0 +1,46 @@
+# Configure Repositories
+-plugin.1.CentralMvn: \
+    aQute.bnd.deployer.repository.wrapper.Plugin; \
+        location = "${build}/cache/wrapper"; \
+        reindex = true, \
+    aQute.bnd.repository.maven.provider.MavenBndRepository; \
+        name="Central (Maven)"; \
+        snapshotUrl=https://oss.sonatype.org/content/repositories/snapshots/; \
+        releaseUrl=https://repo.maven.apache.org/maven2/; \
+        index=${.}/central.mvn
+
+-plugin.2.OSGi: \
+    aQute.bnd.repository.maven.pom.provider.BndPomRepository; \
+        name=OSGi; \
+        snapshotUrls=https://oss.sonatype.org/content/repositories/snapshots/; \
+        releaseUrls=https://repo1.maven.org/maven2; \
+        query='q=g:%22org.osgi%22&rows=1000'
+
+-plugin.3.Felix: \
+    aQute.bnd.repository.maven.pom.provider.BndPomRepository; \
+        name=Felix; \
+        snapshotUrls=https://oss.sonatype.org/content/repositories/snapshots/; \
+        releaseUrls=https://repo1.maven.org/maven2; \
+        query='q=g:%22org.apache.felix%22&rows=1000'
+
+-plugin.4.JDrupes: \
+    aQute.bnd.repository.maven.pom.provider.BndPomRepository; \
+        name=JDrupes; \
+        snapshotUrls=https://oss.sonatype.org/content/repositories/snapshots/; \
+        releaseUrls=https://repo1.maven.org/maven2; \
+        query='q=g:%22org.jdrupes.httpcodec%22&rows=1000'
+
+-plugin.5.JGrapes: \
+    aQute.bnd.repository.maven.pom.provider.BndPomRepository; \
+        name=JGrapes; \
+        snapshotUrls=https://oss.sonatype.org/content/repositories/snapshots/; \
+        releaseUrls=https://repo1.maven.org/maven2; \
+        query='q=g:%22org.jgrapes%22&rows=1000'
+
+-baselinerepo: JGrapes
+
+bin=bin/main
+testbin=bin/test
+
+# JUnit
+junit: org.apache.servicemix.bundles.junit; version=4.12

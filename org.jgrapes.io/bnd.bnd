@@ -1,11 +1,9 @@
 Bundle-Name: JGrapes I/O
 Bundle-SymbolicName: org.jgrapes.io
-Bundle-Version: 0.9.1.${tstamp}-SNAPSHOT
 Bundle-Copyright: Michael N. Lipp (c) 2016
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 Require-Bundle: org.jgrapes.core
 
-artifact_version = ${versionmask;===s;${Bundle-Version}}
 api_version = 0.1.0.${tstamp}
 
 -sources: true

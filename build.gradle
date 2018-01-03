@@ -40,7 +40,6 @@ allprojects {
 
 subprojects {
 
-    apply plugin: 'biz.aQute.bnd.builder'
 	apply plugin: 'signing'
 	apply plugin: 'maven'
 	apply plugin: 'maven-publish'
@@ -49,18 +48,32 @@ subprojects {
 
 	group = 'org.jgrapes'
 	
+	ext.releaseVersion = "0.9.3"
+	ext.isSnapshot = false
+	version = releaseVersion + (isSnapshot ? "-SNAPSHOT" : "")
+
 	if (project.file("bnd.bnd").exists()) {
-		// The builder plugin doesn't provide access to the bnd properties.
-		// Provide workaround as properties in extra bnd
-		new Processor().withCloseable { processor ->
-			processor.setProperties(project.file('bnd.bnd'))
-			ext.set("bnd", processor.getFlattenedProperties());
-		}
+
+		apply plugin: 'biz.aQute.bnd.builder'
 		
-		// Maintain the version in the bnd.bnd. Else, bndtools won't
-		// generate a proper Bundle-Version header for incrementally 
-		// built jars.
-		version = bnd.artifact_version
+		// Provide the Bundle-Version (shared by all libraries)
+		String bundleVersion = releaseVersion +
+			(isSnapshot ? ".-\${tstamp}-SNAPSHOT" : releaseVersion + ".rel")
+		
+		jar {
+			manifest {
+				attributes('Bundle-Version': bundleVersion)
+			}
+		}
+
+		dependencies {
+			// Use gradle mechanims to get the artifact to baseline against.
+			// We baseline against the previous release 
+			// (latest excluding current)
+			baseline("${group}:${project.name}:(,${releaseVersion})") {
+				transitive false
+			}
+		}
 	}
 	
     dependencies {
@@ -189,6 +202,9 @@ subprojects {
 	afterEvaluate {
 		if(!project.name.startsWith("org.jgrapes")) {
 			tasks.matching { it.group == "publishing" }.all {
+				enabled = false
+			}
+			tasks.matching { it.name == "baseline" }.all {
 				enabled = false
 			}
 		}

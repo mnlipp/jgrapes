@@ -1,10 +1,8 @@
 Bundle-Name: JGrapes Utility Components
 Bundle-SymbolicName: org.jgrapes.util
-Bundle-Version: 0.9.1.${tstamp}-SNAPSHOT
 Bundle-Copyright: Michael N. Lipp (c) 2016
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 
-artifact_version = ${versionmask;===s;${Bundle-Version}}
 api_version = 0.1.0.${tstamp}
 
 Export-Package: \
