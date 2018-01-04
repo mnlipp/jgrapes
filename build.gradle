@@ -48,7 +48,7 @@ subprojects {
 
 	group = 'org.jgrapes'
 	
-	ext.releaseVersion = "0.9.3"
+	ext.releaseVersion = "0.9.31"
 	ext.isSnapshot = false
 	version = releaseVersion + (isSnapshot ? "-SNAPSHOT" : "")
 
@@ -58,7 +58,7 @@ subprojects {
 		
 		// Provide the Bundle-Version (shared by all libraries)
 		String bundleVersion = releaseVersion +
-			(isSnapshot ? ".-\${tstamp}-SNAPSHOT" : releaseVersion + ".rel")
+			(isSnapshot ? ".-\${tstamp}-SNAPSHOT" : ".rel")
 		
 		jar {
 			manifest {
