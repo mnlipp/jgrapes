@@ -27,7 +27,7 @@ provides an introduction to the concepts, the main classes and
 links to the details.
 
 The JavaDoc for the portal components is available 
-<a href="javadoc-portal/index.html" target="_top">here</a>
+<a href="javadoc-portal/index.html" target="_top">here</a>.
 
 All jars have the required information in `META-INF/MANIFEST.MF`
 to use them as (library) bundles in an OSGi environment, without 
