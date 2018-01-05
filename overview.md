@@ -25,11 +25,6 @@ as a jar file.
     <a href="org/jgrapes/http/package-summary.html#package.description">package description</a>
     for details. 
 
-`org.jgrapes.portal`
-: Components for building portals. See the
-    <a href="org/jgrapes/portal/package-summary.html#package.description">package description</a>
-    for details. 
-    
 @startuml package-hierarchy.svg
 skinparam svgLinkTarget _parent
 
@@ -45,20 +40,12 @@ package org.jgrapes {
 
     package org.jgrapes.http [[org/jgrapes/http/package-summary.html#package.description]] {
     }
-
-    package org.jgrapes.portal [[org/jgrapes/portal/package-summary.html#package.description]] {
-    }
-
-    package "org.jgrapes.portal.themes.*" {
-    }
 }
 
 org.jgrapes.core <.. org.jgrapes.io
 org.jgrapes.core <.. org.jgrapes.util
 org.jgrapes.core <.. org.jgrapes.http
 org.jgrapes.io <.right. org.jgrapes.http
-org.jgrapes.http <.. org.jgrapes.portal
-org.jgrapes.portal <.. "org.jgrapes.portal.themes.*"
 
 
 @enduml
