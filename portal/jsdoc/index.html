@@ -79,6 +79,12 @@
                       </a></li>
                     
                       <li><a
+                        href='#jgportalupdateportletmodes'
+                        class='regular pre-open'>
+                        .updatePortletModes
+                      </a></li>
+                    
+                      <li><a
                         href='#jgportalsendportalready'
                         class='regular pre-open'>
                         .sendPortalReady
@@ -115,9 +121,9 @@
                       </a></li>
                     
                       <li><a
-                        href='#jgportalsendtoportlet'
+                        href='#jgportalnotifyportletmodel'
                         class='regular pre-open'>
-                        .sendToPortlet
+                        .notifyPortletModel
                       </a></li>
                     
                     </ul>
@@ -422,7 +428,7 @@ count reaches 0, the invocation of handlers is resumed.</p>
   
 
   <p>Registers a portlet method that to be invoked if a
-JSON RPC notification with method <code>invokePortletMethod</code>
+JSON RPC notification with method <code>notifyPortletView</code>
 is received.</p>
 
 
@@ -655,6 +661,75 @@ portlet with the given id.</p>
           <div>
             <span class='code bold'>title</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
 	    the new title
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='jgportalupdateportletmodes'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>updatePortletModes(portletId, modes)</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Update the modes of the portlet with the given id.</p>
+
+
+  <div class='pre p1 fill-light mt0'>updatePortletModes(portletId: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, modes: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>portletId</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    the portlet id
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>modes</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>>)</code>
+	    the modes
 
           </div>
           
@@ -1046,11 +1121,11 @@ the foreground after rendering
       </div>
     </div>
   
-    <div class='border-bottom' id='jgportalsendtoportlet'>
+    <div class='border-bottom' id='jgportalnotifyportletmodel'>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>sendToPortlet(portletId, method, params)</span>
+            <span class='code strong strong truncate'>notifyPortletModel(portletId, method, params)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -1058,12 +1133,12 @@ the foreground after rendering
 
   
 
-  <p>Send a notification with method <code>sendToPortlet</code>
+  <p>Send a notification with method <code>notifyPortletModel</code>
 and the given portlet id, method and parameters as the
 notification's parameters to the server.</p>
 
 
-  <div class='pre p1 fill-light mt0'>sendToPortlet(portletId: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, method: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, params: ...any)</div>
+  <div class='pre p1 fill-light mt0'>notifyPortletModel(portletId: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, method: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, params: ...any)</div>
   
   
 
