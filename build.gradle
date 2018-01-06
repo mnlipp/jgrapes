@@ -146,6 +146,11 @@ subprojects {
 		classifier "javadoc"
 	}
 	
+	artifacts {
+		archives sourcesJar
+		archives javadocJar
+	}
+	
 	// MavenPublishing (new)
 	
 	publishing {
