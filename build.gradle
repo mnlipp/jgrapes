@@ -36,6 +36,12 @@ allprojects {
 	
 	// Makes Eclipse-groovy handle *.gradle file properly
 	apply plugin:'groovy'
+
+	group = 'org.jgrapes'
+	
+	ext.releaseVersion = "0.9.31"
+	ext.isSnapshot = false
+	version = releaseVersion + (isSnapshot ? "-SNAPSHOT" : "")
 }
 
 subprojects {
@@ -45,12 +51,6 @@ subprojects {
 	apply plugin: 'maven-publish'
 	
     tasks.withType(Javadoc).all { enabled = false }
-
-	group = 'org.jgrapes'
-	
-	ext.releaseVersion = "0.9.31"
-	ext.isSnapshot = false
-	version = releaseVersion + (isSnapshot ? "-SNAPSHOT" : "")
 
 	if (project.file("bnd.bnd").exists()) {
 
@@ -234,6 +234,7 @@ javadoc {
     classpath = files(subprojects.collect {project -> 
         project.sourceSets.main.compileClasspath})
     source subprojects.collect {project -> project.sourceSets.main.allJava } 
+    options.addStringOption("doctitle", "JGrapes API ${project.version}")
 	options.addStringOption("overview", "overview.md")
 	inputs.file "overview.md"
 	options.addBooleanOption("use", true)
