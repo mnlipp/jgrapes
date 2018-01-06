@@ -98,12 +98,6 @@ class ConfigurePublishing implements Plugin<Project> {
 		
 		if (project.hasProperty("signing.keyId")) {
 			project.model {
-				tasks.publishMavenJavaPublicationToMavenLocal {
-					dependsOn(project.tasks.signArchives)
-				}
-				tasks.publishMavenJavaPublicationToSnapshotRepository {
-					dependsOn(project.tasks.signArchives)
-				}
 				tasks.publishMavenJavaPublicationToReleaseRepository {
 					dependsOn(project.tasks.signArchives)
 				}
