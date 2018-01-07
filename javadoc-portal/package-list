@@ -1,6 +1,4 @@
 org.jgrapes.portal
-org.jgrapes.portal.demo
-org.jgrapes.portal.demo.portlets.helloworld
 org.jgrapes.portal.events
 org.jgrapes.portal.freemarker
 org.jgrapes.portal.providers.chartjs
