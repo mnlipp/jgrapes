@@ -234,7 +234,7 @@ javadoc {
     classpath = files(subprojects.collect {project -> 
         project.sourceSets.main.compileClasspath})
     source subprojects.collect {project -> project.sourceSets.main.allJava } 
-    options.addStringOption("doctitle", "JGrapes API ${project.version}")
+    options.addStringOption("doctitle", "JGrapes ${project.version}")
 	options.addStringOption("overview", "overview.md")
 	inputs.file "overview.md"
 	options.addBooleanOption("use", true)
