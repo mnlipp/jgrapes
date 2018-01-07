@@ -241,6 +241,6 @@ javadoc {
 	options.addBooleanOption("linksource", true)
 	options.stylesheetFile(file("stylesheet.css"))
     options.addStringOption("bottom", file("misc/javadoc.bottom.txt").text)
-    options.links "http://docs.oracle.com/javase/8/docs/api/"
+    options.links "https://docs.oracle.com/javase/8/docs/api/"
 	destinationDir = file("../jgrapes.gh-pages/javadoc")
 }
