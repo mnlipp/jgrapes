@@ -20,6 +20,7 @@ plugins {
 	id "signing"
 	id "org.jdrupes.mdoclet" version "1.0.3"
 	id "com.moowork.node" version "1.2.0"
+	id 'org.ajoberstar.git-publish' version '0.4.0-rc.2'
 }
 
 ext {
@@ -243,4 +244,32 @@ javadoc {
     options.addStringOption("bottom", file("misc/javadoc.bottom.txt").text)
     options.links "https://docs.oracle.com/javase/8/docs/api/"
 	destinationDir = file("../jgrapes.gh-pages/javadoc")
+}
+
+gitPublish {
+	repoUri = 'git@github.com:mnlipp/jgrapes.git'
+	branch = 'gh-pages'
+	contents {
+		from(javadoc) {
+			into 'javadoc'
+		}
+	}
+	preserve { include '**/*' }
+	commitMessage = "Updated."
+	if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
+		System.setProperty('org.ajoberstar.grgit.auth.username', 
+			System.properties["GH_TOKEN"] ?: "nouser")
+	}
+}
+
+task stage {
+	// Build everything first
+	subprojects.tasks.each { tc -> dependsOn tc.findByName("build") }
+	// Publish JavaDoc
+	dependsOn gitPublishPush	
+}
+
+configure(stage) {
+	description = 'To be executed by travis, build and update JavaDoc.'
+	group = 'build'
 }

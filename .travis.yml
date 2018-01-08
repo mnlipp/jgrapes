@@ -1,7 +1,8 @@
 sudo: false
-
 language: java
-
 jdk:
-  - oraclejdk8
-
+- oraclejdk8
+script: "./gradlew stage"
+env:
+  global:
+    secure: "+Y3bx/qTfLHKYQ7vIx3vggG/nx1afnLFjVx+CV5OgEMIE6lP3cfDe9KuXVXbvSP785Vbi+LwLuvFJlbq1V0XQM30+0Es0ULPFrzxJ0E+G+JO8v8go8Gpvblig3mq5s3Cj97l3LCtlHpDj+Ygi/eW5pWtK6wcsZ/XL4WgBwu7VdPApt3YEoOG+k58sJPjc0M6Z0510lFHRzUGb4+Gv1yIbz4LvSDcH3/wtPhSn+/uz8KTB3EgLRX5i5isfdcrylcFpo//sjrPPuOk3RVnxk6e85JaOoxHWGLxRZQg4kO5x8avzE4Hxck+C0suxtDs6RnXuRjBAKcbx3H4Kcpb8voU8I2hvPQbCp504SZmlwQkcIaKoFgUlKce/9pEjbryNdF2pNXsDDWc67hOpyJsGdkK9M+rAqLPmggM1PVHX9uwV659Yc6LVpu2ADp03PN2qkbOm+jMwh6thRYnif5wKKR99GR6Kc2SJ4V700qXH0egt7fg3ukfP6HvCLZVEmNjZoVpmGD7Jda3VPkJSg0qMdTUX/eXg4YLmuM5+ADokIWPdtAy+JLsJywM6TGdz2D6+iDlZzv3ZGAuo3CDmYkke/BzawBHjiKqqHASPJ7fHje4VpTzhUiIGr0MNlwkleXpfZLMKerOgoiWi9Y/PLY8LKoMcscktYyCuSZoSo7mONinhXI="
