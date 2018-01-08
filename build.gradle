@@ -30,7 +30,7 @@ ext {
 // Prepare github authentication for plugins
 if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
 	System.setProperty('org.ajoberstar.grgit.auth.username',
-		System.getenv("GH_TOKEN") ?: "nouser")
+		System.getenv("GH_TOKEN") ?: project.properties['github.token'] ?: "nouser")
 }
 
 allprojects {
