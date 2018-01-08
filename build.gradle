@@ -27,6 +27,12 @@ ext {
 	isTravisBuild = System.getenv().get("TRAVIS") == 'true'
 }
 
+// Prepare github authentication for plugins
+if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
+	System.setProperty('org.ajoberstar.grgit.auth.username',
+		System.getenv("GH_TOKEN") ?: "nouser")
+}
+
 allprojects {
     repositories {
         jcenter()
@@ -247,7 +253,7 @@ javadoc {
 }
 
 gitPublish {
-	repoUri = 'git@github.com:mnlipp/jgrapes.git'
+	repoUri = 'https://github.com/mnlipp/jgrapes.git'
 	branch = 'gh-pages'
 	contents {
 		from(javadoc) {
@@ -256,10 +262,6 @@ gitPublish {
 	}
 	preserve { include '**/*' }
 	commitMessage = "Updated."
-	if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
-		System.setProperty('org.ajoberstar.grgit.auth.username', 
-			System.properties["GH_TOKEN"] ?: "nouser")
-	}
 }
 
 task stage {
