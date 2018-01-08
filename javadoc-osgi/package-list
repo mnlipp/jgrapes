@@ -8,7 +8,9 @@ org.jgrapes.osgi.http
 org.jgrapes.osgi.portal
 org.jgrapes.osgi.portal.providers.chartjs
 org.jgrapes.osgi.portal.providers.datatables
+org.jgrapes.osgi.portal.providers.markdownit
 org.jgrapes.osgi.portlets.bundles
+org.jgrapes.osgi.portlets.markdowndisplay
 org.jgrapes.osgi.portlets.services
 org.jgrapes.osgi.portlets.sysinfo
 org.jgrapes.osgi.upnpserver
