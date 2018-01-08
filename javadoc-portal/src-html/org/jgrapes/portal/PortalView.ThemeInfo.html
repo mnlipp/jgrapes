@@ -702,201 +702,207 @@
 <span class="sourceLineNo">694</span>        @Handler(dynamic=true)<a name="line.694"></a>
 <span class="sourceLineNo">695</span>        public void onSetLocale(SetLocale event, PortalSession channel)<a name="line.695"></a>
 <span class="sourceLineNo">696</span>                        throws InterruptedException, IOException {<a name="line.696"></a>
-<span class="sourceLineNo">697</span>                supportedLocales.stream()<a name="line.697"></a>
-<span class="sourceLineNo">698</span>                        .filter(l -&gt; l.equals(event.locale())).findFirst()<a name="line.698"></a>
-<span class="sourceLineNo">699</span>                        .ifPresent(l -&gt; channel.setLocale(l));<a name="line.699"></a>
-<span class="sourceLineNo">700</span>                fire(new JsonOutput("reload"), channel);<a name="line.700"></a>
-<span class="sourceLineNo">701</span>        }<a name="line.701"></a>
-<span class="sourceLineNo">702</span>        <a name="line.702"></a>
-<span class="sourceLineNo">703</span>        @Handler(dynamic=true)<a name="line.703"></a>
-<span class="sourceLineNo">704</span>        public void onSetTheme(SetTheme event, PortalSession channel)<a name="line.704"></a>
-<span class="sourceLineNo">705</span>                        throws InterruptedException, IOException {<a name="line.705"></a>
-<span class="sourceLineNo">706</span>                ThemeProvider themeProvider = StreamSupport<a name="line.706"></a>
-<span class="sourceLineNo">707</span>                        .stream(themeLoader().spliterator(), false)<a name="line.707"></a>
-<span class="sourceLineNo">708</span>                        .filter(t -&gt; t.themeId().equals(event.theme())).findFirst()<a name="line.708"></a>
-<span class="sourceLineNo">709</span>                        .orElse(baseTheme);<a name="line.709"></a>
-<span class="sourceLineNo">710</span>                channel.browserSession().put("themeProvider", themeProvider.themeId());<a name="line.710"></a>
-<span class="sourceLineNo">711</span>                channel.respond(new KeyValueStoreUpdate().update(<a name="line.711"></a>
-<span class="sourceLineNo">712</span>                                "/" + Utils.userFromSession(channel.browserSession())<a name="line.712"></a>
-<span class="sourceLineNo">713</span>                                .map(UserPrincipal::toString).orElse("") <a name="line.713"></a>
-<span class="sourceLineNo">714</span>                                + "/themeProvider", themeProvider.themeId())).get();<a name="line.714"></a>
-<span class="sourceLineNo">715</span>                fire(new JsonOutput("reload"), channel);<a name="line.715"></a>
-<span class="sourceLineNo">716</span>        }<a name="line.716"></a>
-<span class="sourceLineNo">717</span>        <a name="line.717"></a>
-<span class="sourceLineNo">718</span>        @Handler(dynamic=true)<a name="line.718"></a>
-<span class="sourceLineNo">719</span>        public void onJsonOutput(JsonOutput event, PortalSession channel)<a name="line.719"></a>
-<span class="sourceLineNo">720</span>                        throws InterruptedException, IOException {<a name="line.720"></a>
-<span class="sourceLineNo">721</span>                Optional&lt;IOSubchannel&gt; optUpstream = channel.upstreamChannel();<a name="line.721"></a>
-<span class="sourceLineNo">722</span>                if (optUpstream.isPresent()) {<a name="line.722"></a>
-<span class="sourceLineNo">723</span>                        IOSubchannel upstream = optUpstream.get();<a name="line.723"></a>
-<span class="sourceLineNo">724</span>                        @SuppressWarnings("resource")<a name="line.724"></a>
-<span class="sourceLineNo">725</span>                        CharBufferWriter out = new CharBufferWriter(upstream, <a name="line.725"></a>
-<span class="sourceLineNo">726</span>                                        upstream.responsePipeline()).suppressClose();<a name="line.726"></a>
-<span class="sourceLineNo">727</span>                        event.toJson(out);<a name="line.727"></a>
-<span class="sourceLineNo">728</span>                        out.close();<a name="line.728"></a>
-<span class="sourceLineNo">729</span>                }<a name="line.729"></a>
-<span class="sourceLineNo">730</span>        }<a name="line.730"></a>
-<span class="sourceLineNo">731</span>        <a name="line.731"></a>
-<span class="sourceLineNo">732</span>        private class WsInputReader {<a name="line.732"></a>
-<span class="sourceLineNo">733</span><a name="line.733"></a>
-<span class="sourceLineNo">734</span>                private PipedWriter decodeWriter;<a name="line.734"></a>
-<span class="sourceLineNo">735</span>                private Future&lt;JsonObject&gt; decodeResult;<a name="line.735"></a>
-<span class="sourceLineNo">736</span>                <a name="line.736"></a>
-<span class="sourceLineNo">737</span>                public JsonObject toJsonObject(Input&lt;ManagedCharBuffer&gt; event)<a name="line.737"></a>
-<span class="sourceLineNo">738</span>                                                throws IOException {<a name="line.738"></a>
-<span class="sourceLineNo">739</span>                        CharBuffer buffer = event.buffer().backingBuffer();<a name="line.739"></a>
-<span class="sourceLineNo">740</span>                        if (decodeWriter == null) {<a name="line.740"></a>
-<span class="sourceLineNo">741</span>                                decodeWriter = new PipedWriter();<a name="line.741"></a>
-<span class="sourceLineNo">742</span>                                PipedReader reader = new PipedReader(<a name="line.742"></a>
-<span class="sourceLineNo">743</span>                                                decodeWriter, buffer.capacity());<a name="line.743"></a>
-<span class="sourceLineNo">744</span>                                decodeResult = activeEventPipeline().executorService()<a name="line.744"></a>
-<span class="sourceLineNo">745</span>                                        .submit(new DecodeTask(reader));<a name="line.745"></a>
-<span class="sourceLineNo">746</span>                        }<a name="line.746"></a>
-<span class="sourceLineNo">747</span>                        decodeWriter.append(buffer);<a name="line.747"></a>
-<span class="sourceLineNo">748</span>                        if (event.isEndOfRecord()) {<a name="line.748"></a>
-<span class="sourceLineNo">749</span>                                decodeWriter.close();<a name="line.749"></a>
-<span class="sourceLineNo">750</span>                                decodeWriter = null;<a name="line.750"></a>
-<span class="sourceLineNo">751</span>                                try {<a name="line.751"></a>
-<span class="sourceLineNo">752</span>                                        return decodeResult.get();<a name="line.752"></a>
-<span class="sourceLineNo">753</span>                                } catch (ExecutionException e) {<a name="line.753"></a>
-<span class="sourceLineNo">754</span>                                        if (e.getCause() instanceof IOException) {<a name="line.754"></a>
-<span class="sourceLineNo">755</span>                                                throw (IOException)e.getCause();<a name="line.755"></a>
-<span class="sourceLineNo">756</span>                                        }<a name="line.756"></a>
-<span class="sourceLineNo">757</span>                                        throw new IOException(e);<a name="line.757"></a>
-<span class="sourceLineNo">758</span>                                } catch (InterruptedException e) {<a name="line.758"></a>
-<span class="sourceLineNo">759</span>                                        throw new IOException(e);<a name="line.759"></a>
-<span class="sourceLineNo">760</span>                                }<a name="line.760"></a>
-<span class="sourceLineNo">761</span>                        }<a name="line.761"></a>
-<span class="sourceLineNo">762</span>                        return null;<a name="line.762"></a>
-<span class="sourceLineNo">763</span>                }<a name="line.763"></a>
-<span class="sourceLineNo">764</span>                <a name="line.764"></a>
-<span class="sourceLineNo">765</span>                private class DecodeTask implements Callable&lt;JsonObject&gt; {<a name="line.765"></a>
-<span class="sourceLineNo">766</span><a name="line.766"></a>
-<span class="sourceLineNo">767</span>                        private Reader reader;<a name="line.767"></a>
-<span class="sourceLineNo">768</span>                        <a name="line.768"></a>
-<span class="sourceLineNo">769</span>                        public DecodeTask(Reader reader) {<a name="line.769"></a>
-<span class="sourceLineNo">770</span>                                this.reader = reader;<a name="line.770"></a>
-<span class="sourceLineNo">771</span>                        }<a name="line.771"></a>
+<span class="sourceLineNo">697</span>                Session session = channel.browserSession();<a name="line.697"></a>
+<span class="sourceLineNo">698</span>                if (session != null) {<a name="line.698"></a>
+<span class="sourceLineNo">699</span>                        Selection selection = (Selection)session.get(Selection.class);<a name="line.699"></a>
+<span class="sourceLineNo">700</span>                        if (selection != null) {<a name="line.700"></a>
+<span class="sourceLineNo">701</span>                                supportedLocales.stream()<a name="line.701"></a>
+<span class="sourceLineNo">702</span>                                .filter(l -&gt; l.equals(event.locale())).findFirst()<a name="line.702"></a>
+<span class="sourceLineNo">703</span>                                .ifPresent(l -&gt; selection.prefer(l));<a name="line.703"></a>
+<span class="sourceLineNo">704</span>                        }<a name="line.704"></a>
+<span class="sourceLineNo">705</span>                }<a name="line.705"></a>
+<span class="sourceLineNo">706</span>                fire(new JsonOutput("reload"), channel);<a name="line.706"></a>
+<span class="sourceLineNo">707</span>        }<a name="line.707"></a>
+<span class="sourceLineNo">708</span>        <a name="line.708"></a>
+<span class="sourceLineNo">709</span>        @Handler(dynamic=true)<a name="line.709"></a>
+<span class="sourceLineNo">710</span>        public void onSetTheme(SetTheme event, PortalSession channel)<a name="line.710"></a>
+<span class="sourceLineNo">711</span>                        throws InterruptedException, IOException {<a name="line.711"></a>
+<span class="sourceLineNo">712</span>                ThemeProvider themeProvider = StreamSupport<a name="line.712"></a>
+<span class="sourceLineNo">713</span>                        .stream(themeLoader().spliterator(), false)<a name="line.713"></a>
+<span class="sourceLineNo">714</span>                        .filter(t -&gt; t.themeId().equals(event.theme())).findFirst()<a name="line.714"></a>
+<span class="sourceLineNo">715</span>                        .orElse(baseTheme);<a name="line.715"></a>
+<span class="sourceLineNo">716</span>                channel.browserSession().put("themeProvider", themeProvider.themeId());<a name="line.716"></a>
+<span class="sourceLineNo">717</span>                channel.respond(new KeyValueStoreUpdate().update(<a name="line.717"></a>
+<span class="sourceLineNo">718</span>                                "/" + Utils.userFromSession(channel.browserSession())<a name="line.718"></a>
+<span class="sourceLineNo">719</span>                                .map(UserPrincipal::toString).orElse("") <a name="line.719"></a>
+<span class="sourceLineNo">720</span>                                + "/themeProvider", themeProvider.themeId())).get();<a name="line.720"></a>
+<span class="sourceLineNo">721</span>                fire(new JsonOutput("reload"), channel);<a name="line.721"></a>
+<span class="sourceLineNo">722</span>        }<a name="line.722"></a>
+<span class="sourceLineNo">723</span>        <a name="line.723"></a>
+<span class="sourceLineNo">724</span>        @Handler(dynamic=true)<a name="line.724"></a>
+<span class="sourceLineNo">725</span>        public void onJsonOutput(JsonOutput event, PortalSession channel)<a name="line.725"></a>
+<span class="sourceLineNo">726</span>                        throws InterruptedException, IOException {<a name="line.726"></a>
+<span class="sourceLineNo">727</span>                Optional&lt;IOSubchannel&gt; optUpstream = channel.upstreamChannel();<a name="line.727"></a>
+<span class="sourceLineNo">728</span>                if (optUpstream.isPresent()) {<a name="line.728"></a>
+<span class="sourceLineNo">729</span>                        IOSubchannel upstream = optUpstream.get();<a name="line.729"></a>
+<span class="sourceLineNo">730</span>                        @SuppressWarnings("resource")<a name="line.730"></a>
+<span class="sourceLineNo">731</span>                        CharBufferWriter out = new CharBufferWriter(upstream, <a name="line.731"></a>
+<span class="sourceLineNo">732</span>                                        upstream.responsePipeline()).suppressClose();<a name="line.732"></a>
+<span class="sourceLineNo">733</span>                        event.toJson(out);<a name="line.733"></a>
+<span class="sourceLineNo">734</span>                        out.close();<a name="line.734"></a>
+<span class="sourceLineNo">735</span>                }<a name="line.735"></a>
+<span class="sourceLineNo">736</span>        }<a name="line.736"></a>
+<span class="sourceLineNo">737</span>        <a name="line.737"></a>
+<span class="sourceLineNo">738</span>        private class WsInputReader {<a name="line.738"></a>
+<span class="sourceLineNo">739</span><a name="line.739"></a>
+<span class="sourceLineNo">740</span>                private PipedWriter decodeWriter;<a name="line.740"></a>
+<span class="sourceLineNo">741</span>                private Future&lt;JsonObject&gt; decodeResult;<a name="line.741"></a>
+<span class="sourceLineNo">742</span>                <a name="line.742"></a>
+<span class="sourceLineNo">743</span>                public JsonObject toJsonObject(Input&lt;ManagedCharBuffer&gt; event)<a name="line.743"></a>
+<span class="sourceLineNo">744</span>                                                throws IOException {<a name="line.744"></a>
+<span class="sourceLineNo">745</span>                        CharBuffer buffer = event.buffer().backingBuffer();<a name="line.745"></a>
+<span class="sourceLineNo">746</span>                        if (decodeWriter == null) {<a name="line.746"></a>
+<span class="sourceLineNo">747</span>                                decodeWriter = new PipedWriter();<a name="line.747"></a>
+<span class="sourceLineNo">748</span>                                PipedReader reader = new PipedReader(<a name="line.748"></a>
+<span class="sourceLineNo">749</span>                                                decodeWriter, buffer.capacity());<a name="line.749"></a>
+<span class="sourceLineNo">750</span>                                decodeResult = activeEventPipeline().executorService()<a name="line.750"></a>
+<span class="sourceLineNo">751</span>                                        .submit(new DecodeTask(reader));<a name="line.751"></a>
+<span class="sourceLineNo">752</span>                        }<a name="line.752"></a>
+<span class="sourceLineNo">753</span>                        decodeWriter.append(buffer);<a name="line.753"></a>
+<span class="sourceLineNo">754</span>                        if (event.isEndOfRecord()) {<a name="line.754"></a>
+<span class="sourceLineNo">755</span>                                decodeWriter.close();<a name="line.755"></a>
+<span class="sourceLineNo">756</span>                                decodeWriter = null;<a name="line.756"></a>
+<span class="sourceLineNo">757</span>                                try {<a name="line.757"></a>
+<span class="sourceLineNo">758</span>                                        return decodeResult.get();<a name="line.758"></a>
+<span class="sourceLineNo">759</span>                                } catch (ExecutionException e) {<a name="line.759"></a>
+<span class="sourceLineNo">760</span>                                        if (e.getCause() instanceof IOException) {<a name="line.760"></a>
+<span class="sourceLineNo">761</span>                                                throw (IOException)e.getCause();<a name="line.761"></a>
+<span class="sourceLineNo">762</span>                                        }<a name="line.762"></a>
+<span class="sourceLineNo">763</span>                                        throw new IOException(e);<a name="line.763"></a>
+<span class="sourceLineNo">764</span>                                } catch (InterruptedException e) {<a name="line.764"></a>
+<span class="sourceLineNo">765</span>                                        throw new IOException(e);<a name="line.765"></a>
+<span class="sourceLineNo">766</span>                                }<a name="line.766"></a>
+<span class="sourceLineNo">767</span>                        }<a name="line.767"></a>
+<span class="sourceLineNo">768</span>                        return null;<a name="line.768"></a>
+<span class="sourceLineNo">769</span>                }<a name="line.769"></a>
+<span class="sourceLineNo">770</span>                <a name="line.770"></a>
+<span class="sourceLineNo">771</span>                private class DecodeTask implements Callable&lt;JsonObject&gt; {<a name="line.771"></a>
 <span class="sourceLineNo">772</span><a name="line.772"></a>
-<span class="sourceLineNo">773</span>                        @Override<a name="line.773"></a>
-<span class="sourceLineNo">774</span>                        public JsonObject call() throws IOException {<a name="line.774"></a>
-<span class="sourceLineNo">775</span>                                try (Reader in = reader) {<a name="line.775"></a>
-<span class="sourceLineNo">776</span>                                        JsonReader reader = Json.createReader(in);<a name="line.776"></a>
-<span class="sourceLineNo">777</span>                                        return reader.readObject();<a name="line.777"></a>
-<span class="sourceLineNo">778</span>                                }<a name="line.778"></a>
-<span class="sourceLineNo">779</span>                        }<a name="line.779"></a>
-<span class="sourceLineNo">780</span>                }<a name="line.780"></a>
-<span class="sourceLineNo">781</span>        }<a name="line.781"></a>
-<span class="sourceLineNo">782</span><a name="line.782"></a>
-<span class="sourceLineNo">783</span>        public static class LanguageInfo {<a name="line.783"></a>
-<span class="sourceLineNo">784</span>                private Locale locale;<a name="line.784"></a>
-<span class="sourceLineNo">785</span><a name="line.785"></a>
-<span class="sourceLineNo">786</span>                /**<a name="line.786"></a>
-<span class="sourceLineNo">787</span>                 * @param locale<a name="line.787"></a>
-<span class="sourceLineNo">788</span>                 */<a name="line.788"></a>
-<span class="sourceLineNo">789</span>                public LanguageInfo(Locale locale) {<a name="line.789"></a>
-<span class="sourceLineNo">790</span>                        this.locale = locale;<a name="line.790"></a>
-<span class="sourceLineNo">791</span>                }<a name="line.791"></a>
-<span class="sourceLineNo">792</span><a name="line.792"></a>
-<span class="sourceLineNo">793</span>                /**<a name="line.793"></a>
-<span class="sourceLineNo">794</span>                 * @return the locale<a name="line.794"></a>
-<span class="sourceLineNo">795</span>                 */<a name="line.795"></a>
-<span class="sourceLineNo">796</span>                public Locale getLocale() {<a name="line.796"></a>
-<span class="sourceLineNo">797</span>                        return locale;<a name="line.797"></a>
-<span class="sourceLineNo">798</span>                }<a name="line.798"></a>
-<span class="sourceLineNo">799</span>                <a name="line.799"></a>
-<span class="sourceLineNo">800</span>                public String getLabel() {<a name="line.800"></a>
-<span class="sourceLineNo">801</span>                        String str = locale.getDisplayName(locale);<a name="line.801"></a>
-<span class="sourceLineNo">802</span>                        return Character.toUpperCase(str.charAt(0)) + str.substring(1);<a name="line.802"></a>
-<span class="sourceLineNo">803</span>                }<a name="line.803"></a>
-<span class="sourceLineNo">804</span>        }<a name="line.804"></a>
-<span class="sourceLineNo">805</span>        <a name="line.805"></a>
-<span class="sourceLineNo">806</span>        public static class ThemeInfo implements Comparable&lt;ThemeInfo&gt; {<a name="line.806"></a>
-<span class="sourceLineNo">807</span>                private String id;<a name="line.807"></a>
-<span class="sourceLineNo">808</span>                private String name;<a name="line.808"></a>
-<span class="sourceLineNo">809</span>                <a name="line.809"></a>
-<span class="sourceLineNo">810</span>                /**<a name="line.810"></a>
-<span class="sourceLineNo">811</span>                 * @param id<a name="line.811"></a>
-<span class="sourceLineNo">812</span>                 * @param name<a name="line.812"></a>
-<span class="sourceLineNo">813</span>                 */<a name="line.813"></a>
-<span class="sourceLineNo">814</span>                public ThemeInfo(String id, String name) {<a name="line.814"></a>
-<span class="sourceLineNo">815</span>                        super();<a name="line.815"></a>
-<span class="sourceLineNo">816</span>                        this.id = id;<a name="line.816"></a>
-<span class="sourceLineNo">817</span>                        this.name = name;<a name="line.817"></a>
-<span class="sourceLineNo">818</span>                }<a name="line.818"></a>
-<span class="sourceLineNo">819</span>                <a name="line.819"></a>
-<span class="sourceLineNo">820</span>                /**<a name="line.820"></a>
-<span class="sourceLineNo">821</span>                 * @return the id<a name="line.821"></a>
-<span class="sourceLineNo">822</span>                 */<a name="line.822"></a>
-<span class="sourceLineNo">823</span>                public String id() {<a name="line.823"></a>
-<span class="sourceLineNo">824</span>                        return id;<a name="line.824"></a>
-<span class="sourceLineNo">825</span>                }<a name="line.825"></a>
-<span class="sourceLineNo">826</span>                <a name="line.826"></a>
-<span class="sourceLineNo">827</span>                /**<a name="line.827"></a>
-<span class="sourceLineNo">828</span>                 * @return the name<a name="line.828"></a>
-<span class="sourceLineNo">829</span>                 */<a name="line.829"></a>
-<span class="sourceLineNo">830</span>                public String name() {<a name="line.830"></a>
-<span class="sourceLineNo">831</span>                        return name;<a name="line.831"></a>
-<span class="sourceLineNo">832</span>                }<a name="line.832"></a>
-<span class="sourceLineNo">833</span><a name="line.833"></a>
-<span class="sourceLineNo">834</span>                /* (non-Javadoc)<a name="line.834"></a>
-<span class="sourceLineNo">835</span>                 * @see java.lang.Comparable#compareTo(java.lang.Object)<a name="line.835"></a>
-<span class="sourceLineNo">836</span>                 */<a name="line.836"></a>
-<span class="sourceLineNo">837</span>                @Override<a name="line.837"></a>
-<span class="sourceLineNo">838</span>                public int compareTo(ThemeInfo other) {<a name="line.838"></a>
-<span class="sourceLineNo">839</span>                        return name().compareToIgnoreCase(other.name());<a name="line.839"></a>
-<span class="sourceLineNo">840</span>                }<a name="line.840"></a>
-<span class="sourceLineNo">841</span>        }<a name="line.841"></a>
-<span class="sourceLineNo">842</span>        <a name="line.842"></a>
-<span class="sourceLineNo">843</span>        /**<a name="line.843"></a>
-<span class="sourceLineNo">844</span>         * Create a {@link URI} from a path. This is similar to calling<a name="line.844"></a>
-<span class="sourceLineNo">845</span>         * `new URI(null, null, path, null)` with the {@link URISyntaxException}<a name="line.845"></a>
-<span class="sourceLineNo">846</span>         * converted to a {@link IllegalArgumentException}.<a name="line.846"></a>
-<span class="sourceLineNo">847</span>         * <a name="line.847"></a>
-<span class="sourceLineNo">848</span>         * @param path the path<a name="line.848"></a>
-<span class="sourceLineNo">849</span>         * @return the uri<a name="line.849"></a>
-<span class="sourceLineNo">850</span>         * @throws IllegalArgumentException if the string violates <a name="line.850"></a>
-<span class="sourceLineNo">851</span>         * RFC 2396<a name="line.851"></a>
-<span class="sourceLineNo">852</span>         */<a name="line.852"></a>
-<span class="sourceLineNo">853</span>        public static URI uriFromPath(String path) throws IllegalArgumentException {<a name="line.853"></a>
-<span class="sourceLineNo">854</span>                try {<a name="line.854"></a>
-<span class="sourceLineNo">855</span>                        return new URI(null, null, path, null);<a name="line.855"></a>
-<span class="sourceLineNo">856</span>                } catch (URISyntaxException e) {<a name="line.856"></a>
-<span class="sourceLineNo">857</span>                        throw new IllegalArgumentException(e);<a name="line.857"></a>
-<span class="sourceLineNo">858</span>                }<a name="line.858"></a>
-<span class="sourceLineNo">859</span>        }<a name="line.859"></a>
-<span class="sourceLineNo">860</span>        <a name="line.860"></a>
-<span class="sourceLineNo">861</span>        private class RenderSupportImpl implements RenderSupport {<a name="line.861"></a>
-<span class="sourceLineNo">862</span><a name="line.862"></a>
-<span class="sourceLineNo">863</span>                /* (non-Javadoc)<a name="line.863"></a>
-<span class="sourceLineNo">864</span>                 * @see org.jgrapes.portal.RenderSupport#portletResource(java.lang.String, java.net.URI)<a name="line.864"></a>
-<span class="sourceLineNo">865</span>                 */<a name="line.865"></a>
-<span class="sourceLineNo">866</span>                @Override<a name="line.866"></a>
-<span class="sourceLineNo">867</span>                public URI portletResource(String portletType, URI uri) {<a name="line.867"></a>
-<span class="sourceLineNo">868</span>                        return portal.prefix().resolve(uriFromPath(<a name="line.868"></a>
-<span class="sourceLineNo">869</span>                                        "portlet-resource/" + portletType + "/")).resolve(uri);<a name="line.869"></a>
-<span class="sourceLineNo">870</span>                }<a name="line.870"></a>
-<span class="sourceLineNo">871</span><a name="line.871"></a>
-<span class="sourceLineNo">872</span>                /* (non-Javadoc)<a name="line.872"></a>
-<span class="sourceLineNo">873</span>                 * @see org.jgrapes.portal.RenderSupport#pageResource(java.net.URI)<a name="line.873"></a>
-<span class="sourceLineNo">874</span>                 */<a name="line.874"></a>
-<span class="sourceLineNo">875</span>                @Override<a name="line.875"></a>
-<span class="sourceLineNo">876</span>                public URI pageResource(URI uri) {<a name="line.876"></a>
-<span class="sourceLineNo">877</span>                        return portal.prefix().resolve(uriFromPath(<a name="line.877"></a>
-<span class="sourceLineNo">878</span>                                        "page-resource/")).resolve(uri);<a name="line.878"></a>
-<span class="sourceLineNo">879</span>                }<a name="line.879"></a>
-<span class="sourceLineNo">880</span><a name="line.880"></a>
-<span class="sourceLineNo">881</span>                /* (non-Javadoc)<a name="line.881"></a>
-<span class="sourceLineNo">882</span>                 * @see org.jgrapes.portal.RenderSupport#useMinifiedResources()<a name="line.882"></a>
-<span class="sourceLineNo">883</span>                 */<a name="line.883"></a>
-<span class="sourceLineNo">884</span>                @Override<a name="line.884"></a>
-<span class="sourceLineNo">885</span>                public boolean useMinifiedResources() {<a name="line.885"></a>
-<span class="sourceLineNo">886</span>                        return useMinifiedResources;<a name="line.886"></a>
-<span class="sourceLineNo">887</span>                }<a name="line.887"></a>
-<span class="sourceLineNo">888</span>                <a name="line.888"></a>
-<span class="sourceLineNo">889</span>        }<a name="line.889"></a>
-<span class="sourceLineNo">890</span><a name="line.890"></a>
-<span class="sourceLineNo">891</span>}<a name="line.891"></a>
+<span class="sourceLineNo">773</span>                        private Reader reader;<a name="line.773"></a>
+<span class="sourceLineNo">774</span>                        <a name="line.774"></a>
+<span class="sourceLineNo">775</span>                        public DecodeTask(Reader reader) {<a name="line.775"></a>
+<span class="sourceLineNo">776</span>                                this.reader = reader;<a name="line.776"></a>
+<span class="sourceLineNo">777</span>                        }<a name="line.777"></a>
+<span class="sourceLineNo">778</span><a name="line.778"></a>
+<span class="sourceLineNo">779</span>                        @Override<a name="line.779"></a>
+<span class="sourceLineNo">780</span>                        public JsonObject call() throws IOException {<a name="line.780"></a>
+<span class="sourceLineNo">781</span>                                try (Reader in = reader) {<a name="line.781"></a>
+<span class="sourceLineNo">782</span>                                        JsonReader reader = Json.createReader(in);<a name="line.782"></a>
+<span class="sourceLineNo">783</span>                                        return reader.readObject();<a name="line.783"></a>
+<span class="sourceLineNo">784</span>                                }<a name="line.784"></a>
+<span class="sourceLineNo">785</span>                        }<a name="line.785"></a>
+<span class="sourceLineNo">786</span>                }<a name="line.786"></a>
+<span class="sourceLineNo">787</span>        }<a name="line.787"></a>
+<span class="sourceLineNo">788</span><a name="line.788"></a>
+<span class="sourceLineNo">789</span>        public static class LanguageInfo {<a name="line.789"></a>
+<span class="sourceLineNo">790</span>                private Locale locale;<a name="line.790"></a>
+<span class="sourceLineNo">791</span><a name="line.791"></a>
+<span class="sourceLineNo">792</span>                /**<a name="line.792"></a>
+<span class="sourceLineNo">793</span>                 * @param locale<a name="line.793"></a>
+<span class="sourceLineNo">794</span>                 */<a name="line.794"></a>
+<span class="sourceLineNo">795</span>                public LanguageInfo(Locale locale) {<a name="line.795"></a>
+<span class="sourceLineNo">796</span>                        this.locale = locale;<a name="line.796"></a>
+<span class="sourceLineNo">797</span>                }<a name="line.797"></a>
+<span class="sourceLineNo">798</span><a name="line.798"></a>
+<span class="sourceLineNo">799</span>                /**<a name="line.799"></a>
+<span class="sourceLineNo">800</span>                 * @return the locale<a name="line.800"></a>
+<span class="sourceLineNo">801</span>                 */<a name="line.801"></a>
+<span class="sourceLineNo">802</span>                public Locale getLocale() {<a name="line.802"></a>
+<span class="sourceLineNo">803</span>                        return locale;<a name="line.803"></a>
+<span class="sourceLineNo">804</span>                }<a name="line.804"></a>
+<span class="sourceLineNo">805</span>                <a name="line.805"></a>
+<span class="sourceLineNo">806</span>                public String getLabel() {<a name="line.806"></a>
+<span class="sourceLineNo">807</span>                        String str = locale.getDisplayName(locale);<a name="line.807"></a>
+<span class="sourceLineNo">808</span>                        return Character.toUpperCase(str.charAt(0)) + str.substring(1);<a name="line.808"></a>
+<span class="sourceLineNo">809</span>                }<a name="line.809"></a>
+<span class="sourceLineNo">810</span>        }<a name="line.810"></a>
+<span class="sourceLineNo">811</span>        <a name="line.811"></a>
+<span class="sourceLineNo">812</span>        public static class ThemeInfo implements Comparable&lt;ThemeInfo&gt; {<a name="line.812"></a>
+<span class="sourceLineNo">813</span>                private String id;<a name="line.813"></a>
+<span class="sourceLineNo">814</span>                private String name;<a name="line.814"></a>
+<span class="sourceLineNo">815</span>                <a name="line.815"></a>
+<span class="sourceLineNo">816</span>                /**<a name="line.816"></a>
+<span class="sourceLineNo">817</span>                 * @param id<a name="line.817"></a>
+<span class="sourceLineNo">818</span>                 * @param name<a name="line.818"></a>
+<span class="sourceLineNo">819</span>                 */<a name="line.819"></a>
+<span class="sourceLineNo">820</span>                public ThemeInfo(String id, String name) {<a name="line.820"></a>
+<span class="sourceLineNo">821</span>                        super();<a name="line.821"></a>
+<span class="sourceLineNo">822</span>                        this.id = id;<a name="line.822"></a>
+<span class="sourceLineNo">823</span>                        this.name = name;<a name="line.823"></a>
+<span class="sourceLineNo">824</span>                }<a name="line.824"></a>
+<span class="sourceLineNo">825</span>                <a name="line.825"></a>
+<span class="sourceLineNo">826</span>                /**<a name="line.826"></a>
+<span class="sourceLineNo">827</span>                 * @return the id<a name="line.827"></a>
+<span class="sourceLineNo">828</span>                 */<a name="line.828"></a>
+<span class="sourceLineNo">829</span>                public String id() {<a name="line.829"></a>
+<span class="sourceLineNo">830</span>                        return id;<a name="line.830"></a>
+<span class="sourceLineNo">831</span>                }<a name="line.831"></a>
+<span class="sourceLineNo">832</span>                <a name="line.832"></a>
+<span class="sourceLineNo">833</span>                /**<a name="line.833"></a>
+<span class="sourceLineNo">834</span>                 * @return the name<a name="line.834"></a>
+<span class="sourceLineNo">835</span>                 */<a name="line.835"></a>
+<span class="sourceLineNo">836</span>                public String name() {<a name="line.836"></a>
+<span class="sourceLineNo">837</span>                        return name;<a name="line.837"></a>
+<span class="sourceLineNo">838</span>                }<a name="line.838"></a>
+<span class="sourceLineNo">839</span><a name="line.839"></a>
+<span class="sourceLineNo">840</span>                /* (non-Javadoc)<a name="line.840"></a>
+<span class="sourceLineNo">841</span>                 * @see java.lang.Comparable#compareTo(java.lang.Object)<a name="line.841"></a>
+<span class="sourceLineNo">842</span>                 */<a name="line.842"></a>
+<span class="sourceLineNo">843</span>                @Override<a name="line.843"></a>
+<span class="sourceLineNo">844</span>                public int compareTo(ThemeInfo other) {<a name="line.844"></a>
+<span class="sourceLineNo">845</span>                        return name().compareToIgnoreCase(other.name());<a name="line.845"></a>
+<span class="sourceLineNo">846</span>                }<a name="line.846"></a>
+<span class="sourceLineNo">847</span>        }<a name="line.847"></a>
+<span class="sourceLineNo">848</span>        <a name="line.848"></a>
+<span class="sourceLineNo">849</span>        /**<a name="line.849"></a>
+<span class="sourceLineNo">850</span>         * Create a {@link URI} from a path. This is similar to calling<a name="line.850"></a>
+<span class="sourceLineNo">851</span>         * `new URI(null, null, path, null)` with the {@link URISyntaxException}<a name="line.851"></a>
+<span class="sourceLineNo">852</span>         * converted to a {@link IllegalArgumentException}.<a name="line.852"></a>
+<span class="sourceLineNo">853</span>         * <a name="line.853"></a>
+<span class="sourceLineNo">854</span>         * @param path the path<a name="line.854"></a>
+<span class="sourceLineNo">855</span>         * @return the uri<a name="line.855"></a>
+<span class="sourceLineNo">856</span>         * @throws IllegalArgumentException if the string violates <a name="line.856"></a>
+<span class="sourceLineNo">857</span>         * RFC 2396<a name="line.857"></a>
+<span class="sourceLineNo">858</span>         */<a name="line.858"></a>
+<span class="sourceLineNo">859</span>        public static URI uriFromPath(String path) throws IllegalArgumentException {<a name="line.859"></a>
+<span class="sourceLineNo">860</span>                try {<a name="line.860"></a>
+<span class="sourceLineNo">861</span>                        return new URI(null, null, path, null);<a name="line.861"></a>
+<span class="sourceLineNo">862</span>                } catch (URISyntaxException e) {<a name="line.862"></a>
+<span class="sourceLineNo">863</span>                        throw new IllegalArgumentException(e);<a name="line.863"></a>
+<span class="sourceLineNo">864</span>                }<a name="line.864"></a>
+<span class="sourceLineNo">865</span>        }<a name="line.865"></a>
+<span class="sourceLineNo">866</span>        <a name="line.866"></a>
+<span class="sourceLineNo">867</span>        private class RenderSupportImpl implements RenderSupport {<a name="line.867"></a>
+<span class="sourceLineNo">868</span><a name="line.868"></a>
+<span class="sourceLineNo">869</span>                /* (non-Javadoc)<a name="line.869"></a>
+<span class="sourceLineNo">870</span>                 * @see org.jgrapes.portal.RenderSupport#portletResource(java.lang.String, java.net.URI)<a name="line.870"></a>
+<span class="sourceLineNo">871</span>                 */<a name="line.871"></a>
+<span class="sourceLineNo">872</span>                @Override<a name="line.872"></a>
+<span class="sourceLineNo">873</span>                public URI portletResource(String portletType, URI uri) {<a name="line.873"></a>
+<span class="sourceLineNo">874</span>                        return portal.prefix().resolve(uriFromPath(<a name="line.874"></a>
+<span class="sourceLineNo">875</span>                                        "portlet-resource/" + portletType + "/")).resolve(uri);<a name="line.875"></a>
+<span class="sourceLineNo">876</span>                }<a name="line.876"></a>
+<span class="sourceLineNo">877</span><a name="line.877"></a>
+<span class="sourceLineNo">878</span>                /* (non-Javadoc)<a name="line.878"></a>
+<span class="sourceLineNo">879</span>                 * @see org.jgrapes.portal.RenderSupport#pageResource(java.net.URI)<a name="line.879"></a>
+<span class="sourceLineNo">880</span>                 */<a name="line.880"></a>
+<span class="sourceLineNo">881</span>                @Override<a name="line.881"></a>
+<span class="sourceLineNo">882</span>                public URI pageResource(URI uri) {<a name="line.882"></a>
+<span class="sourceLineNo">883</span>                        return portal.prefix().resolve(uriFromPath(<a name="line.883"></a>
+<span class="sourceLineNo">884</span>                                        "page-resource/")).resolve(uri);<a name="line.884"></a>
+<span class="sourceLineNo">885</span>                }<a name="line.885"></a>
+<span class="sourceLineNo">886</span><a name="line.886"></a>
+<span class="sourceLineNo">887</span>                /* (non-Javadoc)<a name="line.887"></a>
+<span class="sourceLineNo">888</span>                 * @see org.jgrapes.portal.RenderSupport#useMinifiedResources()<a name="line.888"></a>
+<span class="sourceLineNo">889</span>                 */<a name="line.889"></a>
+<span class="sourceLineNo">890</span>                @Override<a name="line.890"></a>
+<span class="sourceLineNo">891</span>                public boolean useMinifiedResources() {<a name="line.891"></a>
+<span class="sourceLineNo">892</span>                        return useMinifiedResources;<a name="line.892"></a>
+<span class="sourceLineNo">893</span>                }<a name="line.893"></a>
+<span class="sourceLineNo">894</span>                <a name="line.894"></a>
+<span class="sourceLineNo">895</span>        }<a name="line.895"></a>
+<span class="sourceLineNo">896</span><a name="line.896"></a>
+<span class="sourceLineNo">897</span>}<a name="line.897"></a>
 
 
 
