@@ -264,6 +264,9 @@ gitPublish {
 	commitMessage = "Updated."
 }
 
+// Until https://github.com/ajoberstar/gradle-git-publish/issues/41 is fixed
+tasks.gitPublishCopy.dependsOn javadoc
+
 task stage {
 	// Build everything first
 	subprojects.tasks.each { tc -> dependsOn tc.findByName("build") }
