@@ -1,0 +1,342 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="de">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
+<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
+<span class="sourceLineNo">003</span> * Copyright (C) 2016  Michael N. Lipp<a name="line.3"></a>
+<span class="sourceLineNo">004</span> * <a name="line.4"></a>
+<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
+<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
+<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
+<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
+<span class="sourceLineNo">009</span> * <a name="line.9"></a>
+<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
+<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
+<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
+<span class="sourceLineNo">014</span> * <a name="line.14"></a>
+<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
+<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
+<span class="sourceLineNo">017</span> */<a name="line.17"></a>
+<span class="sourceLineNo">018</span><a name="line.18"></a>
+<span class="sourceLineNo">019</span>package org.jgrapes.http.events;<a name="line.19"></a>
+<span class="sourceLineNo">020</span><a name="line.20"></a>
+<span class="sourceLineNo">021</span>import java.net.URI;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import java.net.URISyntaxException;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import java.util.Iterator;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import java.util.stream.StreamSupport;<a name="line.24"></a>
+<span class="sourceLineNo">025</span><a name="line.25"></a>
+<span class="sourceLineNo">026</span>import org.jdrupes.httpcodec.protocols.http.HttpRequest;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import org.jgrapes.core.Channel;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.jgrapes.core.CompletionEvent;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import org.jgrapes.core.Components;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>import org.jgrapes.core.Event;<a name="line.30"></a>
+<span class="sourceLineNo">031</span>import org.jgrapes.http.ResourcePattern;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>import org.jgrapes.http.ResourcePattern.PathSpliterator;<a name="line.32"></a>
+<span class="sourceLineNo">033</span><a name="line.33"></a>
+<span class="sourceLineNo">034</span>/**<a name="line.34"></a>
+<span class="sourceLineNo">035</span> *<a name="line.35"></a>
+<span class="sourceLineNo">036</span> */<a name="line.36"></a>
+<span class="sourceLineNo">037</span>public class Request extends Event&lt;Void&gt; {<a name="line.37"></a>
+<span class="sourceLineNo">038</span><a name="line.38"></a>
+<span class="sourceLineNo">039</span>        public static class Completed extends CompletionEvent&lt;Request&gt; {<a name="line.39"></a>
+<span class="sourceLineNo">040</span><a name="line.40"></a>
+<span class="sourceLineNo">041</span>                public Completed(Request monitoredEvent, Channel... channels) {<a name="line.41"></a>
+<span class="sourceLineNo">042</span>                        super(monitoredEvent, channels);<a name="line.42"></a>
+<span class="sourceLineNo">043</span>                }<a name="line.43"></a>
+<span class="sourceLineNo">044</span>        }<a name="line.44"></a>
+<span class="sourceLineNo">045</span>        <a name="line.45"></a>
+<span class="sourceLineNo">046</span>        private HttpRequest request;<a name="line.46"></a>
+<span class="sourceLineNo">047</span>        private URI uri;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>        private MatchValue matchValue;<a name="line.48"></a>
+<span class="sourceLineNo">049</span>        private URI matchUri;<a name="line.49"></a>
+<span class="sourceLineNo">050</span>        <a name="line.50"></a>
+<span class="sourceLineNo">051</span>        /**<a name="line.51"></a>
+<span class="sourceLineNo">052</span>         * Creates a new request event with the associated {@link Completed}<a name="line.52"></a>
+<span class="sourceLineNo">053</span>         * event.<a name="line.53"></a>
+<span class="sourceLineNo">054</span>         * <a name="line.54"></a>
+<span class="sourceLineNo">055</span>         * @param protocol the protocol as reported by {@link #requestUri()}<a name="line.55"></a>
+<span class="sourceLineNo">056</span>         * @param request the request data<a name="line.56"></a>
+<span class="sourceLineNo">057</span>         * @param matchLevels the number of elements from the request path<a name="line.57"></a>
+<span class="sourceLineNo">058</span>         * to use in the match value (see {@link #matchValue})<a name="line.58"></a>
+<span class="sourceLineNo">059</span>         * @param channels the channels associated with this event<a name="line.59"></a>
+<span class="sourceLineNo">060</span>         */<a name="line.60"></a>
+<span class="sourceLineNo">061</span>        public Request(String protocol, HttpRequest request, <a name="line.61"></a>
+<span class="sourceLineNo">062</span>                        int matchLevels, Channel... channels) {<a name="line.62"></a>
+<span class="sourceLineNo">063</span>                super(channels);<a name="line.63"></a>
+<span class="sourceLineNo">064</span>                new Completed(this);<a name="line.64"></a>
+<span class="sourceLineNo">065</span>                this.request = request;<a name="line.65"></a>
+<span class="sourceLineNo">066</span>                try {<a name="line.66"></a>
+<span class="sourceLineNo">067</span>                        URI headerInfo = new URI(protocol, null, <a name="line.67"></a>
+<span class="sourceLineNo">068</span>                                        request.host(), request.port(), null, null, null);<a name="line.68"></a>
+<span class="sourceLineNo">069</span>                        uri = headerInfo.resolve(request.requestUri());<a name="line.69"></a>
+<span class="sourceLineNo">070</span>                        Iterator&lt;String&gt; segs = StreamSupport.stream(<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                                        new PathSpliterator(uri.getPath()), false).iterator();<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                        StringBuilder mp = new StringBuilder();<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                        for (int i = 0; i &lt; matchLevels &amp;&amp; segs.hasNext(); i++) {<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                                mp.append("/");<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                                mp.append(segs.next());<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                        }<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                        if (segs.hasNext()) {<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                                mp.append("/**");<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                        }<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                        String matchPath = mp.toString();<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                        matchUri = new URI(uri.getScheme(), null, uri.getHost(),<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                                uri.getPort(), uri.getPath(), null, null);<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                        matchValue = new MatchValue(getClass(), <a name="line.83"></a>
+<span class="sourceLineNo">084</span>                                        (uri.getScheme() == null ? "" <a name="line.84"></a>
+<span class="sourceLineNo">085</span>                                                : (uri.getScheme() + "://"))<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                                         + (uri.getHost() == null ? "" <a name="line.86"></a>
+<span class="sourceLineNo">087</span>                                                : (uri.getHost() + (uri.getPort() == -1 ? "" <a name="line.87"></a>
+<span class="sourceLineNo">088</span>                                                        : (":" + uri.getPort()))))<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                                         + matchPath);<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                } catch (URISyntaxException e) {<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                        throw new IllegalArgumentException();<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                }<a name="line.92"></a>
+<span class="sourceLineNo">093</span>        }<a name="line.93"></a>
+<span class="sourceLineNo">094</span><a name="line.94"></a>
+<span class="sourceLineNo">095</span>        /**<a name="line.95"></a>
+<span class="sourceLineNo">096</span>         * Creates the appropriate derived request event type from<a name="line.96"></a>
+<span class="sourceLineNo">097</span>         * a given {@link HttpRequest}.<a name="line.97"></a>
+<span class="sourceLineNo">098</span>         * <a name="line.98"></a>
+<span class="sourceLineNo">099</span>         * @param request the HTTP request<a name="line.99"></a>
+<span class="sourceLineNo">100</span>         * @param secure whether the request was received over a secure channel<a name="line.100"></a>
+<span class="sourceLineNo">101</span>         * @param matchLevels the match levels<a name="line.101"></a>
+<span class="sourceLineNo">102</span>         * @return the request event<a name="line.102"></a>
+<span class="sourceLineNo">103</span>         */<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        public static Request fromHttpRequest(<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                        HttpRequest request, boolean secure, int matchLevels) {<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                switch (request.method()) {<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                case "OPTIONS":<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                        return new OptionsRequest(request, secure, matchLevels);<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                case "GET":<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                        return new GetRequest(request, secure, matchLevels);<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                case "HEAD":<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                        return new HeadRequest(request, secure, matchLevels);<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                case "POST":<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                        return new PostRequest(request, secure, matchLevels);<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                case "PUT":<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                        return new PutRequest(request, secure, matchLevels);<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                case "DELETE":<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                        return new DeleteRequest(request, secure, matchLevels);<a name="line.118"></a>
+<span class="sourceLineNo">119</span>                case "TRACE":<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                        return new TraceRequest(request, secure, matchLevels);<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                case "CONNECT":<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                        return new ConnectRequest(request, secure, matchLevels);<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                default:<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                        return new Request(secure ? "https" : "http", request, matchLevels);<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                }<a name="line.125"></a>
+<span class="sourceLineNo">126</span>        }<a name="line.126"></a>
+<span class="sourceLineNo">127</span>        <a name="line.127"></a>
+<span class="sourceLineNo">128</span>        /**<a name="line.128"></a>
+<span class="sourceLineNo">129</span>         * Returns the "raw" request as provided by the HTTP decoder.<a name="line.129"></a>
+<span class="sourceLineNo">130</span>         * <a name="line.130"></a>
+<span class="sourceLineNo">131</span>         * @return the request<a name="line.131"></a>
+<span class="sourceLineNo">132</span>         */<a name="line.132"></a>
+<span class="sourceLineNo">133</span>        public HttpRequest httpRequest() {<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                return request;<a name="line.134"></a>
+<span class="sourceLineNo">135</span>        }<a name="line.135"></a>
+<span class="sourceLineNo">136</span><a name="line.136"></a>
+<span class="sourceLineNo">137</span>        /**<a name="line.137"></a>
+<span class="sourceLineNo">138</span>         * Returns an absolute URI of the request that is built from the <a name="line.138"></a>
+<span class="sourceLineNo">139</span>         * information provided by the decoder.<a name="line.139"></a>
+<span class="sourceLineNo">140</span>         * <a name="line.140"></a>
+<span class="sourceLineNo">141</span>         * @return the URI<a name="line.141"></a>
+<span class="sourceLineNo">142</span>         */<a name="line.142"></a>
+<span class="sourceLineNo">143</span>        public URI requestUri() {<a name="line.143"></a>
+<span class="sourceLineNo">144</span>                return uri;<a name="line.144"></a>
+<span class="sourceLineNo">145</span>        }<a name="line.145"></a>
+<span class="sourceLineNo">146</span>        <a name="line.146"></a>
+<span class="sourceLineNo">147</span>        /**<a name="line.147"></a>
+<span class="sourceLineNo">148</span>         * The match value consists of the event class and a URI.<a name="line.148"></a>
+<span class="sourceLineNo">149</span>         * The URI is similar to the request URI but its path elements<a name="line.149"></a>
+<span class="sourceLineNo">150</span>         * are shortened as specified in the constructor.<a name="line.150"></a>
+<span class="sourceLineNo">151</span>         * <a name="line.151"></a>
+<span class="sourceLineNo">152</span>         * As the match value is used as key in a map that speeds up<a name="line.152"></a>
+<span class="sourceLineNo">153</span>         * the lookup of handlers, having the complete URI in the match<a name="line.153"></a>
+<span class="sourceLineNo">154</span>         * value would inflate this map.<a name="line.154"></a>
+<span class="sourceLineNo">155</span>         * <a name="line.155"></a>
+<span class="sourceLineNo">156</span>         * @see org.jgrapes.core.Event#defaultCriterion()<a name="line.156"></a>
+<span class="sourceLineNo">157</span>         */<a name="line.157"></a>
+<span class="sourceLineNo">158</span>        @Override<a name="line.158"></a>
+<span class="sourceLineNo">159</span>        public Object defaultCriterion() {<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                return matchValue;<a name="line.160"></a>
+<span class="sourceLineNo">161</span>        }<a name="line.161"></a>
+<span class="sourceLineNo">162</span><a name="line.162"></a>
+<span class="sourceLineNo">163</span>        /* (non-Javadoc)<a name="line.163"></a>
+<span class="sourceLineNo">164</span>         * @see org.jgrapes.core.Event#isMatchedBy(java.lang.Object)<a name="line.164"></a>
+<span class="sourceLineNo">165</span>         */<a name="line.165"></a>
+<span class="sourceLineNo">166</span>        @Override<a name="line.166"></a>
+<span class="sourceLineNo">167</span>        public boolean isEligibleFor(Object value) {<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                if (!(value instanceof MatchValue)) {<a name="line.168"></a>
+<span class="sourceLineNo">169</span>                        return super.isEligibleFor(value);<a name="line.169"></a>
+<span class="sourceLineNo">170</span>                }<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                MatchValue mv = (MatchValue)value;<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                if (!mv.type.isAssignableFrom(matchValue.type)) {<a name="line.172"></a>
+<span class="sourceLineNo">173</span>                        return false;<a name="line.173"></a>
+<span class="sourceLineNo">174</span>                }<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                if (mv.resource instanceof ResourcePattern) {<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                        return ((ResourcePattern)mv.resource).matches(matchUri) &gt;= 0;<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                }<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                return mv.resource.equals(matchValue.resource);<a name="line.178"></a>
+<span class="sourceLineNo">179</span>        }<a name="line.179"></a>
+<span class="sourceLineNo">180</span><a name="line.180"></a>
+<span class="sourceLineNo">181</span>        /* (non-Javadoc)<a name="line.181"></a>
+<span class="sourceLineNo">182</span>         * @see java.lang.Object#toString()<a name="line.182"></a>
+<span class="sourceLineNo">183</span>         */<a name="line.183"></a>
+<span class="sourceLineNo">184</span>        @Override<a name="line.184"></a>
+<span class="sourceLineNo">185</span>        public String toString() {<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                StringBuilder builder = new StringBuilder();<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                builder.append(Components.objectName(this));<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                builder.append(" [\"");<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                String path = request.requestUri().getPath();<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                if (path.length() &gt; 15) {<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                        builder.append("...");<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                        builder.append(path.substring(path.length() - 12));<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                } else {<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                        builder.append(path);<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                }<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                builder.append("\"");<a name="line.196"></a>
+<span class="sourceLineNo">197</span>                if (channels != null) {<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                        builder.append(", channels=");<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                        builder.append(Channel.toString(channels));<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                }<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                builder.append("]");<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                return builder.toString();<a name="line.202"></a>
+<span class="sourceLineNo">203</span>        }<a name="line.203"></a>
+<span class="sourceLineNo">204</span>        <a name="line.204"></a>
+<span class="sourceLineNo">205</span>        public static Object createMatchValue(<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                        Class&lt;?&gt; type, ResourcePattern resource) {<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                return new MatchValue(type, resource);<a name="line.207"></a>
+<span class="sourceLineNo">208</span>        }<a name="line.208"></a>
+<span class="sourceLineNo">209</span>        <a name="line.209"></a>
+<span class="sourceLineNo">210</span>        private static class MatchValue {<a name="line.210"></a>
+<span class="sourceLineNo">211</span>                private Class&lt;?&gt; type;<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                private Object resource;<a name="line.212"></a>
+<span class="sourceLineNo">213</span><a name="line.213"></a>
+<span class="sourceLineNo">214</span>                /**<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                 * @param type<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                 * @param resource<a name="line.216"></a>
+<span class="sourceLineNo">217</span>                 */<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                public MatchValue(Class&lt;?&gt; type, Object resource) {<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                        super();<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                        this.type = type;<a name="line.220"></a>
+<span class="sourceLineNo">221</span>                        this.resource = resource;<a name="line.221"></a>
+<span class="sourceLineNo">222</span>                }<a name="line.222"></a>
+<span class="sourceLineNo">223</span><a name="line.223"></a>
+<span class="sourceLineNo">224</span>                /* (non-Javadoc)<a name="line.224"></a>
+<span class="sourceLineNo">225</span>                 * @see java.lang.Object#hashCode()<a name="line.225"></a>
+<span class="sourceLineNo">226</span>                 */<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                @Override<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                public int hashCode() {<a name="line.228"></a>
+<span class="sourceLineNo">229</span>                        final int prime = 31;<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                        int result = 1;<a name="line.230"></a>
+<span class="sourceLineNo">231</span>                        result = prime * result<a name="line.231"></a>
+<span class="sourceLineNo">232</span>                                + ((resource == null) ? 0 : resource.hashCode());<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                        result = prime * result + ((type == null) ? 0 : type.hashCode());<a name="line.233"></a>
+<span class="sourceLineNo">234</span>                        return result;<a name="line.234"></a>
+<span class="sourceLineNo">235</span>                }<a name="line.235"></a>
+<span class="sourceLineNo">236</span><a name="line.236"></a>
+<span class="sourceLineNo">237</span>                /* (non-Javadoc)<a name="line.237"></a>
+<span class="sourceLineNo">238</span>                 * @see java.lang.Object#equals(java.lang.Object)<a name="line.238"></a>
+<span class="sourceLineNo">239</span>                 */<a name="line.239"></a>
+<span class="sourceLineNo">240</span>                @Override<a name="line.240"></a>
+<span class="sourceLineNo">241</span>                public boolean equals(Object obj) {<a name="line.241"></a>
+<span class="sourceLineNo">242</span>                        if (this == obj) {<a name="line.242"></a>
+<span class="sourceLineNo">243</span>                                return true;<a name="line.243"></a>
+<span class="sourceLineNo">244</span>                        }<a name="line.244"></a>
+<span class="sourceLineNo">245</span>                        if (obj == null) {<a name="line.245"></a>
+<span class="sourceLineNo">246</span>                                return false;<a name="line.246"></a>
+<span class="sourceLineNo">247</span>                        }<a name="line.247"></a>
+<span class="sourceLineNo">248</span>                        if (getClass() != obj.getClass()) {<a name="line.248"></a>
+<span class="sourceLineNo">249</span>                                return false;<a name="line.249"></a>
+<span class="sourceLineNo">250</span>                        }<a name="line.250"></a>
+<span class="sourceLineNo">251</span>                        MatchValue other = (MatchValue) obj;<a name="line.251"></a>
+<span class="sourceLineNo">252</span>                        if (resource == null) {<a name="line.252"></a>
+<span class="sourceLineNo">253</span>                                if (other.resource != null) {<a name="line.253"></a>
+<span class="sourceLineNo">254</span>                                        return false;<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                                }<a name="line.255"></a>
+<span class="sourceLineNo">256</span>                        } else if (!resource.equals(other.resource)) {<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                                return false;<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                        }<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                        if (type == null) {<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                                if (other.type != null) {<a name="line.260"></a>
+<span class="sourceLineNo">261</span>                                        return false;<a name="line.261"></a>
+<span class="sourceLineNo">262</span>                                }<a name="line.262"></a>
+<span class="sourceLineNo">263</span>                        } else if (!type.equals(other.type)) {<a name="line.263"></a>
+<span class="sourceLineNo">264</span>                                return false;<a name="line.264"></a>
+<span class="sourceLineNo">265</span>                        }<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                        return true;<a name="line.266"></a>
+<span class="sourceLineNo">267</span>                }<a name="line.267"></a>
+<span class="sourceLineNo">268</span>                <a name="line.268"></a>
+<span class="sourceLineNo">269</span>        }<a name="line.269"></a>
+<span class="sourceLineNo">270</span>}<a name="line.270"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>
