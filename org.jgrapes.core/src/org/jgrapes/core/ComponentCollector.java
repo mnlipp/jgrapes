@@ -48,7 +48,7 @@ public class ComponentCollector<F extends ComponentFactory>
 	 * passed as parameter to 
 	 * {@link ComponentFactory#create(Channel, Map)}
 	 * 
-	 * @param cls the factory class
+	 * @param factoryClass the factory class
 	 * @param componentChannel this component's channel
 	 * @param matcher the matcher function
 	 */
@@ -71,7 +71,7 @@ public class ComponentCollector<F extends ComponentFactory>
 	 * Utility constructor that creates an instance with a matcher that
 	 * always returns an empty map.
 	 * 
-	 * @param cls the factory class
+	 * @param factoryClass the factory class
 	 * @param componentChannel this component's channel
 	 */
 	public ComponentCollector(
