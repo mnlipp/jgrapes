@@ -19,7 +19,7 @@ Export-Package: \
 Require-Capability: \
     osgi.extender;filter:="(osgi.extender=osgi.serviceloader.processor)", \
     osgi.serviceloader; \
-        filter:="(osgi.serviceloader=org.jdrupes.core.ComponentFactory)"; \
+        filter:="(osgi.serviceloader=org.jgrapes.core.ComponentFactory)"; \
             cardinality:=multiple
 
 -fixupmessages: \
