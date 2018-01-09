@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.ComponentFactoryCollector;
+import org.jgrapes.core.ComponentCollector;
 import org.jgrapes.core.ComponentType;
 
 /**
@@ -31,7 +31,7 @@ import org.jgrapes.core.ComponentType;
  * instance of each.
  */
 public class HttpRequestHandlerCollector 
-	extends ComponentFactoryCollector<HttpRequestHandlerFactory> {
+	extends ComponentCollector<HttpRequestHandlerFactory> {
 
 	public HttpRequestHandlerCollector(Channel componentChannel,
 			Function<Class<? extends ComponentType>,Map<Object,Object>> matcher) {

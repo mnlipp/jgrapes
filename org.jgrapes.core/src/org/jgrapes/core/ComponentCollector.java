@@ -18,6 +18,7 @@
 
 package org.jgrapes.core;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -29,12 +30,12 @@ import org.jgrapes.core.ComponentFactory;
 import org.jgrapes.core.ComponentType;
 
 /**
- * A component that collects all services of 
+ * A component that collects all component factory services of 
  * a given type and creates an instance of each.
  * 
  * @param <F> the component factory type
  */
-public class ComponentFactoryCollector<F extends ComponentFactory>
+public class ComponentCollector<F extends ComponentFactory>
 	extends Component {
 
 	/**
@@ -51,7 +52,7 @@ public class ComponentFactoryCollector<F extends ComponentFactory>
 	 * @param componentChannel this component's channel
 	 * @param matcher the matcher function
 	 */
-	public ComponentFactoryCollector(
+	public ComponentCollector(
 			Class<F> factoryClass, Channel componentChannel,
 			Function<Class<? extends ComponentType>,Map<Object,Object>> matcher) {
 		super(componentChannel);
@@ -66,4 +67,15 @@ public class ComponentFactoryCollector<F extends ComponentFactory>
 		}
 	}
 
+	/**
+	 * Utility constructor that creates an instance with a matcher that
+	 * always returns an empty map.
+	 * 
+	 * @param cls the factory class
+	 * @param componentChannel this component's channel
+	 */
+	public ComponentCollector(
+			Class<F> factoryClass, Channel componentChannel) {
+		this(factoryClass, componentChannel, type -> Collections.emptyMap());
+	}
 }
