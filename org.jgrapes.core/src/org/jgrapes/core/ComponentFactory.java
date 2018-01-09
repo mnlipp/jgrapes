@@ -44,14 +44,14 @@ import org.jgrapes.core.Manager;
  * of {@link ServiceLoader#load(Class)} that returns a "filtered"
  * set of factories.
  */
-public interface ComponentFactory<T extends ComponentType> {
+public interface ComponentFactory {
 
 	/**
 	 * Returns the type of the components created by this factory.
 	 * 
 	 * @return the component type
 	 */
-	Class<T> componentType();
+	<T extends ComponentType> Class<T> componentType();
 	
 	/**
 	 * Creates a new component with its channel set to
@@ -59,7 +59,7 @@ public interface ComponentFactory<T extends ComponentType> {
 	 * 
 	 * @return the component
 	 */
-	default T create() {
+	default ComponentType create() {
 		return create(Channel.SELF);
 	}
 	
@@ -72,7 +72,7 @@ public interface ComponentFactory<T extends ComponentType> {
 	 * {@link Manager#fire(Event, Channel...)} sends the event to
 	 * @return the component
 	 */
-	default T create(Channel componentChannel) {
+	default ComponentType create(Channel componentChannel) {
 		return create(componentChannel, Collections.emptyMap()).get();
 	}
 	
@@ -89,6 +89,6 @@ public interface ComponentFactory<T extends ComponentType> {
 	 * component
 	 * @return the component
 	 */
-	Optional<T> create(
+	Optional<ComponentType> create(
 			Channel componentChannel, Map<Object, Object> properties);
 }

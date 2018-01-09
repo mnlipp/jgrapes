@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2017  Michael N. Lipp
+ * Copyright (C) 2017 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by 
@@ -18,19 +18,24 @@
 
 package org.jgrapes.http;
 
-import org.jgrapes.core.ComponentFactory;
-import org.jgrapes.http.events.Request;
+import java.util.Map;
+import java.util.function.Function;
+
+import org.jgrapes.core.Channel;
+import org.jgrapes.core.ComponentFactoryCollector;
+import org.jgrapes.core.ComponentType;
 
 /**
- * A component factory that creates components with at least one
- * handler for {@link Request} events. The kind of requests and
- * the service(s) provided are up to the component. If created using 
- * {@link ComponentFactory#create(org.jgrapes.core.Channel, java.util.Map)},
- * the created component may only handle requests that start with the
- * specified prefix.
+ * A component that collects all services of type
+ * {@link HttpRequestHandlerFactory} and creates an
+ * instance of each.
  */
-public interface HttpRequestHandlerFactory extends ComponentFactory {
+public class HttpRequestHandlerCollector 
+	extends ComponentFactoryCollector<HttpRequestHandlerFactory> {
 
-	public final String PREFIX = HttpRequestHandlerFactory.class.getName() + ".PREFIX";
-	
+	public HttpRequestHandlerCollector(Channel componentChannel,
+			Function<Class<? extends ComponentType>,Map<Object,Object>> matcher) {
+		super(HttpRequestHandlerFactory.class, componentChannel, matcher);
+	}
+
 }
