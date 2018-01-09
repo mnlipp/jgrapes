@@ -56,9 +56,8 @@ subprojects {
 	apply plugin: 'signing'
 	apply plugin: 'maven'
 	apply plugin: 'maven-publish'
+	apply plugin: 'org.jdrupes.mdoclet'
 	
-    tasks.withType(Javadoc).all { enabled = false }
-
 	if (project.file("bnd.bnd").exists()) {
 
 		apply plugin: 'biz.aQute.bnd.builder'
@@ -146,16 +145,16 @@ subprojects {
 		classifier "sources"
 	}
 	
-	task javadocJar(type: Jar) {
-		from (project.rootDir) {
-			include 'README.md'
+	if (project.name != "org.jgrapes.core") {
+		task javadocJar(type: Jar) {
+			from ("${project.rootDir}/misc/javadoc-redirect")
+			classifier "javadoc"
 		}
-		classifier "javadoc"
-	}
 	
-	artifacts {
-		archives sourcesJar
-		archives javadocJar
+		artifacts {
+			archives sourcesJar
+			archives javadocJar
+		}
 	}
 	
 	// MavenPublishing (new)
@@ -233,30 +232,11 @@ dependencies {
     // javadocTaglets "com.github.mnlipp:jdrupes-taglets:master-SNAPSHOT"
 }
 
-javadoc {
-
-    options.tagletPath = configurations.javadocTaglets.files as List
-    options.taglets = ["org.jdrupes.taglets.plantUml.Taglet"]
-
-    classpath = files(subprojects.collect {project -> 
-        project.sourceSets.main.compileClasspath})
-    source subprojects.collect {project -> project.sourceSets.main.allJava } 
-    options.addStringOption("doctitle", "JGrapes ${project.version}")
-	options.addStringOption("overview", "overview.md")
-	inputs.file "overview.md"
-	options.addBooleanOption("use", true)
-	options.addBooleanOption("linksource", true)
-	options.stylesheetFile(file("stylesheet.css"))
-    options.addStringOption("bottom", file("misc/javadoc.bottom.txt").text)
-    options.links "https://docs.oracle.com/javase/8/docs/api/"
-	destinationDir = file("../jgrapes.gh-pages/javadoc")
-}
-
 gitPublish {
 	repoUri = 'https://github.com/mnlipp/jgrapes.git'
 	branch = 'gh-pages'
 	contents {
-		from(javadoc) {
+		from("${buildDir}/javadoc") {
 			into 'javadoc'
 		}
 	}
@@ -265,7 +245,7 @@ gitPublish {
 }
 
 // Until https://github.com/ajoberstar/gradle-git-publish/issues/41 is fixed
-tasks.gitPublishCopy.dependsOn javadoc
+tasks.gitPublishCopy.dependsOn(":org.jgrapes.core:javadoc")
 
 task stage {
 	// Build everything first

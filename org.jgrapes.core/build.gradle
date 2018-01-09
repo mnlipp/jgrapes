@@ -6,3 +6,32 @@ test {
 //	testLogging.showStandardStreams = true
   
 }
+
+task javadocJar(type: Jar) {
+	from (javadoc)
+	classifier "javadoc"
+}
+
+artifacts {
+	archives sourcesJar
+	archives javadocJar
+}
+
+javadoc {
+	options.tagletPath = rootProject.configurations.javadocTaglets.files as List
+	options.taglets = ["org.jdrupes.taglets.plantUml.Taglet"]
+	
+	classpath = files(rootProject.subprojects.collect {project ->
+		project.sourceSets.main.compileClasspath})
+	source rootProject.subprojects.collect {project -> project.sourceSets.main.allJava }
+	options.addStringOption("doctitle", "JGrapes ${project.version}")
+	options.addStringOption("overview", "${rootProject.rootDir}/overview.md")
+	inputs.file "${rootProject.rootDir}/overview.md"
+	options.addBooleanOption("use", true)
+	options.addBooleanOption("linksource", true)
+	options.stylesheetFile(file("${rootProject.rootDir}/misc/stylesheet.css"))
+	options.addStringOption("bottom", file("${rootProject.rootDir}/misc/javadoc.bottom.txt").text)
+	options.links "https://docs.oracle.com/javase/8/docs/api/"
+	destinationDir = file("${rootProject.buildDir}/javadoc")
+}
+	
