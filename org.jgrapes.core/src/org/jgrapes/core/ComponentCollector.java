@@ -18,8 +18,10 @@
 
 package org.jgrapes.core;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.function.Function;
@@ -42,11 +44,10 @@ public class ComponentCollector<F extends ComponentFactory>
 	 * Creates a new collector that collects the factories of the given 
 	 * type and uses each to create an instance with this component's
 	 * channel. Before the instance is created, the `matcher` 
-	 * function is invoked with the factory's component's class 
-	 * as argument. If the function returns `null`,
-	 * the creation is skipped. Else the map returned is
-	 * passed as parameter to 
-	 * {@link ComponentFactory#create(Channel, Map)}
+	 * function is invoked with the name of the class of the component
+	 * to be created as argument. The list of maps returned is
+	 * used to create components, passing each element in the list
+	 * as parameter to {@link ComponentFactory#create(Channel, Map)}
 	 * 
 	 * @param factoryClass the factory class
 	 * @param componentChannel this component's channel
@@ -54,28 +55,31 @@ public class ComponentCollector<F extends ComponentFactory>
 	 */
 	public ComponentCollector(
 			Class<F> factoryClass, Channel componentChannel,
-			Function<Class<? extends ComponentType>,Map<Object,Object>> matcher) {
+			Function<Class<? extends ComponentType>,List<Map<?,?>>> matcher) {
 		super(componentChannel);
 		ServiceLoader<F> serviceLoader = ServiceLoader.load(factoryClass);
 		for (Iterator<F> itr = serviceLoader.iterator(); itr.hasNext();) {
 			F factory = itr.next();
-			Map<Object,Object> config = matcher.apply(factory.componentType());
-			if (config != null) {
+			List<Map<?,?>> configs = matcher.apply(factory.componentType());
+			for (Map<?,?> config: configs) {
 				factory.create(channel(), config).ifPresent(
 						component -> attach(component));
 			}
 		}
 	}
 
+	private static List<Map<?,?>> SINGLE_DEFAULT 
+		= Arrays.asList(Collections.emptyMap());
+	
 	/**
-	 * Utility constructor that creates an instance with a matcher that
-	 * always returns an empty map.
+	 * Utility constructor that uses each factory to create a single
+	 * instance, using an empty map as properties.
 	 * 
 	 * @param factoryClass the factory class
 	 * @param componentChannel this component's channel
 	 */
 	public ComponentCollector(
 			Class<F> factoryClass, Channel componentChannel) {
-		this(factoryClass, componentChannel, type -> Collections.emptyMap());
+		this(factoryClass, componentChannel, type -> SINGLE_DEFAULT);
 	}
 }
