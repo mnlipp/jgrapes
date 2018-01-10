@@ -164,8 +164,8 @@ public class EchoTest {
 		if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
 			fail();
 		}
-		InetSocketAddress serverAddr 
-			= ((InetSocketAddress)readyEvent.listenAddress());
+		InetSocketAddress serverAddr = new InetSocketAddress("localhost",
+				((InetSocketAddress)readyEvent.listenAddress()).getPort());
 		try (Socket client = new Socket(serverAddr.getAddress(),
 		        serverAddr.getPort())) {
 			FutureTask<Integer> receive = new FutureTask<>(
@@ -228,8 +228,8 @@ public class EchoTest {
 		if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
 			fail();
 		}
-		InetSocketAddress serverAddr 
-			= ((InetSocketAddress)readyEvent.listenAddress());
+		InetSocketAddress serverAddr = new InetSocketAddress("localhost",
+				((InetSocketAddress)readyEvent.listenAddress()).getPort());
 		
 		// Create a trust manager that does not validate certificate chains
 		TrustManager[] trustAllCerts = new TrustManager[]{
