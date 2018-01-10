@@ -51,7 +51,7 @@ public interface ComponentFactory {
 	 * 
 	 * @return the component type
 	 */
-	<T extends ComponentType> Class<T> componentType();
+	Class<? extends ComponentType> componentType();
 	
 	/**
 	 * Creates a new component with its channel set to
