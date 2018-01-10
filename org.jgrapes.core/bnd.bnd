@@ -20,7 +20,7 @@ Require-Capability: \
     osgi.extender;filter:="(osgi.extender=osgi.serviceloader.processor)", \
     osgi.serviceloader; \
         filter:="(osgi.serviceloader=org.jgrapes.core.ComponentFactory)"; \
-            cardinality:=multiple
+            resolution:=optional;cardinality:=multiple
 
 -fixupmessages: \
     "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable.",\
