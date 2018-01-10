@@ -19,7 +19,7 @@ Require-Capability: \
     osgi.extender;filter:="(osgi.extender=osgi.serviceloader.processor)", \
     osgi.serviceloader; \
         filter:="(osgi.serviceloader=org.jgrapes.http.HttpRequestHandlerFactory)"; \
-            cardinality:=multiple
+            resolution:=optional;cardinality:=multiple
 
 -fixupmessages: \
     "Found source folder 'test-resources' that is not on bnd's source path", \
