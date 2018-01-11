@@ -16,6 +16,10 @@ Export-Package: \
 
 -dsannotations: 
 
+Require-Capability: \
+    osgi.extender; filter:="(osgi.extender=osgi.serviceloader.processor)"; \
+        resolution:=optional
+
 -fixupmessages: \
     "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable.",\
     "Export org.jgrapes.core,  has 1,  private references ", \
