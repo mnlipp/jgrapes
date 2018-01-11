@@ -20,8 +20,12 @@ class ConfigurePublishing implements Plugin<Project> {
 				mavenJava(MavenPublication) {
 					artifactId = project.archivesBaseName
 					from(project.components.java)
-					artifact(project.tasks.sourcesJar)
-					artifact(project.tasks.javadocJar)
+					artifact(project.tasks.sourcesJar) {
+						classifier = 'sources'
+					}
+					artifact(project.tasks.javadocJar) {
+						classifier = 'javadoc'
+					}
 					pom.packaging = "jar"
 					
 					// Until https://github.com/gradle/gradle/issues/1232 is fixed:
