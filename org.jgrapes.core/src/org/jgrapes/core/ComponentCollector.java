@@ -29,7 +29,6 @@ import java.util.function.Function;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.ComponentFactory;
-import org.jgrapes.core.ComponentType;
 
 /**
  * A component that collects all component factory services of 
@@ -55,12 +54,13 @@ public class ComponentCollector<F extends ComponentFactory>
 	 */
 	public ComponentCollector(
 			Class<F> factoryClass, Channel componentChannel,
-			Function<Class<? extends ComponentType>,List<Map<?,?>>> matcher) {
+			Function<String,List<Map<?,?>>> matcher) {
 		super(componentChannel);
 		ServiceLoader<F> serviceLoader = ServiceLoader.load(factoryClass);
 		for (Iterator<F> itr = serviceLoader.iterator(); itr.hasNext();) {
 			F factory = itr.next();
-			List<Map<?,?>> configs = matcher.apply(factory.componentType());
+			List<Map<?,?>> configs = matcher.apply(
+					factory.componentType().getName());
 			for (Map<?,?> config: configs) {
 				factory.create(channel(), config).ifPresent(
 						component -> attach(component));
