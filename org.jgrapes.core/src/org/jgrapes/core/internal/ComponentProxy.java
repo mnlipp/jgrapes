@@ -32,7 +32,7 @@ import org.jgrapes.core.annotation.Handler;
  * object implementing the Component interface (instead of being
  * its base class).
  */
-public class ComponentProxy extends ComponentVertex implements Channel {
+public class ComponentProxy extends ComponentVertex {
 
 	/** The reference to the actual component. */
 	private ComponentType component = null;

@@ -20,11 +20,17 @@ package org.jgrapes.core.events;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.Manager;
 
 /**
  * An event that signals the start of the application.
  * This event must be fired in order to start the dispatching of
- * events to components.
+ * events to components. Components that allocate resources usually
+ * do this in a handler for this event.
+ * 
+ * See {@link Manager#attach(org.jgrapes.core.ComponentType)}
+ * for details about this event and attaching a subtree to an
+ * already started tree.
  */
 public class Start extends Event<Void> {
 	

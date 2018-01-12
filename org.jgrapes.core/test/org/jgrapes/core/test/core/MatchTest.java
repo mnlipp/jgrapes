@@ -36,13 +36,22 @@ public class MatchTest {
 
 	public class EventCounter extends Component {
 
-		public int all = 0;
-		public int startedGlobal = 0;
-		public int startedTest1 = 0;
-		public int named1Global = 0;
-		public int named1Test1 = 0;
-		public int startedComponent = 0;
+		public int anyDirectedAtAnyChannel = 0;
+		public int startDirectedAtComponentChannel = 0;
+		public int startDirectedAtTest1 = 0;
+		public int named1DirectedAtComponentChannel = 0;
+		public int named1DirectedAtTest1 = 0;
+		public int startDirectedAtComponent = 0;
 
+		public void reset() {
+			anyDirectedAtAnyChannel = 0;
+			startDirectedAtComponentChannel = 0;
+			startDirectedAtTest1 = 0;
+			named1DirectedAtComponentChannel = 0;
+			named1DirectedAtTest1 = 0;
+			startDirectedAtComponent = 0;
+		}
+		
 		/**
 		 * 
 		 */
@@ -55,32 +64,32 @@ public class MatchTest {
 
 		@Handler(dynamic=true)
 		public void onStartedComponent(Start event) {
-			startedComponent += 1;
+			startDirectedAtComponent += 1;
 		}
 		
-		@Handler(events=Event.class, channels=Channel.class)
-		public void onAll(Event<?> event) {
-			all += 1;
-		}
-
 		@Handler(dynamic=true)
 		public void onStart(Start event) {
-			startedGlobal += 1;
+			startDirectedAtComponentChannel += 1;
+		}
+
+		@Handler(events=Event.class, channels=Channel.class)
+		public void onAll(Event<?> event) {
+			anyDirectedAtAnyChannel += 1;
 		}
 
 		@Handler(events=Start.class, namedChannels="test1")
 		public void onStartTest1(Start event) {
-			startedTest1 += 1;
+			startDirectedAtTest1 += 1;
 		}
 
 		@Handler(namedEvents="named1")
 		public void onNamed1(Event<?> event) {
-			named1Global += 1;
+			named1DirectedAtComponentChannel += 1;
 		}
 		
 		@Handler(namedEvents="named1", namedChannels="test1")
 		public void onNamed1Test1(Event<?> event) {
-			named1Test1 += 1;
+			named1DirectedAtTest1 += 1;
 		}
 	}
 
@@ -90,46 +99,43 @@ public class MatchTest {
 		EventPipeline pipeline = Components.manager(app).newSyncEventPipeline();
 		pipeline.fire(new Start());
 		Components.awaitExhaustion();
-		assertEquals(1, app.startedGlobal);
-		assertEquals(1, app.startedTest1);
-		assertEquals(0, app.named1Global);
-		assertEquals(0, app.named1Test1);
-		assertEquals(1, app.startedComponent);
-		assertEquals(2, app.all); // Start and Started
+		assertEquals(1, app.startDirectedAtComponent);
+		assertEquals(1, app.startDirectedAtComponentChannel);
+		assertEquals(1, app.startDirectedAtTest1);
+		assertEquals(0, app.named1DirectedAtComponentChannel);
+		assertEquals(0, app.named1DirectedAtTest1);
+		assertEquals(2, app.anyDirectedAtAnyChannel); // Start and Started
+		app.reset();
 		pipeline.fire(new Start(), new NamedChannel("test1"));
-		assertEquals(2, app.startedGlobal);
-		assertEquals(2, app.startedTest1);
-		assertEquals(0, app.named1Global);
-		assertEquals(0, app.named1Test1);
-		assertEquals(1, app.startedComponent);
-		assertEquals(4, app.all);	// Start and Started
+		assertEquals(0, app.startDirectedAtComponent);
+		assertEquals(1, app.startDirectedAtComponentChannel);
+		assertEquals(1, app.startDirectedAtTest1);
+		assertEquals(0, app.named1DirectedAtComponentChannel);
+		assertEquals(0, app.named1DirectedAtTest1);
+		assertEquals(2, app.anyDirectedAtAnyChannel);	// Start and Started
+		app.reset();
 		pipeline.fire(new NamedEvent<Void>("named1"));
-		assertEquals(2, app.startedGlobal);
-		assertEquals(2, app.startedTest1);
-		assertEquals(1, app.named1Global);
-		assertEquals(1, app.named1Test1);
-		assertEquals(1, app.startedComponent);
-		assertEquals(5, app.all);	// NamedEvent
+		assertEquals(0, app.startDirectedAtComponent);
+		assertEquals(0, app.startDirectedAtComponentChannel);
+		assertEquals(0, app.startDirectedAtTest1);
+		assertEquals(1, app.named1DirectedAtComponentChannel);
+		assertEquals(1, app.named1DirectedAtTest1);
+		assertEquals(1, app.anyDirectedAtAnyChannel);	// NamedEvent
+		app.reset();
 		pipeline.fire(new NamedEvent<Void>("named1"), new NamedChannel("test1"));
-		assertEquals(2, app.startedGlobal);
-		assertEquals(2, app.startedTest1);
-		assertEquals(2, app.named1Global);
-		assertEquals(2, app.named1Test1);
-		assertEquals(1, app.startedComponent);
-		assertEquals(6, app.all);	// NamedEvent
+		assertEquals(0, app.startDirectedAtComponent);
+		assertEquals(0, app.startDirectedAtComponentChannel);
+		assertEquals(0, app.startDirectedAtTest1);
+		assertEquals(1, app.named1DirectedAtComponentChannel);
+		assertEquals(1, app.named1DirectedAtTest1);
+		assertEquals(1, app.anyDirectedAtAnyChannel);	// NamedEvent
+		app.reset();
 		pipeline.fire(new Start(), app);
-		assertEquals(3, app.startedGlobal);
-		assertEquals(2, app.startedTest1);
-		assertEquals(2, app.named1Global);
-		assertEquals(2, app.named1Test1);
-		assertEquals(2, app.startedComponent);
-		assertEquals(8, app.all);	// Start and Started
-		pipeline.fire(new Start(), app);
-		assertEquals(4, app.startedGlobal);
-		assertEquals(2, app.startedTest1);
-		assertEquals(2, app.named1Global);
-		assertEquals(2, app.named1Test1);
-		assertEquals(3, app.startedComponent);
-		assertEquals(10, app.all);	// Start and Started
+		assertEquals(1, app.startDirectedAtComponent);
+		assertEquals(1, app.startDirectedAtComponentChannel);
+		assertEquals(1, app.startDirectedAtTest1);
+		assertEquals(0, app.named1DirectedAtComponentChannel);
+		assertEquals(0, app.named1DirectedAtTest1);
+		assertEquals(2, app.anyDirectedAtAnyChannel);	// Start and Started
 	}
 }

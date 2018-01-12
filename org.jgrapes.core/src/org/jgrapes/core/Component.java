@@ -18,6 +18,7 @@
 
 package org.jgrapes.core;
 
+import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.internal.ComponentVertex;
 
 /**
@@ -30,8 +31,11 @@ import org.jgrapes.core.internal.ComponentVertex;
  * <P>
  * This class also implements the {@code Channel} interface in such a way
  * that each instance of this class can be used as an independent
- * channel.
+ * channel. Note that events that have a component as one of their
+ * channels are always handled by the component, independent of
+ * channels explicitly specified by the handler. 
  * 
+ * @see Handler
  * @see ComponentType
  */
 public abstract class Component extends ComponentVertex 

@@ -18,7 +18,10 @@
 
 package org.jgrapes.util;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -26,7 +29,6 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
-import org.jgrapes.core.events.Stop;
 import org.jgrapes.util.events.PreferencesInitialized;
 import org.jgrapes.util.events.PreferencesRemoval;
 import org.jgrapes.util.events.PreferencesUpdate;
@@ -35,16 +37,17 @@ import org.jgrapes.util.events.PreferencesUpdate;
  * This component provides a store for application preferences. Preferences
  * are maps of key value pairs that are associated with a path. A common
  * base path is passed to the component on creation. Components store 
- * their preferences using paths relative to that base path. Usually
- * the relative path simply corresponds to the comoponent's class name, 
+ * their preferences using paths relative to that base path. Usually,
+ * the relative path simply corresponds to the component's class name, 
  * though no restrictions for choosing the relative path exist.
  * 
  * The component reads the initial values from the Java {@link Preferences}
  * tree denoted by the base path. During application bootstrap, it 
  * intercepts the {@link Start} event using a handler with  priority 
  * 999999. When receiving this event, it fires all known preferences 
- * values on its channel as an {@link PreferencesInitialized} event. 
- * Then, it re-fires the intercepted {@link Start} event. 
+ * values on the channels fo the start event as a 
+ * {@link PreferencesInitialized} event. Then, it re-fires the 
+ * intercepted {@link Start} event. 
  * 
  * Components that depend on preference values define handlers
  * for {@link PreferencesUpdate} events and adapt themselves to the values 
@@ -60,12 +63,12 @@ import org.jgrapes.util.events.PreferencesUpdate;
 public class PreferencesStore extends Component {
 
 	private Preferences preferences;
-	private boolean started = false;
+	Set<Start> replacements = Collections.newSetFromMap(new WeakHashMap<>());
 	
 	/**
 	 * Creates a new component base with its channel set to the given 
 	 * channel and a base path derived from the given class.
-	 *  
+	 * 
 	 * @param componentChannel the channel 
 	 * @param appClass the application class; the base path
 	 * is formed by replacing each dot in the class's full name with 
@@ -77,18 +80,19 @@ public class PreferencesStore extends Component {
 				.node(appClass.getSimpleName()).node("PreferencesStore");
 	}
 
-	@Handler(priority=999999)
+	@Handler(priority=999999, channels=Channel.class)
 	public void onStart(Start event) throws BackingStoreException {
-		if (started) {
+		if (replacements.contains(event)) {
 			return;
 		}
-		started = true;
 		event.cancel(false);
 		PreferencesInitialized updEvt 
 			= new PreferencesInitialized(preferences.parent().absolutePath());
 		addPrefs(updEvt, preferences.absolutePath(), preferences);
-		fire(updEvt);
-		fire(new Start(), event.channels());
+		fire(updEvt, event.channels());
+		Start replacement = new Start();
+		replacements.add(replacement);
+		fire(replacement, event.channels());
 	}
 
 	private void addPrefs(
@@ -103,11 +107,6 @@ public class PreferencesStore extends Component {
 		for (String child: node.childrenNames()) {
 			addPrefs(updEvt, rootPath, node.node(child));
 		}
-	}
-	
-	@Handler
-	public void onStop(Stop event) {
-		started = false;
 	}
 	
 	@Handler

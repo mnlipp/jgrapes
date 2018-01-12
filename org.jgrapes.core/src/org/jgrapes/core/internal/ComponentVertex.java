@@ -42,6 +42,7 @@ import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.HandlerDefinition;
 import org.jgrapes.core.events.Attached;
 import org.jgrapes.core.events.Detached;
+import org.jgrapes.core.events.Start;
 
 /**
  * ComponentVertex is the base class for all nodes in the component tree.
@@ -51,7 +52,7 @@ import org.jgrapes.core.events.Detached;
  * the derived class {@link org.jgrapes.core.internal.ComponentProxy} can be
  * used. 
  */
-public abstract class ComponentVertex implements Manager {
+public abstract class ComponentVertex implements Manager, Channel {
 
 	/** Handler factory cache. */
 	private static Map<Class<? extends HandlerDefinition.Evaluator>,
@@ -214,7 +215,14 @@ public abstract class ComponentVertex implements Manager {
 	@Override
 	public synchronized <T extends ComponentType> T attach(T child) {
 		ComponentVertex childNode = componentVertex(child, null);
+		List<Channel> attachedAsChannels = new ArrayList<>();
 		synchronized (childNode) {
+			if (tree != null && tree.isStarted()) {
+				for (TreeIterator itr = new TreeIterator(childNode);
+						itr.hasNext();) {
+					attachedAsChannels.add(itr.next());
+				}
+			}
 			synchronized (tree()) {
 				if (childNode.tree == null) { 
 					// Newly created, stand-alone child node
@@ -259,6 +267,9 @@ public abstract class ComponentVertex implements Manager {
 		} else {
 			fire(evt, parentChan, childChan);
 		}
+		if (!attachedAsChannels.isEmpty()) {
+			fire(new Start(), attachedAsChannels.toArray(new Channel[0]));
+		}
 		return child;
 	}
 	
@@ -298,13 +309,40 @@ public abstract class ComponentVertex implements Manager {
 	 */
 	@Override
 	public Iterator<ComponentType> iterator() {
-		return new TreeIterator(this);
+		return new ComponentIterator(new TreeIterator(this));
+	}
+
+	/**
+	 * A simple wrapper that converts a component vertex iterator
+	 * to a component (type) iterator.
+	 */
+	private static class ComponentIterator implements Iterator<ComponentType> {
+
+		private TreeIterator baseIterator;
+		
+		/**
+		 * @param baseIterator
+		 */
+		public ComponentIterator(TreeIterator baseIterator) {
+			this.baseIterator = baseIterator;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return baseIterator.hasNext();
+		}
+
+		@Override
+		public ComponentType next() {
+			return baseIterator.next().component();
+		}
+		
 	}
 	
 	/**
 	 * An iterator for getting all nodes of the tree.
 	 */
-	private static class TreeIterator implements Iterator<ComponentType> {
+	private static class TreeIterator implements Iterator<ComponentVertex> {
 
 		private class Pos {
 			public ComponentVertex current;
@@ -336,7 +374,7 @@ public abstract class ComponentVertex implements Manager {
 		 * @see java.util.Iterator#next()
 		 */
 		@Override
-		public ComponentType next() {
+		public ComponentVertex next() {
 			if (stack.empty()) {
 				throw new NoSuchElementException();
 			}
@@ -358,7 +396,7 @@ public abstract class ComponentVertex implements Manager {
 				}
 				pos = stack.peek();
 			}
-			return res.component();
+			return res;
 		}
 
 		/* (non-Javadoc)

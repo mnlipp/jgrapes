@@ -60,6 +60,10 @@ import org.jgrapes.core.Self;
  * If neither channel classes not named channels are specified, the
  * default criterion of the component's channel is used for matching
  * events.
+ *
+ * In addition, events that are directed at the component itself,
+ * i.e. have the component as channel, always match with respect to
+ * the channel.
  * 
  * @see Component#channel()
  */
@@ -144,6 +148,9 @@ public @interface Handler {
 	 *     }
 	 * }
 	 * ```
+	 * 
+	 * Specifying `channels=Channel.class` make the handler listen
+	 * for all events, independent of the channel that they are fired on.
 	 * 
 	 * @return the channel classes
 	 */
@@ -375,17 +382,14 @@ public @interface Handler {
 					if (annotation.channels()[0] != Handler.NoChannel.class) {
 						for (Class<?> c : annotation.channels()) {
 							if (c == Self.class) {
-								if (component instanceof Channel) {
-									handledChannels
-									        .add(((Channel) component)
-									                .defaultCriterion());
-								} else {
+								if (!(component instanceof Channel)) {
 									throw new IllegalArgumentException(
 									    "Canot use channel This.class in "
 										+ "annotation of " + method 
 										+ " because " + getClass().getName()
 									    + " does not implement Channel.");
 								}
+								// Will be added anyway, see below
 							} else if (c == DefaultChannel.class) {
 								addDefaultChannel = true;
 							} else {
@@ -404,6 +408,13 @@ public @interface Handler {
 						        .channel().defaultCriterion());
 					}
 				}
+				// Finally, a comoponent always handles events
+				// directed at it directly.
+				if (component instanceof Channel) {
+					handledChannels.add(
+							((Channel) component).defaultCriterion());
+				}
+				
 			}
 			
 			@Override

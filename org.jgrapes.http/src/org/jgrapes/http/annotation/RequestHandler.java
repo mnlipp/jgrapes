@@ -197,16 +197,14 @@ public @interface RequestHandler {
 				if (annotation.channels()[0] != NoChannel.class) {
 					for (Class<?> c: annotation.channels()) {
 						if (c == Self.class) {
-							if (component instanceof Channel) {
-								handledChannels
-									.add(((Channel)component).defaultCriterion());
-							} else {
+							if (!(component instanceof Channel)) {
 								throw new IllegalArgumentException(
-									"Canot use channel This.class in annotation"
-									+ " of " + method + " because " 
-									+ getClass().getName() 
-									+ " does not implement Channel.");
+								    "Canot use channel This.class in "
+									+ "annotation of " + method 
+									+ " because " + getClass().getName()
+								    + " does not implement Channel.");
 							}
+							// Will be added anyway, see below
 						} else if (c == DefaultChannel.class) {
 							addDefaultChannel = true;
 						} else {
@@ -217,6 +215,12 @@ public @interface RequestHandler {
 				if (handledChannels.size() == 0 || addDefaultChannel) {
 					handledChannels.add(Components.manager(component)
 					        .channel().defaultCriterion());
+				}
+				// Finally, a comoponent always handles events
+				// directed at it directly.
+				if (component instanceof Channel) {
+					handledChannels.add(
+							((Channel) component).defaultCriterion());
 				}
 				
 				try {

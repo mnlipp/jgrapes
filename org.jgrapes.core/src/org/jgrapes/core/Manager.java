@@ -19,8 +19,12 @@
 package org.jgrapes.core;
 
 import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
+
+import org.jgrapes.core.events.Start;
 
 /**
  * The interface that provides the methods for manipulating the
@@ -58,6 +62,14 @@ public interface Manager extends Iterable<ComponentType> {
 	 * Attaches the given component node (or complete tree) as a child 
 	 * to the component managed by this manager. The node or tree may not
 	 * have been started.
+	 * 
+	 * If a component (or component tree) is attached to an already
+	 * started tree, a {@link Start} event is automatically fired 
+	 * with the list of components from the attached subtree as 
+	 * channels. This guarantees that every component gets a 
+	 * {@link Start} event once. For efficiency, it is therefore 
+	 * preferable to build a subtree first and attach it, instead
+	 * of attaching the nodes to the existing tree one by one.
 	 * 
 	 * @param <T> the component node's type
 	 * @param child the component to add
@@ -182,4 +194,27 @@ public interface Manager extends Iterable<ComponentType> {
 	 * Unregister the managed component as a running generator.
 	 */
 	void unregisterAsGenerator();
+
+	/**
+	 * Returns an iterator that visits the components of the
+	 * component subtree that has this node as root.
+	 * 
+	 * @return the iterator
+	 */
+	@Override
+	Iterator<ComponentType> iterator();
+	
+	/**
+	 * Returns the components visited when traversing the
+	 * tree that starts with this component.
+	 * 
+	 * @return the stream
+	 */
+	default Stream<ComponentType> stream() {
+		Stream.Builder<ComponentType> sb = Stream.builder();
+		for (ComponentType c: this) {
+			sb.accept(c);
+		}
+		return sb.build();
+	}
 }
