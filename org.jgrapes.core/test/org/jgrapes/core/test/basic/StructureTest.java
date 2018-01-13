@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 
+import org.jgrapes.core.Component;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Manager;
@@ -152,18 +153,23 @@ public class StructureTest {
 		Components.manager(new IllegalComponent());
 	}
 	
+	public static class AnonymousComponent extends Component {
+	}
+	
 	@Test
 	public void testPaths() {
 		TestComponent2 comp = new TestComponent2("root");
 		TestComponent2 comp1 = comp.attach(new TestComponent2("sub1"));
 		TestComponent2 comp2 = comp.attach(new TestComponent2("sub2"));
 		TestComponent1 comp3 = comp.attach(new TestComponent1("sub3"));
+		AnonymousComponent comp4 = comp1.attach(new AnonymousComponent());
 		Iterator<ComponentType> iter = comp.children().iterator();
 		assertSame(iter.next(), comp1);
 		assertSame(iter.next(), comp2);
 		assertEquals("/root/sub1", comp1.path());
 		assertEquals("/root/sub2", comp2.path());
 		assertEquals("/root/ComponentProxy", Components.manager(comp3).path());
+		assertEquals("/root/sub1/AnonymousComponent", comp4.path());
 	}
 	
 }
