@@ -18,18 +18,45 @@
 
 package org.jgrapes.core;
 
+import org.jgrapes.core.annotation.Handler;
+
 /**
- * Classes that implements this interface can be used as a communication bus 
- * for sending events between components.
- * <P>
+ * Instances of this this interface can be used as a communication 
+ * bus for sending events between components. The instances work
+ * as identifiers of channels. Their only functionality is defined
+ * by the {@link Eligible} interface, which allows a channel
+ * (used as attribute of an {@link Event}) to be matched against 
+ * a criterion specified in a {@link Handler}.
+ * 
+ * The need to use the {@link Eligible} interface for comparison
+ * arises from the fact that we cannot use objects as values in
+ * annotations. It must therefore be possible to match channels
+ * (objects) against criteria that can be expressed as constant 
+ * values.
+ * 
+ * Some values have been defined to represent special criteria.
+ * 
+ * * If the value `Channel.class` is specified as criterion in
+ *   a handler, all channel instances match. It is the "catch-all"
+ *   criterion.
+ * 
+ * * If the value `{@link Default}.class` is specified as criterion
+ *   in a handler, the channels from an {@link Event} are
+ *   matched agains the criterion from the component's channel
+ *   (returned by the {@link Manager#channel() channel()} method).  
+ * 
+ * The predefined {@link #BROADCAST} channel is a channel instance
+ * that implements the {@link Eligible} interface in such a way that
+ * all criteria match. Events fired on the {@link #BROADCAST} channel
+ * will therefore be accepted by all handlers (as its name suggests).
+ * 
  * For ordinary usage, the implementing classes {@link ClassChannel}
  * and {@link NamedChannel} should be sufficient. If another type of
- * <code>Channel</code> is needed, its implementation of this interface 
- * must make sure that {@link Eligible#isEligibleFor(Object)} returns
- * <code>true</code> if called with <code>Channel.class</code>
- * as parameter, else channels of the new type will not participate
- * in broadcasts.
- * <P>
+ * `Channel` is needed, its implementation must make sure that 
+ * {@link Eligible#isEligibleFor(Object)} returns
+ * `true` if called with `Channel.class` as parameter, else channels 
+ * of the new type will not be delivered to "catch-all" handlers.
+ * 
  * Objects of type <code>Channel</code> must be immutable.
  * 
  * @see Channel#BROADCAST
@@ -37,15 +64,33 @@ package org.jgrapes.core;
 public interface Channel extends Eligible {
 
 	/**
-	 * A special channel object that can be passed to the constructor
-	 * of {@link Component#Component(Channel)}.
+	 * This interface's class can be used to specify the component's 
+	 * channel (see {@link Component#channel()}) as criterion in 
+	 * handler annotations.
+	 * 
+	 * Using the component's channel for comparison is the default 
+	 * if no channels are specified in the annotation, so specifying 
+	 * only this class in the handler annotation is equivalent
+	 * to specifying no channel at all. This special channel type is required
+	 * if you want to specify a handler that handles events fired on the 
+	 * component's channel or on additional channels.
+	 */
+	public interface Default extends Channel {
+	}
+	
+	/**
+	 * A special channel object that can be passed as argument to 
+	 * the constructor of {@link Component#Component(Channel)}. 
+	 * Doing this sets the component's channel to the component 
+	 * (which is not available as argument when calling the 
+	 * constructor).
 	 * 
 	 * @see Component#Component(Channel)
 	 */
 	public static final Channel SELF = new ClassChannel();
 	
 	/**
-	 * A special channel that can be used to send events to
+	 * A special channel instance that can be used to send events to
 	 * all components.
 	 */
 	public static final Channel BROADCAST = new ClassChannel() {

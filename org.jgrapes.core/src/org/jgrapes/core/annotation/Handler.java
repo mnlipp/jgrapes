@@ -31,14 +31,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Channel.Default;
 import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.DefaultChannel;
 import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
+import org.jgrapes.core.Manager;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.Self;
@@ -49,21 +50,35 @@ import org.jgrapes.core.Self;
  * 
  * The annotated method is invoked for events that have a type (or
  * name) matching the given `events` (or `namedEvents`) parameter 
- * of the annotation and that are fired on the given `channels` 
- * (or `namedChannels`).
+ * of the annotation and that are fired on one of
+ * the `channels` (or `namedChannels`) specified in the annotation.
  * 
- * If neither event classes nor named events are specified as part of the 
+ * If neither event classes nor named events are specified in the 
  * annotation, the class of the annotated method's first parameter (which 
  * must be of type {@link Event} or a super type) is used as (single)
- * event class.
+ * event class (see the examples in {@link #events()} and 
+ * {@link #namedEvents()}).
  * 
- * If neither channel classes not named channels are specified, the
- * default criterion of the component's channel is used for matching
- * events.
+ * Channel matching is performed on each of the event's channels.
+ * If channel classes (or `namedChannels`) are specified, the 
+ * handler invokes the current channel's 
+ * {@link Eligible#isEligibleFor(Object) isEligibleFor} with the
+ * class (or name, see {@link #channels()} and 
+ * {@link Handler#namedChannels()}).
+ * 
+ * If neither channel classes not named channels are specified, or
+ * `{@link Default Channel.Default}.class` is specified as one of the
+ * channel classes, the handler invokes the current channel's 
+ * {@link Eligible#isEligibleFor(Object) isEligibleFor} with the
+ * default criterion of the component's channel (see
+ * {@link Manager#channel()} and {@link Eligible#defaultCriterion()}).
  *
- * In addition, events that are directed at the component itself,
- * i.e. have the component as channel, always match with respect to
- * the channel.
+ * Finally, independent of any specified channels, the handler 
+ * invokes the current channel's 
+ * {@link Eligible#isEligibleFor(Object) isEligibleFor} with the
+ * component's default criterion. This results in a match if
+ * the component itself is used as one of the event's channels
+ * (see the description of {@link Eligible}).
  * 
  * @see Component#channel()
  */
@@ -390,7 +405,7 @@ public @interface Handler {
 									    + " does not implement Channel.");
 								}
 								// Will be added anyway, see below
-							} else if (c == DefaultChannel.class) {
+							} else if (c == Channel.Default.class) {
 								addDefaultChannel = true;
 							} else {
 								handledChannels.add(c);
@@ -408,7 +423,7 @@ public @interface Handler {
 						        .channel().defaultCriterion());
 					}
 				}
-				// Finally, a comoponent always handles events
+				// Finally, a component always handles events
 				// directed at it directly.
 				if (component instanceof Channel) {
 					handledChannels.add(

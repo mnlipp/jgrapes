@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.DefaultChannel;
 import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
@@ -205,7 +204,7 @@ public @interface RequestHandler {
 								    + " does not implement Channel.");
 							}
 							// Will be added anyway, see below
-						} else if (c == DefaultChannel.class) {
+						} else if (c == Channel.Default.class) {
 							addDefaultChannel = true;
 						} else {
 							handledChannels.add(c);
