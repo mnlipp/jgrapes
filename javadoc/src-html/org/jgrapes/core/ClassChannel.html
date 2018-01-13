@@ -95,14 +95,17 @@
 <span class="sourceLineNo">087</span>         */<a name="line.87"></a>
 <span class="sourceLineNo">088</span>        @Override<a name="line.88"></a>
 <span class="sourceLineNo">089</span>        public String toString() {<a name="line.89"></a>
-<span class="sourceLineNo">090</span>                return Components.classToString(getClass())<a name="line.90"></a>
-<span class="sourceLineNo">091</span>                                + " [criterion=" <a name="line.91"></a>
-<span class="sourceLineNo">092</span>                                + ((defaultCriterion() instanceof Class)<a name="line.92"></a>
-<span class="sourceLineNo">093</span>                                        ?  Components.classToString((Class&lt;?&gt;)defaultCriterion())<a name="line.93"></a>
-<span class="sourceLineNo">094</span>                                        : defaultCriterion())<a name="line.94"></a>
-<span class="sourceLineNo">095</span>                                + "]";<a name="line.95"></a>
-<span class="sourceLineNo">096</span>        }<a name="line.96"></a>
-<span class="sourceLineNo">097</span>}<a name="line.97"></a>
+<span class="sourceLineNo">090</span>                // Anonymous classes have no (simple) name<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                String base = getClass().isAnonymousClass()<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                                ? Components.objectName(getClass())<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                                : Components.classToString(getClass());<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                return base + " [criterion=" <a name="line.94"></a>
+<span class="sourceLineNo">095</span>                                + ((defaultCriterion() instanceof Class)<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                                        ?  Components.classToString((Class&lt;?&gt;)defaultCriterion())<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                                        : defaultCriterion())<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                                + "]";<a name="line.98"></a>
+<span class="sourceLineNo">099</span>        }<a name="line.99"></a>
+<span class="sourceLineNo">100</span>}<a name="line.100"></a>
 
 
 

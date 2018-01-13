@@ -66,461 +66,505 @@
 <span class="sourceLineNo">058</span>        private static Map&lt;Class&lt;? extends HandlerDefinition.Evaluator&gt;,<a name="line.58"></a>
 <span class="sourceLineNo">059</span>                        HandlerDefinition.Evaluator&gt; definitionEvaluators <a name="line.59"></a>
 <span class="sourceLineNo">060</span>                        = Collections.synchronizedMap(new HashMap&lt;&gt;());<a name="line.60"></a>
-<span class="sourceLineNo">061</span>        /** Reference to the common properties of the tree nodes. */<a name="line.61"></a>
-<span class="sourceLineNo">062</span>        private ComponentTree tree = null;<a name="line.62"></a>
-<span class="sourceLineNo">063</span>        /** Reference to the parent node. */<a name="line.63"></a>
-<span class="sourceLineNo">064</span>        private ComponentVertex parent = null;<a name="line.64"></a>
-<span class="sourceLineNo">065</span>        /** All the node's children */<a name="line.65"></a>
-<span class="sourceLineNo">066</span>        private List&lt;ComponentVertex&gt; children = new ArrayList&lt;&gt;();<a name="line.66"></a>
-<span class="sourceLineNo">067</span>        /** The handlers provided by this component. */<a name="line.67"></a>
-<span class="sourceLineNo">068</span>        private List&lt;HandlerReference&gt; handlers;<a name="line.68"></a>
-<span class="sourceLineNo">069</span>        <a name="line.69"></a>
-<span class="sourceLineNo">070</span>        /** <a name="line.70"></a>
-<span class="sourceLineNo">071</span>         * Initialize the ComponentVertex. By default it forms a stand-alone<a name="line.71"></a>
-<span class="sourceLineNo">072</span>         * tree, i.e. the root is set to the component itself.<a name="line.72"></a>
-<span class="sourceLineNo">073</span>         */<a name="line.73"></a>
-<span class="sourceLineNo">074</span>        protected ComponentVertex() {<a name="line.74"></a>
-<span class="sourceLineNo">075</span>        }<a name="line.75"></a>
-<span class="sourceLineNo">076</span><a name="line.76"></a>
-<span class="sourceLineNo">077</span>        /**<a name="line.77"></a>
-<span class="sourceLineNo">078</span>         * Initialize the handler list of this component. May only be called<a name="line.78"></a>
-<span class="sourceLineNo">079</span>         * when {@link #component()} can be relied on to return the<a name="line.79"></a>
-<span class="sourceLineNo">080</span>         * correct value.<a name="line.80"></a>
-<span class="sourceLineNo">081</span>         */<a name="line.81"></a>
-<span class="sourceLineNo">082</span>        protected void initComponentsHandlers() {<a name="line.82"></a>
-<span class="sourceLineNo">083</span>                handlers = new ArrayList&lt;HandlerReference&gt;();<a name="line.83"></a>
-<span class="sourceLineNo">084</span>                // Have a look at all methods.<a name="line.84"></a>
-<span class="sourceLineNo">085</span>                for (Method m : component().getClass().getMethods()) {<a name="line.85"></a>
-<span class="sourceLineNo">086</span>                        maybeAddHandler(m);<a name="line.86"></a>
-<span class="sourceLineNo">087</span>                }<a name="line.87"></a>
-<span class="sourceLineNo">088</span>                handlers = Collections.synchronizedList(handlers);<a name="line.88"></a>
-<span class="sourceLineNo">089</span>        }<a name="line.89"></a>
-<span class="sourceLineNo">090</span><a name="line.90"></a>
-<span class="sourceLineNo">091</span>        private void maybeAddHandler(Method method) {<a name="line.91"></a>
-<span class="sourceLineNo">092</span>                for (Annotation annotation: method.getDeclaredAnnotations()) {<a name="line.92"></a>
-<span class="sourceLineNo">093</span>                        Class&lt;?&gt; annoType = annotation.annotationType();<a name="line.93"></a>
-<span class="sourceLineNo">094</span>                        HandlerDefinition hda <a name="line.94"></a>
-<span class="sourceLineNo">095</span>                                = annoType.getAnnotation(HandlerDefinition.class);<a name="line.95"></a>
-<span class="sourceLineNo">096</span>                        if (hda == null) {<a name="line.96"></a>
-<span class="sourceLineNo">097</span>                                continue;<a name="line.97"></a>
-<span class="sourceLineNo">098</span>                        }<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                        HandlerDefinition.Evaluator evaluator = defintionEvaluator(hda);<a name="line.99"></a>
-<span class="sourceLineNo">100</span>                        HandlerScope scope = evaluator.scope(component(), method, null,<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                                null);<a name="line.101"></a>
-<span class="sourceLineNo">102</span>                        if (scope == null) {<a name="line.102"></a>
-<span class="sourceLineNo">103</span>                                continue;<a name="line.103"></a>
-<span class="sourceLineNo">104</span>                        }<a name="line.104"></a>
-<span class="sourceLineNo">105</span>                        handlers.add(HandlerReference.newRef(<a name="line.105"></a>
-<span class="sourceLineNo">106</span>                                        component(), method, evaluator.priority(annotation),<a name="line.106"></a>
-<span class="sourceLineNo">107</span>                                                        scope));<a name="line.107"></a>
-<span class="sourceLineNo">108</span>                }<a name="line.108"></a>
-<span class="sourceLineNo">109</span>        }<a name="line.109"></a>
-<span class="sourceLineNo">110</span><a name="line.110"></a>
-<span class="sourceLineNo">111</span>        private HandlerDefinition.Evaluator defintionEvaluator(<a name="line.111"></a>
-<span class="sourceLineNo">112</span>                HandlerDefinition hda) {<a name="line.112"></a>
-<span class="sourceLineNo">113</span>                HandlerDefinition.Evaluator evaluator = definitionEvaluators<a name="line.113"></a>
-<span class="sourceLineNo">114</span>                                .computeIfAbsent(hda.evaluator(), key -&gt; {<a name="line.114"></a>
-<span class="sourceLineNo">115</span>                        try {<a name="line.115"></a>
-<span class="sourceLineNo">116</span>                                HandlerDefinition.Evaluator hde <a name="line.116"></a>
-<span class="sourceLineNo">117</span>                                        = hda.evaluator().newInstance();<a name="line.117"></a>
-<span class="sourceLineNo">118</span>                                definitionEvaluators.put(key, hde);<a name="line.118"></a>
-<span class="sourceLineNo">119</span>                                return hde;<a name="line.119"></a>
-<span class="sourceLineNo">120</span>                        } catch (InstantiationException<a name="line.120"></a>
-<span class="sourceLineNo">121</span>                                | IllegalAccessException e) {<a name="line.121"></a>
-<span class="sourceLineNo">122</span>                                throw new RuntimeException(e);<a name="line.122"></a>
-<span class="sourceLineNo">123</span>                        }<a name="line.123"></a>
-<span class="sourceLineNo">124</span>                });<a name="line.124"></a>
-<span class="sourceLineNo">125</span>                return evaluator;<a name="line.125"></a>
-<span class="sourceLineNo">126</span>        }<a name="line.126"></a>
-<span class="sourceLineNo">127</span><a name="line.127"></a>
-<span class="sourceLineNo">128</span>        /**<a name="line.128"></a>
-<span class="sourceLineNo">129</span>         * Return the component node for a given component.<a name="line.129"></a>
-<span class="sourceLineNo">130</span>         * <a name="line.130"></a>
-<span class="sourceLineNo">131</span>         * @param component the component<a name="line.131"></a>
-<span class="sourceLineNo">132</span>         * @param componentChannel the component's channel<a name="line.132"></a>
-<span class="sourceLineNo">133</span>         * @return the node representing the component in the tree<a name="line.133"></a>
-<span class="sourceLineNo">134</span>         */<a name="line.134"></a>
-<span class="sourceLineNo">135</span>        public static ComponentVertex componentVertex(<a name="line.135"></a>
-<span class="sourceLineNo">136</span>                        ComponentType component, Channel componentChannel) {<a name="line.136"></a>
-<span class="sourceLineNo">137</span>                if (component instanceof ComponentVertex) {<a name="line.137"></a>
-<span class="sourceLineNo">138</span>                        return (ComponentVertex)component;<a name="line.138"></a>
-<span class="sourceLineNo">139</span>                }<a name="line.139"></a>
-<span class="sourceLineNo">140</span>                return ComponentProxy.getComponentProxy(component, componentChannel);<a name="line.140"></a>
-<span class="sourceLineNo">141</span>        }<a name="line.141"></a>
-<span class="sourceLineNo">142</span><a name="line.142"></a>
-<span class="sourceLineNo">143</span>        /**<a name="line.143"></a>
-<span class="sourceLineNo">144</span>         * Returns the component represented by this node in the tree.<a name="line.144"></a>
-<span class="sourceLineNo">145</span>         * <a name="line.145"></a>
-<span class="sourceLineNo">146</span>         * @return the component<a name="line.146"></a>
-<span class="sourceLineNo">147</span>         */<a name="line.147"></a>
-<span class="sourceLineNo">148</span>        protected abstract ComponentType component();<a name="line.148"></a>
-<span class="sourceLineNo">149</span><a name="line.149"></a>
-<span class="sourceLineNo">150</span>        /* (non-Javadoc)<a name="line.150"></a>
-<span class="sourceLineNo">151</span>         * @see org.jgrapes.core.Manager#getChildren()<a name="line.151"></a>
-<span class="sourceLineNo">152</span>         */<a name="line.152"></a>
-<span class="sourceLineNo">153</span>        @Override<a name="line.153"></a>
-<span class="sourceLineNo">154</span>        public synchronized List&lt;ComponentType&gt; children() {<a name="line.154"></a>
-<span class="sourceLineNo">155</span>                List&lt;ComponentType&gt; children = new ArrayList&lt;ComponentType&gt;();<a name="line.155"></a>
-<span class="sourceLineNo">156</span>                for (ComponentVertex child: this.children) {<a name="line.156"></a>
-<span class="sourceLineNo">157</span>                        children.add(child.component());<a name="line.157"></a>
-<span class="sourceLineNo">158</span>                }<a name="line.158"></a>
-<span class="sourceLineNo">159</span>                return Collections.unmodifiableList(children);<a name="line.159"></a>
-<span class="sourceLineNo">160</span>        }<a name="line.160"></a>
-<span class="sourceLineNo">161</span><a name="line.161"></a>
-<span class="sourceLineNo">162</span>        /* (non-Javadoc)<a name="line.162"></a>
-<span class="sourceLineNo">163</span>         * @see org.jgrapes.core.Manager#getParent()<a name="line.163"></a>
-<span class="sourceLineNo">164</span>         */<a name="line.164"></a>
-<span class="sourceLineNo">165</span>        @Override<a name="line.165"></a>
-<span class="sourceLineNo">166</span>        public synchronized ComponentType parent() {<a name="line.166"></a>
-<span class="sourceLineNo">167</span>                if (parent == null) {<a name="line.167"></a>
-<span class="sourceLineNo">168</span>                        return null;<a name="line.168"></a>
-<span class="sourceLineNo">169</span>                }<a name="line.169"></a>
-<span class="sourceLineNo">170</span>                return parent.component();<a name="line.170"></a>
-<span class="sourceLineNo">171</span>        }<a name="line.171"></a>
-<span class="sourceLineNo">172</span><a name="line.172"></a>
-<span class="sourceLineNo">173</span>        /* (non-Javadoc)<a name="line.173"></a>
-<span class="sourceLineNo">174</span>         * @see org.jgrapes.core.Manager#getRoot()<a name="line.174"></a>
-<span class="sourceLineNo">175</span>         */<a name="line.175"></a>
-<span class="sourceLineNo">176</span>        @Override<a name="line.176"></a>
-<span class="sourceLineNo">177</span>        public ComponentType root() {<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                return tree().root().component();<a name="line.178"></a>
-<span class="sourceLineNo">179</span>        }<a name="line.179"></a>
-<span class="sourceLineNo">180</span><a name="line.180"></a>
-<span class="sourceLineNo">181</span>        /**<a name="line.181"></a>
-<span class="sourceLineNo">182</span>         * Return the tree that this node belongs to. If the node does not<a name="line.182"></a>
-<span class="sourceLineNo">183</span>         * belong to a tree yet, a tree is automatically created.<a name="line.183"></a>
-<span class="sourceLineNo">184</span>         * <a name="line.184"></a>
-<span class="sourceLineNo">185</span>         * @return the tree<a name="line.185"></a>
-<span class="sourceLineNo">186</span>         */<a name="line.186"></a>
-<span class="sourceLineNo">187</span>        ComponentTree tree() {<a name="line.187"></a>
-<span class="sourceLineNo">188</span>                if (tree != null) {<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                        return tree;<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                }<a name="line.190"></a>
-<span class="sourceLineNo">191</span>                // Build complete tree before assigning it.<a name="line.191"></a>
-<span class="sourceLineNo">192</span>                ComponentTree newTree = new ComponentTree(this);<a name="line.192"></a>
-<span class="sourceLineNo">193</span>                newTree.setEventPipeline(new BufferingEventPipeline(newTree));<a name="line.193"></a>
-<span class="sourceLineNo">194</span>                tree = newTree;<a name="line.194"></a>
-<span class="sourceLineNo">195</span>                fire(new Attached(component(), null), channel());<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                return tree;<a name="line.196"></a>
+<span class="sourceLineNo">061</span>        /** The component's (optional) name. */<a name="line.61"></a>
+<span class="sourceLineNo">062</span>        private String name = null;<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        /** Reference to the common properties of the tree nodes. */<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        private ComponentTree tree = null;<a name="line.64"></a>
+<span class="sourceLineNo">065</span>        /** Reference to the parent node. */<a name="line.65"></a>
+<span class="sourceLineNo">066</span>        private ComponentVertex parent = null;<a name="line.66"></a>
+<span class="sourceLineNo">067</span>        /** All the node's children */<a name="line.67"></a>
+<span class="sourceLineNo">068</span>        private List&lt;ComponentVertex&gt; children = new ArrayList&lt;&gt;();<a name="line.68"></a>
+<span class="sourceLineNo">069</span>        /** The handlers provided by this component. */<a name="line.69"></a>
+<span class="sourceLineNo">070</span>        private List&lt;HandlerReference&gt; handlers;<a name="line.70"></a>
+<span class="sourceLineNo">071</span>        <a name="line.71"></a>
+<span class="sourceLineNo">072</span>        /** <a name="line.72"></a>
+<span class="sourceLineNo">073</span>         * Initialize the ComponentVertex. By default it forms a stand-alone<a name="line.73"></a>
+<span class="sourceLineNo">074</span>         * tree, i.e. the root is set to the component itself.<a name="line.74"></a>
+<span class="sourceLineNo">075</span>         */<a name="line.75"></a>
+<span class="sourceLineNo">076</span>        protected ComponentVertex() {<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        }<a name="line.77"></a>
+<span class="sourceLineNo">078</span><a name="line.78"></a>
+<span class="sourceLineNo">079</span>        /**<a name="line.79"></a>
+<span class="sourceLineNo">080</span>         * Initialize the handler list of this component. May only be called<a name="line.80"></a>
+<span class="sourceLineNo">081</span>         * when {@link #component()} can be relied on to return the<a name="line.81"></a>
+<span class="sourceLineNo">082</span>         * correct value.<a name="line.82"></a>
+<span class="sourceLineNo">083</span>         */<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        protected void initComponentsHandlers() {<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                handlers = new ArrayList&lt;HandlerReference&gt;();<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                // Have a look at all methods.<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                for (Method m : component().getClass().getMethods()) {<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                        maybeAddHandler(m);<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                }<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                handlers = Collections.synchronizedList(handlers);<a name="line.90"></a>
+<span class="sourceLineNo">091</span>        }<a name="line.91"></a>
+<span class="sourceLineNo">092</span><a name="line.92"></a>
+<span class="sourceLineNo">093</span>        private void maybeAddHandler(Method method) {<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                for (Annotation annotation: method.getDeclaredAnnotations()) {<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                        Class&lt;?&gt; annoType = annotation.annotationType();<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                        HandlerDefinition hda <a name="line.96"></a>
+<span class="sourceLineNo">097</span>                                = annoType.getAnnotation(HandlerDefinition.class);<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                        if (hda == null) {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                                continue;<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                        }<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                        HandlerDefinition.Evaluator evaluator = defintionEvaluator(hda);<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                        HandlerScope scope = evaluator.scope(component(), method, null,<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                                null);<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                        if (scope == null) {<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                                continue;<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                        }<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                        handlers.add(HandlerReference.newRef(<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                                        component(), method, evaluator.priority(annotation),<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                                                        scope));<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                }<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        }<a name="line.111"></a>
+<span class="sourceLineNo">112</span><a name="line.112"></a>
+<span class="sourceLineNo">113</span>        private HandlerDefinition.Evaluator defintionEvaluator(<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                HandlerDefinition hda) {<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                HandlerDefinition.Evaluator evaluator = definitionEvaluators<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                                .computeIfAbsent(hda.evaluator(), key -&gt; {<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                        try {<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                                HandlerDefinition.Evaluator hde <a name="line.118"></a>
+<span class="sourceLineNo">119</span>                                        = hda.evaluator().newInstance();<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                                definitionEvaluators.put(key, hde);<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                                return hde;<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                        } catch (InstantiationException<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                                | IllegalAccessException e) {<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                                throw new RuntimeException(e);<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                        }<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                });<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                return evaluator;<a name="line.127"></a>
+<span class="sourceLineNo">128</span>        }<a name="line.128"></a>
+<span class="sourceLineNo">129</span><a name="line.129"></a>
+<span class="sourceLineNo">130</span>        /* (non-Javadoc)<a name="line.130"></a>
+<span class="sourceLineNo">131</span>         * @see org.jgrapes.core.Manager#setName(java.lang.String)<a name="line.131"></a>
+<span class="sourceLineNo">132</span>         */<a name="line.132"></a>
+<span class="sourceLineNo">133</span>        @Override<a name="line.133"></a>
+<span class="sourceLineNo">134</span>        public ComponentType setName(String name) {<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                this.name = name;<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                return component();<a name="line.136"></a>
+<span class="sourceLineNo">137</span>        }<a name="line.137"></a>
+<span class="sourceLineNo">138</span><a name="line.138"></a>
+<span class="sourceLineNo">139</span>        /* (non-Javadoc)<a name="line.139"></a>
+<span class="sourceLineNo">140</span>         * @see org.jgrapes.core.Manager#name()<a name="line.140"></a>
+<span class="sourceLineNo">141</span>         */<a name="line.141"></a>
+<span class="sourceLineNo">142</span>        @Override<a name="line.142"></a>
+<span class="sourceLineNo">143</span>        public String name() {<a name="line.143"></a>
+<span class="sourceLineNo">144</span>                return name;<a name="line.144"></a>
+<span class="sourceLineNo">145</span>        }<a name="line.145"></a>
+<span class="sourceLineNo">146</span><a name="line.146"></a>
+<span class="sourceLineNo">147</span>        /* (non-Javadoc)<a name="line.147"></a>
+<span class="sourceLineNo">148</span>         * @see org.jgrapes.core.Manager#path()<a name="line.148"></a>
+<span class="sourceLineNo">149</span>         */<a name="line.149"></a>
+<span class="sourceLineNo">150</span>        @Override<a name="line.150"></a>
+<span class="sourceLineNo">151</span>        public String path() {<a name="line.151"></a>
+<span class="sourceLineNo">152</span>                StringBuilder sb = new StringBuilder();<a name="line.152"></a>
+<span class="sourceLineNo">153</span>                buildPath(sb);<a name="line.153"></a>
+<span class="sourceLineNo">154</span>                return sb.toString();<a name="line.154"></a>
+<span class="sourceLineNo">155</span>        }<a name="line.155"></a>
+<span class="sourceLineNo">156</span><a name="line.156"></a>
+<span class="sourceLineNo">157</span>        private void buildPath(StringBuilder sb) {<a name="line.157"></a>
+<span class="sourceLineNo">158</span>                if (parent != null) {<a name="line.158"></a>
+<span class="sourceLineNo">159</span>                        parent.buildPath(sb);<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                }<a name="line.160"></a>
+<span class="sourceLineNo">161</span>                sb.append('/');<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                sb.append(name != null ? name : getClass().getSimpleName());<a name="line.162"></a>
+<span class="sourceLineNo">163</span>        }<a name="line.163"></a>
+<span class="sourceLineNo">164</span>        <a name="line.164"></a>
+<span class="sourceLineNo">165</span>        /**<a name="line.165"></a>
+<span class="sourceLineNo">166</span>         * Return the component node for a given component.<a name="line.166"></a>
+<span class="sourceLineNo">167</span>         * <a name="line.167"></a>
+<span class="sourceLineNo">168</span>         * @param component the component<a name="line.168"></a>
+<span class="sourceLineNo">169</span>         * @param componentChannel the component's channel<a name="line.169"></a>
+<span class="sourceLineNo">170</span>         * @return the node representing the component in the tree<a name="line.170"></a>
+<span class="sourceLineNo">171</span>         */<a name="line.171"></a>
+<span class="sourceLineNo">172</span>        public static ComponentVertex componentVertex(<a name="line.172"></a>
+<span class="sourceLineNo">173</span>                        ComponentType component, Channel componentChannel) {<a name="line.173"></a>
+<span class="sourceLineNo">174</span>                if (component instanceof ComponentVertex) {<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                        return (ComponentVertex)component;<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                }<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                return ComponentProxy.getComponentProxy(component, componentChannel);<a name="line.177"></a>
+<span class="sourceLineNo">178</span>        }<a name="line.178"></a>
+<span class="sourceLineNo">179</span><a name="line.179"></a>
+<span class="sourceLineNo">180</span>        /**<a name="line.180"></a>
+<span class="sourceLineNo">181</span>         * Returns the component represented by this node in the tree.<a name="line.181"></a>
+<span class="sourceLineNo">182</span>         * <a name="line.182"></a>
+<span class="sourceLineNo">183</span>         * @return the component<a name="line.183"></a>
+<span class="sourceLineNo">184</span>         */<a name="line.184"></a>
+<span class="sourceLineNo">185</span>        protected abstract ComponentType component();<a name="line.185"></a>
+<span class="sourceLineNo">186</span><a name="line.186"></a>
+<span class="sourceLineNo">187</span>        /* (non-Javadoc)<a name="line.187"></a>
+<span class="sourceLineNo">188</span>         * @see org.jgrapes.core.Manager#getChildren()<a name="line.188"></a>
+<span class="sourceLineNo">189</span>         */<a name="line.189"></a>
+<span class="sourceLineNo">190</span>        @Override<a name="line.190"></a>
+<span class="sourceLineNo">191</span>        public synchronized List&lt;ComponentType&gt; children() {<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                List&lt;ComponentType&gt; children = new ArrayList&lt;ComponentType&gt;();<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                for (ComponentVertex child: this.children) {<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                        children.add(child.component());<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                }<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                return Collections.unmodifiableList(children);<a name="line.196"></a>
 <span class="sourceLineNo">197</span>        }<a name="line.197"></a>
-<span class="sourceLineNo">198</span>        <a name="line.198"></a>
-<span class="sourceLineNo">199</span>        /**<a name="line.199"></a>
-<span class="sourceLineNo">200</span>         * Set the reference to the common properties of this component <a name="line.200"></a>
-<span class="sourceLineNo">201</span>         * and all its children to the given value.<a name="line.201"></a>
-<span class="sourceLineNo">202</span>         * <a name="line.202"></a>
-<span class="sourceLineNo">203</span>         * @param comp the new root<a name="line.203"></a>
-<span class="sourceLineNo">204</span>         */<a name="line.204"></a>
-<span class="sourceLineNo">205</span>        private synchronized void setTree(ComponentTree tree) {<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                this.tree = tree;<a name="line.206"></a>
-<span class="sourceLineNo">207</span>                for (ComponentVertex child: children) {<a name="line.207"></a>
-<span class="sourceLineNo">208</span>                        child.setTree(tree);<a name="line.208"></a>
-<span class="sourceLineNo">209</span>                }<a name="line.209"></a>
-<span class="sourceLineNo">210</span>        }<a name="line.210"></a>
-<span class="sourceLineNo">211</span><a name="line.211"></a>
-<span class="sourceLineNo">212</span>        /* (non-Javadoc)<a name="line.212"></a>
-<span class="sourceLineNo">213</span>         * @see org.jgrapes.core.Manager#attach(Component)<a name="line.213"></a>
-<span class="sourceLineNo">214</span>         */<a name="line.214"></a>
-<span class="sourceLineNo">215</span>        @Override<a name="line.215"></a>
-<span class="sourceLineNo">216</span>        public synchronized &lt;T extends ComponentType&gt; T attach(T child) {<a name="line.216"></a>
-<span class="sourceLineNo">217</span>                ComponentVertex childNode = componentVertex(child, null);<a name="line.217"></a>
-<span class="sourceLineNo">218</span>                List&lt;Channel&gt; attachedAsChannels = new ArrayList&lt;&gt;();<a name="line.218"></a>
-<span class="sourceLineNo">219</span>                synchronized (childNode) {<a name="line.219"></a>
-<span class="sourceLineNo">220</span>                        if (tree != null &amp;&amp; tree.isStarted()) {<a name="line.220"></a>
-<span class="sourceLineNo">221</span>                                for (TreeIterator itr = new TreeIterator(childNode);<a name="line.221"></a>
-<span class="sourceLineNo">222</span>                                                itr.hasNext();) {<a name="line.222"></a>
-<span class="sourceLineNo">223</span>                                        attachedAsChannels.add(itr.next());<a name="line.223"></a>
-<span class="sourceLineNo">224</span>                                }<a name="line.224"></a>
-<span class="sourceLineNo">225</span>                        }<a name="line.225"></a>
-<span class="sourceLineNo">226</span>                        synchronized (tree()) {<a name="line.226"></a>
-<span class="sourceLineNo">227</span>                                if (childNode.tree == null) { <a name="line.227"></a>
-<span class="sourceLineNo">228</span>                                        // Newly created, stand-alone child node<a name="line.228"></a>
-<span class="sourceLineNo">229</span>                                        childNode.parent = ComponentVertex.this;<a name="line.229"></a>
-<span class="sourceLineNo">230</span>                                        childNode.setTree(tree);<a name="line.230"></a>
-<span class="sourceLineNo">231</span>                                        children.add(childNode);<a name="line.231"></a>
-<span class="sourceLineNo">232</span>                                } else {<a name="line.232"></a>
-<span class="sourceLineNo">233</span>                                        // Attaching a tree...<a name="line.233"></a>
-<span class="sourceLineNo">234</span>                                        synchronized (childNode.tree) {<a name="line.234"></a>
-<span class="sourceLineNo">235</span>                                                if (childNode.parent != null) {<a name="line.235"></a>
-<span class="sourceLineNo">236</span>                                                        throw new IllegalStateException(<a name="line.236"></a>
-<span class="sourceLineNo">237</span>                                                                        "Cannot attach a node with a parent.");<a name="line.237"></a>
-<span class="sourceLineNo">238</span>                                                }<a name="line.238"></a>
-<span class="sourceLineNo">239</span>                                                if (childNode.tree.isStarted()) {<a name="line.239"></a>
-<span class="sourceLineNo">240</span>                                                        throw new IllegalStateException(<a name="line.240"></a>
-<span class="sourceLineNo">241</span>                                                                        "Cannot attach a started subtree.");<a name="line.241"></a>
-<span class="sourceLineNo">242</span>                                                }<a name="line.242"></a>
-<span class="sourceLineNo">243</span>                                                childNode.parent = ComponentVertex.this;<a name="line.243"></a>
-<span class="sourceLineNo">244</span>                                                ComponentTree childTree = childNode.tree;<a name="line.244"></a>
-<span class="sourceLineNo">245</span>                                                childNode.setTree(tree);<a name="line.245"></a>
-<span class="sourceLineNo">246</span>                                                children.add(childNode);<a name="line.246"></a>
-<span class="sourceLineNo">247</span>                                                tree.mergeEvents(childTree);<a name="line.247"></a>
-<span class="sourceLineNo">248</span>                                        }<a name="line.248"></a>
-<span class="sourceLineNo">249</span>                                }<a name="line.249"></a>
-<span class="sourceLineNo">250</span>                                tree.clearHandlerCache();<a name="line.250"></a>
-<span class="sourceLineNo">251</span>                        }<a name="line.251"></a>
-<span class="sourceLineNo">252</span>                }<a name="line.252"></a>
-<span class="sourceLineNo">253</span>                Channel parentChan = channel();<a name="line.253"></a>
-<span class="sourceLineNo">254</span>                if (parentChan == null) {<a name="line.254"></a>
-<span class="sourceLineNo">255</span>                        parentChan = Channel.BROADCAST;<a name="line.255"></a>
-<span class="sourceLineNo">256</span>                }<a name="line.256"></a>
-<span class="sourceLineNo">257</span>                Channel childChan = childNode.channel();<a name="line.257"></a>
-<span class="sourceLineNo">258</span>                if (childChan == null) {<a name="line.258"></a>
-<span class="sourceLineNo">259</span>                        parentChan = Channel.BROADCAST;<a name="line.259"></a>
-<span class="sourceLineNo">260</span>                }<a name="line.260"></a>
-<span class="sourceLineNo">261</span>                Attached evt = new Attached(childNode.component(), component());<a name="line.261"></a>
-<span class="sourceLineNo">262</span>                if (parentChan.equals(Channel.BROADCAST) <a name="line.262"></a>
-<span class="sourceLineNo">263</span>                        || childChan.equals(Channel.BROADCAST)) {<a name="line.263"></a>
-<span class="sourceLineNo">264</span>                        fire(evt, Channel.BROADCAST);<a name="line.264"></a>
-<span class="sourceLineNo">265</span>                } else if (parentChan.equals(childChan)) {<a name="line.265"></a>
-<span class="sourceLineNo">266</span>                        fire(evt, parentChan);<a name="line.266"></a>
-<span class="sourceLineNo">267</span>                } else {<a name="line.267"></a>
-<span class="sourceLineNo">268</span>                        fire(evt, parentChan, childChan);<a name="line.268"></a>
-<span class="sourceLineNo">269</span>                }<a name="line.269"></a>
-<span class="sourceLineNo">270</span>                if (!attachedAsChannels.isEmpty()) {<a name="line.270"></a>
-<span class="sourceLineNo">271</span>                        fire(new Start(), attachedAsChannels.toArray(new Channel[0]));<a name="line.271"></a>
-<span class="sourceLineNo">272</span>                }<a name="line.272"></a>
-<span class="sourceLineNo">273</span>                return child;<a name="line.273"></a>
-<span class="sourceLineNo">274</span>        }<a name="line.274"></a>
-<span class="sourceLineNo">275</span>        <a name="line.275"></a>
-<span class="sourceLineNo">276</span>        /**<a name="line.276"></a>
-<span class="sourceLineNo">277</span>         * Remove the component from the tree, making it a stand-alone tree.<a name="line.277"></a>
-<span class="sourceLineNo">278</span>         */<a name="line.278"></a>
-<span class="sourceLineNo">279</span>        public synchronized ComponentType detach() {<a name="line.279"></a>
-<span class="sourceLineNo">280</span>                if (parent != null) {<a name="line.280"></a>
-<span class="sourceLineNo">281</span>                        ComponentVertex oldParent = parent;<a name="line.281"></a>
-<span class="sourceLineNo">282</span>                        synchronized (tree) {<a name="line.282"></a>
-<span class="sourceLineNo">283</span>                                if (!tree.isStarted()) {<a name="line.283"></a>
-<span class="sourceLineNo">284</span>                                        throw new IllegalStateException(<a name="line.284"></a>
-<span class="sourceLineNo">285</span>                                                        "Components may not be detached from a tree before"<a name="line.285"></a>
-<span class="sourceLineNo">286</span>                                                        + " a Start event has been fired on it.");<a name="line.286"></a>
-<span class="sourceLineNo">287</span>                                }<a name="line.287"></a>
-<span class="sourceLineNo">288</span>                                synchronized (oldParent) {<a name="line.288"></a>
-<span class="sourceLineNo">289</span>                                        parent.children.remove(ComponentVertex.this);<a name="line.289"></a>
-<span class="sourceLineNo">290</span>                                        parent.tree.clearHandlerCache();<a name="line.290"></a>
-<span class="sourceLineNo">291</span>                                        parent = null;<a name="line.291"></a>
-<span class="sourceLineNo">292</span>                                }<a name="line.292"></a>
-<span class="sourceLineNo">293</span>                                ComponentTree newTree <a name="line.293"></a>
-<span class="sourceLineNo">294</span>                                        = new ComponentTree(ComponentVertex.this);<a name="line.294"></a>
-<span class="sourceLineNo">295</span>                                newTree.setEventPipeline(new FeedBackPipelineFilter(<a name="line.295"></a>
-<span class="sourceLineNo">296</span>                                                new EventProcessor(newTree)));<a name="line.296"></a>
-<span class="sourceLineNo">297</span>                                setTree(newTree);<a name="line.297"></a>
-<span class="sourceLineNo">298</span>                        }<a name="line.298"></a>
-<span class="sourceLineNo">299</span>                        Detached evt = new Detached(component(), oldParent.component());<a name="line.299"></a>
-<span class="sourceLineNo">300</span>                        oldParent.fire(evt);<a name="line.300"></a>
-<span class="sourceLineNo">301</span>                        evt = new Detached(component(), oldParent.component());<a name="line.301"></a>
-<span class="sourceLineNo">302</span>                        fire(evt);<a name="line.302"></a>
-<span class="sourceLineNo">303</span>                }<a name="line.303"></a>
-<span class="sourceLineNo">304</span>                return component();<a name="line.304"></a>
-<span class="sourceLineNo">305</span>        }<a name="line.305"></a>
-<span class="sourceLineNo">306</span><a name="line.306"></a>
-<span class="sourceLineNo">307</span>        /* (non-Javadoc)<a name="line.307"></a>
-<span class="sourceLineNo">308</span>         * @see java.lang.Iterable#iterator()<a name="line.308"></a>
-<span class="sourceLineNo">309</span>         */<a name="line.309"></a>
-<span class="sourceLineNo">310</span>        @Override<a name="line.310"></a>
-<span class="sourceLineNo">311</span>        public Iterator&lt;ComponentType&gt; iterator() {<a name="line.311"></a>
-<span class="sourceLineNo">312</span>                return new ComponentIterator(new TreeIterator(this));<a name="line.312"></a>
-<span class="sourceLineNo">313</span>        }<a name="line.313"></a>
-<span class="sourceLineNo">314</span><a name="line.314"></a>
-<span class="sourceLineNo">315</span>        /**<a name="line.315"></a>
-<span class="sourceLineNo">316</span>         * A simple wrapper that converts a component vertex iterator<a name="line.316"></a>
-<span class="sourceLineNo">317</span>         * to a component (type) iterator.<a name="line.317"></a>
-<span class="sourceLineNo">318</span>         */<a name="line.318"></a>
-<span class="sourceLineNo">319</span>        private static class ComponentIterator implements Iterator&lt;ComponentType&gt; {<a name="line.319"></a>
-<span class="sourceLineNo">320</span><a name="line.320"></a>
-<span class="sourceLineNo">321</span>                private TreeIterator baseIterator;<a name="line.321"></a>
-<span class="sourceLineNo">322</span>                <a name="line.322"></a>
-<span class="sourceLineNo">323</span>                /**<a name="line.323"></a>
-<span class="sourceLineNo">324</span>                 * @param baseIterator<a name="line.324"></a>
-<span class="sourceLineNo">325</span>                 */<a name="line.325"></a>
-<span class="sourceLineNo">326</span>                public ComponentIterator(TreeIterator baseIterator) {<a name="line.326"></a>
-<span class="sourceLineNo">327</span>                        this.baseIterator = baseIterator;<a name="line.327"></a>
-<span class="sourceLineNo">328</span>                }<a name="line.328"></a>
-<span class="sourceLineNo">329</span><a name="line.329"></a>
-<span class="sourceLineNo">330</span>                @Override<a name="line.330"></a>
-<span class="sourceLineNo">331</span>                public boolean hasNext() {<a name="line.331"></a>
-<span class="sourceLineNo">332</span>                        return baseIterator.hasNext();<a name="line.332"></a>
-<span class="sourceLineNo">333</span>                }<a name="line.333"></a>
-<span class="sourceLineNo">334</span><a name="line.334"></a>
-<span class="sourceLineNo">335</span>                @Override<a name="line.335"></a>
-<span class="sourceLineNo">336</span>                public ComponentType next() {<a name="line.336"></a>
-<span class="sourceLineNo">337</span>                        return baseIterator.next().component();<a name="line.337"></a>
-<span class="sourceLineNo">338</span>                }<a name="line.338"></a>
-<span class="sourceLineNo">339</span>                <a name="line.339"></a>
-<span class="sourceLineNo">340</span>        }<a name="line.340"></a>
-<span class="sourceLineNo">341</span>        <a name="line.341"></a>
-<span class="sourceLineNo">342</span>        /**<a name="line.342"></a>
-<span class="sourceLineNo">343</span>         * An iterator for getting all nodes of the tree.<a name="line.343"></a>
-<span class="sourceLineNo">344</span>         */<a name="line.344"></a>
-<span class="sourceLineNo">345</span>        private static class TreeIterator implements Iterator&lt;ComponentVertex&gt; {<a name="line.345"></a>
-<span class="sourceLineNo">346</span><a name="line.346"></a>
-<span class="sourceLineNo">347</span>                private class Pos {<a name="line.347"></a>
-<span class="sourceLineNo">348</span>                        public ComponentVertex current;<a name="line.348"></a>
-<span class="sourceLineNo">349</span>                        public Iterator&lt;ComponentVertex&gt; childIter;<a name="line.349"></a>
-<span class="sourceLineNo">350</span>                        <a name="line.350"></a>
-<span class="sourceLineNo">351</span>                        public Pos(ComponentVertex cm) {<a name="line.351"></a>
-<span class="sourceLineNo">352</span>                                current = cm;<a name="line.352"></a>
-<span class="sourceLineNo">353</span>                                childIter = current.children.iterator();<a name="line.353"></a>
-<span class="sourceLineNo">354</span>                        }<a name="line.354"></a>
-<span class="sourceLineNo">355</span>                }<a name="line.355"></a>
-<span class="sourceLineNo">356</span>                <a name="line.356"></a>
-<span class="sourceLineNo">357</span>                private Stack&lt;Pos&gt; stack = new Stack&lt;Pos&gt;();<a name="line.357"></a>
-<span class="sourceLineNo">358</span>                private ComponentTree tree;<a name="line.358"></a>
+<span class="sourceLineNo">198</span><a name="line.198"></a>
+<span class="sourceLineNo">199</span>        /* (non-Javadoc)<a name="line.199"></a>
+<span class="sourceLineNo">200</span>         * @see org.jgrapes.core.Manager#getParent()<a name="line.200"></a>
+<span class="sourceLineNo">201</span>         */<a name="line.201"></a>
+<span class="sourceLineNo">202</span>        @Override<a name="line.202"></a>
+<span class="sourceLineNo">203</span>        public synchronized ComponentType parent() {<a name="line.203"></a>
+<span class="sourceLineNo">204</span>                if (parent == null) {<a name="line.204"></a>
+<span class="sourceLineNo">205</span>                        return null;<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                }<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                return parent.component();<a name="line.207"></a>
+<span class="sourceLineNo">208</span>        }<a name="line.208"></a>
+<span class="sourceLineNo">209</span><a name="line.209"></a>
+<span class="sourceLineNo">210</span>        /* (non-Javadoc)<a name="line.210"></a>
+<span class="sourceLineNo">211</span>         * @see org.jgrapes.core.Manager#getRoot()<a name="line.211"></a>
+<span class="sourceLineNo">212</span>         */<a name="line.212"></a>
+<span class="sourceLineNo">213</span>        @Override<a name="line.213"></a>
+<span class="sourceLineNo">214</span>        public ComponentType root() {<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                return tree().root().component();<a name="line.215"></a>
+<span class="sourceLineNo">216</span>        }<a name="line.216"></a>
+<span class="sourceLineNo">217</span><a name="line.217"></a>
+<span class="sourceLineNo">218</span>        /**<a name="line.218"></a>
+<span class="sourceLineNo">219</span>         * Return the tree that this node belongs to. If the node does not<a name="line.219"></a>
+<span class="sourceLineNo">220</span>         * belong to a tree yet, a tree is automatically created.<a name="line.220"></a>
+<span class="sourceLineNo">221</span>         * <a name="line.221"></a>
+<span class="sourceLineNo">222</span>         * @return the tree<a name="line.222"></a>
+<span class="sourceLineNo">223</span>         */<a name="line.223"></a>
+<span class="sourceLineNo">224</span>        ComponentTree tree() {<a name="line.224"></a>
+<span class="sourceLineNo">225</span>                if (tree != null) {<a name="line.225"></a>
+<span class="sourceLineNo">226</span>                        return tree;<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                }<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                // Build complete tree before assigning it.<a name="line.228"></a>
+<span class="sourceLineNo">229</span>                ComponentTree newTree = new ComponentTree(this);<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                newTree.setEventPipeline(new BufferingEventPipeline(newTree));<a name="line.230"></a>
+<span class="sourceLineNo">231</span>                tree = newTree;<a name="line.231"></a>
+<span class="sourceLineNo">232</span>                fire(new Attached(component(), null), channel());<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                return tree;<a name="line.233"></a>
+<span class="sourceLineNo">234</span>        }<a name="line.234"></a>
+<span class="sourceLineNo">235</span>        <a name="line.235"></a>
+<span class="sourceLineNo">236</span>        /**<a name="line.236"></a>
+<span class="sourceLineNo">237</span>         * Set the reference to the common properties of this component <a name="line.237"></a>
+<span class="sourceLineNo">238</span>         * and all its children to the given value.<a name="line.238"></a>
+<span class="sourceLineNo">239</span>         * <a name="line.239"></a>
+<span class="sourceLineNo">240</span>         * @param comp the new root<a name="line.240"></a>
+<span class="sourceLineNo">241</span>         */<a name="line.241"></a>
+<span class="sourceLineNo">242</span>        private synchronized void setTree(ComponentTree tree) {<a name="line.242"></a>
+<span class="sourceLineNo">243</span>                this.tree = tree;<a name="line.243"></a>
+<span class="sourceLineNo">244</span>                for (ComponentVertex child: children) {<a name="line.244"></a>
+<span class="sourceLineNo">245</span>                        child.setTree(tree);<a name="line.245"></a>
+<span class="sourceLineNo">246</span>                }<a name="line.246"></a>
+<span class="sourceLineNo">247</span>        }<a name="line.247"></a>
+<span class="sourceLineNo">248</span><a name="line.248"></a>
+<span class="sourceLineNo">249</span>        /* (non-Javadoc)<a name="line.249"></a>
+<span class="sourceLineNo">250</span>         * @see org.jgrapes.core.Manager#attach(Component)<a name="line.250"></a>
+<span class="sourceLineNo">251</span>         */<a name="line.251"></a>
+<span class="sourceLineNo">252</span>        @Override<a name="line.252"></a>
+<span class="sourceLineNo">253</span>        public synchronized &lt;T extends ComponentType&gt; T attach(T child) {<a name="line.253"></a>
+<span class="sourceLineNo">254</span>                ComponentVertex childNode = componentVertex(child, null);<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                List&lt;Channel&gt; attachedAsChannels = new ArrayList&lt;&gt;();<a name="line.255"></a>
+<span class="sourceLineNo">256</span>                synchronized (childNode) {<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                        if (tree != null &amp;&amp; tree.isStarted()) {<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                                for (TreeIterator itr = new TreeIterator(childNode);<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                                                itr.hasNext();) {<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                                        attachedAsChannels.add(itr.next());<a name="line.260"></a>
+<span class="sourceLineNo">261</span>                                }<a name="line.261"></a>
+<span class="sourceLineNo">262</span>                        }<a name="line.262"></a>
+<span class="sourceLineNo">263</span>                        synchronized (tree()) {<a name="line.263"></a>
+<span class="sourceLineNo">264</span>                                if (childNode.tree == null) { <a name="line.264"></a>
+<span class="sourceLineNo">265</span>                                        // Newly created, stand-alone child node<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                                        childNode.parent = ComponentVertex.this;<a name="line.266"></a>
+<span class="sourceLineNo">267</span>                                        childNode.setTree(tree);<a name="line.267"></a>
+<span class="sourceLineNo">268</span>                                        children.add(childNode);<a name="line.268"></a>
+<span class="sourceLineNo">269</span>                                } else {<a name="line.269"></a>
+<span class="sourceLineNo">270</span>                                        // Attaching a tree...<a name="line.270"></a>
+<span class="sourceLineNo">271</span>                                        synchronized (childNode.tree) {<a name="line.271"></a>
+<span class="sourceLineNo">272</span>                                                if (childNode.parent != null) {<a name="line.272"></a>
+<span class="sourceLineNo">273</span>                                                        throw new IllegalStateException(<a name="line.273"></a>
+<span class="sourceLineNo">274</span>                                                                        "Cannot attach a node with a parent.");<a name="line.274"></a>
+<span class="sourceLineNo">275</span>                                                }<a name="line.275"></a>
+<span class="sourceLineNo">276</span>                                                if (childNode.tree.isStarted()) {<a name="line.276"></a>
+<span class="sourceLineNo">277</span>                                                        throw new IllegalStateException(<a name="line.277"></a>
+<span class="sourceLineNo">278</span>                                                                        "Cannot attach a started subtree.");<a name="line.278"></a>
+<span class="sourceLineNo">279</span>                                                }<a name="line.279"></a>
+<span class="sourceLineNo">280</span>                                                childNode.parent = ComponentVertex.this;<a name="line.280"></a>
+<span class="sourceLineNo">281</span>                                                ComponentTree childTree = childNode.tree;<a name="line.281"></a>
+<span class="sourceLineNo">282</span>                                                childNode.setTree(tree);<a name="line.282"></a>
+<span class="sourceLineNo">283</span>                                                children.add(childNode);<a name="line.283"></a>
+<span class="sourceLineNo">284</span>                                                tree.mergeEvents(childTree);<a name="line.284"></a>
+<span class="sourceLineNo">285</span>                                        }<a name="line.285"></a>
+<span class="sourceLineNo">286</span>                                }<a name="line.286"></a>
+<span class="sourceLineNo">287</span>                                tree.clearHandlerCache();<a name="line.287"></a>
+<span class="sourceLineNo">288</span>                        }<a name="line.288"></a>
+<span class="sourceLineNo">289</span>                }<a name="line.289"></a>
+<span class="sourceLineNo">290</span>                Channel parentChan = channel();<a name="line.290"></a>
+<span class="sourceLineNo">291</span>                if (parentChan == null) {<a name="line.291"></a>
+<span class="sourceLineNo">292</span>                        parentChan = Channel.BROADCAST;<a name="line.292"></a>
+<span class="sourceLineNo">293</span>                }<a name="line.293"></a>
+<span class="sourceLineNo">294</span>                Channel childChan = childNode.channel();<a name="line.294"></a>
+<span class="sourceLineNo">295</span>                if (childChan == null) {<a name="line.295"></a>
+<span class="sourceLineNo">296</span>                        parentChan = Channel.BROADCAST;<a name="line.296"></a>
+<span class="sourceLineNo">297</span>                }<a name="line.297"></a>
+<span class="sourceLineNo">298</span>                Attached evt = new Attached(childNode.component(), component());<a name="line.298"></a>
+<span class="sourceLineNo">299</span>                if (parentChan.equals(Channel.BROADCAST) <a name="line.299"></a>
+<span class="sourceLineNo">300</span>                        || childChan.equals(Channel.BROADCAST)) {<a name="line.300"></a>
+<span class="sourceLineNo">301</span>                        fire(evt, Channel.BROADCAST);<a name="line.301"></a>
+<span class="sourceLineNo">302</span>                } else if (parentChan.equals(childChan)) {<a name="line.302"></a>
+<span class="sourceLineNo">303</span>                        fire(evt, parentChan);<a name="line.303"></a>
+<span class="sourceLineNo">304</span>                } else {<a name="line.304"></a>
+<span class="sourceLineNo">305</span>                        fire(evt, parentChan, childChan);<a name="line.305"></a>
+<span class="sourceLineNo">306</span>                }<a name="line.306"></a>
+<span class="sourceLineNo">307</span>                if (!attachedAsChannels.isEmpty()) {<a name="line.307"></a>
+<span class="sourceLineNo">308</span>                        fire(new Start(), attachedAsChannels.toArray(new Channel[0]));<a name="line.308"></a>
+<span class="sourceLineNo">309</span>                }<a name="line.309"></a>
+<span class="sourceLineNo">310</span>                return child;<a name="line.310"></a>
+<span class="sourceLineNo">311</span>        }<a name="line.311"></a>
+<span class="sourceLineNo">312</span>        <a name="line.312"></a>
+<span class="sourceLineNo">313</span>        /**<a name="line.313"></a>
+<span class="sourceLineNo">314</span>         * Remove the component from the tree, making it a stand-alone tree.<a name="line.314"></a>
+<span class="sourceLineNo">315</span>         */<a name="line.315"></a>
+<span class="sourceLineNo">316</span>        public synchronized ComponentType detach() {<a name="line.316"></a>
+<span class="sourceLineNo">317</span>                if (parent != null) {<a name="line.317"></a>
+<span class="sourceLineNo">318</span>                        ComponentVertex oldParent = parent;<a name="line.318"></a>
+<span class="sourceLineNo">319</span>                        synchronized (tree) {<a name="line.319"></a>
+<span class="sourceLineNo">320</span>                                if (!tree.isStarted()) {<a name="line.320"></a>
+<span class="sourceLineNo">321</span>                                        throw new IllegalStateException(<a name="line.321"></a>
+<span class="sourceLineNo">322</span>                                                        "Components may not be detached from a tree before"<a name="line.322"></a>
+<span class="sourceLineNo">323</span>                                                        + " a Start event has been fired on it.");<a name="line.323"></a>
+<span class="sourceLineNo">324</span>                                }<a name="line.324"></a>
+<span class="sourceLineNo">325</span>                                synchronized (oldParent) {<a name="line.325"></a>
+<span class="sourceLineNo">326</span>                                        parent.children.remove(ComponentVertex.this);<a name="line.326"></a>
+<span class="sourceLineNo">327</span>                                        parent.tree.clearHandlerCache();<a name="line.327"></a>
+<span class="sourceLineNo">328</span>                                        parent = null;<a name="line.328"></a>
+<span class="sourceLineNo">329</span>                                }<a name="line.329"></a>
+<span class="sourceLineNo">330</span>                                ComponentTree newTree <a name="line.330"></a>
+<span class="sourceLineNo">331</span>                                        = new ComponentTree(ComponentVertex.this);<a name="line.331"></a>
+<span class="sourceLineNo">332</span>                                newTree.setEventPipeline(new FeedBackPipelineFilter(<a name="line.332"></a>
+<span class="sourceLineNo">333</span>                                                new EventProcessor(newTree)));<a name="line.333"></a>
+<span class="sourceLineNo">334</span>                                setTree(newTree);<a name="line.334"></a>
+<span class="sourceLineNo">335</span>                        }<a name="line.335"></a>
+<span class="sourceLineNo">336</span>                        Detached evt = new Detached(component(), oldParent.component());<a name="line.336"></a>
+<span class="sourceLineNo">337</span>                        oldParent.fire(evt);<a name="line.337"></a>
+<span class="sourceLineNo">338</span>                        evt = new Detached(component(), oldParent.component());<a name="line.338"></a>
+<span class="sourceLineNo">339</span>                        fire(evt);<a name="line.339"></a>
+<span class="sourceLineNo">340</span>                }<a name="line.340"></a>
+<span class="sourceLineNo">341</span>                return component();<a name="line.341"></a>
+<span class="sourceLineNo">342</span>        }<a name="line.342"></a>
+<span class="sourceLineNo">343</span><a name="line.343"></a>
+<span class="sourceLineNo">344</span>        /* (non-Javadoc)<a name="line.344"></a>
+<span class="sourceLineNo">345</span>         * @see java.lang.Iterable#iterator()<a name="line.345"></a>
+<span class="sourceLineNo">346</span>         */<a name="line.346"></a>
+<span class="sourceLineNo">347</span>        @Override<a name="line.347"></a>
+<span class="sourceLineNo">348</span>        public Iterator&lt;ComponentType&gt; iterator() {<a name="line.348"></a>
+<span class="sourceLineNo">349</span>                return new ComponentIterator(new TreeIterator(this));<a name="line.349"></a>
+<span class="sourceLineNo">350</span>        }<a name="line.350"></a>
+<span class="sourceLineNo">351</span><a name="line.351"></a>
+<span class="sourceLineNo">352</span>        /**<a name="line.352"></a>
+<span class="sourceLineNo">353</span>         * A simple wrapper that converts a component vertex iterator<a name="line.353"></a>
+<span class="sourceLineNo">354</span>         * to a component (type) iterator.<a name="line.354"></a>
+<span class="sourceLineNo">355</span>         */<a name="line.355"></a>
+<span class="sourceLineNo">356</span>        private static class ComponentIterator implements Iterator&lt;ComponentType&gt; {<a name="line.356"></a>
+<span class="sourceLineNo">357</span><a name="line.357"></a>
+<span class="sourceLineNo">358</span>                private TreeIterator baseIterator;<a name="line.358"></a>
 <span class="sourceLineNo">359</span>                <a name="line.359"></a>
-<span class="sourceLineNo">360</span>                public TreeIterator(ComponentVertex root) {<a name="line.360"></a>
-<span class="sourceLineNo">361</span>                        tree = root.tree();<a name="line.361"></a>
-<span class="sourceLineNo">362</span>                        stack.push(new Pos(root));<a name="line.362"></a>
-<span class="sourceLineNo">363</span>                }<a name="line.363"></a>
-<span class="sourceLineNo">364</span><a name="line.364"></a>
-<span class="sourceLineNo">365</span>                /* (non-Javadoc)<a name="line.365"></a>
-<span class="sourceLineNo">366</span>                 * @see java.util.Iterator#hasNext()<a name="line.366"></a>
-<span class="sourceLineNo">367</span>                 */<a name="line.367"></a>
-<span class="sourceLineNo">368</span>                @Override<a name="line.368"></a>
-<span class="sourceLineNo">369</span>                public boolean hasNext() {<a name="line.369"></a>
-<span class="sourceLineNo">370</span>                        return !stack.empty();<a name="line.370"></a>
-<span class="sourceLineNo">371</span>                }<a name="line.371"></a>
-<span class="sourceLineNo">372</span><a name="line.372"></a>
-<span class="sourceLineNo">373</span>                /* (non-Javadoc)<a name="line.373"></a>
-<span class="sourceLineNo">374</span>                 * @see java.util.Iterator#next()<a name="line.374"></a>
-<span class="sourceLineNo">375</span>                 */<a name="line.375"></a>
-<span class="sourceLineNo">376</span>                @Override<a name="line.376"></a>
-<span class="sourceLineNo">377</span>                public ComponentVertex next() {<a name="line.377"></a>
-<span class="sourceLineNo">378</span>                        if (stack.empty()) {<a name="line.378"></a>
-<span class="sourceLineNo">379</span>                                throw new NoSuchElementException();<a name="line.379"></a>
-<span class="sourceLineNo">380</span>                        }<a name="line.380"></a>
-<span class="sourceLineNo">381</span>                        Pos pos = stack.peek();<a name="line.381"></a>
-<span class="sourceLineNo">382</span>                        ComponentVertex res = pos.current;<a name="line.382"></a>
-<span class="sourceLineNo">383</span>                        while (true) {<a name="line.383"></a>
-<span class="sourceLineNo">384</span>                                synchronized (pos.current) {<a name="line.384"></a>
-<span class="sourceLineNo">385</span>                                        if (pos.current.tree != tree) {<a name="line.385"></a>
-<span class="sourceLineNo">386</span>                                                throw new ConcurrentModificationException();<a name="line.386"></a>
-<span class="sourceLineNo">387</span>                                        }<a name="line.387"></a>
-<span class="sourceLineNo">388</span>                                        if (pos.childIter.hasNext()) {<a name="line.388"></a>
-<span class="sourceLineNo">389</span>                                                stack.push(new Pos(pos.childIter.next()));<a name="line.389"></a>
-<span class="sourceLineNo">390</span>                                                break;<a name="line.390"></a>
-<span class="sourceLineNo">391</span>                                        }<a name="line.391"></a>
-<span class="sourceLineNo">392</span>                                }<a name="line.392"></a>
-<span class="sourceLineNo">393</span>                                stack.pop();<a name="line.393"></a>
-<span class="sourceLineNo">394</span>                                if (stack.empty()) {<a name="line.394"></a>
-<span class="sourceLineNo">395</span>                                        break;<a name="line.395"></a>
-<span class="sourceLineNo">396</span>                                }<a name="line.396"></a>
-<span class="sourceLineNo">397</span>                                pos = stack.peek();<a name="line.397"></a>
-<span class="sourceLineNo">398</span>                        }<a name="line.398"></a>
-<span class="sourceLineNo">399</span>                        return res;<a name="line.399"></a>
+<span class="sourceLineNo">360</span>                /**<a name="line.360"></a>
+<span class="sourceLineNo">361</span>                 * @param baseIterator<a name="line.361"></a>
+<span class="sourceLineNo">362</span>                 */<a name="line.362"></a>
+<span class="sourceLineNo">363</span>                public ComponentIterator(TreeIterator baseIterator) {<a name="line.363"></a>
+<span class="sourceLineNo">364</span>                        this.baseIterator = baseIterator;<a name="line.364"></a>
+<span class="sourceLineNo">365</span>                }<a name="line.365"></a>
+<span class="sourceLineNo">366</span><a name="line.366"></a>
+<span class="sourceLineNo">367</span>                @Override<a name="line.367"></a>
+<span class="sourceLineNo">368</span>                public boolean hasNext() {<a name="line.368"></a>
+<span class="sourceLineNo">369</span>                        return baseIterator.hasNext();<a name="line.369"></a>
+<span class="sourceLineNo">370</span>                }<a name="line.370"></a>
+<span class="sourceLineNo">371</span><a name="line.371"></a>
+<span class="sourceLineNo">372</span>                @Override<a name="line.372"></a>
+<span class="sourceLineNo">373</span>                public ComponentType next() {<a name="line.373"></a>
+<span class="sourceLineNo">374</span>                        return baseIterator.next().component();<a name="line.374"></a>
+<span class="sourceLineNo">375</span>                }<a name="line.375"></a>
+<span class="sourceLineNo">376</span>                <a name="line.376"></a>
+<span class="sourceLineNo">377</span>        }<a name="line.377"></a>
+<span class="sourceLineNo">378</span>        <a name="line.378"></a>
+<span class="sourceLineNo">379</span>        /**<a name="line.379"></a>
+<span class="sourceLineNo">380</span>         * An iterator for getting all nodes of the tree.<a name="line.380"></a>
+<span class="sourceLineNo">381</span>         */<a name="line.381"></a>
+<span class="sourceLineNo">382</span>        private static class TreeIterator implements Iterator&lt;ComponentVertex&gt; {<a name="line.382"></a>
+<span class="sourceLineNo">383</span><a name="line.383"></a>
+<span class="sourceLineNo">384</span>                private class Pos {<a name="line.384"></a>
+<span class="sourceLineNo">385</span>                        public ComponentVertex current;<a name="line.385"></a>
+<span class="sourceLineNo">386</span>                        public Iterator&lt;ComponentVertex&gt; childIter;<a name="line.386"></a>
+<span class="sourceLineNo">387</span>                        <a name="line.387"></a>
+<span class="sourceLineNo">388</span>                        public Pos(ComponentVertex cm) {<a name="line.388"></a>
+<span class="sourceLineNo">389</span>                                current = cm;<a name="line.389"></a>
+<span class="sourceLineNo">390</span>                                childIter = current.children.iterator();<a name="line.390"></a>
+<span class="sourceLineNo">391</span>                        }<a name="line.391"></a>
+<span class="sourceLineNo">392</span>                }<a name="line.392"></a>
+<span class="sourceLineNo">393</span>                <a name="line.393"></a>
+<span class="sourceLineNo">394</span>                private Stack&lt;Pos&gt; stack = new Stack&lt;Pos&gt;();<a name="line.394"></a>
+<span class="sourceLineNo">395</span>                private ComponentTree tree;<a name="line.395"></a>
+<span class="sourceLineNo">396</span>                <a name="line.396"></a>
+<span class="sourceLineNo">397</span>                public TreeIterator(ComponentVertex root) {<a name="line.397"></a>
+<span class="sourceLineNo">398</span>                        tree = root.tree();<a name="line.398"></a>
+<span class="sourceLineNo">399</span>                        stack.push(new Pos(root));<a name="line.399"></a>
 <span class="sourceLineNo">400</span>                }<a name="line.400"></a>
 <span class="sourceLineNo">401</span><a name="line.401"></a>
 <span class="sourceLineNo">402</span>                /* (non-Javadoc)<a name="line.402"></a>
-<span class="sourceLineNo">403</span>                 * @see java.util.Iterator#remove()<a name="line.403"></a>
+<span class="sourceLineNo">403</span>                 * @see java.util.Iterator#hasNext()<a name="line.403"></a>
 <span class="sourceLineNo">404</span>                 */<a name="line.404"></a>
 <span class="sourceLineNo">405</span>                @Override<a name="line.405"></a>
-<span class="sourceLineNo">406</span>                public void remove() {<a name="line.406"></a>
-<span class="sourceLineNo">407</span>                        throw new UnsupportedOperationException();<a name="line.407"></a>
+<span class="sourceLineNo">406</span>                public boolean hasNext() {<a name="line.406"></a>
+<span class="sourceLineNo">407</span>                        return !stack.empty();<a name="line.407"></a>
 <span class="sourceLineNo">408</span>                }<a name="line.408"></a>
-<span class="sourceLineNo">409</span>        }<a name="line.409"></a>
-<span class="sourceLineNo">410</span><a name="line.410"></a>
-<span class="sourceLineNo">411</span>        @Override<a name="line.411"></a>
-<span class="sourceLineNo">412</span>        public void addHandler(Method method, HandlerScope scope, int priority) {<a name="line.412"></a>
-<span class="sourceLineNo">413</span>                handlers.add(HandlerReference.newRef(component(),<a name="line.413"></a>
-<span class="sourceLineNo">414</span>                        method, priority, scope));<a name="line.414"></a>
-<span class="sourceLineNo">415</span>        }<a name="line.415"></a>
-<span class="sourceLineNo">416</span><a name="line.416"></a>
-<span class="sourceLineNo">417</span>        /* (non-Javadoc)<a name="line.417"></a>
-<span class="sourceLineNo">418</span>         * @see org.jgrapes.core.core.Manager#fire<a name="line.418"></a>
-<span class="sourceLineNo">419</span>         * (org.jgrapes.core.Event, org.jgrapes.core.Channel)<a name="line.419"></a>
-<span class="sourceLineNo">420</span>         */<a name="line.420"></a>
-<span class="sourceLineNo">421</span>        @Override<a name="line.421"></a>
-<span class="sourceLineNo">422</span>        public &lt;T&gt; Event&lt;T&gt; fire(Event&lt;T&gt; event, Channel... channels) {<a name="line.422"></a>
-<span class="sourceLineNo">423</span>                if (channels.length == 0) {<a name="line.423"></a>
-<span class="sourceLineNo">424</span>                        channels = event.channels();<a name="line.424"></a>
-<span class="sourceLineNo">425</span>                        if (channels == null || channels.length == 0) {<a name="line.425"></a>
-<span class="sourceLineNo">426</span>                                channels = new Channel[] { channel() };<a name="line.426"></a>
-<span class="sourceLineNo">427</span>                        }<a name="line.427"></a>
-<span class="sourceLineNo">428</span>                }<a name="line.428"></a>
-<span class="sourceLineNo">429</span>                event.setChannels(channels);<a name="line.429"></a>
-<span class="sourceLineNo">430</span>                tree().fire(event, channels);<a name="line.430"></a>
-<span class="sourceLineNo">431</span>                return event;<a name="line.431"></a>
-<span class="sourceLineNo">432</span>        }<a name="line.432"></a>
-<span class="sourceLineNo">433</span><a name="line.433"></a>
-<span class="sourceLineNo">434</span>        /**<a name="line.434"></a>
-<span class="sourceLineNo">435</span>         * Collects all handlers. Iterates over the tree with this object<a name="line.435"></a>
-<span class="sourceLineNo">436</span>         * as root and for all child components adds the matching handlers to<a name="line.436"></a>
-<span class="sourceLineNo">437</span>         * the result set recursively.<a name="line.437"></a>
-<span class="sourceLineNo">438</span>         * <a name="line.438"></a>
-<span class="sourceLineNo">439</span>         * @param hdlrs the result set<a name="line.439"></a>
-<span class="sourceLineNo">440</span>         * @param event the event to match<a name="line.440"></a>
-<span class="sourceLineNo">441</span>         * @param channels the channels to match<a name="line.441"></a>
-<span class="sourceLineNo">442</span>         */<a name="line.442"></a>
-<span class="sourceLineNo">443</span>        void collectHandlers(Collection&lt;HandlerReference&gt; hdlrs, <a name="line.443"></a>
-<span class="sourceLineNo">444</span>                        EventBase&lt;?&gt; event, Channel[] channels) {<a name="line.444"></a>
-<span class="sourceLineNo">445</span>                for (HandlerReference hdlr: handlers) {<a name="line.445"></a>
-<span class="sourceLineNo">446</span>                        if (hdlr.handles(event, channels)) {<a name="line.446"></a>
-<span class="sourceLineNo">447</span>                                hdlrs.add(hdlr);<a name="line.447"></a>
-<span class="sourceLineNo">448</span>                        }<a name="line.448"></a>
-<span class="sourceLineNo">449</span>                }<a name="line.449"></a>
-<span class="sourceLineNo">450</span>                for (ComponentVertex child: children) {<a name="line.450"></a>
-<span class="sourceLineNo">451</span>                        child.collectHandlers(hdlrs, event, channels);<a name="line.451"></a>
-<span class="sourceLineNo">452</span>                }<a name="line.452"></a>
-<span class="sourceLineNo">453</span>        }<a name="line.453"></a>
-<span class="sourceLineNo">454</span><a name="line.454"></a>
-<span class="sourceLineNo">455</span>        /* (non-Javadoc)<a name="line.455"></a>
-<span class="sourceLineNo">456</span>         * @see org.jgrapes.core.Manager#activeEventPipeline()<a name="line.456"></a>
+<span class="sourceLineNo">409</span><a name="line.409"></a>
+<span class="sourceLineNo">410</span>                /* (non-Javadoc)<a name="line.410"></a>
+<span class="sourceLineNo">411</span>                 * @see java.util.Iterator#next()<a name="line.411"></a>
+<span class="sourceLineNo">412</span>                 */<a name="line.412"></a>
+<span class="sourceLineNo">413</span>                @Override<a name="line.413"></a>
+<span class="sourceLineNo">414</span>                public ComponentVertex next() {<a name="line.414"></a>
+<span class="sourceLineNo">415</span>                        if (stack.empty()) {<a name="line.415"></a>
+<span class="sourceLineNo">416</span>                                throw new NoSuchElementException();<a name="line.416"></a>
+<span class="sourceLineNo">417</span>                        }<a name="line.417"></a>
+<span class="sourceLineNo">418</span>                        Pos pos = stack.peek();<a name="line.418"></a>
+<span class="sourceLineNo">419</span>                        ComponentVertex res = pos.current;<a name="line.419"></a>
+<span class="sourceLineNo">420</span>                        while (true) {<a name="line.420"></a>
+<span class="sourceLineNo">421</span>                                synchronized (pos.current) {<a name="line.421"></a>
+<span class="sourceLineNo">422</span>                                        if (pos.current.tree != tree) {<a name="line.422"></a>
+<span class="sourceLineNo">423</span>                                                throw new ConcurrentModificationException();<a name="line.423"></a>
+<span class="sourceLineNo">424</span>                                        }<a name="line.424"></a>
+<span class="sourceLineNo">425</span>                                        if (pos.childIter.hasNext()) {<a name="line.425"></a>
+<span class="sourceLineNo">426</span>                                                stack.push(new Pos(pos.childIter.next()));<a name="line.426"></a>
+<span class="sourceLineNo">427</span>                                                break;<a name="line.427"></a>
+<span class="sourceLineNo">428</span>                                        }<a name="line.428"></a>
+<span class="sourceLineNo">429</span>                                }<a name="line.429"></a>
+<span class="sourceLineNo">430</span>                                stack.pop();<a name="line.430"></a>
+<span class="sourceLineNo">431</span>                                if (stack.empty()) {<a name="line.431"></a>
+<span class="sourceLineNo">432</span>                                        break;<a name="line.432"></a>
+<span class="sourceLineNo">433</span>                                }<a name="line.433"></a>
+<span class="sourceLineNo">434</span>                                pos = stack.peek();<a name="line.434"></a>
+<span class="sourceLineNo">435</span>                        }<a name="line.435"></a>
+<span class="sourceLineNo">436</span>                        return res;<a name="line.436"></a>
+<span class="sourceLineNo">437</span>                }<a name="line.437"></a>
+<span class="sourceLineNo">438</span><a name="line.438"></a>
+<span class="sourceLineNo">439</span>                /* (non-Javadoc)<a name="line.439"></a>
+<span class="sourceLineNo">440</span>                 * @see java.util.Iterator#remove()<a name="line.440"></a>
+<span class="sourceLineNo">441</span>                 */<a name="line.441"></a>
+<span class="sourceLineNo">442</span>                @Override<a name="line.442"></a>
+<span class="sourceLineNo">443</span>                public void remove() {<a name="line.443"></a>
+<span class="sourceLineNo">444</span>                        throw new UnsupportedOperationException();<a name="line.444"></a>
+<span class="sourceLineNo">445</span>                }<a name="line.445"></a>
+<span class="sourceLineNo">446</span>        }<a name="line.446"></a>
+<span class="sourceLineNo">447</span><a name="line.447"></a>
+<span class="sourceLineNo">448</span>        @Override<a name="line.448"></a>
+<span class="sourceLineNo">449</span>        public void addHandler(Method method, HandlerScope scope, int priority) {<a name="line.449"></a>
+<span class="sourceLineNo">450</span>                handlers.add(HandlerReference.newRef(component(),<a name="line.450"></a>
+<span class="sourceLineNo">451</span>                        method, priority, scope));<a name="line.451"></a>
+<span class="sourceLineNo">452</span>        }<a name="line.452"></a>
+<span class="sourceLineNo">453</span><a name="line.453"></a>
+<span class="sourceLineNo">454</span>        /* (non-Javadoc)<a name="line.454"></a>
+<span class="sourceLineNo">455</span>         * @see org.jgrapes.core.core.Manager#fire<a name="line.455"></a>
+<span class="sourceLineNo">456</span>         * (org.jgrapes.core.Event, org.jgrapes.core.Channel)<a name="line.456"></a>
 <span class="sourceLineNo">457</span>         */<a name="line.457"></a>
 <span class="sourceLineNo">458</span>        @Override<a name="line.458"></a>
-<span class="sourceLineNo">459</span>        public EventPipeline activeEventPipeline() {<a name="line.459"></a>
-<span class="sourceLineNo">460</span>                return new CheckingPipelineFilter(<a name="line.460"></a>
-<span class="sourceLineNo">461</span>                                tree().getEventPipeline(), channel());<a name="line.461"></a>
-<span class="sourceLineNo">462</span>        }<a name="line.462"></a>
-<span class="sourceLineNo">463</span><a name="line.463"></a>
-<span class="sourceLineNo">464</span>        /* (non-Javadoc)<a name="line.464"></a>
-<span class="sourceLineNo">465</span>         * @see org.jgrapes.core.Manager#newSynchronousPipeline()<a name="line.465"></a>
-<span class="sourceLineNo">466</span>         */<a name="line.466"></a>
-<span class="sourceLineNo">467</span>        @Override<a name="line.467"></a>
-<span class="sourceLineNo">468</span>        public EventPipeline newSyncEventPipeline() {<a name="line.468"></a>
-<span class="sourceLineNo">469</span>                return new CheckingPipelineFilter(<a name="line.469"></a>
-<span class="sourceLineNo">470</span>                                new SynchronousEventProcessor(tree()), channel());<a name="line.470"></a>
-<span class="sourceLineNo">471</span>        }<a name="line.471"></a>
-<span class="sourceLineNo">472</span><a name="line.472"></a>
-<span class="sourceLineNo">473</span>        /* (non-Javadoc)<a name="line.473"></a>
-<span class="sourceLineNo">474</span>         * @see org.jgrapes.core.Manager#newEventPipeline()<a name="line.474"></a>
-<span class="sourceLineNo">475</span>         */<a name="line.475"></a>
-<span class="sourceLineNo">476</span>        @Override<a name="line.476"></a>
-<span class="sourceLineNo">477</span>        public EventPipeline newEventPipeline() {<a name="line.477"></a>
-<span class="sourceLineNo">478</span>                return new CheckingPipelineFilter(new EventProcessor(tree()),<a name="line.478"></a>
-<span class="sourceLineNo">479</span>                        channel());<a name="line.479"></a>
-<span class="sourceLineNo">480</span>        }<a name="line.480"></a>
-<span class="sourceLineNo">481</span><a name="line.481"></a>
-<span class="sourceLineNo">482</span>        /* (non-Javadoc)<a name="line.482"></a>
-<span class="sourceLineNo">483</span>         * @see org.jgrapes.core.Manager#newEventPipeline(java.util.concurrent.ExecutorService)<a name="line.483"></a>
-<span class="sourceLineNo">484</span>         */<a name="line.484"></a>
-<span class="sourceLineNo">485</span>        @Override<a name="line.485"></a>
-<span class="sourceLineNo">486</span>        public EventPipeline newEventPipeline(ExecutorService executorService) {<a name="line.486"></a>
-<span class="sourceLineNo">487</span>                return new CheckingPipelineFilter(<a name="line.487"></a>
-<span class="sourceLineNo">488</span>                                new EventProcessor(tree(), executorService), channel());<a name="line.488"></a>
-<span class="sourceLineNo">489</span>        }<a name="line.489"></a>
-<span class="sourceLineNo">490</span><a name="line.490"></a>
-<span class="sourceLineNo">491</span>        /* (non-Javadoc)<a name="line.491"></a>
-<span class="sourceLineNo">492</span>         * @see java.lang.Object#toString()<a name="line.492"></a>
-<span class="sourceLineNo">493</span>         */<a name="line.493"></a>
-<span class="sourceLineNo">494</span>        @Override<a name="line.494"></a>
-<span class="sourceLineNo">495</span>        public String toString() {<a name="line.495"></a>
-<span class="sourceLineNo">496</span>                return Components.objectName(this);<a name="line.496"></a>
-<span class="sourceLineNo">497</span>        }<a name="line.497"></a>
-<span class="sourceLineNo">498</span>        <a name="line.498"></a>
-<span class="sourceLineNo">499</span>        /* (non-Javadoc)<a name="line.499"></a>
-<span class="sourceLineNo">500</span>         * @see org.jgrapes.core.Manager#registerAsGenerator()<a name="line.500"></a>
-<span class="sourceLineNo">501</span>         */<a name="line.501"></a>
-<span class="sourceLineNo">502</span>        @Override<a name="line.502"></a>
-<span class="sourceLineNo">503</span>        public void registerAsGenerator() {<a name="line.503"></a>
-<span class="sourceLineNo">504</span>                GeneratorRegistry.instance().add(component());<a name="line.504"></a>
-<span class="sourceLineNo">505</span>        }<a name="line.505"></a>
-<span class="sourceLineNo">506</span><a name="line.506"></a>
-<span class="sourceLineNo">507</span>        /* (non-Javadoc)<a name="line.507"></a>
-<span class="sourceLineNo">508</span>         * @see org.jgrapes.core.Manager#unregisterAsGenerator()<a name="line.508"></a>
-<span class="sourceLineNo">509</span>         */<a name="line.509"></a>
-<span class="sourceLineNo">510</span>        @Override<a name="line.510"></a>
-<span class="sourceLineNo">511</span>        public void unregisterAsGenerator() {<a name="line.511"></a>
-<span class="sourceLineNo">512</span>                GeneratorRegistry.instance().remove(component());<a name="line.512"></a>
-<span class="sourceLineNo">513</span>        }<a name="line.513"></a>
-<span class="sourceLineNo">514</span>        <a name="line.514"></a>
-<span class="sourceLineNo">515</span>}<a name="line.515"></a>
+<span class="sourceLineNo">459</span>        public &lt;T&gt; Event&lt;T&gt; fire(Event&lt;T&gt; event, Channel... channels) {<a name="line.459"></a>
+<span class="sourceLineNo">460</span>                if (channels.length == 0) {<a name="line.460"></a>
+<span class="sourceLineNo">461</span>                        channels = event.channels();<a name="line.461"></a>
+<span class="sourceLineNo">462</span>                        if (channels == null || channels.length == 0) {<a name="line.462"></a>
+<span class="sourceLineNo">463</span>                                channels = new Channel[] { channel() };<a name="line.463"></a>
+<span class="sourceLineNo">464</span>                        }<a name="line.464"></a>
+<span class="sourceLineNo">465</span>                }<a name="line.465"></a>
+<span class="sourceLineNo">466</span>                event.setChannels(channels);<a name="line.466"></a>
+<span class="sourceLineNo">467</span>                tree().fire(event, channels);<a name="line.467"></a>
+<span class="sourceLineNo">468</span>                return event;<a name="line.468"></a>
+<span class="sourceLineNo">469</span>        }<a name="line.469"></a>
+<span class="sourceLineNo">470</span><a name="line.470"></a>
+<span class="sourceLineNo">471</span>        /**<a name="line.471"></a>
+<span class="sourceLineNo">472</span>         * Collects all handlers. Iterates over the tree with this object<a name="line.472"></a>
+<span class="sourceLineNo">473</span>         * as root and for all child components adds the matching handlers to<a name="line.473"></a>
+<span class="sourceLineNo">474</span>         * the result set recursively.<a name="line.474"></a>
+<span class="sourceLineNo">475</span>         * <a name="line.475"></a>
+<span class="sourceLineNo">476</span>         * @param hdlrs the result set<a name="line.476"></a>
+<span class="sourceLineNo">477</span>         * @param event the event to match<a name="line.477"></a>
+<span class="sourceLineNo">478</span>         * @param channels the channels to match<a name="line.478"></a>
+<span class="sourceLineNo">479</span>         */<a name="line.479"></a>
+<span class="sourceLineNo">480</span>        void collectHandlers(Collection&lt;HandlerReference&gt; hdlrs, <a name="line.480"></a>
+<span class="sourceLineNo">481</span>                        EventBase&lt;?&gt; event, Channel[] channels) {<a name="line.481"></a>
+<span class="sourceLineNo">482</span>                for (HandlerReference hdlr: handlers) {<a name="line.482"></a>
+<span class="sourceLineNo">483</span>                        if (hdlr.handles(event, channels)) {<a name="line.483"></a>
+<span class="sourceLineNo">484</span>                                hdlrs.add(hdlr);<a name="line.484"></a>
+<span class="sourceLineNo">485</span>                        }<a name="line.485"></a>
+<span class="sourceLineNo">486</span>                }<a name="line.486"></a>
+<span class="sourceLineNo">487</span>                for (ComponentVertex child: children) {<a name="line.487"></a>
+<span class="sourceLineNo">488</span>                        child.collectHandlers(hdlrs, event, channels);<a name="line.488"></a>
+<span class="sourceLineNo">489</span>                }<a name="line.489"></a>
+<span class="sourceLineNo">490</span>        }<a name="line.490"></a>
+<span class="sourceLineNo">491</span><a name="line.491"></a>
+<span class="sourceLineNo">492</span>        /* (non-Javadoc)<a name="line.492"></a>
+<span class="sourceLineNo">493</span>         * @see org.jgrapes.core.Manager#activeEventPipeline()<a name="line.493"></a>
+<span class="sourceLineNo">494</span>         */<a name="line.494"></a>
+<span class="sourceLineNo">495</span>        @Override<a name="line.495"></a>
+<span class="sourceLineNo">496</span>        public EventPipeline activeEventPipeline() {<a name="line.496"></a>
+<span class="sourceLineNo">497</span>                return new CheckingPipelineFilter(<a name="line.497"></a>
+<span class="sourceLineNo">498</span>                                tree().getEventPipeline(), channel());<a name="line.498"></a>
+<span class="sourceLineNo">499</span>        }<a name="line.499"></a>
+<span class="sourceLineNo">500</span><a name="line.500"></a>
+<span class="sourceLineNo">501</span>        /* (non-Javadoc)<a name="line.501"></a>
+<span class="sourceLineNo">502</span>         * @see org.jgrapes.core.Manager#newSynchronousPipeline()<a name="line.502"></a>
+<span class="sourceLineNo">503</span>         */<a name="line.503"></a>
+<span class="sourceLineNo">504</span>        @Override<a name="line.504"></a>
+<span class="sourceLineNo">505</span>        public EventPipeline newSyncEventPipeline() {<a name="line.505"></a>
+<span class="sourceLineNo">506</span>                return new CheckingPipelineFilter(<a name="line.506"></a>
+<span class="sourceLineNo">507</span>                                new SynchronousEventProcessor(tree()), channel());<a name="line.507"></a>
+<span class="sourceLineNo">508</span>        }<a name="line.508"></a>
+<span class="sourceLineNo">509</span><a name="line.509"></a>
+<span class="sourceLineNo">510</span>        /* (non-Javadoc)<a name="line.510"></a>
+<span class="sourceLineNo">511</span>         * @see org.jgrapes.core.Manager#newEventPipeline()<a name="line.511"></a>
+<span class="sourceLineNo">512</span>         */<a name="line.512"></a>
+<span class="sourceLineNo">513</span>        @Override<a name="line.513"></a>
+<span class="sourceLineNo">514</span>        public EventPipeline newEventPipeline() {<a name="line.514"></a>
+<span class="sourceLineNo">515</span>                return new CheckingPipelineFilter(new EventProcessor(tree()),<a name="line.515"></a>
+<span class="sourceLineNo">516</span>                        channel());<a name="line.516"></a>
+<span class="sourceLineNo">517</span>        }<a name="line.517"></a>
+<span class="sourceLineNo">518</span><a name="line.518"></a>
+<span class="sourceLineNo">519</span>        /* (non-Javadoc)<a name="line.519"></a>
+<span class="sourceLineNo">520</span>         * @see org.jgrapes.core.Manager#newEventPipeline(java.util.concurrent.ExecutorService)<a name="line.520"></a>
+<span class="sourceLineNo">521</span>         */<a name="line.521"></a>
+<span class="sourceLineNo">522</span>        @Override<a name="line.522"></a>
+<span class="sourceLineNo">523</span>        public EventPipeline newEventPipeline(ExecutorService executorService) {<a name="line.523"></a>
+<span class="sourceLineNo">524</span>                return new CheckingPipelineFilter(<a name="line.524"></a>
+<span class="sourceLineNo">525</span>                                new EventProcessor(tree(), executorService), channel());<a name="line.525"></a>
+<span class="sourceLineNo">526</span>        }<a name="line.526"></a>
+<span class="sourceLineNo">527</span><a name="line.527"></a>
+<span class="sourceLineNo">528</span>        /**<a name="line.528"></a>
+<span class="sourceLineNo">529</span>         * If a name has been set for this component <a name="line.529"></a>
+<span class="sourceLineNo">530</span>         * (see {@link Manager#setName(String)), return the name,<a name="line.530"></a>
+<span class="sourceLineNo">531</span>         * else return the object name provided by <a name="line.531"></a>
+<span class="sourceLineNo">532</span>         * {@link Components#objectName(Object)}, using<a name="line.532"></a>
+<span class="sourceLineNo">533</span>         * {@link #component()} as argument.<a name="line.533"></a>
+<span class="sourceLineNo">534</span>         */<a name="line.534"></a>
+<span class="sourceLineNo">535</span>        @Override<a name="line.535"></a>
+<span class="sourceLineNo">536</span>        public String toString() {<a name="line.536"></a>
+<span class="sourceLineNo">537</span>                if (name != null) {<a name="line.537"></a>
+<span class="sourceLineNo">538</span>                        return name;<a name="line.538"></a>
+<span class="sourceLineNo">539</span>                }<a name="line.539"></a>
+<span class="sourceLineNo">540</span>                return Components.objectName(component());<a name="line.540"></a>
+<span class="sourceLineNo">541</span>        }<a name="line.541"></a>
+<span class="sourceLineNo">542</span>        <a name="line.542"></a>
+<span class="sourceLineNo">543</span>        /* (non-Javadoc)<a name="line.543"></a>
+<span class="sourceLineNo">544</span>         * @see org.jgrapes.core.Manager#registerAsGenerator()<a name="line.544"></a>
+<span class="sourceLineNo">545</span>         */<a name="line.545"></a>
+<span class="sourceLineNo">546</span>        @Override<a name="line.546"></a>
+<span class="sourceLineNo">547</span>        public void registerAsGenerator() {<a name="line.547"></a>
+<span class="sourceLineNo">548</span>                GeneratorRegistry.instance().add(component());<a name="line.548"></a>
+<span class="sourceLineNo">549</span>        }<a name="line.549"></a>
+<span class="sourceLineNo">550</span><a name="line.550"></a>
+<span class="sourceLineNo">551</span>        /* (non-Javadoc)<a name="line.551"></a>
+<span class="sourceLineNo">552</span>         * @see org.jgrapes.core.Manager#unregisterAsGenerator()<a name="line.552"></a>
+<span class="sourceLineNo">553</span>         */<a name="line.553"></a>
+<span class="sourceLineNo">554</span>        @Override<a name="line.554"></a>
+<span class="sourceLineNo">555</span>        public void unregisterAsGenerator() {<a name="line.555"></a>
+<span class="sourceLineNo">556</span>                GeneratorRegistry.instance().remove(component());<a name="line.556"></a>
+<span class="sourceLineNo">557</span>        }<a name="line.557"></a>
+<span class="sourceLineNo">558</span>        <a name="line.558"></a>
+<span class="sourceLineNo">559</span>}<a name="line.559"></a>
 
 
 
