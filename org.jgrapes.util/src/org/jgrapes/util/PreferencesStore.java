@@ -62,7 +62,8 @@ import org.jgrapes.util.events.ConfigurationUpdate;
 public class PreferencesStore extends Component {
 
 	private Preferences preferences;
-	Set<Start> replacements = Collections.newSetFromMap(new WeakHashMap<>());
+	private Set<Start> replacements = Collections.newSetFromMap(
+			new WeakHashMap<>());
 	
 	/**
 	 * Creates a new component with its channel set to the given 
