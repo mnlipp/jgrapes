@@ -15,18 +15,28 @@ class SchedulerTest extends Specification {
 		def failMessages = [];
 		boolean hit1 = false;
 		boolean hit2 = false;
+		long t1 = 500;
+		long t2 = 1000;
+		long t3 = 1500;
+		long t4 = 2000;
+		if (System.getenv().get("TRAVIS") == 'true') {
+			t1 = 2000;
+			t2 = 4000;
+			t3 = 6000;
+			t4 = 8000;
+		}
 		
 		when: "Schedule and wait for first"
 		Instant startTime = Instant.now();
 		failMessages.add("Test started at: " + startTime);
 		Components.schedule({ expiredTimer -> hit1 = true },
-			startTime.plusMillis(1000));
+			startTime.plusMillis(t1));
 		Components.schedule({ expiredTimer -> hit2 = true },
-			startTime.plusMillis(2000));
+			startTime.plusMillis(t2));
 		Timer timer3 = Components.schedule({ expiredTimer -> hit1 = false },
-			startTime.plusMillis(3000));
-		// Wait until then
-		Instant then = startTime.plusMillis(1500);
+			startTime.plusMillis(t3));
+		// Wait until "then" (between t1 and t2)
+		Instant then = startTime.plusMillis((long)((t1 + t2) / 2));
 		failMessages.add("First check scheduled for: " + then);
 		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
 		failMessages.add("First check at: " + Instant.now());
@@ -36,7 +46,8 @@ class SchedulerTest extends Specification {
 		!hit2;
 		
 		when: "Waited longer"
-		then = startTime.plusMillis(2500);
+		// between t2 and t3
+		then = startTime.plusMillis((long)((t2 + t3) / 2));
 		failMessages.add("Second check scheduled for: " + then);
 		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
 		failMessages.add("Second check at: " + Instant.now());
@@ -47,7 +58,8 @@ class SchedulerTest extends Specification {
 		
 		when: "Cancel and wait"
 		timer3.cancel();
-		then = startTime.plusMillis(4000);
+		// well after t3
+		then = startTime.plusMillis(t4);
 		failMessages.add("Final check scheduled for: " + then);
 		Thread.sleep(Duration.between(Instant.now(), then).toMillis());
 		failMessages.add("Final check at: " + Instant.now());
