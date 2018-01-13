@@ -37,110 +37,105 @@
 <span class="sourceLineNo">029</span>import org.jgrapes.core.Component;<a name="line.29"></a>
 <span class="sourceLineNo">030</span>import org.jgrapes.core.annotation.Handler;<a name="line.30"></a>
 <span class="sourceLineNo">031</span>import org.jgrapes.core.events.Start;<a name="line.31"></a>
-<span class="sourceLineNo">032</span>import org.jgrapes.util.events.PreferencesInitialized;<a name="line.32"></a>
-<span class="sourceLineNo">033</span>import org.jgrapes.util.events.PreferencesRemoval;<a name="line.33"></a>
-<span class="sourceLineNo">034</span>import org.jgrapes.util.events.PreferencesUpdate;<a name="line.34"></a>
-<span class="sourceLineNo">035</span><a name="line.35"></a>
-<span class="sourceLineNo">036</span>/**<a name="line.36"></a>
-<span class="sourceLineNo">037</span> * This component provides a store for application preferences. Preferences<a name="line.37"></a>
+<span class="sourceLineNo">032</span>import org.jgrapes.util.events.InitialPreferences;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import org.jgrapes.util.events.ConfigurationUpdate;<a name="line.33"></a>
+<span class="sourceLineNo">034</span><a name="line.34"></a>
+<span class="sourceLineNo">035</span>/**<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * This component provides a store for an application's configuration<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * backed by the Java {@link Preferences}. Preferences<a name="line.37"></a>
 <span class="sourceLineNo">038</span> * are maps of key value pairs that are associated with a path. A common<a name="line.38"></a>
-<span class="sourceLineNo">039</span> * base path is passed to the component on creation. Components store <a name="line.39"></a>
-<span class="sourceLineNo">040</span> * their preferences using paths relative to that base path. Usually,<a name="line.40"></a>
-<span class="sourceLineNo">041</span> * the relative path simply corresponds to the component's class name, <a name="line.41"></a>
-<span class="sourceLineNo">042</span> * though no restrictions for choosing the relative path exist.<a name="line.42"></a>
-<span class="sourceLineNo">043</span> * <a name="line.43"></a>
-<span class="sourceLineNo">044</span> * The component reads the initial values from the Java {@link Preferences}<a name="line.44"></a>
-<span class="sourceLineNo">045</span> * tree denoted by the base path. During application bootstrap, it <a name="line.45"></a>
-<span class="sourceLineNo">046</span> * intercepts the {@link Start} event using a handler with  priority <a name="line.46"></a>
-<span class="sourceLineNo">047</span> * 999999. When receiving this event, it fires all known preferences <a name="line.47"></a>
-<span class="sourceLineNo">048</span> * values on the channels fo the start event as a <a name="line.48"></a>
-<span class="sourceLineNo">049</span> * {@link PreferencesInitialized} event. Then, it re-fires the <a name="line.49"></a>
-<span class="sourceLineNo">050</span> * intercepted {@link Start} event. <a name="line.50"></a>
-<span class="sourceLineNo">051</span> * <a name="line.51"></a>
-<span class="sourceLineNo">052</span> * Components that depend on preference values define handlers<a name="line.52"></a>
-<span class="sourceLineNo">053</span> * for {@link PreferencesUpdate} events and adapt themselves to the values <a name="line.53"></a>
-<span class="sourceLineNo">054</span> * received. Note that due to the intercepted {@link Start} event, the initial<a name="line.54"></a>
-<span class="sourceLineNo">055</span> * preferences values are received before the {@link Start} event, so<a name="line.55"></a>
-<span class="sourceLineNo">056</span> * components' configurations can be rearranged before they actually<a name="line.56"></a>
-<span class="sourceLineNo">057</span> * start doing something.<a name="line.57"></a>
-<span class="sourceLineNo">058</span> *<a name="line.58"></a>
-<span class="sourceLineNo">059</span> * Besides initially publishing the stored preferences values,<a name="line.59"></a>
-<span class="sourceLineNo">060</span> * the component also listens for {@link PreferencesUpdate} events<a name="line.60"></a>
-<span class="sourceLineNo">061</span> * fired by other components and updates the preferences store.<a name="line.61"></a>
-<span class="sourceLineNo">062</span> */<a name="line.62"></a>
-<span class="sourceLineNo">063</span>public class PreferencesStore extends Component {<a name="line.63"></a>
-<span class="sourceLineNo">064</span><a name="line.64"></a>
-<span class="sourceLineNo">065</span>        private Preferences preferences;<a name="line.65"></a>
-<span class="sourceLineNo">066</span>        Set&lt;Start&gt; replacements = Collections.newSetFromMap(new WeakHashMap&lt;&gt;());<a name="line.66"></a>
-<span class="sourceLineNo">067</span>        <a name="line.67"></a>
-<span class="sourceLineNo">068</span>        /**<a name="line.68"></a>
-<span class="sourceLineNo">069</span>         * Creates a new component base with its channel set to the given <a name="line.69"></a>
-<span class="sourceLineNo">070</span>         * channel and a base path derived from the given class.<a name="line.70"></a>
-<span class="sourceLineNo">071</span>         * <a name="line.71"></a>
-<span class="sourceLineNo">072</span>         * @param componentChannel the channel <a name="line.72"></a>
-<span class="sourceLineNo">073</span>         * @param appClass the application class; the base path<a name="line.73"></a>
-<span class="sourceLineNo">074</span>         * is formed by replacing each dot in the class's full name with <a name="line.74"></a>
-<span class="sourceLineNo">075</span>         * a slash, prepending a slash, and appending "`/PreferencesStore`".<a name="line.75"></a>
-<span class="sourceLineNo">076</span>         */<a name="line.76"></a>
-<span class="sourceLineNo">077</span>        public PreferencesStore(Channel componentChannel, Class&lt;?&gt; appClass) {<a name="line.77"></a>
-<span class="sourceLineNo">078</span>                super(componentChannel);<a name="line.78"></a>
-<span class="sourceLineNo">079</span>                preferences = Preferences.userNodeForPackage(appClass)<a name="line.79"></a>
-<span class="sourceLineNo">080</span>                                .node(appClass.getSimpleName()).node("PreferencesStore");<a name="line.80"></a>
-<span class="sourceLineNo">081</span>        }<a name="line.81"></a>
-<span class="sourceLineNo">082</span><a name="line.82"></a>
-<span class="sourceLineNo">083</span>        @Handler(priority=999999, channels=Channel.class)<a name="line.83"></a>
-<span class="sourceLineNo">084</span>        public void onStart(Start event) throws BackingStoreException {<a name="line.84"></a>
-<span class="sourceLineNo">085</span>                if (replacements.contains(event)) {<a name="line.85"></a>
-<span class="sourceLineNo">086</span>                        return;<a name="line.86"></a>
-<span class="sourceLineNo">087</span>                }<a name="line.87"></a>
-<span class="sourceLineNo">088</span>                event.cancel(false);<a name="line.88"></a>
-<span class="sourceLineNo">089</span>                PreferencesInitialized updEvt <a name="line.89"></a>
-<span class="sourceLineNo">090</span>                        = new PreferencesInitialized(preferences.parent().absolutePath());<a name="line.90"></a>
-<span class="sourceLineNo">091</span>                addPrefs(updEvt, preferences.absolutePath(), preferences);<a name="line.91"></a>
-<span class="sourceLineNo">092</span>                fire(updEvt, event.channels());<a name="line.92"></a>
-<span class="sourceLineNo">093</span>                Start replacement = new Start();<a name="line.93"></a>
-<span class="sourceLineNo">094</span>                replacements.add(replacement);<a name="line.94"></a>
-<span class="sourceLineNo">095</span>                fire(replacement, event.channels());<a name="line.95"></a>
-<span class="sourceLineNo">096</span>        }<a name="line.96"></a>
-<span class="sourceLineNo">097</span><a name="line.97"></a>
-<span class="sourceLineNo">098</span>        private void addPrefs(<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                        PreferencesInitialized updEvt, String rootPath, Preferences node) <a name="line.99"></a>
-<span class="sourceLineNo">100</span>                                        throws BackingStoreException {<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                String nodePath = node.absolutePath();<a name="line.101"></a>
-<span class="sourceLineNo">102</span>                String relPath = nodePath.substring(Math.min(<a name="line.102"></a>
-<span class="sourceLineNo">103</span>                                rootPath.length() + 1, nodePath.length()));<a name="line.103"></a>
-<span class="sourceLineNo">104</span>                for (String key: node.keys()) {<a name="line.104"></a>
-<span class="sourceLineNo">105</span>                        updEvt.add(relPath, key, node.get(key, null));<a name="line.105"></a>
-<span class="sourceLineNo">106</span>                }<a name="line.106"></a>
-<span class="sourceLineNo">107</span>                for (String child: node.childrenNames()) {<a name="line.107"></a>
-<span class="sourceLineNo">108</span>                        addPrefs(updEvt, rootPath, node.node(child));<a name="line.108"></a>
-<span class="sourceLineNo">109</span>                }<a name="line.109"></a>
-<span class="sourceLineNo">110</span>        }<a name="line.110"></a>
-<span class="sourceLineNo">111</span>        <a name="line.111"></a>
-<span class="sourceLineNo">112</span>        @Handler<a name="line.112"></a>
-<span class="sourceLineNo">113</span>        public void onUpdatePreferences(PreferencesUpdate event) <a name="line.113"></a>
-<span class="sourceLineNo">114</span>                        throws BackingStoreException {<a name="line.114"></a>
-<span class="sourceLineNo">115</span>                if (event instanceof PreferencesInitialized) {<a name="line.115"></a>
-<span class="sourceLineNo">116</span>                        return;<a name="line.116"></a>
-<span class="sourceLineNo">117</span>                }<a name="line.117"></a>
-<span class="sourceLineNo">118</span>                for (String path: event.paths()) {<a name="line.118"></a>
-<span class="sourceLineNo">119</span>                        for (Map.Entry&lt;String, String&gt; e: <a name="line.119"></a>
-<span class="sourceLineNo">120</span>                                event.preferences(path).entrySet()) {<a name="line.120"></a>
-<span class="sourceLineNo">121</span>                                preferences.node(path).put(e.getKey(), e.getValue());<a name="line.121"></a>
-<span class="sourceLineNo">122</span>                        }<a name="line.122"></a>
-<span class="sourceLineNo">123</span>                }<a name="line.123"></a>
-<span class="sourceLineNo">124</span>                preferences.flush();<a name="line.124"></a>
-<span class="sourceLineNo">125</span>        }<a name="line.125"></a>
-<span class="sourceLineNo">126</span>        <a name="line.126"></a>
-<span class="sourceLineNo">127</span>        @Handler<a name="line.127"></a>
-<span class="sourceLineNo">128</span>        public void onRemovePreferences(PreferencesRemoval event) <a name="line.128"></a>
-<span class="sourceLineNo">129</span>                        throws BackingStoreException {<a name="line.129"></a>
-<span class="sourceLineNo">130</span>                for (String path: event.paths()) {<a name="line.130"></a>
-<span class="sourceLineNo">131</span>                        preferences.node(path).removeNode();<a name="line.131"></a>
-<span class="sourceLineNo">132</span>                }<a name="line.132"></a>
-<span class="sourceLineNo">133</span>                preferences.flush();<a name="line.133"></a>
-<span class="sourceLineNo">134</span>        }<a name="line.134"></a>
-<span class="sourceLineNo">135</span>}<a name="line.135"></a>
+<span class="sourceLineNo">039</span> * base path is passed to the component on creation. The application's<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * configuration information is stored using paths relative to that <a name="line.40"></a>
+<span class="sourceLineNo">041</span> * base path.<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * <a name="line.42"></a>
+<span class="sourceLineNo">043</span> * The component reads the initial values from the Java {@link Preferences}<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * tree denoted by the base path. During application bootstrap, it <a name="line.44"></a>
+<span class="sourceLineNo">045</span> * intercepts the {@link Start} event using a handler with  priority <a name="line.45"></a>
+<span class="sourceLineNo">046</span> * 999999. When receiving this event, it fires all known preferences <a name="line.46"></a>
+<span class="sourceLineNo">047</span> * values on the channels of the start event as a <a name="line.47"></a>
+<span class="sourceLineNo">048</span> * {@link InitialPreferences} event. Then, it re-fires the <a name="line.48"></a>
+<span class="sourceLineNo">049</span> * intercepted {@link Start} event. <a name="line.49"></a>
+<span class="sourceLineNo">050</span> * <a name="line.50"></a>
+<span class="sourceLineNo">051</span> * Components that depend on configuration values define handlers<a name="line.51"></a>
+<span class="sourceLineNo">052</span> * for {@link ConfigurationUpdate} events and adapt themselves to the values <a name="line.52"></a>
+<span class="sourceLineNo">053</span> * received. Note that due to the intercepted {@link Start} event, the initial<a name="line.53"></a>
+<span class="sourceLineNo">054</span> * preferences values are received before the {@link Start} event, so<a name="line.54"></a>
+<span class="sourceLineNo">055</span> * components' configurations can be rearranged before they actually<a name="line.55"></a>
+<span class="sourceLineNo">056</span> * start doing something.<a name="line.56"></a>
+<span class="sourceLineNo">057</span> *<a name="line.57"></a>
+<span class="sourceLineNo">058</span> * Besides initially publishing the stored preferences values,<a name="line.58"></a>
+<span class="sourceLineNo">059</span> * the component also listens for {@link ConfigurationUpdate} events<a name="line.59"></a>
+<span class="sourceLineNo">060</span> * fired by other components and updates the preferences store.<a name="line.60"></a>
+<span class="sourceLineNo">061</span> */<a name="line.61"></a>
+<span class="sourceLineNo">062</span>public class PreferencesStore extends Component {<a name="line.62"></a>
+<span class="sourceLineNo">063</span><a name="line.63"></a>
+<span class="sourceLineNo">064</span>        private Preferences preferences;<a name="line.64"></a>
+<span class="sourceLineNo">065</span>        Set&lt;Start&gt; replacements = Collections.newSetFromMap(new WeakHashMap&lt;&gt;());<a name="line.65"></a>
+<span class="sourceLineNo">066</span>        <a name="line.66"></a>
+<span class="sourceLineNo">067</span>        /**<a name="line.67"></a>
+<span class="sourceLineNo">068</span>         * Creates a new component with its channel set to the given <a name="line.68"></a>
+<span class="sourceLineNo">069</span>         * channel and a base path derived from the given class.<a name="line.69"></a>
+<span class="sourceLineNo">070</span>         * <a name="line.70"></a>
+<span class="sourceLineNo">071</span>         * @param componentChannel the channel <a name="line.71"></a>
+<span class="sourceLineNo">072</span>         * @param appClass the application class; the base path<a name="line.72"></a>
+<span class="sourceLineNo">073</span>         * is formed by replacing each dot in the class's full name with <a name="line.73"></a>
+<span class="sourceLineNo">074</span>         * a slash, prepending a slash, and appending "`/PreferencesStore`".<a name="line.74"></a>
+<span class="sourceLineNo">075</span>         */<a name="line.75"></a>
+<span class="sourceLineNo">076</span>        public PreferencesStore(Channel componentChannel, Class&lt;?&gt; appClass) {<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                super(componentChannel);<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                preferences = Preferences.userNodeForPackage(appClass)<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                                .node(appClass.getSimpleName()).node("PreferencesStore");<a name="line.79"></a>
+<span class="sourceLineNo">080</span>        }<a name="line.80"></a>
+<span class="sourceLineNo">081</span><a name="line.81"></a>
+<span class="sourceLineNo">082</span>        @Handler(priority=999999, channels=Channel.class)<a name="line.82"></a>
+<span class="sourceLineNo">083</span>        public void onStart(Start event) throws BackingStoreException {<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                if (replacements.contains(event)) {<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                        return;<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                }<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                event.cancel(false);<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                InitialPreferences updEvt <a name="line.88"></a>
+<span class="sourceLineNo">089</span>                        = new InitialPreferences(preferences.parent().absolutePath());<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                addPrefs(updEvt, preferences.absolutePath(), preferences);<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                fire(updEvt, event.channels());<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                Start replacement = new Start();<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                replacements.add(replacement);<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                fire(replacement, event.channels());<a name="line.94"></a>
+<span class="sourceLineNo">095</span>        }<a name="line.95"></a>
+<span class="sourceLineNo">096</span><a name="line.96"></a>
+<span class="sourceLineNo">097</span>        private void addPrefs(<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                        InitialPreferences updEvt, String rootPath, Preferences node) <a name="line.98"></a>
+<span class="sourceLineNo">099</span>                                        throws BackingStoreException {<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                String nodePath = node.absolutePath();<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                String relPath = "/" + nodePath.substring(Math.min(<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                                rootPath.length() + 1, nodePath.length()));<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                for (String key: node.keys()) {<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                        updEvt.add(relPath, key, node.get(key, null));<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                }<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                for (String child: node.childrenNames()) {<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                        addPrefs(updEvt, rootPath, node.node(child));<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                }<a name="line.108"></a>
+<span class="sourceLineNo">109</span>        }<a name="line.109"></a>
+<span class="sourceLineNo">110</span>        <a name="line.110"></a>
+<span class="sourceLineNo">111</span>        @Handler<a name="line.111"></a>
+<span class="sourceLineNo">112</span>        public void onConfigurationUpdate(ConfigurationUpdate event) <a name="line.112"></a>
+<span class="sourceLineNo">113</span>                        throws BackingStoreException {<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                if (event instanceof InitialPreferences) {<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                        return;<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                }<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                for (String path: event.paths()) {<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                        Map&lt;String,String&gt; prefs = event.preferences(path);<a name="line.118"></a>
+<span class="sourceLineNo">119</span>                        path = path.substring(1); // Remove leading slash<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                        if (prefs == null) {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                                preferences.node(path).removeNode();<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                                continue;<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                        }<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                        for (Map.Entry&lt;String, String&gt; e: prefs.entrySet()) {<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                                preferences.node(path).put(e.getKey(), e.getValue());<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                        }<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                }<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                preferences.flush();<a name="line.128"></a>
+<span class="sourceLineNo">129</span>        }<a name="line.129"></a>
+<span class="sourceLineNo">130</span>}<a name="line.130"></a>
 
 
 
