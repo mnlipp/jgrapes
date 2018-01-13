@@ -151,4 +151,19 @@ public class StructureTest {
 	public void testIllegalComponent() {
 		Components.manager(new IllegalComponent());
 	}
+	
+	@Test
+	public void testPaths() {
+		TestComponent2 comp = new TestComponent2("root");
+		TestComponent2 comp1 = comp.attach(new TestComponent2("sub1"));
+		TestComponent2 comp2 = comp.attach(new TestComponent2("sub2"));
+		TestComponent1 comp3 = comp.attach(new TestComponent1("sub3"));
+		Iterator<ComponentType> iter = comp.children().iterator();
+		assertSame(iter.next(), comp1);
+		assertSame(iter.next(), comp2);
+		assertEquals("/root/sub1", comp1.path());
+		assertEquals("/root/sub2", comp2.path());
+		assertEquals("/root/ComponentProxy", Components.manager(comp3).path());
+	}
+	
 }

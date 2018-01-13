@@ -24,27 +24,12 @@ import org.jgrapes.core.events.Start;
  *
  */
 public class TestComponent2 extends Component {
-	private String name = "Unknown";
 
 	/**
 	 * @param name
 	 */
 	public TestComponent2(String name) {
-		this.name = name;
-	}
-
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
+		setName(name);
 	}
 
 	@Handler(events=Start.class)

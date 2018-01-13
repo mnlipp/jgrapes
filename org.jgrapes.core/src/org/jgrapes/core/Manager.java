@@ -28,19 +28,42 @@ import org.jgrapes.core.events.Start;
 
 /**
  * The interface that provides the methods for manipulating the
- * component hierarchy and for firing events. Every component has
- * access to a manager implementation that manages the component.
- * <P>
- * The <code>Manager</code> for a component that extends from 
+ * component and the component's hierarchy and for firing events. 
+ * Every component has access to a manager implementation that 
+ * manages the component.
+ * 
+ * The `Manager` for a component that extends from 
  * {@link Component} is provided by the base class itself.
  * Components that only implement the {@link ComponentType} interface
- * get an associated <code>Manager</code> assigned to their annotated 
- * attribute.
+ * get their `Manager` assigned to their annotated 
+ * attribute when they are attached to the component tree.
  * 
  * @see ComponentType
  */
 public interface Manager extends Iterable<ComponentType> {
 
+	/**
+	 * Sets the (optional) name of the component.
+	 * 
+	 * @param name the name to set
+	 * @return the component (for comfortable chaining)
+	 */
+	ComponentType setName(String name);
+	
+	/**
+	 * Returns the (optional) name of the component.
+	 */
+	String name();
+
+	/**
+	 * Returns the path of the component. The path is the concatenation
+	 * of a slash ('/') and the component's name for all components
+	 * from the root component to this component. If a component
+	 * doesn't have a name set, the simple name of its class
+	 * (see {@link Class#getSimpleName()}) is used instead.
+	 */
+	String path();
+	
 	/**
 	 * Detaches the component managed by this manager (with its children,
 	 * if any) from the component tree that it currently belongs to.

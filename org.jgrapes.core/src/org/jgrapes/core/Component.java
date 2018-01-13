@@ -76,10 +76,19 @@ public abstract class Component extends ComponentVertex
 	}
 
 	/* (non-Javadoc)
+	 * @see org.jgrapes.core.internal.ComponentVertex#setName(java.lang.String)
+	 */
+	@Override
+	public Component setName(String name) {
+		super.setName(name);
+		return this;
+	}
+
+	/* (non-Javadoc)
 	 * @see org.jgrapes.core.internal.ComponentVertex#getComponent()
 	 */
 	@Override
-	protected ComponentType component() {
+	protected Component component() {
 		return this;
 	}
 

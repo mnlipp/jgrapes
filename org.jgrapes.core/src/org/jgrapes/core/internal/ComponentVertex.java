@@ -58,6 +58,8 @@ public abstract class ComponentVertex implements Manager, Channel {
 	private static Map<Class<? extends HandlerDefinition.Evaluator>,
 			HandlerDefinition.Evaluator> definitionEvaluators 
 			= Collections.synchronizedMap(new HashMap<>());
+	/** The component's (optional) name. */
+	private String name = null;
 	/** Reference to the common properties of the tree nodes. */
 	private ComponentTree tree = null;
 	/** Reference to the parent node. */
@@ -125,6 +127,41 @@ public abstract class ComponentVertex implements Manager, Channel {
 		return evaluator;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#setName(java.lang.String)
+	 */
+	@Override
+	public ComponentType setName(String name) {
+		this.name = name;
+		return component();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#name()
+	 */
+	@Override
+	public String name() {
+		return name;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#path()
+	 */
+	@Override
+	public String path() {
+		StringBuilder sb = new StringBuilder();
+		buildPath(sb);
+		return sb.toString();
+	}
+
+	private void buildPath(StringBuilder sb) {
+		if (parent != null) {
+			parent.buildPath(sb);
+		}
+		sb.append('/');
+		sb.append(name != null ? name : getClass().getSimpleName());
+	}
+	
 	/**
 	 * Return the component node for a given component.
 	 * 
@@ -488,12 +525,19 @@ public abstract class ComponentVertex implements Manager, Channel {
 				new EventProcessor(tree(), executorService), channel());
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
+	/**
+	 * If a name has been set for this component 
+	 * (see {@link Manager#setName(String)), return the name,
+	 * else return the object name provided by 
+	 * {@link Components#objectName(Object)}, using
+	 * {@link #component()} as argument.
 	 */
 	@Override
 	public String toString() {
-		return Components.objectName(this);
+		if (name != null) {
+			return name;
+		}
+		return Components.objectName(component());
 	}
 	
 	/* (non-Javadoc)
