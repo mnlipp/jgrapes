@@ -11,9 +11,8 @@ import org.jgrapes.core.Event
 import org.jgrapes.core.annotation.Handler
 import org.jgrapes.core.events.Start
 import org.jgrapes.util.PreferencesStore
-import org.jgrapes.util.events.PreferencesInitialized
-import org.jgrapes.util.events.PreferencesRemoval
-import org.jgrapes.util.events.PreferencesUpdate
+import org.jgrapes.util.events.InitialPreferences
+import org.jgrapes.util.events.ConfigurationUpdate
 
 import groovy.transform.CompileStatic
 import spock.lang.*
@@ -30,20 +29,20 @@ class PreferencesTests extends Specification {
 		public int subValue = 0;
 		
 		@Handler
-		public void onInitialPrefs(PreferencesInitialized event) {
+		public void onInitialPrefs(InitialPreferences event) {
 			appPath = event.applicationPath();
-			value = Integer.parseInt(event.preferences("").get("answer"))
-			subValue = Integer.parseInt(event.preferences("sub/tree").get("value"))
+			value = Integer.parseInt(event.preferences("/").get("answer"))
+			subValue = Integer.parseInt(event.preferences("/sub/tree").get("value"))
 		}
 		
 		@Handler
 		public void onUpdate(Update event) {
-			fire(new PreferencesUpdate().add("", "updated", "new"))
+			fire(new ConfigurationUpdate().add("/", "updated", "new"))
 		}
 	}
 
 	void "Init Test"() {
-		setup: "Create app"
+		setup: "Create app and set values in Java Preferences"
 		App app = new App();
 		app.attach(new PreferencesStore(app, getClass()))
 		Preferences base = Preferences.userNodeForPackage(getClass())
@@ -56,7 +55,7 @@ class PreferencesTests extends Specification {
 		Components.start(app)
 		Components.awaitExhaustion();
 
-		then: "Values must be set"
+		then: "Values must have been set in component"
 		app.appPath == Preferences.userNodeForPackage(getClass())
 			.node(getClass().getSimpleName()).absolutePath()
 		app.value == 42
@@ -66,22 +65,22 @@ class PreferencesTests extends Specification {
 		app.fire(new Update(), app)
 		Components.awaitExhaustion();
 		
-		then: "Preference must have been updated"
+		then: "Java Preference must have been updated"
 		base.get("updated", "") == "new"
 
-		when: "Remove sub tree"
-		app.fire(new PreferencesRemoval().add("sub"), app)
+		when: "Remove sub tree event"
+		app.fire(new ConfigurationUpdate().removePath("/sub"), app)
 		Components.awaitExhaustion();
 		
-		then: "Sub tree must have been removed"
+		then: "Sub tree must have been removed in Java Preferences"
 		!base.nodeExists("sub")
 		base.nodeExists("")
 		
 		when: "Remove test preferences"
-		app.fire(new PreferencesRemoval().add(""), app)
+		app.fire(new ConfigurationUpdate().removePath("/"), app)
 		Components.awaitExhaustion();
 		
-		then: "Preferences must have been removed"
+		then: "Preferences must have been removed in Java Preferences"
 		!base.nodeExists("")
 		
 		cleanup:

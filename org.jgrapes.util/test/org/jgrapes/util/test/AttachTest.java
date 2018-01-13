@@ -9,7 +9,7 @@ import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.util.PreferencesStore;
-import org.jgrapes.util.events.PreferencesInitialized;
+import org.jgrapes.util.events.InitialPreferences;
 import org.junit.Test;
 
 public class AttachTest {
@@ -26,7 +26,7 @@ public class AttachTest {
 		}
 
 		@Handler
-		public void onInitialPreferences(PreferencesInitialized event) {
+		public void onInitialPreferences(InitialPreferences event) {
 			initCount += 1;
 		}
 	}

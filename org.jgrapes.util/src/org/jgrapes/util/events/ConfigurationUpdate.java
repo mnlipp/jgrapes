@@ -24,11 +24,20 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jgrapes.core.Event;
+import org.jgrapes.core.Manager;
 
 /**
- * An event to indicate that preferences values have been updated.
+ * An event to indicate that configuration information has been
+ * updated.
+ * 
+ * Configurability based on this type of event can optionally be 
+ * supported by components. If supported, a component implements a 
+ * handler that checks whether the paths of this event include the 
+ * component's path in the application's component tree (see 
+ * {@link Manager#path()}). If so, the component adapts itself to the 
+ * information propagated.
  */
-public class PreferencesUpdate extends Event<Void> {
+public class ConfigurationUpdate extends Event<Void> {
 
 	private Map<String,Map<String,String>> paths = new HashMap<>();
 
@@ -40,9 +49,9 @@ public class PreferencesUpdate extends Event<Void> {
 	 * @param value the value of the preference
 	 * @return the event for easy chaining
 	 */
-	public PreferencesUpdate add(String path, String key, String value) {
-		if (path == null) {
-			path = "";
+	public ConfigurationUpdate add(String path, String key, String value) {
+		if (path == null || !path.startsWith("/")) {
+			throw new IllegalArgumentException("Path must start with \"/\".");
 		}
 		Map<String,String> scoped = paths
 				.computeIfAbsent(path, s -> new HashMap<String,String>());
@@ -50,6 +59,20 @@ public class PreferencesUpdate extends Event<Void> {
 		return this;
 	}
 
+	/**
+	 * Remove a path from the configuration.
+	 * 
+	 * @param path the path to be removed
+	 * @return the event for easy chaining
+	 */
+	public ConfigurationUpdate removePath(String path) {
+		if (path == null || !path.startsWith("/")) {
+			throw new IllegalArgumentException("Path must start with \"/\".");
+		}
+		paths.put(path, null);
+		return this;
+	}
+	
 	/**
 	 * Return all paths affected by this event.
 	 * 
@@ -63,10 +86,17 @@ public class PreferencesUpdate extends Event<Void> {
 	 * Return the preferences for a given path.
 	 * 
 	 * @param path the path
-	 * @return the updated preferences
+	 * @return the updated preferences or `null` if the path has been
+	 * removed (implies the removal of all preferences for that path).
 	 */
 	public Map<String,String> preferences(String path) {
-		return Collections.unmodifiableMap(
-				paths.getOrDefault(path, Collections.emptyMap()));
+		if (!paths.containsKey(path)) {
+			return Collections.emptyMap();
+		}
+		Map<String,String> result = paths.get(path);
+		if (result == null) {
+			return result;
+		}
+		return Collections.unmodifiableMap(result);
 	}
 }

@@ -42,9 +42,9 @@ package org.jgrapes {
     }
 }
 
+org.jgrapes.core <.right. org.jgrapes.util
 org.jgrapes.core <.. org.jgrapes.io
-org.jgrapes.core <.. org.jgrapes.util
-org.jgrapes.core <.. org.jgrapes.http
+org.jgrapes.util <.. org.jgrapes.io
 org.jgrapes.io <.right. org.jgrapes.http
 
 
