@@ -87,11 +87,8 @@ public class ClassChannel implements Channel {
 	 */
 	@Override
 	public String toString() {
-		// Anonymous classes have no (simple) name
-		String base = getClass().isAnonymousClass()
-				? Components.objectName(getClass())
-				: Components.classToString(getClass());
-		return base + " [criterion=" 
+		return Components.classToString(getClass())
+				+ " [criterion=" 
 				+ ((defaultCriterion() instanceof Class)
 					?  Components.classToString((Class<?>)defaultCriterion())
 					: defaultCriterion())

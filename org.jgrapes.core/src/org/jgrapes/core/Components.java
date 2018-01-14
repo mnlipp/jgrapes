@@ -233,7 +233,16 @@ public class Components {
 		if (Common.classNames.isLoggable(Level.FINER)) {
 			return clazz.getName();
 		} else {
-			return clazz.getSimpleName();
+			if (!clazz.isAnonymousClass()) {
+				return clazz.getSimpleName();
+			}
+			// Simple name of anonymous class is empty
+			String name = clazz.getName();
+			int lastDot = name.lastIndexOf('.');
+			if (lastDot <= 0) {
+				return name;
+			}
+			return name.substring(lastDot + 1);
 		}
 	}
 	
