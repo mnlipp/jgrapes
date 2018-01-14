@@ -29,85 +29,98 @@
 <span class="sourceLineNo">021</span>import java.util.Collections;<a name="line.21"></a>
 <span class="sourceLineNo">022</span>import java.util.HashMap;<a name="line.22"></a>
 <span class="sourceLineNo">023</span>import java.util.Map;<a name="line.23"></a>
-<span class="sourceLineNo">024</span>import java.util.Set;<a name="line.24"></a>
-<span class="sourceLineNo">025</span><a name="line.25"></a>
-<span class="sourceLineNo">026</span>import org.jgrapes.core.Event;<a name="line.26"></a>
-<span class="sourceLineNo">027</span>import org.jgrapes.core.Manager;<a name="line.27"></a>
-<span class="sourceLineNo">028</span><a name="line.28"></a>
-<span class="sourceLineNo">029</span>/**<a name="line.29"></a>
-<span class="sourceLineNo">030</span> * An event to indicate that configuration information has been<a name="line.30"></a>
-<span class="sourceLineNo">031</span> * updated.<a name="line.31"></a>
-<span class="sourceLineNo">032</span> * <a name="line.32"></a>
-<span class="sourceLineNo">033</span> * Configurability based on this type of event can optionally be <a name="line.33"></a>
-<span class="sourceLineNo">034</span> * supported by components. If supported, a component implements a <a name="line.34"></a>
-<span class="sourceLineNo">035</span> * handler that checks whether the paths of this event include the <a name="line.35"></a>
-<span class="sourceLineNo">036</span> * component's path in the application's component tree (see <a name="line.36"></a>
-<span class="sourceLineNo">037</span> * {@link Manager#path()}). If so, the component adapts itself to the <a name="line.37"></a>
-<span class="sourceLineNo">038</span> * information propagated.<a name="line.38"></a>
-<span class="sourceLineNo">039</span> */<a name="line.39"></a>
-<span class="sourceLineNo">040</span>public class ConfigurationUpdate extends Event&lt;Void&gt; {<a name="line.40"></a>
-<span class="sourceLineNo">041</span><a name="line.41"></a>
-<span class="sourceLineNo">042</span>        private Map&lt;String,Map&lt;String,String&gt;&gt; paths = new HashMap&lt;&gt;();<a name="line.42"></a>
-<span class="sourceLineNo">043</span><a name="line.43"></a>
-<span class="sourceLineNo">044</span>        /**<a name="line.44"></a>
-<span class="sourceLineNo">045</span>         * Add new (updated) preferences to the event.<a name="line.45"></a>
-<span class="sourceLineNo">046</span>         * <a name="line.46"></a>
-<span class="sourceLineNo">047</span>         * @param path the preference's path<a name="line.47"></a>
-<span class="sourceLineNo">048</span>         * @param key the key of the preference<a name="line.48"></a>
-<span class="sourceLineNo">049</span>         * @param value the value of the preference<a name="line.49"></a>
-<span class="sourceLineNo">050</span>         * @return the event for easy chaining<a name="line.50"></a>
-<span class="sourceLineNo">051</span>         */<a name="line.51"></a>
-<span class="sourceLineNo">052</span>        public ConfigurationUpdate add(String path, String key, String value) {<a name="line.52"></a>
-<span class="sourceLineNo">053</span>                if (path == null || !path.startsWith("/")) {<a name="line.53"></a>
-<span class="sourceLineNo">054</span>                        throw new IllegalArgumentException("Path must start with \"/\".");<a name="line.54"></a>
-<span class="sourceLineNo">055</span>                }<a name="line.55"></a>
-<span class="sourceLineNo">056</span>                Map&lt;String,String&gt; scoped = paths<a name="line.56"></a>
-<span class="sourceLineNo">057</span>                                .computeIfAbsent(path, s -&gt; new HashMap&lt;String,String&gt;());<a name="line.57"></a>
-<span class="sourceLineNo">058</span>                scoped.put(key, value);<a name="line.58"></a>
-<span class="sourceLineNo">059</span>                return this;<a name="line.59"></a>
-<span class="sourceLineNo">060</span>        }<a name="line.60"></a>
-<span class="sourceLineNo">061</span><a name="line.61"></a>
-<span class="sourceLineNo">062</span>        /**<a name="line.62"></a>
-<span class="sourceLineNo">063</span>         * Remove a path from the configuration.<a name="line.63"></a>
-<span class="sourceLineNo">064</span>         * <a name="line.64"></a>
-<span class="sourceLineNo">065</span>         * @param path the path to be removed<a name="line.65"></a>
-<span class="sourceLineNo">066</span>         * @return the event for easy chaining<a name="line.66"></a>
-<span class="sourceLineNo">067</span>         */<a name="line.67"></a>
-<span class="sourceLineNo">068</span>        public ConfigurationUpdate removePath(String path) {<a name="line.68"></a>
-<span class="sourceLineNo">069</span>                if (path == null || !path.startsWith("/")) {<a name="line.69"></a>
-<span class="sourceLineNo">070</span>                        throw new IllegalArgumentException("Path must start with \"/\".");<a name="line.70"></a>
-<span class="sourceLineNo">071</span>                }<a name="line.71"></a>
-<span class="sourceLineNo">072</span>                paths.put(path, null);<a name="line.72"></a>
-<span class="sourceLineNo">073</span>                return this;<a name="line.73"></a>
-<span class="sourceLineNo">074</span>        }<a name="line.74"></a>
-<span class="sourceLineNo">075</span>        <a name="line.75"></a>
-<span class="sourceLineNo">076</span>        /**<a name="line.76"></a>
-<span class="sourceLineNo">077</span>         * Return all paths affected by this event.<a name="line.77"></a>
-<span class="sourceLineNo">078</span>         * <a name="line.78"></a>
-<span class="sourceLineNo">079</span>         * @return the paths<a name="line.79"></a>
-<span class="sourceLineNo">080</span>         */<a name="line.80"></a>
-<span class="sourceLineNo">081</span>        public Set&lt;String&gt; paths() {<a name="line.81"></a>
-<span class="sourceLineNo">082</span>                return Collections.unmodifiableSet(paths.keySet());<a name="line.82"></a>
-<span class="sourceLineNo">083</span>        }<a name="line.83"></a>
-<span class="sourceLineNo">084</span>        <a name="line.84"></a>
-<span class="sourceLineNo">085</span>        /**<a name="line.85"></a>
-<span class="sourceLineNo">086</span>         * Return the preferences for a given path.<a name="line.86"></a>
-<span class="sourceLineNo">087</span>         * <a name="line.87"></a>
-<span class="sourceLineNo">088</span>         * @param path the path<a name="line.88"></a>
-<span class="sourceLineNo">089</span>         * @return the updated preferences or `null` if the path has been<a name="line.89"></a>
-<span class="sourceLineNo">090</span>         * removed (implies the removal of all preferences for that path).<a name="line.90"></a>
-<span class="sourceLineNo">091</span>         */<a name="line.91"></a>
-<span class="sourceLineNo">092</span>        public Map&lt;String,String&gt; preferences(String path) {<a name="line.92"></a>
-<span class="sourceLineNo">093</span>                if (!paths.containsKey(path)) {<a name="line.93"></a>
-<span class="sourceLineNo">094</span>                        return Collections.emptyMap();<a name="line.94"></a>
-<span class="sourceLineNo">095</span>                }<a name="line.95"></a>
-<span class="sourceLineNo">096</span>                Map&lt;String,String&gt; result = paths.get(path);<a name="line.96"></a>
-<span class="sourceLineNo">097</span>                if (result == null) {<a name="line.97"></a>
-<span class="sourceLineNo">098</span>                        return result;<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                }<a name="line.99"></a>
-<span class="sourceLineNo">100</span>                return Collections.unmodifiableMap(result);<a name="line.100"></a>
-<span class="sourceLineNo">101</span>        }<a name="line.101"></a>
-<span class="sourceLineNo">102</span>}<a name="line.102"></a>
+<span class="sourceLineNo">024</span>import java.util.Optional;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import java.util.Set;<a name="line.25"></a>
+<span class="sourceLineNo">026</span><a name="line.26"></a>
+<span class="sourceLineNo">027</span>import org.jgrapes.core.Event;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.jgrapes.core.Manager;<a name="line.28"></a>
+<span class="sourceLineNo">029</span><a name="line.29"></a>
+<span class="sourceLineNo">030</span>/**<a name="line.30"></a>
+<span class="sourceLineNo">031</span> * An event to indicate that configuration information has been<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * updated.<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * <a name="line.33"></a>
+<span class="sourceLineNo">034</span> * Configurability based on this type of event can optionally be <a name="line.34"></a>
+<span class="sourceLineNo">035</span> * supported by components. If supported, a component implements a <a name="line.35"></a>
+<span class="sourceLineNo">036</span> * handler that checks whether the paths of this event include the <a name="line.36"></a>
+<span class="sourceLineNo">037</span> * component's path in the application's component tree (see <a name="line.37"></a>
+<span class="sourceLineNo">038</span> * {@link Manager#path()}). If so, the component adapts itself to the <a name="line.38"></a>
+<span class="sourceLineNo">039</span> * information propagated.<a name="line.39"></a>
+<span class="sourceLineNo">040</span> */<a name="line.40"></a>
+<span class="sourceLineNo">041</span>public class ConfigurationUpdate extends Event&lt;Void&gt; {<a name="line.41"></a>
+<span class="sourceLineNo">042</span><a name="line.42"></a>
+<span class="sourceLineNo">043</span>        private Map&lt;String,Map&lt;String,String&gt;&gt; paths = new HashMap&lt;&gt;();<a name="line.43"></a>
+<span class="sourceLineNo">044</span><a name="line.44"></a>
+<span class="sourceLineNo">045</span>        /**<a name="line.45"></a>
+<span class="sourceLineNo">046</span>         * Add new (updated) configuration value to the event.<a name="line.46"></a>
+<span class="sourceLineNo">047</span>         * <a name="line.47"></a>
+<span class="sourceLineNo">048</span>         * @param path the value's path<a name="line.48"></a>
+<span class="sourceLineNo">049</span>         * @param key the key of the value<a name="line.49"></a>
+<span class="sourceLineNo">050</span>         * @param value the value<a name="line.50"></a>
+<span class="sourceLineNo">051</span>         * @return the event for easy chaining<a name="line.51"></a>
+<span class="sourceLineNo">052</span>         */<a name="line.52"></a>
+<span class="sourceLineNo">053</span>        public ConfigurationUpdate add(String path, String key, String value) {<a name="line.53"></a>
+<span class="sourceLineNo">054</span>                if (path == null || !path.startsWith("/")) {<a name="line.54"></a>
+<span class="sourceLineNo">055</span>                        throw new IllegalArgumentException("Path must start with \"/\".");<a name="line.55"></a>
+<span class="sourceLineNo">056</span>                }<a name="line.56"></a>
+<span class="sourceLineNo">057</span>                Map&lt;String,String&gt; scoped = paths<a name="line.57"></a>
+<span class="sourceLineNo">058</span>                                .computeIfAbsent(path, s -&gt; new HashMap&lt;String,String&gt;());<a name="line.58"></a>
+<span class="sourceLineNo">059</span>                scoped.put(key, value);<a name="line.59"></a>
+<span class="sourceLineNo">060</span>                return this;<a name="line.60"></a>
+<span class="sourceLineNo">061</span>        }<a name="line.61"></a>
+<span class="sourceLineNo">062</span><a name="line.62"></a>
+<span class="sourceLineNo">063</span>        /**<a name="line.63"></a>
+<span class="sourceLineNo">064</span>         * Remove a path from the configuration.<a name="line.64"></a>
+<span class="sourceLineNo">065</span>         * <a name="line.65"></a>
+<span class="sourceLineNo">066</span>         * @param path the path to be removed<a name="line.66"></a>
+<span class="sourceLineNo">067</span>         * @return the event for easy chaining<a name="line.67"></a>
+<span class="sourceLineNo">068</span>         */<a name="line.68"></a>
+<span class="sourceLineNo">069</span>        public ConfigurationUpdate removePath(String path) {<a name="line.69"></a>
+<span class="sourceLineNo">070</span>                if (path == null || !path.startsWith("/")) {<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                        throw new IllegalArgumentException("Path must start with \"/\".");<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                }<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                paths.put(path, null);<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                return this;<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        }<a name="line.75"></a>
+<span class="sourceLineNo">076</span>        <a name="line.76"></a>
+<span class="sourceLineNo">077</span>        /**<a name="line.77"></a>
+<span class="sourceLineNo">078</span>         * Return all paths affected by this event.<a name="line.78"></a>
+<span class="sourceLineNo">079</span>         * <a name="line.79"></a>
+<span class="sourceLineNo">080</span>         * @return the paths<a name="line.80"></a>
+<span class="sourceLineNo">081</span>         */<a name="line.81"></a>
+<span class="sourceLineNo">082</span>        public Set&lt;String&gt; paths() {<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                return Collections.unmodifiableSet(paths.keySet());<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        }<a name="line.84"></a>
+<span class="sourceLineNo">085</span>        <a name="line.85"></a>
+<span class="sourceLineNo">086</span>        /**<a name="line.86"></a>
+<span class="sourceLineNo">087</span>         * Return the values for a given path.<a name="line.87"></a>
+<span class="sourceLineNo">088</span>         * <a name="line.88"></a>
+<span class="sourceLineNo">089</span>         * @param path the path<a name="line.89"></a>
+<span class="sourceLineNo">090</span>         * @return the updated values or `null` if the path has been<a name="line.90"></a>
+<span class="sourceLineNo">091</span>         * removed (implies the removal of all values for that path).<a name="line.91"></a>
+<span class="sourceLineNo">092</span>         */<a name="line.92"></a>
+<span class="sourceLineNo">093</span>        public Map&lt;String,String&gt; values(String path) {<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                if (!paths.containsKey(path)) {<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                        return Collections.emptyMap();<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                }<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                Map&lt;String,String&gt; result = paths.get(path);<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                if (result == null) {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                        return result;<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                }<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                return Collections.unmodifiableMap(result);<a name="line.101"></a>
+<span class="sourceLineNo">102</span>        }<a name="line.102"></a>
+<span class="sourceLineNo">103</span><a name="line.103"></a>
+<span class="sourceLineNo">104</span>        /**<a name="line.104"></a>
+<span class="sourceLineNo">105</span>         * Return the value with the given path and key if it exists.<a name="line.105"></a>
+<span class="sourceLineNo">106</span>         * <a name="line.106"></a>
+<span class="sourceLineNo">107</span>         * @param path the path<a name="line.107"></a>
+<span class="sourceLineNo">108</span>         * @param key the key<a name="line.108"></a>
+<span class="sourceLineNo">109</span>         * @return the value<a name="line.109"></a>
+<span class="sourceLineNo">110</span>         */<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        public Optional&lt;String&gt; value(String path, String key) {<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                return Optional.ofNullable(paths.get(path))<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                                .flatMap(map -&gt; Optional.ofNullable(map.get(key)));<a name="line.113"></a>
+<span class="sourceLineNo">114</span>        }<a name="line.114"></a>
+<span class="sourceLineNo">115</span>}<a name="line.115"></a>
 
 
 
