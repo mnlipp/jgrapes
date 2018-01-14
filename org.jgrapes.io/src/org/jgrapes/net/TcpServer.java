@@ -70,11 +70,14 @@ import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
+import org.jgrapes.util.events.ConfigurationUpdate;
 
 /**
  * Provides a TCP server. The server binds to the given address. If the
  * address is {@code null}, address and port are automatically assigned.
- * <P>
+ * The port may be overwritten by a configuration event
+ * (see {@link #onConfigurationUpdate(ConfigurationUpdate)}).
+ * 
  * The end of record flag is not used by the server.
  */
 public class TcpServer extends Component implements NioHandler {
@@ -129,6 +132,39 @@ public class TcpServer extends Component implements NioHandler {
 		return this;
 	}
 
+	/**
+	 * The component can be configured with events that include
+	 * a path (see @link {@link ConfigurationUpdate#paths()})
+	 * that matches this components path (see {@link Manager#path()}).
+	 * 
+	 * The following properties are used:
+	 * 
+	 * `hostname`
+	 * : If given, is used as first parameter for 
+	 *   {@link InetSocketAddress#InetSocketAddress(String, int)}.
+	 * 
+	 * `port`
+	 * : If given, is used as parameter for 
+	 *   {@link InetSocketAddress#InetSocketAddress(String, int)} 
+	 *   or {@link InetSocketAddress#InetSocketAddress(int)}, 
+	 *   depending on whether a host name is specified. Defaults to "0".
+	 * 
+	 * @param event the event
+	 */
+	@Handler
+	public void onConfigurationUpdate(ConfigurationUpdate event) {
+		event.paths().stream().filter(p -> p.equals(path()))
+		.findFirst().flatMap(p1 -> event.values(p1)).ifPresent(values -> {
+			String hostname = values.get("hostname");
+			int port = Integer.parseInt(values.getOrDefault("port", "0"));
+			if (hostname != null) {
+				setServerAddress(new InetSocketAddress(hostname, port));
+			} else {
+				setServerAddress(new InetSocketAddress(port));
+			}
+		});
+	}
+	
 	/**
 	 * Returns the server address. Before starting, the address is the
 	 * address set with {@link #setServerAddress(InetSocketAddress)}. After
