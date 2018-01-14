@@ -138,7 +138,7 @@ public class JsonConfigurationStore extends Component {
 			if (e.getValue() instanceof Map) {
 				@SuppressWarnings("unchecked")
 				Map<String,?> value = (Map<String,?>)e.getValue();
-				addPrefs(updEvt, (path.equals("/") ? "" : path)
+				addPrefs(updEvt, ("/".equals(path) ? "" : path)
 						+ e.getKey(), value);
 				continue;
 			}
@@ -175,16 +175,14 @@ public class JsonConfigurationStore extends Component {
 			return mergeValues(currentMap, values);
 		}
 		String nextSegment = "/" + st.nextToken();
-		if (!st.hasMoreTokens()) {
-			// Next segment is last segment from path
-			if (values == null) {
+		if (!st.hasMoreTokens() && values == null) {
+			// Next segment is last segment from path and we must remove
+			if (currentMap.containsKey(nextSegment)) {
 				// Delete sub-map.
-				if (currentMap.containsKey(nextSegment)) {
-					currentMap.remove(nextSegment);
-					changed = true;
-				}
-				return changed;
+				currentMap.remove(nextSegment);
+				changed = true;
 			}
+			return changed;
 		}
 		// Check if next map exists
 		@SuppressWarnings("unchecked")
