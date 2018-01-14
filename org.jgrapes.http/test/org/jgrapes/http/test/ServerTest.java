@@ -183,9 +183,15 @@ public class ServerTest {
 		
 		URL url = new URL("https", "localhost", server.getPort(), "/");
 		
+		int threadCount = 1000;
+		if (Boolean.parseBoolean(
+				System.getenv().getOrDefault("TRAVIS", "false"))) {
+			threadCount = 100;
+		}
+		
 		final List<Thread> threads = new ArrayList<>();
 		AtomicInteger waiting = new AtomicInteger(0);
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < threadCount; i++) {
 			Thread getThread = new Thread() {
 				@Override
 				public void run() {
