@@ -67,14 +67,18 @@ public class HttpServerDemo extends Component implements BundleActivator {
 	public void start(BundleContext context) throws Exception {
 		// The demo component is the application
 		app = new HttpServerDemo();
+		// Add preferences store
+		app.attach(new PreferencesStore(app.channel(), HttpServerDemo.class));
 		// Attach a general nio dispatcher
 		app.attach(new NioDispatcher());
 
 		// Network level unencrypted channel.
 		Channel httpTransport = new NamedChannel("httpTransport");
 		// Create a TCP server listening on port 8888
+		// (may be overridden by preferences)
 		app.attach(new TcpServer(httpTransport)
-				.setServerAddress(new InetSocketAddress(8888)));
+				.setServerAddress(new InetSocketAddress(8888))
+				.setName("HttpServer"));
 
 		// Create TLS "converter"
 		KeyStore serverStore = KeyStore.getInstance("JKS");
@@ -90,7 +94,8 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		// Create a TCP server for SSL
 		Channel securedNetwork = app.attach(
 				new TcpServer().setServerAddress(new InetSocketAddress(4443))
-				.setBacklog(3000).setConnectionLimiter(new PermitsPool(50)));
+				.setBacklog(3000).setConnectionLimiter(new PermitsPool(50))
+				.setName("HttpsServer"));
 		app.attach(new SslServer(httpTransport, securedNetwork, sslContext));
 
 		// Create an HTTP server as converter between transport and application
@@ -99,7 +104,6 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		        httpTransport, GetRequest.class, PostRequest.class));
 		
 		// Build application layer
-		app.attach(new PreferencesStore(app.channel(), this.getClass()));
 		app.attach(new InMemorySessionManager(app.channel()));
 		app.attach(new LanguageSelector(app.channel()));
 		app.attach(new FileStorage(app.channel(), 65536));

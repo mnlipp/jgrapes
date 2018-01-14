@@ -1,7 +1,8 @@
 dependencies {
 
     compile project(':org.jgrapes.core')
-
+	compile project(':org.jgrapes.util')
+	
     sourceSets {
         test {
             resources {
