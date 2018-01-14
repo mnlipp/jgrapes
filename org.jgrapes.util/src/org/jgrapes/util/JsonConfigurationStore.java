@@ -26,13 +26,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.WeakHashMap;
 import java.util.prefs.BackingStoreException;
 
 import org.jdrupes.json.JsonBeanDecoder;
@@ -42,6 +39,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
+import org.jgrapes.core.events.Stop;
 import org.jgrapes.util.events.ConfigurationUpdate;
 
 /**
@@ -75,7 +73,7 @@ public class JsonConfigurationStore extends Component {
 
 	private File file;
 	private Map<String,Object> cache;
-	private Set<Start> replacements = Collections.newSetFromMap(new WeakHashMap<>());
+	boolean started = false;
 	
 	/**
 	 * Creates a new component with its channel set to the given 
@@ -120,15 +118,15 @@ public class JsonConfigurationStore extends Component {
 
 	@Handler(priority=999999, channels=Channel.class)
 	public void onStart(Start event) throws BackingStoreException {
-		if (replacements.contains(event)) {
+		if (started) {
 			return;
 		}
+		started = true;
 		event.cancel(false);
 		ConfigurationUpdate updEvt = new ConfigurationUpdate();
 		addPrefs(updEvt, "/", cache);
 		fire(updEvt, event.channels());
 		Start replacement = new Start();
-		replacements.add(replacement);
 		fire(replacement, event.channels());
 	}
 
@@ -144,6 +142,11 @@ public class JsonConfigurationStore extends Component {
 			}
 			updEvt.add(path, e.getKey(), e.getValue().toString());
 		}
+	}
+	
+	@Handler
+	public void onStop(Stop event) {
+		started = false;
 	}
 	
 	@Handler(dynamic=true)

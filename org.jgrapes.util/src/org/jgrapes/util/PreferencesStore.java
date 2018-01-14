@@ -18,11 +18,8 @@
 
 package org.jgrapes.util;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -30,6 +27,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
+import org.jgrapes.core.events.Stop;
 import org.jgrapes.util.events.InitialPreferences;
 import org.jgrapes.util.events.ConfigurationUpdate;
 
@@ -63,8 +61,7 @@ import org.jgrapes.util.events.ConfigurationUpdate;
 public class PreferencesStore extends Component {
 
 	private Preferences preferences;
-	private Set<Start> replacements = Collections.newSetFromMap(
-			new WeakHashMap<>());
+	private boolean started = false;
 	
 	/**
 	 * Creates a new component with its channel set to the given 
@@ -106,16 +103,16 @@ public class PreferencesStore extends Component {
 
 	@Handler(priority=999999, channels=Channel.class)
 	public void onStart(Start event) throws BackingStoreException {
-		if (replacements.contains(event)) {
+		if (started) {
 			return;
 		}
+		started = true;
 		event.cancel(false);
 		InitialPreferences updEvt 
 			= new InitialPreferences(preferences.parent().absolutePath());
 		addPrefs(updEvt, preferences.absolutePath(), preferences);
 		fire(updEvt, event.channels());
 		Start replacement = new Start();
-		replacements.add(replacement);
 		fire(replacement, event.channels());
 	}
 
@@ -131,6 +128,11 @@ public class PreferencesStore extends Component {
 		for (String child: node.childrenNames()) {
 			addPrefs(updEvt, rootPath, node.node(child));
 		}
+	}
+	
+	@Handler
+	public void onStop(Stop event) {
+		started = false;
 	}
 	
 	@Handler(dynamic=true)
