@@ -151,7 +151,7 @@ public class JsonConfigurationStore extends Component {
 			throws IOException {
 		boolean changed = false;
 		for (String path: event.paths()) {
-			if ("/".equals(path) && event.values(path) == null) {
+			if ("/".equals(path) && !event.values(path).isPresent()) {
 				// Special case, "remove root", i.e. all configuration data
 				cache.clear();
 				changed = true;
@@ -168,14 +168,14 @@ public class JsonConfigurationStore extends Component {
 	}
 	
 	private boolean handleSegment(Map<String,Object> currentMap,
-			StringTokenizer st,	Map<String,String> values) {
+			StringTokenizer st,	Optional<Map<String,String>> values) {
 		boolean changed = false;
 		if (!st.hasMoreTokens()) {
 			// "Leave" map
-			return mergeValues(currentMap, values);
+			return mergeValues(currentMap, values.get());
 		}
 		String nextSegment = "/" + st.nextToken();
-		if (!st.hasMoreTokens() && values == null) {
+		if (!st.hasMoreTokens() && !values.isPresent()) {
 			// Next segment is last segment from path and we must remove
 			if (currentMap.containsKey(nextSegment)) {
 				// Delete sub-map.

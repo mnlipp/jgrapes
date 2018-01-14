@@ -84,21 +84,18 @@ public class ConfigurationUpdate extends Event<Void> {
 	}
 	
 	/**
-	 * Return the values for a given path.
+	 * Return the values for a given path if they exists.
 	 * 
 	 * @param path the path
 	 * @return the updated values or `null` if the path has been
 	 * removed (implies the removal of all values for that path).
 	 */
-	public Map<String,String> values(String path) {
-		if (!paths.containsKey(path)) {
-			return Collections.emptyMap();
-		}
+	public Optional<Map<String,String>> values(String path) {
 		Map<String,String> result = paths.get(path);
 		if (result == null) {
-			return result;
+			return Optional.empty();
 		}
-		return Collections.unmodifiableMap(result);
+		return Optional.of(Collections.unmodifiableMap(result));
 	}
 
 	/**

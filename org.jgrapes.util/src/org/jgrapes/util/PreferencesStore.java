@@ -20,6 +20,7 @@ package org.jgrapes.util;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.prefs.BackingStoreException;
@@ -139,13 +140,13 @@ public class PreferencesStore extends Component {
 			return;
 		}
 		for (String path: event.paths()) {
-			Map<String,String> prefs = event.values(path);
+			Optional<Map<String,String>> prefs = event.values(path);
 			path = path.substring(1); // Remove leading slash
-			if (prefs == null) {
+			if (!prefs.isPresent()) {
 				preferences.node(path).removeNode();
 				continue;
 			}
-			for (Map.Entry<String, String> e: prefs.entrySet()) {
+			for (Map.Entry<String, String> e: prefs.get().entrySet()) {
 				preferences.node(path).put(e.getKey(), e.getValue());
 			}
 		}

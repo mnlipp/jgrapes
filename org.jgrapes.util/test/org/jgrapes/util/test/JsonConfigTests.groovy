@@ -40,8 +40,8 @@ class JsonConfigTests extends Specification {
 		@Handler
 		public void onConfigurationUpdate(ConfigurationUpdate event) {
 			event.value("/", "answer").ifPresent({ value = Integer.parseInt(it) })
-			event.value("/sub/tree", "value")
-				.ifPresent({ subValue = Integer.parseInt(it) })
+			event.values("/sub/tree")
+				.ifPresent({ subValue = Integer.parseInt(it.get("value")) })
 		}
 		
 		@Handler
