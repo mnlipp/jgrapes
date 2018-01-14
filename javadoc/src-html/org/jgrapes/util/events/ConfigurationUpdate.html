@@ -92,35 +92,32 @@
 <span class="sourceLineNo">084</span>        }<a name="line.84"></a>
 <span class="sourceLineNo">085</span>        <a name="line.85"></a>
 <span class="sourceLineNo">086</span>        /**<a name="line.86"></a>
-<span class="sourceLineNo">087</span>         * Return the values for a given path.<a name="line.87"></a>
+<span class="sourceLineNo">087</span>         * Return the values for a given path if they exists.<a name="line.87"></a>
 <span class="sourceLineNo">088</span>         * <a name="line.88"></a>
 <span class="sourceLineNo">089</span>         * @param path the path<a name="line.89"></a>
 <span class="sourceLineNo">090</span>         * @return the updated values or `null` if the path has been<a name="line.90"></a>
 <span class="sourceLineNo">091</span>         * removed (implies the removal of all values for that path).<a name="line.91"></a>
 <span class="sourceLineNo">092</span>         */<a name="line.92"></a>
-<span class="sourceLineNo">093</span>        public Map&lt;String,String&gt; values(String path) {<a name="line.93"></a>
-<span class="sourceLineNo">094</span>                if (!paths.containsKey(path)) {<a name="line.94"></a>
-<span class="sourceLineNo">095</span>                        return Collections.emptyMap();<a name="line.95"></a>
-<span class="sourceLineNo">096</span>                }<a name="line.96"></a>
-<span class="sourceLineNo">097</span>                Map&lt;String,String&gt; result = paths.get(path);<a name="line.97"></a>
-<span class="sourceLineNo">098</span>                if (result == null) {<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                        return result;<a name="line.99"></a>
-<span class="sourceLineNo">100</span>                }<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                return Collections.unmodifiableMap(result);<a name="line.101"></a>
-<span class="sourceLineNo">102</span>        }<a name="line.102"></a>
-<span class="sourceLineNo">103</span><a name="line.103"></a>
-<span class="sourceLineNo">104</span>        /**<a name="line.104"></a>
-<span class="sourceLineNo">105</span>         * Return the value with the given path and key if it exists.<a name="line.105"></a>
-<span class="sourceLineNo">106</span>         * <a name="line.106"></a>
-<span class="sourceLineNo">107</span>         * @param path the path<a name="line.107"></a>
-<span class="sourceLineNo">108</span>         * @param key the key<a name="line.108"></a>
-<span class="sourceLineNo">109</span>         * @return the value<a name="line.109"></a>
-<span class="sourceLineNo">110</span>         */<a name="line.110"></a>
-<span class="sourceLineNo">111</span>        public Optional&lt;String&gt; value(String path, String key) {<a name="line.111"></a>
-<span class="sourceLineNo">112</span>                return Optional.ofNullable(paths.get(path))<a name="line.112"></a>
-<span class="sourceLineNo">113</span>                                .flatMap(map -&gt; Optional.ofNullable(map.get(key)));<a name="line.113"></a>
-<span class="sourceLineNo">114</span>        }<a name="line.114"></a>
-<span class="sourceLineNo">115</span>}<a name="line.115"></a>
+<span class="sourceLineNo">093</span>        public Optional&lt;Map&lt;String,String&gt;&gt; values(String path) {<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                Map&lt;String,String&gt; result = paths.get(path);<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                if (result == null) {<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                        return Optional.empty();<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                }<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                return Optional.of(Collections.unmodifiableMap(result));<a name="line.98"></a>
+<span class="sourceLineNo">099</span>        }<a name="line.99"></a>
+<span class="sourceLineNo">100</span><a name="line.100"></a>
+<span class="sourceLineNo">101</span>        /**<a name="line.101"></a>
+<span class="sourceLineNo">102</span>         * Return the value with the given path and key if it exists.<a name="line.102"></a>
+<span class="sourceLineNo">103</span>         * <a name="line.103"></a>
+<span class="sourceLineNo">104</span>         * @param path the path<a name="line.104"></a>
+<span class="sourceLineNo">105</span>         * @param key the key<a name="line.105"></a>
+<span class="sourceLineNo">106</span>         * @return the value<a name="line.106"></a>
+<span class="sourceLineNo">107</span>         */<a name="line.107"></a>
+<span class="sourceLineNo">108</span>        public Optional&lt;String&gt; value(String path, String key) {<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                return Optional.ofNullable(paths.get(path))<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                                .flatMap(map -&gt; Optional.ofNullable(map.get(key)));<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        }<a name="line.111"></a>
+<span class="sourceLineNo">112</span>}<a name="line.112"></a>
 
 
 

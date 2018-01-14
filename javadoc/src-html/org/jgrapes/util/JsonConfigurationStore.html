@@ -159,7 +159,7 @@
 <span class="sourceLineNo">151</span>                        throws IOException {<a name="line.151"></a>
 <span class="sourceLineNo">152</span>                boolean changed = false;<a name="line.152"></a>
 <span class="sourceLineNo">153</span>                for (String path: event.paths()) {<a name="line.153"></a>
-<span class="sourceLineNo">154</span>                        if ("/".equals(path) &amp;&amp; event.values(path) == null) {<a name="line.154"></a>
+<span class="sourceLineNo">154</span>                        if ("/".equals(path) &amp;&amp; !event.values(path).isPresent()) {<a name="line.154"></a>
 <span class="sourceLineNo">155</span>                                // Special case, "remove root", i.e. all configuration data<a name="line.155"></a>
 <span class="sourceLineNo">156</span>                                cache.clear();<a name="line.156"></a>
 <span class="sourceLineNo">157</span>                                changed = true;<a name="line.157"></a>
@@ -176,14 +176,14 @@
 <span class="sourceLineNo">168</span>        }<a name="line.168"></a>
 <span class="sourceLineNo">169</span>        <a name="line.169"></a>
 <span class="sourceLineNo">170</span>        private boolean handleSegment(Map&lt;String,Object&gt; currentMap,<a name="line.170"></a>
-<span class="sourceLineNo">171</span>                        StringTokenizer st,     Map&lt;String,String&gt; values) {<a name="line.171"></a>
+<span class="sourceLineNo">171</span>                        StringTokenizer st,     Optional&lt;Map&lt;String,String&gt;&gt; values) {<a name="line.171"></a>
 <span class="sourceLineNo">172</span>                boolean changed = false;<a name="line.172"></a>
 <span class="sourceLineNo">173</span>                if (!st.hasMoreTokens()) {<a name="line.173"></a>
 <span class="sourceLineNo">174</span>                        // "Leave" map<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                        return mergeValues(currentMap, values);<a name="line.175"></a>
+<span class="sourceLineNo">175</span>                        return mergeValues(currentMap, values.get());<a name="line.175"></a>
 <span class="sourceLineNo">176</span>                }<a name="line.176"></a>
 <span class="sourceLineNo">177</span>                String nextSegment = "/" + st.nextToken();<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                if (!st.hasMoreTokens() &amp;&amp; values == null) {<a name="line.178"></a>
+<span class="sourceLineNo">178</span>                if (!st.hasMoreTokens() &amp;&amp; !values.isPresent()) {<a name="line.178"></a>
 <span class="sourceLineNo">179</span>                        // Next segment is last segment from path and we must remove<a name="line.179"></a>
 <span class="sourceLineNo">180</span>                        if (currentMap.containsKey(nextSegment)) {<a name="line.180"></a>
 <span class="sourceLineNo">181</span>                                // Delete sub-map.<a name="line.181"></a>
