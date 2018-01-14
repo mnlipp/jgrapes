@@ -276,13 +276,14 @@ public @interface Handler {
 		 *            used with a single value in the handler annotation, but
 		 *            here all kinds of Objects are allowed as key values.
 		 * @param channelValue
-		 *            the channel key that should be used for matching this
-		 *            handler with a channel. This is equivalent to a
-		 *            <code>channels</code>/<code>namedChannels</code> parameter
-		 *            used with a single value in the handler annotation, but
-		 *            here all kinds of Objects are allowed as key values. As a
+		 *            the channel value that should be used for matching 
+		 *            an event's channel with this handler. This is equivalent 
+		 *            to a `channels`/`namedChannels` parameter with a single
+		 *            value in the handler annotation, but
+		 *            here all kinds of Objects are allowed as values. As a
 		 *            convenience, if the actual object provided is a
-		 *            {@link Channel}, its match value is used for matching.
+		 *            {@link Channel}, its default criterion is used for 
+		 *            matching.
 		 * @param priority
 		 *            the priority of the handler
 		 */
@@ -298,8 +299,8 @@ public @interface Handler {
 		 * 
 		 * @param component the component
 		 * @param method the name of the method that implements the handler
-		 * @param channelValue the channel key that should be used for matching
-		 * this handler with a channel 
+		 * @param channelValue the channel value that should be used 
+		 * for matching an event's channel with this handler
 		 */
 		public static void add(ComponentType component, String method,
 		        Object channelValue) {
