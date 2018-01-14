@@ -46,7 +46,7 @@ class PreferencesTests extends Specification {
 		App app = new App();
 		app.attach(new PreferencesStore(app, getClass()))
 		Preferences base = Preferences.userNodeForPackage(getClass())
-			.node(getClass().getSimpleName()).node("PreferencesStore")
+			.node("PreferencesStore")
 		base.put("answer", "42")
 		base.node("sub/tree").put("value", "24")
 		base.flush();
@@ -57,7 +57,7 @@ class PreferencesTests extends Specification {
 
 		then: "Values must have been set in component"
 		app.appPath == Preferences.userNodeForPackage(getClass())
-			.node(getClass().getSimpleName()).absolutePath()
+			.absolutePath()
 		app.value == 42
 		app.subValue == 24
 

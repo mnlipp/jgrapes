@@ -71,8 +71,9 @@ public class PreferencesStore extends Component {
 	 * 
 	 * @param componentChannel the channel 
 	 * @param appClass the application class; the base path
-	 * is formed by replacing each dot in the class's full name with 
-	 * a slash, prepending a slash, and appending "`/PreferencesStore`".
+	 * is formed by replacing each dot in the class's package's full 
+	 * name with a slash, prepending a slash, and appending 
+	 * "`/PreferencesStore`".
 	 */
 	public PreferencesStore(Channel componentChannel, Class<?> appClass) {
 		this(componentChannel, appClass, true);
@@ -83,8 +84,9 @@ public class PreferencesStore extends Component {
 	 * 
 	 * @param componentChannel the channel 
 	 * @param appClass the application class; the base path
-	 * is formed by replacing each dot in the class's full name with 
-	 * a slash, prepending a slash, and appending "`/PreferencesStore`".
+	 * is formed by replacing each dot in the class's package's full 
+	 * name with a slash, prepending a slash, and appending 
+	 * "`/PreferencesStore`".
 	 * @param update whether to update the store when 
 	 * {@link ConfigurationUpdate} events are received
 	 * 
@@ -98,7 +100,7 @@ public class PreferencesStore extends Component {
 					channel().defaultCriterion());
 		}
 		preferences = Preferences.userNodeForPackage(appClass)
-				.node(appClass.getSimpleName()).node("PreferencesStore");
+				.node("PreferencesStore");
 	}
 
 	@Handler(priority=999999, channels=Channel.class)
