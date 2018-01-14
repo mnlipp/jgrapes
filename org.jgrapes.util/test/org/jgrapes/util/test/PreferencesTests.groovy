@@ -31,8 +31,8 @@ class PreferencesTests extends Specification {
 		@Handler
 		public void onInitialPrefs(InitialPreferences event) {
 			appPath = event.applicationPath();
-			value = Integer.parseInt(event.preferences("/").get("answer"))
-			subValue = Integer.parseInt(event.preferences("/sub/tree").get("value"))
+			value = Integer.parseInt(event.values("/").get("answer"))
+			subValue = Integer.parseInt(event.values("/sub/tree").get("value"))
 		}
 		
 		@Handler

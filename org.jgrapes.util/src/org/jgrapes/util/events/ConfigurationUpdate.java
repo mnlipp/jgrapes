@@ -21,6 +21,7 @@ package org.jgrapes.util.events;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.jgrapes.core.Event;
@@ -42,11 +43,11 @@ public class ConfigurationUpdate extends Event<Void> {
 	private Map<String,Map<String,String>> paths = new HashMap<>();
 
 	/**
-	 * Add new (updated) preferences to the event.
+	 * Add new (updated) configuration value to the event.
 	 * 
-	 * @param path the preference's path
-	 * @param key the key of the preference
-	 * @param value the value of the preference
+	 * @param path the value's path
+	 * @param key the key of the value
+	 * @param value the value
 	 * @return the event for easy chaining
 	 */
 	public ConfigurationUpdate add(String path, String key, String value) {
@@ -83,13 +84,13 @@ public class ConfigurationUpdate extends Event<Void> {
 	}
 	
 	/**
-	 * Return the preferences for a given path.
+	 * Return the values for a given path.
 	 * 
 	 * @param path the path
-	 * @return the updated preferences or `null` if the path has been
-	 * removed (implies the removal of all preferences for that path).
+	 * @return the updated values or `null` if the path has been
+	 * removed (implies the removal of all values for that path).
 	 */
-	public Map<String,String> preferences(String path) {
+	public Map<String,String> values(String path) {
 		if (!paths.containsKey(path)) {
 			return Collections.emptyMap();
 		}
@@ -98,5 +99,17 @@ public class ConfigurationUpdate extends Event<Void> {
 			return result;
 		}
 		return Collections.unmodifiableMap(result);
+	}
+
+	/**
+	 * Return the value with the given path and key if it exists.
+	 * 
+	 * @param path the path
+	 * @param key the key
+	 * @return the value
+	 */
+	public Optional<String> value(String path, String key) {
+		return Optional.ofNullable(paths.get(path))
+				.flatMap(map -> Optional.ofNullable(map.get(key)));
 	}
 }

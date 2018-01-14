@@ -57,7 +57,7 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  *
  * Besides initially publishing the stored preferences values,
  * the component also listens for {@link ConfigurationUpdate} events
- * fired by other components and updates the preferences store.
+ * on its channel and updates the preferences store (may be suppressed).
  */
 public class PreferencesStore extends Component {
 
@@ -75,7 +75,28 @@ public class PreferencesStore extends Component {
 	 * a slash, prepending a slash, and appending "`/PreferencesStore`".
 	 */
 	public PreferencesStore(Channel componentChannel, Class<?> appClass) {
+		this(componentChannel, appClass, true);
+	}
+
+	/**
+	 * Allows the creation of a "read-only" store.
+	 * 
+	 * @param componentChannel the channel 
+	 * @param appClass the application class; the base path
+	 * is formed by replacing each dot in the class's full name with 
+	 * a slash, prepending a slash, and appending "`/PreferencesStore`".
+	 * @param update whether to update the store when 
+	 * {@link ConfigurationUpdate} events are received
+	 * 
+	 * @see #PreferencesStore(Channel, Class)
+	 */
+	public PreferencesStore(
+			Channel componentChannel, Class<?> appClass, boolean update) {
 		super(componentChannel);
+		if (update) {
+			Handler.Evaluator.add(this, "onConfigurationUpdate", 
+					channel().defaultCriterion());
+		}
 		preferences = Preferences.userNodeForPackage(appClass)
 				.node(appClass.getSimpleName()).node("PreferencesStore");
 	}
@@ -109,14 +130,14 @@ public class PreferencesStore extends Component {
 		}
 	}
 	
-	@Handler
+	@Handler(dynamic=true)
 	public void onConfigurationUpdate(ConfigurationUpdate event) 
 			throws BackingStoreException {
 		if (event instanceof InitialPreferences) {
 			return;
 		}
 		for (String path: event.paths()) {
-			Map<String,String> prefs = event.preferences(path);
+			Map<String,String> prefs = event.values(path);
 			path = path.substring(1); // Remove leading slash
 			if (prefs == null) {
 				preferences.node(path).removeNode();
