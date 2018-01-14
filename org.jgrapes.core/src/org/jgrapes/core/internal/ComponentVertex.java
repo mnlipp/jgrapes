@@ -527,7 +527,7 @@ public abstract class ComponentVertex implements Manager, Channel {
 
 	/**
 	 * If a name has been set for this component 
-	 * (see {@link Manager#setName(String)), return the name,
+	 * (see {@link Manager#setName(String)}), return the name,
 	 * else return the object name provided by 
 	 * {@link Components#objectName(Object)}, using
 	 * {@link #component()} as argument.
