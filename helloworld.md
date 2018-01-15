@@ -6,7 +6,7 @@ title: JGrapes Example
 Hello World!
 ============
 
-Here's our first coponent. 
+Here's our first component. 
 
 ```java
 import org.jgrapes.core.Component;
@@ -41,8 +41,8 @@ event. This events triggers the event processing by the framework. Other
 events, that have been generated before, won't be delivered to handlers
 until a `Start` event has been received.
 
-The easiest way to send the `Start` ebent to the application is shown
-in the code: using a convenience method from
+The easiest way to send the `Start` event to the application is shown
+in the code: using the convenience method from
 [Components](latest-release/javadoc/index.html?org/jgrapes/core/Components.html)[^finalS].
 
 [^finalS]: Note the "s" at the end.
