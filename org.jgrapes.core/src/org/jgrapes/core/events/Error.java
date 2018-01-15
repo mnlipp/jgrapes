@@ -109,8 +109,9 @@ public class Error extends Event<Void> {
 			builder.append(Channel.toString(channels));
 		}
 		if (message != null) {
-			builder.append(", message=");
+			builder.append(", message=\"");
 			builder.append(message);
+			builder.append('"');
 		}
 		builder.append("]");
 		return builder.toString();
