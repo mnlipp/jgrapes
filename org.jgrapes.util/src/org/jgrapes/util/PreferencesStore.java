@@ -28,7 +28,6 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
-import org.jgrapes.core.events.Stop;
 import org.jgrapes.util.events.InitialPreferences;
 import org.jgrapes.util.events.ConfigurationUpdate;
 
