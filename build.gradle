@@ -58,7 +58,7 @@ subprojects {
 	apply plugin: 'maven-publish'
 	apply plugin: 'org.jdrupes.mdoclet'
 	
-	if (project.file("bnd.bnd").exists()) {
+	if (project.file("bnd.bnd").exists() && project.name != "examples") {
 
 		apply plugin: 'biz.aQute.bnd.builder'
 		
