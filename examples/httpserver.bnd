@@ -1,11 +1,14 @@
-Bundle-Name: JGrapes examples
-Bundle-SymbolicName: example
+Bundle-Name: JGrapes Http Server Demo
+Bundle-SymbolicName: org.jgrapes.example.httpserver
 Bundle-Copyright: Michael N. Lipp (c) 2017
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 
 -buildpath: osgi.core;version=6.0
 
--sub: *.bnd
+Bundle-Activator: org.jgrapes.http.demo.httpserver.HttpServerDemo
+
+-runfw: org.apache.felix.framework;version='[5.6.10,5.6.10]'
+-runee: JavaSE-1.8
 
 -fixupmessages: \
     "Found source folder 'resources' that is not on bnd's source path 'src'", \
