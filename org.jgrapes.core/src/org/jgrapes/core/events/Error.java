@@ -18,6 +18,8 @@
 
 package org.jgrapes.core.events;
 
+import org.jgrapes.core.Channel;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 
 /**
@@ -92,5 +94,25 @@ public class Error extends Event<Void> {
 	 */
 	public Throwable throwable() {
 		return throwable;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Components.objectName(this));
+		builder.append(" [");
+		if (channels != null) {
+			builder.append("channels=");
+			builder.append(Channel.toString(channels));
+		}
+		if (message != null) {
+			builder.append(", message=");
+			builder.append(message);
+		}
+		builder.append("]");
+		return builder.toString();
 	}
 }
