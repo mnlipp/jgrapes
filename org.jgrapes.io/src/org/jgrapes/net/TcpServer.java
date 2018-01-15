@@ -29,6 +29,7 @@ import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IntSummaryStatistics;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SortedMap;
@@ -137,7 +138,7 @@ public class TcpServer extends Component implements NioHandler {
 	 * a path (see @link {@link ConfigurationUpdate#paths()})
 	 * that matches this components path (see {@link Manager#path()}).
 	 * 
-	 * The following properties are used:
+	 * The following properties are recognized:
 	 * 
 	 * `hostname`
 	 * : If given, is used as first parameter for 
@@ -148,20 +149,27 @@ public class TcpServer extends Component implements NioHandler {
 	 *   {@link InetSocketAddress#InetSocketAddress(String, int)} 
 	 *   or {@link InetSocketAddress#InetSocketAddress(int)}, 
 	 *   depending on whether a host name is specified. Defaults to "0".
+	 *   
+	 * `backlog`
+	 * : See {@link #setBacklog(int)}.
 	 * 
 	 * @param event the event
 	 */
 	@Handler
 	public void onConfigurationUpdate(ConfigurationUpdate event) {
-		event.paths().stream().filter(p -> p.equals(path()))
-		.findFirst().flatMap(p1 -> event.values(p1)).ifPresent(values -> {
+		event.values(path()).ifPresent(values -> {
 			String hostname = values.get("hostname");
-			int port = Integer.parseInt(values.getOrDefault("port", "0"));
 			if (hostname != null) {
-				setServerAddress(new InetSocketAddress(hostname, port));
-			} else {
-				setServerAddress(new InetSocketAddress(port));
+				setServerAddress(new InetSocketAddress(hostname, 
+						Integer.parseInt(values.getOrDefault("port", "0"))));
+			} else if (values.containsKey("port")) {
+				setServerAddress(new InetSocketAddress(
+						Integer.parseInt(values.get("port"))));
 			}
+			Optional.ofNullable(values.get("backlog")).ifPresent(
+					value -> setBacklog(Integer.parseInt(value)));
+			Optional.ofNullable(values.get("bufferSize")).ifPresent(
+					value -> setBufferSize(Integer.parseInt(value)));
 		});
 	}
 	
