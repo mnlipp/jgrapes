@@ -25,6 +25,7 @@ import java.util.prefs.Preferences;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
@@ -44,8 +45,9 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * intercepts the {@link Start} event using a handler with  priority 
  * 999999. When receiving this event, it fires all known preferences 
  * values on the channels of the start event as a 
- * {@link InitialPreferences} event. Then, it re-fires the 
- * intercepted {@link Start} event. 
+ * {@link InitialPreferences} event, using a new {@link EventPipeline}
+ * and waiting for its completion. Then, allows the intercepted 
+ * {@link Start} event to continue. 
  * 
  * Components that depend on configuration values define handlers
  * for {@link ConfigurationUpdate} events and adapt themselves to the values 
@@ -61,7 +63,6 @@ import org.jgrapes.util.events.ConfigurationUpdate;
 public class PreferencesStore extends Component {
 
 	private Preferences preferences;
-	private boolean started = false;
 	
 	/**
 	 * Creates a new component with its channel set to the given 
@@ -102,18 +103,12 @@ public class PreferencesStore extends Component {
 	}
 
 	@Handler(priority=999999, channels=Channel.class)
-	public void onStart(Start event) throws BackingStoreException {
-		if (started) {
-			return;
-		}
-		started = true;
-		event.cancel(false);
+	public void onStart(Start event) 
+			throws BackingStoreException, InterruptedException {
 		InitialPreferences updEvt 
 			= new InitialPreferences(preferences.parent().absolutePath());
 		addPrefs(updEvt, preferences.absolutePath(), preferences);
-		fire(updEvt, event.channels());
-		Start replacement = new Start();
-		fire(replacement, event.channels());
+		newEventPipeline().fire(updEvt, event.channels()).get();
 	}
 
 	private void addPrefs(
@@ -128,11 +123,6 @@ public class PreferencesStore extends Component {
 		for (String child: node.childrenNames()) {
 			addPrefs(updEvt, rootPath, node.node(child));
 		}
-	}
-	
-	@Handler
-	public void onStop(Stop event) {
-		started = false;
 	}
 	
 	@Handler(dynamic=true)

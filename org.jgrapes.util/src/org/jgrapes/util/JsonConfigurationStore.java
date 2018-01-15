@@ -37,10 +37,12 @@ import org.jdrupes.json.JsonBeanEncoder;
 import org.jdrupes.json.JsonDecodeException;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.util.events.ConfigurationUpdate;
+import org.jgrapes.util.events.InitialPreferences;
 
 /**
  * This component provides a store for an application's configuration
@@ -53,10 +55,11 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * The component reads the initial values from {@link File} passed
  * to the constructor. During application bootstrap, it 
  * intercepts the {@link Start} event using a handler with  priority 
- * 999999. When receiving this event, it fires all known configuration 
+ * 999999. When receiving this event, it fires all known preferences 
  * values on the channels of the start event as a 
- * {@link ConfigurationUpdate} event. Then, it re-fires the 
- * intercepted {@link Start} event. 
+ * {@link InitialPreferences} event, using a new {@link EventPipeline}
+ * and waiting for its completion. Then, allows the intercepted 
+ * {@link Start} event to continue. 
  * 
  * Components that depend on configuration values define handlers
  * for {@link ConfigurationUpdate} events and adapt themselves to the values 
@@ -73,7 +76,6 @@ public class JsonConfigurationStore extends Component {
 
 	private File file;
 	private Map<String,Object> cache;
-	boolean started = false;
 	
 	/**
 	 * Creates a new component with its channel set to the given 
@@ -117,17 +119,11 @@ public class JsonConfigurationStore extends Component {
 	}
 
 	@Handler(priority=999999, channels=Channel.class)
-	public void onStart(Start event) throws BackingStoreException {
-		if (started) {
-			return;
-		}
-		started = true;
-		event.cancel(false);
+	public void onStart(Start event) 
+			throws BackingStoreException, InterruptedException {
 		ConfigurationUpdate updEvt = new ConfigurationUpdate();
 		addPrefs(updEvt, "/", cache);
-		fire(updEvt, event.channels());
-		Start replacement = new Start();
-		fire(replacement, event.channels());
+		newEventPipeline().fire(updEvt, event.channels()).get();
 	}
 
 	private void addPrefs(
@@ -142,11 +138,6 @@ public class JsonConfigurationStore extends Component {
 			}
 			updEvt.add(path, e.getKey(), e.getValue().toString());
 		}
-	}
-	
-	@Handler
-	public void onStop(Stop event) {
-		started = false;
 	}
 	
 	@Handler(dynamic=true)
