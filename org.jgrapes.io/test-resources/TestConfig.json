@@ -1,0 +1,8 @@
+{
+    "/TcpServer": {
+        "hostname": "127.0.0.1",
+        "port": "0",
+        "backlog": "123",
+        "bufferSize": "4567"
+    }
+}
