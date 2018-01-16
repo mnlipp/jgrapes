@@ -66,14 +66,7 @@ public class InputStreamPipeline implements Runnable {
 		try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {
 			while (true) {
 				ManagedByteBuffer buffer = channel.byteBufferPool().acquire();
-				int read;
-				try {
-					read = inChannel.read(buffer.backingBuffer());
-				} catch (IOException e) {
-					// Read failed, release buffer
-					buffer.unlockBuffer();
-					throw e;
-				}
+				int read = buffer.fillFromChannel(inChannel);
 				boolean eof = (read == -1);
 				eventPipeline.fire(new Output<>(buffer, eof), channel);
 				if (eof) {

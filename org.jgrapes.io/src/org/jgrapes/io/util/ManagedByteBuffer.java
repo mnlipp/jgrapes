@@ -18,6 +18,7 @@
 
 package org.jgrapes.io.util;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
@@ -26,6 +27,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+import java.nio.channels.ReadableByteChannel;
 
 /**
  * A specialized {@code ManagedBuffer<ByteBuffer>} that provides
@@ -81,6 +83,24 @@ public class ManagedByteBuffer extends ManagedBuffer<ByteBuffer> {
 	 */
 	public Reader newReader() {
 		return new Reader();
+	}
+	
+	/**
+	 * Convenience method to fill the buffer from the channel.
+	 * Unlocks the buffer if an {@link IOException} occurs.
+	 *
+	 * @param channel the channel
+	 * @return the bytes read
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	public int fillFromChannel(
+			ReadableByteChannel channel) throws IOException {
+		try {
+			return channel.read(backingBuffer());
+		} catch (IOException e) {
+			unlockBuffer();
+			throw e;
+		}
 	}
 	
 	/**

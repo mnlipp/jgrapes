@@ -537,13 +537,7 @@ public class TcpServer extends Component implements NioHandler {
 		private void handleReadOp() throws InterruptedException, IOException {
 			ManagedByteBuffer buffer;
 			buffer = readBuffers.acquire();
-			int bytes;
-			try {
-				bytes = nioChannel.read(buffer.backingBuffer());
-			} catch (IOException e) {
-				buffer.unlockBuffer(); // Release unused buffer.
-				throw e;
-			}
+			int bytes = buffer.fillFromChannel(nioChannel);
 			if (bytes == 0) {
 				buffer.unlockBuffer();
 				return;
