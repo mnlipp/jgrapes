@@ -28,11 +28,12 @@ import java.util.logging.Logger;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
-import org.jgrapes.core.HandlingErrorPrinter;
+import org.jgrapes.core.HandlerScope;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.core.events.HandlingError;
+import org.jgrapes.core.events.Error;
 
 /**
  * This class represents the component tree. It holds all properties that 
@@ -47,8 +48,23 @@ class ComponentTree {
 	private final ComponentVertex root;
 	private final Map<CacheKey,HandlerList> handlerCache = new HashMap<>();
 	private InternalEventPipeline eventPipeline;
-	private static HandlingErrorPrinter fallbackErrorHandler 
-		= new HandlingErrorPrinter();
+	private static HandlerReference fallbackErrorHandler;
+	static {
+		ErrorPrinter errorPrinter = new ErrorPrinter();
+		try {
+			fallbackErrorHandler = new HandlerReference(errorPrinter,
+					ErrorPrinter.class.getMethod("printError", Error.class),
+					0, new HandlerScope() {
+				@Override
+				public boolean includes(
+						Eligible event, Eligible[] channels) {
+					return true;
+				}
+			});
+		} catch (NoSuchMethodException | SecurityException e) {
+			// Doesn't happen.
+		}
+	}
 	
 	/* This could simply be declared as an anonymous class. But then
 	 * "Find bugs" complains about the noop() not being callable, because it
@@ -73,6 +89,20 @@ class ComponentTree {
 	ComponentTree(ComponentVertex root) {
 		super();
 		this.root = root;
+		ErrorPrinter errorPrinter = new ErrorPrinter();
+		try {
+			fallbackErrorHandler = new HandlerReference(errorPrinter,
+					ErrorPrinter.class.getMethod("printError", Error.class),
+					0, new HandlerScope() {
+				@Override
+				public boolean includes(
+						Eligible event, Eligible[] channels) {
+					return true;
+				}
+			});
+		} catch (NoSuchMethodException | SecurityException e) {
+			// Doesn't happen.
+		}
 	}
 
 	ComponentVertex root() {
@@ -147,9 +177,8 @@ class ComponentTree {
 			root.collectHandlers(hdlrs, event, channels);
 			// Make sure that errors are reported.
 			if (hdlrs.isEmpty()) {
-				if (event instanceof HandlingError) {
-					((ComponentVertex) fallbackErrorHandler)
-					        .collectHandlers(hdlrs, event, channels);
+				if (event instanceof Error) {
+					hdlrs.add(fallbackErrorHandler);
 				} else {
 					if (handlerTracking.isLoggable(Level.FINER)) {
 						DUMMY_HANDLER.collectHandlers(hdlrs, event,

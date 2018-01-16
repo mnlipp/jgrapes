@@ -64,7 +64,8 @@ public class Error extends Event<Void> {
 	 */
 	public Error(Event<?> event, Throwable throwable) {
 		this.event = event;
-		this.message = throwable.getMessage();
+		this.message = throwable.getMessage() != null 
+				? throwable.getMessage() : throwable.getClass().getName();
 		this.throwable = throwable;
 	}
 

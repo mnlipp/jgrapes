@@ -16,21 +16,24 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.jgrapes.core;
+package org.jgrapes.core.internal;
 
-import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.core.events.HandlingError;
+import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.events.Error;
 
-public class HandlingErrorPrinter extends Component {
+public class ErrorPrinter implements ComponentType {
 
-	@Handler(channels=Channel.class)
-	public void printError(HandlingError event) {
-		String msg;
-		try {
-			msg = event.event().toString();
-		} catch (Throwable t) {
-			msg = "Cannot convert event to string: " + t.getMessage();
+	public void printError(Error event) {
+		String msg = "(No event)";
+		if (event.event() != null) {
+			try {
+				msg = event.event().toString();
+			} catch (Throwable t) {
+				msg = "(Cannot convert event to string: " + t.getMessage() + ")";
+			}
 		}
+		msg += ": " + ((event.message() != null) 
+				? event.message() : "(No message)");
 		System.err.println(msg);
 		if (event.throwable() == null) {
 			System.err.println("No stack trace available.");			
@@ -38,4 +41,5 @@ public class HandlingErrorPrinter extends Component {
 			event.throwable().printStackTrace();
 		}
 	}
+
 }
