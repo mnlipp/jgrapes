@@ -153,6 +153,9 @@ public class TcpServer extends Component implements NioHandler {
 	 * `backlog`
 	 * : See {@link #setBacklog(int)}.
 	 * 
+	 * `bufferSize`
+	 * : See {@link #setBufferSize(int)}.
+	 * 
 	 * @param event the event
 	 */
 	@Handler
