@@ -223,7 +223,12 @@ public class FileStorage extends Component {
 						long size = ioChannel.size();
 						while (ioChannel.position() < size) {
 							ManagedByteBuffer buffer = ioBuffers.acquire();
-							ioChannel.read(buffer.backingBuffer());
+							try {
+								ioChannel.read(buffer.backingBuffer());
+							} catch (IOException e) {
+								buffer.unlockBuffer(); // Released unused
+								throw e;
+							}
 							channel.respond(new Output<>(buffer,
 									ioChannel.position() == size));
 						}
