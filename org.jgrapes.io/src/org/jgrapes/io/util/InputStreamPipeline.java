@@ -65,8 +65,7 @@ public class InputStreamPipeline implements Runnable {
 		// Reading from stream
 		try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {
 			while (true) {
-				ManagedByteBuffer buffer 
-					= channel.byteBufferPool().acquire();
+				ManagedByteBuffer buffer = channel.byteBufferPool().acquire();
 				int read;
 				try {
 					read = inChannel.read(buffer.backingBuffer());
