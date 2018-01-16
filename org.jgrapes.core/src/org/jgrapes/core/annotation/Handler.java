@@ -462,7 +462,7 @@ public @interface Handler {
 					builder.append("handledEvents=");
 					builder.append(handledEvents.stream().map(v -> {
 						if (v instanceof Class) {
-							return Components.classToString((Class<?>) v);
+							return Components.className((Class<?>) v);
 						}
 						return v.toString();
 					}).collect(Collectors.toSet()));

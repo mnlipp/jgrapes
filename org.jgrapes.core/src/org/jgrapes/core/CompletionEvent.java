@@ -48,7 +48,7 @@ public abstract class CompletionEvent<T extends Event<?>>
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.classToString(getClass()));
+		builder.append(Components.className(getClass()));
 		builder.append("(");
 		builder.append(Components.objectName(currentResults().get(0)));
 		builder.append(")");

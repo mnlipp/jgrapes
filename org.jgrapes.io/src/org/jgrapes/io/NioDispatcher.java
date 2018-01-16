@@ -25,6 +25,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Set;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
@@ -63,7 +64,7 @@ public class NioDispatcher extends Component implements Runnable {
 			return;
 		}
 		running = true;
-		runner = new Thread(this, "NioDispatcher");
+		runner = new Thread(this, Components.simpleObjectName(this));
 		runner.start();
 	}
 

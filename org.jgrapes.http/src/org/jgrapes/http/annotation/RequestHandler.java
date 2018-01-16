@@ -290,7 +290,7 @@ public @interface RequestHandler {
 					builder.append("handledEventTypes=");
 					builder.append(handledEventTypes.stream().map(v -> {
 						if (v instanceof Class) {
-							return Components.classToString((Class<?>) v);
+							return Components.className((Class<?>) v);
 						}
 						return v.toString();
 					}).collect(Collectors.toSet()));

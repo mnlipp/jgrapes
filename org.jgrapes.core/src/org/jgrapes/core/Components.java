@@ -180,9 +180,26 @@ public class Components {
 	 *            the object
 	 * @return the object's name
 	 */
-	public static String objectFullName(Object object) {
+	public static String fullObjectName(Object object) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(object.getClass().getName());
+		builder.append('#');
+		builder.append(objectId(object));
+		return builder.toString();
+	}
+
+	/**
+	 * Returns the simple name of the object's class together with an id 
+	 * (see {@link #objectId(Object)}). Can be used to create a human
+	 * readable, though not necessarily unique, label for an object.
+	 * 
+	 * @param object
+	 *            the object
+	 * @return the object's name
+	 */
+	public static String simpleObjectName(Object object) {
+		StringBuilder builder = new StringBuilder();
+		builder.append(simpleClassName(object.getClass()));
 		builder.append('#');
 		builder.append(objectId(object));
 		return builder.toString();
@@ -200,7 +217,7 @@ public class Components {
 	 */
 	public static String objectName(Object object) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.classToString(object.getClass()));
+		builder.append(Components.className(object.getClass()));
 		builder.append('#');
 		builder.append(objectId(object));
 		return builder.toString();
@@ -229,21 +246,34 @@ public class Components {
 	 * @param clazz the class
 	 * @return the name
 	 */
-	public static String classToString(Class<?> clazz) {
+	public static String className(Class<?> clazz) {
 		if (Common.classNames.isLoggable(Level.FINER)) {
 			return clazz.getName();
 		} else {
-			if (!clazz.isAnonymousClass()) {
-				return clazz.getSimpleName();
-			}
-			// Simple name of anonymous class is empty
-			String name = clazz.getName();
-			int lastDot = name.lastIndexOf('.');
-			if (lastDot <= 0) {
-				return name;
-			}
-			return name.substring(lastDot + 1);
+			return simpleClassName(clazz);
 		}
+	}
+	
+	/**
+	 * Returns the simple name of a class. Contrary to 
+	 * {@link Class#getSimpleName()}, this method returns
+	 * the last segement of the full name for anonymous
+	 * classes (instead of an empty string).
+	 * 
+	 * @param clazz the class
+	 * @return the name
+	 */
+	public static String simpleClassName(Class<?> clazz) {
+		if (!clazz.isAnonymousClass()) {
+			return clazz.getSimpleName();
+		}
+		// Simple name of anonymous class is empty
+		String name = clazz.getName();
+		int lastDot = name.lastIndexOf('.');
+		if (lastDot <= 0) {
+			return name;
+		}
+		return name.substring(lastDot + 1);
 	}
 	
 	/**

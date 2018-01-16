@@ -87,10 +87,10 @@ public class ClassChannel implements Channel {
 	 */
 	@Override
 	public String toString() {
-		return Components.classToString(getClass())
+		return Components.className(getClass())
 				+ " [criterion=" 
 				+ ((defaultCriterion() instanceof Class)
-					?  Components.classToString((Class<?>)defaultCriterion())
+					?  Components.className((Class<?>)defaultCriterion())
 					: defaultCriterion())
 				+ "]";
 	}

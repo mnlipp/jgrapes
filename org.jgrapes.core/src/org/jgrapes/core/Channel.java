@@ -138,7 +138,7 @@ public interface Channel extends Eligible {
 			if (criterion == Channel.class) {
 				builder.append("BROADCAST");
 			} else {
-				builder.append(Components.classToString((Class<?>) criterion));
+				builder.append(Components.className((Class<?>) criterion));
 			}
 		} else {
 			builder.append(criterion);
