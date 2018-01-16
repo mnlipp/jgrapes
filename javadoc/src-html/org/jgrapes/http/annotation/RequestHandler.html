@@ -298,7 +298,7 @@
 <span class="sourceLineNo">290</span>                                        builder.append("handledEventTypes=");<a name="line.290"></a>
 <span class="sourceLineNo">291</span>                                        builder.append(handledEventTypes.stream().map(v -&gt; {<a name="line.291"></a>
 <span class="sourceLineNo">292</span>                                                if (v instanceof Class) {<a name="line.292"></a>
-<span class="sourceLineNo">293</span>                                                        return Components.classToString((Class&lt;?&gt;) v);<a name="line.293"></a>
+<span class="sourceLineNo">293</span>                                                        return Components.className((Class&lt;?&gt;) v);<a name="line.293"></a>
 <span class="sourceLineNo">294</span>                                                }<a name="line.294"></a>
 <span class="sourceLineNo">295</span>                                                return v.toString();<a name="line.295"></a>
 <span class="sourceLineNo">296</span>                                        }).collect(Collectors.toSet()));<a name="line.296"></a>

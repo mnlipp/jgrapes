@@ -75,23 +75,30 @@
 <span class="sourceLineNo">067</span>                        while (true) {<a name="line.67"></a>
 <span class="sourceLineNo">068</span>                                ManagedByteBuffer buffer <a name="line.68"></a>
 <span class="sourceLineNo">069</span>                                        = channel.byteBufferPool().acquire();<a name="line.69"></a>
-<span class="sourceLineNo">070</span>                                int read = inChannel.read(buffer.backingBuffer());<a name="line.70"></a>
-<span class="sourceLineNo">071</span>                                boolean eof = (read == -1);<a name="line.71"></a>
-<span class="sourceLineNo">072</span>                                eventPipeline.fire(new Output&lt;&gt;(buffer, eof), channel);<a name="line.72"></a>
-<span class="sourceLineNo">073</span>                                if (eof) {<a name="line.73"></a>
-<span class="sourceLineNo">074</span>                                        break;<a name="line.74"></a>
-<span class="sourceLineNo">075</span>                                }<a name="line.75"></a>
-<span class="sourceLineNo">076</span>                        }<a name="line.76"></a>
-<span class="sourceLineNo">077</span>                        if (sendClose) {<a name="line.77"></a>
-<span class="sourceLineNo">078</span>                                eventPipeline.fire(new Closed(), channel);<a name="line.78"></a>
-<span class="sourceLineNo">079</span>                        }<a name="line.79"></a>
-<span class="sourceLineNo">080</span>                } catch (InterruptedException e) {<a name="line.80"></a>
-<span class="sourceLineNo">081</span>                        // Just stop<a name="line.81"></a>
-<span class="sourceLineNo">082</span>                } catch (IOException e) {<a name="line.82"></a>
-<span class="sourceLineNo">083</span>                        eventPipeline.fire(new IOError(null, e), channel);<a name="line.83"></a>
-<span class="sourceLineNo">084</span>                }<a name="line.84"></a>
-<span class="sourceLineNo">085</span>        }<a name="line.85"></a>
-<span class="sourceLineNo">086</span>}<a name="line.86"></a>
+<span class="sourceLineNo">070</span>                                int read;<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                                try {<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                                        read = inChannel.read(buffer.backingBuffer());<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                                } catch (IOException e) {<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                                        // Read failed, release buffer<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                                        buffer.unlockBuffer();<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                                        throw e;<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                                }<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                                boolean eof = (read == -1);<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                                eventPipeline.fire(new Output&lt;&gt;(buffer, eof), channel);<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                                if (eof) {<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                                        break;<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                                }<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                        }<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                        if (sendClose) {<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                                eventPipeline.fire(new Closed(), channel);<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                        }<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                } catch (InterruptedException e) {<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                        // Just stop<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                } catch (IOException e) {<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                        eventPipeline.fire(new IOError(null, e), channel);<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                }<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        }<a name="line.92"></a>
+<span class="sourceLineNo">093</span>}<a name="line.93"></a>
 
 
 
