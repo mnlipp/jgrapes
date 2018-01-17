@@ -8,7 +8,7 @@
 <div class="sourceContainer">
 <pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
 <span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2016  Michael N. Lipp<a name="line.3"></a>
+<span class="sourceLineNo">003</span> * Copyright (C) 2016-2018 Michael N. Lipp<a name="line.3"></a>
 <span class="sourceLineNo">004</span> * <a name="line.4"></a>
 <span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
 <span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
@@ -231,7 +231,7 @@
 <span class="sourceLineNo">223</span>                                                long size = ioChannel.size();<a name="line.223"></a>
 <span class="sourceLineNo">224</span>                                                while (ioChannel.position() &lt; size) {<a name="line.224"></a>
 <span class="sourceLineNo">225</span>                                                        ManagedByteBuffer buffer = ioBuffers.acquire();<a name="line.225"></a>
-<span class="sourceLineNo">226</span>                                                        ioChannel.read(buffer.backingBuffer());<a name="line.226"></a>
+<span class="sourceLineNo">226</span>                                                        buffer.fillFromChannel(ioChannel);<a name="line.226"></a>
 <span class="sourceLineNo">227</span>                                                        channel.respond(new Output&lt;&gt;(buffer,<a name="line.227"></a>
 <span class="sourceLineNo">228</span>                                                                        ioChannel.position() == size));<a name="line.228"></a>
 <span class="sourceLineNo">229</span>                                                }<a name="line.229"></a>
