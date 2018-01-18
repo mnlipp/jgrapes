@@ -167,7 +167,7 @@ public class FileStorage extends Component {
 					} catch (IOException e1) {
 						// Handled like true
 					} 
-					channel.respond(new Output<>(buffer, eof));
+					channel.respond(Output.fromSink(buffer, eof));
 					if (!eof) {
 						try {
 							ManagedByteBuffer nextBuffer = ioBuffers.acquire();
@@ -224,7 +224,7 @@ public class FileStorage extends Component {
 						while (ioChannel.position() < size) {
 							ManagedByteBuffer buffer = ioBuffers.acquire();
 							buffer.fillFromChannel(ioChannel);
-							channel.respond(new Output<>(buffer,
+							channel.respond(Output.fromSink(buffer,
 									ioChannel.position() == size));
 						}
 						ioChannel.close();

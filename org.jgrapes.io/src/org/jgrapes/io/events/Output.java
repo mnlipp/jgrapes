@@ -18,6 +18,8 @@
 
 package org.jgrapes.io.events;
 
+import java.nio.Buffer;
+
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
@@ -30,8 +32,12 @@ import org.jgrapes.io.util.ManagedCharBuffer;
  * forwarded to some destination. The data is kept in a buffer. The buffer is
  * returned to the pool upon successful processing of the event. This type of
  * event is commonly used for data flowing out of the application.
+ * 
+ * As a convenience, the class provides the methods known
+ * from {@link Buffer} as short-cuts for invoking
+ * `buffer().`*method()*.
  */
-public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
+public class Output<T extends ManagedBuffer<?>> extends Event<Void> {
 
 	private T buffer;
 	private boolean eor;
@@ -54,18 +60,6 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	}
 	
 	/**
-	 * Create a new event with the given buffer. Creating the event
-	 * flips the buffer as it is assumed to be used for reading by
-	 * the handlers(s) from now on.
-	 * 
-	 * @param buffer the buffer with the data
-	 * @param endOfRecord if the event ends a data record
-	 */
-	public Output(T buffer, boolean endOfRecord) {
-		this(buffer, true, endOfRecord);
-	}
-
-	/**
 	 * Create a new event from an existing event. This constructor
 	 * is useful if the data is to be forwarded to another channel
 	 * by a new event.
@@ -81,28 +75,53 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 	}
 	
 	/**
-	 * Convenience method that wraps a String in a 
-	 * {@code Write<ManagedCharBuffer} event.
+	 * Create a new event with the given buffer. The buffer must
+	 * have been prepared for invoking `get`-methods.
+	 * 
+	 * @param buffer the buffer with the data
+	 * @param endOfRecord if the event ends a data record
+	 */
+	public static <B extends ManagedBuffer<?>> Output<B> fromSource(
+			B buffer, boolean endOfRecord) {
+		return new Output<>(buffer, false, endOfRecord);
+	}
+
+	/**
+	 * Create a new event with the given buffer. Creating the event
+	 * flips the buffer, which is assumed to have been used for
+	 * collecting data up to now.
+	 * 
+	 * @param buffer the buffer with the data
+	 * @param endOfRecord if the event ends a data record
+	 */
+	public static <B extends ManagedBuffer<?>> Output<B> fromSink(
+			B buffer, boolean endOfRecord) {
+		return new Output<>(buffer, true, endOfRecord);
+	}
+
+	/**
+	 * Convenience method that creates a 
+	 * {@code Output<ManagedCharBuffer} event from a {@link String}.
 	 * 
 	 * @param data the string to wrap
 	 * @param endOfRecord if the event ends a data record
 	 * @return the event
 	 */
 	public static Output<ManagedCharBuffer> 
-		wrap(String data, boolean endOfRecord) {
+		from(String data, boolean endOfRecord) {
 		return new Output<>(new ManagedCharBuffer(data), false, endOfRecord);
 	}
 	
 	/**
-	 * Convenience method that wraps a byte array in a 
-	 * {@code Write<ManagedByteBuffer} event.
+	 * Convenience method that creates a 
+	 * {@code Output<ManagedCharBuffer} event from a `byte[]`.
 	 * 
 	 * @param data the array to wrap
 	 * @param endOfRecord if the event ends a data record
 	 * @return the event
 	 */
 	public static Output<ManagedByteBuffer> 
-		wrap(byte[] data, boolean endOfRecord) {
+		from(byte[] data, boolean endOfRecord) {
 		return new Output<>(new ManagedByteBuffer(data), false, endOfRecord);
 	}
 	
@@ -151,5 +170,153 @@ public class Output<T extends ManagedBuffer<?>>	extends Event<Void> {
 		builder.append(eor);
 		builder.append("]");
 		return builder.toString();
+	}
+	
+	/**
+	 * Return the backing buffer of the managed buffer.
+	 * Short for `buffer().backingBuffer()`.
+	 *
+	 * @return the buffer
+	 */
+	public Buffer backingBuffer() {
+		return buffer.backingBuffer();
+	}
+	
+	/**
+	 * @return the backing array
+	 * @see java.nio.Buffer#array()
+	 */
+	public Object array() {
+		return buffer.array();
+	}
+
+	/**
+	 * @return the backing array offset
+	 * @see java.nio.Buffer#arrayOffset()
+	 */
+	public int arrayOffset() {
+		return buffer.arrayOffset();
+	}
+
+	/**
+	 * @return the capacity
+	 * @see java.nio.Buffer#capacity()
+	 */
+	public final int capacity() {
+		return buffer.capacity();
+	}
+
+	/**
+	 * @return the buffer
+	 * @see java.nio.Buffer#clear()
+	 */
+	public final Buffer clear() {
+		return buffer.clear();
+	}
+
+	/**
+	 * @return the buffer
+	 * @see java.nio.Buffer#flip()
+	 */
+	public final Buffer flip() {
+		return buffer.flip();
+	}
+
+	/**
+	 * @return the result
+	 * @see java.nio.Buffer#hasArray()
+	 */
+	public boolean hasArray() {
+		return buffer.hasArray();
+	}
+
+	/**
+	 * @return the result
+	 * @see java.nio.Buffer#hasRemaining()
+	 */
+	public final boolean hasRemaining() {
+		return buffer.hasRemaining();
+	}
+
+	/**
+	 * @return the result
+	 * @see java.nio.Buffer#isDirect()
+	 */
+	public boolean isDirect() {
+		return buffer.isDirect();
+	}
+
+	/**
+	 * @return the result
+	 * @see java.nio.Buffer#isReadOnly()
+	 */
+	public boolean isReadOnly() {
+		return buffer.isReadOnly();
+	}
+
+	/**
+	 * @return the result
+	 * @see java.nio.Buffer#limit()
+	 */
+	public final int limit() {
+		return buffer.limit();
+	}
+
+	/**
+	 * @param newLimit the new limit
+	 * @return the result
+	 * @see java.nio.Buffer#limit(int)
+	 */
+	public final Buffer limit(int newLimit) {
+		return buffer.limit(newLimit);
+	}
+
+	/**
+	 * @return the buffer
+	 * @see java.nio.Buffer#mark()
+	 */
+	public final Buffer mark() {
+		return buffer.mark();
+	}
+
+	/**
+	 * @return the result
+	 * @see java.nio.Buffer#position()
+	 */
+	public final int position() {
+		return buffer.position();
+	}
+
+	/**
+	 * @param newPosition the new position
+	 * @return the buffer
+	 * @see java.nio.Buffer#position(int)
+	 */
+	public final Buffer position(int newPosition) {
+		return buffer.position(newPosition);
+	}
+
+	/**
+	 * @return the result
+	 * @see java.nio.Buffer#remaining()
+	 */
+	public final int remaining() {
+		return buffer.remaining();
+	}
+
+	/**
+	 * @return the Buffer
+	 * @see java.nio.Buffer#reset()
+	 */
+	public final Buffer reset() {
+		return buffer.reset();
+	}
+
+	/**
+	 * @return the Buffer
+	 * @see java.nio.Buffer#rewind()
+	 */
+	public final Buffer rewind() {
+		return buffer.rewind();
 	}
 }

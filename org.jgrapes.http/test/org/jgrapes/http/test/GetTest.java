@@ -85,7 +85,7 @@ public class GetTest {
 					.setParameter("charset", "utf-8").build());
 			fire(new Response(response), channel);
 			try {
-				fire(Output.wrap("Top!".getBytes("utf-8"), true), channel);
+				fire(Output.from("Top!".getBytes("utf-8"), true), channel);
 			} catch (UnsupportedEncodingException e) {
 				// Supported by definition
 			}
@@ -105,7 +105,7 @@ public class GetTest {
 					.setParameter("charset", "utf-8").build());
 			fire(new Response(response), channel);
 			try {
-				fire(Output.wrap("Dynamic!".getBytes("utf-8"), true), channel);
+				fire(Output.from("Dynamic!".getBytes("utf-8"), true), channel);
 			} catch (UnsupportedEncodingException e) {
 				// Supported by definition
 			}

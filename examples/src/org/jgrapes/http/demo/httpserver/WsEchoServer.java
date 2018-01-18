@@ -80,9 +80,7 @@ public class WsEchoServer extends Component {
 		if (!openChannels.contains(channel)) {
 			return;
 		}
-		ManagedCharBuffer greetings = new ManagedCharBuffer("/Greetings!");
-		greetings.position(greetings.limit());
-		channel.respond(new Output<>(greetings, true));
+		channel.respond(Output.from("/Greetings!", true));
 	}
 	
 	@Handler
@@ -93,7 +91,7 @@ public class WsEchoServer extends Component {
 		ManagedCharBuffer out = new ManagedCharBuffer(
 				CharBuffer.wrap(event.buffer().backingBuffer()));
 		out.position(out.limit());
-		channel.respond(new Output<>(out, true));
+		channel.respond(Output.fromSink(out, true));
 	}
 	
 	@Handler

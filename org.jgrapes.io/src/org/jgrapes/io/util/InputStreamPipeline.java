@@ -86,7 +86,7 @@ public class InputStreamPipeline implements Runnable {
 				ManagedByteBuffer buffer = channel.byteBufferPool().acquire();
 				int read = buffer.fillFromChannel(inChannel);
 				boolean eof = (read == -1);
-				eventPipeline.fire(new Output<>(buffer, eof), channel);
+				eventPipeline.fire(Output.fromSink(buffer, eof), channel);
 				if (eof) {
 					break;
 				}

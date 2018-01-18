@@ -96,7 +96,7 @@ public class PostProcessor extends Component {
 		channel.respond(new Response(response));
 		ManagedByteBuffer out = channel.byteBufferPool().acquire();
 		out.put(data.getBytes("utf-8"));
-		channel.respond(new Output<>(out, true));
+		channel.respond(Output.fromSink(out, true));
 	}
 
 }

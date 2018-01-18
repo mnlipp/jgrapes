@@ -159,12 +159,10 @@ public class ByteBufferOutputStream extends OutputStream {
 			// Nothing to flush
 			buffer.unlockBuffer();
 		} else if (sendInputEvents) {
-			buffer.flip();
-			eventPipeline.fire(
-					new Input<ManagedByteBuffer>(buffer, endOfRecord), channel);
+			eventPipeline.fire(Input.fromSink(buffer, endOfRecord), channel);
 		} else {
 			eventPipeline.fire(
-					new Output<ManagedByteBuffer>(buffer, endOfRecord), channel);
+					Output.fromSink(buffer, endOfRecord), channel);
 		}
 		buffer = null;
 	}

@@ -141,10 +141,9 @@ public class CharBufferWriter extends Writer {
 			// Nothing to flush
 			buffer.unlockBuffer();
 		} else if (sendInputEvents) {
-			buffer.flip();
-			eventPipeline.fire(new Input<>(buffer, endOfRecord), channel);
+			eventPipeline.fire(Input.fromSink(buffer, endOfRecord), channel);
 		} else {
-			eventPipeline.fire(new Output<>(buffer, endOfRecord), channel);
+			eventPipeline.fire(Output.fromSink(buffer, endOfRecord), channel);
 		}
 		buffer = null;
 	}

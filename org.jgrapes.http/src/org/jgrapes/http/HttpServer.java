@@ -414,7 +414,7 @@ public class HttpServer extends Component {
 		// handled by this HTTP server as if sent from a sub-component.
 		fire(new Response(response), appChannel);
 		try {
-			fire(Output.wrap((statusCode + " " + reasonPhrase)
+			fire(Output.from((statusCode + " " + reasonPhrase)
 					.getBytes("utf-8"), true), appChannel);
 		} catch (UnsupportedEncodingException e) {
 			// Supported by definition
@@ -511,8 +511,8 @@ public class HttpServer extends Component {
 				}
 				if (bodyData != null) {
 					if (bodyData.position() > 0) {
-						bodyData.flip();
-						downPipeline.fire(new Input<>(bodyData, !result.isOverflow() 
+						downPipeline.fire(Input.fromSink(
+								bodyData, !result.isOverflow() 
 								&& !result.isUnderflow()), this);
 					} else {
 						bodyData.unlockBuffer();
@@ -599,7 +599,7 @@ public class HttpServer extends Component {
 				Codec.Result result = engine.encode(
 						Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);
 				if (result.isOverflow()) {
-					upstreamChannel().respond(new Output<>(buffer, false));
+					upstreamChannel().respond(Output.fromSink(buffer, false));
 					continue;
 				}
 				if (hasBody) {
@@ -609,7 +609,7 @@ public class HttpServer extends Component {
 				}
 				// Response is complete
 				if (buffer.position() > 0) {
-					upstreamChannel().respond(new Output<>(buffer, false));
+					upstreamChannel().respond(Output.fromSink(buffer, false));
 				} else {
 					buffer.unlockBuffer();
 				}
@@ -665,13 +665,13 @@ public class HttpServer extends Component {
 				Codec.Result result = engine.encode(input,
 				        outBuffer.backingBuffer(), event.isEndOfRecord());
 				if (result.isOverflow()) {
-					upstreamChannel().respond(new Output<>(outBuffer, false));
+					upstreamChannel().respond(Output.fromSink(outBuffer, false));
 					outBuffer = upstreamChannel().byteBufferPool().acquire();
 					continue;
 				}
 				if (event.isEndOfRecord() || result.closeConnection()) {
 					if (outBuffer.position() > 0) {
-						upstreamChannel().respond(new Output<>(outBuffer, false));
+						upstreamChannel().respond(Output.fromSink(outBuffer, false));
 					} else {
 						outBuffer.unlockBuffer();
 					}

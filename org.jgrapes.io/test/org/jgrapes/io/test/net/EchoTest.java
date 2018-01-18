@@ -82,7 +82,7 @@ public class EchoTest {
 						throws InterruptedException {
 			ManagedByteBuffer out = channel.byteBufferPool().acquire();
 			out.put(event.buffer());
-			channel.respond(new Output<>(out, event.isEndOfRecord()));
+			channel.respond(Output.fromSink(out, event.isEndOfRecord()));
 		}
 	}
 

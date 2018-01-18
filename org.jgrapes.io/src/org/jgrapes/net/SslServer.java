@@ -255,7 +255,7 @@ public class SslServer extends Component {
 					SSLEngineResult wrapResult = sslEngine.wrap(
 							ManagedByteBuffer.EMPTY_BUFFER
 							.backingBuffer(), feedback.backingBuffer());
-					upstreamChannel().respond(new Output<>(feedback, false));
+					upstreamChannel().respond(Output.fromSink(feedback, false));
 					if (wrapResult.getHandshakeStatus() == HandshakeStatus.FINISHED) {
 						fireAccepted();
 					}
@@ -297,8 +297,7 @@ public class SslServer extends Component {
 				unwrapped.unlockBuffer();
 			} else {
 				// forward data received
-				unwrapped.flip();
-				fire(new Input<>(unwrapped, sslEngine.isInboundDone()), this);
+				fire(Input.fromSink(unwrapped, sslEngine.isInboundDone()), this);
 			}
 			
 			// final message?
@@ -329,7 +328,7 @@ public class SslServer extends Component {
 					= upstreamChannel().byteBufferPool().acquire();
 				sslEngine.wrap(output, out.backingBuffer());
 				upstreamChannel().respond(
-						new Output<>(out, event.isEndOfRecord()));
+						Output.fromSink(out, event.isEndOfRecord()));
 			}
 		}
 
@@ -341,7 +340,7 @@ public class SslServer extends Component {
 					= upstreamChannel().byteBufferPool().acquire();
 				sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
 				        .backingBuffer(), feedback.backingBuffer());
-				upstreamChannel().respond(new Output<>(feedback, false));
+				upstreamChannel().respond(Output.fromSink(feedback, false));
 			}
 			upstreamChannel().respond(new Close());
 		}
@@ -371,7 +370,7 @@ public class SslServer extends Component {
 						= upstreamChannel().byteBufferPool().acquire();
 					sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
 							.backingBuffer(),feedback.backingBuffer());
-					upstreamChannel().respond(new Output<>(feedback, false));
+					upstreamChannel().respond(Output.fromSink(feedback, false));
 				}
 			} catch (SSLException e) {
 				// Several clients (notably chromium, see

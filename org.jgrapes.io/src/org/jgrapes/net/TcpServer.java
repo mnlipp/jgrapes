@@ -543,9 +543,7 @@ public class TcpServer extends Component implements NioHandler {
 				return;
 			}
 			if (bytes > 0) {
-				buffer.flip();
-				downPipeline.fire(
-						new Input<ManagedByteBuffer>(buffer, false), this);
+				downPipeline.fire(Input.fromSink(buffer, false), this);
 				return;
 			}
 			// EOF (-1) from client
