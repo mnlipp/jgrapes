@@ -175,7 +175,7 @@
 <span class="sourceLineNo">167</span>                                        } catch (IOException e1) {<a name="line.167"></a>
 <span class="sourceLineNo">168</span>                                                // Handled like true<a name="line.168"></a>
 <span class="sourceLineNo">169</span>                                        } <a name="line.169"></a>
-<span class="sourceLineNo">170</span>                                        channel.respond(new Output&lt;&gt;(buffer, eof));<a name="line.170"></a>
+<span class="sourceLineNo">170</span>                                        channel.respond(Output.fromSink(buffer, eof));<a name="line.170"></a>
 <span class="sourceLineNo">171</span>                                        if (!eof) {<a name="line.171"></a>
 <span class="sourceLineNo">172</span>                                                try {<a name="line.172"></a>
 <span class="sourceLineNo">173</span>                                                        ManagedByteBuffer nextBuffer = ioBuffers.acquire();<a name="line.173"></a>
@@ -232,7 +232,7 @@
 <span class="sourceLineNo">224</span>                                                while (ioChannel.position() &lt; size) {<a name="line.224"></a>
 <span class="sourceLineNo">225</span>                                                        ManagedByteBuffer buffer = ioBuffers.acquire();<a name="line.225"></a>
 <span class="sourceLineNo">226</span>                                                        buffer.fillFromChannel(ioChannel);<a name="line.226"></a>
-<span class="sourceLineNo">227</span>                                                        channel.respond(new Output&lt;&gt;(buffer,<a name="line.227"></a>
+<span class="sourceLineNo">227</span>                                                        channel.respond(Output.fromSink(buffer,<a name="line.227"></a>
 <span class="sourceLineNo">228</span>                                                                        ioChannel.position() == size));<a name="line.228"></a>
 <span class="sourceLineNo">229</span>                                                }<a name="line.229"></a>
 <span class="sourceLineNo">230</span>                                                ioChannel.close();<a name="line.230"></a>

@@ -104,7 +104,7 @@
 <span class="sourceLineNo">096</span>                channel.respond(new Response(response));<a name="line.96"></a>
 <span class="sourceLineNo">097</span>                ManagedByteBuffer out = channel.byteBufferPool().acquire();<a name="line.97"></a>
 <span class="sourceLineNo">098</span>                out.put(data.getBytes("utf-8"));<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                channel.respond(new Output&lt;&gt;(out, true));<a name="line.99"></a>
+<span class="sourceLineNo">099</span>                channel.respond(Output.fromSink(out, true));<a name="line.99"></a>
 <span class="sourceLineNo">100</span>        }<a name="line.100"></a>
 <span class="sourceLineNo">101</span><a name="line.101"></a>
 <span class="sourceLineNo">102</span>}<a name="line.102"></a>

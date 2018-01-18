@@ -422,7 +422,7 @@
 <span class="sourceLineNo">414</span>                // handled by this HTTP server as if sent from a sub-component.<a name="line.414"></a>
 <span class="sourceLineNo">415</span>                fire(new Response(response), appChannel);<a name="line.415"></a>
 <span class="sourceLineNo">416</span>                try {<a name="line.416"></a>
-<span class="sourceLineNo">417</span>                        fire(Output.wrap((statusCode + " " + reasonPhrase)<a name="line.417"></a>
+<span class="sourceLineNo">417</span>                        fire(Output.from((statusCode + " " + reasonPhrase)<a name="line.417"></a>
 <span class="sourceLineNo">418</span>                                        .getBytes("utf-8"), true), appChannel);<a name="line.418"></a>
 <span class="sourceLineNo">419</span>                } catch (UnsupportedEncodingException e) {<a name="line.419"></a>
 <span class="sourceLineNo">420</span>                        // Supported by definition<a name="line.420"></a>
@@ -519,8 +519,8 @@
 <span class="sourceLineNo">511</span>                                }<a name="line.511"></a>
 <span class="sourceLineNo">512</span>                                if (bodyData != null) {<a name="line.512"></a>
 <span class="sourceLineNo">513</span>                                        if (bodyData.position() &gt; 0) {<a name="line.513"></a>
-<span class="sourceLineNo">514</span>                                                bodyData.flip();<a name="line.514"></a>
-<span class="sourceLineNo">515</span>                                                downPipeline.fire(new Input&lt;&gt;(bodyData, !result.isOverflow() <a name="line.515"></a>
+<span class="sourceLineNo">514</span>                                                downPipeline.fire(Input.fromSink(<a name="line.514"></a>
+<span class="sourceLineNo">515</span>                                                                bodyData, !result.isOverflow() <a name="line.515"></a>
 <span class="sourceLineNo">516</span>                                                                &amp;&amp; !result.isUnderflow()), this);<a name="line.516"></a>
 <span class="sourceLineNo">517</span>                                        } else {<a name="line.517"></a>
 <span class="sourceLineNo">518</span>                                                bodyData.unlockBuffer();<a name="line.518"></a>
@@ -607,7 +607,7 @@
 <span class="sourceLineNo">599</span>                                Codec.Result result = engine.encode(<a name="line.599"></a>
 <span class="sourceLineNo">600</span>                                                Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);<a name="line.600"></a>
 <span class="sourceLineNo">601</span>                                if (result.isOverflow()) {<a name="line.601"></a>
-<span class="sourceLineNo">602</span>                                        upstreamChannel().respond(new Output&lt;&gt;(buffer, false));<a name="line.602"></a>
+<span class="sourceLineNo">602</span>                                        upstreamChannel().respond(Output.fromSink(buffer, false));<a name="line.602"></a>
 <span class="sourceLineNo">603</span>                                        continue;<a name="line.603"></a>
 <span class="sourceLineNo">604</span>                                }<a name="line.604"></a>
 <span class="sourceLineNo">605</span>                                if (hasBody) {<a name="line.605"></a>
@@ -617,7 +617,7 @@
 <span class="sourceLineNo">609</span>                                }<a name="line.609"></a>
 <span class="sourceLineNo">610</span>                                // Response is complete<a name="line.610"></a>
 <span class="sourceLineNo">611</span>                                if (buffer.position() &gt; 0) {<a name="line.611"></a>
-<span class="sourceLineNo">612</span>                                        upstreamChannel().respond(new Output&lt;&gt;(buffer, false));<a name="line.612"></a>
+<span class="sourceLineNo">612</span>                                        upstreamChannel().respond(Output.fromSink(buffer, false));<a name="line.612"></a>
 <span class="sourceLineNo">613</span>                                } else {<a name="line.613"></a>
 <span class="sourceLineNo">614</span>                                        buffer.unlockBuffer();<a name="line.614"></a>
 <span class="sourceLineNo">615</span>                                }<a name="line.615"></a>
@@ -673,13 +673,13 @@
 <span class="sourceLineNo">665</span>                                Codec.Result result = engine.encode(input,<a name="line.665"></a>
 <span class="sourceLineNo">666</span>                                        outBuffer.backingBuffer(), event.isEndOfRecord());<a name="line.666"></a>
 <span class="sourceLineNo">667</span>                                if (result.isOverflow()) {<a name="line.667"></a>
-<span class="sourceLineNo">668</span>                                        upstreamChannel().respond(new Output&lt;&gt;(outBuffer, false));<a name="line.668"></a>
+<span class="sourceLineNo">668</span>                                        upstreamChannel().respond(Output.fromSink(outBuffer, false));<a name="line.668"></a>
 <span class="sourceLineNo">669</span>                                        outBuffer = upstreamChannel().byteBufferPool().acquire();<a name="line.669"></a>
 <span class="sourceLineNo">670</span>                                        continue;<a name="line.670"></a>
 <span class="sourceLineNo">671</span>                                }<a name="line.671"></a>
 <span class="sourceLineNo">672</span>                                if (event.isEndOfRecord() || result.closeConnection()) {<a name="line.672"></a>
 <span class="sourceLineNo">673</span>                                        if (outBuffer.position() &gt; 0) {<a name="line.673"></a>
-<span class="sourceLineNo">674</span>                                                upstreamChannel().respond(new Output&lt;&gt;(outBuffer, false));<a name="line.674"></a>
+<span class="sourceLineNo">674</span>                                                upstreamChannel().respond(Output.fromSink(outBuffer, false));<a name="line.674"></a>
 <span class="sourceLineNo">675</span>                                        } else {<a name="line.675"></a>
 <span class="sourceLineNo">676</span>                                                outBuffer.unlockBuffer();<a name="line.676"></a>
 <span class="sourceLineNo">677</span>                                        }<a name="line.677"></a>
