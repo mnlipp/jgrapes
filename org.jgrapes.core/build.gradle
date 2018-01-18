@@ -21,9 +21,12 @@ javadoc {
 	options.tagletPath = rootProject.configurations.javadocTaglets.files as List
 	options.taglets = ["org.jdrupes.taglets.plantUml.Taglet"]
 	
-	classpath = files(rootProject.subprojects.collect {project ->
-		project.sourceSets.main.compileClasspath})
-	source rootProject.subprojects.collect {project -> project.sourceSets.main.allJava }
+	classpath = files(rootProject.subprojects
+		.findAll({project -> project.name.startsWith("org.jgrapes")})
+		.collect {project -> project.sourceSets.main.compileClasspath})
+	source rootProject.subprojects
+		.findAll({project -> project.name.startsWith("org.jgrapes")})
+		.collect {project -> project.sourceSets.main.allJava }
 	options.addStringOption("doctitle", "JGrapes ${project.version}")
 	options.addStringOption("overview", "${rootProject.rootDir}/overview.md")
 	inputs.file "${rootProject.rootDir}/overview.md"
