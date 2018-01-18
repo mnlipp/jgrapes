@@ -341,9 +341,9 @@ public class ManagedBuffer<T extends Buffer> {
 	}
 	
 	/**
-	 * A reader for the buffers content. The reader consists
-	 * of a read only view of the managed buffer's content
+	 * A read-only view of the managed buffer's content
 	 * (backing buffer) and a reference to the managed buffer.
+	 * Can be used if several consumers need the same content.
 	 */
 	public class ByteBufferView {
 		private ByteBuffer bufferView;
@@ -386,9 +386,9 @@ public class ManagedBuffer<T extends Buffer> {
 	}
 
 	/**
-	 * A reader for the buffers content. The reader consists
-	 * of a read only view of the managed buffer's content
+	 * A read-only view of the managed buffer's content
 	 * (backing buffer) and a reference to the managed buffer.
+	 * Can be used if several consumers need the same content.
 	 */
 	public class CharBufferView {
 		private CharBuffer bufferView;
