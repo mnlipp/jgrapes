@@ -218,6 +218,7 @@ subprojects {
 			tasks.matching { it.name == "baseline" }.all {
 				enabled = false
 			}
+			tasks.withType(Javadoc).all { enabled = false }
 		}
 	}
 	
@@ -253,13 +254,12 @@ gitPublish {
 tasks.gitPublishCopy.dependsOn(":org.jgrapes.core:javadoc")
 
 task stage {
+	description = 'To be executed by travis, build and update JavaDoc.'
+	group = 'build'
+	
 	// Build everything first
 	subprojects.tasks.each { tc -> dependsOn tc.findByName("build") }
 	// Publish JavaDoc
 	dependsOn gitPublishPush	
 }
 
-configure(stage) {
-	description = 'To be executed by travis, build and update JavaDoc.'
-	group = 'build'
-}
