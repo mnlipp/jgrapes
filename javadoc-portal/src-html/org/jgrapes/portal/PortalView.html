@@ -317,7 +317,7 @@
 <span class="sourceLineNo">309</span>                        .setField(HttpField.LOCATION, portal.prefix());<a name="line.309"></a>
 <span class="sourceLineNo">310</span>                fire(new Response(response), channel);<a name="line.310"></a>
 <span class="sourceLineNo">311</span>                try {<a name="line.311"></a>
-<span class="sourceLineNo">312</span>                        fire(Output.wrap(portal.prefix().toString()<a name="line.312"></a>
+<span class="sourceLineNo">312</span>                        fire(Output.from(portal.prefix().toString()<a name="line.312"></a>
 <span class="sourceLineNo">313</span>                                        .getBytes("utf-8"), true), channel);<a name="line.313"></a>
 <span class="sourceLineNo">314</span>                } catch (UnsupportedEncodingException e) {<a name="line.314"></a>
 <span class="sourceLineNo">315</span>                        // Supported by definition<a name="line.315"></a>
