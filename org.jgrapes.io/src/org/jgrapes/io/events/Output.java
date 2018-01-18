@@ -19,13 +19,14 @@
 package org.jgrapes.io.events;
 
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
+import org.jgrapes.io.util.BufferCollector;
 import org.jgrapes.io.util.ManagedBuffer;
-import org.jgrapes.io.util.ManagedByteBuffer;
-import org.jgrapes.io.util.ManagedCharBuffer;
 
 /**
  * This event signals that a new chunk of internally generated data is to be
@@ -37,9 +38,9 @@ import org.jgrapes.io.util.ManagedCharBuffer;
  * from {@link Buffer} as short-cuts for invoking
  * `buffer().`*method()*.
  */
-public class Output<T extends ManagedBuffer<?>> extends Event<Void> {
+public class Output<T extends Buffer> extends Event<Void> {
 
-	private T buffer;
+	private ManagedBuffer<T> buffer;
 	private boolean eor;
 
 	/**
@@ -51,7 +52,7 @@ public class Output<T extends ManagedBuffer<?>> extends Event<Void> {
 	 * @param flip if the buffer should be flipped
 	 * @param endOfRecord if the event ends a data record
 	 */
-	private Output(T buffer, boolean flip, boolean endOfRecord) {
+	private Output(ManagedBuffer<T> buffer, boolean flip, boolean endOfRecord) {
 		this.buffer = buffer;
 		this.eor = endOfRecord;
 		if (flip) {
@@ -81,8 +82,8 @@ public class Output<T extends ManagedBuffer<?>> extends Event<Void> {
 	 * @param buffer the buffer with the data
 	 * @param endOfRecord if the event ends a data record
 	 */
-	public static <B extends ManagedBuffer<?>> Output<B> fromSource(
-			B buffer, boolean endOfRecord) {
+	public static <B extends Buffer> Output<B> fromSource(
+			ManagedBuffer<B> buffer, boolean endOfRecord) {
 		return new Output<>(buffer, false, endOfRecord);
 	}
 
@@ -94,22 +95,24 @@ public class Output<T extends ManagedBuffer<?>> extends Event<Void> {
 	 * @param buffer the buffer with the data
 	 * @param endOfRecord if the event ends a data record
 	 */
-	public static <B extends ManagedBuffer<?>> Output<B> fromSink(
-			B buffer, boolean endOfRecord) {
+	public static <B extends Buffer> Output<B> fromSink(
+			ManagedBuffer<B> buffer, boolean endOfRecord) {
 		return new Output<>(buffer, true, endOfRecord);
 	}
 
 	/**
 	 * Convenience method that creates a 
-	 * {@code Output<ManagedCharBuffer} event from a {@link String}.
+	 * {@code Output<CharBuffer} event from a {@link String}.
 	 * 
 	 * @param data the string to wrap
 	 * @param endOfRecord if the event ends a data record
 	 * @return the event
 	 */
-	public static Output<ManagedCharBuffer> 
+	public static Output<CharBuffer> 
 		from(String data, boolean endOfRecord) {
-		return new Output<>(new ManagedCharBuffer(data), false, endOfRecord);
+		return new Output<>(new ManagedBuffer<>(
+				CharBuffer.wrap(data), BufferCollector.NOOP_COLLECTOR),
+				false, endOfRecord);
 	}
 	
 	/**
@@ -120,9 +123,11 @@ public class Output<T extends ManagedBuffer<?>> extends Event<Void> {
 	 * @param endOfRecord if the event ends a data record
 	 * @return the event
 	 */
-	public static Output<ManagedByteBuffer> 
+	public static Output<ByteBuffer> 
 		from(byte[] data, boolean endOfRecord) {
-		return new Output<>(new ManagedByteBuffer(data), false, endOfRecord);
+		return new Output<>(new ManagedBuffer<ByteBuffer>(
+				ByteBuffer.wrap(data), BufferCollector.NOOP_COLLECTOR),
+				false, endOfRecord);
 	}
 	
 	/**
@@ -130,7 +135,7 @@ public class Output<T extends ManagedBuffer<?>> extends Event<Void> {
 	 * 
 	 * @return the buffer
 	 */
-	public T buffer() {
+	public ManagedBuffer<T> buffer() {
 		return buffer;
 	}
 

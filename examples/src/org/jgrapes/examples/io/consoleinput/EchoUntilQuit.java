@@ -18,13 +18,14 @@
 
 package org.jgrapes.examples.io.consoleinput;
 
+import java.nio.ByteBuffer;
+
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.InputStreamMonitor;
 import org.jgrapes.io.events.Input;
-import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
  * An application that echos data from the console until a line
@@ -51,9 +52,9 @@ import org.jgrapes.io.util.ManagedByteBuffer;
 public class EchoUntilQuit extends Component {
 
 	@Handler
-	public void onInput(Input<ManagedByteBuffer> event) {
+	public void onInput(Input<ByteBuffer> event) {
 		byte[] bytes = new byte[event.remaining()];
-		event.buffer().backingBuffer().get(bytes);
+		event.backingBuffer().get(bytes);
 		String data = new String(bytes);
 		System.out.print(data);
 		if (data.trim().equals("QUIT")) {

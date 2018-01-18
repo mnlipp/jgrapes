@@ -50,7 +50,6 @@ import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
-import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.net.events.Accepted;
 
 /**
@@ -108,7 +107,7 @@ public class SslServer extends Component {
 	 */
 	@Handler(dynamic = true)
 	public void onInput(
-			Input<ManagedByteBuffer> event, IOSubchannel encryptedChannel)
+			Input<ByteBuffer> event, IOSubchannel encryptedChannel)
 	        throws InterruptedException, SSLException, ExecutionException {
 		@SuppressWarnings("unchecked")
 		final Optional<PlainChannel> plainChannel = (Optional<PlainChannel>)
@@ -146,7 +145,7 @@ public class SslServer extends Component {
 	 * @throws SSLException if some SSL related problem occurs
 	 */
 	@Handler
-	public void onOutput(Output<ManagedBuffer<ByteBuffer>> event,
+	public void onOutput(Output<ByteBuffer> event,
 	        PlainChannel plainChannel)
 	        throws InterruptedException, SSLException {
 		if (plainChannel.converterComponent() != this) {
@@ -176,7 +175,8 @@ public class SslServer extends Component {
 		public SocketAddress localAddress;
 		public SocketAddress remoteAddress;
 		public SSLEngine sslEngine;
-		private ManagedBufferPool<ManagedByteBuffer, ByteBuffer> downstreamPool;
+		private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
+			downstreamPool;
 		private boolean isInputClosed = false;
 		private ByteBuffer carryOver = null;
 
@@ -199,18 +199,18 @@ public class SslServer extends Component {
 			// https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/samples/sslengine/SSLEngineSimpleDemo.java
 			int decBufSize = sslEngine.getSession()
 					.getApplicationBufferSize() + 50;
-			downstreamPool = new ManagedBufferPool<>(ManagedByteBuffer::new,
+			downstreamPool = new ManagedBufferPool<>(ManagedBuffer::new,
 					() -> { return ByteBuffer.allocate(decBufSize); }, 2)
 					.setName(channelName + ".downstream.buffers");
 			int encBufSize = sslEngine.getSession().getPacketBufferSize();
-			setByteBufferPool(new ManagedBufferPool<>(ManagedByteBuffer::new,
+			setByteBufferPool(new ManagedBufferPool<>(ManagedBuffer::new,
 					() -> { return ByteBuffer.allocate(encBufSize); }, 2)
 					.setName(channelName + ".upstream.buffers"));
 		}
 		
-		public void sendDownstream(Input<ManagedByteBuffer> event)
+		public void sendDownstream(Input<ByteBuffer> event)
 				throws SSLException, InterruptedException, ExecutionException {
-			ManagedByteBuffer unwrapped = downstreamPool.acquire();
+			ManagedBuffer<ByteBuffer> unwrapped = downstreamPool.acquire();
 			ByteBuffer input = event.buffer().duplicate();
 			if (carryOver != null) {
 				if (carryOver.remaining() < input.remaining()) {
@@ -250,10 +250,10 @@ public class SslServer extends Component {
 					continue;
 					
 				case NEED_WRAP:
-					ManagedByteBuffer feedback 
+					ManagedBuffer<ByteBuffer> feedback 
 						= upstreamChannel().byteBufferPool().acquire();
 					SSLEngineResult wrapResult = sslEngine.wrap(
-							ManagedByteBuffer.EMPTY_BUFFER
+							ManagedBuffer.EMPTY_BYTE_BUFFER
 							.backingBuffer(), feedback.backingBuffer());
 					upstreamChannel().respond(Output.fromSink(feedback, false));
 					if (wrapResult.getHandshakeStatus() == HandshakeStatus.FINISHED) {
@@ -320,11 +320,11 @@ public class SslServer extends Component {
 			}
 		}
 
-		public void sendUpstream(Output<ManagedBuffer<ByteBuffer>> event)
+		public void sendUpstream(Output<ByteBuffer> event)
 				throws SSLException, InterruptedException {
 			ByteBuffer output = event.buffer().backingBuffer().duplicate();
 			while (output.hasRemaining() && !sslEngine.isInboundDone()) {
-				ManagedByteBuffer out 
+				ManagedBuffer<ByteBuffer> out 
 					= upstreamChannel().byteBufferPool().acquire();
 				sslEngine.wrap(output, out.backingBuffer());
 				upstreamChannel().respond(
@@ -336,9 +336,9 @@ public class SslServer extends Component {
 				throws InterruptedException, SSLException {
 			sslEngine.closeOutbound();
 			while (!sslEngine.isOutboundDone()) {
-				ManagedByteBuffer feedback
+				ManagedBuffer<ByteBuffer> feedback
 					= upstreamChannel().byteBufferPool().acquire();
-				sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
+				sslEngine.wrap(ManagedBuffer.EMPTY_BYTE_BUFFER
 				        .backingBuffer(), feedback.backingBuffer());
 				upstreamChannel().respond(Output.fromSink(feedback, false));
 			}
@@ -366,9 +366,9 @@ public class SslServer extends Component {
 			try {
 				sslEngine.closeInbound();
 				while (!sslEngine.isOutboundDone()) {
-					ManagedByteBuffer feedback 
+					ManagedBuffer<ByteBuffer> feedback 
 						= upstreamChannel().byteBufferPool().acquire();
-					sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER
+					sslEngine.wrap(ManagedBuffer.EMPTY_BYTE_BUFFER
 							.backingBuffer(),feedback.backingBuffer());
 					upstreamChannel().respond(Output.fromSink(feedback, false));
 				}

@@ -19,6 +19,7 @@
 package org.jgrapes.http.demo.httpserver;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.util.Optional;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
@@ -37,7 +38,7 @@ import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
-import org.jgrapes.io.util.ManagedByteBuffer;
+import org.jgrapes.io.util.ManagedBuffer;
 
 /**
  * 
@@ -67,13 +68,13 @@ public class PostProcessor extends Component {
 	}
 	
 	@Handler
-	public void onInput(Input<ManagedByteBuffer> event, IOSubchannel channel) 
+	public void onInput(Input<ByteBuffer> event, IOSubchannel channel) 
 			throws InterruptedException, UnsupportedEncodingException {
 		Optional<FormContext> ctx = channel.associated(this, FormContext.class);
 		if (!ctx.isPresent()) {
 			return;
 		}
-		ctx.get().fieldDecoder.addData(event.buffer().backingBuffer());
+		ctx.get().fieldDecoder.addData(event.backingBuffer());
 		if (!event.isEndOfRecord()) {
 			return;
 		}
@@ -94,8 +95,8 @@ public class PostProcessor extends Component {
 		        + ctx.get().fieldDecoder.fields().get("lastname")
 		        + "\r\n" + "Previous invocations: " + invocations;
 		channel.respond(new Response(response));
-		ManagedByteBuffer out = channel.byteBufferPool().acquire();
-		out.put(data.getBytes("utf-8"));
+		ManagedBuffer<ByteBuffer> out = channel.byteBufferPool().acquire();
+		out.backingBuffer().put(data.getBytes("utf-8"));
 		channel.respond(Output.fromSink(out, true));
 	}
 

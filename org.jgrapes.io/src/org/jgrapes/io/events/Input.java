@@ -35,12 +35,12 @@ import org.jgrapes.io.util.ManagedBuffer;
  * from {@link Buffer} as short-cuts for invoking
  * `buffer().`*method()*.
  */
-public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
+public class Input<T extends Buffer> extends Event<Void> {
 
-	private T buffer;
+	private ManagedBuffer<T> buffer;
 	private boolean eor;
 	
-	private Input(T buffer, boolean endOfRecord) {
+	private Input(ManagedBuffer<T> buffer, boolean endOfRecord) {
 		this.buffer = buffer;
 		this.eor = endOfRecord;
 	}
@@ -52,8 +52,8 @@ public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
 	 * @param buffer the buffer with the data
 	 * @param endOfRecord if the event ends a data record
 	 */
-	public static <B extends ManagedBuffer<?>> Input<B> fromSource(
-			B buffer, boolean endOfRecord) {
+	public static <B extends Buffer> Input<B> fromSource(
+			ManagedBuffer<B> buffer, boolean endOfRecord) {
 		return new Input<>(buffer, endOfRecord);
 	}
 
@@ -65,8 +65,8 @@ public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
 	 * @param buffer the buffer with the data
 	 * @param endOfRecord if the event ends a data record
 	 */
-	public static <B extends ManagedBuffer<?>> Input<B> fromSink(
-			B buffer, boolean endOfRecord) {
+	public static <B extends Buffer> Input<B> fromSink(
+			ManagedBuffer<B> buffer, boolean endOfRecord) {
 		buffer.flip();
 		return new Input<>(buffer, endOfRecord);
 	}
@@ -76,10 +76,20 @@ public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
 	 * 
 	 * @return the buffer
 	 */
-	public T buffer() {
+	public ManagedBuffer<T> buffer() {
 		return buffer;
 	}
 
+	/**
+	 * Return the backing buffer of the managed buffer.
+	 * Short for `buffer().backingBuffer()`.
+	 *
+	 * @return the buffer
+	 */
+	public T backingBuffer() {
+		return buffer.backingBuffer();
+	}
+	
 	/**
 	 * Return the end of record flag passed to the constructor.
 	 * The precise interpretation of a record depends on the data
@@ -116,16 +126,6 @@ public class Input<T extends ManagedBuffer<?>> extends Event<Void> {
 		builder.append(eor);
 		builder.append("]");
 		return builder.toString();
-	}
-	
-	/**
-	 * Return the backing buffer of the managed buffer.
-	 * Short for `buffer().backingBuffer()`.
-	 *
-	 * @return the buffer
-	 */
-	public Buffer backingBuffer() {
-		return buffer.backingBuffer();
 	}
 	
 	/**

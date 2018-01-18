@@ -50,8 +50,8 @@ import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.SaveInput;
 import org.jgrapes.io.events.SaveOutput;
 import org.jgrapes.io.events.StreamFile;
+import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
-import org.jgrapes.io.util.ManagedByteBuffer;
 
 /**
  * A component that reads from or writes to a file.
@@ -120,9 +120,9 @@ public class FileStorage extends Component {
 		private final IOSubchannel channel;
 		private Path path;
 		private AsynchronousFileChannel ioChannel = null;
-		private ManagedBufferPool<ManagedByteBuffer, ByteBuffer> ioBuffers;
+		private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> ioBuffers;
 		private long offset = 0;
-		private CompletionHandler<Integer, ManagedByteBuffer> 
+		private CompletionHandler<Integer, ManagedBuffer<ByteBuffer>> 
 			readCompletionHandler = new ReadCompletionHandler();
 
 		private FileStreamer(StreamFile event, IOSubchannel channel)
@@ -145,9 +145,9 @@ public class FileStorage extends Component {
 			registerAsGenerator();
 			channel.respond(new FileOpened(event.path(), event.options()));
 			// Reading from file
-			ioBuffers = new ManagedBufferPool<>(ManagedByteBuffer::new,
+			ioBuffers = new ManagedBufferPool<>(ManagedBuffer::new,
 					() -> {return ByteBuffer.allocateDirect(bufferSize); }, 2);
-			ManagedByteBuffer buffer = ioBuffers.acquire();
+			ManagedBuffer<ByteBuffer> buffer = ioBuffers.acquire();
 			synchronized (ioChannel) {
 				ioChannel.read(buffer.backingBuffer(), offset, buffer,
 						readCompletionHandler);
@@ -155,10 +155,11 @@ public class FileStorage extends Component {
 		}
 
 		private class ReadCompletionHandler
-		        implements CompletionHandler<Integer, ManagedByteBuffer> {
+		        implements CompletionHandler<Integer, ManagedBuffer<ByteBuffer>> {
 
 			@Override
-			public void completed(Integer result, ManagedByteBuffer buffer) {
+			public void completed(
+					Integer result, ManagedBuffer<ByteBuffer> buffer) {
 				if (result >= 0) {
 					offset += result;
 					boolean eof = true;
@@ -170,7 +171,8 @@ public class FileStorage extends Component {
 					channel.respond(Output.fromSink(buffer, eof));
 					if (!eof) {
 						try {
-							ManagedByteBuffer nextBuffer = ioBuffers.acquire();
+							ManagedBuffer<ByteBuffer> nextBuffer
+								= ioBuffers.acquire();
 							nextBuffer.clear();
 							synchronized (ioChannel) {
 								ioChannel.read(nextBuffer.backingBuffer(), offset,
@@ -194,7 +196,8 @@ public class FileStorage extends Component {
 			}
 			
 			@Override
-			public void failed(Throwable exc, ManagedByteBuffer context) {
+			public void failed(
+					Throwable exc, ManagedBuffer<ByteBuffer> context) {
 				if (!(exc instanceof AsynchronousCloseException)) {
 					channel.respond(new IOError(null, exc));
 				}
@@ -211,7 +214,7 @@ public class FileStorage extends Component {
 		 */
 		private void runReaderThread(StreamFile event) 
 				throws IOException {
-			ioBuffers = new ManagedBufferPool<>(ManagedByteBuffer::new,
+			ioBuffers = new ManagedBufferPool<>(ManagedBuffer::new,
 					() -> { return ByteBuffer.allocateDirect(bufferSize); }, 2);
 			final SeekableByteChannel ioChannel 
 				= Files.newByteChannel(event.path(), event.options());
@@ -222,7 +225,7 @@ public class FileStorage extends Component {
 					try {
 						long size = ioChannel.size();
 						while (ioChannel.position() < size) {
-							ManagedByteBuffer buffer = ioBuffers.acquire();
+							ManagedBuffer<ByteBuffer> buffer = ioBuffers.acquire();
 							buffer.fillFromChannel(ioChannel);
 							channel.respond(Output.fromSink(buffer,
 									ioChannel.position() == size));
@@ -291,7 +294,7 @@ public class FileStorage extends Component {
 	}
 	
 	@Handler
-	public void onInput(Input<ManagedByteBuffer> event, Channel channel) {
+	public void onInput(Input<ByteBuffer> event, Channel channel) {
 		Writer writer = inputWriters.get(channel);
 		if (writer != null) {
 			writer.write(event.buffer());
@@ -324,7 +327,7 @@ public class FileStorage extends Component {
 	}
 	
 	@Handler
-	public void onOutput(Output<ManagedByteBuffer> event, Channel channel) {
+	public void onOutput(Output<ByteBuffer> event, Channel channel) {
 		Writer writer = outputWriters.get(channel);
 		if (writer != null) {
 			writer.write(event.buffer());
@@ -367,10 +370,11 @@ public class FileStorage extends Component {
 		 * may successfully be written in one asynchronous write invocation.
 		 */
 		private class WriteContext {
-			public ManagedByteBuffer.Reader reader;
+			public ManagedBuffer<ByteBuffer>.ByteBufferView reader;
 			public long pos;
 
-			public WriteContext(ManagedByteBuffer.Reader reader, long pos) {
+			public WriteContext(
+					ManagedBuffer<ByteBuffer>.ByteBufferView reader, long pos) {
 				this.reader = reader;
 				this.pos = pos;
 			}
@@ -411,7 +415,7 @@ public class FileStorage extends Component {
 			}
 		}
 
-		public void write(ManagedByteBuffer buffer) {
+		public void write(ManagedBuffer<ByteBuffer> buffer) {
 			int written = buffer.remaining();
 			if (written == 0) {
 				return;
@@ -422,7 +426,8 @@ public class FileStorage extends Component {
 					registerAsGenerator();
 				}
 				outstandingAsyncs += 1;
-				ManagedByteBuffer.Reader reader = buffer.newReader();
+				ManagedBuffer<ByteBuffer>.ByteBufferView reader 
+					= buffer.newByteBufferView();
 				ioChannel.write(reader.get(), offset,
 				        new WriteContext(reader, offset),
 				        writeCompletionHandler);
@@ -435,7 +440,7 @@ public class FileStorage extends Component {
 
 			@Override
 			public void completed(Integer result, WriteContext context) {
-				ManagedByteBuffer.Reader reader = context.reader;
+				ManagedBuffer<ByteBuffer>.ByteBufferView reader = context.reader;
 				if (reader.get().hasRemaining()) {
 					ioChannel.write(reader.get(),
 					        context.pos + reader.get().position(),

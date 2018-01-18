@@ -66,8 +66,8 @@ import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.NioRegistration.Registration;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.AvailabilityListener;
+import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
-import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
@@ -353,7 +353,7 @@ public class TcpServer extends Component implements NioHandler {
 	 * @throws IOException if an error occurs
 	 */
 	@Handler
-	public void onOutput(Output<ManagedByteBuffer> event,
+	public void onOutput(Output<ByteBuffer> event,
 			TcpChannel channel) throws IOException {
 		if (channels.contains(channel)) {
 			channel.write(event);
@@ -427,9 +427,11 @@ public class TcpServer extends Component implements NioHandler {
 
 		private SocketChannel nioChannel;
 		private EventPipeline downPipeline;
-		private ManagedBufferPool<ManagedByteBuffer, ByteBuffer> readBuffers;
+		private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> 
+			readBuffers;
 		private Registration registration = null;
-		private Queue<ManagedByteBuffer.Reader> pendingWrites = new ArrayDeque<>();
+		private Queue<ManagedBuffer<ByteBuffer>.ByteBufferView> 
+			pendingWrites = new ArrayDeque<>();
 		private boolean pendingClose = false;
 		
 		/**
@@ -449,13 +451,13 @@ public class TcpServer extends Component implements NioHandler {
 					+ "." + Components.objectName(this);
 			int writeBufferSize = bufferSize == 0 
 					? nioChannel.socket().getSendBufferSize() : bufferSize;
-			setByteBufferPool(new ManagedBufferPool<>(ManagedByteBuffer::new,
+			setByteBufferPool(new ManagedBufferPool<>(ManagedBuffer::new,
 					() -> { return ByteBuffer.allocate(writeBufferSize); }, 2)
 					.setName(channelName + ".upstream.buffers"));
 			
 			int readBufferSize = bufferSize == 0 
 					? nioChannel.socket().getReceiveBufferSize() : bufferSize;
-			readBuffers = new ManagedBufferPool<>(ManagedByteBuffer::new,
+			readBuffers = new ManagedBufferPool<>(ManagedBuffer::new,
 					() -> { return ByteBuffer.allocate(readBufferSize); }, 2)
 					.setName(channelName + ".downstream.buffers");
 			
@@ -489,12 +491,13 @@ public class TcpServer extends Component implements NioHandler {
 		 * @param event the event
 		 * @throws IOException if an error occurred
 		 */
-		public void write(Output<ManagedByteBuffer> event) throws IOException {
+		public void write(Output<ByteBuffer> event) throws IOException {
 			synchronized(pendingWrites) {
 				if (!nioChannel.isOpen()) {
 					return;
 				}
-				ManagedByteBuffer.Reader reader = event.buffer().newReader();
+				ManagedBuffer<ByteBuffer>.ByteBufferView reader 
+					= event.buffer().newByteBufferView();
 				if (!pendingWrites.isEmpty()) {
 					reader.managedBuffer().lockBuffer();
 					pendingWrites.add(reader);
@@ -535,7 +538,7 @@ public class TcpServer extends Component implements NioHandler {
 		 * @throws IOException
 		 */
 		private void handleReadOp() throws InterruptedException, IOException {
-			ManagedByteBuffer buffer;
+			ManagedBuffer<ByteBuffer> buffer;
 			buffer = readBuffers.acquire();
 			int bytes = buffer.fillFromChannel(nioChannel);
 			if (bytes == 0) {
@@ -584,7 +587,7 @@ public class TcpServer extends Component implements NioHandler {
 		private void handleWriteOp() 
 				throws IOException, InterruptedException {
 			while (true) {
-				ManagedByteBuffer.Reader head = null;
+				ManagedBuffer<ByteBuffer>.ByteBufferView head = null;
 				synchronized (pendingWrites) {
 					if (pendingWrites.isEmpty()) {
 						// Nothing left to write, stop getting ops

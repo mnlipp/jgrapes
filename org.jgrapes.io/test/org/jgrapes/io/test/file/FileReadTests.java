@@ -21,6 +21,7 @@ package org.jgrapes.io.test.file;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,7 +38,6 @@ import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Opened;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.StreamFile;
-import org.jgrapes.io.util.ManagedByteBuffer;
 
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -56,9 +56,9 @@ public class FileReadTests {
 		}
 		
 		@Handler
-		public void onOutput(Output<ManagedByteBuffer> event) 
+		public void onOutput(Output<ByteBuffer> event) 
 				throws UnsupportedEncodingException {
-			int length = event.buffer().limit();
+			int length = event.limit();
 			collected += length;
 			byte[] bytes = new byte[length];
 			event.buffer().backingBuffer().get(bytes);
@@ -84,7 +84,7 @@ public class FileReadTests {
 		}
 		
 		@Handler
-		public void reading(Output<ManagedByteBuffer> event) {
+		public void reading(Output<ByteBuffer> event) {
 			assertTrue(state == State.OPENED || state == State.READING );
 			if (event.isEndOfRecord()) {
 				state = State.CLOSING;

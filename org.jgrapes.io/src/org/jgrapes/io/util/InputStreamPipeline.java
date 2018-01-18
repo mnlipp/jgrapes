@@ -20,6 +20,7 @@ package org.jgrapes.io.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
@@ -83,7 +84,8 @@ public class InputStreamPipeline implements Runnable {
 		// Reading from stream
 		try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {
 			while (true) {
-				ManagedByteBuffer buffer = channel.byteBufferPool().acquire();
+				ManagedBuffer<ByteBuffer> buffer 
+					= channel.byteBufferPool().acquire();
 				int read = buffer.fillFromChannel(inChannel);
 				boolean eof = (read == -1);
 				eventPipeline.fire(Output.fromSink(buffer, eof), channel);

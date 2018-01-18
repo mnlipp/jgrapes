@@ -37,7 +37,8 @@ import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
-import org.jgrapes.io.util.ManagedCharBuffer;
+import org.jgrapes.io.util.BufferCollector;
+import org.jgrapes.io.util.ManagedBuffer;
 
 /**
  * 
@@ -84,12 +85,13 @@ public class WsEchoServer extends Component {
 	}
 	
 	@Handler
-	public void onInput(Input<ManagedCharBuffer> event, IOSubchannel channel) {
+	public void onInput(Input<CharBuffer> event, IOSubchannel channel) {
 		if (!openChannels.contains(channel)) {
 			return;
 		}
-		ManagedCharBuffer out = new ManagedCharBuffer(
-				CharBuffer.wrap(event.buffer().backingBuffer()));
+		ManagedBuffer<CharBuffer> out = new ManagedBuffer<>(
+				CharBuffer.wrap(event.backingBuffer()),
+				BufferCollector.NOOP_COLLECTOR);
 		out.position(out.limit());
 		channel.respond(Output.fromSink(out, true));
 	}

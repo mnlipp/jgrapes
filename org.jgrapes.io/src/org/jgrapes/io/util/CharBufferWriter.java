@@ -38,7 +38,7 @@ public class CharBufferWriter extends Writer {
 	private IOSubchannel channel;
 	private EventPipeline eventPipeline;
 	private boolean sendInputEvents;
-	private ManagedCharBuffer buffer;
+	private ManagedBuffer<CharBuffer> buffer;
 	private boolean sendClose;
 	
 	/**
@@ -109,15 +109,15 @@ public class CharBufferWriter extends Writer {
 		while (true) {
 			ensureBufferAvailable();
 			if (buffer.remaining() > length) {
-				buffer.put(data, offset, length);
+				buffer.backingBuffer().put(data, offset, length);
 				break;
 			} else if (buffer.remaining() == length) {
-				buffer.put(data, offset, length);
+				buffer.backingBuffer().put(data, offset, length);
 				flush(false);
 				break;
 			} else {
 				int chunkSize = buffer.remaining();
-				buffer.put(data, offset, chunkSize);
+				buffer.backingBuffer().put(data, offset, chunkSize);
 				flush(false);
 				length -= chunkSize;
 				offset += chunkSize;

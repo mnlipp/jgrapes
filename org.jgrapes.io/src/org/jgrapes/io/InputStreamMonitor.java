@@ -34,8 +34,8 @@ import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
+import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
-import org.jgrapes.io.util.ManagedByteBuffer;
 import org.jgrapes.util.events.ConfigurationUpdate;
 
 /**
@@ -54,7 +54,7 @@ public class InputStreamMonitor extends Component implements Runnable {
 	private InputStream input;
 	private boolean registered = false;
 	private Thread runner;
-	private ManagedBufferPool<ManagedByteBuffer, ByteBuffer> buffers;
+	private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> buffers;
 	private int bufferSize = 2048;
 
 	/**
@@ -136,7 +136,7 @@ public class InputStreamMonitor extends Component implements Runnable {
 		if (runner != null) {
 			return;
 		}
-		buffers = new ManagedBufferPool<>(ManagedByteBuffer::new,
+		buffers = new ManagedBufferPool<>(ManagedBuffer::new,
 				() -> {return ByteBuffer.allocateDirect(bufferSize); }, 2);
 		runner = new Thread(this, Components.simpleObjectName(this));
 		// Because this cannot reliably be stopped, it doesn't prevent shutdown.
@@ -176,7 +176,7 @@ public class InputStreamMonitor extends Component implements Runnable {
 			}
 			ReadableByteChannel inChannel = Channels.newChannel(input);
 			while (!Thread.currentThread().isInterrupted()) {
-				ManagedByteBuffer buffer = buffers.acquire();
+				ManagedBuffer<ByteBuffer> buffer = buffers.acquire();
 				int read = buffer.fillFromChannel(inChannel);
 				boolean eof = (read == -1);
 				fire(Input.fromSink(buffer, eof), dataChannel);

@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -58,7 +59,7 @@ import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.test.WaitForTests;
-import org.jgrapes.io.util.ManagedByteBuffer;
+import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Ready;
@@ -77,11 +78,10 @@ public class EchoTest {
 		}
 
 		@Handler
-		public void onRead(
-				Input<ManagedByteBuffer> event, IOSubchannel channel)
-						throws InterruptedException {
-			ManagedByteBuffer out = channel.byteBufferPool().acquire();
-			out.put(event.buffer());
+		public void onRead(Input<ByteBuffer> event, IOSubchannel channel)
+				throws InterruptedException {
+			ManagedBuffer<ByteBuffer> out = channel.byteBufferPool().acquire();
+			out.backingBuffer().put(event.backingBuffer());
 			channel.respond(Output.fromSink(out, event.isEndOfRecord()));
 		}
 	}

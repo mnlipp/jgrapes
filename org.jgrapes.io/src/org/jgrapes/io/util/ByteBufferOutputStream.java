@@ -39,7 +39,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	private IOSubchannel channel;
 	private EventPipeline eventPipeline;
 	private boolean sendInputEvents;
-	private ManagedByteBuffer buffer;
+	private ManagedBuffer<ByteBuffer> buffer;
 	private boolean sendClose;
 
 	/**
@@ -111,7 +111,7 @@ public class ByteBufferOutputStream extends OutputStream {
 	@Override
 	public void write(int data) throws IOException {
 		ensureBufferAvailable();
-		buffer.put((byte) data);
+		buffer.backingBuffer().put((byte) data);
 		if (!buffer.hasRemaining()) {
 			flush(false);
 		}
@@ -127,15 +127,15 @@ public class ByteBufferOutputStream extends OutputStream {
 		while (true) {
 			ensureBufferAvailable();
 			if (buffer.remaining() > length) {
-				buffer.put(data, offset, length);
+				buffer.backingBuffer().put(data, offset, length);
 				break;
 			} else if (buffer.remaining() == length) {
-				buffer.put(data, offset, length);
+				buffer.backingBuffer().put(data, offset, length);
 				flush(false);
 				break;
 			} else {
 				int chunkSize = buffer.remaining();
-				buffer.put(data, offset, chunkSize);
+				buffer.backingBuffer().put(data, offset, chunkSize);
 				flush(false);
 				length -= chunkSize;
 				offset += chunkSize;

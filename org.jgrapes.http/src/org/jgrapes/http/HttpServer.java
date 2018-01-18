@@ -72,8 +72,6 @@ import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
-import org.jgrapes.io.util.ManagedByteBuffer;
-import org.jgrapes.io.util.ManagedCharBuffer;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Accepted;
 
@@ -238,7 +236,7 @@ public class HttpServer extends Component {
 	 */
 	@Handler(dynamic=true)
 	public void onInput(
-			Input<ManagedByteBuffer> event, IOSubchannel netChannel)
+			Input<ByteBuffer> event, IOSubchannel netChannel)
 					throws ProtocolException, InterruptedException {
 		@SuppressWarnings("unchecked")
 		final Optional<AppChannel> appChannel = (Optional<AppChannel>)
@@ -286,7 +284,7 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onOutput(Output<ManagedBuffer<?>> event, AppChannel appChannel)
+	public void onOutput(Output<?> event, AppChannel appChannel)
 	        throws InterruptedException {
 		appChannel.handleAppOutput(event);
 	}
@@ -424,11 +422,13 @@ public class HttpServer extends Component {
 	private class AppChannel extends LinkedIOSubchannel {
 		// Starts as ServerEngine<HttpRequest,HttpResponse> but may change
 		private ServerEngine<?,?> engine;
-		private ManagedByteBuffer outBuffer;
+		private ManagedBuffer<ByteBuffer> outBuffer;
 		private boolean secure;
 		private List<String> snis = Collections.emptyList();
-		private ManagedBufferPool<ManagedByteBuffer, ByteBuffer> byteBufferPool;
-		private ManagedBufferPool<ManagedCharBuffer, CharBuffer> charBufferPool;
+		private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
+			byteBufferPool;
+		private ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer> 
+			charBufferPool;
 		private ManagedBufferPool<?, ?> currentPool = null;
 		private EventPipeline downPipeline;
 		private boolean switchedToWebSocket = false;
@@ -466,10 +466,10 @@ public class HttpServer extends Component {
 			// delivered in independent events. Therefore provide some 
 			// additional buffers.
 			final int bufSize = bufferSize;
-			byteBufferPool = new ManagedBufferPool<>(ManagedByteBuffer::new,	
+			byteBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,	
 					() -> { return ByteBuffer.allocate(bufSize); }, 2, 100)
 					.setName(channelName + ".downstream.byteBuffers");
-			charBufferPool = new ManagedBufferPool<>(ManagedCharBuffer::new,	
+			charBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,	
 					() -> { return CharBuffer.allocate(bufSize); }, 2, 100)
 					.setName(channelName + ".downstream.charBuffers");
 			
@@ -477,10 +477,10 @@ public class HttpServer extends Component {
 			downPipeline = newEventPipeline();
 		}
 		
-		public void handleNetInput(Input<ManagedByteBuffer> event) 
+		public void handleNetInput(Input<ByteBuffer> event) 
 				throws ProtocolException, InterruptedException {
 			// Send the data from the event through the decoder.
-			ByteBuffer in = event.buffer().backingBuffer();
+			ByteBuffer in = event.backingBuffer();
 			ManagedBuffer<?> bodyData = null;
 			while (in.hasRemaining()) {
 				Decoder.Result<?> result = engine.decode(in,
@@ -595,7 +595,7 @@ public class HttpServer extends Component {
 			boolean hasBody = response.hasPayload();
 			while (true) {
 				outBuffer = upstreamChannel().byteBufferPool().acquire();
-				final ManagedByteBuffer buffer = outBuffer;
+				final ManagedBuffer<ByteBuffer> buffer = outBuffer;
 				Codec.Result result = engine.encode(
 						Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);
 				if (result.isOverflow()) {
@@ -636,9 +636,9 @@ public class HttpServer extends Component {
 			respond(new Response(response));
 		}
 
-		public void handleAppOutput(Output<ManagedBuffer<?>> event) 
+		public void handleAppOutput(Output<?> event) 
 				throws InterruptedException {
-			Buffer eventData = event.buffer().backingBuffer();
+			Buffer eventData = event.backingBuffer();
 			Buffer input;
 			if (eventData instanceof ByteBuffer) {
 				input = ((ByteBuffer)eventData).duplicate();

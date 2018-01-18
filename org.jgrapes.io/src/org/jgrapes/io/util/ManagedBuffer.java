@@ -18,7 +18,11 @@
 
 package org.jgrapes.io.util;
 
+import java.io.IOException;
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -31,8 +35,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Newly created managed buffer always have a lock count of 1 (you
  * create them for using them, don't you).
  */
-public abstract class ManagedBuffer<T extends Buffer> {
+public class ManagedBuffer<T extends Buffer> {
 
+	final public static ManagedBuffer<ByteBuffer> EMPTY_BYTE_BUFFER 
+		= new ManagedBuffer<>(ByteBuffer.allocate(0), 
+				BufferCollector.NOOP_COLLECTOR);
+	
+	final public static ManagedBuffer<CharBuffer> EMPTY_CHAR_BUFFER 
+		= new ManagedBuffer<>(CharBuffer.allocate(0), 
+				BufferCollector.NOOP_COLLECTOR);
+	
 	protected T backing;
 	private BufferCollector manager;
 	private AtomicInteger lockCount = new AtomicInteger(1);
@@ -108,6 +120,28 @@ public abstract class ManagedBuffer<T extends Buffer> {
 		}
 	}
 	
+	/**
+	 * Convenience method to fill the buffer from the channel.
+	 * Unlocks the buffer if an {@link IOException} occurs.
+	 *
+	 * @param channel the channel
+	 * @return the bytes read
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	public int fillFromChannel(
+			ReadableByteChannel channel) throws IOException {
+		if (!(backing instanceof ByteBuffer)) {
+			throw new IllegalArgumentException(
+					"Backing buffer is not a ByteBuffer.");
+		}
+		try {
+			return channel.read((ByteBuffer)backing);
+		} catch (IOException e) {
+			unlockBuffer();
+			throw e;
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -161,6 +195,17 @@ public abstract class ManagedBuffer<T extends Buffer> {
 		return backing.clear();
 	}
 
+	@SuppressWarnings("unchecked")
+	public final T duplicate() {
+		if (backing instanceof ByteBuffer) {
+			return (T)((ByteBuffer)backing).duplicate();
+		}
+		if (backing instanceof CharBuffer) {
+			return (T)((CharBuffer)backing).duplicate();
+		}
+		throw new IllegalArgumentException("Backing buffer of unknown type.");
+	}
+	
 	/**
 	 * @return the result
 	 * @see java.lang.Object#equals(java.lang.Object)
@@ -286,4 +331,93 @@ public abstract class ManagedBuffer<T extends Buffer> {
 		return backing.rewind();
 	}
 
+	/**
+	 * Creates a new {@link ByteBuffer} view.
+	 *
+	 * @return the byte buffer view
+	 */
+	public ByteBufferView newByteBufferView() {
+		return new ByteBufferView();
+	}
+	
+	/**
+	 * A reader for the buffers content. The reader consists
+	 * of a read only view of the managed buffer's content
+	 * (backing buffer) and a reference to the managed buffer.
+	 */
+	public class ByteBufferView {
+		private ByteBuffer bufferView;
+		
+		private ByteBufferView() {
+			if (!(backing instanceof ByteBuffer)) {
+				throw new IllegalArgumentException("Not a managed ByteBuffer.");
+			}
+			bufferView = ((ByteBuffer)backing).asReadOnlyBuffer();
+		}
+
+		/**
+		 * Returns the {@link ByteBuffer} that represents this
+		 * view (position, mark, limit).
+		 * 
+		 * @return the `ByteBuffer` view
+		 */
+		public ByteBuffer get() {
+			return bufferView;
+		}
+
+		/**
+		 * Returns the managed buffer that this reader is a view of.
+		 * 
+		 * @return the managed buffer
+		 */
+		@SuppressWarnings("unchecked")
+		public ManagedBuffer<ByteBuffer> managedBuffer() {
+			return (ManagedBuffer<ByteBuffer>)ManagedBuffer.this;
+		}
+	}
+
+	/**
+	 * Creates a new {@link CharBuffer} view.
+	 *
+	 * @return the byte buffer view
+	 */
+	public CharBufferView newCharBufferView() {
+		return new CharBufferView();
+	}
+
+	/**
+	 * A reader for the buffers content. The reader consists
+	 * of a read only view of the managed buffer's content
+	 * (backing buffer) and a reference to the managed buffer.
+	 */
+	public class CharBufferView {
+		private CharBuffer bufferView;
+		
+		private CharBufferView() {
+			if (!(backing instanceof CharBuffer)) {
+				throw new IllegalArgumentException("Not a managed CharBuffer.");
+			}
+			bufferView = ((CharBuffer)backing).asReadOnlyBuffer();
+		}
+
+		/**
+		 * Returns the {@link ByteBuffer} that represents this
+		 * view (position, mark, limit).
+		 * 
+		 * @return the `ByteBuffer` view
+		 */
+		public CharBuffer get() {
+			return bufferView;
+		}
+
+		/**
+		 * Returns the managed buffer that this reader is a view of.
+		 * 
+		 * @return the managed buffer
+		 */
+		@SuppressWarnings("unchecked")
+		public ManagedBuffer<CharBuffer> managedBuffer() {
+			return (ManagedBuffer<CharBuffer>)ManagedBuffer.this;
+		}
+	}
 }
