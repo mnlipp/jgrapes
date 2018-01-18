@@ -1,6 +1,6 @@
 ---
 layout: default
-title: JGrapes Example
+title: JGrapes Hello World Example
 ---
 
 Hello World!
