@@ -58,133 +58,133 @@
 <span class="sourceLineNo">050</span>import org.jgrapes.io.util.LinkedIOSubchannel;<a name="line.50"></a>
 <span class="sourceLineNo">051</span>import org.jgrapes.io.util.ManagedBuffer;<a name="line.51"></a>
 <span class="sourceLineNo">052</span>import org.jgrapes.io.util.ManagedBufferPool;<a name="line.52"></a>
-<span class="sourceLineNo">053</span>import org.jgrapes.io.util.ManagedByteBuffer;<a name="line.53"></a>
-<span class="sourceLineNo">054</span>import org.jgrapes.net.events.Accepted;<a name="line.54"></a>
-<span class="sourceLineNo">055</span><a name="line.55"></a>
-<span class="sourceLineNo">056</span>/**<a name="line.56"></a>
-<span class="sourceLineNo">057</span> * A component that receives and send byte buffers on an<a name="line.57"></a>
-<span class="sourceLineNo">058</span> * encrypted channel and sends and receives the corresponding<a name="line.58"></a>
-<span class="sourceLineNo">059</span> * decrypted data on its own channel.<a name="line.59"></a>
-<span class="sourceLineNo">060</span> */<a name="line.60"></a>
-<span class="sourceLineNo">061</span>public class SslServer extends Component {<a name="line.61"></a>
-<span class="sourceLineNo">062</span><a name="line.62"></a>
-<span class="sourceLineNo">063</span>        private static final Logger logger <a name="line.63"></a>
-<span class="sourceLineNo">064</span>                = Logger.getLogger(SslServer.class.getName());<a name="line.64"></a>
-<span class="sourceLineNo">065</span>        <a name="line.65"></a>
-<span class="sourceLineNo">066</span>        private SSLContext sslContext;<a name="line.66"></a>
-<span class="sourceLineNo">067</span>        <a name="line.67"></a>
-<span class="sourceLineNo">068</span>        /**<a name="line.68"></a>
-<span class="sourceLineNo">069</span>         * @param plainChannel the component's channel<a name="line.69"></a>
-<span class="sourceLineNo">070</span>         * @param encryptedChannel the channel with the encrypted data<a name="line.70"></a>
-<span class="sourceLineNo">071</span>         * @param sslContext the SSL context to use<a name="line.71"></a>
-<span class="sourceLineNo">072</span>         */<a name="line.72"></a>
-<span class="sourceLineNo">073</span>        public SslServer(Channel plainChannel, Channel encryptedChannel,<a name="line.73"></a>
-<span class="sourceLineNo">074</span>                        SSLContext sslContext) {<a name="line.74"></a>
-<span class="sourceLineNo">075</span>                super(plainChannel);<a name="line.75"></a>
-<span class="sourceLineNo">076</span>                this.sslContext = sslContext;<a name="line.76"></a>
-<span class="sourceLineNo">077</span>                Handler.Evaluator.add(<a name="line.77"></a>
-<span class="sourceLineNo">078</span>                                this, "onAccepted", encryptedChannel.defaultCriterion());<a name="line.78"></a>
-<span class="sourceLineNo">079</span>                Handler.Evaluator.add(<a name="line.79"></a>
-<span class="sourceLineNo">080</span>                                this, "onInput", encryptedChannel.defaultCriterion());<a name="line.80"></a>
-<span class="sourceLineNo">081</span>                Handler.Evaluator.add(<a name="line.81"></a>
-<span class="sourceLineNo">082</span>                                this, "onClosed", encryptedChannel.defaultCriterion());<a name="line.82"></a>
-<span class="sourceLineNo">083</span>        }<a name="line.83"></a>
-<span class="sourceLineNo">084</span><a name="line.84"></a>
-<span class="sourceLineNo">085</span>        /**<a name="line.85"></a>
-<span class="sourceLineNo">086</span>         * Creates a new downstream connection as {@link LinkedIOSubchannel} <a name="line.86"></a>
-<span class="sourceLineNo">087</span>         * of the network connection together with an {@link SSLEngine}.<a name="line.87"></a>
-<span class="sourceLineNo">088</span>         * <a name="line.88"></a>
-<span class="sourceLineNo">089</span>         * @param event<a name="line.89"></a>
-<span class="sourceLineNo">090</span>         *            the accepted event<a name="line.90"></a>
-<span class="sourceLineNo">091</span>         */<a name="line.91"></a>
-<span class="sourceLineNo">092</span>        @Handler(dynamic=true)<a name="line.92"></a>
-<span class="sourceLineNo">093</span>        public void onAccepted(Accepted event, IOSubchannel encryptedChannel) {<a name="line.93"></a>
-<span class="sourceLineNo">094</span>                new PlainChannel(event, encryptedChannel);<a name="line.94"></a>
-<span class="sourceLineNo">095</span>        }<a name="line.95"></a>
-<span class="sourceLineNo">096</span><a name="line.96"></a>
-<span class="sourceLineNo">097</span>        /**<a name="line.97"></a>
-<span class="sourceLineNo">098</span>         * Handles encrypted data from upstream (the network). The data is <a name="line.98"></a>
-<span class="sourceLineNo">099</span>         * send through the {@link SSLEngine} and events are sent downstream <a name="line.99"></a>
-<span class="sourceLineNo">100</span>         * (and in the initial phases upstream) according to the conversion <a name="line.100"></a>
-<span class="sourceLineNo">101</span>         * results.<a name="line.101"></a>
-<span class="sourceLineNo">102</span>         * <a name="line.102"></a>
-<span class="sourceLineNo">103</span>         * @param event the event<a name="line.103"></a>
-<span class="sourceLineNo">104</span>         * @param encryptedChannel the channel for exchanging the encrypted data<a name="line.104"></a>
-<span class="sourceLineNo">105</span>         * @throws InterruptedException <a name="line.105"></a>
-<span class="sourceLineNo">106</span>         * @throws SSLException <a name="line.106"></a>
-<span class="sourceLineNo">107</span>         * @throws ExecutionException <a name="line.107"></a>
-<span class="sourceLineNo">108</span>         */<a name="line.108"></a>
-<span class="sourceLineNo">109</span>        @Handler(dynamic = true)<a name="line.109"></a>
-<span class="sourceLineNo">110</span>        public void onInput(<a name="line.110"></a>
-<span class="sourceLineNo">111</span>                        Input&lt;ManagedByteBuffer&gt; event, IOSubchannel encryptedChannel)<a name="line.111"></a>
-<span class="sourceLineNo">112</span>                throws InterruptedException, SSLException, ExecutionException {<a name="line.112"></a>
-<span class="sourceLineNo">113</span>                @SuppressWarnings("unchecked")<a name="line.113"></a>
-<span class="sourceLineNo">114</span>                final Optional&lt;PlainChannel&gt; plainChannel = (Optional&lt;PlainChannel&gt;)<a name="line.114"></a>
-<span class="sourceLineNo">115</span>                                LinkedIOSubchannel.downstreamChannel(this, encryptedChannel);<a name="line.115"></a>
-<span class="sourceLineNo">116</span>                if (plainChannel.isPresent()) {<a name="line.116"></a>
-<span class="sourceLineNo">117</span>                        plainChannel.get().sendDownstream(event);<a name="line.117"></a>
-<span class="sourceLineNo">118</span>                }<a name="line.118"></a>
-<span class="sourceLineNo">119</span>        }<a name="line.119"></a>
-<span class="sourceLineNo">120</span><a name="line.120"></a>
-<span class="sourceLineNo">121</span>        /**<a name="line.121"></a>
-<span class="sourceLineNo">122</span>         * Handles a close event from the encrypted channel (client).<a name="line.122"></a>
-<span class="sourceLineNo">123</span>         * <a name="line.123"></a>
-<span class="sourceLineNo">124</span>         * @param event the event<a name="line.124"></a>
-<span class="sourceLineNo">125</span>         * @param encryptedChannel the channel for exchanging the encrypted data<a name="line.125"></a>
-<span class="sourceLineNo">126</span>         * @throws InterruptedException <a name="line.126"></a>
-<span class="sourceLineNo">127</span>         * @throws SSLException <a name="line.127"></a>
-<span class="sourceLineNo">128</span>         */<a name="line.128"></a>
-<span class="sourceLineNo">129</span>        @Handler(dynamic = true)<a name="line.129"></a>
-<span class="sourceLineNo">130</span>        public void onClosed(Closed event, IOSubchannel encryptedChannel)<a name="line.130"></a>
-<span class="sourceLineNo">131</span>                throws SSLException, InterruptedException {<a name="line.131"></a>
-<span class="sourceLineNo">132</span>                @SuppressWarnings("unchecked")<a name="line.132"></a>
-<span class="sourceLineNo">133</span>                final Optional&lt;PlainChannel&gt; plainChannel = (Optional&lt;PlainChannel&gt;)<a name="line.133"></a>
-<span class="sourceLineNo">134</span>                                LinkedIOSubchannel.downstreamChannel(this, encryptedChannel);<a name="line.134"></a>
-<span class="sourceLineNo">135</span>                if (plainChannel.isPresent()) {<a name="line.135"></a>
-<span class="sourceLineNo">136</span>                        plainChannel.get().upstreamClosed();<a name="line.136"></a>
-<span class="sourceLineNo">137</span>                }<a name="line.137"></a>
-<span class="sourceLineNo">138</span>        }<a name="line.138"></a>
-<span class="sourceLineNo">139</span>        <a name="line.139"></a>
-<span class="sourceLineNo">140</span>        /**<a name="line.140"></a>
-<span class="sourceLineNo">141</span>         * Sends decrypted data through the engine and then upstream.<a name="line.141"></a>
-<span class="sourceLineNo">142</span>         * <a name="line.142"></a>
-<span class="sourceLineNo">143</span>         * @param event<a name="line.143"></a>
-<span class="sourceLineNo">144</span>         *            the event with the data<a name="line.144"></a>
-<span class="sourceLineNo">145</span>         * @throws InterruptedException if the execution was interrupted<a name="line.145"></a>
-<span class="sourceLineNo">146</span>         * @throws SSLException if some SSL related problem occurs<a name="line.146"></a>
-<span class="sourceLineNo">147</span>         */<a name="line.147"></a>
-<span class="sourceLineNo">148</span>        @Handler<a name="line.148"></a>
-<span class="sourceLineNo">149</span>        public void onOutput(Output&lt;ManagedBuffer&lt;ByteBuffer&gt;&gt; event,<a name="line.149"></a>
-<span class="sourceLineNo">150</span>                PlainChannel plainChannel)<a name="line.150"></a>
-<span class="sourceLineNo">151</span>                throws InterruptedException, SSLException {<a name="line.151"></a>
-<span class="sourceLineNo">152</span>                if (plainChannel.converterComponent() != this) {<a name="line.152"></a>
-<span class="sourceLineNo">153</span>                        return;<a name="line.153"></a>
-<span class="sourceLineNo">154</span>                }<a name="line.154"></a>
-<span class="sourceLineNo">155</span>                plainChannel.sendUpstream(event);<a name="line.155"></a>
-<span class="sourceLineNo">156</span>        }<a name="line.156"></a>
-<span class="sourceLineNo">157</span><a name="line.157"></a>
-<span class="sourceLineNo">158</span>        /**<a name="line.158"></a>
-<span class="sourceLineNo">159</span>         * Handles a close event from downstream.<a name="line.159"></a>
-<span class="sourceLineNo">160</span>         * <a name="line.160"></a>
-<span class="sourceLineNo">161</span>         * @param event<a name="line.161"></a>
-<span class="sourceLineNo">162</span>         *            the close event<a name="line.162"></a>
-<span class="sourceLineNo">163</span>         * @throws SSLException if an SSL related problem occurs<a name="line.163"></a>
-<span class="sourceLineNo">164</span>         * @throws InterruptedException if the execution was interrupted<a name="line.164"></a>
-<span class="sourceLineNo">165</span>         */<a name="line.165"></a>
-<span class="sourceLineNo">166</span>        @Handler<a name="line.166"></a>
-<span class="sourceLineNo">167</span>        public void onClose(Close event, PlainChannel plainChannel)<a name="line.167"></a>
-<span class="sourceLineNo">168</span>                throws InterruptedException, SSLException {<a name="line.168"></a>
-<span class="sourceLineNo">169</span>                if (plainChannel.converterComponent() != this) {<a name="line.169"></a>
-<span class="sourceLineNo">170</span>                        return;<a name="line.170"></a>
-<span class="sourceLineNo">171</span>                }<a name="line.171"></a>
-<span class="sourceLineNo">172</span>                plainChannel.close(event);<a name="line.172"></a>
-<span class="sourceLineNo">173</span>        }<a name="line.173"></a>
-<span class="sourceLineNo">174</span>        <a name="line.174"></a>
-<span class="sourceLineNo">175</span>        private class PlainChannel extends LinkedIOSubchannel {<a name="line.175"></a>
-<span class="sourceLineNo">176</span>                public SocketAddress localAddress;<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                public SocketAddress remoteAddress;<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                public SSLEngine sslEngine;<a name="line.178"></a>
-<span class="sourceLineNo">179</span>                private ManagedBufferPool&lt;ManagedByteBuffer, ByteBuffer&gt; downstreamPool;<a name="line.179"></a>
+<span class="sourceLineNo">053</span>import org.jgrapes.net.events.Accepted;<a name="line.53"></a>
+<span class="sourceLineNo">054</span><a name="line.54"></a>
+<span class="sourceLineNo">055</span>/**<a name="line.55"></a>
+<span class="sourceLineNo">056</span> * A component that receives and send byte buffers on an<a name="line.56"></a>
+<span class="sourceLineNo">057</span> * encrypted channel and sends and receives the corresponding<a name="line.57"></a>
+<span class="sourceLineNo">058</span> * decrypted data on its own channel.<a name="line.58"></a>
+<span class="sourceLineNo">059</span> */<a name="line.59"></a>
+<span class="sourceLineNo">060</span>public class SslServer extends Component {<a name="line.60"></a>
+<span class="sourceLineNo">061</span><a name="line.61"></a>
+<span class="sourceLineNo">062</span>        private static final Logger logger <a name="line.62"></a>
+<span class="sourceLineNo">063</span>                = Logger.getLogger(SslServer.class.getName());<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        <a name="line.64"></a>
+<span class="sourceLineNo">065</span>        private SSLContext sslContext;<a name="line.65"></a>
+<span class="sourceLineNo">066</span>        <a name="line.66"></a>
+<span class="sourceLineNo">067</span>        /**<a name="line.67"></a>
+<span class="sourceLineNo">068</span>         * @param plainChannel the component's channel<a name="line.68"></a>
+<span class="sourceLineNo">069</span>         * @param encryptedChannel the channel with the encrypted data<a name="line.69"></a>
+<span class="sourceLineNo">070</span>         * @param sslContext the SSL context to use<a name="line.70"></a>
+<span class="sourceLineNo">071</span>         */<a name="line.71"></a>
+<span class="sourceLineNo">072</span>        public SslServer(Channel plainChannel, Channel encryptedChannel,<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                        SSLContext sslContext) {<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                super(plainChannel);<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                this.sslContext = sslContext;<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                Handler.Evaluator.add(<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                                this, "onAccepted", encryptedChannel.defaultCriterion());<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                Handler.Evaluator.add(<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                                this, "onInput", encryptedChannel.defaultCriterion());<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                Handler.Evaluator.add(<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                                this, "onClosed", encryptedChannel.defaultCriterion());<a name="line.81"></a>
+<span class="sourceLineNo">082</span>        }<a name="line.82"></a>
+<span class="sourceLineNo">083</span><a name="line.83"></a>
+<span class="sourceLineNo">084</span>        /**<a name="line.84"></a>
+<span class="sourceLineNo">085</span>         * Creates a new downstream connection as {@link LinkedIOSubchannel} <a name="line.85"></a>
+<span class="sourceLineNo">086</span>         * of the network connection together with an {@link SSLEngine}.<a name="line.86"></a>
+<span class="sourceLineNo">087</span>         * <a name="line.87"></a>
+<span class="sourceLineNo">088</span>         * @param event<a name="line.88"></a>
+<span class="sourceLineNo">089</span>         *            the accepted event<a name="line.89"></a>
+<span class="sourceLineNo">090</span>         */<a name="line.90"></a>
+<span class="sourceLineNo">091</span>        @Handler(dynamic=true)<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        public void onAccepted(Accepted event, IOSubchannel encryptedChannel) {<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                new PlainChannel(event, encryptedChannel);<a name="line.93"></a>
+<span class="sourceLineNo">094</span>        }<a name="line.94"></a>
+<span class="sourceLineNo">095</span><a name="line.95"></a>
+<span class="sourceLineNo">096</span>        /**<a name="line.96"></a>
+<span class="sourceLineNo">097</span>         * Handles encrypted data from upstream (the network). The data is <a name="line.97"></a>
+<span class="sourceLineNo">098</span>         * send through the {@link SSLEngine} and events are sent downstream <a name="line.98"></a>
+<span class="sourceLineNo">099</span>         * (and in the initial phases upstream) according to the conversion <a name="line.99"></a>
+<span class="sourceLineNo">100</span>         * results.<a name="line.100"></a>
+<span class="sourceLineNo">101</span>         * <a name="line.101"></a>
+<span class="sourceLineNo">102</span>         * @param event the event<a name="line.102"></a>
+<span class="sourceLineNo">103</span>         * @param encryptedChannel the channel for exchanging the encrypted data<a name="line.103"></a>
+<span class="sourceLineNo">104</span>         * @throws InterruptedException <a name="line.104"></a>
+<span class="sourceLineNo">105</span>         * @throws SSLException <a name="line.105"></a>
+<span class="sourceLineNo">106</span>         * @throws ExecutionException <a name="line.106"></a>
+<span class="sourceLineNo">107</span>         */<a name="line.107"></a>
+<span class="sourceLineNo">108</span>        @Handler(dynamic = true)<a name="line.108"></a>
+<span class="sourceLineNo">109</span>        public void onInput(<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                        Input&lt;ByteBuffer&gt; event, IOSubchannel encryptedChannel)<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                throws InterruptedException, SSLException, ExecutionException {<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                @SuppressWarnings("unchecked")<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                final Optional&lt;PlainChannel&gt; plainChannel = (Optional&lt;PlainChannel&gt;)<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                                LinkedIOSubchannel.downstreamChannel(this, encryptedChannel);<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                if (plainChannel.isPresent()) {<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                        plainChannel.get().sendDownstream(event);<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                }<a name="line.117"></a>
+<span class="sourceLineNo">118</span>        }<a name="line.118"></a>
+<span class="sourceLineNo">119</span><a name="line.119"></a>
+<span class="sourceLineNo">120</span>        /**<a name="line.120"></a>
+<span class="sourceLineNo">121</span>         * Handles a close event from the encrypted channel (client).<a name="line.121"></a>
+<span class="sourceLineNo">122</span>         * <a name="line.122"></a>
+<span class="sourceLineNo">123</span>         * @param event the event<a name="line.123"></a>
+<span class="sourceLineNo">124</span>         * @param encryptedChannel the channel for exchanging the encrypted data<a name="line.124"></a>
+<span class="sourceLineNo">125</span>         * @throws InterruptedException <a name="line.125"></a>
+<span class="sourceLineNo">126</span>         * @throws SSLException <a name="line.126"></a>
+<span class="sourceLineNo">127</span>         */<a name="line.127"></a>
+<span class="sourceLineNo">128</span>        @Handler(dynamic = true)<a name="line.128"></a>
+<span class="sourceLineNo">129</span>        public void onClosed(Closed event, IOSubchannel encryptedChannel)<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                throws SSLException, InterruptedException {<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                @SuppressWarnings("unchecked")<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                final Optional&lt;PlainChannel&gt; plainChannel = (Optional&lt;PlainChannel&gt;)<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                                LinkedIOSubchannel.downstreamChannel(this, encryptedChannel);<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                if (plainChannel.isPresent()) {<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                        plainChannel.get().upstreamClosed();<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                }<a name="line.136"></a>
+<span class="sourceLineNo">137</span>        }<a name="line.137"></a>
+<span class="sourceLineNo">138</span>        <a name="line.138"></a>
+<span class="sourceLineNo">139</span>        /**<a name="line.139"></a>
+<span class="sourceLineNo">140</span>         * Sends decrypted data through the engine and then upstream.<a name="line.140"></a>
+<span class="sourceLineNo">141</span>         * <a name="line.141"></a>
+<span class="sourceLineNo">142</span>         * @param event<a name="line.142"></a>
+<span class="sourceLineNo">143</span>         *            the event with the data<a name="line.143"></a>
+<span class="sourceLineNo">144</span>         * @throws InterruptedException if the execution was interrupted<a name="line.144"></a>
+<span class="sourceLineNo">145</span>         * @throws SSLException if some SSL related problem occurs<a name="line.145"></a>
+<span class="sourceLineNo">146</span>         */<a name="line.146"></a>
+<span class="sourceLineNo">147</span>        @Handler<a name="line.147"></a>
+<span class="sourceLineNo">148</span>        public void onOutput(Output&lt;ByteBuffer&gt; event,<a name="line.148"></a>
+<span class="sourceLineNo">149</span>                PlainChannel plainChannel)<a name="line.149"></a>
+<span class="sourceLineNo">150</span>                throws InterruptedException, SSLException {<a name="line.150"></a>
+<span class="sourceLineNo">151</span>                if (plainChannel.converterComponent() != this) {<a name="line.151"></a>
+<span class="sourceLineNo">152</span>                        return;<a name="line.152"></a>
+<span class="sourceLineNo">153</span>                }<a name="line.153"></a>
+<span class="sourceLineNo">154</span>                plainChannel.sendUpstream(event);<a name="line.154"></a>
+<span class="sourceLineNo">155</span>        }<a name="line.155"></a>
+<span class="sourceLineNo">156</span><a name="line.156"></a>
+<span class="sourceLineNo">157</span>        /**<a name="line.157"></a>
+<span class="sourceLineNo">158</span>         * Handles a close event from downstream.<a name="line.158"></a>
+<span class="sourceLineNo">159</span>         * <a name="line.159"></a>
+<span class="sourceLineNo">160</span>         * @param event<a name="line.160"></a>
+<span class="sourceLineNo">161</span>         *            the close event<a name="line.161"></a>
+<span class="sourceLineNo">162</span>         * @throws SSLException if an SSL related problem occurs<a name="line.162"></a>
+<span class="sourceLineNo">163</span>         * @throws InterruptedException if the execution was interrupted<a name="line.163"></a>
+<span class="sourceLineNo">164</span>         */<a name="line.164"></a>
+<span class="sourceLineNo">165</span>        @Handler<a name="line.165"></a>
+<span class="sourceLineNo">166</span>        public void onClose(Close event, PlainChannel plainChannel)<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                throws InterruptedException, SSLException {<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                if (plainChannel.converterComponent() != this) {<a name="line.168"></a>
+<span class="sourceLineNo">169</span>                        return;<a name="line.169"></a>
+<span class="sourceLineNo">170</span>                }<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                plainChannel.close(event);<a name="line.171"></a>
+<span class="sourceLineNo">172</span>        }<a name="line.172"></a>
+<span class="sourceLineNo">173</span>        <a name="line.173"></a>
+<span class="sourceLineNo">174</span>        private class PlainChannel extends LinkedIOSubchannel {<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                public SocketAddress localAddress;<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                public SocketAddress remoteAddress;<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                public SSLEngine sslEngine;<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                private ManagedBufferPool&lt;ManagedBuffer&lt;ByteBuffer&gt;, ByteBuffer&gt;<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                        downstreamPool;<a name="line.179"></a>
 <span class="sourceLineNo">180</span>                private boolean isInputClosed = false;<a name="line.180"></a>
 <span class="sourceLineNo">181</span>                private ByteBuffer carryOver = null;<a name="line.181"></a>
 <span class="sourceLineNo">182</span><a name="line.182"></a>
@@ -207,18 +207,18 @@
 <span class="sourceLineNo">199</span>                        // https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/samples/sslengine/SSLEngineSimpleDemo.java<a name="line.199"></a>
 <span class="sourceLineNo">200</span>                        int decBufSize = sslEngine.getSession()<a name="line.200"></a>
 <span class="sourceLineNo">201</span>                                        .getApplicationBufferSize() + 50;<a name="line.201"></a>
-<span class="sourceLineNo">202</span>                        downstreamPool = new ManagedBufferPool&lt;&gt;(ManagedByteBuffer::new,<a name="line.202"></a>
+<span class="sourceLineNo">202</span>                        downstreamPool = new ManagedBufferPool&lt;&gt;(ManagedBuffer::new,<a name="line.202"></a>
 <span class="sourceLineNo">203</span>                                        () -&gt; { return ByteBuffer.allocate(decBufSize); }, 2)<a name="line.203"></a>
 <span class="sourceLineNo">204</span>                                        .setName(channelName + ".downstream.buffers");<a name="line.204"></a>
 <span class="sourceLineNo">205</span>                        int encBufSize = sslEngine.getSession().getPacketBufferSize();<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                        setByteBufferPool(new ManagedBufferPool&lt;&gt;(ManagedByteBuffer::new,<a name="line.206"></a>
+<span class="sourceLineNo">206</span>                        setByteBufferPool(new ManagedBufferPool&lt;&gt;(ManagedBuffer::new,<a name="line.206"></a>
 <span class="sourceLineNo">207</span>                                        () -&gt; { return ByteBuffer.allocate(encBufSize); }, 2)<a name="line.207"></a>
 <span class="sourceLineNo">208</span>                                        .setName(channelName + ".upstream.buffers"));<a name="line.208"></a>
 <span class="sourceLineNo">209</span>                }<a name="line.209"></a>
 <span class="sourceLineNo">210</span>                <a name="line.210"></a>
-<span class="sourceLineNo">211</span>                public void sendDownstream(Input&lt;ManagedByteBuffer&gt; event)<a name="line.211"></a>
+<span class="sourceLineNo">211</span>                public void sendDownstream(Input&lt;ByteBuffer&gt; event)<a name="line.211"></a>
 <span class="sourceLineNo">212</span>                                throws SSLException, InterruptedException, ExecutionException {<a name="line.212"></a>
-<span class="sourceLineNo">213</span>                        ManagedByteBuffer unwrapped = downstreamPool.acquire();<a name="line.213"></a>
+<span class="sourceLineNo">213</span>                        ManagedBuffer&lt;ByteBuffer&gt; unwrapped = downstreamPool.acquire();<a name="line.213"></a>
 <span class="sourceLineNo">214</span>                        ByteBuffer input = event.buffer().duplicate();<a name="line.214"></a>
 <span class="sourceLineNo">215</span>                        if (carryOver != null) {<a name="line.215"></a>
 <span class="sourceLineNo">216</span>                                if (carryOver.remaining() &lt; input.remaining()) {<a name="line.216"></a>
@@ -258,10 +258,10 @@
 <span class="sourceLineNo">250</span>                                        continue;<a name="line.250"></a>
 <span class="sourceLineNo">251</span>                                        <a name="line.251"></a>
 <span class="sourceLineNo">252</span>                                case NEED_WRAP:<a name="line.252"></a>
-<span class="sourceLineNo">253</span>                                        ManagedByteBuffer feedback <a name="line.253"></a>
+<span class="sourceLineNo">253</span>                                        ManagedBuffer&lt;ByteBuffer&gt; feedback <a name="line.253"></a>
 <span class="sourceLineNo">254</span>                                                = upstreamChannel().byteBufferPool().acquire();<a name="line.254"></a>
 <span class="sourceLineNo">255</span>                                        SSLEngineResult wrapResult = sslEngine.wrap(<a name="line.255"></a>
-<span class="sourceLineNo">256</span>                                                        ManagedByteBuffer.EMPTY_BUFFER<a name="line.256"></a>
+<span class="sourceLineNo">256</span>                                                        ManagedBuffer.EMPTY_BYTE_BUFFER<a name="line.256"></a>
 <span class="sourceLineNo">257</span>                                                        .backingBuffer(), feedback.backingBuffer());<a name="line.257"></a>
 <span class="sourceLineNo">258</span>                                        upstreamChannel().respond(Output.fromSink(feedback, false));<a name="line.258"></a>
 <span class="sourceLineNo">259</span>                                        if (wrapResult.getHandshakeStatus() == HandshakeStatus.FINISHED) {<a name="line.259"></a>
@@ -328,11 +328,11 @@
 <span class="sourceLineNo">320</span>                        }<a name="line.320"></a>
 <span class="sourceLineNo">321</span>                }<a name="line.321"></a>
 <span class="sourceLineNo">322</span><a name="line.322"></a>
-<span class="sourceLineNo">323</span>                public void sendUpstream(Output&lt;ManagedBuffer&lt;ByteBuffer&gt;&gt; event)<a name="line.323"></a>
+<span class="sourceLineNo">323</span>                public void sendUpstream(Output&lt;ByteBuffer&gt; event)<a name="line.323"></a>
 <span class="sourceLineNo">324</span>                                throws SSLException, InterruptedException {<a name="line.324"></a>
 <span class="sourceLineNo">325</span>                        ByteBuffer output = event.buffer().backingBuffer().duplicate();<a name="line.325"></a>
 <span class="sourceLineNo">326</span>                        while (output.hasRemaining() &amp;&amp; !sslEngine.isInboundDone()) {<a name="line.326"></a>
-<span class="sourceLineNo">327</span>                                ManagedByteBuffer out <a name="line.327"></a>
+<span class="sourceLineNo">327</span>                                ManagedBuffer&lt;ByteBuffer&gt; out <a name="line.327"></a>
 <span class="sourceLineNo">328</span>                                        = upstreamChannel().byteBufferPool().acquire();<a name="line.328"></a>
 <span class="sourceLineNo">329</span>                                sslEngine.wrap(output, out.backingBuffer());<a name="line.329"></a>
 <span class="sourceLineNo">330</span>                                upstreamChannel().respond(<a name="line.330"></a>
@@ -344,9 +344,9 @@
 <span class="sourceLineNo">336</span>                                throws InterruptedException, SSLException {<a name="line.336"></a>
 <span class="sourceLineNo">337</span>                        sslEngine.closeOutbound();<a name="line.337"></a>
 <span class="sourceLineNo">338</span>                        while (!sslEngine.isOutboundDone()) {<a name="line.338"></a>
-<span class="sourceLineNo">339</span>                                ManagedByteBuffer feedback<a name="line.339"></a>
+<span class="sourceLineNo">339</span>                                ManagedBuffer&lt;ByteBuffer&gt; feedback<a name="line.339"></a>
 <span class="sourceLineNo">340</span>                                        = upstreamChannel().byteBufferPool().acquire();<a name="line.340"></a>
-<span class="sourceLineNo">341</span>                                sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER<a name="line.341"></a>
+<span class="sourceLineNo">341</span>                                sslEngine.wrap(ManagedBuffer.EMPTY_BYTE_BUFFER<a name="line.341"></a>
 <span class="sourceLineNo">342</span>                                        .backingBuffer(), feedback.backingBuffer());<a name="line.342"></a>
 <span class="sourceLineNo">343</span>                                upstreamChannel().respond(Output.fromSink(feedback, false));<a name="line.343"></a>
 <span class="sourceLineNo">344</span>                        }<a name="line.344"></a>
@@ -374,9 +374,9 @@
 <span class="sourceLineNo">366</span>                        try {<a name="line.366"></a>
 <span class="sourceLineNo">367</span>                                sslEngine.closeInbound();<a name="line.367"></a>
 <span class="sourceLineNo">368</span>                                while (!sslEngine.isOutboundDone()) {<a name="line.368"></a>
-<span class="sourceLineNo">369</span>                                        ManagedByteBuffer feedback <a name="line.369"></a>
+<span class="sourceLineNo">369</span>                                        ManagedBuffer&lt;ByteBuffer&gt; feedback <a name="line.369"></a>
 <span class="sourceLineNo">370</span>                                                = upstreamChannel().byteBufferPool().acquire();<a name="line.370"></a>
-<span class="sourceLineNo">371</span>                                        sslEngine.wrap(ManagedByteBuffer.EMPTY_BUFFER<a name="line.371"></a>
+<span class="sourceLineNo">371</span>                                        sslEngine.wrap(ManagedBuffer.EMPTY_BYTE_BUFFER<a name="line.371"></a>
 <span class="sourceLineNo">372</span>                                                        .backingBuffer(),feedback.backingBuffer());<a name="line.372"></a>
 <span class="sourceLineNo">373</span>                                        upstreamChannel().respond(Output.fromSink(feedback, false));<a name="line.373"></a>
 <span class="sourceLineNo">374</span>                                }<a name="line.374"></a>
