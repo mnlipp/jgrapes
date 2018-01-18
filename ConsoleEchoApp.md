@@ -15,9 +15,9 @@ the other makes up most of the example's code.
 public class EchoUntilQuit extends Component {
 
     @Handler
-    public void onInput(Input<ManagedByteBuffer> event) {
+    public void onInput(Input<ByteBuffer> event) {
         byte[] bytes = new byte[event.remaining()];
-        event.buffer().backingBuffer().get(bytes);
+        event.backingBuffer().get(bytes);
         String data = new String(bytes);
         System.out.print(data);
         if (data.trim().equals("QUIT")) {
@@ -47,12 +47,12 @@ derived buffer types `ByteBuffer` and `CharBuffer` can only be accessed by
 calling `backingBuffer()` first.
 
 An `Input` event has an associated `ManagedBuffer` that is accessible
-with the method `buffer()`. Again, for ease of use as many methods
-as possible are made available as mathods of `Outout` that
+with the method `buffer()`. Again, for ease of use, as many methods
+as possible are made available as methods of `Input`. These
 delegate to the managed buffer and from there to the backing
 NIO buffer. That's why we can use `event.remaining()` to find out
 the number of bytes available in the backing NIO buffer,
-but we have to use `event.buffer().backingBuffer()` to actually
+but we have to use `event.backingBuffer()` to actually
 `get` them.
 
 Once we have retrived the data, we write it to the console.
