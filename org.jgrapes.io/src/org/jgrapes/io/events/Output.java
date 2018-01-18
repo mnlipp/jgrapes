@@ -117,7 +117,7 @@ public class Output<T extends Buffer> extends Event<Void> {
 	
 	/**
 	 * Convenience method that creates a 
-	 * {@code Output<ManagedCharBuffer} event from a `byte[]`.
+	 * {@code Output<ByteBuffer} event from a `byte[]`.
 	 * 
 	 * @param data the array to wrap
 	 * @param endOfRecord if the event ends a data record
