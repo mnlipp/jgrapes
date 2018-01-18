@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2018 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by 
@@ -15,7 +15,8 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 /**
- *
+ * 
  */
-package org.jgrapes.io.demo.tcpecho;
+package org.jgrapes.examples.io.tcpecho;

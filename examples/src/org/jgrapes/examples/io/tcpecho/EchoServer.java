@@ -16,10 +16,11 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.jgrapes.io.demo.tcpecho;
+package org.jgrapes.examples.io.tcpecho;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -28,7 +29,7 @@ import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
-import org.jgrapes.io.util.ManagedByteBuffer;
+import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.net.TcpServer;
 
 /**
@@ -47,12 +48,12 @@ public class EchoServer extends Component {
 	}
 
 	@Handler
-	public void onRead(Input<ManagedByteBuffer> event)
+	public void onRead(Input<ByteBuffer> event)
 			throws InterruptedException {
 		for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
-			ManagedByteBuffer out = channel.byteBufferPool().acquire();
-			out.put(event.buffer());
-			channel.respond(new Output<>(out, event.isEndOfRecord()));
+			ManagedBuffer<ByteBuffer> out = channel.byteBufferPool().acquire();
+			out.backingBuffer().put(event.buffer().backingBuffer());
+			channel.respond(Output.fromSink(out, event.isEndOfRecord()));
 		}
 	}
 
