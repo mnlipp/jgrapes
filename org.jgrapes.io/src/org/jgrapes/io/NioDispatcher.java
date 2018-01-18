@@ -40,7 +40,6 @@ public class NioDispatcher extends Component implements Runnable {
 
 	private Selector selector = null;
 	private Thread runner = null;
-	private boolean running = false;
 	private Object selectorGate = new Object();
 	
 	/**
@@ -60,10 +59,9 @@ public class NioDispatcher extends Component implements Runnable {
 	 */
 	@Handler
 	public synchronized void onStart(Start event) {
-		if (running) {
+		if (runner != null && !runner.isInterrupted()) {
 			return;
 		}
-		running = true;
 		runner = new Thread(this, Components.simpleObjectName(this));
 		runner.start();
 	}
@@ -79,13 +77,13 @@ public class NioDispatcher extends Component implements Runnable {
 		if (runner == null) {
 			return;
 		}
-		running = false;
 		// It just might happen that the wakeup() occurs between the
 		// check for running and the select() in the thread's run loop,
 		// but we -- obviously -- cannot put the select() in a 
 		// synchronized(this).
 		while (runner.isAlive()) {
-			selector.wakeup();
+			runner.interrupt(); // *Should* be sufficient, but...
+			selector.wakeup(); // Make sure
 			runner.join(10);
 		}
 		runner = null;
@@ -99,7 +97,7 @@ public class NioDispatcher extends Component implements Runnable {
 	public void run() {
 		try {
 			registerAsGenerator();
-			while (running) {
+			while (!Thread.currentThread().isInterrupted()) {
 				try {
 					selector.select();
 					Set<SelectionKey> selected = selector.selectedKeys();
