@@ -480,6 +480,7 @@ public class Components {
 						}
 					}
 				} catch (Throwable e) {
+					// Keep running.
 				}
 			}
 		}

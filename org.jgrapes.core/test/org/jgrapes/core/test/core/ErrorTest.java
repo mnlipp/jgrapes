@@ -18,6 +18,9 @@
 
 package org.jgrapes.core.test.core;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -27,9 +30,6 @@ import org.jgrapes.core.events.HandlingError;
 import org.jgrapes.core.events.Start;
 
 import static org.junit.Assert.*;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 import org.junit.Test;
 

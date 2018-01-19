@@ -49,6 +49,7 @@ class ComponentTree {
 	private final Map<CacheKey,HandlerList> handlerCache = new HashMap<>();
 	private InternalEventPipeline eventPipeline;
 	private static HandlerReference fallbackErrorHandler;
+	
 	static {
 		ErrorPrinter errorPrinter = new ErrorPrinter();
 		try {

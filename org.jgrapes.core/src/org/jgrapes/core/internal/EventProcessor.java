@@ -30,7 +30,7 @@ import org.jgrapes.core.EventPipeline;
  */
 public class EventProcessor implements InternalEventPipeline, Runnable {
 
-	protected final static ThreadLocal<EventBase<?>> 
+	protected static final ThreadLocal<EventBase<?>> 
 		currentlyHandling = new ThreadLocal<>();
 	
 	private final ExecutorService executorService;

@@ -22,7 +22,6 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
-import org.jgrapes.io.util.BufferCollector;
 import org.jgrapes.io.util.ManagedBuffer;
 
 /**
@@ -42,7 +41,7 @@ public class Output<T extends Buffer> extends IOEvent<T> {
 	 * @param endOfRecord if the event ends a data record
 	 */
 	private Output(ManagedBuffer<T> buffer, boolean flip, boolean endOfRecord) {
-		super (buffer, endOfRecord);
+		super(buffer, endOfRecord);
 		if (flip) {
 			buffer.flip();
 		}

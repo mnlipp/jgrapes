@@ -15,16 +15,17 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.core.test.core;
-
-
-import static org.junit.Assert.*;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
+
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 
 public class StartTest {
@@ -42,11 +43,11 @@ public class StartTest {
 	@Test
 	public void testAttachedStart() throws InterruptedException {
 		
-		TestComponent tc1 = new TestComponent();
-		TestComponent tc11 = tc1.attach(new TestComponent());
+		final TestComponent tc1 = new TestComponent();
+		final TestComponent tc11 = tc1.attach(new TestComponent());
 		tc1.attach(new TestComponent());
 		
-		TestComponent tc2 = new TestComponent();
+		final TestComponent tc2 = new TestComponent();
 		tc2.attach(new TestComponent());
 		tc2.attach(new TestComponent());
 		

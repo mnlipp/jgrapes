@@ -37,7 +37,6 @@ import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
-import org.jgrapes.io.util.BufferCollector;
 import org.jgrapes.io.util.ManagedBuffer;
 
 /**

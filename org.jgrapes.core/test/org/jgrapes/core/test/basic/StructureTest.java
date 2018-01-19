@@ -160,11 +160,11 @@ public class StructureTest {
 	
 	@Test
 	public void testPaths() {
-		TestComponent2 comp = new TestComponent2("root");
-		TestComponent2 comp1 = comp.attach(new TestComponent2("sub1"));
-		TestComponent2 comp2 = comp.attach(new TestComponent2("sub2"));
-		TestComponent1 comp3 = comp.attach(new TestComponent1("sub3"));
-		AnonymousComponent comp4 = comp1.attach(new AnonymousComponent());
+		final TestComponent2 comp = new TestComponent2("root");
+		final TestComponent2 comp1 = comp.attach(new TestComponent2("sub1"));
+		final TestComponent2 comp2 = comp.attach(new TestComponent2("sub2"));
+		final TestComponent1 comp3 = comp.attach(new TestComponent1("sub3"));
+		final AnonymousComponent comp4 = comp1.attach(new AnonymousComponent());
 		Iterator<ComponentType> iter = comp.children().iterator();
 		assertSame(iter.next(), comp1);
 		assertSame(iter.next(), comp2);

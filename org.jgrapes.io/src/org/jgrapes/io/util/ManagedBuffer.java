@@ -37,10 +37,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ManagedBuffer<T extends Buffer> {
 
-	final public static ManagedBuffer<ByteBuffer> EMPTY_BYTE_BUFFER 
+	public static final ManagedBuffer<ByteBuffer> EMPTY_BYTE_BUFFER 
 		= wrap(ByteBuffer.allocate(0));
 	
-	final public static ManagedBuffer<CharBuffer> EMPTY_CHAR_BUFFER 
+	public static final ManagedBuffer<CharBuffer> EMPTY_CHAR_BUFFER 
 		= wrap(CharBuffer.allocate(0));
 	
 	protected T backing;

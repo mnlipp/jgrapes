@@ -410,25 +410,6 @@ public abstract class EventBase<T>
 	}
 
 	/**
-	 * Waits for the event to be completed and returns the list
-	 * of results (which may be empty).
-	 * 
-	 * @return the results
-	 * @see Future#get()
-	 */
-	public List<T> results() throws InterruptedException {
-		while (true) {
-			synchronized(this) {
-				if (completed) {
-					return (results == null ? Collections.emptyList() 
-							: Collections.unmodifiableList(results));
-				}
-				wait();
-			}
-		}
-	}
-
-	/**
 	 * Causes the invoking thread to wait until the processing of the 
 	 * event has been completed or given timeout has expired and returns
 	 * the first (or only) result. 
@@ -451,6 +432,25 @@ public abstract class EventBase<T>
 					? null : results.get(0);
 		}
 		throw new TimeoutException();
+	}
+
+	/**
+	 * Waits for the event to be completed and returns the list
+	 * of results (which may be empty).
+	 * 
+	 * @return the results
+	 * @see Future#get()
+	 */
+	public List<T> results() throws InterruptedException {
+		while (true) {
+			synchronized(this) {
+				if (completed) {
+					return (results == null ? Collections.emptyList() 
+							: Collections.unmodifiableList(results));
+				}
+				wait();
+			}
+		}
 	}
 
 	/**
