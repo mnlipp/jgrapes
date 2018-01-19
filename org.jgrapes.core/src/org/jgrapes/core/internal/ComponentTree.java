@@ -90,20 +90,6 @@ class ComponentTree {
 	ComponentTree(ComponentVertex root) {
 		super();
 		this.root = root;
-		ErrorPrinter errorPrinter = new ErrorPrinter();
-		try {
-			fallbackErrorHandler = new HandlerReference(errorPrinter,
-					ErrorPrinter.class.getMethod("printError", Error.class),
-					0, new HandlerScope() {
-				@Override
-				public boolean includes(
-						Eligible event, Eligible[] channels) {
-					return true;
-				}
-			});
-		} catch (NoSuchMethodException | SecurityException e) {
-			// Doesn't happen.
-		}
 	}
 
 	ComponentVertex root() {

@@ -18,6 +18,7 @@
 
 package org.jgrapes.http;
 
+import java.beans.ConstructorProperties;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.net.HttpCookie;
@@ -162,8 +163,8 @@ public class LanguageSelector extends Component {
 		final HttpRequest request = event.httpRequest();
 		final Selection selection = event.associated(Session.class)
 				.map(session -> (Selection)session.computeIfAbsent(
-					Selection.class, k -> new Selection()))
-				.orElseGet(Selection::new);
+					Selection.class, k -> new Selection(cookieName, path)))
+				.orElseGet(() -> new Selection(cookieName, path));
 		selection.setCurrentEvent(event);
 		event.setAssociated(Selection.class, selection);
 		if (selection.isExplicitlySet()) {
@@ -219,17 +220,38 @@ public class LanguageSelector extends Component {
 	}
 	
 	@SuppressWarnings("serial")
-	public class Selection implements Serializable {
-		private WeakReference<Request> currentEvent;
+	public static class Selection implements Serializable {
+		private transient WeakReference<Request> currentEvent;
+		private String cookieName;
+		private String cookiePath;
 		private boolean explicitlySet;
 		private Locale[] locales;
 
-		/**
-		 */
-		private Selection() {
+		@ConstructorProperties({"cookieName", "cookiePath"})
+		private Selection(String cookieName, String cookiePath) {
+			this.cookieName = cookieName;
+			this.cookiePath = cookiePath;
 			this.currentEvent = new WeakReference<>(null);
 			explicitlySet = false;
 			locales = new Locale[] { Locale.getDefault() };
+		}
+
+		/**
+		 * Gets the cookie name.
+		 *
+		 * @return the cookieName
+		 */
+		public String getCookieName() {
+			return cookieName;
+		}
+
+		/**
+		 * Gets the cookie path.
+		 *
+		 * @return the cookiePath
+		 */
+		public String getCookiePath() {
+			return cookiePath;
 		}
 
 		/**
@@ -281,7 +303,7 @@ public class LanguageSelector extends Component {
 			this.locales = list.toArray(new Locale[list.size()]);
 			HttpCookie localesCookie = new HttpCookie(cookieName,
 					LOCALE_LIST.asFieldValue(list));
-			localesCookie.setPath(path);
+			localesCookie.setPath(cookiePath);
 			Request req = currentEvent.get();
 			if (req != null) {
 				req.httpRequest().response().ifPresent(resp -> {

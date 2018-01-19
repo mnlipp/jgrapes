@@ -33,7 +33,6 @@ import org.jgrapes.io.events.Opened;
  */
 public class WebSocketAccepted extends Opened {
 
-	private URI resourceName;
 	private Request requestEvent;
 	
 	/**
@@ -60,7 +59,7 @@ public class WebSocketAccepted extends Opened {
 	 * @return the value
 	 */
 	public URI resourceName() {
-		return resourceName;
+		return requestEvent.requestUri();
 	}
 
 	/**
