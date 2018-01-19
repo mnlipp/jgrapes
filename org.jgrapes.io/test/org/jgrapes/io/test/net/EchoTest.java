@@ -81,7 +81,7 @@ public class EchoTest {
 		public void onRead(Input<ByteBuffer> event, IOSubchannel channel)
 				throws InterruptedException {
 			ManagedBuffer<ByteBuffer> out = channel.byteBufferPool().acquire();
-			out.backingBuffer().put(event.backingBuffer());
+			out.backingBuffer().put(event.data());
 			channel.respond(Output.fromSink(out, event.isEndOfRecord()));
 		}
 	}

@@ -480,7 +480,7 @@ public class HttpServer extends Component {
 		public void handleNetInput(Input<ByteBuffer> event) 
 				throws ProtocolException, InterruptedException {
 			// Send the data from the event through the decoder.
-			ByteBuffer in = event.backingBuffer();
+			ByteBuffer in = event.data();
 			ManagedBuffer<?> bodyData = null;
 			while (in.hasRemaining()) {
 				Decoder.Result<?> result = engine.decode(in,
@@ -638,7 +638,7 @@ public class HttpServer extends Component {
 
 		public void handleAppOutput(Output<?> event) 
 				throws InterruptedException {
-			Buffer eventData = event.backingBuffer();
+			Buffer eventData = event.data();
 			Buffer input;
 			if (eventData instanceof ByteBuffer) {
 				input = ((ByteBuffer)eventData).duplicate();

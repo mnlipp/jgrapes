@@ -58,7 +58,7 @@ public class FileReadTests {
 		@Handler
 		public void onOutput(Output<ByteBuffer> event) 
 				throws UnsupportedEncodingException {
-			int length = event.limit();
+			int length = event.data().limit();
 			collected += length;
 			byte[] bytes = new byte[length];
 			event.buffer().backingBuffer().get(bytes);

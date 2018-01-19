@@ -90,7 +90,7 @@ public class WsEchoServer extends Component {
 			return;
 		}
 		ManagedBuffer<CharBuffer> out = new ManagedBuffer<>(
-				CharBuffer.wrap(event.backingBuffer()),
+				CharBuffer.wrap(event.data()),
 				BufferCollector.NOOP_COLLECTOR);
 		out.position(out.limit());
 		channel.respond(Output.fromSink(out, true));

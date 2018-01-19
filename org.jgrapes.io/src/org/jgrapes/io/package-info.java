@@ -18,7 +18,23 @@
 /**
  * I/O related components built on top of the core package.
  * 
+ * JGrapes manages buffers in pools. The framework therefore
+ * defines the {@link org.jgrapes.io.util.ManagedBuffer}
+ * that wraps a NIO buffer, adding the information required for 
+ * managing the buffer. 
  * 
+ * Pooling is not done to avoid garbage collection, but for 
+ * shaping streams of data. Imagine a pipeline where stage A produces
+ * data much faster than stage B can handle it. If we allowed
+ * arbitrary buffer allocation, it might happen that a lot of memory 
+ * is used for buffers created by stage A and not yet consumed by stage B.
+ * 
+ * Using a buffer pool limits the the production rate of stage A without
+ * reducing the overall performance. When all buffers are in use, stage A
+ * has to wait until some data is consumed by stage B and a buffer is
+ * freed. But as soon as this is the case, stage A can continue to 
+ * produce data in parallel (unless you set the pool size to 1, of course).
+ *
  */
 @org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.io;

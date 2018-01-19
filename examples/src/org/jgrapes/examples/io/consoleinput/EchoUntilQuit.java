@@ -54,7 +54,7 @@ public class EchoUntilQuit extends Component {
 	@Handler
 	public void onInput(Input<ByteBuffer> event) {
 		byte[] bytes = new byte[event.remaining()];
-		event.backingBuffer().get(bytes);
+		event.data().get(bytes);
 		String data = new String(bytes);
 		System.out.print(data);
 		if (data.trim().equals("QUIT")) {

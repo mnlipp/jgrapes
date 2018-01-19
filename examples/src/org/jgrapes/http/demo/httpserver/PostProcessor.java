@@ -74,7 +74,7 @@ public class PostProcessor extends Component {
 		if (!ctx.isPresent()) {
 			return;
 		}
-		ctx.get().fieldDecoder.addData(event.backingBuffer());
+		ctx.get().fieldDecoder.addData(event.data());
 		if (!event.isEndOfRecord()) {
 			return;
 		}
