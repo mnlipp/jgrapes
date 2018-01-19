@@ -8,7 +8,7 @@
 <div class="sourceContainer">
 <pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
 <span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2016  Michael N. Lipp<a name="line.3"></a>
+<span class="sourceLineNo">003</span> * Copyright (C) 2016-2018 Michael N. Lipp<a name="line.3"></a>
 <span class="sourceLineNo">004</span> * <a name="line.4"></a>
 <span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
 <span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
@@ -95,10 +95,10 @@
 <span class="sourceLineNo">087</span>         */<a name="line.87"></a>
 <span class="sourceLineNo">088</span>        @Override<a name="line.88"></a>
 <span class="sourceLineNo">089</span>        public String toString() {<a name="line.89"></a>
-<span class="sourceLineNo">090</span>                return Components.classToString(getClass())<a name="line.90"></a>
+<span class="sourceLineNo">090</span>                return Components.className(getClass())<a name="line.90"></a>
 <span class="sourceLineNo">091</span>                                + " [criterion=" <a name="line.91"></a>
 <span class="sourceLineNo">092</span>                                + ((defaultCriterion() instanceof Class)<a name="line.92"></a>
-<span class="sourceLineNo">093</span>                                        ?  Components.classToString((Class&lt;?&gt;)defaultCriterion())<a name="line.93"></a>
+<span class="sourceLineNo">093</span>                                        ?  Components.className((Class&lt;?&gt;)defaultCriterion())<a name="line.93"></a>
 <span class="sourceLineNo">094</span>                                        : defaultCriterion())<a name="line.94"></a>
 <span class="sourceLineNo">095</span>                                + "]";<a name="line.95"></a>
 <span class="sourceLineNo">096</span>        }<a name="line.96"></a>

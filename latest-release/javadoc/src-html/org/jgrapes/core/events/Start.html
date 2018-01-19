@@ -8,7 +8,7 @@
 <div class="sourceContainer">
 <pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
 <span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2016  Michael N. Lipp<a name="line.3"></a>
+<span class="sourceLineNo">003</span> * Copyright (C) 2016-2018 Michael N. Lipp<a name="line.3"></a>
 <span class="sourceLineNo">004</span> * <a name="line.4"></a>
 <span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
 <span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
@@ -28,25 +28,31 @@
 <span class="sourceLineNo">020</span><a name="line.20"></a>
 <span class="sourceLineNo">021</span>import org.jgrapes.core.Channel;<a name="line.21"></a>
 <span class="sourceLineNo">022</span>import org.jgrapes.core.Event;<a name="line.22"></a>
-<span class="sourceLineNo">023</span><a name="line.23"></a>
-<span class="sourceLineNo">024</span>/**<a name="line.24"></a>
-<span class="sourceLineNo">025</span> * An event that signals the start of the application.<a name="line.25"></a>
-<span class="sourceLineNo">026</span> * This event must be fired in order to start the dispatching of<a name="line.26"></a>
-<span class="sourceLineNo">027</span> * events to components.<a name="line.27"></a>
-<span class="sourceLineNo">028</span> */<a name="line.28"></a>
-<span class="sourceLineNo">029</span>public class Start extends Event&lt;Void&gt; {<a name="line.29"></a>
-<span class="sourceLineNo">030</span>        <a name="line.30"></a>
-<span class="sourceLineNo">031</span>        /**<a name="line.31"></a>
-<span class="sourceLineNo">032</span>         * Create a new start event and set its completion event to {@link Started}.<a name="line.32"></a>
-<span class="sourceLineNo">033</span>         * The completion event may not be changed. The event's channels<a name="line.33"></a>
-<span class="sourceLineNo">034</span>         * are set to {@link Channel#BROADCAST}.<a name="line.34"></a>
-<span class="sourceLineNo">035</span>         */<a name="line.35"></a>
-<span class="sourceLineNo">036</span>        public Start() {<a name="line.36"></a>
-<span class="sourceLineNo">037</span>                super(Channel.BROADCAST);<a name="line.37"></a>
-<span class="sourceLineNo">038</span>                new Started(this);<a name="line.38"></a>
-<span class="sourceLineNo">039</span>        }<a name="line.39"></a>
-<span class="sourceLineNo">040</span><a name="line.40"></a>
-<span class="sourceLineNo">041</span>}<a name="line.41"></a>
+<span class="sourceLineNo">023</span>import org.jgrapes.core.Manager;<a name="line.23"></a>
+<span class="sourceLineNo">024</span><a name="line.24"></a>
+<span class="sourceLineNo">025</span>/**<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * An event that signals the start of the application.<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * This event must be fired in order to start the dispatching of<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * events to components. Components that allocate resources usually<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * do this in a handler for this event.<a name="line.29"></a>
+<span class="sourceLineNo">030</span> * <a name="line.30"></a>
+<span class="sourceLineNo">031</span> * See {@link Manager#attach(org.jgrapes.core.ComponentType)}<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * for details about this event and attaching a subtree to an<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * already started tree.<a name="line.33"></a>
+<span class="sourceLineNo">034</span> */<a name="line.34"></a>
+<span class="sourceLineNo">035</span>public class Start extends Event&lt;Void&gt; {<a name="line.35"></a>
+<span class="sourceLineNo">036</span>        <a name="line.36"></a>
+<span class="sourceLineNo">037</span>        /**<a name="line.37"></a>
+<span class="sourceLineNo">038</span>         * Create a new start event and set its completion event to {@link Started}.<a name="line.38"></a>
+<span class="sourceLineNo">039</span>         * The completion event may not be changed. The event's channels<a name="line.39"></a>
+<span class="sourceLineNo">040</span>         * are set to {@link Channel#BROADCAST}.<a name="line.40"></a>
+<span class="sourceLineNo">041</span>         */<a name="line.41"></a>
+<span class="sourceLineNo">042</span>        public Start() {<a name="line.42"></a>
+<span class="sourceLineNo">043</span>                super(Channel.BROADCAST);<a name="line.43"></a>
+<span class="sourceLineNo">044</span>                new Started(this);<a name="line.44"></a>
+<span class="sourceLineNo">045</span>        }<a name="line.45"></a>
+<span class="sourceLineNo">046</span><a name="line.46"></a>
+<span class="sourceLineNo">047</span>}<a name="line.47"></a>
 
 
 
