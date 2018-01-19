@@ -98,9 +98,8 @@ public class Output<T extends Buffer> extends IOEvent<T> {
 	 */
 	public static Output<CharBuffer> 
 		from(String data, boolean endOfRecord) {
-		return new Output<>(new ManagedBuffer<>(
-				CharBuffer.wrap(data), BufferCollector.NOOP_COLLECTOR),
-				false, endOfRecord);
+		return new Output<>(ManagedBuffer.wrap(
+				CharBuffer.wrap(data)),	false, endOfRecord);
 	}
 	
 	/**
@@ -113,8 +112,7 @@ public class Output<T extends Buffer> extends IOEvent<T> {
 	 */
 	public static Output<ByteBuffer> 
 		from(byte[] data, boolean endOfRecord) {
-		return new Output<>(new ManagedBuffer<ByteBuffer>(
-				ByteBuffer.wrap(data), BufferCollector.NOOP_COLLECTOR),
+		return new Output<>(ManagedBuffer.wrap(	ByteBuffer.wrap(data)),
 				false, endOfRecord);
 	}
 }

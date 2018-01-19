@@ -38,12 +38,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ManagedBuffer<T extends Buffer> {
 
 	final public static ManagedBuffer<ByteBuffer> EMPTY_BYTE_BUFFER 
-		= new ManagedBuffer<>(ByteBuffer.allocate(0), 
-				BufferCollector.NOOP_COLLECTOR);
+		= wrap(ByteBuffer.allocate(0));
 	
 	final public static ManagedBuffer<CharBuffer> EMPTY_CHAR_BUFFER 
-		= new ManagedBuffer<>(CharBuffer.allocate(0), 
-				BufferCollector.NOOP_COLLECTOR);
+		= wrap(CharBuffer.allocate(0));
 	
 	protected T backing;
 	private BufferCollector manager;
@@ -62,6 +60,21 @@ public class ManagedBuffer<T extends Buffer> {
 		this.manager = manager;
 	}
 
+	/**
+	 * Convenience method for creating a {@link ManagedBuffer} with
+	 * a {@link BufferCollector#NOOP_COLLECTOR} from a NIO buffer.
+	 * Effectively, this creates an *unmanaged* buffer that
+	 * looks like a managed buffer from an existing NIO buffer that
+	 * does not belong to any pool.
+	 *
+	 * @param <B> the buffer type
+	 * @param buffer the buffer to wrap
+	 * @return the managed buffer
+	 */
+	public static <B extends Buffer> ManagedBuffer<B> wrap(B buffer) {
+		return new ManagedBuffer<B>(buffer, BufferCollector.NOOP_COLLECTOR);
+	}
+	
 	/**
 	 * Return the backing buffer.
 	 * 
@@ -123,6 +136,8 @@ public class ManagedBuffer<T extends Buffer> {
 	/**
 	 * Convenience method to fill the buffer from the channel.
 	 * Unlocks the buffer if an {@link IOException} occurs.
+	 * This method may only be invoked for {@link ManagedBuffer}s
+	 * backed by a {@link ByteBuffer}.
 	 *
 	 * @param channel the channel
 	 * @return the bytes read
