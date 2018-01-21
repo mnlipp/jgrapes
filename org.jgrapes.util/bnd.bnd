@@ -15,8 +15,6 @@ Export-Package: \
 -dsannotations: 
 
 -fixupmessages: \
-    "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.",\
-    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer. This could make your build less portable.",\
-    "Export org.jgrapes.core,  has 1,  private references ", \
-    "The build path does not refer to the bnd container 'aQute.bnd.classpath.container'"
-    
+    "Found source folder 'resources' that is not on bnd's source path 'src'", \
+    "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \
+    "The .classpath contains a library that will not be available during continuous integration:"

@@ -1,24 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" output="bin/main" path="src">
+	<classpathentry path="bin/default" kind="output"/>
+	<classpathentry output="bin/main" kind="src" path="src">
 		<attributes>
 			<attribute name="gradle_scope" value="main"/>
 			<attribute name="gradle_used_by_scope" value="main,test"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" output="bin/test" path="resources">
+	<classpathentry output="bin/main" kind="src" path="resources">
 		<attributes>
-			<attribute name="gradle_scope" value="test"/>
-			<attribute name="gradle_used_by_scope" value="test"/>
+			<attribute name="gradle_scope" value="main"/>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" output="bin/test" path="test">
+	<classpathentry output="bin/test" kind="src" path="test">
 		<attributes>
 			<attribute name="gradle_scope" value="test"/>
 			<attribute name="gradle_used_by_scope" value="test"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8/"/>
-	<classpathentry kind="con" path="org.eclipse.buildship.core.gradleclasspathcontainer"/>
-	<classpathentry kind="output" path="bin/default"/>
+	<classpathentry kind="con" path="aQute.bnd.classpath.container"/>
+	<classpathentry kind="src" path="/org.jgrapes.http"/>
+	<classpathentry kind="src" path="/org.jgrapes.io"/>
+	<classpathentry kind="src" path="/org.jgrapes.core"/>
+	<classpathentry kind="src" path="/org.jgrapes.util"/>
+	<classpathentry sourcepath="/home/mnl/.gradle/caches/modules-2/files-2.1/org.osgi/osgi.core/6.0.0/921a11d64e9a5e6fb04f99a006a3b4b9773f44b8/osgi.core-6.0.0-sources.jar" kind="lib" path="/home/mnl/.gradle/caches/modules-2/files-2.1/org.osgi/osgi.core/6.0.0/c49acdc9ac62cf69ee49cb6f1905b4fdb79ea5c/osgi.core-6.0.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="/home/mnl/.gradle/caches/modules-2/files-2.1/org.osgi/org.osgi.annotation/6.0.0/d7ebeed8c7afb937ddb4652d90517c8c05294ee0/org.osgi.annotation-6.0.0-sources.jar" kind="lib" path="/home/mnl/.gradle/caches/modules-2/files-2.1/org.osgi/org.osgi.annotation/6.0.0/8e60d5960532e492c70b507752f95a76a955bf1f/org.osgi.annotation-6.0.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="/home/mnl/.gradle/caches/modules-2/files-2.1/org.jdrupes.httpcodec/httpcodec/1.0.0/2ddbe460a87ff9cd58aae22f4b31aa49eba9acb6/httpcodec-1.0.0-sources.jar" kind="lib" path="/home/mnl/.gradle/caches/modules-2/files-2.1/org.jdrupes.httpcodec/httpcodec/1.0.0/a0395da566ed4e03b78aabcc77bc837d83dd78bc/httpcodec-1.0.0.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="/home/mnl/.gradle/caches/modules-2/files-2.1/org.jdrupes.json/json/1.0.6/5509786a431b337580ddf83bdd68b913d62b2c1b/json-1.0.6-sources.jar" kind="lib" path="/home/mnl/.gradle/caches/modules-2/files-2.1/org.jdrupes.json/json/1.0.6/1fc9be93f6addb37bf17788c266dacc7ba7fe7ea/json-1.0.6.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="/home/mnl/.gradle/caches/modules-2/files-2.1/org.glassfish/javax.json/1.1/749dd34bf614e2b64bfc72e43d9e43b28a4b64f5/javax.json-1.1-sources.jar" kind="lib" path="/home/mnl/.gradle/caches/modules-2/files-2.1/org.glassfish/javax.json/1.1/6f8ce9246049c7af84926758aeea7bc24f5dd160/javax.json-1.1.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="/home/mnl/.gradle/caches/modules-2/files-2.1/org.spockframework/spock-core/1.1-groovy-2.4-rc-3/80586ce5d497b221889dfb85eb48745ebeb66b08/spock-core-1.1-groovy-2.4-rc-3-sources.jar" kind="lib" path="/home/mnl/.gradle/caches/modules-2/files-2.1/org.spockframework/spock-core/1.1-groovy-2.4-rc-3/17e5e142396a608fa0ca50530771351a6321ad8f/spock-core-1.1-groovy-2.4-rc-3.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="/home/mnl/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/a6c32b40bf3d76eca54e3c601e5d1470c86fcdfa/junit-4.12-sources.jar" kind="lib" path="/home/mnl/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/2973d150c0dc1fefe998f834810d68f278ea58ec/junit-4.12.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="/home/mnl/.gradle/caches/modules-2/files-2.1/net.jodah/concurrentunit/0.4.2/88eb3350ba3b973c92bd2cdbc6fe74a07c137abb/concurrentunit-0.4.2-sources.jar" kind="lib" path="/home/mnl/.gradle/caches/modules-2/files-2.1/net.jodah/concurrentunit/0.4.2/5cff569d560a643eda173c1f340400352ae867b5/concurrentunit-0.4.2.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="/home/mnl/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/1dc37250fbc78e23a65a67fbbaf71d2e9cbc3c0b/hamcrest-core-1.3-sources.jar" kind="lib" path="/home/mnl/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="/home/mnl/.gradle/caches/modules-2/files-2.1/org.codehaus.groovy/groovy-all/2.4.6/fd2c46e38f8b08e4ec69badf3cd2b2cc436f628f/groovy-all-2.4.6-sources.jar" kind="lib" path="/home/mnl/.gradle/caches/modules-2/files-2.1/org.codehaus.groovy/groovy-all/2.4.6/478feadca929a946b2f1fb962bb2179264759821/groovy-all-2.4.6.jar">
+		<attributes>
+			<attribute name="gradle_used_by_scope" value="test"/>
+		</attributes>
+	</classpathentry>
 </classpath>

@@ -107,7 +107,7 @@ subprojects {
 				srcDir 'test'
 			}
             resources {
-                srcDir 'resources'
+                srcDir 'test-resources'
             }
         }
     }
@@ -222,6 +222,17 @@ subprojects {
 		}
 	}
 	
+    apply plugin: 'eclipse'
+    
+    eclipse {
+        classpath {
+            containers 'aQute.bnd.classpath.container'
+        }
+        project {
+            buildCommand 'bndtools.core.bndbuilder'
+            natures 'bndtools.core.bndnature'
+        }
+    }
 }
 
 configurations {
