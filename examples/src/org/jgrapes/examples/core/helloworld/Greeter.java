@@ -30,7 +30,7 @@ public class Greeter extends Component {
 
 	@Handler
 	public void onStart(Start event) {
-		System.out.println ("Hello World!");
+		System.out.println("Hello World!");
 	}
 	
 	public static void main(String[] args) 

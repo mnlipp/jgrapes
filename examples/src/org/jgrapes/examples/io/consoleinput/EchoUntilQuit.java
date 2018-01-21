@@ -58,7 +58,7 @@ public class EchoUntilQuit extends Component {
 		String data = new String(bytes);
 		System.out.print(data);
 		if (data.trim().equals("QUIT")) {
-			fire (new Stop());
+			fire(new Stop());
 		}
 	}
 	
