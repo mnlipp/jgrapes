@@ -2,3 +2,5 @@
 /generated/
 /bin_test/
 /build/
+/.classpath
+/.project

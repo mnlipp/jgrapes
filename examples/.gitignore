@@ -2,3 +2,5 @@
 /build/
 /generated/
 /console.log
+.classpath
+.project
