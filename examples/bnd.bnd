@@ -10,5 +10,6 @@ Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 -fixupmessages: \
     "Found source folder 'resources' that is not on bnd's source path 'src'", \
     "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \
-    "The .classpath contains a library that will not be available during continuous integration:", \
+    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer.", \
     "The Bundle Symbolic Name"
+    

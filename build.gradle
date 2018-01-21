@@ -226,13 +226,25 @@ subprojects {
     
     eclipse {
         classpath {
-            containers 'aQute.bnd.classpath.container'
+            // 'org.eclipse.buildship.core.gradleclasspathcontainer',
+            containers \
+                'aQute.bnd.classpath.container'
+            downloadJavadoc = true
+            downloadSources = true
         }
         project {
-            buildCommand 'bndtools.core.bndbuilder'
-            natures 'bndtools.core.bndnature'
+			// buildCommand 'bndtools.core.bndbuilder'
+			buildCommand 'org.eclipse.jdt.core.javabuilder'
+            buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
+            buildCommand 'net.sf.eclipsecs.core.CheckstyleBuilder'
+            // 'org.eclipse.buildship.core.gradleprojectnature',
+            natures 'org.eclipse.jdt.core.javanature', \
+                'bndtools.core.bndnature', \
+                'net.sf.eclipsecs.core.CheckstyleNature'
+				'org.eclipse.jdt.groovy.core.groovyNature'
         }
     }
+    tasks.eclipse.dependsOn(cleanEclipse)
 }
 
 configurations {
