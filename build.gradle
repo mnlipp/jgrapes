@@ -285,3 +285,6 @@ task stage {
 	dependsOn gitPublishPush	
 }
 
+apply plugin: 'eclipse'
+
+tasks.eclipse.dependsOn(cleanEclipse)
