@@ -4,8 +4,8 @@
 /build/
 **/.classpath
 **/.project
-!.classpath
-!.project
-!cnf/.project
+!/.classpath
+!/.project
+!/cnf/.project
 /node_modules/
 /package-lock.json
