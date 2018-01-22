@@ -32,10 +32,29 @@ dependencies {
 
 (See badge above for the latest version.)
 
-The JGrapes OSGi components that do depend on the OSGi framework and 
-provide JGrapes based OSGi services can be found in a
-[seperate repository](https://github.com/mnlipp/jgrapes-osgi) because
-they profit from a different top-level build approach. 
+Building
+--------
+
+The libraries can be built with `gradle build`. For working with 
+the project in Eclipse run `gradle eclipse` before importing the 
+project. 
+
+If you want to use 
+[buildship](https://projects.eclipse.org/projects/tools.buildship),
+import the project as "Gradle / Existing Gradle Project". Should you
+encounter the (in)famous 
+["sync problem"](https://github.com/eclipse/buildship/issues/478),
+simply restart Eclipse.
+
+Additional JGrapes components
+-----------------------------
+
+A portal built on top of the basic libraries is maintained as a
+seperate [JGrapes Portal](https://github.com/mnlipp/jgrapes-portal) project.
+
+The JGrapes OSGi components (that depend on the OSGi framework and 
+provide JGrapes based OSGi services) can also be found in a
+[repository of their own](https://github.com/mnlipp/jgrapes-osgi). 
 
 <!-- Piwik Image Tracker-->
 <img src="https://piwik.mnl.de/piwik.php?idsite=10&rec=1&url=https%3A%2F%2Fgithub.com%2Fmnlipp%2Fjgrapes" style="border:0" alt="" />
