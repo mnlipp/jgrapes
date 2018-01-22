@@ -3,15 +3,11 @@ apply plugin: 'eclipse'
 eclipse {
     classpath {
         containers 'aQute.bnd.classpath.container'
-        // Classpath is completely handled by bnd container above
-        minusConfigurations += [ configurations.compileClasspath,
-            configurations.testCompileClasspath ]
-            downloadJavadoc = true
-            downloadSources = true
     }
     project {
         buildCommand 'bndtools.core.bndbuilder'
         natures 'bndtools.core.bndnature'
     }
 }
+
 tasks.eclipse.dependsOn(cleanEclipse)
