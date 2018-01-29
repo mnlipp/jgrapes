@@ -27,6 +27,16 @@ import org.jgrapes.core.events.Error;
 public class IOError extends Error {
 
 	/**
+	 * Creates a new event as a copy of an existing event. Useful
+	 * for forwarding an event.
+	 *
+	 * @param event the event to copy
+	 */
+	public IOError(IOError event) {
+		super(event);
+	}
+	
+	/**
 	 * Creates a new instance.
 	 * 
 	 * @param event the event that was being handled when the problem occurred

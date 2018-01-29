@@ -32,6 +32,18 @@ public class Error extends Event<Void> {
 	private Throwable throwable;
 	
 	/**
+	 * Creates a new event as a copy of an existing event. Useful
+	 * for forwarding an event.
+	 *
+	 * @param event the event to copy
+	 */
+	public Error(Error event) {
+		this.event = event.event;
+		this.message = event.message;
+		this.throwable = event.throwable;
+	}
+	
+	/**
 	 * Creates a new event.
 	 * 
 	 * @param event the event being processed when the problem occurred

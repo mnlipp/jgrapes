@@ -45,6 +45,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
+import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.LinkedIOSubchannel;
@@ -79,6 +80,8 @@ public class SslServer extends Component {
 				this, "onInput", encryptedChannel.defaultCriterion());
 		Handler.Evaluator.add(
 				this, "onClosed", encryptedChannel.defaultCriterion());
+		Handler.Evaluator.add(
+				this, "onIOError", encryptedChannel.defaultCriterion());
 	}
 
 	/**
@@ -134,6 +137,24 @@ public class SslServer extends Component {
 		if (plainChannel.isPresent()) {
 			plainChannel.get().upstreamClosed();
 		}
+	}
+	
+	/**
+	 * Handles an {@link IOError} event from the encrypted channel (client)
+	 * by sending it downstream.
+	 * 
+	 * @param event the event
+	 * @param encryptedChannel the channel for exchanging the encrypted data
+	 * @throws InterruptedException 
+	 * @throws SSLException 
+	 */
+	@Handler(dynamic = true)
+	public void onIOError(IOError event, IOSubchannel encryptedChannel)
+	        throws SSLException, InterruptedException {
+		@SuppressWarnings("unchecked")
+		final Optional<PlainChannel> plainChannel = (Optional<PlainChannel>)
+				LinkedIOSubchannel.downstreamChannel(this, encryptedChannel);
+		plainChannel.ifPresent(channel -> fire(new IOError(event), channel));
 	}
 	
 	/**
