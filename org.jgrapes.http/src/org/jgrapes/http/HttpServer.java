@@ -290,8 +290,8 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Handles a close event from downstream by sending a {@link Close} 
-	 * event upstream.
+	 * Handles a close event from downstream by closing the upstream
+	 * connections.
 	 * 
 	 * @param event
 	 *            the close event
@@ -300,8 +300,7 @@ public class HttpServer extends Component {
 	@Handler
 	public void onClose(Close event, AppChannel appChannel) 
 			throws InterruptedException {
-		final IOSubchannel netChannel = appChannel.upstreamChannel();
-		netChannel.respond(new Close());
+		appChannel.handleClose(event);
 	}
 
 	/**
@@ -589,9 +588,9 @@ public class HttpServer extends Component {
 			final MessageHeader response = event.response();
 			// Start sending the response
 			@SuppressWarnings("unchecked")
-			ServerEngine<?,MessageHeader> httpEngine 
+			ServerEngine<?,MessageHeader> msgEngine 
 				= (ServerEngine<?,MessageHeader>)engine;
-			httpEngine.encode(response);
+			msgEngine.encode(response);
 			boolean hasBody = response.hasPayload();
 			while (true) {
 				outBuffer = upstreamChannel().byteBufferPool().acquire();
@@ -687,6 +686,36 @@ public class HttpServer extends Component {
 			}
 		}
 		
+		public void handleClose(Close event) throws InterruptedException {
+			if (switchedToWebSocket) {
+				respond(new Response(new WsCloseFrame(null, null)));
+				return;
+//				@SuppressWarnings("unchecked")
+//				ServerEngine<?,MessageHeader> wsEngine 
+//					= (ServerEngine<?,MessageHeader>)engine;
+//				WsCloseFrame msg = new WsCloseFrame(null, null);
+//				wsEngine.encode(msg);
+//				while (true) {
+//					if (outBuffer == null) {
+//						outBuffer = upstreamChannel().byteBufferPool().acquire();
+//					}
+//					Codec.Result result = wsEngine.encode(
+//							null, outBuffer.backingBuffer(), true);
+//					if (result.isOverflow()) {
+//						upstreamChannel().respond(Output.fromSink(outBuffer, false));
+//						outBuffer = upstreamChannel().byteBufferPool().acquire();
+//						continue;
+//					}
+//					upstreamChannel().respond(Output.fromSink(outBuffer, false));
+//					outBuffer = null;
+//					if (!result.closeConnection()) {
+//						return;
+//					}
+//				}
+			}
+			upstreamChannel().respond(new Close());
+		}
+
 		public void handleClosed(Closed event) {
 			downPipeline.fire(new Closed(), this);
 		}
