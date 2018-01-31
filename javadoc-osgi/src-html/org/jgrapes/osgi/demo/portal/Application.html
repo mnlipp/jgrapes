@@ -96,7 +96,7 @@
 <span class="sourceLineNo">088</span>                sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());<a name="line.88"></a>
 <span class="sourceLineNo">089</span>                // Create a TCP server for SSL<a name="line.89"></a>
 <span class="sourceLineNo">090</span>                Channel securedNetwork = app.attach(<a name="line.90"></a>
-<span class="sourceLineNo">091</span>                                new TcpServer().setServerAddress(new InetSocketAddress(5443))<a name="line.91"></a>
+<span class="sourceLineNo">091</span>                                new TcpServer().setServerAddress(new InetSocketAddress(6443))<a name="line.91"></a>
 <span class="sourceLineNo">092</span>                                .setBacklog(3000).setConnectionLimiter(new PermitsPool(50)));<a name="line.92"></a>
 <span class="sourceLineNo">093</span>                // Network level unencrypted channel.<a name="line.93"></a>
 <span class="sourceLineNo">094</span>                Channel httpTransport = new NamedChannel("httpTransport");<a name="line.94"></a>
