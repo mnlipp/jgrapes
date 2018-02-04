@@ -21,8 +21,10 @@ package org.jgrapes.examples.io.consoleinput;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.io.InputStreamMonitor;
@@ -38,19 +40,19 @@ import org.jgrapes.io.events.Input;
  * object "console: InputStreamMonitor" as console
  * object "channel: Channel" as channel
  * 
- * app -- console
- * app .. channel
- * console .up. channel
+ * app *-- console
+ * app -- channel: connected to >
+ * console -up- channel: connected to >
  * 
- * note "Besides the (structural) parent-child \n\
- *   association the two components are \n\
- *   logically connected by the channel" as ChannelNote
- * 
- * channel .. ChannelNote
+ * note top of channel:	Serves as\ncommunication bus
  * 
  * @enduml
  */
 public class EchoUntilQuit extends Component {
+
+	public EchoUntilQuit(Channel channel) {
+		super(channel);
+	}
 
 	@Handler
 	public void onInput(Input<ByteBuffer> event) {
@@ -68,8 +70,9 @@ public class EchoUntilQuit extends Component {
 	 * @throws InterruptedException the interrupted exception
 	 */
 	public static void main(String[] args) throws InterruptedException {
-		EchoUntilQuit app = new EchoUntilQuit();
-		app.attach(new InputStreamMonitor(app.channel(), System.in));
+		Channel channel = new NamedChannel("main");
+		EchoUntilQuit app = new EchoUntilQuit(channel);
+		app.attach(new InputStreamMonitor(channel, System.in));
 		Components.start(app);
 		Components.awaitExhaustion();
 		System.exit(0);
