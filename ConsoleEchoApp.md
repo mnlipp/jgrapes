@@ -16,9 +16,7 @@ public class EchoUntilQuit extends Component {
 
     @Handler
     public void onInput(Input<ByteBuffer> event) {
-        byte[] bytes = new byte[event.remaining()];
-        event.data().get(bytes);
-        String data = new String(bytes);
+        String data = Charset.defaultCharset().decode(event.data()).toString();
         System.out.print(data);
         if (data.trim().equals("QUIT")) {
             fire (new Stop());
