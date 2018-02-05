@@ -20,6 +20,7 @@ package org.jgrapes.util.events;
 
 import java.util.Map;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 
 /**
@@ -41,16 +42,15 @@ public class KeyValueStoreQuery extends Event<Map<String,String>> {
 
 	/**
 	 * Convenience constructor for creating a new event with
-	 * a completion event of type {@link KeyValueStoreData}.
-	 * 
+	 * a completion event of type {@link KeyValueStoreData}
+	 * that is fired on the given channel.
+	 *
 	 * @param key the key
-	 * @param completionEvent
+	 * @param channel the channel
 	 */
-	public KeyValueStoreQuery(String key, boolean completionEvent) {
+	public KeyValueStoreQuery(String key, Channel channel) {
 		this(key);
-		if (completionEvent) {
-			new KeyValueStoreData(this);
-		}
+		new KeyValueStoreData(this, channel);
 	}
 
 	/**
