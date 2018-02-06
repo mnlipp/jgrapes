@@ -107,7 +107,7 @@
  * In order for objects to be usable as channels, they must implement the
  * {@link org.jgrapes.core.Channel} interface, which implies implementing
  * the {@link org.jgrapes.core.Eligible} interface. The core package
- * provides two stand-alone types of channels: the 
+ * provides two predefined types of channels: the 
  * {@link org.jgrapes.core.ClassChannel}, that uses a Java class for 
  * identification and the {@link org.jgrapes.core.NamedChannel}, that uses 
  * a name (String) for identification. 
