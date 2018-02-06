@@ -31,7 +31,7 @@ import org.jgrapes.core.EventPipeline;
 public class EventProcessor implements InternalEventPipeline, Runnable {
 
 	protected static final ThreadLocal<EventBase<?>> 
-		currentlyHandling = new ThreadLocal<>();
+		newEventsParent = new ThreadLocal<>();
 	
 	private final ExecutorService executorService;
 	private final ComponentTree componentTree;
@@ -49,9 +49,20 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 		asEventPipeline = new CheckingPipelineFilter(this);
 	}
 
+	/**
+	 * Called before adding completion events. The parent of
+	 * a completion event is not the event that has completed but
+	 * the event that generated the original event.
+	 *
+	 * @param parent the new parent
+	 */
+	void updateNewEventsParent(EventBase<?> parent) {
+		newEventsParent.set(parent);
+	}
+	
 	@Override
 	public <T extends Event<?>> T add(T event, Channel... channels) {
-		((EventBase<?>)event).generatedBy(currentlyHandling.get());
+		((EventBase<?>)event).generatedBy(newEventsParent.get());
 		((EventBase<?>)event).processedBy(this);
 		queue.add(event, channels);
 		synchronized (this) {
@@ -112,15 +123,15 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 						}
 					}
 				}
-				currentlyHandling.set(next.event);
+				newEventsParent.set(next.event);
 				componentTree.dispatch(
 						asEventPipeline, next.event, next.channels);
-				currentlyHandling.get().decrementOpen();
+				newEventsParent.get().decrementOpen();
 				queue.remove();
 			}
 		} finally {
 			Thread.currentThread().setName(origName);
-			currentlyHandling.set(null);;
+			newEventsParent.set(null);;
 			FeedBackPipelineFilter.setAssociatedPipeline(null);
 		}
 	}

@@ -264,6 +264,7 @@ public abstract class EventBase<T>
 				notifyAll();
 			}
 			if (completionEvents != null && !cancelled) {
+				processedBy.updateNewEventsParent(generatedBy);
 				for (Event<?> e: completionEvents) {
 					Channel[] completeChannels = e.channels();
 					if (completeChannels == null) {
@@ -331,9 +332,15 @@ public abstract class EventBase<T>
 
 	/**
 	 * Adds the given event to the events to be thrown when this event 
-	 * and all events caused by it have been handled. 
+	 * and all events caused by it have been handled. Such an
+	 * event is called a "completion event".
 	 * 
-	 * The completion events handled by the same {@link EventProcessor}
+	 * Completion events are considered to be caused by the event that 
+	 * caused the completed event. If an event *e1* caused an event
+	 * *e2* which has a completion event *e2c*, *e1* is only put in 
+	 * state completed when *e2c* has been handled.
+	 * 
+	 * Completion events are handled by the same {@link EventProcessor}
 	 * as the event that has been completed.
 	 * 
 	 * @param completionEvent the completion event to add

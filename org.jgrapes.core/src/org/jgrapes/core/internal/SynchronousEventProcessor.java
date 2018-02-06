@@ -37,7 +37,7 @@ class SynchronousEventProcessor extends EventProcessor {
 	 */
 	@Override
 	public <T extends Event<?>> T add(T event, Channel... channels) {
-		((EventBase<?>)event).generatedBy(currentlyHandling.get());
+		((EventBase<?>)event).generatedBy(newEventsParent.get());
 		((EventBase<?>)event).processedBy(this);
 		synchronized(queue) {
 			queue.add(event, channels);
@@ -62,11 +62,11 @@ class SynchronousEventProcessor extends EventProcessor {
 		// handling an event (from another event processor).
 		InternalEventPipeline currentPipeline 
 			= FeedBackPipelineFilter.getAssociatedPipeline();
-		EventBase<?> currentEvent = currentlyHandling.get();
+		EventBase<?> currentEvent = newEventsParent.get();
 		try {
 			super.run();
 		} finally {
-			currentlyHandling.set(currentEvent);
+			newEventsParent.set(currentEvent);
 			FeedBackPipelineFilter.setAssociatedPipeline(currentPipeline);;
 		}
 	}
