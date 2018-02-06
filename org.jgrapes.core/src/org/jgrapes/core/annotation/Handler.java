@@ -55,30 +55,43 @@ import org.jgrapes.core.Self;
  * 
  * If neither event classes nor named events are specified in the 
  * annotation, the class of the annotated method's first parameter (which 
- * must be of type {@link Event} or a super type) is used as (single)
+ * must be of type {@link Event} or a derived type) is used as (single)
  * event class (see the examples in {@link #events()} and 
  * {@link #namedEvents()}).
  * 
- * Channel matching is performed on each of the event's channels.
- * If channel classes (or `namedChannels`) are specified, the 
- * handler invokes the current channel's 
- * {@link Eligible#isEligibleFor(Object) isEligibleFor} with the
- * class (or name, see {@link #channels()} and 
- * {@link Handler#namedChannels()}).
+ * Channel matching is performed by matching the event's channels
+ * (see {@link Event#channels()}) with the channels specified in the
+ * handler. The matching algorithm invokes  
+ * {@link Eligible#isEligibleFor(Object) isEligibleFor} for each of the 
+ * event's channels with the class (or name, see {@link #channels()} and 
+ * {@link Handler#namedChannels()}) of each of the channels specified
+ * in the handler.
  * 
- * If neither channel classes not named channels are specified, or
- * `{@link Default Channel.Default}.class` is specified as one of the
- * channel classes, the handler invokes the current channel's 
- * {@link Eligible#isEligibleFor(Object) isEligibleFor} with the
- * default criterion of the component's channel (see
- * {@link Manager#channel()} and {@link Eligible#defaultCriterion()}).
+ * If neither channel classes not named channels are specified in the 
+ * handler, or `{@link Default Channel.Default}.class` is specified as one 
+ * of the channel classes, the matching algorithm invokes  
+ * {@link Eligible#isEligibleFor(Object) isEligibleFor} for each of
+ * the event's channels with the default criterion of the component's 
+ * channel (see {@link Manager#channel()} and 
+ * {@link Eligible#defaultCriterion()}) as argument.
  *
- * Finally, independent of any specified channels, the handler 
- * invokes the current channel's 
- * {@link Eligible#isEligibleFor(Object) isEligibleFor} with the
- * component's default criterion. This results in a match if
+ * Finally, independent of any specified channels, the matching algorithm 
+ * invokes {@link Eligible#isEligibleFor(Object) isEligibleFor} 
+ * for each of the event's channels with the component's default criterion
+ * as argument. This results in a match if
  * the component itself is used as one of the event's channels
  * (see the description of {@link Eligible}).
+ * 
+ * If a match is found for a given event's properties and a handler's
+ * specified attributes, the handler method is invoked. 
+ * The method can have an additional optional parameter of type
+ * {@link Channel} (or a derived type). This parameter does not 
+ * influence the eligibility of the method regarding a given event,
+ * it determines how the method is invoked. If the method does not
+ * have a second parameter, it is invoked once if an event 
+ * matches. If the parameter exists, the method is invoked once for
+ * each of the event's channels, provided that the optional parameter's
+ * type is assignable from the event's channel.
  * 
  * @see Component#channel()
  */
@@ -254,16 +267,8 @@ public @interface Handler {
 		 * a specific event and channel. The method with the given name must be
 		 * annotated as dynamic handler and must have a single parameter of type
 		 * {@link Event} (or a derived type as appropriate for the event type to
-		 * be handled). 
-		 * 
-		 * The method can have an additional optional parameter of type
-		 * {@link Channel} (or a derived type). This parameter does not 
-		 * influence the eligibility of the method regarding a given event,
-		 * it determines how the method is invoked. If the method does not
-		 * have a second parameter, it is invoked once if an event 
-		 * matches. If the parameter exists, the method is invoked once for
-		 * every channel the method was fired on, but only if the 
-		 * actual channel matches the type of the optional parameter.
+		 * be handled). It can have an optional parameter of type 
+		 * {@link Channel}.
 		 * 
 		 * @param component
 		 *            the component
