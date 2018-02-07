@@ -153,6 +153,9 @@ public interface Channel extends Eligible {
 	 * @return the representation
 	 */
 	static String toString(Channel channel) {
+		if (channel == null) {
+			return "null";
+		}
 		StringBuilder builder = new StringBuilder();
 		if ((channel instanceof ClassChannel)
 		        || (channel instanceof NamedChannel)) {
