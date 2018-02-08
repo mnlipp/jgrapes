@@ -20,10 +20,12 @@ package org.jgrapes.io.util;
 
 import java.beans.ConstructorProperties;
 import java.lang.management.ManagementFactory;
+import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.nio.Buffer;
 import java.time.Duration;
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
@@ -98,7 +100,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	private String name = Components.objectName(this);
 	private BiFunction<T, BufferCollector,W> wrapper = null;
 	private Supplier<T> bufferFactory = null;
-	private Map<Integer,List<BufferMonitor>> bufferMonitors = new HashMap<>();
+	private BufferMonitor bufferMonitor;
 	private BlockingQueue<W> queue;
 	private int bufferSize = -1;
 	private int preservedBufs;
@@ -147,6 +149,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		maximumBufs = upperLimit;
 		createdBufs = new AtomicInteger();
 		queue = new ArrayBlockingQueue<W>(lowerThreshold);
+		bufferMonitor = new BufferMonitor(upperLimit);
 		MBeanView.addPool(this);
 	}
 
@@ -198,11 +201,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	private W createBuffer() {
 		createdBufs.incrementAndGet();
 		W buffer = wrapper.apply(this.bufferFactory.get(), this);
-		BufferMonitor monitor = new BufferMonitor(buffer);
-		synchronized (bufferMonitors) {
-			bufferMonitors.computeIfAbsent(System.identityHashCode(buffer), 
-					key -> new LinkedList<>()).add(monitor);
-		}
+		bufferMonitor.put(buffer, new BufferProperties());
 		bufferSize = buffer.capacity();
 		return buffer;
 	}
@@ -214,56 +213,15 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	 */
 	private void removeBuffer(ManagedBuffer<?> buffer) {
 		createdBufs.decrementAndGet();
-		synchronized (bufferMonitors) {
-			int hashCode = System.identityHashCode(buffer);
-			List<BufferMonitor> candidates = bufferMonitors.get(hashCode);
-			boolean found = false;
-			if (candidates != null) {
-				for (Iterator<BufferMonitor> itr = candidates.iterator(); 
-					itr.hasNext(); ) {
-					BufferMonitor monitor = itr.next();
-					if (buffer == monitor.get()) {
-						itr.remove();
-						found = true;
-						break;
-					}
-				}
-				if (candidates.isEmpty()) {
-					bufferMonitors.remove(hashCode);
-				}
-			}
-			if (!found) {
+		if (bufferMonitor.remove(buffer) == null) {
+			if (logger.isLoggable(Level.FINE)) {
+				logger.log(Level.WARNING, 
+						"Attempt to remove unknown buffer from pool.",
+						new Throwable());
+			} else {
 				logger.warning("Attempt to remove unknown buffer from pool.");
 			}
 		}
-	}
-	
-	/**
-	 * Removes a buffer monitor from the pool. This is needed to clean
-	 * up the monitors of orphaned buffers.
-	 * 
-	 * @param monitor
-	 */
-	private void removeBufferMonitor(
-			ManagedBufferPool<?,?>.BufferMonitor monitor) {
-		synchronized (bufferMonitors) {
-			for (Iterator<Integer> hci = bufferMonitors.keySet().iterator();
-					hci.hasNext();) {
-				List<BufferMonitor> candidates = bufferMonitors.get(hci.next());
-				for (Iterator<BufferMonitor> itr = candidates.iterator(); 
-					itr.hasNext(); ) {
-					BufferMonitor candidate = itr.next();
-					if (candidate == monitor) {
-						itr.remove();
-						break;
-					}
-				}
-				if (candidates.isEmpty()) {
-					hci.remove();
-				}
-			}
-		}
-		
 	}
 	
 	/**
@@ -366,83 +324,116 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		return builder.toString();
 	}
 
-	/**
-	 * To identify buffers not returned to the pool, 
-	 * all buffers handed out are tracked using this class, 
-	 * essentially a weak reference. Instances are created for each 
-	 * buffer and removed when the buffer is returned to the pool.
-	 * 
-	 * If the weak reference is collected by the garbage collector,
-	 * this means that the buffer has not been returned. This condition
-	 * is watched for by the {@link OrphanedCollector} and produces
-	 * a warning.
-	 */
-	private class BufferMonitor extends WeakReference<ManagedBuffer<?>> {
+	private static class BufferProperties {
 
 		private StackTraceElement[] createdBy;
 		
-		public BufferMonitor(ManagedBuffer<?> referent) {
-			super(referent, OrphanedCollector.orphanedBuffers);
+		public BufferProperties() {
 			if (logger.isLoggable(Level.FINE)) {
 				createdBy = Thread.currentThread().getStackTrace();
 			}
 		}
 
-		public ManagedBufferPool<?, ?> manager() {
-			return ManagedBufferPool.this;
-		}
-		
 		public StackTraceElement[] createdBy() {
 			return createdBy;
 		}
 	}
 	
-	private static class OrphanedCollector extends Thread {
+	private class BufferMonitor {
 		
-		private static ReferenceQueue<ManagedBuffer<?>> orphanedBuffers 
+		private List<Map.Entry<WeakReference<ManagedBuffer<?>>,
+			BufferProperties>>[] data;
+		private int indexMask = 0;
+		private ReferenceQueue<ManagedBuffer<?>> orphanedBuffers 
 			= new ReferenceQueue<>();
-		
-		public OrphanedCollector() {
-			setName(ManagedBufferPool.class.getSimpleName() + ".Collector");
-			setDaemon(true);
-			start();
+	
+		/**
+		 * @param data
+		 */
+		@SuppressWarnings("unchecked")
+		public BufferMonitor(int maxBuffers) {
+			int lists = 1;
+			while (lists < maxBuffers) {
+				lists <<= 1;
+				indexMask = (indexMask << 1) + 1;
+			}
+			data = (List<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>>[])
+					new List[maxBuffers];
 		}
 
-		@Override
-		public void run() {
-			while(true) {
-				try {
-					ManagedBufferPool<?,?>.BufferMonitor monitor 
-						= (ManagedBufferPool<?,?>.BufferMonitor)orphanedBuffers
-							.remove();
-					ManagedBufferPool<?,?> mbp = monitor.manager();
-					// Managed buffer has not been properly recollected, fix.
-					mbp.createdBufs.decrementAndGet();
-					mbp.removeBufferMonitor(monitor);
-					// Create warning
-					if (logger.isLoggable(Level.WARNING)) {
-						final StringBuilder msg = new StringBuilder(
-								"Orphaned buffer from pool " + mbp.name());
-						StackTraceElement[] st = monitor.createdBy();
-						if (st != null) {
-							msg.append(", created");
-							for (StackTraceElement e: st) {
-								msg.append(System.lineSeparator());
-								msg.append("\tat ");
-								msg.append(e.toString());
-							}
+		public BufferProperties put(
+				ManagedBuffer<?> buffer, BufferProperties bufferMonitor) {
+			check();
+			int index = buffer.hashCode() & indexMask;
+			List<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> list;
+			synchronized(data) {
+				list = data[index];
+				if (list == null) {
+					list = data[index] = Collections.synchronizedList(
+							new LinkedList<>());
+				}
+			}
+			for (Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties> 
+				entry: list) {
+				if (entry.getKey().get() == buffer) {
+					BufferProperties old = entry.getValue();
+					entry.setValue(bufferMonitor);
+					return old;
+				}
+			}
+			list.add(new AbstractMap.SimpleEntry<>(
+					new WeakReference<>(buffer, orphanedBuffers), bufferMonitor));
+			return null;
+		}
+		
+		public BufferProperties remove(ManagedBuffer<?> buffer) {
+			check();
+			int index = buffer.hashCode() & indexMask;
+			List<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> list
+				= data[index];
+			if (list == null) {
+				return null;
+			}
+			for (Iterator<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> 
+				itr = list.iterator(); itr.hasNext();) {
+				Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties> entry
+					= itr.next();
+				if (entry.getKey().get() == buffer) {
+					BufferProperties value = entry.getValue();
+					itr.remove();
+					return value;
+				}
+			}
+			return null;
+		}
+		
+		private void check() {
+			while (true) {
+				Reference<? extends ManagedBuffer<?>> ref = orphanedBuffers.poll();
+				if (ref == null) {
+					return;
+				}
+				ManagedBuffer<?> buffer = ref.get();
+				// Managed buffer has not been properly recollected, fix.
+				createdBufs.decrementAndGet();
+				BufferProperties props = remove(buffer);
+				// Create warning
+				if (logger.isLoggable(Level.WARNING)) {
+					final StringBuilder msg = new StringBuilder(
+							"Orphaned buffer from pool " + name());
+					StackTraceElement[] st = props.createdBy();
+					if (st != null) {
+						msg.append(", created");
+						for (StackTraceElement e: st) {
+							msg.append(System.lineSeparator());
+							msg.append("\tat ");
+							msg.append(e.toString());
 						}
-						logger.warning(msg.toString());
 					}
-				} catch (InterruptedException e) {
-					break;
+					logger.warning(msg.toString());
 				}
 			}
 		}
-	}
-	
-	static {
-		new OrphanedCollector();
 	}
 	
 	/**
