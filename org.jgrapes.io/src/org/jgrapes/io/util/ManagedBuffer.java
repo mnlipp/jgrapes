@@ -222,17 +222,6 @@ public class ManagedBuffer<T extends Buffer> {
 	}
 	
 	/**
-	 * @return the result
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	public boolean equals(Object obj) {
-		if (!(obj instanceof ManagedBuffer)) {
-			return false;
-		}
-		return backing.equals(((ManagedBuffer<?>)obj).backingBuffer());
-	}
-
-	/**
 	 * @return the buffer
 	 * @see java.nio.Buffer#flip()
 	 */
@@ -254,14 +243,6 @@ public class ManagedBuffer<T extends Buffer> {
 	 */
 	public final boolean hasRemaining() {
 		return backing.hasRemaining();
-	}
-
-	/**
-	 * @return the result
-	 * @see java.lang.Object#hashCode()
-	 */
-	public int hashCode() {
-		return backing.hashCode();
 	}
 
 	/**
