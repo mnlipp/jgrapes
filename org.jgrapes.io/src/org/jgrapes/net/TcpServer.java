@@ -557,6 +557,7 @@ public class TcpServer extends Component implements NioHandler {
 			} catch (IOException e) {
 				buffer.unlockBuffer();
 				downPipeline.fire(new IOError(null, e));
+				return;
 			}
 			// EOF (-1) from client
 			buffer.unlockBuffer();
