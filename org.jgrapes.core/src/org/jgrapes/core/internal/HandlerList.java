@@ -35,26 +35,29 @@ class HandlerList extends ArrayList<HandlerReference> {
 	 * @param event the event
 	 */
 	public void process(EventPipeline eventPipeline, EventBase<?> event) {
-		for (HandlerReference hdlr: this) {
+		try {
+			for (HandlerReference hdlr : this) {
+				try {
+					hdlr.invoke(event);
+					if (event.isStopped()) {
+						break;
+					}
+				} catch (Throwable t) {
+					if (t instanceof AssertionError) {
+						Common.setAssertionError((AssertionError) t);
+					}
+					event.handlingError(eventPipeline, t);
+				}
+			}
+		} finally {
 			try {
-				hdlr.invoke(event);
-				if (event.isStopped()) {
-					break;
-				}
+				event.handled();
+			} catch (AssertionError t) {
+				Common.setAssertionError(t);
+				event.handlingError(eventPipeline, t);
 			} catch (Throwable t) {
-				if (t instanceof AssertionError) {
-					Common.setAssertionError((AssertionError)t);
-				}
 				event.handlingError(eventPipeline, t);
 			}
-		}
-		try {
-			event.handled();
-		} catch (AssertionError t) {
-			Common.setAssertionError(t);
-			event.handlingError(eventPipeline, t);
-		} catch (Throwable t) {
-			event.handlingError(eventPipeline, t);
 		}
 	}
 
