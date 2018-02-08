@@ -354,7 +354,7 @@ public class TcpServer extends Component implements NioHandler {
 	 */
 	@Handler
 	public void onOutput(Output<ByteBuffer> event,
-			TcpChannel channel) throws IOException {
+			TcpChannel channel) {
 		if (channels.contains(channel)) {
 			channel.write(event);
 		}
@@ -489,9 +489,8 @@ public class TcpServer extends Component implements NioHandler {
 		 * Write the data on this channel.
 		 * 
 		 * @param event the event
-		 * @throws IOException if an error occurred
 		 */
-		public void write(Output<ByteBuffer> event) throws IOException {
+		public void write(Output<ByteBuffer> event) {
 			synchronized(pendingWrites) {
 				if (!nioChannel.isOpen()) {
 					return;
@@ -503,7 +502,12 @@ public class TcpServer extends Component implements NioHandler {
 					pendingWrites.add(reader);
 					return;
 				}
-				nioChannel.write(reader.get());
+				try {
+					nioChannel.write(reader.get());
+				} catch (IOException e) {
+					downPipeline.fire(new IOError(event, e), this);
+					return;
+				}
 				if (!reader.get().hasRemaining()) {
 					return;
 				}
@@ -525,7 +529,7 @@ public class TcpServer extends Component implements NioHandler {
 				if ((ops & SelectionKey.OP_WRITE) != 0) {
 					handleWriteOp();
 				}
-			} catch (InterruptedException | IOException e) {
+			} catch (InterruptedException e) {
 				downPipeline.fire(new IOError(null, e));
 			}
 		}
@@ -537,24 +541,33 @@ public class TcpServer extends Component implements NioHandler {
 		 * @throws InterruptedException
 		 * @throws IOException
 		 */
-		private void handleReadOp() throws InterruptedException, IOException {
+		private void handleReadOp() throws InterruptedException {
 			ManagedBuffer<ByteBuffer> buffer;
 			buffer = readBuffers.acquire();
-			int bytes = buffer.fillFromChannel(nioChannel);
-			if (bytes == 0) {
+			try {
+				int bytes = buffer.fillFromChannel(nioChannel);
+				if (bytes == 0) {
+					buffer.unlockBuffer();
+					return;
+				}
+				if (bytes > 0) {
+					downPipeline.fire(Input.fromSink(buffer, false), this);
+					return;
+				}
+			} catch (IOException e) {
 				buffer.unlockBuffer();
-				return;
-			}
-			if (bytes > 0) {
-				downPipeline.fire(Input.fromSink(buffer, false), this);
-				return;
+				downPipeline.fire(new IOError(null, e));
 			}
 			// EOF (-1) from client
 			buffer.unlockBuffer();
 			synchronized (nioChannel) {
 				if (nioChannel.socket().isOutputShutdown()) {
 					// Client confirms our close, complete close
-					nioChannel.close();
+					try {
+						nioChannel.close();
+					} catch (IOException e) {
+						// Ignored for close
+					}
 					return;
 				}
 				
@@ -563,15 +576,19 @@ public class TcpServer extends Component implements NioHandler {
 			removeChannel();
 			synchronized (pendingWrites) {
 				synchronized (nioChannel) {
-					if (!pendingWrites.isEmpty()) {
-						// Pending writes, delay close
-						pendingClose = true;
-						// Mark as client initiated close
-						nioChannel.shutdownInput();
-						return;
+					try {
+						if (!pendingWrites.isEmpty()) {
+							// Pending writes, delay close
+							pendingClose = true;
+							// Mark as client initiated close
+							nioChannel.shutdownInput();
+							return;
+						}
+						// Nothing left to do, close
+						nioChannel.close();
+					} catch (IOException e) {
+						// Ignored for close
 					}
-					// Nothing left to do, close
-					nioChannel.close();
 				}
 			}
 		}
@@ -584,8 +601,7 @@ public class TcpServer extends Component implements NioHandler {
 		 * @throws IOException
 		 * @throws InterruptedException 
 		 */
-		private void handleWriteOp() 
-				throws IOException, InterruptedException {
+		private void handleWriteOp() throws InterruptedException {
 			while (true) {
 				ManagedBuffer<ByteBuffer>.ByteBufferView head = null;
 				synchronized (pendingWrites) {
@@ -595,12 +611,16 @@ public class TcpServer extends Component implements NioHandler {
 						// Was the connection closed while we were writing?
 						if (pendingClose) {
 							synchronized (nioChannel) {
+								try {
 								if (nioChannel.socket().isInputShutdown()) {
 									// Delayed close from client, complete
 									nioChannel.close();
 								} else {
 									// Delayed close from server, initiate
 									nioChannel.shutdownOutput();
+								}
+								} catch (IOException e) {
+									// Ignored for close
 								}
 							}
 							pendingClose = false;
@@ -615,7 +635,11 @@ public class TcpServer extends Component implements NioHandler {
 						continue;
 					}
 				}
-				nioChannel.write(head.get()); // write...
+				try {
+					nioChannel.write(head.get()); // write...
+				} catch (IOException e) {
+					downPipeline.fire(new IOError(null, e), this);
+				}
 				break; // ... and wait for next op
 			}
 		}
