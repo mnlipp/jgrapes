@@ -18,6 +18,9 @@
 
 package org.jgrapes.io.events;
 
+import java.io.IOException;
+import java.util.Optional;
+
 import org.jgrapes.core.Event;
 
 /**
@@ -27,11 +30,29 @@ import org.jgrapes.core.Event;
  */
 public class Closed extends Event<Void> {
 
+	private Throwable error;
+	
 	/**
-	 * Creates a new event.
+	 * Creates a new event that signals a close in response to
+	 * an error (usually an {@link IOException}.
 	 */
-	public Closed() {
+	public Closed(Throwable error) {
+		this.error = error;
 	}
 
-	
+	/**
+	 * Creates a new event that signals a regular close.
+	 */
+	public Closed() {
+		this(null);
+	}
+
+	/**
+	 * Returns the cause of the {@link Closed} event in case of error.
+	 *
+	 * @return the optional failure
+	 */
+	Optional<Throwable> error() {
+		return Optional.ofNullable(error);
+	}
 }

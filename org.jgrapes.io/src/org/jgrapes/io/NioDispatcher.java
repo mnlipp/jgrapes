@@ -110,7 +110,7 @@ public class NioDispatcher extends Component implements Runnable {
 						// Delay next iteration if another thread has the lock.
 						// "Find bugs" complains, but this is really okay.
 					}
-				} catch (InterruptedIOException e) {
+				} catch (InterruptedIOException | InterruptedException e) {
 					break;
 				} catch (IOException e) {
 					// Can be ignored

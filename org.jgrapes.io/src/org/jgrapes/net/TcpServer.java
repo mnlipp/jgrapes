@@ -354,7 +354,7 @@ public class TcpServer extends Component implements NioHandler {
 	 */
 	@Handler
 	public void onOutput(Output<ByteBuffer> event,
-			TcpChannel channel) {
+			TcpChannel channel) throws InterruptedException {
 		if (channels.contains(channel)) {
 			channel.write(event);
 		}
@@ -490,7 +490,8 @@ public class TcpServer extends Component implements NioHandler {
 		 * 
 		 * @param event the event
 		 */
-		public void write(Output<ByteBuffer> event) {
+		public void write(Output<ByteBuffer> event) 
+				throws InterruptedException {
 			synchronized(pendingWrites) {
 				if (!nioChannel.isOpen()) {
 					return;
@@ -505,7 +506,7 @@ public class TcpServer extends Component implements NioHandler {
 				try {
 					nioChannel.write(reader.get());
 				} catch (IOException e) {
-					downPipeline.fire(new IOError(event, e), this);
+					removeChannel(e);
 					return;
 				}
 				if (!reader.get().hasRemaining()) {
@@ -521,16 +522,12 @@ public class TcpServer extends Component implements NioHandler {
 		}
 
 		@Override
-		public void handleOps(int ops) {
-			try {
-				if ((ops & SelectionKey.OP_READ) != 0) {
-					handleReadOp();
-				}
-				if ((ops & SelectionKey.OP_WRITE) != 0) {
-					handleWriteOp();
-				}
-			} catch (InterruptedException e) {
-				downPipeline.fire(new IOError(null, e));
+		public void handleOps(int ops) throws InterruptedException {
+			if ((ops & SelectionKey.OP_READ) != 0) {
+				handleReadOp();
+			}
+			if ((ops & SelectionKey.OP_WRITE) != 0) {
+				handleWriteOp();
 			}
 		}
 
@@ -556,7 +553,7 @@ public class TcpServer extends Component implements NioHandler {
 				}
 			} catch (IOException e) {
 				// Buffer already unlocked by fillFromChannel
-				downPipeline.fire(new IOError(null, e));
+				removeChannel(e);
 				return;
 			}
 			// EOF (-1) from client
@@ -574,7 +571,7 @@ public class TcpServer extends Component implements NioHandler {
 				
 			}
 			// Client initiates close
-			removeChannel();
+			removeChannel(null);
 			synchronized (pendingWrites) {
 				synchronized (nioChannel) {
 					try {
@@ -639,7 +636,8 @@ public class TcpServer extends Component implements NioHandler {
 				try {
 					nioChannel.write(head.get()); // write...
 				} catch (IOException e) {
-					downPipeline.fire(new IOError(null, e), this);
+					removeChannel(e);
+					return;
 				}
 				break; // ... and wait for next op
 			}
@@ -652,7 +650,7 @@ public class TcpServer extends Component implements NioHandler {
 		 * @throws InterruptedException if the execution was interrupted 
 		 */
 		public void close() throws IOException, InterruptedException {
-			removeChannel();
+			removeChannel(null);
 			synchronized (pendingWrites) {
 				if (!pendingWrites.isEmpty()) {
 					// Pending writes, delay close until done
@@ -669,9 +667,17 @@ public class TcpServer extends Component implements NioHandler {
 			}
 		}
 
-		private void removeChannel() throws InterruptedException {
+		private void removeChannel(Throwable error)
+				throws InterruptedException {
+			if (error != null) {
+				try {
+					nioChannel.close();
+				} catch (IOException e) {
+					// Closed only to make sure, any failure can be ignored.
+				}
+			}
 			if (TcpServer.this.removeChannel(this)) {
-				Closed evt = new Closed();
+				Closed evt = new Closed(error);
 				downPipeline.fire(evt, this);
 				evt.get();
 			}

@@ -184,24 +184,22 @@ public class FileStorage extends Component {
 						return;
 					}
 				}
+				IOException ioExc = null;
 				try {
 					ioChannel.close();
-					channel.respond(new Closed());
 				} catch (ClosedChannelException e) {
 					// Can be ignored
 				} catch (IOException e) {
-					channel.respond(new IOError(null, e));
+					ioExc = e;
 				}
+				channel.respond(new Closed(ioExc));
 				unregisterAsGenerator();
 			}
 			
 			@Override
 			public void failed(
 					Throwable exc, ManagedBuffer<ByteBuffer> context) {
-				if (!(exc instanceof AsynchronousCloseException)) {
-					channel.respond(new IOError(null, exc));
-				}
-				channel.respond(new Closed());
+				channel.respond(new Closed(exc));
 				unregisterAsGenerator();
 			}
 		}
@@ -222,6 +220,7 @@ public class FileStorage extends Component {
 				@Override
 				public void run() {
 					// Reading from file
+					IOException ioExc = null;
 					try {
 						long size = ioChannel.size();
 						while (ioChannel.position() < size) {
@@ -231,12 +230,14 @@ public class FileStorage extends Component {
 									ioChannel.position() == size));
 						}
 						ioChannel.close();
-						channel.respond(new Closed());
+					} catch (InterruptedException e) {
+						return;
 					} catch (ClosedChannelException e) {
 						// Can be ignored
-					} catch (InterruptedException | IOException e) {
-						channel.respond(new IOError(event, e));
+					} catch (IOException e) {
+						ioExc = e;
 					}
+					channel.respond(new Closed(ioExc));
 				}
 			});
 		}
@@ -474,6 +475,7 @@ public class FileStorage extends Component {
 
 		public void close(Event<?> event)
 				throws InterruptedException {
+			IOException ioExc = null;
 			try {
 				synchronized (ioChannel) {
 					while (outstandingAsyncs > 0) {
@@ -481,12 +483,12 @@ public class FileStorage extends Component {
 					}
 					ioChannel.close();
 				}
-				channel.respond(new Closed());
 			} catch (ClosedChannelException e) {
 				// Can be ignored
 			} catch (IOException e) {
-				channel.respond(new IOError(event, e));
+				ioExc = e;
 			}
+			channel.respond(new Closed(ioExc));
 			inputWriters.remove(channel);
 			outputWriters.remove(channel);
 		}

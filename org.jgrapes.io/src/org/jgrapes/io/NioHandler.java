@@ -32,6 +32,6 @@ public interface NioHandler {
 	 * @param ops the pending operations as or'ed constants defined
 	 * by {@link SelectionKey}
 	 */
-	void handleOps(int ops);
+	void handleOps(int ops) throws InterruptedException;
 	
 }
