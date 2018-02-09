@@ -362,7 +362,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 				indexMask = (indexMask << 1) + 1;
 			}
 			data = (List<Map.Entry<WeakReference<W>,BufferProperties>>[])
-					new List[maxBuffers];
+					new List[lists];
 		}
 
 		public BufferProperties put(W buffer, BufferProperties bufferMonitor) {
