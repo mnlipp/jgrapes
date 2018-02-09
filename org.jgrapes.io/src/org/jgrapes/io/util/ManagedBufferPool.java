@@ -252,6 +252,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			// Haven't reached maximum, so if no buffer is queued, create one.
 			W buffer = queue.poll();
 			if (buffer != null) {
+				buffer.lockBuffer();
 				return buffer;
 			}
 			return createBuffer();
@@ -261,12 +262,15 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			// If configured, log message after waiting some time.
 			W buffer = queue.poll(acquireWarningLimit, TimeUnit.MILLISECONDS);
 			if (buffer != null) {
+				buffer.lockBuffer();
 				return buffer;
 			}
 			logger.fine("Waiting > " + acquireWarningLimit + "ms for buffer: " 
 						+ Thread.currentThread().getName());
 		}
-		return queue.take();
+		W buffer = queue.take();
+		buffer.lockBuffer();
+		return buffer;
 	}
 	
 	/**
@@ -282,7 +286,6 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			if (effectiveDrainDelay > 0) {
 				// Enqueue
 				buffer.clear();
-				buffer.lockBuffer();
 				@SuppressWarnings("unchecked")
 				W buf = (W)buffer;
 				queue.add(buf);
