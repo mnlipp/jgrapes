@@ -369,20 +369,43 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			synchronized(data) {
 				list = data[index];
 				if (list == null) {
-					list = data[index] = Collections.synchronizedList(
-							new LinkedList<>());
+					list = data[index] = new LinkedList<>();
 				}
 			}
-			for (Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties> 
-				entry: list) {
-				if (entry.getKey().get() == buffer) {
-					BufferProperties old = entry.getValue();
-					entry.setValue(bufferMonitor);
-					return old;
+			synchronized(list) {
+				for (Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties> 
+					entry: list) {
+					if (entry.getKey().get() == buffer) {
+						BufferProperties old = entry.getValue();
+						entry.setValue(bufferMonitor);
+						return old;
+					}
+				}
+				list.add(new AbstractMap.SimpleEntry<>(
+						new WeakReference<>(buffer, orphanedBuffers), bufferMonitor));
+			}
+			return null;
+		}
+		
+		@SuppressWarnings("unused")
+		public BufferProperties get(ManagedBuffer<?> buffer) {
+			check();
+			int index = buffer.hashCode() & indexMask;
+			List<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> list
+				= data[index];
+			if (list == null) {
+				return null;
+			}
+			synchronized(list) {
+				for (Iterator<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> 
+					itr = list.iterator(); itr.hasNext();) {
+					Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties> entry
+						= itr.next();
+					if (entry.getKey().get() == buffer) {
+						return entry.getValue();
+					}
 				}
 			}
-			list.add(new AbstractMap.SimpleEntry<>(
-					new WeakReference<>(buffer, orphanedBuffers), bufferMonitor));
 			return null;
 		}
 		
@@ -394,14 +417,16 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			if (list == null) {
 				return null;
 			}
-			for (Iterator<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> 
-				itr = list.iterator(); itr.hasNext();) {
-				Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties> entry
-					= itr.next();
-				if (entry.getKey().get() == buffer) {
-					BufferProperties value = entry.getValue();
-					itr.remove();
-					return value;
+			synchronized(list) {
+				for (Iterator<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> 
+					itr = list.iterator(); itr.hasNext();) {
+					Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties> entry
+						= itr.next();
+					if (entry.getKey().get() == buffer) {
+						BufferProperties value = entry.getValue();
+						itr.remove();
+						return value;
+					}
 				}
 			}
 			return null;
