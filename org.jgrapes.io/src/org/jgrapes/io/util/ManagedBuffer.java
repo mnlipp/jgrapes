@@ -44,7 +44,7 @@ public class ManagedBuffer<T extends Buffer> {
 		= wrap(CharBuffer.allocate(0));
 	
 	protected T backing;
-	private BufferCollector manager;
+	private BufferCollector<ManagedBuffer<T>> manager;
 	private AtomicInteger lockCount = new AtomicInteger(1);
 	
 	/**
@@ -55,7 +55,7 @@ public class ManagedBuffer<T extends Buffer> {
 	 * @param manager used for restoring the buffer when the lock 
 	 * count reaches zero
 	 */
-	public ManagedBuffer(T buffer, BufferCollector manager) {
+	public ManagedBuffer(T buffer, BufferCollector<ManagedBuffer<T>> manager) {
 		this.backing = buffer;
 		this.manager = manager;
 	}
@@ -72,7 +72,7 @@ public class ManagedBuffer<T extends Buffer> {
 	 * @return the managed buffer
 	 */
 	public static <B extends Buffer> ManagedBuffer<B> wrap(B buffer) {
-		return new ManagedBuffer<B>(buffer, BufferCollector.NOOP_COLLECTOR);
+		return new ManagedBuffer<B>(buffer, BufferCollector.noopCollector());
 	}
 	
 	/**
@@ -100,7 +100,7 @@ public class ManagedBuffer<T extends Buffer> {
 	 * 
 	 * @return the manager
 	 */
-	public BufferCollector manager() {
+	public BufferCollector<?> manager() {
 		return manager;
 	}
 	

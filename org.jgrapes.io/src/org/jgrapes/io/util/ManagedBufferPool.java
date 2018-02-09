@@ -86,10 +86,13 @@ import org.jgrapes.io.events.Output;
  * the warning also includes a stack trace of the call to {@link #acquire()}
  * that handed out the buffer. Providing this information in addition 
  * obviously requires a larger overhead and is therefore limited to the
- * finer log levels.  
+ * finer log levels.
+ *
+ * @param <W> the type of the wrapped (managed) buffer
+ * @param <T> the type of the content buffer that is wrapped
  */
 public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
-	implements BufferCollector {
+	implements BufferCollector<W> {
 
 	protected static final Logger logger 
 		= Logger.getLogger(ManagedBufferPool.class.getName());
@@ -98,7 +101,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	private static long acquireWarningLimit = 1000;
 	
 	private String name = Components.objectName(this);
-	private BiFunction<T, BufferCollector,W> wrapper = null;
+	private BiFunction<T, BufferCollector<W>,W> wrapper = null;
 	private Supplier<T> bufferFactory = null;
 	private BufferMonitor bufferMonitor;
 	private BlockingQueue<W> queue;
@@ -141,7 +144,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @param lowerThreshold the number of buffers kept in the pool
 	 * @param upperLimit the maximum number of buffers
 	 */
-	public ManagedBufferPool(BiFunction<T,BufferCollector, W> wrapper, 
+	public ManagedBufferPool(BiFunction<T,BufferCollector<W>, W> wrapper, 
 			Supplier<T> bufferFactory, int lowerThreshold, int upperLimit) {
 		this.wrapper = wrapper;
 		this.bufferFactory = bufferFactory;
@@ -161,7 +164,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @param bufferFactory a function that creates a new buffer
 	 * @param buffers the number of buffers
 	 */
-	public ManagedBufferPool(BiFunction<T,BufferCollector, W> wrapper, 
+	public ManagedBufferPool(BiFunction<T,BufferCollector<W>, W> wrapper, 
 			Supplier<T> bufferFactory, int buffers) {
 		this(wrapper, bufferFactory, buffers, buffers);
 	}
@@ -211,7 +214,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	 * 
 	 * @param buffer the buffer to remove
 	 */
-	private void removeBuffer(ManagedBuffer<?> buffer) {
+	private void removeBuffer(W buffer) {
 		createdBufs.decrementAndGet();
 		if (bufferMonitor.remove(buffer) == null) {
 			if (logger.isLoggable(Level.FINE)) {
@@ -279,16 +282,14 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @see org.jgrapes.io.util.BufferCollector#recollect(org.jgrapes.io.util.ManagedBuffer)
 	 */
 	@Override
-	public void recollect(ManagedBuffer<?> buffer) {
+	public void recollect(W buffer) {
 		if (queue.size() < preservedBufs) {
 			long effectiveDrainDelay 
 				= drainDelay > 0 ? drainDelay : defaultDrainDelay;
 			if (effectiveDrainDelay > 0) {
 				// Enqueue
 				buffer.clear();
-				@SuppressWarnings("unchecked")
-				W buf = (W)buffer;
-				queue.add(buf);
+				queue.add(buffer);
 				Timer old = idleTimer.getAndSet(Components.schedule(this::drain, 
 						Duration.ofMillis(effectiveDrainDelay)));
 				if (old != null) {
@@ -304,7 +305,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	private void drain(Timer timer) {
 		idleTimer.set(null);
 		while(true) {
-			ManagedBuffer<?> buffer = queue.poll();
+			W buffer = queue.poll();
 			if (buffer == null) {
 				break;
 			}
@@ -344,7 +345,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	
 	private class BufferMonitor {
 		
-		private List<Map.Entry<WeakReference<ManagedBuffer<?>>,
+		private List<Map.Entry<WeakReference<W>,
 			BufferProperties>>[] data;
 		private int indexMask = 0;
 		private ReferenceQueue<ManagedBuffer<?>> orphanedBuffers 
@@ -360,15 +361,14 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 				lists <<= 1;
 				indexMask = (indexMask << 1) + 1;
 			}
-			data = (List<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>>[])
+			data = (List<Map.Entry<WeakReference<W>,BufferProperties>>[])
 					new List[maxBuffers];
 		}
 
-		public BufferProperties put(
-				ManagedBuffer<?> buffer, BufferProperties bufferMonitor) {
+		public BufferProperties put(W buffer, BufferProperties bufferMonitor) {
 			check();
 			int index = buffer.hashCode() & indexMask;
-			List<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> list;
+			List<Map.Entry<WeakReference<W>,BufferProperties>> list;
 			synchronized(data) {
 				list = data[index];
 				if (list == null) {
@@ -376,8 +376,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 				}
 			}
 			synchronized(list) {
-				for (Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties> 
-					entry: list) {
+				for (Map.Entry<WeakReference<W>,BufferProperties> entry: list) {
 					if (entry.getKey().get() == buffer) {
 						BufferProperties old = entry.getValue();
 						entry.setValue(bufferMonitor);
@@ -394,16 +393,14 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		public BufferProperties get(ManagedBuffer<?> buffer) {
 			check();
 			int index = buffer.hashCode() & indexMask;
-			List<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> list
-				= data[index];
+			List<Map.Entry<WeakReference<W>,BufferProperties>> list	= data[index];
 			if (list == null) {
 				return null;
 			}
 			synchronized(list) {
-				for (Iterator<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> 
+				for (Iterator<Map.Entry<WeakReference<W>,BufferProperties>> 
 					itr = list.iterator(); itr.hasNext();) {
-					Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties> entry
-						= itr.next();
+					Map.Entry<WeakReference<W>,BufferProperties> entry = itr.next();
 					if (entry.getKey().get() == buffer) {
 						return entry.getValue();
 					}
@@ -415,16 +412,14 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		public BufferProperties remove(ManagedBuffer<?> buffer) {
 			check();
 			int index = buffer.hashCode() & indexMask;
-			List<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> list
-				= data[index];
+			List<Map.Entry<WeakReference<W>,BufferProperties>> list	= data[index];
 			if (list == null) {
 				return null;
 			}
 			synchronized(list) {
-				for (Iterator<Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties>> 
+				for (Iterator<Map.Entry<WeakReference<W>,BufferProperties>> 
 					itr = list.iterator(); itr.hasNext();) {
-					Map.Entry<WeakReference<ManagedBuffer<?>>,BufferProperties> entry
-						= itr.next();
+					Map.Entry<WeakReference<W>,BufferProperties> entry = itr.next();
 					if (entry.getKey().get() == buffer) {
 						BufferProperties value = entry.getValue();
 						itr.remove();
