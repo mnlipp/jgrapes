@@ -362,7 +362,7 @@
 <span class="sourceLineNo">354</span>         */<a name="line.354"></a>
 <span class="sourceLineNo">355</span>        @Handler<a name="line.355"></a>
 <span class="sourceLineNo">356</span>        public void onOutput(Output&lt;ByteBuffer&gt; event,<a name="line.356"></a>
-<span class="sourceLineNo">357</span>                        TcpChannel channel) {<a name="line.357"></a>
+<span class="sourceLineNo">357</span>                        TcpChannel channel) throws InterruptedException {<a name="line.357"></a>
 <span class="sourceLineNo">358</span>                if (channels.contains(channel)) {<a name="line.358"></a>
 <span class="sourceLineNo">359</span>                        channel.write(event);<a name="line.359"></a>
 <span class="sourceLineNo">360</span>                }<a name="line.360"></a>
@@ -498,293 +498,299 @@
 <span class="sourceLineNo">490</span>                 * <a name="line.490"></a>
 <span class="sourceLineNo">491</span>                 * @param event the event<a name="line.491"></a>
 <span class="sourceLineNo">492</span>                 */<a name="line.492"></a>
-<span class="sourceLineNo">493</span>                public void write(Output&lt;ByteBuffer&gt; event) {<a name="line.493"></a>
-<span class="sourceLineNo">494</span>                        synchronized(pendingWrites) {<a name="line.494"></a>
-<span class="sourceLineNo">495</span>                                if (!nioChannel.isOpen()) {<a name="line.495"></a>
-<span class="sourceLineNo">496</span>                                        return;<a name="line.496"></a>
-<span class="sourceLineNo">497</span>                                }<a name="line.497"></a>
-<span class="sourceLineNo">498</span>                                ManagedBuffer&lt;ByteBuffer&gt;.ByteBufferView reader <a name="line.498"></a>
-<span class="sourceLineNo">499</span>                                        = event.buffer().newByteBufferView();<a name="line.499"></a>
-<span class="sourceLineNo">500</span>                                if (!pendingWrites.isEmpty()) {<a name="line.500"></a>
-<span class="sourceLineNo">501</span>                                        reader.managedBuffer().lockBuffer();<a name="line.501"></a>
-<span class="sourceLineNo">502</span>                                        pendingWrites.add(reader);<a name="line.502"></a>
-<span class="sourceLineNo">503</span>                                        return;<a name="line.503"></a>
-<span class="sourceLineNo">504</span>                                }<a name="line.504"></a>
-<span class="sourceLineNo">505</span>                                try {<a name="line.505"></a>
-<span class="sourceLineNo">506</span>                                        nioChannel.write(reader.get());<a name="line.506"></a>
-<span class="sourceLineNo">507</span>                                } catch (IOException e) {<a name="line.507"></a>
-<span class="sourceLineNo">508</span>                                        downPipeline.fire(new IOError(event, e), this);<a name="line.508"></a>
-<span class="sourceLineNo">509</span>                                        return;<a name="line.509"></a>
-<span class="sourceLineNo">510</span>                                }<a name="line.510"></a>
-<span class="sourceLineNo">511</span>                                if (!reader.get().hasRemaining()) {<a name="line.511"></a>
-<span class="sourceLineNo">512</span>                                        return;<a name="line.512"></a>
-<span class="sourceLineNo">513</span>                                }<a name="line.513"></a>
-<span class="sourceLineNo">514</span>                                reader.managedBuffer().lockBuffer();<a name="line.514"></a>
-<span class="sourceLineNo">515</span>                                pendingWrites.add(reader);<a name="line.515"></a>
-<span class="sourceLineNo">516</span>                                if (pendingWrites.size() == 1) {<a name="line.516"></a>
-<span class="sourceLineNo">517</span>                                        registration.updateInterested(<a name="line.517"></a>
-<span class="sourceLineNo">518</span>                                                        SelectionKey.OP_READ | SelectionKey.OP_WRITE);<a name="line.518"></a>
-<span class="sourceLineNo">519</span>                                }<a name="line.519"></a>
-<span class="sourceLineNo">520</span>                        }<a name="line.520"></a>
-<span class="sourceLineNo">521</span>                }<a name="line.521"></a>
-<span class="sourceLineNo">522</span><a name="line.522"></a>
-<span class="sourceLineNo">523</span>                @Override<a name="line.523"></a>
-<span class="sourceLineNo">524</span>                public void handleOps(int ops) {<a name="line.524"></a>
-<span class="sourceLineNo">525</span>                        try {<a name="line.525"></a>
-<span class="sourceLineNo">526</span>                                if ((ops &amp; SelectionKey.OP_READ) != 0) {<a name="line.526"></a>
-<span class="sourceLineNo">527</span>                                        handleReadOp();<a name="line.527"></a>
-<span class="sourceLineNo">528</span>                                }<a name="line.528"></a>
-<span class="sourceLineNo">529</span>                                if ((ops &amp; SelectionKey.OP_WRITE) != 0) {<a name="line.529"></a>
-<span class="sourceLineNo">530</span>                                        handleWriteOp();<a name="line.530"></a>
-<span class="sourceLineNo">531</span>                                }<a name="line.531"></a>
-<span class="sourceLineNo">532</span>                        } catch (InterruptedException e) {<a name="line.532"></a>
-<span class="sourceLineNo">533</span>                                downPipeline.fire(new IOError(null, e));<a name="line.533"></a>
-<span class="sourceLineNo">534</span>                        }<a name="line.534"></a>
-<span class="sourceLineNo">535</span>                }<a name="line.535"></a>
-<span class="sourceLineNo">536</span><a name="line.536"></a>
-<span class="sourceLineNo">537</span>                /**<a name="line.537"></a>
-<span class="sourceLineNo">538</span>                 * Gets a buffer from the pool and reads available data into it.<a name="line.538"></a>
-<span class="sourceLineNo">539</span>                 * Sends the result as event. <a name="line.539"></a>
-<span class="sourceLineNo">540</span>                 * <a name="line.540"></a>
-<span class="sourceLineNo">541</span>                 * @throws InterruptedException<a name="line.541"></a>
-<span class="sourceLineNo">542</span>                 * @throws IOException<a name="line.542"></a>
-<span class="sourceLineNo">543</span>                 */<a name="line.543"></a>
-<span class="sourceLineNo">544</span>                private void handleReadOp() throws InterruptedException {<a name="line.544"></a>
-<span class="sourceLineNo">545</span>                        ManagedBuffer&lt;ByteBuffer&gt; buffer;<a name="line.545"></a>
-<span class="sourceLineNo">546</span>                        buffer = readBuffers.acquire();<a name="line.546"></a>
-<span class="sourceLineNo">547</span>                        try {<a name="line.547"></a>
-<span class="sourceLineNo">548</span>                                int bytes = buffer.fillFromChannel(nioChannel);<a name="line.548"></a>
-<span class="sourceLineNo">549</span>                                if (bytes == 0) {<a name="line.549"></a>
-<span class="sourceLineNo">550</span>                                        buffer.unlockBuffer();<a name="line.550"></a>
-<span class="sourceLineNo">551</span>                                        return;<a name="line.551"></a>
-<span class="sourceLineNo">552</span>                                }<a name="line.552"></a>
-<span class="sourceLineNo">553</span>                                if (bytes &gt; 0) {<a name="line.553"></a>
-<span class="sourceLineNo">554</span>                                        downPipeline.fire(Input.fromSink(buffer, false), this);<a name="line.554"></a>
-<span class="sourceLineNo">555</span>                                        return;<a name="line.555"></a>
-<span class="sourceLineNo">556</span>                                }<a name="line.556"></a>
-<span class="sourceLineNo">557</span>                        } catch (IOException e) {<a name="line.557"></a>
-<span class="sourceLineNo">558</span>                                // Buffer already unlocked by fillFromChannel<a name="line.558"></a>
-<span class="sourceLineNo">559</span>                                downPipeline.fire(new IOError(null, e));<a name="line.559"></a>
-<span class="sourceLineNo">560</span>                                return;<a name="line.560"></a>
-<span class="sourceLineNo">561</span>                        }<a name="line.561"></a>
-<span class="sourceLineNo">562</span>                        // EOF (-1) from client<a name="line.562"></a>
-<span class="sourceLineNo">563</span>                        buffer.unlockBuffer();<a name="line.563"></a>
-<span class="sourceLineNo">564</span>                        synchronized (nioChannel) {<a name="line.564"></a>
-<span class="sourceLineNo">565</span>                                if (nioChannel.socket().isOutputShutdown()) {<a name="line.565"></a>
-<span class="sourceLineNo">566</span>                                        // Client confirms our close, complete close<a name="line.566"></a>
-<span class="sourceLineNo">567</span>                                        try {<a name="line.567"></a>
-<span class="sourceLineNo">568</span>                                                nioChannel.close();<a name="line.568"></a>
-<span class="sourceLineNo">569</span>                                        } catch (IOException e) {<a name="line.569"></a>
-<span class="sourceLineNo">570</span>                                                // Ignored for close<a name="line.570"></a>
-<span class="sourceLineNo">571</span>                                        }<a name="line.571"></a>
-<span class="sourceLineNo">572</span>                                        return;<a name="line.572"></a>
-<span class="sourceLineNo">573</span>                                }<a name="line.573"></a>
-<span class="sourceLineNo">574</span>                                <a name="line.574"></a>
-<span class="sourceLineNo">575</span>                        }<a name="line.575"></a>
-<span class="sourceLineNo">576</span>                        // Client initiates close<a name="line.576"></a>
-<span class="sourceLineNo">577</span>                        removeChannel();<a name="line.577"></a>
-<span class="sourceLineNo">578</span>                        synchronized (pendingWrites) {<a name="line.578"></a>
-<span class="sourceLineNo">579</span>                                synchronized (nioChannel) {<a name="line.579"></a>
-<span class="sourceLineNo">580</span>                                        try {<a name="line.580"></a>
-<span class="sourceLineNo">581</span>                                                if (!pendingWrites.isEmpty()) {<a name="line.581"></a>
-<span class="sourceLineNo">582</span>                                                        // Pending writes, delay close<a name="line.582"></a>
-<span class="sourceLineNo">583</span>                                                        pendingClose = true;<a name="line.583"></a>
-<span class="sourceLineNo">584</span>                                                        // Mark as client initiated close<a name="line.584"></a>
-<span class="sourceLineNo">585</span>                                                        nioChannel.shutdownInput();<a name="line.585"></a>
-<span class="sourceLineNo">586</span>                                                        return;<a name="line.586"></a>
-<span class="sourceLineNo">587</span>                                                }<a name="line.587"></a>
-<span class="sourceLineNo">588</span>                                                // Nothing left to do, close<a name="line.588"></a>
-<span class="sourceLineNo">589</span>                                                nioChannel.close();<a name="line.589"></a>
-<span class="sourceLineNo">590</span>                                        } catch (IOException e) {<a name="line.590"></a>
-<span class="sourceLineNo">591</span>                                                // Ignored for close<a name="line.591"></a>
-<span class="sourceLineNo">592</span>                                        }<a name="line.592"></a>
-<span class="sourceLineNo">593</span>                                }<a name="line.593"></a>
-<span class="sourceLineNo">594</span>                        }<a name="line.594"></a>
-<span class="sourceLineNo">595</span>                }<a name="line.595"></a>
-<span class="sourceLineNo">596</span><a name="line.596"></a>
-<span class="sourceLineNo">597</span>                /**<a name="line.597"></a>
-<span class="sourceLineNo">598</span>                 * Checks if there is still data to be written. This may be<a name="line.598"></a>
-<span class="sourceLineNo">599</span>                 * a left over in an incompletely written buffer or a complete<a name="line.599"></a>
-<span class="sourceLineNo">600</span>                 * pending buffer. <a name="line.600"></a>
-<span class="sourceLineNo">601</span>                 * <a name="line.601"></a>
-<span class="sourceLineNo">602</span>                 * @throws IOException<a name="line.602"></a>
-<span class="sourceLineNo">603</span>                 * @throws InterruptedException <a name="line.603"></a>
-<span class="sourceLineNo">604</span>                 */<a name="line.604"></a>
-<span class="sourceLineNo">605</span>                private void handleWriteOp() throws InterruptedException {<a name="line.605"></a>
-<span class="sourceLineNo">606</span>                        while (true) {<a name="line.606"></a>
-<span class="sourceLineNo">607</span>                                ManagedBuffer&lt;ByteBuffer&gt;.ByteBufferView head = null;<a name="line.607"></a>
-<span class="sourceLineNo">608</span>                                synchronized (pendingWrites) {<a name="line.608"></a>
-<span class="sourceLineNo">609</span>                                        if (pendingWrites.isEmpty()) {<a name="line.609"></a>
-<span class="sourceLineNo">610</span>                                                // Nothing left to write, stop getting ops<a name="line.610"></a>
-<span class="sourceLineNo">611</span>                                                registration.updateInterested(SelectionKey.OP_READ);<a name="line.611"></a>
-<span class="sourceLineNo">612</span>                                                // Was the connection closed while we were writing?<a name="line.612"></a>
-<span class="sourceLineNo">613</span>                                                if (pendingClose) {<a name="line.613"></a>
-<span class="sourceLineNo">614</span>                                                        synchronized (nioChannel) {<a name="line.614"></a>
-<span class="sourceLineNo">615</span>                                                                try {<a name="line.615"></a>
-<span class="sourceLineNo">616</span>                                                                if (nioChannel.socket().isInputShutdown()) {<a name="line.616"></a>
-<span class="sourceLineNo">617</span>                                                                        // Delayed close from client, complete<a name="line.617"></a>
-<span class="sourceLineNo">618</span>                                                                        nioChannel.close();<a name="line.618"></a>
-<span class="sourceLineNo">619</span>                                                                } else {<a name="line.619"></a>
-<span class="sourceLineNo">620</span>                                                                        // Delayed close from server, initiate<a name="line.620"></a>
-<span class="sourceLineNo">621</span>                                                                        nioChannel.shutdownOutput();<a name="line.621"></a>
+<span class="sourceLineNo">493</span>                public void write(Output&lt;ByteBuffer&gt; event) <a name="line.493"></a>
+<span class="sourceLineNo">494</span>                                throws InterruptedException {<a name="line.494"></a>
+<span class="sourceLineNo">495</span>                        synchronized(pendingWrites) {<a name="line.495"></a>
+<span class="sourceLineNo">496</span>                                if (!nioChannel.isOpen()) {<a name="line.496"></a>
+<span class="sourceLineNo">497</span>                                        return;<a name="line.497"></a>
+<span class="sourceLineNo">498</span>                                }<a name="line.498"></a>
+<span class="sourceLineNo">499</span>                                ManagedBuffer&lt;ByteBuffer&gt;.ByteBufferView reader <a name="line.499"></a>
+<span class="sourceLineNo">500</span>                                        = event.buffer().newByteBufferView();<a name="line.500"></a>
+<span class="sourceLineNo">501</span>                                if (!pendingWrites.isEmpty()) {<a name="line.501"></a>
+<span class="sourceLineNo">502</span>                                        reader.managedBuffer().lockBuffer();<a name="line.502"></a>
+<span class="sourceLineNo">503</span>                                        pendingWrites.add(reader);<a name="line.503"></a>
+<span class="sourceLineNo">504</span>                                        return;<a name="line.504"></a>
+<span class="sourceLineNo">505</span>                                }<a name="line.505"></a>
+<span class="sourceLineNo">506</span>                                try {<a name="line.506"></a>
+<span class="sourceLineNo">507</span>                                        nioChannel.write(reader.get());<a name="line.507"></a>
+<span class="sourceLineNo">508</span>                                } catch (IOException e) {<a name="line.508"></a>
+<span class="sourceLineNo">509</span>                                        removeChannel(e);<a name="line.509"></a>
+<span class="sourceLineNo">510</span>                                        return;<a name="line.510"></a>
+<span class="sourceLineNo">511</span>                                }<a name="line.511"></a>
+<span class="sourceLineNo">512</span>                                if (!reader.get().hasRemaining()) {<a name="line.512"></a>
+<span class="sourceLineNo">513</span>                                        return;<a name="line.513"></a>
+<span class="sourceLineNo">514</span>                                }<a name="line.514"></a>
+<span class="sourceLineNo">515</span>                                reader.managedBuffer().lockBuffer();<a name="line.515"></a>
+<span class="sourceLineNo">516</span>                                pendingWrites.add(reader);<a name="line.516"></a>
+<span class="sourceLineNo">517</span>                                if (pendingWrites.size() == 1) {<a name="line.517"></a>
+<span class="sourceLineNo">518</span>                                        registration.updateInterested(<a name="line.518"></a>
+<span class="sourceLineNo">519</span>                                                        SelectionKey.OP_READ | SelectionKey.OP_WRITE);<a name="line.519"></a>
+<span class="sourceLineNo">520</span>                                }<a name="line.520"></a>
+<span class="sourceLineNo">521</span>                        }<a name="line.521"></a>
+<span class="sourceLineNo">522</span>                }<a name="line.522"></a>
+<span class="sourceLineNo">523</span><a name="line.523"></a>
+<span class="sourceLineNo">524</span>                @Override<a name="line.524"></a>
+<span class="sourceLineNo">525</span>                public void handleOps(int ops) throws InterruptedException {<a name="line.525"></a>
+<span class="sourceLineNo">526</span>                        if ((ops &amp; SelectionKey.OP_READ) != 0) {<a name="line.526"></a>
+<span class="sourceLineNo">527</span>                                handleReadOp();<a name="line.527"></a>
+<span class="sourceLineNo">528</span>                        }<a name="line.528"></a>
+<span class="sourceLineNo">529</span>                        if ((ops &amp; SelectionKey.OP_WRITE) != 0) {<a name="line.529"></a>
+<span class="sourceLineNo">530</span>                                handleWriteOp();<a name="line.530"></a>
+<span class="sourceLineNo">531</span>                        }<a name="line.531"></a>
+<span class="sourceLineNo">532</span>                }<a name="line.532"></a>
+<span class="sourceLineNo">533</span><a name="line.533"></a>
+<span class="sourceLineNo">534</span>                /**<a name="line.534"></a>
+<span class="sourceLineNo">535</span>                 * Gets a buffer from the pool and reads available data into it.<a name="line.535"></a>
+<span class="sourceLineNo">536</span>                 * Sends the result as event. <a name="line.536"></a>
+<span class="sourceLineNo">537</span>                 * <a name="line.537"></a>
+<span class="sourceLineNo">538</span>                 * @throws InterruptedException<a name="line.538"></a>
+<span class="sourceLineNo">539</span>                 * @throws IOException<a name="line.539"></a>
+<span class="sourceLineNo">540</span>                 */<a name="line.540"></a>
+<span class="sourceLineNo">541</span>                private void handleReadOp() throws InterruptedException {<a name="line.541"></a>
+<span class="sourceLineNo">542</span>                        ManagedBuffer&lt;ByteBuffer&gt; buffer;<a name="line.542"></a>
+<span class="sourceLineNo">543</span>                        buffer = readBuffers.acquire();<a name="line.543"></a>
+<span class="sourceLineNo">544</span>                        try {<a name="line.544"></a>
+<span class="sourceLineNo">545</span>                                int bytes = buffer.fillFromChannel(nioChannel);<a name="line.545"></a>
+<span class="sourceLineNo">546</span>                                if (bytes == 0) {<a name="line.546"></a>
+<span class="sourceLineNo">547</span>                                        buffer.unlockBuffer();<a name="line.547"></a>
+<span class="sourceLineNo">548</span>                                        return;<a name="line.548"></a>
+<span class="sourceLineNo">549</span>                                }<a name="line.549"></a>
+<span class="sourceLineNo">550</span>                                if (bytes &gt; 0) {<a name="line.550"></a>
+<span class="sourceLineNo">551</span>                                        downPipeline.fire(Input.fromSink(buffer, false), this);<a name="line.551"></a>
+<span class="sourceLineNo">552</span>                                        return;<a name="line.552"></a>
+<span class="sourceLineNo">553</span>                                }<a name="line.553"></a>
+<span class="sourceLineNo">554</span>                        } catch (IOException e) {<a name="line.554"></a>
+<span class="sourceLineNo">555</span>                                // Buffer already unlocked by fillFromChannel<a name="line.555"></a>
+<span class="sourceLineNo">556</span>                                removeChannel(e);<a name="line.556"></a>
+<span class="sourceLineNo">557</span>                                return;<a name="line.557"></a>
+<span class="sourceLineNo">558</span>                        }<a name="line.558"></a>
+<span class="sourceLineNo">559</span>                        // EOF (-1) from client<a name="line.559"></a>
+<span class="sourceLineNo">560</span>                        buffer.unlockBuffer();<a name="line.560"></a>
+<span class="sourceLineNo">561</span>                        synchronized (nioChannel) {<a name="line.561"></a>
+<span class="sourceLineNo">562</span>                                if (nioChannel.socket().isOutputShutdown()) {<a name="line.562"></a>
+<span class="sourceLineNo">563</span>                                        // Client confirms our close, complete close<a name="line.563"></a>
+<span class="sourceLineNo">564</span>                                        try {<a name="line.564"></a>
+<span class="sourceLineNo">565</span>                                                nioChannel.close();<a name="line.565"></a>
+<span class="sourceLineNo">566</span>                                        } catch (IOException e) {<a name="line.566"></a>
+<span class="sourceLineNo">567</span>                                                // Ignored for close<a name="line.567"></a>
+<span class="sourceLineNo">568</span>                                        }<a name="line.568"></a>
+<span class="sourceLineNo">569</span>                                        return;<a name="line.569"></a>
+<span class="sourceLineNo">570</span>                                }<a name="line.570"></a>
+<span class="sourceLineNo">571</span>                                <a name="line.571"></a>
+<span class="sourceLineNo">572</span>                        }<a name="line.572"></a>
+<span class="sourceLineNo">573</span>                        // Client initiates close<a name="line.573"></a>
+<span class="sourceLineNo">574</span>                        removeChannel(null);<a name="line.574"></a>
+<span class="sourceLineNo">575</span>                        synchronized (pendingWrites) {<a name="line.575"></a>
+<span class="sourceLineNo">576</span>                                synchronized (nioChannel) {<a name="line.576"></a>
+<span class="sourceLineNo">577</span>                                        try {<a name="line.577"></a>
+<span class="sourceLineNo">578</span>                                                if (!pendingWrites.isEmpty()) {<a name="line.578"></a>
+<span class="sourceLineNo">579</span>                                                        // Pending writes, delay close<a name="line.579"></a>
+<span class="sourceLineNo">580</span>                                                        pendingClose = true;<a name="line.580"></a>
+<span class="sourceLineNo">581</span>                                                        // Mark as client initiated close<a name="line.581"></a>
+<span class="sourceLineNo">582</span>                                                        nioChannel.shutdownInput();<a name="line.582"></a>
+<span class="sourceLineNo">583</span>                                                        return;<a name="line.583"></a>
+<span class="sourceLineNo">584</span>                                                }<a name="line.584"></a>
+<span class="sourceLineNo">585</span>                                                // Nothing left to do, close<a name="line.585"></a>
+<span class="sourceLineNo">586</span>                                                nioChannel.close();<a name="line.586"></a>
+<span class="sourceLineNo">587</span>                                        } catch (IOException e) {<a name="line.587"></a>
+<span class="sourceLineNo">588</span>                                                // Ignored for close<a name="line.588"></a>
+<span class="sourceLineNo">589</span>                                        }<a name="line.589"></a>
+<span class="sourceLineNo">590</span>                                }<a name="line.590"></a>
+<span class="sourceLineNo">591</span>                        }<a name="line.591"></a>
+<span class="sourceLineNo">592</span>                }<a name="line.592"></a>
+<span class="sourceLineNo">593</span><a name="line.593"></a>
+<span class="sourceLineNo">594</span>                /**<a name="line.594"></a>
+<span class="sourceLineNo">595</span>                 * Checks if there is still data to be written. This may be<a name="line.595"></a>
+<span class="sourceLineNo">596</span>                 * a left over in an incompletely written buffer or a complete<a name="line.596"></a>
+<span class="sourceLineNo">597</span>                 * pending buffer. <a name="line.597"></a>
+<span class="sourceLineNo">598</span>                 * <a name="line.598"></a>
+<span class="sourceLineNo">599</span>                 * @throws IOException<a name="line.599"></a>
+<span class="sourceLineNo">600</span>                 * @throws InterruptedException <a name="line.600"></a>
+<span class="sourceLineNo">601</span>                 */<a name="line.601"></a>
+<span class="sourceLineNo">602</span>                private void handleWriteOp() throws InterruptedException {<a name="line.602"></a>
+<span class="sourceLineNo">603</span>                        while (true) {<a name="line.603"></a>
+<span class="sourceLineNo">604</span>                                ManagedBuffer&lt;ByteBuffer&gt;.ByteBufferView head = null;<a name="line.604"></a>
+<span class="sourceLineNo">605</span>                                synchronized (pendingWrites) {<a name="line.605"></a>
+<span class="sourceLineNo">606</span>                                        if (pendingWrites.isEmpty()) {<a name="line.606"></a>
+<span class="sourceLineNo">607</span>                                                // Nothing left to write, stop getting ops<a name="line.607"></a>
+<span class="sourceLineNo">608</span>                                                registration.updateInterested(SelectionKey.OP_READ);<a name="line.608"></a>
+<span class="sourceLineNo">609</span>                                                // Was the connection closed while we were writing?<a name="line.609"></a>
+<span class="sourceLineNo">610</span>                                                if (pendingClose) {<a name="line.610"></a>
+<span class="sourceLineNo">611</span>                                                        synchronized (nioChannel) {<a name="line.611"></a>
+<span class="sourceLineNo">612</span>                                                                try {<a name="line.612"></a>
+<span class="sourceLineNo">613</span>                                                                if (nioChannel.socket().isInputShutdown()) {<a name="line.613"></a>
+<span class="sourceLineNo">614</span>                                                                        // Delayed close from client, complete<a name="line.614"></a>
+<span class="sourceLineNo">615</span>                                                                        nioChannel.close();<a name="line.615"></a>
+<span class="sourceLineNo">616</span>                                                                } else {<a name="line.616"></a>
+<span class="sourceLineNo">617</span>                                                                        // Delayed close from server, initiate<a name="line.617"></a>
+<span class="sourceLineNo">618</span>                                                                        nioChannel.shutdownOutput();<a name="line.618"></a>
+<span class="sourceLineNo">619</span>                                                                }<a name="line.619"></a>
+<span class="sourceLineNo">620</span>                                                                } catch (IOException e) {<a name="line.620"></a>
+<span class="sourceLineNo">621</span>                                                                        // Ignored for close<a name="line.621"></a>
 <span class="sourceLineNo">622</span>                                                                }<a name="line.622"></a>
-<span class="sourceLineNo">623</span>                                                                } catch (IOException e) {<a name="line.623"></a>
-<span class="sourceLineNo">624</span>                                                                        // Ignored for close<a name="line.624"></a>
-<span class="sourceLineNo">625</span>                                                                }<a name="line.625"></a>
-<span class="sourceLineNo">626</span>                                                        }<a name="line.626"></a>
-<span class="sourceLineNo">627</span>                                                        pendingClose = false;<a name="line.627"></a>
-<span class="sourceLineNo">628</span>                                                }<a name="line.628"></a>
-<span class="sourceLineNo">629</span>                                                break; // Nothing left to do<a name="line.629"></a>
-<span class="sourceLineNo">630</span>                                        }<a name="line.630"></a>
-<span class="sourceLineNo">631</span>                                        head = pendingWrites.peek();<a name="line.631"></a>
-<span class="sourceLineNo">632</span>                                        if (!head.get().hasRemaining()) {<a name="line.632"></a>
-<span class="sourceLineNo">633</span>                                                // Nothing left in head buffer, try next<a name="line.633"></a>
-<span class="sourceLineNo">634</span>                                                head.managedBuffer().unlockBuffer();<a name="line.634"></a>
-<span class="sourceLineNo">635</span>                                                pendingWrites.remove();<a name="line.635"></a>
-<span class="sourceLineNo">636</span>                                                continue;<a name="line.636"></a>
-<span class="sourceLineNo">637</span>                                        }<a name="line.637"></a>
-<span class="sourceLineNo">638</span>                                }<a name="line.638"></a>
-<span class="sourceLineNo">639</span>                                try {<a name="line.639"></a>
-<span class="sourceLineNo">640</span>                                        nioChannel.write(head.get()); // write...<a name="line.640"></a>
-<span class="sourceLineNo">641</span>                                } catch (IOException e) {<a name="line.641"></a>
-<span class="sourceLineNo">642</span>                                        downPipeline.fire(new IOError(null, e), this);<a name="line.642"></a>
-<span class="sourceLineNo">643</span>                                }<a name="line.643"></a>
-<span class="sourceLineNo">644</span>                                break; // ... and wait for next op<a name="line.644"></a>
-<span class="sourceLineNo">645</span>                        }<a name="line.645"></a>
-<span class="sourceLineNo">646</span>                }<a name="line.646"></a>
-<span class="sourceLineNo">647</span><a name="line.647"></a>
-<span class="sourceLineNo">648</span>                /**<a name="line.648"></a>
-<span class="sourceLineNo">649</span>                 * Closes this channel.<a name="line.649"></a>
-<span class="sourceLineNo">650</span>                 * <a name="line.650"></a>
-<span class="sourceLineNo">651</span>                 * @throws IOException if an error occurs<a name="line.651"></a>
-<span class="sourceLineNo">652</span>                 * @throws InterruptedException if the execution was interrupted <a name="line.652"></a>
-<span class="sourceLineNo">653</span>                 */<a name="line.653"></a>
-<span class="sourceLineNo">654</span>                public void close() throws IOException, InterruptedException {<a name="line.654"></a>
-<span class="sourceLineNo">655</span>                        removeChannel();<a name="line.655"></a>
-<span class="sourceLineNo">656</span>                        synchronized (pendingWrites) {<a name="line.656"></a>
-<span class="sourceLineNo">657</span>                                if (!pendingWrites.isEmpty()) {<a name="line.657"></a>
-<span class="sourceLineNo">658</span>                                        // Pending writes, delay close until done<a name="line.658"></a>
-<span class="sourceLineNo">659</span>                                        pendingClose = true;<a name="line.659"></a>
-<span class="sourceLineNo">660</span>                                        return;<a name="line.660"></a>
-<span class="sourceLineNo">661</span>                                }<a name="line.661"></a>
-<span class="sourceLineNo">662</span>                                // Nothing left to do, proceed<a name="line.662"></a>
-<span class="sourceLineNo">663</span>                                synchronized (nioChannel) {<a name="line.663"></a>
-<span class="sourceLineNo">664</span>                                        if (nioChannel.isOpen()) {<a name="line.664"></a>
-<span class="sourceLineNo">665</span>                                                // Initiate close, must be confirmed by client<a name="line.665"></a>
-<span class="sourceLineNo">666</span>                                                nioChannel.shutdownOutput();<a name="line.666"></a>
-<span class="sourceLineNo">667</span>                                        }<a name="line.667"></a>
-<span class="sourceLineNo">668</span>                                }<a name="line.668"></a>
-<span class="sourceLineNo">669</span>                        }<a name="line.669"></a>
-<span class="sourceLineNo">670</span>                }<a name="line.670"></a>
-<span class="sourceLineNo">671</span><a name="line.671"></a>
-<span class="sourceLineNo">672</span>                private void removeChannel() throws InterruptedException {<a name="line.672"></a>
-<span class="sourceLineNo">673</span>                        if (TcpServer.this.removeChannel(this)) {<a name="line.673"></a>
-<span class="sourceLineNo">674</span>                                Closed evt = new Closed();<a name="line.674"></a>
-<span class="sourceLineNo">675</span>                                downPipeline.fire(evt, this);<a name="line.675"></a>
-<span class="sourceLineNo">676</span>                                evt.get();<a name="line.676"></a>
-<span class="sourceLineNo">677</span>                        }<a name="line.677"></a>
-<span class="sourceLineNo">678</span>                }<a name="line.678"></a>
-<span class="sourceLineNo">679</span>                <a name="line.679"></a>
-<span class="sourceLineNo">680</span>                /* (non-Javadoc)<a name="line.680"></a>
-<span class="sourceLineNo">681</span>                 * @see java.lang.Object#toString()<a name="line.681"></a>
-<span class="sourceLineNo">682</span>                 */<a name="line.682"></a>
-<span class="sourceLineNo">683</span>                public String toString() {<a name="line.683"></a>
-<span class="sourceLineNo">684</span>                        return IOSubchannel.toString(this);<a name="line.684"></a>
-<span class="sourceLineNo">685</span>                }<a name="line.685"></a>
-<span class="sourceLineNo">686</span>        }<a name="line.686"></a>
-<span class="sourceLineNo">687</span>        <a name="line.687"></a>
-<span class="sourceLineNo">688</span>        /**<a name="line.688"></a>
-<span class="sourceLineNo">689</span>         * An MBean interface for getting information about the TCP servers<a name="line.689"></a>
-<span class="sourceLineNo">690</span>         * and established connections.<a name="line.690"></a>
-<span class="sourceLineNo">691</span>         */<a name="line.691"></a>
-<span class="sourceLineNo">692</span>        public static interface TcpServerMXBean {<a name="line.692"></a>
-<span class="sourceLineNo">693</span>                <a name="line.693"></a>
-<span class="sourceLineNo">694</span>                public static class ChannelInfo {<a name="line.694"></a>
-<span class="sourceLineNo">695</span>                        <a name="line.695"></a>
-<span class="sourceLineNo">696</span>                        private TcpChannel channel;<a name="line.696"></a>
-<span class="sourceLineNo">697</span>                        <a name="line.697"></a>
-<span class="sourceLineNo">698</span>                        public ChannelInfo(TcpChannel channel) {<a name="line.698"></a>
-<span class="sourceLineNo">699</span>                                this.channel = channel;<a name="line.699"></a>
-<span class="sourceLineNo">700</span>                        }<a name="line.700"></a>
+<span class="sourceLineNo">623</span>                                                        }<a name="line.623"></a>
+<span class="sourceLineNo">624</span>                                                        pendingClose = false;<a name="line.624"></a>
+<span class="sourceLineNo">625</span>                                                }<a name="line.625"></a>
+<span class="sourceLineNo">626</span>                                                break; // Nothing left to do<a name="line.626"></a>
+<span class="sourceLineNo">627</span>                                        }<a name="line.627"></a>
+<span class="sourceLineNo">628</span>                                        head = pendingWrites.peek();<a name="line.628"></a>
+<span class="sourceLineNo">629</span>                                        if (!head.get().hasRemaining()) {<a name="line.629"></a>
+<span class="sourceLineNo">630</span>                                                // Nothing left in head buffer, try next<a name="line.630"></a>
+<span class="sourceLineNo">631</span>                                                head.managedBuffer().unlockBuffer();<a name="line.631"></a>
+<span class="sourceLineNo">632</span>                                                pendingWrites.remove();<a name="line.632"></a>
+<span class="sourceLineNo">633</span>                                                continue;<a name="line.633"></a>
+<span class="sourceLineNo">634</span>                                        }<a name="line.634"></a>
+<span class="sourceLineNo">635</span>                                }<a name="line.635"></a>
+<span class="sourceLineNo">636</span>                                try {<a name="line.636"></a>
+<span class="sourceLineNo">637</span>                                        nioChannel.write(head.get()); // write...<a name="line.637"></a>
+<span class="sourceLineNo">638</span>                                } catch (IOException e) {<a name="line.638"></a>
+<span class="sourceLineNo">639</span>                                        removeChannel(e);<a name="line.639"></a>
+<span class="sourceLineNo">640</span>                                        return;<a name="line.640"></a>
+<span class="sourceLineNo">641</span>                                }<a name="line.641"></a>
+<span class="sourceLineNo">642</span>                                break; // ... and wait for next op<a name="line.642"></a>
+<span class="sourceLineNo">643</span>                        }<a name="line.643"></a>
+<span class="sourceLineNo">644</span>                }<a name="line.644"></a>
+<span class="sourceLineNo">645</span><a name="line.645"></a>
+<span class="sourceLineNo">646</span>                /**<a name="line.646"></a>
+<span class="sourceLineNo">647</span>                 * Closes this channel.<a name="line.647"></a>
+<span class="sourceLineNo">648</span>                 * <a name="line.648"></a>
+<span class="sourceLineNo">649</span>                 * @throws IOException if an error occurs<a name="line.649"></a>
+<span class="sourceLineNo">650</span>                 * @throws InterruptedException if the execution was interrupted <a name="line.650"></a>
+<span class="sourceLineNo">651</span>                 */<a name="line.651"></a>
+<span class="sourceLineNo">652</span>                public void close() throws IOException, InterruptedException {<a name="line.652"></a>
+<span class="sourceLineNo">653</span>                        removeChannel(null);<a name="line.653"></a>
+<span class="sourceLineNo">654</span>                        synchronized (pendingWrites) {<a name="line.654"></a>
+<span class="sourceLineNo">655</span>                                if (!pendingWrites.isEmpty()) {<a name="line.655"></a>
+<span class="sourceLineNo">656</span>                                        // Pending writes, delay close until done<a name="line.656"></a>
+<span class="sourceLineNo">657</span>                                        pendingClose = true;<a name="line.657"></a>
+<span class="sourceLineNo">658</span>                                        return;<a name="line.658"></a>
+<span class="sourceLineNo">659</span>                                }<a name="line.659"></a>
+<span class="sourceLineNo">660</span>                                // Nothing left to do, proceed<a name="line.660"></a>
+<span class="sourceLineNo">661</span>                                synchronized (nioChannel) {<a name="line.661"></a>
+<span class="sourceLineNo">662</span>                                        if (nioChannel.isOpen()) {<a name="line.662"></a>
+<span class="sourceLineNo">663</span>                                                // Initiate close, must be confirmed by client<a name="line.663"></a>
+<span class="sourceLineNo">664</span>                                                nioChannel.shutdownOutput();<a name="line.664"></a>
+<span class="sourceLineNo">665</span>                                        }<a name="line.665"></a>
+<span class="sourceLineNo">666</span>                                }<a name="line.666"></a>
+<span class="sourceLineNo">667</span>                        }<a name="line.667"></a>
+<span class="sourceLineNo">668</span>                }<a name="line.668"></a>
+<span class="sourceLineNo">669</span><a name="line.669"></a>
+<span class="sourceLineNo">670</span>                private void removeChannel(Throwable error)<a name="line.670"></a>
+<span class="sourceLineNo">671</span>                                throws InterruptedException {<a name="line.671"></a>
+<span class="sourceLineNo">672</span>                        if (error != null) {<a name="line.672"></a>
+<span class="sourceLineNo">673</span>                                try {<a name="line.673"></a>
+<span class="sourceLineNo">674</span>                                        nioChannel.close();<a name="line.674"></a>
+<span class="sourceLineNo">675</span>                                } catch (IOException e) {<a name="line.675"></a>
+<span class="sourceLineNo">676</span>                                        // Closed only to make sure, any failure can be ignored.<a name="line.676"></a>
+<span class="sourceLineNo">677</span>                                }<a name="line.677"></a>
+<span class="sourceLineNo">678</span>                        }<a name="line.678"></a>
+<span class="sourceLineNo">679</span>                        if (TcpServer.this.removeChannel(this)) {<a name="line.679"></a>
+<span class="sourceLineNo">680</span>                                Closed evt = new Closed(error);<a name="line.680"></a>
+<span class="sourceLineNo">681</span>                                downPipeline.fire(evt, this);<a name="line.681"></a>
+<span class="sourceLineNo">682</span>                                evt.get();<a name="line.682"></a>
+<span class="sourceLineNo">683</span>                        }<a name="line.683"></a>
+<span class="sourceLineNo">684</span>                }<a name="line.684"></a>
+<span class="sourceLineNo">685</span>                <a name="line.685"></a>
+<span class="sourceLineNo">686</span>                /* (non-Javadoc)<a name="line.686"></a>
+<span class="sourceLineNo">687</span>                 * @see java.lang.Object#toString()<a name="line.687"></a>
+<span class="sourceLineNo">688</span>                 */<a name="line.688"></a>
+<span class="sourceLineNo">689</span>                public String toString() {<a name="line.689"></a>
+<span class="sourceLineNo">690</span>                        return IOSubchannel.toString(this);<a name="line.690"></a>
+<span class="sourceLineNo">691</span>                }<a name="line.691"></a>
+<span class="sourceLineNo">692</span>        }<a name="line.692"></a>
+<span class="sourceLineNo">693</span>        <a name="line.693"></a>
+<span class="sourceLineNo">694</span>        /**<a name="line.694"></a>
+<span class="sourceLineNo">695</span>         * An MBean interface for getting information about the TCP servers<a name="line.695"></a>
+<span class="sourceLineNo">696</span>         * and established connections.<a name="line.696"></a>
+<span class="sourceLineNo">697</span>         */<a name="line.697"></a>
+<span class="sourceLineNo">698</span>        public static interface TcpServerMXBean {<a name="line.698"></a>
+<span class="sourceLineNo">699</span>                <a name="line.699"></a>
+<span class="sourceLineNo">700</span>                public static class ChannelInfo {<a name="line.700"></a>
 <span class="sourceLineNo">701</span>                        <a name="line.701"></a>
-<span class="sourceLineNo">702</span>                        public String getDownstreamPool() {<a name="line.702"></a>
-<span class="sourceLineNo">703</span>                                return channel.readBuffers.name();<a name="line.703"></a>
-<span class="sourceLineNo">704</span>                        }<a name="line.704"></a>
-<span class="sourceLineNo">705</span>                        <a name="line.705"></a>
-<span class="sourceLineNo">706</span>                        public String getUpstreamPool() {<a name="line.706"></a>
-<span class="sourceLineNo">707</span>                                return channel.byteBufferPool().name();<a name="line.707"></a>
-<span class="sourceLineNo">708</span>                        }<a name="line.708"></a>
-<span class="sourceLineNo">709</span>                }<a name="line.709"></a>
-<span class="sourceLineNo">710</span>                <a name="line.710"></a>
-<span class="sourceLineNo">711</span>                public static class TcpServerInfo {<a name="line.711"></a>
-<span class="sourceLineNo">712</span><a name="line.712"></a>
-<span class="sourceLineNo">713</span>                        private TcpServer server;<a name="line.713"></a>
-<span class="sourceLineNo">714</span>                        <a name="line.714"></a>
-<span class="sourceLineNo">715</span>                        public TcpServerInfo(TcpServer server) {<a name="line.715"></a>
-<span class="sourceLineNo">716</span>                                this.server = server;<a name="line.716"></a>
-<span class="sourceLineNo">717</span>                        }<a name="line.717"></a>
-<span class="sourceLineNo">718</span>                        <a name="line.718"></a>
-<span class="sourceLineNo">719</span>                        public int getPort() {<a name="line.719"></a>
-<span class="sourceLineNo">720</span>                                return ((InetSocketAddress)server.serverAddress()).getPort();<a name="line.720"></a>
-<span class="sourceLineNo">721</span>                        }<a name="line.721"></a>
-<span class="sourceLineNo">722</span>                        <a name="line.722"></a>
-<span class="sourceLineNo">723</span>                        public SortedMap&lt;String,ChannelInfo&gt; getChannels() {<a name="line.723"></a>
-<span class="sourceLineNo">724</span>                                SortedMap&lt;String,ChannelInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.724"></a>
-<span class="sourceLineNo">725</span>                                for (TcpChannel channel: server.channels) {<a name="line.725"></a>
-<span class="sourceLineNo">726</span>                                        result.put(channel.nioChannel.socket()<a name="line.726"></a>
-<span class="sourceLineNo">727</span>                                                        .getRemoteSocketAddress().toString(), <a name="line.727"></a>
-<span class="sourceLineNo">728</span>                                                        new ChannelInfo(channel));<a name="line.728"></a>
-<span class="sourceLineNo">729</span>                                }<a name="line.729"></a>
-<span class="sourceLineNo">730</span>                                return result;<a name="line.730"></a>
-<span class="sourceLineNo">731</span>                        }<a name="line.731"></a>
-<span class="sourceLineNo">732</span>                }<a name="line.732"></a>
-<span class="sourceLineNo">733</span>                <a name="line.733"></a>
-<span class="sourceLineNo">734</span>                IntSummaryStatistics getConnectionsPerServerStatistics();<a name="line.734"></a>
-<span class="sourceLineNo">735</span>                <a name="line.735"></a>
-<span class="sourceLineNo">736</span>                SortedMap&lt;String,TcpServerInfo&gt; getServers();<a name="line.736"></a>
-<span class="sourceLineNo">737</span>        }<a name="line.737"></a>
-<span class="sourceLineNo">738</span>        <a name="line.738"></a>
-<span class="sourceLineNo">739</span>        private static class MBeanView implements TcpServerMXBean {<a name="line.739"></a>
-<span class="sourceLineNo">740</span>                private static Set&lt;TcpServer&gt; allServers<a name="line.740"></a>
-<span class="sourceLineNo">741</span>                        = Collections.synchronizedSet(<a name="line.741"></a>
-<span class="sourceLineNo">742</span>                                        Collections.newSetFromMap(<a name="line.742"></a>
-<span class="sourceLineNo">743</span>                                                        new WeakHashMap&lt;TcpServer, Boolean&gt;()));<a name="line.743"></a>
-<span class="sourceLineNo">744</span>                <a name="line.744"></a>
-<span class="sourceLineNo">745</span>                public static void addServer(TcpServer server) {<a name="line.745"></a>
-<span class="sourceLineNo">746</span>                        allServers.add(server);<a name="line.746"></a>
-<span class="sourceLineNo">747</span>                }<a name="line.747"></a>
-<span class="sourceLineNo">748</span>                <a name="line.748"></a>
-<span class="sourceLineNo">749</span>                @Override<a name="line.749"></a>
-<span class="sourceLineNo">750</span>                public IntSummaryStatistics getConnectionsPerServerStatistics() {<a name="line.750"></a>
-<span class="sourceLineNo">751</span>                        return allServers.stream().collect(<a name="line.751"></a>
-<span class="sourceLineNo">752</span>                                        Collectors.summarizingInt(srv -&gt; srv.channels.size()));<a name="line.752"></a>
+<span class="sourceLineNo">702</span>                        private TcpChannel channel;<a name="line.702"></a>
+<span class="sourceLineNo">703</span>                        <a name="line.703"></a>
+<span class="sourceLineNo">704</span>                        public ChannelInfo(TcpChannel channel) {<a name="line.704"></a>
+<span class="sourceLineNo">705</span>                                this.channel = channel;<a name="line.705"></a>
+<span class="sourceLineNo">706</span>                        }<a name="line.706"></a>
+<span class="sourceLineNo">707</span>                        <a name="line.707"></a>
+<span class="sourceLineNo">708</span>                        public String getDownstreamPool() {<a name="line.708"></a>
+<span class="sourceLineNo">709</span>                                return channel.readBuffers.name();<a name="line.709"></a>
+<span class="sourceLineNo">710</span>                        }<a name="line.710"></a>
+<span class="sourceLineNo">711</span>                        <a name="line.711"></a>
+<span class="sourceLineNo">712</span>                        public String getUpstreamPool() {<a name="line.712"></a>
+<span class="sourceLineNo">713</span>                                return channel.byteBufferPool().name();<a name="line.713"></a>
+<span class="sourceLineNo">714</span>                        }<a name="line.714"></a>
+<span class="sourceLineNo">715</span>                }<a name="line.715"></a>
+<span class="sourceLineNo">716</span>                <a name="line.716"></a>
+<span class="sourceLineNo">717</span>                public static class TcpServerInfo {<a name="line.717"></a>
+<span class="sourceLineNo">718</span><a name="line.718"></a>
+<span class="sourceLineNo">719</span>                        private TcpServer server;<a name="line.719"></a>
+<span class="sourceLineNo">720</span>                        <a name="line.720"></a>
+<span class="sourceLineNo">721</span>                        public TcpServerInfo(TcpServer server) {<a name="line.721"></a>
+<span class="sourceLineNo">722</span>                                this.server = server;<a name="line.722"></a>
+<span class="sourceLineNo">723</span>                        }<a name="line.723"></a>
+<span class="sourceLineNo">724</span>                        <a name="line.724"></a>
+<span class="sourceLineNo">725</span>                        public int getPort() {<a name="line.725"></a>
+<span class="sourceLineNo">726</span>                                return ((InetSocketAddress)server.serverAddress()).getPort();<a name="line.726"></a>
+<span class="sourceLineNo">727</span>                        }<a name="line.727"></a>
+<span class="sourceLineNo">728</span>                        <a name="line.728"></a>
+<span class="sourceLineNo">729</span>                        public SortedMap&lt;String,ChannelInfo&gt; getChannels() {<a name="line.729"></a>
+<span class="sourceLineNo">730</span>                                SortedMap&lt;String,ChannelInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.730"></a>
+<span class="sourceLineNo">731</span>                                for (TcpChannel channel: server.channels) {<a name="line.731"></a>
+<span class="sourceLineNo">732</span>                                        result.put(channel.nioChannel.socket()<a name="line.732"></a>
+<span class="sourceLineNo">733</span>                                                        .getRemoteSocketAddress().toString(), <a name="line.733"></a>
+<span class="sourceLineNo">734</span>                                                        new ChannelInfo(channel));<a name="line.734"></a>
+<span class="sourceLineNo">735</span>                                }<a name="line.735"></a>
+<span class="sourceLineNo">736</span>                                return result;<a name="line.736"></a>
+<span class="sourceLineNo">737</span>                        }<a name="line.737"></a>
+<span class="sourceLineNo">738</span>                }<a name="line.738"></a>
+<span class="sourceLineNo">739</span>                <a name="line.739"></a>
+<span class="sourceLineNo">740</span>                IntSummaryStatistics getConnectionsPerServerStatistics();<a name="line.740"></a>
+<span class="sourceLineNo">741</span>                <a name="line.741"></a>
+<span class="sourceLineNo">742</span>                SortedMap&lt;String,TcpServerInfo&gt; getServers();<a name="line.742"></a>
+<span class="sourceLineNo">743</span>        }<a name="line.743"></a>
+<span class="sourceLineNo">744</span>        <a name="line.744"></a>
+<span class="sourceLineNo">745</span>        private static class MBeanView implements TcpServerMXBean {<a name="line.745"></a>
+<span class="sourceLineNo">746</span>                private static Set&lt;TcpServer&gt; allServers<a name="line.746"></a>
+<span class="sourceLineNo">747</span>                        = Collections.synchronizedSet(<a name="line.747"></a>
+<span class="sourceLineNo">748</span>                                        Collections.newSetFromMap(<a name="line.748"></a>
+<span class="sourceLineNo">749</span>                                                        new WeakHashMap&lt;TcpServer, Boolean&gt;()));<a name="line.749"></a>
+<span class="sourceLineNo">750</span>                <a name="line.750"></a>
+<span class="sourceLineNo">751</span>                public static void addServer(TcpServer server) {<a name="line.751"></a>
+<span class="sourceLineNo">752</span>                        allServers.add(server);<a name="line.752"></a>
 <span class="sourceLineNo">753</span>                }<a name="line.753"></a>
-<span class="sourceLineNo">754</span><a name="line.754"></a>
+<span class="sourceLineNo">754</span>                <a name="line.754"></a>
 <span class="sourceLineNo">755</span>                @Override<a name="line.755"></a>
-<span class="sourceLineNo">756</span>                public SortedMap&lt;String,TcpServerInfo&gt; getServers() {<a name="line.756"></a>
-<span class="sourceLineNo">757</span>                        SortedMap&lt;String,TcpServerInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.757"></a>
-<span class="sourceLineNo">758</span>                        for (TcpServer server: allServers) {<a name="line.758"></a>
-<span class="sourceLineNo">759</span>                                int port = server.serverAddress().getPort();<a name="line.759"></a>
-<span class="sourceLineNo">760</span>                                result.put(Components.objectName(server) + " (:" + port + ")",<a name="line.760"></a>
-<span class="sourceLineNo">761</span>                                                new TcpServerInfo(server));<a name="line.761"></a>
-<span class="sourceLineNo">762</span>                        }<a name="line.762"></a>
-<span class="sourceLineNo">763</span>                        return result;<a name="line.763"></a>
-<span class="sourceLineNo">764</span>                }<a name="line.764"></a>
-<span class="sourceLineNo">765</span>        }<a name="line.765"></a>
-<span class="sourceLineNo">766</span><a name="line.766"></a>
-<span class="sourceLineNo">767</span>        static {<a name="line.767"></a>
-<span class="sourceLineNo">768</span>                try {<a name="line.768"></a>
-<span class="sourceLineNo">769</span>                        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); <a name="line.769"></a>
-<span class="sourceLineNo">770</span>                        ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="<a name="line.770"></a>
-<span class="sourceLineNo">771</span>                                        + TcpServer.class.getSimpleName());<a name="line.771"></a>
-<span class="sourceLineNo">772</span>                        mbs.registerMBean(new MBeanView(), mxbeanName);<a name="line.772"></a>
-<span class="sourceLineNo">773</span>                } catch (MalformedObjectNameException | InstanceAlreadyExistsException<a name="line.773"></a>
-<span class="sourceLineNo">774</span>                                | MBeanRegistrationException | NotCompliantMBeanException e) {<a name="line.774"></a>
-<span class="sourceLineNo">775</span>                        // Does not happen<a name="line.775"></a>
-<span class="sourceLineNo">776</span>                }               <a name="line.776"></a>
-<span class="sourceLineNo">777</span>        }<a name="line.777"></a>
-<span class="sourceLineNo">778</span>        <a name="line.778"></a>
-<span class="sourceLineNo">779</span>}<a name="line.779"></a>
+<span class="sourceLineNo">756</span>                public IntSummaryStatistics getConnectionsPerServerStatistics() {<a name="line.756"></a>
+<span class="sourceLineNo">757</span>                        return allServers.stream().collect(<a name="line.757"></a>
+<span class="sourceLineNo">758</span>                                        Collectors.summarizingInt(srv -&gt; srv.channels.size()));<a name="line.758"></a>
+<span class="sourceLineNo">759</span>                }<a name="line.759"></a>
+<span class="sourceLineNo">760</span><a name="line.760"></a>
+<span class="sourceLineNo">761</span>                @Override<a name="line.761"></a>
+<span class="sourceLineNo">762</span>                public SortedMap&lt;String,TcpServerInfo&gt; getServers() {<a name="line.762"></a>
+<span class="sourceLineNo">763</span>                        SortedMap&lt;String,TcpServerInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.763"></a>
+<span class="sourceLineNo">764</span>                        for (TcpServer server: allServers) {<a name="line.764"></a>
+<span class="sourceLineNo">765</span>                                int port = server.serverAddress().getPort();<a name="line.765"></a>
+<span class="sourceLineNo">766</span>                                result.put(Components.objectName(server) + " (:" + port + ")",<a name="line.766"></a>
+<span class="sourceLineNo">767</span>                                                new TcpServerInfo(server));<a name="line.767"></a>
+<span class="sourceLineNo">768</span>                        }<a name="line.768"></a>
+<span class="sourceLineNo">769</span>                        return result;<a name="line.769"></a>
+<span class="sourceLineNo">770</span>                }<a name="line.770"></a>
+<span class="sourceLineNo">771</span>        }<a name="line.771"></a>
+<span class="sourceLineNo">772</span><a name="line.772"></a>
+<span class="sourceLineNo">773</span>        static {<a name="line.773"></a>
+<span class="sourceLineNo">774</span>                try {<a name="line.774"></a>
+<span class="sourceLineNo">775</span>                        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); <a name="line.775"></a>
+<span class="sourceLineNo">776</span>                        ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="<a name="line.776"></a>
+<span class="sourceLineNo">777</span>                                        + TcpServer.class.getSimpleName());<a name="line.777"></a>
+<span class="sourceLineNo">778</span>                        mbs.registerMBean(new MBeanView(), mxbeanName);<a name="line.778"></a>
+<span class="sourceLineNo">779</span>                } catch (MalformedObjectNameException | InstanceAlreadyExistsException<a name="line.779"></a>
+<span class="sourceLineNo">780</span>                                | MBeanRegistrationException | NotCompliantMBeanException e) {<a name="line.780"></a>
+<span class="sourceLineNo">781</span>                        // Does not happen<a name="line.781"></a>
+<span class="sourceLineNo">782</span>                }               <a name="line.782"></a>
+<span class="sourceLineNo">783</span>        }<a name="line.783"></a>
+<span class="sourceLineNo">784</span>        <a name="line.784"></a>
+<span class="sourceLineNo">785</span>}<a name="line.785"></a>
 
 
 
