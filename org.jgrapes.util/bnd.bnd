@@ -3,7 +3,7 @@ Bundle-SymbolicName: org.jgrapes.util
 Bundle-Copyright: Michael N. Lipp (c) 2016
 Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
 
-api_version = 0.1.0.${tstamp}
+api_version = 0.2.0.${tstamp}
 
 Export-Package: \
 	org.jgrapes.util,\
