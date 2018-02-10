@@ -37,7 +37,7 @@
         releaseUrls=https://repo1.maven.org/maven2; \
         query='q=g:%22org.jgrapes%22&rows=1000'
 
--baselinerepo: JGrapes
+#-baselinerepo: JGrapes
 
 bin=bin/main
 testbin=bin/test
