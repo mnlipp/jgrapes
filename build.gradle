@@ -25,6 +25,7 @@ plugins {
 
 ext {
 	isTravisBuild = System.getenv().get("TRAVIS") == 'true'
+    isJitPackBuild = System.getenv().get("JITPACK") == 'true'
 }
 
 // Prepare github authentication for plugins
