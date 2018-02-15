@@ -191,6 +191,7 @@ public class StaticContentDispatcher extends Component {
 		if (modifiedSince.isPresent() 
 				&& !lastModified.isAfter(modifiedSince.get())) {
 			response.setStatus(HttpStatus.NOT_MODIFIED);
+			response.setField(HttpField.LAST_MODIFIED, lastModified);
 			channel.respond(new Response(response));
 		} else {
 			response.setContentType(mediaType);

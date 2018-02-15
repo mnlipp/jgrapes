@@ -122,6 +122,7 @@ public class ResponseCreationSupport {
 		if (modifiedSince.isPresent() && info.getLastModifiedAt() != null
 				&& !info.getLastModifiedAt().isAfter(modifiedSince.get())) {
 			response.setStatus(HttpStatus.NOT_MODIFIED);
+			response.setField(HttpField.LAST_MODIFIED, info.getLastModifiedAt());
 			channel.respond(new Response(response));
 		} else {
 			response.setContentType(mediaType);
