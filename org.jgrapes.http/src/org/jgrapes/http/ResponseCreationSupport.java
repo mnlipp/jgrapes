@@ -120,15 +120,14 @@ public class ResponseCreationSupport {
 		Optional<Instant> modifiedSince = event.httpRequest()
 				.findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
 		event.stop();
+		response.setField(HttpField.LAST_MODIFIED, info.getLastModifiedAt());
 		if (modifiedSince.isPresent() && info.getLastModifiedAt() != null
 				&& !info.getLastModifiedAt().isAfter(modifiedSince.get())) {
 			response.setStatus(HttpStatus.NOT_MODIFIED);
-			response.setField(HttpField.LAST_MODIFIED, info.getLastModifiedAt());
 			channel.respond(new Response(response));
 		} else {
 			response.setContentType(mediaType);
 			response.setStatus(HttpStatus.OK);
-			response.setField(HttpField.LAST_MODIFIED, info.getLastModifiedAt());
 			channel.respond(new Response(response));
 			// Start sending content
 			channel.responsePipeline().executorService()
