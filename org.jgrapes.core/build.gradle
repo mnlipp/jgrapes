@@ -35,6 +35,7 @@ javadoc {
 	options.stylesheetFile(file("${rootProject.rootDir}/misc/stylesheet.css"))
 	options.addStringOption("bottom", file("${rootProject.rootDir}/misc/javadoc.bottom.txt").text)
 	options.links "https://docs.oracle.com/javase/8/docs/api/"
+    options.links "https://mnlipp.github.io/jdrupes-httpcodec/javadoc/"
 	destinationDir = file("${rootProject.buildDir}/javadoc")
 }
 	
