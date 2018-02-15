@@ -23,9 +23,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
@@ -36,6 +39,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.events.Stop;
+import org.jgrapes.http.ResponseCreationSupport;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
@@ -66,10 +70,13 @@ public class GetTest {
 	public static class ContentProvider extends Component {
 		
 		public int invocations = 0;
+		public ClassLoader jarLoader;
 		
 		public ContentProvider(Channel componentChannel) {
 			super(componentChannel);
 			contentProvider = this;
+			jarLoader = new URLClassLoader(new URL[] {
+					MiscTests.class.getResource("/static-content.jar") });
 			RequestHandler.Evaluator.add(this, "getDynamic", "/dynamic");
 		}
 
@@ -113,6 +120,16 @@ public class GetTest {
 			event.stop();
 		}
 		
+		@RequestHandler(patterns="/from-jar/**")
+		public void getFromJar(GetRequest event, IOSubchannel channel)
+				throws ParseException {
+			invocations += 1;
+			
+			ResponseCreationSupport.sendStaticContent(event, channel, 
+					path -> jarLoader.getResource("only-in-jar/"
+							+ ResponseCreationSupport.removeSegments(path, 2)),
+					null);
+		}
 	}
 	
 	@BeforeClass
@@ -190,6 +207,36 @@ public class GetTest {
 			assertEquals("Dynamic!", str);
 		}
 		assertEquals(1, contentProvider.invocations);
+	}
+
+//	@Test(timeout=1500)
+	@Test
+	public void testFromJar() 
+			throws IOException, InterruptedException, ExecutionException {
+		URL url = new URL("http", "localhost", server.getPort(), 
+				"/from-jar/static-content/index.html");
+		// Unconditional fetch
+		URLConnection conn = url.openConnection();
+		conn.setConnectTimeout(1000);
+		conn.setReadTimeout(1000);
+		conn.setUseCaches(false);
+		try (BufferedReader br = new BufferedReader(
+		        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+			assertTrue(br.lines().anyMatch(l -> l.contains("<head>")));
+		}
+		((HttpURLConnection)conn).disconnect();
+		// Conditional fetch
+		conn = url.openConnection();
+		conn.setConnectTimeout(1000);
+		conn.setReadTimeout(1000);
+		conn.setIfModifiedSince(Instant.now().toEpochMilli());
+		conn.setUseCaches(false);
+		conn.connect();
+		assertEquals(HttpURLConnection.HTTP_NOT_MODIFIED,
+				((HttpURLConnection)conn).getResponseCode());
+		((HttpURLConnection)conn).disconnect();
+		
+		assertEquals(2, contentProvider.invocations);
 	}
 
 }

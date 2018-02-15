@@ -1,0 +1,20 @@
+Bundle-Name: JGrapes HTTP Freemarker
+Bundle-SymbolicName: org.jgrapes.http.freemarker
+Bundle-Copyright: Michael N. Lipp (c) 2018
+Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
+Require-Bundle: org.jgrapes.core, org.jgrapes.io, org.jgrapes.http, org.jdrupes.httpcodec
+
+api_version = 0.1.0.${tstamp}
+
+-sources: true
+-runee: JavaSE-1.8
+Export-Package: \
+	org.jgrapes.http.freemarker
+	
+-dsannotations: 
+
+-fixupmessages: \
+    "Found source folder 'resources' that is not on bnd's source path 'src'", \
+    "Found source folder 'test-resources' that is not on bnd's source path 'src'", \
+    "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \
+    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer."

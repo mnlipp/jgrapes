@@ -111,7 +111,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
 		        "/**", Paths.get("demo-resources/static-content").toUri()));
 		app.attach(new StaticContentDispatcher(app.channel(),
 		        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc").toUri()));
-		app.attach(new PostProcessor(app.channel()));
+		app.attach(new FormProcessor(app.channel()));
 		app.attach(new WsEchoServer(app.channel()));
 		Components.start(app);
 	}

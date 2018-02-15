@@ -37,7 +37,11 @@ allprojects {
     repositories {
         jcenter()
         mavenCentral()
-		maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        // Sometimes, synchronization with central is too slow
+        maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
+        // Snapshots
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        // Experimental, not sure if this is the way tpo go...
         maven { url 'https://jitpack.io' }
     }
 	
@@ -46,8 +50,8 @@ allprojects {
 
 	group = 'org.jgrapes'
 	
-	ext.releaseVersion = "0.10.0"
-	ext.isSnapshot = false
+	ext.releaseVersion = "0.11.0"
+	ext.isSnapshot = true
 	version = releaseVersion + (isSnapshot ? "-SNAPSHOT" : "")
 }
 

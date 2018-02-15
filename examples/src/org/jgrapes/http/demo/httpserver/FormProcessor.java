@@ -20,6 +20,7 @@ package org.jgrapes.http.demo.httpserver;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 import java.util.Optional;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
@@ -31,8 +32,10 @@ import org.jdrupes.httpcodec.util.FormUrlDecoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.ResponseCreationSupport;
 import org.jgrapes.http.Session;
 import org.jgrapes.http.annotation.RequestHandler;
+import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
@@ -43,7 +46,7 @@ import org.jgrapes.io.util.ManagedBuffer;
 /**
  * 
  */
-public class PostProcessor extends Component {
+public class FormProcessor extends Component {
 
 	protected static class FormContext {
 		public HttpRequest request;
@@ -54,10 +57,19 @@ public class PostProcessor extends Component {
 	/**
 	 * @param componentChannel
 	 */
-	public PostProcessor(Channel componentChannel) {
+	public FormProcessor(Channel componentChannel) {
 		super(componentChannel);
 	}
 
+	@RequestHandler(patterns="/form")
+	public void onGet(GetRequest event, IOSubchannel channel)
+			throws ParseException {
+		ResponseCreationSupport.sendStaticContent(event, channel, 
+				path -> FormProcessor.class.getResource(
+						ResponseCreationSupport.removeSegments(path, 1)),
+				null);
+	}
+	
 	@RequestHandler(patterns="/form")
 	public void onPost(PostRequest event, IOSubchannel channel) {
 		FormContext ctx = channel

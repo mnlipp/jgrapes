@@ -19,12 +19,8 @@
 package org.jgrapes.http;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
@@ -40,31 +36,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import javax.activation.MimetypesFileTypeMap;
-
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.Converters;
-import org.jdrupes.httpcodec.types.Directive;
-import org.jdrupes.httpcodec.types.MediaRange;
 import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.http.ResponseCreationSupport.ValidityInfo;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.StreamFile;
-import org.jgrapes.io.util.InputStreamPipeline;
 
 /**
  * A dispatcher for requests for static content, usually files.
  */
 public class StaticContentDispatcher extends Component {
 
-	private static MimetypesFileTypeMap typesMap = new MimetypesFileTypeMap();
-	
 	private ResourcePattern resourcePattern;
 	private URI contentRoot = null;
 	private Path contentDirectory = null;
@@ -78,8 +68,7 @@ public class StaticContentDispatcher extends Component {
 	 * in a {@link FileSystem}. If this fails, the content root is
 	 * used as a URL against which requests are resolved and data
 	 * is obtained by open an input stream from the resulting URL.
-	 * In the latter case information such as directory listings and
-	 * modification times aren't available. 
+	 * In the latter case modification times aren't available. 
 	 * 
 	 * @param componentChannel this component's channel
 	 * @param resourcePattern the pattern that requests must match 
@@ -114,8 +103,7 @@ public class StaticContentDispatcher extends Component {
 	 * @param contentRoot the location with content to serve 
 	 * @see Component#Component()
 	 */
-	public StaticContentDispatcher(String resourcePattern, 
-			URI contentRoot) {
+	public StaticContentDispatcher(String resourcePattern, URI contentRoot) {
 		this(Channel.SELF, resourcePattern, contentRoot);
 	}
 
@@ -160,12 +148,11 @@ public class StaticContentDispatcher extends Component {
 		if (prefixSegs < 0) {
 			return;
 		}
-		if (!(contentDirectory != null 
-				? getFromFileSystem(event, channel, prefixSegs)
-				: getFromUri(event, channel, prefixSegs))) {
-				return;
+		if (contentDirectory != null) {
+			getFromFileSystem(event, channel, prefixSegs);
+		} else {
+			getFromUri(event, channel, prefixSegs);
 		}
-		event.stop();
 	}
 
 	private boolean getFromFileSystem(GetRequest event, IOSubchannel channel,
@@ -188,50 +175,26 @@ public class StaticContentDispatcher extends Component {
 			return false;
 		}
 		
-		// Get content type and derive max-age
-		String mimeTypeName;
-		try {
-			mimeTypeName = Files.probeContentType(resourcePath);
-		} catch(IOException e) {
-			mimeTypeName = null;
-		}
-		if (mimeTypeName == null) {
-			// probeContentType has been reported to fail on some platforms.
-			// Use old approach as fall back.
-			mimeTypeName = typesMap.getContentType(resourcePath.toFile());
-		}
-		MediaType mediaType = Converters.MEDIA_TYPE.fromFieldValue(mimeTypeName);
-		long maxAge = 600;
-		for (ValidityInfo info: validityInfos) {
-			if (info.mediaRange().matches(mediaType)) {
-				break;
-			}
-		}
-
-		// Set max age in cache-control header
-		List<Directive> directives = new ArrayList<>();
-		directives.add(new Directive("max-age", maxAge));
+		// Get content type
 		HttpResponse response = event.httpRequest().response().get();
-		response.setField(HttpField.CACHE_CONTROL, directives);
+		MediaType mediaType = HttpResponse.contentType(resourcePath.toUri());
+		
+		// Derive max-age
+		ResponseCreationSupport.setMaxAge(response, validityInfos, mediaType, 600);
 
 		// Check if sending is really required.
 		Instant lastModified = Files.getLastModifiedTime(resourcePath)
 				.toInstant().with(ChronoField.NANO_OF_SECOND, 0);
 		Optional<Instant> modifiedSince = event.httpRequest()
 				.findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
+		event.stop();
 		if (modifiedSince.isPresent() 
 				&& !lastModified.isAfter(modifiedSince.get())) {
 			response.setStatus(HttpStatus.NOT_MODIFIED);
 			channel.respond(new Response(response));
 		} else {
-			if ("text".equals(mediaType.topLevelType())) {
-				mediaType = MediaType.builder().from(mediaType)
-						.setParameter("charset", System.getProperty(
-								"file.encoding", "UTF-8")).build();
-			}
-			response.setField(HttpField.CONTENT_TYPE, mediaType);
+			response.setContentType(mediaType);
 			response.setStatus(HttpStatus.OK);
-			response.setHasPayload(true);
 			response.setField(HttpField.LAST_MODIFIED, lastModified);
 			channel.respond(new Response(response));
 			fire(new StreamFile(resourcePath, StandardOpenOption.READ), channel);
@@ -241,112 +204,16 @@ public class StaticContentDispatcher extends Component {
 
 	private boolean getFromUri(GetRequest event, IOSubchannel channel,
 	        int prefixSegs) throws ParseException {
-		// Final wrapper for usage in closure
-		final URI[] assembly = new URI[] { contentRoot };
-		Arrays.stream(event.requestUri().getPath().split("/"))
-		        .skip(prefixSegs + 1)
-		        .forEach(e -> assembly[0] = assembly[0].resolve(e));
-		URL resourceUrl;
-		try {
-			resourceUrl = assembly[0].toURL();
-		} catch (MalformedURLException e1) {
-			return false;
-		}
-		URLConnection resConn;
-		InputStream resIn;
-		try {
-			resConn = resourceUrl.openConnection();
-			resIn = resConn.getInputStream();
-		} catch (IOException e1) {
-			try {
-				resourceUrl = resourceUrl.toURI().resolve("index.html").toURL();
-				resConn = resourceUrl.openConnection();
-				resIn = resConn.getInputStream();
-			} catch (URISyntaxException | IOException e2) {
-				return false;
-			}
-		}
-		
-		// Get content type and derive max-age
-		String mimeTypeName;
-		try {
-			// probeContentType is most advanced, but may fail if it tries
-			// to look at the file's content (which doesn't exist).
-			mimeTypeName = Files.probeContentType(
-					Paths.get(resourceUrl.getPath()));
-		} catch (IOException e) {
-			mimeTypeName = null;
-		}
-		if (mimeTypeName == null) {
-			mimeTypeName = typesMap.getContentType(resourceUrl.getPath());
-		}
-		MediaType mediaType = Converters.MEDIA_TYPE.fromFieldValue(mimeTypeName);
-		long maxAge = 600;
-		for (ValidityInfo info: validityInfos) {
-			if (info.mediaRange().matches(mediaType)) {
-				break;
-			}
-		}
-
-		// Set max age in cache-control header
-		List<Directive> directives = new ArrayList<>();
-		directives.add(new Directive("max-age", maxAge));
-		HttpResponse response = event.httpRequest().response().get();
-		response.setField(HttpField.CACHE_CONTROL, directives);
-
-		// Send response 
-		if ("text".equals(mediaType.topLevelType())) {
-			mediaType = MediaType.builder().from(mediaType)
-					.setParameter("charset", System.getProperty(
-							"file.encoding", "UTF-8")).build();
-		}
-		response.setField(HttpField.CONTENT_TYPE, mediaType);
-		response.setStatus(HttpStatus.OK);
-		response.setHasPayload(true);
-		response.setField(HttpField.LAST_MODIFIED, Instant.now());
-		channel.respond(new Response(response));
-		
-		// Start sending content
-		channel.responsePipeline().executorService()
-			.submit(new InputStreamPipeline(resIn, channel));
-		return true;
-	}
-
-	/**
-	 * Describes an association between a media range and a  
-	 * maximum age in seconds. 
-	 */
-	public static class ValidityInfo {
-		private MediaRange mediaRange;
-		private long maxAge;
-
-		/**
-		 * @param mediaRange
-		 * @param maxAge
-		 */
-		public ValidityInfo(MediaRange mediaRange, long maxAge) {
-			super();
-			this.mediaRange = mediaRange;
-			this.maxAge = maxAge;
-		}
-
-		/**
-		 * The media range matches by this info.
-		 * 
-		 * @return the mediaRange
-		 */
-		public MediaRange mediaRange() {
-			return mediaRange;
-		}
-		
-		/**
-		 * The time span in seconds until the response expires.
-		 * 
-		 * @return the time span
-		 */
-		public long maxAge() {
-			return maxAge;
-		}
+		return ResponseCreationSupport.sendStaticContent(
+				event, channel, path -> {
+					try {
+						return contentRoot.resolve(
+								ResponseCreationSupport.removeSegments(
+										path, prefixSegs + 1)).toURL();
+					} catch (MalformedURLException e) {
+						throw new IllegalArgumentException(e);
+					}
+				}, validityInfos);
 	}
 	
 }
