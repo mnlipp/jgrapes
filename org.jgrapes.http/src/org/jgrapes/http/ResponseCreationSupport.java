@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -181,7 +182,8 @@ public class ResponseCreationSupport {
 		try {
 			Path path = Paths.get(resource.toURI());
 			return new ResourceInfo(Files.isDirectory(path),
-					Files.getLastModifiedTime(path).toInstant());
+					Files.getLastModifiedTime(path).toInstant()
+					.with(ChronoField.NANO_OF_SECOND, 0));
 		} catch (FileSystemNotFoundException | IOException
 				| URISyntaxException e) {
 			// Fall through
@@ -191,7 +193,8 @@ public class ResponseCreationSupport {
 				JarURLConnection conn = (JarURLConnection)resource.openConnection();
 				JarEntry entry = conn.getJarEntry();
 				return new ResourceInfo(entry.isDirectory()	, 
-						entry.getLastModifiedTime().toInstant());
+						entry.getLastModifiedTime().toInstant()
+						.with(ChronoField.NANO_OF_SECOND, 0));
 			} catch (IOException e) {
 				// Fall through
 			}
