@@ -33,7 +33,6 @@ import java.io.Writer;
 import java.net.URI;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -51,7 +50,7 @@ import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.http.ResponseCreationSupport;
-import org.jgrapes.http.ResponseCreationSupport.ValidityInfo;
+import org.jgrapes.http.ResponseCreationSupport.MaxAgeCalculator;
 import org.jgrapes.http.Session;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
@@ -70,7 +69,7 @@ public class FreeMarkerRequestHandler extends Component {
 	private String contentPath;
 	private String prefix;
 	private Configuration fmConfig = null;
-	private List<ValidityInfo> validityInfos = new ArrayList<>();
+	private MaxAgeCalculator maxAgeCalculator = null;
 
 	/**
 	 * Instantiates a new free marker request handler.
@@ -99,17 +98,25 @@ public class FreeMarkerRequestHandler extends Component {
 	}
 
 	/**
-	 * Add a validity info to the list. The validity infos are used
-	 * for static resources only.
-	 *
-	 * @param info the validity info
-	 * @return this object for easy chaining
+	 * @return the maxAgeCalculator
 	 */
-	public FreeMarkerRequestHandler addValidityInfo(ValidityInfo info) {
-		validityInfos.add(info);
-		return this;
+	public MaxAgeCalculator maxAgeCalculator() {
+		return maxAgeCalculator;
 	}
-	
+
+	/**
+	 * Sets the {@link MaxAgeCalculator} for generating the `Cache-Control` 
+	 * (`max-age`) header of the response. The default is `null`. This
+	 * causes 0 to be provided for responses generated from templates and the 
+	 * {@link ResponseCreationSupport#DEFAULT_MAX_AGE_CALCULATOR} to be
+	 * used for static content.
+	 * 
+	 * @param maxAgeCalculator the maxAgeCalculator to set
+	 */
+	public void setMaxAgeCalculator(MaxAgeCalculator maxAgeCalculator) {
+		this.maxAgeCalculator = maxAgeCalculator;
+	}
+
 	/**
 	 * Removes the prefix specified in the constructor from the
 	 * path in the request. Checks if the resulting path  
@@ -135,7 +142,7 @@ public class FreeMarkerRequestHandler extends Component {
 			ResponseCreationSupport.sendStaticContent(
 					event, channel, path -> contentLoader.getResource(
 							FreeMarkerRequestHandler.this.contentPath 
-							+ "/" + subUri.getPath()), validityInfos);
+							+ "/" + subUri.getPath()), maxAgeCalculator);
 			return;
 		}
 		sendProcessedTemplate(event, channel, subUri.getPath());
@@ -161,6 +168,13 @@ public class FreeMarkerRequestHandler extends Component {
 		// Send response 
 		response.setStatus(HttpStatus.OK);
 		response.setField(HttpField.LAST_MODIFIED, Instant.now());
+		if (maxAgeCalculator == null) {
+			ResponseCreationSupport.setMaxAge(response, 
+					(req, mt) -> 0, event.httpRequest(), mediaType);
+		} else {
+			ResponseCreationSupport.setMaxAge(
+					response, maxAgeCalculator, event.httpRequest(), mediaType);
+		}
 		event.stop();
 		channel.respond(new Response(response));
 

@@ -30,10 +30,7 @@ import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
@@ -43,7 +40,7 @@ import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
-import org.jgrapes.http.ResponseCreationSupport.ValidityInfo;
+import org.jgrapes.http.ResponseCreationSupport.MaxAgeCalculator;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.Response;
@@ -58,7 +55,8 @@ public class StaticContentDispatcher extends Component {
 	private ResourcePattern resourcePattern;
 	private URI contentRoot = null;
 	private Path contentDirectory = null;
-	private List<ValidityInfo> validityInfos = new ArrayList<>();
+	private MaxAgeCalculator maxAgeCalculator = 
+			(request, mediaType) -> 365*24*3600;
 	
 	/**
 	 * Creates new dispatcher that tries to fulfill requests matching 
@@ -108,37 +106,22 @@ public class StaticContentDispatcher extends Component {
 	}
 
 	/**
-	 * Returns the validity infos as unmodifiable list.
-	 * 
-	 * @return the validityInfos
-	 * @see #validityInfos()
+	 * @return the maxAgeCalculator
 	 */
-	public List<ValidityInfo> validityInfos() {
-		return Collections.unmodifiableList(validityInfos);
+	public MaxAgeCalculator maxAgeCalculator() {
+		return maxAgeCalculator;
 	}
 
 	/**
-	 * Sets validity infos for generating the `Cache-Control` (`max-age`)
-	 * header of the response. If the type of the resource served 
-	 * matches an entry in the list, the entry's `maxAge` value is used 
-	 * for generating the header. If no info matches or no infos are set, 
-	 * a default of 600 seconds is used as time span.
+	 * Sets the {@link MaxAgeCalculator} for generating the `Cache-Control` 
+	 * (`max-age`) header of the response. The default max age calculator 
+	 * used simply returns a max age of one year, since this component
+	 * is intended to serve static content.
 	 * 
-	 * @param validityInfos the validityInfos to set
+	 * @param maxAgeCalculator the maxAgeCalculator to set
 	 */
-	public void setValidityInfos(List<ValidityInfo> validityInfos) {
-		this.validityInfos = validityInfos;
-	}
-
-	/**
-	 * Add a validity info to the list.
-	 * 
-	 * @return this object for easy chaining
-	 * @see #validityInfos()
-	 */
-	public StaticContentDispatcher addValidityInfo(ValidityInfo info) {
-		validityInfos.add(info);
-		return this;
+	public void setMaxAgeCalculator(MaxAgeCalculator maxAgeCalculator) {
+		this.maxAgeCalculator = maxAgeCalculator;
 	}
 
 	@RequestHandler(dynamic=true)
@@ -180,7 +163,8 @@ public class StaticContentDispatcher extends Component {
 		MediaType mediaType = HttpResponse.contentType(resourcePath.toUri());
 		
 		// Derive max-age
-		ResponseCreationSupport.setMaxAge(response, validityInfos, mediaType, 600);
+		ResponseCreationSupport.setMaxAge(
+				response, maxAgeCalculator, event.httpRequest(), mediaType);
 
 		// Check if sending is really required.
 		Instant lastModified = Files.getLastModifiedTime(resourcePath)
@@ -214,7 +198,7 @@ public class StaticContentDispatcher extends Component {
 					} catch (MalformedURLException e) {
 						throw new IllegalArgumentException(e);
 					}
-				}, validityInfos);
+				}, maxAgeCalculator);
 	}
 	
 }

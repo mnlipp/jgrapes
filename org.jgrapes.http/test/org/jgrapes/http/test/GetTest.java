@@ -76,7 +76,7 @@ public class GetTest {
 			super(componentChannel);
 			contentProvider = this;
 			jarLoader = new URLClassLoader(new URL[] {
-					MiscTests.class.getResource("/static-content.jar") });
+					GetTest.class.getResource("/static-content.jar") });
 			RequestHandler.Evaluator.add(this, "getDynamic", "/dynamic");
 		}
 
@@ -120,6 +120,15 @@ public class GetTest {
 			event.stop();
 		}
 		
+		@RequestHandler(patterns="/static-content/**")
+		public void getStaticContent(GetRequest event, IOSubchannel channel)
+				throws ParseException {
+			invocations += 1;
+			
+			ResponseCreationSupport.sendStaticContent(event, channel, 
+					path -> GetTest.class.getResource(path), null);
+		}
+		
 		@RequestHandler(patterns="/from-jar/**")
 		public void getFromJar(GetRequest event, IOSubchannel channel)
 				throws ParseException {
@@ -153,7 +162,7 @@ public class GetTest {
 	}
 	
 	@Test(timeout=1500)
-	public void testGetRoot() 
+	public void testNoGetRoot() 
 			throws IOException, InterruptedException, ExecutionException {
 		try {
 			URL url = new URL("http", "localhost", server.getPort(), "/");
@@ -169,7 +178,7 @@ public class GetTest {
 	}
 	
 	@Test(timeout=1500)
-	public void testGetTop() 
+	public void testGetMatchTop() 
 	        throws IOException, InterruptedException, ExecutionException {
 		URL url = new URL("http", "localhost", server.getPort(), "/top");
 		URLConnection conn = url.openConnection();
@@ -184,7 +193,7 @@ public class GetTest {
 	}
 
 	@Test(timeout=1500)
-	public void testGetTopPlus() 
+	public void testGetMatchTopPlus() 
 	        throws IOException, InterruptedException, ExecutionException {
 		URL url = new URL("http", "localhost", server.getPort(), "/top/plus");
 		URLConnection conn = url.openConnection();
@@ -195,7 +204,7 @@ public class GetTest {
 	}
 
 	@Test(timeout=1500)
-	public void testGetDynamic() 
+	public void testGetMatchDynamic() 
 			throws IOException, InterruptedException, ExecutionException {
 		URL url = new URL("http", "localhost", server.getPort(), "/dynamic");
 		URLConnection conn = url.openConnection();
@@ -209,16 +218,47 @@ public class GetTest {
 		assertEquals(1, contentProvider.invocations);
 	}
 
-//	@Test(timeout=1500)
-	@Test
-	public void testFromJar() 
+	@Test(timeout=2500)
+	public void testGetUnversionedStatic() 
+			throws IOException, InterruptedException, ExecutionException {
+		URL url = new URL("http", "localhost", server.getPort(), 
+				"/static-content/index.html");
+		URLConnection conn = url.openConnection();
+		conn.setConnectTimeout(2000);
+		conn.setReadTimeout(2000);
+		conn.connect();
+		String field = conn.getHeaderField("Cache-Control");
+		((HttpURLConnection)conn).disconnect();
+		assertEquals("max-age=60", field);
+
+		assertEquals(1, contentProvider.invocations);
+	}
+
+	@Test(timeout=2500)
+	public void testGetVersionedStatic() 
+			throws IOException, InterruptedException, ExecutionException {
+		URL url = new URL("http", "localhost", server.getPort(), 
+				"/static-content/versioned-1.0.0.html");
+		URLConnection conn = url.openConnection();
+		conn.setConnectTimeout(2000);
+		conn.setReadTimeout(2000);
+		conn.connect();
+		String field = conn.getHeaderField("Cache-Control");
+		((HttpURLConnection)conn).disconnect();
+		assertEquals("max-age=31536000", field);
+
+		assertEquals(1, contentProvider.invocations);
+	}
+
+	@Test(timeout=2500)
+	public void testGetFromJar() 
 			throws IOException, InterruptedException, ExecutionException {
 		URL url = new URL("http", "localhost", server.getPort(), 
 				"/from-jar/static-content/index.html");
 		// Unconditional fetch
 		URLConnection conn = url.openConnection();
-		conn.setConnectTimeout(1000);
-		conn.setReadTimeout(1000);
+		conn.setConnectTimeout(2000);
+		conn.setReadTimeout(2000);
 		conn.setUseCaches(false);
 		try (BufferedReader br = new BufferedReader(
 		        new InputStreamReader(conn.getInputStream(), "utf-8"))) {

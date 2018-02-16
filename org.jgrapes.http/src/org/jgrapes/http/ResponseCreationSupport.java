@@ -38,14 +38,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.jar.JarEntry;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
+import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.Directive;
-import org.jdrupes.httpcodec.types.MediaRange;
 import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
@@ -57,6 +58,9 @@ import org.jgrapes.io.util.InputStreamPipeline;
  */
 public class ResponseCreationSupport {
 
+	public static final MaxAgeCalculator DEFAULT_MAX_AGE_CALCULATOR
+		= new DefaultMaxAgeCalculator();
+	
 	/**
 	 * Creates and sends a response with static content. The content 
 	 * is looked up by invoking the resolver with the path from the request.
@@ -67,13 +71,14 @@ public class ResponseCreationSupport {
 	 * @param event the event
 	 * @param channel the channel
 	 * @param resolver the resolver
-	 * @param validityInfos the validity infos
+	 * @param maxAgeCalculator the max age calculator, if `null`
+	 * the default calculator is used.
 	 * @return the from uri
 	 * @throws ParseException the parse exception
 	 */
 	public static boolean sendStaticContent(
 			Request event, IOSubchannel channel,  
-			Function<String,URL> resolver, List<ValidityInfo> validityInfos)
+			Function<String,URL> resolver, MaxAgeCalculator maxAgeCalculator)
 					throws ParseException {
 		String path = event.requestUri().getPath();
 		URL resourceUrl = resolver.apply(path);
@@ -114,7 +119,7 @@ public class ResponseCreationSupport {
 				ResponseCreationSupport.uriFromUrl(resourceUrl));
 
 		// Derive max-age
-		setMaxAge(response, validityInfos, mediaType, 600);
+		setMaxAge(response, maxAgeCalculator, event.httpRequest(), mediaType);
 
 		// Check if sending is really required.
 		Optional<Instant> modifiedSince = event.httpRequest()
@@ -266,59 +271,56 @@ public class ResponseCreationSupport {
 	 * @return the value set
 	 */
 	public static long setMaxAge(HttpResponse response, 
-			Iterable<ValidityInfo> validityInfos,
-			MediaType mediaType, long defaultValue) {
-		long maxAge = defaultValue;
-		if (validityInfos != null) {
-			for (ValidityInfo info: validityInfos) {
-				if (info.mediaRange().matches(mediaType)) {
-					break;
-				}
-			}
-		}
+			MaxAgeCalculator maxAgeCalculator, 
+			HttpRequest request, MediaType mediaType) {
 		List<Directive> directives = new ArrayList<>();
+		int maxAge = maxAgeCalculator != null 
+				? maxAgeCalculator.maxAge(request, mediaType)
+						: DEFAULT_MAX_AGE_CALCULATOR.maxAge(request, mediaType);
 		directives.add(new Directive("max-age", maxAge));
 		response.setField(HttpField.CACHE_CONTROL, directives);
 		return maxAge;
 	}
-	
-	/**
-	 * Describes an association between a media range and a 
-	 * maximum age in seconds. 
-	 */
-	public static class ValidityInfo {
-		private MediaRange mediaRange;
-		private long maxAge;
 
-		/**
-		 * Instantiates a new validity info.
-		 *
-		 * @param mediaRange the media range
-		 * @param maxAge the max age
-		 */
-		public ValidityInfo(MediaRange mediaRange, long maxAge) {
-			super();
-			this.mediaRange = mediaRange;
-			this.maxAge = maxAge;
-		}
-
-		/**
-		 * The media range matches by this info.
-		 * 
-		 * @return the mediaRange
-		 */
-		public MediaRange mediaRange() {
-			return mediaRange;
-		}
+	@FunctionalInterface
+	public interface MaxAgeCalculator  {
 		
 		/**
-		 * The time span in seconds until the response expires.
-		 * 
-		 * @return the time span
+		 * Calculate a max age value for a response using the given 
+		 * request and the media type of the repsonse.
+		 *
+		 * @param request the request, usually only the URI is
+		 * considered for the calculation
+		 * @param mediaType the media type of the response
+		 * @return the max age value to be used in the response
 		 */
-		public long maxAge() {
-			return maxAge;
-		}
+		int maxAge(HttpRequest request, MediaType mediaType);
 	}
-	
+
+	/**
+	 * DefaultMaxAgeCalculator provides an implementation that 
+	 * tries to guess a good max age value by looking at the
+	 * path of the requested resource. If the path contains
+	 * the pattern "dash, followed by a number, followed by
+	 * a dot and a number" it is assumed that the resource
+	 * is versioned, i.e. its path changes if the resource
+	 * changes. In this case a max age of one year is returned.
+	 * In all other cases, a max age value of 60 (one minute)
+	 * is returned.
+	 */
+	public static class DefaultMaxAgeCalculator implements MaxAgeCalculator {
+
+		public static final Pattern VERSION_PATTERN
+			= Pattern.compile("-[0-9]+\\.[0-9]+");
+		
+		@Override
+		public int maxAge(HttpRequest request, MediaType mediaType) {
+			if (VERSION_PATTERN.matcher(
+					request.requestUri().getPath()).find()) {
+				return 365*24*3600;
+			}
+			return 60;
+		}
+		
+	}
 }
