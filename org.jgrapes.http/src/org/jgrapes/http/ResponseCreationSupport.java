@@ -20,6 +20,7 @@ package org.jgrapes.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -51,6 +52,7 @@ import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.InputStreamPipeline;
 
 /**
@@ -60,6 +62,51 @@ public class ResponseCreationSupport {
 
 	public static final MaxAgeCalculator DEFAULT_MAX_AGE_CALCULATOR
 		= new DefaultMaxAgeCalculator();
+	
+	/**
+	 * Send a response to the given request with the given status code 
+	 * and reason phrase, including a `text/plain` body with the status 
+	 * code and reason phrase. 
+	 * 
+	 * @param response the response
+	 * @param channel for responding; events will be sent using
+	 * {@link IOSubchannel#respond(org.jgrapes.core.Event)}
+	 * @param statusCode the status code to send
+	 * @param reasonPhrase the reason phrase to send
+	 */
+	public static void sendResponse(HttpRequest request,
+			IOSubchannel channel, int statusCode, String reasonPhrase) {
+		HttpResponse response = request.response().get();
+		response.setStatusCode(statusCode).setReasonPhrase(reasonPhrase)
+			.setHasPayload(true).setField(
+					HttpField.CONTENT_TYPE,
+					MediaType.builder().setType("text", "plain")
+					.setParameter("charset", "utf-8").build());
+		// Act like a sub-component, i.e. generate events that are
+		// handled by this HTTP server as if sent from a sub-component.
+		channel.respond(new Response(response));
+		try {
+			channel.respond(Output.from((statusCode + " " + reasonPhrase)
+					.getBytes("utf-8"), true));
+		} catch (UnsupportedEncodingException e) {
+			// Supported by definition
+		}
+	}
+
+	/**
+	 * Short-hand for invoking 
+	 * {@link #sendResponse(HttpRequest, IOSubchannel, int, String)}
+	 * with a predefined HTTP status.
+	 *
+	 * @param request the request
+	 * @param channel the channel
+	 * @param status the status
+	 */
+	public static void sendResponse(HttpRequest request,
+			IOSubchannel channel, HttpStatus status) {
+		sendResponse(request, channel, status.statusCode(), 
+				status.reasonPhrase());
+	}
 	
 	/**
 	 * Creates and sends a response with static content. The content 

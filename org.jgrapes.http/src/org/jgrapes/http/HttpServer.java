@@ -18,7 +18,6 @@
 
 package org.jgrapes.http;
 
-import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -51,7 +50,6 @@ import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;
 import org.jdrupes.httpcodec.protocols.websocket.WsCloseFrame;
 import org.jdrupes.httpcodec.protocols.websocket.WsMessageHeader;
 import org.jdrupes.httpcodec.types.Converters;
-import org.jdrupes.httpcodec.types.MediaType;
 import org.jdrupes.httpcodec.types.StringList;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -332,9 +330,8 @@ public class HttpServer extends Component {
 
 		// No component has taken care of the request, provide
 		// fallback response
-		sendResponse(response, appChannel, 
-				HttpStatus.NOT_IMPLEMENTED.statusCode(), 
-				HttpStatus.NOT_IMPLEMENTED.reasonPhrase());
+		ResponseCreationSupport.sendResponse(requestEvent.httpRequest(),
+				appChannel,	HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	/**
@@ -369,9 +366,8 @@ public class HttpServer extends Component {
 		        || !providedFallbacks.contains(event.getClass())) {
 			return;
 		}
-		sendResponse(event.httpRequest().response().get(), appChannel, 
-				HttpStatus.NOT_FOUND.statusCode(), 
-				HttpStatus.NOT_FOUND.reasonPhrase());
+		ResponseCreationSupport.sendResponse(
+				event.httpRequest(), appChannel, HttpStatus.NOT_FOUND);
 		event.stop();
 	}
 
@@ -390,32 +386,6 @@ public class HttpServer extends Component {
 	public void onWebSocketAccepted(
 			WebSocketAccepted event, AppChannel appChannel) {
 		appChannel.handleWebSocketAccepted(event, appChannel);
-	}
-	
-	/**
-	 * Send a simple, prepared HTTP response.
-	 * 
-	 * @param response the response
-	 * @param appChannel the app channel to respond on
-	 * @param statusCode the status code to send
-	 * @param reasonPhrase the reason phrase to send
-	 */
-	private void sendResponse(HttpResponse response, IOSubchannel appChannel,
-			int statusCode, String reasonPhrase) {
-		response.setStatusCode(statusCode).setReasonPhrase(reasonPhrase)
-			.setHasPayload(true).setField(
-					HttpField.CONTENT_TYPE,
-					MediaType.builder().setType("text", "plain")
-					.setParameter("charset", "utf-8").build());
-		// Act as a sub-compnent, i.e. generate events that are
-		// handled by this HTTP server as if sent from a sub-component.
-		fire(new Response(response), appChannel);
-		try {
-			fire(Output.from((statusCode + " " + reasonPhrase)
-					.getBytes("utf-8"), true), appChannel);
-		} catch (UnsupportedEncodingException e) {
-			// Supported by definition
-		}
 	}
 	
 	private class AppChannel extends LinkedIOSubchannel {
@@ -544,8 +514,8 @@ public class HttpServer extends Component {
 						if (acceptNoSni && snis.isEmpty()) {
 							convertHostToNumerical(httpRequest);
 						} else {
-							sendResponse(httpRequest.response().get(),
-							        this, 421, "Misdirected Request");
+							ResponseCreationSupport.sendResponse(httpRequest,
+									this, 421, "Misdirected Request");
 							return false;
 						}
 					}
