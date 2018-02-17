@@ -49,6 +49,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.Directive;
 import org.jdrupes.httpcodec.types.MediaType;
+import org.jgrapes.core.Event;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
@@ -67,8 +68,8 @@ public class ResponseCreationSupport {
 	 * Send a response to the given request with the given status code 
 	 * and reason phrase, including a `text/plain` body with the status 
 	 * code and reason phrase. 
-	 * 
-	 * @param response the response
+	 *
+	 * @param request the request
 	 * @param channel for responding; events will be sent using
 	 * {@link IOSubchannel#respond(org.jgrapes.core.Event)}
 	 * @param statusCode the status code to send
@@ -94,7 +95,7 @@ public class ResponseCreationSupport {
 	}
 
 	/**
-	 * Short-hand for invoking 
+	 * Shorthand for invoking 
 	 * {@link #sendResponse(HttpRequest, IOSubchannel, int, String)}
 	 * with a predefined HTTP status.
 	 *
@@ -115,19 +116,19 @@ public class ResponseCreationSupport {
 	 * The response includes a max-age header with a default value of
 	 * 600. The value may be modified by specifying validity infos.
 	 *
-	 * @param event the event
+	 * @param request the request
 	 * @param channel the channel
 	 * @param resolver the resolver
 	 * @param maxAgeCalculator the max age calculator, if `null`
 	 * the default calculator is used.
-	 * @return the from uri
+	 * @return `true` if a response was sent
 	 * @throws ParseException the parse exception
 	 */
 	public static boolean sendStaticContent(
-			Request event, IOSubchannel channel,  
+			HttpRequest request, IOSubchannel channel,  
 			Function<String,URL> resolver, MaxAgeCalculator maxAgeCalculator)
 					throws ParseException {
-		String path = event.requestUri().getPath();
+		String path = request.requestUri().getPath();
 		URL resourceUrl = resolver.apply(path);
 		ResourceInfo info;
 		URLConnection resConn;
@@ -161,17 +162,16 @@ public class ResponseCreationSupport {
 		}
 		
 		// Get content type
-		HttpResponse response = event.httpRequest().response().get();
+		HttpResponse response = request.response().get();
 		MediaType mediaType = HttpResponse.contentType(
 				ResponseCreationSupport.uriFromUrl(resourceUrl));
 
 		// Derive max-age
-		setMaxAge(response, maxAgeCalculator, event.httpRequest(), mediaType);
+		setMaxAge(response, maxAgeCalculator, request, mediaType);
 
 		// Check if sending is really required.
-		Optional<Instant> modifiedSince = event.httpRequest()
+		Optional<Instant> modifiedSince = request
 				.findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
-		event.stop();
 		response.setField(HttpField.LAST_MODIFIED, info.getLastModifiedAt());
 		if (modifiedSince.isPresent() && info.getLastModifiedAt() != null
 				&& !info.getLastModifiedAt().isAfter(modifiedSince.get())) {
@@ -188,6 +188,32 @@ public class ResponseCreationSupport {
 		return true;
 	}
 
+	/**
+	 * Shorthand for invoking 
+	 * {@link #sendStaticContent(HttpRequest, IOSubchannel, Function, MaxAgeCalculator)}
+	 * with the {@link HttpRequest} from the event. Also invokes
+	 * {@link Event#stop()} is a response was sent.
+	 *
+	 * @param event the event
+	 * @param channel the channel
+	 * @param resolver the resolver
+	 * @param maxAgeCalculator the max age calculator, if `null`
+	 * the default calculator is used.
+	 * @return `true` if a response was sent
+	 * @throws ParseException the parse exception
+	 */
+	public static boolean sendStaticContent(
+			Request event, IOSubchannel channel,  
+			Function<String,URL> resolver, MaxAgeCalculator maxAgeCalculator)
+					throws ParseException {
+		if (sendStaticContent(
+				event.httpRequest(), channel, resolver, maxAgeCalculator)) {
+			event.stop();
+			return true;
+		}
+		return false;
+	}
+	
 	public static class ResourceInfo {
 		public Boolean isDirectory;
 		public Instant lastModifiedAt;
@@ -312,9 +338,9 @@ public class ResponseCreationSupport {
 	 * the default value.
 	 *
 	 * @param response the response
-	 * @param validityInfos the validity infos
+	 * @param maxAgeCalculator the max age calculator
+	 * @param request the request
 	 * @param mediaType the media type
-	 * @param defaultValue the default value
 	 * @return the value set
 	 */
 	public static long setMaxAge(HttpResponse response, 
