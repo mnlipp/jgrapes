@@ -84,16 +84,16 @@ public class GetTest {
 		Components.checkAssertions();
 	}
 	
-	@Test(timeout=2500)
+	@Test(timeout=5000)
 	public void testGetSimple() 
 			throws IOException, InterruptedException, ExecutionException {
 		URL url = new URL("http", "localhost", server.getPort(),
 		        "/generated/simple.ftl.html");
 		URLConnection conn = url.openConnection();
-		conn.setConnectTimeout(2000);
-		conn.setReadTimeout(2000);
-		conn.setConnectTimeout(2000);
-		conn.setReadTimeout(2000);
+		conn.setConnectTimeout(4000);
+		conn.setReadTimeout(4000);
+		conn.setConnectTimeout(4000);
+		conn.setReadTimeout(4000);
 		try (BufferedReader br = new BufferedReader(
 		        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
 			String str = br.lines().findFirst().get();
@@ -101,16 +101,16 @@ public class GetTest {
 		}
 	}
 	
-	@Test(timeout=1500)
+	@Test(timeout=5000)
 	public void testGetStatic() 
 			throws IOException, InterruptedException, ExecutionException {
 		URL url = new URL("http", "localhost", server.getPort(),
 		        "/generated/Readme.txt");
 		URLConnection conn = url.openConnection();
-		conn.setConnectTimeout(1000);
-		conn.setReadTimeout(1000);
-		conn.setConnectTimeout(1000);
-		conn.setReadTimeout(1000);
+		conn.setConnectTimeout(4000);
+		conn.setReadTimeout(4000);
+		conn.setConnectTimeout(4000);
+		conn.setReadTimeout(4000);
 		try (BufferedReader br = new BufferedReader(
 		        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
 			String str = br.lines().findFirst().get();
