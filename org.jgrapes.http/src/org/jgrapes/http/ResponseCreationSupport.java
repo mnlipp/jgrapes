@@ -122,12 +122,10 @@ public class ResponseCreationSupport {
 	 * @param maxAgeCalculator the max age calculator, if `null`
 	 * the default calculator is used.
 	 * @return `true` if a response was sent
-	 * @throws ParseException the parse exception
 	 */
 	public static boolean sendStaticContent(
 			HttpRequest request, IOSubchannel channel,  
-			Function<String,URL> resolver, MaxAgeCalculator maxAgeCalculator)
-					throws ParseException {
+			Function<String,URL> resolver, MaxAgeCalculator maxAgeCalculator) {
 		String path = request.requestUri().getPath();
 		URL resourceUrl = resolver.apply(path);
 		ResourceInfo info;
@@ -204,8 +202,7 @@ public class ResponseCreationSupport {
 	 */
 	public static boolean sendStaticContent(
 			Request event, IOSubchannel channel,  
-			Function<String,URL> resolver, MaxAgeCalculator maxAgeCalculator)
-					throws ParseException {
+			Function<String,URL> resolver, MaxAgeCalculator maxAgeCalculator) {
 		if (sendStaticContent(
 				event.httpRequest(), channel, resolver, maxAgeCalculator)) {
 			event.stop();
