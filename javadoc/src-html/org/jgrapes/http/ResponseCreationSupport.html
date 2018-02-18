@@ -166,19 +166,19 @@
 <span class="sourceLineNo">158</span>                                return false;<a name="line.158"></a>
 <span class="sourceLineNo">159</span>                        }<a name="line.159"></a>
 <span class="sourceLineNo">160</span>                }<a name="line.160"></a>
-<span class="sourceLineNo">161</span>                <a name="line.161"></a>
-<span class="sourceLineNo">162</span>                // Get content type<a name="line.162"></a>
-<span class="sourceLineNo">163</span>                HttpResponse response = request.response().get();<a name="line.163"></a>
-<span class="sourceLineNo">164</span>                MediaType mediaType = HttpResponse.contentType(<a name="line.164"></a>
-<span class="sourceLineNo">165</span>                                ResponseCreationSupport.uriFromUrl(resourceUrl));<a name="line.165"></a>
-<span class="sourceLineNo">166</span><a name="line.166"></a>
-<span class="sourceLineNo">167</span>                // Derive max-age<a name="line.167"></a>
-<span class="sourceLineNo">168</span>                setMaxAge(response, maxAgeCalculator, request, mediaType);<a name="line.168"></a>
-<span class="sourceLineNo">169</span><a name="line.169"></a>
-<span class="sourceLineNo">170</span>                // Check if sending is really required.<a name="line.170"></a>
-<span class="sourceLineNo">171</span>                Optional&lt;Instant&gt; modifiedSince = request<a name="line.171"></a>
-<span class="sourceLineNo">172</span>                                .findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);<a name="line.172"></a>
-<span class="sourceLineNo">173</span>                response.setField(HttpField.LAST_MODIFIED, info.getLastModifiedAt());<a name="line.173"></a>
+<span class="sourceLineNo">161</span>                HttpResponse response = request.response().get();<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                if (info.getLastModifiedAt() != null) {<a name="line.162"></a>
+<span class="sourceLineNo">163</span>                        response.setField(HttpField.LAST_MODIFIED, info.getLastModifiedAt());<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                }<a name="line.164"></a>
+<span class="sourceLineNo">165</span>                <a name="line.165"></a>
+<span class="sourceLineNo">166</span>                // Get content type and derive max age<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                MediaType mediaType = HttpResponse.contentType(<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                                ResponseCreationSupport.uriFromUrl(resourceUrl));<a name="line.168"></a>
+<span class="sourceLineNo">169</span>                setMaxAge(response, maxAgeCalculator, request, mediaType);<a name="line.169"></a>
+<span class="sourceLineNo">170</span><a name="line.170"></a>
+<span class="sourceLineNo">171</span>                // Check if sending is really required.<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                Optional&lt;Instant&gt; modifiedSince = request<a name="line.172"></a>
+<span class="sourceLineNo">173</span>                                .findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);<a name="line.173"></a>
 <span class="sourceLineNo">174</span>                if (modifiedSince.isPresent() &amp;&amp; info.getLastModifiedAt() != null<a name="line.174"></a>
 <span class="sourceLineNo">175</span>                                &amp;&amp; !info.getLastModifiedAt().isAfter(modifiedSince.get())) {<a name="line.175"></a>
 <span class="sourceLineNo">176</span>                        response.setStatus(HttpStatus.NOT_MODIFIED);<a name="line.176"></a>
