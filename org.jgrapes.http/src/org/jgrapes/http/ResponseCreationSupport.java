@@ -158,19 +158,19 @@ public class ResponseCreationSupport {
 				return false;
 			}
 		}
-		
-		// Get content type
 		HttpResponse response = request.response().get();
+		if (info.getLastModifiedAt() != null) {
+			response.setField(HttpField.LAST_MODIFIED, info.getLastModifiedAt());
+		}
+		
+		// Get content type and derive max age
 		MediaType mediaType = HttpResponse.contentType(
 				ResponseCreationSupport.uriFromUrl(resourceUrl));
-
-		// Derive max-age
 		setMaxAge(response, maxAgeCalculator, request, mediaType);
 
 		// Check if sending is really required.
 		Optional<Instant> modifiedSince = request
 				.findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
-		response.setField(HttpField.LAST_MODIFIED, info.getLastModifiedAt());
 		if (modifiedSince.isPresent() && info.getLastModifiedAt() != null
 				&& !info.getLastModifiedAt().isAfter(modifiedSince.get())) {
 			response.setStatus(HttpStatus.NOT_MODIFIED);
