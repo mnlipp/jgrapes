@@ -189,8 +189,9 @@ public class ResponseCreationSupport {
 	/**
 	 * Shorthand for invoking 
 	 * {@link #sendStaticContent(HttpRequest, IOSubchannel, Function, MaxAgeCalculator)}
-	 * with the {@link HttpRequest} from the event. Also invokes
-	 * {@link Event#stop()} is a response was sent.
+	 * with the {@link HttpRequest} from the event. Also sets the result
+	 * of the event to `true` and invokes {@link Event#stop()} 
+	 * if a response was sent.
 	 *
 	 * @param event the event
 	 * @param channel the channel
@@ -205,6 +206,7 @@ public class ResponseCreationSupport {
 			Function<String,URL> resolver, MaxAgeCalculator maxAgeCalculator) {
 		if (sendStaticContent(
 				event.httpRequest(), channel, resolver, maxAgeCalculator)) {
+			event.setResult(true);
 			event.stop();
 			return true;
 		}

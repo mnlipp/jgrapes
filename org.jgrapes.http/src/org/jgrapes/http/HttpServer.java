@@ -302,9 +302,11 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Checks whether the request has been handled (status code of response has
-	 * been set). If not, send the default response ("Not implemented") to the
-	 * client.
+	 * Checks whether the request has been handled (value of {@link Request}
+	 * event set to `true`) or the status code in the prepared response
+	 * is no longer "Not Implemented". If not, but a fall back has been set, 
+	 * send a "Not Found" response. If this isn't the case either, send 
+	 * the default response ("Not implemented") to the client.
 	 * 
 	 * @param event
 	 *            the request completed event
@@ -316,20 +318,25 @@ public class HttpServer extends Component {
 			Request.Completed event, IOSubchannel appChannel)
 	        throws InterruptedException {
 		final Request requestEvent = event.event();
-		if (requestEvent.isStopped()) {
-			// Has been handled
+		// A check that also works with null.
+		if (Boolean.TRUE.equals(requestEvent.get())
+				|| requestEvent.httpRequest().response().map(
+						response -> response.statusCode()
+							!= HttpStatus.NOT_IMPLEMENTED.statusCode())
+					.orElse(false)) {
+			// Some other component has taken care
 			return;
 		}
-		final HttpResponse response 
-			= requestEvent.httpRequest().response().get();
-
-		if (response.statusCode() != HttpStatus.NOT_IMPLEMENTED.statusCode()) {
-			// Some other component takes care
+		
+		// Check if "Not Found" should be sent
+		if (providedFallbacks != null
+		        && providedFallbacks.contains(requestEvent.getClass())) {
+			ResponseCreationSupport.sendResponse(
+					requestEvent.httpRequest(), appChannel, HttpStatus.NOT_FOUND);
 			return;
 		}
-
-		// No component has taken care of the request, provide
-		// fallback response
+		
+		// Last resort
 		ResponseCreationSupport.sendResponse(requestEvent.httpRequest(),
 				appChannel,	HttpStatus.NOT_IMPLEMENTED);
 	}
@@ -347,28 +354,9 @@ public class HttpServer extends Component {
 			HttpResponse response = event.httpRequest().response().get();
 			response.setStatus(HttpStatus.OK);
 			appChannel.respond(new Response(response));
+			event.setResult(true);
 			event.stop();
 		}
-	}
-
-	/**
-	 * Provides a fall back handler (lowest priority) for the request types
-	 * specified in the constructor.
-	 * 
-	 * @param event the event
-	 * @param appChannel the application channel
-	 * @throws ParseException if the request contains illegal header fields
-	 */
-	@Handler(priority = Integer.MIN_VALUE)
-	public void onRequest(Request event, IOSubchannel appChannel)
-			throws ParseException {
-		if (providedFallbacks == null
-		        || !providedFallbacks.contains(event.getClass())) {
-			return;
-		}
-		ResponseCreationSupport.sendResponse(
-				event.httpRequest(), appChannel, HttpStatus.NOT_FOUND);
-		event.stop();
 	}
 
 	/**

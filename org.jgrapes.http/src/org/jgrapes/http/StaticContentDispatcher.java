@@ -171,6 +171,7 @@ public class StaticContentDispatcher extends Component {
 				.toInstant().with(ChronoField.NANO_OF_SECOND, 0);
 		Optional<Instant> modifiedSince = event.httpRequest()
 				.findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);
+		event.setResult(true);
 		event.stop();
 		if (modifiedSince.isPresent() 
 				&& !lastModified.isAfter(modifiedSince.get())) {

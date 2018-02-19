@@ -32,9 +32,12 @@ import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResourcePattern.PathSpliterator;
 
 /**
- *
+ * The base class for all HTTP requests such as {@link GetRequest},
+ * {@link PostRequest} etc. A result of `true` indicates that the 
+ * request has been processed, i.e. a response has been sent or will
+ * sent.
  */
-public class Request extends Event<Void> {
+public class Request extends Event<Boolean> {
 
 	public static class Completed extends CompletionEvent<Request> {
 

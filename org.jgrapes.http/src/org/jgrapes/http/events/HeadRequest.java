@@ -22,7 +22,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
 
 /**
- *
+ * Represents a HTTP HEAD request.
  */
 public class HeadRequest extends Request {
 

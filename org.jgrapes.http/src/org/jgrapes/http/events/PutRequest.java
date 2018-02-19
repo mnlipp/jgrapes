@@ -22,7 +22,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
 
 /**
- *
+ * Represents a HTTP PUT request.
  */
 public class PutRequest extends Request {
 

@@ -22,6 +22,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
 
 /**
+ * Represents a HTTP GET request.
  */
 public class GetRequest extends Request {
 

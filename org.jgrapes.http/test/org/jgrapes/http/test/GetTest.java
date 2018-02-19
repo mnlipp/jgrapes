@@ -97,6 +97,18 @@ public class GetTest {
 			} catch (UnsupportedEncodingException e) {
 				// Supported by definition
 			}
+			event.setResult(true);
+			event.stop();
+		}
+		
+		@RequestHandler(patterns="/not-found-status-only")
+		public void getNotFoundStatusOnly(
+				GetRequest event, IOSubchannel channel) throws ParseException {
+			invocations += 1;
+
+			ResponseCreationSupport.sendResponse(
+					event.httpRequest(), channel, HttpStatus.NOT_FOUND);
+			// Deliberately omit setting the result.
 			event.stop();
 		}
 		
@@ -117,6 +129,7 @@ public class GetTest {
 			} catch (UnsupportedEncodingException e) {
 				// Supported by definition
 			}
+			event.setResult(true);
 			event.stop();
 		}
 		
@@ -175,6 +188,23 @@ public class GetTest {
 			// Expected
 		}
 		assertEquals(0, contentProvider.invocations);
+	}
+	
+	@Test(timeout=1500)
+	public void testNotFoundStatusOnly() 
+			throws IOException, InterruptedException, ExecutionException {
+		try {
+			URL url = new URL("http", "localhost", server.getPort(), 
+					"/not-found-status-only");
+			URLConnection conn = url.openConnection();
+			conn.setConnectTimeout(1000);
+			conn.setReadTimeout(1000);
+			conn.getInputStream();
+			fail();
+		} catch (FileNotFoundException e) {
+			// Expected
+		}
+		assertEquals(1, contentProvider.invocations);
 	}
 	
 	@Test(timeout=1500)
