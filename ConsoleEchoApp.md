@@ -62,7 +62,7 @@ contained in the event as a buffer from the Java
 line entered was "`QUIT`". If this is the case, it fires a `Stop` event 
 on the application's channel.
 
-The `Stop` event is processed by a handler method of `EchoUnitQuit` and 
+The `Stop` event is processed by a handler method of `InputStreamMonitor` and 
 causes the component to stop listening for data from the console. This
 puts the application in a state where all events are processed and 
 there are no more components that can generate events. This is the
