@@ -179,37 +179,38 @@
 <span class="sourceLineNo">171</span>                                .toInstant().with(ChronoField.NANO_OF_SECOND, 0);<a name="line.171"></a>
 <span class="sourceLineNo">172</span>                Optional&lt;Instant&gt; modifiedSince = event.httpRequest()<a name="line.172"></a>
 <span class="sourceLineNo">173</span>                                .findValue(HttpField.IF_MODIFIED_SINCE, Converters.DATE_TIME);<a name="line.173"></a>
-<span class="sourceLineNo">174</span>                event.stop();<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                if (modifiedSince.isPresent() <a name="line.175"></a>
-<span class="sourceLineNo">176</span>                                &amp;&amp; !lastModified.isAfter(modifiedSince.get())) {<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                        response.setStatus(HttpStatus.NOT_MODIFIED);<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                        response.setField(HttpField.LAST_MODIFIED, lastModified);<a name="line.178"></a>
-<span class="sourceLineNo">179</span>                        channel.respond(new Response(response));<a name="line.179"></a>
-<span class="sourceLineNo">180</span>                } else {<a name="line.180"></a>
-<span class="sourceLineNo">181</span>                        response.setContentType(mediaType);<a name="line.181"></a>
-<span class="sourceLineNo">182</span>                        response.setStatus(HttpStatus.OK);<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                        response.setField(HttpField.LAST_MODIFIED, lastModified);<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                        channel.respond(new Response(response));<a name="line.184"></a>
-<span class="sourceLineNo">185</span>                        fire(new StreamFile(resourcePath, StandardOpenOption.READ), channel);<a name="line.185"></a>
-<span class="sourceLineNo">186</span>                }<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                return true;<a name="line.187"></a>
-<span class="sourceLineNo">188</span>        }<a name="line.188"></a>
-<span class="sourceLineNo">189</span><a name="line.189"></a>
-<span class="sourceLineNo">190</span>        private boolean getFromUri(GetRequest event, IOSubchannel channel,<a name="line.190"></a>
-<span class="sourceLineNo">191</span>                int prefixSegs) throws ParseException {<a name="line.191"></a>
-<span class="sourceLineNo">192</span>                return ResponseCreationSupport.sendStaticContent(<a name="line.192"></a>
-<span class="sourceLineNo">193</span>                                event, channel, path -&gt; {<a name="line.193"></a>
-<span class="sourceLineNo">194</span>                                        try {<a name="line.194"></a>
-<span class="sourceLineNo">195</span>                                                return contentRoot.resolve(<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                                                                ResponseCreationSupport.removeSegments(<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                                                                                path, prefixSegs + 1)).toURL();<a name="line.197"></a>
-<span class="sourceLineNo">198</span>                                        } catch (MalformedURLException e) {<a name="line.198"></a>
-<span class="sourceLineNo">199</span>                                                throw new IllegalArgumentException(e);<a name="line.199"></a>
-<span class="sourceLineNo">200</span>                                        }<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                                }, maxAgeCalculator);<a name="line.201"></a>
-<span class="sourceLineNo">202</span>        }<a name="line.202"></a>
-<span class="sourceLineNo">203</span>        <a name="line.203"></a>
-<span class="sourceLineNo">204</span>}<a name="line.204"></a>
+<span class="sourceLineNo">174</span>                event.setResult(true);<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                event.stop();<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                if (modifiedSince.isPresent() <a name="line.176"></a>
+<span class="sourceLineNo">177</span>                                &amp;&amp; !lastModified.isAfter(modifiedSince.get())) {<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                        response.setStatus(HttpStatus.NOT_MODIFIED);<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                        response.setField(HttpField.LAST_MODIFIED, lastModified);<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                        channel.respond(new Response(response));<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                } else {<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                        response.setContentType(mediaType);<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                        response.setStatus(HttpStatus.OK);<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                        response.setField(HttpField.LAST_MODIFIED, lastModified);<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                        channel.respond(new Response(response));<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                        fire(new StreamFile(resourcePath, StandardOpenOption.READ), channel);<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                }<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                return true;<a name="line.188"></a>
+<span class="sourceLineNo">189</span>        }<a name="line.189"></a>
+<span class="sourceLineNo">190</span><a name="line.190"></a>
+<span class="sourceLineNo">191</span>        private boolean getFromUri(GetRequest event, IOSubchannel channel,<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                int prefixSegs) throws ParseException {<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                return ResponseCreationSupport.sendStaticContent(<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                                event, channel, path -&gt; {<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                                        try {<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                                                return contentRoot.resolve(<a name="line.196"></a>
+<span class="sourceLineNo">197</span>                                                                ResponseCreationSupport.removeSegments(<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                                                                                path, prefixSegs + 1)).toURL();<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                                        } catch (MalformedURLException e) {<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                                                throw new IllegalArgumentException(e);<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                                        }<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                                }, maxAgeCalculator);<a name="line.202"></a>
+<span class="sourceLineNo">203</span>        }<a name="line.203"></a>
+<span class="sourceLineNo">204</span>        <a name="line.204"></a>
+<span class="sourceLineNo">205</span>}<a name="line.205"></a>
 
 
 
