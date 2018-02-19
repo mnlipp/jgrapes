@@ -89,7 +89,7 @@ public class Output<T extends Buffer> extends IOEvent<T> {
 
 	/**
 	 * Convenience method that creates a 
-	 * {@code Output<CharBuffer} event from a {@link String}.
+	 * {@code Output<CharBuffer>} event from a {@link String}.
 	 * 
 	 * @param data the string to wrap
 	 * @param endOfRecord if the event ends a data record
@@ -103,7 +103,7 @@ public class Output<T extends Buffer> extends IOEvent<T> {
 	
 	/**
 	 * Convenience method that creates a 
-	 * {@code Output<ByteBuffer} event from a `byte[]`.
+	 * {@code Output<ByteBuffer>} event from a `byte[]`.
 	 * 
 	 * @param data the array to wrap
 	 * @param endOfRecord if the event ends a data record
