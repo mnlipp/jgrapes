@@ -63,22 +63,22 @@
 <span class="sourceLineNo">055</span>import org.jgrapes.core.Components;<a name="line.55"></a>
 <span class="sourceLineNo">056</span>import org.jgrapes.core.annotation.Handler;<a name="line.56"></a>
 <span class="sourceLineNo">057</span>import org.jgrapes.portal.Portlet.RenderMode;<a name="line.57"></a>
-<span class="sourceLineNo">058</span>import org.jgrapes.portal.events.AddPageResources;<a name="line.58"></a>
-<span class="sourceLineNo">059</span>import org.jgrapes.portal.events.AddPageResources.ScriptResource;<a name="line.59"></a>
+<span class="sourceLineNo">058</span>import org.jgrapes.portal.events.AddPageResourcesCmd;<a name="line.58"></a>
+<span class="sourceLineNo">059</span>import org.jgrapes.portal.events.AddPageResourcesCmd.ScriptResource;<a name="line.59"></a>
 <span class="sourceLineNo">060</span>import org.jgrapes.portal.events.AddPortletRequest;<a name="line.60"></a>
 <span class="sourceLineNo">061</span>import org.jgrapes.portal.events.AddPortletType;<a name="line.61"></a>
-<span class="sourceLineNo">062</span>import org.jgrapes.portal.events.DeletePortlet;<a name="line.62"></a>
+<span class="sourceLineNo">062</span>import org.jgrapes.portal.events.DeletePortletCmd;<a name="line.62"></a>
 <span class="sourceLineNo">063</span>import org.jgrapes.portal.events.DeletePortletRequest;<a name="line.63"></a>
-<span class="sourceLineNo">064</span>import org.jgrapes.portal.events.DisplayNotification;<a name="line.64"></a>
+<span class="sourceLineNo">064</span>import org.jgrapes.portal.events.DisplayNotificationCmd;<a name="line.64"></a>
 <span class="sourceLineNo">065</span>import org.jgrapes.portal.events.JsonInput;<a name="line.65"></a>
 <span class="sourceLineNo">066</span>import org.jgrapes.portal.events.JsonOutput;<a name="line.66"></a>
-<span class="sourceLineNo">067</span>import org.jgrapes.portal.events.LastPortalLayout;<a name="line.67"></a>
-<span class="sourceLineNo">068</span>import org.jgrapes.portal.events.NotifyPortletModel;<a name="line.68"></a>
-<span class="sourceLineNo">069</span>import org.jgrapes.portal.events.NotifyPortletView;<a name="line.69"></a>
+<span class="sourceLineNo">067</span>import org.jgrapes.portal.events.LastPortalLayoutCmd;<a name="line.67"></a>
+<span class="sourceLineNo">068</span>import org.jgrapes.portal.events.NotifyPortletCmd;<a name="line.68"></a>
+<span class="sourceLineNo">069</span>import org.jgrapes.portal.events.NotifyPortletModel;<a name="line.69"></a>
 <span class="sourceLineNo">070</span>import org.jgrapes.portal.events.PortalConfigured;<a name="line.70"></a>
 <span class="sourceLineNo">071</span>import org.jgrapes.portal.events.PortalLayoutChanged;<a name="line.71"></a>
 <span class="sourceLineNo">072</span>import org.jgrapes.portal.events.PortalReady;<a name="line.72"></a>
-<span class="sourceLineNo">073</span>import org.jgrapes.portal.events.RenderPortlet;<a name="line.73"></a>
+<span class="sourceLineNo">073</span>import org.jgrapes.portal.events.RenderPortletCmd;<a name="line.73"></a>
 <span class="sourceLineNo">074</span>import org.jgrapes.portal.events.RenderPortletRequest;<a name="line.74"></a>
 <span class="sourceLineNo">075</span>import org.jgrapes.portal.events.SetLocale;<a name="line.75"></a>
 <span class="sourceLineNo">076</span>import org.jgrapes.portal.events.SetTheme;<a name="line.76"></a>
@@ -91,7 +91,7 @@
 <span class="sourceLineNo">083</span>        static MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();<a name="line.83"></a>
 <span class="sourceLineNo">084</span>        <a name="line.84"></a>
 <span class="sourceLineNo">085</span>        private URI prefix;<a name="line.85"></a>
-<span class="sourceLineNo">086</span>        private PortalView view;<a name="line.86"></a>
+<span class="sourceLineNo">086</span>        private PortalWeblet view;<a name="line.86"></a>
 <span class="sourceLineNo">087</span>        <a name="line.87"></a>
 <span class="sourceLineNo">088</span>        /**<a name="line.88"></a>
 <span class="sourceLineNo">089</span>         * <a name="line.89"></a>
@@ -110,11 +110,11 @@
 <span class="sourceLineNo">102</span>        /**<a name="line.102"></a>
 <span class="sourceLineNo">103</span>         * @param componentChannel<a name="line.103"></a>
 <span class="sourceLineNo">104</span>         */<a name="line.104"></a>
-<span class="sourceLineNo">105</span>        public Portal(Channel componentChannel, Channel viewChannel, URI prefix) {<a name="line.105"></a>
+<span class="sourceLineNo">105</span>        public Portal(Channel componentChannel, Channel webletChannel, URI prefix) {<a name="line.105"></a>
 <span class="sourceLineNo">106</span>                super(componentChannel);<a name="line.106"></a>
 <span class="sourceLineNo">107</span>                this.prefix = URI.create(prefix.getPath().endsWith("/") <a name="line.107"></a>
 <span class="sourceLineNo">108</span>                                ? prefix.getPath() : (prefix.getPath() + "/"));<a name="line.108"></a>
-<span class="sourceLineNo">109</span>                view = attach(new PortalView(this, viewChannel));<a name="line.109"></a>
+<span class="sourceLineNo">109</span>                view = attach(new PortalWeblet(webletChannel, this));<a name="line.109"></a>
 <span class="sourceLineNo">110</span>                try {<a name="line.110"></a>
 <span class="sourceLineNo">111</span>                        ObjectName mxbeanName = new ObjectName("org.jgrapes.portal:type="<a name="line.111"></a>
 <span class="sourceLineNo">112</span>                                        + Portal.class.getSimpleName() + "#" + Components.objectId(this)<a name="line.112"></a>
@@ -161,7 +161,7 @@
 <span class="sourceLineNo">153</span>        <a name="line.153"></a>
 <span class="sourceLineNo">154</span>        /**<a name="line.154"></a>
 <span class="sourceLineNo">155</span>         * Sets the portal session timeout. This call is simply<a name="line.155"></a>
-<span class="sourceLineNo">156</span>         * forwarded to the {@link PortalView}.<a name="line.156"></a>
+<span class="sourceLineNo">156</span>         * forwarded to the {@link PortalWeblet}.<a name="line.156"></a>
 <span class="sourceLineNo">157</span>         * <a name="line.157"></a>
 <span class="sourceLineNo">158</span>         * @param timeout the timeout in milli seconds<a name="line.158"></a>
 <span class="sourceLineNo">159</span>         * @return the portal for easy chaining<a name="line.159"></a>
@@ -173,7 +173,7 @@
 <span class="sourceLineNo">165</span>        <a name="line.165"></a>
 <span class="sourceLineNo">166</span>        /**<a name="line.166"></a>
 <span class="sourceLineNo">167</span>         * Sets the portal session refresh interval.This call is simply<a name="line.167"></a>
-<span class="sourceLineNo">168</span>         * forwarded to the {@link PortalView}.<a name="line.168"></a>
+<span class="sourceLineNo">168</span>         * forwarded to the {@link PortalWeblet}.<a name="line.168"></a>
 <span class="sourceLineNo">169</span>         * <a name="line.169"></a>
 <span class="sourceLineNo">170</span>         * @param interval the interval in milli seconds<a name="line.170"></a>
 <span class="sourceLineNo">171</span>         * @return the portal for easy chaining<a name="line.171"></a>
@@ -185,7 +185,7 @@
 <span class="sourceLineNo">177</span>        <a name="line.177"></a>
 <span class="sourceLineNo">178</span>        /**<a name="line.178"></a>
 <span class="sourceLineNo">179</span>         * Sets the portal session inactivity timeout.This call is simply<a name="line.179"></a>
-<span class="sourceLineNo">180</span>         * forwarded to the {@link PortalView}.<a name="line.180"></a>
+<span class="sourceLineNo">180</span>         * forwarded to the {@link PortalWeblet}.<a name="line.180"></a>
 <span class="sourceLineNo">181</span>         * <a name="line.181"></a>
 <span class="sourceLineNo">182</span>         * @param timeout the timeout in milli seconds<a name="line.182"></a>
 <span class="sourceLineNo">183</span>         * @return the portal for easy chaining<a name="line.183"></a>
@@ -196,7 +196,7 @@
 <span class="sourceLineNo">188</span>        }<a name="line.188"></a>
 <span class="sourceLineNo">189</span>        <a name="line.189"></a>
 <span class="sourceLineNo">190</span>        @Handler<a name="line.190"></a>
-<span class="sourceLineNo">191</span>        public void onRenderPortlet(RenderPortlet event, PortalSession channel) <a name="line.191"></a>
+<span class="sourceLineNo">191</span>        public void onRenderPortlet(RenderPortletCmd event, PortalSession channel) <a name="line.191"></a>
 <span class="sourceLineNo">192</span>                        throws InterruptedException, IOException {<a name="line.192"></a>
 <span class="sourceLineNo">193</span>                StringWriter content = new StringWriter();<a name="line.193"></a>
 <span class="sourceLineNo">194</span>                CharBuffer buffer = CharBuffer.allocate(8192);<a name="line.194"></a>
@@ -218,7 +218,7 @@
 <span class="sourceLineNo">210</span>        }<a name="line.210"></a>
 <span class="sourceLineNo">211</span><a name="line.211"></a>
 <span class="sourceLineNo">212</span>        @Handler<a name="line.212"></a>
-<span class="sourceLineNo">213</span>        public void onAddPageResources(AddPageResources event, PortalSession channel) {<a name="line.213"></a>
+<span class="sourceLineNo">213</span>        public void onAddPageResources(AddPageResourcesCmd event, PortalSession channel) {<a name="line.213"></a>
 <span class="sourceLineNo">214</span>                JsonArrayBuilder paramBuilder = Json.createArrayBuilder();<a name="line.214"></a>
 <span class="sourceLineNo">215</span>                for (ScriptResource scriptResource: event.scriptResources()) {<a name="line.215"></a>
 <span class="sourceLineNo">216</span>                        paramBuilder.add(scriptResource.toJsonValue());<a name="line.216"></a>
@@ -248,14 +248,14 @@
 <span class="sourceLineNo">240</span>        }<a name="line.240"></a>
 <span class="sourceLineNo">241</span>        <a name="line.241"></a>
 <span class="sourceLineNo">242</span>        @Handler<a name="line.242"></a>
-<span class="sourceLineNo">243</span>        public void onDeletePortlet(DeletePortlet event, PortalSession channel) <a name="line.243"></a>
+<span class="sourceLineNo">243</span>        public void onDeletePortlet(DeletePortletCmd event, PortalSession channel) <a name="line.243"></a>
 <span class="sourceLineNo">244</span>                                        throws InterruptedException, IOException {<a name="line.244"></a>
 <span class="sourceLineNo">245</span>                fire(new JsonOutput("deletePortlet", event.portletId()), channel);<a name="line.245"></a>
 <span class="sourceLineNo">246</span>        }<a name="line.246"></a>
 <span class="sourceLineNo">247</span>        <a name="line.247"></a>
 <span class="sourceLineNo">248</span>        @Handler <a name="line.248"></a>
 <span class="sourceLineNo">249</span>        public void onNotifyPortletView(<a name="line.249"></a>
-<span class="sourceLineNo">250</span>                        NotifyPortletView event, PortalSession channel) <a name="line.250"></a>
+<span class="sourceLineNo">250</span>                        NotifyPortletCmd event, PortalSession channel) <a name="line.250"></a>
 <span class="sourceLineNo">251</span>                                        throws InterruptedException, IOException {<a name="line.251"></a>
 <span class="sourceLineNo">252</span>                fire(new JsonOutput("notifyPortletView",<a name="line.252"></a>
 <span class="sourceLineNo">253</span>                                event.portletType(), event.portletId(), <a name="line.253"></a>
@@ -264,7 +264,7 @@
 <span class="sourceLineNo">256</span><a name="line.256"></a>
 <span class="sourceLineNo">257</span>        @Handler <a name="line.257"></a>
 <span class="sourceLineNo">258</span>        public void onDisplayNotification(<a name="line.258"></a>
-<span class="sourceLineNo">259</span>                        DisplayNotification event, PortalSession channel) <a name="line.259"></a>
+<span class="sourceLineNo">259</span>                        DisplayNotificationCmd event, PortalSession channel) <a name="line.259"></a>
 <span class="sourceLineNo">260</span>                                        throws InterruptedException, IOException {<a name="line.260"></a>
 <span class="sourceLineNo">261</span>                Map&lt;String,Object&gt; options = event.options();<a name="line.261"></a>
 <span class="sourceLineNo">262</span>                options.put("destroyOnClose", true);<a name="line.262"></a>
@@ -334,12 +334,12 @@
 <span class="sourceLineNo">326</span>        public void onPortalConfigured(<a name="line.326"></a>
 <span class="sourceLineNo">327</span>                        PortalConfigured event, PortalSession channel) <a name="line.327"></a>
 <span class="sourceLineNo">328</span>                                        throws InterruptedException, IOException {<a name="line.328"></a>
-<span class="sourceLineNo">329</span>                fire(new JsonOutput("portalConfigured"), channel);<a name="line.329"></a>
+<span class="sourceLineNo">329</span>                channel.respond(new JsonOutput("portalConfigured"));<a name="line.329"></a>
 <span class="sourceLineNo">330</span>        }<a name="line.330"></a>
 <span class="sourceLineNo">331</span>        <a name="line.331"></a>
 <span class="sourceLineNo">332</span>        @Handler<a name="line.332"></a>
 <span class="sourceLineNo">333</span>        public void onLastPortalLayout(<a name="line.333"></a>
-<span class="sourceLineNo">334</span>                        LastPortalLayout event, PortalSession channel) <a name="line.334"></a>
+<span class="sourceLineNo">334</span>                        LastPortalLayoutCmd event, PortalSession channel) <a name="line.334"></a>
 <span class="sourceLineNo">335</span>                                        throws InterruptedException, IOException {<a name="line.335"></a>
 <span class="sourceLineNo">336</span>                fire(new JsonOutput("lastPortalLayout",<a name="line.336"></a>
 <span class="sourceLineNo">337</span>                                event.previewLayout(), event.tabsLayout()), channel);<a name="line.337"></a>

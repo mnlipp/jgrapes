@@ -40,8 +40,8 @@
 <span class="sourceLineNo">032</span>import org.jgrapes.core.annotation.Handler;<a name="line.32"></a>
 <span class="sourceLineNo">033</span>import org.jgrapes.portal.PageResourceProvider;<a name="line.33"></a>
 <span class="sourceLineNo">034</span>import org.jgrapes.portal.PortalSession;<a name="line.34"></a>
-<span class="sourceLineNo">035</span>import org.jgrapes.portal.events.AddPageResources;<a name="line.35"></a>
-<span class="sourceLineNo">036</span>import org.jgrapes.portal.events.AddPageResources.ScriptResource;<a name="line.36"></a>
+<span class="sourceLineNo">035</span>import org.jgrapes.portal.events.AddPageResourcesCmd;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>import org.jgrapes.portal.events.AddPageResourcesCmd.ScriptResource;<a name="line.36"></a>
 <span class="sourceLineNo">037</span>import org.jgrapes.portal.events.PortalReady;<a name="line.37"></a>
 <span class="sourceLineNo">038</span><a name="line.38"></a>
 <span class="sourceLineNo">039</span>/**<a name="line.39"></a>
@@ -91,7 +91,7 @@
 <span class="sourceLineNo">083</span>                                + "} );\n"<a name="line.83"></a>
 <span class="sourceLineNo">084</span>                                + "$.extend( $.fn.dataTable.defaults.oLanguage, "<a name="line.84"></a>
 <span class="sourceLineNo">085</span>                                + rb.getString("DataTablesL10n") +  ");\n";<a name="line.85"></a>
-<span class="sourceLineNo">086</span>                portalSession.respond(new AddPageResources()<a name="line.86"></a>
+<span class="sourceLineNo">086</span>                portalSession.respond(new AddPageResourcesCmd()<a name="line.86"></a>
 <span class="sourceLineNo">087</span>                                .addCss(event.renderSupport().pageResource(<a name="line.87"></a>
 <span class="sourceLineNo">088</span>                                                "datatables/datatables" + minExt + ".css"))<a name="line.88"></a>
 <span class="sourceLineNo">089</span>                                .addScriptResource(new ScriptResource()<a name="line.89"></a>

@@ -56,7 +56,7 @@
 <span class="sourceLineNo">048</span>         * @return the resulting URI<a name="line.48"></a>
 <span class="sourceLineNo">049</span>         */<a name="line.49"></a>
 <span class="sourceLineNo">050</span>        default URI pageResource(String path) {<a name="line.50"></a>
-<span class="sourceLineNo">051</span>                return pageResource(PortalView.uriFromPath(path));<a name="line.51"></a>
+<span class="sourceLineNo">051</span>                return pageResource(PortalWeblet.uriFromPath(path));<a name="line.51"></a>
 <span class="sourceLineNo">052</span>        }<a name="line.52"></a>
 <span class="sourceLineNo">053</span>        <a name="line.53"></a>
 <span class="sourceLineNo">054</span>        /**<a name="line.54"></a>
@@ -80,7 +80,7 @@
 <span class="sourceLineNo">072</span>         * @return the resulting URI<a name="line.72"></a>
 <span class="sourceLineNo">073</span>         */<a name="line.73"></a>
 <span class="sourceLineNo">074</span>        default URI portletResource(String portletType, String path) {<a name="line.74"></a>
-<span class="sourceLineNo">075</span>                return portletResource(portletType, PortalView.uriFromPath(path));<a name="line.75"></a>
+<span class="sourceLineNo">075</span>                return portletResource(portletType, PortalWeblet.uriFromPath(path));<a name="line.75"></a>
 <span class="sourceLineNo">076</span>        }<a name="line.76"></a>
 <span class="sourceLineNo">077</span>        <a name="line.77"></a>
 <span class="sourceLineNo">078</span>        /**<a name="line.78"></a>
