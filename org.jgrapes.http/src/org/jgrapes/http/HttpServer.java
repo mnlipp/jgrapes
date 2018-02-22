@@ -55,6 +55,7 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.internal.EventProcessor;
 import org.jgrapes.http.events.OptionsRequest;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
@@ -74,8 +75,22 @@ import org.jgrapes.net.events.Accepted;
 
 /**
  * A converter component that receives and sends byte buffers on a 
- * network channel and sends HTTP requests and receives HTTP 
- * responses on its own channel.
+ * network channel and web application layer messages on
+ * {@link IOSubchannel}s of its channel. 
+ * 
+ * Each {@link IOSubchannel} represents a connection established by 
+ * the browser. The {@link HttpServer} fires {@link Request} events 
+ * (and {@link Input} events, if there is associated data) on the 
+ * subchannels. Web application components (short "weblets") handle 
+ * these events and use 
+ * {@link LinkedIOSubchannel#respond(org.jgrapes.core.Event)}
+ * to send {@link Response} events and, if applicable, {@link Output}
+ * events with data belonging to the response.
+ * 
+ * Events must be fired by weblets while handling the {@link Request}
+ * or {@link Input} events only (to be precise: while handling events 
+ * processed by the associated {@link EventProcessor}) to ensure
+ * that responses and their associated data do not interleave. 
  */
 public class HttpServer extends Component {
 
@@ -219,7 +234,7 @@ public class HttpServer extends Component {
 	 */
 	@Handler(dynamic=true)
 	public void onAccepted(Accepted event, IOSubchannel netChannel) {
-		new AppChannel(event, netChannel);
+		new WebAppMsgChannel(event, netChannel);
 	}
 
 	/**
@@ -236,7 +251,7 @@ public class HttpServer extends Component {
 			Input<ByteBuffer> event, IOSubchannel netChannel)
 					throws ProtocolException, InterruptedException {
 		@SuppressWarnings("unchecked")
-		final Optional<AppChannel> appChannel = (Optional<AppChannel>)
+		final Optional<WebAppMsgChannel> appChannel = (Optional<WebAppMsgChannel>)
 				LinkedIOSubchannel.downstreamChannel(this, netChannel);
 		if (appChannel.isPresent()) {
 			appChannel.get().handleNetInput(event);
@@ -246,7 +261,7 @@ public class HttpServer extends Component {
 	@Handler(dynamic=true)
 	public void onClosed(Closed event, IOSubchannel netChannel) {
 		@SuppressWarnings("unchecked")
-		final Optional<AppChannel> appChannel = (Optional<AppChannel>)
+		final Optional<WebAppMsgChannel> appChannel = (Optional<WebAppMsgChannel>)
 				LinkedIOSubchannel.downstreamChannel(this, netChannel);
 		if (appChannel.isPresent()) {
 			appChannel.get().handleClosed(event);
@@ -265,7 +280,7 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onResponse(Response event, AppChannel appChannel)
+	public void onResponse(Response event, WebAppMsgChannel appChannel)
 			throws InterruptedException {
 		appChannel.handleResponse(event);
 	}
@@ -281,7 +296,7 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onOutput(Output<?> event, AppChannel appChannel)
+	public void onOutput(Output<?> event, WebAppMsgChannel appChannel)
 	        throws InterruptedException {
 		appChannel.handleAppOutput(event);
 	}
@@ -295,7 +310,7 @@ public class HttpServer extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
-	public void onClose(Close event, AppChannel appChannel) 
+	public void onClose(Close event, WebAppMsgChannel appChannel) 
 			throws InterruptedException {
 		appChannel.handleClose(event);
 	}
@@ -371,11 +386,11 @@ public class HttpServer extends Component {
 	 */
 	@Handler
 	public void onWebSocketAccepted(
-			WebSocketAccepted event, AppChannel appChannel) {
+			WebSocketAccepted event, WebAppMsgChannel appChannel) {
 		appChannel.handleWebSocketAccepted(event, appChannel);
 	}
 	
-	private class AppChannel extends LinkedIOSubchannel {
+	private class WebAppMsgChannel extends LinkedIOSubchannel {
 		// Starts as ServerEngine<HttpRequest,HttpResponse> but may change
 		private ServerEngine<?,?> engine;
 		private ManagedBuffer<ByteBuffer> outBuffer;
@@ -390,7 +405,7 @@ public class HttpServer extends Component {
 		private boolean switchedToWebSocket = false;
 		private WsMessageHeader currentWsMessage = null;
 
-		public AppChannel(Accepted event, IOSubchannel netChannel) {
+		public WebAppMsgChannel(Accepted event, IOSubchannel netChannel) {
 			super(HttpServer.this, netChannel);
 			engine = new ServerEngine<>(
 					new HttpRequestDecoder(), new HttpResponseEncoder());
@@ -451,7 +466,8 @@ public class HttpServer extends Component {
 							.filter(WsCloseFrame.class::isInstance)
 							.ifPresent(closeFrame -> {
 								downPipeline.fire(new WebSocketClosed(
-										(WsCloseFrame)closeFrame, AppChannel.this));
+										(WsCloseFrame)closeFrame, 
+										WebAppMsgChannel.this));
 							});
 						}
 						break;
@@ -579,7 +595,7 @@ public class HttpServer extends Component {
 		}
 		
 		public void handleWebSocketAccepted(
-				WebSocketAccepted event, AppChannel appChannel) {
+				WebSocketAccepted event, WebAppMsgChannel appChannel) {
 			switchedToWebSocket = true;
 			appChannel.setAssociated(URI.class, 
 					event.requestEvent().requestUri());
