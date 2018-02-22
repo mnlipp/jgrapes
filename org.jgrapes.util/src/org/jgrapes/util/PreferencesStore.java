@@ -28,8 +28,8 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
-import org.jgrapes.util.events.InitialPreferences;
 import org.jgrapes.util.events.ConfigurationUpdate;
+import org.jgrapes.util.events.InitialPreferences;
 
 /**
  * This component provides a store for an application's configuration
