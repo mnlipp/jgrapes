@@ -414,7 +414,7 @@
 <span class="sourceLineNo">406</span>                private WsMessageHeader currentWsMessage = null;<a name="line.406"></a>
 <span class="sourceLineNo">407</span><a name="line.407"></a>
 <span class="sourceLineNo">408</span>                public WebAppMsgChannel(Accepted event, IOSubchannel netChannel) {<a name="line.408"></a>
-<span class="sourceLineNo">409</span>                        super(HttpServer.this, netChannel);<a name="line.409"></a>
+<span class="sourceLineNo">409</span>                        super(HttpServer.this, channel(), netChannel, newEventPipeline());<a name="line.409"></a>
 <span class="sourceLineNo">410</span>                        engine = new ServerEngine&lt;&gt;(<a name="line.410"></a>
 <span class="sourceLineNo">411</span>                                        new HttpRequestDecoder(), new HttpResponseEncoder());<a name="line.411"></a>
 <span class="sourceLineNo">412</span>                        secure = event.isSecure();<a name="line.412"></a>

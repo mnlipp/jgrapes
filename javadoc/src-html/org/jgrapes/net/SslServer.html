@@ -177,7 +177,7 @@
 <span class="sourceLineNo">169</span>        public void onOutput(Output&lt;ByteBuffer&gt; event,<a name="line.169"></a>
 <span class="sourceLineNo">170</span>                PlainChannel plainChannel)<a name="line.170"></a>
 <span class="sourceLineNo">171</span>                throws InterruptedException, SSLException {<a name="line.171"></a>
-<span class="sourceLineNo">172</span>                if (plainChannel.converterComponent() != this) {<a name="line.172"></a>
+<span class="sourceLineNo">172</span>                if (plainChannel.hub() != this) {<a name="line.172"></a>
 <span class="sourceLineNo">173</span>                        return;<a name="line.173"></a>
 <span class="sourceLineNo">174</span>                }<a name="line.174"></a>
 <span class="sourceLineNo">175</span>                plainChannel.sendUpstream(event);<a name="line.175"></a>
@@ -194,7 +194,7 @@
 <span class="sourceLineNo">186</span>        @Handler<a name="line.186"></a>
 <span class="sourceLineNo">187</span>        public void onClose(Close event, PlainChannel plainChannel)<a name="line.187"></a>
 <span class="sourceLineNo">188</span>                throws InterruptedException, SSLException {<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                if (plainChannel.converterComponent() != this) {<a name="line.189"></a>
+<span class="sourceLineNo">189</span>                if (plainChannel.hub() != this) {<a name="line.189"></a>
 <span class="sourceLineNo">190</span>                        return;<a name="line.190"></a>
 <span class="sourceLineNo">191</span>                }<a name="line.191"></a>
 <span class="sourceLineNo">192</span>                plainChannel.close(event);<a name="line.192"></a>
@@ -210,7 +210,7 @@
 <span class="sourceLineNo">202</span>                private ByteBuffer carryOver = null;<a name="line.202"></a>
 <span class="sourceLineNo">203</span><a name="line.203"></a>
 <span class="sourceLineNo">204</span>                public PlainChannel(Accepted event, IOSubchannel upstreamChannel) {<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                        super(SslServer.this, upstreamChannel);<a name="line.205"></a>
+<span class="sourceLineNo">205</span>                        super(SslServer.this, channel(), upstreamChannel, newEventPipeline());<a name="line.205"></a>
 <span class="sourceLineNo">206</span>                        localAddress = event.localAddress();<a name="line.206"></a>
 <span class="sourceLineNo">207</span>                        remoteAddress = event.remoteAddress();<a name="line.207"></a>
 <span class="sourceLineNo">208</span>                        if (remoteAddress instanceof InetSocketAddress) {<a name="line.208"></a>
