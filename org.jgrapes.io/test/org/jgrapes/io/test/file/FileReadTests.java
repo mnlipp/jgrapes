@@ -113,7 +113,7 @@ public class FileReadTests {
 		app.attach(sc);
 		Components.start(app);
 		app.fire(new StreamFile(filePath, StandardOpenOption.READ),
-		        IOSubchannel.defaultInstance(consumer)).get();
+		        IOSubchannel.create(consumer, consumer.newEventPipeline())).get();
 		Components.awaitExhaustion();
 		assertEquals(fileSize, consumer.collected);
 		String content = new String(Files.readAllBytes(

@@ -406,7 +406,7 @@ public class HttpServer extends Component {
 		private WsMessageHeader currentWsMessage = null;
 
 		public WebAppMsgChannel(Accepted event, IOSubchannel netChannel) {
-			super(HttpServer.this, netChannel);
+			super(HttpServer.this, channel(), netChannel, newEventPipeline());
 			engine = new ServerEngine<>(
 					new HttpRequestDecoder(), new HttpResponseEncoder());
 			secure = event.isSecure();

@@ -97,7 +97,7 @@ public class FileOutputWriteTests {
 		final StateChecker sc = app.attach(new StateChecker());
 		Components.start(app);
 		app.fire(new SaveOutput(filePath, StandardOpenOption.WRITE),
-		        IOSubchannel.defaultInstance(producer));
+		        IOSubchannel.create(producer, producer.newEventPipeline()));
 		Components.awaitExhaustion();
 		assertEquals(StateChecker.State.CLOSED, sc.state);
 		try (BufferedReader br = new BufferedReader(

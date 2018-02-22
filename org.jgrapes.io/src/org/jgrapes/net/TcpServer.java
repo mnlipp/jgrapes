@@ -439,7 +439,7 @@ public class TcpServer extends Component implements NioHandler {
 		 * @throws IOException if an I/O error occured
 		 */
 		public TcpChannel(SocketChannel nioChannel)	throws IOException {
-			super(TcpServer.this);
+			super(channel(), newEventPipeline());
 			this.nioChannel = nioChannel;
 			if (executorService != null) {
 				downPipeline = newEventPipeline(executorService);

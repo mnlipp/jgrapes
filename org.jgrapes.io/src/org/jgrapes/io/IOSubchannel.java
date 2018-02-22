@@ -30,7 +30,6 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
-import org.jgrapes.core.Manager;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
 
@@ -140,16 +139,16 @@ public interface IOSubchannel extends Channel, Associator {
 	}
 
 	/**
-	 * Creates a new subchannel of the given component's channel with a new
-	 * event pipeline and a buffer pool with two buffers sized 4096.
-	 * 
-	 * @param component
-	 *            the component used to get the main channel and the event
-	 *            pipeline
+	 * Creates a new subchannel of the given component's channel with the
+	 * given event pipeline and a buffer pool with two buffers sized 4096.
+	 *
+	 * @param component the component used to get the main channel
+	 * @param responsePipeline the response pipeline
 	 * @return the subchannel
 	 */
-	public static IOSubchannel defaultInstance(Component component) {
-		return new DefaultSubchannel(component);
+	public static IOSubchannel create(
+			Component component, EventPipeline responsePipeline) {
+		return new DefaultSubchannel(component.channel(), responsePipeline);
 	}
 
 	/**
@@ -179,17 +178,6 @@ public interface IOSubchannel extends Channel, Associator {
 			this.responsePipeline = responsePipeline;
 		}
 		
-		/**
-		 * Creates a new instance with the main channel
-		 * and event pipeline obtained from the component.
-		 * 
-		 * @param component the manager used to get the main channel
-		 * and a new event pipeline
-		 */
-		public DefaultSubchannel(Manager component) {
-			this(component.channel(), component.newEventPipeline());
-		}
-
 		protected void setByteBufferPool(
 				ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
 					bufferPool) {

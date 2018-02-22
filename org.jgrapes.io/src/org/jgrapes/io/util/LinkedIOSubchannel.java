@@ -22,6 +22,7 @@ import java.lang.ref.WeakReference;
 import java.util.Optional;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
@@ -44,71 +45,72 @@ import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
  * Therefore, the converter must provide and manage independent subchannels for
  * the data streams on its downstream side with a one-to-one relationship to the
  * upstream subchannels. The {@code LinkedIOSubchannel} class simplifies this
- * task. It provides a new subchannel with its own pipeline and a reference to
- * an existing subchannel. This makes it easy to find the upstream subchannel
- * for a given downstream ({@code LinkedIOSubchannel}) when processing response
+ * task. It provides a new subchannel with a reference to an existing 
+ * subchannel. This makes it easy to find the upstream subchannel for a 
+ * given downstream ({@code LinkedIOSubchannel}) when processing response
  * events. For finding the downstream {@code IOSubchannel} for a given upstream
  * connection, instances associate themselves with the upstream channel using
- * a special key.
- * 
+ * the converter component as key. This allows a subchannel to have several
+ * associated linked subchannels.
  */
 public class LinkedIOSubchannel extends DefaultSubchannel {
 
-	private final Manager converterComponent;
+	private final Manager hub;
 	// Must be weak, else there will always be a reference to the 
 	// upstream channel and, through the reverseMap, to this object.
 	private final WeakReference<IOSubchannel> upstreamChannel;
 	
 	/**
-	 * Creates a new {@code LinkedIOSubchannel} that links to the give I/O
-	 * subchannel. Using this constructor is similar to invoking
-	 * {@link #LinkedIOSubchannel(Manager, IOSubchannel, boolean)} with
-	 * {@code true} as last parameter.
-	 * 
-	 * @param converterComponent
-	 *            the converter component; used to get the main channel and the
-	 *            new event pipeline
-	 * @param upstreamChannel
-	 *            the upstream channel
+	 * Creates a new {@code LinkedIOSubchannel} for a given main channel
+	 * that links to the give I/O subchannel. Using this constructor 
+	 * is similar to invoking
+	 * {@link #LinkedIOSubchannel(Manager, Channel, IOSubchannel, EventPipeline, boolean)}
+	 * with {@code true} as last parameter.
+	 *
+	 * @param hub the component that manages this channel
+	 * @param mainChannel the main channel
+	 * @param upstreamChannel the upstream channel
+	 * @param responsePipeline the response pipeline
 	 */
-	public LinkedIOSubchannel(Manager converterComponent,
-	        IOSubchannel upstreamChannel) {
-		this(converterComponent, upstreamChannel, true);
+	public LinkedIOSubchannel(Manager hub, Channel mainChannel, 
+	        IOSubchannel upstreamChannel, EventPipeline responsePipeline) {
+		this(hub, mainChannel, upstreamChannel, responsePipeline, true);
 	}
 
 	/**
-	 * Creates a new {@code LinkedIOSubchannel} for a given I/O subchannel.
+	 * Creates a new {@code LinkedIOSubchannel} for a given main channel
+	 * that links to a given I/O subchannel.
+	 * 
 	 * Using this constructor with {@code false} as last parameter prevents the
 	 * addition of the back link from the upstream channel to the downstream
 	 * channel (see {@link #downstreamChannel(Manager, IOSubchannel)}). 
 	 * This can save some space if a converter component has some other 
 	 * means to maintain that information. Addition to
 	 * the map is thread safe.
-	 * 
-	 * @param converterComponent
-	 *            the converter component; used to get the main channel and the
-	 *            new event pipeline
-	 * @param upstreamChannel
-	 *            the upstream channel
-	 * @param linkBack
-	 *            create the link from upstream to downstream
+	 *
+	 * @param hub the converter component that manages this channel
+	 * @param mainChannel the main channel
+	 * @param upstreamChannel the upstream channel
+	 * @param responsePipeline the response pipeline
+	 * @param linkBack create the link from upstream to downstream
 	 */
-	public LinkedIOSubchannel(Manager converterComponent,
-	        IOSubchannel upstreamChannel, boolean linkBack) {
-		super(converterComponent);
-		this.converterComponent = converterComponent;
+	public LinkedIOSubchannel(Manager hub, Channel mainChannel,
+	        IOSubchannel upstreamChannel, EventPipeline responsePipeline,
+	        boolean linkBack) {
+		super(mainChannel, responsePipeline);
+		this.hub = hub;
 		this.upstreamChannel = new WeakReference<>(upstreamChannel);
 		if (linkBack) {
 			upstreamChannel.setAssociated(
-					new KeyWrapper(converterComponent), this);
+					new KeyWrapper(hub), this);
 		}
 	}
 
 	/**
-	 * @return the converterComponent
+	 * @return the component that manages this channel
 	 */
-	public Manager converterComponent() {
-		return converterComponent;
+	public Manager hub() {
+		return hub;
 	}
 
 	/**
@@ -151,30 +153,31 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	
 	/**
 	 * Returns the linked downstream channel that has been created for the 
-	 * given converter and (upstream) subchannel. If more than one linked 
-	 * subchannel has been created for a given converter and subchannel, 
+	 * given component and (upstream) subchannel. If more than one linked 
+	 * subchannel has been created for a given component and subchannel, 
 	 * the linked subchannel created last is returned.
-	 * 
+	 *
+	 * @param hub the component that manages this channel
 	 * @param upstreamChannel the (upstream) channel
-	 * @return the linked downstream subchannel created for the 
-	 * given cobverter and (upstream) subchannel if it exists
+	 * @return the linked downstream subchannel created for the
+	 * given component and (upstream) subchannel if it exists
 	 */
 	public static Optional<? extends LinkedIOSubchannel> downstreamChannel(
-			Manager converterComponent, IOSubchannel upstreamChannel) {
+			Manager hub, IOSubchannel upstreamChannel) {
 		return upstreamChannel.associated(
-				new KeyWrapper(converterComponent), LinkedIOSubchannel.class);
+				new KeyWrapper(hub), LinkedIOSubchannel.class);
 	}
 	
 	private static class KeyWrapper {
 
-		private Manager converterComponent;
+		private Manager hub;
 
 		/**
-		 * @param converterComponent
+		 * @param hub
 		 */
-		public KeyWrapper(Manager converterComponent) {
+		public KeyWrapper(Manager hub) {
 			super();
-			this.converterComponent = converterComponent;
+			this.hub = hub;
 		}
 
 		/* (non-Javadoc)
@@ -184,8 +187,8 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + ((converterComponent == null) ? 0
-			        : converterComponent.hashCode());
+			result = prime * result + ((hub == null) ? 0
+			        : hub.hashCode());
 			return result;
 		}
 
@@ -204,11 +207,11 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 				return false;
 			}
 			KeyWrapper other = (KeyWrapper) obj;
-			if (converterComponent == null) {
-				if (other.converterComponent != null) {
+			if (hub == null) {
+				if (other.hub != null) {
 					return false;
 				}
-			} else if (!converterComponent.equals(other.converterComponent)) {
+			} else if (!hub.equals(other.hub)) {
 				return false;
 			}
 			return true;

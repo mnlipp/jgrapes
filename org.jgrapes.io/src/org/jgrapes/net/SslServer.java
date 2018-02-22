@@ -169,7 +169,7 @@ public class SslServer extends Component {
 	public void onOutput(Output<ByteBuffer> event,
 	        PlainChannel plainChannel)
 	        throws InterruptedException, SSLException {
-		if (plainChannel.converterComponent() != this) {
+		if (plainChannel.hub() != this) {
 			return;
 		}
 		plainChannel.sendUpstream(event);
@@ -186,7 +186,7 @@ public class SslServer extends Component {
 	@Handler
 	public void onClose(Close event, PlainChannel plainChannel)
 	        throws InterruptedException, SSLException {
-		if (plainChannel.converterComponent() != this) {
+		if (plainChannel.hub() != this) {
 			return;
 		}
 		plainChannel.close(event);
@@ -202,7 +202,7 @@ public class SslServer extends Component {
 		private ByteBuffer carryOver = null;
 
 		public PlainChannel(Accepted event, IOSubchannel upstreamChannel) {
-			super(SslServer.this, upstreamChannel);
+			super(SslServer.this, channel(), upstreamChannel, newEventPipeline());
 			localAddress = event.localAddress();
 			remoteAddress = event.remoteAddress();
 			if (remoteAddress instanceof InetSocketAddress) {
