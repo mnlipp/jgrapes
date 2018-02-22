@@ -15,10 +15,8 @@
  * You should have received a copy of the GNU General Public License along 
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.jgrapes.util.test;
-
-
-import static org.junit.Assert.*;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -27,6 +25,9 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.util.PreferencesStore;
 import org.jgrapes.util.events.InitialPreferences;
+
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 
 public class AttachTest {
@@ -52,7 +53,7 @@ public class AttachTest {
 	public void testAttachedPrefs() throws InterruptedException {
 		
 		TestComponent tc1 = new TestComponent();
-		TestComponent tc11 = tc1.attach(new TestComponent(tc1));
+		final TestComponent tc11 = tc1.attach(new TestComponent(tc1));
 		tc1.attach(new TestComponent(tc1));
 		
 		TestComponent tc2 = new TestComponent(tc1);
