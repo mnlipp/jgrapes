@@ -101,6 +101,8 @@ public abstract class IOEvent<T extends Buffer> extends Event<Void> {
 			builder.append("channels=");
 			builder.append(Channel.toString(channels));
 		}
+		builder.append(",size=");
+		builder.append(data().remaining());
 		builder.append(",eor=");
 		builder.append(eor);
 		builder.append("]");
