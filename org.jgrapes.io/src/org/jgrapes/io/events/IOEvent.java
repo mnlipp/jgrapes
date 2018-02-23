@@ -19,6 +19,7 @@
 package org.jgrapes.io.events;
 
 import java.nio.Buffer;
+import java.util.Optional;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
@@ -102,6 +103,8 @@ public abstract class IOEvent<T extends Buffer> extends Event<Void> {
 			builder.append(Channel.toString(channels));
 		}
 		builder.append(",size=");
+		Optional.ofNullable(buffer).map(
+				b -> b.backingBuffer().position()).orElse(0);
 		builder.append(data().remaining());
 		builder.append(",eor=");
 		builder.append(eor);
