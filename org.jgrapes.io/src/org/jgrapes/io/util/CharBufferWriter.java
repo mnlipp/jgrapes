@@ -37,9 +37,12 @@ public class CharBufferWriter extends Writer {
 
 	private IOSubchannel channel;
 	private EventPipeline eventPipeline;
-	private boolean sendInputEvents;
-	private ManagedBuffer<CharBuffer> buffer;
-	private boolean sendClose;
+	private boolean sendInputEvents = false;
+	private ManagedBuffer<CharBuffer> buffer = null;
+	private boolean sendClose = true;
+	private boolean sendEor = true;
+	private boolean eorSent = false;
+	private boolean isClosed = false;
 	
 	/**
 	 * Creates a new instance that uses {@link Output} events to dispatch
@@ -53,14 +56,11 @@ public class CharBufferWriter extends Writer {
 	public CharBufferWriter(IOSubchannel channel, EventPipeline eventPipeline) {
 		this.channel = channel;
 		this.eventPipeline = eventPipeline;
-		sendInputEvents = false;
-		sendClose = true;
-		buffer = null;
 	}
 
 	/**
 	 * Creates a new instance that uses {@link Output} events to dispatch
-	 * buffers on the given channel using the channel's response pipeline.
+	 * buffers on the given channel, using the channel's response pipeline.
 	 * 
 	 * @param channel
 	 *            the channel to fire events on
@@ -81,12 +81,24 @@ public class CharBufferWriter extends Writer {
 	}
 	
 	/**
-	 * Suppresses the sending of a close event when the stream is closed. 
+	 * Suppresses sending of a close event when the stream is closed. 
 	 * 
 	 * @return the stream for easy chaining
 	 */
 	public CharBufferWriter suppressClose() {
 		sendClose = false;
+		return this;
+	}
+	
+	/**
+	 * Suppresses setting the end of record flag when the stream is 
+	 * flushed or closed.
+	 * 
+	 * @return the stream for easy chaining
+	 * @see Output#isEndOfRecord()
+	 */
+	public CharBufferWriter suppressEndOfRecord() {
+		sendEor = false;
 		return this;
 	}
 	
@@ -126,45 +138,61 @@ public class CharBufferWriter extends Writer {
 	}
 
 	/**
-	 * Creates and fires a {@link Output} event with the buffer being filled and
-	 * obtains a new buffer from the queue unless the end of record is set. 
+	 * Creates and fires an {@link Output} event with the buffer being filled. 
 	 * The end of record flag of the event is set according to the parameter.
+	 * Frees any allocated buffer.
 	 */
 	private void flush(boolean endOfRecord) throws IOException {
 		if (buffer == null) {
-			if (!endOfRecord) {
+			if (!endOfRecord || eorSent) {
 				return;
 			}
 			ensureBufferAvailable();
 		}
-		if (buffer.position() == 0 && !endOfRecord) {
+		if (buffer.position() == 0 && (!endOfRecord || eorSent)) {
 			// Nothing to flush
 			buffer.unlockBuffer();
-		} else if (sendInputEvents) {
-			eventPipeline.fire(Input.fromSink(buffer, endOfRecord), channel);
 		} else {
-			eventPipeline.fire(Output.fromSink(buffer, endOfRecord), channel);
+			if (sendInputEvents) {
+				eventPipeline.fire(Input.fromSink(buffer, endOfRecord), channel);
+			} else {
+				eventPipeline.fire(Output.fromSink(buffer, endOfRecord), channel);
+			}
+			eorSent = endOfRecord;
 		}
 		buffer = null;
 	}
 
 	/**
-	 * Creates and fires a {@link Output} event with the buffer being filled and
-	 * obtains a new buffer from the queue.
+	 * Creates and fires a {@link Output} event with the buffer being filled
+	 * if it contains any data.
+	 * 
+	 * By default, the {@link Output} event is created with the end of record
+	 * flag set (see {@link Output#isEndOfRecord()}) in order to forward the 
+	 * flush as event. This implies that an {@link Output} event with no data
+	 * (but the end of record flag set) may be fired. This behavior can
+	 * be disabled with {@link #suppressEndOfRecord()}.
 	 */
 	@Override
 	public void flush() throws IOException {
-		flush(false);
+		flush(sendEor);
 	}
 	
 	/**
-	 * Sends any remaining data with the end of record flag set.
+	 * Flushes any remaining data with the end of record flag set
+	 * (unless {@link #suppressEndOfRecord()} has been called)
+	 * and fires a {@link Close} event (unless {@link #suppressClose()}
+	 * has been called).
 	 */
 	@Override
 	public void close() throws IOException {
-		flush(true);
+		if (isClosed) {
+			return;
+		}
+		flush(sendEor);
 		if (sendClose) {
 			eventPipeline.fire(new Close(), channel);
 		}
+		isClosed = true;
 	}
 }
