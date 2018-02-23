@@ -159,9 +159,9 @@ public class ResponseCreationSupport {
 			}
 		}
 		HttpResponse response = request.response().get();
-		if (info.getLastModifiedAt() != null) {
-			response.setField(HttpField.LAST_MODIFIED, info.getLastModifiedAt());
-		}
+		response.setField(HttpField.LAST_MODIFIED, 
+				Optional.ofNullable(info.getLastModifiedAt())
+					.orElseGet(() -> Instant.now()));
 		
 		// Get content type and derive max age
 		MediaType mediaType = HttpResponse.contentType(
@@ -274,6 +274,16 @@ public class ResponseCreationSupport {
 			} catch (IOException e) {
 				// Fall through
 			}
+		}
+		try {
+			URLConnection conn = resource.openConnection();
+			long lastModified = conn.getLastModified();
+			if (lastModified != 0) {
+				return new ResourceInfo(null, Instant.ofEpochMilli(
+						lastModified).with(ChronoField.NANO_OF_SECOND, 0));
+			}
+		} catch (IOException e) {
+			// Fall through
 		}
 		return new ResourceInfo(null, null);
 	}
