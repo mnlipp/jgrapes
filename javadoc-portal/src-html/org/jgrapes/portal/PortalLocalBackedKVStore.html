@@ -40,8 +40,8 @@
 <span class="sourceLineNo">032</span>import org.jgrapes.core.Manager;<a name="line.32"></a>
 <span class="sourceLineNo">033</span>import org.jgrapes.core.annotation.Handler;<a name="line.33"></a>
 <span class="sourceLineNo">034</span>import org.jgrapes.portal.events.JsonInput;<a name="line.34"></a>
-<span class="sourceLineNo">035</span>import org.jgrapes.portal.events.JsonOutput;<a name="line.35"></a>
-<span class="sourceLineNo">036</span>import org.jgrapes.portal.events.PortalReady;<a name="line.36"></a>
+<span class="sourceLineNo">035</span>import org.jgrapes.portal.events.PortalReady;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>import org.jgrapes.portal.events.SimplePortalCommand;<a name="line.36"></a>
 <span class="sourceLineNo">037</span>import org.jgrapes.util.events.KeyValueStoreQuery;<a name="line.37"></a>
 <span class="sourceLineNo">038</span>import org.jgrapes.util.events.KeyValueStoreUpdate;<a name="line.38"></a>
 <span class="sourceLineNo">039</span>import org.jgrapes.util.events.KeyValueStoreUpdate.Action;<a name="line.39"></a>
@@ -83,7 +83,7 @@
 <span class="sourceLineNo">075</span>                channel.setAssociated(PortalLocalBackedKVStore.class, event);<a name="line.75"></a>
 <span class="sourceLineNo">076</span>                String keyStart = portalPrefix <a name="line.76"></a>
 <span class="sourceLineNo">077</span>                                + PortalLocalBackedKVStore.class.getName() + "/";<a name="line.77"></a>
-<span class="sourceLineNo">078</span>                channel.respond(new JsonOutput("retrieveLocalData", keyStart));<a name="line.78"></a>
+<span class="sourceLineNo">078</span>                channel.respond(new SimplePortalCommand("retrieveLocalData", keyStart));<a name="line.78"></a>
 <span class="sourceLineNo">079</span>        }<a name="line.79"></a>
 <span class="sourceLineNo">080</span>        <a name="line.80"></a>
 <span class="sourceLineNo">081</span>        @Handler<a name="line.81"></a>
@@ -138,7 +138,7 @@
 <span class="sourceLineNo">130</span>                                data.remove(action.key());<a name="line.130"></a>
 <span class="sourceLineNo">131</span>                        }<a name="line.131"></a>
 <span class="sourceLineNo">132</span>                }<a name="line.132"></a>
-<span class="sourceLineNo">133</span>                fire(new JsonOutput("storeLocalData", <a name="line.133"></a>
+<span class="sourceLineNo">133</span>                fire(new SimplePortalCommand("storeLocalData", <a name="line.133"></a>
 <span class="sourceLineNo">134</span>                                new Object[] { actions.toArray() }), channel);<a name="line.134"></a>
 <span class="sourceLineNo">135</span>        }<a name="line.135"></a>
 <span class="sourceLineNo">136</span><a name="line.136"></a>
