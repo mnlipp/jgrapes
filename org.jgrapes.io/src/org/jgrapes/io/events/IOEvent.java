@@ -105,7 +105,6 @@ public abstract class IOEvent<T extends Buffer> extends Event<Void> {
 		builder.append(",size=");
 		Optional.ofNullable(buffer).map(
 				b -> b.backingBuffer().position()).orElse(0);
-		builder.append(data().remaining());
 		builder.append(",eor=");
 		builder.append(eor);
 		builder.append("]");
