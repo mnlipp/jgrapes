@@ -26,13 +26,13 @@
 <span class="sourceLineNo">018</span><a name="line.18"></a>
 <span class="sourceLineNo">019</span>package org.jgrapes.portal.events;<a name="line.19"></a>
 <span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>import org.jgrapes.core.Event;<a name="line.21"></a>
+<span class="sourceLineNo">021</span>import java.io.Writer;<a name="line.21"></a>
 <span class="sourceLineNo">022</span><a name="line.22"></a>
 <span class="sourceLineNo">023</span>/**<a name="line.23"></a>
 <span class="sourceLineNo">024</span> * A notification (as defined by the JSON RPC specification) to be sent to<a name="line.24"></a>
 <span class="sourceLineNo">025</span> * the portlet view (the browser).<a name="line.25"></a>
 <span class="sourceLineNo">026</span> */<a name="line.26"></a>
-<span class="sourceLineNo">027</span>public class NotifyPortletView extends Event&lt;Void&gt; {<a name="line.27"></a>
+<span class="sourceLineNo">027</span>public class NotifyPortletView extends PortalCommand {<a name="line.27"></a>
 <span class="sourceLineNo">028</span><a name="line.28"></a>
 <span class="sourceLineNo">029</span>        private String portletType;<a name="line.29"></a>
 <span class="sourceLineNo">030</span>        private String portletId;<a name="line.30"></a>
@@ -93,9 +93,13 @@
 <span class="sourceLineNo">085</span>        public Object[] params() {<a name="line.85"></a>
 <span class="sourceLineNo">086</span>                return params;<a name="line.86"></a>
 <span class="sourceLineNo">087</span>        }<a name="line.87"></a>
-<span class="sourceLineNo">088</span>        <a name="line.88"></a>
-<span class="sourceLineNo">089</span><a name="line.89"></a>
-<span class="sourceLineNo">090</span>}<a name="line.90"></a>
+<span class="sourceLineNo">088</span><a name="line.88"></a>
+<span class="sourceLineNo">089</span>        @Override<a name="line.89"></a>
+<span class="sourceLineNo">090</span>        public void toJson(Writer writer) {<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                toJson(writer, "notifyPortletView", portletType(), portletId(), <a name="line.91"></a>
+<span class="sourceLineNo">092</span>                                method(), params());<a name="line.92"></a>
+<span class="sourceLineNo">093</span>        }<a name="line.93"></a>
+<span class="sourceLineNo">094</span>}<a name="line.94"></a>
 
 
 

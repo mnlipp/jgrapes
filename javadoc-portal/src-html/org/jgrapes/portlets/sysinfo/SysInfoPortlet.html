@@ -57,7 +57,7 @@
 <span class="sourceLineNo">049</span>import org.jgrapes.portal.events.AddPortletType;<a name="line.49"></a>
 <span class="sourceLineNo">050</span>import org.jgrapes.portal.events.DeletePortlet;<a name="line.50"></a>
 <span class="sourceLineNo">051</span>import org.jgrapes.portal.events.DeletePortletRequest;<a name="line.51"></a>
-<span class="sourceLineNo">052</span>import org.jgrapes.portal.events.NotifyPortlet;<a name="line.52"></a>
+<span class="sourceLineNo">052</span>import org.jgrapes.portal.events.NotifyPortletView;<a name="line.52"></a>
 <span class="sourceLineNo">053</span>import org.jgrapes.portal.events.PortalReady;<a name="line.53"></a>
 <span class="sourceLineNo">054</span>import org.jgrapes.portal.events.RenderPortlet;<a name="line.54"></a>
 <span class="sourceLineNo">055</span>import org.jgrapes.portal.events.RenderPortletRequest;<a name="line.55"></a>
@@ -179,7 +179,7 @@
 <span class="sourceLineNo">171</span>        private void updateView(PortalSession portalSession, String portletId,<a name="line.171"></a>
 <span class="sourceLineNo">172</span>                Locale locale) {<a name="line.172"></a>
 <span class="sourceLineNo">173</span>                Runtime runtime = Runtime.getRuntime();<a name="line.173"></a>
-<span class="sourceLineNo">174</span>                portalSession.respond(new NotifyPortlet(type(),<a name="line.174"></a>
+<span class="sourceLineNo">174</span>                portalSession.respond(new NotifyPortletView(type(),<a name="line.174"></a>
 <span class="sourceLineNo">175</span>                                portletId, "updateMemorySizes", <a name="line.175"></a>
 <span class="sourceLineNo">176</span>                                System.currentTimeMillis(), runtime.maxMemory(),<a name="line.176"></a>
 <span class="sourceLineNo">177</span>                                runtime.totalMemory(), runtime.freeMemory()));<a name="line.177"></a>
