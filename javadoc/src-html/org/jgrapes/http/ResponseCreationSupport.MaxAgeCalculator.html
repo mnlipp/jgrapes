@@ -167,9 +167,9 @@
 <span class="sourceLineNo">159</span>                        }<a name="line.159"></a>
 <span class="sourceLineNo">160</span>                }<a name="line.160"></a>
 <span class="sourceLineNo">161</span>                HttpResponse response = request.response().get();<a name="line.161"></a>
-<span class="sourceLineNo">162</span>                if (info.getLastModifiedAt() != null) {<a name="line.162"></a>
-<span class="sourceLineNo">163</span>                        response.setField(HttpField.LAST_MODIFIED, info.getLastModifiedAt());<a name="line.163"></a>
-<span class="sourceLineNo">164</span>                }<a name="line.164"></a>
+<span class="sourceLineNo">162</span>                response.setField(HttpField.LAST_MODIFIED, <a name="line.162"></a>
+<span class="sourceLineNo">163</span>                                Optional.ofNullable(info.getLastModifiedAt())<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                                        .orElseGet(() -&gt; Instant.now()));<a name="line.164"></a>
 <span class="sourceLineNo">165</span>                <a name="line.165"></a>
 <span class="sourceLineNo">166</span>                // Get content type and derive max age<a name="line.166"></a>
 <span class="sourceLineNo">167</span>                MediaType mediaType = HttpResponse.contentType(<a name="line.167"></a>
@@ -283,127 +283,137 @@
 <span class="sourceLineNo">275</span>                                // Fall through<a name="line.275"></a>
 <span class="sourceLineNo">276</span>                        }<a name="line.276"></a>
 <span class="sourceLineNo">277</span>                }<a name="line.277"></a>
-<span class="sourceLineNo">278</span>                return new ResourceInfo(null, null);<a name="line.278"></a>
-<span class="sourceLineNo">279</span>        }<a name="line.279"></a>
-<span class="sourceLineNo">280</span>        <a name="line.280"></a>
-<span class="sourceLineNo">281</span>        /**<a name="line.281"></a>
-<span class="sourceLineNo">282</span>         * Removes the given number of segments (and their trailing slashes)<a name="line.282"></a>
-<span class="sourceLineNo">283</span>         * from the beginning of the path. Segments may be empty. This implies <a name="line.283"></a>
-<span class="sourceLineNo">284</span>         * that invoking this method with a path that starts with a<a name="line.284"></a>
-<span class="sourceLineNo">285</span>         * slash, the first removed segment is the empty segment<a name="line.285"></a>
-<span class="sourceLineNo">286</span>         * preceding the slash and the starting slash. Put differently, <a name="line.286"></a>
-<span class="sourceLineNo">287</span>         * invoking this method with an absolute path and 1 makes the path<a name="line.287"></a>
-<span class="sourceLineNo">288</span>         * relative.<a name="line.288"></a>
-<span class="sourceLineNo">289</span>         *<a name="line.289"></a>
-<span class="sourceLineNo">290</span>         * @param path the path<a name="line.290"></a>
-<span class="sourceLineNo">291</span>         * @param segments the number of segments to remove<a name="line.291"></a>
-<span class="sourceLineNo">292</span>         * @return the result<a name="line.292"></a>
-<span class="sourceLineNo">293</span>         */<a name="line.293"></a>
-<span class="sourceLineNo">294</span>        public static String removeSegments(String path, int segments) {<a name="line.294"></a>
-<span class="sourceLineNo">295</span>                return Arrays.stream(path.split("/"))<a name="line.295"></a>
-<span class="sourceLineNo">296</span>                .skip(segments).collect(Collectors.joining("/"));<a name="line.296"></a>
-<span class="sourceLineNo">297</span>        }<a name="line.297"></a>
-<span class="sourceLineNo">298</span>        <a name="line.298"></a>
-<span class="sourceLineNo">299</span>        /**<a name="line.299"></a>
-<span class="sourceLineNo">300</span>         * Create a {@link URI} from a path. This is similar to calling<a name="line.300"></a>
-<span class="sourceLineNo">301</span>         * `new URI(null, null, path, null)` with the {@link URISyntaxException}<a name="line.301"></a>
-<span class="sourceLineNo">302</span>         * converted to a {@link IllegalArgumentException}.<a name="line.302"></a>
-<span class="sourceLineNo">303</span>         * <a name="line.303"></a>
-<span class="sourceLineNo">304</span>         * @param path the path<a name="line.304"></a>
-<span class="sourceLineNo">305</span>         * @return the uri<a name="line.305"></a>
-<span class="sourceLineNo">306</span>         * @throws IllegalArgumentException if the string violates <a name="line.306"></a>
-<span class="sourceLineNo">307</span>         * RFC 2396<a name="line.307"></a>
-<span class="sourceLineNo">308</span>         */<a name="line.308"></a>
-<span class="sourceLineNo">309</span>        public static URI uriFromPath(String path) throws IllegalArgumentException {<a name="line.309"></a>
-<span class="sourceLineNo">310</span>                try {<a name="line.310"></a>
-<span class="sourceLineNo">311</span>                        return new URI(null, null, path, null);<a name="line.311"></a>
-<span class="sourceLineNo">312</span>                } catch (URISyntaxException e) {<a name="line.312"></a>
-<span class="sourceLineNo">313</span>                        throw new IllegalArgumentException(e);<a name="line.313"></a>
-<span class="sourceLineNo">314</span>                }<a name="line.314"></a>
-<span class="sourceLineNo">315</span>        }<a name="line.315"></a>
-<span class="sourceLineNo">316</span>        <a name="line.316"></a>
-<span class="sourceLineNo">317</span>        /**<a name="line.317"></a>
-<span class="sourceLineNo">318</span>         * Create a {@link URI} from a {@link URL}. This is similar to calling<a name="line.318"></a>
-<span class="sourceLineNo">319</span>         * `url.toURI()` with the {@link URISyntaxException}<a name="line.319"></a>
-<span class="sourceLineNo">320</span>         * converted to a {@link IllegalArgumentException}.<a name="line.320"></a>
-<span class="sourceLineNo">321</span>         * <a name="line.321"></a>
-<span class="sourceLineNo">322</span>         * @param url the url<a name="line.322"></a>
-<span class="sourceLineNo">323</span>         * @return the uri<a name="line.323"></a>
-<span class="sourceLineNo">324</span>         * @throws IllegalArgumentException if the url violates RFC 2396<a name="line.324"></a>
-<span class="sourceLineNo">325</span>         */<a name="line.325"></a>
-<span class="sourceLineNo">326</span>        public static URI uriFromUrl(URL url) throws IllegalArgumentException {<a name="line.326"></a>
-<span class="sourceLineNo">327</span>                try {<a name="line.327"></a>
-<span class="sourceLineNo">328</span>                        return url.toURI();<a name="line.328"></a>
-<span class="sourceLineNo">329</span>                } catch (URISyntaxException e) {<a name="line.329"></a>
-<span class="sourceLineNo">330</span>                        throw new IllegalArgumentException(e);<a name="line.330"></a>
-<span class="sourceLineNo">331</span>                }<a name="line.331"></a>
-<span class="sourceLineNo">332</span>        }<a name="line.332"></a>
-<span class="sourceLineNo">333</span>        <a name="line.333"></a>
-<span class="sourceLineNo">334</span>        /**<a name="line.334"></a>
-<span class="sourceLineNo">335</span>         * Sets the cache control header in the given response,<a name="line.335"></a>
-<span class="sourceLineNo">336</span>         * looking up the value for the given media type or using<a name="line.336"></a>
-<span class="sourceLineNo">337</span>         * the default value.<a name="line.337"></a>
-<span class="sourceLineNo">338</span>         *<a name="line.338"></a>
-<span class="sourceLineNo">339</span>         * @param response the response<a name="line.339"></a>
-<span class="sourceLineNo">340</span>         * @param maxAgeCalculator the max age calculator<a name="line.340"></a>
-<span class="sourceLineNo">341</span>         * @param request the request<a name="line.341"></a>
-<span class="sourceLineNo">342</span>         * @param mediaType the media type<a name="line.342"></a>
-<span class="sourceLineNo">343</span>         * @return the value set<a name="line.343"></a>
-<span class="sourceLineNo">344</span>         */<a name="line.344"></a>
-<span class="sourceLineNo">345</span>        public static long setMaxAge(HttpResponse response, <a name="line.345"></a>
-<span class="sourceLineNo">346</span>                        MaxAgeCalculator maxAgeCalculator, <a name="line.346"></a>
-<span class="sourceLineNo">347</span>                        HttpRequest request, MediaType mediaType) {<a name="line.347"></a>
-<span class="sourceLineNo">348</span>                List&lt;Directive&gt; directives = new ArrayList&lt;&gt;();<a name="line.348"></a>
-<span class="sourceLineNo">349</span>                int maxAge = maxAgeCalculator != null <a name="line.349"></a>
-<span class="sourceLineNo">350</span>                                ? maxAgeCalculator.maxAge(request, mediaType)<a name="line.350"></a>
-<span class="sourceLineNo">351</span>                                                : DEFAULT_MAX_AGE_CALCULATOR.maxAge(request, mediaType);<a name="line.351"></a>
-<span class="sourceLineNo">352</span>                directives.add(new Directive("max-age", maxAge));<a name="line.352"></a>
-<span class="sourceLineNo">353</span>                response.setField(HttpField.CACHE_CONTROL, directives);<a name="line.353"></a>
-<span class="sourceLineNo">354</span>                return maxAge;<a name="line.354"></a>
-<span class="sourceLineNo">355</span>        }<a name="line.355"></a>
-<span class="sourceLineNo">356</span><a name="line.356"></a>
-<span class="sourceLineNo">357</span>        @FunctionalInterface<a name="line.357"></a>
-<span class="sourceLineNo">358</span>        public interface MaxAgeCalculator  {<a name="line.358"></a>
-<span class="sourceLineNo">359</span>                <a name="line.359"></a>
-<span class="sourceLineNo">360</span>                /**<a name="line.360"></a>
-<span class="sourceLineNo">361</span>                 * Calculate a max age value for a response using the given <a name="line.361"></a>
-<span class="sourceLineNo">362</span>                 * request and the media type of the repsonse.<a name="line.362"></a>
-<span class="sourceLineNo">363</span>                 *<a name="line.363"></a>
-<span class="sourceLineNo">364</span>                 * @param request the request, usually only the URI is<a name="line.364"></a>
-<span class="sourceLineNo">365</span>                 * considered for the calculation<a name="line.365"></a>
-<span class="sourceLineNo">366</span>                 * @param mediaType the media type of the response<a name="line.366"></a>
-<span class="sourceLineNo">367</span>                 * @return the max age value to be used in the response<a name="line.367"></a>
-<span class="sourceLineNo">368</span>                 */<a name="line.368"></a>
-<span class="sourceLineNo">369</span>                int maxAge(HttpRequest request, MediaType mediaType);<a name="line.369"></a>
-<span class="sourceLineNo">370</span>        }<a name="line.370"></a>
-<span class="sourceLineNo">371</span><a name="line.371"></a>
-<span class="sourceLineNo">372</span>        /**<a name="line.372"></a>
-<span class="sourceLineNo">373</span>         * DefaultMaxAgeCalculator provides an implementation that <a name="line.373"></a>
-<span class="sourceLineNo">374</span>         * tries to guess a good max age value by looking at the<a name="line.374"></a>
-<span class="sourceLineNo">375</span>         * path of the requested resource. If the path contains<a name="line.375"></a>
-<span class="sourceLineNo">376</span>         * the pattern "dash, followed by a number, followed by<a name="line.376"></a>
-<span class="sourceLineNo">377</span>         * a dot and a number" it is assumed that the resource<a name="line.377"></a>
-<span class="sourceLineNo">378</span>         * is versioned, i.e. its path changes if the resource<a name="line.378"></a>
-<span class="sourceLineNo">379</span>         * changes. In this case a max age of one year is returned.<a name="line.379"></a>
-<span class="sourceLineNo">380</span>         * In all other cases, a max age value of 60 (one minute)<a name="line.380"></a>
-<span class="sourceLineNo">381</span>         * is returned.<a name="line.381"></a>
-<span class="sourceLineNo">382</span>         */<a name="line.382"></a>
-<span class="sourceLineNo">383</span>        public static class DefaultMaxAgeCalculator implements MaxAgeCalculator {<a name="line.383"></a>
-<span class="sourceLineNo">384</span><a name="line.384"></a>
-<span class="sourceLineNo">385</span>                public static final Pattern VERSION_PATTERN<a name="line.385"></a>
-<span class="sourceLineNo">386</span>                        = Pattern.compile("-[0-9]+\\.[0-9]+");<a name="line.386"></a>
-<span class="sourceLineNo">387</span>                <a name="line.387"></a>
-<span class="sourceLineNo">388</span>                @Override<a name="line.388"></a>
-<span class="sourceLineNo">389</span>                public int maxAge(HttpRequest request, MediaType mediaType) {<a name="line.389"></a>
-<span class="sourceLineNo">390</span>                        if (VERSION_PATTERN.matcher(<a name="line.390"></a>
-<span class="sourceLineNo">391</span>                                        request.requestUri().getPath()).find()) {<a name="line.391"></a>
-<span class="sourceLineNo">392</span>                                return 365*24*3600;<a name="line.392"></a>
-<span class="sourceLineNo">393</span>                        }<a name="line.393"></a>
-<span class="sourceLineNo">394</span>                        return 60;<a name="line.394"></a>
-<span class="sourceLineNo">395</span>                }<a name="line.395"></a>
-<span class="sourceLineNo">396</span>                <a name="line.396"></a>
-<span class="sourceLineNo">397</span>        }<a name="line.397"></a>
-<span class="sourceLineNo">398</span>}<a name="line.398"></a>
+<span class="sourceLineNo">278</span>                try {<a name="line.278"></a>
+<span class="sourceLineNo">279</span>                        URLConnection conn = resource.openConnection();<a name="line.279"></a>
+<span class="sourceLineNo">280</span>                        long lastModified = conn.getLastModified();<a name="line.280"></a>
+<span class="sourceLineNo">281</span>                        if (lastModified != 0) {<a name="line.281"></a>
+<span class="sourceLineNo">282</span>                                return new ResourceInfo(null, Instant.ofEpochMilli(<a name="line.282"></a>
+<span class="sourceLineNo">283</span>                                                lastModified).with(ChronoField.NANO_OF_SECOND, 0));<a name="line.283"></a>
+<span class="sourceLineNo">284</span>                        }<a name="line.284"></a>
+<span class="sourceLineNo">285</span>                } catch (IOException e) {<a name="line.285"></a>
+<span class="sourceLineNo">286</span>                        // Fall through<a name="line.286"></a>
+<span class="sourceLineNo">287</span>                }<a name="line.287"></a>
+<span class="sourceLineNo">288</span>                return new ResourceInfo(null, null);<a name="line.288"></a>
+<span class="sourceLineNo">289</span>        }<a name="line.289"></a>
+<span class="sourceLineNo">290</span>        <a name="line.290"></a>
+<span class="sourceLineNo">291</span>        /**<a name="line.291"></a>
+<span class="sourceLineNo">292</span>         * Removes the given number of segments (and their trailing slashes)<a name="line.292"></a>
+<span class="sourceLineNo">293</span>         * from the beginning of the path. Segments may be empty. This implies <a name="line.293"></a>
+<span class="sourceLineNo">294</span>         * that invoking this method with a path that starts with a<a name="line.294"></a>
+<span class="sourceLineNo">295</span>         * slash, the first removed segment is the empty segment<a name="line.295"></a>
+<span class="sourceLineNo">296</span>         * preceding the slash and the starting slash. Put differently, <a name="line.296"></a>
+<span class="sourceLineNo">297</span>         * invoking this method with an absolute path and 1 makes the path<a name="line.297"></a>
+<span class="sourceLineNo">298</span>         * relative.<a name="line.298"></a>
+<span class="sourceLineNo">299</span>         *<a name="line.299"></a>
+<span class="sourceLineNo">300</span>         * @param path the path<a name="line.300"></a>
+<span class="sourceLineNo">301</span>         * @param segments the number of segments to remove<a name="line.301"></a>
+<span class="sourceLineNo">302</span>         * @return the result<a name="line.302"></a>
+<span class="sourceLineNo">303</span>         */<a name="line.303"></a>
+<span class="sourceLineNo">304</span>        public static String removeSegments(String path, int segments) {<a name="line.304"></a>
+<span class="sourceLineNo">305</span>                return Arrays.stream(path.split("/"))<a name="line.305"></a>
+<span class="sourceLineNo">306</span>                .skip(segments).collect(Collectors.joining("/"));<a name="line.306"></a>
+<span class="sourceLineNo">307</span>        }<a name="line.307"></a>
+<span class="sourceLineNo">308</span>        <a name="line.308"></a>
+<span class="sourceLineNo">309</span>        /**<a name="line.309"></a>
+<span class="sourceLineNo">310</span>         * Create a {@link URI} from a path. This is similar to calling<a name="line.310"></a>
+<span class="sourceLineNo">311</span>         * `new URI(null, null, path, null)` with the {@link URISyntaxException}<a name="line.311"></a>
+<span class="sourceLineNo">312</span>         * converted to a {@link IllegalArgumentException}.<a name="line.312"></a>
+<span class="sourceLineNo">313</span>         * <a name="line.313"></a>
+<span class="sourceLineNo">314</span>         * @param path the path<a name="line.314"></a>
+<span class="sourceLineNo">315</span>         * @return the uri<a name="line.315"></a>
+<span class="sourceLineNo">316</span>         * @throws IllegalArgumentException if the string violates <a name="line.316"></a>
+<span class="sourceLineNo">317</span>         * RFC 2396<a name="line.317"></a>
+<span class="sourceLineNo">318</span>         */<a name="line.318"></a>
+<span class="sourceLineNo">319</span>        public static URI uriFromPath(String path) throws IllegalArgumentException {<a name="line.319"></a>
+<span class="sourceLineNo">320</span>                try {<a name="line.320"></a>
+<span class="sourceLineNo">321</span>                        return new URI(null, null, path, null);<a name="line.321"></a>
+<span class="sourceLineNo">322</span>                } catch (URISyntaxException e) {<a name="line.322"></a>
+<span class="sourceLineNo">323</span>                        throw new IllegalArgumentException(e);<a name="line.323"></a>
+<span class="sourceLineNo">324</span>                }<a name="line.324"></a>
+<span class="sourceLineNo">325</span>        }<a name="line.325"></a>
+<span class="sourceLineNo">326</span>        <a name="line.326"></a>
+<span class="sourceLineNo">327</span>        /**<a name="line.327"></a>
+<span class="sourceLineNo">328</span>         * Create a {@link URI} from a {@link URL}. This is similar to calling<a name="line.328"></a>
+<span class="sourceLineNo">329</span>         * `url.toURI()` with the {@link URISyntaxException}<a name="line.329"></a>
+<span class="sourceLineNo">330</span>         * converted to a {@link IllegalArgumentException}.<a name="line.330"></a>
+<span class="sourceLineNo">331</span>         * <a name="line.331"></a>
+<span class="sourceLineNo">332</span>         * @param url the url<a name="line.332"></a>
+<span class="sourceLineNo">333</span>         * @return the uri<a name="line.333"></a>
+<span class="sourceLineNo">334</span>         * @throws IllegalArgumentException if the url violates RFC 2396<a name="line.334"></a>
+<span class="sourceLineNo">335</span>         */<a name="line.335"></a>
+<span class="sourceLineNo">336</span>        public static URI uriFromUrl(URL url) throws IllegalArgumentException {<a name="line.336"></a>
+<span class="sourceLineNo">337</span>                try {<a name="line.337"></a>
+<span class="sourceLineNo">338</span>                        return url.toURI();<a name="line.338"></a>
+<span class="sourceLineNo">339</span>                } catch (URISyntaxException e) {<a name="line.339"></a>
+<span class="sourceLineNo">340</span>                        throw new IllegalArgumentException(e);<a name="line.340"></a>
+<span class="sourceLineNo">341</span>                }<a name="line.341"></a>
+<span class="sourceLineNo">342</span>        }<a name="line.342"></a>
+<span class="sourceLineNo">343</span>        <a name="line.343"></a>
+<span class="sourceLineNo">344</span>        /**<a name="line.344"></a>
+<span class="sourceLineNo">345</span>         * Sets the cache control header in the given response,<a name="line.345"></a>
+<span class="sourceLineNo">346</span>         * looking up the value for the given media type or using<a name="line.346"></a>
+<span class="sourceLineNo">347</span>         * the default value.<a name="line.347"></a>
+<span class="sourceLineNo">348</span>         *<a name="line.348"></a>
+<span class="sourceLineNo">349</span>         * @param response the response<a name="line.349"></a>
+<span class="sourceLineNo">350</span>         * @param maxAgeCalculator the max age calculator<a name="line.350"></a>
+<span class="sourceLineNo">351</span>         * @param request the request<a name="line.351"></a>
+<span class="sourceLineNo">352</span>         * @param mediaType the media type<a name="line.352"></a>
+<span class="sourceLineNo">353</span>         * @return the value set<a name="line.353"></a>
+<span class="sourceLineNo">354</span>         */<a name="line.354"></a>
+<span class="sourceLineNo">355</span>        public static long setMaxAge(HttpResponse response, <a name="line.355"></a>
+<span class="sourceLineNo">356</span>                        MaxAgeCalculator maxAgeCalculator, <a name="line.356"></a>
+<span class="sourceLineNo">357</span>                        HttpRequest request, MediaType mediaType) {<a name="line.357"></a>
+<span class="sourceLineNo">358</span>                List&lt;Directive&gt; directives = new ArrayList&lt;&gt;();<a name="line.358"></a>
+<span class="sourceLineNo">359</span>                int maxAge = maxAgeCalculator != null <a name="line.359"></a>
+<span class="sourceLineNo">360</span>                                ? maxAgeCalculator.maxAge(request, mediaType)<a name="line.360"></a>
+<span class="sourceLineNo">361</span>                                                : DEFAULT_MAX_AGE_CALCULATOR.maxAge(request, mediaType);<a name="line.361"></a>
+<span class="sourceLineNo">362</span>                directives.add(new Directive("max-age", maxAge));<a name="line.362"></a>
+<span class="sourceLineNo">363</span>                response.setField(HttpField.CACHE_CONTROL, directives);<a name="line.363"></a>
+<span class="sourceLineNo">364</span>                return maxAge;<a name="line.364"></a>
+<span class="sourceLineNo">365</span>        }<a name="line.365"></a>
+<span class="sourceLineNo">366</span><a name="line.366"></a>
+<span class="sourceLineNo">367</span>        @FunctionalInterface<a name="line.367"></a>
+<span class="sourceLineNo">368</span>        public interface MaxAgeCalculator  {<a name="line.368"></a>
+<span class="sourceLineNo">369</span>                <a name="line.369"></a>
+<span class="sourceLineNo">370</span>                /**<a name="line.370"></a>
+<span class="sourceLineNo">371</span>                 * Calculate a max age value for a response using the given <a name="line.371"></a>
+<span class="sourceLineNo">372</span>                 * request and the media type of the repsonse.<a name="line.372"></a>
+<span class="sourceLineNo">373</span>                 *<a name="line.373"></a>
+<span class="sourceLineNo">374</span>                 * @param request the request, usually only the URI is<a name="line.374"></a>
+<span class="sourceLineNo">375</span>                 * considered for the calculation<a name="line.375"></a>
+<span class="sourceLineNo">376</span>                 * @param mediaType the media type of the response<a name="line.376"></a>
+<span class="sourceLineNo">377</span>                 * @return the max age value to be used in the response<a name="line.377"></a>
+<span class="sourceLineNo">378</span>                 */<a name="line.378"></a>
+<span class="sourceLineNo">379</span>                int maxAge(HttpRequest request, MediaType mediaType);<a name="line.379"></a>
+<span class="sourceLineNo">380</span>        }<a name="line.380"></a>
+<span class="sourceLineNo">381</span><a name="line.381"></a>
+<span class="sourceLineNo">382</span>        /**<a name="line.382"></a>
+<span class="sourceLineNo">383</span>         * DefaultMaxAgeCalculator provides an implementation that <a name="line.383"></a>
+<span class="sourceLineNo">384</span>         * tries to guess a good max age value by looking at the<a name="line.384"></a>
+<span class="sourceLineNo">385</span>         * path of the requested resource. If the path contains<a name="line.385"></a>
+<span class="sourceLineNo">386</span>         * the pattern "dash, followed by a number, followed by<a name="line.386"></a>
+<span class="sourceLineNo">387</span>         * a dot and a number" it is assumed that the resource<a name="line.387"></a>
+<span class="sourceLineNo">388</span>         * is versioned, i.e. its path changes if the resource<a name="line.388"></a>
+<span class="sourceLineNo">389</span>         * changes. In this case a max age of one year is returned.<a name="line.389"></a>
+<span class="sourceLineNo">390</span>         * In all other cases, a max age value of 60 (one minute)<a name="line.390"></a>
+<span class="sourceLineNo">391</span>         * is returned.<a name="line.391"></a>
+<span class="sourceLineNo">392</span>         */<a name="line.392"></a>
+<span class="sourceLineNo">393</span>        public static class DefaultMaxAgeCalculator implements MaxAgeCalculator {<a name="line.393"></a>
+<span class="sourceLineNo">394</span><a name="line.394"></a>
+<span class="sourceLineNo">395</span>                public static final Pattern VERSION_PATTERN<a name="line.395"></a>
+<span class="sourceLineNo">396</span>                        = Pattern.compile("-[0-9]+\\.[0-9]+");<a name="line.396"></a>
+<span class="sourceLineNo">397</span>                <a name="line.397"></a>
+<span class="sourceLineNo">398</span>                @Override<a name="line.398"></a>
+<span class="sourceLineNo">399</span>                public int maxAge(HttpRequest request, MediaType mediaType) {<a name="line.399"></a>
+<span class="sourceLineNo">400</span>                        if (VERSION_PATTERN.matcher(<a name="line.400"></a>
+<span class="sourceLineNo">401</span>                                        request.requestUri().getPath()).find()) {<a name="line.401"></a>
+<span class="sourceLineNo">402</span>                                return 365*24*3600;<a name="line.402"></a>
+<span class="sourceLineNo">403</span>                        }<a name="line.403"></a>
+<span class="sourceLineNo">404</span>                        return 60;<a name="line.404"></a>
+<span class="sourceLineNo">405</span>                }<a name="line.405"></a>
+<span class="sourceLineNo">406</span>                <a name="line.406"></a>
+<span class="sourceLineNo">407</span>        }<a name="line.407"></a>
+<span class="sourceLineNo">408</span>}<a name="line.408"></a>
 
 
 
