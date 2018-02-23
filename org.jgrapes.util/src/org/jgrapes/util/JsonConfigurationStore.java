@@ -154,8 +154,9 @@ public class JsonConfigurationStore extends Component {
 		}
 		if (changed) {
 			try (Writer out = new OutputStreamWriter(
-					new FileOutputStream(file), "utf-8")) {
-				JsonBeanEncoder.create(out).writeObject(cache);
+					new FileOutputStream(file), "utf-8");
+					JsonBeanEncoder enc = JsonBeanEncoder.create(out)) {
+				enc.writeObject(cache);
 			}
 		}
 	}
