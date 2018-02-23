@@ -136,18 +136,58 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 		return result;
 	}
 
+	private static ThreadLocal<Integer> linkedRemaining = new ThreadLocal<>();
+	
+	/**
+	 * The {@link #toString()} method of {@link LinkedIOSubchannel}s
+	 * shows the channel together with the upstream channel that it
+	 * is linked to. If there are several levels of upstream links,
+	 * this can become a very long sequence.
+	 * 
+	 * This method creates the representation of the linked upstream
+	 * channel (an arrow followed by the representation of the channel),
+	 * but only up to one level. If more levels exist, it returns
+	 * an arrow followed by an ellipses. This method is used by
+	 * {@link LinkedIOSubchannel#toString()}. Other implementations
+	 * of {@link IOSubchannel} should use this method in their
+	 * {@link Object#toString()} method as well to keep the result
+	 * consistent. 
+	 *
+	 * @param upstream the upstream channel
+	 * @return the string
+	 */
+	public static String upstreamToString(Channel upstream) {
+		if (upstream == null) {
+			linkedRemaining.set(null);
+			return "";
+		}
+		if (linkedRemaining.get() == null) {
+			linkedRemaining.set(1);
+		}
+		if (linkedRemaining.get() <= 0) {
+			linkedRemaining.set(null);
+			return "↔…";
+		}
+		linkedRemaining.set(linkedRemaining.get() - 1);
+		
+		// Build continuation. 
+		StringBuilder builder = new StringBuilder();
+		builder.append("↔");
+		builder.append(Channel.toString(upstream));
+		linkedRemaining.set(null);
+		return builder.toString();
+		
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(IOSubchannel.toString(this));
-		builder.append(" (");
 		if (upstreamChannel != null) {
-			builder.append("―>");
-			builder.append(Channel.toString(upstreamChannel.get()));
+			builder.append(upstreamToString(upstreamChannel.get()));
 		}
-		builder.append(")");
 		return builder.toString();
 	}
 	
