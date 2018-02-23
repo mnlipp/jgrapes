@@ -36,15 +36,15 @@
 <span class="sourceLineNo">028</span>import java.util.Set;<a name="line.28"></a>
 <span class="sourceLineNo">029</span>import java.util.concurrent.ConcurrentHashMap;<a name="line.29"></a>
 <span class="sourceLineNo">030</span><a name="line.30"></a>
-<span class="sourceLineNo">031</span>import org.jgrapes.core.Channel;<a name="line.31"></a>
-<span class="sourceLineNo">032</span>import org.jgrapes.core.Components;<a name="line.32"></a>
-<span class="sourceLineNo">033</span>import org.jgrapes.core.Components.Timer;<a name="line.33"></a>
-<span class="sourceLineNo">034</span>import org.jgrapes.core.EventPipeline;<a name="line.34"></a>
-<span class="sourceLineNo">035</span>import org.jgrapes.http.Session;<a name="line.35"></a>
-<span class="sourceLineNo">036</span>import org.jgrapes.io.IOSubchannel;<a name="line.36"></a>
-<span class="sourceLineNo">037</span>import org.jgrapes.io.IOSubchannel.DefaultSubchannel;<a name="line.37"></a>
-<span class="sourceLineNo">038</span>import org.jgrapes.io.events.Close;<a name="line.38"></a>
-<span class="sourceLineNo">039</span>import org.jgrapes.io.events.Closed;<a name="line.39"></a>
+<span class="sourceLineNo">031</span>import org.jgrapes.core.Components;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>import org.jgrapes.core.Components.Timer;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import org.jgrapes.core.EventPipeline;<a name="line.33"></a>
+<span class="sourceLineNo">034</span>import org.jgrapes.http.Session;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>import org.jgrapes.io.IOSubchannel;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>import org.jgrapes.io.IOSubchannel.DefaultSubchannel;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>import org.jgrapes.io.events.Close;<a name="line.37"></a>
+<span class="sourceLineNo">038</span>import org.jgrapes.io.events.Closed;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>import org.jgrapes.io.util.LinkedIOSubchannel;<a name="line.39"></a>
 <span class="sourceLineNo">040</span><a name="line.40"></a>
 <span class="sourceLineNo">041</span>/**<a name="line.41"></a>
 <span class="sourceLineNo">042</span> * The server side representation of a window in the browser <a name="line.42"></a>
@@ -321,16 +321,13 @@
 <span class="sourceLineNo">313</span>        public String toString() {<a name="line.313"></a>
 <span class="sourceLineNo">314</span>                StringBuilder builder = new StringBuilder();<a name="line.314"></a>
 <span class="sourceLineNo">315</span>                builder.append(IOSubchannel.toString(this));<a name="line.315"></a>
-<span class="sourceLineNo">316</span>                builder.append(" (");<a name="line.316"></a>
-<span class="sourceLineNo">317</span>                if (upstreamChannel != null) {<a name="line.317"></a>
-<span class="sourceLineNo">318</span>                        builder.append("―&gt;");<a name="line.318"></a>
-<span class="sourceLineNo">319</span>                        builder.append(Channel.toString(upstreamChannel.get()));<a name="line.319"></a>
-<span class="sourceLineNo">320</span>                }<a name="line.320"></a>
-<span class="sourceLineNo">321</span>                builder.append(")");<a name="line.321"></a>
-<span class="sourceLineNo">322</span>                return builder.toString();<a name="line.322"></a>
-<span class="sourceLineNo">323</span>        }<a name="line.323"></a>
-<span class="sourceLineNo">324</span>        <a name="line.324"></a>
-<span class="sourceLineNo">325</span>}<a name="line.325"></a>
+<span class="sourceLineNo">316</span>                upstreamChannel().ifPresent(up -&gt; builder.append(<a name="line.316"></a>
+<span class="sourceLineNo">317</span>                                LinkedIOSubchannel.upstreamToString(up)));<a name="line.317"></a>
+<span class="sourceLineNo">318</span>                builder.append(")");<a name="line.318"></a>
+<span class="sourceLineNo">319</span>                return builder.toString();<a name="line.319"></a>
+<span class="sourceLineNo">320</span>        }<a name="line.320"></a>
+<span class="sourceLineNo">321</span>        <a name="line.321"></a>
+<span class="sourceLineNo">322</span>}<a name="line.322"></a>
 
 
 
