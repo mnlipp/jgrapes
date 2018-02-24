@@ -30,199 +30,242 @@
 <span class="sourceLineNo">022</span>import java.util.Optional;<a name="line.22"></a>
 <span class="sourceLineNo">023</span><a name="line.23"></a>
 <span class="sourceLineNo">024</span>import org.jgrapes.core.Channel;<a name="line.24"></a>
-<span class="sourceLineNo">025</span>import org.jgrapes.core.Manager;<a name="line.25"></a>
-<span class="sourceLineNo">026</span>import org.jgrapes.io.IOSubchannel;<a name="line.26"></a>
-<span class="sourceLineNo">027</span>import org.jgrapes.io.IOSubchannel.DefaultSubchannel;<a name="line.27"></a>
-<span class="sourceLineNo">028</span><a name="line.28"></a>
-<span class="sourceLineNo">029</span>/**<a name="line.29"></a>
-<span class="sourceLineNo">030</span> * Provides an I/O subchannel that is linked to another I/O subchannel. A<a name="line.30"></a>
-<span class="sourceLineNo">031</span> * typical use case for this class is a protocol converter.<a name="line.31"></a>
-<span class="sourceLineNo">032</span> * <a name="line.32"></a>
-<span class="sourceLineNo">033</span> * Protocol converters receive events related to an I/O resource from upstream,<a name="line.33"></a>
-<span class="sourceLineNo">034</span> * and while processing them usually generate new events to other components<a name="line.34"></a>
-<span class="sourceLineNo">035</span> * downstream (and vice versa). The events received are associated with a<a name="line.35"></a>
-<span class="sourceLineNo">036</span> * particular resource by the subchannel that is used to relay them. The<a name="line.36"></a>
-<span class="sourceLineNo">037</span> * association with the resource must be maintained for the newly generated<a name="line.37"></a>
-<span class="sourceLineNo">038</span> * events as well. It is, however, not possible to use the same subchannel for<a name="line.38"></a>
-<span class="sourceLineNo">039</span> * receiving from upstream and sending downstream because it wouldn't be<a name="line.39"></a>
-<span class="sourceLineNo">040</span> * possible to distinguish between e.g. an {@code Input} event from upstream to<a name="line.40"></a>
-<span class="sourceLineNo">041</span> * the converter and an {@code Input} event (conveying the converted data) from<a name="line.41"></a>
-<span class="sourceLineNo">042</span> * the converter to the downstream components.<a name="line.42"></a>
-<span class="sourceLineNo">043</span> * <a name="line.43"></a>
-<span class="sourceLineNo">044</span> * Therefore, the converter must provide and manage independent subchannels for<a name="line.44"></a>
-<span class="sourceLineNo">045</span> * the data streams on its downstream side with a one-to-one relationship to the<a name="line.45"></a>
-<span class="sourceLineNo">046</span> * upstream subchannels. The {@code LinkedIOSubchannel} class simplifies this<a name="line.46"></a>
-<span class="sourceLineNo">047</span> * task. It provides a new subchannel with its own pipeline and a reference to<a name="line.47"></a>
-<span class="sourceLineNo">048</span> * an existing subchannel. This makes it easy to find the upstream subchannel<a name="line.48"></a>
-<span class="sourceLineNo">049</span> * for a given downstream ({@code LinkedIOSubchannel}) when processing response<a name="line.49"></a>
-<span class="sourceLineNo">050</span> * events. For finding the downstream {@code IOSubchannel} for a given upstream<a name="line.50"></a>
-<span class="sourceLineNo">051</span> * connection, instances associate themselves with the upstream channel using<a name="line.51"></a>
-<span class="sourceLineNo">052</span> * a special key.<a name="line.52"></a>
-<span class="sourceLineNo">053</span> * <a name="line.53"></a>
-<span class="sourceLineNo">054</span> */<a name="line.54"></a>
-<span class="sourceLineNo">055</span>public class LinkedIOSubchannel extends DefaultSubchannel {<a name="line.55"></a>
-<span class="sourceLineNo">056</span><a name="line.56"></a>
-<span class="sourceLineNo">057</span>        private final Manager converterComponent;<a name="line.57"></a>
-<span class="sourceLineNo">058</span>        // Must be weak, else there will always be a reference to the <a name="line.58"></a>
-<span class="sourceLineNo">059</span>        // upstream channel and, through the reverseMap, to this object.<a name="line.59"></a>
-<span class="sourceLineNo">060</span>        private final WeakReference&lt;IOSubchannel&gt; upstreamChannel;<a name="line.60"></a>
-<span class="sourceLineNo">061</span>        <a name="line.61"></a>
-<span class="sourceLineNo">062</span>        /**<a name="line.62"></a>
-<span class="sourceLineNo">063</span>         * Creates a new {@code LinkedIOSubchannel} that links to the give I/O<a name="line.63"></a>
-<span class="sourceLineNo">064</span>         * subchannel. Using this constructor is similar to invoking<a name="line.64"></a>
-<span class="sourceLineNo">065</span>         * {@link #LinkedIOSubchannel(Manager, IOSubchannel, boolean)} with<a name="line.65"></a>
-<span class="sourceLineNo">066</span>         * {@code true} as last parameter.<a name="line.66"></a>
-<span class="sourceLineNo">067</span>         * <a name="line.67"></a>
-<span class="sourceLineNo">068</span>         * @param converterComponent<a name="line.68"></a>
-<span class="sourceLineNo">069</span>         *            the converter component; used to get the main channel and the<a name="line.69"></a>
-<span class="sourceLineNo">070</span>         *            new event pipeline<a name="line.70"></a>
-<span class="sourceLineNo">071</span>         * @param upstreamChannel<a name="line.71"></a>
-<span class="sourceLineNo">072</span>         *            the upstream channel<a name="line.72"></a>
-<span class="sourceLineNo">073</span>         */<a name="line.73"></a>
-<span class="sourceLineNo">074</span>        public LinkedIOSubchannel(Manager converterComponent,<a name="line.74"></a>
-<span class="sourceLineNo">075</span>                IOSubchannel upstreamChannel) {<a name="line.75"></a>
-<span class="sourceLineNo">076</span>                this(converterComponent, upstreamChannel, true);<a name="line.76"></a>
-<span class="sourceLineNo">077</span>        }<a name="line.77"></a>
-<span class="sourceLineNo">078</span><a name="line.78"></a>
-<span class="sourceLineNo">079</span>        /**<a name="line.79"></a>
-<span class="sourceLineNo">080</span>         * Creates a new {@code LinkedIOSubchannel} for a given I/O subchannel.<a name="line.80"></a>
-<span class="sourceLineNo">081</span>         * Using this constructor with {@code false} as last parameter prevents the<a name="line.81"></a>
-<span class="sourceLineNo">082</span>         * addition of the back link from the upstream channel to the downstream<a name="line.82"></a>
-<span class="sourceLineNo">083</span>         * channel (see {@link #downstreamChannel(Manager, IOSubchannel)}). <a name="line.83"></a>
-<span class="sourceLineNo">084</span>         * This can save some space if a converter component has some other <a name="line.84"></a>
-<span class="sourceLineNo">085</span>         * means to maintain that information. Addition to<a name="line.85"></a>
-<span class="sourceLineNo">086</span>         * the map is thread safe.<a name="line.86"></a>
-<span class="sourceLineNo">087</span>         * <a name="line.87"></a>
-<span class="sourceLineNo">088</span>         * @param converterComponent<a name="line.88"></a>
-<span class="sourceLineNo">089</span>         *            the converter component; used to get the main channel and the<a name="line.89"></a>
-<span class="sourceLineNo">090</span>         *            new event pipeline<a name="line.90"></a>
-<span class="sourceLineNo">091</span>         * @param upstreamChannel<a name="line.91"></a>
-<span class="sourceLineNo">092</span>         *            the upstream channel<a name="line.92"></a>
-<span class="sourceLineNo">093</span>         * @param linkBack<a name="line.93"></a>
-<span class="sourceLineNo">094</span>         *            create the link from upstream to downstream<a name="line.94"></a>
-<span class="sourceLineNo">095</span>         */<a name="line.95"></a>
-<span class="sourceLineNo">096</span>        public LinkedIOSubchannel(Manager converterComponent,<a name="line.96"></a>
-<span class="sourceLineNo">097</span>                IOSubchannel upstreamChannel, boolean linkBack) {<a name="line.97"></a>
-<span class="sourceLineNo">098</span>                super(converterComponent);<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                this.converterComponent = converterComponent;<a name="line.99"></a>
-<span class="sourceLineNo">100</span>                this.upstreamChannel = new WeakReference&lt;&gt;(upstreamChannel);<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                if (linkBack) {<a name="line.101"></a>
-<span class="sourceLineNo">102</span>                        upstreamChannel.setAssociated(<a name="line.102"></a>
-<span class="sourceLineNo">103</span>                                        new KeyWrapper(converterComponent), this);<a name="line.103"></a>
-<span class="sourceLineNo">104</span>                }<a name="line.104"></a>
-<span class="sourceLineNo">105</span>        }<a name="line.105"></a>
-<span class="sourceLineNo">106</span><a name="line.106"></a>
-<span class="sourceLineNo">107</span>        /**<a name="line.107"></a>
-<span class="sourceLineNo">108</span>         * @return the converterComponent<a name="line.108"></a>
-<span class="sourceLineNo">109</span>         */<a name="line.109"></a>
-<span class="sourceLineNo">110</span>        public Manager converterComponent() {<a name="line.110"></a>
-<span class="sourceLineNo">111</span>                return converterComponent;<a name="line.111"></a>
-<span class="sourceLineNo">112</span>        }<a name="line.112"></a>
-<span class="sourceLineNo">113</span><a name="line.113"></a>
-<span class="sourceLineNo">114</span>        /**<a name="line.114"></a>
-<span class="sourceLineNo">115</span>         * @return the upstream channel<a name="line.115"></a>
-<span class="sourceLineNo">116</span>         */<a name="line.116"></a>
-<span class="sourceLineNo">117</span>        public IOSubchannel upstreamChannel() {<a name="line.117"></a>
-<span class="sourceLineNo">118</span>                return upstreamChannel.get();<a name="line.118"></a>
-<span class="sourceLineNo">119</span>        }<a name="line.119"></a>
-<span class="sourceLineNo">120</span>        <a name="line.120"></a>
-<span class="sourceLineNo">121</span>        /**<a name="line.121"></a>
-<span class="sourceLineNo">122</span>         * Delegates the invocation to the upstream channel <a name="line.122"></a>
-<span class="sourceLineNo">123</span>         * if no associated data is found for this channel. <a name="line.123"></a>
-<span class="sourceLineNo">124</span>         */<a name="line.124"></a>
-<span class="sourceLineNo">125</span>        @Override<a name="line.125"></a>
-<span class="sourceLineNo">126</span>        public &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type) {<a name="line.126"></a>
-<span class="sourceLineNo">127</span>                Optional&lt;V&gt; result = super.associated(by, type);<a name="line.127"></a>
-<span class="sourceLineNo">128</span>                if (!result.isPresent()) {<a name="line.128"></a>
-<span class="sourceLineNo">129</span>                        IOSubchannel up = upstreamChannel();<a name="line.129"></a>
-<span class="sourceLineNo">130</span>                        if (up != null) {<a name="line.130"></a>
-<span class="sourceLineNo">131</span>                                return up.associated(by, type);<a name="line.131"></a>
-<span class="sourceLineNo">132</span>                        }<a name="line.132"></a>
-<span class="sourceLineNo">133</span>                }<a name="line.133"></a>
-<span class="sourceLineNo">134</span>                return result;<a name="line.134"></a>
-<span class="sourceLineNo">135</span>        }<a name="line.135"></a>
-<span class="sourceLineNo">136</span><a name="line.136"></a>
-<span class="sourceLineNo">137</span>        /* (non-Javadoc)<a name="line.137"></a>
-<span class="sourceLineNo">138</span>         * @see java.lang.Object#toString()<a name="line.138"></a>
-<span class="sourceLineNo">139</span>         */<a name="line.139"></a>
-<span class="sourceLineNo">140</span>        public String toString() {<a name="line.140"></a>
-<span class="sourceLineNo">141</span>                StringBuilder builder = new StringBuilder();<a name="line.141"></a>
-<span class="sourceLineNo">142</span>                builder.append(IOSubchannel.toString(this));<a name="line.142"></a>
-<span class="sourceLineNo">143</span>                builder.append(" (");<a name="line.143"></a>
-<span class="sourceLineNo">144</span>                if (upstreamChannel != null) {<a name="line.144"></a>
-<span class="sourceLineNo">145</span>                        builder.append("―&gt;");<a name="line.145"></a>
-<span class="sourceLineNo">146</span>                        builder.append(Channel.toString(upstreamChannel.get()));<a name="line.146"></a>
-<span class="sourceLineNo">147</span>                }<a name="line.147"></a>
-<span class="sourceLineNo">148</span>                builder.append(")");<a name="line.148"></a>
-<span class="sourceLineNo">149</span>                return builder.toString();<a name="line.149"></a>
-<span class="sourceLineNo">150</span>        }<a name="line.150"></a>
-<span class="sourceLineNo">151</span>        <a name="line.151"></a>
-<span class="sourceLineNo">152</span>        /**<a name="line.152"></a>
-<span class="sourceLineNo">153</span>         * Returns the linked downstream channel that has been created for the <a name="line.153"></a>
-<span class="sourceLineNo">154</span>         * given converter and (upstream) subchannel. If more than one linked <a name="line.154"></a>
-<span class="sourceLineNo">155</span>         * subchannel has been created for a given converter and subchannel, <a name="line.155"></a>
-<span class="sourceLineNo">156</span>         * the linked subchannel created last is returned.<a name="line.156"></a>
-<span class="sourceLineNo">157</span>         * <a name="line.157"></a>
-<span class="sourceLineNo">158</span>         * @param upstreamChannel the (upstream) channel<a name="line.158"></a>
-<span class="sourceLineNo">159</span>         * @return the linked downstream subchannel created for the <a name="line.159"></a>
-<span class="sourceLineNo">160</span>         * given cobverter and (upstream) subchannel if it exists<a name="line.160"></a>
-<span class="sourceLineNo">161</span>         */<a name="line.161"></a>
-<span class="sourceLineNo">162</span>        public static Optional&lt;? extends LinkedIOSubchannel&gt; downstreamChannel(<a name="line.162"></a>
-<span class="sourceLineNo">163</span>                        Manager converterComponent, IOSubchannel upstreamChannel) {<a name="line.163"></a>
-<span class="sourceLineNo">164</span>                return upstreamChannel.associated(<a name="line.164"></a>
-<span class="sourceLineNo">165</span>                                new KeyWrapper(converterComponent), LinkedIOSubchannel.class);<a name="line.165"></a>
-<span class="sourceLineNo">166</span>        }<a name="line.166"></a>
-<span class="sourceLineNo">167</span>        <a name="line.167"></a>
-<span class="sourceLineNo">168</span>        private static class KeyWrapper {<a name="line.168"></a>
-<span class="sourceLineNo">169</span><a name="line.169"></a>
-<span class="sourceLineNo">170</span>                private Manager converterComponent;<a name="line.170"></a>
-<span class="sourceLineNo">171</span><a name="line.171"></a>
-<span class="sourceLineNo">172</span>                /**<a name="line.172"></a>
-<span class="sourceLineNo">173</span>                 * @param converterComponent<a name="line.173"></a>
-<span class="sourceLineNo">174</span>                 */<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                public KeyWrapper(Manager converterComponent) {<a name="line.175"></a>
-<span class="sourceLineNo">176</span>                        super();<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                        this.converterComponent = converterComponent;<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                }<a name="line.178"></a>
-<span class="sourceLineNo">179</span><a name="line.179"></a>
-<span class="sourceLineNo">180</span>                /* (non-Javadoc)<a name="line.180"></a>
-<span class="sourceLineNo">181</span>                 * @see java.lang.Object#hashCode()<a name="line.181"></a>
-<span class="sourceLineNo">182</span>                 */<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                @Override<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                public int hashCode() {<a name="line.184"></a>
-<span class="sourceLineNo">185</span>                        final int prime = 31;<a name="line.185"></a>
-<span class="sourceLineNo">186</span>                        int result = 1;<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                        result = prime * result + ((converterComponent == null) ? 0<a name="line.187"></a>
-<span class="sourceLineNo">188</span>                                : converterComponent.hashCode());<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                        return result;<a name="line.189"></a>
+<span class="sourceLineNo">025</span>import org.jgrapes.core.EventPipeline;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import org.jgrapes.core.Manager;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import org.jgrapes.io.IOSubchannel;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.jgrapes.io.IOSubchannel.DefaultSubchannel;<a name="line.28"></a>
+<span class="sourceLineNo">029</span><a name="line.29"></a>
+<span class="sourceLineNo">030</span>/**<a name="line.30"></a>
+<span class="sourceLineNo">031</span> * Provides an I/O subchannel that is linked to another I/O subchannel. A<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * typical use case for this class is a protocol converter.<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * <a name="line.33"></a>
+<span class="sourceLineNo">034</span> * Protocol converters receive events related to an I/O resource from upstream,<a name="line.34"></a>
+<span class="sourceLineNo">035</span> * and while processing them usually generate new events to other components<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * downstream (and vice versa). The events received are associated with a<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * particular resource by the subchannel that is used to relay them. The<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * association with the resource must be maintained for the newly generated<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * events as well. It is, however, not possible to use the same subchannel for<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * receiving from upstream and sending downstream because it wouldn't be<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * possible to distinguish between e.g. an {@code Input} event from upstream to<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * the converter and an {@code Input} event (conveying the converted data) from<a name="line.42"></a>
+<span class="sourceLineNo">043</span> * the converter to the downstream components.<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * <a name="line.44"></a>
+<span class="sourceLineNo">045</span> * Therefore, the converter must provide and manage independent subchannels for<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * the data streams on its downstream side with a one-to-one relationship to the<a name="line.46"></a>
+<span class="sourceLineNo">047</span> * upstream subchannels. The {@code LinkedIOSubchannel} class simplifies this<a name="line.47"></a>
+<span class="sourceLineNo">048</span> * task. It provides a new subchannel with a reference to an existing <a name="line.48"></a>
+<span class="sourceLineNo">049</span> * subchannel. This makes it easy to find the upstream subchannel for a <a name="line.49"></a>
+<span class="sourceLineNo">050</span> * given downstream ({@code LinkedIOSubchannel}) when processing response<a name="line.50"></a>
+<span class="sourceLineNo">051</span> * events. For finding the downstream {@code IOSubchannel} for a given upstream<a name="line.51"></a>
+<span class="sourceLineNo">052</span> * connection, instances associate themselves with the upstream channel using<a name="line.52"></a>
+<span class="sourceLineNo">053</span> * the converter component as key. This allows a subchannel to have several<a name="line.53"></a>
+<span class="sourceLineNo">054</span> * associated linked subchannels.<a name="line.54"></a>
+<span class="sourceLineNo">055</span> */<a name="line.55"></a>
+<span class="sourceLineNo">056</span>public class LinkedIOSubchannel extends DefaultSubchannel {<a name="line.56"></a>
+<span class="sourceLineNo">057</span><a name="line.57"></a>
+<span class="sourceLineNo">058</span>        private final Manager hub;<a name="line.58"></a>
+<span class="sourceLineNo">059</span>        // Must be weak, else there will always be a reference to the <a name="line.59"></a>
+<span class="sourceLineNo">060</span>        // upstream channel and, through the reverseMap, to this object.<a name="line.60"></a>
+<span class="sourceLineNo">061</span>        private final WeakReference&lt;IOSubchannel&gt; upstreamChannel;<a name="line.61"></a>
+<span class="sourceLineNo">062</span>        <a name="line.62"></a>
+<span class="sourceLineNo">063</span>        /**<a name="line.63"></a>
+<span class="sourceLineNo">064</span>         * Creates a new {@code LinkedIOSubchannel} for a given main channel<a name="line.64"></a>
+<span class="sourceLineNo">065</span>         * that links to the give I/O subchannel. Using this constructor <a name="line.65"></a>
+<span class="sourceLineNo">066</span>         * is similar to invoking<a name="line.66"></a>
+<span class="sourceLineNo">067</span>         * {@link #LinkedIOSubchannel(Manager, Channel, IOSubchannel, EventPipeline, boolean)}<a name="line.67"></a>
+<span class="sourceLineNo">068</span>         * with {@code true} as last parameter.<a name="line.68"></a>
+<span class="sourceLineNo">069</span>         *<a name="line.69"></a>
+<span class="sourceLineNo">070</span>         * @param hub the component that manages this channel<a name="line.70"></a>
+<span class="sourceLineNo">071</span>         * @param mainChannel the main channel<a name="line.71"></a>
+<span class="sourceLineNo">072</span>         * @param upstreamChannel the upstream channel<a name="line.72"></a>
+<span class="sourceLineNo">073</span>         * @param responsePipeline the response pipeline<a name="line.73"></a>
+<span class="sourceLineNo">074</span>         */<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        public LinkedIOSubchannel(Manager hub, Channel mainChannel, <a name="line.75"></a>
+<span class="sourceLineNo">076</span>                IOSubchannel upstreamChannel, EventPipeline responsePipeline) {<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                this(hub, mainChannel, upstreamChannel, responsePipeline, true);<a name="line.77"></a>
+<span class="sourceLineNo">078</span>        }<a name="line.78"></a>
+<span class="sourceLineNo">079</span><a name="line.79"></a>
+<span class="sourceLineNo">080</span>        /**<a name="line.80"></a>
+<span class="sourceLineNo">081</span>         * Creates a new {@code LinkedIOSubchannel} for a given main channel<a name="line.81"></a>
+<span class="sourceLineNo">082</span>         * that links to a given I/O subchannel.<a name="line.82"></a>
+<span class="sourceLineNo">083</span>         * <a name="line.83"></a>
+<span class="sourceLineNo">084</span>         * Using this constructor with {@code false} as last parameter prevents the<a name="line.84"></a>
+<span class="sourceLineNo">085</span>         * addition of the back link from the upstream channel to the downstream<a name="line.85"></a>
+<span class="sourceLineNo">086</span>         * channel (see {@link #downstreamChannel(Manager, IOSubchannel)}). <a name="line.86"></a>
+<span class="sourceLineNo">087</span>         * This can save some space if a converter component has some other <a name="line.87"></a>
+<span class="sourceLineNo">088</span>         * means to maintain that information. Addition to<a name="line.88"></a>
+<span class="sourceLineNo">089</span>         * the map is thread safe.<a name="line.89"></a>
+<span class="sourceLineNo">090</span>         *<a name="line.90"></a>
+<span class="sourceLineNo">091</span>         * @param hub the converter component that manages this channel<a name="line.91"></a>
+<span class="sourceLineNo">092</span>         * @param mainChannel the main channel<a name="line.92"></a>
+<span class="sourceLineNo">093</span>         * @param upstreamChannel the upstream channel<a name="line.93"></a>
+<span class="sourceLineNo">094</span>         * @param responsePipeline the response pipeline<a name="line.94"></a>
+<span class="sourceLineNo">095</span>         * @param linkBack create the link from upstream to downstream<a name="line.95"></a>
+<span class="sourceLineNo">096</span>         */<a name="line.96"></a>
+<span class="sourceLineNo">097</span>        public LinkedIOSubchannel(Manager hub, Channel mainChannel,<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                IOSubchannel upstreamChannel, EventPipeline responsePipeline,<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                boolean linkBack) {<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                super(mainChannel, responsePipeline);<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                this.hub = hub;<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                this.upstreamChannel = new WeakReference&lt;&gt;(upstreamChannel);<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                if (linkBack) {<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                        upstreamChannel.setAssociated(<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                                        new KeyWrapper(hub), this);<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                }<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        }<a name="line.107"></a>
+<span class="sourceLineNo">108</span><a name="line.108"></a>
+<span class="sourceLineNo">109</span>        /**<a name="line.109"></a>
+<span class="sourceLineNo">110</span>         * @return the component that manages this channel<a name="line.110"></a>
+<span class="sourceLineNo">111</span>         */<a name="line.111"></a>
+<span class="sourceLineNo">112</span>        public Manager hub() {<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                return hub;<a name="line.113"></a>
+<span class="sourceLineNo">114</span>        }<a name="line.114"></a>
+<span class="sourceLineNo">115</span><a name="line.115"></a>
+<span class="sourceLineNo">116</span>        /**<a name="line.116"></a>
+<span class="sourceLineNo">117</span>         * @return the upstream channel<a name="line.117"></a>
+<span class="sourceLineNo">118</span>         */<a name="line.118"></a>
+<span class="sourceLineNo">119</span>        public IOSubchannel upstreamChannel() {<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                return upstreamChannel.get();<a name="line.120"></a>
+<span class="sourceLineNo">121</span>        }<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        <a name="line.122"></a>
+<span class="sourceLineNo">123</span>        /**<a name="line.123"></a>
+<span class="sourceLineNo">124</span>         * Delegates the invocation to the upstream channel <a name="line.124"></a>
+<span class="sourceLineNo">125</span>         * if no associated data is found for this channel. <a name="line.125"></a>
+<span class="sourceLineNo">126</span>         */<a name="line.126"></a>
+<span class="sourceLineNo">127</span>        @Override<a name="line.127"></a>
+<span class="sourceLineNo">128</span>        public &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type) {<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                Optional&lt;V&gt; result = super.associated(by, type);<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                if (!result.isPresent()) {<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                        IOSubchannel up = upstreamChannel();<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                        if (up != null) {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                                return up.associated(by, type);<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                        }<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                }<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                return result;<a name="line.136"></a>
+<span class="sourceLineNo">137</span>        }<a name="line.137"></a>
+<span class="sourceLineNo">138</span><a name="line.138"></a>
+<span class="sourceLineNo">139</span>        private static ThreadLocal&lt;Integer&gt; linkedRemaining = new ThreadLocal&lt;&gt;();<a name="line.139"></a>
+<span class="sourceLineNo">140</span>        <a name="line.140"></a>
+<span class="sourceLineNo">141</span>        /**<a name="line.141"></a>
+<span class="sourceLineNo">142</span>         * The {@link #toString()} method of {@link LinkedIOSubchannel}s<a name="line.142"></a>
+<span class="sourceLineNo">143</span>         * shows the channel together with the upstream channel that it<a name="line.143"></a>
+<span class="sourceLineNo">144</span>         * is linked to. If there are several levels of upstream links,<a name="line.144"></a>
+<span class="sourceLineNo">145</span>         * this can become a very long sequence.<a name="line.145"></a>
+<span class="sourceLineNo">146</span>         * <a name="line.146"></a>
+<span class="sourceLineNo">147</span>         * This method creates the representation of the linked upstream<a name="line.147"></a>
+<span class="sourceLineNo">148</span>         * channel (an arrow followed by the representation of the channel),<a name="line.148"></a>
+<span class="sourceLineNo">149</span>         * but only up to one level. If more levels exist, it returns<a name="line.149"></a>
+<span class="sourceLineNo">150</span>         * an arrow followed by an ellipses. This method is used by<a name="line.150"></a>
+<span class="sourceLineNo">151</span>         * {@link LinkedIOSubchannel#toString()}. Other implementations<a name="line.151"></a>
+<span class="sourceLineNo">152</span>         * of {@link IOSubchannel} should use this method in their<a name="line.152"></a>
+<span class="sourceLineNo">153</span>         * {@link Object#toString()} method as well to keep the result<a name="line.153"></a>
+<span class="sourceLineNo">154</span>         * consistent. <a name="line.154"></a>
+<span class="sourceLineNo">155</span>         *<a name="line.155"></a>
+<span class="sourceLineNo">156</span>         * @param upstream the upstream channel<a name="line.156"></a>
+<span class="sourceLineNo">157</span>         * @return the string<a name="line.157"></a>
+<span class="sourceLineNo">158</span>         */<a name="line.158"></a>
+<span class="sourceLineNo">159</span>        public static String upstreamToString(Channel upstream) {<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                if (upstream == null) {<a name="line.160"></a>
+<span class="sourceLineNo">161</span>                        linkedRemaining.set(null);<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                        return "";<a name="line.162"></a>
+<span class="sourceLineNo">163</span>                }<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                if (linkedRemaining.get() == null) {<a name="line.164"></a>
+<span class="sourceLineNo">165</span>                        linkedRemaining.set(1);<a name="line.165"></a>
+<span class="sourceLineNo">166</span>                }<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                if (linkedRemaining.get() &lt;= 0) {<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                        linkedRemaining.set(null);<a name="line.168"></a>
+<span class="sourceLineNo">169</span>                        return "↔…";<a name="line.169"></a>
+<span class="sourceLineNo">170</span>                }<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                linkedRemaining.set(linkedRemaining.get() - 1);<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                <a name="line.172"></a>
+<span class="sourceLineNo">173</span>                // Build continuation. <a name="line.173"></a>
+<span class="sourceLineNo">174</span>                StringBuilder builder = new StringBuilder();<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                builder.append("↔");<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                builder.append(Channel.toString(upstream));<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                linkedRemaining.set(null);<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                return builder.toString();<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                <a name="line.179"></a>
+<span class="sourceLineNo">180</span>        }<a name="line.180"></a>
+<span class="sourceLineNo">181</span>        <a name="line.181"></a>
+<span class="sourceLineNo">182</span>        /* (non-Javadoc)<a name="line.182"></a>
+<span class="sourceLineNo">183</span>         * @see java.lang.Object#toString()<a name="line.183"></a>
+<span class="sourceLineNo">184</span>         */<a name="line.184"></a>
+<span class="sourceLineNo">185</span>        public String toString() {<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                StringBuilder builder = new StringBuilder();<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                builder.append(IOSubchannel.toString(this));<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                if (upstreamChannel != null) {<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                        builder.append(upstreamToString(upstreamChannel.get()));<a name="line.189"></a>
 <span class="sourceLineNo">190</span>                }<a name="line.190"></a>
-<span class="sourceLineNo">191</span><a name="line.191"></a>
-<span class="sourceLineNo">192</span>                /* (non-Javadoc)<a name="line.192"></a>
-<span class="sourceLineNo">193</span>                 * @see java.lang.Object#equals(java.lang.Object)<a name="line.193"></a>
-<span class="sourceLineNo">194</span>                 */<a name="line.194"></a>
-<span class="sourceLineNo">195</span>                @Override<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                public boolean equals(Object obj) {<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                        if (this == obj) {<a name="line.197"></a>
-<span class="sourceLineNo">198</span>                                return true;<a name="line.198"></a>
-<span class="sourceLineNo">199</span>                        }<a name="line.199"></a>
-<span class="sourceLineNo">200</span>                        if (obj == null) {<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                                return false;<a name="line.201"></a>
-<span class="sourceLineNo">202</span>                        }<a name="line.202"></a>
-<span class="sourceLineNo">203</span>                        if (getClass() != obj.getClass()) {<a name="line.203"></a>
-<span class="sourceLineNo">204</span>                                return false;<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                        }<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                        KeyWrapper other = (KeyWrapper) obj;<a name="line.206"></a>
-<span class="sourceLineNo">207</span>                        if (converterComponent == null) {<a name="line.207"></a>
-<span class="sourceLineNo">208</span>                                if (other.converterComponent != null) {<a name="line.208"></a>
-<span class="sourceLineNo">209</span>                                        return false;<a name="line.209"></a>
-<span class="sourceLineNo">210</span>                                }<a name="line.210"></a>
-<span class="sourceLineNo">211</span>                        } else if (!converterComponent.equals(other.converterComponent)) {<a name="line.211"></a>
-<span class="sourceLineNo">212</span>                                return false;<a name="line.212"></a>
-<span class="sourceLineNo">213</span>                        }<a name="line.213"></a>
-<span class="sourceLineNo">214</span>                        return true;<a name="line.214"></a>
-<span class="sourceLineNo">215</span>                }<a name="line.215"></a>
-<span class="sourceLineNo">216</span>        }<a name="line.216"></a>
-<span class="sourceLineNo">217</span>}<a name="line.217"></a>
+<span class="sourceLineNo">191</span>                return builder.toString();<a name="line.191"></a>
+<span class="sourceLineNo">192</span>        }<a name="line.192"></a>
+<span class="sourceLineNo">193</span>        <a name="line.193"></a>
+<span class="sourceLineNo">194</span>        /**<a name="line.194"></a>
+<span class="sourceLineNo">195</span>         * Returns the linked downstream channel that has been created for the <a name="line.195"></a>
+<span class="sourceLineNo">196</span>         * given component and (upstream) subchannel. If more than one linked <a name="line.196"></a>
+<span class="sourceLineNo">197</span>         * subchannel has been created for a given component and subchannel, <a name="line.197"></a>
+<span class="sourceLineNo">198</span>         * the linked subchannel created last is returned.<a name="line.198"></a>
+<span class="sourceLineNo">199</span>         *<a name="line.199"></a>
+<span class="sourceLineNo">200</span>         * @param hub the component that manages this channel<a name="line.200"></a>
+<span class="sourceLineNo">201</span>         * @param upstreamChannel the (upstream) channel<a name="line.201"></a>
+<span class="sourceLineNo">202</span>         * @return the linked downstream subchannel created for the<a name="line.202"></a>
+<span class="sourceLineNo">203</span>         * given component and (upstream) subchannel if it exists<a name="line.203"></a>
+<span class="sourceLineNo">204</span>         */<a name="line.204"></a>
+<span class="sourceLineNo">205</span>        public static Optional&lt;? extends LinkedIOSubchannel&gt; downstreamChannel(<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                        Manager hub, IOSubchannel upstreamChannel) {<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                return upstreamChannel.associated(<a name="line.207"></a>
+<span class="sourceLineNo">208</span>                                new KeyWrapper(hub), LinkedIOSubchannel.class);<a name="line.208"></a>
+<span class="sourceLineNo">209</span>        }<a name="line.209"></a>
+<span class="sourceLineNo">210</span>        <a name="line.210"></a>
+<span class="sourceLineNo">211</span>        private static class KeyWrapper {<a name="line.211"></a>
+<span class="sourceLineNo">212</span><a name="line.212"></a>
+<span class="sourceLineNo">213</span>                private Manager hub;<a name="line.213"></a>
+<span class="sourceLineNo">214</span><a name="line.214"></a>
+<span class="sourceLineNo">215</span>                /**<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                 * @param hub<a name="line.216"></a>
+<span class="sourceLineNo">217</span>                 */<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                public KeyWrapper(Manager hub) {<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                        super();<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                        this.hub = hub;<a name="line.220"></a>
+<span class="sourceLineNo">221</span>                }<a name="line.221"></a>
+<span class="sourceLineNo">222</span><a name="line.222"></a>
+<span class="sourceLineNo">223</span>                /* (non-Javadoc)<a name="line.223"></a>
+<span class="sourceLineNo">224</span>                 * @see java.lang.Object#hashCode()<a name="line.224"></a>
+<span class="sourceLineNo">225</span>                 */<a name="line.225"></a>
+<span class="sourceLineNo">226</span>                @Override<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                public int hashCode() {<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                        final int prime = 31;<a name="line.228"></a>
+<span class="sourceLineNo">229</span>                        int result = 1;<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                        result = prime * result + ((hub == null) ? 0<a name="line.230"></a>
+<span class="sourceLineNo">231</span>                                : hub.hashCode());<a name="line.231"></a>
+<span class="sourceLineNo">232</span>                        return result;<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                }<a name="line.233"></a>
+<span class="sourceLineNo">234</span><a name="line.234"></a>
+<span class="sourceLineNo">235</span>                /* (non-Javadoc)<a name="line.235"></a>
+<span class="sourceLineNo">236</span>                 * @see java.lang.Object#equals(java.lang.Object)<a name="line.236"></a>
+<span class="sourceLineNo">237</span>                 */<a name="line.237"></a>
+<span class="sourceLineNo">238</span>                @Override<a name="line.238"></a>
+<span class="sourceLineNo">239</span>                public boolean equals(Object obj) {<a name="line.239"></a>
+<span class="sourceLineNo">240</span>                        if (this == obj) {<a name="line.240"></a>
+<span class="sourceLineNo">241</span>                                return true;<a name="line.241"></a>
+<span class="sourceLineNo">242</span>                        }<a name="line.242"></a>
+<span class="sourceLineNo">243</span>                        if (obj == null) {<a name="line.243"></a>
+<span class="sourceLineNo">244</span>                                return false;<a name="line.244"></a>
+<span class="sourceLineNo">245</span>                        }<a name="line.245"></a>
+<span class="sourceLineNo">246</span>                        if (getClass() != obj.getClass()) {<a name="line.246"></a>
+<span class="sourceLineNo">247</span>                                return false;<a name="line.247"></a>
+<span class="sourceLineNo">248</span>                        }<a name="line.248"></a>
+<span class="sourceLineNo">249</span>                        KeyWrapper other = (KeyWrapper) obj;<a name="line.249"></a>
+<span class="sourceLineNo">250</span>                        if (hub == null) {<a name="line.250"></a>
+<span class="sourceLineNo">251</span>                                if (other.hub != null) {<a name="line.251"></a>
+<span class="sourceLineNo">252</span>                                        return false;<a name="line.252"></a>
+<span class="sourceLineNo">253</span>                                }<a name="line.253"></a>
+<span class="sourceLineNo">254</span>                        } else if (!hub.equals(other.hub)) {<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                                return false;<a name="line.255"></a>
+<span class="sourceLineNo">256</span>                        }<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                        return true;<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                }<a name="line.258"></a>
+<span class="sourceLineNo">259</span>        }<a name="line.259"></a>
+<span class="sourceLineNo">260</span>}<a name="line.260"></a>
 
 
 

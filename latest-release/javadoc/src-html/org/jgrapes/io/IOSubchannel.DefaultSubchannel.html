@@ -38,272 +38,260 @@
 <span class="sourceLineNo">030</span>import org.jgrapes.core.Components;<a name="line.30"></a>
 <span class="sourceLineNo">031</span>import org.jgrapes.core.Event;<a name="line.31"></a>
 <span class="sourceLineNo">032</span>import org.jgrapes.core.EventPipeline;<a name="line.32"></a>
-<span class="sourceLineNo">033</span>import org.jgrapes.core.Manager;<a name="line.33"></a>
-<span class="sourceLineNo">034</span>import org.jgrapes.io.util.ManagedBuffer;<a name="line.34"></a>
-<span class="sourceLineNo">035</span>import org.jgrapes.io.util.ManagedBufferPool;<a name="line.35"></a>
-<span class="sourceLineNo">036</span><a name="line.36"></a>
-<span class="sourceLineNo">037</span>/**<a name="line.37"></a>
-<span class="sourceLineNo">038</span> * Represents an I/O subchannel. Subchannels delegate the invocations of a<a name="line.38"></a>
-<span class="sourceLineNo">039</span> * {@link Channel}'s methods to their respective main channel. Events fired on a<a name="line.39"></a>
-<span class="sourceLineNo">040</span> * subchannel are therefore handled by the framework as if they were fired on<a name="line.40"></a>
-<span class="sourceLineNo">041</span> * the main channel. Firing events on a subchannel instance instead of on the<a name="line.41"></a>
-<span class="sourceLineNo">042</span> * main channel is a means to group related events. In particular, I/O<a name="line.42"></a>
-<span class="sourceLineNo">043</span> * subchannels are used to group events that relate to an I/O resource such as<a name="line.43"></a>
-<span class="sourceLineNo">044</span> * an opened file or a network connection.<a name="line.44"></a>
-<span class="sourceLineNo">045</span> * <a name="line.45"></a>
-<span class="sourceLineNo">046</span> * A subchannel has an initiator that creates and manages the subchannel. Events<a name="line.46"></a>
-<span class="sourceLineNo">047</span> * fired by the initiator are said to flow downstream on the channel. Events<a name="line.47"></a>
-<span class="sourceLineNo">048</span> * fired by components in response are said to flow upstream.<a name="line.48"></a>
-<span class="sourceLineNo">049</span> * <a name="line.49"></a>
-<span class="sourceLineNo">050</span> * Upstream and downstream events are usually handled by two different pipelines<a name="line.50"></a>
-<span class="sourceLineNo">051</span> * managed by the initiator. One pipeline, accessible only to the initiator,<a name="line.51"></a>
-<span class="sourceLineNo">052</span> * handles the downstream events. The other, made available as a property of the<a name="line.52"></a>
-<span class="sourceLineNo">053</span> * I/O subchannel, handles the upstream events. Of course, any pipeline can be<a name="line.53"></a>
-<span class="sourceLineNo">054</span> * used to send events upstream to the initiator component. However, using<a name="line.54"></a>
-<span class="sourceLineNo">055</span> * arbitrary pipelines holds the risk that events aren't delivered in the<a name="line.55"></a>
-<span class="sourceLineNo">056</span> * intended order.<a name="line.56"></a>
-<span class="sourceLineNo">057</span> * <a name="line.57"></a>
-<span class="sourceLineNo">058</span> * As a convenience, an I/O subchannel also has an associated buffer pool. <a name="line.58"></a>
-<span class="sourceLineNo">059</span> * Buffers from this pool should only be acquired for upstream events.<a name="line.59"></a>
-<span class="sourceLineNo">060</span> */<a name="line.60"></a>
-<span class="sourceLineNo">061</span>public interface IOSubchannel extends Channel, Associator {<a name="line.61"></a>
-<span class="sourceLineNo">062</span><a name="line.62"></a>
-<span class="sourceLineNo">063</span>        /**<a name="line.63"></a>
-<span class="sourceLineNo">064</span>         * Returns the main channel.<a name="line.64"></a>
-<span class="sourceLineNo">065</span>         * <a name="line.65"></a>
-<span class="sourceLineNo">066</span>         * @return the mainChannel<a name="line.66"></a>
-<span class="sourceLineNo">067</span>         */<a name="line.67"></a>
-<span class="sourceLineNo">068</span>        Channel mainChannel();<a name="line.68"></a>
-<span class="sourceLineNo">069</span><a name="line.69"></a>
-<span class="sourceLineNo">070</span>        /**<a name="line.70"></a>
-<span class="sourceLineNo">071</span>         * Returns the main channel's match value.<a name="line.71"></a>
-<span class="sourceLineNo">072</span>         * <a name="line.72"></a>
-<span class="sourceLineNo">073</span>         * @see Channel#defaultCriterion()<a name="line.73"></a>
-<span class="sourceLineNo">074</span>         */<a name="line.74"></a>
-<span class="sourceLineNo">075</span>        @Override<a name="line.75"></a>
-<span class="sourceLineNo">076</span>        default Object defaultCriterion() {<a name="line.76"></a>
-<span class="sourceLineNo">077</span>                return mainChannel().defaultCriterion();<a name="line.77"></a>
-<span class="sourceLineNo">078</span>        }<a name="line.78"></a>
-<span class="sourceLineNo">079</span><a name="line.79"></a>
-<span class="sourceLineNo">080</span>        /**<a name="line.80"></a>
-<span class="sourceLineNo">081</span>         * Delegates to main channel.<a name="line.81"></a>
-<span class="sourceLineNo">082</span>         * <a name="line.82"></a>
-<span class="sourceLineNo">083</span>         * @see Channel#isEligibleFor(Object)<a name="line.83"></a>
-<span class="sourceLineNo">084</span>         */<a name="line.84"></a>
-<span class="sourceLineNo">085</span>        @Override<a name="line.85"></a>
-<span class="sourceLineNo">086</span>        default boolean isEligibleFor(Object value) {<a name="line.86"></a>
-<span class="sourceLineNo">087</span>                return mainChannel().isEligibleFor(value);<a name="line.87"></a>
-<span class="sourceLineNo">088</span>        }<a name="line.88"></a>
-<span class="sourceLineNo">089</span><a name="line.89"></a>
-<span class="sourceLineNo">090</span>        /**<a name="line.90"></a>
-<span class="sourceLineNo">091</span>         * Gets the {@link EventPipeline} that can be used for events going back to<a name="line.91"></a>
-<span class="sourceLineNo">092</span>         * the initiator of this connection. Consistently using this event pipeline<a name="line.92"></a>
-<span class="sourceLineNo">093</span>         * for response events ensures that the events are written in proper<a name="line.93"></a>
-<span class="sourceLineNo">094</span>         * sequence.<a name="line.94"></a>
-<span class="sourceLineNo">095</span>         * <a name="line.95"></a>
-<span class="sourceLineNo">096</span>         * @return the event pipeline<a name="line.96"></a>
-<span class="sourceLineNo">097</span>         */<a name="line.97"></a>
-<span class="sourceLineNo">098</span>        public EventPipeline responsePipeline();<a name="line.98"></a>
-<span class="sourceLineNo">099</span><a name="line.99"></a>
-<span class="sourceLineNo">100</span>        /**<a name="line.100"></a>
-<span class="sourceLineNo">101</span>         * Get the subchannel's byte buffer pool.<a name="line.101"></a>
-<span class="sourceLineNo">102</span>         * <a name="line.102"></a>
-<span class="sourceLineNo">103</span>         * @return the buffer pool<a name="line.103"></a>
-<span class="sourceLineNo">104</span>         */<a name="line.104"></a>
-<span class="sourceLineNo">105</span>        public ManagedBufferPool&lt;ManagedBuffer&lt;ByteBuffer&gt;, ByteBuffer&gt; <a name="line.105"></a>
-<span class="sourceLineNo">106</span>                byteBufferPool();<a name="line.106"></a>
-<span class="sourceLineNo">107</span>        <a name="line.107"></a>
-<span class="sourceLineNo">108</span>        /**<a name="line.108"></a>
-<span class="sourceLineNo">109</span>         * Get the subchannel's char buffer pool.<a name="line.109"></a>
-<span class="sourceLineNo">110</span>         * <a name="line.110"></a>
-<span class="sourceLineNo">111</span>         * @return the buffer pool<a name="line.111"></a>
-<span class="sourceLineNo">112</span>         */<a name="line.112"></a>
-<span class="sourceLineNo">113</span>        public ManagedBufferPool&lt;ManagedBuffer&lt;CharBuffer&gt;, CharBuffer&gt; <a name="line.113"></a>
-<span class="sourceLineNo">114</span>                charBufferPool();<a name="line.114"></a>
-<span class="sourceLineNo">115</span>        <a name="line.115"></a>
-<span class="sourceLineNo">116</span>        /**<a name="line.116"></a>
-<span class="sourceLineNo">117</span>         * Fires the given event on this subchannel using the subchannel's response<a name="line.117"></a>
-<span class="sourceLineNo">118</span>         * pipeline. Effectively, {@code fire(someEvent)} is a shortcut for<a name="line.118"></a>
-<span class="sourceLineNo">119</span>         * {@code getResponsePipeline.add(someEvent, this)}.<a name="line.119"></a>
-<span class="sourceLineNo">120</span>         * <a name="line.120"></a>
-<span class="sourceLineNo">121</span>         * @param &lt;T&gt; the event's type<a name="line.121"></a>
-<span class="sourceLineNo">122</span>         * @param event<a name="line.122"></a>
-<span class="sourceLineNo">123</span>         *            the event to fire<a name="line.123"></a>
-<span class="sourceLineNo">124</span>         * @return the event (for easy chaining)<a name="line.124"></a>
-<span class="sourceLineNo">125</span>         */<a name="line.125"></a>
-<span class="sourceLineNo">126</span>        default &lt;T extends Event&lt;?&gt;&gt; T respond(T event) {<a name="line.126"></a>
-<span class="sourceLineNo">127</span>                return responsePipeline().fire(event, this);<a name="line.127"></a>
-<span class="sourceLineNo">128</span>        }<a name="line.128"></a>
-<span class="sourceLineNo">129</span><a name="line.129"></a>
-<span class="sourceLineNo">130</span>        /* (non-Javadoc)<a name="line.130"></a>
-<span class="sourceLineNo">131</span>         * @see java.lang.Object#toString()<a name="line.131"></a>
-<span class="sourceLineNo">132</span>         */<a name="line.132"></a>
-<span class="sourceLineNo">133</span>        static String toString(IOSubchannel subchannel) {<a name="line.133"></a>
-<span class="sourceLineNo">134</span>                StringBuilder builder = new StringBuilder();<a name="line.134"></a>
-<span class="sourceLineNo">135</span>                builder.append(Channel.toString(subchannel.mainChannel()));<a name="line.135"></a>
-<span class="sourceLineNo">136</span>                builder.append("{");<a name="line.136"></a>
-<span class="sourceLineNo">137</span>                builder.append(Components.objectName(subchannel));<a name="line.137"></a>
-<span class="sourceLineNo">138</span>                builder.append("}");<a name="line.138"></a>
-<span class="sourceLineNo">139</span>                return builder.toString();<a name="line.139"></a>
-<span class="sourceLineNo">140</span>        }<a name="line.140"></a>
-<span class="sourceLineNo">141</span><a name="line.141"></a>
-<span class="sourceLineNo">142</span>        /**<a name="line.142"></a>
-<span class="sourceLineNo">143</span>         * Creates a new subchannel of the given component's channel with a new<a name="line.143"></a>
-<span class="sourceLineNo">144</span>         * event pipeline and a buffer pool with two buffers sized 4096.<a name="line.144"></a>
-<span class="sourceLineNo">145</span>         * <a name="line.145"></a>
-<span class="sourceLineNo">146</span>         * @param component<a name="line.146"></a>
-<span class="sourceLineNo">147</span>         *            the component used to get the main channel and the event<a name="line.147"></a>
-<span class="sourceLineNo">148</span>         *            pipeline<a name="line.148"></a>
-<span class="sourceLineNo">149</span>         * @return the subchannel<a name="line.149"></a>
-<span class="sourceLineNo">150</span>         */<a name="line.150"></a>
-<span class="sourceLineNo">151</span>        public static IOSubchannel defaultInstance(Component component) {<a name="line.151"></a>
-<span class="sourceLineNo">152</span>                return new DefaultSubchannel(component);<a name="line.152"></a>
-<span class="sourceLineNo">153</span>        }<a name="line.153"></a>
-<span class="sourceLineNo">154</span><a name="line.154"></a>
-<span class="sourceLineNo">155</span>        /**<a name="line.155"></a>
-<span class="sourceLineNo">156</span>         * A simple implementation of {@link IOSubchannel}.<a name="line.156"></a>
-<span class="sourceLineNo">157</span>         */<a name="line.157"></a>
-<span class="sourceLineNo">158</span>        public static class DefaultSubchannel implements IOSubchannel {<a name="line.158"></a>
-<span class="sourceLineNo">159</span>                private Channel mainChannel;<a name="line.159"></a>
-<span class="sourceLineNo">160</span>                private EventPipeline responsePipeline;<a name="line.160"></a>
-<span class="sourceLineNo">161</span>                private ManagedBufferPool&lt;ManagedBuffer&lt;ByteBuffer&gt;, ByteBuffer&gt; <a name="line.161"></a>
-<span class="sourceLineNo">162</span>                        byteBufferPool;<a name="line.162"></a>
-<span class="sourceLineNo">163</span>                private ManagedBufferPool&lt;ManagedBuffer&lt;CharBuffer&gt;, CharBuffer&gt;<a name="line.163"></a>
-<span class="sourceLineNo">164</span>                        charBufferPool;<a name="line.164"></a>
-<span class="sourceLineNo">165</span>                private Map&lt;Object,Object&gt; contextData = null;<a name="line.165"></a>
-<span class="sourceLineNo">166</span>                <a name="line.166"></a>
-<span class="sourceLineNo">167</span>                /**<a name="line.167"></a>
-<span class="sourceLineNo">168</span>                 * Creates a new instance with the given main channel and response<a name="line.168"></a>
-<span class="sourceLineNo">169</span>                 * pipeline.  <a name="line.169"></a>
-<span class="sourceLineNo">170</span>                 * <a name="line.170"></a>
-<span class="sourceLineNo">171</span>                 * @param mainChannel the main channel<a name="line.171"></a>
-<span class="sourceLineNo">172</span>                 * @param responsePipeline the response pipeline to use<a name="line.172"></a>
-<span class="sourceLineNo">173</span>                 * <a name="line.173"></a>
-<span class="sourceLineNo">174</span>                 */<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                public DefaultSubchannel(<a name="line.175"></a>
-<span class="sourceLineNo">176</span>                                Channel mainChannel, EventPipeline responsePipeline) {<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                        super();<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                        this.mainChannel = mainChannel;<a name="line.178"></a>
-<span class="sourceLineNo">179</span>                        this.responsePipeline = responsePipeline;<a name="line.179"></a>
-<span class="sourceLineNo">180</span>                }<a name="line.180"></a>
-<span class="sourceLineNo">181</span>                <a name="line.181"></a>
-<span class="sourceLineNo">182</span>                /**<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                 * Creates a new instance with the main channel<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                 * and event pipeline obtained from the component.<a name="line.184"></a>
-<span class="sourceLineNo">185</span>                 * <a name="line.185"></a>
-<span class="sourceLineNo">186</span>                 * @param component the manager used to get the main channel<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                 * and a new event pipeline<a name="line.187"></a>
-<span class="sourceLineNo">188</span>                 */<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                public DefaultSubchannel(Manager component) {<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                        this(component.channel(), component.newEventPipeline());<a name="line.190"></a>
+<span class="sourceLineNo">033</span>import org.jgrapes.io.util.ManagedBuffer;<a name="line.33"></a>
+<span class="sourceLineNo">034</span>import org.jgrapes.io.util.ManagedBufferPool;<a name="line.34"></a>
+<span class="sourceLineNo">035</span><a name="line.35"></a>
+<span class="sourceLineNo">036</span>/**<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * Represents an I/O subchannel. Subchannels delegate the invocations of a<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * {@link Channel}'s methods to their respective main channel. Events fired on a<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * subchannel are therefore handled by the framework as if they were fired on<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * the main channel. Firing events on a subchannel instance instead of on the<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * main channel is a means to group related events. In particular, I/O<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * subchannels are used to group events that relate to an I/O resource such as<a name="line.42"></a>
+<span class="sourceLineNo">043</span> * an opened file or a network connection.<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * <a name="line.44"></a>
+<span class="sourceLineNo">045</span> * A subchannel has an initiator that creates and manages the subchannel. Events<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * fired by the initiator are said to flow downstream on the channel. Events<a name="line.46"></a>
+<span class="sourceLineNo">047</span> * fired by components in response are said to flow upstream.<a name="line.47"></a>
+<span class="sourceLineNo">048</span> * <a name="line.48"></a>
+<span class="sourceLineNo">049</span> * Upstream and downstream events are usually handled by two different pipelines<a name="line.49"></a>
+<span class="sourceLineNo">050</span> * managed by the initiator. One pipeline, accessible only to the initiator,<a name="line.50"></a>
+<span class="sourceLineNo">051</span> * handles the downstream events. The other, made available as a property of the<a name="line.51"></a>
+<span class="sourceLineNo">052</span> * I/O subchannel, handles the upstream events. Of course, any pipeline can be<a name="line.52"></a>
+<span class="sourceLineNo">053</span> * used to send events upstream to the initiator component. However, using<a name="line.53"></a>
+<span class="sourceLineNo">054</span> * arbitrary pipelines holds the risk that events aren't delivered in the<a name="line.54"></a>
+<span class="sourceLineNo">055</span> * intended order.<a name="line.55"></a>
+<span class="sourceLineNo">056</span> * <a name="line.56"></a>
+<span class="sourceLineNo">057</span> * As a convenience, an I/O subchannel also has an associated buffer pool. <a name="line.57"></a>
+<span class="sourceLineNo">058</span> * Buffers from this pool should only be acquired for upstream events.<a name="line.58"></a>
+<span class="sourceLineNo">059</span> */<a name="line.59"></a>
+<span class="sourceLineNo">060</span>public interface IOSubchannel extends Channel, Associator {<a name="line.60"></a>
+<span class="sourceLineNo">061</span><a name="line.61"></a>
+<span class="sourceLineNo">062</span>        /**<a name="line.62"></a>
+<span class="sourceLineNo">063</span>         * Returns the main channel.<a name="line.63"></a>
+<span class="sourceLineNo">064</span>         * <a name="line.64"></a>
+<span class="sourceLineNo">065</span>         * @return the mainChannel<a name="line.65"></a>
+<span class="sourceLineNo">066</span>         */<a name="line.66"></a>
+<span class="sourceLineNo">067</span>        Channel mainChannel();<a name="line.67"></a>
+<span class="sourceLineNo">068</span><a name="line.68"></a>
+<span class="sourceLineNo">069</span>        /**<a name="line.69"></a>
+<span class="sourceLineNo">070</span>         * Returns the main channel's match value.<a name="line.70"></a>
+<span class="sourceLineNo">071</span>         * <a name="line.71"></a>
+<span class="sourceLineNo">072</span>         * @see Channel#defaultCriterion()<a name="line.72"></a>
+<span class="sourceLineNo">073</span>         */<a name="line.73"></a>
+<span class="sourceLineNo">074</span>        @Override<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        default Object defaultCriterion() {<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                return mainChannel().defaultCriterion();<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        }<a name="line.77"></a>
+<span class="sourceLineNo">078</span><a name="line.78"></a>
+<span class="sourceLineNo">079</span>        /**<a name="line.79"></a>
+<span class="sourceLineNo">080</span>         * Delegates to main channel.<a name="line.80"></a>
+<span class="sourceLineNo">081</span>         * <a name="line.81"></a>
+<span class="sourceLineNo">082</span>         * @see Channel#isEligibleFor(Object)<a name="line.82"></a>
+<span class="sourceLineNo">083</span>         */<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        @Override<a name="line.84"></a>
+<span class="sourceLineNo">085</span>        default boolean isEligibleFor(Object value) {<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                return mainChannel().isEligibleFor(value);<a name="line.86"></a>
+<span class="sourceLineNo">087</span>        }<a name="line.87"></a>
+<span class="sourceLineNo">088</span><a name="line.88"></a>
+<span class="sourceLineNo">089</span>        /**<a name="line.89"></a>
+<span class="sourceLineNo">090</span>         * Gets the {@link EventPipeline} that can be used for events going back to<a name="line.90"></a>
+<span class="sourceLineNo">091</span>         * the initiator of this connection. Consistently using this event pipeline<a name="line.91"></a>
+<span class="sourceLineNo">092</span>         * for response events ensures that the events are written in proper<a name="line.92"></a>
+<span class="sourceLineNo">093</span>         * sequence.<a name="line.93"></a>
+<span class="sourceLineNo">094</span>         * <a name="line.94"></a>
+<span class="sourceLineNo">095</span>         * @return the event pipeline<a name="line.95"></a>
+<span class="sourceLineNo">096</span>         */<a name="line.96"></a>
+<span class="sourceLineNo">097</span>        public EventPipeline responsePipeline();<a name="line.97"></a>
+<span class="sourceLineNo">098</span><a name="line.98"></a>
+<span class="sourceLineNo">099</span>        /**<a name="line.99"></a>
+<span class="sourceLineNo">100</span>         * Get the subchannel's byte buffer pool.<a name="line.100"></a>
+<span class="sourceLineNo">101</span>         * <a name="line.101"></a>
+<span class="sourceLineNo">102</span>         * @return the buffer pool<a name="line.102"></a>
+<span class="sourceLineNo">103</span>         */<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        public ManagedBufferPool&lt;ManagedBuffer&lt;ByteBuffer&gt;, ByteBuffer&gt; <a name="line.104"></a>
+<span class="sourceLineNo">105</span>                byteBufferPool();<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        <a name="line.106"></a>
+<span class="sourceLineNo">107</span>        /**<a name="line.107"></a>
+<span class="sourceLineNo">108</span>         * Get the subchannel's char buffer pool.<a name="line.108"></a>
+<span class="sourceLineNo">109</span>         * <a name="line.109"></a>
+<span class="sourceLineNo">110</span>         * @return the buffer pool<a name="line.110"></a>
+<span class="sourceLineNo">111</span>         */<a name="line.111"></a>
+<span class="sourceLineNo">112</span>        public ManagedBufferPool&lt;ManagedBuffer&lt;CharBuffer&gt;, CharBuffer&gt; <a name="line.112"></a>
+<span class="sourceLineNo">113</span>                charBufferPool();<a name="line.113"></a>
+<span class="sourceLineNo">114</span>        <a name="line.114"></a>
+<span class="sourceLineNo">115</span>        /**<a name="line.115"></a>
+<span class="sourceLineNo">116</span>         * Fires the given event on this subchannel using the subchannel's response<a name="line.116"></a>
+<span class="sourceLineNo">117</span>         * pipeline. Effectively, {@code fire(someEvent)} is a shortcut for<a name="line.117"></a>
+<span class="sourceLineNo">118</span>         * {@code getResponsePipeline.add(someEvent, this)}.<a name="line.118"></a>
+<span class="sourceLineNo">119</span>         * <a name="line.119"></a>
+<span class="sourceLineNo">120</span>         * @param &lt;T&gt; the event's type<a name="line.120"></a>
+<span class="sourceLineNo">121</span>         * @param event<a name="line.121"></a>
+<span class="sourceLineNo">122</span>         *            the event to fire<a name="line.122"></a>
+<span class="sourceLineNo">123</span>         * @return the event (for easy chaining)<a name="line.123"></a>
+<span class="sourceLineNo">124</span>         */<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        default &lt;T extends Event&lt;?&gt;&gt; T respond(T event) {<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                return responsePipeline().fire(event, this);<a name="line.126"></a>
+<span class="sourceLineNo">127</span>        }<a name="line.127"></a>
+<span class="sourceLineNo">128</span><a name="line.128"></a>
+<span class="sourceLineNo">129</span>        /* (non-Javadoc)<a name="line.129"></a>
+<span class="sourceLineNo">130</span>         * @see java.lang.Object#toString()<a name="line.130"></a>
+<span class="sourceLineNo">131</span>         */<a name="line.131"></a>
+<span class="sourceLineNo">132</span>        static String toString(IOSubchannel subchannel) {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                StringBuilder builder = new StringBuilder();<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                builder.append(Channel.toString(subchannel.mainChannel()));<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                builder.append("{");<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                builder.append(Components.objectName(subchannel));<a name="line.136"></a>
+<span class="sourceLineNo">137</span>                builder.append("}");<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                return builder.toString();<a name="line.138"></a>
+<span class="sourceLineNo">139</span>        }<a name="line.139"></a>
+<span class="sourceLineNo">140</span><a name="line.140"></a>
+<span class="sourceLineNo">141</span>        /**<a name="line.141"></a>
+<span class="sourceLineNo">142</span>         * Creates a new subchannel of the given component's channel with the<a name="line.142"></a>
+<span class="sourceLineNo">143</span>         * given event pipeline and a buffer pool with two buffers sized 4096.<a name="line.143"></a>
+<span class="sourceLineNo">144</span>         *<a name="line.144"></a>
+<span class="sourceLineNo">145</span>         * @param component the component used to get the main channel<a name="line.145"></a>
+<span class="sourceLineNo">146</span>         * @param responsePipeline the response pipeline<a name="line.146"></a>
+<span class="sourceLineNo">147</span>         * @return the subchannel<a name="line.147"></a>
+<span class="sourceLineNo">148</span>         */<a name="line.148"></a>
+<span class="sourceLineNo">149</span>        public static IOSubchannel create(<a name="line.149"></a>
+<span class="sourceLineNo">150</span>                        Component component, EventPipeline responsePipeline) {<a name="line.150"></a>
+<span class="sourceLineNo">151</span>                return new DefaultSubchannel(component.channel(), responsePipeline);<a name="line.151"></a>
+<span class="sourceLineNo">152</span>        }<a name="line.152"></a>
+<span class="sourceLineNo">153</span><a name="line.153"></a>
+<span class="sourceLineNo">154</span>        /**<a name="line.154"></a>
+<span class="sourceLineNo">155</span>         * A simple implementation of {@link IOSubchannel}.<a name="line.155"></a>
+<span class="sourceLineNo">156</span>         */<a name="line.156"></a>
+<span class="sourceLineNo">157</span>        public static class DefaultSubchannel implements IOSubchannel {<a name="line.157"></a>
+<span class="sourceLineNo">158</span>                private Channel mainChannel;<a name="line.158"></a>
+<span class="sourceLineNo">159</span>                private EventPipeline responsePipeline;<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                private ManagedBufferPool&lt;ManagedBuffer&lt;ByteBuffer&gt;, ByteBuffer&gt; <a name="line.160"></a>
+<span class="sourceLineNo">161</span>                        byteBufferPool;<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                private ManagedBufferPool&lt;ManagedBuffer&lt;CharBuffer&gt;, CharBuffer&gt;<a name="line.162"></a>
+<span class="sourceLineNo">163</span>                        charBufferPool;<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                private Map&lt;Object,Object&gt; contextData = null;<a name="line.164"></a>
+<span class="sourceLineNo">165</span>                <a name="line.165"></a>
+<span class="sourceLineNo">166</span>                /**<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                 * Creates a new instance with the given main channel and response<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                 * pipeline.  <a name="line.168"></a>
+<span class="sourceLineNo">169</span>                 * <a name="line.169"></a>
+<span class="sourceLineNo">170</span>                 * @param mainChannel the main channel<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                 * @param responsePipeline the response pipeline to use<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                 * <a name="line.172"></a>
+<span class="sourceLineNo">173</span>                 */<a name="line.173"></a>
+<span class="sourceLineNo">174</span>                public DefaultSubchannel(<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                                Channel mainChannel, EventPipeline responsePipeline) {<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                        super();<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                        this.mainChannel = mainChannel;<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                        this.responsePipeline = responsePipeline;<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                }<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                <a name="line.180"></a>
+<span class="sourceLineNo">181</span>                protected void setByteBufferPool(<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                                ManagedBufferPool&lt;ManagedBuffer&lt;ByteBuffer&gt;, ByteBuffer&gt;<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                                        bufferPool) {<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                        this.byteBufferPool = bufferPool;<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                }<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                <a name="line.186"></a>
+<span class="sourceLineNo">187</span>                protected void setCharBufferPool(<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                                ManagedBufferPool&lt;ManagedBuffer&lt;CharBuffer&gt;, CharBuffer&gt;<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                                bufferPool) {<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                        this.charBufferPool = bufferPool;<a name="line.190"></a>
 <span class="sourceLineNo">191</span>                }<a name="line.191"></a>
-<span class="sourceLineNo">192</span><a name="line.192"></a>
-<span class="sourceLineNo">193</span>                protected void setByteBufferPool(<a name="line.193"></a>
-<span class="sourceLineNo">194</span>                                ManagedBufferPool&lt;ManagedBuffer&lt;ByteBuffer&gt;, ByteBuffer&gt;<a name="line.194"></a>
-<span class="sourceLineNo">195</span>                                        bufferPool) {<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                        this.byteBufferPool = bufferPool;<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                }<a name="line.197"></a>
-<span class="sourceLineNo">198</span>                <a name="line.198"></a>
-<span class="sourceLineNo">199</span>                protected void setCharBufferPool(<a name="line.199"></a>
-<span class="sourceLineNo">200</span>                                ManagedBufferPool&lt;ManagedBuffer&lt;CharBuffer&gt;, CharBuffer&gt;<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                                bufferPool) {<a name="line.201"></a>
-<span class="sourceLineNo">202</span>                        this.charBufferPool = bufferPool;<a name="line.202"></a>
-<span class="sourceLineNo">203</span>                }<a name="line.203"></a>
-<span class="sourceLineNo">204</span>                <a name="line.204"></a>
-<span class="sourceLineNo">205</span>                /* (non-Javadoc)<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                 * @see org.jgrapes.io.IOSubchannel#getMainChannel()<a name="line.206"></a>
-<span class="sourceLineNo">207</span>                 */<a name="line.207"></a>
-<span class="sourceLineNo">208</span>                @Override<a name="line.208"></a>
-<span class="sourceLineNo">209</span>                public Channel mainChannel() {<a name="line.209"></a>
-<span class="sourceLineNo">210</span>                        return mainChannel;<a name="line.210"></a>
-<span class="sourceLineNo">211</span>                }<a name="line.211"></a>
-<span class="sourceLineNo">212</span><a name="line.212"></a>
-<span class="sourceLineNo">213</span>                /* (non-Javadoc)<a name="line.213"></a>
-<span class="sourceLineNo">214</span>                 * @see org.jgrapes.io.IOSubchannel#responsePipeline()<a name="line.214"></a>
-<span class="sourceLineNo">215</span>                 */<a name="line.215"></a>
-<span class="sourceLineNo">216</span>                @Override<a name="line.216"></a>
-<span class="sourceLineNo">217</span>                public EventPipeline responsePipeline() {<a name="line.217"></a>
-<span class="sourceLineNo">218</span>                        return responsePipeline;<a name="line.218"></a>
-<span class="sourceLineNo">219</span>                }<a name="line.219"></a>
-<span class="sourceLineNo">220</span><a name="line.220"></a>
-<span class="sourceLineNo">221</span>                /**<a name="line.221"></a>
-<span class="sourceLineNo">222</span>                 * Returns the buffer pool set. If no buffer pool has been set, a<a name="line.222"></a>
-<span class="sourceLineNo">223</span>                 * buffer pool with with two buffers of size 4096 is created.<a name="line.223"></a>
-<span class="sourceLineNo">224</span>                 */<a name="line.224"></a>
-<span class="sourceLineNo">225</span>                public ManagedBufferPool&lt;ManagedBuffer&lt;ByteBuffer&gt;, ByteBuffer&gt; <a name="line.225"></a>
-<span class="sourceLineNo">226</span>                        byteBufferPool() {<a name="line.226"></a>
-<span class="sourceLineNo">227</span>                        if (byteBufferPool == null) {<a name="line.227"></a>
-<span class="sourceLineNo">228</span>                                byteBufferPool = new ManagedBufferPool&lt;&gt;(ManagedBuffer::new,<a name="line.228"></a>
-<span class="sourceLineNo">229</span>                                                () -&gt; { return ByteBuffer.allocate(4096); }, 2)<a name="line.229"></a>
-<span class="sourceLineNo">230</span>                                                .setName(Components.objectName(this)<a name="line.230"></a>
-<span class="sourceLineNo">231</span>                                                                + ".upstream.byteBuffers");<a name="line.231"></a>
-<span class="sourceLineNo">232</span>                        }<a name="line.232"></a>
-<span class="sourceLineNo">233</span>                        return byteBufferPool;<a name="line.233"></a>
-<span class="sourceLineNo">234</span>                }<a name="line.234"></a>
-<span class="sourceLineNo">235</span><a name="line.235"></a>
-<span class="sourceLineNo">236</span>                /**<a name="line.236"></a>
-<span class="sourceLineNo">237</span>                 * Returns the buffer pool set. If no buffer pool has been set, a<a name="line.237"></a>
-<span class="sourceLineNo">238</span>                 * buffer pool with with two buffers of size 4096 is created.<a name="line.238"></a>
-<span class="sourceLineNo">239</span>                 */<a name="line.239"></a>
-<span class="sourceLineNo">240</span>                public ManagedBufferPool&lt;ManagedBuffer&lt;CharBuffer&gt;, CharBuffer&gt; <a name="line.240"></a>
-<span class="sourceLineNo">241</span>                        charBufferPool() {<a name="line.241"></a>
-<span class="sourceLineNo">242</span>                        if (charBufferPool == null) {<a name="line.242"></a>
-<span class="sourceLineNo">243</span>                                charBufferPool = new ManagedBufferPool&lt;&gt;(ManagedBuffer::new,<a name="line.243"></a>
-<span class="sourceLineNo">244</span>                                                () -&gt; { return CharBuffer.allocate(4096); }, 2)<a name="line.244"></a>
-<span class="sourceLineNo">245</span>                                                .setName(Components.objectName(this)<a name="line.245"></a>
-<span class="sourceLineNo">246</span>                                                                + ".upstream.charBuffers");<a name="line.246"></a>
-<span class="sourceLineNo">247</span>                        }<a name="line.247"></a>
-<span class="sourceLineNo">248</span>                        return charBufferPool;<a name="line.248"></a>
-<span class="sourceLineNo">249</span>                }<a name="line.249"></a>
-<span class="sourceLineNo">250</span><a name="line.250"></a>
-<span class="sourceLineNo">251</span>                /**<a name="line.251"></a>
-<span class="sourceLineNo">252</span>                 * Establishes a "named" association to an associated object. Note that <a name="line.252"></a>
-<span class="sourceLineNo">253</span>                 * anything that represents an id can be used as value for <a name="line.253"></a>
-<span class="sourceLineNo">254</span>                 * parameter `name`, it does not necessarily have to be a string.<a name="line.254"></a>
-<span class="sourceLineNo">255</span>                 * <a name="line.255"></a>
-<span class="sourceLineNo">256</span>                 * @param by the "name"<a name="line.256"></a>
-<span class="sourceLineNo">257</span>                 * @param with the object to be associated<a name="line.257"></a>
-<span class="sourceLineNo">258</span>                 */<a name="line.258"></a>
-<span class="sourceLineNo">259</span>                public DefaultSubchannel setAssociated(Object by, Object with) {<a name="line.259"></a>
-<span class="sourceLineNo">260</span>                        if (contextData == null) {<a name="line.260"></a>
-<span class="sourceLineNo">261</span>                                contextData = new ConcurrentHashMap&lt;&gt;();<a name="line.261"></a>
-<span class="sourceLineNo">262</span>                        }<a name="line.262"></a>
-<span class="sourceLineNo">263</span>                        if (with != null) {<a name="line.263"></a>
-<span class="sourceLineNo">264</span>                                contextData.put(by, with);<a name="line.264"></a>
-<span class="sourceLineNo">265</span>                        } else {<a name="line.265"></a>
-<span class="sourceLineNo">266</span>                                contextData.remove(by);<a name="line.266"></a>
-<span class="sourceLineNo">267</span>                        }<a name="line.267"></a>
-<span class="sourceLineNo">268</span>                        return this;<a name="line.268"></a>
-<span class="sourceLineNo">269</span>                }<a name="line.269"></a>
-<span class="sourceLineNo">270</span><a name="line.270"></a>
-<span class="sourceLineNo">271</span>                /**<a name="line.271"></a>
-<span class="sourceLineNo">272</span>                 * Retrieves the associated object following the association <a name="line.272"></a>
-<span class="sourceLineNo">273</span>                 * with the given "name". This general version of the method<a name="line.273"></a>
-<span class="sourceLineNo">274</span>                 * supports the retrieval of values of arbitrary types<a name="line.274"></a>
-<span class="sourceLineNo">275</span>                 * associated by any "name" types. <a name="line.275"></a>
-<span class="sourceLineNo">276</span>                 * <a name="line.276"></a>
-<span class="sourceLineNo">277</span>                 * @param by the "name"<a name="line.277"></a>
-<span class="sourceLineNo">278</span>                 * @param type the tape of the value to be retrieved<a name="line.278"></a>
-<span class="sourceLineNo">279</span>                 * @param &lt;V&gt; the type of the value to be retrieved<a name="line.279"></a>
-<span class="sourceLineNo">280</span>                 * @return the associate, if any<a name="line.280"></a>
-<span class="sourceLineNo">281</span>                 */<a name="line.281"></a>
-<span class="sourceLineNo">282</span>                public &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type) {<a name="line.282"></a>
-<span class="sourceLineNo">283</span>                        if (contextData == null) {<a name="line.283"></a>
-<span class="sourceLineNo">284</span>                                return Optional.empty();<a name="line.284"></a>
-<span class="sourceLineNo">285</span>                        }<a name="line.285"></a>
-<span class="sourceLineNo">286</span>                        return Optional.ofNullable(type.cast(contextData.get(by)));<a name="line.286"></a>
-<span class="sourceLineNo">287</span>                }<a name="line.287"></a>
-<span class="sourceLineNo">288</span>                <a name="line.288"></a>
-<span class="sourceLineNo">289</span>                /* (non-Javadoc)<a name="line.289"></a>
-<span class="sourceLineNo">290</span>                 * @see java.lang.Object#toString()<a name="line.290"></a>
-<span class="sourceLineNo">291</span>                 */<a name="line.291"></a>
-<span class="sourceLineNo">292</span>                @Override<a name="line.292"></a>
-<span class="sourceLineNo">293</span>                public String toString() {<a name="line.293"></a>
-<span class="sourceLineNo">294</span>                        return IOSubchannel.toString(this);<a name="line.294"></a>
-<span class="sourceLineNo">295</span>                }<a name="line.295"></a>
-<span class="sourceLineNo">296</span>                <a name="line.296"></a>
-<span class="sourceLineNo">297</span>        }<a name="line.297"></a>
-<span class="sourceLineNo">298</span>}<a name="line.298"></a>
+<span class="sourceLineNo">192</span>                <a name="line.192"></a>
+<span class="sourceLineNo">193</span>                /* (non-Javadoc)<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                 * @see org.jgrapes.io.IOSubchannel#getMainChannel()<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                 */<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                @Override<a name="line.196"></a>
+<span class="sourceLineNo">197</span>                public Channel mainChannel() {<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                        return mainChannel;<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                }<a name="line.199"></a>
+<span class="sourceLineNo">200</span><a name="line.200"></a>
+<span class="sourceLineNo">201</span>                /* (non-Javadoc)<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                 * @see org.jgrapes.io.IOSubchannel#responsePipeline()<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                 */<a name="line.203"></a>
+<span class="sourceLineNo">204</span>                @Override<a name="line.204"></a>
+<span class="sourceLineNo">205</span>                public EventPipeline responsePipeline() {<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                        return responsePipeline;<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                }<a name="line.207"></a>
+<span class="sourceLineNo">208</span><a name="line.208"></a>
+<span class="sourceLineNo">209</span>                /**<a name="line.209"></a>
+<span class="sourceLineNo">210</span>                 * Returns the buffer pool set. If no buffer pool has been set, a<a name="line.210"></a>
+<span class="sourceLineNo">211</span>                 * buffer pool with with two buffers of size 4096 is created.<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                 */<a name="line.212"></a>
+<span class="sourceLineNo">213</span>                public ManagedBufferPool&lt;ManagedBuffer&lt;ByteBuffer&gt;, ByteBuffer&gt; <a name="line.213"></a>
+<span class="sourceLineNo">214</span>                        byteBufferPool() {<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                        if (byteBufferPool == null) {<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                                byteBufferPool = new ManagedBufferPool&lt;&gt;(ManagedBuffer::new,<a name="line.216"></a>
+<span class="sourceLineNo">217</span>                                                () -&gt; { return ByteBuffer.allocate(4096); }, 2)<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                                                .setName(Components.objectName(this)<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                                                                + ".upstream.byteBuffers");<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                        }<a name="line.220"></a>
+<span class="sourceLineNo">221</span>                        return byteBufferPool;<a name="line.221"></a>
+<span class="sourceLineNo">222</span>                }<a name="line.222"></a>
+<span class="sourceLineNo">223</span><a name="line.223"></a>
+<span class="sourceLineNo">224</span>                /**<a name="line.224"></a>
+<span class="sourceLineNo">225</span>                 * Returns the buffer pool set. If no buffer pool has been set, a<a name="line.225"></a>
+<span class="sourceLineNo">226</span>                 * buffer pool with with two buffers of size 4096 is created.<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                 */<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                public ManagedBufferPool&lt;ManagedBuffer&lt;CharBuffer&gt;, CharBuffer&gt; <a name="line.228"></a>
+<span class="sourceLineNo">229</span>                        charBufferPool() {<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                        if (charBufferPool == null) {<a name="line.230"></a>
+<span class="sourceLineNo">231</span>                                charBufferPool = new ManagedBufferPool&lt;&gt;(ManagedBuffer::new,<a name="line.231"></a>
+<span class="sourceLineNo">232</span>                                                () -&gt; { return CharBuffer.allocate(4096); }, 2)<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                                                .setName(Components.objectName(this)<a name="line.233"></a>
+<span class="sourceLineNo">234</span>                                                                + ".upstream.charBuffers");<a name="line.234"></a>
+<span class="sourceLineNo">235</span>                        }<a name="line.235"></a>
+<span class="sourceLineNo">236</span>                        return charBufferPool;<a name="line.236"></a>
+<span class="sourceLineNo">237</span>                }<a name="line.237"></a>
+<span class="sourceLineNo">238</span><a name="line.238"></a>
+<span class="sourceLineNo">239</span>                /**<a name="line.239"></a>
+<span class="sourceLineNo">240</span>                 * Establishes a "named" association to an associated object. Note that <a name="line.240"></a>
+<span class="sourceLineNo">241</span>                 * anything that represents an id can be used as value for <a name="line.241"></a>
+<span class="sourceLineNo">242</span>                 * parameter `name`, it does not necessarily have to be a string.<a name="line.242"></a>
+<span class="sourceLineNo">243</span>                 * <a name="line.243"></a>
+<span class="sourceLineNo">244</span>                 * @param by the "name"<a name="line.244"></a>
+<span class="sourceLineNo">245</span>                 * @param with the object to be associated<a name="line.245"></a>
+<span class="sourceLineNo">246</span>                 */<a name="line.246"></a>
+<span class="sourceLineNo">247</span>                public DefaultSubchannel setAssociated(Object by, Object with) {<a name="line.247"></a>
+<span class="sourceLineNo">248</span>                        if (contextData == null) {<a name="line.248"></a>
+<span class="sourceLineNo">249</span>                                contextData = new ConcurrentHashMap&lt;&gt;();<a name="line.249"></a>
+<span class="sourceLineNo">250</span>                        }<a name="line.250"></a>
+<span class="sourceLineNo">251</span>                        if (with != null) {<a name="line.251"></a>
+<span class="sourceLineNo">252</span>                                contextData.put(by, with);<a name="line.252"></a>
+<span class="sourceLineNo">253</span>                        } else {<a name="line.253"></a>
+<span class="sourceLineNo">254</span>                                contextData.remove(by);<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                        }<a name="line.255"></a>
+<span class="sourceLineNo">256</span>                        return this;<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                }<a name="line.257"></a>
+<span class="sourceLineNo">258</span><a name="line.258"></a>
+<span class="sourceLineNo">259</span>                /**<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                 * Retrieves the associated object following the association <a name="line.260"></a>
+<span class="sourceLineNo">261</span>                 * with the given "name". This general version of the method<a name="line.261"></a>
+<span class="sourceLineNo">262</span>                 * supports the retrieval of values of arbitrary types<a name="line.262"></a>
+<span class="sourceLineNo">263</span>                 * associated by any "name" types. <a name="line.263"></a>
+<span class="sourceLineNo">264</span>                 * <a name="line.264"></a>
+<span class="sourceLineNo">265</span>                 * @param by the "name"<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                 * @param type the tape of the value to be retrieved<a name="line.266"></a>
+<span class="sourceLineNo">267</span>                 * @param &lt;V&gt; the type of the value to be retrieved<a name="line.267"></a>
+<span class="sourceLineNo">268</span>                 * @return the associate, if any<a name="line.268"></a>
+<span class="sourceLineNo">269</span>                 */<a name="line.269"></a>
+<span class="sourceLineNo">270</span>                public &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type) {<a name="line.270"></a>
+<span class="sourceLineNo">271</span>                        if (contextData == null) {<a name="line.271"></a>
+<span class="sourceLineNo">272</span>                                return Optional.empty();<a name="line.272"></a>
+<span class="sourceLineNo">273</span>                        }<a name="line.273"></a>
+<span class="sourceLineNo">274</span>                        return Optional.ofNullable(type.cast(contextData.get(by)));<a name="line.274"></a>
+<span class="sourceLineNo">275</span>                }<a name="line.275"></a>
+<span class="sourceLineNo">276</span>                <a name="line.276"></a>
+<span class="sourceLineNo">277</span>                /* (non-Javadoc)<a name="line.277"></a>
+<span class="sourceLineNo">278</span>                 * @see java.lang.Object#toString()<a name="line.278"></a>
+<span class="sourceLineNo">279</span>                 */<a name="line.279"></a>
+<span class="sourceLineNo">280</span>                @Override<a name="line.280"></a>
+<span class="sourceLineNo">281</span>                public String toString() {<a name="line.281"></a>
+<span class="sourceLineNo">282</span>                        return IOSubchannel.toString(this);<a name="line.282"></a>
+<span class="sourceLineNo">283</span>                }<a name="line.283"></a>
+<span class="sourceLineNo">284</span>                <a name="line.284"></a>
+<span class="sourceLineNo">285</span>        }<a name="line.285"></a>
+<span class="sourceLineNo">286</span>}<a name="line.286"></a>
 
 
 
