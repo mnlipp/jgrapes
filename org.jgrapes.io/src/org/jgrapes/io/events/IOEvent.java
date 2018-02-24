@@ -103,8 +103,8 @@ public abstract class IOEvent<T extends Buffer> extends Event<Void> {
 			builder.append(Channel.toString(channels));
 		}
 		builder.append(",size=");
-		Optional.ofNullable(buffer).map(
-				b -> b.backingBuffer().position()).orElse(0);
+		builder.append(Optional.ofNullable(buffer).map(
+				b -> b.backingBuffer().remaining()).orElse(0));
 		builder.append(",eor=");
 		builder.append(eor);
 		builder.append("]");
