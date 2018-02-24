@@ -259,68 +259,67 @@
 <span class="sourceLineNo">251</span>                        }<a name="line.251"></a>
 <span class="sourceLineNo">252</span><a name="line.252"></a>
 <span class="sourceLineNo">253</span>                        public String getChannel() {<a name="line.253"></a>
-<span class="sourceLineNo">254</span>                                return session.upstreamChannel().map(<a name="line.254"></a>
-<span class="sourceLineNo">255</span>                                                ch -&gt; ch.toString()).orElse("&lt;unknown&gt;");<a name="line.255"></a>
-<span class="sourceLineNo">256</span>                        }<a name="line.256"></a>
-<span class="sourceLineNo">257</span>                        <a name="line.257"></a>
-<span class="sourceLineNo">258</span>                        public String getExpiresAt() {<a name="line.258"></a>
-<span class="sourceLineNo">259</span>                                return session.expiresAt().atZone(ZoneId.systemDefault())<a name="line.259"></a>
-<span class="sourceLineNo">260</span>                                                .toString();<a name="line.260"></a>
-<span class="sourceLineNo">261</span>                        }<a name="line.261"></a>
-<span class="sourceLineNo">262</span>                }<a name="line.262"></a>
-<span class="sourceLineNo">263</span>                <a name="line.263"></a>
-<span class="sourceLineNo">264</span>                String getPrefix();<a name="line.264"></a>
-<span class="sourceLineNo">265</span>                <a name="line.265"></a>
-<span class="sourceLineNo">266</span>                /**<a name="line.266"></a>
-<span class="sourceLineNo">267</span>                 * Indicates if minified resources are sent to the browser.<a name="line.267"></a>
-<span class="sourceLineNo">268</span>                 * <a name="line.268"></a>
-<span class="sourceLineNo">269</span>                 * @return the result<a name="line.269"></a>
-<span class="sourceLineNo">270</span>                 */<a name="line.270"></a>
-<span class="sourceLineNo">271</span>                boolean getUseMinifiedResources();<a name="line.271"></a>
-<span class="sourceLineNo">272</span>                <a name="line.272"></a>
-<span class="sourceLineNo">273</span>                /**<a name="line.273"></a>
-<span class="sourceLineNo">274</span>                 * Determines if minified resources are sent to the browser.<a name="line.274"></a>
-<span class="sourceLineNo">275</span>                 * <a name="line.275"></a>
-<span class="sourceLineNo">276</span>                 * @param useMinified<a name="line.276"></a>
-<span class="sourceLineNo">277</span>                 */<a name="line.277"></a>
-<span class="sourceLineNo">278</span>                void setUseMinifiedResources(boolean useMinified);<a name="line.278"></a>
-<span class="sourceLineNo">279</span>                <a name="line.279"></a>
-<span class="sourceLineNo">280</span>                public SortedMap&lt;String,PortalSessionInfo&gt; getPortalSessions();<a name="line.280"></a>
-<span class="sourceLineNo">281</span>        }<a name="line.281"></a>
-<span class="sourceLineNo">282</span>        <a name="line.282"></a>
-<span class="sourceLineNo">283</span>        private class MBeanView implements ManagedPortalMXBean {<a name="line.283"></a>
-<span class="sourceLineNo">284</span><a name="line.284"></a>
-<span class="sourceLineNo">285</span>                @Override<a name="line.285"></a>
-<span class="sourceLineNo">286</span>                public String getPrefix() {<a name="line.286"></a>
-<span class="sourceLineNo">287</span>                        return prefix.toString();<a name="line.287"></a>
-<span class="sourceLineNo">288</span>                }<a name="line.288"></a>
-<span class="sourceLineNo">289</span><a name="line.289"></a>
-<span class="sourceLineNo">290</span>                /* (non-Javadoc)<a name="line.290"></a>
-<span class="sourceLineNo">291</span>                 * @see org.jgrapes.portal.Portal.ManagedPortalMXBean#getUseMinifiedResources()<a name="line.291"></a>
-<span class="sourceLineNo">292</span>                 */<a name="line.292"></a>
-<span class="sourceLineNo">293</span>                @Override<a name="line.293"></a>
-<span class="sourceLineNo">294</span>                public boolean getUseMinifiedResources() {<a name="line.294"></a>
-<span class="sourceLineNo">295</span>                        return view.useMinifiedResources();<a name="line.295"></a>
-<span class="sourceLineNo">296</span>                }<a name="line.296"></a>
-<span class="sourceLineNo">297</span><a name="line.297"></a>
-<span class="sourceLineNo">298</span>                /* (non-Javadoc)<a name="line.298"></a>
-<span class="sourceLineNo">299</span>                 * @see org.jgrapes.portal.Portal.ManagedPortalMXBean#setUseMinifiedResources(boolean)<a name="line.299"></a>
-<span class="sourceLineNo">300</span>                 */<a name="line.300"></a>
-<span class="sourceLineNo">301</span>                @Override<a name="line.301"></a>
-<span class="sourceLineNo">302</span>                public void setUseMinifiedResources(boolean useMinifiedResources) {<a name="line.302"></a>
-<span class="sourceLineNo">303</span>                        view.setUseMinifiedResources(useMinifiedResources);<a name="line.303"></a>
-<span class="sourceLineNo">304</span>                }<a name="line.304"></a>
-<span class="sourceLineNo">305</span>                <a name="line.305"></a>
-<span class="sourceLineNo">306</span>                public SortedMap&lt;String,PortalSessionInfo&gt; getPortalSessions() {<a name="line.306"></a>
-<span class="sourceLineNo">307</span>                        SortedMap&lt;String,PortalSessionInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.307"></a>
-<span class="sourceLineNo">308</span>                        for (PortalSession ps: PortalSession.byPortal(Portal.this)) {<a name="line.308"></a>
-<span class="sourceLineNo">309</span>                                result.put(Components.simpleObjectName(ps), <a name="line.309"></a>
-<span class="sourceLineNo">310</span>                                                new PortalSessionInfo(ps));<a name="line.310"></a>
-<span class="sourceLineNo">311</span>                        }<a name="line.311"></a>
-<span class="sourceLineNo">312</span>                        return result;<a name="line.312"></a>
-<span class="sourceLineNo">313</span>                }<a name="line.313"></a>
-<span class="sourceLineNo">314</span>        }<a name="line.314"></a>
-<span class="sourceLineNo">315</span>}<a name="line.315"></a>
+<span class="sourceLineNo">254</span>                                return session.upstreamChannel().toString();<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                        }<a name="line.255"></a>
+<span class="sourceLineNo">256</span>                        <a name="line.256"></a>
+<span class="sourceLineNo">257</span>                        public String getExpiresAt() {<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                                return session.expiresAt().atZone(ZoneId.systemDefault())<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                                                .toString();<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                        }<a name="line.260"></a>
+<span class="sourceLineNo">261</span>                }<a name="line.261"></a>
+<span class="sourceLineNo">262</span>                <a name="line.262"></a>
+<span class="sourceLineNo">263</span>                String getPrefix();<a name="line.263"></a>
+<span class="sourceLineNo">264</span>                <a name="line.264"></a>
+<span class="sourceLineNo">265</span>                /**<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                 * Indicates if minified resources are sent to the browser.<a name="line.266"></a>
+<span class="sourceLineNo">267</span>                 * <a name="line.267"></a>
+<span class="sourceLineNo">268</span>                 * @return the result<a name="line.268"></a>
+<span class="sourceLineNo">269</span>                 */<a name="line.269"></a>
+<span class="sourceLineNo">270</span>                boolean getUseMinifiedResources();<a name="line.270"></a>
+<span class="sourceLineNo">271</span>                <a name="line.271"></a>
+<span class="sourceLineNo">272</span>                /**<a name="line.272"></a>
+<span class="sourceLineNo">273</span>                 * Determines if minified resources are sent to the browser.<a name="line.273"></a>
+<span class="sourceLineNo">274</span>                 * <a name="line.274"></a>
+<span class="sourceLineNo">275</span>                 * @param useMinified<a name="line.275"></a>
+<span class="sourceLineNo">276</span>                 */<a name="line.276"></a>
+<span class="sourceLineNo">277</span>                void setUseMinifiedResources(boolean useMinified);<a name="line.277"></a>
+<span class="sourceLineNo">278</span>                <a name="line.278"></a>
+<span class="sourceLineNo">279</span>                public SortedMap&lt;String,PortalSessionInfo&gt; getPortalSessions();<a name="line.279"></a>
+<span class="sourceLineNo">280</span>        }<a name="line.280"></a>
+<span class="sourceLineNo">281</span>        <a name="line.281"></a>
+<span class="sourceLineNo">282</span>        private class MBeanView implements ManagedPortalMXBean {<a name="line.282"></a>
+<span class="sourceLineNo">283</span><a name="line.283"></a>
+<span class="sourceLineNo">284</span>                @Override<a name="line.284"></a>
+<span class="sourceLineNo">285</span>                public String getPrefix() {<a name="line.285"></a>
+<span class="sourceLineNo">286</span>                        return prefix.toString();<a name="line.286"></a>
+<span class="sourceLineNo">287</span>                }<a name="line.287"></a>
+<span class="sourceLineNo">288</span><a name="line.288"></a>
+<span class="sourceLineNo">289</span>                /* (non-Javadoc)<a name="line.289"></a>
+<span class="sourceLineNo">290</span>                 * @see org.jgrapes.portal.Portal.ManagedPortalMXBean#getUseMinifiedResources()<a name="line.290"></a>
+<span class="sourceLineNo">291</span>                 */<a name="line.291"></a>
+<span class="sourceLineNo">292</span>                @Override<a name="line.292"></a>
+<span class="sourceLineNo">293</span>                public boolean getUseMinifiedResources() {<a name="line.293"></a>
+<span class="sourceLineNo">294</span>                        return view.useMinifiedResources();<a name="line.294"></a>
+<span class="sourceLineNo">295</span>                }<a name="line.295"></a>
+<span class="sourceLineNo">296</span><a name="line.296"></a>
+<span class="sourceLineNo">297</span>                /* (non-Javadoc)<a name="line.297"></a>
+<span class="sourceLineNo">298</span>                 * @see org.jgrapes.portal.Portal.ManagedPortalMXBean#setUseMinifiedResources(boolean)<a name="line.298"></a>
+<span class="sourceLineNo">299</span>                 */<a name="line.299"></a>
+<span class="sourceLineNo">300</span>                @Override<a name="line.300"></a>
+<span class="sourceLineNo">301</span>                public void setUseMinifiedResources(boolean useMinifiedResources) {<a name="line.301"></a>
+<span class="sourceLineNo">302</span>                        view.setUseMinifiedResources(useMinifiedResources);<a name="line.302"></a>
+<span class="sourceLineNo">303</span>                }<a name="line.303"></a>
+<span class="sourceLineNo">304</span>                <a name="line.304"></a>
+<span class="sourceLineNo">305</span>                public SortedMap&lt;String,PortalSessionInfo&gt; getPortalSessions() {<a name="line.305"></a>
+<span class="sourceLineNo">306</span>                        SortedMap&lt;String,PortalSessionInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.306"></a>
+<span class="sourceLineNo">307</span>                        for (PortalSession ps: PortalSession.byPortal(Portal.this)) {<a name="line.307"></a>
+<span class="sourceLineNo">308</span>                                result.put(Components.simpleObjectName(ps), <a name="line.308"></a>
+<span class="sourceLineNo">309</span>                                                new PortalSessionInfo(ps));<a name="line.309"></a>
+<span class="sourceLineNo">310</span>                        }<a name="line.310"></a>
+<span class="sourceLineNo">311</span>                        return result;<a name="line.311"></a>
+<span class="sourceLineNo">312</span>                }<a name="line.312"></a>
+<span class="sourceLineNo">313</span>        }<a name="line.313"></a>
+<span class="sourceLineNo">314</span>}<a name="line.314"></a>
 
 
 
