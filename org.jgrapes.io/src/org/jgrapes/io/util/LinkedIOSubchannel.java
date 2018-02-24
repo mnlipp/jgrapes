@@ -18,7 +18,6 @@
 
 package org.jgrapes.io.util;
 
-import java.lang.ref.WeakReference;
 import java.util.Optional;
 
 import org.jgrapes.core.Channel;
@@ -56,9 +55,7 @@ import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
 public class LinkedIOSubchannel extends DefaultSubchannel {
 
 	private final Manager hub;
-	// Must be weak, else there will always be a reference to the 
-	// upstream channel and, through the reverseMap, to this object.
-	private final WeakReference<IOSubchannel> upstreamChannel;
+	private final IOSubchannel upstreamChannel;
 	
 	/**
 	 * Creates a new {@code LinkedIOSubchannel} for a given main channel
@@ -66,6 +63,10 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	 * is similar to invoking
 	 * {@link #LinkedIOSubchannel(Manager, Channel, IOSubchannel, EventPipeline, boolean)}
 	 * with {@code true} as last parameter.
+	 * 
+	 * Because the newly created {@link LinkedIOSubchannel} is referenced by
+	 * the upstream channel, it will life as long as the upstream channel,
+	 * even if no further references exist.
 	 *
 	 * @param hub the component that manages this channel
 	 * @param mainChannel the main channel
@@ -85,8 +86,9 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	 * addition of the back link from the upstream channel to the downstream
 	 * channel (see {@link #downstreamChannel(Manager, IOSubchannel)}). 
 	 * This can save some space if a converter component has some other 
-	 * means to maintain that information. Addition to
-	 * the map is thread safe.
+	 * means to maintain that information. Note that in this case a
+	 * reference to the created {@link LinkedIOSubchannel} must be
+	 * maintained, else it may be garbage collected. 
 	 *
 	 * @param hub the converter component that manages this channel
 	 * @param mainChannel the main channel
@@ -99,13 +101,23 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	        boolean linkBack) {
 		super(mainChannel, responsePipeline);
 		this.hub = hub;
-		this.upstreamChannel = new WeakReference<>(upstreamChannel);
+		this.upstreamChannel = upstreamChannel;
 		if (linkBack) {
 			upstreamChannel.setAssociated(
 					new KeyWrapper(hub), this);
 		}
 	}
 
+	/**
+	 * Removes the association between the upstream channel and this
+	 * channel. Should only be called if this channel is no longer used.
+	 * 
+	 * @param hub the converter component that manages this channel
+	 */
+	public void unlink(Manager hub) {
+		upstreamChannel.setAssociated(new KeyWrapper(hub), null);
+	}
+	
 	/**
 	 * @return the component that manages this channel
 	 */
@@ -117,7 +129,7 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	 * @return the upstream channel
 	 */
 	public IOSubchannel upstreamChannel() {
-		return upstreamChannel.get();
+		return upstreamChannel;
 	}
 	
 	/**
@@ -186,7 +198,7 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 		StringBuilder builder = new StringBuilder();
 		builder.append(IOSubchannel.toString(this));
 		if (upstreamChannel != null) {
-			builder.append(upstreamToString(upstreamChannel.get()));
+			builder.append(upstreamToString(upstreamChannel));
 		}
 		return builder.toString();
 	}
