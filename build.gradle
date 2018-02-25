@@ -35,25 +35,27 @@ if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
 }
 
 allprojects {
+    group = 'org.jgrapes'
+    
+    ext.releaseVersion = "0.12.0"
+    ext.isSnapshot = false
+    version = releaseVersion + (isSnapshot ? "-SNAPSHOT" : "")
+    
     repositories {
         jcenter()
         mavenCentral()
         // Sometimes, synchronization with central is too slow
         maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
         // Snapshots
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        if (isSnapshot) {
+            maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        }
         // Experimental, not sure if this is the way tpo go...
         maven { url 'https://jitpack.io' }
     }
 	
 	// Makes Eclipse-groovy handle *.gradle file properly
 	apply plugin:'groovy'
-
-	group = 'org.jgrapes'
-	
-	ext.releaseVersion = "0.12.0"
-	ext.isSnapshot = false
-	version = releaseVersion + (isSnapshot ? "-SNAPSHOT" : "")
 }
 
 subprojects {
