@@ -1,0 +1,44 @@
+dependencies {
+    // Use gradle mechanims to get the artifact to baseline against.
+    // We baseline against the previous release 
+    // (latest excluding current)
+    def relVer = org.gradle.util.VersionNumber.parse(releaseVersion)
+    def cmpVer = null
+    if (relVer.getMicro() > 0) {
+        cmpVer = new org.gradle.util.VersionNumber(
+            relVer.getMajor(), relVer.getMinor(), relVer.getMicro() - 1, null)
+    } else if (relVer.getMinor() > 0) {
+        cmpVer = new org.gradle.util.VersionNumber(
+            relVer.getMajor(), relVer.getMinor() - 1, 999999, null)
+    } else {
+        cmpVer = new org.gradle.util.VersionNumber(
+            relVer.getMajor() - 1, 999999, 999999, null)
+    }
+        
+    baseline("${group}:${project.name}:(,${cmpVer}]") {
+        transitive false
+    }
+}
+
+if (project.hasProperty('ignoreBaselineFailures')) {
+    baseline {
+        ignoreFailures true
+    }
+}
+
+model {
+    tasks.publishMavenJavaPublicationToSnapshotRepository {
+        dependsOn baseline
+    }
+    tasks.publishMavenJavaPublicationToReleaseRepository {
+        dependsOn baseline
+    }
+}
+
+afterEvaluate {
+    if(!project.name.startsWith("org.jgrapes")) {
+        tasks.matching { it.name == "baseline" }.all {
+            enabled = false
+        }
+    }
+}

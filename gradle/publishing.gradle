@@ -1,0 +1,79 @@
+// Additional jars for publishing
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier "sources"
+}
+    
+if (project.name != "org.jgrapes.core") {
+    task javadocJar(type: Jar) {
+        from ("${project.rootDir}/misc/javadoc-redirect")
+        classifier "javadoc"
+    }
+    
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+}
+
+// MavenPublishing (new)
+    
+publishing {
+        
+    repositories {
+        maven {
+            name "snapshot"
+            url "https://oss.sonatype.org/content/repositories/snapshots/"
+            credentials {
+                username project.properties['sonatypeUsername'] ?: "nouser"
+                password project.properties['sonatypePassword'] ?: "nopass"
+            }
+        }
+        maven {
+            name "release"
+            url "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username project.properties['sonatypeUsername'] ?: "nouser"
+                password project.properties['sonatypePassword'] ?: "nopass"
+            }
+        }
+    }
+}
+
+// Additional configuration of publishing
+apply plugin: ConfigurePublishing
+
+configurePublishing {
+    withPomXml {
+        asNode().with {
+            appendNode('url', 'http://mnlipp.github.io/jgrapes/')
+            appendNode('scm').with {
+                appendNode('url', 'scm:git@github.com:mnlipp/jgrapes.git')
+                appendNode('connection', 'scm:git@github.com:mnlipp/jgrapes.git')
+                appendNode('developerConnection', 'git@github.com:mnlipp/jgrapes.git')
+            }
+            appendNode('licenses').with {
+                appendNode('license').with {
+                    appendNode('name', 'GPL 3.0')
+                    appendNode('url', 'https://www.gnu.org/licenses/gpl-3.0.en.html')
+                    appendNode('distribution', 'repo')
+                }
+            }
+            appendNode('developers').with {
+                appendNode('developer').with {
+                    appendNode('id', 'mnlipp')
+                    appendNode('name', 'Michael N. Lipp')
+                }
+            }
+        }
+    }
+}
+    
+afterEvaluate {
+    if(!project.name.startsWith("org.jgrapes")) {
+        tasks.matching { it.group == "publishing" }.all {
+            enabled = false
+        }
+    }
+}
