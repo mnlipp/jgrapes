@@ -63,7 +63,7 @@ import org.jgrapes.io.util.ByteBufferOutputStream;
  * HTTP requests which are based on a FreeMarker template.
  */
 public class FreeMarkerRequestHandler extends Component {
-	static final Pattern templatePattern 
+	public static final Pattern TEMPLATE_PATTERN 
 		= Pattern.compile(".*\\.ftl\\.[a-z]+$");
 
 	private ClassLoader contentLoader;
@@ -139,7 +139,7 @@ public class FreeMarkerRequestHandler extends Component {
 		if (subUri.equals(request.requestUri())) {
 			return;
 		}
-		if (!templatePattern.matcher(event.requestUri().getPath()).matches()) {
+		if (!TEMPLATE_PATTERN.matcher(event.requestUri().getPath()).matches()) {
 			ResponseCreationSupport.sendStaticContent(
 					event, channel, path -> contentLoader.getResource(
 							FreeMarkerRequestHandler.this.contentPath 
