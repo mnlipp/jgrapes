@@ -136,7 +136,7 @@ public class FreeMarkerRequestHandler extends Component {
 		final HttpRequest request = event.httpRequest();
 		URI subUri = ResponseCreationSupport.uriFromPath(prefix)
 				.relativize(request.requestUri());
-		if (subUri.equals(request.requestUri())) {
+		if (!prefix.equals("/") && subUri.equals(request.requestUri())) {
 			return;
 		}
 		if (!TEMPLATE_PATTERN.matcher(event.requestUri().getPath()).matches()) {
