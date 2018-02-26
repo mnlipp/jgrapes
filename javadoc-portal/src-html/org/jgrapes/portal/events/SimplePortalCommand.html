@@ -84,9 +84,9 @@
 <span class="sourceLineNo">076</span>                builder.append(" [");<a name="line.76"></a>
 <span class="sourceLineNo">077</span>                builder.append("method=");<a name="line.77"></a>
 <span class="sourceLineNo">078</span>                builder.append(method);<a name="line.78"></a>
-<span class="sourceLineNo">079</span>                if (channels != null) {<a name="line.79"></a>
+<span class="sourceLineNo">079</span>                if (channels() != null) {<a name="line.79"></a>
 <span class="sourceLineNo">080</span>                        builder.append(", channels=");<a name="line.80"></a>
-<span class="sourceLineNo">081</span>                        builder.append(Channel.toString(channels));<a name="line.81"></a>
+<span class="sourceLineNo">081</span>                        builder.append(Channel.toString(channels()));<a name="line.81"></a>
 <span class="sourceLineNo">082</span>                }<a name="line.82"></a>
 <span class="sourceLineNo">083</span>                builder.append("]");<a name="line.83"></a>
 <span class="sourceLineNo">084</span>                return builder.toString();<a name="line.84"></a>
