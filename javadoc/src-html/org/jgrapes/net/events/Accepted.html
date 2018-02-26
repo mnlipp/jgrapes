@@ -104,9 +104,9 @@
 <span class="sourceLineNo">096</span>                builder.append(" &lt;― ");<a name="line.96"></a>
 <span class="sourceLineNo">097</span>                builder.append(remoteAddress);<a name="line.97"></a>
 <span class="sourceLineNo">098</span>                builder.append(", ");<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                if (channels != null) {<a name="line.99"></a>
+<span class="sourceLineNo">099</span>                if (channels() != null) {<a name="line.99"></a>
 <span class="sourceLineNo">100</span>                        builder.append("channels=");<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                        builder.append(Channel.toString(channels));<a name="line.101"></a>
+<span class="sourceLineNo">101</span>                        builder.append(Channel.toString(channels()));<a name="line.101"></a>
 <span class="sourceLineNo">102</span>                }<a name="line.102"></a>
 <span class="sourceLineNo">103</span>                builder.append(", secure=");<a name="line.103"></a>
 <span class="sourceLineNo">104</span>                builder.append(secure);<a name="line.104"></a>
