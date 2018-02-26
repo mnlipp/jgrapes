@@ -163,7 +163,8 @@ public class FreeMarkerRequestHandler extends Component {
 			Request event, IOSubchannel channel, Template tpl) {
 		// Prepare response
 		HttpResponse response = event.httpRequest().response().get();
-		MediaType mediaType = contentType(event.requestUri());
+		MediaType mediaType = contentType(
+				ResponseCreationSupport.uriFromPath(tpl.getSourceName()));
 		response.setContentType(mediaType);
 
 		// Send response 
