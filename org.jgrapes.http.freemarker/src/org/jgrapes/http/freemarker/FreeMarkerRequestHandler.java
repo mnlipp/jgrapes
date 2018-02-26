@@ -49,6 +49,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.events.Error;
 import org.jgrapes.http.ResponseCreationSupport;
 import org.jgrapes.http.ResponseCreationSupport.MaxAgeCalculator;
 import org.jgrapes.http.Session;
@@ -175,6 +176,7 @@ public class FreeMarkerRequestHandler extends Component {
 			ResponseCreationSupport.setMaxAge(
 					response, maxAgeCalculator, event.httpRequest(), mediaType);
 		}
+		event.setResult(true);
 		event.stop();
 		channel.respond(new Response(response));
 
@@ -188,6 +190,7 @@ public class FreeMarkerRequestHandler extends Component {
 			tpl.process(model, out);
 		} catch (IOException | TemplateException e) {
 			// Too late to do anything about this (header was sent).
+			fire(new Error(event, e), channel);
 		}
 	}
 
@@ -209,6 +212,7 @@ public class FreeMarkerRequestHandler extends Component {
 			Template tpl = freemarkerConfig().getTemplate(path);
 			sendProcessedTemplate(event, channel, tpl);
 		} catch (Exception e) {
+			fire(new Error(event, e), channel);
 			return;
 		}
 	}
