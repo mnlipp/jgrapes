@@ -96,9 +96,9 @@ public class Accepted extends Opened {
 		builder.append(" <― ");
 		builder.append(remoteAddress);
 		builder.append(", ");
-		if (channels != null) {
+		if (channels() != null) {
 			builder.append("channels=");
-			builder.append(Channel.toString(channels));
+			builder.append(Channel.toString(channels()));
 		}
 		builder.append(", secure=");
 		builder.append(secure);

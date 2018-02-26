@@ -53,9 +53,9 @@ public abstract class CompletionEvent<T extends Event<?>>
 		builder.append(Components.objectName(currentResults().get(0)));
 		builder.append(")");
 		builder.append(" [");
-		if (channels != null) {
+		if (channels() != null) {
 			builder.append("channels=");
-			builder.append(Channel.toString(channels));
+			builder.append(Channel.toString(channels()));
 		}
 		builder.append("]");
 		return builder.toString();

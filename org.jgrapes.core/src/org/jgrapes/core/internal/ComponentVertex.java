@@ -310,9 +310,10 @@ public abstract class ComponentVertex implements Manager, Channel {
 		return child;
 	}
 	
-	/**
-	 * Remove the component from the tree, making it a stand-alone tree.
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.Manager#detach()
 	 */
+	@Override
 	public synchronized ComponentType detach() {
 		if (parent != null) {
 			ComponentVertex oldParent = parent;

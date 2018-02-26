@@ -117,9 +117,9 @@ public class Error extends Event<Void> {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Components.objectName(this));
 		builder.append(" [");
-		if (channels != null) {
+		if (channels() != null) {
 			builder.append("channels=");
-			builder.append(Channel.toString(channels));
+			builder.append(Channel.toString(channels()));
 		}
 		if (message != null) {
 			builder.append(", message=\"");

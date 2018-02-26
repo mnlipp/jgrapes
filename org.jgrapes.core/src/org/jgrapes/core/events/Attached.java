@@ -81,9 +81,9 @@ public class Attached extends Event<Void> {
 		builder.append(" <―― ");
 		builder.append(node);
 		builder.append(", ");
-		if (channels != null) {
+		if (channels() != null) {
 			builder.append("channels=");
-			builder.append(Channel.toString(channels));
+			builder.append(Channel.toString(channels()));
 		}
 		builder.append("]");
 		return builder.toString();
