@@ -380,6 +380,8 @@ public class TcpServer extends Component implements NioHandler {
 			}
 		}
 		if (subOnly || !serverSocketChannel.isOpen()) {
+			// Closed already
+			fire(new Closed());
 			return;
 		}
 		synchronized (channels) {
