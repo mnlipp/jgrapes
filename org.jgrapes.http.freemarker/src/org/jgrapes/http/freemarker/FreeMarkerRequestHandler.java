@@ -77,7 +77,9 @@ public class FreeMarkerRequestHandler extends Component {
 	 * 
 	 * The prefix is removed from the request paths before resolving
 	 * them against the content root. A prefix must start with a
-	 * slash and must not end with a slash.
+	 * slash and must not end with a slash. If the request handler
+	 * should respond to top-level requests, the prefix must be
+	 * specified as a single slash.
 	 *
 	 * @param componentChannel the component channel
 	 * @param contentLoader the content loader
@@ -87,6 +89,10 @@ public class FreeMarkerRequestHandler extends Component {
 	public FreeMarkerRequestHandler(Channel componentChannel, 
 			ClassLoader contentLoader, String contentPath, String prefix) {
 		super(componentChannel);
+		if (!prefix.startsWith("/") 
+				|| prefix.length() > 1 && prefix.endsWith("/")) {
+			throw new IllegalArgumentException("Illegal prefix: " + prefix);
+		}
 		this.contentLoader = contentLoader;
 		if (contentPath.startsWith("/")) {
 			contentPath = contentPath.substring(1);
@@ -98,6 +104,15 @@ public class FreeMarkerRequestHandler extends Component {
 		this.prefix = prefix;
 	}
 
+	/**
+	 * Returns the prefix passed to the constructor.
+	 *
+	 * @return the prefix
+	 */
+	public String prefix() {
+		return prefix;
+	}
+	
 	/**
 	 * @return the maxAgeCalculator
 	 */
@@ -136,7 +151,7 @@ public class FreeMarkerRequestHandler extends Component {
 		final HttpRequest request = event.httpRequest();
 		URI subUri = ResponseCreationSupport.uriFromPath(prefix)
 				.relativize(request.requestUri());
-		if (!prefix.equals("/") && subUri.equals(request.requestUri())) {
+		if (subUri.equals(request.requestUri())) {
 			return;
 		}
 		if (!TEMPLATE_PATTERN.matcher(event.requestUri().getPath()).matches()) {

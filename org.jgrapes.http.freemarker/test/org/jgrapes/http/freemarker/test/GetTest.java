@@ -34,10 +34,11 @@ import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.freemarker.FreeMarkerRequestHandler;
 import org.jgrapes.io.IOSubchannel;
 
-import org.junit.AfterClass;
+import org.junit.After;
 
 import static org.junit.Assert.*;
-import org.junit.BeforeClass;
+
+import org.junit.Before;
 import org.junit.Test;
 
 public class GetTest {
@@ -61,32 +62,70 @@ public class GetTest {
 			super(componentChannel, contentLoader, contentPath, prefix);
 		}
 
-		@RequestHandler(patterns="/generated/**")
+		@RequestHandler(patterns="/**")
 		public void onGet(GetRequest event, IOSubchannel channel)
 				throws ParseException {
 			doGet(event, channel);
 		}
 	}
 	
-	@BeforeClass
-	public static void startServer() throws IOException, InterruptedException, 
+	@Before
+	public void startServer() throws IOException, InterruptedException, 
 			ExecutionException {
 		server = new TestServer();
-		server.attach(new ContentProvider(server.channel(), 
-				GetTest.class.getClassLoader(),	"templates", "/generated"));
 		Components.start(server);
 	}
 	
-	@AfterClass
-	public static void stopServer() throws InterruptedException {
+	@After
+	public void stopServer() throws InterruptedException {
 		server.fire(new Stop(), Channel.BROADCAST);
 		Components.awaitExhaustion();
 		Components.checkAssertions();
 	}
 	
 	@Test(timeout=5000)
-	public void testGetSimple() 
+	public void testGetSimpleWithoutPrefix() 
 			throws IOException, InterruptedException, ExecutionException {
+		server.attach(new ContentProvider(server.channel(), 
+				GetTest.class.getClassLoader(),	"templates", "/"));
+		URL url = new URL("http", "localhost", server.getPort(),
+		        "/simple.ftl.html");
+		URLConnection conn = url.openConnection();
+		conn.setConnectTimeout(4000);
+		conn.setReadTimeout(4000);
+		conn.setConnectTimeout(4000);
+		conn.setReadTimeout(4000);
+		try (BufferedReader br = new BufferedReader(
+		        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+			String str = br.lines().findFirst().get();
+			assertEquals("Result is 42.", str);
+		}
+	}
+	
+	@Test(timeout=5000)
+	public void testGetStaticWithoutPrefix() 
+			throws IOException, InterruptedException, ExecutionException {
+		server.attach(new ContentProvider(server.channel(), 
+				GetTest.class.getClassLoader(),	"templates", "/"));
+		URL url = new URL("http", "localhost", server.getPort(),
+		        "/Readme.txt");
+		URLConnection conn = url.openConnection();
+		conn.setConnectTimeout(4000);
+		conn.setReadTimeout(4000);
+		conn.setConnectTimeout(4000);
+		conn.setReadTimeout(4000);
+		try (BufferedReader br = new BufferedReader(
+		        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+			String str = br.lines().findFirst().get();
+			assertEquals("Test files.", str);
+		}
+	}
+	
+	@Test(timeout=5000)
+	public void testGetSimpleWithPrefix() 
+			throws IOException, InterruptedException, ExecutionException {
+		server.attach(new ContentProvider(server.channel(), 
+				GetTest.class.getClassLoader(),	"templates", "/generated"));
 		URL url = new URL("http", "localhost", server.getPort(),
 		        "/generated/simple.ftl.html");
 		URLConnection conn = url.openConnection();
@@ -102,8 +141,10 @@ public class GetTest {
 	}
 	
 	@Test(timeout=5000)
-	public void testGetStatic() 
+	public void testGetStaticWithPrefix() 
 			throws IOException, InterruptedException, ExecutionException {
+		server.attach(new ContentProvider(server.channel(), 
+				GetTest.class.getClassLoader(),	"templates", "/generated"));
 		URL url = new URL("http", "localhost", server.getPort(),
 		        "/generated/Readme.txt");
 		URLConnection conn = url.openConnection();
