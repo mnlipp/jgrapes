@@ -68,6 +68,12 @@ import java.util.stream.StreamSupport;
  *    Using a vertical bar instead of a slash separates the path in a
  *    prefix part and the rest. The number of prefix segments is the
  *    value returned by the match methods.
+ *    
+ *    If a path ends with a vertical bar and the URI matched with the
+ *    path does not end with a slash, a slash is appended to the URI
+ *    before matching. This causes both `/foo` and `/foo/` to match
+ *    a path `/foo|`. This is usually intended. If you do want to
+ *    treat `/foo` as a leaf, specify `/foo,/foo|` in your pattern.
  *
  */
 public class ResourcePattern {
@@ -75,10 +81,10 @@ public class ResourcePattern {
 	private static Pattern resourcePattern = Pattern.compile(
 			"^((?<proto>[^:]+|\\*)://)?" // Optional protocol (2)
 			+ "(" // Start of optional host/port part
-				+ "(?<host>([^\\[/][^:/]*)|(\\[[^\\]]*\\]))" // Host (4)
+				+ "(?<host>([^\\[/\\|][^:/\\|]*)|(\\[[^\\]]*\\]))" // Host (4)
 				+ "(:(?<port>([0-9]+)|(\\*)))?" // Optional port (8)
 			+ ")?" // End of optional host/port
-			+ "(?<path>/.*)?"); // Finally path (11)
+			+ "(?<path>[/\\|].*)?"); // Finally path (11)
 	
 	private String pattern;
 	private String protocol;
@@ -203,9 +209,27 @@ public class ResourcePattern {
 		String[] reqElements = StreamSupport.stream(
 				new PathSpliterator(resource.getPath()), false)
 				.toArray(size -> new String[size]);
+		String[] reqElementsPlus = null; // Created lazily
 		for (int pathIdx = 0; pathIdx < pathPatternElements.length; pathIdx++) {
-			if (matchPath(pathPatternElements[pathIdx], reqElements)) {
-				return prefixSegs[pathIdx];
+			String[] pathPattern = pathPatternElements[pathIdx];
+			if (prefixSegs[pathIdx] == pathPattern.length - 1
+					&& lastIsEmpty(pathPattern)) {
+				// Special case, pattern ends with vertical bar
+				if (reqElementsPlus == null) {
+					reqElementsPlus = reqElements;
+					if (!lastIsEmpty(reqElementsPlus)) {
+						reqElementsPlus = Arrays.copyOf(
+								reqElementsPlus, reqElementsPlus.length + 1);
+						reqElementsPlus[reqElementsPlus.length - 1] = "";
+					}
+				}
+				if (matchPath(pathPattern, reqElementsPlus)) {
+					return prefixSegs[pathIdx];
+				}
+			} else {
+				if (matchPath(pathPattern, reqElements)) {
+					return prefixSegs[pathIdx];
+				}
 			}
 		}
 		return -1;
@@ -224,6 +248,10 @@ public class ResourcePattern {
 		return (new ResourcePattern(pattern)).matches(resource) >= 0;
 	}
 
+	private static boolean lastIsEmpty(String[] elements) {
+		return elements.length > 0 && elements[elements.length-1].length() == 0;
+	}
+	
 	private boolean matchPath(String[] patternElements, String[] reqElements) {
 		int pathIdx = 0;
 		int reqIdx = 0;
