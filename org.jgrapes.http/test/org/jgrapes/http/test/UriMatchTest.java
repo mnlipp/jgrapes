@@ -132,4 +132,20 @@ public class UriMatchTest {
 		assertTrue(ResourcePattern.matches("/test/**", request));
 	}
 
+	@Test
+	public void testPathSep() throws URISyntaxException, ParseException {
+		URI request = URI.create("/test/Test.html");
+		assertEquals(0, new ResourcePattern("/test/Test.html").matches(request));
+		assertEquals(1, new ResourcePattern("/test|Test.html").matches(request));
+		assertEquals(0, new ResourcePattern("|test/Test.html").matches(request));
+		assertEquals(-1, new ResourcePattern("/test").matches(request));
+		assertEquals(1, new ResourcePattern("/test|*").matches(request));
+		request = URI.create("/test");
+		assertEquals(1, new ResourcePattern("/test|").matches(request));
+		assertEquals(0, new ResourcePattern("/test,/test|").matches(request));
+		request = URI.create("/test/");
+		assertEquals(1, new ResourcePattern("/test|").matches(request));
+		assertEquals(1, new ResourcePattern("/test,/test|").matches(request));
+	}
+
 }
