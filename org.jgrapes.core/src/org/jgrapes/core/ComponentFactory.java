@@ -90,5 +90,5 @@ public interface ComponentFactory {
 	 * @return the component
 	 */
 	Optional<ComponentType> create(
-			Channel componentChannel, Map<?, ?> properties);
+			Channel componentChannel, Map<Object, Object> properties);
 }

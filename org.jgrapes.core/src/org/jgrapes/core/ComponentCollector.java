@@ -54,21 +54,21 @@ public class ComponentCollector<F extends ComponentFactory>
 	 */
 	public ComponentCollector(
 			Class<F> factoryClass, Channel componentChannel,
-			Function<String,List<Map<?,?>>> matcher) {
+			Function<String,List<Map<Object,Object>>> matcher) {
 		super(componentChannel);
 		ServiceLoader<F> serviceLoader = ServiceLoader.load(factoryClass);
 		for (Iterator<F> itr = serviceLoader.iterator(); itr.hasNext();) {
 			F factory = itr.next();
-			List<Map<?,?>> configs = matcher.apply(
+			List<Map<Object,Object>> configs = matcher.apply(
 					factory.componentType().getName());
-			for (Map<?,?> config: configs) {
+			for (Map<Object,Object> config: configs) {
 				factory.create(channel(), config).ifPresent(
 						component -> attach(component));
 			}
 		}
 	}
 
-	private static List<Map<?,?>> SINGLE_DEFAULT 
+	private static List<Map<Object,Object>> SINGLE_DEFAULT 
 		= Arrays.asList(Collections.emptyMap());
 	
 	/**
