@@ -30,7 +30,7 @@ import org.junit.Test;
 /**
  *
  */
-public class UriMatchTest {
+public class ResourcePatternTests {
 
 	@Test
 	public void testWildcards1() throws URISyntaxException, ParseException {
@@ -148,4 +148,47 @@ public class UriMatchTest {
 		assertEquals(1, new ResourcePattern("/test,/test|").matches(request));
 	}
 
+	@Test 
+	public void testRemoveSegments() {
+		assertEquals("/prefix/and/rest", ResourcePattern.removeSegments(
+				"/prefix/and/rest", 0));
+		assertEquals("prefix/and/rest", ResourcePattern.removeSegments(
+				"/prefix/and/rest", 1));
+		assertEquals("rest", ResourcePattern.removeSegments(
+				"/prefix/and/rest", 3));
+	}
+
+	@Test 
+	public void testSplit() {
+		String[] result = ResourcePattern.split("/prefix/and/rest", 0);
+		assertEquals("", result[0]);
+		assertEquals("/prefix/and/rest", result[1]);
+		result = ResourcePattern.split("/prefix/and/rest", 1);
+		assertEquals("", result[0]);
+		assertEquals("prefix/and/rest", result[1]);
+		result = ResourcePattern.split("/prefix/and/rest", 3);
+		assertEquals("/prefix/and", result[0]);
+		assertEquals("rest", result[1]);
+		result = ResourcePattern.split("/prefix/and/rest/", 3);
+		assertEquals("/prefix/and", result[0]);
+		assertEquals("rest/", result[1]);
+		result = ResourcePattern.split("/prefix/and/rest", 4);
+		assertEquals("/prefix/and/rest", result[0]);
+		assertEquals("", result[1]);
+		result = ResourcePattern.split("/prefix/and/rest/", 4);
+		assertEquals("/prefix/and/rest", result[0]);
+		assertEquals("", result[1]);
+	}
+	
+	@Test 
+	public void testSplitResource() throws ParseException {
+		ResourcePattern pattern = new ResourcePattern("|prefix/and/**");
+		String[] result = pattern.splitPath(URI.create("/prefix/and/rest")).get();
+		assertEquals("", result[0]);
+		assertEquals("prefix/and/rest", result[1]);
+		pattern = new ResourcePattern("/prefix|and/**");
+		result = pattern.splitPath(URI.create("/prefix/and/rest")).get();
+		assertEquals("/prefix", result[0]);
+		assertEquals("and/rest", result[1]);
+	}
 }

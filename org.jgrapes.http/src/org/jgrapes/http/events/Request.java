@@ -21,7 +21,6 @@ package org.jgrapes.http.events;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
-import java.util.stream.StreamSupport;
 
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
@@ -70,8 +69,8 @@ public class Request extends Event<Boolean> {
 			URI headerInfo = new URI(protocol, null, 
 					request.host(), request.port(), null, null, null);
 			uri = headerInfo.resolve(request.requestUri());
-			Iterator<String> segs = StreamSupport.stream(
-					new PathSpliterator(uri.getPath()), false).iterator();
+			Iterator<String> segs = PathSpliterator.stream(
+					uri.getPath()).skip(1).iterator();
 			StringBuilder mp = new StringBuilder();
 			for (int i = 0; i < matchLevels && segs.hasNext(); i++) {
 				mp.append("/");

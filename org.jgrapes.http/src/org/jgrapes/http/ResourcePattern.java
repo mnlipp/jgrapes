@@ -23,6 +23,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators.AbstractSpliterator;
 import java.util.StringTokenizer;
@@ -30,6 +31,7 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -207,9 +209,8 @@ public class ResourcePattern {
 			}
 		}
 
-		String[] reqElements = StreamSupport.stream(
-				new PathSpliterator(resource.getPath()), false)
-				.toArray(size -> new String[size]);
+		String[] reqElements = PathSpliterator.stream(resource.getPath())
+				.skip(1).toArray(size -> new String[size]);
 		String[] reqElementsPlus = null; // Created lazily
 		for (int pathIdx = 0; pathIdx < pathPatternElements.length; pathIdx++) {
 			String[] pathPattern = pathPatternElements[pathIdx];
@@ -249,6 +250,21 @@ public class ResourcePattern {
 		return (new ResourcePattern(pattern)).matches(resource) >= 0;
 	}
 
+	/**
+	 * If the URI matches, returns the path split according to 
+	 * the matched pattern (see {@link #split(String, int)}).
+	 *
+	 * @param resource the resource
+	 * @return the result.
+	 */
+	public Optional<String[]> splitPath(URI resource) {
+		int matchRes = matches(resource);
+		if (matchRes < 0) {
+			return Optional.empty();
+		}
+		return Optional.of(split(resource.getPath(), matchRes + 1));
+	}
+	
 	private static boolean lastIsEmpty(String[] elements) {
 		return elements.length > 0 && elements[elements.length-1].length() == 0;
 	}
@@ -289,8 +305,37 @@ public class ResourcePattern {
 	 * @return the result
 	 */
 	public static String removeSegments(String path, int segments) {
-		return Arrays.stream(path.split("/"))
+		return PathSpliterator.stream(path)
 	        .skip(segments).collect(Collectors.joining("/"));
+	}
+	
+	/**
+	 * Splits the given path in a prefix with the given number of
+	 * segments and the rest. Like {{@link #removeSegments(String, int)}
+	 * but additionally returning the removed segments.
+	 *
+	 * @param path the path
+	 * @param segments the number of segments in the prefi
+	 * @return the prefix and the rest
+	 */
+	public static String[] split(String path, int segments) {
+		StringBuilder prefix = new StringBuilder();
+		StringBuilder suffix = new StringBuilder();
+		int[] count = { 0 };
+		PathSpliterator.stream(path).forEach(seg -> {
+			if (count[0]++ < segments) {
+				if (count[0] > 1) {
+					prefix.append('/');
+				}
+				prefix.append(seg);				
+			} else {
+				if (count[0] > segments + 1) {
+					suffix.append('/');
+				}
+				suffix.append(seg);
+			}
+		});
+		return new String[] { prefix.toString(), suffix.toString() };
 	}
 	
 	/* (non-Javadoc)
@@ -342,13 +387,37 @@ public class ResourcePattern {
 	}
 	
 	/**
-	 * Returns the segments of the path. If the path ends with a slash,
-	 * an empty string is returned as final segment.
+	 * Returns the segments of the path. If the path starts with a slash,
+	 * an empty string is returned as first segment. If the path ends 
+	 * with a slash, an empty string is returned as final segment.
 	 */
 	public static class PathSpliterator extends AbstractSpliterator<String> {
 		private StringTokenizer tokenizer;
-		private boolean endsWithSlash;
+		private boolean pendingLeadingEmpty;
+		private boolean pendingTrailingEmpty;
 
+		/**
+		 * Creates a new stream for the given path, using "/"
+		 * as path separator.
+		 * 
+		 * @param path the path
+		 */
+		public static Stream<String> stream(String path) {
+			return StreamSupport.stream(new PathSpliterator(path), false);
+		}
+
+		/**
+		 * Creates a new stream for the given path, using 
+		 * the characters from delimiters as seperators.
+		 * 
+		 * @param path the path
+		 * @param delimiters the delimiters
+		 */
+		public static Stream<String> stream(String path, String delimiter) {
+			return StreamSupport.stream(
+					new PathSpliterator(path, delimiter), false);
+		}
+		
 		/**
 		 * Creates a new spliterator for the given path, using "/"
 		 * as path separator.
@@ -361,7 +430,7 @@ public class ResourcePattern {
 		
 		/**
 		 * Creates a new spliterator for the given path, using 
-		 * the character from delimiters as seperators.
+		 * the characters from delimiters as seperators.
 		 * 
 		 * @param path the path
 		 * @param delimiters the delimiters
@@ -370,7 +439,8 @@ public class ResourcePattern {
 			super(Long.MAX_VALUE, Spliterator.ORDERED 
 					| Spliterator.IMMUTABLE);
 			tokenizer = new StringTokenizer(path, delimiters);
-			endsWithSlash = path.endsWith("/");
+			pendingLeadingEmpty = path.startsWith("/");
+			pendingTrailingEmpty = path.endsWith("/");
 		}
 
 		/* (non-Javadoc)
@@ -381,12 +451,17 @@ public class ResourcePattern {
 			if (tokenizer == null) {
 				return false;
 			}
+			if (pendingLeadingEmpty) {
+				pendingLeadingEmpty = false;
+				consumer.accept("");
+				return true;
+			}
 			if (tokenizer.hasMoreTokens()) {
 				consumer.accept(tokenizer.nextToken());
 				return true;
 			}
 			tokenizer = null;
-			if (endsWithSlash) {
+			if (pendingTrailingEmpty) {
 				consumer.accept("");
 				return true;
 			}
