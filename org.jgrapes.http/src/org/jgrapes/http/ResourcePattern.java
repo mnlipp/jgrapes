@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -272,6 +273,24 @@ public class ResourcePattern {
 			}
 		}
 		
+	}
+	
+	/**
+	 * Removes the given number of segments (and their trailing slashes)
+	 * from the beginning of the path. Segments may be empty. This implies 
+	 * that invoking this method with a path that starts with a
+	 * slash, the first removed segment is the empty segment
+	 * preceding the slash and the starting slash. Put differently, 
+	 * invoking this method with an absolute path and 1 makes the path
+	 * relative.
+	 *
+	 * @param path the path
+	 * @param segments the number of segments to remove
+	 * @return the result
+	 */
+	public static String removeSegments(String path, int segments) {
+		return Arrays.stream(path.split("/"))
+	        .skip(segments).collect(Collectors.joining("/"));
 	}
 	
 	/* (non-Javadoc)

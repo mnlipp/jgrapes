@@ -5,6 +5,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
 
+import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResponseCreationSupport;
 import org.jgrapes.http.ResponseCreationSupport.ResourceInfo;
 
@@ -17,7 +18,7 @@ public class MiscTests {
 	@Test
 	public void testPrefixRemoval() {
 		assertEquals("rest", 
-				ResponseCreationSupport.removeSegments("seg1/seg2/rest", 2));
+				ResourcePattern.removeSegments("seg1/seg2/rest", 2));
 	}
 
 	@Test

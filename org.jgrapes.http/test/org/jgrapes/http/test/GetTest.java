@@ -39,6 +39,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.events.Stop;
+import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResponseCreationSupport;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
@@ -149,7 +150,7 @@ public class GetTest {
 			
 			ResponseCreationSupport.sendStaticContent(event, channel, 
 					path -> jarLoader.getResource("only-in-jar/"
-							+ ResponseCreationSupport.removeSegments(path, 2)),
+							+ ResourcePattern.removeSegments(path, 2)),
 					null);
 		}
 	}

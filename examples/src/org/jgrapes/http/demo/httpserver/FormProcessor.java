@@ -32,6 +32,7 @@ import org.jdrupes.httpcodec.util.FormUrlDecoder;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResponseCreationSupport;
 import org.jgrapes.http.Session;
 import org.jgrapes.http.annotation.RequestHandler;
@@ -66,7 +67,7 @@ public class FormProcessor extends Component {
 			throws ParseException {
 		ResponseCreationSupport.sendStaticContent(event, channel, 
 				path -> FormProcessor.class.getResource(
-						ResponseCreationSupport.removeSegments(path, 1)),
+						ResourcePattern.removeSegments(path, 1)),
 				null);
 	}
 	

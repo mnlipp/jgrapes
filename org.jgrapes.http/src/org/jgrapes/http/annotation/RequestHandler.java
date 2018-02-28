@@ -48,6 +48,14 @@ import org.jgrapes.http.events.Request;
  * This annotation marks a method as handler for events. The method is 
  * invoked for events that have a type derived from {@link Request} and
  * are matched by one of the specified {@link ResourcePattern}s.
+ * 
+ * Note that matching uses a shortened request URI for reasons outlined
+ * in {@link Request#defaultCriterion()}. Specifying patterns with
+ * more path components than are used by the event's default criterion
+ * may therefore result in unexpected events. If the default criterion
+ * of an event shortens a requested URI "/foo/bar" to "/foo/**" and
+ * the {@link RequestHandler} annotation specifies "/foo/baz" as pattern,
+ * the handler will be invoked.
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)

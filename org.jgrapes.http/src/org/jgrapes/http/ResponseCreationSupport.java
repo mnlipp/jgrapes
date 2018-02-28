@@ -34,13 +34,11 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
@@ -286,24 +284,6 @@ public class ResponseCreationSupport {
 			// Fall through
 		}
 		return new ResourceInfo(null, null);
-	}
-	
-	/**
-	 * Removes the given number of segments (and their trailing slashes)
-	 * from the beginning of the path. Segments may be empty. This implies 
-	 * that invoking this method with a path that starts with a
-	 * slash, the first removed segment is the empty segment
-	 * preceding the slash and the starting slash. Put differently, 
-	 * invoking this method with an absolute path and 1 makes the path
-	 * relative.
-	 *
-	 * @param path the path
-	 * @param segments the number of segments to remove
-	 * @return the result
-	 */
-	public static String removeSegments(String path, int segments) {
-		return Arrays.stream(path.split("/"))
-	        .skip(segments).collect(Collectors.joining("/"));
 	}
 	
 	/**

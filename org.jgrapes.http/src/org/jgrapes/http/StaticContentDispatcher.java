@@ -194,7 +194,7 @@ public class StaticContentDispatcher extends Component {
 				event, channel, path -> {
 					try {
 						return contentRoot.resolve(
-								ResponseCreationSupport.removeSegments(
+								ResourcePattern.removeSegments(
 										path, prefixSegs + 1)).toURL();
 					} catch (MalformedURLException e) {
 						throw new IllegalArgumentException(e);
