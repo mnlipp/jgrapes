@@ -37,353 +37,372 @@
 <span class="sourceLineNo">029</span>import java.util.function.Consumer;<a name="line.29"></a>
 <span class="sourceLineNo">030</span>import java.util.regex.Matcher;<a name="line.30"></a>
 <span class="sourceLineNo">031</span>import java.util.regex.Pattern;<a name="line.31"></a>
-<span class="sourceLineNo">032</span>import java.util.stream.StreamSupport;<a name="line.32"></a>
-<span class="sourceLineNo">033</span><a name="line.33"></a>
-<span class="sourceLineNo">034</span>/**<a name="line.34"></a>
-<span class="sourceLineNo">035</span> * A resource pattern can be used to filter URIs. A pattern looks  <a name="line.35"></a>
-<span class="sourceLineNo">036</span> * similar to a URI (&lt;code&gt;scheme://host:port/path&lt;/code&gt;) with the <a name="line.36"></a>
-<span class="sourceLineNo">037</span> * following differences:<a name="line.37"></a>
-<span class="sourceLineNo">038</span> * <a name="line.38"></a>
-<span class="sourceLineNo">039</span> *  * The &lt;em&gt;scheme&lt;/em&gt; may be a single protocol name or a list<a name="line.39"></a>
-<span class="sourceLineNo">040</span> *    of protocol names separated by commas, or an asterisk, which is matched<a name="line.40"></a>
-<span class="sourceLineNo">041</span> *    by URIs with any scheme. The scheme part ({@code scheme://}) is optional <a name="line.41"></a>
-<span class="sourceLineNo">042</span> *    in a pattern. Omitting it is equivalent to specifying an asterisk.<a name="line.42"></a>
-<span class="sourceLineNo">043</span> *    <a name="line.43"></a>
-<span class="sourceLineNo">044</span> *  * The &lt;em&gt;host&lt;/em&gt; may be a host name or an IP address or an asterisk.<a name="line.44"></a>
-<span class="sourceLineNo">045</span> *    Unless the value is an asterisk, filtered URIs must match the value<a name="line.45"></a>
-<span class="sourceLineNo">046</span> *    literally.<a name="line.46"></a>
-<span class="sourceLineNo">047</span> *    <a name="line.47"></a>
-<span class="sourceLineNo">048</span> *  * The &lt;em&gt;port&lt;/em&gt; may be a number or an asterisk.<a name="line.48"></a>
-<span class="sourceLineNo">049</span> *    Unless the value is an asterisk, filtered URIs must match it.<a name="line.49"></a>
-<span class="sourceLineNo">050</span> *   <a name="line.50"></a>
-<span class="sourceLineNo">051</span> *  * Specifying a port ({@code :port}) is optional. If omitted, <a name="line.51"></a>
-<span class="sourceLineNo">052</span> *    it is equivalent to specifying an asterisk.<a name="line.52"></a>
-<span class="sourceLineNo">053</span> *    <a name="line.53"></a>
-<span class="sourceLineNo">054</span> *  * If the scheme part is omitted, the {@code host:port} part may <a name="line.54"></a>
-<span class="sourceLineNo">055</span> *    completely be left out as well, which is<a name="line.55"></a>
-<span class="sourceLineNo">056</span> *    equivalent to specifying an asterisk for both host and port.<a name="line.56"></a>
-<span class="sourceLineNo">057</span> *    <a name="line.57"></a>
-<span class="sourceLineNo">058</span> *  * The optional path part consist of one or more path separated by commas.<a name="line.58"></a>
-<span class="sourceLineNo">059</span> *  <a name="line.59"></a>
-<span class="sourceLineNo">060</span> *    Each path consists of a sequence of names and asterisks separated<a name="line.60"></a>
-<span class="sourceLineNo">061</span> *    by slashes or a vertical bar ("|"). A name must be matched by the <a name="line.61"></a>
-<span class="sourceLineNo">062</span> *    corresponding path element of filtered URIs, an asterisk is matched by <a name="line.62"></a>
-<span class="sourceLineNo">063</span> *    any corresponding path element (which, however, must exist in the <a name="line.63"></a>
-<span class="sourceLineNo">064</span> *    filtered URI). The final element in <a name="line.64"></a>
-<span class="sourceLineNo">065</span> *    the path of a pattern may be two asterisks ({@code **}), which matches <a name="line.65"></a>
-<span class="sourceLineNo">066</span> *    any remaining path elements in the filtered URI.<a name="line.66"></a>
-<span class="sourceLineNo">067</span> *    <a name="line.67"></a>
-<span class="sourceLineNo">068</span> *    Using a vertical bar instead of a slash separates the path in a<a name="line.68"></a>
-<span class="sourceLineNo">069</span> *    prefix part and the rest. The number of prefix segments is the<a name="line.69"></a>
-<span class="sourceLineNo">070</span> *    value returned by the match methods.<a name="line.70"></a>
-<span class="sourceLineNo">071</span> *    <a name="line.71"></a>
-<span class="sourceLineNo">072</span> *    If a path ends with a vertical bar and the URI matched with the<a name="line.72"></a>
-<span class="sourceLineNo">073</span> *    path does not end with a slash, a slash is appended to the URI<a name="line.73"></a>
-<span class="sourceLineNo">074</span> *    before matching. This causes both `/foo` and `/foo/` to match<a name="line.74"></a>
-<span class="sourceLineNo">075</span> *    a path `/foo|`. This is usually intended. If you do want to<a name="line.75"></a>
-<span class="sourceLineNo">076</span> *    treat `/foo` as a leaf, specify `/foo,/foo|` in your pattern.<a name="line.76"></a>
-<span class="sourceLineNo">077</span> *<a name="line.77"></a>
-<span class="sourceLineNo">078</span> */<a name="line.78"></a>
-<span class="sourceLineNo">079</span>public class ResourcePattern {<a name="line.79"></a>
-<span class="sourceLineNo">080</span><a name="line.80"></a>
-<span class="sourceLineNo">081</span>        private static Pattern resourcePattern = Pattern.compile(<a name="line.81"></a>
-<span class="sourceLineNo">082</span>                        "^((?&lt;proto&gt;[^:]+|\\*)://)?" // Optional protocol (2)<a name="line.82"></a>
-<span class="sourceLineNo">083</span>                        + "(" // Start of optional host/port part<a name="line.83"></a>
-<span class="sourceLineNo">084</span>                                + "(?&lt;host&gt;([^\\[/\\|][^:/\\|]*)|(\\[[^\\]]*\\]))" // Host (4)<a name="line.84"></a>
-<span class="sourceLineNo">085</span>                                + "(:(?&lt;port&gt;([0-9]+)|(\\*)))?" // Optional port (8)<a name="line.85"></a>
-<span class="sourceLineNo">086</span>                        + ")?" // End of optional host/port<a name="line.86"></a>
-<span class="sourceLineNo">087</span>                        + "(?&lt;path&gt;[/\\|].*)?"); // Finally path (11)<a name="line.87"></a>
-<span class="sourceLineNo">088</span>        <a name="line.88"></a>
-<span class="sourceLineNo">089</span>        private String pattern;<a name="line.89"></a>
-<span class="sourceLineNo">090</span>        private String protocol;<a name="line.90"></a>
-<span class="sourceLineNo">091</span>        private String host;<a name="line.91"></a>
-<span class="sourceLineNo">092</span>        private String port;<a name="line.92"></a>
-<span class="sourceLineNo">093</span>        private String path;<a name="line.93"></a>
-<span class="sourceLineNo">094</span>        private String[][] pathPatternElements;<a name="line.94"></a>
-<span class="sourceLineNo">095</span>        private int[] prefixSegs;<a name="line.95"></a>
-<span class="sourceLineNo">096</span><a name="line.96"></a>
-<span class="sourceLineNo">097</span>        /**<a name="line.97"></a>
-<span class="sourceLineNo">098</span>         * Creates a new resource pattern.<a name="line.98"></a>
-<span class="sourceLineNo">099</span>         * <a name="line.99"></a>
-<span class="sourceLineNo">100</span>         * @param pattern the pattern to be used for matching<a name="line.100"></a>
-<span class="sourceLineNo">101</span>         * @throws ParseException if an invalid pattern is specified<a name="line.101"></a>
-<span class="sourceLineNo">102</span>         */<a name="line.102"></a>
-<span class="sourceLineNo">103</span>        public ResourcePattern(String pattern) throws ParseException {<a name="line.103"></a>
-<span class="sourceLineNo">104</span>                this.pattern = pattern;<a name="line.104"></a>
-<span class="sourceLineNo">105</span>                Matcher rpm = resourcePattern.matcher(pattern);<a name="line.105"></a>
-<span class="sourceLineNo">106</span>                if (!rpm.matches()) {<a name="line.106"></a>
-<span class="sourceLineNo">107</span>                        throw new ParseException("Invalid pattern: " + pattern, 0);<a name="line.107"></a>
-<span class="sourceLineNo">108</span>                }<a name="line.108"></a>
-<span class="sourceLineNo">109</span>                protocol = rpm.group("proto");<a name="line.109"></a>
-<span class="sourceLineNo">110</span>                host = rpm.group("host");<a name="line.110"></a>
-<span class="sourceLineNo">111</span>                port = rpm.group("port");<a name="line.111"></a>
-<span class="sourceLineNo">112</span>                path = rpm.group("path");<a name="line.112"></a>
-<span class="sourceLineNo">113</span>                if (path == null) {<a name="line.113"></a>
-<span class="sourceLineNo">114</span>                        pathPatternElements = new String[0][];<a name="line.114"></a>
-<span class="sourceLineNo">115</span>                } else {<a name="line.115"></a>
-<span class="sourceLineNo">116</span>                        String[] paths = path.split(",");<a name="line.116"></a>
-<span class="sourceLineNo">117</span>                        pathPatternElements = new String[paths.length][];<a name="line.117"></a>
-<span class="sourceLineNo">118</span>                        prefixSegs = new int[paths.length];<a name="line.118"></a>
-<span class="sourceLineNo">119</span>                        for (int i = 0; i &lt; paths.length; i++) {<a name="line.119"></a>
-<span class="sourceLineNo">120</span>                                List&lt;String&gt; segs = new ArrayList&lt;&gt;();<a name="line.120"></a>
-<span class="sourceLineNo">121</span>                                prefixSegs[i] = 0;<a name="line.121"></a>
-<span class="sourceLineNo">122</span>                                StringTokenizer st = new StringTokenizer(paths[i], "/|", true);<a name="line.122"></a>
-<span class="sourceLineNo">123</span>                                while(st.hasMoreTokens()) {<a name="line.123"></a>
-<span class="sourceLineNo">124</span>                                        String token = st.nextToken();<a name="line.124"></a>
-<span class="sourceLineNo">125</span>                                        switch (token) {<a name="line.125"></a>
-<span class="sourceLineNo">126</span>                                        case "/":<a name="line.126"></a>
-<span class="sourceLineNo">127</span>                                                continue;<a name="line.127"></a>
-<span class="sourceLineNo">128</span>                                        case "|":<a name="line.128"></a>
-<span class="sourceLineNo">129</span>                                                prefixSegs[i] = segs.size();<a name="line.129"></a>
-<span class="sourceLineNo">130</span>                                                continue;<a name="line.130"></a>
-<span class="sourceLineNo">131</span>                                        default:<a name="line.131"></a>
-<span class="sourceLineNo">132</span>                                                segs.add(token);<a name="line.132"></a>
-<span class="sourceLineNo">133</span>                                                continue;<a name="line.133"></a>
-<span class="sourceLineNo">134</span>                                        }<a name="line.134"></a>
-<span class="sourceLineNo">135</span>                                }<a name="line.135"></a>
-<span class="sourceLineNo">136</span>                                if (paths[i].endsWith("/") || paths[i].endsWith("|")) {<a name="line.136"></a>
-<span class="sourceLineNo">137</span>                                        segs.add("");<a name="line.137"></a>
-<span class="sourceLineNo">138</span>                                }<a name="line.138"></a>
-<span class="sourceLineNo">139</span>                                pathPatternElements[i] = segs.toArray(new String[segs.size()]);<a name="line.139"></a>
-<span class="sourceLineNo">140</span>                        }<a name="line.140"></a>
-<span class="sourceLineNo">141</span>                }<a name="line.141"></a>
-<span class="sourceLineNo">142</span>        }<a name="line.142"></a>
-<span class="sourceLineNo">143</span>        <a name="line.143"></a>
-<span class="sourceLineNo">144</span>        /**<a name="line.144"></a>
-<span class="sourceLineNo">145</span>         * @return the pattern (string) that was used to create this <a name="line.145"></a>
-<span class="sourceLineNo">146</span>         * resource pattern.<a name="line.146"></a>
-<span class="sourceLineNo">147</span>         */<a name="line.147"></a>
-<span class="sourceLineNo">148</span>        public String pattern() {<a name="line.148"></a>
-<span class="sourceLineNo">149</span>                return pattern;<a name="line.149"></a>
-<span class="sourceLineNo">150</span>        }<a name="line.150"></a>
-<span class="sourceLineNo">151</span>        <a name="line.151"></a>
-<span class="sourceLineNo">152</span>        /**<a name="line.152"></a>
-<span class="sourceLineNo">153</span>         * @return the protocol value specified in the pattern or {@code null}<a name="line.153"></a>
-<span class="sourceLineNo">154</span>         */<a name="line.154"></a>
-<span class="sourceLineNo">155</span>        public String protocol() {<a name="line.155"></a>
-<span class="sourceLineNo">156</span>                return protocol;<a name="line.156"></a>
-<span class="sourceLineNo">157</span>        }<a name="line.157"></a>
-<span class="sourceLineNo">158</span><a name="line.158"></a>
-<span class="sourceLineNo">159</span>        /**<a name="line.159"></a>
-<span class="sourceLineNo">160</span>         * @return the host value specified in the pattern or {@code null}<a name="line.160"></a>
-<span class="sourceLineNo">161</span>         */<a name="line.161"></a>
-<span class="sourceLineNo">162</span>        public String host() {<a name="line.162"></a>
-<span class="sourceLineNo">163</span>                return host;<a name="line.163"></a>
-<span class="sourceLineNo">164</span>        }<a name="line.164"></a>
-<span class="sourceLineNo">165</span><a name="line.165"></a>
-<span class="sourceLineNo">166</span>        /**<a name="line.166"></a>
-<span class="sourceLineNo">167</span>         * @return the port value specified in the pattern or {@code null}<a name="line.167"></a>
-<span class="sourceLineNo">168</span>         */<a name="line.168"></a>
-<span class="sourceLineNo">169</span>        public String port() {<a name="line.169"></a>
-<span class="sourceLineNo">170</span>                return port;<a name="line.170"></a>
-<span class="sourceLineNo">171</span>        }<a name="line.171"></a>
-<span class="sourceLineNo">172</span><a name="line.172"></a>
-<span class="sourceLineNo">173</span>        /**<a name="line.173"></a>
-<span class="sourceLineNo">174</span>         * @return the path value specified in the pattern or {@code null}<a name="line.174"></a>
-<span class="sourceLineNo">175</span>         */<a name="line.175"></a>
-<span class="sourceLineNo">176</span>        public String path() {<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                return path;<a name="line.177"></a>
-<span class="sourceLineNo">178</span>        }<a name="line.178"></a>
-<span class="sourceLineNo">179</span><a name="line.179"></a>
-<span class="sourceLineNo">180</span>        /**<a name="line.180"></a>
-<span class="sourceLineNo">181</span>         * Matches the given resource URI against the pattern.<a name="line.181"></a>
-<span class="sourceLineNo">182</span>         * <a name="line.182"></a>
-<span class="sourceLineNo">183</span>         * @param resource the URI specifying the resource to match<a name="line.183"></a>
-<span class="sourceLineNo">184</span>         * @return -1 if the resource does not match, else the number<a name="line.184"></a>
-<span class="sourceLineNo">185</span>         * of prefix segments (which may be 0)<a name="line.185"></a>
-<span class="sourceLineNo">186</span>         */<a name="line.186"></a>
-<span class="sourceLineNo">187</span>        public int matches(URI resource) {<a name="line.187"></a>
-<span class="sourceLineNo">188</span>                if (protocol != null &amp;&amp; !protocol.equals("*")) {<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                        if (resource.getScheme() == null) {<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                                return -1;<a name="line.190"></a>
-<span class="sourceLineNo">191</span>                        }<a name="line.191"></a>
-<span class="sourceLineNo">192</span>                        if (Arrays.stream(protocol.split(","))<a name="line.192"></a>
-<span class="sourceLineNo">193</span>                                .noneMatch(p -&gt; p.equals(resource.getScheme()))) {<a name="line.193"></a>
-<span class="sourceLineNo">194</span>                                return -1;<a name="line.194"></a>
-<span class="sourceLineNo">195</span>                        }<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                }<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                if (host != null &amp;&amp; !host.equals("*")) {<a name="line.197"></a>
-<span class="sourceLineNo">198</span>                        if (resource.getHost() == null<a name="line.198"></a>
-<span class="sourceLineNo">199</span>                                || !resource.getHost().equals(host)) {<a name="line.199"></a>
-<span class="sourceLineNo">200</span>                                return -1;<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                        }<a name="line.201"></a>
-<span class="sourceLineNo">202</span>                }<a name="line.202"></a>
-<span class="sourceLineNo">203</span>                if (port != null &amp;&amp; !port.equals("*")) {<a name="line.203"></a>
-<span class="sourceLineNo">204</span>                        if (Integer.parseInt(port) != resource.getPort()) {<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                                return -1;<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                        }<a name="line.206"></a>
-<span class="sourceLineNo">207</span>                }<a name="line.207"></a>
-<span class="sourceLineNo">208</span><a name="line.208"></a>
-<span class="sourceLineNo">209</span>                String[] reqElements = StreamSupport.stream(<a name="line.209"></a>
-<span class="sourceLineNo">210</span>                                new PathSpliterator(resource.getPath()), false)<a name="line.210"></a>
-<span class="sourceLineNo">211</span>                                .toArray(size -&gt; new String[size]);<a name="line.211"></a>
-<span class="sourceLineNo">212</span>                String[] reqElementsPlus = null; // Created lazily<a name="line.212"></a>
-<span class="sourceLineNo">213</span>                for (int pathIdx = 0; pathIdx &lt; pathPatternElements.length; pathIdx++) {<a name="line.213"></a>
-<span class="sourceLineNo">214</span>                        String[] pathPattern = pathPatternElements[pathIdx];<a name="line.214"></a>
-<span class="sourceLineNo">215</span>                        if (prefixSegs[pathIdx] == pathPattern.length - 1<a name="line.215"></a>
-<span class="sourceLineNo">216</span>                                        &amp;&amp; lastIsEmpty(pathPattern)) {<a name="line.216"></a>
-<span class="sourceLineNo">217</span>                                // Special case, pattern ends with vertical bar<a name="line.217"></a>
-<span class="sourceLineNo">218</span>                                if (reqElementsPlus == null) {<a name="line.218"></a>
-<span class="sourceLineNo">219</span>                                        reqElementsPlus = reqElements;<a name="line.219"></a>
-<span class="sourceLineNo">220</span>                                        if (!lastIsEmpty(reqElementsPlus)) {<a name="line.220"></a>
-<span class="sourceLineNo">221</span>                                                reqElementsPlus = Arrays.copyOf(<a name="line.221"></a>
-<span class="sourceLineNo">222</span>                                                                reqElementsPlus, reqElementsPlus.length + 1);<a name="line.222"></a>
-<span class="sourceLineNo">223</span>                                                reqElementsPlus[reqElementsPlus.length - 1] = "";<a name="line.223"></a>
-<span class="sourceLineNo">224</span>                                        }<a name="line.224"></a>
-<span class="sourceLineNo">225</span>                                }<a name="line.225"></a>
-<span class="sourceLineNo">226</span>                                if (matchPath(pathPattern, reqElementsPlus)) {<a name="line.226"></a>
-<span class="sourceLineNo">227</span>                                        return prefixSegs[pathIdx];<a name="line.227"></a>
-<span class="sourceLineNo">228</span>                                }<a name="line.228"></a>
-<span class="sourceLineNo">229</span>                        } else {<a name="line.229"></a>
-<span class="sourceLineNo">230</span>                                if (matchPath(pathPattern, reqElements)) {<a name="line.230"></a>
-<span class="sourceLineNo">231</span>                                        return prefixSegs[pathIdx];<a name="line.231"></a>
-<span class="sourceLineNo">232</span>                                }<a name="line.232"></a>
-<span class="sourceLineNo">233</span>                        }<a name="line.233"></a>
-<span class="sourceLineNo">234</span>                }<a name="line.234"></a>
-<span class="sourceLineNo">235</span>                return -1;<a name="line.235"></a>
-<span class="sourceLineNo">236</span>        }<a name="line.236"></a>
-<span class="sourceLineNo">237</span><a name="line.237"></a>
-<span class="sourceLineNo">238</span>        /**<a name="line.238"></a>
-<span class="sourceLineNo">239</span>         * Matches the given pattern against the given resource URI.<a name="line.239"></a>
-<span class="sourceLineNo">240</span>         * <a name="line.240"></a>
-<span class="sourceLineNo">241</span>         * @param pattern the pattern to match<a name="line.241"></a>
-<span class="sourceLineNo">242</span>         * @param resource the URI specifying the resource to match<a name="line.242"></a>
-<span class="sourceLineNo">243</span>         * @return {@code true} if the resource URI matches<a name="line.243"></a>
-<span class="sourceLineNo">244</span>         * @throws ParseException if an invalid pattern is specified<a name="line.244"></a>
-<span class="sourceLineNo">245</span>         */<a name="line.245"></a>
-<span class="sourceLineNo">246</span>        public static boolean matches(String pattern, URI resource)<a name="line.246"></a>
-<span class="sourceLineNo">247</span>                throws ParseException {<a name="line.247"></a>
-<span class="sourceLineNo">248</span>                return (new ResourcePattern(pattern)).matches(resource) &gt;= 0;<a name="line.248"></a>
-<span class="sourceLineNo">249</span>        }<a name="line.249"></a>
-<span class="sourceLineNo">250</span><a name="line.250"></a>
-<span class="sourceLineNo">251</span>        private static boolean lastIsEmpty(String[] elements) {<a name="line.251"></a>
-<span class="sourceLineNo">252</span>                return elements.length &gt; 0 &amp;&amp; elements[elements.length-1].length() == 0;<a name="line.252"></a>
-<span class="sourceLineNo">253</span>        }<a name="line.253"></a>
-<span class="sourceLineNo">254</span>        <a name="line.254"></a>
-<span class="sourceLineNo">255</span>        private boolean matchPath(String[] patternElements, String[] reqElements) {<a name="line.255"></a>
-<span class="sourceLineNo">256</span>                int pathIdx = 0;<a name="line.256"></a>
-<span class="sourceLineNo">257</span>                int reqIdx = 0;<a name="line.257"></a>
-<span class="sourceLineNo">258</span>                while (true) {<a name="line.258"></a>
-<span class="sourceLineNo">259</span>                        if (pathIdx == patternElements.length) {<a name="line.259"></a>
-<span class="sourceLineNo">260</span>                                return reqIdx == reqElements.length;<a name="line.260"></a>
-<span class="sourceLineNo">261</span>                        }<a name="line.261"></a>
-<span class="sourceLineNo">262</span>                        String matchElement = patternElements[pathIdx++];<a name="line.262"></a>
-<span class="sourceLineNo">263</span>                        if (reqIdx == reqElements.length) {<a name="line.263"></a>
-<span class="sourceLineNo">264</span>                                return false;<a name="line.264"></a>
-<span class="sourceLineNo">265</span>                        }<a name="line.265"></a>
-<span class="sourceLineNo">266</span>                        if (matchElement.equals("**")) {<a name="line.266"></a>
-<span class="sourceLineNo">267</span>                                return true;<a name="line.267"></a>
-<span class="sourceLineNo">268</span>                        }<a name="line.268"></a>
-<span class="sourceLineNo">269</span>                        String reqElement = reqElements[reqIdx++];<a name="line.269"></a>
-<span class="sourceLineNo">270</span>                        if (!matchElement.equals("*") &amp;&amp; !matchElement.equals(reqElement)) {<a name="line.270"></a>
-<span class="sourceLineNo">271</span>                                return false;<a name="line.271"></a>
-<span class="sourceLineNo">272</span>                        }<a name="line.272"></a>
-<span class="sourceLineNo">273</span>                }<a name="line.273"></a>
-<span class="sourceLineNo">274</span>                <a name="line.274"></a>
-<span class="sourceLineNo">275</span>        }<a name="line.275"></a>
-<span class="sourceLineNo">276</span>        <a name="line.276"></a>
-<span class="sourceLineNo">277</span>        /* (non-Javadoc)<a name="line.277"></a>
-<span class="sourceLineNo">278</span>         * @see java.lang.Object#toString()<a name="line.278"></a>
-<span class="sourceLineNo">279</span>         */<a name="line.279"></a>
-<span class="sourceLineNo">280</span>        @Override<a name="line.280"></a>
-<span class="sourceLineNo">281</span>        public String toString() {<a name="line.281"></a>
-<span class="sourceLineNo">282</span>                StringBuilder builder = new StringBuilder();<a name="line.282"></a>
-<span class="sourceLineNo">283</span>                builder.append("ResourcePattern [");<a name="line.283"></a>
-<span class="sourceLineNo">284</span>                builder.append(pattern);<a name="line.284"></a>
-<span class="sourceLineNo">285</span>                builder.append("]");<a name="line.285"></a>
-<span class="sourceLineNo">286</span>                return builder.toString();<a name="line.286"></a>
-<span class="sourceLineNo">287</span>        }<a name="line.287"></a>
-<span class="sourceLineNo">288</span><a name="line.288"></a>
-<span class="sourceLineNo">289</span>        /* (non-Javadoc)<a name="line.289"></a>
-<span class="sourceLineNo">290</span>         * @see java.lang.Object#hashCode()<a name="line.290"></a>
-<span class="sourceLineNo">291</span>         */<a name="line.291"></a>
-<span class="sourceLineNo">292</span>        @Override<a name="line.292"></a>
-<span class="sourceLineNo">293</span>        public int hashCode() {<a name="line.293"></a>
-<span class="sourceLineNo">294</span>                final int prime = 31;<a name="line.294"></a>
-<span class="sourceLineNo">295</span>                int result = 1;<a name="line.295"></a>
-<span class="sourceLineNo">296</span>                result = prime * result + ((pattern == null) ? 0 : pattern.hashCode());<a name="line.296"></a>
-<span class="sourceLineNo">297</span>                return result;<a name="line.297"></a>
-<span class="sourceLineNo">298</span>        }<a name="line.298"></a>
-<span class="sourceLineNo">299</span><a name="line.299"></a>
-<span class="sourceLineNo">300</span>        /* (non-Javadoc)<a name="line.300"></a>
-<span class="sourceLineNo">301</span>         * @see java.lang.Object#equals(java.lang.Object)<a name="line.301"></a>
-<span class="sourceLineNo">302</span>         */<a name="line.302"></a>
-<span class="sourceLineNo">303</span>        @Override<a name="line.303"></a>
-<span class="sourceLineNo">304</span>        public boolean equals(Object obj) {<a name="line.304"></a>
-<span class="sourceLineNo">305</span>                if (this == obj) {<a name="line.305"></a>
-<span class="sourceLineNo">306</span>                        return true;<a name="line.306"></a>
-<span class="sourceLineNo">307</span>                }<a name="line.307"></a>
-<span class="sourceLineNo">308</span>                if (obj == null) {<a name="line.308"></a>
-<span class="sourceLineNo">309</span>                        return false;<a name="line.309"></a>
-<span class="sourceLineNo">310</span>                }<a name="line.310"></a>
-<span class="sourceLineNo">311</span>                if (getClass() != obj.getClass()) {<a name="line.311"></a>
-<span class="sourceLineNo">312</span>                        return false;<a name="line.312"></a>
-<span class="sourceLineNo">313</span>                }<a name="line.313"></a>
-<span class="sourceLineNo">314</span>                ResourcePattern other = (ResourcePattern) obj;<a name="line.314"></a>
-<span class="sourceLineNo">315</span>                if (pattern == null) {<a name="line.315"></a>
-<span class="sourceLineNo">316</span>                        if (other.pattern != null) {<a name="line.316"></a>
-<span class="sourceLineNo">317</span>                                return false;<a name="line.317"></a>
-<span class="sourceLineNo">318</span>                        }<a name="line.318"></a>
-<span class="sourceLineNo">319</span>                } else if (!pattern.equals(other.pattern)) {<a name="line.319"></a>
-<span class="sourceLineNo">320</span>                        return false;<a name="line.320"></a>
-<span class="sourceLineNo">321</span>                }<a name="line.321"></a>
-<span class="sourceLineNo">322</span>                return true;<a name="line.322"></a>
-<span class="sourceLineNo">323</span>        }<a name="line.323"></a>
-<span class="sourceLineNo">324</span>        <a name="line.324"></a>
-<span class="sourceLineNo">325</span>        /**<a name="line.325"></a>
-<span class="sourceLineNo">326</span>         * Returns the segments of the path. If the path ends with a slash,<a name="line.326"></a>
-<span class="sourceLineNo">327</span>         * an empty string is returned as final segment.<a name="line.327"></a>
-<span class="sourceLineNo">328</span>         */<a name="line.328"></a>
-<span class="sourceLineNo">329</span>        public static class PathSpliterator extends AbstractSpliterator&lt;String&gt; {<a name="line.329"></a>
-<span class="sourceLineNo">330</span>                private StringTokenizer tokenizer;<a name="line.330"></a>
-<span class="sourceLineNo">331</span>                private boolean endsWithSlash;<a name="line.331"></a>
-<span class="sourceLineNo">332</span><a name="line.332"></a>
-<span class="sourceLineNo">333</span>                /**<a name="line.333"></a>
-<span class="sourceLineNo">334</span>                 * Creates a new spliterator for the given path, using "/"<a name="line.334"></a>
-<span class="sourceLineNo">335</span>                 * as path separator.<a name="line.335"></a>
-<span class="sourceLineNo">336</span>                 * <a name="line.336"></a>
-<span class="sourceLineNo">337</span>                 * @param path the path<a name="line.337"></a>
-<span class="sourceLineNo">338</span>                 */<a name="line.338"></a>
-<span class="sourceLineNo">339</span>                public PathSpliterator(String path) {<a name="line.339"></a>
-<span class="sourceLineNo">340</span>                        this(path, "/");<a name="line.340"></a>
-<span class="sourceLineNo">341</span>                }<a name="line.341"></a>
-<span class="sourceLineNo">342</span>                <a name="line.342"></a>
-<span class="sourceLineNo">343</span>                /**<a name="line.343"></a>
-<span class="sourceLineNo">344</span>                 * Creates a new spliterator for the given path, using <a name="line.344"></a>
-<span class="sourceLineNo">345</span>                 * the character from delimiters as seperators.<a name="line.345"></a>
-<span class="sourceLineNo">346</span>                 * <a name="line.346"></a>
-<span class="sourceLineNo">347</span>                 * @param path the path<a name="line.347"></a>
-<span class="sourceLineNo">348</span>                 * @param delimiters the delimiters<a name="line.348"></a>
-<span class="sourceLineNo">349</span>                 */<a name="line.349"></a>
-<span class="sourceLineNo">350</span>                public PathSpliterator(String path, String delimiters) {<a name="line.350"></a>
-<span class="sourceLineNo">351</span>                        super(Long.MAX_VALUE, Spliterator.ORDERED <a name="line.351"></a>
-<span class="sourceLineNo">352</span>                                        | Spliterator.IMMUTABLE);<a name="line.352"></a>
-<span class="sourceLineNo">353</span>                        tokenizer = new StringTokenizer(path, delimiters);<a name="line.353"></a>
-<span class="sourceLineNo">354</span>                        endsWithSlash = path.endsWith("/");<a name="line.354"></a>
-<span class="sourceLineNo">355</span>                }<a name="line.355"></a>
-<span class="sourceLineNo">356</span><a name="line.356"></a>
-<span class="sourceLineNo">357</span>                /* (non-Javadoc)<a name="line.357"></a>
-<span class="sourceLineNo">358</span>                 * @see java.util.Spliterator#tryAdvance(java.util.function.Consumer)<a name="line.358"></a>
-<span class="sourceLineNo">359</span>                 */<a name="line.359"></a>
-<span class="sourceLineNo">360</span>                @Override<a name="line.360"></a>
-<span class="sourceLineNo">361</span>                public boolean tryAdvance(Consumer&lt;? super String&gt; consumer) {<a name="line.361"></a>
-<span class="sourceLineNo">362</span>                        if (tokenizer == null) {<a name="line.362"></a>
-<span class="sourceLineNo">363</span>                                return false;<a name="line.363"></a>
-<span class="sourceLineNo">364</span>                        }<a name="line.364"></a>
-<span class="sourceLineNo">365</span>                        if (tokenizer.hasMoreTokens()) {<a name="line.365"></a>
-<span class="sourceLineNo">366</span>                                consumer.accept(tokenizer.nextToken());<a name="line.366"></a>
-<span class="sourceLineNo">367</span>                                return true;<a name="line.367"></a>
-<span class="sourceLineNo">368</span>                        }<a name="line.368"></a>
-<span class="sourceLineNo">369</span>                        tokenizer = null;<a name="line.369"></a>
-<span class="sourceLineNo">370</span>                        if (endsWithSlash) {<a name="line.370"></a>
-<span class="sourceLineNo">371</span>                                consumer.accept("");<a name="line.371"></a>
-<span class="sourceLineNo">372</span>                                return true;<a name="line.372"></a>
-<span class="sourceLineNo">373</span>                        }<a name="line.373"></a>
-<span class="sourceLineNo">374</span>                        return false;<a name="line.374"></a>
-<span class="sourceLineNo">375</span>                }<a name="line.375"></a>
-<span class="sourceLineNo">376</span>                <a name="line.376"></a>
-<span class="sourceLineNo">377</span>        }<a name="line.377"></a>
-<span class="sourceLineNo">378</span>}<a name="line.378"></a>
+<span class="sourceLineNo">032</span>import java.util.stream.Collectors;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import java.util.stream.StreamSupport;<a name="line.33"></a>
+<span class="sourceLineNo">034</span><a name="line.34"></a>
+<span class="sourceLineNo">035</span>/**<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * A resource pattern can be used to filter URIs. A pattern looks  <a name="line.36"></a>
+<span class="sourceLineNo">037</span> * similar to a URI (&lt;code&gt;scheme://host:port/path&lt;/code&gt;) with the <a name="line.37"></a>
+<span class="sourceLineNo">038</span> * following differences:<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * <a name="line.39"></a>
+<span class="sourceLineNo">040</span> *  * The &lt;em&gt;scheme&lt;/em&gt; may be a single protocol name or a list<a name="line.40"></a>
+<span class="sourceLineNo">041</span> *    of protocol names separated by commas, or an asterisk, which is matched<a name="line.41"></a>
+<span class="sourceLineNo">042</span> *    by URIs with any scheme. The scheme part ({@code scheme://}) is optional <a name="line.42"></a>
+<span class="sourceLineNo">043</span> *    in a pattern. Omitting it is equivalent to specifying an asterisk.<a name="line.43"></a>
+<span class="sourceLineNo">044</span> *    <a name="line.44"></a>
+<span class="sourceLineNo">045</span> *  * The &lt;em&gt;host&lt;/em&gt; may be a host name or an IP address or an asterisk.<a name="line.45"></a>
+<span class="sourceLineNo">046</span> *    Unless the value is an asterisk, filtered URIs must match the value<a name="line.46"></a>
+<span class="sourceLineNo">047</span> *    literally.<a name="line.47"></a>
+<span class="sourceLineNo">048</span> *    <a name="line.48"></a>
+<span class="sourceLineNo">049</span> *  * The &lt;em&gt;port&lt;/em&gt; may be a number or an asterisk.<a name="line.49"></a>
+<span class="sourceLineNo">050</span> *    Unless the value is an asterisk, filtered URIs must match it.<a name="line.50"></a>
+<span class="sourceLineNo">051</span> *   <a name="line.51"></a>
+<span class="sourceLineNo">052</span> *  * Specifying a port ({@code :port}) is optional. If omitted, <a name="line.52"></a>
+<span class="sourceLineNo">053</span> *    it is equivalent to specifying an asterisk.<a name="line.53"></a>
+<span class="sourceLineNo">054</span> *    <a name="line.54"></a>
+<span class="sourceLineNo">055</span> *  * If the scheme part is omitted, the {@code host:port} part may <a name="line.55"></a>
+<span class="sourceLineNo">056</span> *    completely be left out as well, which is<a name="line.56"></a>
+<span class="sourceLineNo">057</span> *    equivalent to specifying an asterisk for both host and port.<a name="line.57"></a>
+<span class="sourceLineNo">058</span> *    <a name="line.58"></a>
+<span class="sourceLineNo">059</span> *  * The optional path part consist of one or more path separated by commas.<a name="line.59"></a>
+<span class="sourceLineNo">060</span> *  <a name="line.60"></a>
+<span class="sourceLineNo">061</span> *    Each path consists of a sequence of names and asterisks separated<a name="line.61"></a>
+<span class="sourceLineNo">062</span> *    by slashes or a vertical bar ("|"). A name must be matched by the <a name="line.62"></a>
+<span class="sourceLineNo">063</span> *    corresponding path element of filtered URIs, an asterisk is matched by <a name="line.63"></a>
+<span class="sourceLineNo">064</span> *    any corresponding path element (which, however, must exist in the <a name="line.64"></a>
+<span class="sourceLineNo">065</span> *    filtered URI). The final element in <a name="line.65"></a>
+<span class="sourceLineNo">066</span> *    the path of a pattern may be two asterisks ({@code **}), which matches <a name="line.66"></a>
+<span class="sourceLineNo">067</span> *    any remaining path elements in the filtered URI.<a name="line.67"></a>
+<span class="sourceLineNo">068</span> *    <a name="line.68"></a>
+<span class="sourceLineNo">069</span> *    Using a vertical bar instead of a slash separates the path in a<a name="line.69"></a>
+<span class="sourceLineNo">070</span> *    prefix part and the rest. The number of prefix segments is the<a name="line.70"></a>
+<span class="sourceLineNo">071</span> *    value returned by the match methods.<a name="line.71"></a>
+<span class="sourceLineNo">072</span> *    <a name="line.72"></a>
+<span class="sourceLineNo">073</span> *    If a path ends with a vertical bar and the URI matched with the<a name="line.73"></a>
+<span class="sourceLineNo">074</span> *    path does not end with a slash, a slash is appended to the URI<a name="line.74"></a>
+<span class="sourceLineNo">075</span> *    before matching. This causes both `/foo` and `/foo/` to match<a name="line.75"></a>
+<span class="sourceLineNo">076</span> *    a path `/foo|`. This is usually intended. If you do want to<a name="line.76"></a>
+<span class="sourceLineNo">077</span> *    treat `/foo` as a leaf, specify `/foo,/foo|` in your pattern.<a name="line.77"></a>
+<span class="sourceLineNo">078</span> *<a name="line.78"></a>
+<span class="sourceLineNo">079</span> */<a name="line.79"></a>
+<span class="sourceLineNo">080</span>public class ResourcePattern {<a name="line.80"></a>
+<span class="sourceLineNo">081</span><a name="line.81"></a>
+<span class="sourceLineNo">082</span>        private static Pattern resourcePattern = Pattern.compile(<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                        "^((?&lt;proto&gt;[^:]+|\\*)://)?" // Optional protocol (2)<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                        + "(" // Start of optional host/port part<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                                + "(?&lt;host&gt;([^\\[/\\|][^:/\\|]*)|(\\[[^\\]]*\\]))" // Host (4)<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                                + "(:(?&lt;port&gt;([0-9]+)|(\\*)))?" // Optional port (8)<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                        + ")?" // End of optional host/port<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                        + "(?&lt;path&gt;[/\\|].*)?"); // Finally path (11)<a name="line.88"></a>
+<span class="sourceLineNo">089</span>        <a name="line.89"></a>
+<span class="sourceLineNo">090</span>        private String pattern;<a name="line.90"></a>
+<span class="sourceLineNo">091</span>        private String protocol;<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        private String host;<a name="line.92"></a>
+<span class="sourceLineNo">093</span>        private String port;<a name="line.93"></a>
+<span class="sourceLineNo">094</span>        private String path;<a name="line.94"></a>
+<span class="sourceLineNo">095</span>        private String[][] pathPatternElements;<a name="line.95"></a>
+<span class="sourceLineNo">096</span>        private int[] prefixSegs;<a name="line.96"></a>
+<span class="sourceLineNo">097</span><a name="line.97"></a>
+<span class="sourceLineNo">098</span>        /**<a name="line.98"></a>
+<span class="sourceLineNo">099</span>         * Creates a new resource pattern.<a name="line.99"></a>
+<span class="sourceLineNo">100</span>         * <a name="line.100"></a>
+<span class="sourceLineNo">101</span>         * @param pattern the pattern to be used for matching<a name="line.101"></a>
+<span class="sourceLineNo">102</span>         * @throws ParseException if an invalid pattern is specified<a name="line.102"></a>
+<span class="sourceLineNo">103</span>         */<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        public ResourcePattern(String pattern) throws ParseException {<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                this.pattern = pattern;<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                Matcher rpm = resourcePattern.matcher(pattern);<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                if (!rpm.matches()) {<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                        throw new ParseException("Invalid pattern: " + pattern, 0);<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                }<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                protocol = rpm.group("proto");<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                host = rpm.group("host");<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                port = rpm.group("port");<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                path = rpm.group("path");<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                if (path == null) {<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                        pathPatternElements = new String[0][];<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                } else {<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                        String[] paths = path.split(",");<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                        pathPatternElements = new String[paths.length][];<a name="line.118"></a>
+<span class="sourceLineNo">119</span>                        prefixSegs = new int[paths.length];<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                        for (int i = 0; i &lt; paths.length; i++) {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                                List&lt;String&gt; segs = new ArrayList&lt;&gt;();<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                                prefixSegs[i] = 0;<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                                StringTokenizer st = new StringTokenizer(paths[i], "/|", true);<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                                while(st.hasMoreTokens()) {<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                                        String token = st.nextToken();<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                                        switch (token) {<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                                        case "/":<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                                                continue;<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                                        case "|":<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                                                prefixSegs[i] = segs.size();<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                                                continue;<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                                        default:<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                                                segs.add(token);<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                                                continue;<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                                        }<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                                }<a name="line.136"></a>
+<span class="sourceLineNo">137</span>                                if (paths[i].endsWith("/") || paths[i].endsWith("|")) {<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                                        segs.add("");<a name="line.138"></a>
+<span class="sourceLineNo">139</span>                                }<a name="line.139"></a>
+<span class="sourceLineNo">140</span>                                pathPatternElements[i] = segs.toArray(new String[segs.size()]);<a name="line.140"></a>
+<span class="sourceLineNo">141</span>                        }<a name="line.141"></a>
+<span class="sourceLineNo">142</span>                }<a name="line.142"></a>
+<span class="sourceLineNo">143</span>        }<a name="line.143"></a>
+<span class="sourceLineNo">144</span>        <a name="line.144"></a>
+<span class="sourceLineNo">145</span>        /**<a name="line.145"></a>
+<span class="sourceLineNo">146</span>         * @return the pattern (string) that was used to create this <a name="line.146"></a>
+<span class="sourceLineNo">147</span>         * resource pattern.<a name="line.147"></a>
+<span class="sourceLineNo">148</span>         */<a name="line.148"></a>
+<span class="sourceLineNo">149</span>        public String pattern() {<a name="line.149"></a>
+<span class="sourceLineNo">150</span>                return pattern;<a name="line.150"></a>
+<span class="sourceLineNo">151</span>        }<a name="line.151"></a>
+<span class="sourceLineNo">152</span>        <a name="line.152"></a>
+<span class="sourceLineNo">153</span>        /**<a name="line.153"></a>
+<span class="sourceLineNo">154</span>         * @return the protocol value specified in the pattern or {@code null}<a name="line.154"></a>
+<span class="sourceLineNo">155</span>         */<a name="line.155"></a>
+<span class="sourceLineNo">156</span>        public String protocol() {<a name="line.156"></a>
+<span class="sourceLineNo">157</span>                return protocol;<a name="line.157"></a>
+<span class="sourceLineNo">158</span>        }<a name="line.158"></a>
+<span class="sourceLineNo">159</span><a name="line.159"></a>
+<span class="sourceLineNo">160</span>        /**<a name="line.160"></a>
+<span class="sourceLineNo">161</span>         * @return the host value specified in the pattern or {@code null}<a name="line.161"></a>
+<span class="sourceLineNo">162</span>         */<a name="line.162"></a>
+<span class="sourceLineNo">163</span>        public String host() {<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                return host;<a name="line.164"></a>
+<span class="sourceLineNo">165</span>        }<a name="line.165"></a>
+<span class="sourceLineNo">166</span><a name="line.166"></a>
+<span class="sourceLineNo">167</span>        /**<a name="line.167"></a>
+<span class="sourceLineNo">168</span>         * @return the port value specified in the pattern or {@code null}<a name="line.168"></a>
+<span class="sourceLineNo">169</span>         */<a name="line.169"></a>
+<span class="sourceLineNo">170</span>        public String port() {<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                return port;<a name="line.171"></a>
+<span class="sourceLineNo">172</span>        }<a name="line.172"></a>
+<span class="sourceLineNo">173</span><a name="line.173"></a>
+<span class="sourceLineNo">174</span>        /**<a name="line.174"></a>
+<span class="sourceLineNo">175</span>         * @return the path value specified in the pattern or {@code null}<a name="line.175"></a>
+<span class="sourceLineNo">176</span>         */<a name="line.176"></a>
+<span class="sourceLineNo">177</span>        public String path() {<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                return path;<a name="line.178"></a>
+<span class="sourceLineNo">179</span>        }<a name="line.179"></a>
+<span class="sourceLineNo">180</span><a name="line.180"></a>
+<span class="sourceLineNo">181</span>        /**<a name="line.181"></a>
+<span class="sourceLineNo">182</span>         * Matches the given resource URI against the pattern.<a name="line.182"></a>
+<span class="sourceLineNo">183</span>         * <a name="line.183"></a>
+<span class="sourceLineNo">184</span>         * @param resource the URI specifying the resource to match<a name="line.184"></a>
+<span class="sourceLineNo">185</span>         * @return -1 if the resource does not match, else the number<a name="line.185"></a>
+<span class="sourceLineNo">186</span>         * of prefix segments (which may be 0)<a name="line.186"></a>
+<span class="sourceLineNo">187</span>         */<a name="line.187"></a>
+<span class="sourceLineNo">188</span>        public int matches(URI resource) {<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                if (protocol != null &amp;&amp; !protocol.equals("*")) {<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                        if (resource.getScheme() == null) {<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                                return -1;<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                        }<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                        if (Arrays.stream(protocol.split(","))<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                                .noneMatch(p -&gt; p.equals(resource.getScheme()))) {<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                                return -1;<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                        }<a name="line.196"></a>
+<span class="sourceLineNo">197</span>                }<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                if (host != null &amp;&amp; !host.equals("*")) {<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                        if (resource.getHost() == null<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                                || !resource.getHost().equals(host)) {<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                                return -1;<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                        }<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                }<a name="line.203"></a>
+<span class="sourceLineNo">204</span>                if (port != null &amp;&amp; !port.equals("*")) {<a name="line.204"></a>
+<span class="sourceLineNo">205</span>                        if (Integer.parseInt(port) != resource.getPort()) {<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                                return -1;<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                        }<a name="line.207"></a>
+<span class="sourceLineNo">208</span>                }<a name="line.208"></a>
+<span class="sourceLineNo">209</span><a name="line.209"></a>
+<span class="sourceLineNo">210</span>                String[] reqElements = StreamSupport.stream(<a name="line.210"></a>
+<span class="sourceLineNo">211</span>                                new PathSpliterator(resource.getPath()), false)<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                                .toArray(size -&gt; new String[size]);<a name="line.212"></a>
+<span class="sourceLineNo">213</span>                String[] reqElementsPlus = null; // Created lazily<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                for (int pathIdx = 0; pathIdx &lt; pathPatternElements.length; pathIdx++) {<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                        String[] pathPattern = pathPatternElements[pathIdx];<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                        if (prefixSegs[pathIdx] == pathPattern.length - 1<a name="line.216"></a>
+<span class="sourceLineNo">217</span>                                        &amp;&amp; lastIsEmpty(pathPattern)) {<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                                // Special case, pattern ends with vertical bar<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                                if (reqElementsPlus == null) {<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                                        reqElementsPlus = reqElements;<a name="line.220"></a>
+<span class="sourceLineNo">221</span>                                        if (!lastIsEmpty(reqElementsPlus)) {<a name="line.221"></a>
+<span class="sourceLineNo">222</span>                                                reqElementsPlus = Arrays.copyOf(<a name="line.222"></a>
+<span class="sourceLineNo">223</span>                                                                reqElementsPlus, reqElementsPlus.length + 1);<a name="line.223"></a>
+<span class="sourceLineNo">224</span>                                                reqElementsPlus[reqElementsPlus.length - 1] = "";<a name="line.224"></a>
+<span class="sourceLineNo">225</span>                                        }<a name="line.225"></a>
+<span class="sourceLineNo">226</span>                                }<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                                if (matchPath(pathPattern, reqElementsPlus)) {<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                                        return prefixSegs[pathIdx];<a name="line.228"></a>
+<span class="sourceLineNo">229</span>                                }<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                        } else {<a name="line.230"></a>
+<span class="sourceLineNo">231</span>                                if (matchPath(pathPattern, reqElements)) {<a name="line.231"></a>
+<span class="sourceLineNo">232</span>                                        return prefixSegs[pathIdx];<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                                }<a name="line.233"></a>
+<span class="sourceLineNo">234</span>                        }<a name="line.234"></a>
+<span class="sourceLineNo">235</span>                }<a name="line.235"></a>
+<span class="sourceLineNo">236</span>                return -1;<a name="line.236"></a>
+<span class="sourceLineNo">237</span>        }<a name="line.237"></a>
+<span class="sourceLineNo">238</span><a name="line.238"></a>
+<span class="sourceLineNo">239</span>        /**<a name="line.239"></a>
+<span class="sourceLineNo">240</span>         * Matches the given pattern against the given resource URI.<a name="line.240"></a>
+<span class="sourceLineNo">241</span>         * <a name="line.241"></a>
+<span class="sourceLineNo">242</span>         * @param pattern the pattern to match<a name="line.242"></a>
+<span class="sourceLineNo">243</span>         * @param resource the URI specifying the resource to match<a name="line.243"></a>
+<span class="sourceLineNo">244</span>         * @return {@code true} if the resource URI matches<a name="line.244"></a>
+<span class="sourceLineNo">245</span>         * @throws ParseException if an invalid pattern is specified<a name="line.245"></a>
+<span class="sourceLineNo">246</span>         */<a name="line.246"></a>
+<span class="sourceLineNo">247</span>        public static boolean matches(String pattern, URI resource)<a name="line.247"></a>
+<span class="sourceLineNo">248</span>                throws ParseException {<a name="line.248"></a>
+<span class="sourceLineNo">249</span>                return (new ResourcePattern(pattern)).matches(resource) &gt;= 0;<a name="line.249"></a>
+<span class="sourceLineNo">250</span>        }<a name="line.250"></a>
+<span class="sourceLineNo">251</span><a name="line.251"></a>
+<span class="sourceLineNo">252</span>        private static boolean lastIsEmpty(String[] elements) {<a name="line.252"></a>
+<span class="sourceLineNo">253</span>                return elements.length &gt; 0 &amp;&amp; elements[elements.length-1].length() == 0;<a name="line.253"></a>
+<span class="sourceLineNo">254</span>        }<a name="line.254"></a>
+<span class="sourceLineNo">255</span>        <a name="line.255"></a>
+<span class="sourceLineNo">256</span>        private boolean matchPath(String[] patternElements, String[] reqElements) {<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                int pathIdx = 0;<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                int reqIdx = 0;<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                while (true) {<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                        if (pathIdx == patternElements.length) {<a name="line.260"></a>
+<span class="sourceLineNo">261</span>                                return reqIdx == reqElements.length;<a name="line.261"></a>
+<span class="sourceLineNo">262</span>                        }<a name="line.262"></a>
+<span class="sourceLineNo">263</span>                        String matchElement = patternElements[pathIdx++];<a name="line.263"></a>
+<span class="sourceLineNo">264</span>                        if (reqIdx == reqElements.length) {<a name="line.264"></a>
+<span class="sourceLineNo">265</span>                                return false;<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                        }<a name="line.266"></a>
+<span class="sourceLineNo">267</span>                        if (matchElement.equals("**")) {<a name="line.267"></a>
+<span class="sourceLineNo">268</span>                                return true;<a name="line.268"></a>
+<span class="sourceLineNo">269</span>                        }<a name="line.269"></a>
+<span class="sourceLineNo">270</span>                        String reqElement = reqElements[reqIdx++];<a name="line.270"></a>
+<span class="sourceLineNo">271</span>                        if (!matchElement.equals("*") &amp;&amp; !matchElement.equals(reqElement)) {<a name="line.271"></a>
+<span class="sourceLineNo">272</span>                                return false;<a name="line.272"></a>
+<span class="sourceLineNo">273</span>                        }<a name="line.273"></a>
+<span class="sourceLineNo">274</span>                }<a name="line.274"></a>
+<span class="sourceLineNo">275</span>                <a name="line.275"></a>
+<span class="sourceLineNo">276</span>        }<a name="line.276"></a>
+<span class="sourceLineNo">277</span>        <a name="line.277"></a>
+<span class="sourceLineNo">278</span>        /**<a name="line.278"></a>
+<span class="sourceLineNo">279</span>         * Removes the given number of segments (and their trailing slashes)<a name="line.279"></a>
+<span class="sourceLineNo">280</span>         * from the beginning of the path. Segments may be empty. This implies <a name="line.280"></a>
+<span class="sourceLineNo">281</span>         * that invoking this method with a path that starts with a<a name="line.281"></a>
+<span class="sourceLineNo">282</span>         * slash, the first removed segment is the empty segment<a name="line.282"></a>
+<span class="sourceLineNo">283</span>         * preceding the slash and the starting slash. Put differently, <a name="line.283"></a>
+<span class="sourceLineNo">284</span>         * invoking this method with an absolute path and 1 makes the path<a name="line.284"></a>
+<span class="sourceLineNo">285</span>         * relative.<a name="line.285"></a>
+<span class="sourceLineNo">286</span>         *<a name="line.286"></a>
+<span class="sourceLineNo">287</span>         * @param path the path<a name="line.287"></a>
+<span class="sourceLineNo">288</span>         * @param segments the number of segments to remove<a name="line.288"></a>
+<span class="sourceLineNo">289</span>         * @return the result<a name="line.289"></a>
+<span class="sourceLineNo">290</span>         */<a name="line.290"></a>
+<span class="sourceLineNo">291</span>        public static String removeSegments(String path, int segments) {<a name="line.291"></a>
+<span class="sourceLineNo">292</span>                return Arrays.stream(path.split("/"))<a name="line.292"></a>
+<span class="sourceLineNo">293</span>                .skip(segments).collect(Collectors.joining("/"));<a name="line.293"></a>
+<span class="sourceLineNo">294</span>        }<a name="line.294"></a>
+<span class="sourceLineNo">295</span>        <a name="line.295"></a>
+<span class="sourceLineNo">296</span>        /* (non-Javadoc)<a name="line.296"></a>
+<span class="sourceLineNo">297</span>         * @see java.lang.Object#toString()<a name="line.297"></a>
+<span class="sourceLineNo">298</span>         */<a name="line.298"></a>
+<span class="sourceLineNo">299</span>        @Override<a name="line.299"></a>
+<span class="sourceLineNo">300</span>        public String toString() {<a name="line.300"></a>
+<span class="sourceLineNo">301</span>                StringBuilder builder = new StringBuilder();<a name="line.301"></a>
+<span class="sourceLineNo">302</span>                builder.append("ResourcePattern [");<a name="line.302"></a>
+<span class="sourceLineNo">303</span>                builder.append(pattern);<a name="line.303"></a>
+<span class="sourceLineNo">304</span>                builder.append("]");<a name="line.304"></a>
+<span class="sourceLineNo">305</span>                return builder.toString();<a name="line.305"></a>
+<span class="sourceLineNo">306</span>        }<a name="line.306"></a>
+<span class="sourceLineNo">307</span><a name="line.307"></a>
+<span class="sourceLineNo">308</span>        /* (non-Javadoc)<a name="line.308"></a>
+<span class="sourceLineNo">309</span>         * @see java.lang.Object#hashCode()<a name="line.309"></a>
+<span class="sourceLineNo">310</span>         */<a name="line.310"></a>
+<span class="sourceLineNo">311</span>        @Override<a name="line.311"></a>
+<span class="sourceLineNo">312</span>        public int hashCode() {<a name="line.312"></a>
+<span class="sourceLineNo">313</span>                final int prime = 31;<a name="line.313"></a>
+<span class="sourceLineNo">314</span>                int result = 1;<a name="line.314"></a>
+<span class="sourceLineNo">315</span>                result = prime * result + ((pattern == null) ? 0 : pattern.hashCode());<a name="line.315"></a>
+<span class="sourceLineNo">316</span>                return result;<a name="line.316"></a>
+<span class="sourceLineNo">317</span>        }<a name="line.317"></a>
+<span class="sourceLineNo">318</span><a name="line.318"></a>
+<span class="sourceLineNo">319</span>        /* (non-Javadoc)<a name="line.319"></a>
+<span class="sourceLineNo">320</span>         * @see java.lang.Object#equals(java.lang.Object)<a name="line.320"></a>
+<span class="sourceLineNo">321</span>         */<a name="line.321"></a>
+<span class="sourceLineNo">322</span>        @Override<a name="line.322"></a>
+<span class="sourceLineNo">323</span>        public boolean equals(Object obj) {<a name="line.323"></a>
+<span class="sourceLineNo">324</span>                if (this == obj) {<a name="line.324"></a>
+<span class="sourceLineNo">325</span>                        return true;<a name="line.325"></a>
+<span class="sourceLineNo">326</span>                }<a name="line.326"></a>
+<span class="sourceLineNo">327</span>                if (obj == null) {<a name="line.327"></a>
+<span class="sourceLineNo">328</span>                        return false;<a name="line.328"></a>
+<span class="sourceLineNo">329</span>                }<a name="line.329"></a>
+<span class="sourceLineNo">330</span>                if (getClass() != obj.getClass()) {<a name="line.330"></a>
+<span class="sourceLineNo">331</span>                        return false;<a name="line.331"></a>
+<span class="sourceLineNo">332</span>                }<a name="line.332"></a>
+<span class="sourceLineNo">333</span>                ResourcePattern other = (ResourcePattern) obj;<a name="line.333"></a>
+<span class="sourceLineNo">334</span>                if (pattern == null) {<a name="line.334"></a>
+<span class="sourceLineNo">335</span>                        if (other.pattern != null) {<a name="line.335"></a>
+<span class="sourceLineNo">336</span>                                return false;<a name="line.336"></a>
+<span class="sourceLineNo">337</span>                        }<a name="line.337"></a>
+<span class="sourceLineNo">338</span>                } else if (!pattern.equals(other.pattern)) {<a name="line.338"></a>
+<span class="sourceLineNo">339</span>                        return false;<a name="line.339"></a>
+<span class="sourceLineNo">340</span>                }<a name="line.340"></a>
+<span class="sourceLineNo">341</span>                return true;<a name="line.341"></a>
+<span class="sourceLineNo">342</span>        }<a name="line.342"></a>
+<span class="sourceLineNo">343</span>        <a name="line.343"></a>
+<span class="sourceLineNo">344</span>        /**<a name="line.344"></a>
+<span class="sourceLineNo">345</span>         * Returns the segments of the path. If the path ends with a slash,<a name="line.345"></a>
+<span class="sourceLineNo">346</span>         * an empty string is returned as final segment.<a name="line.346"></a>
+<span class="sourceLineNo">347</span>         */<a name="line.347"></a>
+<span class="sourceLineNo">348</span>        public static class PathSpliterator extends AbstractSpliterator&lt;String&gt; {<a name="line.348"></a>
+<span class="sourceLineNo">349</span>                private StringTokenizer tokenizer;<a name="line.349"></a>
+<span class="sourceLineNo">350</span>                private boolean endsWithSlash;<a name="line.350"></a>
+<span class="sourceLineNo">351</span><a name="line.351"></a>
+<span class="sourceLineNo">352</span>                /**<a name="line.352"></a>
+<span class="sourceLineNo">353</span>                 * Creates a new spliterator for the given path, using "/"<a name="line.353"></a>
+<span class="sourceLineNo">354</span>                 * as path separator.<a name="line.354"></a>
+<span class="sourceLineNo">355</span>                 * <a name="line.355"></a>
+<span class="sourceLineNo">356</span>                 * @param path the path<a name="line.356"></a>
+<span class="sourceLineNo">357</span>                 */<a name="line.357"></a>
+<span class="sourceLineNo">358</span>                public PathSpliterator(String path) {<a name="line.358"></a>
+<span class="sourceLineNo">359</span>                        this(path, "/");<a name="line.359"></a>
+<span class="sourceLineNo">360</span>                }<a name="line.360"></a>
+<span class="sourceLineNo">361</span>                <a name="line.361"></a>
+<span class="sourceLineNo">362</span>                /**<a name="line.362"></a>
+<span class="sourceLineNo">363</span>                 * Creates a new spliterator for the given path, using <a name="line.363"></a>
+<span class="sourceLineNo">364</span>                 * the character from delimiters as seperators.<a name="line.364"></a>
+<span class="sourceLineNo">365</span>                 * <a name="line.365"></a>
+<span class="sourceLineNo">366</span>                 * @param path the path<a name="line.366"></a>
+<span class="sourceLineNo">367</span>                 * @param delimiters the delimiters<a name="line.367"></a>
+<span class="sourceLineNo">368</span>                 */<a name="line.368"></a>
+<span class="sourceLineNo">369</span>                public PathSpliterator(String path, String delimiters) {<a name="line.369"></a>
+<span class="sourceLineNo">370</span>                        super(Long.MAX_VALUE, Spliterator.ORDERED <a name="line.370"></a>
+<span class="sourceLineNo">371</span>                                        | Spliterator.IMMUTABLE);<a name="line.371"></a>
+<span class="sourceLineNo">372</span>                        tokenizer = new StringTokenizer(path, delimiters);<a name="line.372"></a>
+<span class="sourceLineNo">373</span>                        endsWithSlash = path.endsWith("/");<a name="line.373"></a>
+<span class="sourceLineNo">374</span>                }<a name="line.374"></a>
+<span class="sourceLineNo">375</span><a name="line.375"></a>
+<span class="sourceLineNo">376</span>                /* (non-Javadoc)<a name="line.376"></a>
+<span class="sourceLineNo">377</span>                 * @see java.util.Spliterator#tryAdvance(java.util.function.Consumer)<a name="line.377"></a>
+<span class="sourceLineNo">378</span>                 */<a name="line.378"></a>
+<span class="sourceLineNo">379</span>                @Override<a name="line.379"></a>
+<span class="sourceLineNo">380</span>                public boolean tryAdvance(Consumer&lt;? super String&gt; consumer) {<a name="line.380"></a>
+<span class="sourceLineNo">381</span>                        if (tokenizer == null) {<a name="line.381"></a>
+<span class="sourceLineNo">382</span>                                return false;<a name="line.382"></a>
+<span class="sourceLineNo">383</span>                        }<a name="line.383"></a>
+<span class="sourceLineNo">384</span>                        if (tokenizer.hasMoreTokens()) {<a name="line.384"></a>
+<span class="sourceLineNo">385</span>                                consumer.accept(tokenizer.nextToken());<a name="line.385"></a>
+<span class="sourceLineNo">386</span>                                return true;<a name="line.386"></a>
+<span class="sourceLineNo">387</span>                        }<a name="line.387"></a>
+<span class="sourceLineNo">388</span>                        tokenizer = null;<a name="line.388"></a>
+<span class="sourceLineNo">389</span>                        if (endsWithSlash) {<a name="line.389"></a>
+<span class="sourceLineNo">390</span>                                consumer.accept("");<a name="line.390"></a>
+<span class="sourceLineNo">391</span>                                return true;<a name="line.391"></a>
+<span class="sourceLineNo">392</span>                        }<a name="line.392"></a>
+<span class="sourceLineNo">393</span>                        return false;<a name="line.393"></a>
+<span class="sourceLineNo">394</span>                }<a name="line.394"></a>
+<span class="sourceLineNo">395</span>                <a name="line.395"></a>
+<span class="sourceLineNo">396</span>        }<a name="line.396"></a>
+<span class="sourceLineNo">397</span>}<a name="line.397"></a>
 
 
 
