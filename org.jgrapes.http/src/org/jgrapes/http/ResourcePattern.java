@@ -439,9 +439,9 @@ public class ResourcePattern {
 		 * @param path the path
 		 * @param delimiters the delimiters
 		 */
-		public static Stream<String> stream(String path, String delimiter) {
+		public static Stream<String> stream(String path, String delimiters) {
 			return StreamSupport.stream(
-					new PathSpliterator(path, delimiter), false);
+					new PathSpliterator(path, delimiters), false);
 		}
 		
 		/**
