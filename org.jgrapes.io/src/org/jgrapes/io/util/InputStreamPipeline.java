@@ -26,7 +26,7 @@ import java.nio.channels.ReadableByteChannel;
 
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Closed;
+import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Output;
 
@@ -82,23 +82,38 @@ public class InputStreamPipeline implements Runnable {
 	@Override
 	public void run() {
 		// Reading from stream
+		ManagedBuffer<ByteBuffer> prevBuffer = null;
 		try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {
 			while (true) {
 				ManagedBuffer<ByteBuffer> buffer 
 					= channel.byteBufferPool().acquire();
 				int read = buffer.fillFromChannel(inChannel);
 				boolean eof = (read == -1);
-				eventPipeline.fire(Output.fromSink(buffer, eof), channel);
+				// Check if first and only buffer
+				if (prevBuffer == null) {
+					if (eof) {
+						eventPipeline.fire(Output.fromSink(buffer, eof), channel);
+						break;
+					}
+				} else {
+					eventPipeline.fire(Output.fromSink(prevBuffer, eof), channel);
+				}
 				if (eof) {
+					// Hasn't been used at all...
+					buffer.unlockBuffer();
 					break;
 				}
+				prevBuffer = buffer;
 			}
 			if (sendClose) {
-				eventPipeline.fire(new Closed(), channel);
+				eventPipeline.fire(new Close(), channel);
 			}
 		} catch (InterruptedException e) {
 			// Just stop
 		} catch (IOException e) {
+			if (prevBuffer != null) {
+				prevBuffer.unlockBuffer();
+			}
 			eventPipeline.fire(new IOError(null, e), channel);
 		}
 	}
