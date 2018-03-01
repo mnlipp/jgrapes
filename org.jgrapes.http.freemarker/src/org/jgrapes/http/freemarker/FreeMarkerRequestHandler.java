@@ -71,7 +71,7 @@ public class FreeMarkerRequestHandler extends Component {
 
 	private ClassLoader contentLoader;
 	private String contentPath;
-	private String prefix;
+	private URI prefix;
 	private ResourcePattern prefixPattern;
 	private Configuration fmConfig = null;
 	private MaxAgeCalculator maxAgeCalculator = null;
@@ -79,11 +79,11 @@ public class FreeMarkerRequestHandler extends Component {
 	/**
 	 * Instantiates a new free marker request handler.
 	 * 
-	 * The prefix is removed from the request paths before resolving
-	 * them against the content root. A prefix must start with a
-	 * slash and must not end with a slash. If the request handler
+	 * The prefix path is removed from the request paths before resolving
+	 * them against the content root. A prefix path must start with a
+	 * slash and must end with a slash. If the request handler
 	 * should respond to top-level requests, the prefix must be
-	 * empty.
+	 * a single slash.
 	 *
 	 * @param componentChannel the component channel
 	 * @param contentLoader the content loader
@@ -91,12 +91,13 @@ public class FreeMarkerRequestHandler extends Component {
 	 * @param prefix the prefix used in requests
 	 */
 	public FreeMarkerRequestHandler(Channel componentChannel, 
-			ClassLoader contentLoader, String contentPath, String prefix) {
+			ClassLoader contentLoader, String contentPath, URI prefix) {
 		super(componentChannel);
-		if (!prefix.isEmpty() 
-				&& (!prefix.startsWith("/") || prefix.endsWith("/"))) {
+		String prefixPath = prefix.getPath();
+		if (!prefixPath.startsWith("/") || !prefixPath.endsWith("/")) {
 			throw new IllegalArgumentException("Illegal prefix: " + prefix);
 		}
+		this.prefix = prefix;
 		this.contentLoader = contentLoader;
 		if (contentPath.startsWith("/")) {
 			contentPath = contentPath.substring(1);
@@ -105,9 +106,8 @@ public class FreeMarkerRequestHandler extends Component {
 			contentPath = contentPath.substring(0, contentPath.length() - 1);
 		}
 		this.contentPath = contentPath;
-		this.prefix = prefix;
 		try {
-			this.prefixPattern = new ResourcePattern(prefix + "|**");
+			this.prefixPattern = new ResourcePattern(prefixPath + "|**");
 		} catch (ParseException e) {
 			throw new IllegalArgumentException(e);
 		}
@@ -118,7 +118,7 @@ public class FreeMarkerRequestHandler extends Component {
 	 *
 	 * @return the prefix
 	 */
-	public String prefix() {
+	public URI prefix() {
 		return prefix;
 	}
 	

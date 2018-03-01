@@ -21,6 +21,7 @@ package org.jgrapes.http.freemarker.test;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
@@ -58,7 +59,7 @@ public class GetTest {
 
 		public ContentProvider(Channel componentChannel, 
 				ClassLoader contentLoader, String contentPath,
-		        String prefix) {
+		        URI prefix) {
 			super(componentChannel, contentLoader, contentPath, prefix);
 		}
 
@@ -87,7 +88,7 @@ public class GetTest {
 	public void testGetSimpleWithoutPrefix() 
 			throws IOException, InterruptedException, ExecutionException {
 		server.attach(new ContentProvider(server.channel(), 
-				GetTest.class.getClassLoader(),	"templates", ""));
+				GetTest.class.getClassLoader(),	"templates", URI.create("/")));
 		URL url = new URL("http", "localhost", server.getPort(),
 		        "/simple.ftl.html");
 		URLConnection conn = url.openConnection();
@@ -106,7 +107,7 @@ public class GetTest {
 	public void testGetStaticWithoutPrefix() 
 			throws IOException, InterruptedException, ExecutionException {
 		server.attach(new ContentProvider(server.channel(), 
-				GetTest.class.getClassLoader(),	"templates", ""));
+				GetTest.class.getClassLoader(),	"templates", URI.create("/")));
 		URL url = new URL("http", "localhost", server.getPort(),
 		        "/Readme.txt");
 		URLConnection conn = url.openConnection();
@@ -125,7 +126,8 @@ public class GetTest {
 	public void testGetSimpleWithPrefix() 
 			throws IOException, InterruptedException, ExecutionException {
 		server.attach(new ContentProvider(server.channel(), 
-				GetTest.class.getClassLoader(),	"templates", "/generated"));
+				GetTest.class.getClassLoader(),	"templates", 
+				URI.create("/generated/")));
 		URL url = new URL("http", "localhost", server.getPort(),
 		        "/generated/simple.ftl.html");
 		URLConnection conn = url.openConnection();
@@ -144,7 +146,8 @@ public class GetTest {
 	public void testGetStaticWithPrefix() 
 			throws IOException, InterruptedException, ExecutionException {
 		server.attach(new ContentProvider(server.channel(), 
-				GetTest.class.getClassLoader(),	"templates", "/generated"));
+				GetTest.class.getClassLoader(),	"templates", 
+				URI.create("/generated/")));
 		URL url = new URL("http", "localhost", server.getPort(),
 		        "/generated/Readme.txt");
 		URLConnection conn = url.openConnection();
