@@ -107,7 +107,8 @@ public class FreeMarkerRequestHandler extends Component {
 		}
 		this.contentPath = contentPath;
 		try {
-			this.prefixPattern = new ResourcePattern(prefixPath + "|**");
+			this.prefixPattern = new ResourcePattern(
+					prefixPath.substring(0, prefixPath.length() - 1) + "|**");
 		} catch (ParseException e) {
 			throw new IllegalArgumentException(e);
 		}
