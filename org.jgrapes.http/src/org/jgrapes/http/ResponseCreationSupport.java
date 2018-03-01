@@ -178,8 +178,8 @@ public class ResponseCreationSupport {
 			response.setStatus(HttpStatus.OK);
 			channel.respond(new Response(response));
 			// Start sending content
-			channel.responsePipeline().executorService()
-				.submit(new InputStreamPipeline(resIn, channel));
+			channel.responsePipeline().executorService().submit(
+					new InputStreamPipeline(resIn, channel).suppressClose());
 		}
 		return true;
 	}
