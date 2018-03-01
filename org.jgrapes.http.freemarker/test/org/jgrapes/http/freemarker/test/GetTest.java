@@ -65,7 +65,7 @@ public class GetTest {
 		@RequestHandler(patterns="/**")
 		public void onGet(GetRequest event, IOSubchannel channel)
 				throws ParseException {
-			doGet(event, channel);
+			doRespond(event, channel);
 		}
 	}
 	
@@ -87,7 +87,7 @@ public class GetTest {
 	public void testGetSimpleWithoutPrefix() 
 			throws IOException, InterruptedException, ExecutionException {
 		server.attach(new ContentProvider(server.channel(), 
-				GetTest.class.getClassLoader(),	"templates", "/"));
+				GetTest.class.getClassLoader(),	"templates", ""));
 		URL url = new URL("http", "localhost", server.getPort(),
 		        "/simple.ftl.html");
 		URLConnection conn = url.openConnection();
@@ -106,7 +106,7 @@ public class GetTest {
 	public void testGetStaticWithoutPrefix() 
 			throws IOException, InterruptedException, ExecutionException {
 		server.attach(new ContentProvider(server.channel(), 
-				GetTest.class.getClassLoader(),	"templates", "/"));
+				GetTest.class.getClassLoader(),	"templates", ""));
 		URL url = new URL("http", "localhost", server.getPort(),
 		        "/Readme.txt");
 		URLConnection conn = url.openConnection();

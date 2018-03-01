@@ -50,12 +50,15 @@ import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.events.Error;
+import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResponseCreationSupport;
 import org.jgrapes.http.ResponseCreationSupport.MaxAgeCalculator;
 import org.jgrapes.http.Session;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.io.events.Close;
+import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ByteBufferOutputStream;
 
 /**
@@ -69,6 +72,7 @@ public class FreeMarkerRequestHandler extends Component {
 	private ClassLoader contentLoader;
 	private String contentPath;
 	private String prefix;
+	private ResourcePattern prefixPattern;
 	private Configuration fmConfig = null;
 	private MaxAgeCalculator maxAgeCalculator = null;
 
@@ -79,7 +83,7 @@ public class FreeMarkerRequestHandler extends Component {
 	 * them against the content root. A prefix must start with a
 	 * slash and must not end with a slash. If the request handler
 	 * should respond to top-level requests, the prefix must be
-	 * specified as a single slash.
+	 * empty.
 	 *
 	 * @param componentChannel the component channel
 	 * @param contentLoader the content loader
@@ -89,8 +93,8 @@ public class FreeMarkerRequestHandler extends Component {
 	public FreeMarkerRequestHandler(Channel componentChannel, 
 			ClassLoader contentLoader, String contentPath, String prefix) {
 		super(componentChannel);
-		if (!prefix.startsWith("/") 
-				|| prefix.length() > 1 && prefix.endsWith("/")) {
+		if (!prefix.isEmpty() 
+				&& (!prefix.startsWith("/") || prefix.endsWith("/"))) {
 			throw new IllegalArgumentException("Illegal prefix: " + prefix);
 		}
 		this.contentLoader = contentLoader;
@@ -102,6 +106,11 @@ public class FreeMarkerRequestHandler extends Component {
 		}
 		this.contentPath = contentPath;
 		this.prefix = prefix;
+		try {
+			this.prefixPattern = new ResourcePattern(prefix + "|**");
+		} catch (ParseException e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 
 	/**
@@ -113,6 +122,26 @@ public class FreeMarkerRequestHandler extends Component {
 		return prefix;
 	}
 	
+	/**
+	 * Gets the prefix pattern. 
+	 *
+	 * @return the prefixPattern
+	 */
+	public ResourcePattern prefixPattern() {
+		return prefixPattern;
+	}
+
+	/**
+	 * Updates the prefix pattern. The contructor initializes the
+	 * prefix pattern to the prefix with "|**" appended
+	 * (see {@link ResourcePattern}.
+	 *
+	 * @param prefixPattern the prefixPattern to set
+	 */
+	protected void updatePrefixPattern(ResourcePattern prefixPattern) {
+		this.prefixPattern = prefixPattern;
+	}
+
 	/**
 	 * @return the maxAgeCalculator
 	 */
@@ -146,35 +175,40 @@ public class FreeMarkerRequestHandler extends Component {
 	 * @param channel the channel
 	 * @throws ParseException the parse exception
 	 */
-	protected void doGet(Request event, IOSubchannel channel)
+	protected void doRespond(Request event, IOSubchannel channel)
 			throws ParseException {
 		final HttpRequest request = event.httpRequest();
-		URI subUri = ResponseCreationSupport.uriFromPath(prefix)
-				.relativize(request.requestUri());
-		if (subUri.equals(request.requestUri())) {
-			return;
-		}
-		if (!TEMPLATE_PATTERN.matcher(event.requestUri().getPath()).matches()) {
-			ResponseCreationSupport.sendStaticContent(
-					event, channel, path -> contentLoader.getResource(
-							FreeMarkerRequestHandler.this.contentPath 
-							+ "/" + subUri.getPath()), maxAgeCalculator);
-			return;
-		}
-		sendProcessedTemplate(event, channel, subUri.getPath());
+		prefixPattern.pathRemainder(request.requestUri()).ifPresent(path -> {
+			boolean success = false;
+			if (!TEMPLATE_PATTERN.matcher(path).matches()) {
+				success = ResponseCreationSupport.sendStaticContent(
+						request, channel, requestPath -> contentLoader
+						.getResource(FreeMarkerRequestHandler.this.contentPath 
+								+ "/" + path), maxAgeCalculator);
+			} else {
+				success = sendProcessedTemplate(event, channel, path);
+			}
+			event.setResult(true);
+			event.stop();
+			if (!success) {
+				channel.respond(new Close());
+			}
+		});
 	}
 
 	/**
-	 * Render a response using the given template.
+	 * Render a response using the given template. Send the 
+	 * {@link Response} and at least one {@link Output} event.
 	 *
-	 * @param event
-	 *            the event
-	 * @param channel
-	 *            the channel
-	 * @param tpl
-	 *            the template
+	 * If the method does not return `true`, the invoker should close
+	 * the connection because it is most likely in an undefined state.
+	 *
+	 * @param event the request event
+	 * @param channel the channel
+	 * @param tpl the template
+	 * @return false if an error occurred
 	 */
-	protected void sendProcessedTemplate(
+	protected boolean sendProcessedTemplate(
 			Request event, IOSubchannel channel, Template tpl) {
 		// Prepare response
 		HttpResponse response = event.httpRequest().response().get();
@@ -192,8 +226,6 @@ public class FreeMarkerRequestHandler extends Component {
 			ResponseCreationSupport.setMaxAge(
 					response, maxAgeCalculator, event.httpRequest(), mediaType);
 		}
-		event.setResult(true);
-		event.stop();
 		channel.respond(new Response(response));
 
 		// Send content
@@ -204,10 +236,12 @@ public class FreeMarkerRequestHandler extends Component {
 			        event.associated(Session.class));
 			tpl.setLocale((Locale)model.get("locale"));
 			tpl.process(model, out);
+			return true;
 		} catch (IOException | TemplateException e) {
 			// Too late to do anything about this (header was sent).
 			fire(new Error(event, e), channel);
 		}
+		return false;
 	}
 
 	/**
@@ -221,15 +255,15 @@ public class FreeMarkerRequestHandler extends Component {
 	 * @param path
 	 *            the path
 	 */
-	protected void sendProcessedTemplate(
+	protected boolean sendProcessedTemplate(
 			Request event, IOSubchannel channel, String path) {
 		try {
 			// Get template (no need to continue if this fails).
 			Template tpl = freemarkerConfig().getTemplate(path);
-			sendProcessedTemplate(event, channel, tpl);
+			return sendProcessedTemplate(event, channel, tpl);
 		} catch (Exception e) {
 			fire(new Error(event, e), channel);
-			return;
+			return false;
 		}
 	}
 
