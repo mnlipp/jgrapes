@@ -250,21 +250,6 @@ public class ResourcePattern {
 		return (new ResourcePattern(pattern)).matches(resource) >= 0;
 	}
 
-	/**
-	 * If the URI matches, returns the path split according to 
-	 * the matched pattern (see {@link #split(String, int)}).
-	 *
-	 * @param resource the resource
-	 * @return the result.
-	 */
-	public Optional<String[]> splitPath(URI resource) {
-		int matchRes = matches(resource);
-		if (matchRes < 0) {
-			return Optional.empty();
-		}
-		return Optional.of(split(resource.getPath(), matchRes + 1));
-	}
-	
 	private static boolean lastIsEmpty(String[] elements) {
 		return elements.length > 0 && elements[elements.length-1].length() == 0;
 	}
@@ -336,6 +321,47 @@ public class ResourcePattern {
 			}
 		});
 		return new String[] { prefix.toString(), suffix.toString() };
+	}
+	
+	/**
+	 * If the URI matches, returns the path split according to 
+	 * the matched pattern (see {@link #split(String, int)}).
+	 *
+	 * @param resource the resource
+	 * @return the result.
+	 */
+	public Optional<String[]> splitPath(URI resource) {
+		int matchRes = matches(resource);
+		if (matchRes < 0) {
+			return Optional.empty();
+		}
+		return Optional.of(split(resource.getPath(), matchRes + 1));
+	}
+	
+	/**
+	 * If the URI matches, returns the path without prefix as specified
+	 * by the matched pattern (see {@link #split(String, int)}).
+	 *
+	 * @param resource the resource
+	 * @return the result.
+	 */
+	public Optional<String> pathRemainder(URI resource) {
+		int matchRes = matches(resource);
+		if (matchRes < 0) {
+			return Optional.empty();
+		}
+		int segments = matchRes + 1;
+		StringBuilder suffix = new StringBuilder();
+		int[] count = { 0 };
+		PathSpliterator.stream(resource.getPath()).forEach(seg -> {
+			if (count[0]++ >= segments) {
+				if (count[0] > segments + 1) {
+					suffix.append('/');
+				}
+				suffix.append(seg);
+			}
+		});
+		return Optional.of(suffix.toString());
 	}
 	
 	/* (non-Javadoc)

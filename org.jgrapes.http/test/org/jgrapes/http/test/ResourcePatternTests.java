@@ -191,4 +191,14 @@ public class ResourcePatternTests {
 		assertEquals("/prefix", result[0]);
 		assertEquals("and/rest", result[1]);
 	}
+	
+	@Test 
+	public void testRemainder() throws ParseException {
+		ResourcePattern pattern = new ResourcePattern("|prefix/and/**");
+		String result = pattern.pathRemainder(URI.create("/prefix/and/rest")).get();
+		assertEquals("prefix/and/rest", result);
+		pattern = new ResourcePattern("/prefix|and/**");
+		result = pattern.pathRemainder(URI.create("/prefix/and/rest")).get();
+		assertEquals("and/rest", result);
+	}
 }
