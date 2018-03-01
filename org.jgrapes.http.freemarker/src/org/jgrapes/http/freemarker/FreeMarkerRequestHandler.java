@@ -230,9 +230,10 @@ public class FreeMarkerRequestHandler extends Component {
 		channel.respond(new Response(response));
 
 		// Send content
-		try (Writer out = new OutputStreamWriter(
-		        new ByteBufferOutputStream(channel, channel.responsePipeline()),
-		        "utf-8")) {
+		try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(
+				channel, channel.responsePipeline());
+				Writer out = new OutputStreamWriter(
+						bbos.suppressClose(), "utf-8")) {
 			Map<String, Object> model = fmSessionModel(
 			        event.associated(Session.class));
 			tpl.setLocale((Locale)model.get("locale"));
