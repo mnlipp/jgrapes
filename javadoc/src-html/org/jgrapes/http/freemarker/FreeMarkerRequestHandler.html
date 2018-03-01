@@ -79,7 +79,7 @@
 <span class="sourceLineNo">071</span><a name="line.71"></a>
 <span class="sourceLineNo">072</span>        private ClassLoader contentLoader;<a name="line.72"></a>
 <span class="sourceLineNo">073</span>        private String contentPath;<a name="line.73"></a>
-<span class="sourceLineNo">074</span>        private String prefix;<a name="line.74"></a>
+<span class="sourceLineNo">074</span>        private URI prefix;<a name="line.74"></a>
 <span class="sourceLineNo">075</span>        private ResourcePattern prefixPattern;<a name="line.75"></a>
 <span class="sourceLineNo">076</span>        private Configuration fmConfig = null;<a name="line.76"></a>
 <span class="sourceLineNo">077</span>        private MaxAgeCalculator maxAgeCalculator = null;<a name="line.77"></a>
@@ -87,11 +87,11 @@
 <span class="sourceLineNo">079</span>        /**<a name="line.79"></a>
 <span class="sourceLineNo">080</span>         * Instantiates a new free marker request handler.<a name="line.80"></a>
 <span class="sourceLineNo">081</span>         * <a name="line.81"></a>
-<span class="sourceLineNo">082</span>         * The prefix is removed from the request paths before resolving<a name="line.82"></a>
-<span class="sourceLineNo">083</span>         * them against the content root. A prefix must start with a<a name="line.83"></a>
-<span class="sourceLineNo">084</span>         * slash and must not end with a slash. If the request handler<a name="line.84"></a>
+<span class="sourceLineNo">082</span>         * The prefix path is removed from the request paths before resolving<a name="line.82"></a>
+<span class="sourceLineNo">083</span>         * them against the content root. A prefix path must start with a<a name="line.83"></a>
+<span class="sourceLineNo">084</span>         * slash and must end with a slash. If the request handler<a name="line.84"></a>
 <span class="sourceLineNo">085</span>         * should respond to top-level requests, the prefix must be<a name="line.85"></a>
-<span class="sourceLineNo">086</span>         * empty.<a name="line.86"></a>
+<span class="sourceLineNo">086</span>         * a single slash.<a name="line.86"></a>
 <span class="sourceLineNo">087</span>         *<a name="line.87"></a>
 <span class="sourceLineNo">088</span>         * @param componentChannel the component channel<a name="line.88"></a>
 <span class="sourceLineNo">089</span>         * @param contentLoader the content loader<a name="line.89"></a>
@@ -99,23 +99,23 @@
 <span class="sourceLineNo">091</span>         * @param prefix the prefix used in requests<a name="line.91"></a>
 <span class="sourceLineNo">092</span>         */<a name="line.92"></a>
 <span class="sourceLineNo">093</span>        public FreeMarkerRequestHandler(Channel componentChannel, <a name="line.93"></a>
-<span class="sourceLineNo">094</span>                        ClassLoader contentLoader, String contentPath, String prefix) {<a name="line.94"></a>
+<span class="sourceLineNo">094</span>                        ClassLoader contentLoader, String contentPath, URI prefix) {<a name="line.94"></a>
 <span class="sourceLineNo">095</span>                super(componentChannel);<a name="line.95"></a>
-<span class="sourceLineNo">096</span>                if (!prefix.isEmpty() <a name="line.96"></a>
-<span class="sourceLineNo">097</span>                                &amp;&amp; (!prefix.startsWith("/") || prefix.endsWith("/"))) {<a name="line.97"></a>
+<span class="sourceLineNo">096</span>                String prefixPath = prefix.getPath();<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                if (!prefixPath.startsWith("/") || !prefixPath.endsWith("/")) {<a name="line.97"></a>
 <span class="sourceLineNo">098</span>                        throw new IllegalArgumentException("Illegal prefix: " + prefix);<a name="line.98"></a>
 <span class="sourceLineNo">099</span>                }<a name="line.99"></a>
-<span class="sourceLineNo">100</span>                this.contentLoader = contentLoader;<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                if (contentPath.startsWith("/")) {<a name="line.101"></a>
-<span class="sourceLineNo">102</span>                        contentPath = contentPath.substring(1);<a name="line.102"></a>
-<span class="sourceLineNo">103</span>                }<a name="line.103"></a>
-<span class="sourceLineNo">104</span>                if (contentPath.endsWith("/")) {<a name="line.104"></a>
-<span class="sourceLineNo">105</span>                        contentPath = contentPath.substring(0, contentPath.length() - 1);<a name="line.105"></a>
-<span class="sourceLineNo">106</span>                }<a name="line.106"></a>
-<span class="sourceLineNo">107</span>                this.contentPath = contentPath;<a name="line.107"></a>
-<span class="sourceLineNo">108</span>                this.prefix = prefix;<a name="line.108"></a>
+<span class="sourceLineNo">100</span>                this.prefix = prefix;<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                this.contentLoader = contentLoader;<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                if (contentPath.startsWith("/")) {<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                        contentPath = contentPath.substring(1);<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                }<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                if (contentPath.endsWith("/")) {<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                        contentPath = contentPath.substring(0, contentPath.length() - 1);<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                }<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                this.contentPath = contentPath;<a name="line.108"></a>
 <span class="sourceLineNo">109</span>                try {<a name="line.109"></a>
-<span class="sourceLineNo">110</span>                        this.prefixPattern = new ResourcePattern(prefix + "|**");<a name="line.110"></a>
+<span class="sourceLineNo">110</span>                        this.prefixPattern = new ResourcePattern(prefixPath + "|**");<a name="line.110"></a>
 <span class="sourceLineNo">111</span>                } catch (ParseException e) {<a name="line.111"></a>
 <span class="sourceLineNo">112</span>                        throw new IllegalArgumentException(e);<a name="line.112"></a>
 <span class="sourceLineNo">113</span>                }<a name="line.113"></a>
@@ -126,7 +126,7 @@
 <span class="sourceLineNo">118</span>         *<a name="line.118"></a>
 <span class="sourceLineNo">119</span>         * @return the prefix<a name="line.119"></a>
 <span class="sourceLineNo">120</span>         */<a name="line.120"></a>
-<span class="sourceLineNo">121</span>        public String prefix() {<a name="line.121"></a>
+<span class="sourceLineNo">121</span>        public URI prefix() {<a name="line.121"></a>
 <span class="sourceLineNo">122</span>                return prefix;<a name="line.122"></a>
 <span class="sourceLineNo">123</span>        }<a name="line.123"></a>
 <span class="sourceLineNo">124</span>        <a name="line.124"></a>
