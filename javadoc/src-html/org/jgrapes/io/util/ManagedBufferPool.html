@@ -481,220 +481,246 @@
 <span class="sourceLineNo">473</span>                public static class PoolInfo {<a name="line.473"></a>
 <span class="sourceLineNo">474</span>                        private int created;<a name="line.474"></a>
 <span class="sourceLineNo">475</span>                        private int pooled;<a name="line.475"></a>
-<span class="sourceLineNo">476</span>                        private int bufferSize;<a name="line.476"></a>
-<span class="sourceLineNo">477</span>                        <a name="line.477"></a>
-<span class="sourceLineNo">478</span>                        @ConstructorProperties({"created", "pooled", "bufferSize"})<a name="line.478"></a>
-<span class="sourceLineNo">479</span>                        public PoolInfo(int created, int pooled, int bufferSize) {<a name="line.479"></a>
-<span class="sourceLineNo">480</span>                                this.created = created;<a name="line.480"></a>
-<span class="sourceLineNo">481</span>                                this.pooled = pooled;<a name="line.481"></a>
-<span class="sourceLineNo">482</span>                                this.bufferSize = bufferSize;<a name="line.482"></a>
-<span class="sourceLineNo">483</span>                        }<a name="line.483"></a>
-<span class="sourceLineNo">484</span><a name="line.484"></a>
-<span class="sourceLineNo">485</span>                        /**<a name="line.485"></a>
-<span class="sourceLineNo">486</span>                         * The number of buffers created by this pool.<a name="line.486"></a>
-<span class="sourceLineNo">487</span>                         * <a name="line.487"></a>
-<span class="sourceLineNo">488</span>                         * @return the value<a name="line.488"></a>
-<span class="sourceLineNo">489</span>                         */<a name="line.489"></a>
-<span class="sourceLineNo">490</span>                        public int getCreated() {<a name="line.490"></a>
-<span class="sourceLineNo">491</span>                                return created;<a name="line.491"></a>
-<span class="sourceLineNo">492</span>                        }<a name="line.492"></a>
-<span class="sourceLineNo">493</span><a name="line.493"></a>
-<span class="sourceLineNo">494</span>                        /**<a name="line.494"></a>
-<span class="sourceLineNo">495</span>                         * The number of buffers pooled (ready to be acquired).<a name="line.495"></a>
-<span class="sourceLineNo">496</span>                         * <a name="line.496"></a>
-<span class="sourceLineNo">497</span>                         * @return the value<a name="line.497"></a>
-<span class="sourceLineNo">498</span>                         */<a name="line.498"></a>
-<span class="sourceLineNo">499</span>                        public int getPooled() {<a name="line.499"></a>
-<span class="sourceLineNo">500</span>                                return pooled;<a name="line.500"></a>
-<span class="sourceLineNo">501</span>                        }<a name="line.501"></a>
-<span class="sourceLineNo">502</span><a name="line.502"></a>
-<span class="sourceLineNo">503</span>                        /**<a name="line.503"></a>
-<span class="sourceLineNo">504</span>                         * The size of the buffers in items.<a name="line.504"></a>
-<span class="sourceLineNo">505</span>                         * <a name="line.505"></a>
-<span class="sourceLineNo">506</span>                         * @return the buffer size<a name="line.506"></a>
-<span class="sourceLineNo">507</span>                         */<a name="line.507"></a>
-<span class="sourceLineNo">508</span>                        public int getBufferSize() {<a name="line.508"></a>
-<span class="sourceLineNo">509</span>                                return bufferSize;<a name="line.509"></a>
-<span class="sourceLineNo">510</span>                        }<a name="line.510"></a>
-<span class="sourceLineNo">511</span>                }<a name="line.511"></a>
-<span class="sourceLineNo">512</span><a name="line.512"></a>
-<span class="sourceLineNo">513</span>                /**<a name="line.513"></a>
-<span class="sourceLineNo">514</span>                 * Three views on the existing pool.<a name="line.514"></a>
-<span class="sourceLineNo">515</span>                 */<a name="line.515"></a>
-<span class="sourceLineNo">516</span>                public static class PoolInfos {<a name="line.516"></a>
-<span class="sourceLineNo">517</span>                        private SortedMap&lt;String,PoolInfo&gt; allPools;<a name="line.517"></a>
-<span class="sourceLineNo">518</span>                        private SortedMap&lt;String,PoolInfo&gt; nonEmptyPools;<a name="line.518"></a>
-<span class="sourceLineNo">519</span>                        private SortedMap&lt;String,PoolInfo&gt; usedPools;<a name="line.519"></a>
-<span class="sourceLineNo">520</span><a name="line.520"></a>
-<span class="sourceLineNo">521</span>                        public PoolInfos(Set&lt;ManagedBufferPool&lt;?, ?&gt;&gt; pools) {<a name="line.521"></a>
-<span class="sourceLineNo">522</span>                                allPools = new TreeMap&lt;&gt;();<a name="line.522"></a>
-<span class="sourceLineNo">523</span>                                nonEmptyPools = new TreeMap&lt;&gt;();<a name="line.523"></a>
-<span class="sourceLineNo">524</span>                                usedPools = new TreeMap&lt;&gt;();<a name="line.524"></a>
-<span class="sourceLineNo">525</span>                                <a name="line.525"></a>
-<span class="sourceLineNo">526</span>                                Map&lt;String, Integer&gt; dupsNext = new HashMap&lt;&gt;();<a name="line.526"></a>
-<span class="sourceLineNo">527</span>                                for (ManagedBufferPool&lt;?,?&gt; mbp: pools) {<a name="line.527"></a>
-<span class="sourceLineNo">528</span>                                        String key = mbp.name();<a name="line.528"></a>
-<span class="sourceLineNo">529</span>                                        PoolInfo qi = new PoolInfo(<a name="line.529"></a>
-<span class="sourceLineNo">530</span>                                                        mbp.createdBufs.get(), mbp.queue.size(), mbp.bufferSize());<a name="line.530"></a>
-<span class="sourceLineNo">531</span>                                        if (allPools.containsKey(key) || dupsNext.containsKey(key)) {<a name="line.531"></a>
-<span class="sourceLineNo">532</span>                                                if (allPools.containsKey(key)) {<a name="line.532"></a>
-<span class="sourceLineNo">533</span>                                                        // Found first duplicate, rename<a name="line.533"></a>
-<span class="sourceLineNo">534</span>                                                        allPools.put(key + "#1", allPools.get(key));<a name="line.534"></a>
-<span class="sourceLineNo">535</span>                                                        allPools.remove(key);<a name="line.535"></a>
-<span class="sourceLineNo">536</span>                                                        dupsNext.put(key, 2);<a name="line.536"></a>
-<span class="sourceLineNo">537</span>                                                }<a name="line.537"></a>
-<span class="sourceLineNo">538</span>                                                allPools.put(key + "#"<a name="line.538"></a>
-<span class="sourceLineNo">539</span>                                                                + (dupsNext.put(key, dupsNext.get(key) + 1)), qi);<a name="line.539"></a>
-<span class="sourceLineNo">540</span>                                        } else {<a name="line.540"></a>
-<span class="sourceLineNo">541</span>                                                allPools.put(key, qi);<a name="line.541"></a>
-<span class="sourceLineNo">542</span>                                        }<a name="line.542"></a>
-<span class="sourceLineNo">543</span>                                }<a name="line.543"></a>
-<span class="sourceLineNo">544</span>                                for (Map.Entry&lt;String,PoolInfo&gt; e: allPools.entrySet()) {<a name="line.544"></a>
-<span class="sourceLineNo">545</span>                                        PoolInfo qi = e.getValue();<a name="line.545"></a>
-<span class="sourceLineNo">546</span>                                        if (qi.getPooled() &gt; 0) {<a name="line.546"></a>
-<span class="sourceLineNo">547</span>                                                nonEmptyPools.put(e.getKey(), qi);<a name="line.547"></a>
-<span class="sourceLineNo">548</span>                                        }<a name="line.548"></a>
-<span class="sourceLineNo">549</span>                                        if (qi.getCreated() &gt; 0) {<a name="line.549"></a>
-<span class="sourceLineNo">550</span>                                                usedPools.put(e.getKey(), qi);<a name="line.550"></a>
-<span class="sourceLineNo">551</span>                                        }<a name="line.551"></a>
-<span class="sourceLineNo">552</span>                                }<a name="line.552"></a>
-<span class="sourceLineNo">553</span>                        }<a name="line.553"></a>
-<span class="sourceLineNo">554</span>                        <a name="line.554"></a>
-<span class="sourceLineNo">555</span>                        /**<a name="line.555"></a>
-<span class="sourceLineNo">556</span>                         * All pools.<a name="line.556"></a>
-<span class="sourceLineNo">557</span>                         */<a name="line.557"></a>
-<span class="sourceLineNo">558</span>                        public SortedMap&lt;String, PoolInfo&gt; getAllPools() {<a name="line.558"></a>
-<span class="sourceLineNo">559</span>                                return allPools;<a name="line.559"></a>
-<span class="sourceLineNo">560</span>                        }<a name="line.560"></a>
-<span class="sourceLineNo">561</span><a name="line.561"></a>
-<span class="sourceLineNo">562</span>                        /**<a name="line.562"></a>
-<span class="sourceLineNo">563</span>                         * Pools that have at least managed buffer enqueued<a name="line.563"></a>
-<span class="sourceLineNo">564</span>                         * (ready to be acquired).<a name="line.564"></a>
-<span class="sourceLineNo">565</span>                         */<a name="line.565"></a>
-<span class="sourceLineNo">566</span>                        public SortedMap&lt;String, PoolInfo&gt; getNonEmptyPools() {<a name="line.566"></a>
-<span class="sourceLineNo">567</span>                                return nonEmptyPools;<a name="line.567"></a>
-<span class="sourceLineNo">568</span>                        }<a name="line.568"></a>
-<span class="sourceLineNo">569</span><a name="line.569"></a>
-<span class="sourceLineNo">570</span>                        /**<a name="line.570"></a>
-<span class="sourceLineNo">571</span>                         * Pools that have at least one associated buffer<a name="line.571"></a>
-<span class="sourceLineNo">572</span>                         * (in pool or in use).<a name="line.572"></a>
-<span class="sourceLineNo">573</span>                         */<a name="line.573"></a>
-<span class="sourceLineNo">574</span>                        public SortedMap&lt;String, PoolInfo&gt; getUsedPools() {<a name="line.574"></a>
-<span class="sourceLineNo">575</span>                                return usedPools;<a name="line.575"></a>
-<span class="sourceLineNo">576</span>                        }<a name="line.576"></a>
-<span class="sourceLineNo">577</span>                }<a name="line.577"></a>
-<span class="sourceLineNo">578</span>                <a name="line.578"></a>
-<span class="sourceLineNo">579</span>                /**<a name="line.579"></a>
-<span class="sourceLineNo">580</span>                 * Set the default drain delay.<a name="line.580"></a>
-<span class="sourceLineNo">581</span>                 * <a name="line.581"></a>
-<span class="sourceLineNo">582</span>                 * @param millis the drain delay in milli seconds<a name="line.582"></a>
-<span class="sourceLineNo">583</span>                 */<a name="line.583"></a>
-<span class="sourceLineNo">584</span>                void setDefaultDrainDelay(long millis);<a name="line.584"></a>
-<span class="sourceLineNo">585</span><a name="line.585"></a>
-<span class="sourceLineNo">586</span>                /**<a name="line.586"></a>
-<span class="sourceLineNo">587</span>                 * Returns the drain delay in milli seconds.<a name="line.587"></a>
-<span class="sourceLineNo">588</span>                 * <a name="line.588"></a>
-<span class="sourceLineNo">589</span>                 * @return the value<a name="line.589"></a>
-<span class="sourceLineNo">590</span>                 */<a name="line.590"></a>
-<span class="sourceLineNo">591</span>                long getDefaultDrainDelay();<a name="line.591"></a>
-<span class="sourceLineNo">592</span><a name="line.592"></a>
-<span class="sourceLineNo">593</span>                /**<a name="line.593"></a>
-<span class="sourceLineNo">594</span>                 * Set the acquire warning limit.<a name="line.594"></a>
-<span class="sourceLineNo">595</span>                 * <a name="line.595"></a>
-<span class="sourceLineNo">596</span>                 * @param millis the limit<a name="line.596"></a>
-<span class="sourceLineNo">597</span>                 */<a name="line.597"></a>
-<span class="sourceLineNo">598</span>                void setAcquireWarningLimit(long millis);<a name="line.598"></a>
-<span class="sourceLineNo">599</span><a name="line.599"></a>
-<span class="sourceLineNo">600</span>                /**<a name="line.600"></a>
-<span class="sourceLineNo">601</span>                 * Returns the acquire warning limit.<a name="line.601"></a>
-<span class="sourceLineNo">602</span>                 * <a name="line.602"></a>
-<span class="sourceLineNo">603</span>                 * @return the value<a name="line.603"></a>
-<span class="sourceLineNo">604</span>                 */<a name="line.604"></a>
-<span class="sourceLineNo">605</span>                long getAcquireWarningLimit();<a name="line.605"></a>
-<span class="sourceLineNo">606</span><a name="line.606"></a>
-<span class="sourceLineNo">607</span>                /**<a name="line.607"></a>
-<span class="sourceLineNo">608</span>                 * Informations about the pools.<a name="line.608"></a>
-<span class="sourceLineNo">609</span>                 * <a name="line.609"></a>
-<span class="sourceLineNo">610</span>                 * @return the map<a name="line.610"></a>
-<span class="sourceLineNo">611</span>                 */<a name="line.611"></a>
-<span class="sourceLineNo">612</span>                PoolInfos getPoolInfos();<a name="line.612"></a>
-<span class="sourceLineNo">613</span><a name="line.613"></a>
-<span class="sourceLineNo">614</span>                /**<a name="line.614"></a>
-<span class="sourceLineNo">615</span>                 * Summary information about the pooled buffers.<a name="line.615"></a>
-<span class="sourceLineNo">616</span>                 * <a name="line.616"></a>
-<span class="sourceLineNo">617</span>                 * @return the values<a name="line.617"></a>
-<span class="sourceLineNo">618</span>                 */<a name="line.618"></a>
-<span class="sourceLineNo">619</span>                IntSummaryStatistics getPooledPerPoolStatistics();<a name="line.619"></a>
-<span class="sourceLineNo">620</span><a name="line.620"></a>
-<span class="sourceLineNo">621</span>                /**<a name="line.621"></a>
-<span class="sourceLineNo">622</span>                 * Summary information about the created buffers.<a name="line.622"></a>
-<span class="sourceLineNo">623</span>                 * <a name="line.623"></a>
-<span class="sourceLineNo">624</span>                 * @return the values<a name="line.624"></a>
-<span class="sourceLineNo">625</span>                 */<a name="line.625"></a>
-<span class="sourceLineNo">626</span>                IntSummaryStatistics getCreatedPerPoolStatistics();<a name="line.626"></a>
-<span class="sourceLineNo">627</span>        }<a name="line.627"></a>
-<span class="sourceLineNo">628</span>        <a name="line.628"></a>
-<span class="sourceLineNo">629</span>        private static class MBeanView implements ManagedBufferPoolMXBean {<a name="line.629"></a>
-<span class="sourceLineNo">630</span><a name="line.630"></a>
-<span class="sourceLineNo">631</span>                private static Set&lt;ManagedBufferPool&lt;?,?&gt;&gt; allPools<a name="line.631"></a>
-<span class="sourceLineNo">632</span>                        = Collections.synchronizedSet(<a name="line.632"></a>
-<span class="sourceLineNo">633</span>                                Collections.newSetFromMap(<a name="line.633"></a>
-<span class="sourceLineNo">634</span>                                                new WeakHashMap&lt;ManagedBufferPool&lt;?, ?&gt;, Boolean&gt;()));<a name="line.634"></a>
-<span class="sourceLineNo">635</span><a name="line.635"></a>
-<span class="sourceLineNo">636</span>                public static void addPool(ManagedBufferPool&lt;?, ?&gt; pool) {<a name="line.636"></a>
-<span class="sourceLineNo">637</span>                        allPools.add(pool);<a name="line.637"></a>
-<span class="sourceLineNo">638</span>                }<a name="line.638"></a>
-<span class="sourceLineNo">639</span>                <a name="line.639"></a>
-<span class="sourceLineNo">640</span>                @Override<a name="line.640"></a>
-<span class="sourceLineNo">641</span>                public void setDefaultDrainDelay(long millis) {<a name="line.641"></a>
-<span class="sourceLineNo">642</span>                        ManagedBufferPool.setDefaultDrainDelay(millis);<a name="line.642"></a>
-<span class="sourceLineNo">643</span>                }<a name="line.643"></a>
-<span class="sourceLineNo">644</span><a name="line.644"></a>
-<span class="sourceLineNo">645</span>                @Override<a name="line.645"></a>
-<span class="sourceLineNo">646</span>                public long getDefaultDrainDelay() {<a name="line.646"></a>
-<span class="sourceLineNo">647</span>                        return ManagedBufferPool.defaultDrainDelay();<a name="line.647"></a>
-<span class="sourceLineNo">648</span>                }<a name="line.648"></a>
-<span class="sourceLineNo">649</span><a name="line.649"></a>
-<span class="sourceLineNo">650</span>                @Override<a name="line.650"></a>
-<span class="sourceLineNo">651</span>                public void setAcquireWarningLimit(long millis) {<a name="line.651"></a>
-<span class="sourceLineNo">652</span>                        ManagedBufferPool.acquireWarningLimit = millis;<a name="line.652"></a>
-<span class="sourceLineNo">653</span>                }<a name="line.653"></a>
-<span class="sourceLineNo">654</span><a name="line.654"></a>
-<span class="sourceLineNo">655</span>                @Override<a name="line.655"></a>
-<span class="sourceLineNo">656</span>                public long getAcquireWarningLimit() {<a name="line.656"></a>
-<span class="sourceLineNo">657</span>                        return ManagedBufferPool.acquireWarningLimit;<a name="line.657"></a>
-<span class="sourceLineNo">658</span>                }<a name="line.658"></a>
-<span class="sourceLineNo">659</span>                <a name="line.659"></a>
-<span class="sourceLineNo">660</span>                @Override<a name="line.660"></a>
-<span class="sourceLineNo">661</span>                public PoolInfos getPoolInfos() {<a name="line.661"></a>
-<span class="sourceLineNo">662</span>                        return new PoolInfos(allPools);<a name="line.662"></a>
-<span class="sourceLineNo">663</span>                }<a name="line.663"></a>
-<span class="sourceLineNo">664</span><a name="line.664"></a>
-<span class="sourceLineNo">665</span>                @Override<a name="line.665"></a>
-<span class="sourceLineNo">666</span>                public IntSummaryStatistics getPooledPerPoolStatistics() {<a name="line.666"></a>
-<span class="sourceLineNo">667</span>                        return allPools.stream().collect(<a name="line.667"></a>
-<span class="sourceLineNo">668</span>                                        Collectors.summarizingInt(mbp -&gt; mbp.queue.size()));<a name="line.668"></a>
+<span class="sourceLineNo">476</span>                        private int preserved;<a name="line.476"></a>
+<span class="sourceLineNo">477</span>                        private int maximum;<a name="line.477"></a>
+<span class="sourceLineNo">478</span>                        private int bufferSize;<a name="line.478"></a>
+<span class="sourceLineNo">479</span>                        <a name="line.479"></a>
+<span class="sourceLineNo">480</span>                        @ConstructorProperties({"created", "pooled", <a name="line.480"></a>
+<span class="sourceLineNo">481</span>                                "preserved", "maximum", "bufferSize"})<a name="line.481"></a>
+<span class="sourceLineNo">482</span>                        public PoolInfo(int created, int pooled, <a name="line.482"></a>
+<span class="sourceLineNo">483</span>                                        int preserved, int maximum, int bufferSize) {<a name="line.483"></a>
+<span class="sourceLineNo">484</span>                                this.created = created;<a name="line.484"></a>
+<span class="sourceLineNo">485</span>                                this.pooled = pooled;<a name="line.485"></a>
+<span class="sourceLineNo">486</span>                                this.preserved = preserved;<a name="line.486"></a>
+<span class="sourceLineNo">487</span>                                this.maximum = maximum;<a name="line.487"></a>
+<span class="sourceLineNo">488</span>                                this.bufferSize = bufferSize;<a name="line.488"></a>
+<span class="sourceLineNo">489</span>                        }<a name="line.489"></a>
+<span class="sourceLineNo">490</span><a name="line.490"></a>
+<span class="sourceLineNo">491</span>                        /**<a name="line.491"></a>
+<span class="sourceLineNo">492</span>                         * The number of buffers created by this pool.<a name="line.492"></a>
+<span class="sourceLineNo">493</span>                         * <a name="line.493"></a>
+<span class="sourceLineNo">494</span>                         * @return the value<a name="line.494"></a>
+<span class="sourceLineNo">495</span>                         */<a name="line.495"></a>
+<span class="sourceLineNo">496</span>                        public int getCreated() {<a name="line.496"></a>
+<span class="sourceLineNo">497</span>                                return created;<a name="line.497"></a>
+<span class="sourceLineNo">498</span>                        }<a name="line.498"></a>
+<span class="sourceLineNo">499</span><a name="line.499"></a>
+<span class="sourceLineNo">500</span>                        /**<a name="line.500"></a>
+<span class="sourceLineNo">501</span>                         * The number of buffers pooled (ready to be acquired).<a name="line.501"></a>
+<span class="sourceLineNo">502</span>                         * <a name="line.502"></a>
+<span class="sourceLineNo">503</span>                         * @return the value<a name="line.503"></a>
+<span class="sourceLineNo">504</span>                         */<a name="line.504"></a>
+<span class="sourceLineNo">505</span>                        public int getPooled() {<a name="line.505"></a>
+<span class="sourceLineNo">506</span>                                return pooled;<a name="line.506"></a>
+<span class="sourceLineNo">507</span>                        }<a name="line.507"></a>
+<span class="sourceLineNo">508</span><a name="line.508"></a>
+<span class="sourceLineNo">509</span>                        /**<a name="line.509"></a>
+<span class="sourceLineNo">510</span>                         * The number of buffers preserved.<a name="line.510"></a>
+<span class="sourceLineNo">511</span>                         * <a name="line.511"></a>
+<span class="sourceLineNo">512</span>                         * @return the value<a name="line.512"></a>
+<span class="sourceLineNo">513</span>                         */<a name="line.513"></a>
+<span class="sourceLineNo">514</span>                        public int getPreserved() {<a name="line.514"></a>
+<span class="sourceLineNo">515</span>                                return preserved;<a name="line.515"></a>
+<span class="sourceLineNo">516</span>                        }<a name="line.516"></a>
+<span class="sourceLineNo">517</span><a name="line.517"></a>
+<span class="sourceLineNo">518</span>                        /**<a name="line.518"></a>
+<span class="sourceLineNo">519</span>                         * The maximum number of buffers created by this pool.<a name="line.519"></a>
+<span class="sourceLineNo">520</span>                         * <a name="line.520"></a>
+<span class="sourceLineNo">521</span>                         * @return the value<a name="line.521"></a>
+<span class="sourceLineNo">522</span>                         */<a name="line.522"></a>
+<span class="sourceLineNo">523</span>                        public int getMaximum() {<a name="line.523"></a>
+<span class="sourceLineNo">524</span>                                return maximum;<a name="line.524"></a>
+<span class="sourceLineNo">525</span>                        }<a name="line.525"></a>
+<span class="sourceLineNo">526</span><a name="line.526"></a>
+<span class="sourceLineNo">527</span>                        /**<a name="line.527"></a>
+<span class="sourceLineNo">528</span>                         * The size of the buffers in items.<a name="line.528"></a>
+<span class="sourceLineNo">529</span>                         * <a name="line.529"></a>
+<span class="sourceLineNo">530</span>                         * @return the buffer size<a name="line.530"></a>
+<span class="sourceLineNo">531</span>                         */<a name="line.531"></a>
+<span class="sourceLineNo">532</span>                        public int getBufferSize() {<a name="line.532"></a>
+<span class="sourceLineNo">533</span>                                return bufferSize;<a name="line.533"></a>
+<span class="sourceLineNo">534</span>                        }<a name="line.534"></a>
+<span class="sourceLineNo">535</span>                }<a name="line.535"></a>
+<span class="sourceLineNo">536</span><a name="line.536"></a>
+<span class="sourceLineNo">537</span>                /**<a name="line.537"></a>
+<span class="sourceLineNo">538</span>                 * Three views on the existing pool.<a name="line.538"></a>
+<span class="sourceLineNo">539</span>                 */<a name="line.539"></a>
+<span class="sourceLineNo">540</span>                public static class PoolInfos {<a name="line.540"></a>
+<span class="sourceLineNo">541</span>                        private SortedMap&lt;String,PoolInfo&gt; allPools;<a name="line.541"></a>
+<span class="sourceLineNo">542</span>                        private SortedMap&lt;String,PoolInfo&gt; nonEmptyPools;<a name="line.542"></a>
+<span class="sourceLineNo">543</span>                        private SortedMap&lt;String,PoolInfo&gt; usedPools;<a name="line.543"></a>
+<span class="sourceLineNo">544</span><a name="line.544"></a>
+<span class="sourceLineNo">545</span>                        public PoolInfos(Set&lt;ManagedBufferPool&lt;?, ?&gt;&gt; pools) {<a name="line.545"></a>
+<span class="sourceLineNo">546</span>                                allPools = new TreeMap&lt;&gt;();<a name="line.546"></a>
+<span class="sourceLineNo">547</span>                                nonEmptyPools = new TreeMap&lt;&gt;();<a name="line.547"></a>
+<span class="sourceLineNo">548</span>                                usedPools = new TreeMap&lt;&gt;();<a name="line.548"></a>
+<span class="sourceLineNo">549</span>                                <a name="line.549"></a>
+<span class="sourceLineNo">550</span>                                Map&lt;String, Integer&gt; dupsNext = new HashMap&lt;&gt;();<a name="line.550"></a>
+<span class="sourceLineNo">551</span>                                for (ManagedBufferPool&lt;?,?&gt; mbp: pools) {<a name="line.551"></a>
+<span class="sourceLineNo">552</span>                                        String key = mbp.name();<a name="line.552"></a>
+<span class="sourceLineNo">553</span>                                        PoolInfo qi = new PoolInfo(<a name="line.553"></a>
+<span class="sourceLineNo">554</span>                                                        mbp.createdBufs.get(), mbp.queue.size(), <a name="line.554"></a>
+<span class="sourceLineNo">555</span>                                                        mbp.preservedBufs, mbp.maximumBufs, <a name="line.555"></a>
+<span class="sourceLineNo">556</span>                                                        mbp.bufferSize());<a name="line.556"></a>
+<span class="sourceLineNo">557</span>                                        if (allPools.containsKey(key) || dupsNext.containsKey(key)) {<a name="line.557"></a>
+<span class="sourceLineNo">558</span>                                                if (allPools.containsKey(key)) {<a name="line.558"></a>
+<span class="sourceLineNo">559</span>                                                        // Found first duplicate, rename<a name="line.559"></a>
+<span class="sourceLineNo">560</span>                                                        allPools.put(key + "#1", allPools.get(key));<a name="line.560"></a>
+<span class="sourceLineNo">561</span>                                                        allPools.remove(key);<a name="line.561"></a>
+<span class="sourceLineNo">562</span>                                                        dupsNext.put(key, 2);<a name="line.562"></a>
+<span class="sourceLineNo">563</span>                                                }<a name="line.563"></a>
+<span class="sourceLineNo">564</span>                                                allPools.put(key + "#"<a name="line.564"></a>
+<span class="sourceLineNo">565</span>                                                                + (dupsNext.put(key, dupsNext.get(key) + 1)), qi);<a name="line.565"></a>
+<span class="sourceLineNo">566</span>                                        } else {<a name="line.566"></a>
+<span class="sourceLineNo">567</span>                                                allPools.put(key, qi);<a name="line.567"></a>
+<span class="sourceLineNo">568</span>                                        }<a name="line.568"></a>
+<span class="sourceLineNo">569</span>                                }<a name="line.569"></a>
+<span class="sourceLineNo">570</span>                                for (Map.Entry&lt;String,PoolInfo&gt; e: allPools.entrySet()) {<a name="line.570"></a>
+<span class="sourceLineNo">571</span>                                        PoolInfo qi = e.getValue();<a name="line.571"></a>
+<span class="sourceLineNo">572</span>                                        if (qi.getPooled() &gt; 0) {<a name="line.572"></a>
+<span class="sourceLineNo">573</span>                                                nonEmptyPools.put(e.getKey(), qi);<a name="line.573"></a>
+<span class="sourceLineNo">574</span>                                        }<a name="line.574"></a>
+<span class="sourceLineNo">575</span>                                        if (qi.getCreated() &gt; 0) {<a name="line.575"></a>
+<span class="sourceLineNo">576</span>                                                usedPools.put(e.getKey(), qi);<a name="line.576"></a>
+<span class="sourceLineNo">577</span>                                        }<a name="line.577"></a>
+<span class="sourceLineNo">578</span>                                }<a name="line.578"></a>
+<span class="sourceLineNo">579</span>                        }<a name="line.579"></a>
+<span class="sourceLineNo">580</span>                        <a name="line.580"></a>
+<span class="sourceLineNo">581</span>                        /**<a name="line.581"></a>
+<span class="sourceLineNo">582</span>                         * All pools.<a name="line.582"></a>
+<span class="sourceLineNo">583</span>                         */<a name="line.583"></a>
+<span class="sourceLineNo">584</span>                        public SortedMap&lt;String, PoolInfo&gt; getAllPools() {<a name="line.584"></a>
+<span class="sourceLineNo">585</span>                                return allPools;<a name="line.585"></a>
+<span class="sourceLineNo">586</span>                        }<a name="line.586"></a>
+<span class="sourceLineNo">587</span><a name="line.587"></a>
+<span class="sourceLineNo">588</span>                        /**<a name="line.588"></a>
+<span class="sourceLineNo">589</span>                         * Pools that have at least managed buffer enqueued<a name="line.589"></a>
+<span class="sourceLineNo">590</span>                         * (ready to be acquired).<a name="line.590"></a>
+<span class="sourceLineNo">591</span>                         */<a name="line.591"></a>
+<span class="sourceLineNo">592</span>                        public SortedMap&lt;String, PoolInfo&gt; getNonEmptyPools() {<a name="line.592"></a>
+<span class="sourceLineNo">593</span>                                return nonEmptyPools;<a name="line.593"></a>
+<span class="sourceLineNo">594</span>                        }<a name="line.594"></a>
+<span class="sourceLineNo">595</span><a name="line.595"></a>
+<span class="sourceLineNo">596</span>                        /**<a name="line.596"></a>
+<span class="sourceLineNo">597</span>                         * Pools that have at least one associated buffer<a name="line.597"></a>
+<span class="sourceLineNo">598</span>                         * (in pool or in use).<a name="line.598"></a>
+<span class="sourceLineNo">599</span>                         */<a name="line.599"></a>
+<span class="sourceLineNo">600</span>                        public SortedMap&lt;String, PoolInfo&gt; getUsedPools() {<a name="line.600"></a>
+<span class="sourceLineNo">601</span>                                return usedPools;<a name="line.601"></a>
+<span class="sourceLineNo">602</span>                        }<a name="line.602"></a>
+<span class="sourceLineNo">603</span>                }<a name="line.603"></a>
+<span class="sourceLineNo">604</span>                <a name="line.604"></a>
+<span class="sourceLineNo">605</span>                /**<a name="line.605"></a>
+<span class="sourceLineNo">606</span>                 * Set the default drain delay.<a name="line.606"></a>
+<span class="sourceLineNo">607</span>                 * <a name="line.607"></a>
+<span class="sourceLineNo">608</span>                 * @param millis the drain delay in milli seconds<a name="line.608"></a>
+<span class="sourceLineNo">609</span>                 */<a name="line.609"></a>
+<span class="sourceLineNo">610</span>                void setDefaultDrainDelay(long millis);<a name="line.610"></a>
+<span class="sourceLineNo">611</span><a name="line.611"></a>
+<span class="sourceLineNo">612</span>                /**<a name="line.612"></a>
+<span class="sourceLineNo">613</span>                 * Returns the drain delay in milli seconds.<a name="line.613"></a>
+<span class="sourceLineNo">614</span>                 * <a name="line.614"></a>
+<span class="sourceLineNo">615</span>                 * @return the value<a name="line.615"></a>
+<span class="sourceLineNo">616</span>                 */<a name="line.616"></a>
+<span class="sourceLineNo">617</span>                long getDefaultDrainDelay();<a name="line.617"></a>
+<span class="sourceLineNo">618</span><a name="line.618"></a>
+<span class="sourceLineNo">619</span>                /**<a name="line.619"></a>
+<span class="sourceLineNo">620</span>                 * Set the acquire warning limit.<a name="line.620"></a>
+<span class="sourceLineNo">621</span>                 * <a name="line.621"></a>
+<span class="sourceLineNo">622</span>                 * @param millis the limit<a name="line.622"></a>
+<span class="sourceLineNo">623</span>                 */<a name="line.623"></a>
+<span class="sourceLineNo">624</span>                void setAcquireWarningLimit(long millis);<a name="line.624"></a>
+<span class="sourceLineNo">625</span><a name="line.625"></a>
+<span class="sourceLineNo">626</span>                /**<a name="line.626"></a>
+<span class="sourceLineNo">627</span>                 * Returns the acquire warning limit.<a name="line.627"></a>
+<span class="sourceLineNo">628</span>                 * <a name="line.628"></a>
+<span class="sourceLineNo">629</span>                 * @return the value<a name="line.629"></a>
+<span class="sourceLineNo">630</span>                 */<a name="line.630"></a>
+<span class="sourceLineNo">631</span>                long getAcquireWarningLimit();<a name="line.631"></a>
+<span class="sourceLineNo">632</span><a name="line.632"></a>
+<span class="sourceLineNo">633</span>                /**<a name="line.633"></a>
+<span class="sourceLineNo">634</span>                 * Informations about the pools.<a name="line.634"></a>
+<span class="sourceLineNo">635</span>                 * <a name="line.635"></a>
+<span class="sourceLineNo">636</span>                 * @return the map<a name="line.636"></a>
+<span class="sourceLineNo">637</span>                 */<a name="line.637"></a>
+<span class="sourceLineNo">638</span>                PoolInfos getPoolInfos();<a name="line.638"></a>
+<span class="sourceLineNo">639</span><a name="line.639"></a>
+<span class="sourceLineNo">640</span>                /**<a name="line.640"></a>
+<span class="sourceLineNo">641</span>                 * Summary information about the pooled buffers.<a name="line.641"></a>
+<span class="sourceLineNo">642</span>                 * <a name="line.642"></a>
+<span class="sourceLineNo">643</span>                 * @return the values<a name="line.643"></a>
+<span class="sourceLineNo">644</span>                 */<a name="line.644"></a>
+<span class="sourceLineNo">645</span>                IntSummaryStatistics getPooledPerPoolStatistics();<a name="line.645"></a>
+<span class="sourceLineNo">646</span><a name="line.646"></a>
+<span class="sourceLineNo">647</span>                /**<a name="line.647"></a>
+<span class="sourceLineNo">648</span>                 * Summary information about the created buffers.<a name="line.648"></a>
+<span class="sourceLineNo">649</span>                 * <a name="line.649"></a>
+<span class="sourceLineNo">650</span>                 * @return the values<a name="line.650"></a>
+<span class="sourceLineNo">651</span>                 */<a name="line.651"></a>
+<span class="sourceLineNo">652</span>                IntSummaryStatistics getCreatedPerPoolStatistics();<a name="line.652"></a>
+<span class="sourceLineNo">653</span>        }<a name="line.653"></a>
+<span class="sourceLineNo">654</span>        <a name="line.654"></a>
+<span class="sourceLineNo">655</span>        private static class MBeanView implements ManagedBufferPoolMXBean {<a name="line.655"></a>
+<span class="sourceLineNo">656</span><a name="line.656"></a>
+<span class="sourceLineNo">657</span>                private static Set&lt;ManagedBufferPool&lt;?,?&gt;&gt; allPools<a name="line.657"></a>
+<span class="sourceLineNo">658</span>                        = Collections.synchronizedSet(<a name="line.658"></a>
+<span class="sourceLineNo">659</span>                                Collections.newSetFromMap(<a name="line.659"></a>
+<span class="sourceLineNo">660</span>                                                new WeakHashMap&lt;ManagedBufferPool&lt;?, ?&gt;, Boolean&gt;()));<a name="line.660"></a>
+<span class="sourceLineNo">661</span><a name="line.661"></a>
+<span class="sourceLineNo">662</span>                public static void addPool(ManagedBufferPool&lt;?, ?&gt; pool) {<a name="line.662"></a>
+<span class="sourceLineNo">663</span>                        allPools.add(pool);<a name="line.663"></a>
+<span class="sourceLineNo">664</span>                }<a name="line.664"></a>
+<span class="sourceLineNo">665</span>                <a name="line.665"></a>
+<span class="sourceLineNo">666</span>                @Override<a name="line.666"></a>
+<span class="sourceLineNo">667</span>                public void setDefaultDrainDelay(long millis) {<a name="line.667"></a>
+<span class="sourceLineNo">668</span>                        ManagedBufferPool.setDefaultDrainDelay(millis);<a name="line.668"></a>
 <span class="sourceLineNo">669</span>                }<a name="line.669"></a>
-<span class="sourceLineNo">670</span>                <a name="line.670"></a>
+<span class="sourceLineNo">670</span><a name="line.670"></a>
 <span class="sourceLineNo">671</span>                @Override<a name="line.671"></a>
-<span class="sourceLineNo">672</span>                public IntSummaryStatistics getCreatedPerPoolStatistics() {<a name="line.672"></a>
-<span class="sourceLineNo">673</span>                        return allPools.stream().collect(<a name="line.673"></a>
-<span class="sourceLineNo">674</span>                                        Collectors.summarizingInt(mbp -&gt; mbp.createdBufs.get()));<a name="line.674"></a>
-<span class="sourceLineNo">675</span>                }<a name="line.675"></a>
-<span class="sourceLineNo">676</span>        }<a name="line.676"></a>
-<span class="sourceLineNo">677</span>        <a name="line.677"></a>
-<span class="sourceLineNo">678</span>        static {<a name="line.678"></a>
-<span class="sourceLineNo">679</span>                try {<a name="line.679"></a>
-<span class="sourceLineNo">680</span>                        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); <a name="line.680"></a>
-<span class="sourceLineNo">681</span>                        ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="<a name="line.681"></a>
-<span class="sourceLineNo">682</span>                                        + ManagedBufferPool.class.getSimpleName());<a name="line.682"></a>
-<span class="sourceLineNo">683</span>                        mbs.registerMBean(new MBeanView(), mxbeanName);<a name="line.683"></a>
-<span class="sourceLineNo">684</span>                } catch (MalformedObjectNameException | InstanceAlreadyExistsException<a name="line.684"></a>
-<span class="sourceLineNo">685</span>                                | MBeanRegistrationException | NotCompliantMBeanException e) {<a name="line.685"></a>
-<span class="sourceLineNo">686</span>                        // Does not happen<a name="line.686"></a>
-<span class="sourceLineNo">687</span>                }               <a name="line.687"></a>
-<span class="sourceLineNo">688</span>        }<a name="line.688"></a>
-<span class="sourceLineNo">689</span>}<a name="line.689"></a>
+<span class="sourceLineNo">672</span>                public long getDefaultDrainDelay() {<a name="line.672"></a>
+<span class="sourceLineNo">673</span>                        return ManagedBufferPool.defaultDrainDelay();<a name="line.673"></a>
+<span class="sourceLineNo">674</span>                }<a name="line.674"></a>
+<span class="sourceLineNo">675</span><a name="line.675"></a>
+<span class="sourceLineNo">676</span>                @Override<a name="line.676"></a>
+<span class="sourceLineNo">677</span>                public void setAcquireWarningLimit(long millis) {<a name="line.677"></a>
+<span class="sourceLineNo">678</span>                        ManagedBufferPool.acquireWarningLimit = millis;<a name="line.678"></a>
+<span class="sourceLineNo">679</span>                }<a name="line.679"></a>
+<span class="sourceLineNo">680</span><a name="line.680"></a>
+<span class="sourceLineNo">681</span>                @Override<a name="line.681"></a>
+<span class="sourceLineNo">682</span>                public long getAcquireWarningLimit() {<a name="line.682"></a>
+<span class="sourceLineNo">683</span>                        return ManagedBufferPool.acquireWarningLimit;<a name="line.683"></a>
+<span class="sourceLineNo">684</span>                }<a name="line.684"></a>
+<span class="sourceLineNo">685</span>                <a name="line.685"></a>
+<span class="sourceLineNo">686</span>                @Override<a name="line.686"></a>
+<span class="sourceLineNo">687</span>                public PoolInfos getPoolInfos() {<a name="line.687"></a>
+<span class="sourceLineNo">688</span>                        return new PoolInfos(allPools);<a name="line.688"></a>
+<span class="sourceLineNo">689</span>                }<a name="line.689"></a>
+<span class="sourceLineNo">690</span><a name="line.690"></a>
+<span class="sourceLineNo">691</span>                @Override<a name="line.691"></a>
+<span class="sourceLineNo">692</span>                public IntSummaryStatistics getPooledPerPoolStatistics() {<a name="line.692"></a>
+<span class="sourceLineNo">693</span>                        return allPools.stream().collect(<a name="line.693"></a>
+<span class="sourceLineNo">694</span>                                        Collectors.summarizingInt(mbp -&gt; mbp.queue.size()));<a name="line.694"></a>
+<span class="sourceLineNo">695</span>                }<a name="line.695"></a>
+<span class="sourceLineNo">696</span>                <a name="line.696"></a>
+<span class="sourceLineNo">697</span>                @Override<a name="line.697"></a>
+<span class="sourceLineNo">698</span>                public IntSummaryStatistics getCreatedPerPoolStatistics() {<a name="line.698"></a>
+<span class="sourceLineNo">699</span>                        return allPools.stream().collect(<a name="line.699"></a>
+<span class="sourceLineNo">700</span>                                        Collectors.summarizingInt(mbp -&gt; mbp.createdBufs.get()));<a name="line.700"></a>
+<span class="sourceLineNo">701</span>                }<a name="line.701"></a>
+<span class="sourceLineNo">702</span>        }<a name="line.702"></a>
+<span class="sourceLineNo">703</span>        <a name="line.703"></a>
+<span class="sourceLineNo">704</span>        static {<a name="line.704"></a>
+<span class="sourceLineNo">705</span>                try {<a name="line.705"></a>
+<span class="sourceLineNo">706</span>                        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); <a name="line.706"></a>
+<span class="sourceLineNo">707</span>                        ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="<a name="line.707"></a>
+<span class="sourceLineNo">708</span>                                        + ManagedBufferPool.class.getSimpleName());<a name="line.708"></a>
+<span class="sourceLineNo">709</span>                        mbs.registerMBean(new MBeanView(), mxbeanName);<a name="line.709"></a>
+<span class="sourceLineNo">710</span>                } catch (MalformedObjectNameException | InstanceAlreadyExistsException<a name="line.710"></a>
+<span class="sourceLineNo">711</span>                                | MBeanRegistrationException | NotCompliantMBeanException e) {<a name="line.711"></a>
+<span class="sourceLineNo">712</span>                        // Does not happen<a name="line.712"></a>
+<span class="sourceLineNo">713</span>                }               <a name="line.713"></a>
+<span class="sourceLineNo">714</span>        }<a name="line.714"></a>
+<span class="sourceLineNo">715</span>}<a name="line.715"></a>
 
 
 
