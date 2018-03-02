@@ -44,6 +44,8 @@ public class ManagedBuffer<T extends Buffer> {
 		= wrap(CharBuffer.allocate(0));
 	
 	protected T backing;
+	ManagedBuffer<T> linkedTo = null;
+	protected T savedBacking = null;
 	private BufferCollector<ManagedBuffer<T>> manager;
 	private AtomicInteger lockCount = new AtomicInteger(1);
 	
@@ -94,6 +96,36 @@ public class ManagedBuffer<T extends Buffer> {
 		backing = buffer;
 		return this;
 	}
+
+	/**
+	 * Links this instance's backing buffer (temporarily) to
+	 * the given buffer's backing buffer. Locks the given buffer.
+	 * The buffer is unlocked again and the original backing buffer
+	 * restored if this method is called with `null` or this
+	 * managed buffer is recollected (i.e. no longer used). 
+	 *
+	 * This method may be used to "assign" data that is already
+	 * available in a buffer to this buffer without copying it
+	 * over. 
+	 *
+	 * @param buffer the buffer
+	 * @return the managed buffer for easy chaining
+	 */
+	public ManagedBuffer<T> linkBackingBuffer(ManagedBuffer<T> buffer) {
+		if (linkedTo != null) {
+			backing = savedBacking;
+			linkedTo.unlockBuffer();
+			linkedTo = null;
+		}
+		if (buffer == null) {
+			return this;
+		}
+		buffer.lockBuffer();
+		linkedTo = buffer;
+		savedBacking = backing;
+		backing = linkedTo.backing;
+		return this;
+	}
 	
 	/**
 	 * Return the buffer's manager.
@@ -129,6 +161,11 @@ public class ManagedBuffer<T extends Buffer> {
 					"Buffer not locked or released already.");
 		}
 		if (locks == 0) {
+			if (linkedTo != null) {
+				backing = savedBacking;
+				linkedTo.unlockBuffer();
+				linkedTo = null;
+			}
 			manager.recollect(this);
 		}
 	}
