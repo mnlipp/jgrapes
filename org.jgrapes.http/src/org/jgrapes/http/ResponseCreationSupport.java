@@ -178,7 +178,7 @@ public class ResponseCreationSupport {
 			response.setStatus(HttpStatus.OK);
 			channel.respond(new Response(response));
 			// Start sending content
-			channel.responsePipeline().executorService().submit(
+			channel.responsePipeline().submit(
 					new InputStreamPipeline(resIn, channel).suppressClose());
 		}
 		return true;
