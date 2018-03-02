@@ -202,7 +202,7 @@
 <span class="sourceLineNo">194</span>                                event, channel, path -&gt; {<a name="line.194"></a>
 <span class="sourceLineNo">195</span>                                        try {<a name="line.195"></a>
 <span class="sourceLineNo">196</span>                                                return contentRoot.resolve(<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                                                                ResponseCreationSupport.removeSegments(<a name="line.197"></a>
+<span class="sourceLineNo">197</span>                                                                ResourcePattern.removeSegments(<a name="line.197"></a>
 <span class="sourceLineNo">198</span>                                                                                path, prefixSegs + 1)).toURL();<a name="line.198"></a>
 <span class="sourceLineNo">199</span>                                        } catch (MalformedURLException e) {<a name="line.199"></a>
 <span class="sourceLineNo">200</span>                                                throw new IllegalArgumentException(e);<a name="line.200"></a>

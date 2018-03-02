@@ -34,7 +34,7 @@
 <span class="sourceLineNo">026</span><a name="line.26"></a>
 <span class="sourceLineNo">027</span>import org.jgrapes.core.EventPipeline;<a name="line.27"></a>
 <span class="sourceLineNo">028</span>import org.jgrapes.io.IOSubchannel;<a name="line.28"></a>
-<span class="sourceLineNo">029</span>import org.jgrapes.io.events.Closed;<a name="line.29"></a>
+<span class="sourceLineNo">029</span>import org.jgrapes.io.events.Close;<a name="line.29"></a>
 <span class="sourceLineNo">030</span>import org.jgrapes.io.events.IOError;<a name="line.30"></a>
 <span class="sourceLineNo">031</span>import org.jgrapes.io.events.Output;<a name="line.31"></a>
 <span class="sourceLineNo">032</span><a name="line.32"></a>
@@ -86,31 +86,50 @@
 <span class="sourceLineNo">078</span>                return this;<a name="line.78"></a>
 <span class="sourceLineNo">079</span>        }<a name="line.79"></a>
 <span class="sourceLineNo">080</span>        <a name="line.80"></a>
-<span class="sourceLineNo">081</span>        <a name="line.81"></a>
-<span class="sourceLineNo">082</span>        @Override<a name="line.82"></a>
-<span class="sourceLineNo">083</span>        public void run() {<a name="line.83"></a>
-<span class="sourceLineNo">084</span>                // Reading from stream<a name="line.84"></a>
-<span class="sourceLineNo">085</span>                try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {<a name="line.85"></a>
-<span class="sourceLineNo">086</span>                        while (true) {<a name="line.86"></a>
-<span class="sourceLineNo">087</span>                                ManagedBuffer&lt;ByteBuffer&gt; buffer <a name="line.87"></a>
-<span class="sourceLineNo">088</span>                                        = channel.byteBufferPool().acquire();<a name="line.88"></a>
-<span class="sourceLineNo">089</span>                                int read = buffer.fillFromChannel(inChannel);<a name="line.89"></a>
-<span class="sourceLineNo">090</span>                                boolean eof = (read == -1);<a name="line.90"></a>
-<span class="sourceLineNo">091</span>                                eventPipeline.fire(Output.fromSink(buffer, eof), channel);<a name="line.91"></a>
-<span class="sourceLineNo">092</span>                                if (eof) {<a name="line.92"></a>
-<span class="sourceLineNo">093</span>                                        break;<a name="line.93"></a>
-<span class="sourceLineNo">094</span>                                }<a name="line.94"></a>
-<span class="sourceLineNo">095</span>                        }<a name="line.95"></a>
-<span class="sourceLineNo">096</span>                        if (sendClose) {<a name="line.96"></a>
-<span class="sourceLineNo">097</span>                                eventPipeline.fire(new Closed(), channel);<a name="line.97"></a>
-<span class="sourceLineNo">098</span>                        }<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                } catch (InterruptedException e) {<a name="line.99"></a>
-<span class="sourceLineNo">100</span>                        // Just stop<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                } catch (IOException e) {<a name="line.101"></a>
-<span class="sourceLineNo">102</span>                        eventPipeline.fire(new IOError(null, e), channel);<a name="line.102"></a>
-<span class="sourceLineNo">103</span>                }<a name="line.103"></a>
-<span class="sourceLineNo">104</span>        }<a name="line.104"></a>
-<span class="sourceLineNo">105</span>}<a name="line.105"></a>
+<span class="sourceLineNo">081</span>        @Override<a name="line.81"></a>
+<span class="sourceLineNo">082</span>        public void run() {<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                        ManagedBuffer&lt;ByteBuffer&gt; lookAhead = ManagedBuffer.wrap(<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                                        ByteBuffer.allocate(channel.byteBufferPool().bufferSize()));<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                        // First attempt <a name="line.86"></a>
+<span class="sourceLineNo">087</span>                        if (lookAhead.fillFromChannel(inChannel) == -1) {<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                                ManagedBuffer&lt;ByteBuffer&gt; buffer <a name="line.88"></a>
+<span class="sourceLineNo">089</span>                                        = channel.byteBufferPool().acquire();<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                                eventPipeline.fire(Output.fromSink(buffer, true), channel);<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                        } else {<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                                while (true) {<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                                        // Save data read so far<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                                        ManagedBuffer&lt;ByteBuffer&gt; buffer <a name="line.94"></a>
+<span class="sourceLineNo">095</span>                                                = channel.byteBufferPool().acquire();<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                                        buffer.linkBackingBuffer(lookAhead);<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                                        // Get new look ahead<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                                        lookAhead = ManagedBuffer.wrap(ByteBuffer.allocate(<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                                                        channel.byteBufferPool().bufferSize()));<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                                        // Next read attempt<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                                        boolean eof;<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                                        try {<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                                                eof = (lookAhead.fillFromChannel(inChannel) == -1);<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                                        } catch (IOException e) {<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                                                buffer.unlockBuffer();<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                                                throw e;<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                                        }<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                                        // Fire "old" data with up-to-date end of record flag. <a name="line.108"></a>
+<span class="sourceLineNo">109</span>                                        eventPipeline.fire(Output.fromSink(buffer, eof), channel);<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                                        if (eof) {<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                                                break;<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                                        }<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                                }<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                        }<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                        if (sendClose) {<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                                eventPipeline.fire(new Close(), channel);<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                        }<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                } catch (InterruptedException e) {<a name="line.118"></a>
+<span class="sourceLineNo">119</span>                        // Just stop<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                } catch (IOException e) {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                        eventPipeline.fire(new IOError(null, e), channel);<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                }<a name="line.122"></a>
+<span class="sourceLineNo">123</span>        }<a name="line.123"></a>
+<span class="sourceLineNo">124</span>}<a name="line.124"></a>
 
 
 
