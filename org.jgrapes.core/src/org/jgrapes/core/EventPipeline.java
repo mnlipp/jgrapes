@@ -18,7 +18,9 @@
 
 package org.jgrapes.core;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import org.jgrapes.core.Components.IdInfoProvider;
 
@@ -49,6 +51,32 @@ public interface EventPipeline extends IdInfoProvider {
 	 */
 	<T extends Event<?>> T fire(T event, Channel... channels);
 
+	/**
+	 * Adds an action to be executed to the event pipeline. 
+	 * Execution of the action is synchronized with the events
+	 * on this pipeline. It will be executed after any events
+	 * already fired and before any event fired subsequently.
+	 * 
+	 * This is a short-cut for firing a special kind of event 
+	 * and defining a handler for only this kind of event.
+	 * 
+	 * @param action the action to execute
+	 */
+	<V> Future<V> submit(Callable<V> action);
+	
+	/**
+	 * Adds an action to be executed to the event pipeline. 
+	 * Execution of the action is synchronized with the events
+	 * on this pipeline. It will be executed after any events
+	 * already fired and before any event fired subsequently.
+	 * 
+	 * This is a short-cut for firing a special kind of event 
+	 * and defining a handler for only this kind of event.
+	 * 
+	 * @param action the action to execute
+	 */
+	void submit(Runnable action);
+	
 	/**
 	 * All pipelines use the same id scope to make them uniquely identifiable
 	 * by their number.

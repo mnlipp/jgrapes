@@ -18,7 +18,9 @@
 
 package org.jgrapes.core.internal;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components.IdInfoProvider;
@@ -75,6 +77,24 @@ class CheckingPipelineFilter implements EventPipeline, IdInfoProvider {
 		}
 		event.setChannels(channels);
 		return sink.add(event, channels);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.EventPipeline#submit(java.util.concurrent.Callable)
+	 */
+	@Override
+	public <V> Future<V> submit(Callable<V> action) {
+		ActionEvent<V> event = ActionEvent.create(action);
+		return sink.add(event, Channel.BROADCAST);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.EventPipeline#submit(java.lang.Runnable)
+	 */
+	@Override
+	public void submit(Runnable action) {
+		ActionEvent<Void> event = ActionEvent.create(action);
+		sink.add(event, Channel.BROADCAST);
 	}
 
 	/* (non-Javadoc)

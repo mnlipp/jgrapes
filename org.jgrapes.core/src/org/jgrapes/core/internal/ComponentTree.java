@@ -49,12 +49,28 @@ class ComponentTree {
 	private final Map<CacheKey,HandlerList> handlerCache = new HashMap<>();
 	private InternalEventPipeline eventPipeline;
 	private static HandlerReference fallbackErrorHandler;
+	private static HandlerReference actionEventHandler;
 	
 	static {
 		ErrorPrinter errorPrinter = new ErrorPrinter();
 		try {
 			fallbackErrorHandler = new HandlerReference(errorPrinter,
 					ErrorPrinter.class.getMethod("printError", Error.class),
+					0, new HandlerScope() {
+				@Override
+				public boolean includes(
+						Eligible event, Eligible[] channels) {
+					return true;
+				}
+			});
+		} catch (NoSuchMethodException | SecurityException e) {
+			// Doesn't happen.
+		}
+		
+		ActionExecutor actionExecutor = new ActionExecutor();
+		try {
+			actionEventHandler = new HandlerReference(actionExecutor,
+					ActionExecutor.class.getMethod("execute", ActionEvent.class),
 					0, new HandlerScope() {
 				@Override
 				public boolean includes(
@@ -162,10 +178,13 @@ class ComponentTree {
 			}
 			hdlrs = new HandlerList();
 			root.collectHandlers(hdlrs, event, channels);
-			// Make sure that errors are reported.
 			if (hdlrs.isEmpty()) {
+				// Make sure that errors are reported.
 				if (event instanceof Error) {
 					hdlrs.add(fallbackErrorHandler);
+				// Handle (internal) action events
+				} else if (event instanceof ActionEvent) {
+					hdlrs.add(actionEventHandler);
 				} else {
 					if (handlerTracking.isLoggable(Level.FINER)) {
 						DUMMY_HANDLER.collectHandlers(hdlrs, event,
