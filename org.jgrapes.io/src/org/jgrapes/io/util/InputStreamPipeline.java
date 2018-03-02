@@ -78,32 +78,39 @@ public class InputStreamPipeline implements Runnable {
 		return this;
 	}
 	
-	
 	@Override
 	public void run() {
-		// Reading from stream
-		ManagedBuffer<ByteBuffer> prevBuffer = null;
 		try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {
-			while (true) {
+			ManagedBuffer<ByteBuffer> lookAhead = ManagedBuffer.wrap(
+					ByteBuffer.allocate(channel.byteBufferPool().bufferSize()));
+			// First attempt 
+			if (lookAhead.fillFromChannel(inChannel) == -1) {
 				ManagedBuffer<ByteBuffer> buffer 
 					= channel.byteBufferPool().acquire();
-				int read = buffer.fillFromChannel(inChannel);
-				boolean eof = (read == -1);
-				// Check if first and only buffer
-				if (prevBuffer == null) {
+				eventPipeline.fire(Output.fromSink(buffer, true), channel);
+			} else {
+				while (true) {
+					// Save data read so far
+					ManagedBuffer<ByteBuffer> buffer 
+						= channel.byteBufferPool().acquire();
+					buffer.linkBackingBuffer(lookAhead);
+					// Get new look ahead
+					lookAhead = ManagedBuffer.wrap(ByteBuffer.allocate(
+							channel.byteBufferPool().bufferSize()));
+					// Next read attempt
+					boolean eof;
+					try {
+						eof = (lookAhead.fillFromChannel(inChannel) == -1);
+					} catch (IOException e) {
+						buffer.unlockBuffer();
+						throw e;
+					}
+					// Fire "old" data with up-to-date end of record flag. 
+					eventPipeline.fire(Output.fromSink(buffer, eof), channel);
 					if (eof) {
-						eventPipeline.fire(Output.fromSink(buffer, eof), channel);
 						break;
 					}
-				} else {
-					eventPipeline.fire(Output.fromSink(prevBuffer, eof), channel);
 				}
-				if (eof) {
-					// Hasn't been used at all...
-					buffer.unlockBuffer();
-					break;
-				}
-				prevBuffer = buffer;
 			}
 			if (sendClose) {
 				eventPipeline.fire(new Close(), channel);
@@ -111,9 +118,6 @@ public class InputStreamPipeline implements Runnable {
 		} catch (InterruptedException e) {
 			// Just stop
 		} catch (IOException e) {
-			if (prevBuffer != null) {
-				prevBuffer.unlockBuffer();
-			}
 			eventPipeline.fire(new IOError(null, e), channel);
 		}
 	}

@@ -85,4 +85,51 @@ public class InputStreamTests {
 		assertEquals(0, tracker.closed);
 	}
 
+	@Test(timeout=1000)
+	public void testSeveralBuffers()
+			throws InterruptedException, IOException {
+		Tracker tracker = new Tracker();
+		Components.start(tracker);
+		IOSubchannel channel = IOSubchannel.create(
+				tracker, tracker.newEventPipeline());
+		byte[] data 
+			= new byte[(int)(channel.byteBufferPool().bufferSize()*2.5)];
+		ByteArrayInputStream in = new ByteArrayInputStream(data);
+		InputStreamPipeline isp = new InputStreamPipeline(in, channel)
+				.suppressClose();
+		isp.run();
+		Components.awaitExhaustion();
+		Components.checkAssertions();
+		assertEquals(3, tracker.outputs);
+		assertTrue(tracker.collected > 0);
+		assertEquals(1, tracker.eors);
+		assertEquals(0, tracker.closed);
+		// Two must be available
+		channel.byteBufferPool().acquire();
+		channel.byteBufferPool().acquire();
+	}
+
+	@Test(timeout=1000)
+	public void testEmptyInput()
+			throws InterruptedException, IOException {
+		Tracker tracker = new Tracker();
+		Components.start(tracker);
+		IOSubchannel channel = IOSubchannel.create(
+				tracker, tracker.newEventPipeline());
+		byte[] data = new byte[0];
+		ByteArrayInputStream in = new ByteArrayInputStream(data);
+		InputStreamPipeline isp = new InputStreamPipeline(in, channel)
+				.suppressClose();
+		isp.run();
+		Components.awaitExhaustion();
+		Components.checkAssertions();
+		assertEquals(1, tracker.outputs);
+		assertTrue(tracker.collected == 0);
+		assertEquals(1, tracker.eors);
+		assertEquals(0, tracker.closed);
+		// Two must be available
+		channel.byteBufferPool().acquire();
+		channel.byteBufferPool().acquire();
+	}
+
 }
