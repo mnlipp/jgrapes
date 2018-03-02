@@ -473,12 +473,18 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		public static class PoolInfo {
 			private int created;
 			private int pooled;
+			private int preserved;
+			private int maximum;
 			private int bufferSize;
 			
-			@ConstructorProperties({"created", "pooled", "bufferSize"})
-			public PoolInfo(int created, int pooled, int bufferSize) {
+			@ConstructorProperties({"created", "pooled", 
+				"preserved", "maximum", "bufferSize"})
+			public PoolInfo(int created, int pooled, 
+					int preserved, int maximum, int bufferSize) {
 				this.created = created;
 				this.pooled = pooled;
+				this.preserved = preserved;
+				this.maximum = maximum;
 				this.bufferSize = bufferSize;
 			}
 
@@ -498,6 +504,24 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			 */
 			public int getPooled() {
 				return pooled;
+			}
+
+			/**
+			 * The number of buffers preserved.
+			 * 
+			 * @return the value
+			 */
+			public int getPreserved() {
+				return preserved;
+			}
+
+			/**
+			 * The maximum number of buffers created by this pool.
+			 * 
+			 * @return the value
+			 */
+			public int getMaximum() {
+				return maximum;
 			}
 
 			/**
@@ -527,7 +551,9 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 				for (ManagedBufferPool<?,?> mbp: pools) {
 					String key = mbp.name();
 					PoolInfo qi = new PoolInfo(
-							mbp.createdBufs.get(), mbp.queue.size(), mbp.bufferSize());
+							mbp.createdBufs.get(), mbp.queue.size(), 
+							mbp.preservedBufs, mbp.maximumBufs, 
+							mbp.bufferSize());
 					if (allPools.containsKey(key) || dupsNext.containsKey(key)) {
 						if (allPools.containsKey(key)) {
 							// Found first duplicate, rename
