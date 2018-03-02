@@ -185,215 +185,214 @@
 <span class="sourceLineNo">177</span>                        response.setContentType(mediaType);<a name="line.177"></a>
 <span class="sourceLineNo">178</span>                        response.setStatus(HttpStatus.OK);<a name="line.178"></a>
 <span class="sourceLineNo">179</span>                        channel.respond(new Response(response));<a name="line.179"></a>
-<span class="sourceLineNo">180</span>                        // Start sending content<a name="line.180"></a>
-<span class="sourceLineNo">181</span>                        channel.responsePipeline().submit(<a name="line.181"></a>
-<span class="sourceLineNo">182</span>                                        new InputStreamPipeline(resIn, channel).suppressClose());<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                }<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                return true;<a name="line.184"></a>
-<span class="sourceLineNo">185</span>        }<a name="line.185"></a>
-<span class="sourceLineNo">186</span><a name="line.186"></a>
-<span class="sourceLineNo">187</span>        /**<a name="line.187"></a>
-<span class="sourceLineNo">188</span>         * Shorthand for invoking <a name="line.188"></a>
-<span class="sourceLineNo">189</span>         * {@link #sendStaticContent(HttpRequest, IOSubchannel, Function, MaxAgeCalculator)}<a name="line.189"></a>
-<span class="sourceLineNo">190</span>         * with the {@link HttpRequest} from the event. Also sets the result<a name="line.190"></a>
-<span class="sourceLineNo">191</span>         * of the event to `true` and invokes {@link Event#stop()} <a name="line.191"></a>
-<span class="sourceLineNo">192</span>         * if a response was sent.<a name="line.192"></a>
-<span class="sourceLineNo">193</span>         *<a name="line.193"></a>
-<span class="sourceLineNo">194</span>         * @param event the event<a name="line.194"></a>
-<span class="sourceLineNo">195</span>         * @param channel the channel<a name="line.195"></a>
-<span class="sourceLineNo">196</span>         * @param resolver the resolver<a name="line.196"></a>
-<span class="sourceLineNo">197</span>         * @param maxAgeCalculator the max age calculator, if `null`<a name="line.197"></a>
-<span class="sourceLineNo">198</span>         * the default calculator is used.<a name="line.198"></a>
-<span class="sourceLineNo">199</span>         * @return `true` if a response was sent<a name="line.199"></a>
-<span class="sourceLineNo">200</span>         * @throws ParseException the parse exception<a name="line.200"></a>
-<span class="sourceLineNo">201</span>         */<a name="line.201"></a>
-<span class="sourceLineNo">202</span>        public static boolean sendStaticContent(<a name="line.202"></a>
-<span class="sourceLineNo">203</span>                        Request event, IOSubchannel channel,  <a name="line.203"></a>
-<span class="sourceLineNo">204</span>                        Function&lt;String,URL&gt; resolver, MaxAgeCalculator maxAgeCalculator) {<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                if (sendStaticContent(<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                                event.httpRequest(), channel, resolver, maxAgeCalculator)) {<a name="line.206"></a>
-<span class="sourceLineNo">207</span>                        event.setResult(true);<a name="line.207"></a>
-<span class="sourceLineNo">208</span>                        event.stop();<a name="line.208"></a>
-<span class="sourceLineNo">209</span>                        return true;<a name="line.209"></a>
-<span class="sourceLineNo">210</span>                }<a name="line.210"></a>
-<span class="sourceLineNo">211</span>                return false;<a name="line.211"></a>
-<span class="sourceLineNo">212</span>        }<a name="line.212"></a>
-<span class="sourceLineNo">213</span>        <a name="line.213"></a>
-<span class="sourceLineNo">214</span>        public static class ResourceInfo {<a name="line.214"></a>
-<span class="sourceLineNo">215</span>                public Boolean isDirectory;<a name="line.215"></a>
-<span class="sourceLineNo">216</span>                public Instant lastModifiedAt;<a name="line.216"></a>
-<span class="sourceLineNo">217</span>                <a name="line.217"></a>
-<span class="sourceLineNo">218</span>                /**<a name="line.218"></a>
-<span class="sourceLineNo">219</span>                 * @param isDirectory<a name="line.219"></a>
-<span class="sourceLineNo">220</span>                 * @param lastModifiedAt<a name="line.220"></a>
-<span class="sourceLineNo">221</span>                 */<a name="line.221"></a>
-<span class="sourceLineNo">222</span>                public ResourceInfo(Boolean isDirectory, Instant lastModifiedAt) {<a name="line.222"></a>
-<span class="sourceLineNo">223</span>                        this.isDirectory = isDirectory;<a name="line.223"></a>
-<span class="sourceLineNo">224</span>                        this.lastModifiedAt = lastModifiedAt;<a name="line.224"></a>
-<span class="sourceLineNo">225</span>                }<a name="line.225"></a>
-<span class="sourceLineNo">226</span>                <a name="line.226"></a>
-<span class="sourceLineNo">227</span>                /**<a name="line.227"></a>
-<span class="sourceLineNo">228</span>                 * @return the isDirectory<a name="line.228"></a>
-<span class="sourceLineNo">229</span>                 */<a name="line.229"></a>
-<span class="sourceLineNo">230</span>                public Boolean isDirectory() {<a name="line.230"></a>
-<span class="sourceLineNo">231</span>                        return isDirectory;<a name="line.231"></a>
-<span class="sourceLineNo">232</span>                }<a name="line.232"></a>
-<span class="sourceLineNo">233</span>                <a name="line.233"></a>
-<span class="sourceLineNo">234</span>                /**<a name="line.234"></a>
-<span class="sourceLineNo">235</span>                 * @return the lastModifiedAt<a name="line.235"></a>
-<span class="sourceLineNo">236</span>                 */<a name="line.236"></a>
-<span class="sourceLineNo">237</span>                public Instant getLastModifiedAt() {<a name="line.237"></a>
-<span class="sourceLineNo">238</span>                        return lastModifiedAt;<a name="line.238"></a>
-<span class="sourceLineNo">239</span>                }<a name="line.239"></a>
-<span class="sourceLineNo">240</span>        }<a name="line.240"></a>
-<span class="sourceLineNo">241</span><a name="line.241"></a>
-<span class="sourceLineNo">242</span>        /**<a name="line.242"></a>
-<span class="sourceLineNo">243</span>         * Attempts to lookup the additional resource information for the<a name="line.243"></a>
-<span class="sourceLineNo">244</span>         * given URL. <a name="line.244"></a>
-<span class="sourceLineNo">245</span>         * <a name="line.245"></a>
-<span class="sourceLineNo">246</span>         * If a {@link URL} references a file, it is easy to find out if <a name="line.246"></a>
-<span class="sourceLineNo">247</span>         * the resource referenced is a directory and to get its last <a name="line.247"></a>
-<span class="sourceLineNo">248</span>         * modification time. Getting the same information<a name="line.248"></a>
-<span class="sourceLineNo">249</span>         * for a {@link URL} that references resources in a jar is a bit<a name="line.249"></a>
-<span class="sourceLineNo">250</span>         * more difficult. This method handles both cases.<a name="line.250"></a>
-<span class="sourceLineNo">251</span>         *<a name="line.251"></a>
-<span class="sourceLineNo">252</span>         * @param resource the resource URL<a name="line.252"></a>
-<span class="sourceLineNo">253</span>         * @return the resource info<a name="line.253"></a>
-<span class="sourceLineNo">254</span>         */<a name="line.254"></a>
-<span class="sourceLineNo">255</span>        public static ResourceInfo resourceInfo(URL resource) {<a name="line.255"></a>
-<span class="sourceLineNo">256</span>                try {<a name="line.256"></a>
-<span class="sourceLineNo">257</span>                        Path path = Paths.get(resource.toURI());<a name="line.257"></a>
-<span class="sourceLineNo">258</span>                        return new ResourceInfo(Files.isDirectory(path),<a name="line.258"></a>
-<span class="sourceLineNo">259</span>                                        Files.getLastModifiedTime(path).toInstant()<a name="line.259"></a>
-<span class="sourceLineNo">260</span>                                        .with(ChronoField.NANO_OF_SECOND, 0));<a name="line.260"></a>
-<span class="sourceLineNo">261</span>                } catch (FileSystemNotFoundException | IOException<a name="line.261"></a>
-<span class="sourceLineNo">262</span>                                | URISyntaxException e) {<a name="line.262"></a>
-<span class="sourceLineNo">263</span>                        // Fall through<a name="line.263"></a>
-<span class="sourceLineNo">264</span>                }<a name="line.264"></a>
-<span class="sourceLineNo">265</span>                if ("jar".equals(resource.getProtocol())) {<a name="line.265"></a>
-<span class="sourceLineNo">266</span>                        try {<a name="line.266"></a>
-<span class="sourceLineNo">267</span>                                JarURLConnection conn = (JarURLConnection)resource.openConnection();<a name="line.267"></a>
-<span class="sourceLineNo">268</span>                                JarEntry entry = conn.getJarEntry();<a name="line.268"></a>
-<span class="sourceLineNo">269</span>                                return new ResourceInfo(entry.isDirectory()     , <a name="line.269"></a>
-<span class="sourceLineNo">270</span>                                                entry.getLastModifiedTime().toInstant()<a name="line.270"></a>
-<span class="sourceLineNo">271</span>                                                .with(ChronoField.NANO_OF_SECOND, 0));<a name="line.271"></a>
-<span class="sourceLineNo">272</span>                        } catch (IOException e) {<a name="line.272"></a>
-<span class="sourceLineNo">273</span>                                // Fall through<a name="line.273"></a>
-<span class="sourceLineNo">274</span>                        }<a name="line.274"></a>
-<span class="sourceLineNo">275</span>                }<a name="line.275"></a>
-<span class="sourceLineNo">276</span>                try {<a name="line.276"></a>
-<span class="sourceLineNo">277</span>                        URLConnection conn = resource.openConnection();<a name="line.277"></a>
-<span class="sourceLineNo">278</span>                        long lastModified = conn.getLastModified();<a name="line.278"></a>
-<span class="sourceLineNo">279</span>                        if (lastModified != 0) {<a name="line.279"></a>
-<span class="sourceLineNo">280</span>                                return new ResourceInfo(null, Instant.ofEpochMilli(<a name="line.280"></a>
-<span class="sourceLineNo">281</span>                                                lastModified).with(ChronoField.NANO_OF_SECOND, 0));<a name="line.281"></a>
-<span class="sourceLineNo">282</span>                        }<a name="line.282"></a>
-<span class="sourceLineNo">283</span>                } catch (IOException e) {<a name="line.283"></a>
-<span class="sourceLineNo">284</span>                        // Fall through<a name="line.284"></a>
-<span class="sourceLineNo">285</span>                }<a name="line.285"></a>
-<span class="sourceLineNo">286</span>                return new ResourceInfo(null, null);<a name="line.286"></a>
-<span class="sourceLineNo">287</span>        }<a name="line.287"></a>
-<span class="sourceLineNo">288</span>        <a name="line.288"></a>
-<span class="sourceLineNo">289</span>        /**<a name="line.289"></a>
-<span class="sourceLineNo">290</span>         * Create a {@link URI} from a path. This is similar to calling<a name="line.290"></a>
-<span class="sourceLineNo">291</span>         * `new URI(null, null, path, null)` with the {@link URISyntaxException}<a name="line.291"></a>
-<span class="sourceLineNo">292</span>         * converted to a {@link IllegalArgumentException}.<a name="line.292"></a>
-<span class="sourceLineNo">293</span>         * <a name="line.293"></a>
-<span class="sourceLineNo">294</span>         * @param path the path<a name="line.294"></a>
-<span class="sourceLineNo">295</span>         * @return the uri<a name="line.295"></a>
-<span class="sourceLineNo">296</span>         * @throws IllegalArgumentException if the string violates <a name="line.296"></a>
-<span class="sourceLineNo">297</span>         * RFC 2396<a name="line.297"></a>
-<span class="sourceLineNo">298</span>         */<a name="line.298"></a>
-<span class="sourceLineNo">299</span>        public static URI uriFromPath(String path) throws IllegalArgumentException {<a name="line.299"></a>
-<span class="sourceLineNo">300</span>                try {<a name="line.300"></a>
-<span class="sourceLineNo">301</span>                        return new URI(null, null, path, null);<a name="line.301"></a>
-<span class="sourceLineNo">302</span>                } catch (URISyntaxException e) {<a name="line.302"></a>
-<span class="sourceLineNo">303</span>                        throw new IllegalArgumentException(e);<a name="line.303"></a>
-<span class="sourceLineNo">304</span>                }<a name="line.304"></a>
-<span class="sourceLineNo">305</span>        }<a name="line.305"></a>
-<span class="sourceLineNo">306</span>        <a name="line.306"></a>
-<span class="sourceLineNo">307</span>        /**<a name="line.307"></a>
-<span class="sourceLineNo">308</span>         * Create a {@link URI} from a {@link URL}. This is similar to calling<a name="line.308"></a>
-<span class="sourceLineNo">309</span>         * `url.toURI()` with the {@link URISyntaxException}<a name="line.309"></a>
-<span class="sourceLineNo">310</span>         * converted to a {@link IllegalArgumentException}.<a name="line.310"></a>
-<span class="sourceLineNo">311</span>         * <a name="line.311"></a>
-<span class="sourceLineNo">312</span>         * @param url the url<a name="line.312"></a>
-<span class="sourceLineNo">313</span>         * @return the uri<a name="line.313"></a>
-<span class="sourceLineNo">314</span>         * @throws IllegalArgumentException if the url violates RFC 2396<a name="line.314"></a>
-<span class="sourceLineNo">315</span>         */<a name="line.315"></a>
-<span class="sourceLineNo">316</span>        public static URI uriFromUrl(URL url) throws IllegalArgumentException {<a name="line.316"></a>
-<span class="sourceLineNo">317</span>                try {<a name="line.317"></a>
-<span class="sourceLineNo">318</span>                        return url.toURI();<a name="line.318"></a>
-<span class="sourceLineNo">319</span>                } catch (URISyntaxException e) {<a name="line.319"></a>
-<span class="sourceLineNo">320</span>                        throw new IllegalArgumentException(e);<a name="line.320"></a>
-<span class="sourceLineNo">321</span>                }<a name="line.321"></a>
-<span class="sourceLineNo">322</span>        }<a name="line.322"></a>
-<span class="sourceLineNo">323</span>        <a name="line.323"></a>
-<span class="sourceLineNo">324</span>        /**<a name="line.324"></a>
-<span class="sourceLineNo">325</span>         * Sets the cache control header in the given response,<a name="line.325"></a>
-<span class="sourceLineNo">326</span>         * looking up the value for the given media type or using<a name="line.326"></a>
-<span class="sourceLineNo">327</span>         * the default value.<a name="line.327"></a>
-<span class="sourceLineNo">328</span>         *<a name="line.328"></a>
-<span class="sourceLineNo">329</span>         * @param response the response<a name="line.329"></a>
-<span class="sourceLineNo">330</span>         * @param maxAgeCalculator the max age calculator<a name="line.330"></a>
-<span class="sourceLineNo">331</span>         * @param request the request<a name="line.331"></a>
-<span class="sourceLineNo">332</span>         * @param mediaType the media type<a name="line.332"></a>
-<span class="sourceLineNo">333</span>         * @return the value set<a name="line.333"></a>
-<span class="sourceLineNo">334</span>         */<a name="line.334"></a>
-<span class="sourceLineNo">335</span>        public static long setMaxAge(HttpResponse response, <a name="line.335"></a>
-<span class="sourceLineNo">336</span>                        MaxAgeCalculator maxAgeCalculator, <a name="line.336"></a>
-<span class="sourceLineNo">337</span>                        HttpRequest request, MediaType mediaType) {<a name="line.337"></a>
-<span class="sourceLineNo">338</span>                List&lt;Directive&gt; directives = new ArrayList&lt;&gt;();<a name="line.338"></a>
-<span class="sourceLineNo">339</span>                int maxAge = maxAgeCalculator != null <a name="line.339"></a>
-<span class="sourceLineNo">340</span>                                ? maxAgeCalculator.maxAge(request, mediaType)<a name="line.340"></a>
-<span class="sourceLineNo">341</span>                                                : DEFAULT_MAX_AGE_CALCULATOR.maxAge(request, mediaType);<a name="line.341"></a>
-<span class="sourceLineNo">342</span>                directives.add(new Directive("max-age", maxAge));<a name="line.342"></a>
-<span class="sourceLineNo">343</span>                response.setField(HttpField.CACHE_CONTROL, directives);<a name="line.343"></a>
-<span class="sourceLineNo">344</span>                return maxAge;<a name="line.344"></a>
-<span class="sourceLineNo">345</span>        }<a name="line.345"></a>
-<span class="sourceLineNo">346</span><a name="line.346"></a>
-<span class="sourceLineNo">347</span>        @FunctionalInterface<a name="line.347"></a>
-<span class="sourceLineNo">348</span>        public interface MaxAgeCalculator  {<a name="line.348"></a>
-<span class="sourceLineNo">349</span>                <a name="line.349"></a>
-<span class="sourceLineNo">350</span>                /**<a name="line.350"></a>
-<span class="sourceLineNo">351</span>                 * Calculate a max age value for a response using the given <a name="line.351"></a>
-<span class="sourceLineNo">352</span>                 * request and the media type of the repsonse.<a name="line.352"></a>
-<span class="sourceLineNo">353</span>                 *<a name="line.353"></a>
-<span class="sourceLineNo">354</span>                 * @param request the request, usually only the URI is<a name="line.354"></a>
-<span class="sourceLineNo">355</span>                 * considered for the calculation<a name="line.355"></a>
-<span class="sourceLineNo">356</span>                 * @param mediaType the media type of the response<a name="line.356"></a>
-<span class="sourceLineNo">357</span>                 * @return the max age value to be used in the response<a name="line.357"></a>
-<span class="sourceLineNo">358</span>                 */<a name="line.358"></a>
-<span class="sourceLineNo">359</span>                int maxAge(HttpRequest request, MediaType mediaType);<a name="line.359"></a>
-<span class="sourceLineNo">360</span>        }<a name="line.360"></a>
-<span class="sourceLineNo">361</span><a name="line.361"></a>
-<span class="sourceLineNo">362</span>        /**<a name="line.362"></a>
-<span class="sourceLineNo">363</span>         * DefaultMaxAgeCalculator provides an implementation that <a name="line.363"></a>
-<span class="sourceLineNo">364</span>         * tries to guess a good max age value by looking at the<a name="line.364"></a>
-<span class="sourceLineNo">365</span>         * path of the requested resource. If the path contains<a name="line.365"></a>
-<span class="sourceLineNo">366</span>         * the pattern "dash, followed by a number, followed by<a name="line.366"></a>
-<span class="sourceLineNo">367</span>         * a dot and a number" it is assumed that the resource<a name="line.367"></a>
-<span class="sourceLineNo">368</span>         * is versioned, i.e. its path changes if the resource<a name="line.368"></a>
-<span class="sourceLineNo">369</span>         * changes. In this case a max age of one year is returned.<a name="line.369"></a>
-<span class="sourceLineNo">370</span>         * In all other cases, a max age value of 60 (one minute)<a name="line.370"></a>
-<span class="sourceLineNo">371</span>         * is returned.<a name="line.371"></a>
-<span class="sourceLineNo">372</span>         */<a name="line.372"></a>
-<span class="sourceLineNo">373</span>        public static class DefaultMaxAgeCalculator implements MaxAgeCalculator {<a name="line.373"></a>
-<span class="sourceLineNo">374</span><a name="line.374"></a>
-<span class="sourceLineNo">375</span>                public static final Pattern VERSION_PATTERN<a name="line.375"></a>
-<span class="sourceLineNo">376</span>                        = Pattern.compile("-[0-9]+\\.[0-9]+");<a name="line.376"></a>
-<span class="sourceLineNo">377</span>                <a name="line.377"></a>
-<span class="sourceLineNo">378</span>                @Override<a name="line.378"></a>
-<span class="sourceLineNo">379</span>                public int maxAge(HttpRequest request, MediaType mediaType) {<a name="line.379"></a>
-<span class="sourceLineNo">380</span>                        if (VERSION_PATTERN.matcher(<a name="line.380"></a>
-<span class="sourceLineNo">381</span>                                        request.requestUri().getPath()).find()) {<a name="line.381"></a>
-<span class="sourceLineNo">382</span>                                return 365*24*3600;<a name="line.382"></a>
-<span class="sourceLineNo">383</span>                        }<a name="line.383"></a>
-<span class="sourceLineNo">384</span>                        return 60;<a name="line.384"></a>
-<span class="sourceLineNo">385</span>                }<a name="line.385"></a>
-<span class="sourceLineNo">386</span>                <a name="line.386"></a>
-<span class="sourceLineNo">387</span>        }<a name="line.387"></a>
-<span class="sourceLineNo">388</span>}<a name="line.388"></a>
+<span class="sourceLineNo">180</span>                        // Start sending content (Output events as resonses)<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                        (new InputStreamPipeline(resIn, channel).suppressClose()).run();<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                }<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                return true;<a name="line.183"></a>
+<span class="sourceLineNo">184</span>        }<a name="line.184"></a>
+<span class="sourceLineNo">185</span><a name="line.185"></a>
+<span class="sourceLineNo">186</span>        /**<a name="line.186"></a>
+<span class="sourceLineNo">187</span>         * Shorthand for invoking <a name="line.187"></a>
+<span class="sourceLineNo">188</span>         * {@link #sendStaticContent(HttpRequest, IOSubchannel, Function, MaxAgeCalculator)}<a name="line.188"></a>
+<span class="sourceLineNo">189</span>         * with the {@link HttpRequest} from the event. Also sets the result<a name="line.189"></a>
+<span class="sourceLineNo">190</span>         * of the event to `true` and invokes {@link Event#stop()} <a name="line.190"></a>
+<span class="sourceLineNo">191</span>         * if a response was sent.<a name="line.191"></a>
+<span class="sourceLineNo">192</span>         *<a name="line.192"></a>
+<span class="sourceLineNo">193</span>         * @param event the event<a name="line.193"></a>
+<span class="sourceLineNo">194</span>         * @param channel the channel<a name="line.194"></a>
+<span class="sourceLineNo">195</span>         * @param resolver the resolver<a name="line.195"></a>
+<span class="sourceLineNo">196</span>         * @param maxAgeCalculator the max age calculator, if `null`<a name="line.196"></a>
+<span class="sourceLineNo">197</span>         * the default calculator is used.<a name="line.197"></a>
+<span class="sourceLineNo">198</span>         * @return `true` if a response was sent<a name="line.198"></a>
+<span class="sourceLineNo">199</span>         * @throws ParseException the parse exception<a name="line.199"></a>
+<span class="sourceLineNo">200</span>         */<a name="line.200"></a>
+<span class="sourceLineNo">201</span>        public static boolean sendStaticContent(<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                        Request event, IOSubchannel channel,  <a name="line.202"></a>
+<span class="sourceLineNo">203</span>                        Function&lt;String,URL&gt; resolver, MaxAgeCalculator maxAgeCalculator) {<a name="line.203"></a>
+<span class="sourceLineNo">204</span>                if (sendStaticContent(<a name="line.204"></a>
+<span class="sourceLineNo">205</span>                                event.httpRequest(), channel, resolver, maxAgeCalculator)) {<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                        event.setResult(true);<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                        event.stop();<a name="line.207"></a>
+<span class="sourceLineNo">208</span>                        return true;<a name="line.208"></a>
+<span class="sourceLineNo">209</span>                }<a name="line.209"></a>
+<span class="sourceLineNo">210</span>                return false;<a name="line.210"></a>
+<span class="sourceLineNo">211</span>        }<a name="line.211"></a>
+<span class="sourceLineNo">212</span>        <a name="line.212"></a>
+<span class="sourceLineNo">213</span>        public static class ResourceInfo {<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                public Boolean isDirectory;<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                public Instant lastModifiedAt;<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                <a name="line.216"></a>
+<span class="sourceLineNo">217</span>                /**<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                 * @param isDirectory<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                 * @param lastModifiedAt<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                 */<a name="line.220"></a>
+<span class="sourceLineNo">221</span>                public ResourceInfo(Boolean isDirectory, Instant lastModifiedAt) {<a name="line.221"></a>
+<span class="sourceLineNo">222</span>                        this.isDirectory = isDirectory;<a name="line.222"></a>
+<span class="sourceLineNo">223</span>                        this.lastModifiedAt = lastModifiedAt;<a name="line.223"></a>
+<span class="sourceLineNo">224</span>                }<a name="line.224"></a>
+<span class="sourceLineNo">225</span>                <a name="line.225"></a>
+<span class="sourceLineNo">226</span>                /**<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                 * @return the isDirectory<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                 */<a name="line.228"></a>
+<span class="sourceLineNo">229</span>                public Boolean isDirectory() {<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                        return isDirectory;<a name="line.230"></a>
+<span class="sourceLineNo">231</span>                }<a name="line.231"></a>
+<span class="sourceLineNo">232</span>                <a name="line.232"></a>
+<span class="sourceLineNo">233</span>                /**<a name="line.233"></a>
+<span class="sourceLineNo">234</span>                 * @return the lastModifiedAt<a name="line.234"></a>
+<span class="sourceLineNo">235</span>                 */<a name="line.235"></a>
+<span class="sourceLineNo">236</span>                public Instant getLastModifiedAt() {<a name="line.236"></a>
+<span class="sourceLineNo">237</span>                        return lastModifiedAt;<a name="line.237"></a>
+<span class="sourceLineNo">238</span>                }<a name="line.238"></a>
+<span class="sourceLineNo">239</span>        }<a name="line.239"></a>
+<span class="sourceLineNo">240</span><a name="line.240"></a>
+<span class="sourceLineNo">241</span>        /**<a name="line.241"></a>
+<span class="sourceLineNo">242</span>         * Attempts to lookup the additional resource information for the<a name="line.242"></a>
+<span class="sourceLineNo">243</span>         * given URL. <a name="line.243"></a>
+<span class="sourceLineNo">244</span>         * <a name="line.244"></a>
+<span class="sourceLineNo">245</span>         * If a {@link URL} references a file, it is easy to find out if <a name="line.245"></a>
+<span class="sourceLineNo">246</span>         * the resource referenced is a directory and to get its last <a name="line.246"></a>
+<span class="sourceLineNo">247</span>         * modification time. Getting the same information<a name="line.247"></a>
+<span class="sourceLineNo">248</span>         * for a {@link URL} that references resources in a jar is a bit<a name="line.248"></a>
+<span class="sourceLineNo">249</span>         * more difficult. This method handles both cases.<a name="line.249"></a>
+<span class="sourceLineNo">250</span>         *<a name="line.250"></a>
+<span class="sourceLineNo">251</span>         * @param resource the resource URL<a name="line.251"></a>
+<span class="sourceLineNo">252</span>         * @return the resource info<a name="line.252"></a>
+<span class="sourceLineNo">253</span>         */<a name="line.253"></a>
+<span class="sourceLineNo">254</span>        public static ResourceInfo resourceInfo(URL resource) {<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                try {<a name="line.255"></a>
+<span class="sourceLineNo">256</span>                        Path path = Paths.get(resource.toURI());<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                        return new ResourceInfo(Files.isDirectory(path),<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                                        Files.getLastModifiedTime(path).toInstant()<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                                        .with(ChronoField.NANO_OF_SECOND, 0));<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                } catch (FileSystemNotFoundException | IOException<a name="line.260"></a>
+<span class="sourceLineNo">261</span>                                | URISyntaxException e) {<a name="line.261"></a>
+<span class="sourceLineNo">262</span>                        // Fall through<a name="line.262"></a>
+<span class="sourceLineNo">263</span>                }<a name="line.263"></a>
+<span class="sourceLineNo">264</span>                if ("jar".equals(resource.getProtocol())) {<a name="line.264"></a>
+<span class="sourceLineNo">265</span>                        try {<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                                JarURLConnection conn = (JarURLConnection)resource.openConnection();<a name="line.266"></a>
+<span class="sourceLineNo">267</span>                                JarEntry entry = conn.getJarEntry();<a name="line.267"></a>
+<span class="sourceLineNo">268</span>                                return new ResourceInfo(entry.isDirectory()     , <a name="line.268"></a>
+<span class="sourceLineNo">269</span>                                                entry.getLastModifiedTime().toInstant()<a name="line.269"></a>
+<span class="sourceLineNo">270</span>                                                .with(ChronoField.NANO_OF_SECOND, 0));<a name="line.270"></a>
+<span class="sourceLineNo">271</span>                        } catch (IOException e) {<a name="line.271"></a>
+<span class="sourceLineNo">272</span>                                // Fall through<a name="line.272"></a>
+<span class="sourceLineNo">273</span>                        }<a name="line.273"></a>
+<span class="sourceLineNo">274</span>                }<a name="line.274"></a>
+<span class="sourceLineNo">275</span>                try {<a name="line.275"></a>
+<span class="sourceLineNo">276</span>                        URLConnection conn = resource.openConnection();<a name="line.276"></a>
+<span class="sourceLineNo">277</span>                        long lastModified = conn.getLastModified();<a name="line.277"></a>
+<span class="sourceLineNo">278</span>                        if (lastModified != 0) {<a name="line.278"></a>
+<span class="sourceLineNo">279</span>                                return new ResourceInfo(null, Instant.ofEpochMilli(<a name="line.279"></a>
+<span class="sourceLineNo">280</span>                                                lastModified).with(ChronoField.NANO_OF_SECOND, 0));<a name="line.280"></a>
+<span class="sourceLineNo">281</span>                        }<a name="line.281"></a>
+<span class="sourceLineNo">282</span>                } catch (IOException e) {<a name="line.282"></a>
+<span class="sourceLineNo">283</span>                        // Fall through<a name="line.283"></a>
+<span class="sourceLineNo">284</span>                }<a name="line.284"></a>
+<span class="sourceLineNo">285</span>                return new ResourceInfo(null, null);<a name="line.285"></a>
+<span class="sourceLineNo">286</span>        }<a name="line.286"></a>
+<span class="sourceLineNo">287</span>        <a name="line.287"></a>
+<span class="sourceLineNo">288</span>        /**<a name="line.288"></a>
+<span class="sourceLineNo">289</span>         * Create a {@link URI} from a path. This is similar to calling<a name="line.289"></a>
+<span class="sourceLineNo">290</span>         * `new URI(null, null, path, null)` with the {@link URISyntaxException}<a name="line.290"></a>
+<span class="sourceLineNo">291</span>         * converted to a {@link IllegalArgumentException}.<a name="line.291"></a>
+<span class="sourceLineNo">292</span>         * <a name="line.292"></a>
+<span class="sourceLineNo">293</span>         * @param path the path<a name="line.293"></a>
+<span class="sourceLineNo">294</span>         * @return the uri<a name="line.294"></a>
+<span class="sourceLineNo">295</span>         * @throws IllegalArgumentException if the string violates <a name="line.295"></a>
+<span class="sourceLineNo">296</span>         * RFC 2396<a name="line.296"></a>
+<span class="sourceLineNo">297</span>         */<a name="line.297"></a>
+<span class="sourceLineNo">298</span>        public static URI uriFromPath(String path) throws IllegalArgumentException {<a name="line.298"></a>
+<span class="sourceLineNo">299</span>                try {<a name="line.299"></a>
+<span class="sourceLineNo">300</span>                        return new URI(null, null, path, null);<a name="line.300"></a>
+<span class="sourceLineNo">301</span>                } catch (URISyntaxException e) {<a name="line.301"></a>
+<span class="sourceLineNo">302</span>                        throw new IllegalArgumentException(e);<a name="line.302"></a>
+<span class="sourceLineNo">303</span>                }<a name="line.303"></a>
+<span class="sourceLineNo">304</span>        }<a name="line.304"></a>
+<span class="sourceLineNo">305</span>        <a name="line.305"></a>
+<span class="sourceLineNo">306</span>        /**<a name="line.306"></a>
+<span class="sourceLineNo">307</span>         * Create a {@link URI} from a {@link URL}. This is similar to calling<a name="line.307"></a>
+<span class="sourceLineNo">308</span>         * `url.toURI()` with the {@link URISyntaxException}<a name="line.308"></a>
+<span class="sourceLineNo">309</span>         * converted to a {@link IllegalArgumentException}.<a name="line.309"></a>
+<span class="sourceLineNo">310</span>         * <a name="line.310"></a>
+<span class="sourceLineNo">311</span>         * @param url the url<a name="line.311"></a>
+<span class="sourceLineNo">312</span>         * @return the uri<a name="line.312"></a>
+<span class="sourceLineNo">313</span>         * @throws IllegalArgumentException if the url violates RFC 2396<a name="line.313"></a>
+<span class="sourceLineNo">314</span>         */<a name="line.314"></a>
+<span class="sourceLineNo">315</span>        public static URI uriFromUrl(URL url) throws IllegalArgumentException {<a name="line.315"></a>
+<span class="sourceLineNo">316</span>                try {<a name="line.316"></a>
+<span class="sourceLineNo">317</span>                        return url.toURI();<a name="line.317"></a>
+<span class="sourceLineNo">318</span>                } catch (URISyntaxException e) {<a name="line.318"></a>
+<span class="sourceLineNo">319</span>                        throw new IllegalArgumentException(e);<a name="line.319"></a>
+<span class="sourceLineNo">320</span>                }<a name="line.320"></a>
+<span class="sourceLineNo">321</span>        }<a name="line.321"></a>
+<span class="sourceLineNo">322</span>        <a name="line.322"></a>
+<span class="sourceLineNo">323</span>        /**<a name="line.323"></a>
+<span class="sourceLineNo">324</span>         * Sets the cache control header in the given response,<a name="line.324"></a>
+<span class="sourceLineNo">325</span>         * looking up the value for the given media type or using<a name="line.325"></a>
+<span class="sourceLineNo">326</span>         * the default value.<a name="line.326"></a>
+<span class="sourceLineNo">327</span>         *<a name="line.327"></a>
+<span class="sourceLineNo">328</span>         * @param response the response<a name="line.328"></a>
+<span class="sourceLineNo">329</span>         * @param maxAgeCalculator the max age calculator<a name="line.329"></a>
+<span class="sourceLineNo">330</span>         * @param request the request<a name="line.330"></a>
+<span class="sourceLineNo">331</span>         * @param mediaType the media type<a name="line.331"></a>
+<span class="sourceLineNo">332</span>         * @return the value set<a name="line.332"></a>
+<span class="sourceLineNo">333</span>         */<a name="line.333"></a>
+<span class="sourceLineNo">334</span>        public static long setMaxAge(HttpResponse response, <a name="line.334"></a>
+<span class="sourceLineNo">335</span>                        MaxAgeCalculator maxAgeCalculator, <a name="line.335"></a>
+<span class="sourceLineNo">336</span>                        HttpRequest request, MediaType mediaType) {<a name="line.336"></a>
+<span class="sourceLineNo">337</span>                List&lt;Directive&gt; directives = new ArrayList&lt;&gt;();<a name="line.337"></a>
+<span class="sourceLineNo">338</span>                int maxAge = maxAgeCalculator != null <a name="line.338"></a>
+<span class="sourceLineNo">339</span>                                ? maxAgeCalculator.maxAge(request, mediaType)<a name="line.339"></a>
+<span class="sourceLineNo">340</span>                                                : DEFAULT_MAX_AGE_CALCULATOR.maxAge(request, mediaType);<a name="line.340"></a>
+<span class="sourceLineNo">341</span>                directives.add(new Directive("max-age", maxAge));<a name="line.341"></a>
+<span class="sourceLineNo">342</span>                response.setField(HttpField.CACHE_CONTROL, directives);<a name="line.342"></a>
+<span class="sourceLineNo">343</span>                return maxAge;<a name="line.343"></a>
+<span class="sourceLineNo">344</span>        }<a name="line.344"></a>
+<span class="sourceLineNo">345</span><a name="line.345"></a>
+<span class="sourceLineNo">346</span>        @FunctionalInterface<a name="line.346"></a>
+<span class="sourceLineNo">347</span>        public interface MaxAgeCalculator  {<a name="line.347"></a>
+<span class="sourceLineNo">348</span>                <a name="line.348"></a>
+<span class="sourceLineNo">349</span>                /**<a name="line.349"></a>
+<span class="sourceLineNo">350</span>                 * Calculate a max age value for a response using the given <a name="line.350"></a>
+<span class="sourceLineNo">351</span>                 * request and the media type of the repsonse.<a name="line.351"></a>
+<span class="sourceLineNo">352</span>                 *<a name="line.352"></a>
+<span class="sourceLineNo">353</span>                 * @param request the request, usually only the URI is<a name="line.353"></a>
+<span class="sourceLineNo">354</span>                 * considered for the calculation<a name="line.354"></a>
+<span class="sourceLineNo">355</span>                 * @param mediaType the media type of the response<a name="line.355"></a>
+<span class="sourceLineNo">356</span>                 * @return the max age value to be used in the response<a name="line.356"></a>
+<span class="sourceLineNo">357</span>                 */<a name="line.357"></a>
+<span class="sourceLineNo">358</span>                int maxAge(HttpRequest request, MediaType mediaType);<a name="line.358"></a>
+<span class="sourceLineNo">359</span>        }<a name="line.359"></a>
+<span class="sourceLineNo">360</span><a name="line.360"></a>
+<span class="sourceLineNo">361</span>        /**<a name="line.361"></a>
+<span class="sourceLineNo">362</span>         * DefaultMaxAgeCalculator provides an implementation that <a name="line.362"></a>
+<span class="sourceLineNo">363</span>         * tries to guess a good max age value by looking at the<a name="line.363"></a>
+<span class="sourceLineNo">364</span>         * path of the requested resource. If the path contains<a name="line.364"></a>
+<span class="sourceLineNo">365</span>         * the pattern "dash, followed by a number, followed by<a name="line.365"></a>
+<span class="sourceLineNo">366</span>         * a dot and a number" it is assumed that the resource<a name="line.366"></a>
+<span class="sourceLineNo">367</span>         * is versioned, i.e. its path changes if the resource<a name="line.367"></a>
+<span class="sourceLineNo">368</span>         * changes. In this case a max age of one year is returned.<a name="line.368"></a>
+<span class="sourceLineNo">369</span>         * In all other cases, a max age value of 60 (one minute)<a name="line.369"></a>
+<span class="sourceLineNo">370</span>         * is returned.<a name="line.370"></a>
+<span class="sourceLineNo">371</span>         */<a name="line.371"></a>
+<span class="sourceLineNo">372</span>        public static class DefaultMaxAgeCalculator implements MaxAgeCalculator {<a name="line.372"></a>
+<span class="sourceLineNo">373</span><a name="line.373"></a>
+<span class="sourceLineNo">374</span>                public static final Pattern VERSION_PATTERN<a name="line.374"></a>
+<span class="sourceLineNo">375</span>                        = Pattern.compile("-[0-9]+\\.[0-9]+");<a name="line.375"></a>
+<span class="sourceLineNo">376</span>                <a name="line.376"></a>
+<span class="sourceLineNo">377</span>                @Override<a name="line.377"></a>
+<span class="sourceLineNo">378</span>                public int maxAge(HttpRequest request, MediaType mediaType) {<a name="line.378"></a>
+<span class="sourceLineNo">379</span>                        if (VERSION_PATTERN.matcher(<a name="line.379"></a>
+<span class="sourceLineNo">380</span>                                        request.requestUri().getPath()).find()) {<a name="line.380"></a>
+<span class="sourceLineNo">381</span>                                return 365*24*3600;<a name="line.381"></a>
+<span class="sourceLineNo">382</span>                        }<a name="line.382"></a>
+<span class="sourceLineNo">383</span>                        return 60;<a name="line.383"></a>
+<span class="sourceLineNo">384</span>                }<a name="line.384"></a>
+<span class="sourceLineNo">385</span>                <a name="line.385"></a>
+<span class="sourceLineNo">386</span>        }<a name="line.386"></a>
+<span class="sourceLineNo">387</span>}<a name="line.387"></a>
 
 
 
