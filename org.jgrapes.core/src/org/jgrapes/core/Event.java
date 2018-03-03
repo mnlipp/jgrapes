@@ -56,6 +56,8 @@ public class Event<T> extends EventBase<T> {
 	/** The channels that this event is to be fired on if no
 	 * channels are specified explicitly when firing. */
 	private Channel[] channels = null;
+	/** Indicates that the event should not processed further. */
+	private boolean stopped = false;
 	/** The results of handling the event (if any). */
 	private List<T> results;
 	/** Context data. */
@@ -112,22 +114,6 @@ public class Event<T> extends EventBase<T> {
 			EventPipeline eventProcessor, Throwable throwable) {
 		eventProcessor.fire(
 				new HandlingError(this, throwable), channels());
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append(" [");
-		if (channels != null) {
-			builder.append("channels=");
-			builder.append(Channel.toString(channels));
-		}
-		builder.append("]");
-		return builder.toString();
 	}
 
 	/**
@@ -197,8 +183,8 @@ public class Event<T> extends EventBase<T> {
 	}
 	
 	/**
-	 * Returns the events to be thrown when this event and all events caused
-	 * by it have been handled.
+	 * Returns the events to be thrown when this event has completed
+	 * (see {@link #isDone()}).
 	 * 
 	 * @return the completed events
 	 */
@@ -209,8 +195,8 @@ public class Event<T> extends EventBase<T> {
 
 	/**
 	 * Adds the given event to the events to be thrown when this event 
-	 * and all events caused by it have been handled. Such an
-	 * event is called a "completion event".
+	 * has completed (see {@link #isDone()}). Such an event is called 
+	 * a "completion event".
 	 * 
 	 * Completion events are considered to be caused by the event that 
 	 * caused the completed event. If an event *e1* caused an event
@@ -231,8 +217,23 @@ public class Event<T> extends EventBase<T> {
 		return (Event<T>)this;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jgrapes.core.internal.EventBase#setRequiresResult(boolean)
+	 */
+	@Override
+	public Event<T> setRequiresResult(boolean value) {
+		return (Event<T>)super.setRequiresResult(value);
+	}
+
 	/**
-	 * Check if this event has been completed.
+	 * Check if this event has completed. An event is completed
+	 * if 
+	 *  * all its handlers have been invoked (or the event has
+	 *    been stopped or cancelled), 
+	 *  * all events caused by it have completed,
+	 *  * no {@link CompletionLock}s remain, and  
+	 *  * a result has been set (only required if 
+	 *    {@link #setRequiresResult(boolean)} has been called with `true`).
 	 * 
 	 * @return the completed state
 	 */
@@ -251,6 +252,27 @@ public class Event<T> extends EventBase<T> {
 	protected void handled() {
 	}
 	
+	/**
+	 * Can be called during the execution of an event handler to indicate
+	 * that the event should not be processed further. All remaining 
+	 * handlers for this event will be skipped.
+	 * 
+	 * @return the object for easy chaining
+	 */
+	public Event<T> stop() {
+		stopped = true;
+		return this;
+	}
+
+	/**
+	 * Returns <code>true</code> if {@link #stop} has been called.
+	 * 
+	 * @return the stopped state
+	 */
+	public boolean isStopped() {
+		return stopped;
+	}
+
 	/**
 	 * Prevents the invocation of further handlers (like {@link #stop()} 
 	 * and (in addition) the invocation of any added completed events.
@@ -284,7 +306,12 @@ public class Event<T> extends EventBase<T> {
 	 */
 	public synchronized Event<T> setResult(T result) {
 		if (results == null) {
+			// Make sure that we have a valid result before 
+			// calling decrementOpen
 			results = new ArrayList<T>();
+			results.add(result);
+			firstResultAssigned();
+			return (Event<T>)this;
 		}
 		results.add(result);
 		return (Event<T>)this;
@@ -321,8 +348,8 @@ public class Event<T> extends EventBase<T> {
 	}
 	
 	/**
-	 * Waits for the event to be completed and returns the first (or only)
-	 * result.
+	 * Waits for the event to be completed (see {@link #isDone()})
+	 * and returns the first (or only) result.
 	 * 
 	 * @see Future#get()
 	 */
@@ -341,8 +368,8 @@ public class Event<T> extends EventBase<T> {
 
 	/**
 	 * Causes the invoking thread to wait until the processing of the 
-	 * event has been completed or given timeout has expired and returns
-	 * the first (or only) result. 
+	 * event has been completed (see {@link #isDone()}) or the given 
+	 * timeout has expired and returns the first (or only) result. 
 	 * 
 	 * @return the result
 	 * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)
@@ -365,8 +392,9 @@ public class Event<T> extends EventBase<T> {
 	}
 
 	/**
-	 * Waits for the event to be completed and returns the list
-	 * of results (which may be empty).
+	 * Waits for the event to be completed (see {@link #isDone()})
+	 * and returns the list of results (which may be empty if the
+	 * event's result type is {@link Void}).
 	 * 
 	 * @return the results
 	 * @see Future#get()
@@ -385,8 +413,9 @@ public class Event<T> extends EventBase<T> {
 
 	/**
 	 * Causes the invoking thread to wait until the processing of the 
-	 * event has been completed or given timeout has expired and returns
-	 * the list of results (which may be empty). 
+	 * event has been completed (see {@link #isDone()}) or given timeout 
+	 * has expired and returns the list of results (which may be empty
+	 * if the event's result type is {@link Void}). 
 	 * 
 	 * @return the results
 	 * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)
@@ -428,4 +457,20 @@ public class Event<T> extends EventBase<T> {
 		return Optional.ofNullable(type.cast(contextData.get(by)));
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Components.objectName(this));
+		builder.append(" [");
+		if (channels != null) {
+			builder.append("channels=");
+			builder.append(Channel.toString(channels));
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+
 }

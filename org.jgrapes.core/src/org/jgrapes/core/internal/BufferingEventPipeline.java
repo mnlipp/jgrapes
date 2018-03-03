@@ -62,7 +62,7 @@ public class BufferingEventPipeline implements InternalEventPipeline {
 			activePipeline.add(event, channels);
 			return event;
 		}
-		// Event gets enqueued (increments reference count).
+		// Invoke although argument is null!
 		((EventBase<?>)event).generatedBy(null);
 		buffered.add(event, channels);
 		if (event instanceof Start) {

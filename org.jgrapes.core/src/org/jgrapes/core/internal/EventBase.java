@@ -46,16 +46,14 @@ public abstract class EventBase<T>
 
 	/** The event that caused this event. */
 	private EventBase<?> generatedBy = null;
-	/** Number of events that have to be dispatched until completion.
+	/** Number of events that have to be processed until completion.
 	 * This is one for the event itself and one more for each event
 	 * that has this event as its cause. */
-	private AtomicInteger openCount = new AtomicInteger(0);
+	private AtomicInteger openCount = new AtomicInteger(1);
 	/** Completion locks. */
 	private Set<CompletionLockBase> completionLocks = null;
 	/** Set when the event is enqueued, reset when it has been completed. */
 	private EventProcessor processedBy = null;
-	/** Indicates that the event should not processed further. */
-	private boolean stopped = false;
 	/** The events to be fired upon completion. Using this attribute
 	 * provides a slightly faster access than invoking
 	 * {@link Event#completionEvents()}, which wraps the result in
@@ -63,12 +61,35 @@ public abstract class EventBase<T>
 	protected Set<Event<?>> completionEvents = null;
 	/** Set when the event has been completed. */
 	protected boolean completed = false;
+	private boolean requiresResult = false;
 	
 	public abstract Channel[] channels();
 
 	protected abstract void handled();
 
+	public abstract boolean isStopped();
+	
 	protected abstract List<T> currentResults();
+
+	protected EventBase<T> setRequiresResult(boolean value) {
+		if (requiresResult == value) {
+			return this;
+		}
+		if (value) {
+			openCount.incrementAndGet();
+			requiresResult = true;
+		} else {
+			requiresResult = false;
+			decrementOpen();
+		}
+		return this;
+	}
+
+	protected void firstResultAssigned() {
+		if (requiresResult) {
+			decrementOpen();
+		}
+	}
 	
 	/**
 	 * Returns <code>true</code> if the event has been enqueued in a pipeline.
@@ -89,27 +110,6 @@ public abstract class EventBase<T>
 			EventPipeline eventProcessor, Throwable throwable);
 
 	/**
-	 * Can be called during the execution of an event handler to indicate
-	 * that the event should not be processed further. All remaining 
-	 * handlers for this event will be skipped.
-	 * 
-	 * @return the object for easy chaining
-	 */
-	public Event<T> stop() {
-		stopped = true;
-		return (Event<T>)this;
-	}
-
-	/**
-	 * Returns <code>true</code> if {@link #stop} has been called.
-	 * 
-	 * @return the stopped state
-	 */
-	public boolean isStopped() {
-		return stopped;
-	}
-
-	/**
 	 * If an event is fired while processing another event, note
 	 * the event being processed. This allows us to track the cause
 	 * of events to the "initial" (externally) generated event that
@@ -118,7 +118,6 @@ public abstract class EventBase<T>
 	 * @param causingEvent the causing event to set
 	 */
 	void generatedBy(EventBase<?> causingEvent) {
-		openCount.incrementAndGet();
 		generatedBy = causingEvent;
 		if (causingEvent != null) {
 			causingEvent.openCount.incrementAndGet();
