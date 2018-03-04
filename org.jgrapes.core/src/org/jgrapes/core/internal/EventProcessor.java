@@ -49,6 +49,10 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 		asEventPipeline = new CheckingPipelineFilter(this);
 	}
 
+	EventPipeline asEventPipeline() {
+		return asEventPipeline;
+	}
+	
 	/**
 	 * Called before adding completion events. The parent of
 	 * a completion event is not the event that has completed but

@@ -21,6 +21,7 @@ package org.jgrapes.core.internal;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -131,6 +132,11 @@ public abstract class EventBase<T>
 	 */
 	void processedBy(EventProcessor processor) {
 		this.processedBy = processor;
+	}
+	
+	public Optional<EventPipeline> processedBy() {
+		return Optional.ofNullable(processedBy).map(
+				pb -> pb.asEventPipeline());
 	}
 	
 	/**

@@ -103,6 +103,16 @@ public class Event<T> extends EventBase<T> {
 	}
 
 	/**
+	 * Return the event pipeline that currently processes the event
+	 * (if any).
+	 * 
+	 * @return the event pipeline if the event is being processed
+	 */
+	public Optional<EventPipeline> processedBy() {
+		return super.processedBy();
+	}
+
+	/**
 	 * Implements the default behavior for handling events thrown
 	 * by a handler. Fires a {@link HandlingError handling error} event
 	 * for this event and the given throwable.
