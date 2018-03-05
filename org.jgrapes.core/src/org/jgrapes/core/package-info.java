@@ -81,7 +81,7 @@
  * Event handlers are methods that are invoked by the framework.
  * These methods have return type `void` and can have zero to
  * two parameters. If specified, the first parameter must be of type
- * {@link org.jgrapes.core.Event} (or, as usual, a super type of
+ * {@link org.jgrapes.core.Event} (or, as usual, a subtype of
  * `Event`). The purpose of the second (optional) parameter will be 
  * explained in the next section.
  * 
@@ -146,7 +146,7 @@
  * simplify this, an event handler may specify a second parameter
  * of type {@link org.jgrapes.core.Channel}. In this case, the handler
  * is invoked by the framework once for each channel that the event
- * was fired on. If the type of the second parameter is a super type
+ * was fired on. If the type of the second parameter is a subtype
  * of {@link org.jgrapes.core.Channel}, it is invoked only if the
  * paramter is assignable from the actual channel.
  * 
