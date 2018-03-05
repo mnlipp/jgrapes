@@ -207,7 +207,7 @@
 <span class="sourceLineNo">199</span>                Set&lt;RenderMode&gt; modes = renderModes(model);<a name="line.199"></a>
 <span class="sourceLineNo">200</span>                Template tpl = freemarkerConfig().getTemplate(<a name="line.200"></a>
 <span class="sourceLineNo">201</span>                                "MarkdownDisplay-preview.ftl.html");<a name="line.201"></a>
-<span class="sourceLineNo">202</span>                portalSession.respond(new RenderPortletFromTemplate(<a name="line.202"></a>
+<span class="sourceLineNo">202</span>                portalSession.respond(new RenderPortletFromTemplate(event,<a name="line.202"></a>
 <span class="sourceLineNo">203</span>                                MarkdownDisplayPortlet.class, model.getPortletId(),<a name="line.203"></a>
 <span class="sourceLineNo">204</span>                                tpl, fmModel(event, portalSession, model))<a name="line.204"></a>
 <span class="sourceLineNo">205</span>                                .setRenderMode(DeleteablePreview).setSupportedModes(modes)<a name="line.205"></a>
@@ -234,7 +234,7 @@
 <span class="sourceLineNo">226</span>                case Preview:<a name="line.226"></a>
 <span class="sourceLineNo">227</span>                case DeleteablePreview: {<a name="line.227"></a>
 <span class="sourceLineNo">228</span>                        Template tpl = freemarkerConfig().getTemplate("MarkdownDisplay-preview.ftl.html");<a name="line.228"></a>
-<span class="sourceLineNo">229</span>                        portalSession.respond(new RenderPortletFromTemplate(<a name="line.229"></a>
+<span class="sourceLineNo">229</span>                        portalSession.respond(new RenderPortletFromTemplate(event,<a name="line.229"></a>
 <span class="sourceLineNo">230</span>                                        MarkdownDisplayPortlet.class, model.getPortletId(), <a name="line.230"></a>
 <span class="sourceLineNo">231</span>                                        tpl, fmModel(event, portalSession, model))<a name="line.231"></a>
 <span class="sourceLineNo">232</span>                                        .setRenderMode(event.renderMode()).setSupportedModes(modes)<a name="line.232"></a>
@@ -244,7 +244,7 @@
 <span class="sourceLineNo">236</span>                }<a name="line.236"></a>
 <span class="sourceLineNo">237</span>                case View: {<a name="line.237"></a>
 <span class="sourceLineNo">238</span>                        Template tpl = freemarkerConfig().getTemplate("MarkdownDisplay-view.ftl.html");<a name="line.238"></a>
-<span class="sourceLineNo">239</span>                        portalSession.respond(new RenderPortletFromTemplate(<a name="line.239"></a>
+<span class="sourceLineNo">239</span>                        portalSession.respond(new RenderPortletFromTemplate(event,<a name="line.239"></a>
 <span class="sourceLineNo">240</span>                                        MarkdownDisplayPortlet.class, model.getPortletId(), <a name="line.240"></a>
 <span class="sourceLineNo">241</span>                                        tpl, fmModel(event, portalSession, model))<a name="line.241"></a>
 <span class="sourceLineNo">242</span>                                        .setRenderMode(View).setSupportedModes(modes)<a name="line.242"></a>
@@ -254,7 +254,7 @@
 <span class="sourceLineNo">246</span>                }<a name="line.246"></a>
 <span class="sourceLineNo">247</span>                case Edit: {<a name="line.247"></a>
 <span class="sourceLineNo">248</span>                        Template tpl = freemarkerConfig().getTemplate("MarkdownDisplay-edit.ftl.html");<a name="line.248"></a>
-<span class="sourceLineNo">249</span>                        portalSession.respond(new RenderPortletFromTemplate(<a name="line.249"></a>
+<span class="sourceLineNo">249</span>                        portalSession.respond(new RenderPortletFromTemplate(event,<a name="line.249"></a>
 <span class="sourceLineNo">250</span>                                        MarkdownDisplayPortlet.class, model.getPortletId(), <a name="line.250"></a>
 <span class="sourceLineNo">251</span>                                        tpl, fmModel(event, portalSession, model))<a name="line.251"></a>
 <span class="sourceLineNo">252</span>                                        .setRenderMode(Edit).setSupportedModes(modes));<a name="line.252"></a>
