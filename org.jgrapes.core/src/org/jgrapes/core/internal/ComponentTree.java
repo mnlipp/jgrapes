@@ -208,8 +208,10 @@ class ComponentTree {
 		
 		public CacheKey(EventBase<?> event, Channel[] channels) {
 			eventMatchValue = event.defaultCriterion();
-			channelMatchValues = Arrays.stream(channels)
-			        .map(c -> c.defaultCriterion()).toArray();
+			channelMatchValues = new Object[channels.length];
+			for (int i = 0; i < channels.length; i++) {
+				channelMatchValues[i] = channels[i].defaultCriterion();
+			}
 		}
 		
 		/* (non-Javadoc)
@@ -240,14 +242,14 @@ class ComponentTree {
 				return false;
 			}
 			CacheKey other = (CacheKey) obj;
-			if (!Arrays.equals(channelMatchValues, other.channelMatchValues)) {
-				return false;
-			}
 			if (eventMatchValue == null) {
 				if (other.eventMatchValue != null) {
 					return false;
 				}
 			} else if (!eventMatchValue.equals(other.eventMatchValue)) {
+				return false;
+			}
+			if (!Arrays.equals(channelMatchValues, other.channelMatchValues)) {
 				return false;
 			}
 			return true;

@@ -197,6 +197,7 @@ public class ServerTest {
 	public void testConcurrentGetRoot() 
 			throws IOException, InterruptedException, ExecutionException, 
 			TimeoutException {
+		System.in.read();
 		Waiter waiter = new Waiter();
 		
 		URL url = new URL("https", "localhost", server.getPort(), "/");
