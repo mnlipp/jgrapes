@@ -29,7 +29,7 @@ import org.jgrapes.core.Components.IdInfoProvider;
  * of the associated tree. Any events fired by the components while handling
  * an event from the pipeline are added at the end of the pipeline.
  * 
- * An event pipeline is run by a single thread from aan executor service. 
+ * An event pipeline is run by a single thread from an executor service. 
  * Adding several events to the same pipeline therefore ensures that they 
  * are executed in sequence.
  */
