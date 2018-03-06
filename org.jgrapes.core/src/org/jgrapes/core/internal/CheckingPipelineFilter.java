@@ -29,7 +29,8 @@ import org.jgrapes.core.EventPipeline;
 
 /**
  * A filter that checks the channels parameter when adding events. If no
- * channels are specified, use the channels associated with the event.
+ * channels are specified, use the channel from the constructor. If this
+ * channel is `null`, use the channels associated with the event.
  * If there are no channels associated with the event, use the broadcast 
  * channel.
  */
