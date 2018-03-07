@@ -306,14 +306,14 @@
 <span class="sourceLineNo">298</span>                throws Exception {<a name="line.298"></a>
 <span class="sourceLineNo">299</span>                event.stop();<a name="line.299"></a>
 <span class="sourceLineNo">300</span>                Map&lt;Preferences, String&gt; properties = new HashMap&lt;&gt;();<a name="line.300"></a>
-<span class="sourceLineNo">301</span>                if (!event.params().isNull(0)) {<a name="line.301"></a>
-<span class="sourceLineNo">302</span>                        properties.put(Preferences.TITLE, event.params().getString(0));<a name="line.302"></a>
+<span class="sourceLineNo">301</span>                if (event.params().get(0) != null) {<a name="line.301"></a>
+<span class="sourceLineNo">302</span>                        properties.put(Preferences.TITLE, event.params().asString(0));<a name="line.302"></a>
 <span class="sourceLineNo">303</span>                }<a name="line.303"></a>
-<span class="sourceLineNo">304</span>                if (!event.params().isNull(1)) {<a name="line.304"></a>
-<span class="sourceLineNo">305</span>                        properties.put(Preferences.PREVIEW_SOURCE, event.params().getString(1));<a name="line.305"></a>
+<span class="sourceLineNo">304</span>                if (event.params().get(1) != null) {<a name="line.304"></a>
+<span class="sourceLineNo">305</span>                        properties.put(Preferences.PREVIEW_SOURCE, event.params().asString(1));<a name="line.305"></a>
 <span class="sourceLineNo">306</span>                }<a name="line.306"></a>
-<span class="sourceLineNo">307</span>                if (!event.params().isNull(2)) {<a name="line.307"></a>
-<span class="sourceLineNo">308</span>                        properties.put(Preferences.VIEW_SOURCE, event.params().getString(2));<a name="line.308"></a>
+<span class="sourceLineNo">307</span>                if (event.params().get(2) != null) {<a name="line.307"></a>
+<span class="sourceLineNo">308</span>                        properties.put(Preferences.VIEW_SOURCE, event.params().asString(2));<a name="line.308"></a>
 <span class="sourceLineNo">309</span>                }<a name="line.309"></a>
 <span class="sourceLineNo">310</span>                fire(new UpdatePortletModel(event.portletId(), properties), portalSession);<a name="line.310"></a>
 <span class="sourceLineNo">311</span>        }<a name="line.311"></a>
@@ -336,107 +336,111 @@
 <span class="sourceLineNo">328</span>                                                        (key, value) -&gt; {<a name="line.328"></a>
 <span class="sourceLineNo">329</span>                                                                model.setEditableBy((Set&lt;Principal&gt;)value);<a name="line.329"></a>
 <span class="sourceLineNo">330</span>                                                        });<a name="line.330"></a>
-<span class="sourceLineNo">331</span>                                        String jsonState = JsonBeanEncoder.create()<a name="line.331"></a>
-<span class="sourceLineNo">332</span>                                                        .writeObject(model).toJson();<a name="line.332"></a>
-<span class="sourceLineNo">333</span>                                        portalSession.respond(new KeyValueStoreUpdate().update(<a name="line.333"></a>
-<span class="sourceLineNo">334</span>                                                        storagePath(portalSession.browserSession()) <a name="line.334"></a>
-<span class="sourceLineNo">335</span>                                                        + model.getPortletId(), jsonState));<a name="line.335"></a>
-<span class="sourceLineNo">336</span>                                        updateView(portalSession, model, portalSession.locale());<a name="line.336"></a>
-<span class="sourceLineNo">337</span>                                });<a name="line.337"></a>
-<span class="sourceLineNo">338</span>        }<a name="line.338"></a>
-<span class="sourceLineNo">339</span>        <a name="line.339"></a>
-<span class="sourceLineNo">340</span>        @SuppressWarnings("serial")<a name="line.340"></a>
-<span class="sourceLineNo">341</span>        public static class MarkdownDisplayModel extends PortletBaseModel {<a name="line.341"></a>
-<span class="sourceLineNo">342</span><a name="line.342"></a>
-<span class="sourceLineNo">343</span>                private String title = "";<a name="line.343"></a>
-<span class="sourceLineNo">344</span>                private String previewContent = "";<a name="line.344"></a>
-<span class="sourceLineNo">345</span>                private String viewContent = "";<a name="line.345"></a>
-<span class="sourceLineNo">346</span>                private boolean deletable = true;<a name="line.346"></a>
-<span class="sourceLineNo">347</span>                private Set&lt;Principal&gt; editableBy = null;<a name="line.347"></a>
-<span class="sourceLineNo">348</span>                <a name="line.348"></a>
-<span class="sourceLineNo">349</span>                /**<a name="line.349"></a>
-<span class="sourceLineNo">350</span>                 * Creates a new model with the given type and id.<a name="line.350"></a>
-<span class="sourceLineNo">351</span>                 * <a name="line.351"></a>
-<span class="sourceLineNo">352</span>                 * @param portletId the portlet id<a name="line.352"></a>
-<span class="sourceLineNo">353</span>                 */<a name="line.353"></a>
-<span class="sourceLineNo">354</span>                @ConstructorProperties({"portletId"})<a name="line.354"></a>
-<span class="sourceLineNo">355</span>                public MarkdownDisplayModel(String portletId) {<a name="line.355"></a>
-<span class="sourceLineNo">356</span>                        super(portletId);<a name="line.356"></a>
-<span class="sourceLineNo">357</span>                }<a name="line.357"></a>
-<span class="sourceLineNo">358</span><a name="line.358"></a>
-<span class="sourceLineNo">359</span>                /**<a name="line.359"></a>
-<span class="sourceLineNo">360</span>                 * @return the title<a name="line.360"></a>
-<span class="sourceLineNo">361</span>                 */<a name="line.361"></a>
-<span class="sourceLineNo">362</span>                public String getTitle() {<a name="line.362"></a>
-<span class="sourceLineNo">363</span>                        return title;<a name="line.363"></a>
-<span class="sourceLineNo">364</span>                }<a name="line.364"></a>
-<span class="sourceLineNo">365</span><a name="line.365"></a>
-<span class="sourceLineNo">366</span>                /**<a name="line.366"></a>
-<span class="sourceLineNo">367</span>                 * @param title the title to set<a name="line.367"></a>
-<span class="sourceLineNo">368</span>                 */<a name="line.368"></a>
-<span class="sourceLineNo">369</span>                public void setTitle(String title) {<a name="line.369"></a>
-<span class="sourceLineNo">370</span>                        this.title = title;<a name="line.370"></a>
-<span class="sourceLineNo">371</span>                }<a name="line.371"></a>
-<span class="sourceLineNo">372</span><a name="line.372"></a>
-<span class="sourceLineNo">373</span>                /**<a name="line.373"></a>
-<span class="sourceLineNo">374</span>                 * @return the previewContent<a name="line.374"></a>
-<span class="sourceLineNo">375</span>                 */<a name="line.375"></a>
-<span class="sourceLineNo">376</span>                public String getPreviewContent() {<a name="line.376"></a>
-<span class="sourceLineNo">377</span>                        return previewContent;<a name="line.377"></a>
-<span class="sourceLineNo">378</span>                }<a name="line.378"></a>
-<span class="sourceLineNo">379</span><a name="line.379"></a>
-<span class="sourceLineNo">380</span>                /**<a name="line.380"></a>
-<span class="sourceLineNo">381</span>                 * @param previewContent the previewContent to set<a name="line.381"></a>
-<span class="sourceLineNo">382</span>                 */<a name="line.382"></a>
-<span class="sourceLineNo">383</span>                public void setPreviewContent(String previewContent) {<a name="line.383"></a>
-<span class="sourceLineNo">384</span>                        this.previewContent = previewContent;<a name="line.384"></a>
-<span class="sourceLineNo">385</span>                }<a name="line.385"></a>
-<span class="sourceLineNo">386</span><a name="line.386"></a>
-<span class="sourceLineNo">387</span>                /**<a name="line.387"></a>
-<span class="sourceLineNo">388</span>                 * @return the viewContent<a name="line.388"></a>
-<span class="sourceLineNo">389</span>                 */<a name="line.389"></a>
-<span class="sourceLineNo">390</span>                public String getViewContent() {<a name="line.390"></a>
-<span class="sourceLineNo">391</span>                        return viewContent;<a name="line.391"></a>
-<span class="sourceLineNo">392</span>                }<a name="line.392"></a>
-<span class="sourceLineNo">393</span><a name="line.393"></a>
-<span class="sourceLineNo">394</span>                /**<a name="line.394"></a>
-<span class="sourceLineNo">395</span>                 * @param viewContent the viewContent to set<a name="line.395"></a>
-<span class="sourceLineNo">396</span>                 */<a name="line.396"></a>
-<span class="sourceLineNo">397</span>                public void setViewContent(String viewContent) {<a name="line.397"></a>
-<span class="sourceLineNo">398</span>                        this.viewContent = viewContent;<a name="line.398"></a>
-<span class="sourceLineNo">399</span>                }<a name="line.399"></a>
-<span class="sourceLineNo">400</span><a name="line.400"></a>
-<span class="sourceLineNo">401</span>                /**<a name="line.401"></a>
-<span class="sourceLineNo">402</span>                 * @return the deletable<a name="line.402"></a>
-<span class="sourceLineNo">403</span>                 */<a name="line.403"></a>
-<span class="sourceLineNo">404</span>                public boolean isDeletable() {<a name="line.404"></a>
-<span class="sourceLineNo">405</span>                        return deletable;<a name="line.405"></a>
-<span class="sourceLineNo">406</span>                }<a name="line.406"></a>
-<span class="sourceLineNo">407</span><a name="line.407"></a>
-<span class="sourceLineNo">408</span>                /**<a name="line.408"></a>
-<span class="sourceLineNo">409</span>                 * @param deletable the deletable to set<a name="line.409"></a>
-<span class="sourceLineNo">410</span>                 */<a name="line.410"></a>
-<span class="sourceLineNo">411</span>                public void setDeletable(boolean deletable) {<a name="line.411"></a>
-<span class="sourceLineNo">412</span>                        this.deletable = deletable;<a name="line.412"></a>
-<span class="sourceLineNo">413</span>                }<a name="line.413"></a>
-<span class="sourceLineNo">414</span><a name="line.414"></a>
-<span class="sourceLineNo">415</span>                /**<a name="line.415"></a>
-<span class="sourceLineNo">416</span>                 * @return the editableBy<a name="line.416"></a>
-<span class="sourceLineNo">417</span>                 */<a name="line.417"></a>
-<span class="sourceLineNo">418</span>                public Set&lt;Principal&gt; getEditableBy() {<a name="line.418"></a>
-<span class="sourceLineNo">419</span>                        return editableBy;<a name="line.419"></a>
-<span class="sourceLineNo">420</span>                }<a name="line.420"></a>
-<span class="sourceLineNo">421</span><a name="line.421"></a>
-<span class="sourceLineNo">422</span>                /**<a name="line.422"></a>
-<span class="sourceLineNo">423</span>                 * @param editableBy the editableBy to set<a name="line.423"></a>
-<span class="sourceLineNo">424</span>                 */<a name="line.424"></a>
-<span class="sourceLineNo">425</span>                public void setEditableBy(Set&lt;Principal&gt; editableBy) {<a name="line.425"></a>
-<span class="sourceLineNo">426</span>                        this.editableBy = editableBy;<a name="line.426"></a>
-<span class="sourceLineNo">427</span>                }<a name="line.427"></a>
-<span class="sourceLineNo">428</span>                <a name="line.428"></a>
-<span class="sourceLineNo">429</span>        }<a name="line.429"></a>
-<span class="sourceLineNo">430</span>        <a name="line.430"></a>
-<span class="sourceLineNo">431</span>}<a name="line.431"></a>
+<span class="sourceLineNo">331</span>                                        try {<a name="line.331"></a>
+<span class="sourceLineNo">332</span>                                                String jsonState = JsonBeanEncoder.create()<a name="line.332"></a>
+<span class="sourceLineNo">333</span>                                                                .writeObject(model).toJson();<a name="line.333"></a>
+<span class="sourceLineNo">334</span>                                                portalSession.respond(new KeyValueStoreUpdate().update(<a name="line.334"></a>
+<span class="sourceLineNo">335</span>                                                                storagePath(portalSession.browserSession()) <a name="line.335"></a>
+<span class="sourceLineNo">336</span>                                                                + model.getPortletId(), jsonState));<a name="line.336"></a>
+<span class="sourceLineNo">337</span>                                                updateView(portalSession, model, portalSession.locale());<a name="line.337"></a>
+<span class="sourceLineNo">338</span>                                        } catch (IOException e) {<a name="line.338"></a>
+<span class="sourceLineNo">339</span>                                                // Won't happen, uses internal writer<a name="line.339"></a>
+<span class="sourceLineNo">340</span>                                        }<a name="line.340"></a>
+<span class="sourceLineNo">341</span>                                });<a name="line.341"></a>
+<span class="sourceLineNo">342</span>        }<a name="line.342"></a>
+<span class="sourceLineNo">343</span>        <a name="line.343"></a>
+<span class="sourceLineNo">344</span>        @SuppressWarnings("serial")<a name="line.344"></a>
+<span class="sourceLineNo">345</span>        public static class MarkdownDisplayModel extends PortletBaseModel {<a name="line.345"></a>
+<span class="sourceLineNo">346</span><a name="line.346"></a>
+<span class="sourceLineNo">347</span>                private String title = "";<a name="line.347"></a>
+<span class="sourceLineNo">348</span>                private String previewContent = "";<a name="line.348"></a>
+<span class="sourceLineNo">349</span>                private String viewContent = "";<a name="line.349"></a>
+<span class="sourceLineNo">350</span>                private boolean deletable = true;<a name="line.350"></a>
+<span class="sourceLineNo">351</span>                private Set&lt;Principal&gt; editableBy = null;<a name="line.351"></a>
+<span class="sourceLineNo">352</span>                <a name="line.352"></a>
+<span class="sourceLineNo">353</span>                /**<a name="line.353"></a>
+<span class="sourceLineNo">354</span>                 * Creates a new model with the given type and id.<a name="line.354"></a>
+<span class="sourceLineNo">355</span>                 * <a name="line.355"></a>
+<span class="sourceLineNo">356</span>                 * @param portletId the portlet id<a name="line.356"></a>
+<span class="sourceLineNo">357</span>                 */<a name="line.357"></a>
+<span class="sourceLineNo">358</span>                @ConstructorProperties({"portletId"})<a name="line.358"></a>
+<span class="sourceLineNo">359</span>                public MarkdownDisplayModel(String portletId) {<a name="line.359"></a>
+<span class="sourceLineNo">360</span>                        super(portletId);<a name="line.360"></a>
+<span class="sourceLineNo">361</span>                }<a name="line.361"></a>
+<span class="sourceLineNo">362</span><a name="line.362"></a>
+<span class="sourceLineNo">363</span>                /**<a name="line.363"></a>
+<span class="sourceLineNo">364</span>                 * @return the title<a name="line.364"></a>
+<span class="sourceLineNo">365</span>                 */<a name="line.365"></a>
+<span class="sourceLineNo">366</span>                public String getTitle() {<a name="line.366"></a>
+<span class="sourceLineNo">367</span>                        return title;<a name="line.367"></a>
+<span class="sourceLineNo">368</span>                }<a name="line.368"></a>
+<span class="sourceLineNo">369</span><a name="line.369"></a>
+<span class="sourceLineNo">370</span>                /**<a name="line.370"></a>
+<span class="sourceLineNo">371</span>                 * @param title the title to set<a name="line.371"></a>
+<span class="sourceLineNo">372</span>                 */<a name="line.372"></a>
+<span class="sourceLineNo">373</span>                public void setTitle(String title) {<a name="line.373"></a>
+<span class="sourceLineNo">374</span>                        this.title = title;<a name="line.374"></a>
+<span class="sourceLineNo">375</span>                }<a name="line.375"></a>
+<span class="sourceLineNo">376</span><a name="line.376"></a>
+<span class="sourceLineNo">377</span>                /**<a name="line.377"></a>
+<span class="sourceLineNo">378</span>                 * @return the previewContent<a name="line.378"></a>
+<span class="sourceLineNo">379</span>                 */<a name="line.379"></a>
+<span class="sourceLineNo">380</span>                public String getPreviewContent() {<a name="line.380"></a>
+<span class="sourceLineNo">381</span>                        return previewContent;<a name="line.381"></a>
+<span class="sourceLineNo">382</span>                }<a name="line.382"></a>
+<span class="sourceLineNo">383</span><a name="line.383"></a>
+<span class="sourceLineNo">384</span>                /**<a name="line.384"></a>
+<span class="sourceLineNo">385</span>                 * @param previewContent the previewContent to set<a name="line.385"></a>
+<span class="sourceLineNo">386</span>                 */<a name="line.386"></a>
+<span class="sourceLineNo">387</span>                public void setPreviewContent(String previewContent) {<a name="line.387"></a>
+<span class="sourceLineNo">388</span>                        this.previewContent = previewContent;<a name="line.388"></a>
+<span class="sourceLineNo">389</span>                }<a name="line.389"></a>
+<span class="sourceLineNo">390</span><a name="line.390"></a>
+<span class="sourceLineNo">391</span>                /**<a name="line.391"></a>
+<span class="sourceLineNo">392</span>                 * @return the viewContent<a name="line.392"></a>
+<span class="sourceLineNo">393</span>                 */<a name="line.393"></a>
+<span class="sourceLineNo">394</span>                public String getViewContent() {<a name="line.394"></a>
+<span class="sourceLineNo">395</span>                        return viewContent;<a name="line.395"></a>
+<span class="sourceLineNo">396</span>                }<a name="line.396"></a>
+<span class="sourceLineNo">397</span><a name="line.397"></a>
+<span class="sourceLineNo">398</span>                /**<a name="line.398"></a>
+<span class="sourceLineNo">399</span>                 * @param viewContent the viewContent to set<a name="line.399"></a>
+<span class="sourceLineNo">400</span>                 */<a name="line.400"></a>
+<span class="sourceLineNo">401</span>                public void setViewContent(String viewContent) {<a name="line.401"></a>
+<span class="sourceLineNo">402</span>                        this.viewContent = viewContent;<a name="line.402"></a>
+<span class="sourceLineNo">403</span>                }<a name="line.403"></a>
+<span class="sourceLineNo">404</span><a name="line.404"></a>
+<span class="sourceLineNo">405</span>                /**<a name="line.405"></a>
+<span class="sourceLineNo">406</span>                 * @return the deletable<a name="line.406"></a>
+<span class="sourceLineNo">407</span>                 */<a name="line.407"></a>
+<span class="sourceLineNo">408</span>                public boolean isDeletable() {<a name="line.408"></a>
+<span class="sourceLineNo">409</span>                        return deletable;<a name="line.409"></a>
+<span class="sourceLineNo">410</span>                }<a name="line.410"></a>
+<span class="sourceLineNo">411</span><a name="line.411"></a>
+<span class="sourceLineNo">412</span>                /**<a name="line.412"></a>
+<span class="sourceLineNo">413</span>                 * @param deletable the deletable to set<a name="line.413"></a>
+<span class="sourceLineNo">414</span>                 */<a name="line.414"></a>
+<span class="sourceLineNo">415</span>                public void setDeletable(boolean deletable) {<a name="line.415"></a>
+<span class="sourceLineNo">416</span>                        this.deletable = deletable;<a name="line.416"></a>
+<span class="sourceLineNo">417</span>                }<a name="line.417"></a>
+<span class="sourceLineNo">418</span><a name="line.418"></a>
+<span class="sourceLineNo">419</span>                /**<a name="line.419"></a>
+<span class="sourceLineNo">420</span>                 * @return the editableBy<a name="line.420"></a>
+<span class="sourceLineNo">421</span>                 */<a name="line.421"></a>
+<span class="sourceLineNo">422</span>                public Set&lt;Principal&gt; getEditableBy() {<a name="line.422"></a>
+<span class="sourceLineNo">423</span>                        return editableBy;<a name="line.423"></a>
+<span class="sourceLineNo">424</span>                }<a name="line.424"></a>
+<span class="sourceLineNo">425</span><a name="line.425"></a>
+<span class="sourceLineNo">426</span>                /**<a name="line.426"></a>
+<span class="sourceLineNo">427</span>                 * @param editableBy the editableBy to set<a name="line.427"></a>
+<span class="sourceLineNo">428</span>                 */<a name="line.428"></a>
+<span class="sourceLineNo">429</span>                public void setEditableBy(Set&lt;Principal&gt; editableBy) {<a name="line.429"></a>
+<span class="sourceLineNo">430</span>                        this.editableBy = editableBy;<a name="line.430"></a>
+<span class="sourceLineNo">431</span>                }<a name="line.431"></a>
+<span class="sourceLineNo">432</span>                <a name="line.432"></a>
+<span class="sourceLineNo">433</span>        }<a name="line.433"></a>
+<span class="sourceLineNo">434</span>        <a name="line.434"></a>
+<span class="sourceLineNo">435</span>}<a name="line.435"></a>
 
 
 
