@@ -118,110 +118,112 @@
 <span class="sourceLineNo">110</span>                }<a name="line.110"></a>
 <span class="sourceLineNo">111</span>                try (Reader in = new InputStreamReader(<a name="line.111"></a>
 <span class="sourceLineNo">112</span>                                new FileInputStream(file), "utf-8")) {<a name="line.112"></a>
-<span class="sourceLineNo">113</span>                        cache = (Map&lt;String,Object&gt;)JsonBeanDecoder<a name="line.113"></a>
-<span class="sourceLineNo">114</span>                                        .create(in).readObject();<a name="line.114"></a>
-<span class="sourceLineNo">115</span>                } catch (JsonDecodeException e) {<a name="line.115"></a>
-<span class="sourceLineNo">116</span>                        throw new IOException(e);<a name="line.116"></a>
-<span class="sourceLineNo">117</span>                }<a name="line.117"></a>
-<span class="sourceLineNo">118</span>        }<a name="line.118"></a>
-<span class="sourceLineNo">119</span><a name="line.119"></a>
-<span class="sourceLineNo">120</span>        @Handler(priority=999999, channels=Channel.class)<a name="line.120"></a>
-<span class="sourceLineNo">121</span>        public void onStart(Start event) <a name="line.121"></a>
-<span class="sourceLineNo">122</span>                        throws BackingStoreException, InterruptedException {<a name="line.122"></a>
-<span class="sourceLineNo">123</span>                ConfigurationUpdate updEvt = new ConfigurationUpdate();<a name="line.123"></a>
-<span class="sourceLineNo">124</span>                addPrefs(updEvt, "/", cache);<a name="line.124"></a>
-<span class="sourceLineNo">125</span>                newEventPipeline().fire(updEvt, event.channels()).get();<a name="line.125"></a>
-<span class="sourceLineNo">126</span>        }<a name="line.126"></a>
-<span class="sourceLineNo">127</span><a name="line.127"></a>
-<span class="sourceLineNo">128</span>        private void addPrefs(<a name="line.128"></a>
-<span class="sourceLineNo">129</span>                        ConfigurationUpdate updEvt, String path, Map&lt;String,?&gt; map) {<a name="line.129"></a>
-<span class="sourceLineNo">130</span>                for (Map.Entry&lt;String,?&gt; e: map.entrySet()) {<a name="line.130"></a>
-<span class="sourceLineNo">131</span>                        if (e.getValue() instanceof Map) {<a name="line.131"></a>
-<span class="sourceLineNo">132</span>                                @SuppressWarnings("unchecked")<a name="line.132"></a>
-<span class="sourceLineNo">133</span>                                Map&lt;String,?&gt; value = (Map&lt;String,?&gt;)e.getValue();<a name="line.133"></a>
-<span class="sourceLineNo">134</span>                                addPrefs(updEvt, ("/".equals(path) ? "" : path)<a name="line.134"></a>
-<span class="sourceLineNo">135</span>                                                + e.getKey(), value);<a name="line.135"></a>
-<span class="sourceLineNo">136</span>                                continue;<a name="line.136"></a>
-<span class="sourceLineNo">137</span>                        }<a name="line.137"></a>
-<span class="sourceLineNo">138</span>                        updEvt.add(path, e.getKey(), e.getValue().toString());<a name="line.138"></a>
-<span class="sourceLineNo">139</span>                }<a name="line.139"></a>
-<span class="sourceLineNo">140</span>        }<a name="line.140"></a>
-<span class="sourceLineNo">141</span>        <a name="line.141"></a>
-<span class="sourceLineNo">142</span>        @Handler(dynamic=true)<a name="line.142"></a>
-<span class="sourceLineNo">143</span>        public void onConfigurationUpdate(ConfigurationUpdate event) <a name="line.143"></a>
-<span class="sourceLineNo">144</span>                        throws IOException {<a name="line.144"></a>
-<span class="sourceLineNo">145</span>                boolean changed = false;<a name="line.145"></a>
-<span class="sourceLineNo">146</span>                for (String path: event.paths()) {<a name="line.146"></a>
-<span class="sourceLineNo">147</span>                        if ("/".equals(path) &amp;&amp; !event.values(path).isPresent()) {<a name="line.147"></a>
-<span class="sourceLineNo">148</span>                                // Special case, "remove root", i.e. all configuration data<a name="line.148"></a>
-<span class="sourceLineNo">149</span>                                cache.clear();<a name="line.149"></a>
-<span class="sourceLineNo">150</span>                                changed = true;<a name="line.150"></a>
-<span class="sourceLineNo">151</span>                        }<a name="line.151"></a>
-<span class="sourceLineNo">152</span>                        changed = changed || handleSegment(cache, <a name="line.152"></a>
-<span class="sourceLineNo">153</span>                                        new StringTokenizer(path, "/"), event.values(path));<a name="line.153"></a>
-<span class="sourceLineNo">154</span>                }<a name="line.154"></a>
-<span class="sourceLineNo">155</span>                if (changed) {<a name="line.155"></a>
-<span class="sourceLineNo">156</span>                        try (Writer out = new OutputStreamWriter(<a name="line.156"></a>
-<span class="sourceLineNo">157</span>                                        new FileOutputStream(file), "utf-8");<a name="line.157"></a>
-<span class="sourceLineNo">158</span>                                        JsonBeanEncoder enc = JsonBeanEncoder.create(out)) {<a name="line.158"></a>
-<span class="sourceLineNo">159</span>                                enc.writeObject(cache);<a name="line.159"></a>
-<span class="sourceLineNo">160</span>                        }<a name="line.160"></a>
-<span class="sourceLineNo">161</span>                }<a name="line.161"></a>
-<span class="sourceLineNo">162</span>        }<a name="line.162"></a>
-<span class="sourceLineNo">163</span>        <a name="line.163"></a>
-<span class="sourceLineNo">164</span>        private boolean handleSegment(Map&lt;String,Object&gt; currentMap,<a name="line.164"></a>
-<span class="sourceLineNo">165</span>                        StringTokenizer st,     Optional&lt;Map&lt;String,String&gt;&gt; values) {<a name="line.165"></a>
-<span class="sourceLineNo">166</span>                boolean changed = false;<a name="line.166"></a>
-<span class="sourceLineNo">167</span>                if (!st.hasMoreTokens()) {<a name="line.167"></a>
-<span class="sourceLineNo">168</span>                        // "Leave" map<a name="line.168"></a>
-<span class="sourceLineNo">169</span>                        return mergeValues(currentMap, values.get());<a name="line.169"></a>
-<span class="sourceLineNo">170</span>                }<a name="line.170"></a>
-<span class="sourceLineNo">171</span>                String nextSegment = "/" + st.nextToken();<a name="line.171"></a>
-<span class="sourceLineNo">172</span>                if (!st.hasMoreTokens() &amp;&amp; !values.isPresent()) {<a name="line.172"></a>
-<span class="sourceLineNo">173</span>                        // Next segment is last segment from path and we must remove<a name="line.173"></a>
-<span class="sourceLineNo">174</span>                        if (currentMap.containsKey(nextSegment)) {<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                                // Delete sub-map.<a name="line.175"></a>
-<span class="sourceLineNo">176</span>                                currentMap.remove(nextSegment);<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                                changed = true;<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                        }<a name="line.178"></a>
-<span class="sourceLineNo">179</span>                        return changed;<a name="line.179"></a>
-<span class="sourceLineNo">180</span>                }<a name="line.180"></a>
-<span class="sourceLineNo">181</span>                // Check if next map exists<a name="line.181"></a>
-<span class="sourceLineNo">182</span>                @SuppressWarnings("unchecked")<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                Map&lt;String,Object&gt; nextMap <a name="line.183"></a>
-<span class="sourceLineNo">184</span>                        = (Map&lt;String,Object&gt;)currentMap.get(nextSegment);<a name="line.184"></a>
-<span class="sourceLineNo">185</span>                if(nextMap == null) {<a name="line.185"></a>
-<span class="sourceLineNo">186</span>                        // Doesn't exist, new sub-map<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                        changed = true;<a name="line.187"></a>
-<span class="sourceLineNo">188</span>                        nextMap = new HashMap&lt;&gt;();<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                        currentMap.put(nextSegment, nextMap);<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                }<a name="line.190"></a>
-<span class="sourceLineNo">191</span>                // Continue with sub-map<a name="line.191"></a>
-<span class="sourceLineNo">192</span>                return changed || handleSegment(nextMap, st, values);<a name="line.192"></a>
-<span class="sourceLineNo">193</span>        }<a name="line.193"></a>
-<span class="sourceLineNo">194</span><a name="line.194"></a>
-<span class="sourceLineNo">195</span>        private boolean mergeValues(Map&lt;String, Object&gt; currentMap,<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                Map&lt;String, String&gt; values) {<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                boolean changed = false;<a name="line.197"></a>
-<span class="sourceLineNo">198</span>                for (Map.Entry&lt;String,String&gt; e: values.entrySet()) {<a name="line.198"></a>
-<span class="sourceLineNo">199</span>                        if (e.getValue() == null) {<a name="line.199"></a>
-<span class="sourceLineNo">200</span>                                // Delete from map<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                                if (currentMap.containsKey(e.getKey())) {<a name="line.201"></a>
-<span class="sourceLineNo">202</span>                                        currentMap.remove(e.getKey());<a name="line.202"></a>
-<span class="sourceLineNo">203</span>                                        changed = true;<a name="line.203"></a>
-<span class="sourceLineNo">204</span>                                }<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                                continue;<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                        }<a name="line.206"></a>
-<span class="sourceLineNo">207</span>                        String oldValue = Optional.ofNullable(currentMap.get(e.getKey()))<a name="line.207"></a>
-<span class="sourceLineNo">208</span>                                        .map(v -&gt; v.toString()).orElse(null);<a name="line.208"></a>
-<span class="sourceLineNo">209</span>                        if (oldValue == null || !e.getValue().equals(oldValue)) {<a name="line.209"></a>
-<span class="sourceLineNo">210</span>                                currentMap.put(e.getKey(), e.getValue());<a name="line.210"></a>
-<span class="sourceLineNo">211</span>                                changed = true;<a name="line.211"></a>
-<span class="sourceLineNo">212</span>                        }<a name="line.212"></a>
-<span class="sourceLineNo">213</span>                }<a name="line.213"></a>
-<span class="sourceLineNo">214</span>                return changed;<a name="line.214"></a>
-<span class="sourceLineNo">215</span>        }<a name="line.215"></a>
-<span class="sourceLineNo">216</span>}<a name="line.216"></a>
+<span class="sourceLineNo">113</span>                        @SuppressWarnings("unchecked")<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                        Map&lt;String,Object&gt; confCache = (Map&lt;String,Object&gt;)<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                                        JsonBeanDecoder.create(in).readObject();<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                        cache = confCache;<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                } catch (JsonDecodeException e) {<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                        throw new IOException(e);<a name="line.118"></a>
+<span class="sourceLineNo">119</span>                }<a name="line.119"></a>
+<span class="sourceLineNo">120</span>        }<a name="line.120"></a>
+<span class="sourceLineNo">121</span><a name="line.121"></a>
+<span class="sourceLineNo">122</span>        @Handler(priority=999999, channels=Channel.class)<a name="line.122"></a>
+<span class="sourceLineNo">123</span>        public void onStart(Start event) <a name="line.123"></a>
+<span class="sourceLineNo">124</span>                        throws BackingStoreException, InterruptedException {<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                ConfigurationUpdate updEvt = new ConfigurationUpdate();<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                addPrefs(updEvt, "/", cache);<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                newEventPipeline().fire(updEvt, event.channels()).get();<a name="line.127"></a>
+<span class="sourceLineNo">128</span>        }<a name="line.128"></a>
+<span class="sourceLineNo">129</span><a name="line.129"></a>
+<span class="sourceLineNo">130</span>        private void addPrefs(<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                        ConfigurationUpdate updEvt, String path, Map&lt;String,?&gt; map) {<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                for (Map.Entry&lt;String,?&gt; e: map.entrySet()) {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                        if (e.getValue() instanceof Map) {<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                                @SuppressWarnings("unchecked")<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                                Map&lt;String,?&gt; value = (Map&lt;String,?&gt;)e.getValue();<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                                addPrefs(updEvt, ("/".equals(path) ? "" : path)<a name="line.136"></a>
+<span class="sourceLineNo">137</span>                                                + e.getKey(), value);<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                                continue;<a name="line.138"></a>
+<span class="sourceLineNo">139</span>                        }<a name="line.139"></a>
+<span class="sourceLineNo">140</span>                        updEvt.add(path, e.getKey(), e.getValue().toString());<a name="line.140"></a>
+<span class="sourceLineNo">141</span>                }<a name="line.141"></a>
+<span class="sourceLineNo">142</span>        }<a name="line.142"></a>
+<span class="sourceLineNo">143</span>        <a name="line.143"></a>
+<span class="sourceLineNo">144</span>        @Handler(dynamic=true)<a name="line.144"></a>
+<span class="sourceLineNo">145</span>        public void onConfigurationUpdate(ConfigurationUpdate event) <a name="line.145"></a>
+<span class="sourceLineNo">146</span>                        throws IOException {<a name="line.146"></a>
+<span class="sourceLineNo">147</span>                boolean changed = false;<a name="line.147"></a>
+<span class="sourceLineNo">148</span>                for (String path: event.paths()) {<a name="line.148"></a>
+<span class="sourceLineNo">149</span>                        if ("/".equals(path) &amp;&amp; !event.values(path).isPresent()) {<a name="line.149"></a>
+<span class="sourceLineNo">150</span>                                // Special case, "remove root", i.e. all configuration data<a name="line.150"></a>
+<span class="sourceLineNo">151</span>                                cache.clear();<a name="line.151"></a>
+<span class="sourceLineNo">152</span>                                changed = true;<a name="line.152"></a>
+<span class="sourceLineNo">153</span>                        }<a name="line.153"></a>
+<span class="sourceLineNo">154</span>                        changed = changed || handleSegment(cache, <a name="line.154"></a>
+<span class="sourceLineNo">155</span>                                        new StringTokenizer(path, "/"), event.values(path));<a name="line.155"></a>
+<span class="sourceLineNo">156</span>                }<a name="line.156"></a>
+<span class="sourceLineNo">157</span>                if (changed) {<a name="line.157"></a>
+<span class="sourceLineNo">158</span>                        try (Writer out = new OutputStreamWriter(<a name="line.158"></a>
+<span class="sourceLineNo">159</span>                                        new FileOutputStream(file), "utf-8");<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                                        JsonBeanEncoder enc = JsonBeanEncoder.create(out)) {<a name="line.160"></a>
+<span class="sourceLineNo">161</span>                                enc.writeObject(cache);<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                        }<a name="line.162"></a>
+<span class="sourceLineNo">163</span>                }<a name="line.163"></a>
+<span class="sourceLineNo">164</span>        }<a name="line.164"></a>
+<span class="sourceLineNo">165</span>        <a name="line.165"></a>
+<span class="sourceLineNo">166</span>        private boolean handleSegment(Map&lt;String,Object&gt; currentMap,<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                        StringTokenizer st,     Optional&lt;Map&lt;String,String&gt;&gt; values) {<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                boolean changed = false;<a name="line.168"></a>
+<span class="sourceLineNo">169</span>                if (!st.hasMoreTokens()) {<a name="line.169"></a>
+<span class="sourceLineNo">170</span>                        // "Leave" map<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                        return mergeValues(currentMap, values.get());<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                }<a name="line.172"></a>
+<span class="sourceLineNo">173</span>                String nextSegment = "/" + st.nextToken();<a name="line.173"></a>
+<span class="sourceLineNo">174</span>                if (!st.hasMoreTokens() &amp;&amp; !values.isPresent()) {<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                        // Next segment is last segment from path and we must remove<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                        if (currentMap.containsKey(nextSegment)) {<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                                // Delete sub-map.<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                                currentMap.remove(nextSegment);<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                                changed = true;<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                        }<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                        return changed;<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                }<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                // Check if next map exists<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                @SuppressWarnings("unchecked")<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                Map&lt;String,Object&gt; nextMap <a name="line.185"></a>
+<span class="sourceLineNo">186</span>                        = (Map&lt;String,Object&gt;)currentMap.get(nextSegment);<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                if(nextMap == null) {<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                        // Doesn't exist, new sub-map<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                        changed = true;<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                        nextMap = new HashMap&lt;&gt;();<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                        currentMap.put(nextSegment, nextMap);<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                }<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                // Continue with sub-map<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                return changed || handleSegment(nextMap, st, values);<a name="line.194"></a>
+<span class="sourceLineNo">195</span>        }<a name="line.195"></a>
+<span class="sourceLineNo">196</span><a name="line.196"></a>
+<span class="sourceLineNo">197</span>        private boolean mergeValues(Map&lt;String, Object&gt; currentMap,<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                Map&lt;String, String&gt; values) {<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                boolean changed = false;<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                for (Map.Entry&lt;String,String&gt; e: values.entrySet()) {<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                        if (e.getValue() == null) {<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                                // Delete from map<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                                if (currentMap.containsKey(e.getKey())) {<a name="line.203"></a>
+<span class="sourceLineNo">204</span>                                        currentMap.remove(e.getKey());<a name="line.204"></a>
+<span class="sourceLineNo">205</span>                                        changed = true;<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                                }<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                                continue;<a name="line.207"></a>
+<span class="sourceLineNo">208</span>                        }<a name="line.208"></a>
+<span class="sourceLineNo">209</span>                        String oldValue = Optional.ofNullable(currentMap.get(e.getKey()))<a name="line.209"></a>
+<span class="sourceLineNo">210</span>                                        .map(v -&gt; v.toString()).orElse(null);<a name="line.210"></a>
+<span class="sourceLineNo">211</span>                        if (oldValue == null || !e.getValue().equals(oldValue)) {<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                                currentMap.put(e.getKey(), e.getValue());<a name="line.212"></a>
+<span class="sourceLineNo">213</span>                                changed = true;<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                        }<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                }<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                return changed;<a name="line.216"></a>
+<span class="sourceLineNo">217</span>        }<a name="line.217"></a>
+<span class="sourceLineNo">218</span>}<a name="line.218"></a>
 
 
 
