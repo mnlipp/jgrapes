@@ -110,8 +110,10 @@ public class JsonConfigurationStore extends Component {
 		}
 		try (Reader in = new InputStreamReader(
 				new FileInputStream(file), "utf-8")) {
-			cache = (Map<String,Object>)JsonBeanDecoder
-					.create(in).readObject();
+			@SuppressWarnings("unchecked")
+			Map<String,Object> confCache = (Map<String,Object>)
+					JsonBeanDecoder.create(in).readObject();
+			cache = confCache;
 		} catch (JsonDecodeException e) {
 			throw new IOException(e);
 		}
