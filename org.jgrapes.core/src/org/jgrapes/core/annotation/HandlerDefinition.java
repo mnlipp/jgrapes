@@ -107,14 +107,31 @@ public @interface HandlerDefinition {
 		}
 	}
 
+	/**
+	 * Represents channel (criteria) replacements that are to
+	 * be applied to `channels` elements of {@link Handler}
+	 * annotations.
+	 */
 	@SuppressWarnings("serial")
 	public static class ChannelReplacements 
 		extends HashMap<Class<? extends Channel>, Object> {
 
+		/**
+		 * Create a new replacements specification object.
+		 *
+		 * @return the channel replacements
+		 */
 		public static ChannelReplacements create() {
 			return new ChannelReplacements();
 		}
 		
+		/**
+		 * Adds a replacements to the resplacements.
+		 *
+		 * @param annotationCriterion the criterion used in the annotation
+		 * @param replacement the replacement
+		 * @return the channel replacements for easy chaining
+		 */
 		public ChannelReplacements add(Class<? extends Channel> annotationCriterion,
 				Channel replacement) {
 			put(annotationCriterion, replacement.defaultCriterion());

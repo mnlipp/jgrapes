@@ -83,6 +83,8 @@ public abstract class Component extends ComponentVertex
 	 * @param componentChannel the channel that the component's
 	 * handlers listen on by default and that 
 	 * {@link Manager#fire(Event, Channel...)} sends the event to
+	 * @param channelReplacements the channel replacements to apply
+	 * to the `channels` elements of the {@link Handler} annotations
 	 */
 	public Component(
 			Channel componentChannel, ChannelReplacements channelReplacements) {
