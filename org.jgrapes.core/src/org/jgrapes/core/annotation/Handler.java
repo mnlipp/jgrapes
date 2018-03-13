@@ -26,7 +26,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,13 +45,14 @@ import org.jgrapes.core.Manager;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.Self;
+import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 
 /**
  * This is the basic, general purpose handler annotation provided as part of the
  * core package.
  * 
  * The annotated method is invoked for events that have a type (or
- * name) matching the given `events` (or `namedEvents`) parameter 
+ * name) matching the given `events` (or `namedEvents`) element 
  * of the annotation and that are fired on one of
  * the `channels` (or `namedChannels`) specified in the annotation.
  * 
@@ -92,6 +95,25 @@ import org.jgrapes.core.Self;
  * matches. If the parameter exists, the method is invoked once for
  * each of the event's channels, provided that the optional parameter's
  * type is assignable from the event's channel.
+ * 
+ * Because annotation elements accept only literals as values, they
+ * cannot be used to register handlers with properties that are only
+ * known at runtime. It is therefore possible to specify a 
+ * {@link Handler} annotation with element `dynamic=true`. Such a 
+ * handler must be added explicitly by invoking 
+ * {@link Evaluator#add(ComponentType, String, Object)} or
+ * {@link Evaluator#add(ComponentType, String, Object, Object, int)},
+ * thus specifying some of the handler's properties dynamically (i.e.
+ * at runtime).
+ * 
+ * A special case is the usage of a channel that is only known at
+ * runtime. If there are several handlers for events on such a
+ * channel, a lot of methods will become dynamic. To avoid this,
+ * {@link Component}s support a {@link ChannelReplacements}
+ * parameter in their constructor. Using this, it is possible
+ * to specify a specially defined {@link Channel} class in the
+ * annotation that is replaced by a channel that is only known
+ * at runtime.
  * 
  * @see Component#channel()
  */
@@ -245,13 +267,13 @@ public @interface Handler {
 		@Override
 		public HandlerScope scope(
 				ComponentType component, Method method, 
-					Object[] eventValues, Object[] channelValues) {
+				ChannelReplacements channelReplacements) {
 			Handler annotation = method.getAnnotation(Handler.class);
 			if (annotation == null || annotation.dynamic()) {
 				return null;
 			}
-			return new Scope(component, method, annotation, eventValues,
-			        channelValues);
+			return new Scope(component, method, annotation, 
+					channelReplacements, null, null);
 		}
 		
 		/* (non-Javadoc)
@@ -335,7 +357,7 @@ public @interface Handler {
 							continue;
 						}
 						Scope scope = new Scope(component, m, 
-								(Handler)annotation,
+								(Handler)annotation, Collections.emptyMap(),
 								eventValue == null ? null
 										: new Object[] { eventValue },
 								new Object[] { channelValue });
@@ -359,44 +381,45 @@ public @interface Handler {
 		 */
 		private static class Scope implements HandlerScope {
 
-			private Set<Object> handledEvents = new HashSet<Object>();
-			private Set<Object> handledChannels = new HashSet<Object>();
+			private Set<Object> eventCriteria = new HashSet<Object>();
+			private Set<Object> channelCriteria = new HashSet<Object>();
 
 			public Scope(ComponentType component, Method method,
-			        Handler annotation, Object[] eventValues,
-			        Object[] channelValues) {
+			        Handler annotation, 
+			        Map<Class<? extends Channel>,Object> channelReplacements,
+			        Object[] eventValues, Object[] channelValues) {
 				if (!HandlerDefinition.Evaluator.checkMethodSignature(method)) {
 					throw new IllegalArgumentException("Method \""
 							 + method.toString() + "\" cannot be used as"
 							 + " handler (wrong signature).");
 				}
 				if (eventValues != null) {
-					handledEvents.addAll(Arrays.asList(eventValues));
+					eventCriteria.addAll(Arrays.asList(eventValues));
 				} else {
 					// Get all event values from the handler annotation.
 					if (annotation.events()[0] != Handler.NoEvent.class) {
-						handledEvents
+						eventCriteria
 						        .addAll(Arrays.asList(annotation.events()));
 					}
 					// Get all named events from the annotation and add to event
 					// keys.
 					if (!annotation.namedEvents()[0].equals("")) {
-						handledEvents.addAll(
+						eventCriteria.addAll(
 						        Arrays.asList(annotation.namedEvents()));
 					}
 					// If no event types are given, try first parameter.
-					if (handledEvents.isEmpty()) {
+					if (eventCriteria.isEmpty()) {
 						Class<?>[] paramTypes = method.getParameterTypes();
 						if (paramTypes.length > 0) {
 							if (Event.class.isAssignableFrom(paramTypes[0])) {
-								handledEvents.add(paramTypes[0]);
+								eventCriteria.add(paramTypes[0]);
 							}
 						}
 					}
 				}
 				
 				if (channelValues != null) {
-					handledChannels.addAll(Arrays.asList(channelValues));
+					channelCriteria.addAll(Arrays.asList(channelValues));
 				} else {
 					// Get channel values from the annotation.
 					boolean addDefaultChannel = false;
@@ -414,25 +437,26 @@ public @interface Handler {
 							} else if (c == Channel.Default.class) {
 								addDefaultChannel = true;
 							} else {
-								handledChannels.add(c);
+								channelCriteria.add(channelReplacements == null
+										? c : channelReplacements.getOrDefault(c, c));
 							}
 						}
 					}
 					// Get named channels from annotation and add to channel
 					// keys.
 					if (!annotation.namedChannels()[0].equals("")) {
-						handledChannels.addAll(
+						channelCriteria.addAll(
 						        Arrays.asList(annotation.namedChannels()));
 					}
-					if (handledChannels.size() == 0 || addDefaultChannel) {
-						handledChannels.add(Components.manager(component)
+					if (channelCriteria.size() == 0 || addDefaultChannel) {
+						channelCriteria.add(Components.manager(component)
 						        .channel().defaultCriterion());
 					}
 				}
 				// Finally, a component always handles events
 				// directed at it directly.
 				if (component instanceof Channel) {
-					handledChannels.add(
+					channelCriteria.add(
 							((Channel) component).defaultCriterion());
 				}
 				
@@ -440,11 +464,11 @@ public @interface Handler {
 			
 			@Override
 			public boolean includes(Eligible event, Eligible[] channels) {
-				for (Object eventValue: handledEvents) {
+				for (Object eventValue: eventCriteria) {
 					if (event.isEligibleFor(eventValue)) {
 						// Found match regarding event, now try channels
 						for (Eligible channel: channels) {
-							for (Object channelValue: handledChannels) {
+							for (Object channelValue: channelCriteria) {
 								if (channel.isEligibleFor(channelValue)) {
 									return true;
 								}
@@ -463,9 +487,9 @@ public @interface Handler {
 			public String toString() {
 				StringBuilder builder = new StringBuilder();
 				builder.append("Scope [");
-				if (handledEvents != null) {
+				if (eventCriteria != null) {
 					builder.append("handledEvents=");
-					builder.append(handledEvents.stream().map(v -> {
+					builder.append(eventCriteria.stream().map(v -> {
 						if (v instanceof Class) {
 							return Components.className((Class<?>) v);
 						}
@@ -473,9 +497,9 @@ public @interface Handler {
 					}).collect(Collectors.toSet()));
 					builder.append(", ");
 				}
-				if (handledChannels != null) {
+				if (channelCriteria != null) {
 					builder.append("handledChannels=");
-					builder.append(handledChannels);
+					builder.append(channelCriteria);
 				}
 				builder.append("]");
 				return builder.toString();
@@ -483,5 +507,4 @@ public @interface Handler {
 			
 		}
 	}
-
 }

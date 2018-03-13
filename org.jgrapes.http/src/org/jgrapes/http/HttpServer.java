@@ -18,6 +18,7 @@
 
 package org.jgrapes.http;
 
+import java.lang.ref.WeakReference;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -51,10 +52,12 @@ import org.jdrupes.httpcodec.protocols.websocket.WsMessageHeader;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.StringList;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.internal.EventProcessor;
 import org.jgrapes.http.events.OptionsRequest;
 import org.jgrapes.http.events.Request;
@@ -94,6 +97,9 @@ import org.jgrapes.net.events.Accepted;
  */
 public class HttpServer extends Component {
 
+	private static class NetworkChannel extends ClassChannel {}
+	
+	private WeakReference<Channel> networkChannelPassBack;
 	private List<Class<? extends Request>> providedFallbacks;
 	private int matchLevels = 1;
 	boolean acceptNoSni = false;
@@ -117,14 +123,10 @@ public class HttpServer extends Component {
 	@SafeVarargs
 	public HttpServer(Channel appChannel, Channel networkChannel,
 	        Class<? extends Request>... fallbacks) {
-		super(appChannel);
+		super(appChannel, ChannelReplacements.create()
+				.add(NetworkChannel.class, networkChannel));
+		networkChannelPassBack = new WeakReference<Channel>(networkChannel);
 		this.providedFallbacks = Arrays.asList(fallbacks);
-		Handler.Evaluator.add(
-				this, "onAccepted", networkChannel.defaultCriterion());
-		Handler.Evaluator.add(
-				this, "onInput", networkChannel.defaultCriterion());
-		Handler.Evaluator.add(
-				this, "onClosed", networkChannel.defaultCriterion());
 	}
 
 	/**
@@ -139,14 +141,9 @@ public class HttpServer extends Component {
 	@SafeVarargs
 	public HttpServer(Channel appChannel, InetSocketAddress serverAddress,
 	        Class<? extends Request>... fallbacks) {
-		super(appChannel);
-		this.providedFallbacks = Arrays.asList(fallbacks);
-		TcpServer server = new TcpServer().setServerAddress(serverAddress);
-		attach(server);
-		Handler.Evaluator.add(
-				this, "onAccepted", server.defaultCriterion());
-		Handler.Evaluator.add(
-				this, "onInput", server.defaultCriterion());
+		this(appChannel, new TcpServer().setServerAddress(serverAddress),
+				fallbacks);
+		attach((TcpServer)networkChannelPassBack.get());
 	}
 
 	/**
@@ -232,7 +229,7 @@ public class HttpServer extends Component {
 	 * @param event
 	 *            the accepted event
 	 */
-	@Handler(dynamic=true)
+	@Handler(channels=NetworkChannel.class)
 	public void onAccepted(Accepted event, IOSubchannel netChannel) {
 		new WebAppMsgChannel(event, netChannel);
 	}
@@ -246,7 +243,7 @@ public class HttpServer extends Component {
 	 * @throws ProtocolException if a protocol exception occurs
 	 * @throws InterruptedException 
 	 */
-	@Handler(dynamic=true)
+	@Handler(channels=NetworkChannel.class)
 	public void onInput(
 			Input<ByteBuffer> event, IOSubchannel netChannel)
 					throws ProtocolException, InterruptedException {
@@ -258,7 +255,7 @@ public class HttpServer extends Component {
 		}
 	}
 
-	@Handler(dynamic=true)
+	@Handler(channels=NetworkChannel.class)
 	public void onClosed(Closed event, IOSubchannel netChannel) {
 		@SuppressWarnings("unchecked")
 		final Optional<WebAppMsgChannel> appChannel = (Optional<WebAppMsgChannel>)

@@ -27,7 +27,9 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,6 +43,7 @@ import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler.NoChannel;
 import org.jgrapes.core.annotation.Handler.NoEvent;
 import org.jgrapes.core.annotation.HandlerDefinition;
+import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.events.Request;
 
@@ -118,16 +121,15 @@ public @interface RequestHandler {
 		}
 
 		@Override
-		public HandlerScope scope(
-				ComponentType component, Method method, 
-				Object[] eventValues, Object[] channelValues) {
+		public HandlerScope scope(ComponentType component, Method method, 
+				ChannelReplacements channelReplacements) {
 			RequestHandler annotation 
 				= method.getAnnotation(RequestHandler.class);
 			if (annotation.dynamic()) {
 				return null;
 			}
 			return new Scope(component, method, (RequestHandler)annotation,
-					null);
+					channelReplacements, null);
 		}
 
 		/**
@@ -156,7 +158,8 @@ public @interface RequestHandler {
 							continue;
 						}
 						Scope scope = new Scope(component, m, 
-								(RequestHandler)annotation, pattern);
+								(RequestHandler)annotation, 
+								Collections.emptyMap(), pattern);
 						Components.manager(component)
 							.addHandler(m, scope, 
 									((RequestHandler)annotation).priority());
@@ -179,7 +182,9 @@ public @interface RequestHandler {
 			private Set<ResourcePattern> handledPatterns = new HashSet<>();
 
 			public Scope(ComponentType component, 
-					Method method, RequestHandler annotation, String pattern) {
+					Method method, RequestHandler annotation, 
+					Map<Class<? extends Channel>,Object> channelReplacements, 
+					String pattern) {
 				if (!HandlerDefinition.Evaluator.checkMethodSignature(method)) {
 					throw new IllegalArgumentException("Method "
 							 + method.toString() + " cannot be used as"
@@ -215,7 +220,8 @@ public @interface RequestHandler {
 						} else if (c == Channel.Default.class) {
 							addDefaultChannel = true;
 						} else {
-							handledChannels.add(c);
+							handledChannels.add(channelReplacements == null
+									? c : channelReplacements.getOrDefault(c, c));
 						}
 					}
 				}

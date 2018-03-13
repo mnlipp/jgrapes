@@ -24,10 +24,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
@@ -40,6 +38,7 @@ import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.HandlerScope;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.HandlerDefinition;
+import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.events.Attached;
 import org.jgrapes.core.events.Detached;
 import org.jgrapes.core.events.Start;
@@ -54,10 +53,6 @@ import org.jgrapes.core.events.Start;
  */
 public abstract class ComponentVertex implements Manager, Channel {
 
-	/** Handler factory cache. */
-	private static Map<Class<? extends HandlerDefinition.Evaluator>,
-			HandlerDefinition.Evaluator> definitionEvaluators 
-			= Collections.synchronizedMap(new HashMap<>());
 	/** The component's (optional) name. */
 	private String name = null;
 	/** Reference to the common properties of the tree nodes. */
@@ -81,26 +76,29 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * when {@link #component()} can be relied on to return the
 	 * correct value.
 	 */
-	protected void initComponentsHandlers() {
+	protected void initComponentsHandlers(
+			ChannelReplacements channelReplacements) {
 		handlers = new ArrayList<HandlerReference>();
 		// Have a look at all methods.
 		for (Method m : component().getClass().getMethods()) {
-			maybeAddHandler(m);
+			maybeAddHandler(m, channelReplacements);
 		}
 		handlers = Collections.synchronizedList(handlers);
 	}
 
-	private void maybeAddHandler(Method method) {
+	private void maybeAddHandler(
+			Method method, ChannelReplacements channelReplacements) {
 		for (Annotation annotation: method.getDeclaredAnnotations()) {
 			Class<?> annoType = annotation.annotationType();
-			HandlerDefinition hda 
-				= annoType.getAnnotation(HandlerDefinition.class);
+			HandlerDefinition hda = annoType.getAnnotation(
+					HandlerDefinition.class);
 			if (hda == null) {
 				continue;
 			}
-			HandlerDefinition.Evaluator evaluator = defintionEvaluator(hda);
-			HandlerScope scope = evaluator.scope(component(), method, null,
-			        null);
+			HandlerDefinition.Evaluator evaluator 
+				= Common.definitionEvaluator(hda);
+			HandlerScope scope = evaluator.scope(component(), method, 
+					channelReplacements);
 			if (scope == null) {
 				continue;
 			}
@@ -108,23 +106,6 @@ public abstract class ComponentVertex implements Manager, Channel {
 					component(), method, evaluator.priority(annotation),
 							scope));
 		}
-	}
-
-	private HandlerDefinition.Evaluator defintionEvaluator(
-	        HandlerDefinition hda) {
-		HandlerDefinition.Evaluator evaluator = definitionEvaluators
-				.computeIfAbsent(hda.evaluator(), key -> {
-			try {
-				HandlerDefinition.Evaluator hde 
-					= hda.evaluator().newInstance();
-				definitionEvaluators.put(key, hde);
-				return hde;
-			} catch (InstantiationException
-			        | IllegalAccessException e) {
-				throw new RuntimeException(e);
-			}
-		});
-		return evaluator;
 	}
 
 	/* (non-Javadoc)

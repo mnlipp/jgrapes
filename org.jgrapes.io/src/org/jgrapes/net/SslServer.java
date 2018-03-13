@@ -39,9 +39,11 @@ import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
@@ -63,6 +65,8 @@ public class SslServer extends Component {
 	private static final Logger logger 
 		= Logger.getLogger(SslServer.class.getName());
 	
+	private class EncryptedChannel extends ClassChannel {}
+	
 	private SSLContext sslContext;
 	
 	/**
@@ -72,16 +76,9 @@ public class SslServer extends Component {
 	 */
 	public SslServer(Channel plainChannel, Channel encryptedChannel,
 			SSLContext sslContext) {
-		super(plainChannel);
+		super(plainChannel, ChannelReplacements.create()
+				.add(EncryptedChannel.class, encryptedChannel));
 		this.sslContext = sslContext;
-		Handler.Evaluator.add(
-				this, "onAccepted", encryptedChannel.defaultCriterion());
-		Handler.Evaluator.add(
-				this, "onInput", encryptedChannel.defaultCriterion());
-		Handler.Evaluator.add(
-				this, "onClosed", encryptedChannel.defaultCriterion());
-		Handler.Evaluator.add(
-				this, "onIOError", encryptedChannel.defaultCriterion());
 	}
 
 	/**
@@ -91,7 +88,7 @@ public class SslServer extends Component {
 	 * @param event
 	 *            the accepted event
 	 */
-	@Handler(dynamic=true)
+	@Handler(channels=EncryptedChannel.class)
 	public void onAccepted(Accepted event, IOSubchannel encryptedChannel) {
 		new PlainChannel(event, encryptedChannel);
 	}
@@ -108,7 +105,7 @@ public class SslServer extends Component {
 	 * @throws SSLException 
 	 * @throws ExecutionException 
 	 */
-	@Handler(dynamic = true)
+	@Handler(channels=EncryptedChannel.class)
 	public void onInput(
 			Input<ByteBuffer> event, IOSubchannel encryptedChannel)
 	        throws InterruptedException, SSLException, ExecutionException {
@@ -128,7 +125,7 @@ public class SslServer extends Component {
 	 * @throws InterruptedException 
 	 * @throws SSLException 
 	 */
-	@Handler(dynamic = true)
+	@Handler(channels=EncryptedChannel.class)
 	public void onClosed(Closed event, IOSubchannel encryptedChannel)
 	        throws SSLException, InterruptedException {
 		@SuppressWarnings("unchecked")
@@ -148,7 +145,7 @@ public class SslServer extends Component {
 	 * @throws InterruptedException 
 	 * @throws SSLException 
 	 */
-	@Handler(dynamic = true)
+	@Handler(channels=EncryptedChannel.class)
 	public void onIOError(IOError event, IOSubchannel encryptedChannel)
 	        throws SSLException, InterruptedException {
 		@SuppressWarnings("unchecked")

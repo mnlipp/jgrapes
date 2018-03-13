@@ -19,6 +19,7 @@
 package org.jgrapes.core;
 
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.internal.ComponentVertex;
 
 /**
@@ -40,7 +41,7 @@ import org.jgrapes.core.internal.ComponentVertex;
  */
 public abstract class Component extends ComponentVertex 
 	implements ComponentType, Channel {
-
+	
 	private Channel componentChannel;
 	
 	/**
@@ -50,7 +51,7 @@ public abstract class Component extends ComponentVertex
 	public Component() {
 		super();
 		componentChannel = this;
-		initComponentsHandlers();
+		initComponentsHandlers(null);
 	}
 
 	/**
@@ -60,10 +61,10 @@ public abstract class Component extends ComponentVertex
 	 * as channel. The special value is necessary as you 
 	 * obviously cannot pass an object to be constructed to its 
 	 * constructor.
-	 * 
-	 * @param componentChannel the channel that the component's 
+	 *
+	 * @param componentChannel the channel that the component's
 	 * handlers listen on by default and that 
-	 * {@link Manager#fire(Event, Channel...)} sends the event to 
+	 * {@link Manager#fire(Event, Channel...)} sends the event to
 	 */
 	public Component(Channel componentChannel) {
 		super();
@@ -72,7 +73,26 @@ public abstract class Component extends ComponentVertex
 		} else {
 			this.componentChannel = componentChannel;
 		}
-		initComponentsHandlers();
+		initComponentsHandlers(null);
+	}
+
+	/**
+	 * Creates a new component base like {@link #Component(Channel)}
+	 * but with channel mappings for {@link Handler} annotations.
+	 *
+	 * @param componentChannel the channel that the component's
+	 * handlers listen on by default and that 
+	 * {@link Manager#fire(Event, Channel...)} sends the event to
+	 */
+	public Component(
+			Channel componentChannel, ChannelReplacements channelReplacements) {
+		super();
+		if (componentChannel == SELF) {
+			this.componentChannel = this;
+		} else {
+			this.componentChannel = componentChannel;
+		}
+		initComponentsHandlers(channelReplacements);
 	}
 
 	/* (non-Javadoc)

@@ -25,6 +25,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
@@ -62,25 +63,22 @@ public @interface HandlerDefinition {
 
 		/**
 		 * Returns the information about the events and channels handled
-		 * by the handler as a {@link HandlerScope} object. This method
+		 * by the handler that annotates the given method of the given
+		 * comonent as a {@link HandlerScope} object. This method
 		 * is invoked during object initialization. It may return
 		 * {@code null} if a handler is not supposed to be added for
 		 * this method during initialization (dynamic handler,
 		 * see {@link Handler#dynamic()}). 
-		 * 
+		 *
 		 * @param component the component
 		 * @param method the annotated method
-		 * @param eventValues event values that can be used in addition
-		 * to or as replacements for the values specified in the
-		 * annotation
-		 * @param channelValues channel values that can be used in addition
-		 * to or as replacements for the values specified in the
-		 * annotation
+		 * @param channelReplacements replacements for channel classes in 
+		 * the annotation's `channels` element
 		 * @return the scope or {@code null} if a handler for the method
 		 * should not be created
 		 */
 		HandlerScope scope(ComponentType component, Method method, 
-					Object[] eventValues, Object[] channelValues);
+				ChannelReplacements channelReplacements);
 		
 		/**
 		 * Returns the priority defined by the annotation
@@ -109,4 +107,18 @@ public @interface HandlerDefinition {
 		}
 	}
 
+	@SuppressWarnings("serial")
+	public static class ChannelReplacements 
+		extends HashMap<Class<? extends Channel>, Object> {
+
+		public static ChannelReplacements create() {
+			return new ChannelReplacements();
+		}
+		
+		public ChannelReplacements add(Class<? extends Channel> annotationCriterion,
+				Channel replacement) {
+			put(annotationCriterion, replacement.defaultCriterion());
+			return this;
+		}
+	}
 }

@@ -18,9 +18,14 @@
 
 package org.jgrapes.core.internal;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.jgrapes.core.ComponentType;
+import org.jgrapes.core.annotation.HandlerDefinition;
+import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
 
 /**
  * Common utility methods.
@@ -30,7 +35,23 @@ public class Common {
 	private Common() {
 	}
 
+	/** Handler factory cache. */
+	private static Map<Class<? extends HandlerDefinition.Evaluator>,
+			HandlerDefinition.Evaluator> definitionEvaluators 
+			= Collections.synchronizedMap(new HashMap<>());
 	private static AssertionError assertionError = null;
+	
+	public static Evaluator definitionEvaluator(
+	        HandlerDefinition hda) {
+		return definitionEvaluators.computeIfAbsent(hda.evaluator(), key -> {
+			try {
+				return hda.evaluator().newInstance();
+			} catch (InstantiationException
+			        | IllegalAccessException e) {
+				throw new RuntimeException(e);
+			}
+		});
+	}
 	
 	static void setAssertionError(AssertionError error) {
 		if (assertionError == null) {

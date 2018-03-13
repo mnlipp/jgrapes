@@ -19,6 +19,7 @@
 package org.jgrapes.core.test.core;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
@@ -26,6 +27,7 @@ import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.events.Start;
 
 import static org.junit.Assert.*;
@@ -36,12 +38,17 @@ import org.junit.Test;
  */
 public class MatchTest {
 
+	private static class ExtraChannel extends ClassChannel {}
+
+	private ExtraChannel extraChannel = new ExtraChannel();
+	
 	public class EventCounter extends Component {
 
 		public int anyDirectedAtAnyChannel = 0;
 		public int startDirectedAtComponentChannel = 0;
 		public int startDirectedAtTest1 = 0;
 		public int named1DirectedAtComponentChannel = 0;
+		public int named1DirectedAtExtraChannel = 0;
 		public int named1DirectedAtTest1 = 0;
 		public int startDirectedAtComponent = 0;
 
@@ -50,6 +57,7 @@ public class MatchTest {
 			startDirectedAtComponentChannel = 0;
 			startDirectedAtTest1 = 0;
 			named1DirectedAtComponentChannel = 0;
+			named1DirectedAtExtraChannel = 0;
 			named1DirectedAtTest1 = 0;
 			startDirectedAtComponent = 0;
 		}
@@ -58,7 +66,8 @@ public class MatchTest {
 		 * 
 		 */
 		public EventCounter() {
-			super(Channel.BROADCAST);
+			super(Channel.BROADCAST, ChannelReplacements.create()
+					.add(ExtraChannel.class, extraChannel));
 			Handler.Evaluator.add(
 					this, "onStartedComponent", Start.class, this, 0);
 			Handler.Evaluator.add(this, "onStart", channel());
@@ -89,6 +98,11 @@ public class MatchTest {
 			named1DirectedAtComponentChannel += 1;
 		}
 		
+		@Handler(namedEvents="named1", channels=ExtraChannel.class)
+		public void onNamed1Extra(Event<?> event) {
+			named1DirectedAtExtraChannel += 1;
+		}
+		
 		@Handler(namedEvents="named1", namedChannels="test1")
 		public void onNamed1Test1(Event<?> event) {
 			named1DirectedAtTest1 += 1;
@@ -105,6 +119,7 @@ public class MatchTest {
 		assertEquals(1, app.startDirectedAtComponentChannel);
 		assertEquals(1, app.startDirectedAtTest1);
 		assertEquals(0, app.named1DirectedAtComponentChannel);
+		assertEquals(0, app.named1DirectedAtExtraChannel);
 		assertEquals(0, app.named1DirectedAtTest1);
 		assertEquals(2, app.anyDirectedAtAnyChannel); // Start and Started
 		app.reset();
@@ -113,6 +128,7 @@ public class MatchTest {
 		assertEquals(1, app.startDirectedAtComponentChannel);
 		assertEquals(1, app.startDirectedAtTest1);
 		assertEquals(0, app.named1DirectedAtComponentChannel);
+		assertEquals(0, app.named1DirectedAtExtraChannel);
 		assertEquals(0, app.named1DirectedAtTest1);
 		assertEquals(2, app.anyDirectedAtAnyChannel);	// Start and Started
 		app.reset();
@@ -121,6 +137,7 @@ public class MatchTest {
 		assertEquals(0, app.startDirectedAtComponentChannel);
 		assertEquals(0, app.startDirectedAtTest1);
 		assertEquals(1, app.named1DirectedAtComponentChannel);
+		assertEquals(1, app.named1DirectedAtExtraChannel);
 		assertEquals(1, app.named1DirectedAtTest1);
 		assertEquals(1, app.anyDirectedAtAnyChannel);	// NamedEvent
 		app.reset();
@@ -129,6 +146,7 @@ public class MatchTest {
 		assertEquals(0, app.startDirectedAtComponentChannel);
 		assertEquals(0, app.startDirectedAtTest1);
 		assertEquals(1, app.named1DirectedAtComponentChannel);
+		assertEquals(0, app.named1DirectedAtExtraChannel);
 		assertEquals(1, app.named1DirectedAtTest1);
 		assertEquals(1, app.anyDirectedAtAnyChannel);	// NamedEvent
 		app.reset();
@@ -137,7 +155,17 @@ public class MatchTest {
 		assertEquals(1, app.startDirectedAtComponentChannel);
 		assertEquals(1, app.startDirectedAtTest1);
 		assertEquals(0, app.named1DirectedAtComponentChannel);
+		assertEquals(0, app.named1DirectedAtExtraChannel);
 		assertEquals(0, app.named1DirectedAtTest1);
 		assertEquals(2, app.anyDirectedAtAnyChannel);	// Start and Started
+		app.reset();
+		pipeline.fire(new NamedEvent<Void>("named1"), extraChannel);
+		assertEquals(0, app.startDirectedAtComponent);
+		assertEquals(0, app.startDirectedAtComponentChannel);
+		assertEquals(0, app.startDirectedAtTest1);
+		assertEquals(1, app.named1DirectedAtComponentChannel);
+		assertEquals(1, app.named1DirectedAtExtraChannel);
+		assertEquals(0, app.named1DirectedAtTest1);
+		assertEquals(1, app.anyDirectedAtAnyChannel);
 	}
 }

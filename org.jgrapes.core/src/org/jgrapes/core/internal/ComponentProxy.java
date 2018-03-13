@@ -98,7 +98,7 @@ public class ComponentProxy extends ComponentVertex {
 				componentChannel = this;
 			}
 			this.componentChannel = componentChannel;
-			initComponentsHandlers();
+			initComponentsHandlers(null);
 		} catch (SecurityException | IllegalAccessException e) {
 			throw (RuntimeException)(new IllegalArgumentException(
 					"Cannot access component's manager attribute")).initCause(e);
