@@ -20,7 +20,9 @@ package org.jgrapes.core;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.WeakHashMap;
@@ -513,4 +515,195 @@ public class Components {
 		return scheduler.schedule(
 				timeoutHandler, Instant.now().plus(scheduledFor));
 	}
+
+	/**
+	 * Puts the given key and value in the given {@link Map} and
+	 * returns the map. Looks ugly when nested, but comes in handy 
+	 * sometimes.
+	 *
+	 * @param <K> the key type
+	 * @param <V> the value type
+	 * @param map the map
+	 * @param key the key
+	 * @param value the value
+	 * @return the map
+	 */
+	public static <K,V> Map<K,V> put(Map<K,V> map, K key, V value) {
+		map.put(key, value);
+		return map;
+	}
+	
+	/**
+	 * Provisional replacement for method available in Java 9. 
+	 * 
+	 * @return an empty map
+	 */
+	public static <K,V> Map<K,V> mapOf() {
+		return new HashMap<>();
+	}
+	
+	/**
+	 * Provisional replacement for method available in Java 9. 
+	 * 
+	 * @return an immutable map filled with the given values
+	 */
+	public static <K,V> Map<K,V> mapOf(K k1, V v1) {
+		Map<K,V> result = new HashMap<>();
+		result.put(k1, v1);
+		return Collections.unmodifiableMap(result);
+	}
+
+	/**
+	 * Provisional replacement for method available in Java 9. 
+	 * 
+	 * @return an immutable map filled with the given values
+	 */
+	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2) {
+		Map<K,V> result = new HashMap<>();
+		result.put(k1, v1);
+		result.put(k2, v2);
+		return Collections.unmodifiableMap(result);
+	}
+
+	/**
+	 * Provisional replacement for method available in Java 9. 
+	 * 
+	 * @return an immutable map filled with the given values
+	 */
+	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3) {
+		Map<K,V> result = new HashMap<>();
+		result.put(k1, v1);
+		result.put(k2, v2);
+		result.put(k3, v3);
+		return Collections.unmodifiableMap(result);
+	}
+
+	/**
+	 * Provisional replacement for method available in Java 9. 
+	 * 
+	 * @return an immutable map filled with the given values
+	 */
+	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
+			K k4, V v4) {
+		Map<K,V> result = new HashMap<>();
+		result.put(k1, v1);
+		result.put(k2, v2);
+		result.put(k3, v3);
+		result.put(k4, v4);
+		return Collections.unmodifiableMap(result);
+	}
+
+	/**
+	 * Provisional replacement for method available in Java 9. 
+	 * 
+	 * @return an immutable map filled with the given values
+	 */
+	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
+			K k4, V v4, K k5, V v5) {
+		Map<K,V> result = new HashMap<>();
+		result.put(k1, v1);
+		result.put(k2, v2);
+		result.put(k3, v3);
+		result.put(k4, v4);
+		result.put(k5, v5);
+		return Collections.unmodifiableMap(result);
+	}
+
+	/**
+	 * Provisional replacement for method available in Java 9. 
+	 * 
+	 * @return an immutable map filled with the given values
+	 */
+	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
+			K k4, V v4, K k5, V v5, K k6, V v6) {
+		Map<K,V> result = new HashMap<>();
+		result.put(k1, v1);
+		result.put(k2, v2);
+		result.put(k3, v3);
+		result.put(k4, v4);
+		result.put(k5, v5);
+		result.put(k6, v6);
+		return Collections.unmodifiableMap(result);
+	}
+
+	/**
+	 * Provisional replacement for method available in Java 9. 
+	 * 
+	 * @return an immutable map filled with the given values
+	 */
+	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
+			K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7) {
+		Map<K,V> result = new HashMap<>();
+		result.put(k1, v1);
+		result.put(k2, v2);
+		result.put(k3, v3);
+		result.put(k4, v4);
+		result.put(k5, v5);
+		result.put(k6, v6);
+		result.put(k7, v7);
+		return Collections.unmodifiableMap(result);
+	}
+
+	/**
+	 * Provisional replacement for method available in Java 9. 
+	 * 
+	 * @return an immutable map filled with the given values
+	 */
+	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
+			K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8) {
+		Map<K,V> result = new HashMap<>();
+		result.put(k1, v1);
+		result.put(k2, v2);
+		result.put(k3, v3);
+		result.put(k4, v4);
+		result.put(k5, v5);
+		result.put(k6, v6);
+		result.put(k7, v7);
+		result.put(k8, v8);
+		return Collections.unmodifiableMap(result);
+	}
+
+	/**
+	 * Provisional replacement for method available in Java 9. 
+	 * 
+	 * @return an immutable map filled with the given values
+	 */
+	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
+			K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
+			K k9, V v9) {
+		Map<K,V> result = new HashMap<>();
+		result.put(k1, v1);
+		result.put(k2, v2);
+		result.put(k3, v3);
+		result.put(k4, v4);
+		result.put(k5, v5);
+		result.put(k6, v6);
+		result.put(k7, v7);
+		result.put(k8, v8);
+		result.put(k9, v9);
+		return Collections.unmodifiableMap(result);
+	}
+		
+	/**
+	 * Provisional replacement for method available in Java 9. 
+	 * 
+	 * @return an immutable map filled with the given values
+	 */
+	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
+			K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
+			K k9, V v9, K k10, V v10) {
+		Map<K,V> result = new HashMap<>();
+		result.put(k1, v1);
+		result.put(k2, v2);
+		result.put(k3, v3);
+		result.put(k4, v4);
+		result.put(k5, v5);
+		result.put(k6, v6);
+		result.put(k7, v7);
+		result.put(k8, v8);
+		result.put(k9, v9);
+		result.put(k10, v10);
+		return Collections.unmodifiableMap(result);
+	}
+	
 }
