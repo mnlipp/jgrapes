@@ -21,6 +21,19 @@ jar {
 //    } 
 }
 
+task copyResources(type: Copy) {
+    from('.') {
+        include 'demo-resources'
+        include 'jul-debug.properties'
+    }
+    into "${project.buildDir}/${project.runOsgi.outDir}"
+}
+
 runOsgi {
     bundles += project.rootProject.allprojects.toList()
+    javaArgs = '-Djava.util.logging.config.file=jul-debug.properties'
+    // ' -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1044'
 }
+
+
+tasks.runOsgi.dependsOn tasks.copyResources
