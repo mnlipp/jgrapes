@@ -61,7 +61,7 @@ public class WsEchoServer extends Component {
 		super(componentChannel);
 	}
 
-	@RequestHandler(patterns="/ws/echo")
+	@RequestHandler(patterns="/ws/echo", priority=100)
 	public void onGet(GetRequest event, IOSubchannel channel) 
 			throws InterruptedException {
 		final HttpRequest request = event.httpRequest();
