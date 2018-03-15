@@ -1,16 +1,26 @@
-buildscript {
-	
-	repositories {
-		mavenCentral()
-		maven { url 'https://jitpack.io' }
-	}
-	
-  }
+plugins {
+    id "com.athaydes.osgi-run" version "1.6.0"
+}
 
 dependencies {
 
     compile project(':org.jgrapes.http')
     compile project(':org.jgrapes.util')
 	compile 'org.osgi:osgi.core:6.0.0'
+	
+    osgiRuntime osgi('org.jdrupes.httpcodec:httpcodec:[1.0.4,)')
+    osgiRuntime osgi('org.apache.aries.spifly:org.apache.aries.spifly.dynamic.bundle:1.0.8')
+    osgiRuntime osgi('org.apache.aries:org.apache.aries.util:1.1.3')
+    osgiRuntime osgi('org.ow2.asm:asm-all:5.0.4')
+    
 }
 
+jar {
+//    into ('demo-resources') {
+//        from 'demo-resources'
+//    } 
+}
+
+runOsgi {
+    bundles += project.rootProject.allprojects.toList()
+}

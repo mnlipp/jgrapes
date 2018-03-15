@@ -1,15 +1,15 @@
 -runfw: org.apache.felix.framework;version='[5,6)'
 -runbundles: \
 	org.apache.aries.spifly.dynamic.bundle;version='[1.0.8,1.0.9)',\
-	org.jgrapes.example.httpserver;version=snapshot,\
 	org.apache.aries.util;version='[1.0.0,1.0.1)',\
-	org.jdrupes.httpcodec;version='[1.0.0,1.0.1)',\
-	org.jgrapes.core;version=snapshot,\
-	org.jgrapes.http;version=snapshot,\
-	org.jgrapes.io;version=snapshot,\
-	org.jgrapes.util;version=snapshot,\
+	org.jdrupes.httpcodec;version=latest,\
+	org.jgrapes.core;version=latest,\
+	org.jgrapes.http;version=latest,\
+	org.jgrapes.io;version=latest,\
+	org.jgrapes.util;version=latest,\
 	org.objectweb.asm.all;version='[5.1.0,5.1.1)',\
-	org.osgi.compendium;version='[4.1.0,4.1.1)'
+	org.osgi.compendium;version='[4.1.0,4.1.1)',\
+	examples;version=latest
 -runrequires: \
     osgi.identity;filter:='(osgi.identity=HttpServerDemo)'
 -runprogramargs: -console

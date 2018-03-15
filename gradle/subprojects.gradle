@@ -7,7 +7,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'org.jdrupes.mdoclet'
     
-if (project.file("bnd.bnd").exists() && project.name != "examples") {
+if (project.file("bnd.bnd").exists()) {
 
     apply plugin: 'biz.aQute.bnd.builder'
         
@@ -21,7 +21,9 @@ if (project.file("bnd.bnd").exists() && project.name != "examples") {
         }
     }
 
-    apply from: "${project.rootDir}/gradle/baseline.gradle"
+    if (project.name != "examples") {
+        apply from: "${project.rootDir}/gradle/baseline.gradle"
+    }
 
 }
     
