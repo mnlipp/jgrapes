@@ -19,6 +19,8 @@
 package org.jgrapes.core;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A class for events using a simple name as the event's kind.
@@ -26,6 +28,7 @@ import java.util.Arrays;
 public final class NamedEvent<T> extends Event<T> {
 
 	private String kind;
+	private Map<Object,Object> data;
 	
 	/**
 	 * Creates a new named event with the given name.
@@ -62,6 +65,21 @@ public final class NamedEvent<T> extends Event<T> {
 		return criterion.equals(Event.class) || criterion.equals(kind);
 	}
 
+	/**
+	 * Returns a map with data that belongs to the event. The map
+	 * is only created if requested. If a component uses
+	 * {@link NamedEvent}s and data that consists of JDK types only,
+	 * it is completely loosely coupled.
+	 * 
+	 * @return the map
+	 */
+	public Map<Object,Object> data() {
+		if (data == null) {
+			data = new HashMap<>();
+		}
+		return data;
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
