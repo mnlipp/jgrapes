@@ -62,7 +62,7 @@ public class FormProcessor extends Component {
 		super(componentChannel);
 	}
 
-	@RequestHandler(patterns="/form")
+	@RequestHandler(patterns="/form,/form/**")
 	public void onGet(GetRequest event, IOSubchannel channel)
 			throws ParseException {
 		ResponseCreationSupport.sendStaticContent(event, channel, 
@@ -71,7 +71,7 @@ public class FormProcessor extends Component {
 				null);
 	}
 	
-	@RequestHandler(patterns="/form")
+	@RequestHandler(patterns="/form,/form/**")
 	public void onPost(PostRequest event, IOSubchannel channel) {
 		FormContext ctx = channel
 				.associated(this, FormContext::new);
