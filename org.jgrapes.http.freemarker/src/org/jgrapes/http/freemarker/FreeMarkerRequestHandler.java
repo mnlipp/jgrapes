@@ -49,6 +49,8 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.events.Error;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResponseCreationSupport;
@@ -86,11 +88,14 @@ public class FreeMarkerRequestHandler extends Component {
 	 * a single slash.
 	 *
 	 * @param componentChannel the component channel
+	 * @param channelReplacements the channel replacements to apply
+	 * to the `channels` elements of the {@link Handler} annotations
 	 * @param contentLoader the content loader
 	 * @param contentPath the content path
 	 * @param prefix the prefix used in requests
 	 */
 	public FreeMarkerRequestHandler(Channel componentChannel, 
+			ChannelReplacements channelReplacements,
 			ClassLoader contentLoader, String contentPath, URI prefix) {
 		super(componentChannel);
 		String prefixPath = prefix.getPath();
@@ -114,6 +119,25 @@ public class FreeMarkerRequestHandler extends Component {
 		}
 	}
 
+	/**
+	 * Instantiates a new free marker request handler.
+	 * 
+	 * The prefix path is removed from the request paths before resolving
+	 * them against the content root. A prefix path must start with a
+	 * slash and must end with a slash. If the request handler
+	 * should respond to top-level requests, the prefix must be
+	 * a single slash.
+	 *
+	 * @param componentChannel the component channel
+	 * @param contentLoader the content loader
+	 * @param contentPath the content path
+	 * @param prefix the prefix used in requests
+	 */
+	public FreeMarkerRequestHandler(Channel componentChannel, 
+			ClassLoader contentLoader, String contentPath, URI prefix) {
+		this(componentChannel, null, contentLoader, contentPath, prefix);
+	}
+	
 	/**
 	 * Returns the prefix passed to the constructor.
 	 *
