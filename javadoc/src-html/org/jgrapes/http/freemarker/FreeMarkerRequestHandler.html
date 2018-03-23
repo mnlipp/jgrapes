@@ -105,7 +105,7 @@
 <span class="sourceLineNo">097</span>        public FreeMarkerRequestHandler(Channel componentChannel, <a name="line.97"></a>
 <span class="sourceLineNo">098</span>                        ChannelReplacements channelReplacements,<a name="line.98"></a>
 <span class="sourceLineNo">099</span>                        ClassLoader contentLoader, String contentPath, URI prefix) {<a name="line.99"></a>
-<span class="sourceLineNo">100</span>                super(componentChannel);<a name="line.100"></a>
+<span class="sourceLineNo">100</span>                super(componentChannel, channelReplacements);<a name="line.100"></a>
 <span class="sourceLineNo">101</span>                String prefixPath = prefix.getPath();<a name="line.101"></a>
 <span class="sourceLineNo">102</span>                if (!prefixPath.startsWith("/") || !prefixPath.endsWith("/")) {<a name="line.102"></a>
 <span class="sourceLineNo">103</span>                        throw new IllegalArgumentException("Illegal prefix: " + prefix);<a name="line.103"></a>
