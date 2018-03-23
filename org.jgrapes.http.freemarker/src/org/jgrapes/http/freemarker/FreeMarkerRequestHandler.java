@@ -97,7 +97,7 @@ public class FreeMarkerRequestHandler extends Component {
 	public FreeMarkerRequestHandler(Channel componentChannel, 
 			ChannelReplacements channelReplacements,
 			ClassLoader contentLoader, String contentPath, URI prefix) {
-		super(componentChannel);
+		super(componentChannel, channelReplacements);
 		String prefixPath = prefix.getPath();
 		if (!prefixPath.startsWith("/") || !prefixPath.endsWith("/")) {
 			throw new IllegalArgumentException("Illegal prefix: " + prefix);
