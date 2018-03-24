@@ -84,9 +84,9 @@
 <span class="sourceLineNo">076</span>public class MarkdownDisplayPortlet extends FreeMarkerPortlet {<a name="line.76"></a>
 <span class="sourceLineNo">077</span><a name="line.77"></a>
 <span class="sourceLineNo">078</span>        /**<a name="line.78"></a>
-<span class="sourceLineNo">079</span>         * The supported preferences.<a name="line.79"></a>
+<span class="sourceLineNo">079</span>         * The supported properties.<a name="line.79"></a>
 <span class="sourceLineNo">080</span>         */<a name="line.80"></a>
-<span class="sourceLineNo">081</span>        public enum Preferences { PORTLET_ID, TITLE, PREVIEW_SOURCE, <a name="line.81"></a>
+<span class="sourceLineNo">081</span>        public enum Properties { PORTLET_ID, TITLE, PREVIEW_SOURCE, <a name="line.81"></a>
 <span class="sourceLineNo">082</span>                VIEW_SOURCE, DELETABLE, EDITABLE_BY }<a name="line.82"></a>
 <span class="sourceLineNo">083</span>        <a name="line.83"></a>
 <span class="sourceLineNo">084</span>        /**<a name="line.84"></a>
@@ -153,7 +153,7 @@
 <span class="sourceLineNo">145</span>        /**<a name="line.145"></a>
 <span class="sourceLineNo">146</span>         * Adds the portlet to the portal. The portlet supports the <a name="line.146"></a>
 <span class="sourceLineNo">147</span>         * following options (see {@link AddPortletRequest#properties()}<a name="line.147"></a>
-<span class="sourceLineNo">148</span>         * and {@link Preferences}):<a name="line.148"></a>
+<span class="sourceLineNo">148</span>         * and {@link Properties}):<a name="line.148"></a>
 <span class="sourceLineNo">149</span>         * <a name="line.149"></a>
 <span class="sourceLineNo">150</span>         * * `PORTLET_ID` (String): The portlet id.<a name="line.150"></a>
 <span class="sourceLineNo">151</span>         * <a name="line.151"></a>
@@ -177,24 +177,24 @@
 <span class="sourceLineNo">169</span>                ResourceBundle resourceBundle = resourceBundle(portalSession.locale());<a name="line.169"></a>
 <span class="sourceLineNo">170</span>                <a name="line.170"></a>
 <span class="sourceLineNo">171</span>                // Create new model<a name="line.171"></a>
-<span class="sourceLineNo">172</span>                String portletId = (String)event.properties().get(Preferences.PORTLET_ID);<a name="line.172"></a>
+<span class="sourceLineNo">172</span>                String portletId = (String)event.properties().get(Properties.PORTLET_ID);<a name="line.172"></a>
 <span class="sourceLineNo">173</span>                if (portletId == null) {<a name="line.173"></a>
 <span class="sourceLineNo">174</span>                        portletId = generatePortletId();<a name="line.174"></a>
 <span class="sourceLineNo">175</span>                }<a name="line.175"></a>
 <span class="sourceLineNo">176</span>                MarkdownDisplayModel model = putInSession(<a name="line.176"></a>
 <span class="sourceLineNo">177</span>                                portalSession.browserSession(), <a name="line.177"></a>
 <span class="sourceLineNo">178</span>                                new MarkdownDisplayModel(portletId));<a name="line.178"></a>
-<span class="sourceLineNo">179</span>                model.setTitle((String)event.properties().getOrDefault(Preferences.TITLE, <a name="line.179"></a>
+<span class="sourceLineNo">179</span>                model.setTitle((String)event.properties().getOrDefault(Properties.TITLE, <a name="line.179"></a>
 <span class="sourceLineNo">180</span>                                resourceBundle.getString("portletName")));<a name="line.180"></a>
 <span class="sourceLineNo">181</span>                model.setPreviewContent((String)event.properties().getOrDefault(<a name="line.181"></a>
-<span class="sourceLineNo">182</span>                                Preferences.PREVIEW_SOURCE, ""));<a name="line.182"></a>
+<span class="sourceLineNo">182</span>                                Properties.PREVIEW_SOURCE, ""));<a name="line.182"></a>
 <span class="sourceLineNo">183</span>                model.setViewContent((String)event.properties().getOrDefault(<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                                Preferences.VIEW_SOURCE, ""));<a name="line.184"></a>
+<span class="sourceLineNo">184</span>                                Properties.VIEW_SOURCE, ""));<a name="line.184"></a>
 <span class="sourceLineNo">185</span>                model.setDeletable((Boolean)event.properties().getOrDefault(<a name="line.185"></a>
-<span class="sourceLineNo">186</span>                                Preferences.DELETABLE,  Boolean.TRUE));<a name="line.186"></a>
+<span class="sourceLineNo">186</span>                                Properties.DELETABLE,   Boolean.TRUE));<a name="line.186"></a>
 <span class="sourceLineNo">187</span>                @SuppressWarnings("unchecked")<a name="line.187"></a>
 <span class="sourceLineNo">188</span>                Set&lt;Principal&gt; editableBy = (Set&lt;Principal&gt;)event.properties().get(<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                                Preferences.EDITABLE_BY);<a name="line.189"></a>
+<span class="sourceLineNo">189</span>                                Properties.EDITABLE_BY);<a name="line.189"></a>
 <span class="sourceLineNo">190</span>                model.setEditableBy(editableBy);<a name="line.190"></a>
 <span class="sourceLineNo">191</span>                <a name="line.191"></a>
 <span class="sourceLineNo">192</span>                // Save model<a name="line.192"></a>
@@ -303,15 +303,15 @@
 <span class="sourceLineNo">295</span>                PortalSession portalSession, Serializable portletState)<a name="line.295"></a>
 <span class="sourceLineNo">296</span>                throws Exception {<a name="line.296"></a>
 <span class="sourceLineNo">297</span>                event.stop();<a name="line.297"></a>
-<span class="sourceLineNo">298</span>                Map&lt;Preferences, String&gt; properties = new HashMap&lt;&gt;();<a name="line.298"></a>
+<span class="sourceLineNo">298</span>                Map&lt;Properties, String&gt; properties = new HashMap&lt;&gt;();<a name="line.298"></a>
 <span class="sourceLineNo">299</span>                if (event.params().get(0) != null) {<a name="line.299"></a>
-<span class="sourceLineNo">300</span>                        properties.put(Preferences.TITLE, event.params().asString(0));<a name="line.300"></a>
+<span class="sourceLineNo">300</span>                        properties.put(Properties.TITLE, event.params().asString(0));<a name="line.300"></a>
 <span class="sourceLineNo">301</span>                }<a name="line.301"></a>
 <span class="sourceLineNo">302</span>                if (event.params().get(1) != null) {<a name="line.302"></a>
-<span class="sourceLineNo">303</span>                        properties.put(Preferences.PREVIEW_SOURCE, event.params().asString(1));<a name="line.303"></a>
+<span class="sourceLineNo">303</span>                        properties.put(Properties.PREVIEW_SOURCE, event.params().asString(1));<a name="line.303"></a>
 <span class="sourceLineNo">304</span>                }<a name="line.304"></a>
 <span class="sourceLineNo">305</span>                if (event.params().get(2) != null) {<a name="line.305"></a>
-<span class="sourceLineNo">306</span>                        properties.put(Preferences.VIEW_SOURCE, event.params().asString(2));<a name="line.306"></a>
+<span class="sourceLineNo">306</span>                        properties.put(Properties.VIEW_SOURCE, event.params().asString(2));<a name="line.306"></a>
 <span class="sourceLineNo">307</span>                }<a name="line.307"></a>
 <span class="sourceLineNo">308</span>                fire(new UpdatePortletModel(event.portletId(), properties), portalSession);<a name="line.308"></a>
 <span class="sourceLineNo">309</span>        }<a name="line.309"></a>
@@ -322,15 +322,15 @@
 <span class="sourceLineNo">314</span>                        PortalSession portalSession) {<a name="line.314"></a>
 <span class="sourceLineNo">315</span>                stateFromSession(portalSession.browserSession(), event.portletId(), <a name="line.315"></a>
 <span class="sourceLineNo">316</span>                                MarkdownDisplayModel.class).ifPresent(model -&gt; {<a name="line.316"></a>
-<span class="sourceLineNo">317</span>                                        event.ifPresent(Preferences.TITLE, <a name="line.317"></a>
+<span class="sourceLineNo">317</span>                                        event.ifPresent(Properties.TITLE, <a name="line.317"></a>
 <span class="sourceLineNo">318</span>                                                        (key, value) -&gt; model.setTitle((String)value))<a name="line.318"></a>
-<span class="sourceLineNo">319</span>                                        .ifPresent(Preferences.PREVIEW_SOURCE, <a name="line.319"></a>
+<span class="sourceLineNo">319</span>                                        .ifPresent(Properties.PREVIEW_SOURCE, <a name="line.319"></a>
 <span class="sourceLineNo">320</span>                                                        (key, value) -&gt; model.setPreviewContent((String)value))<a name="line.320"></a>
-<span class="sourceLineNo">321</span>                                        .ifPresent(Preferences.VIEW_SOURCE, <a name="line.321"></a>
+<span class="sourceLineNo">321</span>                                        .ifPresent(Properties.VIEW_SOURCE, <a name="line.321"></a>
 <span class="sourceLineNo">322</span>                                                        (key, value) -&gt; model.setViewContent((String)value))<a name="line.322"></a>
-<span class="sourceLineNo">323</span>                                        .ifPresent(Preferences.DELETABLE, <a name="line.323"></a>
+<span class="sourceLineNo">323</span>                                        .ifPresent(Properties.DELETABLE, <a name="line.323"></a>
 <span class="sourceLineNo">324</span>                                                        (key, value) -&gt; model.setDeletable((Boolean)value))<a name="line.324"></a>
-<span class="sourceLineNo">325</span>                                        .ifPresent(Preferences.EDITABLE_BY, <a name="line.325"></a>
+<span class="sourceLineNo">325</span>                                        .ifPresent(Properties.EDITABLE_BY, <a name="line.325"></a>
 <span class="sourceLineNo">326</span>                                                        (key, value) -&gt; {<a name="line.326"></a>
 <span class="sourceLineNo">327</span>                                                                model.setEditableBy((Set&lt;Principal&gt;)value);<a name="line.327"></a>
 <span class="sourceLineNo">328</span>                                                        });<a name="line.328"></a>
