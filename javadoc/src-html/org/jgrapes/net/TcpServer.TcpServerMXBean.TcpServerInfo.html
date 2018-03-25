@@ -736,63 +736,67 @@
 <span class="sourceLineNo">728</span>                                return ((InetSocketAddress)server.serverAddress()).getPort();<a name="line.728"></a>
 <span class="sourceLineNo">729</span>                        }<a name="line.729"></a>
 <span class="sourceLineNo">730</span>                        <a name="line.730"></a>
-<span class="sourceLineNo">731</span>                        public SortedMap&lt;String,ChannelInfo&gt; getChannels() {<a name="line.731"></a>
-<span class="sourceLineNo">732</span>                                SortedMap&lt;String,ChannelInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.732"></a>
-<span class="sourceLineNo">733</span>                                for (TcpChannel channel: server.channels) {<a name="line.733"></a>
-<span class="sourceLineNo">734</span>                                        result.put(channel.nioChannel.socket()<a name="line.734"></a>
-<span class="sourceLineNo">735</span>                                                        .getRemoteSocketAddress().toString(), <a name="line.735"></a>
-<span class="sourceLineNo">736</span>                                                        new ChannelInfo(channel));<a name="line.736"></a>
-<span class="sourceLineNo">737</span>                                }<a name="line.737"></a>
-<span class="sourceLineNo">738</span>                                return result;<a name="line.738"></a>
-<span class="sourceLineNo">739</span>                        }<a name="line.739"></a>
-<span class="sourceLineNo">740</span>                }<a name="line.740"></a>
-<span class="sourceLineNo">741</span>                <a name="line.741"></a>
-<span class="sourceLineNo">742</span>                IntSummaryStatistics getConnectionsPerServerStatistics();<a name="line.742"></a>
-<span class="sourceLineNo">743</span>                <a name="line.743"></a>
-<span class="sourceLineNo">744</span>                SortedMap&lt;String,TcpServerInfo&gt; getServers();<a name="line.744"></a>
-<span class="sourceLineNo">745</span>        }<a name="line.745"></a>
-<span class="sourceLineNo">746</span>        <a name="line.746"></a>
-<span class="sourceLineNo">747</span>        private static class MBeanView implements TcpServerMXBean {<a name="line.747"></a>
-<span class="sourceLineNo">748</span>                private static Set&lt;TcpServer&gt; allServers<a name="line.748"></a>
-<span class="sourceLineNo">749</span>                        = Collections.synchronizedSet(<a name="line.749"></a>
-<span class="sourceLineNo">750</span>                                        Collections.newSetFromMap(<a name="line.750"></a>
-<span class="sourceLineNo">751</span>                                                        new WeakHashMap&lt;TcpServer, Boolean&gt;()));<a name="line.751"></a>
-<span class="sourceLineNo">752</span>                <a name="line.752"></a>
-<span class="sourceLineNo">753</span>                public static void addServer(TcpServer server) {<a name="line.753"></a>
-<span class="sourceLineNo">754</span>                        allServers.add(server);<a name="line.754"></a>
-<span class="sourceLineNo">755</span>                }<a name="line.755"></a>
+<span class="sourceLineNo">731</span>                        public int getChannelCount() {<a name="line.731"></a>
+<span class="sourceLineNo">732</span>                                return server.channels.size();<a name="line.732"></a>
+<span class="sourceLineNo">733</span>                        }<a name="line.733"></a>
+<span class="sourceLineNo">734</span>                        <a name="line.734"></a>
+<span class="sourceLineNo">735</span>                        public SortedMap&lt;String,ChannelInfo&gt; getChannels() {<a name="line.735"></a>
+<span class="sourceLineNo">736</span>                                SortedMap&lt;String,ChannelInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.736"></a>
+<span class="sourceLineNo">737</span>                                for (TcpChannel channel: server.channels) {<a name="line.737"></a>
+<span class="sourceLineNo">738</span>                                        result.put(channel.nioChannel.socket()<a name="line.738"></a>
+<span class="sourceLineNo">739</span>                                                        .getRemoteSocketAddress().toString(), <a name="line.739"></a>
+<span class="sourceLineNo">740</span>                                                        new ChannelInfo(channel));<a name="line.740"></a>
+<span class="sourceLineNo">741</span>                                }<a name="line.741"></a>
+<span class="sourceLineNo">742</span>                                return result;<a name="line.742"></a>
+<span class="sourceLineNo">743</span>                        }<a name="line.743"></a>
+<span class="sourceLineNo">744</span>                }<a name="line.744"></a>
+<span class="sourceLineNo">745</span>                <a name="line.745"></a>
+<span class="sourceLineNo">746</span>                IntSummaryStatistics getConnectionsPerServerStatistics();<a name="line.746"></a>
+<span class="sourceLineNo">747</span>                <a name="line.747"></a>
+<span class="sourceLineNo">748</span>                SortedMap&lt;String,TcpServerInfo&gt; getServers();<a name="line.748"></a>
+<span class="sourceLineNo">749</span>        }<a name="line.749"></a>
+<span class="sourceLineNo">750</span>        <a name="line.750"></a>
+<span class="sourceLineNo">751</span>        private static class MBeanView implements TcpServerMXBean {<a name="line.751"></a>
+<span class="sourceLineNo">752</span>                private static Set&lt;TcpServer&gt; allServers<a name="line.752"></a>
+<span class="sourceLineNo">753</span>                        = Collections.synchronizedSet(<a name="line.753"></a>
+<span class="sourceLineNo">754</span>                                        Collections.newSetFromMap(<a name="line.754"></a>
+<span class="sourceLineNo">755</span>                                                        new WeakHashMap&lt;TcpServer, Boolean&gt;()));<a name="line.755"></a>
 <span class="sourceLineNo">756</span>                <a name="line.756"></a>
-<span class="sourceLineNo">757</span>                @Override<a name="line.757"></a>
-<span class="sourceLineNo">758</span>                public IntSummaryStatistics getConnectionsPerServerStatistics() {<a name="line.758"></a>
-<span class="sourceLineNo">759</span>                        return allServers.stream().collect(<a name="line.759"></a>
-<span class="sourceLineNo">760</span>                                        Collectors.summarizingInt(srv -&gt; srv.channels.size()));<a name="line.760"></a>
-<span class="sourceLineNo">761</span>                }<a name="line.761"></a>
-<span class="sourceLineNo">762</span><a name="line.762"></a>
-<span class="sourceLineNo">763</span>                @Override<a name="line.763"></a>
-<span class="sourceLineNo">764</span>                public SortedMap&lt;String,TcpServerInfo&gt; getServers() {<a name="line.764"></a>
-<span class="sourceLineNo">765</span>                        SortedMap&lt;String,TcpServerInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.765"></a>
-<span class="sourceLineNo">766</span>                        for (TcpServer server: allServers) {<a name="line.766"></a>
-<span class="sourceLineNo">767</span>                                int port = server.serverAddress().getPort();<a name="line.767"></a>
-<span class="sourceLineNo">768</span>                                result.put(Components.objectName(server) + " (:" + port + ")",<a name="line.768"></a>
-<span class="sourceLineNo">769</span>                                                new TcpServerInfo(server));<a name="line.769"></a>
-<span class="sourceLineNo">770</span>                        }<a name="line.770"></a>
-<span class="sourceLineNo">771</span>                        return result;<a name="line.771"></a>
-<span class="sourceLineNo">772</span>                }<a name="line.772"></a>
-<span class="sourceLineNo">773</span>        }<a name="line.773"></a>
-<span class="sourceLineNo">774</span><a name="line.774"></a>
-<span class="sourceLineNo">775</span>        static {<a name="line.775"></a>
-<span class="sourceLineNo">776</span>                try {<a name="line.776"></a>
-<span class="sourceLineNo">777</span>                        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); <a name="line.777"></a>
-<span class="sourceLineNo">778</span>                        ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="<a name="line.778"></a>
-<span class="sourceLineNo">779</span>                                        + TcpServer.class.getSimpleName());<a name="line.779"></a>
-<span class="sourceLineNo">780</span>                        mbs.registerMBean(new MBeanView(), mxbeanName);<a name="line.780"></a>
-<span class="sourceLineNo">781</span>                } catch (MalformedObjectNameException | InstanceAlreadyExistsException<a name="line.781"></a>
-<span class="sourceLineNo">782</span>                                | MBeanRegistrationException | NotCompliantMBeanException e) {<a name="line.782"></a>
-<span class="sourceLineNo">783</span>                        // Does not happen<a name="line.783"></a>
-<span class="sourceLineNo">784</span>                }               <a name="line.784"></a>
-<span class="sourceLineNo">785</span>        }<a name="line.785"></a>
-<span class="sourceLineNo">786</span>        <a name="line.786"></a>
-<span class="sourceLineNo">787</span>}<a name="line.787"></a>
+<span class="sourceLineNo">757</span>                public static void addServer(TcpServer server) {<a name="line.757"></a>
+<span class="sourceLineNo">758</span>                        allServers.add(server);<a name="line.758"></a>
+<span class="sourceLineNo">759</span>                }<a name="line.759"></a>
+<span class="sourceLineNo">760</span>                <a name="line.760"></a>
+<span class="sourceLineNo">761</span>                @Override<a name="line.761"></a>
+<span class="sourceLineNo">762</span>                public IntSummaryStatistics getConnectionsPerServerStatistics() {<a name="line.762"></a>
+<span class="sourceLineNo">763</span>                        return allServers.stream().collect(<a name="line.763"></a>
+<span class="sourceLineNo">764</span>                                        Collectors.summarizingInt(srv -&gt; srv.channels.size()));<a name="line.764"></a>
+<span class="sourceLineNo">765</span>                }<a name="line.765"></a>
+<span class="sourceLineNo">766</span><a name="line.766"></a>
+<span class="sourceLineNo">767</span>                @Override<a name="line.767"></a>
+<span class="sourceLineNo">768</span>                public SortedMap&lt;String,TcpServerInfo&gt; getServers() {<a name="line.768"></a>
+<span class="sourceLineNo">769</span>                        SortedMap&lt;String,TcpServerInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.769"></a>
+<span class="sourceLineNo">770</span>                        for (TcpServer server: allServers) {<a name="line.770"></a>
+<span class="sourceLineNo">771</span>                                int port = server.serverAddress().getPort();<a name="line.771"></a>
+<span class="sourceLineNo">772</span>                                result.put(Components.objectName(server) + " (:" + port + ")",<a name="line.772"></a>
+<span class="sourceLineNo">773</span>                                                new TcpServerInfo(server));<a name="line.773"></a>
+<span class="sourceLineNo">774</span>                        }<a name="line.774"></a>
+<span class="sourceLineNo">775</span>                        return result;<a name="line.775"></a>
+<span class="sourceLineNo">776</span>                }<a name="line.776"></a>
+<span class="sourceLineNo">777</span>        }<a name="line.777"></a>
+<span class="sourceLineNo">778</span><a name="line.778"></a>
+<span class="sourceLineNo">779</span>        static {<a name="line.779"></a>
+<span class="sourceLineNo">780</span>                try {<a name="line.780"></a>
+<span class="sourceLineNo">781</span>                        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); <a name="line.781"></a>
+<span class="sourceLineNo">782</span>                        ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="<a name="line.782"></a>
+<span class="sourceLineNo">783</span>                                        + TcpServer.class.getSimpleName());<a name="line.783"></a>
+<span class="sourceLineNo">784</span>                        mbs.registerMBean(new MBeanView(), mxbeanName);<a name="line.784"></a>
+<span class="sourceLineNo">785</span>                } catch (MalformedObjectNameException | InstanceAlreadyExistsException<a name="line.785"></a>
+<span class="sourceLineNo">786</span>                                | MBeanRegistrationException | NotCompliantMBeanException e) {<a name="line.786"></a>
+<span class="sourceLineNo">787</span>                        // Does not happen<a name="line.787"></a>
+<span class="sourceLineNo">788</span>                }               <a name="line.788"></a>
+<span class="sourceLineNo">789</span>        }<a name="line.789"></a>
+<span class="sourceLineNo">790</span>        <a name="line.790"></a>
+<span class="sourceLineNo">791</span>}<a name="line.791"></a>
 
 
 
