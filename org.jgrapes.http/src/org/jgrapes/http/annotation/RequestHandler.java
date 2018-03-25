@@ -143,6 +143,26 @@ public @interface RequestHandler {
 		 */
 		public static void add(ComponentType component, String method,
 				String pattern) {
+			add(component, method, pattern, null);
+		}
+		
+		/**
+		 * Adds the given method of the given component as a 
+		 * dynamic handler for a specific pattern with the specified
+		 * priority. Other informations are taken from the annotation.
+		 *
+		 * @param component the component
+		 * @param method the name of the method that implements the handler
+		 * @param pattern the pattern
+		 * @param priority the priority
+		 */
+		public static void add(ComponentType component, String method,
+				String pattern, int priority) {
+			add(component, method, pattern, new Integer(priority));
+		}
+		
+		private static void add(ComponentType component, String method,
+				String pattern, Integer priority) {
 			try {
 				for (Method m: component.getClass().getMethods()) {
 					if (!m.getName().equals(method)) {
@@ -161,8 +181,9 @@ public @interface RequestHandler {
 								(RequestHandler)annotation, 
 								Collections.emptyMap(), pattern);
 						Components.manager(component)
-							.addHandler(m, scope, 
-									((RequestHandler)annotation).priority());
+							.addHandler(m, scope, priority == null
+							? ((RequestHandler)annotation).priority()
+									: priority);
 						return;
 					}
 				}

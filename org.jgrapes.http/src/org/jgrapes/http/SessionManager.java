@@ -58,7 +58,8 @@ import org.jgrapes.io.IOSubchannel;
 /**
  * A base class for session managers. A session manager associates 
  * {@link Request} events with a {@link Session} object using 
- * `Session.class` as association identifier.
+ * `Session.class` as association identifier. The {@link Request}
+ * handler has a default priority of 1000.
  * 
  * Managers track requests using a cookie with a given name and path. The 
  * path is a prefix that has to be matched by the request, often "/".
@@ -130,7 +131,7 @@ public abstract class SessionManager extends Component {
 	 * @param path the path
 	 */
 	public SessionManager(Channel componentChannel, String path) {
-		this(componentChannel, derivePattern(path), path);
+		this(componentChannel, derivePattern(path), 1000, path);
 	}
 
 	/**
@@ -156,19 +157,21 @@ public abstract class SessionManager extends Component {
 	/**
 	 * Creates a new session manager using the given channel and path.
 	 * The manager handles only requests that match the given pattern.
+	 * The handler is registered with the given priority.
 	 * 
 	 * This constructor can be used if special handling of top level
 	 * requests is needed.
 	 *
 	 * @param componentChannel the component channel
-	 * @param pattern the path part of a {@link ResourcePattern} 
+	 * @param pattern the path part of a {@link ResourcePattern}
+	 * @param priority the priority
 	 * @param path the path
 	 */
 	public SessionManager(Channel componentChannel, String pattern, 
-			String path) {
+			int priority, String path) {
 		super(componentChannel);
 		this.path = path;
-		RequestHandler.Evaluator.add(this, "onRequest", pattern);
+		RequestHandler.Evaluator.add(this, "onRequest", pattern, priority);
 		MBeanView.addManager(this);
 	}
 
@@ -262,8 +265,11 @@ public abstract class SessionManager extends Component {
 	 * 
 	 * @param event the event
 	 */
-	@RequestHandler(priority=1000, dynamic=true)
+	@RequestHandler(dynamic=true)
 	public void onRequest(Request event) {
+		if (event.associated(Session.class).isPresent()) {
+			return;
+		}
 		final HttpRequest request = event.httpRequest();
 		Optional<String> requestedSessionId = request.findValue(
 		        HttpField.COOKIE, Converters.COOKIE_LIST)

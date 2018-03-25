@@ -86,23 +86,25 @@ public class InMemorySessionManager extends SessionManager {
 	 * @param path the path
 	 */
 	public InMemorySessionManager(Channel componentChannel, String path) {
-		this(componentChannel, derivePattern(path), path);
+		this(componentChannel, derivePattern(path), 1000, path);
 	}
 
 	/**
 	 * Creates a new session manager using the given channel and path.
 	 * The manager handles only requests that match the given pattern.
+	 * The {@link Request} handler is registered with the given priority.
 	 * 
 	 * This constructor can be used if special handling of top level
 	 * requests is needed.
 	 *
 	 * @param componentChannel the component channel
-	 * @param pattern the path part of a {@link ResourcePattern} 
+	 * @param pattern the path part of a {@link ResourcePattern}
+	 * @param priority the priority
 	 * @param path the path
 	 */
 	public InMemorySessionManager(Channel componentChannel, String pattern,
-	        String path) {
-		super(componentChannel, pattern, path);
+	        int priority, String path) {
+		super(componentChannel, pattern, priority, path);
 	}
 
 	@Override
