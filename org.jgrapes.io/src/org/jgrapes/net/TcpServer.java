@@ -728,6 +728,10 @@ public class TcpServer extends Component implements NioHandler {
 				return ((InetSocketAddress)server.serverAddress()).getPort();
 			}
 			
+			public int getChannelCount() {
+				return server.channels.size();
+			}
+			
 			public SortedMap<String,ChannelInfo> getChannels() {
 				SortedMap<String,ChannelInfo> result = new TreeMap<>();
 				for (TcpChannel channel: server.channels) {
