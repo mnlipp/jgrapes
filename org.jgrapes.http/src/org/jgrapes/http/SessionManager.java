@@ -60,11 +60,11 @@ import org.jgrapes.io.IOSubchannel;
  * {@link Request} events with a {@link Session} object using 
  * `Session.class` as association identifier.
  * 
- * Managers track requests with the specified scope. The scope is a
- * URL prefix that has to be matched by the request, usually "/".
- * If no cookie with the id name (see {@link #idName()}) is found,
- * a new cookie with that name and a path equal to the scope is created.
- * The cookies values is the unique session id that is used to lookup
+ * Managers track requests using a cookie with a given name and path. The 
+ * path is a prefix that has to be matched by the request, often "/".
+ * If no cookie with the given name (see {@link #idName()}) is found,
+ * a new cookie with that name and the specified path is created.
+ * The cookie's value is the unique session id that is used to lookup
  * the session object.
  * 
  * Session managers provide additional support for web sockets. If a
@@ -89,7 +89,8 @@ public abstract class SessionManager extends Component {
 	
 	/**
 	 * Creates a new session manager with its channel set to
-	 * itself and the scope set to "/".
+	 * itself and the path set to "/". The manager handles
+	 * all {@link Request} events.
 	 */
 	public SessionManager() {
 		this("/");
@@ -97,17 +98,20 @@ public abstract class SessionManager extends Component {
 	
 	/**
 	 * Creates a new session manager with its channel set to
-	 * itself and the scope to scope.
+	 * itself and the path set to the given path. The manager
+	 * handles all requests that match the given path, using the
+	 * same rules as browsers do for selecting the cookies that
+	 * are to be sent.
 	 * 
-	 * @param scope the scope
+	 * @param path the path
 	 */
-	public SessionManager(String scope) {
-		this(Channel.SELF, scope);
+	public SessionManager(String path) {
+		this(Channel.SELF, path);
 	}
 
 	/**
 	 * Creates a new session manager with its channel set to
-	 * the given channel and the scope to "/".
+	 * the given channel and the path to "/".
 	 * 
 	 * @param componentChannel the component channel
 	 */
@@ -116,25 +120,47 @@ public abstract class SessionManager extends Component {
 	}
 
 	/**
-	 * Creates a new session manager with its channel set to the given 
-	 * channel and the path set to path.
-	 * 
+	 * Creates a new session manager with the given channel and path.
+	 * The manager handles all requests that match the given path, using
+	 * the same rules as browsers do for selecting the cookies that
+	 * are to be sent.
+	 *  
 	 * @param componentChannel the component channel
-	 * @param scope the scope
+	 * @param path the path
 	 */
-	public SessionManager(Channel componentChannel, String scope) {
-		super(componentChannel);
-		if (scope.equals("/") || !scope.endsWith("/")) {
-			path = scope;
-		} else {
-			path = scope.substring(0, scope.length() - 1);
-		}
+	public SessionManager(Channel componentChannel, String path) {
+		this(componentChannel, derivePattern(path), path);
+	}
+
+	private static String derivePattern(String path) {
 		String pattern;
 		if (path.equals("/")) {
 			pattern = "/**";
 		} else {
+			String patternBase = path;
+			if (patternBase.endsWith("/")) {
+				patternBase = path.substring(0, path.length() - 1);
+			}
 			pattern = path + "," + path + "/**";
 		}
+		return pattern;
+	}
+	
+	/**
+	 * Creates a new session manager using the given channel and path.
+	 * The manager handles only requests that match the given pattern.
+	 * 
+	 * This constructor can be used if special handling of top level
+	 * requests is needed.
+	 *
+	 * @param componentChannel the component channel
+	 * @param pattern the path part of a {@link ResourcePattern} 
+	 * @param path the path
+	 */
+	public SessionManager(Channel componentChannel, String pattern, 
+			String path) {
+		super(componentChannel);
+		this.path = path;
 		RequestHandler.Evaluator.add(this, "onRequest", pattern);
 		MBeanView.addManager(this);
 	}
@@ -294,7 +320,7 @@ public abstract class SessionManager extends Component {
 	protected abstract int sessionCount();
 	
 	/**
-	 * Creates a session id and ádds the corresponding cookie to the
+	 * Creates a session id and adds the corresponding cookie to the
 	 * response.
 	 * 
 	 * @param response the response
@@ -309,7 +335,7 @@ public abstract class SessionManager extends Component {
 		}
 		String sessionId = sessionIdBuilder.toString();
 		HttpCookie sessionCookie = new HttpCookie(idName(), sessionId);
-		sessionCookie.setPath("/");
+		sessionCookie.setPath(path);
 		sessionCookie.setHttpOnly(true);
 		response.computeIfAbsent(HttpField.SET_COOKIE, CookieList::new)
 			.value().add(sessionCookie);
