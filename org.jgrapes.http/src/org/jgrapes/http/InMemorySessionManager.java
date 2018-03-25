@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.http.events.Request;
 
 /**
  * A in memory session manager. 
@@ -44,7 +45,8 @@ public class InMemorySessionManager extends SessionManager {
 	
 	/**
 	 * Creates a new session manager with its channel set to
-	 * itself and the scope set to "/".
+	 * itself and the path set to "/". The manager handles
+	 * all {@link Request} events.
 	 */
 	public InMemorySessionManager() {
 		this("/");
@@ -52,22 +54,55 @@ public class InMemorySessionManager extends SessionManager {
 
 	/**
 	 * Creates a new session manager with its channel set to
-	 * itself and the scope to scope.
+	 * itself and the path set to the given path. The manager
+	 * handles all requests that match the given path, using the
+	 * same rules as browsers do for selecting the cookies that
+	 * are to be sent.
 	 * 
-	 * @param scope the scope
+	 * @param path the path
 	 */
-	public InMemorySessionManager(String scope) {
-		super(scope);
+	public InMemorySessionManager(String path) {
+		this(Channel.SELF, path);
 	}
 
 	/**
 	 * Creates a new session manager with its channel set to
-	 * the given channel and the scope to "/".
+	 * the given channel and the path to "/". The manager handles
+	 * all {@link Request} events.
 	 * 
 	 * @param componentChannel the component channel
 	 */
 	public InMemorySessionManager(Channel componentChannel) {
-		super(componentChannel);
+		this(componentChannel, "/");
+	}
+
+	/**
+	 * Creates a new session manager with the given channel and path.
+	 * The manager handles all requests that match the given path, using
+	 * the same rules as browsers do for selecting the cookies that
+	 * are to be sent.
+	 *  
+	 * @param componentChannel the component channel
+	 * @param path the path
+	 */
+	public InMemorySessionManager(Channel componentChannel, String path) {
+		this(componentChannel, derivePattern(path), path);
+	}
+
+	/**
+	 * Creates a new session manager using the given channel and path.
+	 * The manager handles only requests that match the given pattern.
+	 * 
+	 * This constructor can be used if special handling of top level
+	 * requests is needed.
+	 *
+	 * @param componentChannel the component channel
+	 * @param pattern the path part of a {@link ResourcePattern} 
+	 * @param path the path
+	 */
+	public InMemorySessionManager(Channel componentChannel, String pattern,
+	        String path) {
+		super(componentChannel, pattern, path);
 	}
 
 	@Override

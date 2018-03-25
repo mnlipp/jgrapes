@@ -111,7 +111,8 @@ public abstract class SessionManager extends Component {
 
 	/**
 	 * Creates a new session manager with its channel set to
-	 * the given channel and the path to "/".
+	 * the given channel and the path to "/". The manager handles
+	 * all {@link Request} events.
 	 * 
 	 * @param componentChannel the component channel
 	 */
@@ -132,7 +133,13 @@ public abstract class SessionManager extends Component {
 		this(componentChannel, derivePattern(path), path);
 	}
 
-	private static String derivePattern(String path) {
+	/**
+	 * Derives the resource pattern from the path.
+	 *
+	 * @param path the path
+	 * @return the pattern
+	 */
+	protected static String derivePattern(String path) {
 		String pattern;
 		if (path.equals("/")) {
 			pattern = "/**";
