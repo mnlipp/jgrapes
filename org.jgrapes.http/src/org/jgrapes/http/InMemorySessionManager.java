@@ -70,6 +70,7 @@ public class InMemorySessionManager extends SessionManager {
 		super(componentChannel);
 	}
 
+	@Override
 	protected Session createSession(String sessionId) {
 		Session session = new InMemorySession(sessionId);
 		Instant now = Instant.now();
@@ -101,13 +102,24 @@ public class InMemorySessionManager extends SessionManager {
 		return session;
 	}
 	
+	@Override
 	protected Optional<Session> lookupSession(String sessionId) {
 		return Optional.ofNullable(sessionsById.get(sessionId));
 	}
 	
+	@Override
 	protected void removeSession(String sessionId) {
 		synchronized (this) {
 			sessionsById.remove(sessionId);
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see org.jgrapes.http.SessionManager#sessionCount()
+	 */
+	@Override
+	protected int sessionCount() {
+		return sessionsById.size();
+	}
+	
 }

@@ -18,11 +18,24 @@
 
 package org.jgrapes.http;
 
+import java.lang.management.ManagementFactory;
 import java.net.HttpCookie;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.WeakHashMap;
+
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
@@ -33,6 +46,7 @@ import org.jdrupes.httpcodec.types.CookieList;
 import org.jdrupes.httpcodec.types.Directive;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.internal.EventBase;
 import org.jgrapes.http.annotation.RequestHandler;
@@ -122,6 +136,7 @@ public abstract class SessionManager extends Component {
 			pattern = path + "," + path + "/**";
 		}
 		RequestHandler.Evaluator.add(this, "onRequest", pattern);
+		MBeanView.addManager(this);
 	}
 
 	/**
@@ -272,6 +287,13 @@ public abstract class SessionManager extends Component {
 	protected abstract void removeSession(String sessionId);
 
 	/**
+	 * Return the number of established sessions.
+	 * 
+	 * @return the result
+	 */
+	protected abstract int sessionCount();
+	
+	/**
 	 * Creates a session id and ádds the corresponding cookie to the
 	 * response.
 	 * 
@@ -320,5 +342,72 @@ public abstract class SessionManager extends Component {
 			.ifPresent(session -> {
 				channel.setAssociated(Session.class, session);
 			});
+	}
+	
+	/**
+	 * An MBean interface for getting information about the 
+	 * established sessions.
+	 */
+	public static interface SessionManagerMXBean {
+		
+		public static class SessionManagerInfo {
+
+			private SessionManager sessionManager;
+			
+			public SessionManagerInfo(SessionManager sessionManager) {
+				this.sessionManager = sessionManager;
+			}
+			
+			public int getMaxSessions() {
+				return sessionManager.maxSessions();
+			}
+			
+			public int getAbsoluteTimeout() {
+				return sessionManager.absoluteTimeout();
+			}
+			
+			public int getIdleTimeout() {
+				return sessionManager.idleTimeout();
+			}
+			
+			public int getSessionCount() {
+				return sessionManager.sessionCount();
+			}
+		}
+		
+		SortedMap<String,SessionManagerInfo> getManagers();
+	}
+	
+	private static class MBeanView implements SessionManagerMXBean {
+		private static Set<SessionManager> allManagers
+			= Collections.synchronizedSet(
+					Collections.newSetFromMap(
+							new WeakHashMap<SessionManager, Boolean>()));
+		
+		public static void addManager(SessionManager manager) {
+			allManagers.add(manager);
+		}
+		
+		@Override
+		public SortedMap<String,SessionManagerInfo> getManagers() {
+			SortedMap<String,SessionManagerInfo> result = new TreeMap<>();
+			for (SessionManager server: allManagers) {
+				result.put(Components.objectName(server),
+						new SessionManagerInfo(server));
+			}
+			return result;
+		}
+	}
+
+	static {
+		try {
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); 
+			ObjectName mxbeanName = new ObjectName("org.jgrapes.http:type="
+					+ SessionManager.class.getSimpleName());
+			mbs.registerMBean(new MBeanView(), mxbeanName);
+		} catch (MalformedObjectNameException | InstanceAlreadyExistsException
+				| MBeanRegistrationException | NotCompliantMBeanException e) {
+			// Does not happen
+		}		
 	}
 }
