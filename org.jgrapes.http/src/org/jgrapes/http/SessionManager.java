@@ -430,9 +430,10 @@ public abstract class SessionManager extends Component {
 		@Override
 		public SortedMap<String,SessionManagerInfo> getManagers() {
 			SortedMap<String,SessionManagerInfo> result = new TreeMap<>();
-			for (SessionManager server: allManagers) {
-				result.put(Components.objectName(server),
-						new SessionManagerInfo(server));
+			for (SessionManager manager: allManagers) {
+				result.put(Components.objectName(manager) 
+						+ " (" + manager.idName() + "," + manager.path + ")",
+						new SessionManagerInfo(manager));
 			}
 			return result;
 		}
