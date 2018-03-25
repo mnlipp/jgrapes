@@ -660,28 +660,6 @@ public class HttpServer extends Component {
 			if (switchedToWebSocket) {
 				respond(new Response(new WsCloseFrame(null, null)));
 				return;
-//				@SuppressWarnings("unchecked")
-//				ServerEngine<?,MessageHeader> wsEngine 
-//					= (ServerEngine<?,MessageHeader>)engine;
-//				WsCloseFrame msg = new WsCloseFrame(null, null);
-//				wsEngine.encode(msg);
-//				while (true) {
-//					if (outBuffer == null) {
-//						outBuffer = upstreamChannel().byteBufferPool().acquire();
-//					}
-//					Codec.Result result = wsEngine.encode(
-//							null, outBuffer.backingBuffer(), true);
-//					if (result.isOverflow()) {
-//						upstreamChannel().respond(Output.fromSink(outBuffer, false));
-//						outBuffer = upstreamChannel().byteBufferPool().acquire();
-//						continue;
-//					}
-//					upstreamChannel().respond(Output.fromSink(outBuffer, false));
-//					outBuffer = null;
-//					if (!result.closeConnection()) {
-//						return;
-//					}
-//				}
 			}
 			upstreamChannel().respond(new Close());
 		}
