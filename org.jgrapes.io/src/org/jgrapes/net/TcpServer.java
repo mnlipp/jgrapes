@@ -26,6 +26,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IntSummaryStatistics;
@@ -231,7 +232,10 @@ public class TcpServer extends Component implements NioHandler {
 
 	/**
 	 * Sets a permit "pool". A new connection is created only if a permit
-	 * can be obtained from the pool.
+	 * can be obtained from the pool. When using this feature, make sure
+	 * that connections are either short lived or can be purged
+	 * (see {@link #onOutput(Output, TcpChannel)}). Else, it may become
+	 * impossible to establish new connections.
 	 * 
 	 * @param connectionLimiter the connection pool to set
 	 * @return the TCP server for easy chaining
@@ -316,16 +320,37 @@ public class TcpServer extends Component implements NioHandler {
 	 */
 	@Override
 	public void handleOps(int ops) {
+		if ((ops & SelectionKey.OP_ACCEPT) == 0 || closing) {
+			return;
+		}
 		synchronized (channels) {
-			if ((ops & SelectionKey.OP_ACCEPT) != 0 && !closing) {
-				try {
-					if (connLimiter == null || connLimiter.tryAcquire()) {
-						SocketChannel socketChannel = serverSocketChannel.accept();
-						channels.add(new TcpChannel(socketChannel));
+			boolean permitted = connLimiter == null || connLimiter.tryAcquire();
+			if (!permitted) {
+				// No permits left, purge connections until permitted
+				for (TcpChannel channel: new ArrayList<>(channels)) {
+					if (!channel.isPurgeable()) {
+						continue;
 					}
-				} catch (IOException e) {
-					fire(new IOError(null, e));
+					try {
+						channel.close();
+					} catch (IOException | InterruptedException e) {
+						continue;
+					}
+					permitted = connLimiter.tryAcquire();
+					if (permitted) {
+						break;
+					}
 				}
+				if (!permitted) {
+					// Failed, couldn't get a permit
+					return;
+				}
+			}
+			try {
+				SocketChannel socketChannel = serverSocketChannel.accept();
+				channels.add(new TcpChannel(socketChannel));
+			} catch (IOException e) {
+				fire(new IOError(null, e));
 			}
 		}
 	}
@@ -346,8 +371,13 @@ public class TcpServer extends Component implements NioHandler {
 	}
 	
 	/**
-	 * Writes the data passed in the event to the client. The end of record
-	 * flag is ignored.
+	 * Writes the data passed in the event to the client. 
+	 * 
+	 * The end of record flag is used to determine if a channel is 
+	 * eligible for purging. If the flag is set and all output has 
+	 * been processed, the channel is purgeable until input is 
+	 * received or another output event causes the state to be 
+	 * reevaluated. 
 	 * 
 	 * @param event the event
 	 * @throws IOException if an error occurs
@@ -420,6 +450,8 @@ public class TcpServer extends Component implements NioHandler {
 	public String toString() {
 		return Components.objectName(this);
 	}
+
+	private enum PurgeableState { NO, PENDING, YES }
 	
 	/**
 	 * The internal representation of a connected client. 
@@ -435,6 +467,7 @@ public class TcpServer extends Component implements NioHandler {
 		private Queue<ManagedBuffer<ByteBuffer>.ByteBufferView> 
 			pendingWrites = new ArrayDeque<>();
 		private boolean pendingClose = false;
+		private PurgeableState purgeable = PurgeableState.NO;
 		
 		/**
 		 * @param nioChannel the channel
@@ -487,6 +520,10 @@ public class TcpServer extends Component implements NioHandler {
 
 		}
 
+		public boolean isPurgeable() {
+			return purgeable == PurgeableState.YES;
+		}
+		
 		/**
 		 * Write the data on this channel.
 		 * 
@@ -502,6 +539,8 @@ public class TcpServer extends Component implements NioHandler {
 					= event.buffer().newByteBufferView();
 				if (!pendingWrites.isEmpty()) {
 					reader.managedBuffer().lockBuffer();
+					purgeable = event.isEndOfRecord() ? PurgeableState.PENDING
+							: PurgeableState.NO;
 					pendingWrites.add(reader);
 					return;
 				}
@@ -512,14 +551,16 @@ public class TcpServer extends Component implements NioHandler {
 					return;
 				}
 				if (!reader.get().hasRemaining()) {
+					purgeable = event.isEndOfRecord() ? PurgeableState.YES
+							: PurgeableState.NO;
 					return;
 				}
 				reader.managedBuffer().lockBuffer();
+				purgeable = event.isEndOfRecord() ? PurgeableState.PENDING
+						: PurgeableState.NO;
 				pendingWrites.add(reader);
-				if (pendingWrites.size() == 1) {
-					registration.updateInterested(
-							SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-				}
+				registration.updateInterested(
+						SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 			}
 		}
 
@@ -550,6 +591,7 @@ public class TcpServer extends Component implements NioHandler {
 					return;
 				}
 				if (bytes > 0) {
+					purgeable = PurgeableState.NO;
 					downPipeline.fire(Input.fromSink(buffer, false), this);
 					return;
 				}
@@ -624,6 +666,10 @@ public class TcpServer extends Component implements NioHandler {
 								}
 							}
 							pendingClose = false;
+						} else {
+							if (purgeable == PurgeableState.PENDING) {
+								purgeable = PurgeableState.YES;
+							}
 						}
 						break; // Nothing left to do
 					}
@@ -705,6 +751,10 @@ public class TcpServer extends Component implements NioHandler {
 			
 			public ChannelInfo(TcpChannel channel) {
 				this.channel = channel;
+			}
+			
+			public boolean isPurgeable() {
+				return channel.isPurgeable();
 			}
 			
 			public String getDownstreamPool() {

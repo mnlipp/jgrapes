@@ -578,7 +578,7 @@ public class HttpServer extends Component {
 				}
 				// Response is complete
 				if (buffer.position() > 0) {
-					upstreamChannel().respond(Output.fromSink(buffer, false));
+					upstreamChannel().respond(Output.fromSink(buffer, true));
 				} else {
 					buffer.unlockBuffer();
 				}
@@ -640,7 +640,7 @@ public class HttpServer extends Component {
 				}
 				if (event.isEndOfRecord() || result.closeConnection()) {
 					if (outBuffer.position() > 0) {
-						upstreamChannel().respond(Output.fromSink(outBuffer, false));
+						upstreamChannel().respond(Output.fromSink(outBuffer, true));
 					} else {
 						outBuffer.unlockBuffer();
 					}
