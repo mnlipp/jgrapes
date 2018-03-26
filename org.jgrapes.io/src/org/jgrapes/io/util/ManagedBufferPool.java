@@ -20,18 +20,13 @@ package org.jgrapes.io.util;
 
 import java.beans.ConstructorProperties;
 import java.lang.management.ManagementFactory;
-import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.nio.Buffer;
 import java.time.Duration;
-import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -342,14 +337,47 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			return createdBy;
 		}
 	}
-	
+
+	/**
+	 * This is basically a WeakHashMap. We cannot use WeakHashMap
+	 * because there is no "hook" into the collection of orphaned
+	 * references, which is what we want here.
+	 */
 	private class BufferMonitor {
 		
-		private List<Map.Entry<WeakReference<W>,
-			BufferProperties>>[] data;
+		private class Entry<B extends ManagedBuffer<?>> extends WeakReference<B> 
+			implements Map.Entry<B, BufferProperties> {
+			int index;
+			BufferProperties props;
+			Entry<B> next;
+			
+			Entry(B buffer, BufferProperties props,	ReferenceQueue<B> queue, 
+					int index, Entry<B> next) {
+				super(buffer, queue);
+				this.index = index;
+				this.props = props;
+				this.next = next;
+			}
+
+			@Override
+			public B getKey() {
+				return get();
+			}
+
+			@Override
+			public BufferProperties getValue() {
+				return props;
+			}
+
+			@Override
+			public BufferProperties setValue(BufferProperties props) {
+				return this.props = props;
+			}
+		}
+		
+		private Entry<W>[] data;
 		private int indexMask = 0;
-		private ReferenceQueue<ManagedBuffer<?>> orphanedBuffers 
-			= new ReferenceQueue<>();
+		private ReferenceQueue<W> orphanedEntries = new ReferenceQueue<>();
 	
 		/**
 		 * @param data
@@ -361,85 +389,111 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 				lists <<= 1;
 				indexMask = (indexMask << 1) + 1;
 			}
-			data = (List<Map.Entry<WeakReference<W>,BufferProperties>>[])
-					new List[lists];
+			data = new Entry[lists];
 		}
 
 		public BufferProperties put(W buffer, BufferProperties bufferMonitor) {
 			check();
 			int index = buffer.hashCode() & indexMask;
-			List<Map.Entry<WeakReference<W>,BufferProperties>> list;
 			synchronized(data) {
-				list = data[index];
-				if (list == null) {
-					list = data[index] = new LinkedList<>();
-				}
-			}
-			synchronized(list) {
-				for (Map.Entry<WeakReference<W>,BufferProperties> entry: list) {
-					if (entry.getKey().get() == buffer) {
+				Entry<W> entry = data[index];
+				Entry<W> prev = null;
+				while (true) {
+					if (entry == null) {
+						entry = new Entry<>(buffer, bufferMonitor, 
+								orphanedEntries, index, null);
+						if (prev == null) {
+							data[index] = entry;
+						} else {
+							prev.next = entry;
+						}
+						return bufferMonitor;
+					}
+					if (entry.getKey() == buffer) {
 						BufferProperties old = entry.getValue();
 						entry.setValue(bufferMonitor);
 						return old;
 					}
+					prev = entry;
+					entry = entry.next;
 				}
-				list.add(new AbstractMap.SimpleEntry<>(
-						new WeakReference<>(buffer, orphanedBuffers), bufferMonitor));
 			}
-			return null;
 		}
 		
 		@SuppressWarnings("unused")
 		public BufferProperties get(ManagedBuffer<?> buffer) {
 			check();
 			int index = buffer.hashCode() & indexMask;
-			List<Map.Entry<WeakReference<W>,BufferProperties>> list	= data[index];
-			if (list == null) {
-				return null;
-			}
-			synchronized(list) {
-				for (Iterator<Map.Entry<WeakReference<W>,BufferProperties>> 
-					itr = list.iterator(); itr.hasNext();) {
-					Map.Entry<WeakReference<W>,BufferProperties> entry = itr.next();
-					if (entry.getKey().get() == buffer) {
+			synchronized(data) {
+				Entry<W> entry = data[index];
+				while (true) {
+					if (entry == null) {
+						return null;
+					}
+					if (entry.getKey() == buffer) {
 						return entry.getValue();
 					}
+					entry = entry.next;
 				}
 			}
-			return null;
 		}
 		
 		public BufferProperties remove(ManagedBuffer<?> buffer) {
 			check();
 			int index = buffer.hashCode() & indexMask;
-			List<Map.Entry<WeakReference<W>,BufferProperties>> list	= data[index];
-			if (list == null) {
-				return null;
-			}
-			synchronized(list) {
-				for (Iterator<Map.Entry<WeakReference<W>,BufferProperties>> 
-					itr = list.iterator(); itr.hasNext();) {
-					Map.Entry<WeakReference<W>,BufferProperties> entry = itr.next();
-					if (entry.getKey().get() == buffer) {
-						BufferProperties value = entry.getValue();
-						itr.remove();
-						return value;
+			synchronized(data) {
+				Entry<W> entry = data[index];
+				Entry<W> prev = null;
+				while (true) {
+					if (entry == null) {
+						return null;
 					}
+					if (entry.getKey() == buffer) {
+						if (prev == null) {
+							data[index] = entry.next;
+						} else {
+							prev.next = entry.next;
+						}
+						return entry.getValue();
+					}
+					prev = entry;
+					entry = entry.next;
 				}
 			}
-			return null;
+		}
+		
+		private BufferProperties remove(Entry<W> toBeRemoved) {
+			synchronized(data) {
+				Entry<W> entry = data[toBeRemoved.index];
+				Entry<W> prev = null;
+				while (true) {
+					if (entry == null) {
+						return null;
+					}
+					if (entry == toBeRemoved) {
+						if (prev == null) {
+							data[toBeRemoved.index] = entry.next;
+						} else {
+							prev.next = entry.next;
+						}
+						return entry.getValue();
+					}
+					prev = entry;
+					entry = entry.next;
+				}
+			}
 		}
 		
 		private void check() {
 			while (true) {
-				Reference<? extends ManagedBuffer<?>> ref = orphanedBuffers.poll();
-				if (ref == null) {
+				@SuppressWarnings("unchecked")
+				Entry<W> entry = (Entry<W>)orphanedEntries.poll();
+				if (entry == null) {
 					return;
 				}
-				ManagedBuffer<?> buffer = ref.get();
 				// Managed buffer has not been properly recollected, fix.
 				createdBufs.decrementAndGet();
-				BufferProperties props = remove(buffer);
+				BufferProperties props = remove(entry);
 				// Create warning
 				if (logger.isLoggable(Level.WARNING)) {
 					final StringBuilder msg = new StringBuilder(
