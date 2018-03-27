@@ -346,7 +346,8 @@ public class SslServer extends Component {
 					= upstreamChannel().byteBufferPool().acquire();
 				sslEngine.wrap(output, out.backingBuffer());
 				upstreamChannel().respond(
-						Output.fromSink(out, event.isEndOfRecord()));
+						Output.fromSink(out, event.isEndOfRecord()
+								&& !output.hasRemaining()));
 			}
 		}
 
