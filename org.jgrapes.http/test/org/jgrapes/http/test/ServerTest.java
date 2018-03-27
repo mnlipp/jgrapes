@@ -18,8 +18,10 @@
 
 package org.jgrapes.http.test;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
@@ -37,6 +39,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -197,7 +200,6 @@ public class ServerTest {
 	public void testConcurrentGetRoot() 
 			throws IOException, InterruptedException, ExecutionException, 
 			TimeoutException {
-		System.in.read();
 		Waiter waiter = new Waiter();
 		
 		URL url = new URL("https", "localhost", server.getPort(), "/");
@@ -209,7 +211,7 @@ public class ServerTest {
 		}
 		
 		final List<Thread> threads = new ArrayList<>();
-		AtomicInteger waiting = new AtomicInteger(0);
+		AtomicInteger pending = new AtomicInteger(0);
 		for (int i = 0; i < threadCount; i++) {
 			Thread getThread = new Thread() {
 				@Override
@@ -217,7 +219,7 @@ public class ServerTest {
 					try {
 						synchronized (threads) {
 							try {
-								waiting.incrementAndGet();
+								pending.incrementAndGet();
 								threads.wait();
 							} catch (InterruptedException e) {
 								// ignored
@@ -226,7 +228,11 @@ public class ServerTest {
 						long start = System.currentTimeMillis();
 						HttpURLConnection conn = (HttpURLConnection) url
 						        .openConnection();
-						conn.getInputStream().close();
+						String content;
+			            try (BufferedReader buffer = new BufferedReader(
+			            		new InputStreamReader(conn.getInputStream()))) {
+			                    content = buffer.lines().collect(Collectors.joining("\n"));
+			            }
 						long stop = System.currentTimeMillis();
 						int used = (int)(stop - start);
 						synchronized (ServerTest.this) {
@@ -241,6 +247,7 @@ public class ServerTest {
 							accumTime += used;
 						}
 						waiter.assertEquals(200, conn.getResponseCode());
+			            waiter.assertTrue(content.contains("Demo"));
 					} catch (IOException e) {
 						waiter.fail(e);
 					} finally {
@@ -251,7 +258,7 @@ public class ServerTest {
 			threads.add(getThread);
 			getThread.start();
 		}
-		while (waiting.get() < threads.size()) {
+		while (pending.get() < threads.size()) {
 			Thread.sleep(100);
 		}
 		Thread.sleep(100);
