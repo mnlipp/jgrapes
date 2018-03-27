@@ -50,6 +50,7 @@ import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
+import org.jgrapes.io.events.Purge;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
@@ -135,6 +136,22 @@ public class SslServer extends Component {
 			plainChannel.get().upstreamClosed();
 		}
 	}
+
+	/**
+	 * Forwards a {@link Purge} event downstream.
+	 *
+	 * @param event the event
+	 * @param encryptedChannel the encrypted channel
+	 */
+	@Handler(channels=EncryptedChannel.class)
+	public void onPurge(Purge event, IOSubchannel encryptedChannel) {
+		@SuppressWarnings("unchecked")
+		final Optional<PlainChannel> plainChannel = (Optional<PlainChannel>)
+				LinkedIOSubchannel.downstreamChannel(this, encryptedChannel);
+		if (plainChannel.isPresent()) {
+			plainChannel.get().purge();
+		}
+	}
 	
 	/**
 	 * Handles an {@link IOError} event from the encrypted channel (client)
@@ -173,7 +190,7 @@ public class SslServer extends Component {
 	}
 
 	/**
-	 * Handles a close event from downstream.
+	 * Forwards a close event upstream.
 	 * 
 	 * @param event
 	 *            the close event
@@ -400,5 +417,8 @@ public class SslServer extends Component {
 			}
 		}
 
+		public void purge() {
+			fire(new Purge(), this);
+		}
 	}
 }

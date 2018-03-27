@@ -70,6 +70,7 @@ import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
+import org.jgrapes.io.events.Purge;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
@@ -255,6 +256,23 @@ public class HttpServer extends Component {
 		}
 	}
 
+	/**
+	 * Sends a {@link Close} event upstream on the net channel.
+	 *
+	 * @param event the event
+	 * @param netChannel the net channel
+	 */
+	@Handler(channels=NetworkChannel.class)
+	public void onPurge(Purge event, IOSubchannel netChannel) {
+		netChannel.respond(new Close());
+	}
+
+	/**
+	 * Forwards a {@link Closed} event to the application channel. 
+	 *
+	 * @param event the event
+	 * @param netChannel the net channel
+	 */
 	@Handler(channels=NetworkChannel.class)
 	public void onClosed(Closed event, IOSubchannel netChannel) {
 		@SuppressWarnings("unchecked")

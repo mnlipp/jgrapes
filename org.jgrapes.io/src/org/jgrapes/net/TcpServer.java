@@ -28,8 +28,10 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IntSummaryStatistics;
+import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -66,6 +68,7 @@ import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.NioRegistration.Registration;
 import org.jgrapes.io.events.Output;
+import org.jgrapes.io.events.Purge;
 import org.jgrapes.io.util.AvailabilityListener;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
@@ -80,7 +83,15 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * The port may be overwritten by a configuration event
  * (see {@link #onConfigurationUpdate(ConfigurationUpdate)}).
  * 
- * The end of record flag is not used by the server.
+ * The server supports limiting the number of concurrent connections
+ * with a {@link PermitsPool}. If such a pool is set as connection
+ * limiter (see {@link #setConnectionLimiter(PermitsPool)}), a
+ * permit is acquired for each new connection attempt. If no more
+ * permits are available, the server sends a {@link Purge} event on
+ * each channel that is purgeable for at least the time span
+ * set with {@link #setMinimumPurgeableTime(long)}. Purgeability 
+ * is derived from the end of record flag of {@link Output} events
+ * (see {@link #onOutput(Output, TcpChannel)}.
  */
 public class TcpServer extends Component implements NioHandler {
 
@@ -93,18 +104,91 @@ public class TcpServer extends Component implements NioHandler {
 	private int backlog = 0;
 	private PermitsPool connLimiter = null;
 	private Registration registration = null;
-	private AvailabilityListener permitsListener = new AvailabilityListener() {
+	private Purger purger = null;
+	private long minimumPurgeableTime = 0;
+
+	private class Purger extends Thread implements AvailabilityListener {
+
+		private boolean permitsAvailable = true;
+		
+		public Purger() {
+			setName(Components.simpleObjectName(this));
+			setDaemon(true);
+		}
 		
 		@Override
 		public void availabilityChanged(PermitsPool pool, boolean available) {
 			if (registration == null) {
 				return;
 			}
-			registration.updateInterested(
-					(Boolean)available ? SelectionKey.OP_ACCEPT : 0);
+			synchronized (this) {
+				permitsAvailable = available;
+				registration.updateInterested(
+						permitsAvailable ? SelectionKey.OP_ACCEPT : 0);
+				if (!permitsAvailable) {
+					this.notifyAll();					
+				}
+			}
 		}
-	};
-
+		
+		@Override
+		public void run() {
+			if (connLimiter == null) {
+				return;
+			}
+			try {
+				connLimiter.addListener(this);
+				while (serverSocketChannel.isOpen()) {
+					synchronized (this) {
+						while (permitsAvailable) {
+							wait();
+						}
+					}
+					// Copy to avoid ConcurrentModificationException
+					List<TcpChannel> candidates;
+					synchronized (channels) {
+						candidates = new ArrayList<>(channels);
+					}
+					long purgeableSince 
+						= System.currentTimeMillis() - minimumPurgeableTime;
+					candidates = candidates.stream()
+							.filter(channel -> channel.isPurgeable()
+									&& channel.becamePurgeableAt < purgeableSince)
+							.sorted(new Comparator<TcpChannel>() {
+								@Override
+								public int compare(TcpChannel c1, TcpChannel c2) {
+									if (c1.becamePurgeableAt < c2.becamePurgeableAt) {
+										return 1;
+									}
+									if (c1.becamePurgeableAt > c2.becamePurgeableAt) {
+										return -1;
+									}
+									return 0;
+								}
+							})
+							.collect(Collectors.toList());
+					for (TcpChannel channel: candidates) {
+						// Sorting may have taken time...
+						if (!channel.isPurgeable()) {
+							continue;
+						}
+						channel.downPipeline.fire(new Purge(), channel);
+						// Continue only as long as necessary
+						if (permitsAvailable) {
+							break;
+						}
+					}
+					sleep(1000);
+				}
+			} catch (InterruptedException e) {
+				// Fall through
+			} finally {
+				connLimiter.removeListener(this);
+			}
+		}
+		
+	}
+	
 	/**
 	 * Creates a new server, using itself as component channel. 
 	 */
@@ -237,17 +321,13 @@ public class TcpServer extends Component implements NioHandler {
 	 * (see {@link #onOutput(Output, TcpChannel)}). Else, it may become
 	 * impossible to establish new connections.
 	 * 
+	 * A connection limiter must be set before starting the component.
+	 * 
 	 * @param connectionLimiter the connection pool to set
 	 * @return the TCP server for easy chaining
 	 */
 	public TcpServer setConnectionLimiter(PermitsPool connectionLimiter) {
-		if (connLimiter != null) {
-			connLimiter.removeListener(permitsListener);
-		}
 		this.connLimiter = connectionLimiter;
-		if (connLimiter != null) {
-			connLimiter.addListener(permitsListener);
-		}
 		return this;
 	}
 
@@ -258,6 +338,22 @@ public class TcpServer extends Component implements NioHandler {
 		return connLimiter;
 	}
 
+	/**
+	 * Sets a minimum time that a connection must be purgeable (idle)
+	 * before it may be purged.
+	 *
+	 * @param millis the millis
+	 * @return the tcp server
+	 */
+	public TcpServer setMinimumPurgeableTime(long millis) {
+		this.minimumPurgeableTime = millis;
+		return this;
+	}
+
+	public long getMinimumPurgeableTime() {
+		return minimumPurgeableTime;
+	}
+	
 	/**
 	 * Sets an executor service to be used by the event pipelines
 	 * that process the data from the network. Setting this
@@ -306,6 +402,8 @@ public class TcpServer extends Component implements NioHandler {
 				return;
 			}
 			registration = event.event().get();
+			purger = new Purger();
+			purger.start();
 			fire(new Ready(serverSocketChannel.getLocalAddress()));
 			return;
 		}
@@ -324,27 +422,8 @@ public class TcpServer extends Component implements NioHandler {
 			return;
 		}
 		synchronized (channels) {
-			boolean permitted = connLimiter == null || connLimiter.tryAcquire();
-			if (!permitted) {
-				// No permits left, purge connections until permitted
-				for (TcpChannel channel: new ArrayList<>(channels)) {
-					if (!channel.isPurgeable()) {
-						continue;
-					}
-					try {
-						channel.close();
-					} catch (IOException | InterruptedException e) {
-						continue;
-					}
-					permitted = connLimiter.tryAcquire();
-					if (permitted) {
-						break;
-					}
-				}
-				if (!permitted) {
-					// Failed, couldn't get a permit
-					return;
-				}
+			if(connLimiter != null && !connLimiter.tryAcquire()) {
+				return;
 			}
 			try {
 				SocketChannel socketChannel = serverSocketChannel.accept();
@@ -361,12 +440,12 @@ public class TcpServer extends Component implements NioHandler {
 				// Closed already
 				return false;
 			}
-			if (connLimiter != null) {
-				connLimiter.release();
-			}
 			// In case the server is shutting down
 			channels.notifyAll();
 		}			
+		if (connLimiter != null) {
+			connLimiter.release();
+		}
 		return true;
 	}
 	
@@ -426,6 +505,7 @@ public class TcpServer extends Component implements NioHandler {
 			}
 		}
 		serverSocketChannel.close();
+		purger.interrupt();
 		closing = false;
 		fire(new Closed());
 	}
@@ -468,6 +548,7 @@ public class TcpServer extends Component implements NioHandler {
 			pendingWrites = new ArrayDeque<>();
 		private boolean pendingClose = false;
 		private PurgeableState purgeable = PurgeableState.NO;
+		private long becamePurgeableAt = 0;
 		
 		/**
 		 * @param nioChannel the channel
@@ -551,8 +632,12 @@ public class TcpServer extends Component implements NioHandler {
 					return;
 				}
 				if (!reader.get().hasRemaining()) {
-					purgeable = event.isEndOfRecord() ? PurgeableState.YES
-							: PurgeableState.NO;
+					if (event.isEndOfRecord()) {
+						becamePurgeableAt = System.currentTimeMillis();
+						purgeable = PurgeableState.YES;
+					} else {
+						purgeable = PurgeableState.NO;
+					}
 					return;
 				}
 				reader.managedBuffer().lockBuffer();

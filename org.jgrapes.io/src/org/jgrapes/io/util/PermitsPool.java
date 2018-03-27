@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 /**
  * A class that manages a set of permits and notifies listeners
@@ -33,33 +34,84 @@ import java.util.List;
  */
 public class PermitsPool {
 
-	private int permits;
+	private static class MySemaphore extends Semaphore {
+		private static final long serialVersionUID = 8758302721594300704L;
+
+		public MySemaphore(int permits) {
+			super(permits);
+		}
+
+		@Override
+		public void reducePermits(int reduction) {
+			super.reducePermits(reduction);
+		}
+	}
+	
+	private MySemaphore delegee;
 	private List<WeakReference<AvailabilityListener>> 
 		listeners = new LinkedList<>();
 	private boolean lastNotification = true;
 	
 	/**
-	 * @param permits
+	 * Instantiates a new permits pool.
+	 *
+	 * @param permits the permits
 	 */
 	public PermitsPool(int permits) {
-		this.permits = permits;
+		delegee = new MySemaphore(permits);
 	}
 
 	/**
-	 * Adds an AvailabilityListener.
-	 * 
-	 * @param listener the AvailabilityListener
+	 * Returns the number of currently available permits.
+	 *
+	 * @return the result
 	 */
-	public void addListener(AvailabilityListener listener) {
+	public int availablePermits() {
+		return delegee.availablePermits();
+	}
+
+	/**
+	 * Adds the given number of permits to the pool.
+	 *
+	 * @param permits the number of permits to add
+	 * @return the permits pool
+	 */
+	public PermitsPool augmentPermits(int permits) {
+		delegee.release(permits);
+		return this;
+	}
+	
+	/**
+	 * Remove the given number of permits from the pool.
+	 *
+	 * @param permits the number of permits to remove
+	 * @return the permits pool
+	 */
+	public PermitsPool reducePermits(int permits) {
+		delegee.reducePermits(permits);
+		return this;
+	}
+	
+	/**
+	 * Adds an AvailabilityListener.
+	 *
+	 * @param listener the AvailabilityListener
+	 * @return the permits pool
+	 */
+	public PermitsPool addListener(AvailabilityListener listener) {
 		synchronized (listeners) {
 			listeners.add(new WeakReference<>(listener));
 		}
+		return this;
 	}
 
 	/**
+	 * Removes the listener.
+	 *
 	 * @param listener the AvailabilityListener
+	 * @return the permits pool
 	 */
-	public void removeListener(AvailabilityListener listener) {
+	public PermitsPool removeListener(AvailabilityListener listener) {
 		synchronized (listeners) {
 			for (Iterator<WeakReference<AvailabilityListener>> 
 				iter = listeners.iterator(); iter.hasNext();) {
@@ -69,10 +121,11 @@ public class PermitsPool {
 				}
 			}
 		}
+		return this;
 	}
 
 	private void notifyAvailabilityListeners() {
-		boolean available = (permits > 0);
+		boolean available = (availablePermits() > 0);
 		if (available == lastNotification) {
 			return;
 		}
@@ -98,19 +151,32 @@ public class PermitsPool {
 	/**
 	 * Release a previously obtained permit.
 	 */
-	public synchronized void release() {
-		permits += 1;
+	public synchronized PermitsPool release() {
+		delegee.release();;
 		notifyAvailabilityListeners();
+		return this;
 	}
 
 	/**
-	 * Try to acquire a permit
-	 * 
+	 * Acquire a permit, waiting until one becomes available.
+	 *
+	 * @return the permits pool
+	 * @throws InterruptedException the interrupted exception
+	 */
+	public PermitsPool acquire() throws InterruptedException {
+		delegee.acquire();
+		notifyAvailabilityListeners();
+		return this;
+	}
+	
+	/**
+	 * Try to acquire a permit.
+	 *
 	 * @return `true` if successful
 	 */
 	public synchronized boolean tryAcquire() {
-		if (permits > 0) {
-			permits -= 1;
+		boolean gotOne = delegee.tryAcquire();
+		if (gotOne) {
 			notifyAvailabilityListeners();
 			return true;
 		}
