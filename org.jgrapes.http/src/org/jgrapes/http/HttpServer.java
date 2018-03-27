@@ -449,8 +449,14 @@ public class HttpServer extends Component {
 				throws ProtocolException, InterruptedException {
 			// Send the data from the event through the decoder.
 			ByteBuffer in = event.data();
+			// Don't unnecessary allocate a buffer, may be header only message
 			ManagedBuffer<?> bodyData = null;
+			boolean wasOverflow = false;
 			while (in.hasRemaining()) {
+				if (wasOverflow) {
+					// Message has (more) body
+					bodyData = currentPool.acquire();
+				}
 				Decoder.Result<?> result = engine.decode(in,
 				        bodyData == null ? null : bodyData.backingBuffer(),
 				        event.isEndOfRecord());
@@ -488,10 +494,7 @@ public class HttpServer extends Component {
 					}
 					bodyData = null;
 				}
-				if (result.isOverflow()) {
-					// Get appropriate type of buffer
-					bodyData = currentPool.acquire();
-				}
+				wasOverflow = result.isOverflow();
 			}
 		}
 
