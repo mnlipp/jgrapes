@@ -23,7 +23,13 @@ import org.jgrapes.core.Event;
 /**
  * This event causes the initiator of an I/O channel to shutdown the
  * channel. After terminating any outstanding actions, the initiator
- * must send a {@link Closed} event on the I/O channel.
+ * must eventually send a {@link Closed} event on the I/O channel.
+ * 
+ * The {@link Closed} need not be generated as a direct response to
+ * the {@link Close} event. If the initiator is a server and the
+ * network protocol supports this, the server may first send a close
+ * message to the client and fire the {@link Closed} event when the
+ * confirmation is received from the client. 
  */
 public class Close extends Event<Void> {
 
