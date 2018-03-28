@@ -39,6 +39,8 @@ public class PurgeTerminator extends Component {
 
 	@Handler
 	public void onPurge(Purge event, IOSubchannel channel) {
+		// Needn't close this more than once 
+		event.stop();
 		channel.respond(new Close());
 	}
 }
