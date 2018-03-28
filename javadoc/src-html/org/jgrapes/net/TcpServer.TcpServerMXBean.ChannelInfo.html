@@ -106,7 +106,7 @@
 <span class="sourceLineNo">098</span> * permit is acquired for each new connection attempt. If no more<a name="line.98"></a>
 <span class="sourceLineNo">099</span> * permits are available, the server sends a {@link Purge} event on<a name="line.99"></a>
 <span class="sourceLineNo">100</span> * each channel that is purgeable for at least the time span<a name="line.100"></a>
-<span class="sourceLineNo">101</span> * set with {@link #setMinimumPurgeableTime(long)}. Purgeability <a name="line.101"></a>
+<span class="sourceLineNo">101</span> * set with {@link #setMinimalPurgeableTime(long)}. Purgeability <a name="line.101"></a>
 <span class="sourceLineNo">102</span> * is derived from the end of record flag of {@link Output} events<a name="line.102"></a>
 <span class="sourceLineNo">103</span> * (see {@link #onOutput(Output, TcpChannel)}. When using this feature, <a name="line.103"></a>
 <span class="sourceLineNo">104</span> * make sure that connections are either short lived or the application<a name="line.104"></a>
@@ -356,18 +356,18 @@
 <span class="sourceLineNo">348</span>        }<a name="line.348"></a>
 <span class="sourceLineNo">349</span><a name="line.349"></a>
 <span class="sourceLineNo">350</span>        /**<a name="line.350"></a>
-<span class="sourceLineNo">351</span>         * Sets a minimum time that a connection must be purgeable (idle)<a name="line.351"></a>
+<span class="sourceLineNo">351</span>         * Sets a minimal time that a connection must be purgeable (idle)<a name="line.351"></a>
 <span class="sourceLineNo">352</span>         * before it may be purged.<a name="line.352"></a>
 <span class="sourceLineNo">353</span>         *<a name="line.353"></a>
 <span class="sourceLineNo">354</span>         * @param millis the millis<a name="line.354"></a>
 <span class="sourceLineNo">355</span>         * @return the tcp server<a name="line.355"></a>
 <span class="sourceLineNo">356</span>         */<a name="line.356"></a>
-<span class="sourceLineNo">357</span>        public TcpServer setMinimumPurgeableTime(long millis) {<a name="line.357"></a>
+<span class="sourceLineNo">357</span>        public TcpServer setMinimalPurgeableTime(long millis) {<a name="line.357"></a>
 <span class="sourceLineNo">358</span>                this.minimumPurgeableTime = millis;<a name="line.358"></a>
 <span class="sourceLineNo">359</span>                return this;<a name="line.359"></a>
 <span class="sourceLineNo">360</span>        }<a name="line.360"></a>
 <span class="sourceLineNo">361</span><a name="line.361"></a>
-<span class="sourceLineNo">362</span>        public long getMinimumPurgeableTime() {<a name="line.362"></a>
+<span class="sourceLineNo">362</span>        public long getMinimalPurgeableTime() {<a name="line.362"></a>
 <span class="sourceLineNo">363</span>                return minimumPurgeableTime;<a name="line.363"></a>
 <span class="sourceLineNo">364</span>        }<a name="line.364"></a>
 <span class="sourceLineNo">365</span>        <a name="line.365"></a>
