@@ -98,7 +98,7 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * permit is acquired for each new connection attempt. If no more
  * permits are available, the server sends a {@link Purge} event on
  * each channel that is purgeable for at least the time span
- * set with {@link #setMinimumPurgeableTime(long)}. Purgeability 
+ * set with {@link #setMinimalPurgeableTime(long)}. Purgeability 
  * is derived from the end of record flag of {@link Output} events
  * (see {@link #onOutput(Output, TcpChannel)}. When using this feature, 
  * make sure that connections are either short lived or the application
@@ -348,18 +348,18 @@ public class TcpServer extends Component implements NioHandler {
 	}
 
 	/**
-	 * Sets a minimum time that a connection must be purgeable (idle)
+	 * Sets a minimal time that a connection must be purgeable (idle)
 	 * before it may be purged.
 	 *
 	 * @param millis the millis
 	 * @return the tcp server
 	 */
-	public TcpServer setMinimumPurgeableTime(long millis) {
+	public TcpServer setMinimalPurgeableTime(long millis) {
 		this.minimumPurgeableTime = millis;
 		return this;
 	}
 
-	public long getMinimumPurgeableTime() {
+	public long getMinimalPurgeableTime() {
 		return minimumPurgeableTime;
 	}
 	
