@@ -220,6 +220,23 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 				new KeyWrapper(hub), LinkedIOSubchannel.class);
 	}
 	
+	/**
+	 * Like {@link #downstreamChannel(Manager, IOSubchannel)}, but
+	 * with the return value of the specified type.
+	 *
+	 * @param <T> the generic type
+	 * @param hub the component that manages this channel
+	 * @param upstreamChannel the (upstream) channel
+	 * @param clazz the type of the returned value
+	 * @return the linked downstream subchannel created for the
+	 * given component and (upstream) subchannel if it exists
+	 */
+	public static <T extends LinkedIOSubchannel> Optional<T> downstreamChannel(
+			Manager hub, IOSubchannel upstreamChannel, Class<T> clazz) {
+		return upstreamChannel.associated(
+				new KeyWrapper(hub), clazz);
+	}
+	
 	private static class KeyWrapper {
 
 		private Manager hub;
