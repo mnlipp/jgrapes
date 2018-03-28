@@ -257,17 +257,6 @@ public class HttpServer extends Component {
 	}
 
 	/**
-	 * Sends a {@link Close} event upstream on the net channel.
-	 *
-	 * @param event the event
-	 * @param netChannel the net channel
-	 */
-	@Handler(channels=NetworkChannel.class)
-	public void onPurge(Purge event, IOSubchannel netChannel) {
-		netChannel.respond(new Close());
-	}
-
-	/**
 	 * Forwards a {@link Closed} event to the application channel. 
 	 *
 	 * @param event the event
@@ -275,12 +264,24 @@ public class HttpServer extends Component {
 	 */
 	@Handler(channels=NetworkChannel.class)
 	public void onClosed(Closed event, IOSubchannel netChannel) {
-		@SuppressWarnings("unchecked")
-		final Optional<WebAppMsgChannel> appChannel = (Optional<WebAppMsgChannel>)
-				LinkedIOSubchannel.downstreamChannel(this, netChannel);
-		if (appChannel.isPresent()) {
-			appChannel.get().handleClosed(event);
-		}
+		LinkedIOSubchannel.downstreamChannel(this, netChannel, 
+				WebAppMsgChannel.class).ifPresent(appChannel -> {
+					appChannel.handleClosed(event);
+				});
+	}
+
+	/**
+	 * Forwards a {@link Purge} event to the application channel.
+	 *
+	 * @param event the event
+	 * @param netChannel the net channel
+	 */
+	@Handler(channels=NetworkChannel.class)
+	public void onPurge(Purge event, IOSubchannel netChannel) {
+		LinkedIOSubchannel.downstreamChannel(this, netChannel, 
+				WebAppMsgChannel.class).ifPresent(appChannel -> {
+					appChannel.handlePurge(event);
+				});
 	}
 
 	/**
@@ -687,6 +688,10 @@ public class HttpServer extends Component {
 
 		public void handleClosed(Closed event) {
 			downPipeline.fire(new Closed(), this);
+		}
+
+		public void handlePurge(Purge event) {
+			downPipeline.fire(new Purge(), this);
 		}
 
 	}

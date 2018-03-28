@@ -62,6 +62,7 @@ import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.NioDispatcher;
+import org.jgrapes.io.PurgeTerminator;
 import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.SslServer;
 import org.jgrapes.net.TcpServer;
@@ -124,6 +125,7 @@ public class ServerTest {
 			attach(new FileStorage(channel(), 65536));
 			attach(new StaticContentDispatcher(channel(),
 					"/**", Paths.get("test-resources/static-content").toUri()));
+			attach(new PurgeTerminator(channel()));
 			
 			readyMonitor = new WaitForTests(this, Ready.class, 
 					securedNetwork.channel().defaultCriterion());

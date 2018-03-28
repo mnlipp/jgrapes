@@ -70,6 +70,7 @@ import org.jgrapes.io.events.NioRegistration.Registration;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.Purge;
 import org.jgrapes.io.util.AvailabilityListener;
+import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
 import org.jgrapes.io.util.PermitsPool;
@@ -83,6 +84,14 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * The port may be overwritten by a configuration event
  * (see {@link #onConfigurationUpdate(ConfigurationUpdate)}).
  * 
+ * For each established connection, the server creates a new
+ * {@link LinkedIOSubchannel}. The servers basic operation is to
+ * fire {@link Input} (and {@link Closed}) events on the
+ * appropriate subchannel in response to data received from the
+ * network and to handle {@link Output} (and {@link Close}) events 
+ * on the subchannel and forward the information to the network
+ * connection.
+ * 
  * The server supports limiting the number of concurrent connections
  * with a {@link PermitsPool}. If such a pool is set as connection
  * limiter (see {@link #setConnectionLimiter(PermitsPool)}), a
@@ -91,7 +100,10 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * each channel that is purgeable for at least the time span
  * set with {@link #setMinimumPurgeableTime(long)}. Purgeability 
  * is derived from the end of record flag of {@link Output} events
- * (see {@link #onOutput(Output, TcpChannel)}.
+ * (see {@link #onOutput(Output, TcpChannel)}. When using this feature, 
+ * make sure that connections are either short lived or the application
+ * level components support the {@link Purge} event. Else, it may become
+ * impossible to establish new connections.
  */
 public class TcpServer extends Component implements NioHandler {
 
@@ -316,10 +328,7 @@ public class TcpServer extends Component implements NioHandler {
 
 	/**
 	 * Sets a permit "pool". A new connection is created only if a permit
-	 * can be obtained from the pool. When using this feature, make sure
-	 * that connections are either short lived or can be purged
-	 * (see {@link #onOutput(Output, TcpChannel)}). Else, it may become
-	 * impossible to establish new connections.
+	 * can be obtained from the pool. 
 	 * 
 	 * A connection limiter must be set before starting the component.
 	 * 
