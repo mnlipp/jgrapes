@@ -767,7 +767,7 @@
 <span class="sourceLineNo">759</span>                try {<a name="line.759"></a>
 <span class="sourceLineNo">760</span>                        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); <a name="line.760"></a>
 <span class="sourceLineNo">761</span>                        ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="<a name="line.761"></a>
-<span class="sourceLineNo">762</span>                                        + ManagedBufferPool.class.getSimpleName());<a name="line.762"></a>
+<span class="sourceLineNo">762</span>                                        + ManagedBufferPool.class.getSimpleName() + "s");<a name="line.762"></a>
 <span class="sourceLineNo">763</span>                        mbs.registerMBean(new MBeanView(), mxbeanName);<a name="line.763"></a>
 <span class="sourceLineNo">764</span>                } catch (MalformedObjectNameException | InstanceAlreadyExistsException<a name="line.764"></a>
 <span class="sourceLineNo">765</span>                                | MBeanRegistrationException | NotCompliantMBeanException e) {<a name="line.765"></a>
