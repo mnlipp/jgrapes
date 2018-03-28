@@ -759,7 +759,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		try {
 			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); 
 			ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="
-					+ ManagedBufferPool.class.getSimpleName());
+					+ ManagedBufferPool.class.getSimpleName() + "s");
 			mbs.registerMBean(new MBeanView(), mxbeanName);
 		} catch (MalformedObjectNameException | InstanceAlreadyExistsException
 				| MBeanRegistrationException | NotCompliantMBeanException e) {

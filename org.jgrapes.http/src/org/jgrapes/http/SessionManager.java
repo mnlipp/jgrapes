@@ -19,16 +19,14 @@
 package org.jgrapes.http;
 
 import java.lang.management.ManagementFactory;
+import java.lang.ref.WeakReference;
 import java.net.HttpCookie;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.WeakHashMap;
 
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
@@ -389,52 +387,108 @@ public abstract class SessionManager extends Component {
 	 */
 	public static interface SessionManagerMXBean {
 		
-		public static class SessionManagerInfo {
-
-			private SessionManager sessionManager;
-			
-			public SessionManagerInfo(SessionManager sessionManager) {
-				this.sessionManager = sessionManager;
-			}
-			
-			public int getMaxSessions() {
-				return sessionManager.maxSessions();
-			}
-			
-			public int getAbsoluteTimeout() {
-				return sessionManager.absoluteTimeout();
-			}
-			
-			public int getIdleTimeout() {
-				return sessionManager.idleTimeout();
-			}
-			
-			public int getSessionCount() {
-				return sessionManager.sessionCount();
-			}
-		}
+		public int getMaxSessions();
 		
-		SortedMap<String,SessionManagerInfo> getManagers();
+		public int getAbsoluteTimeout();
+		
+		public int getIdleTimeout();
+		
+		public int getSessionCount();
 	}
 	
-	private static class MBeanView implements SessionManagerMXBean {
-		private static Set<SessionManager> allManagers
-			= Collections.synchronizedSet(
-					Collections.newSetFromMap(
-							new WeakHashMap<SessionManager, Boolean>()));
+	public static class SessionManagerInfo implements SessionManagerMXBean {
+
+		private static MBeanServer mbs 
+			= ManagementFactory.getPlatformMBeanServer(); 
+
+		private ObjectName mbeanName;
+		private WeakReference<SessionManager> sessionManagerRef;
+		
+		public SessionManagerInfo(SessionManager sessionManager) {
+			try {
+				mbeanName = new ObjectName("org.jgrapes.http:type=" 
+						+ SessionManager.class.getSimpleName() + "s,name="
+						+ ObjectName.quote(Components.simpleObjectName(
+								sessionManager)));
+			} catch (MalformedObjectNameException e) {
+				// Won't happen
+			}
+			sessionManagerRef = new WeakReference<>(sessionManager);
+			try {
+				mbs.unregisterMBean(mbeanName);
+			} catch (Exception e) {
+				// Just in case, should not work
+			}
+			try {
+				mbs.registerMBean(this, mbeanName);
+			} catch (InstanceAlreadyExistsException | MBeanRegistrationException
+			        | NotCompliantMBeanException e) {
+				// Have to live with that
+			}
+		}
+
+		public Optional<SessionManager> manager() {
+			SessionManager manager = sessionManagerRef.get();
+			if (manager == null) {
+				try {
+					mbs.unregisterMBean(mbeanName);
+				} catch (Exception e) {
+					// Should work.
+				}
+			}
+			return Optional.ofNullable(manager);
+		}
+		
+		public int getMaxSessions() {
+			return manager().map(mgr -> mgr.maxSessions()).orElse(0);
+		}
+		
+		public int getAbsoluteTimeout() {
+			return manager().map(mgr -> mgr.absoluteTimeout()).orElse(0);
+		}
+		
+		public int getIdleTimeout() {
+			return manager().map(mgr -> mgr.idleTimeout()).orElse(0);
+		}
+		
+		public int getSessionCount() {
+			return manager().map(mgr -> mgr.sessionCount()).orElse(0);
+		}
+	}
+	
+	/**
+	 * An MBean interface for getting information about all session
+	 * managers.
+	 */
+	public static interface SessionManagerSummaryMXBean {
+		
+		Set<SessionManagerMXBean> getManagers();
+		
+	}
+	
+	private static class MBeanView implements SessionManagerSummaryMXBean {
+		private static Set<SessionManagerInfo> managerInfos = new HashSet<>();
 		
 		public static void addManager(SessionManager manager) {
-			allManagers.add(manager);
+			synchronized (managerInfos) {
+				managerInfos.add(new SessionManagerInfo(manager));
+			}
 		}
 		
 		@Override
-		public SortedMap<String,SessionManagerInfo> getManagers() {
-			SortedMap<String,SessionManagerInfo> result = new TreeMap<>();
-			for (SessionManager manager: allManagers) {
-				result.put(Components.objectName(manager) 
-						+ " (" + manager.idName() + "," + manager.path + ")",
-						new SessionManagerInfo(manager));
+		public Set<SessionManagerMXBean> getManagers() {
+			Set<SessionManagerInfo> expired = new HashSet<>();
+			synchronized (managerInfos) {
+				for (SessionManagerInfo managerInfo: managerInfos) {
+					if (!managerInfo.manager().isPresent()) {
+						expired.add(managerInfo);
+					}
+				}
+				managerInfos.removeAll(expired);
 			}
+			@SuppressWarnings("unchecked")
+			Set<SessionManagerMXBean> result 
+				= (Set<SessionManagerMXBean>)(Object)managerInfos;
 			return result;
 		}
 	}
@@ -443,7 +497,7 @@ public abstract class SessionManager extends Component {
 		try {
 			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); 
 			ObjectName mxbeanName = new ObjectName("org.jgrapes.http:type="
-					+ SessionManager.class.getSimpleName());
+					+ SessionManager.class.getSimpleName() + "s");
 			mbs.registerMBean(new MBeanView(), mxbeanName);
 		} catch (MalformedObjectNameException | InstanceAlreadyExistsException
 				| MBeanRegistrationException | NotCompliantMBeanException e) {
