@@ -392,7 +392,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			data = new Entry[lists];
 		}
 
-		public BufferProperties put(W buffer, BufferProperties bufferMonitor) {
+		public BufferProperties put(W buffer, BufferProperties properties) {
 			check();
 			int index = buffer.hashCode() & indexMask;
 			synchronized(data) {
@@ -400,18 +400,20 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 				Entry<W> prev = null;
 				while (true) {
 					if (entry == null) {
-						entry = new Entry<>(buffer, bufferMonitor, 
+						// Not found, create new.
+						entry = new Entry<>(buffer, properties, 
 								orphanedEntries, index, null);
 						if (prev == null) {
-							data[index] = entry;
+							data[index] = entry; // Is first.
 						} else {
-							prev.next = entry;
+							prev.next = entry; // Is next (last).
 						}
-						return bufferMonitor;
+						return properties;
 					}
 					if (entry.getKey() == buffer) {
+						// Found, update.
 						BufferProperties old = entry.getValue();
-						entry.setValue(bufferMonitor);
+						entry.setValue(properties);
 						return old;
 					}
 					prev = entry;
@@ -426,15 +428,13 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			int index = buffer.hashCode() & indexMask;
 			synchronized(data) {
 				Entry<W> entry = data[index];
-				while (true) {
-					if (entry == null) {
-						return null;
-					}
+				while (entry != null) {
 					if (entry.getKey() == buffer) {
 						return entry.getValue();
 					}
 					entry = entry.next;
 				}
+				return null;
 			}
 		}
 		
@@ -444,13 +444,10 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			synchronized(data) {
 				Entry<W> entry = data[index];
 				Entry<W> prev = null;
-				while (true) {
-					if (entry == null) {
-						return null;
-					}
+				while (entry != null) {
 					if (entry.getKey() == buffer) {
 						if (prev == null) {
-							data[index] = entry.next;
+							data[index] = entry.next; // Was first.
 						} else {
 							prev.next = entry.next;
 						}
@@ -459,6 +456,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 					prev = entry;
 					entry = entry.next;
 				}
+				return null;
 			}
 		}
 		
@@ -466,13 +464,10 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			synchronized(data) {
 				Entry<W> entry = data[toBeRemoved.index];
 				Entry<W> prev = null;
-				while (true) {
-					if (entry == null) {
-						return null;
-					}
+				while (entry != null) {
 					if (entry == toBeRemoved) {
 						if (prev == null) {
-							data[toBeRemoved.index] = entry.next;
+							data[toBeRemoved.index] = entry.next; // Was first.
 						} else {
 							prev.next = entry.next;
 						}
@@ -481,6 +476,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 					prev = entry;
 					entry = entry.next;
 				}
+				return null;
 			}
 		}
 		
@@ -492,8 +488,11 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 					return;
 				}
 				// Managed buffer has not been properly recollected, fix.
-				createdBufs.decrementAndGet();
 				BufferProperties props = remove(entry);
+				if (props == null) {
+					return;
+				}
+				createdBufs.decrementAndGet();
 				// Create warning
 				if (logger.isLoggable(Level.WARNING)) {
 					final StringBuilder msg = new StringBuilder(
