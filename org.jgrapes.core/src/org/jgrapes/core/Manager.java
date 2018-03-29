@@ -62,7 +62,7 @@ public interface Manager extends Iterable<ComponentType> {
 	 * doesn't have a name set, the simple name of its class
 	 * (see {@link Class#getSimpleName()}) is used instead.
 	 */
-	String path();
+	String componentPath();
 	
 	/**
 	 * Detaches the component managed by this manager (with its children,

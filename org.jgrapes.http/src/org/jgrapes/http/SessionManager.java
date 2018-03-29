@@ -445,7 +445,7 @@ public abstract class SessionManager extends Component {
 		
 		@Override
 		public String getComponentPath() {
-			return manager().map(mgr -> mgr.path()).orElse("<removed>");
+			return manager().map(mgr -> mgr.componentPath()).orElse("<removed>");
 		}
 		
 		@Override

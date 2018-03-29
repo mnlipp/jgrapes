@@ -108,7 +108,7 @@ public class InputStreamMonitor extends Component implements Runnable {
 	/**
 	 * The component can be configured with events that include
 	 * a path (see @link {@link ConfigurationUpdate#paths()})
-	 * that matches this components path (see {@link Manager#path()}).
+	 * that matches this components path (see {@link Manager#componentPath()}).
 	 * 
 	 * The following properties are recognized:
 	 * 
@@ -119,7 +119,7 @@ public class InputStreamMonitor extends Component implements Runnable {
 	 */
 	@Handler
 	public void onConfigurationUpdate(ConfigurationUpdate event) {
-		event.values(path()).ifPresent(values -> {
+		event.values(componentPath()).ifPresent(values -> {
 			Optional.ofNullable(values.get("bufferSize")).ifPresent(
 					value -> setBufferSize(Integer.parseInt(value)));
 		});

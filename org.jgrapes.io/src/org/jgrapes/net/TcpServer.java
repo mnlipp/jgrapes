@@ -232,7 +232,7 @@ public class TcpServer extends Component implements NioHandler {
 	/**
 	 * The component can be configured with events that include
 	 * a path (see @link {@link ConfigurationUpdate#paths()})
-	 * that matches this components path (see {@link Manager#path()}).
+	 * that matches this components path (see {@link Manager#componentPath()}).
 	 * 
 	 * The following properties are recognized:
 	 * 
@@ -256,7 +256,7 @@ public class TcpServer extends Component implements NioHandler {
 	 */
 	@Handler
 	public void onConfigurationUpdate(ConfigurationUpdate event) {
-		event.values(path()).ifPresent(values -> {
+		event.values(componentPath()).ifPresent(values -> {
 			String hostname = values.get("hostname");
 			if (hostname != null) {
 				setServerAddress(new InetSocketAddress(hostname, 
@@ -912,7 +912,7 @@ public class TcpServer extends Component implements NioHandler {
 		
 		@Override
 		public String getComponentPath() {
-			return server().map(mgr -> mgr.path()).orElse("<removed>");
+			return server().map(mgr -> mgr.componentPath()).orElse("<removed>");
 		}
 		
 		@Override

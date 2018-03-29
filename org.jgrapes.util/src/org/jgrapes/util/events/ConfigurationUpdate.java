@@ -35,7 +35,7 @@ import org.jgrapes.core.Manager;
  * supported by components. If supported, a component implements a 
  * handler that checks whether the paths of this event include the 
  * component's path in the application's component tree (see 
- * {@link Manager#path()}). If so, the component adapts itself to the 
+ * {@link Manager#componentPath()}). If so, the component adapts itself to the 
  * information propagated.
  */
 public class ConfigurationUpdate extends Event<Void> {

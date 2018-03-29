@@ -129,7 +129,7 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * @see org.jgrapes.core.Manager#path()
 	 */
 	@Override
-	public String path() {
+	public String componentPath() {
 		StringBuilder sb = new StringBuilder();
 		buildPath(sb);
 		return sb.toString();

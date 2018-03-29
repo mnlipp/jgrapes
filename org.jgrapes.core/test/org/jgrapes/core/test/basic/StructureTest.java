@@ -168,10 +168,10 @@ public class StructureTest {
 		Iterator<ComponentType> iter = comp.children().iterator();
 		assertSame(iter.next(), comp1);
 		assertSame(iter.next(), comp2);
-		assertEquals("/root/sub1", comp1.path());
-		assertEquals("/root/sub2", comp2.path());
-		assertEquals("/root/ComponentProxy", Components.manager(comp3).path());
-		assertEquals("/root/sub1/AnonymousComponent", comp4.path());
+		assertEquals("/root/sub1", comp1.componentPath());
+		assertEquals("/root/sub2", comp2.componentPath());
+		assertEquals("/root/ComponentProxy", Components.manager(comp3).componentPath());
+		assertEquals("/root/sub1/AnonymousComponent", comp4.componentPath());
 	}
 	
 }
