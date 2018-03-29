@@ -386,6 +386,10 @@ public abstract class SessionManager extends Component {
 	 * established sessions.
 	 */
 	public static interface SessionManagerMXBean {
+
+		public String getComponentPath();
+		
+		public String getPath();
 		
 		public int getMaxSessions();
 		
@@ -407,7 +411,7 @@ public abstract class SessionManager extends Component {
 		public SessionManagerInfo(SessionManager sessionManager) {
 			try {
 				mbeanName = new ObjectName("org.jgrapes.http:type=" 
-						+ SessionManager.class.getSimpleName() + "s,name="
+						+ SessionManager.class.getSimpleName() + ",name="
 						+ ObjectName.quote(Components.simpleObjectName(
 								sessionManager)));
 			} catch (MalformedObjectNameException e) {
@@ -439,18 +443,32 @@ public abstract class SessionManager extends Component {
 			return Optional.ofNullable(manager);
 		}
 		
+		@Override
+		public String getComponentPath() {
+			return manager().map(mgr -> mgr.path()).orElse("<removed>");
+		}
+		
+		@Override
+		public String getPath() {
+			return manager().map(mgr -> mgr.path).orElse("<unknown>");
+		}
+		
+		@Override
 		public int getMaxSessions() {
 			return manager().map(mgr -> mgr.maxSessions()).orElse(0);
 		}
 		
+		@Override
 		public int getAbsoluteTimeout() {
 			return manager().map(mgr -> mgr.absoluteTimeout()).orElse(0);
 		}
 		
+		@Override
 		public int getIdleTimeout() {
 			return manager().map(mgr -> mgr.idleTimeout()).orElse(0);
 		}
 		
+		@Override
 		public int getSessionCount() {
 			return manager().map(mgr -> mgr.sessionCount()).orElse(0);
 		}
@@ -459,6 +477,10 @@ public abstract class SessionManager extends Component {
 	/**
 	 * An MBean interface for getting information about all session
 	 * managers.
+	 * 
+	 * There is currently no summary information. However, the (periodic)
+	 * invocation of {@link SessionManagerSummaryMXBean#getPortals()} ensures
+	 * that entries for removed {@link SessionManager}s are unregistered.
 	 */
 	public static interface SessionManagerSummaryMXBean {
 		

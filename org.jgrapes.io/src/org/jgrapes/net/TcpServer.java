@@ -205,7 +205,7 @@ public class TcpServer extends Component implements NioHandler {
 	 * Creates a new server, using itself as component channel. 
 	 */
 	public TcpServer() {
-		MBeanView.addServer(this);
+		this(Channel.SELF);
 	}
 
 	/**
@@ -215,7 +215,6 @@ public class TcpServer extends Component implements NioHandler {
 	 */
 	public TcpServer(Channel componentChannel) {
 		super(componentChannel);
-		MBeanView.addServer(this);
 	}
 	
 	/**
@@ -396,6 +395,7 @@ public class TcpServer extends Component implements NioHandler {
 		closing = false;
 		serverSocketChannel = ServerSocketChannel.open();
 		serverSocketChannel.bind(serverAddress, backlog);
+		MBeanView.addServer(this);
 		fire(new NioRegistration(this, serverSocketChannel, 
 				SelectionKey.OP_ACCEPT, this), Channel.BROADCAST);
 	}
@@ -856,6 +856,8 @@ public class TcpServer extends Component implements NioHandler {
 			}
 		}
 		
+		public String getComponentPath();
+		
 		public int getPort();
 		
 		public int getChannelCount();
@@ -875,9 +877,11 @@ public class TcpServer extends Component implements NioHandler {
 		public TcpServerInfo(TcpServer server) {
 			serverRef = new WeakReference<>(server);
 			try {
+				int port = server.serverAddress().getPort();
 				mbeanName = new ObjectName("org.jgrapes.io:type=" 
-						+ TcpServer.class.getSimpleName() + "s,name=" 
-						+ ObjectName.quote(Components.objectName(server)));
+						+ TcpServer.class.getSimpleName() + ",name=" 
+						+ ObjectName.quote(Components.objectName(server)
+								+ " (:" + port + ")"));
 			} catch (MalformedObjectNameException e) {
 				// Should not happen
 			}
@@ -906,15 +910,23 @@ public class TcpServer extends Component implements NioHandler {
 			return Optional.ofNullable(server);
 		}
 		
+		@Override
+		public String getComponentPath() {
+			return server().map(mgr -> mgr.path()).orElse("<removed>");
+		}
+		
+		@Override
 		public int getPort() {
 			return server().map(server -> ((InetSocketAddress)server
 					.serverAddress()).getPort()).orElse(0);
 		}
 		
+		@Override
 		public int getChannelCount() {
 			return server().map(server -> server.channels.size()).orElse(0);
 		}
 		
+		@Override
 		public SortedMap<String,ChannelInfo> getChannels() {
 			return server().map(server -> {
 				SortedMap<String,ChannelInfo> result = new TreeMap<>();
