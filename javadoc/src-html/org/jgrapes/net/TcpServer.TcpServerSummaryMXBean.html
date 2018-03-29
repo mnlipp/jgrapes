@@ -213,7 +213,7 @@
 <span class="sourceLineNo">205</span>         * Creates a new server, using itself as component channel. <a name="line.205"></a>
 <span class="sourceLineNo">206</span>         */<a name="line.206"></a>
 <span class="sourceLineNo">207</span>        public TcpServer() {<a name="line.207"></a>
-<span class="sourceLineNo">208</span>                MBeanView.addServer(this);<a name="line.208"></a>
+<span class="sourceLineNo">208</span>                this(Channel.SELF);<a name="line.208"></a>
 <span class="sourceLineNo">209</span>        }<a name="line.209"></a>
 <span class="sourceLineNo">210</span><a name="line.210"></a>
 <span class="sourceLineNo">211</span>        /**<a name="line.211"></a>
@@ -223,187 +223,187 @@
 <span class="sourceLineNo">215</span>         */<a name="line.215"></a>
 <span class="sourceLineNo">216</span>        public TcpServer(Channel componentChannel) {<a name="line.216"></a>
 <span class="sourceLineNo">217</span>                super(componentChannel);<a name="line.217"></a>
-<span class="sourceLineNo">218</span>                MBeanView.addServer(this);<a name="line.218"></a>
-<span class="sourceLineNo">219</span>        }<a name="line.219"></a>
-<span class="sourceLineNo">220</span>        <a name="line.220"></a>
-<span class="sourceLineNo">221</span>        /**<a name="line.221"></a>
-<span class="sourceLineNo">222</span>         * Sets the address to bind to. If none is set, the address and port<a name="line.222"></a>
-<span class="sourceLineNo">223</span>         * are assigned automatically.<a name="line.223"></a>
-<span class="sourceLineNo">224</span>         * <a name="line.224"></a>
-<span class="sourceLineNo">225</span>         * @param serverAddress the address to bind to<a name="line.225"></a>
-<span class="sourceLineNo">226</span>         * @return the TCP server for easy chaining<a name="line.226"></a>
-<span class="sourceLineNo">227</span>         */<a name="line.227"></a>
-<span class="sourceLineNo">228</span>        public TcpServer setServerAddress(InetSocketAddress serverAddress) {<a name="line.228"></a>
-<span class="sourceLineNo">229</span>                this.serverAddress = serverAddress;<a name="line.229"></a>
-<span class="sourceLineNo">230</span>                return this;<a name="line.230"></a>
-<span class="sourceLineNo">231</span>        }<a name="line.231"></a>
-<span class="sourceLineNo">232</span><a name="line.232"></a>
-<span class="sourceLineNo">233</span>        /**<a name="line.233"></a>
-<span class="sourceLineNo">234</span>         * The component can be configured with events that include<a name="line.234"></a>
-<span class="sourceLineNo">235</span>         * a path (see @link {@link ConfigurationUpdate#paths()})<a name="line.235"></a>
-<span class="sourceLineNo">236</span>         * that matches this components path (see {@link Manager#path()}).<a name="line.236"></a>
-<span class="sourceLineNo">237</span>         * <a name="line.237"></a>
-<span class="sourceLineNo">238</span>         * The following properties are recognized:<a name="line.238"></a>
-<span class="sourceLineNo">239</span>         * <a name="line.239"></a>
-<span class="sourceLineNo">240</span>         * `hostname`<a name="line.240"></a>
-<span class="sourceLineNo">241</span>         * : If given, is used as first parameter for <a name="line.241"></a>
-<span class="sourceLineNo">242</span>         *   {@link InetSocketAddress#InetSocketAddress(String, int)}.<a name="line.242"></a>
-<span class="sourceLineNo">243</span>         * <a name="line.243"></a>
-<span class="sourceLineNo">244</span>         * `port`<a name="line.244"></a>
-<span class="sourceLineNo">245</span>         * : If given, is used as parameter for <a name="line.245"></a>
-<span class="sourceLineNo">246</span>         *   {@link InetSocketAddress#InetSocketAddress(String, int)} <a name="line.246"></a>
-<span class="sourceLineNo">247</span>         *   or {@link InetSocketAddress#InetSocketAddress(int)}, <a name="line.247"></a>
-<span class="sourceLineNo">248</span>         *   depending on whether a host name is specified. Defaults to "0".<a name="line.248"></a>
-<span class="sourceLineNo">249</span>         *   <a name="line.249"></a>
-<span class="sourceLineNo">250</span>         * `backlog`<a name="line.250"></a>
-<span class="sourceLineNo">251</span>         * : See {@link #setBacklog(int)}.<a name="line.251"></a>
-<span class="sourceLineNo">252</span>         * <a name="line.252"></a>
-<span class="sourceLineNo">253</span>         * `bufferSize`<a name="line.253"></a>
-<span class="sourceLineNo">254</span>         * : See {@link #setBufferSize(int)}.<a name="line.254"></a>
-<span class="sourceLineNo">255</span>         * <a name="line.255"></a>
-<span class="sourceLineNo">256</span>         * @param event the event<a name="line.256"></a>
-<span class="sourceLineNo">257</span>         */<a name="line.257"></a>
-<span class="sourceLineNo">258</span>        @Handler<a name="line.258"></a>
-<span class="sourceLineNo">259</span>        public void onConfigurationUpdate(ConfigurationUpdate event) {<a name="line.259"></a>
-<span class="sourceLineNo">260</span>                event.values(path()).ifPresent(values -&gt; {<a name="line.260"></a>
-<span class="sourceLineNo">261</span>                        String hostname = values.get("hostname");<a name="line.261"></a>
-<span class="sourceLineNo">262</span>                        if (hostname != null) {<a name="line.262"></a>
-<span class="sourceLineNo">263</span>                                setServerAddress(new InetSocketAddress(hostname, <a name="line.263"></a>
-<span class="sourceLineNo">264</span>                                                Integer.parseInt(values.getOrDefault("port", "0"))));<a name="line.264"></a>
-<span class="sourceLineNo">265</span>                        } else if (values.containsKey("port")) {<a name="line.265"></a>
-<span class="sourceLineNo">266</span>                                setServerAddress(new InetSocketAddress(<a name="line.266"></a>
-<span class="sourceLineNo">267</span>                                                Integer.parseInt(values.get("port"))));<a name="line.267"></a>
-<span class="sourceLineNo">268</span>                        }<a name="line.268"></a>
-<span class="sourceLineNo">269</span>                        Optional.ofNullable(values.get("backlog")).ifPresent(<a name="line.269"></a>
-<span class="sourceLineNo">270</span>                                        value -&gt; setBacklog(Integer.parseInt(value)));<a name="line.270"></a>
-<span class="sourceLineNo">271</span>                        Optional.ofNullable(values.get("bufferSize")).ifPresent(<a name="line.271"></a>
-<span class="sourceLineNo">272</span>                                        value -&gt; setBufferSize(Integer.parseInt(value)));<a name="line.272"></a>
-<span class="sourceLineNo">273</span>                });<a name="line.273"></a>
-<span class="sourceLineNo">274</span>        }<a name="line.274"></a>
-<span class="sourceLineNo">275</span>        <a name="line.275"></a>
-<span class="sourceLineNo">276</span>        /**<a name="line.276"></a>
-<span class="sourceLineNo">277</span>         * Returns the server address. Before starting, the address is the<a name="line.277"></a>
-<span class="sourceLineNo">278</span>         * address set with {@link #setServerAddress(InetSocketAddress)}. After<a name="line.278"></a>
-<span class="sourceLineNo">279</span>         * starting the address is obtained from the created socket.  <a name="line.279"></a>
-<span class="sourceLineNo">280</span>         * <a name="line.280"></a>
-<span class="sourceLineNo">281</span>         * @return the serverAddress<a name="line.281"></a>
-<span class="sourceLineNo">282</span>         */<a name="line.282"></a>
-<span class="sourceLineNo">283</span>        public InetSocketAddress serverAddress() {<a name="line.283"></a>
-<span class="sourceLineNo">284</span>                try {<a name="line.284"></a>
-<span class="sourceLineNo">285</span>                        return serverSocketChannel == null ? serverAddress<a name="line.285"></a>
-<span class="sourceLineNo">286</span>                                        : (InetSocketAddress)serverSocketChannel.getLocalAddress();<a name="line.286"></a>
-<span class="sourceLineNo">287</span>                } catch (IOException e) {<a name="line.287"></a>
-<span class="sourceLineNo">288</span>                        return serverAddress;<a name="line.288"></a>
-<span class="sourceLineNo">289</span>                }<a name="line.289"></a>
-<span class="sourceLineNo">290</span>        }<a name="line.290"></a>
-<span class="sourceLineNo">291</span><a name="line.291"></a>
-<span class="sourceLineNo">292</span>        /**<a name="line.292"></a>
-<span class="sourceLineNo">293</span>         * Sets the buffer size for the send an receive buffers.<a name="line.293"></a>
-<span class="sourceLineNo">294</span>         * If no size is set, the system defaults will be used.<a name="line.294"></a>
-<span class="sourceLineNo">295</span>         * <a name="line.295"></a>
-<span class="sourceLineNo">296</span>         * @param bufferSize the size to use for the send and receive buffers<a name="line.296"></a>
-<span class="sourceLineNo">297</span>         * @return the TCP server for easy chaining<a name="line.297"></a>
-<span class="sourceLineNo">298</span>         */<a name="line.298"></a>
-<span class="sourceLineNo">299</span>        public TcpServer setBufferSize(int bufferSize) {<a name="line.299"></a>
-<span class="sourceLineNo">300</span>                this.bufferSize = bufferSize;<a name="line.300"></a>
-<span class="sourceLineNo">301</span>                return this;<a name="line.301"></a>
-<span class="sourceLineNo">302</span>        }<a name="line.302"></a>
-<span class="sourceLineNo">303</span>        <a name="line.303"></a>
-<span class="sourceLineNo">304</span>        /**<a name="line.304"></a>
-<span class="sourceLineNo">305</span>         * @return the bufferSize<a name="line.305"></a>
-<span class="sourceLineNo">306</span>         */<a name="line.306"></a>
-<span class="sourceLineNo">307</span>        public int bufferSize() {<a name="line.307"></a>
-<span class="sourceLineNo">308</span>                return bufferSize;<a name="line.308"></a>
-<span class="sourceLineNo">309</span>        }<a name="line.309"></a>
-<span class="sourceLineNo">310</span><a name="line.310"></a>
-<span class="sourceLineNo">311</span>        /**<a name="line.311"></a>
-<span class="sourceLineNo">312</span>         * Sets the backlog size.<a name="line.312"></a>
-<span class="sourceLineNo">313</span>         * <a name="line.313"></a>
-<span class="sourceLineNo">314</span>         * @param backlog the backlog to set<a name="line.314"></a>
-<span class="sourceLineNo">315</span>         * @return the TCP server for easy chaining<a name="line.315"></a>
-<span class="sourceLineNo">316</span>         */<a name="line.316"></a>
-<span class="sourceLineNo">317</span>        public TcpServer setBacklog(int backlog) {<a name="line.317"></a>
-<span class="sourceLineNo">318</span>                this.backlog = backlog;<a name="line.318"></a>
-<span class="sourceLineNo">319</span>                return this;<a name="line.319"></a>
-<span class="sourceLineNo">320</span>        }<a name="line.320"></a>
-<span class="sourceLineNo">321</span><a name="line.321"></a>
-<span class="sourceLineNo">322</span>        /**<a name="line.322"></a>
-<span class="sourceLineNo">323</span>         * @return the backlog<a name="line.323"></a>
-<span class="sourceLineNo">324</span>         */<a name="line.324"></a>
-<span class="sourceLineNo">325</span>        public int backlog() {<a name="line.325"></a>
-<span class="sourceLineNo">326</span>                return backlog;<a name="line.326"></a>
-<span class="sourceLineNo">327</span>        }<a name="line.327"></a>
-<span class="sourceLineNo">328</span><a name="line.328"></a>
-<span class="sourceLineNo">329</span>        /**<a name="line.329"></a>
-<span class="sourceLineNo">330</span>         * Sets a permit "pool". A new connection is created only if a permit<a name="line.330"></a>
-<span class="sourceLineNo">331</span>         * can be obtained from the pool. <a name="line.331"></a>
-<span class="sourceLineNo">332</span>         * <a name="line.332"></a>
-<span class="sourceLineNo">333</span>         * A connection limiter must be set before starting the component.<a name="line.333"></a>
-<span class="sourceLineNo">334</span>         * <a name="line.334"></a>
-<span class="sourceLineNo">335</span>         * @param connectionLimiter the connection pool to set<a name="line.335"></a>
-<span class="sourceLineNo">336</span>         * @return the TCP server for easy chaining<a name="line.336"></a>
-<span class="sourceLineNo">337</span>         */<a name="line.337"></a>
-<span class="sourceLineNo">338</span>        public TcpServer setConnectionLimiter(PermitsPool connectionLimiter) {<a name="line.338"></a>
-<span class="sourceLineNo">339</span>                this.connLimiter = connectionLimiter;<a name="line.339"></a>
-<span class="sourceLineNo">340</span>                return this;<a name="line.340"></a>
-<span class="sourceLineNo">341</span>        }<a name="line.341"></a>
-<span class="sourceLineNo">342</span><a name="line.342"></a>
-<span class="sourceLineNo">343</span>        /**<a name="line.343"></a>
-<span class="sourceLineNo">344</span>         * @return the connection Limiter<a name="line.344"></a>
-<span class="sourceLineNo">345</span>         */<a name="line.345"></a>
-<span class="sourceLineNo">346</span>        public PermitsPool getConnectionLimiter() {<a name="line.346"></a>
-<span class="sourceLineNo">347</span>                return connLimiter;<a name="line.347"></a>
-<span class="sourceLineNo">348</span>        }<a name="line.348"></a>
-<span class="sourceLineNo">349</span><a name="line.349"></a>
-<span class="sourceLineNo">350</span>        /**<a name="line.350"></a>
-<span class="sourceLineNo">351</span>         * Sets a minimal time that a connection must be purgeable (idle)<a name="line.351"></a>
-<span class="sourceLineNo">352</span>         * before it may be purged.<a name="line.352"></a>
-<span class="sourceLineNo">353</span>         *<a name="line.353"></a>
-<span class="sourceLineNo">354</span>         * @param millis the millis<a name="line.354"></a>
-<span class="sourceLineNo">355</span>         * @return the tcp server<a name="line.355"></a>
-<span class="sourceLineNo">356</span>         */<a name="line.356"></a>
-<span class="sourceLineNo">357</span>        public TcpServer setMinimalPurgeableTime(long millis) {<a name="line.357"></a>
-<span class="sourceLineNo">358</span>                this.minimumPurgeableTime = millis;<a name="line.358"></a>
-<span class="sourceLineNo">359</span>                return this;<a name="line.359"></a>
-<span class="sourceLineNo">360</span>        }<a name="line.360"></a>
-<span class="sourceLineNo">361</span><a name="line.361"></a>
-<span class="sourceLineNo">362</span>        public long getMinimalPurgeableTime() {<a name="line.362"></a>
-<span class="sourceLineNo">363</span>                return minimumPurgeableTime;<a name="line.363"></a>
-<span class="sourceLineNo">364</span>        }<a name="line.364"></a>
-<span class="sourceLineNo">365</span>        <a name="line.365"></a>
-<span class="sourceLineNo">366</span>        /**<a name="line.366"></a>
-<span class="sourceLineNo">367</span>         * Sets an executor service to be used by the event pipelines<a name="line.367"></a>
-<span class="sourceLineNo">368</span>         * that process the data from the network. Setting this<a name="line.368"></a>
-<span class="sourceLineNo">369</span>         * to an executor service with a limited number of threads<a name="line.369"></a>
-<span class="sourceLineNo">370</span>         * allows to control the maximum load from the network.<a name="line.370"></a>
-<span class="sourceLineNo">371</span>         * <a name="line.371"></a>
-<span class="sourceLineNo">372</span>         * @param executorService the executorService to set<a name="line.372"></a>
-<span class="sourceLineNo">373</span>         * @return the TCP server for easy chaining<a name="line.373"></a>
-<span class="sourceLineNo">374</span>         * @see Manager#newEventPipeline(ExecutorService)<a name="line.374"></a>
-<span class="sourceLineNo">375</span>         */<a name="line.375"></a>
-<span class="sourceLineNo">376</span>        public TcpServer setExecutorService(ExecutorService executorService) {<a name="line.376"></a>
-<span class="sourceLineNo">377</span>                this.executorService = executorService;<a name="line.377"></a>
-<span class="sourceLineNo">378</span>                return this;<a name="line.378"></a>
-<span class="sourceLineNo">379</span>        }<a name="line.379"></a>
-<span class="sourceLineNo">380</span><a name="line.380"></a>
-<span class="sourceLineNo">381</span>        /**<a name="line.381"></a>
-<span class="sourceLineNo">382</span>         * @return the executorService<a name="line.382"></a>
-<span class="sourceLineNo">383</span>         */<a name="line.383"></a>
-<span class="sourceLineNo">384</span>        public ExecutorService executorService() {<a name="line.384"></a>
-<span class="sourceLineNo">385</span>                return executorService;<a name="line.385"></a>
-<span class="sourceLineNo">386</span>        }<a name="line.386"></a>
-<span class="sourceLineNo">387</span><a name="line.387"></a>
-<span class="sourceLineNo">388</span>        /**<a name="line.388"></a>
-<span class="sourceLineNo">389</span>         * Starts the server.<a name="line.389"></a>
-<span class="sourceLineNo">390</span>         * <a name="line.390"></a>
-<span class="sourceLineNo">391</span>         * @param event the start event<a name="line.391"></a>
-<span class="sourceLineNo">392</span>         * @throws IOException if an I/O exception occurred<a name="line.392"></a>
-<span class="sourceLineNo">393</span>         */<a name="line.393"></a>
-<span class="sourceLineNo">394</span>        @Handler<a name="line.394"></a>
-<span class="sourceLineNo">395</span>        public void onStart(Start event) throws IOException {<a name="line.395"></a>
-<span class="sourceLineNo">396</span>                closing = false;<a name="line.396"></a>
-<span class="sourceLineNo">397</span>                serverSocketChannel = ServerSocketChannel.open();<a name="line.397"></a>
-<span class="sourceLineNo">398</span>                serverSocketChannel.bind(serverAddress, backlog);<a name="line.398"></a>
+<span class="sourceLineNo">218</span>        }<a name="line.218"></a>
+<span class="sourceLineNo">219</span>        <a name="line.219"></a>
+<span class="sourceLineNo">220</span>        /**<a name="line.220"></a>
+<span class="sourceLineNo">221</span>         * Sets the address to bind to. If none is set, the address and port<a name="line.221"></a>
+<span class="sourceLineNo">222</span>         * are assigned automatically.<a name="line.222"></a>
+<span class="sourceLineNo">223</span>         * <a name="line.223"></a>
+<span class="sourceLineNo">224</span>         * @param serverAddress the address to bind to<a name="line.224"></a>
+<span class="sourceLineNo">225</span>         * @return the TCP server for easy chaining<a name="line.225"></a>
+<span class="sourceLineNo">226</span>         */<a name="line.226"></a>
+<span class="sourceLineNo">227</span>        public TcpServer setServerAddress(InetSocketAddress serverAddress) {<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                this.serverAddress = serverAddress;<a name="line.228"></a>
+<span class="sourceLineNo">229</span>                return this;<a name="line.229"></a>
+<span class="sourceLineNo">230</span>        }<a name="line.230"></a>
+<span class="sourceLineNo">231</span><a name="line.231"></a>
+<span class="sourceLineNo">232</span>        /**<a name="line.232"></a>
+<span class="sourceLineNo">233</span>         * The component can be configured with events that include<a name="line.233"></a>
+<span class="sourceLineNo">234</span>         * a path (see @link {@link ConfigurationUpdate#paths()})<a name="line.234"></a>
+<span class="sourceLineNo">235</span>         * that matches this components path (see {@link Manager#path()}).<a name="line.235"></a>
+<span class="sourceLineNo">236</span>         * <a name="line.236"></a>
+<span class="sourceLineNo">237</span>         * The following properties are recognized:<a name="line.237"></a>
+<span class="sourceLineNo">238</span>         * <a name="line.238"></a>
+<span class="sourceLineNo">239</span>         * `hostname`<a name="line.239"></a>
+<span class="sourceLineNo">240</span>         * : If given, is used as first parameter for <a name="line.240"></a>
+<span class="sourceLineNo">241</span>         *   {@link InetSocketAddress#InetSocketAddress(String, int)}.<a name="line.241"></a>
+<span class="sourceLineNo">242</span>         * <a name="line.242"></a>
+<span class="sourceLineNo">243</span>         * `port`<a name="line.243"></a>
+<span class="sourceLineNo">244</span>         * : If given, is used as parameter for <a name="line.244"></a>
+<span class="sourceLineNo">245</span>         *   {@link InetSocketAddress#InetSocketAddress(String, int)} <a name="line.245"></a>
+<span class="sourceLineNo">246</span>         *   or {@link InetSocketAddress#InetSocketAddress(int)}, <a name="line.246"></a>
+<span class="sourceLineNo">247</span>         *   depending on whether a host name is specified. Defaults to "0".<a name="line.247"></a>
+<span class="sourceLineNo">248</span>         *   <a name="line.248"></a>
+<span class="sourceLineNo">249</span>         * `backlog`<a name="line.249"></a>
+<span class="sourceLineNo">250</span>         * : See {@link #setBacklog(int)}.<a name="line.250"></a>
+<span class="sourceLineNo">251</span>         * <a name="line.251"></a>
+<span class="sourceLineNo">252</span>         * `bufferSize`<a name="line.252"></a>
+<span class="sourceLineNo">253</span>         * : See {@link #setBufferSize(int)}.<a name="line.253"></a>
+<span class="sourceLineNo">254</span>         * <a name="line.254"></a>
+<span class="sourceLineNo">255</span>         * @param event the event<a name="line.255"></a>
+<span class="sourceLineNo">256</span>         */<a name="line.256"></a>
+<span class="sourceLineNo">257</span>        @Handler<a name="line.257"></a>
+<span class="sourceLineNo">258</span>        public void onConfigurationUpdate(ConfigurationUpdate event) {<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                event.values(path()).ifPresent(values -&gt; {<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                        String hostname = values.get("hostname");<a name="line.260"></a>
+<span class="sourceLineNo">261</span>                        if (hostname != null) {<a name="line.261"></a>
+<span class="sourceLineNo">262</span>                                setServerAddress(new InetSocketAddress(hostname, <a name="line.262"></a>
+<span class="sourceLineNo">263</span>                                                Integer.parseInt(values.getOrDefault("port", "0"))));<a name="line.263"></a>
+<span class="sourceLineNo">264</span>                        } else if (values.containsKey("port")) {<a name="line.264"></a>
+<span class="sourceLineNo">265</span>                                setServerAddress(new InetSocketAddress(<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                                                Integer.parseInt(values.get("port"))));<a name="line.266"></a>
+<span class="sourceLineNo">267</span>                        }<a name="line.267"></a>
+<span class="sourceLineNo">268</span>                        Optional.ofNullable(values.get("backlog")).ifPresent(<a name="line.268"></a>
+<span class="sourceLineNo">269</span>                                        value -&gt; setBacklog(Integer.parseInt(value)));<a name="line.269"></a>
+<span class="sourceLineNo">270</span>                        Optional.ofNullable(values.get("bufferSize")).ifPresent(<a name="line.270"></a>
+<span class="sourceLineNo">271</span>                                        value -&gt; setBufferSize(Integer.parseInt(value)));<a name="line.271"></a>
+<span class="sourceLineNo">272</span>                });<a name="line.272"></a>
+<span class="sourceLineNo">273</span>        }<a name="line.273"></a>
+<span class="sourceLineNo">274</span>        <a name="line.274"></a>
+<span class="sourceLineNo">275</span>        /**<a name="line.275"></a>
+<span class="sourceLineNo">276</span>         * Returns the server address. Before starting, the address is the<a name="line.276"></a>
+<span class="sourceLineNo">277</span>         * address set with {@link #setServerAddress(InetSocketAddress)}. After<a name="line.277"></a>
+<span class="sourceLineNo">278</span>         * starting the address is obtained from the created socket.  <a name="line.278"></a>
+<span class="sourceLineNo">279</span>         * <a name="line.279"></a>
+<span class="sourceLineNo">280</span>         * @return the serverAddress<a name="line.280"></a>
+<span class="sourceLineNo">281</span>         */<a name="line.281"></a>
+<span class="sourceLineNo">282</span>        public InetSocketAddress serverAddress() {<a name="line.282"></a>
+<span class="sourceLineNo">283</span>                try {<a name="line.283"></a>
+<span class="sourceLineNo">284</span>                        return serverSocketChannel == null ? serverAddress<a name="line.284"></a>
+<span class="sourceLineNo">285</span>                                        : (InetSocketAddress)serverSocketChannel.getLocalAddress();<a name="line.285"></a>
+<span class="sourceLineNo">286</span>                } catch (IOException e) {<a name="line.286"></a>
+<span class="sourceLineNo">287</span>                        return serverAddress;<a name="line.287"></a>
+<span class="sourceLineNo">288</span>                }<a name="line.288"></a>
+<span class="sourceLineNo">289</span>        }<a name="line.289"></a>
+<span class="sourceLineNo">290</span><a name="line.290"></a>
+<span class="sourceLineNo">291</span>        /**<a name="line.291"></a>
+<span class="sourceLineNo">292</span>         * Sets the buffer size for the send an receive buffers.<a name="line.292"></a>
+<span class="sourceLineNo">293</span>         * If no size is set, the system defaults will be used.<a name="line.293"></a>
+<span class="sourceLineNo">294</span>         * <a name="line.294"></a>
+<span class="sourceLineNo">295</span>         * @param bufferSize the size to use for the send and receive buffers<a name="line.295"></a>
+<span class="sourceLineNo">296</span>         * @return the TCP server for easy chaining<a name="line.296"></a>
+<span class="sourceLineNo">297</span>         */<a name="line.297"></a>
+<span class="sourceLineNo">298</span>        public TcpServer setBufferSize(int bufferSize) {<a name="line.298"></a>
+<span class="sourceLineNo">299</span>                this.bufferSize = bufferSize;<a name="line.299"></a>
+<span class="sourceLineNo">300</span>                return this;<a name="line.300"></a>
+<span class="sourceLineNo">301</span>        }<a name="line.301"></a>
+<span class="sourceLineNo">302</span>        <a name="line.302"></a>
+<span class="sourceLineNo">303</span>        /**<a name="line.303"></a>
+<span class="sourceLineNo">304</span>         * @return the bufferSize<a name="line.304"></a>
+<span class="sourceLineNo">305</span>         */<a name="line.305"></a>
+<span class="sourceLineNo">306</span>        public int bufferSize() {<a name="line.306"></a>
+<span class="sourceLineNo">307</span>                return bufferSize;<a name="line.307"></a>
+<span class="sourceLineNo">308</span>        }<a name="line.308"></a>
+<span class="sourceLineNo">309</span><a name="line.309"></a>
+<span class="sourceLineNo">310</span>        /**<a name="line.310"></a>
+<span class="sourceLineNo">311</span>         * Sets the backlog size.<a name="line.311"></a>
+<span class="sourceLineNo">312</span>         * <a name="line.312"></a>
+<span class="sourceLineNo">313</span>         * @param backlog the backlog to set<a name="line.313"></a>
+<span class="sourceLineNo">314</span>         * @return the TCP server for easy chaining<a name="line.314"></a>
+<span class="sourceLineNo">315</span>         */<a name="line.315"></a>
+<span class="sourceLineNo">316</span>        public TcpServer setBacklog(int backlog) {<a name="line.316"></a>
+<span class="sourceLineNo">317</span>                this.backlog = backlog;<a name="line.317"></a>
+<span class="sourceLineNo">318</span>                return this;<a name="line.318"></a>
+<span class="sourceLineNo">319</span>        }<a name="line.319"></a>
+<span class="sourceLineNo">320</span><a name="line.320"></a>
+<span class="sourceLineNo">321</span>        /**<a name="line.321"></a>
+<span class="sourceLineNo">322</span>         * @return the backlog<a name="line.322"></a>
+<span class="sourceLineNo">323</span>         */<a name="line.323"></a>
+<span class="sourceLineNo">324</span>        public int backlog() {<a name="line.324"></a>
+<span class="sourceLineNo">325</span>                return backlog;<a name="line.325"></a>
+<span class="sourceLineNo">326</span>        }<a name="line.326"></a>
+<span class="sourceLineNo">327</span><a name="line.327"></a>
+<span class="sourceLineNo">328</span>        /**<a name="line.328"></a>
+<span class="sourceLineNo">329</span>         * Sets a permit "pool". A new connection is created only if a permit<a name="line.329"></a>
+<span class="sourceLineNo">330</span>         * can be obtained from the pool. <a name="line.330"></a>
+<span class="sourceLineNo">331</span>         * <a name="line.331"></a>
+<span class="sourceLineNo">332</span>         * A connection limiter must be set before starting the component.<a name="line.332"></a>
+<span class="sourceLineNo">333</span>         * <a name="line.333"></a>
+<span class="sourceLineNo">334</span>         * @param connectionLimiter the connection pool to set<a name="line.334"></a>
+<span class="sourceLineNo">335</span>         * @return the TCP server for easy chaining<a name="line.335"></a>
+<span class="sourceLineNo">336</span>         */<a name="line.336"></a>
+<span class="sourceLineNo">337</span>        public TcpServer setConnectionLimiter(PermitsPool connectionLimiter) {<a name="line.337"></a>
+<span class="sourceLineNo">338</span>                this.connLimiter = connectionLimiter;<a name="line.338"></a>
+<span class="sourceLineNo">339</span>                return this;<a name="line.339"></a>
+<span class="sourceLineNo">340</span>        }<a name="line.340"></a>
+<span class="sourceLineNo">341</span><a name="line.341"></a>
+<span class="sourceLineNo">342</span>        /**<a name="line.342"></a>
+<span class="sourceLineNo">343</span>         * @return the connection Limiter<a name="line.343"></a>
+<span class="sourceLineNo">344</span>         */<a name="line.344"></a>
+<span class="sourceLineNo">345</span>        public PermitsPool getConnectionLimiter() {<a name="line.345"></a>
+<span class="sourceLineNo">346</span>                return connLimiter;<a name="line.346"></a>
+<span class="sourceLineNo">347</span>        }<a name="line.347"></a>
+<span class="sourceLineNo">348</span><a name="line.348"></a>
+<span class="sourceLineNo">349</span>        /**<a name="line.349"></a>
+<span class="sourceLineNo">350</span>         * Sets a minimal time that a connection must be purgeable (idle)<a name="line.350"></a>
+<span class="sourceLineNo">351</span>         * before it may be purged.<a name="line.351"></a>
+<span class="sourceLineNo">352</span>         *<a name="line.352"></a>
+<span class="sourceLineNo">353</span>         * @param millis the millis<a name="line.353"></a>
+<span class="sourceLineNo">354</span>         * @return the tcp server<a name="line.354"></a>
+<span class="sourceLineNo">355</span>         */<a name="line.355"></a>
+<span class="sourceLineNo">356</span>        public TcpServer setMinimalPurgeableTime(long millis) {<a name="line.356"></a>
+<span class="sourceLineNo">357</span>                this.minimumPurgeableTime = millis;<a name="line.357"></a>
+<span class="sourceLineNo">358</span>                return this;<a name="line.358"></a>
+<span class="sourceLineNo">359</span>        }<a name="line.359"></a>
+<span class="sourceLineNo">360</span><a name="line.360"></a>
+<span class="sourceLineNo">361</span>        public long getMinimalPurgeableTime() {<a name="line.361"></a>
+<span class="sourceLineNo">362</span>                return minimumPurgeableTime;<a name="line.362"></a>
+<span class="sourceLineNo">363</span>        }<a name="line.363"></a>
+<span class="sourceLineNo">364</span>        <a name="line.364"></a>
+<span class="sourceLineNo">365</span>        /**<a name="line.365"></a>
+<span class="sourceLineNo">366</span>         * Sets an executor service to be used by the event pipelines<a name="line.366"></a>
+<span class="sourceLineNo">367</span>         * that process the data from the network. Setting this<a name="line.367"></a>
+<span class="sourceLineNo">368</span>         * to an executor service with a limited number of threads<a name="line.368"></a>
+<span class="sourceLineNo">369</span>         * allows to control the maximum load from the network.<a name="line.369"></a>
+<span class="sourceLineNo">370</span>         * <a name="line.370"></a>
+<span class="sourceLineNo">371</span>         * @param executorService the executorService to set<a name="line.371"></a>
+<span class="sourceLineNo">372</span>         * @return the TCP server for easy chaining<a name="line.372"></a>
+<span class="sourceLineNo">373</span>         * @see Manager#newEventPipeline(ExecutorService)<a name="line.373"></a>
+<span class="sourceLineNo">374</span>         */<a name="line.374"></a>
+<span class="sourceLineNo">375</span>        public TcpServer setExecutorService(ExecutorService executorService) {<a name="line.375"></a>
+<span class="sourceLineNo">376</span>                this.executorService = executorService;<a name="line.376"></a>
+<span class="sourceLineNo">377</span>                return this;<a name="line.377"></a>
+<span class="sourceLineNo">378</span>        }<a name="line.378"></a>
+<span class="sourceLineNo">379</span><a name="line.379"></a>
+<span class="sourceLineNo">380</span>        /**<a name="line.380"></a>
+<span class="sourceLineNo">381</span>         * @return the executorService<a name="line.381"></a>
+<span class="sourceLineNo">382</span>         */<a name="line.382"></a>
+<span class="sourceLineNo">383</span>        public ExecutorService executorService() {<a name="line.383"></a>
+<span class="sourceLineNo">384</span>                return executorService;<a name="line.384"></a>
+<span class="sourceLineNo">385</span>        }<a name="line.385"></a>
+<span class="sourceLineNo">386</span><a name="line.386"></a>
+<span class="sourceLineNo">387</span>        /**<a name="line.387"></a>
+<span class="sourceLineNo">388</span>         * Starts the server.<a name="line.388"></a>
+<span class="sourceLineNo">389</span>         * <a name="line.389"></a>
+<span class="sourceLineNo">390</span>         * @param event the start event<a name="line.390"></a>
+<span class="sourceLineNo">391</span>         * @throws IOException if an I/O exception occurred<a name="line.391"></a>
+<span class="sourceLineNo">392</span>         */<a name="line.392"></a>
+<span class="sourceLineNo">393</span>        @Handler<a name="line.393"></a>
+<span class="sourceLineNo">394</span>        public void onStart(Start event) throws IOException {<a name="line.394"></a>
+<span class="sourceLineNo">395</span>                closing = false;<a name="line.395"></a>
+<span class="sourceLineNo">396</span>                serverSocketChannel = ServerSocketChannel.open();<a name="line.396"></a>
+<span class="sourceLineNo">397</span>                serverSocketChannel.bind(serverAddress, backlog);<a name="line.397"></a>
+<span class="sourceLineNo">398</span>                MBeanView.addServer(this);<a name="line.398"></a>
 <span class="sourceLineNo">399</span>                fire(new NioRegistration(this, serverSocketChannel, <a name="line.399"></a>
 <span class="sourceLineNo">400</span>                                SelectionKey.OP_ACCEPT, this), Channel.BROADCAST);<a name="line.400"></a>
 <span class="sourceLineNo">401</span>        }<a name="line.401"></a>
@@ -864,138 +864,150 @@
 <span class="sourceLineNo">856</span>                        }<a name="line.856"></a>
 <span class="sourceLineNo">857</span>                }<a name="line.857"></a>
 <span class="sourceLineNo">858</span>                <a name="line.858"></a>
-<span class="sourceLineNo">859</span>                public int getPort();<a name="line.859"></a>
+<span class="sourceLineNo">859</span>                public String getComponentPath();<a name="line.859"></a>
 <span class="sourceLineNo">860</span>                <a name="line.860"></a>
-<span class="sourceLineNo">861</span>                public int getChannelCount();<a name="line.861"></a>
+<span class="sourceLineNo">861</span>                public int getPort();<a name="line.861"></a>
 <span class="sourceLineNo">862</span>                <a name="line.862"></a>
-<span class="sourceLineNo">863</span>                public SortedMap&lt;String,ChannelInfo&gt; getChannels();<a name="line.863"></a>
+<span class="sourceLineNo">863</span>                public int getChannelCount();<a name="line.863"></a>
 <span class="sourceLineNo">864</span>                <a name="line.864"></a>
-<span class="sourceLineNo">865</span>        }<a name="line.865"></a>
-<span class="sourceLineNo">866</span>        <a name="line.866"></a>
-<span class="sourceLineNo">867</span>        public static class TcpServerInfo implements TcpServerMXBean {<a name="line.867"></a>
-<span class="sourceLineNo">868</span><a name="line.868"></a>
-<span class="sourceLineNo">869</span>                private static MBeanServer mbs <a name="line.869"></a>
-<span class="sourceLineNo">870</span>                        = ManagementFactory.getPlatformMBeanServer(); <a name="line.870"></a>
-<span class="sourceLineNo">871</span>                <a name="line.871"></a>
-<span class="sourceLineNo">872</span>                private ObjectName mbeanName;<a name="line.872"></a>
-<span class="sourceLineNo">873</span>                private WeakReference&lt;TcpServer&gt; serverRef;<a name="line.873"></a>
-<span class="sourceLineNo">874</span>                <a name="line.874"></a>
-<span class="sourceLineNo">875</span>                public TcpServerInfo(TcpServer server) {<a name="line.875"></a>
-<span class="sourceLineNo">876</span>                        serverRef = new WeakReference&lt;&gt;(server);<a name="line.876"></a>
-<span class="sourceLineNo">877</span>                        try {<a name="line.877"></a>
-<span class="sourceLineNo">878</span>                                mbeanName = new ObjectName("org.jgrapes.io:type=" <a name="line.878"></a>
-<span class="sourceLineNo">879</span>                                                + TcpServer.class.getSimpleName() + "s,name=" <a name="line.879"></a>
-<span class="sourceLineNo">880</span>                                                + ObjectName.quote(Components.objectName(server)));<a name="line.880"></a>
-<span class="sourceLineNo">881</span>                        } catch (MalformedObjectNameException e) {<a name="line.881"></a>
-<span class="sourceLineNo">882</span>                                // Should not happen<a name="line.882"></a>
-<span class="sourceLineNo">883</span>                        }<a name="line.883"></a>
-<span class="sourceLineNo">884</span>                        try {<a name="line.884"></a>
-<span class="sourceLineNo">885</span>                                mbs.unregisterMBean(mbeanName);<a name="line.885"></a>
-<span class="sourceLineNo">886</span>                        } catch (Exception e) {<a name="line.886"></a>
-<span class="sourceLineNo">887</span>                                // Just in case, should not work<a name="line.887"></a>
-<span class="sourceLineNo">888</span>                        }<a name="line.888"></a>
-<span class="sourceLineNo">889</span>                        try {<a name="line.889"></a>
-<span class="sourceLineNo">890</span>                                mbs.registerMBean(this, mbeanName);<a name="line.890"></a>
-<span class="sourceLineNo">891</span>                        } catch (InstanceAlreadyExistsException | MBeanRegistrationException<a name="line.891"></a>
-<span class="sourceLineNo">892</span>                                | NotCompliantMBeanException e) {<a name="line.892"></a>
-<span class="sourceLineNo">893</span>                                // Have to live with that<a name="line.893"></a>
-<span class="sourceLineNo">894</span>                        }<a name="line.894"></a>
-<span class="sourceLineNo">895</span>                }<a name="line.895"></a>
-<span class="sourceLineNo">896</span>                <a name="line.896"></a>
-<span class="sourceLineNo">897</span>                public Optional&lt;TcpServer&gt; server() {<a name="line.897"></a>
-<span class="sourceLineNo">898</span>                        TcpServer server = serverRef.get();<a name="line.898"></a>
-<span class="sourceLineNo">899</span>                        if (server == null) {<a name="line.899"></a>
-<span class="sourceLineNo">900</span>                                try {<a name="line.900"></a>
-<span class="sourceLineNo">901</span>                                        mbs.unregisterMBean(mbeanName);<a name="line.901"></a>
-<span class="sourceLineNo">902</span>                                } catch (Exception e) {<a name="line.902"></a>
-<span class="sourceLineNo">903</span>                                        // Should work.<a name="line.903"></a>
-<span class="sourceLineNo">904</span>                                }<a name="line.904"></a>
-<span class="sourceLineNo">905</span>                        }<a name="line.905"></a>
-<span class="sourceLineNo">906</span>                        return Optional.ofNullable(server);<a name="line.906"></a>
-<span class="sourceLineNo">907</span>                }<a name="line.907"></a>
-<span class="sourceLineNo">908</span>                <a name="line.908"></a>
-<span class="sourceLineNo">909</span>                public int getPort() {<a name="line.909"></a>
-<span class="sourceLineNo">910</span>                        return server().map(server -&gt; ((InetSocketAddress)server<a name="line.910"></a>
-<span class="sourceLineNo">911</span>                                        .serverAddress()).getPort()).orElse(0);<a name="line.911"></a>
-<span class="sourceLineNo">912</span>                }<a name="line.912"></a>
-<span class="sourceLineNo">913</span>                <a name="line.913"></a>
-<span class="sourceLineNo">914</span>                public int getChannelCount() {<a name="line.914"></a>
-<span class="sourceLineNo">915</span>                        return server().map(server -&gt; server.channels.size()).orElse(0);<a name="line.915"></a>
+<span class="sourceLineNo">865</span>                public SortedMap&lt;String,ChannelInfo&gt; getChannels();<a name="line.865"></a>
+<span class="sourceLineNo">866</span>                <a name="line.866"></a>
+<span class="sourceLineNo">867</span>        }<a name="line.867"></a>
+<span class="sourceLineNo">868</span>        <a name="line.868"></a>
+<span class="sourceLineNo">869</span>        public static class TcpServerInfo implements TcpServerMXBean {<a name="line.869"></a>
+<span class="sourceLineNo">870</span><a name="line.870"></a>
+<span class="sourceLineNo">871</span>                private static MBeanServer mbs <a name="line.871"></a>
+<span class="sourceLineNo">872</span>                        = ManagementFactory.getPlatformMBeanServer(); <a name="line.872"></a>
+<span class="sourceLineNo">873</span>                <a name="line.873"></a>
+<span class="sourceLineNo">874</span>                private ObjectName mbeanName;<a name="line.874"></a>
+<span class="sourceLineNo">875</span>                private WeakReference&lt;TcpServer&gt; serverRef;<a name="line.875"></a>
+<span class="sourceLineNo">876</span>                <a name="line.876"></a>
+<span class="sourceLineNo">877</span>                public TcpServerInfo(TcpServer server) {<a name="line.877"></a>
+<span class="sourceLineNo">878</span>                        serverRef = new WeakReference&lt;&gt;(server);<a name="line.878"></a>
+<span class="sourceLineNo">879</span>                        try {<a name="line.879"></a>
+<span class="sourceLineNo">880</span>                                int port = server.serverAddress().getPort();<a name="line.880"></a>
+<span class="sourceLineNo">881</span>                                mbeanName = new ObjectName("org.jgrapes.io:type=" <a name="line.881"></a>
+<span class="sourceLineNo">882</span>                                                + TcpServer.class.getSimpleName() + ",name=" <a name="line.882"></a>
+<span class="sourceLineNo">883</span>                                                + ObjectName.quote(Components.objectName(server)<a name="line.883"></a>
+<span class="sourceLineNo">884</span>                                                                + " (:" + port + ")"));<a name="line.884"></a>
+<span class="sourceLineNo">885</span>                        } catch (MalformedObjectNameException e) {<a name="line.885"></a>
+<span class="sourceLineNo">886</span>                                // Should not happen<a name="line.886"></a>
+<span class="sourceLineNo">887</span>                        }<a name="line.887"></a>
+<span class="sourceLineNo">888</span>                        try {<a name="line.888"></a>
+<span class="sourceLineNo">889</span>                                mbs.unregisterMBean(mbeanName);<a name="line.889"></a>
+<span class="sourceLineNo">890</span>                        } catch (Exception e) {<a name="line.890"></a>
+<span class="sourceLineNo">891</span>                                // Just in case, should not work<a name="line.891"></a>
+<span class="sourceLineNo">892</span>                        }<a name="line.892"></a>
+<span class="sourceLineNo">893</span>                        try {<a name="line.893"></a>
+<span class="sourceLineNo">894</span>                                mbs.registerMBean(this, mbeanName);<a name="line.894"></a>
+<span class="sourceLineNo">895</span>                        } catch (InstanceAlreadyExistsException | MBeanRegistrationException<a name="line.895"></a>
+<span class="sourceLineNo">896</span>                                | NotCompliantMBeanException e) {<a name="line.896"></a>
+<span class="sourceLineNo">897</span>                                // Have to live with that<a name="line.897"></a>
+<span class="sourceLineNo">898</span>                        }<a name="line.898"></a>
+<span class="sourceLineNo">899</span>                }<a name="line.899"></a>
+<span class="sourceLineNo">900</span>                <a name="line.900"></a>
+<span class="sourceLineNo">901</span>                public Optional&lt;TcpServer&gt; server() {<a name="line.901"></a>
+<span class="sourceLineNo">902</span>                        TcpServer server = serverRef.get();<a name="line.902"></a>
+<span class="sourceLineNo">903</span>                        if (server == null) {<a name="line.903"></a>
+<span class="sourceLineNo">904</span>                                try {<a name="line.904"></a>
+<span class="sourceLineNo">905</span>                                        mbs.unregisterMBean(mbeanName);<a name="line.905"></a>
+<span class="sourceLineNo">906</span>                                } catch (Exception e) {<a name="line.906"></a>
+<span class="sourceLineNo">907</span>                                        // Should work.<a name="line.907"></a>
+<span class="sourceLineNo">908</span>                                }<a name="line.908"></a>
+<span class="sourceLineNo">909</span>                        }<a name="line.909"></a>
+<span class="sourceLineNo">910</span>                        return Optional.ofNullable(server);<a name="line.910"></a>
+<span class="sourceLineNo">911</span>                }<a name="line.911"></a>
+<span class="sourceLineNo">912</span>                <a name="line.912"></a>
+<span class="sourceLineNo">913</span>                @Override<a name="line.913"></a>
+<span class="sourceLineNo">914</span>                public String getComponentPath() {<a name="line.914"></a>
+<span class="sourceLineNo">915</span>                        return server().map(mgr -&gt; mgr.path()).orElse("&lt;removed&gt;");<a name="line.915"></a>
 <span class="sourceLineNo">916</span>                }<a name="line.916"></a>
 <span class="sourceLineNo">917</span>                <a name="line.917"></a>
-<span class="sourceLineNo">918</span>                public SortedMap&lt;String,ChannelInfo&gt; getChannels() {<a name="line.918"></a>
-<span class="sourceLineNo">919</span>                        return server().map(server -&gt; {<a name="line.919"></a>
-<span class="sourceLineNo">920</span>                                SortedMap&lt;String,ChannelInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.920"></a>
-<span class="sourceLineNo">921</span>                                for (TcpChannel channel: server.channels) {<a name="line.921"></a>
-<span class="sourceLineNo">922</span>                                        result.put(channel.nioChannel.socket()<a name="line.922"></a>
-<span class="sourceLineNo">923</span>                                                        .getRemoteSocketAddress().toString(), <a name="line.923"></a>
-<span class="sourceLineNo">924</span>                                                        new ChannelInfo(channel));<a name="line.924"></a>
-<span class="sourceLineNo">925</span>                                }<a name="line.925"></a>
-<span class="sourceLineNo">926</span>                                return result;<a name="line.926"></a>
-<span class="sourceLineNo">927</span>                        }).orElse(Collections.emptySortedMap());<a name="line.927"></a>
-<span class="sourceLineNo">928</span>                }<a name="line.928"></a>
-<span class="sourceLineNo">929</span>        }<a name="line.929"></a>
-<span class="sourceLineNo">930</span>        <a name="line.930"></a>
-<span class="sourceLineNo">931</span>        /**<a name="line.931"></a>
-<span class="sourceLineNo">932</span>         * An MBean interface for getting information about the TCP servers<a name="line.932"></a>
-<span class="sourceLineNo">933</span>         * and established connections.<a name="line.933"></a>
-<span class="sourceLineNo">934</span>         */<a name="line.934"></a>
-<span class="sourceLineNo">935</span>        public static interface TcpServerSummaryMXBean {<a name="line.935"></a>
-<span class="sourceLineNo">936</span>                <a name="line.936"></a>
-<span class="sourceLineNo">937</span>                IntSummaryStatistics getConnectionsPerServerStatistics();<a name="line.937"></a>
-<span class="sourceLineNo">938</span>                <a name="line.938"></a>
-<span class="sourceLineNo">939</span>                Set&lt;TcpServerMXBean&gt; getServers();<a name="line.939"></a>
-<span class="sourceLineNo">940</span>        }<a name="line.940"></a>
-<span class="sourceLineNo">941</span>        <a name="line.941"></a>
-<span class="sourceLineNo">942</span>        private static class MBeanView implements TcpServerSummaryMXBean {<a name="line.942"></a>
-<span class="sourceLineNo">943</span>                private static Set&lt;TcpServerInfo&gt; serverInfos = new HashSet&lt;&gt;();<a name="line.943"></a>
-<span class="sourceLineNo">944</span>                <a name="line.944"></a>
-<span class="sourceLineNo">945</span>                public static void addServer(TcpServer server) {<a name="line.945"></a>
-<span class="sourceLineNo">946</span>                        synchronized (serverInfos) {<a name="line.946"></a>
-<span class="sourceLineNo">947</span>                                serverInfos.add(new TcpServerInfo(server));<a name="line.947"></a>
-<span class="sourceLineNo">948</span>                        }<a name="line.948"></a>
-<span class="sourceLineNo">949</span>                }<a name="line.949"></a>
+<span class="sourceLineNo">918</span>                @Override<a name="line.918"></a>
+<span class="sourceLineNo">919</span>                public int getPort() {<a name="line.919"></a>
+<span class="sourceLineNo">920</span>                        return server().map(server -&gt; ((InetSocketAddress)server<a name="line.920"></a>
+<span class="sourceLineNo">921</span>                                        .serverAddress()).getPort()).orElse(0);<a name="line.921"></a>
+<span class="sourceLineNo">922</span>                }<a name="line.922"></a>
+<span class="sourceLineNo">923</span>                <a name="line.923"></a>
+<span class="sourceLineNo">924</span>                @Override<a name="line.924"></a>
+<span class="sourceLineNo">925</span>                public int getChannelCount() {<a name="line.925"></a>
+<span class="sourceLineNo">926</span>                        return server().map(server -&gt; server.channels.size()).orElse(0);<a name="line.926"></a>
+<span class="sourceLineNo">927</span>                }<a name="line.927"></a>
+<span class="sourceLineNo">928</span>                <a name="line.928"></a>
+<span class="sourceLineNo">929</span>                @Override<a name="line.929"></a>
+<span class="sourceLineNo">930</span>                public SortedMap&lt;String,ChannelInfo&gt; getChannels() {<a name="line.930"></a>
+<span class="sourceLineNo">931</span>                        return server().map(server -&gt; {<a name="line.931"></a>
+<span class="sourceLineNo">932</span>                                SortedMap&lt;String,ChannelInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.932"></a>
+<span class="sourceLineNo">933</span>                                for (TcpChannel channel: server.channels) {<a name="line.933"></a>
+<span class="sourceLineNo">934</span>                                        result.put(channel.nioChannel.socket()<a name="line.934"></a>
+<span class="sourceLineNo">935</span>                                                        .getRemoteSocketAddress().toString(), <a name="line.935"></a>
+<span class="sourceLineNo">936</span>                                                        new ChannelInfo(channel));<a name="line.936"></a>
+<span class="sourceLineNo">937</span>                                }<a name="line.937"></a>
+<span class="sourceLineNo">938</span>                                return result;<a name="line.938"></a>
+<span class="sourceLineNo">939</span>                        }).orElse(Collections.emptySortedMap());<a name="line.939"></a>
+<span class="sourceLineNo">940</span>                }<a name="line.940"></a>
+<span class="sourceLineNo">941</span>        }<a name="line.941"></a>
+<span class="sourceLineNo">942</span>        <a name="line.942"></a>
+<span class="sourceLineNo">943</span>        /**<a name="line.943"></a>
+<span class="sourceLineNo">944</span>         * An MBean interface for getting information about the TCP servers<a name="line.944"></a>
+<span class="sourceLineNo">945</span>         * and established connections.<a name="line.945"></a>
+<span class="sourceLineNo">946</span>         */<a name="line.946"></a>
+<span class="sourceLineNo">947</span>        public static interface TcpServerSummaryMXBean {<a name="line.947"></a>
+<span class="sourceLineNo">948</span>                <a name="line.948"></a>
+<span class="sourceLineNo">949</span>                IntSummaryStatistics getConnectionsPerServerStatistics();<a name="line.949"></a>
 <span class="sourceLineNo">950</span>                <a name="line.950"></a>
-<span class="sourceLineNo">951</span>                private Set&lt;TcpServerInfo&gt; infos() {<a name="line.951"></a>
-<span class="sourceLineNo">952</span>                        Set&lt;TcpServerInfo&gt; expired = new HashSet&lt;&gt;();<a name="line.952"></a>
-<span class="sourceLineNo">953</span>                        synchronized (serverInfos) {<a name="line.953"></a>
-<span class="sourceLineNo">954</span>                                for (TcpServerInfo serverInfo: serverInfos) {<a name="line.954"></a>
-<span class="sourceLineNo">955</span>                                        if (!serverInfo.server().isPresent()) {<a name="line.955"></a>
-<span class="sourceLineNo">956</span>                                                expired.add(serverInfo);<a name="line.956"></a>
-<span class="sourceLineNo">957</span>                                        }<a name="line.957"></a>
-<span class="sourceLineNo">958</span>                                }<a name="line.958"></a>
-<span class="sourceLineNo">959</span>                                serverInfos.removeAll(expired);<a name="line.959"></a>
+<span class="sourceLineNo">951</span>                Set&lt;TcpServerMXBean&gt; getServers();<a name="line.951"></a>
+<span class="sourceLineNo">952</span>        }<a name="line.952"></a>
+<span class="sourceLineNo">953</span>        <a name="line.953"></a>
+<span class="sourceLineNo">954</span>        private static class MBeanView implements TcpServerSummaryMXBean {<a name="line.954"></a>
+<span class="sourceLineNo">955</span>                private static Set&lt;TcpServerInfo&gt; serverInfos = new HashSet&lt;&gt;();<a name="line.955"></a>
+<span class="sourceLineNo">956</span>                <a name="line.956"></a>
+<span class="sourceLineNo">957</span>                public static void addServer(TcpServer server) {<a name="line.957"></a>
+<span class="sourceLineNo">958</span>                        synchronized (serverInfos) {<a name="line.958"></a>
+<span class="sourceLineNo">959</span>                                serverInfos.add(new TcpServerInfo(server));<a name="line.959"></a>
 <span class="sourceLineNo">960</span>                        }<a name="line.960"></a>
-<span class="sourceLineNo">961</span>                        return serverInfos;<a name="line.961"></a>
-<span class="sourceLineNo">962</span>                }<a name="line.962"></a>
-<span class="sourceLineNo">963</span><a name="line.963"></a>
-<span class="sourceLineNo">964</span>                @SuppressWarnings("unchecked")<a name="line.964"></a>
-<span class="sourceLineNo">965</span>                @Override<a name="line.965"></a>
-<span class="sourceLineNo">966</span>                public Set&lt;TcpServerMXBean&gt; getServers() {<a name="line.966"></a>
-<span class="sourceLineNo">967</span>                        return (Set&lt;TcpServerMXBean&gt;)(Object)infos();<a name="line.967"></a>
-<span class="sourceLineNo">968</span>                }<a name="line.968"></a>
-<span class="sourceLineNo">969</span><a name="line.969"></a>
-<span class="sourceLineNo">970</span>                @Override<a name="line.970"></a>
-<span class="sourceLineNo">971</span>                public IntSummaryStatistics getConnectionsPerServerStatistics() {<a name="line.971"></a>
-<span class="sourceLineNo">972</span>                        return infos().stream().map(info -&gt; info.server().get())<a name="line.972"></a>
-<span class="sourceLineNo">973</span>                                        .filter(ref -&gt; ref != null).collect(<a name="line.973"></a>
-<span class="sourceLineNo">974</span>                                                        Collectors.summarizingInt(srv -&gt; srv.channels.size()));<a name="line.974"></a>
-<span class="sourceLineNo">975</span>                }<a name="line.975"></a>
-<span class="sourceLineNo">976</span>        }<a name="line.976"></a>
-<span class="sourceLineNo">977</span><a name="line.977"></a>
-<span class="sourceLineNo">978</span>        static {<a name="line.978"></a>
-<span class="sourceLineNo">979</span>                try {<a name="line.979"></a>
-<span class="sourceLineNo">980</span>                        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); <a name="line.980"></a>
-<span class="sourceLineNo">981</span>                        ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="<a name="line.981"></a>
-<span class="sourceLineNo">982</span>                                        + TcpServer.class.getSimpleName() + "s");<a name="line.982"></a>
-<span class="sourceLineNo">983</span>                        mbs.registerMBean(new MBeanView(), mxbeanName);<a name="line.983"></a>
-<span class="sourceLineNo">984</span>                } catch (MalformedObjectNameException | InstanceAlreadyExistsException<a name="line.984"></a>
-<span class="sourceLineNo">985</span>                                | MBeanRegistrationException | NotCompliantMBeanException e) {<a name="line.985"></a>
-<span class="sourceLineNo">986</span>                        // Does not happen<a name="line.986"></a>
-<span class="sourceLineNo">987</span>                }               <a name="line.987"></a>
+<span class="sourceLineNo">961</span>                }<a name="line.961"></a>
+<span class="sourceLineNo">962</span>                <a name="line.962"></a>
+<span class="sourceLineNo">963</span>                private Set&lt;TcpServerInfo&gt; infos() {<a name="line.963"></a>
+<span class="sourceLineNo">964</span>                        Set&lt;TcpServerInfo&gt; expired = new HashSet&lt;&gt;();<a name="line.964"></a>
+<span class="sourceLineNo">965</span>                        synchronized (serverInfos) {<a name="line.965"></a>
+<span class="sourceLineNo">966</span>                                for (TcpServerInfo serverInfo: serverInfos) {<a name="line.966"></a>
+<span class="sourceLineNo">967</span>                                        if (!serverInfo.server().isPresent()) {<a name="line.967"></a>
+<span class="sourceLineNo">968</span>                                                expired.add(serverInfo);<a name="line.968"></a>
+<span class="sourceLineNo">969</span>                                        }<a name="line.969"></a>
+<span class="sourceLineNo">970</span>                                }<a name="line.970"></a>
+<span class="sourceLineNo">971</span>                                serverInfos.removeAll(expired);<a name="line.971"></a>
+<span class="sourceLineNo">972</span>                        }<a name="line.972"></a>
+<span class="sourceLineNo">973</span>                        return serverInfos;<a name="line.973"></a>
+<span class="sourceLineNo">974</span>                }<a name="line.974"></a>
+<span class="sourceLineNo">975</span><a name="line.975"></a>
+<span class="sourceLineNo">976</span>                @SuppressWarnings("unchecked")<a name="line.976"></a>
+<span class="sourceLineNo">977</span>                @Override<a name="line.977"></a>
+<span class="sourceLineNo">978</span>                public Set&lt;TcpServerMXBean&gt; getServers() {<a name="line.978"></a>
+<span class="sourceLineNo">979</span>                        return (Set&lt;TcpServerMXBean&gt;)(Object)infos();<a name="line.979"></a>
+<span class="sourceLineNo">980</span>                }<a name="line.980"></a>
+<span class="sourceLineNo">981</span><a name="line.981"></a>
+<span class="sourceLineNo">982</span>                @Override<a name="line.982"></a>
+<span class="sourceLineNo">983</span>                public IntSummaryStatistics getConnectionsPerServerStatistics() {<a name="line.983"></a>
+<span class="sourceLineNo">984</span>                        return infos().stream().map(info -&gt; info.server().get())<a name="line.984"></a>
+<span class="sourceLineNo">985</span>                                        .filter(ref -&gt; ref != null).collect(<a name="line.985"></a>
+<span class="sourceLineNo">986</span>                                                        Collectors.summarizingInt(srv -&gt; srv.channels.size()));<a name="line.986"></a>
+<span class="sourceLineNo">987</span>                }<a name="line.987"></a>
 <span class="sourceLineNo">988</span>        }<a name="line.988"></a>
-<span class="sourceLineNo">989</span>        <a name="line.989"></a>
-<span class="sourceLineNo">990</span>}<a name="line.990"></a>
+<span class="sourceLineNo">989</span><a name="line.989"></a>
+<span class="sourceLineNo">990</span>        static {<a name="line.990"></a>
+<span class="sourceLineNo">991</span>                try {<a name="line.991"></a>
+<span class="sourceLineNo">992</span>                        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); <a name="line.992"></a>
+<span class="sourceLineNo">993</span>                        ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="<a name="line.993"></a>
+<span class="sourceLineNo">994</span>                                        + TcpServer.class.getSimpleName() + "s");<a name="line.994"></a>
+<span class="sourceLineNo">995</span>                        mbs.registerMBean(new MBeanView(), mxbeanName);<a name="line.995"></a>
+<span class="sourceLineNo">996</span>                } catch (MalformedObjectNameException | InstanceAlreadyExistsException<a name="line.996"></a>
+<span class="sourceLineNo">997</span>                                | MBeanRegistrationException | NotCompliantMBeanException e) {<a name="line.997"></a>
+<span class="sourceLineNo">998</span>                        // Does not happen<a name="line.998"></a>
+<span class="sourceLineNo">999</span>                }               <a name="line.999"></a>
+<span class="sourceLineNo">1000</span>        }<a name="line.1000"></a>
+<span class="sourceLineNo">1001</span>        <a name="line.1001"></a>
+<span class="sourceLineNo">1002</span>}<a name="line.1002"></a>
 
 
 
