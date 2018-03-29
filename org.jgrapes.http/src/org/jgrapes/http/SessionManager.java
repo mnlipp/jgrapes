@@ -479,7 +479,7 @@ public abstract class SessionManager extends Component {
 	 * managers.
 	 * 
 	 * There is currently no summary information. However, the (periodic)
-	 * invocation of {@link SessionManagerSummaryMXBean#getPortals()} ensures
+	 * invocation of {@link SessionManagerSummaryMXBean#getManagers()} ensures
 	 * that entries for removed {@link SessionManager}s are unregistered.
 	 */
 	public static interface SessionManagerSummaryMXBean {
