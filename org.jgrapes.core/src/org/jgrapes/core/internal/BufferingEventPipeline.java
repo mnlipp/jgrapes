@@ -44,6 +44,11 @@ public class BufferingEventPipeline implements InternalEventPipeline {
 	}
 
 	@Override
+	public void restrictEventSource(InternalEventPipeline sourcePipeline) {
+		// Not supported.
+	}
+
+	@Override
 	public synchronized void merge(InternalEventPipeline other) {
 		if (!(other instanceof BufferingEventPipeline)) {
 			throw new IllegalArgumentException(

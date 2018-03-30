@@ -35,6 +35,9 @@ public class Common {
 	private Common() {
 	}
 
+	static final Logger coreLogger 
+		= Logger.getLogger(Common.class.getPackage().getName());	
+	
 	/** Handler factory cache. */
 	private static Map<Class<? extends HandlerDefinition.Evaluator>,
 			HandlerDefinition.Evaluator> definitionEvaluators 

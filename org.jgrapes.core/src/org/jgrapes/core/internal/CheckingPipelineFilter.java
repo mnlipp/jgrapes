@@ -34,7 +34,8 @@ import org.jgrapes.core.EventPipeline;
  * If there are no channels associated with the event, use the broadcast 
  * channel.
  */
-class CheckingPipelineFilter implements EventPipeline, IdInfoProvider {
+class CheckingPipelineFilter 
+	implements EventPipeline, InternalEventPipelineWrapper, IdInfoProvider {
 
 	private InternalEventPipeline sink;
 	private Channel channel;
@@ -51,6 +52,11 @@ class CheckingPipelineFilter implements EventPipeline, IdInfoProvider {
 		this.channel = channel;
 	}
 
+	@Override
+	public InternalEventPipeline wrapped() {
+		return sink;
+	}
+
 	/**
 	 * Create a new instance that forwards the events to the given
 	 * pipeline after checking.
@@ -59,6 +65,13 @@ class CheckingPipelineFilter implements EventPipeline, IdInfoProvider {
 	 */
 	public CheckingPipelineFilter(InternalEventPipeline sink) {
 		this(sink, null);
+	}
+
+	@Override
+	public EventPipeline restrictEventSource(EventPipeline sourcePipeline) {
+		sink.restrictEventSource(
+				((InternalEventPipelineWrapper)sourcePipeline).wrapped());
+		return this;
 	}
 
 	/* (non-Javadoc)

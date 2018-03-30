@@ -72,6 +72,14 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 		return fallback.add(event, channels);
 	}
 
+	@Override
+	public void restrictEventSource(InternalEventPipeline sourcePipeline) {
+		InternalEventPipeline pipeline = currentPipeline.get();
+		if (pipeline != null) {
+			pipeline.restrictEventSource(sourcePipeline);
+		} 
+	}
+
 	/* (non-Javadoc)
 	 * @see org.jgrapes.core.internal.MergingEventPipeline#merge(org.jgrapes.core.EventPipeline)
 	 */

@@ -52,6 +52,28 @@ public interface EventPipeline extends IdInfoProvider {
 	<T extends Event<?>> T fire(T event, Channel... channels);
 
 	/**
+	 * Allow only the given source pipeline to fire events on this
+	 * pipeline.
+	 * 
+	 * This feature can be used to ensure the proper usage of event
+	 * pipelines. Assume that a handler invoked from event pipeline
+	 * *S* produces several related output events and fires them
+	 * using another event pipeline *O*. In this case, it is important
+	 * that the proper sequence is not disturbed. By restricting
+	 * the source pipeline of *O* to *S*, it becomes impossible
+	 * for other threads than the one that runs the event pipeline
+	 * *S* to fire events that are to be processed by *O*.
+	 * 
+	 * Events from other threads than the one that runs *O*
+	 * are ignored and an error is logged with the core package
+	 * logger.
+	 *
+	 * @param sourcePipeline the source pipeline
+	 * @return the event pipeline
+	 */
+	EventPipeline restrictEventSource(EventPipeline sourcePipeline);
+	
+	/**
 	 * Adds an action to be executed to the event pipeline. 
 	 * Execution of the action is synchronized with the events
 	 * on this pipeline. It will be executed after any events
