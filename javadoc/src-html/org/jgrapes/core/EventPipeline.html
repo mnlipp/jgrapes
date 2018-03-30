@@ -60,51 +60,73 @@
 <span class="sourceLineNo">052</span>        &lt;T extends Event&lt;?&gt;&gt; T fire(T event, Channel... channels);<a name="line.52"></a>
 <span class="sourceLineNo">053</span><a name="line.53"></a>
 <span class="sourceLineNo">054</span>        /**<a name="line.54"></a>
-<span class="sourceLineNo">055</span>         * Adds an action to be executed to the event pipeline. <a name="line.55"></a>
-<span class="sourceLineNo">056</span>         * Execution of the action is synchronized with the events<a name="line.56"></a>
-<span class="sourceLineNo">057</span>         * on this pipeline. It will be executed after any events<a name="line.57"></a>
-<span class="sourceLineNo">058</span>         * already fired and before any event fired subsequently.<a name="line.58"></a>
-<span class="sourceLineNo">059</span>         * <a name="line.59"></a>
-<span class="sourceLineNo">060</span>         * This is a short-cut for firing a special kind of event <a name="line.60"></a>
-<span class="sourceLineNo">061</span>         * and defining a handler for only this kind of event.<a name="line.61"></a>
-<span class="sourceLineNo">062</span>         * <a name="line.62"></a>
-<span class="sourceLineNo">063</span>         * @param action the action to execute<a name="line.63"></a>
-<span class="sourceLineNo">064</span>         */<a name="line.64"></a>
-<span class="sourceLineNo">065</span>        &lt;V&gt; Future&lt;V&gt; submit(Callable&lt;V&gt; action);<a name="line.65"></a>
-<span class="sourceLineNo">066</span>        <a name="line.66"></a>
-<span class="sourceLineNo">067</span>        /**<a name="line.67"></a>
-<span class="sourceLineNo">068</span>         * Adds an action to be executed to the event pipeline. <a name="line.68"></a>
-<span class="sourceLineNo">069</span>         * Execution of the action is synchronized with the events<a name="line.69"></a>
-<span class="sourceLineNo">070</span>         * on this pipeline. It will be executed after any events<a name="line.70"></a>
-<span class="sourceLineNo">071</span>         * already fired and before any event fired subsequently.<a name="line.71"></a>
-<span class="sourceLineNo">072</span>         * <a name="line.72"></a>
-<span class="sourceLineNo">073</span>         * This is a short-cut for firing a special kind of event <a name="line.73"></a>
-<span class="sourceLineNo">074</span>         * and defining a handler for only this kind of event.<a name="line.74"></a>
-<span class="sourceLineNo">075</span>         * <a name="line.75"></a>
-<span class="sourceLineNo">076</span>         * @param action the action to execute<a name="line.76"></a>
-<span class="sourceLineNo">077</span>         */<a name="line.77"></a>
-<span class="sourceLineNo">078</span>        void submit(Runnable action);<a name="line.78"></a>
-<span class="sourceLineNo">079</span>        <a name="line.79"></a>
-<span class="sourceLineNo">080</span>        /**<a name="line.80"></a>
-<span class="sourceLineNo">081</span>         * All pipelines use the same id scope to make them uniquely identifiable<a name="line.81"></a>
-<span class="sourceLineNo">082</span>         * by their number.<a name="line.82"></a>
-<span class="sourceLineNo">083</span>         */<a name="line.83"></a>
-<span class="sourceLineNo">084</span>        @Override<a name="line.84"></a>
-<span class="sourceLineNo">085</span>        default Class&lt;?&gt; idScope() {<a name="line.85"></a>
-<span class="sourceLineNo">086</span>                return EventPipeline.class;<a name="line.86"></a>
-<span class="sourceLineNo">087</span>        }<a name="line.87"></a>
+<span class="sourceLineNo">055</span>         * Allow only the given source pipeline to fire events on this<a name="line.55"></a>
+<span class="sourceLineNo">056</span>         * pipeline.<a name="line.56"></a>
+<span class="sourceLineNo">057</span>         * <a name="line.57"></a>
+<span class="sourceLineNo">058</span>         * This feature can be used to ensure the proper usage of event<a name="line.58"></a>
+<span class="sourceLineNo">059</span>         * pipelines. Assume that a handler invoked from event pipeline<a name="line.59"></a>
+<span class="sourceLineNo">060</span>         * *S* produces several related output events and fires them<a name="line.60"></a>
+<span class="sourceLineNo">061</span>         * using another event pipeline *O*. In this case, it is important<a name="line.61"></a>
+<span class="sourceLineNo">062</span>         * that the proper sequence is not disturbed. By restricting<a name="line.62"></a>
+<span class="sourceLineNo">063</span>         * the source pipeline of *O* to *S*, it becomes impossible<a name="line.63"></a>
+<span class="sourceLineNo">064</span>         * for other threads than the one that runs the event pipeline<a name="line.64"></a>
+<span class="sourceLineNo">065</span>         * *S* to fire events that are to be processed by *O*.<a name="line.65"></a>
+<span class="sourceLineNo">066</span>         * <a name="line.66"></a>
+<span class="sourceLineNo">067</span>         * Events from other threads than the one that runs *O*<a name="line.67"></a>
+<span class="sourceLineNo">068</span>         * are ignored and an error is logged with the core package<a name="line.68"></a>
+<span class="sourceLineNo">069</span>         * logger.<a name="line.69"></a>
+<span class="sourceLineNo">070</span>         *<a name="line.70"></a>
+<span class="sourceLineNo">071</span>         * @param sourcePipeline the source pipeline<a name="line.71"></a>
+<span class="sourceLineNo">072</span>         * @return the event pipeline<a name="line.72"></a>
+<span class="sourceLineNo">073</span>         */<a name="line.73"></a>
+<span class="sourceLineNo">074</span>        EventPipeline restrictEventSource(EventPipeline sourcePipeline);<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        <a name="line.75"></a>
+<span class="sourceLineNo">076</span>        /**<a name="line.76"></a>
+<span class="sourceLineNo">077</span>         * Adds an action to be executed to the event pipeline. <a name="line.77"></a>
+<span class="sourceLineNo">078</span>         * Execution of the action is synchronized with the events<a name="line.78"></a>
+<span class="sourceLineNo">079</span>         * on this pipeline. It will be executed after any events<a name="line.79"></a>
+<span class="sourceLineNo">080</span>         * already fired and before any event fired subsequently.<a name="line.80"></a>
+<span class="sourceLineNo">081</span>         * <a name="line.81"></a>
+<span class="sourceLineNo">082</span>         * This is a short-cut for firing a special kind of event <a name="line.82"></a>
+<span class="sourceLineNo">083</span>         * and defining a handler for only this kind of event.<a name="line.83"></a>
+<span class="sourceLineNo">084</span>         * <a name="line.84"></a>
+<span class="sourceLineNo">085</span>         * @param action the action to execute<a name="line.85"></a>
+<span class="sourceLineNo">086</span>         */<a name="line.86"></a>
+<span class="sourceLineNo">087</span>        &lt;V&gt; Future&lt;V&gt; submit(Callable&lt;V&gt; action);<a name="line.87"></a>
 <span class="sourceLineNo">088</span>        <a name="line.88"></a>
 <span class="sourceLineNo">089</span>        /**<a name="line.89"></a>
-<span class="sourceLineNo">090</span>         * Returns the executor service used by this event pipeline to<a name="line.90"></a>
-<span class="sourceLineNo">091</span>         * obtain its thread. If a component needs to create a thread for its<a name="line.91"></a>
-<span class="sourceLineNo">092</span>         * own use, it should obtain it from the component's event pipeline's<a name="line.92"></a>
-<span class="sourceLineNo">093</span>         * executor service in order to conform with standard resource<a name="line.93"></a>
-<span class="sourceLineNo">094</span>         * management.<a name="line.94"></a>
-<span class="sourceLineNo">095</span>         * <a name="line.95"></a>
-<span class="sourceLineNo">096</span>         * @return the executor service<a name="line.96"></a>
-<span class="sourceLineNo">097</span>         */<a name="line.97"></a>
-<span class="sourceLineNo">098</span>        ExecutorService executorService();<a name="line.98"></a>
-<span class="sourceLineNo">099</span>}<a name="line.99"></a>
+<span class="sourceLineNo">090</span>         * Adds an action to be executed to the event pipeline. <a name="line.90"></a>
+<span class="sourceLineNo">091</span>         * Execution of the action is synchronized with the events<a name="line.91"></a>
+<span class="sourceLineNo">092</span>         * on this pipeline. It will be executed after any events<a name="line.92"></a>
+<span class="sourceLineNo">093</span>         * already fired and before any event fired subsequently.<a name="line.93"></a>
+<span class="sourceLineNo">094</span>         * <a name="line.94"></a>
+<span class="sourceLineNo">095</span>         * This is a short-cut for firing a special kind of event <a name="line.95"></a>
+<span class="sourceLineNo">096</span>         * and defining a handler for only this kind of event.<a name="line.96"></a>
+<span class="sourceLineNo">097</span>         * <a name="line.97"></a>
+<span class="sourceLineNo">098</span>         * @param action the action to execute<a name="line.98"></a>
+<span class="sourceLineNo">099</span>         */<a name="line.99"></a>
+<span class="sourceLineNo">100</span>        void submit(Runnable action);<a name="line.100"></a>
+<span class="sourceLineNo">101</span>        <a name="line.101"></a>
+<span class="sourceLineNo">102</span>        /**<a name="line.102"></a>
+<span class="sourceLineNo">103</span>         * All pipelines use the same id scope to make them uniquely identifiable<a name="line.103"></a>
+<span class="sourceLineNo">104</span>         * by their number.<a name="line.104"></a>
+<span class="sourceLineNo">105</span>         */<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        @Override<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        default Class&lt;?&gt; idScope() {<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                return EventPipeline.class;<a name="line.108"></a>
+<span class="sourceLineNo">109</span>        }<a name="line.109"></a>
+<span class="sourceLineNo">110</span>        <a name="line.110"></a>
+<span class="sourceLineNo">111</span>        /**<a name="line.111"></a>
+<span class="sourceLineNo">112</span>         * Returns the executor service used by this event pipeline to<a name="line.112"></a>
+<span class="sourceLineNo">113</span>         * obtain its thread. If a component needs to create a thread for its<a name="line.113"></a>
+<span class="sourceLineNo">114</span>         * own use, it should obtain it from the component's event pipeline's<a name="line.114"></a>
+<span class="sourceLineNo">115</span>         * executor service in order to conform with standard resource<a name="line.115"></a>
+<span class="sourceLineNo">116</span>         * management.<a name="line.116"></a>
+<span class="sourceLineNo">117</span>         * <a name="line.117"></a>
+<span class="sourceLineNo">118</span>         * @return the executor service<a name="line.118"></a>
+<span class="sourceLineNo">119</span>         */<a name="line.119"></a>
+<span class="sourceLineNo">120</span>        ExecutorService executorService();<a name="line.120"></a>
+<span class="sourceLineNo">121</span>}<a name="line.121"></a>
 
 
 
