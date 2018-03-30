@@ -183,6 +183,9 @@ public class Components {
 	 * @return the object's name
 	 */
 	public static String fullObjectName(Object object) {
+		if (object == null) {
+			return "<null>";
+		}
 		StringBuilder builder = new StringBuilder();
 		builder.append(object.getClass().getName());
 		builder.append('#');
@@ -200,6 +203,9 @@ public class Components {
 	 * @return the object's name
 	 */
 	public static String simpleObjectName(Object object) {
+		if (object == null) {
+			return "<null>";
+		}
 		StringBuilder builder = new StringBuilder();
 		builder.append(simpleClassName(object.getClass()));
 		builder.append('#');
@@ -218,6 +224,9 @@ public class Components {
 	 * @return the object's name
 	 */
 	public static String objectName(Object object) {
+		if (object == null) {
+			return "<null>";
+		}
 		StringBuilder builder = new StringBuilder();
 		builder.append(Components.className(object.getClass()));
 		builder.append('#');
@@ -288,6 +297,9 @@ public class Components {
 	 * @return the object's name
 	 */
 	public static String objectId(Object object) {
+		if (object == null) {
+			return "?";
+		}
 		if (object instanceof IdInfoProvider) {
 			return getId(((IdInfoProvider) object).idScope(),
 			        ((IdInfoProvider) object).idObject());
