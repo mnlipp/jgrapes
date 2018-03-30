@@ -79,10 +79,12 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 				&& (allowedSourceRef.get() == null
 					|| allowedSourceRef.get() 
 						!= FeedBackPipelineFilter.getAssociatedPipeline())) {
-			Common.coreLogger.log(Level.SEVERE, "Cannot add event from "
-					+ Components.objectName(FeedBackPipelineFilter
-							.getAssociatedPipeline()) + " (only from "
-							+ Components.objectName(allowedSourceRef.get()) + ").", 
+			Common.coreLogger.log(Level.SEVERE, 
+					Components.objectName(FeedBackPipelineFilter
+					.getAssociatedPipeline()) + " cannot add " 
+					+ event.toString() + " to pipeline " 
+					+ Components.objectName(this) + " (accepts only from " 
+					+ Components.objectName(allowedSourceRef.get()) + ").", 
 							new IllegalArgumentException());
 			return event;
 		}
