@@ -348,7 +348,7 @@ public class FileStorage extends Component {
 		}
 	}
 	
-	@Handler
+	@Handler(priority=-1000)
 	public void onStop(Stop event) throws InterruptedException {
 		while (inputWriters.size() > 0) {
 			Writer handler = inputWriters.entrySet().iterator().next()

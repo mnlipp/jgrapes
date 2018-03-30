@@ -520,16 +520,19 @@ public class TcpServer extends Component implements NioHandler {
 	}
 
 	/**
-	 * Shuts down the server.
+	 * Shuts down the server by firing a {@link Close} using the
+	 * server as channel. Note that this automatically results
+	 * in closing all open connections by the runtime system
+	 * and thus in {@link Closed} events on all subchannels.
 	 * 
 	 * @param event the event
 	 */
-	@Handler
+	@Handler(priority=-1000)
 	public void onStop(Stop event) {
 		if (closing || !serverSocketChannel.isOpen()) {
 			return;
 		}
-		newSyncEventPipeline().fire(new Close(), channel());
+		newSyncEventPipeline().fire(new Close(), this);
 	}
 
 	/* (non-Javadoc)
