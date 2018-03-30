@@ -81,6 +81,16 @@ public class EventProcessorTests {
 		app.gotTrigger = false;
 		assertFalse(app.gotEvent);
 		app.gotEvent = false;
+		
+		// Without restriction, resetted
+		app.otherPipeline.restrictEventSource(null);
+		me.fire(new NamedEvent<Void>("Test"), app);
+		Components.awaitExhaustion();
+		assertTrue(app.gotTrigger);
+		app.gotTrigger = false;
+		assertTrue(app.gotEvent);
+		app.gotEvent = false;
+		
 	}
 
 }

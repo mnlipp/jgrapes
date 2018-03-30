@@ -69,8 +69,8 @@ class CheckingPipelineFilter
 
 	@Override
 	public EventPipeline restrictEventSource(EventPipeline sourcePipeline) {
-		sink.restrictEventSource(
-				((InternalEventPipelineWrapper)sourcePipeline).wrapped());
+		sink.restrictEventSource(sourcePipeline == null ? null
+				: ((InternalEventPipelineWrapper)sourcePipeline).wrapped());
 		return this;
 	}
 

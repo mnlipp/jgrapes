@@ -68,7 +68,8 @@ public interface EventPipeline extends IdInfoProvider {
 	 * are ignored and an error is logged with the core package
 	 * logger.
 	 *
-	 * @param sourcePipeline the source pipeline
+	 * @param sourcePipeline the source pipeline or `null` to
+	 * revoke the restriction
 	 * @return the event pipeline
 	 */
 	EventPipeline restrictEventSource(EventPipeline sourcePipeline);
