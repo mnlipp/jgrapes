@@ -60,10 +60,10 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.internal.EventProcessor;
 import org.jgrapes.http.events.OptionsRequest;
+import org.jgrapes.http.events.ProtocolSwitchAccepted;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.Upgraded;
-import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.http.events.WebSocketClosed;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
@@ -401,9 +401,9 @@ public class HttpServer extends Component {
 	 * @param appChannel the channel
 	 */
 	@Handler
-	public void onWebSocketAccepted(
-			WebSocketAccepted event, WebAppMsgChannel appChannel) {
-		appChannel.handleWebSocketAccepted(event, appChannel);
+	public void onProtocolSwitchAccepted(
+			ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {
+		appChannel.handleProtocolSwitchAccepted(event, appChannel);
 	}
 	
 	private class WebAppMsgChannel extends LinkedIOSubchannel {
@@ -614,8 +614,8 @@ public class HttpServer extends Component {
 			
 		}
 		
-		public void handleWebSocketAccepted(
-				WebSocketAccepted event, WebAppMsgChannel appChannel) {
+		public void handleProtocolSwitchAccepted(
+				ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {
 			switchedToWebSocket = true;
 			appChannel.setAssociated(URI.class, 
 					event.requestEvent().requestUri());

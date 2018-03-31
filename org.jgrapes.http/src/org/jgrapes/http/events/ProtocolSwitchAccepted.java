@@ -21,17 +21,17 @@ package org.jgrapes.http.events;
 import java.net.URI;
 
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
+import org.jgrapes.core.Event;
 import org.jgrapes.http.HttpServer;
-import org.jgrapes.io.events.Opened;
 
 /**
  * Indicates that a component has accepted a {@link GetRequest} with
- * a header that requested an upgrade to the WebSocket protocol.
+ * a header that requested an upgrade to another protocol.
  * 
  * The {@link HttpServer} component listens for such events and 
  * automatically creates the required {@link Response} event.
  */
-public class WebSocketAccepted extends Opened {
+public class ProtocolSwitchAccepted extends Event<Void> {
 
 	private Request requestEvent;
 	
@@ -49,7 +49,7 @@ public class WebSocketAccepted extends Opened {
 	 * 
 	 * @param request the base response data
 	 */
-	public WebSocketAccepted(Request request) {
+	public ProtocolSwitchAccepted(Request request) {
 		this.requestEvent = request;
 	}
 

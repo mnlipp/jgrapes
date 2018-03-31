@@ -41,8 +41,8 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.annotation.RequestHandler;
+import org.jgrapes.http.events.ProtocolSwitchAccepted;
 import org.jgrapes.http.events.Request;
-import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
 
 /**
@@ -201,8 +201,8 @@ public class LanguageSelector extends Component {
 	}
 	
 	@Handler(priority=1000)
-	public void onWebSocketAccepted(
-			WebSocketAccepted event, IOSubchannel channel) {
+	public void onProtocolSwitchAccepted(
+			ProtocolSwitchAccepted event, IOSubchannel channel) {
 		event.requestEvent().associated(Selection.class)
 			.ifPresent(selection -> 
 				channel.setAssociated(Selection.class, selection));

@@ -49,8 +49,8 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.internal.EventBase;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.DiscardSession;
+import org.jgrapes.http.events.ProtocolSwitchAccepted;
 import org.jgrapes.http.events.Request;
-import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
 
 /**
@@ -373,8 +373,8 @@ public abstract class SessionManager extends Component {
 	 * @param channel the channel
 	 */
 	@Handler(priority=1000)
-	public void onWebSocketAccepted(
-			WebSocketAccepted event, IOSubchannel channel) {
+	public void onProtocolSwitchAccepted(
+			ProtocolSwitchAccepted event, IOSubchannel channel) {
 		event.requestEvent().associated(Session.class)
 			.ifPresent(session -> {
 				channel.setAssociated(Session.class, session);

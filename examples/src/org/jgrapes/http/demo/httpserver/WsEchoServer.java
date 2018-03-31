@@ -31,8 +31,8 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.GetRequest;
+import org.jgrapes.http.events.ProtocolSwitchAccepted;
 import org.jgrapes.http.events.Upgraded;
-import org.jgrapes.http.events.WebSocketAccepted;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
@@ -72,7 +72,7 @@ public class WsEchoServer extends Component {
 			return;
 		}
 		openChannels.add(channel);
-		channel.respond(new WebSocketAccepted(event));
+		channel.respond(new ProtocolSwitchAccepted(event));
 		event.stop();
 	}
 	
