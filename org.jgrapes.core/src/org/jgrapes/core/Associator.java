@@ -49,7 +49,7 @@ public interface Associator {
 	 * @param by the "name"
 	 * @param type the type of the value to be retrieved
 	 * @param <V> the type of the value to be retrieved
-	 * @return the associate, if any
+	 * @return the associate with the given type, if any
 	 */
 	<V> Optional<V> associated(Object by, Class<V> type);
 	

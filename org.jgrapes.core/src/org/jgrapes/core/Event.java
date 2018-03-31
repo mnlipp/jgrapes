@@ -464,7 +464,9 @@ public class Event<T> extends EventBase<T> {
 		if (contextData == null) {
 			return Optional.empty();
 		}
-		return Optional.ofNullable(type.cast(contextData.get(by)));
+		return Optional.ofNullable(contextData.get(by))
+			.filter(found -> type.isAssignableFrom(found.getClass()))
+			.map(match -> type.cast(match));
 	}
 	
 	/* (non-Javadoc)
