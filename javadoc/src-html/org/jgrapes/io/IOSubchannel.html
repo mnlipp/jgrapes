@@ -279,19 +279,21 @@
 <span class="sourceLineNo">271</span>                        if (contextData == null) {<a name="line.271"></a>
 <span class="sourceLineNo">272</span>                                return Optional.empty();<a name="line.272"></a>
 <span class="sourceLineNo">273</span>                        }<a name="line.273"></a>
-<span class="sourceLineNo">274</span>                        return Optional.ofNullable(type.cast(contextData.get(by)));<a name="line.274"></a>
-<span class="sourceLineNo">275</span>                }<a name="line.275"></a>
-<span class="sourceLineNo">276</span>                <a name="line.276"></a>
-<span class="sourceLineNo">277</span>                /* (non-Javadoc)<a name="line.277"></a>
-<span class="sourceLineNo">278</span>                 * @see java.lang.Object#toString()<a name="line.278"></a>
-<span class="sourceLineNo">279</span>                 */<a name="line.279"></a>
-<span class="sourceLineNo">280</span>                @Override<a name="line.280"></a>
-<span class="sourceLineNo">281</span>                public String toString() {<a name="line.281"></a>
-<span class="sourceLineNo">282</span>                        return IOSubchannel.toString(this);<a name="line.282"></a>
-<span class="sourceLineNo">283</span>                }<a name="line.283"></a>
-<span class="sourceLineNo">284</span>                <a name="line.284"></a>
-<span class="sourceLineNo">285</span>        }<a name="line.285"></a>
-<span class="sourceLineNo">286</span>}<a name="line.286"></a>
+<span class="sourceLineNo">274</span>                        return Optional.ofNullable(contextData.get(by))<a name="line.274"></a>
+<span class="sourceLineNo">275</span>                                        .filter(found -&gt; type.isAssignableFrom(found.getClass()))<a name="line.275"></a>
+<span class="sourceLineNo">276</span>                                        .map(match -&gt; type.cast(match));<a name="line.276"></a>
+<span class="sourceLineNo">277</span>                }<a name="line.277"></a>
+<span class="sourceLineNo">278</span>                <a name="line.278"></a>
+<span class="sourceLineNo">279</span>                /* (non-Javadoc)<a name="line.279"></a>
+<span class="sourceLineNo">280</span>                 * @see java.lang.Object#toString()<a name="line.280"></a>
+<span class="sourceLineNo">281</span>                 */<a name="line.281"></a>
+<span class="sourceLineNo">282</span>                @Override<a name="line.282"></a>
+<span class="sourceLineNo">283</span>                public String toString() {<a name="line.283"></a>
+<span class="sourceLineNo">284</span>                        return IOSubchannel.toString(this);<a name="line.284"></a>
+<span class="sourceLineNo">285</span>                }<a name="line.285"></a>
+<span class="sourceLineNo">286</span>                <a name="line.286"></a>
+<span class="sourceLineNo">287</span>        }<a name="line.287"></a>
+<span class="sourceLineNo">288</span>}<a name="line.288"></a>
 
 
 
