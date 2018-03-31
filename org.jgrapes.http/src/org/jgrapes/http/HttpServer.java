@@ -481,7 +481,8 @@ public class HttpServer extends Component {
 				        event.isEndOfRecord());
 				if (result.response().isPresent()) {
 					// Feedback required, send it
-					respond(new Response(result.response().get()));
+					responsePipeline().overrideRestriction().fire(
+							new Response(result.response().get()), this);
 					if (result.response().get().isFinal()) {
 						if (result.isHeaderCompleted()) {
 							engine.currentRequest()
