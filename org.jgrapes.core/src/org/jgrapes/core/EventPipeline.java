@@ -66,13 +66,34 @@ public interface EventPipeline extends IdInfoProvider {
 	 * 
 	 * Events from other threads than the one that runs *O*
 	 * are ignored and an error is logged with the core package
-	 * logger.
+	 * logger with ".fireRestriction" appended.
 	 *
 	 * @param sourcePipeline the source pipeline or `null` to
 	 * revoke the restriction
 	 * @return the event pipeline
 	 */
 	EventPipeline restrictEventSource(EventPipeline sourcePipeline);
+	
+	/**
+	 * Overrides any restriction set by 
+	 * {@link #restrictEventSource(EventPipeline)} for the next 
+	 * {@link #fire(Event, Channel...)} invocation from the calling thread.
+	 * 
+	 * The typical use case is a protocol handling component
+	 * (see the JGrapes I/O package) . After a connection and an 
+	 * associated IOSubchannel have been established, the response 
+	 * pipeline is usually only used by the downstream component,
+	 * which may restrict the source for events on that pipeline.
+	 * 
+	 * Sometimes, however, the protocol handling component must insert
+	 * events with out-of-band (control) information in the stream
+	 * of events that form the regular I/O data. This method allows
+	 * the protocol component to do this, even if a restriction
+	 * applies to the response pipeline. 
+	 *
+	 * @return the event pipeline
+	 */
+	EventPipeline overrideRestriction();
 	
 	/**
 	 * Adds an action to be executed to the event pipeline. 

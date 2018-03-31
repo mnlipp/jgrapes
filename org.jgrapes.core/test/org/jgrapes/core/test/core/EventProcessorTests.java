@@ -18,17 +18,28 @@
 
 package org.jgrapes.core.test.core;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.internal.Common;
+
+import org.junit.After;
 
 import static org.junit.Assert.*;
+
+import org.junit.Before;
 import org.junit.Test;
 
 public class EventProcessorTests {
 
+	private Logger fireRestrictionLogger;
+	private Level oldLevel;
+	
 	public static class TestApp extends Component {
 
 		EventPipeline otherPipeline;
@@ -45,6 +56,13 @@ public class EventProcessorTests {
 			otherPipeline.fire(new NamedEvent<Void>("Event"));
 		}
 		
+		@Handler(namedEvents="Override")
+		public void onOverride(NamedEvent<Void> event) {
+			gotTrigger = true;
+			otherPipeline.overrideRestriction()
+				.fire(new NamedEvent<Void>("Event"));
+		}
+		
 		@Handler(namedEvents="Event")
 		public void onEvent(NamedEvent<Void> event) {
 			gotEvent = true;
@@ -52,6 +70,20 @@ public class EventProcessorTests {
 		
 	}
 
+	@Before
+	public void setup() {
+		fireRestrictionLogger 
+			= Logger.getLogger(Common.class.getPackage().getName()
+				+ ".fireRestriction");
+		oldLevel = fireRestrictionLogger.getLevel();
+		fireRestrictionLogger.setLevel(Level.OFF);
+	}
+
+	@After
+	public void tearDown() {
+		fireRestrictionLogger.setLevel(oldLevel);
+	}
+	
 	@Test
 	public void testRestriction() throws InterruptedException {
 		// Without restriction
@@ -75,6 +107,22 @@ public class EventProcessorTests {
 		app.gotEvent = false;
 		
 		// With restriction, using illegal
+		app.newEventPipeline().fire(new NamedEvent<Void>("Test"), app);
+		Components.awaitExhaustion();
+		assertTrue(app.gotTrigger);
+		app.gotTrigger = false;
+		assertFalse(app.gotEvent);
+		app.gotEvent = false;
+		
+		// With restriction, using illegal, but overriding
+		app.newEventPipeline().fire(new NamedEvent<Void>("Override"), app);
+		Components.awaitExhaustion();
+		assertTrue(app.gotTrigger);
+		app.gotTrigger = false;
+		assertTrue(app.gotEvent);
+		app.gotEvent = false;
+		
+		// With restriction, using illegal (check that override was reset)
 		app.newEventPipeline().fire(new NamedEvent<Void>("Test"), app);
 		Components.awaitExhaustion();
 		assertTrue(app.gotTrigger);

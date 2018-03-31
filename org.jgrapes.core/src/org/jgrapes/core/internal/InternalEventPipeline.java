@@ -47,14 +47,6 @@ interface InternalEventPipeline extends IdInfoProvider {
 	<T extends Event<?>> T add(T event, Channel... channels);
 
 	/**
-	 * Restrict the source for events to the given pipeline.
-	 *
-	 * @param sourcePipeline the source pipeline
-	 * @return the event pipeline
-	 */
-	void restrictEventSource(InternalEventPipeline sourcePipeline);
-	
-	/**
 	 * Merge the events from the other event pipeline into this one.
 	 * 
 	 * @param other the other event pipeline

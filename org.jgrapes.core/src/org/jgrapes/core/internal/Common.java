@@ -35,8 +35,9 @@ public class Common {
 	private Common() {
 	}
 
-	static final Logger coreLogger 
-		= Logger.getLogger(Common.class.getPackage().getName());	
+	static final Logger fireRestrictionLogger 
+		= Logger.getLogger(Common.class.getPackage().getName()
+				+ ".fireRestriction");	
 	
 	/** Handler factory cache. */
 	private static Map<Class<? extends HandlerDefinition.Evaluator>,

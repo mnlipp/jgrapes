@@ -18,11 +18,14 @@
 
 package org.jgrapes.core.internal;
 
+import java.lang.ref.WeakReference;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Components.IdInfoProvider;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
@@ -39,6 +42,9 @@ class CheckingPipelineFilter
 
 	private InternalEventPipeline sink;
 	private Channel channel;
+	private WeakReference<InternalEventPipelineWrapper>
+		allowedSourceRef = null;
+	private ThreadLocal<Boolean> allowNext = new ThreadLocal<>();
 
 	/**
 	 * Create a new instance that forwards the events to the given
@@ -69,16 +75,38 @@ class CheckingPipelineFilter
 
 	@Override
 	public EventPipeline restrictEventSource(EventPipeline sourcePipeline) {
-		sink.restrictEventSource(sourcePipeline == null ? null
-				: ((InternalEventPipelineWrapper)sourcePipeline).wrapped());
+		allowedSourceRef = sourcePipeline == null ? null
+				: new WeakReference<>((InternalEventPipelineWrapper)sourcePipeline);
 		return this;
 	}
 
-	/* (non-Javadoc)
-	 * @see EventPipeline#add(EventBase, org.jgrapes.core.Channel[])
-	 */
+	@Override
+	public EventPipeline overrideRestriction() {
+		allowNext.set(true);
+		return this;
+	}
+
 	@Override
 	public <T extends Event<?>> T fire(T event, Channel... channels) {
+		if (allowedSourceRef != null) {
+			boolean allowed = allowNext.get() != null && allowNext.get();
+			allowNext.set(null);
+			if (!allowed // i.e. if not allowed anyway...
+					&& (allowedSourceRef.get() == null
+					|| ((InternalEventPipelineWrapper)
+							allowedSourceRef.get()).wrapped() 
+					!= FeedBackPipelineFilter.getAssociatedPipeline())) {
+				Common.fireRestrictionLogger.log(Level.SEVERE, 
+					Components.objectName(FeedBackPipelineFilter
+					.getAssociatedPipeline()) + " cannot add " 
+					+ event.toString() + " to pipeline " 
+					+ Components.objectName(this.wrapped()) 
+					+ " (accepts only from " 
+					+ Components.objectName(allowedSourceRef.get().wrapped())
+					+ ").",	new IllegalArgumentException());
+				return event;
+			}
+		}
 		if (channels.length == 0) {
 			channels = event.channels();
 			if (channels == null || channels.length == 0) {

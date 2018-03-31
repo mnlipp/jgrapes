@@ -18,9 +18,7 @@
 
 package org.jgrapes.core.internal;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
@@ -40,7 +38,6 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	private final EventPipeline asEventPipeline;
 	protected final EventQueue queue = new EventQueue();
 	private boolean isExecuting = false;
-	private WeakReference<InternalEventPipeline> allowedSourceRef = null;
 	
 	EventProcessor(ComponentTree tree) {
 		this(tree, Components.defaultExecutorService());
@@ -56,12 +53,6 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 		return asEventPipeline;
 	}
 	
-	@Override
-	public void restrictEventSource(InternalEventPipeline sourcePipeline) {
-		allowedSourceRef = sourcePipeline == null ? null
-				: new WeakReference<>(sourcePipeline);
-	}
-
 	/**
 	 * Called before adding completion events. The parent of
 	 * a completion event is not the event that has completed but
@@ -75,19 +66,6 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	
 	@Override
 	public <T extends Event<?>> T add(T event, Channel... channels) {
-		if (allowedSourceRef != null 
-				&& (allowedSourceRef.get() == null
-					|| allowedSourceRef.get() 
-						!= FeedBackPipelineFilter.getAssociatedPipeline())) {
-			Common.coreLogger.log(Level.SEVERE, 
-					Components.objectName(FeedBackPipelineFilter
-					.getAssociatedPipeline()) + " cannot add " 
-					+ event.toString() + " to pipeline " 
-					+ Components.objectName(this) + " (accepts only from " 
-					+ Components.objectName(allowedSourceRef.get()) + ").", 
-							new IllegalArgumentException());
-			return event;
-		}
 		((EventBase<?>)event).generatedBy(newEventsParent.get());
 		((EventBase<?>)event).processedBy(this);
 		queue.add(event, channels);
