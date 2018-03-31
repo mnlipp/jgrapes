@@ -622,9 +622,10 @@ public class HttpServer extends Component {
 			final HttpResponse response = event.requestEvent()
 					.httpRequest().response().get()
 					.setStatus(HttpStatus.SWITCHING_PROTOCOLS)
-					.setField(HttpField.UPGRADE, new StringList("websocket"));
-			event.addCompletionEvent(
-					new Upgraded(event.resourceName(), "websocket"));
+					.setField(HttpField.UPGRADE, 
+							new StringList(event.protocol()));
+			downPipeline.fire(new Upgraded(event.resourceName(), 
+					event.protocol()), this);
 			respond(new Response(response));
 		}
 

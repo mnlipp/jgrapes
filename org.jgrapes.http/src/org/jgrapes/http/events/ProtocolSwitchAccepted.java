@@ -34,6 +34,7 @@ import org.jgrapes.http.HttpServer;
 public class ProtocolSwitchAccepted extends Event<Void> {
 
 	private Request requestEvent;
+	private String protocol;
 	
 	/**
 	 * Creates a new event. The request event passed in as parameter
@@ -46,11 +47,13 @@ public class ProtocolSwitchAccepted extends Event<Void> {
 	 * information contained in this prepared response is sufficient to
 	 * build the actual response. If required, the accepting component 
 	 * can add special header fields to the prepared response.
-	 * 
+	 *
 	 * @param request the base response data
+	 * @param protocol the accepted protocol
 	 */
-	public ProtocolSwitchAccepted(Request request) {
+	public ProtocolSwitchAccepted(Request request, String protocol) {
 		this.requestEvent = request;
+		this.protocol = protocol;
 	}
 
 	/**
@@ -69,5 +72,14 @@ public class ProtocolSwitchAccepted extends Event<Void> {
 	 */
 	public Request requestEvent() {
 		return requestEvent;
+	}
+	
+	/**
+	 * The accepted protocol.
+	 *
+	 * @return the protocol
+	 */
+	public String protocol() {
+		return protocol;
 	}
 }

@@ -72,7 +72,7 @@ public class WsEchoServer extends Component {
 			return;
 		}
 		openChannels.add(channel);
-		channel.respond(new ProtocolSwitchAccepted(event));
+		channel.respond(new ProtocolSwitchAccepted(event, "websocket"));
 		event.stop();
 	}
 	
