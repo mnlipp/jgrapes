@@ -405,6 +405,22 @@ public class HttpServer extends Component {
 			ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {
 		appChannel.handleProtocolSwitchAccepted(event, appChannel);
 	}
+
+	/**
+	 * Delay further processing of the {@link Upgraded} event until
+	 * the confirmation has been sent upstream. 
+	 *
+	 * @param event the event
+	 * @param appChannel the app channel
+	 * @throws InterruptedException the interrupted exception
+	 */
+	@Handler(priority=1000000)
+	public void onUpgraded(Upgraded event, WebAppMsgChannel appChannel) 
+					throws InterruptedException {
+		appChannel.handleUpgraded(event, appChannel);
+	}
+	
+	private enum UpgradedState { NONE, UPGRADING_TO_WS, WEB_SOCKET }
 	
 	private class WebAppMsgChannel extends LinkedIOSubchannel {
 		// Starts as ServerEngine<HttpRequest,HttpResponse> but may change
@@ -418,7 +434,8 @@ public class HttpServer extends Component {
 			charBufferPool;
 		private ManagedBufferPool<?, ?> currentPool = null;
 		private EventPipeline downPipeline;
-		private boolean switchedToWebSocket = false;
+		private Object syncUpgrading = new Object();
+		private UpgradedState upgradedTo = UpgradedState.NONE;
 		private WsMessageHeader currentWsMessage = null;
 
 		public WebAppMsgChannel(Accepted event, IOSubchannel netChannel) {
@@ -616,7 +633,7 @@ public class HttpServer extends Component {
 		
 		public void handleProtocolSwitchAccepted(
 				ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {
-			switchedToWebSocket = true;
+			upgradedTo = UpgradedState.UPGRADING_TO_WS;
 			appChannel.setAssociated(URI.class, 
 					event.requestEvent().requestUri());
 			final HttpResponse response = event.requestEvent()
@@ -627,8 +644,21 @@ public class HttpServer extends Component {
 			downPipeline.fire(new Upgraded(event.resourceName(), 
 					event.protocol()), this);
 			respond(new Response(response));
+			// Response is sent, channel may be used by next level now.
+			synchronized (syncUpgrading) {
+				upgradedTo = UpgradedState.WEB_SOCKET;
+			}
 		}
 
+		public void handleUpgraded(Upgraded event, 
+				WebAppMsgChannel appChannel) throws InterruptedException {
+			synchronized (syncUpgrading) {
+				while (upgradedTo == UpgradedState.UPGRADING_TO_WS) {
+					syncUpgrading.wait();
+				}
+			}
+		}
+		
 		public void handleAppOutput(Output<?> event) 
 				throws InterruptedException {
 			Buffer eventData = event.data();
@@ -640,7 +670,8 @@ public class HttpServer extends Component {
 			} else {
 				return;
 			}
-			if (switchedToWebSocket && currentWsMessage == null) {
+			if (upgradedTo == UpgradedState.WEB_SOCKET 
+					&& currentWsMessage == null) {
 				// When switched to WebSockets, we only have Input and Output
 				// events. Add header automatically.
 				@SuppressWarnings("unchecked")
@@ -675,13 +706,14 @@ public class HttpServer extends Component {
 					break;
 				}
 			}
-			if (switchedToWebSocket && event.isEndOfRecord()) {
+			if (upgradedTo == UpgradedState.WEB_SOCKET
+					&& event.isEndOfRecord()) {
 				currentWsMessage = null;
 			}
 		}
 		
 		public void handleClose(Close event) throws InterruptedException {
-			if (switchedToWebSocket) {
+			if (upgradedTo == UpgradedState.WEB_SOCKET) {
 				respond(new Response(new WsCloseFrame(null, null)));
 				return;
 			}
