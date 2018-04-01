@@ -651,8 +651,8 @@
 <span class="sourceLineNo">643</span>        /**<a name="line.643"></a>
 <span class="sourceLineNo">644</span>         * Checks if the request applies to this component by calling<a name="line.644"></a>
 <span class="sourceLineNo">645</span>         * {@link #stateFromSession(Session, String, Class)}. If a model<a name="line.645"></a>
-<span class="sourceLineNo">646</span>         * is found, stops the event, and calls <a name="line.646"></a>
-<span class="sourceLineNo">647</span>         * {@link #doRenderPortlet} with the state information. <a name="line.647"></a>
+<span class="sourceLineNo">646</span>         * is found, sets the event's result to `true`, stops the event, and <a name="line.646"></a>
+<span class="sourceLineNo">647</span>         * calls {@link #doRenderPortlet} with the state information. <a name="line.647"></a>
 <span class="sourceLineNo">648</span>         * <a name="line.648"></a>
 <span class="sourceLineNo">649</span>         * Some portlets that do not persist their models between sessions<a name="line.649"></a>
 <span class="sourceLineNo">650</span>         * (e.g. because the model only references data maintained elsewhere)<a name="line.650"></a>
@@ -672,206 +672,207 @@
 <span class="sourceLineNo">664</span>                if (!optPortletState.isPresent()) {<a name="line.664"></a>
 <span class="sourceLineNo">665</span>                        return;<a name="line.665"></a>
 <span class="sourceLineNo">666</span>                }<a name="line.666"></a>
-<span class="sourceLineNo">667</span>                event.stop();<a name="line.667"></a>
-<span class="sourceLineNo">668</span>                portletIds(portalSession).add(event.portletId());<a name="line.668"></a>
-<span class="sourceLineNo">669</span>                updateRefresh();<a name="line.669"></a>
-<span class="sourceLineNo">670</span>                doRenderPortlet(<a name="line.670"></a>
-<span class="sourceLineNo">671</span>                                event, portalSession, event.portletId(), optPortletState.get());<a name="line.671"></a>
-<span class="sourceLineNo">672</span>        }<a name="line.672"></a>
-<span class="sourceLineNo">673</span><a name="line.673"></a>
-<span class="sourceLineNo">674</span>        /**<a name="line.674"></a>
-<span class="sourceLineNo">675</span>         * Called by {@link #onRenderPortlet} to complete rendering<a name="line.675"></a>
-<span class="sourceLineNo">676</span>         * the portlet.<a name="line.676"></a>
-<span class="sourceLineNo">677</span>         * <a name="line.677"></a>
-<span class="sourceLineNo">678</span>         * @param event the event<a name="line.678"></a>
-<span class="sourceLineNo">679</span>         * @param channel the channel<a name="line.679"></a>
-<span class="sourceLineNo">680</span>         * @param portletId the portlet id<a name="line.680"></a>
-<span class="sourceLineNo">681</span>         * @param portletState the portletState<a name="line.681"></a>
-<span class="sourceLineNo">682</span>         */<a name="line.682"></a>
-<span class="sourceLineNo">683</span>        protected abstract void doRenderPortlet(RenderPortletRequest event, <a name="line.683"></a>
-<span class="sourceLineNo">684</span>                        PortalSession channel, String portletId, <a name="line.684"></a>
-<span class="sourceLineNo">685</span>                        Serializable portletState) throws Exception;<a name="line.685"></a>
-<span class="sourceLineNo">686</span>        <a name="line.686"></a>
-<span class="sourceLineNo">687</span>        /**<a name="line.687"></a>
-<span class="sourceLineNo">688</span>         * Checks if the request applies to this component by calling<a name="line.688"></a>
-<span class="sourceLineNo">689</span>         * {@link #stateFromSession(Session, String, Class)}. If a model<a name="line.689"></a>
-<span class="sourceLineNo">690</span>         * is found, calls {@link #doNotifyPortletModel} with the state <a name="line.690"></a>
-<span class="sourceLineNo">691</span>         * information. <a name="line.691"></a>
-<span class="sourceLineNo">692</span>         * <a name="line.692"></a>
-<span class="sourceLineNo">693</span>         * @param event the event<a name="line.693"></a>
-<span class="sourceLineNo">694</span>         * @param channel the channel<a name="line.694"></a>
-<span class="sourceLineNo">695</span>         */<a name="line.695"></a>
-<span class="sourceLineNo">696</span>        @Handler<a name="line.696"></a>
-<span class="sourceLineNo">697</span>        public final void onNotifyPortletModel(NotifyPortletModel event,<a name="line.697"></a>
-<span class="sourceLineNo">698</span>                        PortalSession channel) throws Exception {<a name="line.698"></a>
-<span class="sourceLineNo">699</span>                Optional&lt;? extends Serializable&gt; optPortletState <a name="line.699"></a>
-<span class="sourceLineNo">700</span>                        = stateFromSession(channel.browserSession(), event.portletId(), Serializable.class);<a name="line.700"></a>
-<span class="sourceLineNo">701</span>                if (!optPortletState.isPresent()) {<a name="line.701"></a>
-<span class="sourceLineNo">702</span>                        return;<a name="line.702"></a>
-<span class="sourceLineNo">703</span>                }<a name="line.703"></a>
-<span class="sourceLineNo">704</span>                doNotifyPortletModel(event, channel, optPortletState.get());<a name="line.704"></a>
-<span class="sourceLineNo">705</span>        }<a name="line.705"></a>
-<span class="sourceLineNo">706</span><a name="line.706"></a>
-<span class="sourceLineNo">707</span>        /**<a name="line.707"></a>
-<span class="sourceLineNo">708</span>         * Called by {@link #onNotifyPortletModel} to complete handling<a name="line.708"></a>
-<span class="sourceLineNo">709</span>         * the notification. The default implementation does nothing.<a name="line.709"></a>
-<span class="sourceLineNo">710</span>         * <a name="line.710"></a>
-<span class="sourceLineNo">711</span>         * @param event the event<a name="line.711"></a>
-<span class="sourceLineNo">712</span>         * @param channel the channel<a name="line.712"></a>
-<span class="sourceLineNo">713</span>         * @param portletState the portletState<a name="line.713"></a>
-<span class="sourceLineNo">714</span>         */<a name="line.714"></a>
-<span class="sourceLineNo">715</span>        protected void doNotifyPortletModel(NotifyPortletModel event, <a name="line.715"></a>
-<span class="sourceLineNo">716</span>                        PortalSession channel, Serializable portletState)<a name="line.716"></a>
-<span class="sourceLineNo">717</span>                                        throws Exception {<a name="line.717"></a>
-<span class="sourceLineNo">718</span>        }<a name="line.718"></a>
-<span class="sourceLineNo">719</span>        <a name="line.719"></a>
-<span class="sourceLineNo">720</span>        /**<a name="line.720"></a>
-<span class="sourceLineNo">721</span>         * Removes the {@link PortalSession} from the set of tracked sessions.<a name="line.721"></a>
-<span class="sourceLineNo">722</span>         * If derived portlets need to perform extra actions when a<a name="line.722"></a>
-<span class="sourceLineNo">723</span>         * portalSession is closed, they have to override <a name="line.723"></a>
-<span class="sourceLineNo">724</span>         * {@link #afterOnClosed(Closed, PortalSession)}.<a name="line.724"></a>
-<span class="sourceLineNo">725</span>         * <a name="line.725"></a>
-<span class="sourceLineNo">726</span>         * @param event the closed event<a name="line.726"></a>
-<span class="sourceLineNo">727</span>         * @param portalSession the portal session<a name="line.727"></a>
-<span class="sourceLineNo">728</span>         */<a name="line.728"></a>
-<span class="sourceLineNo">729</span>        @Handler<a name="line.729"></a>
-<span class="sourceLineNo">730</span>        public final void onClosed(Closed event, PortalSession portalSession) {<a name="line.730"></a>
-<span class="sourceLineNo">731</span>                if (portletIdsByPortalSession != null) {<a name="line.731"></a>
-<span class="sourceLineNo">732</span>                        portletIdsByPortalSession.remove(portalSession);<a name="line.732"></a>
-<span class="sourceLineNo">733</span>                        updateRefresh();<a name="line.733"></a>
-<span class="sourceLineNo">734</span>                }<a name="line.734"></a>
-<span class="sourceLineNo">735</span>                afterOnClosed(event, portalSession);<a name="line.735"></a>
-<span class="sourceLineNo">736</span>        }<a name="line.736"></a>
-<span class="sourceLineNo">737</span><a name="line.737"></a>
-<span class="sourceLineNo">738</span>        /**<a name="line.738"></a>
-<span class="sourceLineNo">739</span>         * Invoked by {@link #onClosed(Closed, PortalSession)} after<a name="line.739"></a>
-<span class="sourceLineNo">740</span>         * the portal session has been removed from the set of<a name="line.740"></a>
-<span class="sourceLineNo">741</span>         * tracked sessions. The default implementation does<a name="line.741"></a>
-<span class="sourceLineNo">742</span>         * nothing.<a name="line.742"></a>
-<span class="sourceLineNo">743</span>         * <a name="line.743"></a>
-<span class="sourceLineNo">744</span>         * @param event the closed event<a name="line.744"></a>
-<span class="sourceLineNo">745</span>         * @param portalSession the portal session<a name="line.745"></a>
-<span class="sourceLineNo">746</span>         */<a name="line.746"></a>
-<span class="sourceLineNo">747</span>        protected void afterOnClosed(Closed event, PortalSession portalSession) {<a name="line.747"></a>
-<span class="sourceLineNo">748</span>        }<a name="line.748"></a>
-<span class="sourceLineNo">749</span>        <a name="line.749"></a>
-<span class="sourceLineNo">750</span>        /**<a name="line.750"></a>
-<span class="sourceLineNo">751</span>         * Defines the portlet model following the JavaBean conventions.<a name="line.751"></a>
-<span class="sourceLineNo">752</span>         * <a name="line.752"></a>
-<span class="sourceLineNo">753</span>         * Portlet models should follow these conventions because<a name="line.753"></a>
-<span class="sourceLineNo">754</span>         * many template engines rely on them and to support serialization<a name="line.754"></a>
-<span class="sourceLineNo">755</span>         * to portable formats. <a name="line.755"></a>
-<span class="sourceLineNo">756</span>         */<a name="line.756"></a>
-<span class="sourceLineNo">757</span>        @SuppressWarnings("serial")<a name="line.757"></a>
-<span class="sourceLineNo">758</span>        public static class PortletBaseModel implements Serializable {<a name="line.758"></a>
-<span class="sourceLineNo">759</span><a name="line.759"></a>
-<span class="sourceLineNo">760</span>                protected String portletId;<a name="line.760"></a>
-<span class="sourceLineNo">761</span><a name="line.761"></a>
-<span class="sourceLineNo">762</span>                /**<a name="line.762"></a>
-<span class="sourceLineNo">763</span>                 * Creates a new model with the given type and id.<a name="line.763"></a>
-<span class="sourceLineNo">764</span>                 * <a name="line.764"></a>
-<span class="sourceLineNo">765</span>                 * @param portletId the portlet id<a name="line.765"></a>
-<span class="sourceLineNo">766</span>                 */<a name="line.766"></a>
-<span class="sourceLineNo">767</span>                @ConstructorProperties({"portletId"})<a name="line.767"></a>
-<span class="sourceLineNo">768</span>                public PortletBaseModel(String portletId) {<a name="line.768"></a>
-<span class="sourceLineNo">769</span>                        this.portletId = portletId;<a name="line.769"></a>
-<span class="sourceLineNo">770</span>                }<a name="line.770"></a>
-<span class="sourceLineNo">771</span><a name="line.771"></a>
-<span class="sourceLineNo">772</span>                /**<a name="line.772"></a>
-<span class="sourceLineNo">773</span>                 * Returns the portlet id.<a name="line.773"></a>
-<span class="sourceLineNo">774</span>                 * <a name="line.774"></a>
-<span class="sourceLineNo">775</span>                 * @return the portlet id<a name="line.775"></a>
-<span class="sourceLineNo">776</span>                 */<a name="line.776"></a>
-<span class="sourceLineNo">777</span>                public String getPortletId() {<a name="line.777"></a>
-<span class="sourceLineNo">778</span>                        return portletId;<a name="line.778"></a>
-<span class="sourceLineNo">779</span>                }<a name="line.779"></a>
-<span class="sourceLineNo">780</span><a name="line.780"></a>
-<span class="sourceLineNo">781</span>                /* (non-Javadoc)<a name="line.781"></a>
-<span class="sourceLineNo">782</span>                 * @see java.lang.Object#hashCode()<a name="line.782"></a>
-<span class="sourceLineNo">783</span>                 */<a name="line.783"></a>
-<span class="sourceLineNo">784</span>                @Override<a name="line.784"></a>
-<span class="sourceLineNo">785</span>                public int hashCode() {<a name="line.785"></a>
-<span class="sourceLineNo">786</span>                        final int prime = 31;<a name="line.786"></a>
-<span class="sourceLineNo">787</span>                        int result = 1;<a name="line.787"></a>
-<span class="sourceLineNo">788</span>                        result = prime * result<a name="line.788"></a>
-<span class="sourceLineNo">789</span>                                + ((portletId == null) ? 0 : portletId.hashCode());<a name="line.789"></a>
-<span class="sourceLineNo">790</span>                        return result;<a name="line.790"></a>
-<span class="sourceLineNo">791</span>                }<a name="line.791"></a>
-<span class="sourceLineNo">792</span><a name="line.792"></a>
-<span class="sourceLineNo">793</span>                /**<a name="line.793"></a>
-<span class="sourceLineNo">794</span>                 * Two objects are equal if they have equal portlet ids.<a name="line.794"></a>
-<span class="sourceLineNo">795</span>                 * <a name="line.795"></a>
-<span class="sourceLineNo">796</span>                 * @param obj the other object<a name="line.796"></a>
-<span class="sourceLineNo">797</span>                 * @return the result<a name="line.797"></a>
-<span class="sourceLineNo">798</span>                 */<a name="line.798"></a>
-<span class="sourceLineNo">799</span>                @Override<a name="line.799"></a>
-<span class="sourceLineNo">800</span>                public boolean equals(Object obj) {<a name="line.800"></a>
-<span class="sourceLineNo">801</span>                        if (this == obj) {<a name="line.801"></a>
-<span class="sourceLineNo">802</span>                                return true;<a name="line.802"></a>
-<span class="sourceLineNo">803</span>                        }<a name="line.803"></a>
-<span class="sourceLineNo">804</span>                        if (obj == null) {<a name="line.804"></a>
-<span class="sourceLineNo">805</span>                                return false;<a name="line.805"></a>
-<span class="sourceLineNo">806</span>                        }<a name="line.806"></a>
-<span class="sourceLineNo">807</span>                        if (getClass() != obj.getClass()) {<a name="line.807"></a>
-<span class="sourceLineNo">808</span>                                return false;<a name="line.808"></a>
-<span class="sourceLineNo">809</span>                        }<a name="line.809"></a>
-<span class="sourceLineNo">810</span>                        PortletBaseModel other = (PortletBaseModel) obj;<a name="line.810"></a>
-<span class="sourceLineNo">811</span>                        if (portletId == null) {<a name="line.811"></a>
-<span class="sourceLineNo">812</span>                                if (other.portletId != null) {<a name="line.812"></a>
-<span class="sourceLineNo">813</span>                                        return false;<a name="line.813"></a>
-<span class="sourceLineNo">814</span>                                }<a name="line.814"></a>
-<span class="sourceLineNo">815</span>                        } else if (!portletId.equals(other.portletId)) {<a name="line.815"></a>
-<span class="sourceLineNo">816</span>                                return false;<a name="line.816"></a>
-<span class="sourceLineNo">817</span>                        }<a name="line.817"></a>
-<span class="sourceLineNo">818</span>                        return true;<a name="line.818"></a>
-<span class="sourceLineNo">819</span>                }<a name="line.819"></a>
-<span class="sourceLineNo">820</span>        }<a name="line.820"></a>
-<span class="sourceLineNo">821</span>        <a name="line.821"></a>
-<span class="sourceLineNo">822</span>        /**<a name="line.822"></a>
-<span class="sourceLineNo">823</span>         * Send to the portal page for adding or updating a complete portlet<a name="line.823"></a>
-<span class="sourceLineNo">824</span>         * representation.<a name="line.824"></a>
-<span class="sourceLineNo">825</span>         */<a name="line.825"></a>
-<span class="sourceLineNo">826</span>        public class RenderPortletFromReader extends RenderPortlet {<a name="line.826"></a>
-<span class="sourceLineNo">827</span><a name="line.827"></a>
-<span class="sourceLineNo">828</span>                private Future&lt;String&gt; content;<a name="line.828"></a>
-<span class="sourceLineNo">829</span><a name="line.829"></a>
-<span class="sourceLineNo">830</span>                /**<a name="line.830"></a>
-<span class="sourceLineNo">831</span>                 * Creates a new event.<a name="line.831"></a>
-<span class="sourceLineNo">832</span>                 * <a name="line.832"></a>
-<span class="sourceLineNo">833</span>                 * @param portletClass the portlet class<a name="line.833"></a>
-<span class="sourceLineNo">834</span>                 * @param portletId the id of the portlet<a name="line.834"></a>
-<span class="sourceLineNo">835</span>                 */<a name="line.835"></a>
-<span class="sourceLineNo">836</span>                public RenderPortletFromReader(RenderPortletRequestBase&lt;?&gt; request,<a name="line.836"></a>
-<span class="sourceLineNo">837</span>                                Class&lt;?&gt; portletClass, String portletId, Reader contentReader) {<a name="line.837"></a>
-<span class="sourceLineNo">838</span>                        super(portletClass, portletId);<a name="line.838"></a>
-<span class="sourceLineNo">839</span>                        // Start to prepare the content immediately and concurrently.<a name="line.839"></a>
-<span class="sourceLineNo">840</span>                        content = request.processedBy().map(pb -&gt; pb.executorService())<a name="line.840"></a>
-<span class="sourceLineNo">841</span>                                        .orElse(Components.defaultExecutorService()).submit(() -&gt; {<a name="line.841"></a>
-<span class="sourceLineNo">842</span>                                        StringWriter content = new StringWriter();<a name="line.842"></a>
-<span class="sourceLineNo">843</span>                                        CharBuffer buffer = CharBuffer.allocate(8192);<a name="line.843"></a>
-<span class="sourceLineNo">844</span>                                        try (Reader in = new BufferedReader(contentReader)) {<a name="line.844"></a>
-<span class="sourceLineNo">845</span>                                                while (true) {<a name="line.845"></a>
-<span class="sourceLineNo">846</span>                                                        if (in.read(buffer) &lt; 0) {<a name="line.846"></a>
-<span class="sourceLineNo">847</span>                                                                break;<a name="line.847"></a>
-<span class="sourceLineNo">848</span>                                                        }<a name="line.848"></a>
-<span class="sourceLineNo">849</span>                                                        buffer.flip();<a name="line.849"></a>
-<span class="sourceLineNo">850</span>                                                        content.append(buffer);<a name="line.850"></a>
-<span class="sourceLineNo">851</span>                                                        buffer.clear();<a name="line.851"></a>
-<span class="sourceLineNo">852</span>                                                }<a name="line.852"></a>
-<span class="sourceLineNo">853</span>                                        } catch (IOException e) {<a name="line.853"></a>
-<span class="sourceLineNo">854</span>                                                throw new IllegalStateException(e);<a name="line.854"></a>
-<span class="sourceLineNo">855</span>                                        }<a name="line.855"></a>
-<span class="sourceLineNo">856</span>                                        return content.toString();<a name="line.856"></a>
-<span class="sourceLineNo">857</span>                                });<a name="line.857"></a>
-<span class="sourceLineNo">858</span><a name="line.858"></a>
-<span class="sourceLineNo">859</span>                }<a name="line.859"></a>
-<span class="sourceLineNo">860</span><a name="line.860"></a>
-<span class="sourceLineNo">861</span>                @Override<a name="line.861"></a>
-<span class="sourceLineNo">862</span>                public Future&lt;String&gt; content() {<a name="line.862"></a>
-<span class="sourceLineNo">863</span>                        return content;<a name="line.863"></a>
-<span class="sourceLineNo">864</span>                }<a name="line.864"></a>
-<span class="sourceLineNo">865</span>        }<a name="line.865"></a>
-<span class="sourceLineNo">866</span>}<a name="line.866"></a>
+<span class="sourceLineNo">667</span>                event.setResult(true);<a name="line.667"></a>
+<span class="sourceLineNo">668</span>                event.stop();<a name="line.668"></a>
+<span class="sourceLineNo">669</span>                portletIds(portalSession).add(event.portletId());<a name="line.669"></a>
+<span class="sourceLineNo">670</span>                updateRefresh();<a name="line.670"></a>
+<span class="sourceLineNo">671</span>                doRenderPortlet(<a name="line.671"></a>
+<span class="sourceLineNo">672</span>                                event, portalSession, event.portletId(), optPortletState.get());<a name="line.672"></a>
+<span class="sourceLineNo">673</span>        }<a name="line.673"></a>
+<span class="sourceLineNo">674</span><a name="line.674"></a>
+<span class="sourceLineNo">675</span>        /**<a name="line.675"></a>
+<span class="sourceLineNo">676</span>         * Called by {@link #onRenderPortlet} to complete rendering<a name="line.676"></a>
+<span class="sourceLineNo">677</span>         * the portlet.<a name="line.677"></a>
+<span class="sourceLineNo">678</span>         * <a name="line.678"></a>
+<span class="sourceLineNo">679</span>         * @param event the event<a name="line.679"></a>
+<span class="sourceLineNo">680</span>         * @param channel the channel<a name="line.680"></a>
+<span class="sourceLineNo">681</span>         * @param portletId the portlet id<a name="line.681"></a>
+<span class="sourceLineNo">682</span>         * @param portletState the portletState<a name="line.682"></a>
+<span class="sourceLineNo">683</span>         */<a name="line.683"></a>
+<span class="sourceLineNo">684</span>        protected abstract void doRenderPortlet(RenderPortletRequest event, <a name="line.684"></a>
+<span class="sourceLineNo">685</span>                        PortalSession channel, String portletId, <a name="line.685"></a>
+<span class="sourceLineNo">686</span>                        Serializable portletState) throws Exception;<a name="line.686"></a>
+<span class="sourceLineNo">687</span>        <a name="line.687"></a>
+<span class="sourceLineNo">688</span>        /**<a name="line.688"></a>
+<span class="sourceLineNo">689</span>         * Checks if the request applies to this component by calling<a name="line.689"></a>
+<span class="sourceLineNo">690</span>         * {@link #stateFromSession(Session, String, Class)}. If a model<a name="line.690"></a>
+<span class="sourceLineNo">691</span>         * is found, calls {@link #doNotifyPortletModel} with the state <a name="line.691"></a>
+<span class="sourceLineNo">692</span>         * information. <a name="line.692"></a>
+<span class="sourceLineNo">693</span>         * <a name="line.693"></a>
+<span class="sourceLineNo">694</span>         * @param event the event<a name="line.694"></a>
+<span class="sourceLineNo">695</span>         * @param channel the channel<a name="line.695"></a>
+<span class="sourceLineNo">696</span>         */<a name="line.696"></a>
+<span class="sourceLineNo">697</span>        @Handler<a name="line.697"></a>
+<span class="sourceLineNo">698</span>        public final void onNotifyPortletModel(NotifyPortletModel event,<a name="line.698"></a>
+<span class="sourceLineNo">699</span>                        PortalSession channel) throws Exception {<a name="line.699"></a>
+<span class="sourceLineNo">700</span>                Optional&lt;? extends Serializable&gt; optPortletState <a name="line.700"></a>
+<span class="sourceLineNo">701</span>                        = stateFromSession(channel.browserSession(), event.portletId(), Serializable.class);<a name="line.701"></a>
+<span class="sourceLineNo">702</span>                if (!optPortletState.isPresent()) {<a name="line.702"></a>
+<span class="sourceLineNo">703</span>                        return;<a name="line.703"></a>
+<span class="sourceLineNo">704</span>                }<a name="line.704"></a>
+<span class="sourceLineNo">705</span>                doNotifyPortletModel(event, channel, optPortletState.get());<a name="line.705"></a>
+<span class="sourceLineNo">706</span>        }<a name="line.706"></a>
+<span class="sourceLineNo">707</span><a name="line.707"></a>
+<span class="sourceLineNo">708</span>        /**<a name="line.708"></a>
+<span class="sourceLineNo">709</span>         * Called by {@link #onNotifyPortletModel} to complete handling<a name="line.709"></a>
+<span class="sourceLineNo">710</span>         * the notification. The default implementation does nothing.<a name="line.710"></a>
+<span class="sourceLineNo">711</span>         * <a name="line.711"></a>
+<span class="sourceLineNo">712</span>         * @param event the event<a name="line.712"></a>
+<span class="sourceLineNo">713</span>         * @param channel the channel<a name="line.713"></a>
+<span class="sourceLineNo">714</span>         * @param portletState the portletState<a name="line.714"></a>
+<span class="sourceLineNo">715</span>         */<a name="line.715"></a>
+<span class="sourceLineNo">716</span>        protected void doNotifyPortletModel(NotifyPortletModel event, <a name="line.716"></a>
+<span class="sourceLineNo">717</span>                        PortalSession channel, Serializable portletState)<a name="line.717"></a>
+<span class="sourceLineNo">718</span>                                        throws Exception {<a name="line.718"></a>
+<span class="sourceLineNo">719</span>        }<a name="line.719"></a>
+<span class="sourceLineNo">720</span>        <a name="line.720"></a>
+<span class="sourceLineNo">721</span>        /**<a name="line.721"></a>
+<span class="sourceLineNo">722</span>         * Removes the {@link PortalSession} from the set of tracked sessions.<a name="line.722"></a>
+<span class="sourceLineNo">723</span>         * If derived portlets need to perform extra actions when a<a name="line.723"></a>
+<span class="sourceLineNo">724</span>         * portalSession is closed, they have to override <a name="line.724"></a>
+<span class="sourceLineNo">725</span>         * {@link #afterOnClosed(Closed, PortalSession)}.<a name="line.725"></a>
+<span class="sourceLineNo">726</span>         * <a name="line.726"></a>
+<span class="sourceLineNo">727</span>         * @param event the closed event<a name="line.727"></a>
+<span class="sourceLineNo">728</span>         * @param portalSession the portal session<a name="line.728"></a>
+<span class="sourceLineNo">729</span>         */<a name="line.729"></a>
+<span class="sourceLineNo">730</span>        @Handler<a name="line.730"></a>
+<span class="sourceLineNo">731</span>        public final void onClosed(Closed event, PortalSession portalSession) {<a name="line.731"></a>
+<span class="sourceLineNo">732</span>                if (portletIdsByPortalSession != null) {<a name="line.732"></a>
+<span class="sourceLineNo">733</span>                        portletIdsByPortalSession.remove(portalSession);<a name="line.733"></a>
+<span class="sourceLineNo">734</span>                        updateRefresh();<a name="line.734"></a>
+<span class="sourceLineNo">735</span>                }<a name="line.735"></a>
+<span class="sourceLineNo">736</span>                afterOnClosed(event, portalSession);<a name="line.736"></a>
+<span class="sourceLineNo">737</span>        }<a name="line.737"></a>
+<span class="sourceLineNo">738</span><a name="line.738"></a>
+<span class="sourceLineNo">739</span>        /**<a name="line.739"></a>
+<span class="sourceLineNo">740</span>         * Invoked by {@link #onClosed(Closed, PortalSession)} after<a name="line.740"></a>
+<span class="sourceLineNo">741</span>         * the portal session has been removed from the set of<a name="line.741"></a>
+<span class="sourceLineNo">742</span>         * tracked sessions. The default implementation does<a name="line.742"></a>
+<span class="sourceLineNo">743</span>         * nothing.<a name="line.743"></a>
+<span class="sourceLineNo">744</span>         * <a name="line.744"></a>
+<span class="sourceLineNo">745</span>         * @param event the closed event<a name="line.745"></a>
+<span class="sourceLineNo">746</span>         * @param portalSession the portal session<a name="line.746"></a>
+<span class="sourceLineNo">747</span>         */<a name="line.747"></a>
+<span class="sourceLineNo">748</span>        protected void afterOnClosed(Closed event, PortalSession portalSession) {<a name="line.748"></a>
+<span class="sourceLineNo">749</span>        }<a name="line.749"></a>
+<span class="sourceLineNo">750</span>        <a name="line.750"></a>
+<span class="sourceLineNo">751</span>        /**<a name="line.751"></a>
+<span class="sourceLineNo">752</span>         * Defines the portlet model following the JavaBean conventions.<a name="line.752"></a>
+<span class="sourceLineNo">753</span>         * <a name="line.753"></a>
+<span class="sourceLineNo">754</span>         * Portlet models should follow these conventions because<a name="line.754"></a>
+<span class="sourceLineNo">755</span>         * many template engines rely on them and to support serialization<a name="line.755"></a>
+<span class="sourceLineNo">756</span>         * to portable formats. <a name="line.756"></a>
+<span class="sourceLineNo">757</span>         */<a name="line.757"></a>
+<span class="sourceLineNo">758</span>        @SuppressWarnings("serial")<a name="line.758"></a>
+<span class="sourceLineNo">759</span>        public static class PortletBaseModel implements Serializable {<a name="line.759"></a>
+<span class="sourceLineNo">760</span><a name="line.760"></a>
+<span class="sourceLineNo">761</span>                protected String portletId;<a name="line.761"></a>
+<span class="sourceLineNo">762</span><a name="line.762"></a>
+<span class="sourceLineNo">763</span>                /**<a name="line.763"></a>
+<span class="sourceLineNo">764</span>                 * Creates a new model with the given type and id.<a name="line.764"></a>
+<span class="sourceLineNo">765</span>                 * <a name="line.765"></a>
+<span class="sourceLineNo">766</span>                 * @param portletId the portlet id<a name="line.766"></a>
+<span class="sourceLineNo">767</span>                 */<a name="line.767"></a>
+<span class="sourceLineNo">768</span>                @ConstructorProperties({"portletId"})<a name="line.768"></a>
+<span class="sourceLineNo">769</span>                public PortletBaseModel(String portletId) {<a name="line.769"></a>
+<span class="sourceLineNo">770</span>                        this.portletId = portletId;<a name="line.770"></a>
+<span class="sourceLineNo">771</span>                }<a name="line.771"></a>
+<span class="sourceLineNo">772</span><a name="line.772"></a>
+<span class="sourceLineNo">773</span>                /**<a name="line.773"></a>
+<span class="sourceLineNo">774</span>                 * Returns the portlet id.<a name="line.774"></a>
+<span class="sourceLineNo">775</span>                 * <a name="line.775"></a>
+<span class="sourceLineNo">776</span>                 * @return the portlet id<a name="line.776"></a>
+<span class="sourceLineNo">777</span>                 */<a name="line.777"></a>
+<span class="sourceLineNo">778</span>                public String getPortletId() {<a name="line.778"></a>
+<span class="sourceLineNo">779</span>                        return portletId;<a name="line.779"></a>
+<span class="sourceLineNo">780</span>                }<a name="line.780"></a>
+<span class="sourceLineNo">781</span><a name="line.781"></a>
+<span class="sourceLineNo">782</span>                /* (non-Javadoc)<a name="line.782"></a>
+<span class="sourceLineNo">783</span>                 * @see java.lang.Object#hashCode()<a name="line.783"></a>
+<span class="sourceLineNo">784</span>                 */<a name="line.784"></a>
+<span class="sourceLineNo">785</span>                @Override<a name="line.785"></a>
+<span class="sourceLineNo">786</span>                public int hashCode() {<a name="line.786"></a>
+<span class="sourceLineNo">787</span>                        final int prime = 31;<a name="line.787"></a>
+<span class="sourceLineNo">788</span>                        int result = 1;<a name="line.788"></a>
+<span class="sourceLineNo">789</span>                        result = prime * result<a name="line.789"></a>
+<span class="sourceLineNo">790</span>                                + ((portletId == null) ? 0 : portletId.hashCode());<a name="line.790"></a>
+<span class="sourceLineNo">791</span>                        return result;<a name="line.791"></a>
+<span class="sourceLineNo">792</span>                }<a name="line.792"></a>
+<span class="sourceLineNo">793</span><a name="line.793"></a>
+<span class="sourceLineNo">794</span>                /**<a name="line.794"></a>
+<span class="sourceLineNo">795</span>                 * Two objects are equal if they have equal portlet ids.<a name="line.795"></a>
+<span class="sourceLineNo">796</span>                 * <a name="line.796"></a>
+<span class="sourceLineNo">797</span>                 * @param obj the other object<a name="line.797"></a>
+<span class="sourceLineNo">798</span>                 * @return the result<a name="line.798"></a>
+<span class="sourceLineNo">799</span>                 */<a name="line.799"></a>
+<span class="sourceLineNo">800</span>                @Override<a name="line.800"></a>
+<span class="sourceLineNo">801</span>                public boolean equals(Object obj) {<a name="line.801"></a>
+<span class="sourceLineNo">802</span>                        if (this == obj) {<a name="line.802"></a>
+<span class="sourceLineNo">803</span>                                return true;<a name="line.803"></a>
+<span class="sourceLineNo">804</span>                        }<a name="line.804"></a>
+<span class="sourceLineNo">805</span>                        if (obj == null) {<a name="line.805"></a>
+<span class="sourceLineNo">806</span>                                return false;<a name="line.806"></a>
+<span class="sourceLineNo">807</span>                        }<a name="line.807"></a>
+<span class="sourceLineNo">808</span>                        if (getClass() != obj.getClass()) {<a name="line.808"></a>
+<span class="sourceLineNo">809</span>                                return false;<a name="line.809"></a>
+<span class="sourceLineNo">810</span>                        }<a name="line.810"></a>
+<span class="sourceLineNo">811</span>                        PortletBaseModel other = (PortletBaseModel) obj;<a name="line.811"></a>
+<span class="sourceLineNo">812</span>                        if (portletId == null) {<a name="line.812"></a>
+<span class="sourceLineNo">813</span>                                if (other.portletId != null) {<a name="line.813"></a>
+<span class="sourceLineNo">814</span>                                        return false;<a name="line.814"></a>
+<span class="sourceLineNo">815</span>                                }<a name="line.815"></a>
+<span class="sourceLineNo">816</span>                        } else if (!portletId.equals(other.portletId)) {<a name="line.816"></a>
+<span class="sourceLineNo">817</span>                                return false;<a name="line.817"></a>
+<span class="sourceLineNo">818</span>                        }<a name="line.818"></a>
+<span class="sourceLineNo">819</span>                        return true;<a name="line.819"></a>
+<span class="sourceLineNo">820</span>                }<a name="line.820"></a>
+<span class="sourceLineNo">821</span>        }<a name="line.821"></a>
+<span class="sourceLineNo">822</span>        <a name="line.822"></a>
+<span class="sourceLineNo">823</span>        /**<a name="line.823"></a>
+<span class="sourceLineNo">824</span>         * Send to the portal page for adding or updating a complete portlet<a name="line.824"></a>
+<span class="sourceLineNo">825</span>         * representation.<a name="line.825"></a>
+<span class="sourceLineNo">826</span>         */<a name="line.826"></a>
+<span class="sourceLineNo">827</span>        public class RenderPortletFromReader extends RenderPortlet {<a name="line.827"></a>
+<span class="sourceLineNo">828</span><a name="line.828"></a>
+<span class="sourceLineNo">829</span>                private Future&lt;String&gt; content;<a name="line.829"></a>
+<span class="sourceLineNo">830</span><a name="line.830"></a>
+<span class="sourceLineNo">831</span>                /**<a name="line.831"></a>
+<span class="sourceLineNo">832</span>                 * Creates a new event.<a name="line.832"></a>
+<span class="sourceLineNo">833</span>                 * <a name="line.833"></a>
+<span class="sourceLineNo">834</span>                 * @param portletClass the portlet class<a name="line.834"></a>
+<span class="sourceLineNo">835</span>                 * @param portletId the id of the portlet<a name="line.835"></a>
+<span class="sourceLineNo">836</span>                 */<a name="line.836"></a>
+<span class="sourceLineNo">837</span>                public RenderPortletFromReader(RenderPortletRequestBase&lt;?&gt; request,<a name="line.837"></a>
+<span class="sourceLineNo">838</span>                                Class&lt;?&gt; portletClass, String portletId, Reader contentReader) {<a name="line.838"></a>
+<span class="sourceLineNo">839</span>                        super(portletClass, portletId);<a name="line.839"></a>
+<span class="sourceLineNo">840</span>                        // Start to prepare the content immediately and concurrently.<a name="line.840"></a>
+<span class="sourceLineNo">841</span>                        content = request.processedBy().map(pb -&gt; pb.executorService())<a name="line.841"></a>
+<span class="sourceLineNo">842</span>                                        .orElse(Components.defaultExecutorService()).submit(() -&gt; {<a name="line.842"></a>
+<span class="sourceLineNo">843</span>                                        StringWriter content = new StringWriter();<a name="line.843"></a>
+<span class="sourceLineNo">844</span>                                        CharBuffer buffer = CharBuffer.allocate(8192);<a name="line.844"></a>
+<span class="sourceLineNo">845</span>                                        try (Reader in = new BufferedReader(contentReader)) {<a name="line.845"></a>
+<span class="sourceLineNo">846</span>                                                while (true) {<a name="line.846"></a>
+<span class="sourceLineNo">847</span>                                                        if (in.read(buffer) &lt; 0) {<a name="line.847"></a>
+<span class="sourceLineNo">848</span>                                                                break;<a name="line.848"></a>
+<span class="sourceLineNo">849</span>                                                        }<a name="line.849"></a>
+<span class="sourceLineNo">850</span>                                                        buffer.flip();<a name="line.850"></a>
+<span class="sourceLineNo">851</span>                                                        content.append(buffer);<a name="line.851"></a>
+<span class="sourceLineNo">852</span>                                                        buffer.clear();<a name="line.852"></a>
+<span class="sourceLineNo">853</span>                                                }<a name="line.853"></a>
+<span class="sourceLineNo">854</span>                                        } catch (IOException e) {<a name="line.854"></a>
+<span class="sourceLineNo">855</span>                                                throw new IllegalStateException(e);<a name="line.855"></a>
+<span class="sourceLineNo">856</span>                                        }<a name="line.856"></a>
+<span class="sourceLineNo">857</span>                                        return content.toString();<a name="line.857"></a>
+<span class="sourceLineNo">858</span>                                });<a name="line.858"></a>
+<span class="sourceLineNo">859</span><a name="line.859"></a>
+<span class="sourceLineNo">860</span>                }<a name="line.860"></a>
+<span class="sourceLineNo">861</span><a name="line.861"></a>
+<span class="sourceLineNo">862</span>                @Override<a name="line.862"></a>
+<span class="sourceLineNo">863</span>                public Future&lt;String&gt; content() {<a name="line.863"></a>
+<span class="sourceLineNo">864</span>                        return content;<a name="line.864"></a>
+<span class="sourceLineNo">865</span>                }<a name="line.865"></a>
+<span class="sourceLineNo">866</span>        }<a name="line.866"></a>
+<span class="sourceLineNo">867</span>}<a name="line.867"></a>
 
 
 
