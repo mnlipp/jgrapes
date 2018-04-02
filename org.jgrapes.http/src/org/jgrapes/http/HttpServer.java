@@ -647,6 +647,7 @@ public class HttpServer extends Component {
 			// Response is sent, channel may be used by next level now.
 			synchronized (syncUpgrading) {
 				upgradedTo = UpgradedState.WEB_SOCKET;
+				syncUpgrading.notifyAll();
 			}
 		}
 
