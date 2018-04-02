@@ -135,7 +135,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 			}
 		} finally {
 			Thread.currentThread().setName(origName);
-			newEventsParent.set(null);;
+			newEventsParent.set(null);
 			FeedBackPipelineFilter.setAssociatedPipeline(null);
 		}
 	}

@@ -91,6 +91,11 @@ class ComponentTree {
 			super(Channel.SELF);
 		}
 		
+		/**
+		 * Dummy handler does nothing.
+		 * 
+		 * @param event the event
+		 */
 		@Handler(channels={Channel.class})
 		public void noop(Event<?> event) {
 		}

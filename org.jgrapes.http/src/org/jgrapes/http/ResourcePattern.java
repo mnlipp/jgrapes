@@ -265,7 +265,7 @@ public class ResourcePattern {
 			if (reqIdx == reqElements.length) {
 				return false;
 			}
-			if (matchElement.equals("**")) {
+			if ("**".equals(matchElement)) {
 				return true;
 			}
 			String reqElement = reqElements[reqIdx++];

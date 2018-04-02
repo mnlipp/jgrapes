@@ -43,14 +43,14 @@ import org.jgrapes.core.internal.GeneratorRegistry;
  */
 public class Components {
 
-	private Components() {
-	}
-	
 	private static ExecutorService defaultExecutorService 
 		= Executors.newCachedThreadPool();
 
 	private static ExecutorService timerExecutorService
 		= defaultExecutorService;
+	
+	private Components() {
+	}
 	
 	/**
 	 * Return the default executor service for the framework.

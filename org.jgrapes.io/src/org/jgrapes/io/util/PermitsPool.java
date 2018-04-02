@@ -34,6 +34,11 @@ import java.util.concurrent.Semaphore;
  */
 public class PermitsPool {
 
+	private MySemaphore delegee;
+	private List<WeakReference<AvailabilityListener>> 
+		listeners = new LinkedList<>();
+	private boolean lastNotification = true;
+	
 	private static class MySemaphore extends Semaphore {
 		private static final long serialVersionUID = 8758302721594300704L;
 
@@ -46,11 +51,6 @@ public class PermitsPool {
 			super.reducePermits(reduction);
 		}
 	}
-	
-	private MySemaphore delegee;
-	private List<WeakReference<AvailabilityListener>> 
-		listeners = new LinkedList<>();
-	private boolean lastNotification = true;
 	
 	/**
 	 * Instantiates a new permits pool.

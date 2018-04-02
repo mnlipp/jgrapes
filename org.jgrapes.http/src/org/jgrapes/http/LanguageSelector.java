@@ -118,7 +118,7 @@ public class LanguageSelector extends Component {
 	 */
 	public LanguageSelector(Channel componentChannel, String scope) {
 		super(componentChannel);
-		if (scope.equals("/") || !scope.endsWith("/")) {
+		if ("/".equals(scope) || !scope.endsWith("/")) {
 			path = scope;
 		} else {
 			path = scope.substring(0, scope.length() - 1);

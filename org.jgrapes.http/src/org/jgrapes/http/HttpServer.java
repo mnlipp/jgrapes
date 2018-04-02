@@ -98,14 +98,14 @@ import org.jgrapes.net.events.Accepted;
  */
 public class HttpServer extends Component {
 
-	private static class NetworkChannel extends ClassChannel {}
-	
 	private WeakReference<Channel> networkChannelPassBack;
 	private List<Class<? extends Request>> providedFallbacks;
 	private int matchLevels = 1;
 	boolean acceptNoSni = false;
 	int applicationBufferSize = -1;
 
+	private static class NetworkChannel extends ClassChannel {}
+	
 	/**
 	 * Create a new server that uses the {@code networkChannel} for network
 	 * level I/O.

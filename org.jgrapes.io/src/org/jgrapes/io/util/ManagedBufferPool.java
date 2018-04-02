@@ -345,6 +345,10 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	 */
 	private class BufferMonitor {
 		
+		private Entry<W>[] data;
+		private int indexMask = 0;
+		private ReferenceQueue<W> orphanedEntries = new ReferenceQueue<>();
+	
 		private class Entry<B extends ManagedBuffer<?>> extends WeakReference<B> 
 			implements Map.Entry<B, BufferProperties> {
 			int index;
@@ -375,10 +379,6 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			}
 		}
 		
-		private Entry<W>[] data;
-		private int indexMask = 0;
-		private ReferenceQueue<W> orphanedEntries = new ReferenceQueue<>();
-	
 		/**
 		 * @param data
 		 */

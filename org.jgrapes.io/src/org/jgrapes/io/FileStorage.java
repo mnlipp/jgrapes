@@ -364,6 +364,14 @@ public class FileStorage extends Component {
 
 	private class Writer {
 
+		private final IOSubchannel channel;
+		private Path path;
+		private AsynchronousFileChannel ioChannel = null;
+		private long offset = 0;
+		private CompletionHandler<Integer, WriteContext> 
+			writeCompletionHandler = new WriteCompletionHandler();
+		private int outstandingAsyncs = 0;
+
 		/**
 		 * The write context needs to be finer grained than the general file
 		 * connection context because an asynchronous write may be only
@@ -380,14 +388,6 @@ public class FileStorage extends Component {
 				this.pos = pos;
 			}
 		}
-
-		private final IOSubchannel channel;
-		private Path path;
-		private AsynchronousFileChannel ioChannel = null;
-		private long offset = 0;
-		private CompletionHandler<Integer, WriteContext> 
-			writeCompletionHandler = new WriteCompletionHandler();
-		private int outstandingAsyncs = 0;
 
 		public Writer(SaveInput event, IOSubchannel channel)
 		        throws InterruptedException {

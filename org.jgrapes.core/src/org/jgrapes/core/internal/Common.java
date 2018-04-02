@@ -32,9 +32,6 @@ import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
  */
 public class Common {
 
-	private Common() {
-	}
-
 	static final Logger fireRestrictionLogger 
 		= Logger.getLogger(Common.class.getPackage().getName()
 				+ ".fireRestriction");	
@@ -45,6 +42,9 @@ public class Common {
 			= Collections.synchronizedMap(new HashMap<>());
 	private static AssertionError assertionError = null;
 	
+	private Common() {
+	}
+
 	public static Evaluator definitionEvaluator(
 	        HandlerDefinition hda) {
 		return definitionEvaluators.computeIfAbsent(hda.evaluator(), key -> {
