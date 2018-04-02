@@ -1,7 +1,7 @@
 JGrapes
 =======
 
-[![Build Status](https://travis-ci.org/mnlipp/jgrapes.svg?branch=master)](https://travis-ci.org/mnlipp/jgrapes)
+[![Build Status](https://travis-ci.org/mnlipp/jgrapes.svg?branch=master)](https://travis-ci.org/mnlipp/jgrapes) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/42ed1920969d4b878d7ce80c08141a85)](https://www.codacy.com/app/mnlipp/jgrapes?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mnlipp/jgrapes&amp;utm_campaign=Badge_Grade)
 
 | Package | Maven |
 | ------- | ----- |
