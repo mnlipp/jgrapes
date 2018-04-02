@@ -126,7 +126,7 @@
 <span class="sourceLineNo">118</span>         */<a name="line.118"></a>
 <span class="sourceLineNo">119</span>        public LanguageSelector(Channel componentChannel, String scope) {<a name="line.119"></a>
 <span class="sourceLineNo">120</span>                super(componentChannel);<a name="line.120"></a>
-<span class="sourceLineNo">121</span>                if (scope.equals("/") || !scope.endsWith("/")) {<a name="line.121"></a>
+<span class="sourceLineNo">121</span>                if ("/".equals(scope) || !scope.endsWith("/")) {<a name="line.121"></a>
 <span class="sourceLineNo">122</span>                        path = scope;<a name="line.122"></a>
 <span class="sourceLineNo">123</span>                } else {<a name="line.123"></a>
 <span class="sourceLineNo">124</span>                        path = scope.substring(0, scope.length() - 1);<a name="line.124"></a>
