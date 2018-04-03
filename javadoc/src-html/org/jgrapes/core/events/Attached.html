@@ -36,8 +36,8 @@
 <span class="sourceLineNo">028</span> */<a name="line.28"></a>
 <span class="sourceLineNo">029</span>public class Attached extends Event&lt;Void&gt; {<a name="line.29"></a>
 <span class="sourceLineNo">030</span><a name="line.30"></a>
-<span class="sourceLineNo">031</span>        private ComponentType node;<a name="line.31"></a>
-<span class="sourceLineNo">032</span>        private ComponentType parent;<a name="line.32"></a>
+<span class="sourceLineNo">031</span>        private final ComponentType node;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>        private final ComponentType parent;<a name="line.32"></a>
 <span class="sourceLineNo">033</span>        <a name="line.33"></a>
 <span class="sourceLineNo">034</span>        /**<a name="line.34"></a>
 <span class="sourceLineNo">035</span>         * Creates a new event. The event is fired on both the<a name="line.35"></a>
@@ -79,21 +79,21 @@
 <span class="sourceLineNo">071</span>        @Override<a name="line.71"></a>
 <span class="sourceLineNo">072</span>        public String toString() {<a name="line.72"></a>
 <span class="sourceLineNo">073</span>                StringBuilder builder = new StringBuilder();<a name="line.73"></a>
-<span class="sourceLineNo">074</span>                builder.append(Components.objectName(this));<a name="line.74"></a>
-<span class="sourceLineNo">075</span>                builder.append(" [");<a name="line.75"></a>
+<span class="sourceLineNo">074</span>                builder.append(Components.objectName(this))<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                        .append(" [");<a name="line.75"></a>
 <span class="sourceLineNo">076</span>                if (parent == null) {<a name="line.76"></a>
 <span class="sourceLineNo">077</span>                        builder.append("ROOT");<a name="line.77"></a>
 <span class="sourceLineNo">078</span>                } else {<a name="line.78"></a>
 <span class="sourceLineNo">079</span>                        builder.append(parent);<a name="line.79"></a>
 <span class="sourceLineNo">080</span>                }<a name="line.80"></a>
-<span class="sourceLineNo">081</span>                builder.append(" &lt;―― ");<a name="line.81"></a>
-<span class="sourceLineNo">082</span>                builder.append(node);<a name="line.82"></a>
-<span class="sourceLineNo">083</span>                builder.append(", ");<a name="line.83"></a>
-<span class="sourceLineNo">084</span>                if (channels() != null) {<a name="line.84"></a>
+<span class="sourceLineNo">081</span>                builder.append(" &lt;―― ")<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                        .append(node)<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                        .append(", ");<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                if (channels().length &gt; 0) {<a name="line.84"></a>
 <span class="sourceLineNo">085</span>                        builder.append("channels=");<a name="line.85"></a>
 <span class="sourceLineNo">086</span>                        builder.append(Channel.toString(channels()));<a name="line.86"></a>
 <span class="sourceLineNo">087</span>                }<a name="line.87"></a>
-<span class="sourceLineNo">088</span>                builder.append("]");<a name="line.88"></a>
+<span class="sourceLineNo">088</span>                builder.append(']');<a name="line.88"></a>
 <span class="sourceLineNo">089</span>                return builder.toString();<a name="line.89"></a>
 <span class="sourceLineNo">090</span>        }<a name="line.90"></a>
 <span class="sourceLineNo">091</span>        <a name="line.91"></a>
