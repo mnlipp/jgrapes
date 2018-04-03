@@ -27,8 +27,8 @@ import org.jgrapes.core.Event;
  */
 public class Error extends Event<Void> {
 
-	private Event<?> event;
-	private String message;
+	private final Event<?> event;
+	private final String message;
 	private Throwable throwable;
 	
 	/**
@@ -76,8 +76,8 @@ public class Error extends Event<Void> {
 	 */
 	public Error(Event<?> event, Throwable throwable) {
 		this.event = event;
-		this.message = throwable.getMessage() != null 
-				? throwable.getMessage() : throwable.getClass().getName();
+		this.message = throwable.getMessage() == null 
+				? throwable.getClass().getName() : throwable.getMessage();
 		this.throwable = throwable;
 	}
 
@@ -115,9 +115,9 @@ public class Error extends Event<Void> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append(" [");
-		if (channels() != null) {
+		builder.append(Components.objectName(this))
+			.append(" [");
+		if (channels().length > 0) {
 			builder.append("channels=");
 			builder.append(Channel.toString(channels()));
 		}
@@ -126,7 +126,7 @@ public class Error extends Event<Void> {
 			builder.append(message);
 			builder.append('"');
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 }

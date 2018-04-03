@@ -31,17 +31,22 @@ import org.jgrapes.core.ComponentType;
  */
 public class GeneratorRegistry {
 
+	@SuppressWarnings("PMD.VariableNamingConventions")
 	private static final Logger generatorTracking 
 		= Logger.getLogger(ComponentType.class.getPackage().getName() 
 		+ ".generatorTracking");
 
-	private static final class InstanceHolder {
-		static final GeneratorRegistry INSTANCE = new GeneratorRegistry();
-	}
-	
-	private long running = 0;
+	private long running;
 	private Thread keepAlive;
-	private Map<Object,Object> generators = null;
+	private Map<Object,Object> generators;
+	
+	/**
+	 * Holds a generator instance.
+	 */
+	private static final class InstanceHolder {
+		@SuppressWarnings("PMD.AccessorClassGeneration")
+		private static final GeneratorRegistry INSTANCE = new GeneratorRegistry();
+	}
 	
 	private GeneratorRegistry() {
 		if (generatorTracking.isLoggable(Level.FINE)) {
@@ -49,93 +54,141 @@ public class GeneratorRegistry {
 		}
 	}
 
+	/**
+	 * Returns the singleton instance of the registry.
+	 *
+	 * @return the generator registry
+	 */
 	public static GeneratorRegistry instance() {
 		return InstanceHolder.INSTANCE;
 	}
 	
-	public synchronized void add(Object obj) {
-		running += 1;
-		if (generators != null) {
-			generators.put(obj, null);
-			generatorTracking.finest("Added generator " + obj 
-					+ ", " + generators.size() + " generators registered: "
-					+ generators.keySet());
-		}
-		if (running == 1) {
-			keepAlive = new Thread("GeneratorRegistry") {
-				@Override
-				public void run() {
-					try {
-						while (true) {
-							Thread.sleep(Long.MAX_VALUE);
+	/**
+	 * Adds a generator.
+	 *
+	 * @param obj the obj
+	 */
+	@SuppressWarnings({ "PMD.GuardLogStatement", "PMD.AvoidDuplicateLiterals" })
+	public void add(Object obj) {
+		synchronized (this) {
+			running += 1;
+			if (generators != null) {
+				generators.put(obj, null);
+				generatorTracking.finest(() -> "Added generator " + obj
+				        + ", " + generators.size() + " generators registered: "
+				        + generators.keySet());
+			}
+			if (running == 1) { // NOPMD, no, not using a constant for this.
+				keepAlive = new Thread("GeneratorRegistry") {
+					@Override
+					public void run() {
+						try {
+							while (true) {
+								Thread.sleep(Long.MAX_VALUE);
+							}
+						} catch (InterruptedException e) {
+							// Okay, then stop
 						}
-					} catch (InterruptedException e) {
-						// Okay, then stop
 					}
-				}
-			};
-			keepAlive.start();
+				};
+				keepAlive.start();
+			}
 		}
 	}
 	
-	public synchronized void remove(Object obj) {
-		running -= 1;
-		if (generators != null) {
-			generators.remove(obj);
-			generatorTracking.finest("Removed generator " + obj 
-					+ ", " + generators.size() + " generators registered: "
-					+ generators.keySet());
-		}
-		if (running == 0) {
-			keepAlive.interrupt();
-			notifyAll();
+	/**
+	 * Removes the generator.
+	 *
+	 * @param obj the generator
+	 */
+	@SuppressWarnings("PMD.GuardLogStatement")
+	public void remove(Object obj) {
+		synchronized (this) {
+			running -= 1;
+			if (generators != null) {
+				generators.remove(obj);
+				generatorTracking.finest(() -> "Removed generator " + obj
+				        + ", " + generators.size() + " generators registered: "
+				        + generators.keySet());
+			}
+			if (running == 0) {
+				keepAlive.interrupt();
+				notifyAll();
+			}
 		}
 	}
 	
+	/**
+	 * Checks if is exhausted (no generators left)
+	 *
+	 * @return true, if is exhausted
+	 */
 	public boolean isExhausted() {
 		return running == 0;
 	}
 	
-	public synchronized void awaitExhaustion() throws InterruptedException {
-		if (generators != null) {
-			if (running != generators.size()) {
-				generatorTracking.severe(
-						"Generator count doesn't match tracked.");
-			}
-		}
-		while (running > 0) {
+	/**
+	 * Await exhaustion.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
+	@SuppressWarnings({ "PMD.CollapsibleIfStatements",
+	        "PMD.GuardLogStatement" })
+	public void awaitExhaustion() throws InterruptedException {
+		synchronized (this) {
 			if (generators != null) {
-				generatorTracking.fine(
-						"Thread " + Thread.currentThread().getName() 
-						+ " is waiting, " + generators.size() 
-						+ " generators registered: " + generators.keySet());
+				if (running != generators.size()) {
+					generatorTracking.severe(() ->
+					        "Generator count doesn't match tracked.");
+				}
 			}
-			wait();
+			while (running > 0) {
+				if (generators != null) {
+					generatorTracking.fine(() -> 
+					        "Thread " + Thread.currentThread().getName()
+					                + " is waiting, " + generators.size()
+					                + " generators registered: "
+					                + generators.keySet());
+				}
+				wait();
+			}
+			generatorTracking
+			        .finest("Thread " + Thread.currentThread().getName()
+			                + " continues.");
 		}
-		generatorTracking.finest("Thread " + Thread.currentThread().getName() 
-				+ " continues.");
 	}
 	
-	public synchronized boolean awaitExhaustion(long timeout) 
+	/**
+	 * Await exhaustion with a timeout.
+	 *
+	 * @param timeout the timeout
+	 * @return true, if successful
+	 * @throws InterruptedException the interrupted exception
+	 */
+	@SuppressWarnings({ "PMD.CollapsibleIfStatements",
+	        "PMD.GuardLogStatement" })
+	public boolean awaitExhaustion(long timeout) 
 			throws InterruptedException {
-		if (generators != null) {
-			if (running != generators.size()) {
-				generatorTracking.severe(
-						"Generator count doesn't match tracked.");
+		synchronized(this) {
+			if (generators != null) {
+				if (running != generators.size()) {
+					generatorTracking.severe(
+					        "Generator count doesn't match tracked.");
+				}
 			}
+			if (isExhausted()) {
+				return true;
+			}
+			if (generators != null) {
+				generatorTracking.fine(() ->
+				        "Waiting, generators: " + generators.keySet());
+			}
+			wait(timeout);
+			if (generators != null) {
+				generatorTracking.fine(() ->
+				        "Waited, generators: " + generators.keySet());
+			}
+			return isExhausted();
 		}
-		if (isExhausted()) {
-			return true;
-		}
-		if (generators != null) {
-			generatorTracking.fine(
-					"Waiting, generators: " + generators.keySet());
-		}
-		wait(timeout);
-		if (generators != null) {
-			generatorTracking.fine(
-					"Waited, generators: " + generators.keySet());
-		}
-		return isExhausted();
 	}
 }

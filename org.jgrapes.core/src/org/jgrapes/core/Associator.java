@@ -38,6 +38,7 @@ public interface Associator {
 	 * @param with the object to be associated
 	 * @return the sub channel for easy chaining
 	 */
+	@SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })
 	Associator setAssociated(Object by, Object with);
 
 	/**
@@ -51,6 +52,7 @@ public interface Associator {
 	 * @param <V> the type of the value to be retrieved
 	 * @return the associate with the given type, if any
 	 */
+	@SuppressWarnings("PMD.ShortVariable")
 	<V> Optional<V> associated(Object by, Class<V> type);
 	
 	/**
@@ -63,7 +65,7 @@ public interface Associator {
 	 * @param <V> the type of the value to be retrieved
 	 * @return the associate, if any
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "PMD.ShortVariable" })
 	default <V> V associated(Object by, Supplier<V> supplier) {
 		return (V)associated(by, Object.class).orElseGet(() -> {
 			V associated = supplier.get();
@@ -80,6 +82,7 @@ public interface Associator {
 	 * @param by the name
 	 * @return the associate, if any
 	 */
+	@SuppressWarnings("PMD.ShortVariable")
 	default Optional<String> associated(String by) {
 		return associated(by, String.class);
 	}
@@ -93,6 +96,7 @@ public interface Associator {
 	 * @param by the name
 	 * @return the associate, if any
 	 */
+	@SuppressWarnings("PMD.ShortVariable")
 	default <V> Optional<V> associated(Class<V> by) {
 		return associated(by, by);
 	}

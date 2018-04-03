@@ -30,8 +30,8 @@ import org.jgrapes.core.Event;
  */
 public class Detached extends Event<Void> {
 
-	private ComponentType node;
-	private ComponentType parent;
+	private final ComponentType node;
+	private final ComponentType parent;
 	
 	/**
 	 * Creates a new event.
@@ -64,17 +64,17 @@ public class Detached extends Event<Void> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append(" [");
-		builder.append(parent);
-		builder.append(" <―/― ");
-		builder.append(node);
-		builder.append(", ");
-		if (channels() != null) {
+		builder.append(Components.objectName(this))
+			.append(" [")
+			.append(parent)
+			.append(" <―/― ")
+			.append(node)
+			.append(", ");
+		if (channels().length > 0) {
 			builder.append("channels=");
 			builder.append(Channel.toString(channels()));
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 	

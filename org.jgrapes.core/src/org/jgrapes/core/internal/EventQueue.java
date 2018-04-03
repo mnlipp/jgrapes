@@ -37,6 +37,7 @@ class EventQueue extends ConcurrentLinkedDeque<EventChannelsTuple> {
 	 * @param event the event
 	 * @param channels the channels
 	 */
+	@SuppressWarnings("PMD.UseVarargs")
 	public void add(EventBase<?> event, Channel[] channels) {
 		add(new EventChannelsTuple(event, channels));
 	}

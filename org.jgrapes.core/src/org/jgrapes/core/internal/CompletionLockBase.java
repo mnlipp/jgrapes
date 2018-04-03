@@ -21,13 +21,16 @@ package org.jgrapes.core.internal;
 import java.time.Instant;
 
 import org.jgrapes.core.Components;
-import org.jgrapes.core.internal.EventBase;
 
+/**
+ * The base class for completeion locks.
+ */
+@SuppressWarnings("PMD.AbstractClassWithoutAbstractMethod")
 public abstract class CompletionLockBase {
 
-	private EventBase<?> event;
-	private long timeout = 0;
-	private Components.Timer timer = null;
+	private final EventBase<?> event;
+	private final long timeout;
+	private Components.Timer timer;
 
 	/**
 	 * @param event the event to be locked
@@ -39,7 +42,7 @@ public abstract class CompletionLockBase {
 		event.addCompletionLock(this);
 	}
 	
-	long getTimeout() {
+	/* default */ long getTimeout() {
 		return timeout;
 	}
 
@@ -53,7 +56,7 @@ public abstract class CompletionLockBase {
 		event.removeCompletionLock(this);
 	}
 	
-	CompletionLockBase startTimer() {
+	/* default */ CompletionLockBase startTimer() {
 		if (timeout == 0) {
 			return this;
 		}
@@ -63,7 +66,7 @@ public abstract class CompletionLockBase {
 		return this;
 	}
 
-	void cancelTimer() {
+	/* default */ void cancelTimer() {
 		synchronized (this) {
 			if (timer != null) {
 				timer.cancel();

@@ -22,6 +22,7 @@ package org.jgrapes.core;
  * This interface type can be used to specify the object
  * itself as channel in handler annotations.
  */
+@SuppressWarnings("PMD.ShortClassName")
 public interface Self extends Channel {
 
 }

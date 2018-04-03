@@ -26,7 +26,6 @@ import java.lang.annotation.Target;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ClassChannel;
-import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.Handler.NoChannel;
 
@@ -39,8 +38,8 @@ import org.jgrapes.core.annotation.Handler.NoChannel;
  * (or {@link org.jgrapes.core.Components#manager(ComponentType, Channel)}).
  */
 @Documented
-@Retention(value=RetentionPolicy.RUNTIME)
-@Target(value=ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 public @interface ComponentManager {
 	
 	/**

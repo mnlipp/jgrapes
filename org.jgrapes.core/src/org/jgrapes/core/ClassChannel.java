@@ -89,7 +89,7 @@ public class ClassChannel implements Channel {
 	public String toString() {
 		return Components.className(getClass())
 				+ " [criterion=" 
-				+ ((defaultCriterion() instanceof Class)
+				+ (defaultCriterion() instanceof Class
 					?  Components.className((Class<?>)defaultCriterion())
 					: defaultCriterion())
 				+ "]";

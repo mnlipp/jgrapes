@@ -42,9 +42,8 @@ class CheckingPipelineFilter
 
 	private InternalEventPipeline sink;
 	private Channel channel;
-	private WeakReference<InternalEventPipelineWrapper>
-		allowedSourceRef = null;
-	private ThreadLocal<Boolean> allowNext = new ThreadLocal<>();
+	private WeakReference<InternalEventPipelineWrapper> allowedSourceRef;
+	private final ThreadLocal<Boolean> allowNext = new ThreadLocal<>();
 
 	/**
 	 * Create a new instance that forwards the events to the given
@@ -87,6 +86,7 @@ class CheckingPipelineFilter
 	}
 
 	@Override
+	@SuppressWarnings("PMD.GuardLogStatement")
 	public <T extends Event<?>> T fire(T event, Channel... channels) {
 		if (allowedSourceRef != null) {
 			boolean allowed = allowNext.get() != null && allowNext.get();
@@ -109,11 +109,11 @@ class CheckingPipelineFilter
 		}
 		if (channels.length == 0) {
 			channels = event.channels();
-			if (channels == null || channels.length == 0) {
-				if (channel != null) {
-					channels = new Channel[] { channel };
-				} else {
+			if (channels.length == 0) {
+				if (channel == null) {
 					channels = new Channel[] { Channel.BROADCAST };
+				} else {
+					channels = new Channel[] { channel };
 				}
 			}
 		}
@@ -160,7 +160,7 @@ class CheckingPipelineFilter
 	 */
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
+		StringBuilder builder = new StringBuilder(50);
 		builder.append("CheckingPipelineFilter [");
 		if (sink != null) {
 			builder.append("sink=");
@@ -171,7 +171,7 @@ class CheckingPipelineFilter
 			builder.append("channel=");
 			builder.append(channel);
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 

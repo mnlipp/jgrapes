@@ -41,8 +41,8 @@ import org.jgrapes.core.HandlerScope;
  * uniform way. 
  */
 @Documented
-@Retention(value=RetentionPolicy.RUNTIME)
-@Target(value=ElementType.ANNOTATION_TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.ANNOTATION_TYPE)
 public @interface HandlerDefinition {
 	
 	/**
@@ -59,7 +59,7 @@ public @interface HandlerDefinition {
 	 * channels the handler should be invoked, and the priority of
 	 * the handler.  
 	 */
-	public interface Evaluator {
+	interface Evaluator {
 
 		/**
 		 * Returns the information about the events and channels handled
@@ -94,11 +94,11 @@ public @interface HandlerDefinition {
 		 * @param method the method
 		 * @return the result
 		 */
-		public static boolean checkMethodSignature(Method method) {
+		static boolean checkMethodSignature(Method method) {
 			return method.getParameterTypes().length == 0
-			        || (method.getParameterTypes().length == 1
+			        || method.getParameterTypes().length == 1
 			                && Event.class.isAssignableFrom(
-			                        method.getParameterTypes()[0]))
+			                        method.getParameterTypes()[0])
 			        || (method.getParameterTypes().length == 2
 			                && Event.class.isAssignableFrom(
 			                        method.getParameterTypes()[0]))
@@ -113,7 +113,7 @@ public @interface HandlerDefinition {
 	 * annotations.
 	 */
 	@SuppressWarnings("serial")
-	public static class ChannelReplacements 
+	class ChannelReplacements 
 		extends HashMap<Class<? extends Channel>, Object> {
 
 		/**

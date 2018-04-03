@@ -196,7 +196,7 @@ public class Request extends Event<Boolean> {
 			builder.append(path);
 		}
 		builder.append("\"");
-		if (channels() != null) {
+		if (channels().length > 0) {
 			builder.append(", channels=");
 			builder.append(Channel.toString(channels()));
 		}

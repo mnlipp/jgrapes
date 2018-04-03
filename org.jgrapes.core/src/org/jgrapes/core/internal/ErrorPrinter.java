@@ -21,19 +21,30 @@ package org.jgrapes.core.internal;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.events.Error;
 
+/**
+ * A fallback error printer.
+ */
 public class ErrorPrinter implements ComponentType {
 
+	/**
+	 * Prints the error.
+	 *
+	 * @param event the event
+	 */
+	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+	        "PMD.AvoidCatchingGenericException",
+	        "PMD.UseStringBufferForStringAppends", "PMD.SystemPrintln" })
 	public void printError(Error event) {
 		String msg = "(No event)";
 		if (event.event() != null) {
 			try {
 				msg = event.event().toString();
-			} catch (Throwable t) {
+			} catch (Exception t) {
 				msg = "(Cannot convert event to string: " + t.getMessage() + ")";
 			}
 		}
-		msg += ": " + ((event.message() != null) 
-				? event.message() : "(No message)");
+		msg += ": " + (event.message() == null ? "(No message)" 
+				: event.message());
 		System.err.println(msg);
 		if (event.throwable() == null) {
 			System.err.println("No stack trace available.");			

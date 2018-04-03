@@ -46,32 +46,49 @@ public abstract class EventBase<T>
 	implements Eligible, Future<T>, Associator {
 
 	/** The event that caused this event. */
-	private EventBase<?> generatedBy = null;
+	private EventBase<?> generatedBy;
 	/** Number of events that have to be processed until completion.
 	 * This is one for the event itself and one more for each event
 	 * that has this event as its cause. */
-	private AtomicInteger openCount = new AtomicInteger(1);
+	private final AtomicInteger openCount = new AtomicInteger(1);
 	/** Completion locks. */
-	private Set<CompletionLockBase> completionLocks = null;
+	private Set<CompletionLockBase> completionLocks;
 	/** Set when the event is enqueued, reset when it has been completed. */
-	private EventProcessor processedBy = null;
+	private EventProcessor processedBy;
 	/** The events to be fired upon completion. Using this attribute
 	 * provides a slightly faster access than invoking
 	 * {@link Event#completionEvents()}, which wraps the result in
 	 * an unmodifiable set. */
-	protected Set<Event<?>> completionEvents = null;
+	protected Set<Event<?>> completionEvents;
 	/** Set when the event has been completed. */
-	protected boolean completed = false;
-	private boolean requiresResult = false;
+	protected boolean completed;
+	private boolean requiresResult;
 	
+	/**
+	 * See {@link Event#channels()}.
+	 *
+	 * @return the channel[]
+	 */
 	public abstract Channel[] channels();
 
+	/**
+	 * See {@link Event#handled()}.
+	 */
 	protected abstract void handled();
 
+	/**
+	 * See {@link Event#isStopped()}.
+	 */
 	public abstract boolean isStopped();
 	
+	/**
+	 * See {@link Event#currentResults()}.
+	 */
 	protected abstract List<T> currentResults();
 
+	/**
+	 * See {@link Event#setRequiresResult(boolean)}.
+	 */
 	protected EventBase<T> setRequiresResult(boolean value) {
 		if (requiresResult == value) {
 			return this;
@@ -86,6 +103,9 @@ public abstract class EventBase<T>
 		return this;
 	}
 
+	/**
+	 * See {@link Event#firstResultAssigned()}.
+	 */
 	protected void firstResultAssigned() {
 		if (requiresResult) {
 			decrementOpen();
@@ -118,7 +138,7 @@ public abstract class EventBase<T>
 	 * 
 	 * @param causingEvent the causing event to set
 	 */
-	void generatedBy(EventBase<?> causingEvent) {
+	/* default */ void generatedBy(EventBase<?> causingEvent) {
 		generatedBy = causingEvent;
 		if (causingEvent != null) {
 			causingEvent.openCount.incrementAndGet();
@@ -130,19 +150,20 @@ public abstract class EventBase<T>
 	 * 
 	 * @param processor the processor
 	 */
-	void processedBy(EventProcessor processor) {
+	/* default */ void processedBy(EventProcessor processor) {
 		this.processedBy = processor;
 	}
 	
 	public Optional<EventPipeline> processedBy() {
 		return Optional.ofNullable(processedBy).map(
-				pb -> pb.asEventPipeline());
+				procBy -> procBy.asEventPipeline());
 	}
 	
 	/**
 	 * @param pipeline
 	 */
-	void decrementOpen() {
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+	/* default */ void decrementOpen() {
 		if (openCount.decrementAndGet() == 0 && !completed) {
 			synchronized (this) {
 				completed = true;
@@ -152,8 +173,8 @@ public abstract class EventBase<T>
 				processedBy.updateNewEventsParent(generatedBy);
 				for (Event<?> e: completionEvents) {
 					Channel[] completeChannels = e.channels();
-					if (completeChannels == null) {
-						// Note that channels cannot be null, as it is set
+					if (completeChannels.length == 0) {
+						// Note that channels() cannot be empty, as it is set
 						// when firing the event and an event is never fired
 						// on no channels.
 						completeChannels = channels();
@@ -175,7 +196,7 @@ public abstract class EventBase<T>
 	 * @param lock the lock
 	 * @see CompletionLock
 	 */
-	Event<T> addCompletionLock(CompletionLockBase lock) {
+	/* default */ Event<T> addCompletionLock(CompletionLockBase lock) {
 		synchronized (this) {
 			if (completionLocks == null) {
 				completionLocks = Collections.synchronizedSet(new HashSet<>());
@@ -194,7 +215,7 @@ public abstract class EventBase<T>
 	 * @param lock the lock
 	 * @see CompletionLock
 	 */
-	void removeCompletionLock(CompletionLockBase lock) {
+	/* default */ void removeCompletionLock(CompletionLockBase lock) {
 		if (completionLocks == null) {
 			return;
 		}

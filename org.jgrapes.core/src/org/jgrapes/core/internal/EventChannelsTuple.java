@@ -38,17 +38,20 @@ public class EventChannelsTuple {
 	 * @param event the event
 	 * @param channels the channels
 	 */
+	@SuppressWarnings("PMD.UseVarargs")
 	public EventChannelsTuple(EventBase<?> event, Channel[] channels) {
 		super();
 		this.event = event;
-		this.channels = channels;
+		this.channels = Arrays.copyOf(channels, channels.length);
 	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	public int hashCode() {
+		@SuppressWarnings("PMD.AvoidFinalLocalVariable")
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + Arrays.hashCode(channels);
@@ -89,18 +92,18 @@ public class EventChannelsTuple {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
+		StringBuilder builder = new StringBuilder(50);
 		builder.append("EventChannelsTuple [");
 		if (event != null) {
-			builder.append("event=");
-			builder.append(event);
-			builder.append(", ");
+			builder.append("event=")
+				.append(event)
+				.append(", ");
 		}
 		if (channels != null) {
-			builder.append("channels=");
-			builder.append(Arrays.toString(channels));
+			builder.append("channels=")
+				.append(Arrays.toString(channels));
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 	

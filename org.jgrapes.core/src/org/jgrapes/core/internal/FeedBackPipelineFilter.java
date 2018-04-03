@@ -32,7 +32,7 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 
 	protected static ThreadLocal<InternalEventPipeline> 
 		currentPipeline = new ThreadLocal<>();
-	private InternalEventPipeline fallback;
+	private final InternalEventPipeline fallback;
 	
 	/**
 	 * Create a new instance that forwards events added from different threads
@@ -78,11 +78,11 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 	@Override
 	public void merge(InternalEventPipeline other) {
 		InternalEventPipeline pipeline = currentPipeline.get();
-		if (pipeline != null) {
-			pipeline.merge(other);
-		} else {
+		if (pipeline == null) {
 			fallback.merge(other);
+			return;
 		}
+		pipeline.merge(other);
 	}
 
 	/* (non-Javadoc)
@@ -101,8 +101,9 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
+		StringBuilder builder = new StringBuilder(50);
 		String sinkName = "(current) ";
 		builder.append("FeedBackPipelineFilter [");
 		InternalEventPipeline pipeline = currentPipeline.get();
@@ -110,9 +111,9 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
 			pipeline = fallback;
 			sinkName = "(fallback) ";
 		} 
-		builder.append(sinkName);
-		builder.append(pipeline);
-		builder.append("]");
+		builder.append(sinkName)
+			.append(pipeline)
+			.append(']');
 		return builder.toString();
 	}
 	

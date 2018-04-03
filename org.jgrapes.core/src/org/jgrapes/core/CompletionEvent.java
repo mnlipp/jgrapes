@@ -26,6 +26,12 @@ package org.jgrapes.core;
 public abstract class CompletionEvent<T extends Event<?>>
 		extends Event<T> {
 
+	/**
+	 * Instantiates a new completion event.
+	 *
+	 * @param monitoredEvent the monitored event
+	 * @param channels the channels
+	 */
 	public CompletionEvent(T monitoredEvent, Channel... channels) {
 		super(channels);
 		setResult(monitoredEvent);
@@ -48,16 +54,15 @@ public abstract class CompletionEvent<T extends Event<?>>
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.className(getClass()));
-		builder.append("(");
-		builder.append(Components.objectName(currentResults().get(0)));
-		builder.append(")");
-		builder.append(" [");
-		if (channels() != null) {
+		builder.append(Components.className(getClass()))
+			.append('(')
+			.append(Components.objectName(currentResults().get(0)))
+			.append(") [");
+		if (channels().length > 0) {
 			builder.append("channels=");
 			builder.append(Channel.toString(channels()));
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 }

@@ -41,6 +41,7 @@ import org.jgrapes.core.internal.GeneratorRegistry;
 /**
  * This class provides some utility functions.
  */
+@SuppressWarnings("PMD.TooManyMethods")
 public class Components {
 
 	private static ExecutorService defaultExecutorService 
@@ -187,9 +188,9 @@ public class Components {
 			return "<null>";
 		}
 		StringBuilder builder = new StringBuilder();
-		builder.append(object.getClass().getName());
-		builder.append('#');
-		builder.append(objectId(object));
+		builder.append(object.getClass().getName())
+			.append('#')
+			.append(objectId(object));
 		return builder.toString();
 	}
 
@@ -207,9 +208,9 @@ public class Components {
 			return "<null>";
 		}
 		StringBuilder builder = new StringBuilder();
-		builder.append(simpleClassName(object.getClass()));
-		builder.append('#');
-		builder.append(objectId(object));
+		builder.append(simpleClassName(object.getClass()))
+			.append('#')
+			.append(objectId(object));
 		return builder.toString();
 	}
 
@@ -228,23 +229,25 @@ public class Components {
 			return "<null>";
 		}
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.className(object.getClass()));
-		builder.append('#');
-		builder.append(objectId(object));
+		builder.append(Components.className(object.getClass()))
+			.append('#')
+			.append(objectId(object));
 		return builder.toString();
 	}
 
-	private static Map<Object, String> objectIds = new WeakHashMap<>();
-	private static Map<Class<?>, AtomicLong> idCounters = new WeakHashMap<>();
+	private static Map<Object, String> objectIds // NOPMD
+		= new WeakHashMap<>();
+	private static Map<Class<?>, AtomicLong> idCounters // NOPMD 
+		= new WeakHashMap<>();
 
 	private static String getId(Class<?> scope, Object object) {
 		if (object == null) {
 			return "?";
 		}
 		synchronized (objectIds) {
-			return objectIds.computeIfAbsent(object, k -> 
+			return objectIds.computeIfAbsent(object, key -> 
 				Long.toString(idCounters
-						.computeIfAbsent(scope, l -> new AtomicLong())
+						.computeIfAbsent(scope, newKey -> new AtomicLong())
 							.incrementAndGet()));
 			
 		}
@@ -313,7 +316,7 @@ public class Components {
 	 * for looking up their id or want to map to another object for getting the
 	 * id (see {@link Components#objectId(Object)}).
 	 */
-	public static interface IdInfoProvider {
+	public interface IdInfoProvider {
 		
 		/**
 		 * Returns the scope.
@@ -337,7 +340,7 @@ public class Components {
 	 * at a given time.
 	 */
 	@FunctionalInterface
-	public static interface TimeoutHandler {
+	public interface TimeoutHandler {
 
 		/**
 		 * Invoked when the timeout occurs.
@@ -352,8 +355,8 @@ public class Components {
 	 * {@link Components#schedule(TimeoutHandler, Instant)}.
 	 */
 	public static class Timer {
-		private Scheduler scheduler;
-		private TimeoutHandler timeoutHandler;
+		private final Scheduler scheduler;
+		private final TimeoutHandler timeoutHandler;
 		private Instant scheduledFor;
 
 		private Timer(Scheduler scheduler,
@@ -432,22 +435,33 @@ public class Components {
 	 */
 	private static class Scheduler extends Thread {
 
-		private PriorityQueue<Timer> timers 
+		private final PriorityQueue<Timer> timers 
 			= new PriorityQueue<>(10,
 					Comparator.comparing(Timer::scheduledFor)); 
 
+		/**
+		 * Instantiates a new scheduler.
+		 */
 		public Scheduler() {
 			setName("Components.Scheduler");
 			setDaemon(true);
 			start();
 		}
 		
+		/**
+		 * Schedule the handler and return the resulting timer.
+		 *
+		 * @param timeoutHandler the timeout handler
+		 * @param scheduledFor the scheduled for
+		 * @return the timer
+		 */
 		public Timer schedule(
 				TimeoutHandler timeoutHandler, Instant scheduledFor) {
+			@SuppressWarnings("PMD.AccessorClassGeneration")
 			Timer timer = new Timer(this, timeoutHandler, scheduledFor);
 			synchronized (timers) {
 				timers.add(timer);
-				timers.notify();
+				timers.notifyAll();
 			}
 			return timer;
 		}
@@ -457,14 +471,14 @@ public class Components {
 				timers.remove(timer);
 				timer.scheduledFor = scheduledFor;
 				timers.add(timer);
-				timers.notify();
+				timers.notifyAll();
 			}
 		}
 		
 		private void cancel(Timer timer) {
 			synchronized (timers) {
 				timers.remove(timer);
-				timers.notify();
+				timers.notifyAll();
 			}
 		}
 		
@@ -472,6 +486,7 @@ public class Components {
 		public void run() {
 			while (true) {
 				while (true) {
+					@SuppressWarnings("PMD.AvoidFinalLocalVariable")
 					final Timer first;
 					synchronized (timers) {
 						first = timers.peek();
@@ -493,13 +508,14 @@ public class Components {
 									timers.peek().scheduledFor()).toMillis()));
 						}
 					}
-				} catch (Throwable e) {
+				} catch (Exception e) { // NOPMD
 					// Keep running.
 				}
 			}
 		}
 	}
 	
+	@SuppressWarnings("PMD.FieldDeclarationsShouldBeAtStartOfClass")
 	private static Scheduler scheduler = new Scheduler();
 
 	/**
@@ -559,7 +575,9 @@ public class Components {
 	 * 
 	 * @return an immutable map filled with the given values
 	 */
+	@SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })
 	public static <K,V> Map<K,V> mapOf(K k1, V v1) {
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		Map<K,V> result = new HashMap<>();
 		result.put(k1, v1);
 		return Collections.unmodifiableMap(result);
@@ -570,7 +588,9 @@ public class Components {
 	 * 
 	 * @return an immutable map filled with the given values
 	 */
+	@SuppressWarnings("PMD.ShortVariable")
 	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2) {
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		Map<K,V> result = new HashMap<>();
 		result.put(k1, v1);
 		result.put(k2, v2);
@@ -582,7 +602,9 @@ public class Components {
 	 * 
 	 * @return an immutable map filled with the given values
 	 */
+	@SuppressWarnings("PMD.ShortVariable")
 	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3) {
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		Map<K,V> result = new HashMap<>();
 		result.put(k1, v1);
 		result.put(k2, v2);
@@ -595,8 +617,10 @@ public class Components {
 	 * 
 	 * @return an immutable map filled with the given values
 	 */
+	@SuppressWarnings("PMD.ShortVariable")
 	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
 			K k4, V v4) {
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		Map<K,V> result = new HashMap<>();
 		result.put(k1, v1);
 		result.put(k2, v2);
@@ -610,8 +634,11 @@ public class Components {
 	 * 
 	 * @return an immutable map filled with the given values
 	 */
+	@SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable",
+	        "PMD.AvoidDuplicateLiterals" })
 	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
 			K k4, V v4, K k5, V v5) {
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		Map<K,V> result = new HashMap<>();
 		result.put(k1, v1);
 		result.put(k2, v2);
@@ -626,8 +653,10 @@ public class Components {
 	 * 
 	 * @return an immutable map filled with the given values
 	 */
+	@SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })
 	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
 			K k4, V v4, K k5, V v5, K k6, V v6) {
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		Map<K,V> result = new HashMap<>();
 		result.put(k1, v1);
 		result.put(k2, v2);
@@ -643,8 +672,10 @@ public class Components {
 	 * 
 	 * @return an immutable map filled with the given values
 	 */
+	@SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })
 	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
 			K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7) {
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		Map<K,V> result = new HashMap<>();
 		result.put(k1, v1);
 		result.put(k2, v2);
@@ -661,8 +692,10 @@ public class Components {
 	 * 
 	 * @return an immutable map filled with the given values
 	 */
+	@SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })
 	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
 			K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8) {
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		Map<K,V> result = new HashMap<>();
 		result.put(k1, v1);
 		result.put(k2, v2);
@@ -680,9 +713,11 @@ public class Components {
 	 * 
 	 * @return an immutable map filled with the given values
 	 */
+	@SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })
 	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
 			K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
 			K k9, V v9) {
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		Map<K,V> result = new HashMap<>();
 		result.put(k1, v1);
 		result.put(k2, v2);
@@ -701,9 +736,11 @@ public class Components {
 	 * 
 	 * @return an immutable map filled with the given values
 	 */
+	@SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })
 	public static <K,V> Map<K,V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
 			K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
 			K k9, V v9, K k10, V v10) {
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		Map<K,V> result = new HashMap<>();
 		result.put(k1, v1);
 		result.put(k2, v2);

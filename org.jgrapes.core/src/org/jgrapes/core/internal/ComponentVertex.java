@@ -51,16 +51,18 @@ import org.jgrapes.core.events.Start;
  * the derived class {@link org.jgrapes.core.internal.ComponentProxy} can be
  * used. 
  */
+@SuppressWarnings({ "PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis",
+        "PMD.AvoidDuplicateLiterals" })
 public abstract class ComponentVertex implements Manager, Channel {
 
 	/** The component's (optional) name. */
-	private String name = null;
+	private String name;
 	/** Reference to the common properties of the tree nodes. */
-	private ComponentTree tree = null;
+	private ComponentTree tree;
 	/** Reference to the parent node. */
-	private ComponentVertex parent = null;
+	private ComponentVertex parent;
 	/** All the node's children */
-	private List<ComponentVertex> children = new ArrayList<>();
+	private final List<ComponentVertex> children = new ArrayList<>();
 	/** The handlers provided by this component. */
 	private List<HandlerReference> handlers;
 	
@@ -69,6 +71,7 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * tree, i.e. the root is set to the component itself.
 	 */
 	protected ComponentVertex() {
+		// Nothing to do, but appropriate for abstract class.
 	}
 
 	/**
@@ -76,6 +79,8 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * when {@link #component()} can be relied on to return the
 	 * correct value.
 	 */
+	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+	        "PMD.AvoidDuplicateLiterals" })
 	protected void initComponentsHandlers(
 			ChannelReplacements channelReplacements) {
 		handlers = new ArrayList<HandlerReference>();
@@ -86,6 +91,7 @@ public abstract class ComponentVertex implements Manager, Channel {
 		handlers = Collections.synchronizedList(handlers);
 	}
 
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	private void maybeAddHandler(
 			Method method, ChannelReplacements channelReplacements) {
 		for (Annotation annotation: method.getDeclaredAnnotations()) {
@@ -130,17 +136,17 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 */
 	@Override
 	public String componentPath() {
-		StringBuilder sb = new StringBuilder();
-		buildPath(sb);
-		return sb.toString();
+		StringBuilder res = new StringBuilder();
+		buildPath(res);
+		return res.toString();
 	}
 
-	private void buildPath(StringBuilder sb) {
+	private void buildPath(StringBuilder builder) {
 		if (parent != null) {
-			parent.buildPath(sb);
+			parent.buildPath(builder);
 		}
-		sb.append('/');
-		sb.append(name != null ? name : getClass().getSimpleName());
+		builder.append('/')
+			.append(name == null ? getClass().getSimpleName() : name);
 	}
 	
 	/**
@@ -169,23 +175,28 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * @see org.jgrapes.core.Manager#getChildren()
 	 */
 	@Override
-	public synchronized List<ComponentType> children() {
-		List<ComponentType> children = new ArrayList<ComponentType>();
-		for (ComponentVertex child: this.children) {
-			children.add(child.component());
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+	public List<ComponentType> children() {
+		synchronized(this) {
+			List<ComponentType> children = new ArrayList<ComponentType>();
+			for (ComponentVertex child: this.children) {
+				children.add(child.component());
+			}
+			return Collections.unmodifiableList(children);
 		}
-		return Collections.unmodifiableList(children);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.jgrapes.core.Manager#getParent()
 	 */
 	@Override
-	public synchronized ComponentType parent() {
-		if (parent == null) {
-			return null;
+	public ComponentType parent() {
+		synchronized (this) {
+			if (parent == null) {
+				return null;
+			}
+			return parent.component();
 		}
-		return parent.component();
 	}
 
 	/* (non-Javadoc)
@@ -202,7 +213,7 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * 
 	 * @return the tree
 	 */
-	ComponentTree tree() {
+	/* default */ ComponentTree tree() {
 		if (tree != null) {
 			return tree;
 		}
@@ -220,10 +231,13 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * 
 	 * @param comp the new root
 	 */
-	private synchronized void setTree(ComponentTree tree) {
-		this.tree = tree;
-		for (ComponentVertex child: children) {
-			child.setTree(tree);
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+	private void setTree(ComponentTree tree) {
+		synchronized (this) {
+			this.tree = tree;
+			for (ComponentVertex child: children) {
+				child.setTree(tree);
+			}
 		}
 	}
 
@@ -231,96 +245,102 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * @see org.jgrapes.core.Manager#attach(Component)
 	 */
 	@Override
-	public synchronized <T extends ComponentType> T attach(T child) {
-		ComponentVertex childNode = componentVertex(child, null);
-		List<Channel> attachedAsChannels = new ArrayList<>();
-		synchronized (childNode) {
-			if (tree != null && tree.isStarted()) {
-				for (TreeIterator itr = new TreeIterator(childNode);
-						itr.hasNext();) {
-					attachedAsChannels.add(itr.next());
-				}
-			}
-			synchronized (tree()) {
-				if (childNode.tree == null) { 
-					// Newly created, stand-alone child node
-					childNode.parent = ComponentVertex.this;
-					childNode.setTree(tree);
-					children.add(childNode);
-				} else {
-					// Attaching a tree...
-					synchronized (childNode.tree) {
-						if (childNode.parent != null) {
-							throw new IllegalStateException(
-									"Cannot attach a node with a parent.");
-						}
-						if (childNode.tree.isStarted()) {
-							throw new IllegalStateException(
-									"Cannot attach a started subtree.");
-						}
-						childNode.parent = ComponentVertex.this;
-						ComponentTree childTree = childNode.tree;
-						childNode.setTree(tree);
-						children.add(childNode);
-						tree.mergeEvents(childTree);
+	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+	        "PMD.CyclomaticComplexity", "PMD.NcssCount",
+	        "PMD.NPathComplexity" })
+	public <T extends ComponentType> T attach(T child) {
+		synchronized (this) {
+			ComponentVertex childNode = componentVertex(child, null);
+			List<Channel> attachedAsChannels = new ArrayList<>();
+			synchronized (childNode) {
+				if (tree != null && tree.isStarted()) {
+					for (TreeIterator itr = new TreeIterator(childNode);
+							itr.hasNext();) {
+						attachedAsChannels.add(itr.next());
 					}
 				}
-				tree.clearHandlerCache();
+				synchronized (tree()) {
+					if (childNode.tree == null) { 
+						// Newly created, stand-alone child node
+						childNode.parent = this;
+						childNode.setTree(tree);
+						children.add(childNode);
+					} else {
+						// Attaching a tree...
+						synchronized (childNode.tree) {
+							if (childNode.parent != null) {
+								throw new IllegalStateException(
+										"Cannot attach a node with a parent.");
+							}
+							if (childNode.tree.isStarted()) {
+								throw new IllegalStateException(
+										"Cannot attach a started subtree.");
+							}
+							childNode.parent = this;
+							ComponentTree childTree = childNode.tree;
+							childNode.setTree(tree);
+							children.add(childNode);
+							tree.mergeEvents(childTree);
+						}
+					}
+					tree.clearHandlerCache();
+				}
 			}
+			Channel parentChan = channel();
+			if (parentChan == null) {
+				parentChan = Channel.BROADCAST;
+			}
+			Channel childChan = childNode.channel();
+			if (childChan == null) {
+				parentChan = Channel.BROADCAST;
+			}
+			Attached evt = new Attached(childNode.component(), component());
+			if (parentChan.equals(Channel.BROADCAST) 
+					|| childChan.equals(Channel.BROADCAST)) {
+				fire(evt, Channel.BROADCAST);
+			} else if (parentChan.equals(childChan)) {
+				fire(evt, parentChan);
+			} else {
+				fire(evt, parentChan, childChan);
+			}
+			if (!attachedAsChannels.isEmpty()) {
+				fire(new Start(), attachedAsChannels.toArray(new Channel[0]));
+			}
+			return child;
 		}
-		Channel parentChan = channel();
-		if (parentChan == null) {
-			parentChan = Channel.BROADCAST;
-		}
-		Channel childChan = childNode.channel();
-		if (childChan == null) {
-			parentChan = Channel.BROADCAST;
-		}
-		Attached evt = new Attached(childNode.component(), component());
-		if (parentChan.equals(Channel.BROADCAST) 
-			|| childChan.equals(Channel.BROADCAST)) {
-			fire(evt, Channel.BROADCAST);
-		} else if (parentChan.equals(childChan)) {
-			fire(evt, parentChan);
-		} else {
-			fire(evt, parentChan, childChan);
-		}
-		if (!attachedAsChannels.isEmpty()) {
-			fire(new Start(), attachedAsChannels.toArray(new Channel[0]));
-		}
-		return child;
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.jgrapes.core.Manager#detach()
 	 */
 	@Override
-	public synchronized ComponentType detach() {
-		if (parent != null) {
-			ComponentVertex oldParent = parent;
-			synchronized (tree) {
-				if (!tree.isStarted()) {
-					throw new IllegalStateException(
-							"Components may not be detached from a tree before"
-							+ " a Start event has been fired on it.");
+	public ComponentType detach() {
+		synchronized (this) {
+			if (parent != null) {
+				ComponentVertex oldParent = parent;
+				synchronized (tree) {
+					if (!tree.isStarted()) {
+						throw new IllegalStateException(
+						        "Components may not be detached from a tree before"
+						                + " a Start event has been fired on it.");
+					}
+					synchronized (oldParent) {
+						parent.children.remove(this);
+						parent.tree.clearHandlerCache();
+						parent = null;
+					}
+					ComponentTree newTree = new ComponentTree(this);
+					newTree.setEventPipeline(new FeedBackPipelineFilter(
+					        new EventProcessor(newTree)));
+					setTree(newTree);
 				}
-				synchronized (oldParent) {
-					parent.children.remove(ComponentVertex.this);
-					parent.tree.clearHandlerCache();
-					parent = null;
-				}
-				ComponentTree newTree 
-					= new ComponentTree(ComponentVertex.this);
-				newTree.setEventPipeline(new FeedBackPipelineFilter(
-						new EventProcessor(newTree)));
-				setTree(newTree);
+				Detached evt = new Detached(component(), oldParent.component());
+				oldParent.fire(evt);
+				evt = new Detached(component(), oldParent.component());
+				fire(evt);
 			}
-			Detached evt = new Detached(component(), oldParent.component());
-			oldParent.fire(evt);
-			evt = new Detached(component(), oldParent.component());
-			fire(evt);
+			return component();
 		}
-		return component();
 	}
 
 	/* (non-Javadoc)
@@ -337,7 +357,7 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 */
 	private static class ComponentIterator implements Iterator<ComponentType> {
 
-		private TreeIterator baseIterator;
+		private final TreeIterator baseIterator;
 		
 		/**
 		 * @param baseIterator
@@ -363,22 +383,35 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 */
 	private static class TreeIterator implements Iterator<ComponentVertex> {
 
-		private class Pos {
+		private final Stack<CurPos> stack = new Stack<CurPos>();
+		private final ComponentTree tree;
+		
+		/**
+		 * The current position.
+		 */
+		private class CurPos {
 			public ComponentVertex current;
 			public Iterator<ComponentVertex> childIter;
 			
-			public Pos(ComponentVertex cm) {
-				current = cm;
+			/**
+			 * Instantiates a new current position
+			 *
+			 * @param vertex the cm
+			 */
+			public CurPos(ComponentVertex vertex) {
+				current = vertex;
 				childIter = current.children.iterator();
 			}
 		}
 		
-		private Stack<Pos> stack = new Stack<Pos>();
-		private ComponentTree tree;
-		
+		/**
+		 * Instantiates a new tree iterator.
+		 *
+		 * @param root the root
+		 */
 		public TreeIterator(ComponentVertex root) {
 			tree = root.tree();
-			stack.push(new Pos(root));
+			stack.push(new CurPos(root));
 		}
 
 		/* (non-Javadoc)
@@ -393,11 +426,13 @@ public abstract class ComponentVertex implements Manager, Channel {
 		 * @see java.util.Iterator#next()
 		 */
 		@Override
+		@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 		public ComponentVertex next() {
 			if (stack.empty()) {
 				throw new NoSuchElementException();
 			}
-			Pos pos = stack.peek();
+			CurPos pos = stack.peek();
+			@SuppressWarnings("PMD.PrematureDeclaration")
 			ComponentVertex res = pos.current;
 			while (true) {
 				synchronized (pos.current) {
@@ -405,7 +440,7 @@ public abstract class ComponentVertex implements Manager, Channel {
 						throw new ConcurrentModificationException();
 					}
 					if (pos.childIter.hasNext()) {
-						stack.push(new Pos(pos.childIter.next()));
+						stack.push(new CurPos(pos.childIter.next()));
 						break;
 					}
 				}
@@ -441,7 +476,7 @@ public abstract class ComponentVertex implements Manager, Channel {
 	public <T> Event<T> fire(Event<T> event, Channel... channels) {
 		if (channels.length == 0) {
 			channels = event.channels();
-			if (channels == null || channels.length == 0) {
+			if (channels.length == 0) {
 				channels = new Channel[] { channel() };
 			}
 		}
@@ -459,7 +494,8 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * @param event the event to match
 	 * @param channels the channels to match
 	 */
-	void collectHandlers(Collection<HandlerReference> hdlrs, 
+	@SuppressWarnings("PMD.UseVarargs")
+	/* default */ void collectHandlers(Collection<HandlerReference> hdlrs, 
 			EventBase<?> event, Channel[] channels) {
 		for (HandlerReference hdlr: handlers) {
 			if (hdlr.handles(event, channels)) {

@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public final class NamedEvent<T> extends Event<T> {
 
-	private String kind;
+	private final String kind;
 	private Map<Object,Object> data;
 	
 	/**
@@ -85,13 +85,14 @@ public final class NamedEvent<T> extends Event<T> {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder result = new StringBuilder();
-		result.append("NamedEvent [name=");
-		result.append(kind);
-		if (channels() != null) {
-			result.append(", " + "channels=" + Arrays.toString(channels())); 
+		StringBuilder result = new StringBuilder(50);
+		result.append("NamedEvent [name=")
+			.append(kind);
+		if (channels().length > 0) {
+			result.append(", channels=")
+				.append(Arrays.toString(channels())); 
 		}
-		result.append("]");
+		result.append(']');
 		return result.toString();
 	}
 }

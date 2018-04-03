@@ -36,6 +36,7 @@ public interface HandlerScope {
 	 * @param channels the channels
 	 * @return true, if successful
 	 */
+	@SuppressWarnings("PMD.UseVarargs")
 	boolean includes(Eligible event, Eligible[] channels);
 	
 }

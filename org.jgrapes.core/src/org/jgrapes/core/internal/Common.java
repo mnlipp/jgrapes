@@ -21,6 +21,7 @@ package org.jgrapes.core.internal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
 import org.jgrapes.core.ComponentType;
@@ -30,21 +31,36 @@ import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
 /**
  * Common utility methods.
  */
-public class Common {
+@SuppressWarnings("PMD.MoreThanOneLogger")
+public final class Common {
 
-	static final Logger fireRestrictionLogger 
+	@SuppressWarnings("PMD.VariableNamingConventions")
+	public static final Logger classNames 
+		= Logger.getLogger(ComponentType.class.getPackage().getName() 
+				+ ".classNames");
+
+	@SuppressWarnings("PMD.VariableNamingConventions")
+	/* default */ static final Logger fireRestrictionLogger 
 		= Logger.getLogger(Common.class.getPackage().getName()
 				+ ".fireRestriction");	
 	
 	/** Handler factory cache. */
+	@SuppressWarnings("PMD.UseConcurrentHashMap")
 	private static Map<Class<? extends HandlerDefinition.Evaluator>,
 			HandlerDefinition.Evaluator> definitionEvaluators 
 			= Collections.synchronizedMap(new HashMap<>());
-	private static AssertionError assertionError = null;
+	private static AtomicReference<AssertionError> assertionError 
+		= new AtomicReference<>();
 	
 	private Common() {
 	}
 
+	/**
+	 * Create a new definition evaluator.
+	 *
+	 * @param hda the handler definition annotation
+	 * @return the evaluator
+	 */
 	public static Evaluator definitionEvaluator(
 	        HandlerDefinition hda) {
 		return definitionEvaluators.computeIfAbsent(hda.evaluator(), key -> {
@@ -52,27 +68,23 @@ public class Common {
 				return hda.evaluator().newInstance();
 			} catch (InstantiationException
 			        | IllegalAccessException e) {
-				throw new RuntimeException(e);
+				throw new IllegalStateException(e);
 			}
 		});
 	}
 	
-	static void setAssertionError(AssertionError error) {
-		if (assertionError == null) {
-			assertionError = error;
-		}
+	/* default */ static void setAssertionError(AssertionError error) {
+		assertionError.compareAndSet(null, error);
 	}
 
+	/**
+	 * Check if an assertion has been set and if, throw it.
+	 */
 	public static void checkAssertions() {
-		if (assertionError != null) {
-			AssertionError error = assertionError;
-			assertionError = null;
+		AssertionError error = assertionError.getAndSet(null);
+		if (error != null) {
 			throw error;
 		}
 	}
-	
-	public static final Logger classNames 
-		= Logger.getLogger(ComponentType.class.getPackage().getName() 
-			+ ".classNames");
 	
 }

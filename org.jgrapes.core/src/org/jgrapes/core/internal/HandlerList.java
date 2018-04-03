@@ -34,6 +34,7 @@ class HandlerList extends ArrayList<HandlerReference> {
 	 * @param eventProcessor
 	 * @param event the event
 	 */
+	@SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
 	public void process(EventPipeline eventPipeline, EventBase<?> event) {
 		try {
 			for (HandlerReference hdlr : this) {
@@ -42,20 +43,30 @@ class HandlerList extends ArrayList<HandlerReference> {
 					if (event.isStopped()) {
 						break;
 					}
-				} catch (Throwable t) {
-					if (t instanceof AssertionError) {
-						Common.setAssertionError((AssertionError) t);
-					}
+				} catch (AssertionError t) {
+					// JUnit support
+					Common.setAssertionError((AssertionError) t);
+					event.handlingError(eventPipeline, t);
+				} catch (Error e) { // NOPMD
+					// Wouldn't have caught it, if it was possible.
+					throw (Error)e;
+				} catch (Throwable t) { // NOPMD
+					// Errors have been rethrown, so this should work.
 					event.handlingError(eventPipeline, t);
 				}
 			}
-		} finally {
+		} finally { // NOPMD
 			try {
 				event.handled();
 			} catch (AssertionError t) {
+				// JUnit support
 				Common.setAssertionError(t);
 				event.handlingError(eventPipeline, t);
-			} catch (Throwable t) {
+			} catch (Error e) { // NOPMD
+				// Wouldn't have caught it, if it was possible.
+				throw (Error)e;
+			} catch (Throwable t) { // NOPMD
+				// Errors have been rethrown, so this should work.
 				event.handlingError(eventPipeline, t);
 			}
 		}

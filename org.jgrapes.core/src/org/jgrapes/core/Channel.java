@@ -64,6 +64,17 @@ import org.jgrapes.core.annotation.Handler;
 public interface Channel extends Eligible {
 
 	/**
+	 * A special channel object that can be passed as argument to 
+	 * the constructor of {@link Component#Component(Channel)}. 
+	 * Doing this sets the component's channel to the component 
+	 * (which is not available as argument when calling the 
+	 * constructor).
+	 * 
+	 * @see Component#Component(Channel)
+	 */
+	Channel SELF = new ClassChannel();
+	
+	/**
 	 * This interface's class can be used to specify the component's 
 	 * channel (see {@link Component#channel()}) as criterion in 
 	 * handler annotations.
@@ -75,25 +86,14 @@ public interface Channel extends Eligible {
 	 * if you want to specify a handler that handles events fired on the 
 	 * component's channel or on additional channels.
 	 */
-	public interface Default extends Channel {
+	interface Default extends Channel {
 	}
-	
-	/**
-	 * A special channel object that can be passed as argument to 
-	 * the constructor of {@link Component#Component(Channel)}. 
-	 * Doing this sets the component's channel to the component 
-	 * (which is not available as argument when calling the 
-	 * constructor).
-	 * 
-	 * @see Component#Component(Channel)
-	 */
-	public static final Channel SELF = new ClassChannel();
 	
 	/**
 	 * A special channel instance that can be used to send events to
 	 * all components.
 	 */
-	public static final Channel BROADCAST = new ClassChannel() {
+	Channel BROADCAST = new ClassChannel() {
 
 		/**
 		 * Returns <code>Channel.class</code>, the value that must
@@ -157,8 +157,8 @@ public interface Channel extends Eligible {
 			return "null";
 		}
 		StringBuilder builder = new StringBuilder();
-		if ((channel instanceof ClassChannel)
-		        || (channel instanceof NamedChannel)) {
+		if (channel instanceof ClassChannel
+		        || channel instanceof NamedChannel) {
 			builder.append(criterionToString(channel.defaultCriterion()));
 		} else if (channel == channel.defaultCriterion()) {
 			builder.append(Components.objectName(channel));
@@ -174,9 +174,10 @@ public interface Channel extends Eligible {
 	 * @param channels the channels
 	 * @return the representation
 	 */
+	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.UseVarargs" })
 	static String toString(Channel[] channels) {
 		StringBuilder builder = new StringBuilder();
-		builder.append("[");
+		builder.append('[');
 		boolean first = true;
 		for (Channel c: channels) {
 			if (!first) {
@@ -185,7 +186,7 @@ public interface Channel extends Eligible {
 			builder.append(Channel.toString(c));
 			first = false;
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 

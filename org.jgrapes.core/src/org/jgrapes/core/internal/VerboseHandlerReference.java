@@ -32,11 +32,12 @@ import org.jgrapes.core.HandlerScope;
  * (at the cost of some cpu cycles).
  *
  */
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 class VerboseHandlerReference extends HandlerReference {
 
 	private static AtomicLong invocationCounter = new AtomicLong(1);
-	private ComponentType component;
-	private String handlerName;
+	private final ComponentType component;
+	private final String handlerName;
 	
 	/**
 	 * @param component
@@ -58,6 +59,7 @@ class VerboseHandlerReference extends HandlerReference {
 	 * @param event the event
 	 */
 	@Override
+	@SuppressWarnings("PMD.NcssCount")
 	public void invoke(EventBase<?> event) throws Throwable {
 		if (component == ComponentTree.DUMMY_HANDLER) {
 			reportInvocation(event, false);
@@ -110,11 +112,11 @@ class VerboseHandlerReference extends HandlerReference {
 			builder.append(Long.toString(invocation));
 			builder.append("] ");
 		}
-		builder.append("P");
-		builder.append(Components
-		        .objectId(FeedBackPipelineFilter.getAssociatedPipeline()));
-		builder.append(": ");
-		builder.append(event);
+		builder.append('P')
+			.append(Components
+		        .objectId(FeedBackPipelineFilter.getAssociatedPipeline()))
+			.append(": ")
+			.append(event);
 		if (component == ComponentTree.DUMMY_HANDLER) {
 			builder.append(" (unhandled)");
 		} else {
@@ -132,10 +134,11 @@ class VerboseHandlerReference extends HandlerReference {
 	private void reportResult(EventBase<?> event, long invocation) {
 		if (handlerTracking.isLoggable(Level.FINEST)) {
 			StringBuilder builder = new StringBuilder();
-			builder.append("Result [");
-			builder.append(Long.toString(invocation));
-			builder.append("]: " + (event.currentResults() == null ? "null"
-			        : event.currentResults()));
+			builder.append("Result [")
+				.append(Long.toString(invocation))
+				.append("]: ")
+				.append(event.currentResults() == null ? "null"
+			        : event.currentResults());
 			handlerTracking.fine(builder.toString());
 		}
 	}

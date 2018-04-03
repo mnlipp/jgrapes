@@ -30,6 +30,7 @@ import org.jgrapes.core.EventPipeline;
  */
 public class EventProcessor implements InternalEventPipeline, Runnable {
 
+	@SuppressWarnings("PMD.VariableNamingConventions")
 	protected static final ThreadLocal<EventBase<?>> 
 		newEventsParent = new ThreadLocal<>();
 	
@@ -37,19 +38,24 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	private final ComponentTree componentTree;
 	private final EventPipeline asEventPipeline;
 	protected final EventQueue queue = new EventQueue();
-	private boolean isExecuting = false;
+	private boolean isExecuting;
 	
-	EventProcessor(ComponentTree tree) {
+	/**
+	 * Instantiates a new event processor.
+	 *
+	 * @param tree the tree
+	 */
+	/* default */ EventProcessor(ComponentTree tree) {
 		this(tree, Components.defaultExecutorService());
 	}
 
-	EventProcessor(ComponentTree tree, ExecutorService executorService) {
+	/* default */ EventProcessor(ComponentTree tree, ExecutorService executorService) {
 		this.componentTree = tree;
 		this.executorService = executorService;
 		asEventPipeline = new CheckingPipelineFilter(this);
 	}
 
-	EventPipeline asEventPipeline() {
+	/* default */ EventPipeline asEventPipeline() {
 		return asEventPipeline;
 	}
 	
@@ -60,7 +66,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	 *
 	 * @param parent the new parent
 	 */
-	void updateNewEventsParent(EventBase<?> parent) {
+	/* default */ void updateNewEventsParent(EventBase<?> parent) {
 		newEventsParent.set(parent);
 	}
 	
@@ -79,7 +85,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 		return event;
 	}
 
-	void add(EventQueue source) {
+	/* default */ void add(EventQueue source) {
 		while (true) {
 			EventChannelsTuple entry = source.poll();
 			if (entry == null) {
@@ -154,13 +160,13 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append(" [");
+		builder.append(Components.objectName(this))
+			.append(" [");
 		if (queue != null) {
-			builder.append("queue=");
-			builder.append(queue);
+			builder.append("queue=")
+				.append(queue);
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 

@@ -55,14 +55,14 @@ public class Event<T> extends EventBase<T> {
 
 	/** The channels that this event is to be fired on if no
 	 * channels are specified explicitly when firing. */
-	private Channel[] channels = null;
+	private Channel[] channels;
 	/** Indicates that the event should not processed further. */
-	private boolean stopped = false;
+	private boolean stopped;
 	/** The results of handling the event (if any). */
 	private List<T> results;
 	/** Context data. */
-	private Map<Object,Object> contextData = null;
-	private boolean cancelled = false;
+	private Map<Object,Object> contextData;
+	private boolean cancelled;
 	
 	/**
 	 * Creates a new event. Passing channels is equivalent to first
@@ -73,9 +73,7 @@ public class Event<T> extends EventBase<T> {
 	 */
 	public Event(Channel... channels) {
 		super();
-		if (channels.length > 0) {
-			setChannels(channels);
-		}
+		this.channels = Arrays.copyOf(channels, channels.length);
 	}
 
 	/**
@@ -108,6 +106,7 @@ public class Event<T> extends EventBase<T> {
 	 * 
 	 * @return the event pipeline if the event is being processed
 	 */
+	@SuppressWarnings("PMD.UselessOverridingMethod")
 	public Optional<EventPipeline> processedBy() {
 		return super.processedBy();
 	}
@@ -142,7 +141,7 @@ public class Event<T> extends EventBase<T> {
 			throw new IllegalStateException(
 					"Channels cannot be changed after fire");
 		}
-		this.channels = channels;
+		this.channels = Arrays.copyOf(channels, channels.length);
 		return (Event<T>)this;
 	}
 
@@ -154,11 +153,11 @@ public class Event<T> extends EventBase<T> {
 	 * effectively been fired on 
 	 * (see {@link Manager#fire(Event, Channel...)}).
 	 * 
-	 * @return the channels
+	 * @return the channels (never `null`, but may be empty)
 	 */
 	@Override
 	public Channel[] channels() {
-		return channels;
+		return Arrays.copyOf(channels, channels.length);
 	}
 
 	/**
@@ -169,7 +168,8 @@ public class Event<T> extends EventBase<T> {
 	 * @return the filtered channels
 	 * @see #channels()
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "PMD.ShortVariable",
+	        "PMD.AvoidDuplicateLiterals" })
 	public <C> C[] channels(Class<C> type) {
 		return Arrays.stream(channels)
 		        .filter(c -> type.isAssignableFrom(c.getClass())).toArray(
@@ -184,7 +184,7 @@ public class Event<T> extends EventBase<T> {
 	 * @param type the channel type
 	 * @param handler the handler
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "PMD.ShortVariable" })
 	public <E extends EventBase<?>, C extends Channel> void forChannels(
 			Class<C> type, BiConsumer<E, C> handler) {
 		Arrays.stream(channels)
@@ -260,6 +260,7 @@ public class Event<T> extends EventBase<T> {
 	 * handler thread and must not block.
 	 */
 	protected void handled() {
+		// Default is to do nothing.
 	}
 	
 	/**
@@ -314,17 +315,19 @@ public class Event<T> extends EventBase<T> {
 	 * @param result the result to set
 	 * @return the object for easy chaining
 	 */
-	public synchronized Event<T> setResult(T result) {
-		if (results == null) {
-			// Make sure that we have a valid result before 
-			// calling decrementOpen
-			results = new ArrayList<T>();
+	public Event<T> setResult(T result) {
+		synchronized (this) {
+			if (results == null) {
+				// Make sure that we have a valid result before 
+				// calling decrementOpen
+				results = new ArrayList<T>();
+				results.add(result);
+				firstResultAssigned();
+				return (Event<T>)this;
+			}
 			results.add(result);
-			firstResultAssigned();
 			return (Event<T>)this;
 		}
-		results.add(result);
-		return (Event<T>)this;
 	}
 
 	/**
@@ -349,12 +352,14 @@ public class Event<T> extends EventBase<T> {
 	 * @param other the event to tie to
 	 * @return the object for easy chaining
 	 */
-	public synchronized Event<T> tieTo(Event<T> other) {
-		if (other.results == null) {
-			other.results = new ArrayList<T>();
+	public Event<T> tieTo(Event<T> other) {
+		synchronized(this) {
+			if (other.results == null) {
+				other.results = new ArrayList<T>();
+			}
+			results = other.results;
+			return (Event<T>)this;
 		}
-		results = other.results;
-		return (Event<T>)this;
 	}
 	
 	/**
@@ -368,7 +373,7 @@ public class Event<T> extends EventBase<T> {
 		while (true) {
 			synchronized(this) {
 				if (completed) {
-					return ((results == null || results.isEmpty()))
+					return results == null || results.isEmpty()
 							? null : results.get(0);
 				}
 				wait();
@@ -389,13 +394,13 @@ public class Event<T> extends EventBase<T> {
 	        throws InterruptedException, TimeoutException {
 		synchronized(this) {
 			if (completed) {
-				return (results == null || results.isEmpty())
+				return results == null || results.isEmpty()
 						? null : results.get(0);
 			}
 			wait(unit.toMillis(timeout));
 		}
 		if (completed) {
-			return (results == null || results.isEmpty())
+			return results == null || results.isEmpty()
 					? null : results.get(0);
 		}
 		throw new TimeoutException();
@@ -413,8 +418,8 @@ public class Event<T> extends EventBase<T> {
 		while (true) {
 			synchronized(this) {
 				if (completed) {
-					return (results == null ? Collections.emptyList() 
-							: Collections.unmodifiableList(results));
+					return results == null ? Collections.emptyList() 
+							: Collections.unmodifiableList(results);
 				}
 				wait();
 			}
@@ -434,32 +439,34 @@ public class Event<T> extends EventBase<T> {
 	        throws InterruptedException, TimeoutException {
 		synchronized(this) {
 			if (completed) {
-				return (results == null ? Collections.emptyList() 
-						: Collections.unmodifiableList(results));
+				return results == null ? Collections.emptyList() 
+						: Collections.unmodifiableList(results);
 			}
 			wait(unit.toMillis(timeout));
 		}
 		if (completed) {
-			return (results == null ? Collections.emptyList() 
-					: Collections.unmodifiableList(results));
+			return results == null ? Collections.emptyList() 
+					: Collections.unmodifiableList(results);
 		}
 		throw new TimeoutException();
 	}
 
 	@Override
+	@SuppressWarnings("PMD.ShortVariable")
 	public Event<T> setAssociated(Object by, Object with) {
 		if (contextData == null) {
 			contextData = new ConcurrentHashMap<>();
 		}
-		if (with != null) {
-			contextData.put(by, with);
-		} else {
+		if (with == null) {
 			contextData.remove(by);
+		} else {
+			contextData.put(by, with);
 		}
 		return (Event<T>)this;
 	}
 
 	@Override
+	@SuppressWarnings("PMD.ShortVariable")
 	public <V> Optional<V> associated(Object by, Class<V> type) {
 		if (contextData == null) {
 			return Optional.empty();
@@ -475,13 +482,13 @@ public class Event<T> extends EventBase<T> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append(" [");
+		builder.append(Components.objectName(this))
+			.append(" [");
 		if (channels != null) {
 			builder.append("channels=");
 			builder.append(Channel.toString(channels));
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 

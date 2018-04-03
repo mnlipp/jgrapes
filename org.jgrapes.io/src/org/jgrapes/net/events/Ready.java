@@ -60,7 +60,7 @@ public class Ready extends Opened {
 		builder.append(" [");
 		builder.append(listenAddress);
 		builder.append(", ");
-		if (channels() != null) {
+		if (channels().length > 0) {
 			builder.append("channels=");
 			builder.append(Channel.toString(channels()));
 		}

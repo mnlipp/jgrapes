@@ -233,11 +233,12 @@ public interface Manager extends Iterable<ComponentType> {
 	 * 
 	 * @return the stream
 	 */
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	default Stream<ComponentType> stream() {
-		Stream.Builder<ComponentType> sb = Stream.builder();
+		Stream.Builder<ComponentType> res = Stream.builder();
 		for (ComponentType c: this) {
-			sb.accept(c);
+			res.accept(c);
 		}
-		return sb.build();
+		return res.build();
 	}
 }

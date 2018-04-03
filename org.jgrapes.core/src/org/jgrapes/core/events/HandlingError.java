@@ -26,7 +26,7 @@ import org.jgrapes.core.Event;
  * {@link org.jgrapes.core.internal.EventBase#handlingError} in
  * {@link Event}.
  */
-public class HandlingError extends Error {
+public class HandlingError extends org.jgrapes.core.events.Error {
 
 	/**
 	 * Creates a new event caused by the given throwable.

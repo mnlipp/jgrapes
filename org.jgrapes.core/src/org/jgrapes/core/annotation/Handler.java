@@ -118,19 +118,19 @@ import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
  * @see Component#channel()
  */
 @Documented
-@Retention(value=RetentionPolicy.RUNTIME)
-@Target(value=ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 @HandlerDefinition(evaluator=Handler.Evaluator.class)
 public @interface Handler {
 	
 	/** The default value for the <code>events</code> parameter of
 	 * the annotation. Indicates that the parameter is not used. */
-	public static final class NoEvent extends Event<Void> {
+	final class NoEvent extends Event<Void> {
 	}
 	
 	/** The default value for the <code>channels</code> parameter of
 	 * the annotation. Indicates that the parameter is not used. */
-	public static final class NoChannel extends ClassChannel {
+	final class NoChannel extends ClassChannel {
 	}
 	
 	/**
@@ -262,7 +262,7 @@ public @interface Handler {
 	 * {@link Handler} annotation provided by the core package. It 
 	 * implements the behavior as described for the annotation. 
 	 */
-	public static class Evaluator implements HandlerDefinition.Evaluator {
+	class Evaluator implements HandlerDefinition.Evaluator {
 
 		@Override
 		public HandlerScope scope(
@@ -334,6 +334,9 @@ public @interface Handler {
 			addInternal(component, method, null, channelValue, null);
 		}
 		
+		@SuppressWarnings({ "PMD.CyclomaticComplexity",
+		        "PMD.DataflowAnomalyAnalysis",
+		        "PMD.AvoidBranchingStatementAsLastInLoop" })
 		private static void addInternal(ComponentType component, String method,
 		        Object eventValue, Object channelValue, Integer priority) {
 			try {
@@ -356,14 +359,16 @@ public @interface Handler {
 								|| !((Handler)annotation).dynamic()) {
 							continue;
 						}
+						@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 						Scope scope = new Scope(component, m, 
 								(Handler)annotation, Collections.emptyMap(),
 								eventValue == null ? null
 										: new Object[] { eventValue },
 								new Object[] { channelValue });
 						Components.manager(component).addHandler(m, scope, 
-								priority != null ? priority 
-										: ((Handler)annotation).priority());
+								priority == null 
+									? ((Handler)annotation).priority()
+									: priority);
 						return;
 					}
 				}
@@ -381,9 +386,23 @@ public @interface Handler {
 		 */
 		private static class Scope implements HandlerScope {
 
-			private Set<Object> eventCriteria = new HashSet<Object>();
-			private Set<Object> channelCriteria = new HashSet<Object>();
+			private final Set<Object> eventCriteria = new HashSet<Object>();
+			private final Set<Object> channelCriteria = new HashSet<Object>();
 
+			/**
+			 * Instantiates a new scope.
+			 *
+			 * @param component the component
+			 * @param method the method
+			 * @param annotation the annotation
+			 * @param channelReplacements the channel replacements
+			 * @param eventValues the event values
+			 * @param channelValues the channel values
+			 */
+			@SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
+			        "PMD.NPathComplexity", "PMD.UseVarargs",
+			        "PMD.AvoidDeeplyNestedIfStmts",
+			        "PMD.CollapsibleIfStatements" })
 			public Scope(ComponentType component, Method method,
 			        Handler annotation, 
 			        Map<Class<? extends Channel>,Object> channelReplacements,
@@ -393,7 +412,7 @@ public @interface Handler {
 							 + method.toString() + "\" cannot be used as"
 							 + " handler (wrong signature).");
 				}
-				if (eventValues != null) {
+				if (eventValues != null) { // NOPMD, != is easier to read
 					eventCriteria.addAll(Arrays.asList(eventValues));
 				} else {
 					// Get all event values from the handler annotation.
@@ -418,7 +437,7 @@ public @interface Handler {
 					}
 				}
 				
-				if (channelValues != null) {
+				if (channelValues != null) { // NOPMD, != is easier to read
 					channelCriteria.addAll(Arrays.asList(channelValues));
 				} else {
 					// Get channel values from the annotation.
@@ -448,7 +467,7 @@ public @interface Handler {
 						channelCriteria.addAll(
 						        Arrays.asList(annotation.namedChannels()));
 					}
-					if (channelCriteria.size() == 0 || addDefaultChannel) {
+					if (channelCriteria.isEmpty() || addDefaultChannel) {
 						channelCriteria.add(Components.manager(component)
 						        .channel().defaultCriterion());
 					}
@@ -463,6 +482,7 @@ public @interface Handler {
 			}
 			
 			@Override
+			@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 			public boolean includes(Eligible event, Eligible[] channels) {
 				for (Object eventValue: eventCriteria) {
 					if (event.isEligibleFor(eventValue)) {
@@ -488,12 +508,12 @@ public @interface Handler {
 				StringBuilder builder = new StringBuilder();
 				builder.append("Scope [");
 				if (eventCriteria != null) {
-					builder.append("handledEvents=");
-					builder.append(eventCriteria.stream().map(v -> {
-						if (v instanceof Class) {
-							return Components.className((Class<?>) v);
+					builder.append("handledEvents=")
+						.append(eventCriteria.stream().map(crit -> {
+						if (crit instanceof Class) {
+							return Components.className((Class<?>) crit);
 						}
-						return v.toString();
+						return crit.toString();
 					}).collect(Collectors.toSet()));
 					builder.append(", ");
 				}
@@ -501,7 +521,7 @@ public @interface Handler {
 					builder.append("handledChannels=");
 					builder.append(channelCriteria);
 				}
-				builder.append("]");
+				builder.append(']');
 				return builder.toString();
 			}
 			

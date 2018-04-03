@@ -20,15 +20,10 @@ package org.jgrapes.core;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.function.Function;
-
-import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
-import org.jgrapes.core.ComponentFactory;
 
 /**
  * A component that collects all component factory services of 
@@ -38,6 +33,9 @@ import org.jgrapes.core.ComponentFactory;
  */
 public class ComponentCollector<F extends ComponentFactory>
 	extends Component {
+
+	private static final List<Map<Object,Object>> SINGLE_DEFAULT 
+		= Arrays.asList(Collections.emptyMap());
 
 	/**
 	 * Creates a new collector that collects the factories of the given 
@@ -57,8 +55,7 @@ public class ComponentCollector<F extends ComponentFactory>
 			Function<String,List<Map<Object,Object>>> matcher) {
 		super(componentChannel);
 		ServiceLoader<F> serviceLoader = ServiceLoader.load(factoryClass);
-		for (Iterator<F> itr = serviceLoader.iterator(); itr.hasNext();) {
-			F factory = itr.next();
+		for (F factory: serviceLoader) {
 			List<Map<Object,Object>> configs = matcher.apply(
 					factory.componentType().getName());
 			for (Map<Object,Object> config: configs) {
@@ -68,9 +65,6 @@ public class ComponentCollector<F extends ComponentFactory>
 		}
 	}
 
-	private static List<Map<Object,Object>> SINGLE_DEFAULT 
-		= Arrays.asList(Collections.emptyMap());
-	
 	/**
 	 * Utility constructor that uses each factory to create a single
 	 * instance, using an empty map as properties.

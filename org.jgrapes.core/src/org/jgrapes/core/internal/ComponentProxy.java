@@ -32,13 +32,14 @@ import org.jgrapes.core.annotation.Handler;
  * object implementing the Component interface (instead of being
  * its base class).
  */
-public class ComponentProxy extends ComponentVertex {
+public final class ComponentProxy extends ComponentVertex {
 
 	/** The reference to the actual component. */
-	private ComponentType component = null;
+	private final ComponentType component;
 	/** The referenced component's channel. */
-	private Channel componentChannel = Channel.BROADCAST;
+	private Channel componentChannel;
 	
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	private static Field getManagerField(Class<?> clazz) {
 		try {
 			while (true) {
@@ -66,7 +67,8 @@ public class ComponentProxy extends ComponentVertex {
 			if (cma.channel() != Channel.BROADCAST.defaultCriterion()) {
 				try {
 					return cma.channel().newInstance();
-				} catch (InstantiationException | IllegalAccessException e) {
+				} catch (InstantiationException // NOPMD 
+						| IllegalAccessException e) {
 					// Ignored
 				}
 			}
@@ -113,13 +115,14 @@ public class ComponentProxy extends ComponentVertex {
 	 * @param componentChannel the component's channel
 	 * @return the node representing the component in the tree
 	 */
-	static ComponentVertex getComponentProxy(
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+	/* default */ static ComponentVertex getComponentProxy(
 			ComponentType component, Channel componentChannel) {
 		ComponentProxy componentProxy = null;
 		try {
 			Field field = getManagerField(component.getClass());
 			synchronized (component) {
-				if (!field.isAccessible()) {
+				if (!field.isAccessible()) { // NOPMD, handle problem first
 					field.setAccessible(true);
 					componentProxy = (ComponentProxy)field.get(component);
 					if (componentProxy == null) {

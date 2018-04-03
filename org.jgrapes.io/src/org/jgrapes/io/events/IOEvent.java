@@ -98,7 +98,7 @@ public abstract class IOEvent<T extends Buffer> extends Event<Void> {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Components.objectName(this));
 		builder.append(" [");
-		if (channels() != null) {
+		if (channels().length > 0) {
 			builder.append("channels=");
 			builder.append(Channel.toString(channels()));
 		}

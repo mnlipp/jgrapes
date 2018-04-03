@@ -73,7 +73,9 @@ public final class NamedChannel implements Channel {
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	public int hashCode() {
+		@SuppressWarnings("PMD.AvoidFinalLocalVariable")
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((name == null) ? 0 : name.hashCode());

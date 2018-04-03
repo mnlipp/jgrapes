@@ -41,15 +41,20 @@ import org.jgrapes.core.events.Error;
  */
 class ComponentTree {
 
+	@SuppressWarnings("PMD.VariableNamingConventions")
 	private static final Logger handlerTracking 
 		= Logger.getLogger(ComponentType.class.getPackage().getName() 
 				+ ".handlerTracking");	
 	
 	private final ComponentVertex root;
+	@SuppressWarnings("PMD.UseConcurrentHashMap") // Used synchronized only
 	private final Map<CacheKey,HandlerList> handlerCache = new HashMap<>();
 	private InternalEventPipeline eventPipeline;
 	private static HandlerReference fallbackErrorHandler;
 	private static HandlerReference actionEventHandler;
+
+	/** The Constant DUMMY_HANDLER. */
+	public static final ComponentVertex DUMMY_HANDLER = new DummyComponent(); 
 	
 	static {
 		ErrorPrinter errorPrinter = new ErrorPrinter();
@@ -64,7 +69,8 @@ class ComponentTree {
 				}
 			});
 		} catch (NoSuchMethodException | SecurityException e) {
-			// Doesn't happen.
+			// Doesn't happen, but just in case
+			e.printStackTrace(); // NOPMD, won't define a logger for that.
 		}
 		
 		ActionExecutor actionExecutor = new ActionExecutor();
@@ -79,14 +85,22 @@ class ComponentTree {
 				}
 			});
 		} catch (NoSuchMethodException | SecurityException e) {
-			// Doesn't happen.
+			// Doesn't happen, but just in case
+			e.printStackTrace(); // NOPMD, won't define a logger for that.
 		}
 	}
 	
 	/* This could simply be declared as an anonymous class. But then
 	 * "Find bugs" complains about the noop() not being callable, because it
 	 * doesn't consider that it is called by reflection. */
+	/**
+	 * A dummy component.
+	 */
 	private static class DummyComponent extends Component {
+		
+		/**
+		 * Instantiates a new dummy component.
+		 */
 		public DummyComponent() {
 			super(Channel.SELF);
 		}
@@ -98,43 +112,43 @@ class ComponentTree {
 		 */
 		@Handler(channels={Channel.class})
 		public void noop(Event<?> event) {
+			// ... really nothing.
 		}
 	}
 	
-	public static final ComponentVertex DUMMY_HANDLER = new DummyComponent(); 
-
 	/**
 	 * Creates a new tree for the given node or sub tree.
 	 * 
 	 * @param root the root node of the new tree
 	 */
-	ComponentTree(ComponentVertex root) {
+	/* default */ ComponentTree(ComponentVertex root) {
 		super();
 		this.root = root;
 	}
 
-	ComponentVertex root() {
+	/* default */ ComponentVertex root() {
 		return root;
 	}
 	
-	boolean isStarted() {
+	/* default */ boolean isStarted() {
 		return !(eventPipeline instanceof BufferingEventPipeline);
 	}
 
-	void setEventPipeline(InternalEventPipeline pipeline) {
+	/* default */ void setEventPipeline(InternalEventPipeline pipeline) {
 		eventPipeline = pipeline;
 	}
 	
-	InternalEventPipeline getEventPipeline() {
+	/* default */ InternalEventPipeline getEventPipeline() {
 		return eventPipeline;
 	}
 	
 	/**
 	 * Forward to the thread's event manager.
-	 * 
-	 * @param event
-	 * @param channels
+	 *
+	 * @param event the event
+	 * @param channels the channels
 	 */
+	@SuppressWarnings("PMD.UseVarargs")
 	public void fire(Event<?> event, Channel[] channels) {
 		eventPipeline.add(event, channels);
 	}
@@ -146,7 +160,7 @@ class ComponentTree {
 	 * 
 	 * @param source
 	 */
-	void mergeEvents(ComponentTree source) {
+	/* default */ void mergeEvents(ComponentTree source) {
 		eventPipeline.merge(source.eventPipeline);
 	}
 	
@@ -156,12 +170,14 @@ class ComponentTree {
 	 * @param event the event
 	 * @param channels the channels the event is sent to
 	 */
-	void dispatch(EventPipeline pipeline, 
+	@SuppressWarnings("PMD.UseVarargs")
+	/* default */ void dispatch(EventPipeline pipeline, 
 			EventBase<?> event, Channel[] channels) {
 		HandlerList handlers = getEventHandlers(event, channels);
 		handlers.process(pipeline, event);
 	}
 
+	@SuppressWarnings("PMD.UseVarargs")
 	private HandlerList getEventHandlers(
 			EventBase<?> event, Channel[] channels) {
 		CacheKey key = new CacheKey(event, channels);
@@ -203,15 +219,26 @@ class ComponentTree {
 		return hdlrs;
 	}
 	
-	synchronized void clearHandlerCache() {
-		handlerCache.clear();
+	/* default */ void clearHandlerCache() {
+		synchronized (this) {
+			handlerCache.clear();
+		}
 	}
 
+	/**
+	 * An artificial key for handler caching.
+	 */
 	private static class CacheKey {
-		private Object eventMatchValue;
-		private Object[] channelMatchValues;
+		private final Object eventMatchValue;
+		private final Object[] channelMatchValues;
 		
-		public CacheKey(EventBase<?> event, Channel[] channels) {
+		/**
+		 * Instantiates a new cache key.
+		 *
+		 * @param event the event
+		 * @param channels the channels
+		 */
+		public CacheKey(EventBase<?> event, Channel... channels) {
 			eventMatchValue = event.defaultCriterion();
 			channelMatchValues = new Object[channels.length];
 			for (int i = 0; i < channels.length; i++) {
@@ -223,7 +250,9 @@ class ComponentTree {
 		 * @see java.lang.Object#hashCode()
 		 */
 		@Override
+		@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 		public int hashCode() {
+			@SuppressWarnings("PMD.AvoidFinalLocalVariable")
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + Arrays.hashCode(channelMatchValues);
@@ -236,6 +265,7 @@ class ComponentTree {
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
 		@Override
+		@SuppressWarnings("PMD.SimplifyBooleanReturns")
 		public boolean equals(Object obj) {
 			if (this == obj) {
 				return true;

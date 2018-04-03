@@ -20,8 +20,19 @@ package org.jgrapes.core.internal;
 
 import org.jgrapes.core.ComponentType;
 
+/**
+ * Helper class for simulating event handlers.
+ */
 public class ActionExecutor implements ComponentType {
 
+	/**
+	 * Execute the event.
+	 *
+	 * @param <V> the value type
+	 * @param event the event
+	 * @throws Exception the exception
+	 */
+	@SuppressWarnings("PMD.SignatureDeclareThrowsException")
 	public <V> void execute(ActionEvent<V> event) throws Exception {
 		event.execute();
 	}

@@ -26,8 +26,13 @@ import org.jgrapes.core.Event;
  */
 class SynchronousEventProcessor extends EventProcessor {
 
-	private boolean isRunning = false;
+	private boolean isRunning;
 	
+	/**
+	 * Instantiates a new synchronous event processor.
+	 *
+	 * @param tree the tree
+	 */
 	public SynchronousEventProcessor(ComponentTree tree) {
 		super(tree);
 	}
@@ -56,18 +61,20 @@ class SynchronousEventProcessor extends EventProcessor {
 	 * @see org.jgrapes.core.internal.EventProcessor#run()
 	 */
 	@Override
-	public synchronized void run() {
-		// Save current event pipeline and currently handled event
-		// because a SynchronousEventPipeline can be called while 
-		// handling an event (from another event processor).
-		InternalEventPipeline currentPipeline 
-			= FeedBackPipelineFilter.getAssociatedPipeline();
-		EventBase<?> currentEvent = newEventsParent.get();
-		try {
-			super.run();
-		} finally {
-			newEventsParent.set(currentEvent);
-			FeedBackPipelineFilter.setAssociatedPipeline(currentPipeline);;
+	public void run() {
+		synchronized (this) {
+			// Save current event pipeline and currently handled event
+			// because a SynchronousEventPipeline can be called while
+			// handling an event (from another event processor).
+			InternalEventPipeline currentPipeline = FeedBackPipelineFilter
+			        .getAssociatedPipeline();
+			EventBase<?> currentEvent = newEventsParent.get();
+			try {
+				super.run();
+			} finally {
+				newEventsParent.set(currentEvent);
+				FeedBackPipelineFilter.setAssociatedPipeline(currentPipeline);
+			}
 		}
 	}
 	
