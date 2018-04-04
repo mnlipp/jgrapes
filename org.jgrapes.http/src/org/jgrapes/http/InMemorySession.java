@@ -20,15 +20,15 @@ package org.jgrapes.http;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Implements the {@link Session} interface using a {@link HashMap}.
+ * Implements the {@link Session} interface using a {@link ConcurrentHashMap}.
  */
 @SuppressWarnings("serial")
-public class InMemorySession extends HashMap<Serializable, Serializable>
+public class InMemorySession 
+		extends ConcurrentHashMap<Serializable, Serializable>
 	implements Session {
 
 	@SuppressWarnings("PMD.ShortVariable")
