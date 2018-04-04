@@ -31,10 +31,4 @@ import org.jgrapes.core.Event;
  */
 public class Purge extends Event<Void> {
 
-	/**
-	 * Creates a new event.
-	 */
-	public Purge() {
-	}
-
 }

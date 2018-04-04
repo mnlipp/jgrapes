@@ -33,10 +33,4 @@ import org.jgrapes.core.Event;
  */
 public class Close extends Event<Void> {
 
-	/**
-	 * Creates a new event.
-	 */
-	public Close() {
-	}
-
 }

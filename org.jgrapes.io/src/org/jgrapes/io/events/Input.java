@@ -29,7 +29,7 @@ import org.jgrapes.io.util.ManagedBuffer;
  * 
  * @param <T> the type of data used in this event
  */
-public class Input<T extends Buffer> extends IOEvent<T> {
+public final class Input<T extends Buffer> extends IOEvent<T> {
 
 	private Input(ManagedBuffer<T> buffer, boolean endOfRecord) {
 		super(buffer, endOfRecord);

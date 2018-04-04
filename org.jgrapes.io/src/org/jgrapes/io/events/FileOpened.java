@@ -20,18 +20,25 @@ package org.jgrapes.io.events;
 
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 /**
  *
  */
 public class FileOpened extends Opened {
 
-	private Path path;
-	private OpenOption[] options;
+	private final Path path;
+	private final OpenOption[] options;
 	
-	public FileOpened(Path path, OpenOption[] options) {
+	/**
+	 * Instantiates a new event.
+	 *
+	 * @param path the path
+	 * @param options the options
+	 */
+	public FileOpened(Path path, OpenOption... options) {
 		this.path = path;
-		this.options = options;
+		this.options = Arrays.copyOf(options, options.length);
 	}
 
 	/**
@@ -45,7 +52,7 @@ public class FileOpened extends Opened {
 	 * @return the options
 	 */
 	public OpenOption[] options() {
-		return options;
+		return Arrays.copyOf(options, options.length);
 	}
 
 }

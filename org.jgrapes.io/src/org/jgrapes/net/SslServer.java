@@ -61,14 +61,19 @@ import org.jgrapes.net.events.Accepted;
  * encrypted channel and sends and receives the corresponding
  * decrypted data on its own channel.
  */
+@SuppressWarnings("PMD.ExcessiveImports")
 public class SslServer extends Component {
 
+	@SuppressWarnings("PMD.VariableNamingConventions")
 	private static final Logger logger 
 		= Logger.getLogger(SslServer.class.getName());
 	
-	private class EncryptedChannel extends ClassChannel {}
+	private final SSLContext sslContext;
 	
-	private SSLContext sslContext;
+	/**
+	 * Represents the encrypted channel in annotations.
+	 */
+	private class EncryptedChannel extends ClassChannel {}
 	
 	/**
 	 * @param plainChannel the component's channel
@@ -110,7 +115,7 @@ public class SslServer extends Component {
 	public void onInput(
 			Input<ByteBuffer> event, IOSubchannel encryptedChannel)
 	        throws InterruptedException, SSLException, ExecutionException {
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })
 		final Optional<PlainChannel> plainChannel = (Optional<PlainChannel>)
 				LinkedIOSubchannel.downstreamChannel(this, encryptedChannel);
 		if (plainChannel.isPresent()) {
@@ -206,15 +211,24 @@ public class SslServer extends Component {
 		plainChannel.close(event);
 	}
 	
+	/**
+	 * Represents the plain channel.
+	 */
 	private class PlainChannel extends LinkedIOSubchannel {
 		public SocketAddress localAddress;
 		public SocketAddress remoteAddress;
 		public SSLEngine sslEngine;
-		private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
+		private final ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
 			downstreamPool;
-		private boolean isInputClosed = false;
-		private ByteBuffer carryOver = null;
+		private boolean isInputClosed;
+		private ByteBuffer carryOver;
 
+		/**
+		 * Instantiates a new plain channel.
+		 *
+		 * @param event the event
+		 * @param upstreamChannel the upstream channel
+		 */
 		public PlainChannel(Accepted event, IOSubchannel upstreamChannel) {
 			super(SslServer.this, channel(), upstreamChannel, newEventPipeline());
 			localAddress = event.localAddress();
@@ -243,6 +257,17 @@ public class SslServer extends Component {
 					.setName(channelName + ".upstream.buffers"));
 		}
 		
+		/**
+		 * Sends input downstream.
+		 *
+		 * @param event the event
+		 * @throws SSLException the SSL exception
+		 * @throws InterruptedException the interrupted exception
+		 * @throws ExecutionException the execution exception
+		 */
+		@SuppressWarnings({ "PMD.CyclomaticComplexity",
+		        "PMD.ExcessiveMethodLength", "PMD.NcssCount",
+		        "PMD.NPathComplexity" })
 		public void sendDownstream(Input<ByteBuffer> event)
 				throws SSLException, InterruptedException, ExecutionException {
 			ManagedBuffer<ByteBuffer> unwrapped = downstreamPool.acquire();
@@ -277,6 +302,7 @@ public class SslServer extends Component {
 						// Having this handled by the response thread is 
 						// probably not really necessary, but as the delegated 
 						// task usually includes sending upstream...
+						@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 						FutureTask<Boolean> task = new FutureTask<>(runnable, true);
 						upstreamChannel().responsePipeline()
 							.executorService().submit(task);
@@ -355,6 +381,13 @@ public class SslServer extends Component {
 			}
 		}
 
+		/**
+		 * Send output upstream.
+		 *
+		 * @param event the event
+		 * @throws SSLException the SSL exception
+		 * @throws InterruptedException the interrupted exception
+		 */
 		public void sendUpstream(Output<ByteBuffer> event)
 				throws SSLException, InterruptedException {
 			ByteBuffer output = event.buffer().backingBuffer().duplicate();
@@ -368,6 +401,13 @@ public class SslServer extends Component {
 			}
 		}
 
+		/**
+		 * Close the connection.
+		 *
+		 * @param event the event
+		 * @throws InterruptedException the interrupted exception
+		 * @throws SSLException the SSL exception
+		 */
 		public void close(Close event) 
 				throws InterruptedException, SSLException {
 			sslEngine.closeOutbound();
@@ -381,6 +421,7 @@ public class SslServer extends Component {
 			upstreamChannel().respond(new Close());
 		}
 
+		@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 		private void fireAccepted() {
 			List<SNIServerName> snis = Collections.emptyList();
 			if (sslEngine.getSession() instanceof ExtendedSSLSession) {
@@ -391,6 +432,12 @@ public class SslServer extends Component {
 					localAddress, remoteAddress, true, snis), this);
 		}
 		
+		/**
+		 * Forwards the {@link Closed} event downstream.
+		 *
+		 * @throws SSLException the SSL exception
+		 * @throws InterruptedException the interrupted exception
+		 */
 		public void upstreamClosed()
 				throws SSLException, InterruptedException {
 			if (!isInputClosed) {
@@ -417,6 +464,9 @@ public class SslServer extends Component {
 			}
 		}
 
+		/**
+		 * Fire a {@link Purge} event downstream.
+		 */
 		public void purge() {
 			fire(new Purge(), this);
 		}

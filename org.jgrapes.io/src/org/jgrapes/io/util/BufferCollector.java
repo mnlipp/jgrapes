@@ -30,10 +30,11 @@ public interface BufferCollector<B extends ManagedBuffer<?>> {
 	 * is no longer used. Using this collector with a managed buffer
 	 * effectively make it an unmanaged buffer.
 	 */
-	static final BufferCollector<? extends ManagedBuffer<?>> NOOP_COLLECTOR 
+	BufferCollector<? extends ManagedBuffer<?>> NOOP_COLLECTOR 
 		= new BufferCollector<ManagedBuffer<?>>() {
 		@Override
 		public void recollect(ManagedBuffer<?> buffer) {
+			// Does nothing.
 		}
 	};
 
@@ -44,7 +45,7 @@ public interface BufferCollector<B extends ManagedBuffer<?>> {
 	 * @return the noop buffer collector
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends ManagedBuffer<?>> BufferCollector<T> 
+	static <T extends ManagedBuffer<?>> BufferCollector<T> 
 		noopCollector() {
 		return (BufferCollector<T>)NOOP_COLLECTOR;
 	}

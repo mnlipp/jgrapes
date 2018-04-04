@@ -48,11 +48,12 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * lifetime of the application. A typical usage is
  * to make data from `System.in` available as events.
  */
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class InputStreamMonitor extends Component implements Runnable {
 
 	private Channel dataChannel;
 	private InputStream input;
-	private boolean registered = false;
+	private boolean registered;
 	private Thread runner;
 	private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> buffers;
 	private int bufferSize = 2048;
@@ -132,16 +133,21 @@ public class InputStreamMonitor extends Component implements Runnable {
 	 * @param event the event
 	 */
 	@Handler
-	public synchronized void onStart(Start event) {
-		if (runner != null) {
-			return;
+	public void onStart(Start event) {
+		synchronized (this) {
+			if (runner != null) {
+				return;
+			}
+			buffers = new ManagedBufferPool<>(ManagedBuffer::new,
+			        () -> {
+				        return ByteBuffer.allocateDirect(bufferSize);
+			        }, 2);
+			runner = new Thread(this, Components.simpleObjectName(this));
+			// Because this cannot reliably be stopped, it doesn't prevent
+			// shutdown.
+			runner.setDaemon(true);
+			runner.start();
 		}
-		buffers = new ManagedBufferPool<>(ManagedBuffer::new,
-				() -> {return ByteBuffer.allocateDirect(bufferSize); }, 2);
-		runner = new Thread(this, Components.simpleObjectName(this));
-		// Because this cannot reliably be stopped, it doesn't prevent shutdown.
-		runner.setDaemon(true);
-		runner.start();
 	}
 
 	/**
@@ -152,18 +158,20 @@ public class InputStreamMonitor extends Component implements Runnable {
 	 * @throws InterruptedException the interrupted exception
 	 */
 	@Handler(priority=-10000)
-	public synchronized void onStop(Stop event) throws InterruptedException {
-		if (runner == null) {
-			return;
-		}
-		runner.interrupt();
+	public void onStop(Stop event) throws InterruptedException {
 		synchronized (this) {
-			if (registered) {
-				unregisterAsGenerator();
-				registered = false;
+			if (runner == null) {
+				return;
 			}
+			runner.interrupt();
+			synchronized (this) {
+				if (registered) {
+					unregisterAsGenerator();
+					registered = false;
+				}
+			}
+			runner = null;
 		}
-		runner = null;
 	}
 
 	@Override
@@ -178,7 +186,7 @@ public class InputStreamMonitor extends Component implements Runnable {
 			while (!Thread.currentThread().isInterrupted()) {
 				ManagedBuffer<ByteBuffer> buffer = buffers.acquire();
 				int read = buffer.fillFromChannel(inChannel);
-				boolean eof = (read == -1);
+				boolean eof = read == -1;
 				fire(Input.fromSink(buffer, eof), dataChannel);
 				if (eof) {
 					break;

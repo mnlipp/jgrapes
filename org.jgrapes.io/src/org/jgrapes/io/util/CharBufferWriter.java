@@ -37,12 +37,12 @@ public class CharBufferWriter extends Writer {
 
 	private IOSubchannel channel;
 	private EventPipeline eventPipeline;
-	private boolean sendInputEvents = false;
-	private ManagedBuffer<CharBuffer> buffer = null;
+	private boolean sendInputEvents;
+	private ManagedBuffer<CharBuffer> buffer;
 	private boolean sendClose = true;
 	private boolean sendEor = true;
-	private boolean eorSent = false;
-	private boolean isClosed = false;
+	private boolean eorSent;
+	private boolean isClosed;
 	
 	/**
 	 * Creates a new instance that uses {@link Output} events to dispatch

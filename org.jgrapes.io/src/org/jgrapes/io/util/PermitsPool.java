@@ -34,19 +34,28 @@ import java.util.concurrent.Semaphore;
  */
 public class PermitsPool {
 
-	private MySemaphore delegee;
-	private List<WeakReference<AvailabilityListener>> 
+	private final MySemaphore delegee;
+	private final List<WeakReference<AvailabilityListener>> 
 		listeners = new LinkedList<>();
 	private boolean lastNotification = true;
 	
+	/**
+	 * A variant of {@link Semaphore}.
+	 */
 	private static class MySemaphore extends Semaphore {
 		private static final long serialVersionUID = 8758302721594300704L;
 
+		/**
+		 * Instantiates a new semaphore.
+		 *
+		 * @param permits the number of permits
+		 */
 		public MySemaphore(int permits) {
 			super(permits);
 		}
 
 		@Override
+		@SuppressWarnings("PMD.UselessOverridingMethod")
 		public void reducePermits(int reduction) {
 			super.reducePermits(reduction);
 		}
@@ -125,7 +134,7 @@ public class PermitsPool {
 	}
 
 	private void notifyAvailabilityListeners() {
-		boolean available = (availablePermits() > 0);
+		boolean available = availablePermits() > 0;
 		if (available == lastNotification) {
 			return;
 		}
@@ -151,10 +160,12 @@ public class PermitsPool {
 	/**
 	 * Release a previously obtained permit.
 	 */
-	public synchronized PermitsPool release() {
-		delegee.release();;
-		notifyAvailabilityListeners();
-		return this;
+	public PermitsPool release() {
+		synchronized(this) {
+			delegee.release();
+			notifyAvailabilityListeners();
+			return this;
+		}
 	}
 
 	/**
@@ -174,13 +185,15 @@ public class PermitsPool {
 	 *
 	 * @return `true` if successful
 	 */
-	public synchronized boolean tryAcquire() {
-		boolean gotOne = delegee.tryAcquire();
-		if (gotOne) {
-			notifyAvailabilityListeners();
-			return true;
+	public boolean tryAcquire() {
+		synchronized(this) {
+			boolean gotOne = delegee.tryAcquire();
+			if (gotOne) {
+				notifyAvailabilityListeners();
+				return true;
+			}
+			return false;
 		}
-		return false;
 	}
 
 }

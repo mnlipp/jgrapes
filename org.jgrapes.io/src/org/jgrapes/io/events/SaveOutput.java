@@ -20,6 +20,7 @@ package org.jgrapes.io.events;
 
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import org.jgrapes.core.Event;
 import org.jgrapes.io.FileStorage;
@@ -31,8 +32,8 @@ import org.jgrapes.io.FileStorage;
  */
 public class SaveOutput extends Event<Void> {
 
-	private Path path;
-	private OpenOption[] options;
+	private final Path path;
+	private final OpenOption[] options;
 
 	/**
 	 * Creates a new instance.
@@ -42,7 +43,7 @@ public class SaveOutput extends Event<Void> {
 	 */
 	public SaveOutput(Path path, OpenOption... options) {
 		this.path = path;
-		this.options = options;
+		this.options = Arrays.copyOf(options, options.length);
 	}
 
 	/**
@@ -60,7 +61,7 @@ public class SaveOutput extends Event<Void> {
 	 * @return the options
 	 */
 	public OpenOption[] options() {
-		return options;
+		return Arrays.copyOf(options, options.length);
 	}
 
 }

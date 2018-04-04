@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Newly created managed buffer always have a lock count of 1 (you
  * create them for using them, don't you).
  */
+@SuppressWarnings("PMD.TooManyMethods")
 public class ManagedBuffer<T extends Buffer> {
 
 	public static final ManagedBuffer<ByteBuffer> EMPTY_BYTE_BUFFER 
@@ -44,10 +45,10 @@ public class ManagedBuffer<T extends Buffer> {
 		= wrap(CharBuffer.allocate(0));
 	
 	protected T backing;
-	ManagedBuffer<T> linkedTo = null;
-	protected T savedBacking = null;
-	private BufferCollector<ManagedBuffer<T>> manager;
-	private AtomicInteger lockCount = new AtomicInteger(1);
+	private ManagedBuffer<T> linkedTo;
+	protected T savedBacking;
+	private final BufferCollector<ManagedBuffer<T>> manager;
+	private final AtomicInteger lockCount = new AtomicInteger(1);
 	
 	/**
 	 * Create a new Managed buffer, backed by the given buffer,
@@ -200,8 +201,8 @@ public class ManagedBuffer<T extends Buffer> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(getClass().getSimpleName());
-		builder.append(" [");
+		builder.append(getClass().getSimpleName())
+			.append(" [");
 		if (backing != null) {
 			builder.append("buffer=");
 			builder.append(backing);
@@ -211,7 +212,7 @@ public class ManagedBuffer<T extends Buffer> {
 			builder.append("lockCount=");
 			builder.append(lockCount);
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 
@@ -247,6 +248,11 @@ public class ManagedBuffer<T extends Buffer> {
 		return backing.clear();
 	}
 
+	/**
+	 * Duplicate the buffer.
+	 *
+	 * @return the t
+	 */
 	@SuppressWarnings("unchecked")
 	public final T duplicate() {
 		if (backing instanceof ByteBuffer) {
@@ -369,6 +375,7 @@ public class ManagedBuffer<T extends Buffer> {
 	 *
 	 * @return the byte buffer view
 	 */
+	@SuppressWarnings("PMD.AccessorClassGeneration")
 	public ByteBufferView newByteBufferView() {
 		return new ByteBufferView();
 	}
@@ -379,7 +386,7 @@ public class ManagedBuffer<T extends Buffer> {
 	 * Can be used if several consumers need the same content.
 	 */
 	public class ByteBufferView {
-		private ByteBuffer bufferView;
+		private final ByteBuffer bufferView;
 		
 		private ByteBufferView() {
 			if (!(backing instanceof ByteBuffer)) {
@@ -414,6 +421,7 @@ public class ManagedBuffer<T extends Buffer> {
 	 *
 	 * @return the byte buffer view
 	 */
+	@SuppressWarnings("PMD.AccessorClassGeneration")
 	public CharBufferView newCharBufferView() {
 		return new CharBufferView();
 	}
@@ -424,7 +432,7 @@ public class ManagedBuffer<T extends Buffer> {
 	 * Can be used if several consumers need the same content.
 	 */
 	public class CharBufferView {
-		private CharBuffer bufferView;
+		private final CharBuffer bufferView;
 		
 		private CharBufferView() {
 			if (!(backing instanceof CharBuffer)) {

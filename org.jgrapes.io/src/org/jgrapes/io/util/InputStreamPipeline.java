@@ -34,6 +34,7 @@ import org.jgrapes.io.events.Output;
  * Forwards the content of an input stream as a sequence of {@link Output}
  * events.
  */
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class InputStreamPipeline implements Runnable {
 	
 	private InputStream inStream;
@@ -50,6 +51,7 @@ public class InputStreamPipeline implements Runnable {
 	 * @param eventPipeline
 	 *            the event pipeline used for firing events
 	 */
+	@SuppressWarnings("PMD.ShortVariable")
 	public InputStreamPipeline(InputStream in, IOSubchannel channel,
 			EventPipeline eventPipeline) {
 		this.inStream = in;
@@ -64,6 +66,7 @@ public class InputStreamPipeline implements Runnable {
 	 * @param in the input stream to read from
 	 * @param channel the channel to send to
 	 */
+	@SuppressWarnings("PMD.ShortVariable")
 	public InputStreamPipeline(InputStream in, IOSubchannel channel) {
 		this(in, channel, channel.responsePipeline());
 	}
@@ -100,7 +103,7 @@ public class InputStreamPipeline implements Runnable {
 					// Next read attempt
 					boolean eof;
 					try {
-						eof = (lookAhead.fillFromChannel(inChannel) == -1);
+						eof = lookAhead.fillFromChannel(inChannel) == -1;
 					} catch (IOException e) {
 						buffer.unlockBuffer();
 						throw e;

@@ -38,9 +38,9 @@ import org.jgrapes.io.events.NioRegistration;
  */
 public class NioDispatcher extends Component implements Runnable {
 
-	private Selector selector = null;
-	private Thread runner = null;
-	private Object selectorGate = new Object();
+	private final Selector selector;
+	private Thread runner;
+	private final Object selectorGate = new Object();
 	
 	/**
 	 * Creates a new Dispatcher.
@@ -58,12 +58,14 @@ public class NioDispatcher extends Component implements Runnable {
 	 * @param event the event
 	 */
 	@Handler
-	public synchronized void onStart(Start event) {
-		if (runner != null && !runner.isInterrupted()) {
-			return;
+	public void onStart(Start event) {
+		synchronized (this) {
+			if (runner != null && !runner.isInterrupted()) {
+				return;
+			}
+			runner = new Thread(this, Components.simpleObjectName(this));
+			runner.start();
 		}
-		runner = new Thread(this, Components.simpleObjectName(this));
-		runner.start();
 	}
 
 	/**
@@ -73,20 +75,22 @@ public class NioDispatcher extends Component implements Runnable {
 	 * @throws InterruptedException if the execution is interrupted
 	 */
 	@Handler(priority=-10000)
-	public synchronized void onStop(Stop event) throws InterruptedException {
-		if (runner == null) {
-			return;
+	public void onStop(Stop event) throws InterruptedException {
+		synchronized (this) {
+			if (runner == null) {
+				return;
+			}
+			// It just might happen that the wakeup() occurs between the
+			// check for running and the select() in the thread's run loop,
+			// but we -- obviously -- cannot put the select() in a
+			// synchronized(this).
+			while (runner.isAlive()) {
+				runner.interrupt(); // *Should* be sufficient, but...
+				selector.wakeup(); // Make sure
+				runner.join(10);
+			}
+			runner = null;
 		}
-		// It just might happen that the wakeup() occurs between the
-		// check for running and the select() in the thread's run loop,
-		// but we -- obviously -- cannot put the select() in a 
-		// synchronized(this).
-		while (runner.isAlive()) {
-			runner.interrupt(); // *Should* be sufficient, but...
-			selector.wakeup(); // Make sure
-			runner.join(10);
-		}
-		runner = null;
 	}
 
 	/**
@@ -94,6 +98,8 @@ public class NioDispatcher extends Component implements Runnable {
 	 * all events from the underlying {@link Selector}.  
 	 */
 	@Override
+	@SuppressWarnings({ "PMD.EmptySynchronizedBlock", "PMD.EmptyCatchBlock",
+	        "PMD.AvoidCatchingThrowable" })
 	public void run() {
 		try {
 			registerAsGenerator();
@@ -122,6 +128,12 @@ public class NioDispatcher extends Component implements Runnable {
 		}
 	}
 
+	/**
+	 * Handle the NIO registration.
+	 *
+	 * @param event the event
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	@Handler
 	public void onNioRegistration(NioRegistration event)
 			throws IOException {
@@ -136,10 +148,18 @@ public class NioDispatcher extends Component implements Runnable {
 		event.setResult(new Registration(key));
 	}
 	
+	/**
+	 * Represents a NIO registration.
+	 */
 	public class Registration extends NioRegistration.Registration {
 
-		private SelectionKey key;
+		private final SelectionKey key;
 		
+		/**
+		 * Instantiates a new registration.
+		 *
+		 * @param key the key
+		 */
 		public Registration(SelectionKey key) {
 			super();
 			this.key = key;

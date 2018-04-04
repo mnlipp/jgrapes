@@ -94,14 +94,14 @@ public interface IOSubchannel extends Channel, Associator {
 	 * 
 	 * @return the event pipeline
 	 */
-	public EventPipeline responsePipeline();
+	EventPipeline responsePipeline();
 
 	/**
 	 * Get the subchannel's byte buffer pool.
 	 * 
 	 * @return the buffer pool
 	 */
-	public ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> 
+	ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> 
 		byteBufferPool();
 	
 	/**
@@ -109,7 +109,7 @@ public interface IOSubchannel extends Channel, Associator {
 	 * 
 	 * @return the buffer pool
 	 */
-	public ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer> 
+	ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer> 
 		charBufferPool();
 	
 	/**
@@ -126,15 +126,18 @@ public interface IOSubchannel extends Channel, Associator {
 		return responsePipeline().fire(event, this);
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
+	/**
+	 * Returns a string representation of the channel.
+	 *
+	 * @param subchannel the subchannel
+	 * @return the string
 	 */
 	static String toString(IOSubchannel subchannel) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Channel.toString(subchannel.mainChannel()));
-		builder.append("{");
-		builder.append(Components.objectName(subchannel));
-		builder.append("}");
+		builder.append(Channel.toString(subchannel.mainChannel()))
+			.append('{')
+			.append(Components.objectName(subchannel))
+			.append('}');
 		return builder.toString();
 	}
 
@@ -146,7 +149,7 @@ public interface IOSubchannel extends Channel, Associator {
 	 * @param responsePipeline the response pipeline
 	 * @return the subchannel
 	 */
-	public static IOSubchannel create(
+	static IOSubchannel create(
 			Component component, EventPipeline responsePipeline) {
 		return new DefaultSubchannel(component.channel(), responsePipeline);
 	}
@@ -154,14 +157,14 @@ public interface IOSubchannel extends Channel, Associator {
 	/**
 	 * A simple implementation of {@link IOSubchannel}.
 	 */
-	public static class DefaultSubchannel implements IOSubchannel {
-		private Channel mainChannel;
-		private EventPipeline responsePipeline;
+	class DefaultSubchannel implements IOSubchannel {
+		private final Channel mainChannel;
+		private final EventPipeline responsePipeline;
 		private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> 
 			byteBufferPool;
 		private ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer>
 			charBufferPool;
-		private Map<Object,Object> contextData = null;
+		private Map<Object,Object> contextData;
 		
 		/**
 		 * Creates a new instance with the given main channel and response
@@ -244,14 +247,15 @@ public interface IOSubchannel extends Channel, Associator {
 		 * @param by the "name"
 		 * @param with the object to be associated
 		 */
+		@SuppressWarnings("PMD.ShortVariable")
 		public DefaultSubchannel setAssociated(Object by, Object with) {
 			if (contextData == null) {
 				contextData = new ConcurrentHashMap<>();
 			}
-			if (with != null) {
-				contextData.put(by, with);
-			} else {
+			if (with == null) {
 				contextData.remove(by);
+			} else {
+				contextData.put(by, with);
 			}
 			return this;
 		}
@@ -267,6 +271,7 @@ public interface IOSubchannel extends Channel, Associator {
 		 * @param <V> the type of the value to be retrieved
 		 * @return the associate, if any
 		 */
+		@SuppressWarnings("PMD.ShortVariable")
 		public <V> Optional<V> associated(Object by, Class<V> type) {
 			if (contextData == null) {
 				return Optional.empty();

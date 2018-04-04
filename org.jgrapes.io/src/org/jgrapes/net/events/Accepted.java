@@ -31,12 +31,13 @@ import org.jgrapes.io.events.Opened;
 /**
  * This event signals that a new connection has been made by a client.
  */
+@SuppressWarnings("PMD.DataClass")
 public class Accepted extends Opened {
 
-	private SocketAddress localAddress;
-	private SocketAddress remoteAddress;
-	private boolean secure;
-	private List<SNIServerName> requestedServerNames;
+	private final SocketAddress localAddress;
+	private final SocketAddress remoteAddress;
+	private final boolean secure;
+	private final List<SNIServerName> requestedServerNames;
 
 	/**
 	 * Creates a new instance.
@@ -89,20 +90,20 @@ public class Accepted extends Opened {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append(" [");
-		builder.append(localAddress);
-		builder.append(" <― ");
-		builder.append(remoteAddress);
-		builder.append(", ");
+		StringBuilder builder = new StringBuilder(50);
+		builder.append(Components.objectName(this))
+			.append(" [")
+			.append(localAddress)
+			.append(" <― ")
+			.append(remoteAddress)
+			.append(", ");
 		if (channels().length > 0) {
 			builder.append("channels=");
 			builder.append(Channel.toString(channels()));
 		}
-		builder.append(", secure=");
-		builder.append(secure);
-		builder.append("]");
+		builder.append(", secure=")
+			.append(secure)
+			.append(']');
 		return builder.toString();
 	}
 }

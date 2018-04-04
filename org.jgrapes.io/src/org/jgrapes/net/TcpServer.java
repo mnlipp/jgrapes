@@ -105,24 +105,33 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * level components support the {@link Purge} event. Else, it may become
  * impossible to establish new connections.
  */
+@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.ExcessivePublicCount",
+        "PMD.NcssCount", "PMD.EmptyCatchBlock", "PMD.AvoidDuplicateLiterals",
+        "PMD.ExcessiveClassLength" })
 public class TcpServer extends Component implements NioHandler {
 
-	private InetSocketAddress serverAddress = null;
-	private ServerSocketChannel serverSocketChannel = null;
-	private int bufferSize = 0;
-	private Set<TcpChannel> channels = new HashSet<>();
-	private boolean closing = false;
-	private ExecutorService executorService = null;
-	private int backlog = 0;
-	private PermitsPool connLimiter = null;
-	private Registration registration = null;
-	private Purger purger = null;
-	private long minimumPurgeableTime = 0;
+	private InetSocketAddress serverAddress;
+	private ServerSocketChannel serverSocketChannel;
+	private int bufferSize;
+	private final Set<TcpChannel> channels = new HashSet<>();
+	private boolean closing;
+	private ExecutorService executorService;
+	private int backlog;
+	private PermitsPool connLimiter;
+	private Registration registration;
+	private Purger purger;
+	private long minimumPurgeableTime;
 
+	/**
+	 * The purger thread.
+	 */
 	private class Purger extends Thread implements AvailabilityListener {
 
 		private boolean permitsAvailable = true;
 		
+		/**
+		 * Instantiates a new purger.
+		 */
 		public Purger() {
 			setName(Components.simpleObjectName(this));
 			setDaemon(true);
@@ -144,6 +153,8 @@ public class TcpServer extends Component implements NioHandler {
 		}
 		
 		@Override
+		@SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
+		        "PMD.DataflowAnomalyAnalysis" })
 		public void run() {
 			if (connLimiter == null) {
 				return;
@@ -255,6 +266,7 @@ public class TcpServer extends Component implements NioHandler {
 	 * @param event the event
 	 */
 	@Handler
+	@SuppressWarnings("PMD.ConfusingTernary")
 	public void onConfigurationUpdate(ConfigurationUpdate event) {
 		event.values(componentPath()).ifPresent(values -> {
 			String hostname = values.get("hostname");
@@ -301,6 +313,8 @@ public class TcpServer extends Component implements NioHandler {
 	}
 	
 	/**
+	 * Return the configured buffer size.
+	 *
 	 * @return the bufferSize
 	 */
 	public int bufferSize() {
@@ -319,6 +333,8 @@ public class TcpServer extends Component implements NioHandler {
 	}
 
 	/**
+	 * Return the configured backlog size.
+	 *
 	 * @return the backlog
 	 */
 	public int backlog() {
@@ -340,6 +356,8 @@ public class TcpServer extends Component implements NioHandler {
 	}
 
 	/**
+	 * Returns the connection limiter.
+	 *
 	 * @return the connection Limiter
 	 */
 	public PermitsPool getConnectionLimiter() {
@@ -358,6 +376,11 @@ public class TcpServer extends Component implements NioHandler {
 		return this;
 	}
 
+	/**
+	 * Gets the minimal purgeable time.
+	 *
+	 * @return the minimal purgeable time
+	 */
 	public long getMinimalPurgeableTime() {
 		return minimumPurgeableTime;
 	}
@@ -378,6 +401,8 @@ public class TcpServer extends Component implements NioHandler {
 	}
 
 	/**
+	 * Returns the executor service.
+	 *
 	 * @return the executorService
 	 */
 	public ExecutorService executorService() {
@@ -400,6 +425,13 @@ public class TcpServer extends Component implements NioHandler {
 				SelectionKey.OP_ACCEPT, this), Channel.BROADCAST);
 	}
 
+	/**
+	 * Handles the successful channel registration.
+	 *
+	 * @param event the event
+	 * @throws InterruptedException the interrupted exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	@Handler(channels=Self.class)
 	public void onRegistered(NioRegistration.Completed event) 
 			throws InterruptedException, IOException {
@@ -466,9 +498,10 @@ public class TcpServer extends Component implements NioHandler {
 	 * been processed, the channel is purgeable until input is 
 	 * received or another output event causes the state to be 
 	 * reevaluated. 
-	 * 
+	 *
 	 * @param event the event
-	 * @throws IOException if an error occurs
+	 * @param channel the channel
+	 * @throws InterruptedException the interrupted exception
 	 */
 	@Handler
 	public void onOutput(Output<ByteBuffer> event,
@@ -479,13 +512,14 @@ public class TcpServer extends Component implements NioHandler {
 	}
 
 	/**
-	 * Shuts down the server or one of the connections to the server
-	 * 
+	 * Shuts down the server or one of the connections to the server.
+	 *
 	 * @param event the event
 	 * @throws IOException if an I/O exception occurred
-	 * @throws InterruptedException if the execution was interrupted 
+	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	public void onClose(Close event) throws IOException, InterruptedException {
 		boolean subOnly = true;
 		for (Channel channel: event.channels()) {
@@ -509,7 +543,7 @@ public class TcpServer extends Component implements NioHandler {
 			for (TcpChannel conn : conns) {
 				conn.close();
 			}
-			while (channels.size() > 0) {
+			while (!channels.isEmpty()) {
 				channels.wait();
 			}
 		}
@@ -543,6 +577,9 @@ public class TcpServer extends Component implements NioHandler {
 		return Components.objectName(this);
 	}
 
+	/**
+	 * The purgeable state.
+	 */
 	private enum PurgeableState { NO, PENDING, YES }
 	
 	/**
@@ -551,16 +588,16 @@ public class TcpServer extends Component implements NioHandler {
 	private class TcpChannel 
 		extends DefaultSubchannel implements NioHandler {
 
-		private SocketChannel nioChannel;
+		private final SocketChannel nioChannel;
 		private EventPipeline downPipeline;
-		private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> 
+		private final ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> 
 			readBuffers;
-		private Registration registration = null;
-		private Queue<ManagedBuffer<ByteBuffer>.ByteBufferView> 
+		private Registration registration;
+		private final Queue<ManagedBuffer<ByteBuffer>.ByteBufferView> 
 			pendingWrites = new ArrayDeque<>();
-		private boolean pendingClose = false;
+		private boolean pendingClose;
 		private PurgeableState purgeable = PurgeableState.NO;
-		private long becamePurgeableAt = 0;
+		private long becamePurgeableAt;
 		
 		/**
 		 * @param nioChannel the channel
@@ -569,10 +606,10 @@ public class TcpServer extends Component implements NioHandler {
 		public TcpChannel(SocketChannel nioChannel)	throws IOException {
 			super(channel(), newEventPipeline());
 			this.nioChannel = nioChannel;
-			if (executorService != null) {
-				downPipeline = newEventPipeline(executorService);
-			} else {
+			if (executorService == null) {
 				downPipeline = newEventPipeline();
+			} else {
+				downPipeline = newEventPipeline(executorService);
 			}
 
 			String channelName = Components.objectName(TcpServer.this)
@@ -678,6 +715,7 @@ public class TcpServer extends Component implements NioHandler {
 		 * @throws InterruptedException
 		 * @throws IOException
 		 */
+		@SuppressWarnings("PMD.EmptyCatchBlock")
 		private void handleReadOp() throws InterruptedException {
 			ManagedBuffer<ByteBuffer> buffer;
 			buffer = readBuffers.acquire();
@@ -740,6 +778,9 @@ public class TcpServer extends Component implements NioHandler {
 		 * @throws IOException
 		 * @throws InterruptedException 
 		 */
+		@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+		        "PMD.EmptyCatchBlock",
+		        "PMD.AvoidBranchingStatementAsLastInLoop" })
 		private void handleWriteOp() throws InterruptedException {
 			while (true) {
 				ManagedBuffer<ByteBuffer>.ByteBufferView head = null;
@@ -751,13 +792,13 @@ public class TcpServer extends Component implements NioHandler {
 						if (pendingClose) {
 							synchronized (nioChannel) {
 								try {
-								if (nioChannel.socket().isInputShutdown()) {
-									// Delayed close from client, complete
-									nioChannel.close();
-								} else {
-									// Delayed close from server, initiate
-									nioChannel.shutdownOutput();
-								}
+									if (nioChannel.socket().isInputShutdown()) {
+										// Delayed close from client, complete
+										nioChannel.close();
+									} else {
+										// Delayed close from server, initiate
+										nioChannel.shutdownOutput();
+									}
 								} catch (IOException e) {
 									// Ignored for close
 								}
@@ -812,6 +853,7 @@ public class TcpServer extends Component implements NioHandler {
 			}
 		}
 
+		@SuppressWarnings("PMD.EmptyCatchBlock")
 		private void removeChannel(Throwable error)
 				throws InterruptedException {
 			if (error != null) {
@@ -829,54 +871,111 @@ public class TcpServer extends Component implements NioHandler {
 		}
 		
 		/* (non-Javadoc)
-		 * @see java.lang.Object#toString()
+		 * @see org.jgrapes.io.IOSubchannel.DefaultSubchannel#toString()
 		 */
+		@SuppressWarnings("PMD.CommentRequired")
 		public String toString() {
 			return IOSubchannel.toString(this);
 		}
 	}
 
-	public static interface TcpServerMXBean {
+	/**
+	 * The Interface of the TcpServer MXBean.
+	 */
+	public interface TcpServerMXBean {
 		
-		public static class ChannelInfo {
+		/**
+		 * The Class ChannelInfo.
+		 */
+		class ChannelInfo {
 			
-			private TcpChannel channel;
+			private final TcpChannel channel;
 			
+			/**
+			 * Instantiates a new channel info.
+			 *
+			 * @param channel the channel
+			 */
 			public ChannelInfo(TcpChannel channel) {
 				this.channel = channel;
 			}
 			
+			/**
+			 * Checks if is purgeable.
+			 *
+			 * @return true, if is purgeable
+			 */
 			public boolean isPurgeable() {
 				return channel.isPurgeable();
 			}
 			
+			/**
+			 * Gets the downstream pool.
+			 *
+			 * @return the downstream pool
+			 */
 			public String getDownstreamPool() {
 				return channel.readBuffers.name();
 			}
 			
+			/**
+			 * Gets the upstream pool.
+			 *
+			 * @return the upstream pool
+			 */
 			public String getUpstreamPool() {
 				return channel.byteBufferPool().name();
 			}
 		}
 		
-		public String getComponentPath();
+		/**
+		 * Gets the component path.
+		 *
+		 * @return the component path
+		 */
+		String getComponentPath();
 		
-		public int getPort();
+		/**
+		 * Gets the port.
+		 *
+		 * @return the port
+		 */
+		int getPort();
 		
-		public int getChannelCount();
+		/**
+		 * Gets the channel count.
+		 *
+		 * @return the channel count
+		 */
+		int getChannelCount();
 		
-		public SortedMap<String,ChannelInfo> getChannels();
+		/**
+		 * Gets the channels.
+		 *
+		 * @return the channels
+		 */
+		SortedMap<String,ChannelInfo> getChannels();
 		
 	}
 	
+	/**
+	 * The Class TcpServerInfo.
+	 */
 	public static class TcpServerInfo implements TcpServerMXBean {
 
 		private static MBeanServer mbs 
 			= ManagementFactory.getPlatformMBeanServer(); 
 		
 		private ObjectName mbeanName;
-		private WeakReference<TcpServer> serverRef;
+		private final WeakReference<TcpServer> serverRef;
 		
+		/**
+		 * Instantiates a new tcp server info.
+		 *
+		 * @param server the server
+		 */
+		@SuppressWarnings({ "PMD.EmptyCatchBlock",
+		        "PMD.AvoidCatchingGenericException" })
 		public TcpServerInfo(TcpServer server) {
 			serverRef = new WeakReference<>(server);
 			try {
@@ -901,6 +1000,13 @@ public class TcpServer extends Component implements NioHandler {
 			}
 		}
 		
+		/**
+		 * Server.
+		 *
+		 * @return the optional
+		 */
+		@SuppressWarnings({ "PMD.AvoidCatchingGenericException",
+		        "PMD.EmptyCatchBlock" })
 		public Optional<TcpServer> server() {
 			TcpServer server = serverRef.get();
 			if (server == null) {
@@ -913,23 +1019,36 @@ public class TcpServer extends Component implements NioHandler {
 			return Optional.ofNullable(server);
 		}
 		
+		/* (non-Javadoc)
+		 * @see org.jgrapes.net.TcpServer.TcpServerMXBean#getComponentPath()
+		 */
 		@Override
 		public String getComponentPath() {
 			return server().map(mgr -> mgr.componentPath()).orElse("<removed>");
 		}
 		
+		/* (non-Javadoc)
+		 * @see org.jgrapes.net.TcpServer.TcpServerMXBean#getPort()
+		 */
 		@Override
 		public int getPort() {
 			return server().map(server -> ((InetSocketAddress)server
 					.serverAddress()).getPort()).orElse(0);
 		}
 		
+		/* (non-Javadoc)
+		 * @see org.jgrapes.net.TcpServer.TcpServerMXBean#getChannelCount()
+		 */
 		@Override
 		public int getChannelCount() {
 			return server().map(server -> server.channels.size()).orElse(0);
 		}
 		
+		/* (non-Javadoc)
+		 * @see org.jgrapes.net.TcpServer.TcpServerMXBean#getChannels()
+		 */
 		@Override
+		@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 		public SortedMap<String,ChannelInfo> getChannels() {
 			return server().map(server -> {
 				SortedMap<String,ChannelInfo> result = new TreeMap<>();
@@ -947,22 +1066,45 @@ public class TcpServer extends Component implements NioHandler {
 	 * An MBean interface for getting information about the TCP servers
 	 * and established connections.
 	 */
-	public static interface TcpServerSummaryMXBean {
+	public interface TcpServerSummaryMXBean {
 		
+		/**
+		 * Gets the connections per server statistics.
+		 *
+		 * @return the connections per server statistics
+		 */
 		IntSummaryStatistics getConnectionsPerServerStatistics();
 		
+		/**
+		 * Gets the servers.
+		 *
+		 * @return the servers
+		 */
 		Set<TcpServerMXBean> getServers();
 	}
 	
+	/**
+	 * The MBeanView.
+	 */
 	private static class MBeanView implements TcpServerSummaryMXBean {
 		private static Set<TcpServerInfo> serverInfos = new HashSet<>();
 		
+		/**
+		 * Adds the server to the reported servers.
+		 *
+		 * @param server the server
+		 */
 		public static void addServer(TcpServer server) {
 			synchronized (serverInfos) {
 				serverInfos.add(new TcpServerInfo(server));
 			}
 		}
 		
+		/**
+		 * Returns the infos.
+		 *
+		 * @return the sets the
+		 */
 		private Set<TcpServerInfo> infos() {
 			Set<TcpServerInfo> expired = new HashSet<>();
 			synchronized (serverInfos) {

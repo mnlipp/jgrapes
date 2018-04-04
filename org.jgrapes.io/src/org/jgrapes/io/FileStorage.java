@@ -56,13 +56,16 @@ import org.jgrapes.io.util.ManagedBufferPool;
 /**
  * A component that reads from or writes to a file.
  */
+@SuppressWarnings("PMD.ExcessiveImports")
 public class FileStorage extends Component {
 
     private int bufferSize;
 
-	private Map<Channel, Writer> inputWriters = Collections
+	@SuppressWarnings("PMD.UseConcurrentHashMap")
+	private final Map<Channel, Writer> inputWriters = Collections
 	        .synchronizedMap(new WeakHashMap<>());
-	private Map<Channel, Writer> outputWriters = Collections
+	@SuppressWarnings("PMD.UseConcurrentHashMap")
+	private final Map<Channel, Writer> outputWriters = Collections
 	        .synchronizedMap(new WeakHashMap<>());
 	
 	/**
@@ -98,6 +101,8 @@ public class FileStorage extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
+	@SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
+	        "PMD.AccessorClassGeneration", "PMD.AvoidDuplicateLiterals" })
 	public void onStreamFile(StreamFile event)
 	        throws InterruptedException {
 		if (Arrays.asList(event.options())
@@ -115,14 +120,17 @@ public class FileStorage extends Component {
 		}
 	}
 
+	/**
+	 * A file streamer.
+	 */
 	private class FileStreamer {
 
 		private final IOSubchannel channel;
-		private Path path;
-		private AsynchronousFileChannel ioChannel = null;
+		private final Path path;
+		private AsynchronousFileChannel ioChannel;
 		private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> ioBuffers;
-		private long offset = 0;
-		private CompletionHandler<Integer, ManagedBuffer<ByteBuffer>> 
+		private long offset;
+		private final CompletionHandler<Integer, ManagedBuffer<ByteBuffer>> 
 			readCompletionHandler = new ReadCompletionHandler();
 
 		private FileStreamer(StreamFile event, IOSubchannel channel)
@@ -154,17 +162,22 @@ public class FileStorage extends Component {
 			}
 		}
 
+		/**
+		 * The read completion handler.
+		 */
 		private class ReadCompletionHandler
 		        implements CompletionHandler<Integer, ManagedBuffer<ByteBuffer>> {
 
 			@Override
+			@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+			        "PMD.EmptyCatchBlock", "PMD.AvoidDuplicateLiterals" })
 			public void completed(
 					Integer result, ManagedBuffer<ByteBuffer> buffer) {
 				if (result >= 0) {
 					offset += result;
 					boolean eof = true;
 					try {
-						eof = (offset == ioChannel.size());
+						eof = offset == ioChannel.size();
 					} catch (IOException e1) {
 						// Handled like true
 					} 
@@ -218,6 +231,7 @@ public class FileStorage extends Component {
 				= Files.newByteChannel(event.path(), event.options());
 			activeEventPipeline().executorService().submit(new Runnable() {
 				@Override
+				@SuppressWarnings("PMD.EmptyCatchBlock")
 				public void run() {
 					// Reading from file
 					IOException ioExc = null;
@@ -249,7 +263,7 @@ public class FileStorage extends Component {
 		 */
 		@Override
 		public String toString() {
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new StringBuilder(50);
 			builder.append("FileStreamer [");
 			if (channel != null) {
 				builder.append("channel=");
@@ -261,9 +275,9 @@ public class FileStorage extends Component {
 				builder.append(path);
 				builder.append(", ");
 			}
-			builder.append("offset=");
-			builder.append(offset);
-			builder.append("]");
+			builder.append("offset=")
+				.append(offset)
+				.append(']');
 			return builder.toString();
 		}
 
@@ -278,6 +292,7 @@ public class FileStorage extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
+	@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 	public void onSaveInput(SaveInput event) throws InterruptedException {
 		if (!Arrays.asList(event.options())
 		        .contains(StandardOpenOption.WRITE)) {
@@ -294,6 +309,12 @@ public class FileStorage extends Component {
 		}
 	}
 	
+	/**
+	 * Handle input by writing it to the file, if a channel exists.
+	 *
+	 * @param event the event
+	 * @param channel the channel
+	 */
 	@Handler
 	public void onInput(Input<ByteBuffer> event, Channel channel) {
 		Writer writer = inputWriters.get(channel);
@@ -311,6 +332,7 @@ public class FileStorage extends Component {
 	 * @throws InterruptedException if the execution was interrupted
 	 */
 	@Handler
+	@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 	public void onSaveOutput(SaveOutput event) throws InterruptedException {
 		if (!Arrays.asList(event.options())
 		        .contains(StandardOpenOption.WRITE)) {
@@ -327,6 +349,13 @@ public class FileStorage extends Component {
 		}
 	}
 	
+	/**
+	 * Handle {@link Output} events by writing them to the file, if
+	 * a channel exists.
+	 *
+	 * @param event the event
+	 * @param channel the channel
+	 */
 	@Handler
 	public void onOutput(Output<ByteBuffer> event, Channel channel) {
 		Writer writer = outputWriters.get(channel);
@@ -335,6 +364,13 @@ public class FileStorage extends Component {
 		}
 	}
 
+	/**
+	 * Handle close by closing the file associated with the channel.
+	 *
+	 * @param event the event
+	 * @param channel the channel
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Handler
 	public void onClose(Close event, Channel channel)
 			throws InterruptedException {
@@ -348,29 +384,38 @@ public class FileStorage extends Component {
 		}
 	}
 	
+	/**
+	 * Handle stop by closing all files.
+	 *
+	 * @param event the event
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Handler(priority=-1000)
 	public void onStop(Stop event) throws InterruptedException {
-		while (inputWriters.size() > 0) {
+		while (!inputWriters.isEmpty()) {
 			Writer handler = inputWriters.entrySet().iterator().next()
 			        .getValue();
 			handler.close(event);
 		}
-		while (outputWriters.size() > 0) {
+		while (!outputWriters.isEmpty()) {
 			Writer handler = outputWriters.entrySet().iterator().next()
 			        .getValue();
 			handler.close(event);
 		}
 	}
 
+	/**
+	 * A writer.
+	 */
 	private class Writer {
 
 		private final IOSubchannel channel;
 		private Path path;
-		private AsynchronousFileChannel ioChannel = null;
-		private long offset = 0;
-		private CompletionHandler<Integer, WriteContext> 
+		private AsynchronousFileChannel ioChannel;
+		private long offset;
+		private final CompletionHandler<Integer, WriteContext> 
 			writeCompletionHandler = new WriteCompletionHandler();
-		private int outstandingAsyncs = 0;
+		private int outstandingAsyncs;
 
 		/**
 		 * The write context needs to be finer grained than the general file
@@ -382,6 +427,12 @@ public class FileStorage extends Component {
 			public ManagedBuffer<ByteBuffer>.ByteBufferView reader;
 			public long pos;
 
+			/**
+			 * Instantiates a new write context.
+			 *
+			 * @param reader the reader
+			 * @param pos the pos
+			 */
 			public WriteContext(
 					ManagedBuffer<ByteBuffer>.ByteBufferView reader, long pos) {
 				this.reader = reader;
@@ -389,6 +440,13 @@ public class FileStorage extends Component {
 			}
 		}
 
+		/**
+		 * Instantiates a new writer.
+		 *
+		 * @param event the event
+		 * @param channel the channel
+		 * @throws InterruptedException the interrupted exception
+		 */
 		public Writer(SaveInput event, IOSubchannel channel)
 		        throws InterruptedException {
 			this(event, event.path(), event.options(), channel);
@@ -396,6 +454,13 @@ public class FileStorage extends Component {
 			channel.respond(new FileOpened(path, event.options()));
 		}
 
+		/**
+		 * Instantiates a new writer.
+		 *
+		 * @param event the event
+		 * @param channel the channel
+		 * @throws InterruptedException the interrupted exception
+		 */
 		public Writer(SaveOutput event, IOSubchannel channel)
 		        throws InterruptedException {
 			this(event, event.path(), event.options(), channel);
@@ -416,6 +481,11 @@ public class FileStorage extends Component {
 			}
 		}
 
+		/**
+		 * Write the buffer.
+		 *
+		 * @param buffer the buffer
+		 */
 		public void write(ManagedBuffer<ByteBuffer> buffer) {
 			int written = buffer.remaining();
 			if (written == 0) {
@@ -436,6 +506,9 @@ public class FileStorage extends Component {
 			offset += written;
 		}
 
+		/**
+		 * A write completion handler.
+		 */
 		private class WriteCompletionHandler
 		        implements CompletionHandler<Integer, WriteContext> {
 
@@ -463,6 +536,7 @@ public class FileStorage extends Component {
 				}
 			}
 			
+			@SuppressWarnings("PMD.AssignmentInOperand")
 			private void handled() {
 				synchronized (ioChannel) {
 					if (--outstandingAsyncs == 0) {
@@ -473,6 +547,14 @@ public class FileStorage extends Component {
 			}
 		}
 
+		/**
+		 * Close.
+		 *
+		 * @param event the event
+		 * @throws InterruptedException the interrupted exception
+		 */
+		@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+		        "PMD.EmptyCatchBlock" })
 		public void close(Event<?> event)
 				throws InterruptedException {
 			IOException ioExc = null;
@@ -500,21 +582,21 @@ public class FileStorage extends Component {
 		 */
 		@Override
 		public String toString() {
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new StringBuilder(50);
 			builder.append("FileConnection [");
 			if (channel != null) {
-				builder.append("channel=");
-				builder.append(Channel.toString(channel));
-				builder.append(", ");
+				builder.append("channel=")
+					.append(Channel.toString(channel))
+					.append(", ");
 			}
 			if (path != null) {
-				builder.append("path=");
-				builder.append(path);
-				builder.append(", ");
+				builder.append("path=")
+					.append(path)
+					.append(", ");
 			}
-			builder.append("offset=");
-			builder.append(offset);
-			builder.append("]");
+			builder.append("offset=")
+				.append(offset)
+				.append(']');
 			return builder.toString();
 		}
 
@@ -528,14 +610,14 @@ public class FileStorage extends Component {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append(" [");
+		builder.append(Components.objectName(this))
+			.append(" [");
 		if (inputWriters != null) {
 			builder.append(inputWriters.values().stream()
-			        .map(c -> Components.objectName(c))
+			        .map(chnl -> Components.objectName(chnl))
 			        .collect(Collectors.toList()));
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 }

@@ -38,12 +38,12 @@ public class ByteBufferOutputStream extends OutputStream {
 
 	private IOSubchannel channel;
 	private EventPipeline eventPipeline;
-	private boolean sendInputEvents = false;
-	private ManagedBuffer<ByteBuffer> buffer = null;
+	private boolean sendInputEvents;
+	private ManagedBuffer<ByteBuffer> buffer;
 	private boolean sendClose = true;
 	private boolean sendEor = true;
-	private boolean eorSent = false;
-	private boolean isClosed = false;
+	private boolean eorSent;
+	private boolean isClosed;
 	
 	/**
 	 * Creates a new instance that uses {@link Output} events to dispatch

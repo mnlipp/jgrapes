@@ -56,6 +56,7 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 
 	private final Manager hub;
 	private final IOSubchannel upstreamChannel;
+	private static ThreadLocal<Integer> linkedRemaining = new ThreadLocal<>();
 	
 	/**
 	 * Creates a new {@code LinkedIOSubchannel} for a given main channel
@@ -119,6 +120,8 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	}
 	
 	/**
+	 * Returns the component that manages this channel.
+	 *
 	 * @return the component that manages this channel
 	 */
 	public Manager hub() {
@@ -126,6 +129,8 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	}
 
 	/**
+	 * Returns the upstream channel.
+	 *
 	 * @return the upstream channel
 	 */
 	public IOSubchannel upstreamChannel() {
@@ -134,22 +139,26 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	
 	/**
 	 * Delegates the invocation to the upstream channel 
-	 * if no associated data is found for this channel. 
+	 * if no associated data is found for this channel.
+	 *
+	 * @param <V> the value type
+	 * @param by the associator
+	 * @param type the type
+	 * @return the optional
 	 */
 	@Override
+	@SuppressWarnings("PMD.ShortVariable")
 	public <V> Optional<V> associated(Object by, Class<V> type) {
 		Optional<V> result = super.associated(by, type);
 		if (!result.isPresent()) {
-			IOSubchannel up = upstreamChannel();
-			if (up != null) {
-				return up.associated(by, type);
+			IOSubchannel upstream = upstreamChannel();
+			if (upstream != null) {
+				return upstream.associated(by, type);
 			}
 		}
 		return result;
 	}
 
-	private static ThreadLocal<Integer> linkedRemaining = new ThreadLocal<>();
-	
 	/**
 	 * The {@link #toString()} method of {@link LinkedIOSubchannel}s
 	 * shows the channel together with the upstream channel that it
@@ -184,8 +193,8 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 		
 		// Build continuation. 
 		StringBuilder builder = new StringBuilder();
-		builder.append("↔");
-		builder.append(Channel.toString(upstream));
+		builder.append('↔')
+			.append(Channel.toString(upstream));
 		linkedRemaining.set(null);
 		return builder.toString();
 		
@@ -194,6 +203,7 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
+	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(IOSubchannel.toString(this));
@@ -237,9 +247,12 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 				new KeyWrapper(hub), clazz);
 	}
 	
+	/**
+	 * Artificial key.
+	 */
 	private static class KeyWrapper {
 
-		private Manager hub;
+		private final Manager hub;
 
 		/**
 		 * @param hub
@@ -253,7 +266,9 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
 		 * @see java.lang.Object#hashCode()
 		 */
 		@Override
+		@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 		public int hashCode() {
+			@SuppressWarnings("PMD.AvoidFinalLocalVariable")
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + ((hub == null) ? 0

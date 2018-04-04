@@ -43,8 +43,14 @@ import org.jgrapes.io.util.ManagedBuffer;
 public abstract class IOEvent<T extends Buffer> extends Event<Void> {
 
 	private ManagedBuffer<T> buffer;
-	private boolean eor;
+	private final boolean eor;
 	
+	/**
+	 * Instantiates a new IO event.
+	 *
+	 * @param buffer the buffer
+	 * @param endOfRecord the end of record
+	 */
 	protected IOEvent(ManagedBuffer<T> buffer, boolean endOfRecord) {
 		this.buffer = buffer;
 		this.eor = endOfRecord;
@@ -96,18 +102,18 @@ public abstract class IOEvent<T extends Buffer> extends Event<Void> {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append(" [");
+		builder.append(Components.objectName(this))
+			.append(" [");
 		if (channels().length > 0) {
 			builder.append("channels=");
 			builder.append(Channel.toString(channels()));
 		}
-		builder.append(",size=");
-		builder.append(Optional.ofNullable(buffer).map(
-				b -> b.backingBuffer().remaining()).orElse(0));
-		builder.append(",eor=");
-		builder.append(eor);
-		builder.append("]");
+		builder.append(",size=")
+			.append(Optional.ofNullable(buffer).map(
+				bng -> bng.backingBuffer().remaining()).orElse(0))
+			.append(",eor=")
+			.append(eor)
+			.append(']');
 		return builder.toString();
 	}
 	

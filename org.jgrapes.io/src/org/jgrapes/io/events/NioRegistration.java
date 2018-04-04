@@ -30,23 +30,41 @@ import org.jgrapes.io.NioHandler;
  */
 public class NioRegistration extends Event<NioRegistration.Registration> {
 
+	private final NioHandler handler;
+	private final SelectableChannel ioChannel;
+	private final int ops;
+
+	/**
+	 * Passed during registration. allows the requester to update
+	 * the mask operations that it is interested in.
+	 */
 	public abstract static class Registration {
+		
+		/**
+		 * Update the mask for interesting operations.
+		 *
+		 * @param ops the operations.
+		 */
 		public abstract void updateInterested(int ops);
 	}
 	
+	/**
+	 * The completion event for a {@link NioRegistration} event.
+	 */
 	public static class Completed 
 		extends CompletionEvent<NioRegistration> {
 
+		/**
+		 * Instantiates a new event.
+		 *
+		 * @param monitoredEvent the monitored event
+		 * @param channels the channels
+		 */
 		public Completed(NioRegistration monitoredEvent, Channel... channels) {
 			super(monitoredEvent, channels);
-			// TODO Auto-generated constructor stub
 		}
 	}
 	
-	private NioHandler handler;
-	private SelectableChannel ioChannel;
-	private int ops;
-
 	/**
 	 * Creates a new registration event for the given handler, using the given
 	 * NIO channel and handling the given operations. The completed event

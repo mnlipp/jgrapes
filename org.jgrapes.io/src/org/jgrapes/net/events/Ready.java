@@ -30,7 +30,7 @@ import org.jgrapes.io.events.Opened;
  */
 public class Ready extends Opened {
 
-	private SocketAddress listenAddress;
+	private final SocketAddress listenAddress;
 
 	/**
 	 * Creates a new event.
@@ -56,15 +56,15 @@ public class Ready extends Opened {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append(" [");
-		builder.append(listenAddress);
-		builder.append(", ");
+		builder.append(Components.objectName(this))
+			.append(" [")
+			.append(listenAddress)
+			.append(", ");
 		if (channels().length > 0) {
 			builder.append("channels=");
 			builder.append(Channel.toString(channels()));
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 }

@@ -52,7 +52,7 @@ public class Closed extends Event<Void> {
 	 *
 	 * @return the optional failure
 	 */
-	Optional<Throwable> error() {
+	public Optional<Throwable> error() {
 		return Optional.ofNullable(error);
 	}
 }

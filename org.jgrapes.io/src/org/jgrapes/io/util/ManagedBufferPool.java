@@ -86,9 +86,12 @@ import org.jgrapes.io.events.Output;
  * @param <W> the type of the wrapped (managed) buffer
  * @param <T> the type of the content buffer that is wrapped
  */
+@SuppressWarnings({ "PMD.ExcessiveImports", "PMD.NcssCount",
+        "PMD.EmptyCatchBlock" })
 public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	implements BufferCollector<W> {
 
+	@SuppressWarnings("PMD.VariableNamingConventions")
 	protected static final Logger logger 
 		= Logger.getLogger(ManagedBufferPool.class.getName());
 	
@@ -96,8 +99,8 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	private static long acquireWarningLimit = 1000;
 	
 	private String name = Components.objectName(this);
-	private BiFunction<T, BufferCollector<W>,W> wrapper = null;
-	private Supplier<T> bufferFactory = null;
+	private BiFunction<T, BufferCollector<W>,W> wrapper;
+	private Supplier<T> bufferFactory;
 	private BufferMonitor bufferMonitor;
 	private BlockingQueue<W> queue;
 	private int bufferSize = -1;
@@ -105,7 +108,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	private int maximumBufs;
 	private AtomicInteger createdBufs;
 	private long drainDelay = -1;
-	private AtomicReference<Timer> idleTimer = new AtomicReference<>(null);
+	private final AtomicReference<Timer> idleTimer = new AtomicReference<>(null);
 		
 	/**
 	 * Sets the default delay after which buffers are removed from
@@ -242,6 +245,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	 * @return the acquired buffer
 	 * @throws InterruptedException if the current thread is interrupted
 	 */
+	@SuppressWarnings("PMD.GuardLogStatement")
 	public W acquire() throws InterruptedException {
 		// Stop draining, because we obviously need this kind of buffers 
 		Optional.ofNullable(idleTimer.getAndSet(null)).ifPresent(
@@ -263,8 +267,8 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 				buffer.lockBuffer();
 				return buffer;
 			}
-			logger.fine("Waiting > " + acquireWarningLimit + "ms for buffer: " 
-						+ Thread.currentThread().getName());
+			logger.fine(() -> "Waiting > " + acquireWarningLimit 
+					+ "ms for buffer: " + Thread.currentThread().getName());
 		}
 		W buffer = queue.take();
 		buffer.lockBuffer();
@@ -273,7 +277,8 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	
 	/**
 	 * Re-adds the buffer to the pool. The buffer is cleared.
-	 * 
+	 *
+	 * @param buffer the buffer
 	 * @see org.jgrapes.io.util.BufferCollector#recollect(org.jgrapes.io.util.ManagedBuffer)
 	 */
 	@Override
@@ -297,6 +302,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		removeBuffer(buffer);
 	}
 	
+	@SuppressWarnings("PMD.UnusedFormalParameter")
 	private void drain(Timer timer) {
 		idleTimer.set(null);
 		while(true) {
@@ -313,26 +319,38 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	 */
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
+		StringBuilder builder = new StringBuilder(50);
 		builder.append("ManagedBufferPool [");
 		if (queue != null) {
 			builder.append("queue=");
 			builder.append(queue);
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 
+	/**
+	 * Buffer properties.
+	 */
 	private static class BufferProperties {
 
 		private StackTraceElement[] createdBy;
 		
+		/**
+		 * Instantiates new buffer properties.
+		 */
 		public BufferProperties() {
 			if (logger.isLoggable(Level.FINE)) {
 				createdBy = Thread.currentThread().getStackTrace();
 			}
 		}
 
+		/**
+		 * Returns where the buffer was created.
+		 *
+		 * @return the stack trace element[]
+		 */
+		@SuppressWarnings("PMD.MethodReturnsInternalArray")
 		public StackTraceElement[] createdBy() {
 			return createdBy;
 		}
@@ -343,20 +361,35 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	 * because there is no "hook" into the collection of orphaned
 	 * references, which is what we want here.
 	 */
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	private class BufferMonitor {
 		
 		private Entry<W>[] data;
-		private int indexMask = 0;
-		private ReferenceQueue<W> orphanedEntries = new ReferenceQueue<>();
+		private int indexMask;
+		private final ReferenceQueue<W> orphanedEntries = new ReferenceQueue<>();
 	
+		/**
+		 * An Entry.
+		 *
+		 * @param <B> the generic type
+		 */
 		private class Entry<B extends ManagedBuffer<?>> extends WeakReference<B> 
 			implements Map.Entry<B, BufferProperties> {
-			int index;
-			BufferProperties props;
-			Entry<B> next;
+			/* default */ final int index;
+			/* default */ BufferProperties props;
+			/* default */ Entry<B> next;
 			
-			Entry(B buffer, BufferProperties props,	ReferenceQueue<B> queue, 
-					int index, Entry<B> next) {
+			/**
+			 * Instantiates a new entry.
+			 *
+			 * @param buffer the buffer
+			 * @param props the props
+			 * @param queue the queue
+			 * @param index the index
+			 * @param next the next
+			 */
+			/* default */ Entry(B buffer, BufferProperties props,
+					ReferenceQueue<B> queue, int index, Entry<B> next) {
 				super(buffer, queue);
 				this.index = index;
 				this.props = props;
@@ -392,6 +425,14 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			data = new Entry[lists];
 		}
 
+		/**
+		 * Put an entry in the map.
+		 *
+		 * @param buffer the buffer
+		 * @param properties the properties
+		 * @return the buffer properties
+		 */
+		@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 		public BufferProperties put(W buffer, BufferProperties properties) {
 			check();
 			int index = buffer.hashCode() & indexMask;
@@ -422,6 +463,12 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			}
 		}
 		
+		/**
+		 * Returns the properties for the given buffer.
+		 *
+		 * @param buffer the buffer
+		 * @return the buffer properties
+		 */
 		@SuppressWarnings("unused")
 		public BufferProperties get(ManagedBuffer<?> buffer) {
 			check();
@@ -438,6 +485,12 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			}
 		}
 		
+		/**
+		 * Removes the given buffer.
+		 *
+		 * @param buffer the buffer
+		 * @return the buffer properties
+		 */
 		public BufferProperties remove(ManagedBuffer<?> buffer) {
 			check();
 			int index = buffer.hashCode() & indexMask;
@@ -460,6 +513,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			}
 		}
 		
+		@SuppressWarnings("PMD.CompareObjectsWithEquals")
 		private BufferProperties remove(Entry<W> toBeRemoved) {
 			synchronized(data) {
 				Entry<W> entry = data[toBeRemoved.index];
@@ -495,12 +549,14 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 				createdBufs.decrementAndGet();
 				// Create warning
 				if (logger.isLoggable(Level.WARNING)) {
+					@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 					final StringBuilder msg = new StringBuilder(
-							"Orphaned buffer from pool " + name());
-					StackTraceElement[] st = props.createdBy();
-					if (st != null) {
+							"Orphaned buffer from pool ");
+					msg.append(name());
+					StackTraceElement[] trace = props.createdBy();
+					if (trace != null) {
 						msg.append(", created");
-						for (StackTraceElement e: st) {
+						for (StackTraceElement e: trace) {
 							msg.append(System.lineSeparator());
 							msg.append("\tat ");
 							msg.append(e.toString());
@@ -518,18 +574,28 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 	 * weak references. Therefore, the MBean may report more pools than
 	 * are really in use. 
 	 */
-	public static interface ManagedBufferPoolMXBean {
+	public interface ManagedBufferPoolMXBean {
 
 		/**
 		 * Information about a single managed pool.
 		 */
-		public static class PoolInfo {
-			private int created;
-			private int pooled;
-			private int preserved;
-			private int maximum;
-			private int bufferSize;
+		@SuppressWarnings("PMD.DataClass")
+		class PoolInfo {
+			private final int created;
+			private final int pooled;
+			private final int preserved;
+			private final int maximum;
+			private final int bufferSize;
 			
+			/**
+			 * Instantiates a new pool info.
+			 *
+			 * @param created the created
+			 * @param pooled the pooled
+			 * @param preserved the preserved
+			 * @param maximum the maximum
+			 * @param bufferSize the buffer size
+			 */
 			@ConstructorProperties({"created", "pooled", 
 				"preserved", "maximum", "bufferSize"})
 			public PoolInfo(int created, int pooled, 
@@ -590,20 +656,26 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		/**
 		 * Three views on the existing pool.
 		 */
-		public static class PoolInfos {
-			private SortedMap<String,PoolInfo> allPools;
-			private SortedMap<String,PoolInfo> nonEmptyPools;
-			private SortedMap<String,PoolInfo> usedPools;
+		class PoolInfos {
+			private final SortedMap<String,PoolInfo> allPools;
+			private final SortedMap<String,PoolInfo> nonEmptyPools;
+			private final SortedMap<String,PoolInfo> usedPools;
 
+			/**
+			 * Instantiates a new pool infos.
+			 *
+			 * @param pools the pools
+			 */
 			public PoolInfos(Set<ManagedBufferPool<?, ?>> pools) {
 				allPools = new TreeMap<>();
 				nonEmptyPools = new TreeMap<>();
 				usedPools = new TreeMap<>();
 				
+				@SuppressWarnings("PMD.UseConcurrentHashMap")
 				Map<String, Integer> dupsNext = new HashMap<>();
 				for (ManagedBufferPool<?,?> mbp: pools) {
 					String key = mbp.name();
-					PoolInfo qi = new PoolInfo(
+					PoolInfo infos = new PoolInfo(
 							mbp.createdBufs.get(), mbp.queue.size(), 
 							mbp.preservedBufs, mbp.maximumBufs, 
 							mbp.bufferSize());
@@ -615,24 +687,26 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 							dupsNext.put(key, 2);
 						}
 						allPools.put(key + "#"
-								+ (dupsNext.put(key, dupsNext.get(key) + 1)), qi);
+								+ (dupsNext.put(key, dupsNext.get(key) + 1)), infos);
 					} else {
-						allPools.put(key, qi);
+						allPools.put(key, infos);
 					}
 				}
 				for (Map.Entry<String,PoolInfo> e: allPools.entrySet()) {
-					PoolInfo qi = e.getValue();
-					if (qi.getPooled() > 0) {
-						nonEmptyPools.put(e.getKey(), qi);
+					PoolInfo infos = e.getValue();
+					if (infos.getPooled() > 0) {
+						nonEmptyPools.put(e.getKey(), infos);
 					}
-					if (qi.getCreated() > 0) {
-						usedPools.put(e.getKey(), qi);
+					if (infos.getCreated() > 0) {
+						usedPools.put(e.getKey(), infos);
 					}
 				}
 			}
 			
 			/**
 			 * All pools.
+			 *
+			 * @return the all pools
 			 */
 			public SortedMap<String, PoolInfo> getAllPools() {
 				return allPools;
@@ -641,6 +715,8 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			/**
 			 * Pools that have at least managed buffer enqueued
 			 * (ready to be acquired).
+			 *
+			 * @return the non empty pools
 			 */
 			public SortedMap<String, PoolInfo> getNonEmptyPools() {
 				return nonEmptyPools;
@@ -649,6 +725,8 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 			/**
 			 * Pools that have at least one associated buffer
 			 * (in pool or in use).
+			 *
+			 * @return the used pools
 			 */
 			public SortedMap<String, PoolInfo> getUsedPools() {
 				return usedPools;
@@ -705,6 +783,9 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 		IntSummaryStatistics getCreatedPerPoolStatistics();
 	}
 	
+	/**
+	 * The MBean view
+	 */
 	private static class MBeanView implements ManagedBufferPoolMXBean {
 
 		private static Set<ManagedBufferPool<?,?>> allPools
@@ -712,6 +793,11 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
 				Collections.newSetFromMap(
 						new WeakHashMap<ManagedBufferPool<?, ?>, Boolean>()));
 
+		/**
+		 * Adds the pool.
+		 *
+		 * @param pool the pool
+		 */
 		public static void addPool(ManagedBufferPool<?, ?> pool) {
 			allPools.add(pool);
 		}
