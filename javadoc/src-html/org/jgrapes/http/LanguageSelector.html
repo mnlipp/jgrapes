@@ -124,225 +124,242 @@
 <span class="sourceLineNo">116</span>         * @param componentChannel the component channel<a name="line.116"></a>
 <span class="sourceLineNo">117</span>         * @param scope the scope<a name="line.117"></a>
 <span class="sourceLineNo">118</span>         */<a name="line.118"></a>
-<span class="sourceLineNo">119</span>        public LanguageSelector(Channel componentChannel, String scope) {<a name="line.119"></a>
-<span class="sourceLineNo">120</span>                super(componentChannel);<a name="line.120"></a>
-<span class="sourceLineNo">121</span>                if ("/".equals(scope) || !scope.endsWith("/")) {<a name="line.121"></a>
-<span class="sourceLineNo">122</span>                        path = scope;<a name="line.122"></a>
-<span class="sourceLineNo">123</span>                } else {<a name="line.123"></a>
-<span class="sourceLineNo">124</span>                        path = scope.substring(0, scope.length() - 1);<a name="line.124"></a>
-<span class="sourceLineNo">125</span>                }<a name="line.125"></a>
-<span class="sourceLineNo">126</span>                String pattern;<a name="line.126"></a>
-<span class="sourceLineNo">127</span>                if (path.equals("/")) {<a name="line.127"></a>
-<span class="sourceLineNo">128</span>                        pattern = "/**";<a name="line.128"></a>
-<span class="sourceLineNo">129</span>                } else {<a name="line.129"></a>
-<span class="sourceLineNo">130</span>                        pattern = path + "," + path + "/**";<a name="line.130"></a>
-<span class="sourceLineNo">131</span>                }<a name="line.131"></a>
-<span class="sourceLineNo">132</span>                RequestHandler.Evaluator.add(this, "onRequest", pattern);<a name="line.132"></a>
-<span class="sourceLineNo">133</span>        }<a name="line.133"></a>
-<span class="sourceLineNo">134</span><a name="line.134"></a>
-<span class="sourceLineNo">135</span>        /**<a name="line.135"></a>
-<span class="sourceLineNo">136</span>         * Sets the name of the cookie used to store the locale.<a name="line.136"></a>
-<span class="sourceLineNo">137</span>         * <a name="line.137"></a>
-<span class="sourceLineNo">138</span>         * @param cookieName the cookie name to use<a name="line.138"></a>
-<span class="sourceLineNo">139</span>         * @return the locale selector for easy chaining<a name="line.139"></a>
-<span class="sourceLineNo">140</span>         */<a name="line.140"></a>
-<span class="sourceLineNo">141</span>        public LanguageSelector setCookieName(String cookieName) {<a name="line.141"></a>
-<span class="sourceLineNo">142</span>                this.cookieName = cookieName;<a name="line.142"></a>
-<span class="sourceLineNo">143</span>                return this;<a name="line.143"></a>
-<span class="sourceLineNo">144</span>        }<a name="line.144"></a>
-<span class="sourceLineNo">145</span><a name="line.145"></a>
-<span class="sourceLineNo">146</span>        /**<a name="line.146"></a>
-<span class="sourceLineNo">147</span>         * Returns the cookie name. Defaults to the class name.<a name="line.147"></a>
-<span class="sourceLineNo">148</span>         * <a name="line.148"></a>
-<span class="sourceLineNo">149</span>         * @return the cookie name<a name="line.149"></a>
-<span class="sourceLineNo">150</span>         */<a name="line.150"></a>
-<span class="sourceLineNo">151</span>        public String cookieName() {<a name="line.151"></a>
-<span class="sourceLineNo">152</span>                return cookieName;<a name="line.152"></a>
-<span class="sourceLineNo">153</span>        }<a name="line.153"></a>
-<span class="sourceLineNo">154</span><a name="line.154"></a>
-<span class="sourceLineNo">155</span>        /**<a name="line.155"></a>
-<span class="sourceLineNo">156</span>         * Associates the event with a {@link Selection} object<a name="line.156"></a>
-<span class="sourceLineNo">157</span>         * using `Selection.class` as association identifier.<a name="line.157"></a>
-<span class="sourceLineNo">158</span>         * <a name="line.158"></a>
-<span class="sourceLineNo">159</span>         * @param event the event<a name="line.159"></a>
-<span class="sourceLineNo">160</span>         */<a name="line.160"></a>
-<span class="sourceLineNo">161</span>        @RequestHandler(priority=990, dynamic=true)<a name="line.161"></a>
-<span class="sourceLineNo">162</span>        public void onRequest(Request event) {<a name="line.162"></a>
-<span class="sourceLineNo">163</span>                final HttpRequest request = event.httpRequest();<a name="line.163"></a>
-<span class="sourceLineNo">164</span>                final Selection selection = event.associated(Session.class)<a name="line.164"></a>
-<span class="sourceLineNo">165</span>                                .map(session -&gt; (Selection)session.computeIfAbsent(<a name="line.165"></a>
-<span class="sourceLineNo">166</span>                                        Selection.class, k -&gt; new Selection(cookieName, path)))<a name="line.166"></a>
-<span class="sourceLineNo">167</span>                                .orElseGet(() -&gt; new Selection(cookieName, path));<a name="line.167"></a>
-<span class="sourceLineNo">168</span>                selection.setCurrentEvent(event);<a name="line.168"></a>
-<span class="sourceLineNo">169</span>                event.setAssociated(Selection.class, selection);<a name="line.169"></a>
-<span class="sourceLineNo">170</span>                if (selection.isExplicitlySet()) {<a name="line.170"></a>
-<span class="sourceLineNo">171</span>                        return;<a name="line.171"></a>
-<span class="sourceLineNo">172</span>                }<a name="line.172"></a>
-<span class="sourceLineNo">173</span>                <a name="line.173"></a>
-<span class="sourceLineNo">174</span>                // Try to get locale from cookies<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                Optional&lt;String&gt; localeNames = request.findValue(<a name="line.175"></a>
-<span class="sourceLineNo">176</span>                                HttpField.COOKIE, Converters.COOKIE_LIST)<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                                .flatMap(cl -&gt; cl.valueForName(cookieName));<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                if (localeNames.isPresent()) {<a name="line.178"></a>
-<span class="sourceLineNo">179</span>                        try {<a name="line.179"></a>
-<span class="sourceLineNo">180</span>                                List&lt;Locale&gt; cookieLocales = LOCALE_LIST<a name="line.180"></a>
-<span class="sourceLineNo">181</span>                                                .fromFieldValue(localeNames.get());<a name="line.181"></a>
-<span class="sourceLineNo">182</span>                                if (cookieLocales.size() &gt; 0) {<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                                        Collections.reverse(cookieLocales);<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                                        cookieLocales.stream().forEach(l -&gt; selection.prefer(l));<a name="line.184"></a>
-<span class="sourceLineNo">185</span>                                        return;<a name="line.185"></a>
-<span class="sourceLineNo">186</span>                                }<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                        } catch (ParseException e) {<a name="line.187"></a>
-<span class="sourceLineNo">188</span>                                // Unusable<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                        }<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                }<a name="line.190"></a>
-<span class="sourceLineNo">191</span><a name="line.191"></a>
-<span class="sourceLineNo">192</span>                // Last resport: Accept-Language header field<a name="line.192"></a>
-<span class="sourceLineNo">193</span>                Optional&lt;List&lt;ParameterizedValue&lt;Locale&gt;&gt;&gt; accepted = request.findValue(<a name="line.193"></a>
-<span class="sourceLineNo">194</span>                                HttpField.ACCEPT_LANGUAGE, Converters.LANGUAGE_LIST);<a name="line.194"></a>
-<span class="sourceLineNo">195</span>                if (accepted.isPresent()) {<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                        Locale[] locales = accepted.get().stream()<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                                .sorted(ParameterizedValue.WEIGHT_COMPARATOR)<a name="line.197"></a>
-<span class="sourceLineNo">198</span>                                .map(pv -&gt; pv.value()).toArray(Locale[]::new);<a name="line.198"></a>
-<span class="sourceLineNo">199</span>                        selection.updateFallbacks(locales);<a name="line.199"></a>
-<span class="sourceLineNo">200</span>                }<a name="line.200"></a>
-<span class="sourceLineNo">201</span>        }<a name="line.201"></a>
-<span class="sourceLineNo">202</span>        <a name="line.202"></a>
-<span class="sourceLineNo">203</span>        @Handler(priority=1000)<a name="line.203"></a>
-<span class="sourceLineNo">204</span>        public void onProtocolSwitchAccepted(<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                        ProtocolSwitchAccepted event, IOSubchannel channel) {<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                event.requestEvent().associated(Selection.class)<a name="line.206"></a>
-<span class="sourceLineNo">207</span>                        .ifPresent(selection -&gt; <a name="line.207"></a>
-<span class="sourceLineNo">208</span>                                channel.setAssociated(Selection.class, selection));<a name="line.208"></a>
-<span class="sourceLineNo">209</span>        }<a name="line.209"></a>
-<span class="sourceLineNo">210</span><a name="line.210"></a>
-<span class="sourceLineNo">211</span>        /**<a name="line.211"></a>
-<span class="sourceLineNo">212</span>         * Convenience method to retrieve a locale from an associator.<a name="line.212"></a>
-<span class="sourceLineNo">213</span>         * <a name="line.213"></a>
-<span class="sourceLineNo">214</span>         * @param assoc the associator<a name="line.214"></a>
-<span class="sourceLineNo">215</span>         * @return the locale<a name="line.215"></a>
-<span class="sourceLineNo">216</span>         */<a name="line.216"></a>
-<span class="sourceLineNo">217</span>        public static Locale associatedLocale(Associator assoc) {<a name="line.217"></a>
-<span class="sourceLineNo">218</span>                return assoc.associated(Selection.class)<a name="line.218"></a>
-<span class="sourceLineNo">219</span>                                .map(s -&gt; s.get()[0]).orElse(Locale.getDefault());<a name="line.219"></a>
+<span class="sourceLineNo">119</span>        @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")<a name="line.119"></a>
+<span class="sourceLineNo">120</span>        public LanguageSelector(Channel componentChannel, String scope) {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                super(componentChannel);<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                if ("/".equals(scope) || !scope.endsWith("/")) {<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                        path = scope;<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                } else {<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                        path = scope.substring(0, scope.length() - 1);<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                }<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                String pattern;<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                if ("/".equals(path)) {<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                        pattern = "/**";<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                } else {<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                        pattern = path + "," + path + "/**";<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                }<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                RequestHandler.Evaluator.add(this, "onRequest", pattern);<a name="line.133"></a>
+<span class="sourceLineNo">134</span>        }<a name="line.134"></a>
+<span class="sourceLineNo">135</span><a name="line.135"></a>
+<span class="sourceLineNo">136</span>        /**<a name="line.136"></a>
+<span class="sourceLineNo">137</span>         * Sets the name of the cookie used to store the locale.<a name="line.137"></a>
+<span class="sourceLineNo">138</span>         * <a name="line.138"></a>
+<span class="sourceLineNo">139</span>         * @param cookieName the cookie name to use<a name="line.139"></a>
+<span class="sourceLineNo">140</span>         * @return the locale selector for easy chaining<a name="line.140"></a>
+<span class="sourceLineNo">141</span>         */<a name="line.141"></a>
+<span class="sourceLineNo">142</span>        public LanguageSelector setCookieName(String cookieName) {<a name="line.142"></a>
+<span class="sourceLineNo">143</span>                this.cookieName = cookieName;<a name="line.143"></a>
+<span class="sourceLineNo">144</span>                return this;<a name="line.144"></a>
+<span class="sourceLineNo">145</span>        }<a name="line.145"></a>
+<span class="sourceLineNo">146</span><a name="line.146"></a>
+<span class="sourceLineNo">147</span>        /**<a name="line.147"></a>
+<span class="sourceLineNo">148</span>         * Returns the cookie name. Defaults to the class name.<a name="line.148"></a>
+<span class="sourceLineNo">149</span>         * <a name="line.149"></a>
+<span class="sourceLineNo">150</span>         * @return the cookie name<a name="line.150"></a>
+<span class="sourceLineNo">151</span>         */<a name="line.151"></a>
+<span class="sourceLineNo">152</span>        public String cookieName() {<a name="line.152"></a>
+<span class="sourceLineNo">153</span>                return cookieName;<a name="line.153"></a>
+<span class="sourceLineNo">154</span>        }<a name="line.154"></a>
+<span class="sourceLineNo">155</span><a name="line.155"></a>
+<span class="sourceLineNo">156</span>        /**<a name="line.156"></a>
+<span class="sourceLineNo">157</span>         * Associates the event with a {@link Selection} object<a name="line.157"></a>
+<span class="sourceLineNo">158</span>         * using `Selection.class` as association identifier.<a name="line.158"></a>
+<span class="sourceLineNo">159</span>         * <a name="line.159"></a>
+<span class="sourceLineNo">160</span>         * @param event the event<a name="line.160"></a>
+<span class="sourceLineNo">161</span>         */<a name="line.161"></a>
+<span class="sourceLineNo">162</span>        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.EmptyCatchBlock" })<a name="line.162"></a>
+<span class="sourceLineNo">163</span>        @RequestHandler(priority=990, dynamic=true)<a name="line.163"></a>
+<span class="sourceLineNo">164</span>        public void onRequest(Request event) {<a name="line.164"></a>
+<span class="sourceLineNo">165</span>                @SuppressWarnings("PMD.AccessorClassGeneration")<a name="line.165"></a>
+<span class="sourceLineNo">166</span>                final Selection selection = event.associated(Session.class)<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                                .map(session -&gt; (Selection)session.computeIfAbsent(<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                                        Selection.class, newKey -&gt; new Selection(cookieName, path)))<a name="line.168"></a>
+<span class="sourceLineNo">169</span>                                .orElseGet(() -&gt; new Selection(cookieName, path));<a name="line.169"></a>
+<span class="sourceLineNo">170</span>                selection.setCurrentEvent(event);<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                event.setAssociated(Selection.class, selection);<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                if (selection.isExplicitlySet()) {<a name="line.172"></a>
+<span class="sourceLineNo">173</span>                        return;<a name="line.173"></a>
+<span class="sourceLineNo">174</span>                }<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                <a name="line.175"></a>
+<span class="sourceLineNo">176</span>                // Try to get locale from cookies<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                final HttpRequest request = event.httpRequest();<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                Optional&lt;String&gt; localeNames = request.findValue(<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                                HttpField.COOKIE, Converters.COOKIE_LIST)<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                                .flatMap(cookieList -&gt; cookieList.valueForName(cookieName));<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                if (localeNames.isPresent()) {<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                        try {<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                                List&lt;Locale&gt; cookieLocales = LOCALE_LIST<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                                                .fromFieldValue(localeNames.get());<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                                if (!cookieLocales.isEmpty()) {<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                                        Collections.reverse(cookieLocales);<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                                        cookieLocales.stream()<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                                                .forEach(locale -&gt; selection.prefer(locale));<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                                        return;<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                                }<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                        } catch (ParseException e) {<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                                // Unusable<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                        }<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                }<a name="line.194"></a>
+<span class="sourceLineNo">195</span><a name="line.195"></a>
+<span class="sourceLineNo">196</span>                // Last resport: Accept-Language header field<a name="line.196"></a>
+<span class="sourceLineNo">197</span>                Optional&lt;List&lt;ParameterizedValue&lt;Locale&gt;&gt;&gt; accepted = request.findValue(<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                                HttpField.ACCEPT_LANGUAGE, Converters.LANGUAGE_LIST);<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                if (accepted.isPresent()) {<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                        Locale[] locales = accepted.get().stream()<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                                .sorted(ParameterizedValue.WEIGHT_COMPARATOR)<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                                .map(value -&gt; value.value()).toArray(Locale[]::new);<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                        selection.updateFallbacks(locales);<a name="line.203"></a>
+<span class="sourceLineNo">204</span>                }<a name="line.204"></a>
+<span class="sourceLineNo">205</span>        }<a name="line.205"></a>
+<span class="sourceLineNo">206</span>        <a name="line.206"></a>
+<span class="sourceLineNo">207</span>        /**<a name="line.207"></a>
+<span class="sourceLineNo">208</span>         * Handles a procotol switch by associating the language selection<a name="line.208"></a>
+<span class="sourceLineNo">209</span>         * with the channel.<a name="line.209"></a>
+<span class="sourceLineNo">210</span>         *<a name="line.210"></a>
+<span class="sourceLineNo">211</span>         * @param event the event<a name="line.211"></a>
+<span class="sourceLineNo">212</span>         * @param channel the channel<a name="line.212"></a>
+<span class="sourceLineNo">213</span>         */<a name="line.213"></a>
+<span class="sourceLineNo">214</span>        @Handler(priority=1000)<a name="line.214"></a>
+<span class="sourceLineNo">215</span>        public void onProtocolSwitchAccepted(<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                        ProtocolSwitchAccepted event, IOSubchannel channel) {<a name="line.216"></a>
+<span class="sourceLineNo">217</span>                event.requestEvent().associated(Selection.class)<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                        .ifPresent(selection -&gt; <a name="line.218"></a>
+<span class="sourceLineNo">219</span>                                channel.setAssociated(Selection.class, selection));<a name="line.219"></a>
 <span class="sourceLineNo">220</span>        }<a name="line.220"></a>
-<span class="sourceLineNo">221</span>        <a name="line.221"></a>
-<span class="sourceLineNo">222</span>        @SuppressWarnings("serial")<a name="line.222"></a>
-<span class="sourceLineNo">223</span>        public static class Selection implements Serializable {<a name="line.223"></a>
-<span class="sourceLineNo">224</span>                private transient WeakReference&lt;Request&gt; currentEvent;<a name="line.224"></a>
-<span class="sourceLineNo">225</span>                private String cookieName;<a name="line.225"></a>
-<span class="sourceLineNo">226</span>                private String cookiePath;<a name="line.226"></a>
-<span class="sourceLineNo">227</span>                private boolean explicitlySet;<a name="line.227"></a>
-<span class="sourceLineNo">228</span>                private Locale[] locales;<a name="line.228"></a>
-<span class="sourceLineNo">229</span><a name="line.229"></a>
-<span class="sourceLineNo">230</span>                @ConstructorProperties({"cookieName", "cookiePath"})<a name="line.230"></a>
-<span class="sourceLineNo">231</span>                private Selection(String cookieName, String cookiePath) {<a name="line.231"></a>
-<span class="sourceLineNo">232</span>                        this.cookieName = cookieName;<a name="line.232"></a>
-<span class="sourceLineNo">233</span>                        this.cookiePath = cookiePath;<a name="line.233"></a>
-<span class="sourceLineNo">234</span>                        this.currentEvent = new WeakReference&lt;&gt;(null);<a name="line.234"></a>
-<span class="sourceLineNo">235</span>                        explicitlySet = false;<a name="line.235"></a>
-<span class="sourceLineNo">236</span>                        locales = new Locale[] { Locale.getDefault() };<a name="line.236"></a>
-<span class="sourceLineNo">237</span>                }<a name="line.237"></a>
-<span class="sourceLineNo">238</span><a name="line.238"></a>
-<span class="sourceLineNo">239</span>                /**<a name="line.239"></a>
-<span class="sourceLineNo">240</span>                 * Gets the cookie name.<a name="line.240"></a>
-<span class="sourceLineNo">241</span>                 *<a name="line.241"></a>
-<span class="sourceLineNo">242</span>                 * @return the cookieName<a name="line.242"></a>
-<span class="sourceLineNo">243</span>                 */<a name="line.243"></a>
-<span class="sourceLineNo">244</span>                public String getCookieName() {<a name="line.244"></a>
-<span class="sourceLineNo">245</span>                        return cookieName;<a name="line.245"></a>
-<span class="sourceLineNo">246</span>                }<a name="line.246"></a>
-<span class="sourceLineNo">247</span><a name="line.247"></a>
-<span class="sourceLineNo">248</span>                /**<a name="line.248"></a>
-<span class="sourceLineNo">249</span>                 * Gets the cookie path.<a name="line.249"></a>
-<span class="sourceLineNo">250</span>                 *<a name="line.250"></a>
-<span class="sourceLineNo">251</span>                 * @return the cookiePath<a name="line.251"></a>
-<span class="sourceLineNo">252</span>                 */<a name="line.252"></a>
-<span class="sourceLineNo">253</span>                public String getCookiePath() {<a name="line.253"></a>
-<span class="sourceLineNo">254</span>                        return cookiePath;<a name="line.254"></a>
-<span class="sourceLineNo">255</span>                }<a name="line.255"></a>
-<span class="sourceLineNo">256</span><a name="line.256"></a>
-<span class="sourceLineNo">257</span>                /**<a name="line.257"></a>
-<span class="sourceLineNo">258</span>                 * @return the explicitlySet<a name="line.258"></a>
-<span class="sourceLineNo">259</span>                 */<a name="line.259"></a>
-<span class="sourceLineNo">260</span>                public boolean isExplicitlySet() {<a name="line.260"></a>
-<span class="sourceLineNo">261</span>                        return explicitlySet;<a name="line.261"></a>
-<span class="sourceLineNo">262</span>                }<a name="line.262"></a>
-<span class="sourceLineNo">263</span><a name="line.263"></a>
-<span class="sourceLineNo">264</span>                /**<a name="line.264"></a>
-<span class="sourceLineNo">265</span>                 * <a name="line.265"></a>
-<span class="sourceLineNo">266</span>                 * @param locales<a name="line.266"></a>
-<span class="sourceLineNo">267</span>                 */<a name="line.267"></a>
-<span class="sourceLineNo">268</span>                private void updateFallbacks(Locale[] locales) {<a name="line.268"></a>
-<span class="sourceLineNo">269</span>                        if (explicitlySet) {<a name="line.269"></a>
-<span class="sourceLineNo">270</span>                                return;<a name="line.270"></a>
-<span class="sourceLineNo">271</span>                        }<a name="line.271"></a>
-<span class="sourceLineNo">272</span>                        this.locales = locales;<a name="line.272"></a>
-<span class="sourceLineNo">273</span>                }<a name="line.273"></a>
-<span class="sourceLineNo">274</span>                <a name="line.274"></a>
-<span class="sourceLineNo">275</span>                /**<a name="line.275"></a>
-<span class="sourceLineNo">276</span>                 * @param currentEvent the currentEvent to set<a name="line.276"></a>
-<span class="sourceLineNo">277</span>                 */<a name="line.277"></a>
-<span class="sourceLineNo">278</span>                private Selection setCurrentEvent(Request currentEvent) {<a name="line.278"></a>
-<span class="sourceLineNo">279</span>                        this.currentEvent = new WeakReference&lt;&gt;(currentEvent);<a name="line.279"></a>
-<span class="sourceLineNo">280</span>                        return this;<a name="line.280"></a>
-<span class="sourceLineNo">281</span>                }<a name="line.281"></a>
-<span class="sourceLineNo">282</span><a name="line.282"></a>
-<span class="sourceLineNo">283</span>                /**<a name="line.283"></a>
-<span class="sourceLineNo">284</span>                 * Return the current locale.<a name="line.284"></a>
-<span class="sourceLineNo">285</span>                 * <a name="line.285"></a>
-<span class="sourceLineNo">286</span>                 * @return the value;<a name="line.286"></a>
-<span class="sourceLineNo">287</span>                 */<a name="line.287"></a>
-<span class="sourceLineNo">288</span>                public Locale[] get() {<a name="line.288"></a>
-<span class="sourceLineNo">289</span>                        return locales;<a name="line.289"></a>
+<span class="sourceLineNo">221</span><a name="line.221"></a>
+<span class="sourceLineNo">222</span>        /**<a name="line.222"></a>
+<span class="sourceLineNo">223</span>         * Convenience method to retrieve a locale from an associator.<a name="line.223"></a>
+<span class="sourceLineNo">224</span>         * <a name="line.224"></a>
+<span class="sourceLineNo">225</span>         * @param assoc the associator<a name="line.225"></a>
+<span class="sourceLineNo">226</span>         * @return the locale<a name="line.226"></a>
+<span class="sourceLineNo">227</span>         */<a name="line.227"></a>
+<span class="sourceLineNo">228</span>        public static Locale associatedLocale(Associator assoc) {<a name="line.228"></a>
+<span class="sourceLineNo">229</span>                return assoc.associated(Selection.class)<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                                .map(sel -&gt; sel.get()[0]).orElse(Locale.getDefault());<a name="line.230"></a>
+<span class="sourceLineNo">231</span>        }<a name="line.231"></a>
+<span class="sourceLineNo">232</span>        <a name="line.232"></a>
+<span class="sourceLineNo">233</span>        /**<a name="line.233"></a>
+<span class="sourceLineNo">234</span>         * Represents a locale selection.<a name="line.234"></a>
+<span class="sourceLineNo">235</span>         */<a name="line.235"></a>
+<span class="sourceLineNo">236</span>        @SuppressWarnings("serial")<a name="line.236"></a>
+<span class="sourceLineNo">237</span>        public static class Selection implements Serializable {<a name="line.237"></a>
+<span class="sourceLineNo">238</span>                private transient WeakReference&lt;Request&gt; currentEvent;<a name="line.238"></a>
+<span class="sourceLineNo">239</span>                private final String cookieName;<a name="line.239"></a>
+<span class="sourceLineNo">240</span>                private final String cookiePath;<a name="line.240"></a>
+<span class="sourceLineNo">241</span>                private boolean explicitlySet;<a name="line.241"></a>
+<span class="sourceLineNo">242</span>                private Locale[] locales;<a name="line.242"></a>
+<span class="sourceLineNo">243</span><a name="line.243"></a>
+<span class="sourceLineNo">244</span>                @ConstructorProperties({"cookieName", "cookiePath"})<a name="line.244"></a>
+<span class="sourceLineNo">245</span>                private Selection(String cookieName, String cookiePath) {<a name="line.245"></a>
+<span class="sourceLineNo">246</span>                        this.cookieName = cookieName;<a name="line.246"></a>
+<span class="sourceLineNo">247</span>                        this.cookiePath = cookiePath;<a name="line.247"></a>
+<span class="sourceLineNo">248</span>                        this.currentEvent = new WeakReference&lt;&gt;(null);<a name="line.248"></a>
+<span class="sourceLineNo">249</span>                        explicitlySet = false;<a name="line.249"></a>
+<span class="sourceLineNo">250</span>                        locales = new Locale[] { Locale.getDefault() };<a name="line.250"></a>
+<span class="sourceLineNo">251</span>                }<a name="line.251"></a>
+<span class="sourceLineNo">252</span><a name="line.252"></a>
+<span class="sourceLineNo">253</span>                /**<a name="line.253"></a>
+<span class="sourceLineNo">254</span>                 * Gets the cookie name.<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                 *<a name="line.255"></a>
+<span class="sourceLineNo">256</span>                 * @return the cookieName<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                 */<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                public String getCookieName() {<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                        return cookieName;<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                }<a name="line.260"></a>
+<span class="sourceLineNo">261</span><a name="line.261"></a>
+<span class="sourceLineNo">262</span>                /**<a name="line.262"></a>
+<span class="sourceLineNo">263</span>                 * Gets the cookie path.<a name="line.263"></a>
+<span class="sourceLineNo">264</span>                 *<a name="line.264"></a>
+<span class="sourceLineNo">265</span>                 * @return the cookiePath<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                 */<a name="line.266"></a>
+<span class="sourceLineNo">267</span>                public String getCookiePath() {<a name="line.267"></a>
+<span class="sourceLineNo">268</span>                        return cookiePath;<a name="line.268"></a>
+<span class="sourceLineNo">269</span>                }<a name="line.269"></a>
+<span class="sourceLineNo">270</span><a name="line.270"></a>
+<span class="sourceLineNo">271</span>                /**<a name="line.271"></a>
+<span class="sourceLineNo">272</span>                 * Checks if is explicitly set.<a name="line.272"></a>
+<span class="sourceLineNo">273</span>                 *<a name="line.273"></a>
+<span class="sourceLineNo">274</span>                 * @return the explicitlySet<a name="line.274"></a>
+<span class="sourceLineNo">275</span>                 */<a name="line.275"></a>
+<span class="sourceLineNo">276</span>                public boolean isExplicitlySet() {<a name="line.276"></a>
+<span class="sourceLineNo">277</span>                        return explicitlySet;<a name="line.277"></a>
+<span class="sourceLineNo">278</span>                }<a name="line.278"></a>
+<span class="sourceLineNo">279</span><a name="line.279"></a>
+<span class="sourceLineNo">280</span>                /**<a name="line.280"></a>
+<span class="sourceLineNo">281</span>                 * <a name="line.281"></a>
+<span class="sourceLineNo">282</span>                 * @param locales<a name="line.282"></a>
+<span class="sourceLineNo">283</span>                 */<a name="line.283"></a>
+<span class="sourceLineNo">284</span>                @SuppressWarnings("PMD.UseVarargs")<a name="line.284"></a>
+<span class="sourceLineNo">285</span>                private void updateFallbacks(Locale[] locales) {<a name="line.285"></a>
+<span class="sourceLineNo">286</span>                        if (explicitlySet) {<a name="line.286"></a>
+<span class="sourceLineNo">287</span>                                return;<a name="line.287"></a>
+<span class="sourceLineNo">288</span>                        }<a name="line.288"></a>
+<span class="sourceLineNo">289</span>                        this.locales = Arrays.copyOf(locales, locales.length);<a name="line.289"></a>
 <span class="sourceLineNo">290</span>                }<a name="line.290"></a>
-<span class="sourceLineNo">291</span><a name="line.291"></a>
+<span class="sourceLineNo">291</span>                <a name="line.291"></a>
 <span class="sourceLineNo">292</span>                /**<a name="line.292"></a>
-<span class="sourceLineNo">293</span>                 * Updates the current locale.<a name="line.293"></a>
-<span class="sourceLineNo">294</span>                 * <a name="line.294"></a>
-<span class="sourceLineNo">295</span>                 * @param locale the locale<a name="line.295"></a>
-<span class="sourceLineNo">296</span>                 * @return the selection for easy chaining<a name="line.296"></a>
-<span class="sourceLineNo">297</span>                 */<a name="line.297"></a>
-<span class="sourceLineNo">298</span>                public Selection prefer(Locale locale) {<a name="line.298"></a>
-<span class="sourceLineNo">299</span>                        explicitlySet = true;<a name="line.299"></a>
-<span class="sourceLineNo">300</span>                        List&lt;Locale&gt; list = new ArrayList&lt;&gt;(Arrays.asList(locales));<a name="line.300"></a>
-<span class="sourceLineNo">301</span>                        list.remove(locale);<a name="line.301"></a>
-<span class="sourceLineNo">302</span>                        list.add(0, locale);<a name="line.302"></a>
-<span class="sourceLineNo">303</span>                        this.locales = list.toArray(new Locale[list.size()]);<a name="line.303"></a>
-<span class="sourceLineNo">304</span>                        HttpCookie localesCookie = new HttpCookie(cookieName,<a name="line.304"></a>
-<span class="sourceLineNo">305</span>                                        LOCALE_LIST.asFieldValue(list));<a name="line.305"></a>
-<span class="sourceLineNo">306</span>                        localesCookie.setPath(cookiePath);<a name="line.306"></a>
-<span class="sourceLineNo">307</span>                        Request req = currentEvent.get();<a name="line.307"></a>
-<span class="sourceLineNo">308</span>                        if (req != null) {<a name="line.308"></a>
-<span class="sourceLineNo">309</span>                                req.httpRequest().response().ifPresent(resp -&gt; {<a name="line.309"></a>
-<span class="sourceLineNo">310</span>                                        resp.computeIfAbsent(<a name="line.310"></a>
-<span class="sourceLineNo">311</span>                                                HttpField.SET_COOKIE, CookieList::new)<a name="line.311"></a>
-<span class="sourceLineNo">312</span>                                        .value().add(localesCookie);<a name="line.312"></a>
-<span class="sourceLineNo">313</span>                                });<a name="line.313"></a>
-<span class="sourceLineNo">314</span>                        }<a name="line.314"></a>
-<span class="sourceLineNo">315</span>                        return this;<a name="line.315"></a>
-<span class="sourceLineNo">316</span>                }<a name="line.316"></a>
-<span class="sourceLineNo">317</span><a name="line.317"></a>
-<span class="sourceLineNo">318</span>                /* (non-Javadoc)<a name="line.318"></a>
-<span class="sourceLineNo">319</span>                 * @see java.lang.Object#toString()<a name="line.319"></a>
-<span class="sourceLineNo">320</span>                 */<a name="line.320"></a>
-<span class="sourceLineNo">321</span>                @Override<a name="line.321"></a>
-<span class="sourceLineNo">322</span>                public String toString() {<a name="line.322"></a>
-<span class="sourceLineNo">323</span>                        StringBuilder builder = new StringBuilder();<a name="line.323"></a>
-<span class="sourceLineNo">324</span>                        builder.append("Selection [");<a name="line.324"></a>
-<span class="sourceLineNo">325</span>                        if (locales != null) {<a name="line.325"></a>
-<span class="sourceLineNo">326</span>                                builder.append("locales=");<a name="line.326"></a>
-<span class="sourceLineNo">327</span>                                builder.append(Arrays.toString(locales));<a name="line.327"></a>
-<span class="sourceLineNo">328</span>                                builder.append(", ");<a name="line.328"></a>
-<span class="sourceLineNo">329</span>                        }<a name="line.329"></a>
-<span class="sourceLineNo">330</span>                        builder.append("explicitlySet=");<a name="line.330"></a>
-<span class="sourceLineNo">331</span>                        builder.append(explicitlySet);<a name="line.331"></a>
-<span class="sourceLineNo">332</span>                        builder.append("]");<a name="line.332"></a>
-<span class="sourceLineNo">333</span>                        return builder.toString();<a name="line.333"></a>
-<span class="sourceLineNo">334</span>                }<a name="line.334"></a>
-<span class="sourceLineNo">335</span>                <a name="line.335"></a>
-<span class="sourceLineNo">336</span>        }<a name="line.336"></a>
-<span class="sourceLineNo">337</span>}<a name="line.337"></a>
+<span class="sourceLineNo">293</span>                 * @param currentEvent the currentEvent to set<a name="line.293"></a>
+<span class="sourceLineNo">294</span>                 */<a name="line.294"></a>
+<span class="sourceLineNo">295</span>                private Selection setCurrentEvent(Request currentEvent) {<a name="line.295"></a>
+<span class="sourceLineNo">296</span>                        this.currentEvent = new WeakReference&lt;&gt;(currentEvent);<a name="line.296"></a>
+<span class="sourceLineNo">297</span>                        return this;<a name="line.297"></a>
+<span class="sourceLineNo">298</span>                }<a name="line.298"></a>
+<span class="sourceLineNo">299</span><a name="line.299"></a>
+<span class="sourceLineNo">300</span>                /**<a name="line.300"></a>
+<span class="sourceLineNo">301</span>                 * Return the current locale.<a name="line.301"></a>
+<span class="sourceLineNo">302</span>                 * <a name="line.302"></a>
+<span class="sourceLineNo">303</span>                 * @return the value;<a name="line.303"></a>
+<span class="sourceLineNo">304</span>                 */<a name="line.304"></a>
+<span class="sourceLineNo">305</span>                public Locale[] get() {<a name="line.305"></a>
+<span class="sourceLineNo">306</span>                        return Arrays.copyOf(locales, locales.length);<a name="line.306"></a>
+<span class="sourceLineNo">307</span>                }<a name="line.307"></a>
+<span class="sourceLineNo">308</span><a name="line.308"></a>
+<span class="sourceLineNo">309</span>                /**<a name="line.309"></a>
+<span class="sourceLineNo">310</span>                 * Updates the current locale.<a name="line.310"></a>
+<span class="sourceLineNo">311</span>                 * <a name="line.311"></a>
+<span class="sourceLineNo">312</span>                 * @param locale the locale<a name="line.312"></a>
+<span class="sourceLineNo">313</span>                 * @return the selection for easy chaining<a name="line.313"></a>
+<span class="sourceLineNo">314</span>                 */<a name="line.314"></a>
+<span class="sourceLineNo">315</span>                public Selection prefer(Locale locale) {<a name="line.315"></a>
+<span class="sourceLineNo">316</span>                        explicitlySet = true;<a name="line.316"></a>
+<span class="sourceLineNo">317</span>                        List&lt;Locale&gt; list = new ArrayList&lt;&gt;(Arrays.asList(locales));<a name="line.317"></a>
+<span class="sourceLineNo">318</span>                        list.remove(locale);<a name="line.318"></a>
+<span class="sourceLineNo">319</span>                        list.add(0, locale);<a name="line.319"></a>
+<span class="sourceLineNo">320</span>                        this.locales = list.toArray(new Locale[0]);<a name="line.320"></a>
+<span class="sourceLineNo">321</span>                        HttpCookie localesCookie = new HttpCookie(cookieName,<a name="line.321"></a>
+<span class="sourceLineNo">322</span>                                        LOCALE_LIST.asFieldValue(list));<a name="line.322"></a>
+<span class="sourceLineNo">323</span>                        localesCookie.setPath(cookiePath);<a name="line.323"></a>
+<span class="sourceLineNo">324</span>                        Request req = currentEvent.get();<a name="line.324"></a>
+<span class="sourceLineNo">325</span>                        if (req != null) {<a name="line.325"></a>
+<span class="sourceLineNo">326</span>                                req.httpRequest().response().ifPresent(resp -&gt; {<a name="line.326"></a>
+<span class="sourceLineNo">327</span>                                        resp.computeIfAbsent(<a name="line.327"></a>
+<span class="sourceLineNo">328</span>                                                HttpField.SET_COOKIE, CookieList::new)<a name="line.328"></a>
+<span class="sourceLineNo">329</span>                                        .value().add(localesCookie);<a name="line.329"></a>
+<span class="sourceLineNo">330</span>                                });<a name="line.330"></a>
+<span class="sourceLineNo">331</span>                        }<a name="line.331"></a>
+<span class="sourceLineNo">332</span>                        return this;<a name="line.332"></a>
+<span class="sourceLineNo">333</span>                }<a name="line.333"></a>
+<span class="sourceLineNo">334</span><a name="line.334"></a>
+<span class="sourceLineNo">335</span>                /* (non-Javadoc)<a name="line.335"></a>
+<span class="sourceLineNo">336</span>                 * @see java.lang.Object#toString()<a name="line.336"></a>
+<span class="sourceLineNo">337</span>                 */<a name="line.337"></a>
+<span class="sourceLineNo">338</span>                @Override<a name="line.338"></a>
+<span class="sourceLineNo">339</span>                public String toString() {<a name="line.339"></a>
+<span class="sourceLineNo">340</span>                        StringBuilder builder = new StringBuilder(50);<a name="line.340"></a>
+<span class="sourceLineNo">341</span>                        builder.append("Selection [");<a name="line.341"></a>
+<span class="sourceLineNo">342</span>                        if (locales != null) {<a name="line.342"></a>
+<span class="sourceLineNo">343</span>                                builder.append("locales=");<a name="line.343"></a>
+<span class="sourceLineNo">344</span>                                builder.append(Arrays.toString(locales));<a name="line.344"></a>
+<span class="sourceLineNo">345</span>                                builder.append(", ");<a name="line.345"></a>
+<span class="sourceLineNo">346</span>                        }<a name="line.346"></a>
+<span class="sourceLineNo">347</span>                        builder.append("explicitlySet=")<a name="line.347"></a>
+<span class="sourceLineNo">348</span>                                .append(explicitlySet)<a name="line.348"></a>
+<span class="sourceLineNo">349</span>                                .append(']');<a name="line.349"></a>
+<span class="sourceLineNo">350</span>                        return builder.toString();<a name="line.350"></a>
+<span class="sourceLineNo">351</span>                }<a name="line.351"></a>
+<span class="sourceLineNo">352</span>                <a name="line.352"></a>
+<span class="sourceLineNo">353</span>        }<a name="line.353"></a>
+<span class="sourceLineNo">354</span>}<a name="line.354"></a>
 
 
 
