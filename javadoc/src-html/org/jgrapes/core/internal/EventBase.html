@@ -170,70 +170,69 @@
 <span class="sourceLineNo">162</span>        /**<a name="line.162"></a>
 <span class="sourceLineNo">163</span>         * @param pipeline<a name="line.163"></a>
 <span class="sourceLineNo">164</span>         */<a name="line.164"></a>
-<span class="sourceLineNo">165</span>        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.165"></a>
-<span class="sourceLineNo">166</span>        /* default */ void decrementOpen() {<a name="line.166"></a>
-<span class="sourceLineNo">167</span>                if (openCount.decrementAndGet() == 0 &amp;&amp; !completed) {<a name="line.167"></a>
-<span class="sourceLineNo">168</span>                        synchronized (this) {<a name="line.168"></a>
-<span class="sourceLineNo">169</span>                                completed = true;<a name="line.169"></a>
-<span class="sourceLineNo">170</span>                                notifyAll();<a name="line.170"></a>
-<span class="sourceLineNo">171</span>                        }<a name="line.171"></a>
-<span class="sourceLineNo">172</span>                        if (completionEvents != null &amp;&amp; !isCancelled()) {<a name="line.172"></a>
-<span class="sourceLineNo">173</span>                                processedBy.updateNewEventsParent(generatedBy);<a name="line.173"></a>
-<span class="sourceLineNo">174</span>                                for (Event&lt;?&gt; e: completionEvents) {<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                                        Channel[] completeChannels = e.channels();<a name="line.175"></a>
-<span class="sourceLineNo">176</span>                                        if (completeChannels.length == 0) {<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                                                // Note that channels() cannot be empty, as it is set<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                                                // when firing the event and an event is never fired<a name="line.178"></a>
-<span class="sourceLineNo">179</span>                                                // on no channels.<a name="line.179"></a>
-<span class="sourceLineNo">180</span>                                                completeChannels = channels();<a name="line.180"></a>
-<span class="sourceLineNo">181</span>                                                e.setChannels(completeChannels);<a name="line.181"></a>
-<span class="sourceLineNo">182</span>                                        }<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                                        processedBy.add(e, completeChannels);<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                                }<a name="line.184"></a>
-<span class="sourceLineNo">185</span>                        }<a name="line.185"></a>
-<span class="sourceLineNo">186</span>                        if (generatedBy != null) {<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                                generatedBy.decrementOpen();<a name="line.187"></a>
-<span class="sourceLineNo">188</span>                        }<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                        processedBy = null; // No longer needed<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                }<a name="line.190"></a>
-<span class="sourceLineNo">191</span>        }<a name="line.191"></a>
-<span class="sourceLineNo">192</span><a name="line.192"></a>
-<span class="sourceLineNo">193</span>        /**<a name="line.193"></a>
-<span class="sourceLineNo">194</span>         * Adds the given completion lock. <a name="line.194"></a>
-<span class="sourceLineNo">195</span>         * <a name="line.195"></a>
-<span class="sourceLineNo">196</span>         * @param lock the lock<a name="line.196"></a>
-<span class="sourceLineNo">197</span>         * @see CompletionLock<a name="line.197"></a>
-<span class="sourceLineNo">198</span>         */<a name="line.198"></a>
-<span class="sourceLineNo">199</span>        /* default */ Event&lt;T&gt; addCompletionLock(CompletionLockBase lock) {<a name="line.199"></a>
-<span class="sourceLineNo">200</span>                synchronized (this) {<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                        if (completionLocks == null) {<a name="line.201"></a>
-<span class="sourceLineNo">202</span>                                completionLocks = Collections.synchronizedSet(new HashSet&lt;&gt;());<a name="line.202"></a>
-<span class="sourceLineNo">203</span>                        }<a name="line.203"></a>
-<span class="sourceLineNo">204</span>                }<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                if (completionLocks.add(lock)) {<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                        openCount.incrementAndGet();<a name="line.206"></a>
-<span class="sourceLineNo">207</span>                        lock.startTimer();<a name="line.207"></a>
-<span class="sourceLineNo">208</span>                }<a name="line.208"></a>
-<span class="sourceLineNo">209</span>                return (Event&lt;T&gt;)this;<a name="line.209"></a>
-<span class="sourceLineNo">210</span>        }<a name="line.210"></a>
-<span class="sourceLineNo">211</span><a name="line.211"></a>
-<span class="sourceLineNo">212</span>        /**<a name="line.212"></a>
-<span class="sourceLineNo">213</span>         * Removes the given completion lock. <a name="line.213"></a>
-<span class="sourceLineNo">214</span>         * <a name="line.214"></a>
-<span class="sourceLineNo">215</span>         * @param lock the lock<a name="line.215"></a>
-<span class="sourceLineNo">216</span>         * @see CompletionLock<a name="line.216"></a>
-<span class="sourceLineNo">217</span>         */<a name="line.217"></a>
-<span class="sourceLineNo">218</span>        /* default */ void removeCompletionLock(CompletionLockBase lock) {<a name="line.218"></a>
-<span class="sourceLineNo">219</span>                if (completionLocks == null) {<a name="line.219"></a>
-<span class="sourceLineNo">220</span>                        return;<a name="line.220"></a>
-<span class="sourceLineNo">221</span>                }<a name="line.221"></a>
-<span class="sourceLineNo">222</span>                if (completionLocks.remove(lock)) {<a name="line.222"></a>
-<span class="sourceLineNo">223</span>                        decrementOpen();<a name="line.223"></a>
-<span class="sourceLineNo">224</span>                }<a name="line.224"></a>
-<span class="sourceLineNo">225</span>                lock.cancelTimer();<a name="line.225"></a>
-<span class="sourceLineNo">226</span>        }<a name="line.226"></a>
-<span class="sourceLineNo">227</span>        <a name="line.227"></a>
-<span class="sourceLineNo">228</span>}<a name="line.228"></a>
+<span class="sourceLineNo">165</span>        /* default */ void decrementOpen() {<a name="line.165"></a>
+<span class="sourceLineNo">166</span>                if (openCount.decrementAndGet() == 0 &amp;&amp; !completed) {<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                        synchronized (this) {<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                                completed = true;<a name="line.168"></a>
+<span class="sourceLineNo">169</span>                                notifyAll();<a name="line.169"></a>
+<span class="sourceLineNo">170</span>                        }<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                        if (completionEvents != null &amp;&amp; !isCancelled()) {<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                                processedBy.updateNewEventsParent(generatedBy);<a name="line.172"></a>
+<span class="sourceLineNo">173</span>                                for (Event&lt;?&gt; e: completionEvents) {<a name="line.173"></a>
+<span class="sourceLineNo">174</span>                                        Channel[] completeChannels = e.channels();<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                                        if (completeChannels.length == 0) {<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                                                // Note that channels() cannot be empty, as it is set<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                                                // when firing the event and an event is never fired<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                                                // on no channels.<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                                                completeChannels = channels();<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                                                e.setChannels(completeChannels);<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                                        }<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                                        processedBy.add(e, completeChannels);<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                                }<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                        }<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                        if (generatedBy != null) {<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                                generatedBy.decrementOpen();<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                        }<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                        processedBy = null; // No longer needed<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                }<a name="line.189"></a>
+<span class="sourceLineNo">190</span>        }<a name="line.190"></a>
+<span class="sourceLineNo">191</span><a name="line.191"></a>
+<span class="sourceLineNo">192</span>        /**<a name="line.192"></a>
+<span class="sourceLineNo">193</span>         * Adds the given completion lock. <a name="line.193"></a>
+<span class="sourceLineNo">194</span>         * <a name="line.194"></a>
+<span class="sourceLineNo">195</span>         * @param lock the lock<a name="line.195"></a>
+<span class="sourceLineNo">196</span>         * @see CompletionLock<a name="line.196"></a>
+<span class="sourceLineNo">197</span>         */<a name="line.197"></a>
+<span class="sourceLineNo">198</span>        /* default */ Event&lt;T&gt; addCompletionLock(CompletionLockBase lock) {<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                synchronized (this) {<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                        if (completionLocks == null) {<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                                completionLocks = Collections.synchronizedSet(new HashSet&lt;&gt;());<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                        }<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                }<a name="line.203"></a>
+<span class="sourceLineNo">204</span>                if (completionLocks.add(lock)) {<a name="line.204"></a>
+<span class="sourceLineNo">205</span>                        openCount.incrementAndGet();<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                        lock.startTimer();<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                }<a name="line.207"></a>
+<span class="sourceLineNo">208</span>                return (Event&lt;T&gt;)this;<a name="line.208"></a>
+<span class="sourceLineNo">209</span>        }<a name="line.209"></a>
+<span class="sourceLineNo">210</span><a name="line.210"></a>
+<span class="sourceLineNo">211</span>        /**<a name="line.211"></a>
+<span class="sourceLineNo">212</span>         * Removes the given completion lock. <a name="line.212"></a>
+<span class="sourceLineNo">213</span>         * <a name="line.213"></a>
+<span class="sourceLineNo">214</span>         * @param lock the lock<a name="line.214"></a>
+<span class="sourceLineNo">215</span>         * @see CompletionLock<a name="line.215"></a>
+<span class="sourceLineNo">216</span>         */<a name="line.216"></a>
+<span class="sourceLineNo">217</span>        /* default */ void removeCompletionLock(CompletionLockBase lock) {<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                if (completionLocks == null) {<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                        return;<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                }<a name="line.220"></a>
+<span class="sourceLineNo">221</span>                if (completionLocks.remove(lock)) {<a name="line.221"></a>
+<span class="sourceLineNo">222</span>                        decrementOpen();<a name="line.222"></a>
+<span class="sourceLineNo">223</span>                }<a name="line.223"></a>
+<span class="sourceLineNo">224</span>                lock.cancelTimer();<a name="line.224"></a>
+<span class="sourceLineNo">225</span>        }<a name="line.225"></a>
+<span class="sourceLineNo">226</span>        <a name="line.226"></a>
+<span class="sourceLineNo">227</span>}<a name="line.227"></a>
 
 
 
