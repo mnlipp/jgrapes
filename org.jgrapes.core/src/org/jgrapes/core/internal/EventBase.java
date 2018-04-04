@@ -162,7 +162,6 @@ public abstract class EventBase<T>
 	/**
 	 * @param pipeline
 	 */
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	/* default */ void decrementOpen() {
 		if (openCount.decrementAndGet() == 0 && !completed) {
 			synchronized (this) {

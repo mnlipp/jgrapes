@@ -68,6 +68,11 @@ JGrapes rules
         <exclude name="BeanMembersShouldSerialize"/>
         <exclude name="NullAssignment"/>
     </rule>
+    <rule ref="category/java/errorprone.xml/DataflowAnomalyAnalysis">
+        <properties>
+            <property name="violationSuppressRegex" value="^Found 'UR'-anomaly.*"/>
+        </properties>
+    </rule>
     
     <rule ref="category/java/multithreading.xml">
         <exclude name="DoNotUseThreads"/>

@@ -39,7 +39,6 @@ public final class ComponentProxy extends ComponentVertex {
 	/** The referenced component's channel. */
 	private Channel componentChannel;
 	
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	private static Field getManagerField(Class<?> clazz) {
 		try {
 			while (true) {

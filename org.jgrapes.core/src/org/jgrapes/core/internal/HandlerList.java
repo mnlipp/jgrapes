@@ -34,7 +34,6 @@ class HandlerList extends ArrayList<HandlerReference> {
 	 * @param eventProcessor
 	 * @param event the event
 	 */
-	@SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
 	public void process(EventPipeline eventPipeline, EventBase<?> event) {
 		try {
 			for (HandlerReference hdlr : this) {

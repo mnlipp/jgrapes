@@ -79,8 +79,7 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * when {@link #component()} can be relied on to return the
 	 * correct value.
 	 */
-	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-	        "PMD.AvoidDuplicateLiterals" })
+	@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 	protected void initComponentsHandlers(
 			ChannelReplacements channelReplacements) {
 		handlers = new ArrayList<HandlerReference>();
@@ -91,7 +90,6 @@ public abstract class ComponentVertex implements Manager, Channel {
 		handlers = Collections.synchronizedList(handlers);
 	}
 
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	private void maybeAddHandler(
 			Method method, ChannelReplacements channelReplacements) {
 		for (Annotation annotation: method.getDeclaredAnnotations()) {
@@ -175,7 +173,6 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * @see org.jgrapes.core.Manager#getChildren()
 	 */
 	@Override
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	public List<ComponentType> children() {
 		synchronized(this) {
 			List<ComponentType> children = new ArrayList<ComponentType>();
@@ -231,7 +228,6 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * 
 	 * @param comp the new root
 	 */
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	private void setTree(ComponentTree tree) {
 		synchronized (this) {
 			this.tree = tree;
@@ -245,8 +241,7 @@ public abstract class ComponentVertex implements Manager, Channel {
 	 * @see org.jgrapes.core.Manager#attach(Component)
 	 */
 	@Override
-	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-	        "PMD.CyclomaticComplexity", "PMD.NcssCount",
+	@SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
 	        "PMD.NPathComplexity" })
 	public <T extends ComponentType> T attach(T child) {
 		synchronized (this) {

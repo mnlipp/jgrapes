@@ -335,7 +335,6 @@ public @interface Handler {
 		}
 		
 		@SuppressWarnings({ "PMD.CyclomaticComplexity",
-		        "PMD.DataflowAnomalyAnalysis",
 		        "PMD.AvoidBranchingStatementAsLastInLoop" })
 		private static void addInternal(ComponentType component, String method,
 		        Object eventValue, Object channelValue, Integer priority) {
@@ -482,7 +481,6 @@ public @interface Handler {
 			}
 			
 			@Override
-			@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 			public boolean includes(Eligible event, Eligible[] channels) {
 				for (Object eventValue: eventCriteria) {
 					if (event.isEligibleFor(eventValue)) {
