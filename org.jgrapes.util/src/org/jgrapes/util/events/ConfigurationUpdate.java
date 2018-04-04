@@ -40,7 +40,8 @@ import org.jgrapes.core.Manager;
  */
 public class ConfigurationUpdate extends Event<Void> {
 
-	private Map<String,Map<String,String>> paths = new HashMap<>();
+	@SuppressWarnings("PMD.UseConcurrentHashMap")
+	private final Map<String,Map<String,String>> paths = new HashMap<>();
 
 	/**
 	 * Add new (updated) configuration value to the event.
@@ -54,8 +55,9 @@ public class ConfigurationUpdate extends Event<Void> {
 		if (path == null || !path.startsWith("/")) {
 			throw new IllegalArgumentException("Path must start with \"/\".");
 		}
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		Map<String,String> scoped = paths
-				.computeIfAbsent(path, s -> new HashMap<String,String>());
+				.computeIfAbsent(path, newKey -> new HashMap<String,String>());
 		scoped.put(key, value);
 		return this;
 	}

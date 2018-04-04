@@ -29,7 +29,7 @@ import org.jgrapes.util.PreferencesStore;
  */
 public class InitialPreferences extends ConfigurationUpdate {
 
-	private String applicationPath;
+	private final String applicationPath;
 	
 	/**
 	 * Create a new event. The path to the application's preferences

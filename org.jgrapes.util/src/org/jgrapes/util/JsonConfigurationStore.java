@@ -19,13 +19,12 @@
 package org.jgrapes.util;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -97,6 +96,7 @@ public class JsonConfigurationStore extends Component {
 	 * @param file the file used to store the JSON
 	 * @throws JsonDecodeException
 	 */
+	@SuppressWarnings("PMD.ShortVariable")
 	public JsonConfigurationStore(Channel componentChannel, File file, 
 			boolean update) throws IOException {
 		super(componentChannel);
@@ -109,7 +109,7 @@ public class JsonConfigurationStore extends Component {
 			cache = new HashMap<>();
 		}
 		try (Reader in = new InputStreamReader(
-				new FileInputStream(file), "utf-8")) {
+				Files.newInputStream(file.toPath()), "utf-8")) {
 			@SuppressWarnings("unchecked")
 			Map<String,Object> confCache = (Map<String,Object>)
 					JsonBeanDecoder.create(in).readObject();
@@ -119,6 +119,14 @@ public class JsonConfigurationStore extends Component {
 		}
 	}
 
+	/**
+	 * Intercepts the {@link Start} event and fires a
+	 * {@link ConfigurationUpdate} event.
+	 *
+	 * @param event the event
+	 * @throws BackingStoreException the backing store exception
+	 * @throws InterruptedException the interrupted exception
+	 */
 	@Handler(priority=999999, channels=Channel.class)
 	public void onStart(Start event) 
 			throws BackingStoreException, InterruptedException {
@@ -141,7 +149,16 @@ public class JsonConfigurationStore extends Component {
 		}
 	}
 	
+	/**
+	 * Merges and saves configuration updates.
+	 *
+	 * @param event the event
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	@Handler(dynamic=true)
+	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+	        "PMD.AvoidLiteralsInIfCondition",
+	        "PMD.AvoidInstantiatingObjectsInLoops" })
 	public void onConfigurationUpdate(ConfigurationUpdate event) 
 			throws IOException {
 		boolean changed = false;
@@ -156,22 +173,23 @@ public class JsonConfigurationStore extends Component {
 		}
 		if (changed) {
 			try (Writer out = new OutputStreamWriter(
-					new FileOutputStream(file), "utf-8");
+					Files.newOutputStream(file.toPath()), "utf-8");
 					JsonBeanEncoder enc = JsonBeanEncoder.create(out)) {
 				enc.writeObject(cache);
 			}
 		}
 	}
 	
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	private boolean handleSegment(Map<String,Object> currentMap,
-			StringTokenizer st,	Optional<Map<String,String>> values) {
-		boolean changed = false;
-		if (!st.hasMoreTokens()) {
+			StringTokenizer tokenizer,	Optional<Map<String,String>> values) {
+		if (!tokenizer.hasMoreTokens()) {
 			// "Leave" map
 			return mergeValues(currentMap, values.get());
 		}
-		String nextSegment = "/" + st.nextToken();
-		if (!st.hasMoreTokens() && !values.isPresent()) {
+		boolean changed = false;
+		String nextSegment = "/" + tokenizer.nextToken();
+		if (!tokenizer.hasMoreTokens() && !values.isPresent()) {
 			// Next segment is last segment from path and we must remove
 			if (currentMap.containsKey(nextSegment)) {
 				// Delete sub-map.
@@ -191,9 +209,10 @@ public class JsonConfigurationStore extends Component {
 			currentMap.put(nextSegment, nextMap);
 		}
 		// Continue with sub-map
-		return changed || handleSegment(nextMap, st, values);
+		return changed || handleSegment(nextMap, tokenizer, values);
 	}
 
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	private boolean mergeValues(Map<String, Object> currentMap,
 	        Map<String, String> values) {
 		boolean changed = false;
@@ -207,7 +226,7 @@ public class JsonConfigurationStore extends Component {
 				continue;
 			}
 			String oldValue = Optional.ofNullable(currentMap.get(e.getKey()))
-					.map(v -> v.toString()).orElse(null);
+					.map(val -> val.toString()).orElse(null);
 			if (oldValue == null || !e.getValue().equals(oldValue)) {
 				currentMap.put(e.getKey(), e.getValue());
 				changed = true;

@@ -51,7 +51,7 @@ public class KeyValueStoreData extends CompletionEvent<KeyValueStoreQuery> {
 			return event().get();
 		} catch (InterruptedException e) {
 			// Can only happen if invoked before completion
-			throw new IllegalStateException();
+			throw new IllegalStateException(e);
 		}
 	}
 }

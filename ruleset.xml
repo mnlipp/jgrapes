@@ -78,6 +78,8 @@ JGrapes rules
         <exclude name="DoNotUseThreads"/>
     </rule>
     
-    <rule ref="category/java/performance.xml" />
+    <rule ref="category/java/performance.xml">
+        <exclude name="SimplifyStartsWith"/>
+    </rule>
     
 </ruleset>

@@ -18,6 +18,7 @@
 
 package org.jgrapes.util;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.prefs.BackingStoreException;
@@ -101,6 +102,15 @@ public class PreferencesStore extends Component {
 				.node("PreferencesStore");
 	}
 
+	/**
+	 * Intercepts the {@link Start} event and fires a
+	 * {@link ConfigurationUpdate} event.
+	 *
+	 * @param event the event
+	 * @throws BackingStoreException the backing store exception
+	 * @throws InterruptedException the interrupted exception
+	 */
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	@Handler(priority=999999, channels=Channel.class)
 	public void onStart(Start event) 
 			throws BackingStoreException, InterruptedException {
@@ -110,6 +120,7 @@ public class PreferencesStore extends Component {
 		newEventPipeline().fire(updEvt, event.channels()).get();
 	}
 
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	private void addPrefs(
 			InitialPreferences updEvt, String rootPath, Preferences node) 
 					throws BackingStoreException {
@@ -124,6 +135,12 @@ public class PreferencesStore extends Component {
 		}
 	}
 	
+	/**
+	 * Merges and saves configuration updates.
+	 *
+	 * @param event the event
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	@Handler(dynamic=true)
 	public void onConfigurationUpdate(ConfigurationUpdate event) 
 			throws BackingStoreException {

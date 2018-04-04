@@ -24,12 +24,13 @@ import java.util.List;
 
 import org.jgrapes.core.Event;
 
+// TODO: Auto-generated Javadoc
 /**
  * An event that triggers updates or deletions in a key/value store.
  */
 public class KeyValueStoreUpdate extends Event<Void> {
 
-	private List<Action> actions = new ArrayList<>();
+	private final List<Action> actions = new ArrayList<>();
 
 	/**
 	 * Adds a new update action to the event.
@@ -88,32 +89,70 @@ public class KeyValueStoreUpdate extends Event<Void> {
 		return Collections.unmodifiableList(actions);
 	}
 	
+	/**
+	 * The base class for all actions.
+	 */
+	@SuppressWarnings("PMD.AbstractClassWithoutAbstractMethod")
 	public abstract static class Action {
-		public String key;
+		
+		private final String key;
 
+		/**
+		 * Instantiates a new action.
+		 *
+		 * @param key the key
+		 */
 		public Action(String key) {
 			this.key = key;
 		}
 		
+		/**
+		 * Key.
+		 *
+		 * @return the string
+		 */
 		public String key() {
 			return key;
 		}
 	}
 	
+	/**
+	 * A key (and value) deletion.
+	 */
 	public static class Deletion extends Action {
+		
+		/**
+		 * Instantiates a new deletion.
+		 *
+		 * @param key the key
+		 */
 		public Deletion(String key) {
 			super(key);
 		}
 	}
 	
+	/**
+	 * A value update.
+	 */
 	public static class Update extends Action {
-		private String value;
+		private final String value;
 
+		/**
+		 * Instantiates a new update.
+		 *
+		 * @param key the key
+		 * @param value the value
+		 */
 		public Update(String key, String value) {
 			super(key);
 			this.value = value;
 		}
 		
+		/**
+		 * Value.
+		 *
+		 * @return the string
+		 */
 		public String value() {
 			return value;
 		}
