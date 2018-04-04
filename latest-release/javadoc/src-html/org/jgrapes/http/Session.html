@@ -67,49 +67,50 @@
 <span class="sourceLineNo">059</span>         * <a name="line.59"></a>
 <span class="sourceLineNo">060</span>         * @return the id<a name="line.60"></a>
 <span class="sourceLineNo">061</span>         */<a name="line.61"></a>
-<span class="sourceLineNo">062</span>        String id();<a name="line.62"></a>
-<span class="sourceLineNo">063</span>        <a name="line.63"></a>
-<span class="sourceLineNo">064</span>        /**<a name="line.64"></a>
-<span class="sourceLineNo">065</span>         * Returns the creation time stamp.<a name="line.65"></a>
-<span class="sourceLineNo">066</span>         * <a name="line.66"></a>
-<span class="sourceLineNo">067</span>         * @return the creation time stamp<a name="line.67"></a>
-<span class="sourceLineNo">068</span>         */<a name="line.68"></a>
-<span class="sourceLineNo">069</span>        Instant createdAt();<a name="line.69"></a>
-<span class="sourceLineNo">070</span><a name="line.70"></a>
-<span class="sourceLineNo">071</span>        /**<a name="line.71"></a>
-<span class="sourceLineNo">072</span>         * Returns the last used (referenced in request) time stamp. <a name="line.72"></a>
-<span class="sourceLineNo">073</span>         * <a name="line.73"></a>
-<span class="sourceLineNo">074</span>         * @return the last used timestamp<a name="line.74"></a>
-<span class="sourceLineNo">075</span>         */<a name="line.75"></a>
-<span class="sourceLineNo">076</span>        Instant lastUsedAt();<a name="line.76"></a>
-<span class="sourceLineNo">077</span><a name="line.77"></a>
-<span class="sourceLineNo">078</span>        /**<a name="line.78"></a>
-<span class="sourceLineNo">079</span>         * Updates the last used time stamp.<a name="line.79"></a>
-<span class="sourceLineNo">080</span>         */<a name="line.80"></a>
-<span class="sourceLineNo">081</span>        void updateLastUsedAt();<a name="line.81"></a>
-<span class="sourceLineNo">082</span><a name="line.82"></a>
-<span class="sourceLineNo">083</span>        /**<a name="line.83"></a>
-<span class="sourceLineNo">084</span>         * Return the storage area for transient data. Usually implemented<a name="line.84"></a>
-<span class="sourceLineNo">085</span>         * by a {@link ConcurrentHashMap}. Other implementations must<a name="line.85"></a>
-<span class="sourceLineNo">086</span>         * at least provide the same support for concurrency as <a name="line.86"></a>
-<span class="sourceLineNo">087</span>         * {@link ConcurrentHashMap}.<a name="line.87"></a>
-<span class="sourceLineNo">088</span>         * <a name="line.88"></a>
-<span class="sourceLineNo">089</span>         * @return the storage area<a name="line.89"></a>
-<span class="sourceLineNo">090</span>         */<a name="line.90"></a>
-<span class="sourceLineNo">091</span>        Map&lt;?,?&gt; transientData();<a name="line.91"></a>
-<span class="sourceLineNo">092</span>        <a name="line.92"></a>
-<span class="sourceLineNo">093</span>        /**<a name="line.93"></a>
-<span class="sourceLineNo">094</span>         * Convenience method for retrieving the locale <a name="line.94"></a>
-<span class="sourceLineNo">095</span>         * set by {@link LanguageSelector} from the session.<a name="line.95"></a>
-<span class="sourceLineNo">096</span>         * <a name="line.96"></a>
-<span class="sourceLineNo">097</span>         * @return the locale<a name="line.97"></a>
-<span class="sourceLineNo">098</span>         */<a name="line.98"></a>
-<span class="sourceLineNo">099</span>        default Locale locale() {<a name="line.99"></a>
-<span class="sourceLineNo">100</span>                return Optional.ofNullable((Selection)get(Selection.class))<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                                .map(selection -&gt; selection.get()[0]).orElse(Locale.getDefault());<a name="line.101"></a>
-<span class="sourceLineNo">102</span>        }<a name="line.102"></a>
-<span class="sourceLineNo">103</span>        <a name="line.103"></a>
-<span class="sourceLineNo">104</span>}<a name="line.104"></a>
+<span class="sourceLineNo">062</span>        @SuppressWarnings("PMD.ShortMethodName")<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        String id();<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        <a name="line.64"></a>
+<span class="sourceLineNo">065</span>        /**<a name="line.65"></a>
+<span class="sourceLineNo">066</span>         * Returns the creation time stamp.<a name="line.66"></a>
+<span class="sourceLineNo">067</span>         * <a name="line.67"></a>
+<span class="sourceLineNo">068</span>         * @return the creation time stamp<a name="line.68"></a>
+<span class="sourceLineNo">069</span>         */<a name="line.69"></a>
+<span class="sourceLineNo">070</span>        Instant createdAt();<a name="line.70"></a>
+<span class="sourceLineNo">071</span><a name="line.71"></a>
+<span class="sourceLineNo">072</span>        /**<a name="line.72"></a>
+<span class="sourceLineNo">073</span>         * Returns the last used (referenced in request) time stamp. <a name="line.73"></a>
+<span class="sourceLineNo">074</span>         * <a name="line.74"></a>
+<span class="sourceLineNo">075</span>         * @return the last used timestamp<a name="line.75"></a>
+<span class="sourceLineNo">076</span>         */<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        Instant lastUsedAt();<a name="line.77"></a>
+<span class="sourceLineNo">078</span><a name="line.78"></a>
+<span class="sourceLineNo">079</span>        /**<a name="line.79"></a>
+<span class="sourceLineNo">080</span>         * Updates the last used time stamp.<a name="line.80"></a>
+<span class="sourceLineNo">081</span>         */<a name="line.81"></a>
+<span class="sourceLineNo">082</span>        void updateLastUsedAt();<a name="line.82"></a>
+<span class="sourceLineNo">083</span><a name="line.83"></a>
+<span class="sourceLineNo">084</span>        /**<a name="line.84"></a>
+<span class="sourceLineNo">085</span>         * Return the storage area for transient data. Usually implemented<a name="line.85"></a>
+<span class="sourceLineNo">086</span>         * by a {@link ConcurrentHashMap}. Other implementations must<a name="line.86"></a>
+<span class="sourceLineNo">087</span>         * at least provide the same support for concurrency as <a name="line.87"></a>
+<span class="sourceLineNo">088</span>         * {@link ConcurrentHashMap}.<a name="line.88"></a>
+<span class="sourceLineNo">089</span>         * <a name="line.89"></a>
+<span class="sourceLineNo">090</span>         * @return the storage area<a name="line.90"></a>
+<span class="sourceLineNo">091</span>         */<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        Map&lt;?,?&gt; transientData();<a name="line.92"></a>
+<span class="sourceLineNo">093</span>        <a name="line.93"></a>
+<span class="sourceLineNo">094</span>        /**<a name="line.94"></a>
+<span class="sourceLineNo">095</span>         * Convenience method for retrieving the locale <a name="line.95"></a>
+<span class="sourceLineNo">096</span>         * set by {@link LanguageSelector} from the session.<a name="line.96"></a>
+<span class="sourceLineNo">097</span>         * <a name="line.97"></a>
+<span class="sourceLineNo">098</span>         * @return the locale<a name="line.98"></a>
+<span class="sourceLineNo">099</span>         */<a name="line.99"></a>
+<span class="sourceLineNo">100</span>        default Locale locale() {<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                return Optional.ofNullable((Selection)get(Selection.class))<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                                .map(selection -&gt; selection.get()[0]).orElse(Locale.getDefault());<a name="line.102"></a>
+<span class="sourceLineNo">103</span>        }<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        <a name="line.104"></a>
+<span class="sourceLineNo">105</span>}<a name="line.105"></a>
 
 
 
