@@ -34,7 +34,7 @@ import org.jgrapes.http.events.Request;
 public class InMemorySessionManager extends SessionManager {
 
 	@SuppressWarnings("serial")
-	private LinkedHashMap<String,Session> sessionsById 
+	private final LinkedHashMap<String,Session> sessionsById 
 		= new LinkedHashMap<String,Session>(16, 0.75f, true) {
 
 			@Override
@@ -108,6 +108,7 @@ public class InMemorySessionManager extends SessionManager {
 	}
 
 	@Override
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	protected Session createSession(String sessionId) {
 		Session session = new InMemorySession(sessionId);
 		Instant now = Instant.now();

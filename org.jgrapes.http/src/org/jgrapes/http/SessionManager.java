@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -76,6 +77,7 @@ import org.jgrapes.io.IOSubchannel;
  * @see EventBase#setAssociated(Object, Object)
  * @see "[OWASP Session Management Cheat Sheet](https://www.owasp.org/index.php/Session_Management_Cheat_Sheet)"
  */
+@SuppressWarnings({ "PMD.DataClass", "PMD.AvoidPrintStackTrace" })
 public abstract class SessionManager extends Component {
 	
 	private static SecureRandom secureRandom = new SecureRandom();
@@ -138,9 +140,10 @@ public abstract class SessionManager extends Component {
 	 * @param path the path
 	 * @return the pattern
 	 */
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	protected static String derivePattern(String path) {
 		String pattern;
-		if (path.equals("/")) {
+		if ("/".equals(path)) {
 			pattern = "/**";
 		} else {
 			String patternBase = path;
@@ -276,7 +279,7 @@ public abstract class SessionManager extends Component {
 		                .findFirst().map(HttpCookie::getValue));
 		if (requestedSessionId.isPresent()) {
 			String sessionId = requestedSessionId.get();
-			synchronized(SessionManager.this) {
+			synchronized(this) {
 				Optional<Session> session = lookupSession(sessionId);
 				if (session.isPresent()) {
 					Instant now = Instant.now();
@@ -385,29 +388,40 @@ public abstract class SessionManager extends Component {
 	 * An MBean interface for getting information about the 
 	 * established sessions.
 	 */
-	public static interface SessionManagerMXBean {
+	@SuppressWarnings("PMD.CommentRequired")
+	public interface SessionManagerMXBean {
 
-		public String getComponentPath();
+		String getComponentPath();
 		
-		public String getPath();
+		String getPath();
 		
-		public int getMaxSessions();
+		int getMaxSessions();
 		
-		public int getAbsoluteTimeout();
+		int getAbsoluteTimeout();
 		
-		public int getIdleTimeout();
+		int getIdleTimeout();
 		
-		public int getSessionCount();
+		int getSessionCount();
 	}
 	
+	/**
+	 * The session manager information.
+	 */
 	public static class SessionManagerInfo implements SessionManagerMXBean {
 
 		private static MBeanServer mbs 
 			= ManagementFactory.getPlatformMBeanServer(); 
 
 		private ObjectName mbeanName;
-		private WeakReference<SessionManager> sessionManagerRef;
+		private final WeakReference<SessionManager> sessionManagerRef;
 		
+		/**
+		 * Instantiates a new session manager info.
+		 *
+		 * @param sessionManager the session manager
+		 */
+		@SuppressWarnings({ "PMD.AvoidCatchingGenericException",
+		        "PMD.EmptyCatchBlock" })
 		public SessionManagerInfo(SessionManager sessionManager) {
 			try {
 				mbeanName = new ObjectName("org.jgrapes.http:type=" 
@@ -431,12 +445,20 @@ public abstract class SessionManager extends Component {
 			}
 		}
 
+		/**
+		 * Returns the session manager.
+		 *
+		 * @return the optional session manager
+		 */
+		@SuppressWarnings({ "PMD.AvoidCatchingGenericException",
+		        "PMD.EmptyCatchBlock" })
 		public Optional<SessionManager> manager() {
 			SessionManager manager = sessionManagerRef.get();
 			if (manager == null) {
 				try {
 					mbs.unregisterMBean(mbeanName);
-				} catch (Exception e) {
+				} catch (MBeanRegistrationException 
+						| InstanceNotFoundException e) {
 					// Should work.
 				}
 			}
@@ -482,15 +504,27 @@ public abstract class SessionManager extends Component {
 	 * invocation of {@link SessionManagerSummaryMXBean#getManagers()} ensures
 	 * that entries for removed {@link SessionManager}s are unregistered.
 	 */
-	public static interface SessionManagerSummaryMXBean {
+	public interface SessionManagerSummaryMXBean {
 		
+		/**
+		 * Gets the managers.
+		 *
+		 * @return the managers
+		 */
 		Set<SessionManagerMXBean> getManagers();
-		
 	}
 	
+	/**
+	 * The MBean view.
+	 */
 	private static class MBeanView implements SessionManagerSummaryMXBean {
 		private static Set<SessionManagerInfo> managerInfos = new HashSet<>();
 		
+		/**
+		 * Adds a manager.
+		 *
+		 * @param manager the manager
+		 */
 		public static void addManager(SessionManager manager) {
 			synchronized (managerInfos) {
 				managerInfos.add(new SessionManagerInfo(manager));
@@ -524,6 +558,7 @@ public abstract class SessionManager extends Component {
 		} catch (MalformedObjectNameException | InstanceAlreadyExistsException
 				| MBeanRegistrationException | NotCompliantMBeanException e) {
 			// Does not happen
+			e.printStackTrace();
 		}		
 	}
 }

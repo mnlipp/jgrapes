@@ -29,7 +29,7 @@ import org.jgrapes.core.Event;
  */
 public class Upgraded extends Event<String> {
 
-	private URI resourceName;
+	private final URI resourceName;
 	
 	/**
 	 * @param resourceName the resource for which the upgrade was requested

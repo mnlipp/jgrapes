@@ -59,6 +59,7 @@ public interface Session extends Map<Serializable, Serializable> {
 	 * 
 	 * @return the id
 	 */
+	@SuppressWarnings("PMD.ShortMethodName")
 	String id();
 	
 	/**

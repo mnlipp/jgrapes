@@ -33,8 +33,8 @@ import org.jgrapes.http.HttpServer;
  */
 public class ProtocolSwitchAccepted extends Event<Void> {
 
-	private Request requestEvent;
-	private String protocol;
+	private final Request requestEvent;
+	private final String protocol;
 	
 	/**
 	 * Creates a new event. The request event passed in as parameter

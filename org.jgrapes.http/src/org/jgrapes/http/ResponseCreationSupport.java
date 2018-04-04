@@ -57,8 +57,11 @@ import org.jgrapes.io.util.InputStreamPipeline;
 /**
  * Provides methods that support the creation of a {@link Response} events.
  */
-public class ResponseCreationSupport {
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+public abstract class ResponseCreationSupport {
 
+	/** A default implementation for the max-age calculator. */
+	@SuppressWarnings("PMD.LongVariable")
 	public static final MaxAgeCalculator DEFAULT_MAX_AGE_CALCULATOR
 		= new DefaultMaxAgeCalculator();
 	
@@ -73,6 +76,7 @@ public class ResponseCreationSupport {
 	 * @param statusCode the status code to send
 	 * @param reasonPhrase the reason phrase to send
 	 */
+	@SuppressWarnings("PMD.EmptyCatchBlock")
 	public static void sendResponse(HttpRequest request,
 			IOSubchannel channel, int statusCode, String reasonPhrase) {
 		HttpResponse response = request.response().get();
@@ -121,6 +125,8 @@ public class ResponseCreationSupport {
 	 * the default calculator is used.
 	 * @return `true` if a response was sent
 	 */
+	@SuppressWarnings({ "PMD.NcssCount",
+	        "PMD.UseStringBufferForStringAppends" })
 	public static boolean sendStaticContent(
 			HttpRequest request, IOSubchannel channel,  
 			Function<String,URL> resolver, MaxAgeCalculator maxAgeCalculator) {
@@ -210,6 +216,9 @@ public class ResponseCreationSupport {
 		return false;
 	}
 	
+	/**
+	 * Combines the known information about a resource.
+	 */
 	public static class ResourceInfo {
 		public Boolean isDirectory;
 		public Instant lastModifiedAt;
@@ -251,6 +260,7 @@ public class ResponseCreationSupport {
 	 * @param resource the resource URL
 	 * @return the resource info
 	 */
+	@SuppressWarnings("PMD.EmptyCatchBlock")
 	public static ResourceInfo resourceInfo(URL resource) {
 		try {
 			Path path = Paths.get(resource.toURI());
@@ -335,14 +345,17 @@ public class ResponseCreationSupport {
 			MaxAgeCalculator maxAgeCalculator, 
 			HttpRequest request, MediaType mediaType) {
 		List<Directive> directives = new ArrayList<>();
-		int maxAge = maxAgeCalculator != null 
-				? maxAgeCalculator.maxAge(request, mediaType)
-						: DEFAULT_MAX_AGE_CALCULATOR.maxAge(request, mediaType);
+		int maxAge = maxAgeCalculator == null 
+				? DEFAULT_MAX_AGE_CALCULATOR.maxAge(request, mediaType)
+						: maxAgeCalculator.maxAge(request, mediaType);
 		directives.add(new Directive("max-age", maxAge));
 		response.setField(HttpField.CACHE_CONTROL, directives);
 		return maxAge;
 	}
 
+	/**
+	 * Describes a calculator for the max-age property.
+	 */
 	@FunctionalInterface
 	public interface MaxAgeCalculator  {
 		

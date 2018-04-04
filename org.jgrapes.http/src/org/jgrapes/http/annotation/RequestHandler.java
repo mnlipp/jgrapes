@@ -61,8 +61,8 @@ import org.jgrapes.http.events.Request;
  * the handler will be invoked.
  */
 @Documented
-@Retention(value=RetentionPolicy.RUNTIME)
-@Target(value=ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 @HandlerDefinition(evaluator=RequestHandler.Evaluator.class)
 public @interface RequestHandler {
 	
@@ -110,7 +110,7 @@ public @interface RequestHandler {
 	 * This class provides the {@link Evaluator} for the {@link RequestHandler}
 	 * annotation. It implements the behavior as described for the annotation.
 	 */
-	public static class Evaluator implements HandlerDefinition.Evaluator {
+	class Evaluator implements HandlerDefinition.Evaluator {
 
 		/* (non-Javadoc)
 		 * @see org.jgrapes.core.annotation.HandlerDefinition.Evaluator#getPriority()
@@ -158,9 +158,10 @@ public @interface RequestHandler {
 		 */
 		public static void add(ComponentType component, String method,
 				String pattern, int priority) {
-			add(component, method, pattern, new Integer(priority));
+			add(component, method, pattern, Integer.valueOf(priority));
 		}
 		
+		@SuppressWarnings("PMD.AvoidBranchingStatementAsLastInLoop")
 		private static void add(ComponentType component, String method,
 				String pattern, Integer priority) {
 			try {
@@ -177,6 +178,7 @@ public @interface RequestHandler {
 							|| !((RequestHandler)annotation).dynamic()) {
 							continue;
 						}
+						@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 						Scope scope = new Scope(component, m, 
 								(RequestHandler)annotation, 
 								Collections.emptyMap(), pattern);
@@ -196,12 +198,28 @@ public @interface RequestHandler {
 			}
 		}
 		
+		/**
+		 * The scope implementation.
+		 */
 		public static class Scope implements HandlerScope {
 
-			private Set<Object> handledEventTypes = new HashSet<>();
-			private Set<Object> handledChannels = new HashSet<>();
-			private Set<ResourcePattern> handledPatterns = new HashSet<>();
+			private final Set<Object> handledEventTypes = new HashSet<>();
+			private final Set<Object> handledChannels = new HashSet<>();
+			private final Set<ResourcePattern> handledPatterns = new HashSet<>();
 
+			/**
+			 * Instantiates a new scope.
+			 *
+			 * @param component the component
+			 * @param method the method
+			 * @param annotation the annotation
+			 * @param channelReplacements the channel replacements
+			 * @param pattern the pattern
+			 */
+			@SuppressWarnings({ "PMD.CyclomaticComplexity",
+			        "PMD.NPathComplexity", "PMD.AvoidDeeplyNestedIfStmts",
+			        "PMD.CollapsibleIfStatements",
+			        "PMD.AvoidInstantiatingObjectsInLoops" })
 			public Scope(ComponentType component, 
 					Method method, RequestHandler annotation, 
 					Map<Class<? extends Channel>,Object> channelReplacements, 
@@ -246,7 +264,7 @@ public @interface RequestHandler {
 						}
 					}
 				}
-				if (handledChannels.size() == 0 || addDefaultChannel) {
+				if (handledChannels.isEmpty() || addDefaultChannel) {
 					handledChannels.add(Components.manager(component)
 					        .channel().defaultCriterion());
 				}
@@ -270,11 +288,13 @@ public @interface RequestHandler {
 						handledPatterns.add(new ResourcePattern(pattern));
 					}
 				} catch (ParseException e) {
-					throw new IllegalArgumentException(e.getMessage());
+					throw new IllegalArgumentException(e.getMessage(), e);
 				}
 			}
 			
 			@Override
+			@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+			        "PMD.NPathComplexity" })
 			public boolean includes(Eligible event, Eligible[] channels) {
 				boolean match = false;
 				for (Object eventType: handledEventTypes) {
@@ -322,12 +342,12 @@ public @interface RequestHandler {
 				StringBuilder builder = new StringBuilder();
 				builder.append("Scope [");
 				if (handledEventTypes != null) {
-					builder.append("handledEventTypes=");
-					builder.append(handledEventTypes.stream().map(v -> {
-						if (v instanceof Class) {
-							return Components.className((Class<?>) v);
+					builder.append("handledEventTypes=")
+						.append(handledEventTypes.stream().map(value -> {
+						if (value instanceof Class) {
+							return Components.className((Class<?>) value);
 						}
-						return v.toString();
+						return value.toString();
 					}).collect(Collectors.toSet()));
 					builder.append(", ");
 				}
@@ -340,7 +360,7 @@ public @interface RequestHandler {
 					builder.append("handledPatterns=");
 					builder.append(handledPatterns);
 				}
-				builder.append("]");
+				builder.append(']');
 				return builder.toString();
 			}
 			

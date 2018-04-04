@@ -31,6 +31,8 @@ import org.jgrapes.http.events.Request;
  */
 public interface HttpRequestHandlerFactory extends ComponentFactory {
 
-	public final String PREFIX = HttpRequestHandlerFactory.class.getName() + ".PREFIX";
-	
+	/** The key for the prefix property. */
+	@SuppressWarnings("PMD.ConstantsInInterface")
+	String PREFIX = HttpRequestHandlerFactory.class.getName()
+			+ ".PREFIX";
 }

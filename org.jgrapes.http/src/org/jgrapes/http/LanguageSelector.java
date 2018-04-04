@@ -116,6 +116,7 @@ public class LanguageSelector extends Component {
 	 * @param componentChannel the component channel
 	 * @param scope the scope
 	 */
+	@SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
 	public LanguageSelector(Channel componentChannel, String scope) {
 		super(componentChannel);
 		if ("/".equals(scope) || !scope.endsWith("/")) {
@@ -124,7 +125,7 @@ public class LanguageSelector extends Component {
 			path = scope.substring(0, scope.length() - 1);
 		}
 		String pattern;
-		if (path.equals("/")) {
+		if ("/".equals(path)) {
 			pattern = "/**";
 		} else {
 			pattern = path + "," + path + "/**";
@@ -158,12 +159,13 @@ public class LanguageSelector extends Component {
 	 * 
 	 * @param event the event
 	 */
+	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.EmptyCatchBlock" })
 	@RequestHandler(priority=990, dynamic=true)
 	public void onRequest(Request event) {
-		final HttpRequest request = event.httpRequest();
+		@SuppressWarnings("PMD.AccessorClassGeneration")
 		final Selection selection = event.associated(Session.class)
 				.map(session -> (Selection)session.computeIfAbsent(
-					Selection.class, k -> new Selection(cookieName, path)))
+					Selection.class, newKey -> new Selection(cookieName, path)))
 				.orElseGet(() -> new Selection(cookieName, path));
 		selection.setCurrentEvent(event);
 		event.setAssociated(Selection.class, selection);
@@ -172,16 +174,18 @@ public class LanguageSelector extends Component {
 		}
 		
 		// Try to get locale from cookies
+		final HttpRequest request = event.httpRequest();
 		Optional<String> localeNames = request.findValue(
 				HttpField.COOKIE, Converters.COOKIE_LIST)
-				.flatMap(cl -> cl.valueForName(cookieName));
+				.flatMap(cookieList -> cookieList.valueForName(cookieName));
 		if (localeNames.isPresent()) {
 			try {
 				List<Locale> cookieLocales = LOCALE_LIST
 						.fromFieldValue(localeNames.get());
-				if (cookieLocales.size() > 0) {
+				if (!cookieLocales.isEmpty()) {
 					Collections.reverse(cookieLocales);
-					cookieLocales.stream().forEach(l -> selection.prefer(l));
+					cookieLocales.stream()
+						.forEach(locale -> selection.prefer(locale));
 					return;
 				}
 			} catch (ParseException e) {
@@ -195,11 +199,18 @@ public class LanguageSelector extends Component {
 		if (accepted.isPresent()) {
 			Locale[] locales = accepted.get().stream()
 				.sorted(ParameterizedValue.WEIGHT_COMPARATOR)
-				.map(pv -> pv.value()).toArray(Locale[]::new);
+				.map(value -> value.value()).toArray(Locale[]::new);
 			selection.updateFallbacks(locales);
 		}
 	}
 	
+	/**
+	 * Handles a procotol switch by associating the language selection
+	 * with the channel.
+	 *
+	 * @param event the event
+	 * @param channel the channel
+	 */
 	@Handler(priority=1000)
 	public void onProtocolSwitchAccepted(
 			ProtocolSwitchAccepted event, IOSubchannel channel) {
@@ -216,14 +227,17 @@ public class LanguageSelector extends Component {
 	 */
 	public static Locale associatedLocale(Associator assoc) {
 		return assoc.associated(Selection.class)
-				.map(s -> s.get()[0]).orElse(Locale.getDefault());
+				.map(sel -> sel.get()[0]).orElse(Locale.getDefault());
 	}
 	
+	/**
+	 * Represents a locale selection.
+	 */
 	@SuppressWarnings("serial")
 	public static class Selection implements Serializable {
 		private transient WeakReference<Request> currentEvent;
-		private String cookieName;
-		private String cookiePath;
+		private final String cookieName;
+		private final String cookiePath;
 		private boolean explicitlySet;
 		private Locale[] locales;
 
@@ -255,6 +269,8 @@ public class LanguageSelector extends Component {
 		}
 
 		/**
+		 * Checks if is explicitly set.
+		 *
 		 * @return the explicitlySet
 		 */
 		public boolean isExplicitlySet() {
@@ -265,11 +281,12 @@ public class LanguageSelector extends Component {
 		 * 
 		 * @param locales
 		 */
+		@SuppressWarnings("PMD.UseVarargs")
 		private void updateFallbacks(Locale[] locales) {
 			if (explicitlySet) {
 				return;
 			}
-			this.locales = locales;
+			this.locales = Arrays.copyOf(locales, locales.length);
 		}
 		
 		/**
@@ -286,7 +303,7 @@ public class LanguageSelector extends Component {
 		 * @return the value;
 		 */
 		public Locale[] get() {
-			return locales;
+			return Arrays.copyOf(locales, locales.length);
 		}
 
 		/**
@@ -300,7 +317,7 @@ public class LanguageSelector extends Component {
 			List<Locale> list = new ArrayList<>(Arrays.asList(locales));
 			list.remove(locale);
 			list.add(0, locale);
-			this.locales = list.toArray(new Locale[list.size()]);
+			this.locales = list.toArray(new Locale[0]);
 			HttpCookie localesCookie = new HttpCookie(cookieName,
 					LOCALE_LIST.asFieldValue(list));
 			localesCookie.setPath(cookiePath);
@@ -320,16 +337,16 @@ public class LanguageSelector extends Component {
 		 */
 		@Override
 		public String toString() {
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new StringBuilder(50);
 			builder.append("Selection [");
 			if (locales != null) {
 				builder.append("locales=");
 				builder.append(Arrays.toString(locales));
 				builder.append(", ");
 			}
-			builder.append("explicitlySet=");
-			builder.append(explicitlySet);
-			builder.append("]");
+			builder.append("explicitlySet=")
+				.append(explicitlySet)
+				.append(']');
 			return builder.toString();
 		}
 		

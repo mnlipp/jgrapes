@@ -22,12 +22,18 @@ import org.jdrupes.httpcodec.MessageHeader;
 import org.jgrapes.core.Event;
 
 /**
- *
+ * Represents the response (header).
  */
 public class Response extends Event<Void> {
 
-	private MessageHeader response;
+	@SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
+	private final MessageHeader response;
 	
+	/**
+	 * Instantiates a new response.
+	 *
+	 * @param response the response
+	 */
 	public Response(MessageHeader response) {
 		this.response = response;
 	}

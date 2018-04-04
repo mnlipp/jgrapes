@@ -67,6 +67,7 @@ import org.jgrapes.io.util.ByteBufferOutputStream;
  * A base class for components that generate responses to
  * HTTP requests which are based on a FreeMarker template.
  */
+@SuppressWarnings("PMD.DataClass")
 public class FreeMarkerRequestHandler extends Component {
 	public static final Pattern TEMPLATE_PATTERN 
 		= Pattern.compile(".*\\.ftl\\.[a-z]+$");
@@ -75,8 +76,8 @@ public class FreeMarkerRequestHandler extends Component {
 	private String contentPath;
 	private URI prefix;
 	private ResourcePattern prefixPattern;
-	private Configuration fmConfig = null;
-	private MaxAgeCalculator maxAgeCalculator = null;
+	private Configuration fmConfig;
+	private MaxAgeCalculator maxAgeCalculator;
 
 	/**
 	 * Instantiates a new free marker request handler.
@@ -200,18 +201,19 @@ public class FreeMarkerRequestHandler extends Component {
 	 * @param channel the channel
 	 * @throws ParseException the parse exception
 	 */
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	protected void doRespond(Request event, IOSubchannel channel)
 			throws ParseException {
 		final HttpRequest request = event.httpRequest();
 		prefixPattern.pathRemainder(request.requestUri()).ifPresent(path -> {
 			boolean success = false;
-			if (!TEMPLATE_PATTERN.matcher(path).matches()) {
+			if (TEMPLATE_PATTERN.matcher(path).matches()) {
+				success = sendProcessedTemplate(event, channel, path);
+			} else {
 				success = ResponseCreationSupport.sendStaticContent(
 						request, channel, requestPath -> contentLoader
-						.getResource(FreeMarkerRequestHandler.this.contentPath 
-								+ "/" + path), maxAgeCalculator);
-			} else {
-				success = sendProcessedTemplate(event, channel, path);
+						.getResource(contentPath + "/" + path),
+							maxAgeCalculator);
 			}
 			event.setResult(true);
 			event.stop();
@@ -246,7 +248,7 @@ public class FreeMarkerRequestHandler extends Component {
 		response.setField(HttpField.LAST_MODIFIED, Instant.now());
 		if (maxAgeCalculator == null) {
 			ResponseCreationSupport.setMaxAge(response, 
-					(req, mt) -> 0, event.httpRequest(), mediaType);
+					(req, mtype) -> 0, event.httpRequest(), mediaType);
 		} else {
 			ResponseCreationSupport.setMaxAge(
 					response, maxAgeCalculator, event.httpRequest(), mediaType);
@@ -287,7 +289,7 @@ public class FreeMarkerRequestHandler extends Component {
 			// Get template (no need to continue if this fails).
 			Template tpl = freemarkerConfig().getTemplate(path);
 			return sendProcessedTemplate(event, channel, tpl);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			fire(new Error(event, e), channel);
 			return false;
 		}
@@ -329,13 +331,16 @@ public class FreeMarkerRequestHandler extends Component {
 	 * @return the model
 	 */
 	protected Map<String, Object> fmSessionModel(Optional<Session> session) {
+		@SuppressWarnings("PMD.UseConcurrentHashMap")
 		final Map<String, Object> model = new HashMap<>();
-		Locale locale = session.map(s -> s.locale()).orElse(Locale.getDefault());
+		Locale locale = session.map(
+				sess -> sess.locale()).orElse(Locale.getDefault());
 		model.put("locale", locale);
 		final ResourceBundle resourceBundle = resourceBundle(locale);
 		model.put("resourceBundle", resourceBundle);
 		model.put("_", new TemplateMethodModelEx() {
 			@Override
+			@SuppressWarnings("PMD.EmptyCatchBlock")
 			public Object exec(@SuppressWarnings("rawtypes") List arguments)
 			        throws TemplateModelException {
 				@SuppressWarnings("unchecked")

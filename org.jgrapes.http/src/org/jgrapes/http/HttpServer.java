@@ -96,14 +96,18 @@ import org.jgrapes.net.events.Accepted;
  * processed by the associated {@link EventProcessor}) to ensure
  * that responses and their associated data do not interleave. 
  */
+@SuppressWarnings("PMD.ExcessiveImports")
 public class HttpServer extends Component {
 
 	private WeakReference<Channel> networkChannelPassBack;
 	private List<Class<? extends Request>> providedFallbacks;
 	private int matchLevels = 1;
-	boolean acceptNoSni = false;
-	int applicationBufferSize = -1;
+	private boolean acceptNoSni;
+	private int applicationBufferSize = -1;
 
+	/**
+	 * Denotes the network channel in handler annotations.
+	 */
 	private static class NetworkChannel extends ClassChannel {}
 	
 	/**
@@ -420,24 +424,38 @@ public class HttpServer extends Component {
 		appChannel.handleUpgraded(event, appChannel);
 	}
 	
+	/**
+	 * The upgraded state.
+	 */
 	private enum UpgradedState { NONE, UPGRADING_TO_WS, WEB_SOCKET }
 	
+	/**
+	 * An application layer channel.
+	 */
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	private class WebAppMsgChannel extends LinkedIOSubchannel {
 		// Starts as ServerEngine<HttpRequest,HttpResponse> but may change
-		private ServerEngine<?,?> engine;
+		private final ServerEngine<?,?> engine;
 		private ManagedBuffer<ByteBuffer> outBuffer;
-		private boolean secure;
+		private final boolean secure;
 		private List<String> snis = Collections.emptyList();
-		private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
+		private final ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
 			byteBufferPool;
-		private ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer> 
+		private final ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer> 
 			charBufferPool;
-		private ManagedBufferPool<?, ?> currentPool = null;
-		private EventPipeline downPipeline;
-		private Object syncUpgrading = new Object();
+		private ManagedBufferPool<?, ?> currentPool;
+		private final EventPipeline downPipeline;
+		private final Object syncUpgrading = new Object();
 		private UpgradedState upgradedTo = UpgradedState.NONE;
-		private WsMessageHeader currentWsMessage = null;
+		private WsMessageHeader currentWsMessage;
 
+		/**
+		 * Instantiates a new channel.
+		 *
+		 * @param event the event
+		 * @param netChannel the net channel
+		 */
+		@SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
 		public WebAppMsgChannel(Accepted event, IOSubchannel netChannel) {
 			super(HttpServer.this, channel(), netChannel, newEventPipeline());
 			engine = new ServerEngine<>(
@@ -481,19 +499,29 @@ public class HttpServer extends Component {
 			downPipeline = newEventPipeline();
 		}
 		
+		/**
+		 * Handle {@link Input} events from the network.
+		 *
+		 * @param event the event
+		 * @throws ProtocolException the protocol exception
+		 * @throws InterruptedException the interrupted exception
+		 */
+		@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+		        "PMD.AvoidInstantiatingObjectsInLoops",
+		        "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements" })
 		public void handleNetInput(Input<ByteBuffer> event) 
 				throws ProtocolException, InterruptedException {
 			// Send the data from the event through the decoder.
-			ByteBuffer in = event.data();
+			ByteBuffer inData = event.data();
 			// Don't unnecessary allocate a buffer, may be header only message
 			ManagedBuffer<?> bodyData = null;
 			boolean wasOverflow = false;
-			while (in.hasRemaining()) {
+			while (inData.hasRemaining()) {
 				if (wasOverflow) {
 					// Message has (more) body
 					bodyData = currentPool.acquire();
 				}
-				Decoder.Result<?> result = engine.decode(in,
+				Decoder.Result<?> result = engine.decode(inData,
 				        bodyData == null ? null : bodyData.backingBuffer(),
 				        event.isEndOfRecord());
 				if (result.response().isPresent()) {
@@ -506,8 +534,7 @@ public class HttpServer extends Component {
 							.filter(WsCloseFrame.class::isInstance)
 							.ifPresent(closeFrame -> {
 								downPipeline.fire(new WebSocketClosed(
-										(WsCloseFrame)closeFrame, 
-										WebAppMsgChannel.this));
+										(WsCloseFrame)closeFrame, this));
 							});
 						}
 						break;
@@ -535,13 +562,14 @@ public class HttpServer extends Component {
 			}
 		}
 
+		@SuppressWarnings("PMD.CollapsibleIfStatements")
 		private boolean handleRequestHeader(MessageHeader request) {
 			if (request instanceof HttpRequest) {
 				HttpRequest httpRequest = (HttpRequest)request;
 				if (httpRequest.hasPayload()) {
 					if(httpRequest.findValue(
 						HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)
-							.map(f -> f.value().topLevelType()
+							.map(type -> type.value().topLevelType()
 									.equalsIgnoreCase("text"))
 							.orElse(false)) {
 						currentPool = charBufferPool;
@@ -575,6 +603,8 @@ public class HttpServer extends Component {
 			return true;
 		}
 		
+		@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+		        "PMD.UseStringBufferForStringAppends" })
 		private void convertHostToNumerical(HttpRequest request) {
 			int port = request.port();
 			String host;
@@ -586,11 +616,19 @@ public class HttpServer extends Component {
 					host = "[" + host + "]";
 				}
 			} catch (UnknownHostException e) {
-				host = "127.0.0.1";
+				host = InetAddress.getLoopbackAddress().getHostAddress();
 			}
 			request.setHostAndPort(host, port);
 		}
 
+		/**
+		 * Handle a response event from the appication layer.
+		 *
+		 * @param event the event
+		 * @throws InterruptedException the interrupted exception
+		 */
+		@SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
+		        "PMD.AvoidBranchingStatementAsLastInLoop" })
 		public void handleResponse(Response event) throws InterruptedException {
 			if (!engine.encoding().isAssignableFrom(event.response().getClass())) {
 				return;
@@ -631,6 +669,13 @@ public class HttpServer extends Component {
 			
 		}
 		
+		/**
+		 * Handle a {@link ProtocolSwitchAccepted} event from the 
+		 * application layer.
+		 *
+		 * @param event the event
+		 * @param appChannel the app channel
+		 */
 		public void handleProtocolSwitchAccepted(
 				ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {
 			upgradedTo = UpgradedState.UPGRADING_TO_WS;
@@ -651,6 +696,13 @@ public class HttpServer extends Component {
 			}
 		}
 
+		/**
+		 * Handle an {@link Upgraded} event from the applictaion layer.
+		 *
+		 * @param event the event
+		 * @param appChannel the app channel
+		 * @throws InterruptedException the interrupted exception
+		 */
 		public void handleUpgraded(Upgraded event, 
 				WebAppMsgChannel appChannel) throws InterruptedException {
 			synchronized (syncUpgrading) {
@@ -660,6 +712,14 @@ public class HttpServer extends Component {
 			}
 		}
 		
+		/**
+		 * Handle output from the application layer.
+		 *
+		 * @param event the event
+		 * @throws InterruptedException the interrupted exception
+		 */
+		@SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
+		        "PMD.NPathComplexity", "PMD.AvoidInstantiatingObjectsInLoops" })
 		public void handleAppOutput(Output<?> event) 
 				throws InterruptedException {
 			Buffer eventData = event.data();
@@ -713,6 +773,12 @@ public class HttpServer extends Component {
 			}
 		}
 		
+		/**
+		 * Handle a {@link Close} event from the application layer.
+		 *
+		 * @param event the event
+		 * @throws InterruptedException the interrupted exception
+		 */
 		public void handleClose(Close event) throws InterruptedException {
 			if (upgradedTo == UpgradedState.WEB_SOCKET) {
 				respond(new Response(new WsCloseFrame(null, null)));
@@ -721,10 +787,22 @@ public class HttpServer extends Component {
 			upstreamChannel().respond(new Close());
 		}
 
+		/**
+		 * Handle a {@link Closed} event from the network by forwarding
+		 * it to the application layer.
+		 *
+		 * @param event the event
+		 */
 		public void handleClosed(Closed event) {
 			downPipeline.fire(new Closed(), this);
 		}
 
+		/**
+		 * Handle a {@link Purge} event by forwarding it to the
+		 * application layer.
+		 *
+		 * @param event the event
+		 */
 		public void handlePurge(Purge event) {
 			downPipeline.fire(new Purge(), this);
 		}

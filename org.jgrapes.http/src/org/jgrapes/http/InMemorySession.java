@@ -31,14 +31,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InMemorySession extends HashMap<Serializable, Serializable>
 	implements Session {
 
-	private String id;
-	private Instant createdAt;
+	@SuppressWarnings("PMD.ShortVariable")
+	private final String id;
+	private final Instant createdAt;
 	private Instant lastUsedAt;
-	private Map<?,?> transientData = new ConcurrentHashMap<>();
+	private final Map<?,?> transientData = new ConcurrentHashMap<>();
 	
 	/**
 	 * Create a new session.
 	 */
+	@SuppressWarnings("PMD.ShortVariable")
 	public InMemorySession(String id) {
 		this.id = id;
 		createdAt = Instant.now();
@@ -50,6 +52,7 @@ public class InMemorySession extends HashMap<Serializable, Serializable>
 	 * 
 	 * @return the id
 	 */
+	@SuppressWarnings("PMD.ShortMethodName")
 	public String id() {
 		return id;
 	}
@@ -122,7 +125,7 @@ public class InMemorySession extends HashMap<Serializable, Serializable>
 	 */
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
+		StringBuilder builder = new StringBuilder(50);
 		builder.append("InMemorySession [");
 		if (id != null) {
 			builder.append("id=");
@@ -138,7 +141,7 @@ public class InMemorySession extends HashMap<Serializable, Serializable>
 			builder.append("lastUsedAt=");
 			builder.append(lastUsedAt);
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 	

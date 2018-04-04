@@ -30,8 +30,8 @@ import org.jgrapes.core.Event;
  */
 public class WebSocketClosed extends Event<Void> {
 
-	private Optional<Integer> statusCode;
-	private Optional<String> reason;
+	private final Optional<Integer> statusCode;
+	private final Optional<String> reason;
 
 	/**
 	 * @param closeFrame the close frame

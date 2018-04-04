@@ -27,7 +27,7 @@ import org.jgrapes.http.Session;
  */
 public class DiscardSession extends Event<Void> {
 
-	private Session session;
+	private final Session session;
 	
 	/**
 	 * Creates a new event.

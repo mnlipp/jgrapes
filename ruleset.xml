@@ -35,7 +35,7 @@ JGrapes rules
     </rule>
     <rule ref="category/java/design.xml/NcssCount">
       <properties>
-         <property name="methodReportLevel" value="30" />
+         <property name="methodReportLevel" value="35" />
       </properties>
     </rule>    
     <rule ref="category/java/design.xml/CyclomaticComplexity">
@@ -51,6 +51,11 @@ JGrapes rules
     <rule ref="category/java/design.xml/TooManyMethods">
       <properties>
          <property name="maxmethods" value="20" />
+      </properties>
+    </rule>    
+    <rule ref="category/java/design.xml/ExcessiveImports">
+      <properties>
+         <property name="minimum" value="50" />
       </properties>
     </rule>    
     

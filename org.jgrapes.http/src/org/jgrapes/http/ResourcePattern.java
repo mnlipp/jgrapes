@@ -79,8 +79,10 @@ import java.util.stream.StreamSupport;
  *    treat `/foo` as a leaf, specify `/foo,/foo|` in your pattern.
  *
  */
+@SuppressWarnings("PMD.GodClass")
 public class ResourcePattern {
 
+	@SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
 	private static Pattern resourcePattern = Pattern.compile(
 			"^((?<proto>[^:]+|\\*)://)?" // Optional protocol (2)
 			+ "(" // Start of optional host/port part
@@ -89,12 +91,12 @@ public class ResourcePattern {
 			+ ")?" // End of optional host/port
 			+ "(?<path>[/\\|].*)?"); // Finally path (11)
 	
-	private String pattern;
-	private String protocol;
-	private String host;
-	private String port;
-	private String path;
-	private String[][] pathPatternElements;
+	private final String pattern;
+	private final String protocol;
+	private final String host;
+	private final String port;
+	private final String path;
+	private final String[][] pathPatternElements;
 	private int[] prefixSegs;
 
 	/**
@@ -103,6 +105,7 @@ public class ResourcePattern {
 	 * @param pattern the pattern to be used for matching
 	 * @throws ParseException if an invalid pattern is specified
 	 */
+	@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 	public ResourcePattern(String pattern) throws ParseException {
 		this.pattern = pattern;
 		Matcher rpm = resourcePattern.matcher(pattern);
@@ -120,11 +123,13 @@ public class ResourcePattern {
 			pathPatternElements = new String[paths.length][];
 			prefixSegs = new int[paths.length];
 			for (int i = 0; i < paths.length; i++) {
+				@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
 				List<String> segs = new ArrayList<>();
 				prefixSegs[i] = 0;
-				StringTokenizer st = new StringTokenizer(paths[i], "/|", true);
-				while(st.hasMoreTokens()) {
-					String token = st.nextToken();
+				StringTokenizer tokenizer = new StringTokenizer(
+						paths[i], "/|", true);
+				while(tokenizer.hasMoreTokens()) {
+					String token = tokenizer.nextToken();
 					switch (token) {
 					case "/":
 						continue;
@@ -139,7 +144,7 @@ public class ResourcePattern {
 				if (paths[i].endsWith("/") || paths[i].endsWith("|")) {
 					segs.add("");
 				}
-				pathPatternElements[i] = segs.toArray(new String[segs.size()]);
+				pathPatternElements[i] = segs.toArray(new String[0]);
 			}
 		}
 	}
@@ -187,13 +192,15 @@ public class ResourcePattern {
 	 * @return -1 if the resource does not match, else the number
 	 * of prefix segments (which may be 0)
 	 */
+	@SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NPathComplexity",
+	        "PMD.CollapsibleIfStatements", "PMD.DataflowAnomalyAnalysis" })
 	public int matches(URI resource) {
 		if (protocol != null && !protocol.equals("*")) {
 			if (resource.getScheme() == null) {
 				return -1;
 			}
 			if (Arrays.stream(protocol.split(","))
-			        .noneMatch(p -> p.equals(resource.getScheme()))) {
+			        .noneMatch(proto -> proto.equals(resource.getScheme()))) {
 				return -1;
 			}
 		}
@@ -250,10 +257,13 @@ public class ResourcePattern {
 		return (new ResourcePattern(pattern)).matches(resource) >= 0;
 	}
 
+	@SuppressWarnings("PMD.UseVarargs")
 	private static boolean lastIsEmpty(String[] elements) {
 		return elements.length > 0 && elements[elements.length-1].length() == 0;
 	}
 	
+	@SuppressWarnings({ "PMD.UseVarargs", "PMD.DataflowAnomalyAnalysis",
+	        "PMD.PositionLiteralsFirstInComparisons" })
 	private boolean matchPath(String[] patternElements, String[] reqElements) {
 		int pathIdx = 0;
 		int reqIdx = 0;
@@ -261,10 +271,10 @@ public class ResourcePattern {
 			if (pathIdx == patternElements.length) {
 				return reqIdx == reqElements.length;
 			}
-			String matchElement = patternElements[pathIdx++];
 			if (reqIdx == reqElements.length) {
 				return false;
 			}
+			String matchElement = patternElements[pathIdx++];
 			if ("**".equals(matchElement)) {
 				return true;
 			}
@@ -303,6 +313,8 @@ public class ResourcePattern {
 	 * @param segments the number of segments in the prefi
 	 * @return the prefix and the rest
 	 */
+	@SuppressWarnings({ "PMD.AssignmentInOperand",
+	        "PMD.AvoidLiteralsInIfCondition" })
 	public static String[] split(String path, int segments) {
 		StringBuilder prefix = new StringBuilder();
 		StringBuilder suffix = new StringBuilder();
@@ -345,6 +357,7 @@ public class ResourcePattern {
 	 * @param resource the resource
 	 * @return the result.
 	 */
+	@SuppressWarnings("PMD.AssignmentInOperand")
 	public Optional<String> pathRemainder(URI resource) {
 		int matchRes = matches(resource);
 		if (matchRes < 0) {
@@ -369,10 +382,10 @@ public class ResourcePattern {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("ResourcePattern [");
-		builder.append(pattern);
-		builder.append("]");
+		StringBuilder builder = new StringBuilder(30);
+		builder.append("ResourcePattern [")
+			.append(pattern)
+			.append(']');
 		return builder.toString();
 	}
 
@@ -380,7 +393,9 @@ public class ResourcePattern {
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	public int hashCode() {
+		@SuppressWarnings("PMD.AvoidFinalLocalVariable")
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((pattern == null) ? 0 : pattern.hashCode());

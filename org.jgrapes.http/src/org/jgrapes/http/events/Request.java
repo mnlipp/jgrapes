@@ -38,17 +38,27 @@ import org.jgrapes.http.ResourcePattern.PathSpliterator;
  */
 public class Request extends Event<Boolean> {
 
+	@SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
+	private final HttpRequest request;
+	private URI uri;
+	private MatchValue matchValue;
+	private URI matchUri;
+	
+	/**
+	 * The associated completion event.
+	 */
 	public static class Completed extends CompletionEvent<Request> {
 
+		/**
+		 * Instantiates a new event.
+		 *
+		 * @param monitoredEvent the monitored event
+		 * @param channels the channels
+		 */
 		public Completed(Request monitoredEvent, Channel... channels) {
 			super(monitoredEvent, channels);
 		}
 	}
-	
-	private HttpRequest request;
-	private URI uri;
-	private MatchValue matchValue;
-	private URI matchUri;
 	
 	/**
 	 * Creates a new request event with the associated {@link Completed}
@@ -60,6 +70,7 @@ public class Request extends Event<Boolean> {
 	 * to use in the match value (see {@link #matchValue})
 	 * @param channels the channels associated with this event
 	 */
+	@SuppressWarnings("PMD.UselessParentheses")
 	public Request(String protocol, HttpRequest request, 
 			int matchLevels, Channel... channels) {
 		super(channels);
@@ -71,15 +82,15 @@ public class Request extends Event<Boolean> {
 			uri = headerInfo.resolve(request.requestUri());
 			Iterator<String> segs = PathSpliterator.stream(
 					uri.getPath()).skip(1).iterator();
-			StringBuilder mp = new StringBuilder();
+			StringBuilder pattern = new StringBuilder(20);
 			for (int i = 0; i < matchLevels && segs.hasNext(); i++) {
-				mp.append("/");
-				mp.append(segs.next());
+				pattern.append('/')
+					.append(segs.next());
 			}
 			if (segs.hasNext()) {
-				mp.append("/**");
+				pattern.append("/**");
 			}
-			String matchPath = mp.toString();
+			String matchPath = pattern.toString();
 			matchUri = new URI(uri.getScheme(), null, uri.getHost(),
 			        uri.getPort(), uri.getPath(), null, null);
 			matchValue = new MatchValue(getClass(), 
@@ -90,7 +101,7 @@ public class Request extends Event<Boolean> {
 							: (":" + uri.getPort()))))
 					 + matchPath);
 		} catch (URISyntaxException e) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(e);
 		}
 	}
 
@@ -170,48 +181,59 @@ public class Request extends Event<Boolean> {
 		if (!(value instanceof MatchValue)) {
 			return super.isEligibleFor(value);
 		}
-		MatchValue mv = (MatchValue)value;
-		if (!mv.type.isAssignableFrom(matchValue.type)) {
+		MatchValue mval = (MatchValue)value;
+		if (!mval.type.isAssignableFrom(matchValue.type)) {
 			return false;
 		}
-		if (mv.resource instanceof ResourcePattern) {
-			return ((ResourcePattern)mv.resource).matches(matchUri) >= 0;
+		if (mval.resource instanceof ResourcePattern) {
+			return ((ResourcePattern)mval.resource).matches(matchUri) >= 0;
 		}
-		return mv.resource.equals(matchValue.resource);
+		return mval.resource.equals(matchValue.resource);
 	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
+	@SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this));
-		builder.append(" [\"");
+		builder.append(Components.objectName(this))
+			.append(" [\"");
 		String path = request.requestUri().getPath();
 		if (path.length() > 15) {
-			builder.append("...");
-			builder.append(path.substring(path.length() - 12));
+			builder.append("...")
+				.append(path.substring(path.length() - 12));
 		} else {
 			builder.append(path);
 		}
-		builder.append("\"");
+		builder.append('\"');
 		if (channels().length > 0) {
 			builder.append(", channels=");
 			builder.append(Channel.toString(channels()));
 		}
-		builder.append("]");
+		builder.append(']');
 		return builder.toString();
 	}
 	
+	/**
+	 * Creates the match value.
+	 *
+	 * @param type the type
+	 * @param resource the resource
+	 * @return the object
+	 */
 	public static Object createMatchValue(
 			Class<?> type, ResourcePattern resource) {
 		return new MatchValue(type, resource);
 	}
 	
+	/**
+	 * Represents a match value.
+	 */
 	private static class MatchValue {
-		private Class<?> type;
-		private Object resource;
+		private final Class<?> type;
+		private final Object resource;
 
 		/**
 		 * @param type
@@ -227,7 +249,9 @@ public class Request extends Event<Boolean> {
 		 * @see java.lang.Object#hashCode()
 		 */
 		@Override
+		@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 		public int hashCode() {
+			@SuppressWarnings("PMD.AvoidFinalLocalVariable")
 			final int prime = 31;
 			int result = 1;
 			result = prime * result

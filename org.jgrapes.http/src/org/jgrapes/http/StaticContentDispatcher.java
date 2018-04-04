@@ -53,8 +53,8 @@ import org.jgrapes.io.events.StreamFile;
 public class StaticContentDispatcher extends Component {
 
 	private ResourcePattern resourcePattern;
-	private URI contentRoot = null;
-	private Path contentDirectory = null;
+	private URI contentRoot;
+	private Path contentDirectory;
 	private MaxAgeCalculator maxAgeCalculator = 
 			(request, mediaType) -> 365*24*3600;
 	
@@ -124,6 +124,14 @@ public class StaticContentDispatcher extends Component {
 		this.maxAgeCalculator = maxAgeCalculator;
 	}
 
+	/**
+	 * Handles a `GET` request.
+	 *
+	 * @param event the event
+	 * @param channel the channel
+	 * @throws ParseException the parse exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	@RequestHandler(dynamic=true)
 	public void onGet(GetRequest event, IOSubchannel channel)
 			throws ParseException, IOException {
@@ -131,20 +139,21 @@ public class StaticContentDispatcher extends Component {
 		if (prefixSegs < 0) {
 			return;
 		}
-		if (contentDirectory != null) {
-			getFromFileSystem(event, channel, prefixSegs);
-		} else {
+		if (contentDirectory == null) {
 			getFromUri(event, channel, prefixSegs);
+		} else {
+			getFromFileSystem(event, channel, prefixSegs);
 		}
 	}
 
+	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 	private boolean getFromFileSystem(GetRequest event, IOSubchannel channel,
 	        int prefixSegs) throws IOException, ParseException {
 		// Final wrapper for usage in closure
 		final Path[] assembly = new Path[] { contentDirectory };
 		Arrays.stream(event.requestUri().getPath().split("/"))
 		        .skip(prefixSegs + 1)
-		        .forEach(e -> assembly[0] = assembly[0].resolve(e));
+		        .forEach(seg -> assembly[0] = assembly[0].resolve(seg));
 		Path resourcePath = assembly[0];
 		if (Files.isDirectory(resourcePath)) {
 			Path indexPath = resourcePath.resolve("index.html");
