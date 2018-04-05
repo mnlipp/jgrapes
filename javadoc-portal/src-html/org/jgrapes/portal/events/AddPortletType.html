@@ -87,11 +87,11 @@
 <span class="sourceLineNo">079</span> */<a name="line.79"></a>
 <span class="sourceLineNo">080</span>public class AddPortletType extends PortalCommand {<a name="line.80"></a>
 <span class="sourceLineNo">081</span><a name="line.81"></a>
-<span class="sourceLineNo">082</span>        private String portletType;<a name="line.82"></a>
+<span class="sourceLineNo">082</span>        private final String portletType;<a name="line.82"></a>
 <span class="sourceLineNo">083</span>        private String displayName = "";<a name="line.83"></a>
-<span class="sourceLineNo">084</span>        private boolean instantiable = false;<a name="line.84"></a>
-<span class="sourceLineNo">085</span>        private List&lt;URI&gt; cssUris = new ArrayList&lt;&gt;();<a name="line.85"></a>
-<span class="sourceLineNo">086</span>        private List&lt;ScriptResource&gt; scriptResources = new ArrayList&lt;&gt;();<a name="line.86"></a>
+<span class="sourceLineNo">084</span>        private boolean instantiable;<a name="line.84"></a>
+<span class="sourceLineNo">085</span>        private final List&lt;URI&gt; cssUris = new ArrayList&lt;&gt;();<a name="line.85"></a>
+<span class="sourceLineNo">086</span>        private final List&lt;ScriptResource&gt; scriptResources = new ArrayList&lt;&gt;();<a name="line.86"></a>
 <span class="sourceLineNo">087</span>        <a name="line.87"></a>
 <span class="sourceLineNo">088</span>        /**<a name="line.88"></a>
 <span class="sourceLineNo">089</span>         * Create a new event for the given portlet type.<a name="line.89"></a>
@@ -181,7 +181,7 @@
 <span class="sourceLineNo">173</span>         * @return the result<a name="line.173"></a>
 <span class="sourceLineNo">174</span>         */<a name="line.174"></a>
 <span class="sourceLineNo">175</span>        public ScriptResource[] scriptResources() {<a name="line.175"></a>
-<span class="sourceLineNo">176</span>                return scriptResources.toArray(new ScriptResource[scriptResources.size()]);<a name="line.176"></a>
+<span class="sourceLineNo">176</span>                return scriptResources.toArray(new ScriptResource[0]);<a name="line.176"></a>
 <span class="sourceLineNo">177</span>        }<a name="line.177"></a>
 <span class="sourceLineNo">178</span><a name="line.178"></a>
 <span class="sourceLineNo">179</span>        /**<a name="line.179"></a>
@@ -190,7 +190,7 @@
 <span class="sourceLineNo">182</span>         * @return the result<a name="line.182"></a>
 <span class="sourceLineNo">183</span>         */<a name="line.183"></a>
 <span class="sourceLineNo">184</span>        public URI[] cssUris() {<a name="line.184"></a>
-<span class="sourceLineNo">185</span>                return cssUris.toArray(new URI[cssUris.size()]);<a name="line.185"></a>
+<span class="sourceLineNo">185</span>                return cssUris.toArray(new URI[0]);<a name="line.185"></a>
 <span class="sourceLineNo">186</span>        }<a name="line.186"></a>
 <span class="sourceLineNo">187</span><a name="line.187"></a>
 <span class="sourceLineNo">188</span>        @Override<a name="line.188"></a>

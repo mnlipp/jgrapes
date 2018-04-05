@@ -88,182 +88,182 @@
 <span class="sourceLineNo">080</span> */<a name="line.80"></a>
 <span class="sourceLineNo">081</span>public class AddPageResources extends PortalCommand {<a name="line.81"></a>
 <span class="sourceLineNo">082</span><a name="line.82"></a>
-<span class="sourceLineNo">083</span>        private List&lt;ScriptResource&gt; scriptResources = new ArrayList&lt;&gt;();<a name="line.83"></a>
-<span class="sourceLineNo">084</span>        private List&lt;URI&gt; cssUris = new ArrayList&lt;&gt;();<a name="line.84"></a>
+<span class="sourceLineNo">083</span>        private final List&lt;ScriptResource&gt; scriptResources = new ArrayList&lt;&gt;();<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        private final List&lt;URI&gt; cssUris = new ArrayList&lt;&gt;();<a name="line.84"></a>
 <span class="sourceLineNo">085</span>        private String cssSource;<a name="line.85"></a>
 <span class="sourceLineNo">086</span>        <a name="line.86"></a>
 <span class="sourceLineNo">087</span>        /**<a name="line.87"></a>
-<span class="sourceLineNo">088</span>         * Create a new event.<a name="line.88"></a>
-<span class="sourceLineNo">089</span>         */<a name="line.89"></a>
-<span class="sourceLineNo">090</span>        public AddPageResources() {<a name="line.90"></a>
-<span class="sourceLineNo">091</span>        }<a name="line.91"></a>
-<span class="sourceLineNo">092</span>        <a name="line.92"></a>
-<span class="sourceLineNo">093</span>        /**<a name="line.93"></a>
-<span class="sourceLineNo">094</span>         * Add the URI of a JavaScript resource that is to be added to the<a name="line.94"></a>
-<span class="sourceLineNo">095</span>         * header section of the portal page.<a name="line.95"></a>
-<span class="sourceLineNo">096</span>         * <a name="line.96"></a>
-<span class="sourceLineNo">097</span>         * @param scriptResource the resource to add<a name="line.97"></a>
-<span class="sourceLineNo">098</span>         * @return the event for easy chaining<a name="line.98"></a>
-<span class="sourceLineNo">099</span>         */<a name="line.99"></a>
-<span class="sourceLineNo">100</span>        public AddPageResources addScriptResource(ScriptResource scriptResource) {<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                scriptResources.add(scriptResource);<a name="line.101"></a>
-<span class="sourceLineNo">102</span>                return this;<a name="line.102"></a>
-<span class="sourceLineNo">103</span>        }<a name="line.103"></a>
-<span class="sourceLineNo">104</span><a name="line.104"></a>
-<span class="sourceLineNo">105</span>        /**<a name="line.105"></a>
-<span class="sourceLineNo">106</span>         * Return all script URIs<a name="line.106"></a>
-<span class="sourceLineNo">107</span>         * <a name="line.107"></a>
-<span class="sourceLineNo">108</span>         * @return the result<a name="line.108"></a>
-<span class="sourceLineNo">109</span>         */<a name="line.109"></a>
-<span class="sourceLineNo">110</span>        public ScriptResource[] scriptResources() {<a name="line.110"></a>
-<span class="sourceLineNo">111</span>                return scriptResources.toArray(new ScriptResource[scriptResources.size()]);<a name="line.111"></a>
-<span class="sourceLineNo">112</span>        }<a name="line.112"></a>
-<span class="sourceLineNo">113</span><a name="line.113"></a>
-<span class="sourceLineNo">114</span>        /**<a name="line.114"></a>
-<span class="sourceLineNo">115</span>         * Add the URI of a CSS resource that is to be added to the<a name="line.115"></a>
-<span class="sourceLineNo">116</span>         * header section of the portal page.<a name="line.116"></a>
-<span class="sourceLineNo">117</span>         * <a name="line.117"></a>
-<span class="sourceLineNo">118</span>         * @param uri the URI<a name="line.118"></a>
-<span class="sourceLineNo">119</span>         * @return the event for easy chaining<a name="line.119"></a>
-<span class="sourceLineNo">120</span>         */<a name="line.120"></a>
-<span class="sourceLineNo">121</span>        public AddPageResources addCss(URI uri) {<a name="line.121"></a>
-<span class="sourceLineNo">122</span>                cssUris.add(uri);<a name="line.122"></a>
-<span class="sourceLineNo">123</span>                return this;<a name="line.123"></a>
-<span class="sourceLineNo">124</span>        }<a name="line.124"></a>
-<span class="sourceLineNo">125</span><a name="line.125"></a>
-<span class="sourceLineNo">126</span>        /**<a name="line.126"></a>
-<span class="sourceLineNo">127</span>         * Return all CSS URIs.<a name="line.127"></a>
-<span class="sourceLineNo">128</span>         * <a name="line.128"></a>
-<span class="sourceLineNo">129</span>         * @return the result<a name="line.129"></a>
-<span class="sourceLineNo">130</span>         */<a name="line.130"></a>
-<span class="sourceLineNo">131</span>        public URI[] cssUris() {<a name="line.131"></a>
-<span class="sourceLineNo">132</span>                return cssUris.toArray(new URI[cssUris.size()]);<a name="line.132"></a>
-<span class="sourceLineNo">133</span>        }<a name="line.133"></a>
-<span class="sourceLineNo">134</span>        <a name="line.134"></a>
-<span class="sourceLineNo">135</span>        /**<a name="line.135"></a>
-<span class="sourceLineNo">136</span>         * @return the cssSource<a name="line.136"></a>
-<span class="sourceLineNo">137</span>         */<a name="line.137"></a>
-<span class="sourceLineNo">138</span>        public String cssSource() {<a name="line.138"></a>
-<span class="sourceLineNo">139</span>                return cssSource;<a name="line.139"></a>
-<span class="sourceLineNo">140</span>        }<a name="line.140"></a>
-<span class="sourceLineNo">141</span><a name="line.141"></a>
-<span class="sourceLineNo">142</span>        /**<a name="line.142"></a>
-<span class="sourceLineNo">143</span>         * @param cssSource the cssSource to set<a name="line.143"></a>
-<span class="sourceLineNo">144</span>         */<a name="line.144"></a>
-<span class="sourceLineNo">145</span>        public AddPageResources setCssSource(String cssSource) {<a name="line.145"></a>
-<span class="sourceLineNo">146</span>                this.cssSource = cssSource;<a name="line.146"></a>
-<span class="sourceLineNo">147</span>                return this;<a name="line.147"></a>
-<span class="sourceLineNo">148</span>        }<a name="line.148"></a>
-<span class="sourceLineNo">149</span><a name="line.149"></a>
-<span class="sourceLineNo">150</span>        @Override<a name="line.150"></a>
-<span class="sourceLineNo">151</span>        public void toJson(Writer writer) throws IOException {<a name="line.151"></a>
-<span class="sourceLineNo">152</span>                JsonArray scripts = JsonArray.create();<a name="line.152"></a>
-<span class="sourceLineNo">153</span>                for (ScriptResource scriptResource: scriptResources()) {<a name="line.153"></a>
-<span class="sourceLineNo">154</span>                        scripts.append(scriptResource.toJsonValue());<a name="line.154"></a>
-<span class="sourceLineNo">155</span>                }<a name="line.155"></a>
-<span class="sourceLineNo">156</span>                toJson(writer, "addPageResources", Arrays.stream(cssUris()).map(<a name="line.156"></a>
-<span class="sourceLineNo">157</span>                                uri -&gt; uri.toString()).toArray(String[]::new), <a name="line.157"></a>
-<span class="sourceLineNo">158</span>                                cssSource(), scripts);<a name="line.158"></a>
-<span class="sourceLineNo">159</span>        }<a name="line.159"></a>
-<span class="sourceLineNo">160</span><a name="line.160"></a>
-<span class="sourceLineNo">161</span>        /**<a name="line.161"></a>
-<span class="sourceLineNo">162</span>         * Represents a script resource that is to be loaded or evaluated<a name="line.162"></a>
-<span class="sourceLineNo">163</span>         * by the browser. Note that a single instance can either be used<a name="line.163"></a>
-<span class="sourceLineNo">164</span>         * for a URI or inline JavaScript, not for both.<a name="line.164"></a>
-<span class="sourceLineNo">165</span>         */<a name="line.165"></a>
-<span class="sourceLineNo">166</span>        public static class ScriptResource {<a name="line.166"></a>
-<span class="sourceLineNo">167</span>                private static final String[] EMPTY_ARRAY = new String[0];<a name="line.167"></a>
-<span class="sourceLineNo">168</span>                <a name="line.168"></a>
-<span class="sourceLineNo">169</span>                private URI scriptUri;<a name="line.169"></a>
-<span class="sourceLineNo">170</span>                private String scriptSource;<a name="line.170"></a>
-<span class="sourceLineNo">171</span>                private String[] provides = EMPTY_ARRAY;<a name="line.171"></a>
-<span class="sourceLineNo">172</span>                private String[] requires = EMPTY_ARRAY;<a name="line.172"></a>
-<span class="sourceLineNo">173</span>                <a name="line.173"></a>
-<span class="sourceLineNo">174</span>                /**<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                 * @return the scriptUri to be loaded<a name="line.175"></a>
-<span class="sourceLineNo">176</span>                 */<a name="line.176"></a>
-<span class="sourceLineNo">177</span>                public URI scriptUri() {<a name="line.177"></a>
-<span class="sourceLineNo">178</span>                        return scriptUri;<a name="line.178"></a>
-<span class="sourceLineNo">179</span>                }<a name="line.179"></a>
-<span class="sourceLineNo">180</span>                <a name="line.180"></a>
-<span class="sourceLineNo">181</span>                /**<a name="line.181"></a>
-<span class="sourceLineNo">182</span>                 * Sets the scriptUri to to be loaded, clears the `scriptSource`<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                 * attribute.<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                 * <a name="line.184"></a>
-<span class="sourceLineNo">185</span>                 * @param scriptUri the scriptUri to to be loaded<a name="line.185"></a>
-<span class="sourceLineNo">186</span>                 * @return this object for easy chaining<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                 */<a name="line.187"></a>
-<span class="sourceLineNo">188</span>                public ScriptResource setScriptUri(URI scriptUri) {<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                        this.scriptUri = scriptUri;<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                        return this;<a name="line.190"></a>
-<span class="sourceLineNo">191</span>                }<a name="line.191"></a>
-<span class="sourceLineNo">192</span>                <a name="line.192"></a>
-<span class="sourceLineNo">193</span>                /**<a name="line.193"></a>
-<span class="sourceLineNo">194</span>                 * @return the script source<a name="line.194"></a>
-<span class="sourceLineNo">195</span>                 */<a name="line.195"></a>
-<span class="sourceLineNo">196</span>                public String scriptSource() {<a name="line.196"></a>
-<span class="sourceLineNo">197</span>                        return scriptSource;<a name="line.197"></a>
-<span class="sourceLineNo">198</span>                }<a name="line.198"></a>
-<span class="sourceLineNo">199</span>                <a name="line.199"></a>
-<span class="sourceLineNo">200</span>                /**<a name="line.200"></a>
-<span class="sourceLineNo">201</span>                 * Sets the script source to evaluate. Clears the<a name="line.201"></a>
-<span class="sourceLineNo">202</span>                 * `scriptUri` attribute.<a name="line.202"></a>
-<span class="sourceLineNo">203</span>                 * <a name="line.203"></a>
-<span class="sourceLineNo">204</span>                 * @param scriptSource the scriptSource to set<a name="line.204"></a>
-<span class="sourceLineNo">205</span>                 * @return this object for easy chaining<a name="line.205"></a>
-<span class="sourceLineNo">206</span>                 */<a name="line.206"></a>
-<span class="sourceLineNo">207</span>                public ScriptResource setScriptSource(String scriptSource) {<a name="line.207"></a>
-<span class="sourceLineNo">208</span>                        this.scriptSource = scriptSource;<a name="line.208"></a>
-<span class="sourceLineNo">209</span>                        return this;<a name="line.209"></a>
-<span class="sourceLineNo">210</span>                }<a name="line.210"></a>
-<span class="sourceLineNo">211</span>                <a name="line.211"></a>
-<span class="sourceLineNo">212</span>                /**<a name="line.212"></a>
-<span class="sourceLineNo">213</span>                 * Returns the list of JavaScript features that this<a name="line.213"></a>
-<span class="sourceLineNo">214</span>                 * script resource provides.<a name="line.214"></a>
-<span class="sourceLineNo">215</span>                 * <a name="line.215"></a>
-<span class="sourceLineNo">216</span>                 * @return the list of features<a name="line.216"></a>
-<span class="sourceLineNo">217</span>                 */<a name="line.217"></a>
-<span class="sourceLineNo">218</span>                public String[] provides() {<a name="line.218"></a>
-<span class="sourceLineNo">219</span>                        return provides;<a name="line.219"></a>
-<span class="sourceLineNo">220</span>                }<a name="line.220"></a>
-<span class="sourceLineNo">221</span>                <a name="line.221"></a>
-<span class="sourceLineNo">222</span>                /**<a name="line.222"></a>
-<span class="sourceLineNo">223</span>                 * Sets the list of JavaScript features that this<a name="line.223"></a>
-<span class="sourceLineNo">224</span>                 * script resource provides. For commonly available<a name="line.224"></a>
-<span class="sourceLineNo">225</span>                 * JavaScript libraries, it is recommended to use<a name="line.225"></a>
-<span class="sourceLineNo">226</span>                 * their home page URL (without the protocol part) as<a name="line.226"></a>
-<span class="sourceLineNo">227</span>                 * feature name. <a name="line.227"></a>
-<span class="sourceLineNo">228</span>                 * <a name="line.228"></a>
-<span class="sourceLineNo">229</span>                 * @param provides the list of features<a name="line.229"></a>
-<span class="sourceLineNo">230</span>                 * @return this object for easy chaining<a name="line.230"></a>
-<span class="sourceLineNo">231</span>                 */<a name="line.231"></a>
-<span class="sourceLineNo">232</span>                public ScriptResource setProvides(String[] provides) {<a name="line.232"></a>
-<span class="sourceLineNo">233</span>                        this.provides = provides;<a name="line.233"></a>
-<span class="sourceLineNo">234</span>                        return this;<a name="line.234"></a>
-<span class="sourceLineNo">235</span>                }<a name="line.235"></a>
-<span class="sourceLineNo">236</span>                <a name="line.236"></a>
-<span class="sourceLineNo">237</span>                /**<a name="line.237"></a>
-<span class="sourceLineNo">238</span>                 * Returns the list of JavaScript features that this<a name="line.238"></a>
-<span class="sourceLineNo">239</span>                 * script resource requires.<a name="line.239"></a>
-<span class="sourceLineNo">240</span>                 * <a name="line.240"></a>
-<span class="sourceLineNo">241</span>                 * @return the list of features<a name="line.241"></a>
-<span class="sourceLineNo">242</span>                 */<a name="line.242"></a>
-<span class="sourceLineNo">243</span>                public String[] requires() {<a name="line.243"></a>
-<span class="sourceLineNo">244</span>                        return requires;<a name="line.244"></a>
-<span class="sourceLineNo">245</span>                }<a name="line.245"></a>
-<span class="sourceLineNo">246</span>                <a name="line.246"></a>
-<span class="sourceLineNo">247</span>                /**<a name="line.247"></a>
-<span class="sourceLineNo">248</span>                 * Sets the list of JavaScript features that this<a name="line.248"></a>
-<span class="sourceLineNo">249</span>                 * script resource requires.<a name="line.249"></a>
-<span class="sourceLineNo">250</span>                 * <a name="line.250"></a>
-<span class="sourceLineNo">251</span>                 * @param requires the list of features<a name="line.251"></a>
-<span class="sourceLineNo">252</span>                 * @return this object for easy chaining<a name="line.252"></a>
-<span class="sourceLineNo">253</span>                 */<a name="line.253"></a>
-<span class="sourceLineNo">254</span>                public ScriptResource setRequires(String[] requires) {<a name="line.254"></a>
-<span class="sourceLineNo">255</span>                        this.requires = requires;<a name="line.255"></a>
-<span class="sourceLineNo">256</span>                        return this;<a name="line.256"></a>
-<span class="sourceLineNo">257</span>                }<a name="line.257"></a>
-<span class="sourceLineNo">258</span>                <a name="line.258"></a>
+<span class="sourceLineNo">088</span>         * Add the URI of a JavaScript resource that is to be added to the<a name="line.88"></a>
+<span class="sourceLineNo">089</span>         * header section of the portal page.<a name="line.89"></a>
+<span class="sourceLineNo">090</span>         * <a name="line.90"></a>
+<span class="sourceLineNo">091</span>         * @param scriptResource the resource to add<a name="line.91"></a>
+<span class="sourceLineNo">092</span>         * @return the event for easy chaining<a name="line.92"></a>
+<span class="sourceLineNo">093</span>         */<a name="line.93"></a>
+<span class="sourceLineNo">094</span>        public AddPageResources addScriptResource(ScriptResource scriptResource) {<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                scriptResources.add(scriptResource);<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                return this;<a name="line.96"></a>
+<span class="sourceLineNo">097</span>        }<a name="line.97"></a>
+<span class="sourceLineNo">098</span><a name="line.98"></a>
+<span class="sourceLineNo">099</span>        /**<a name="line.99"></a>
+<span class="sourceLineNo">100</span>         * Return all script URIs<a name="line.100"></a>
+<span class="sourceLineNo">101</span>         * <a name="line.101"></a>
+<span class="sourceLineNo">102</span>         * @return the result<a name="line.102"></a>
+<span class="sourceLineNo">103</span>         */<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        public ScriptResource[] scriptResources() {<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                return scriptResources.toArray(new ScriptResource[0]);<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        }<a name="line.106"></a>
+<span class="sourceLineNo">107</span><a name="line.107"></a>
+<span class="sourceLineNo">108</span>        /**<a name="line.108"></a>
+<span class="sourceLineNo">109</span>         * Add the URI of a CSS resource that is to be added to the<a name="line.109"></a>
+<span class="sourceLineNo">110</span>         * header section of the portal page.<a name="line.110"></a>
+<span class="sourceLineNo">111</span>         * <a name="line.111"></a>
+<span class="sourceLineNo">112</span>         * @param uri the URI<a name="line.112"></a>
+<span class="sourceLineNo">113</span>         * @return the event for easy chaining<a name="line.113"></a>
+<span class="sourceLineNo">114</span>         */<a name="line.114"></a>
+<span class="sourceLineNo">115</span>        public AddPageResources addCss(URI uri) {<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                cssUris.add(uri);<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                return this;<a name="line.117"></a>
+<span class="sourceLineNo">118</span>        }<a name="line.118"></a>
+<span class="sourceLineNo">119</span><a name="line.119"></a>
+<span class="sourceLineNo">120</span>        /**<a name="line.120"></a>
+<span class="sourceLineNo">121</span>         * Return all CSS URIs.<a name="line.121"></a>
+<span class="sourceLineNo">122</span>         * <a name="line.122"></a>
+<span class="sourceLineNo">123</span>         * @return the result<a name="line.123"></a>
+<span class="sourceLineNo">124</span>         */<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        public URI[] cssUris() {<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                return cssUris.toArray(new URI[0]);<a name="line.126"></a>
+<span class="sourceLineNo">127</span>        }<a name="line.127"></a>
+<span class="sourceLineNo">128</span>        <a name="line.128"></a>
+<span class="sourceLineNo">129</span>        /**<a name="line.129"></a>
+<span class="sourceLineNo">130</span>         * @return the cssSource<a name="line.130"></a>
+<span class="sourceLineNo">131</span>         */<a name="line.131"></a>
+<span class="sourceLineNo">132</span>        public String cssSource() {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                return cssSource;<a name="line.133"></a>
+<span class="sourceLineNo">134</span>        }<a name="line.134"></a>
+<span class="sourceLineNo">135</span><a name="line.135"></a>
+<span class="sourceLineNo">136</span>        /**<a name="line.136"></a>
+<span class="sourceLineNo">137</span>         * @param cssSource the cssSource to set<a name="line.137"></a>
+<span class="sourceLineNo">138</span>         */<a name="line.138"></a>
+<span class="sourceLineNo">139</span>        public AddPageResources setCssSource(String cssSource) {<a name="line.139"></a>
+<span class="sourceLineNo">140</span>                this.cssSource = cssSource;<a name="line.140"></a>
+<span class="sourceLineNo">141</span>                return this;<a name="line.141"></a>
+<span class="sourceLineNo">142</span>        }<a name="line.142"></a>
+<span class="sourceLineNo">143</span><a name="line.143"></a>
+<span class="sourceLineNo">144</span>        @Override<a name="line.144"></a>
+<span class="sourceLineNo">145</span>        public void toJson(Writer writer) throws IOException {<a name="line.145"></a>
+<span class="sourceLineNo">146</span>                JsonArray scripts = JsonArray.create();<a name="line.146"></a>
+<span class="sourceLineNo">147</span>                for (ScriptResource scriptResource: scriptResources()) {<a name="line.147"></a>
+<span class="sourceLineNo">148</span>                        scripts.append(scriptResource.toJsonValue());<a name="line.148"></a>
+<span class="sourceLineNo">149</span>                }<a name="line.149"></a>
+<span class="sourceLineNo">150</span>                toJson(writer, "addPageResources", Arrays.stream(cssUris()).map(<a name="line.150"></a>
+<span class="sourceLineNo">151</span>                                uri -&gt; uri.toString()).toArray(String[]::new), <a name="line.151"></a>
+<span class="sourceLineNo">152</span>                                cssSource(), scripts);<a name="line.152"></a>
+<span class="sourceLineNo">153</span>        }<a name="line.153"></a>
+<span class="sourceLineNo">154</span><a name="line.154"></a>
+<span class="sourceLineNo">155</span>        /**<a name="line.155"></a>
+<span class="sourceLineNo">156</span>         * Represents a script resource that is to be loaded or evaluated<a name="line.156"></a>
+<span class="sourceLineNo">157</span>         * by the browser. Note that a single instance can either be used<a name="line.157"></a>
+<span class="sourceLineNo">158</span>         * for a URI or inline JavaScript, not for both.<a name="line.158"></a>
+<span class="sourceLineNo">159</span>         */<a name="line.159"></a>
+<span class="sourceLineNo">160</span>        public static class ScriptResource {<a name="line.160"></a>
+<span class="sourceLineNo">161</span>                private static final String[] EMPTY_ARRAY = new String[0];<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                <a name="line.162"></a>
+<span class="sourceLineNo">163</span>                private URI scriptUri;<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                private String scriptSource;<a name="line.164"></a>
+<span class="sourceLineNo">165</span>                private String[] provides = EMPTY_ARRAY;<a name="line.165"></a>
+<span class="sourceLineNo">166</span>                private String[] requires = EMPTY_ARRAY;<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                <a name="line.167"></a>
+<span class="sourceLineNo">168</span>                /**<a name="line.168"></a>
+<span class="sourceLineNo">169</span>                 * @return the scriptUri to be loaded<a name="line.169"></a>
+<span class="sourceLineNo">170</span>                 */<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                public URI scriptUri() {<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                        return scriptUri;<a name="line.172"></a>
+<span class="sourceLineNo">173</span>                }<a name="line.173"></a>
+<span class="sourceLineNo">174</span>                <a name="line.174"></a>
+<span class="sourceLineNo">175</span>                /**<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                 * Sets the scriptUri to to be loaded, clears the `scriptSource`<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                 * attribute.<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                 * <a name="line.178"></a>
+<span class="sourceLineNo">179</span>                 * @param scriptUri the scriptUri to to be loaded<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                 * @return this object for easy chaining<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                 */<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                public ScriptResource setScriptUri(URI scriptUri) {<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                        this.scriptUri = scriptUri;<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                        return this;<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                }<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                <a name="line.186"></a>
+<span class="sourceLineNo">187</span>                /**<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                 * @return the script source<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                 */<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                public String scriptSource() {<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                        return scriptSource;<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                }<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                <a name="line.193"></a>
+<span class="sourceLineNo">194</span>                /**<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                 * Sets the script source to evaluate. Clears the<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                 * `scriptUri` attribute.<a name="line.196"></a>
+<span class="sourceLineNo">197</span>                 * <a name="line.197"></a>
+<span class="sourceLineNo">198</span>                 * @param scriptSource the scriptSource to set<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                 * @return this object for easy chaining<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                 */<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                public ScriptResource setScriptSource(String scriptSource) {<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                        this.scriptSource = scriptSource;<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                        return this;<a name="line.203"></a>
+<span class="sourceLineNo">204</span>                }<a name="line.204"></a>
+<span class="sourceLineNo">205</span>                <a name="line.205"></a>
+<span class="sourceLineNo">206</span>                /**<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                 * Returns the list of JavaScript features that this<a name="line.207"></a>
+<span class="sourceLineNo">208</span>                 * script resource provides.<a name="line.208"></a>
+<span class="sourceLineNo">209</span>                 * <a name="line.209"></a>
+<span class="sourceLineNo">210</span>                 * @return the list of features<a name="line.210"></a>
+<span class="sourceLineNo">211</span>                 */<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                public String[] provides() {<a name="line.212"></a>
+<span class="sourceLineNo">213</span>                        return Arrays.copyOf(provides, provides.length);<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                }<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                <a name="line.215"></a>
+<span class="sourceLineNo">216</span>                /**<a name="line.216"></a>
+<span class="sourceLineNo">217</span>                 * Sets the list of JavaScript features that this<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                 * script resource provides. For commonly available<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                 * JavaScript libraries, it is recommended to use<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                 * their home page URL (without the protocol part) as<a name="line.220"></a>
+<span class="sourceLineNo">221</span>                 * feature name. <a name="line.221"></a>
+<span class="sourceLineNo">222</span>                 * <a name="line.222"></a>
+<span class="sourceLineNo">223</span>                 * @param provides the list of features<a name="line.223"></a>
+<span class="sourceLineNo">224</span>                 * @return this object for easy chaining<a name="line.224"></a>
+<span class="sourceLineNo">225</span>                 */<a name="line.225"></a>
+<span class="sourceLineNo">226</span>                public ScriptResource setProvides(String... provides) {<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                        this.provides = Arrays.copyOf(provides, provides.length);<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                        return this;<a name="line.228"></a>
+<span class="sourceLineNo">229</span>                }<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                <a name="line.230"></a>
+<span class="sourceLineNo">231</span>                /**<a name="line.231"></a>
+<span class="sourceLineNo">232</span>                 * Returns the list of JavaScript features that this<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                 * script resource requires.<a name="line.233"></a>
+<span class="sourceLineNo">234</span>                 * <a name="line.234"></a>
+<span class="sourceLineNo">235</span>                 * @return the list of features<a name="line.235"></a>
+<span class="sourceLineNo">236</span>                 */<a name="line.236"></a>
+<span class="sourceLineNo">237</span>                public String[] requires() {<a name="line.237"></a>
+<span class="sourceLineNo">238</span>                        return Arrays.copyOf(requires, requires.length);<a name="line.238"></a>
+<span class="sourceLineNo">239</span>                }<a name="line.239"></a>
+<span class="sourceLineNo">240</span>                <a name="line.240"></a>
+<span class="sourceLineNo">241</span>                /**<a name="line.241"></a>
+<span class="sourceLineNo">242</span>                 * Sets the list of JavaScript features that this<a name="line.242"></a>
+<span class="sourceLineNo">243</span>                 * script resource requires.<a name="line.243"></a>
+<span class="sourceLineNo">244</span>                 * <a name="line.244"></a>
+<span class="sourceLineNo">245</span>                 * @param requires the list of features<a name="line.245"></a>
+<span class="sourceLineNo">246</span>                 * @return this object for easy chaining<a name="line.246"></a>
+<span class="sourceLineNo">247</span>                 */<a name="line.247"></a>
+<span class="sourceLineNo">248</span>                public ScriptResource setRequires(String... requires) {<a name="line.248"></a>
+<span class="sourceLineNo">249</span>                        this.requires = Arrays.copyOf(requires, requires.length);<a name="line.249"></a>
+<span class="sourceLineNo">250</span>                        return this;<a name="line.250"></a>
+<span class="sourceLineNo">251</span>                }<a name="line.251"></a>
+<span class="sourceLineNo">252</span>                <a name="line.252"></a>
+<span class="sourceLineNo">253</span>                <a name="line.253"></a>
+<span class="sourceLineNo">254</span>                /**<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                 * Provides the JSON representation of the information.<a name="line.255"></a>
+<span class="sourceLineNo">256</span>                 *<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                 * @return the json object<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                 */<a name="line.258"></a>
 <span class="sourceLineNo">259</span>                public JsonObject toJsonValue() {<a name="line.259"></a>
 <span class="sourceLineNo">260</span>                        JsonObject obj = JsonObject.create();<a name="line.260"></a>
 <span class="sourceLineNo">261</span>                        if (scriptUri != null) {<a name="line.261"></a>
