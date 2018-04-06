@@ -1,7 +1,8 @@
 dependencies {
 
     compile project(':org.jgrapes.io')
-    compile 'org.jdrupes.httpcodec:httpcodec:[1.0.4,)'
+	// BndPomRepository (3.5.0) cannot handle ranges without upper limit 
+    compile 'org.jdrupes.httpcodec:httpcodec:[1.0.6,1.1.0)'
     
     sourceSets {
         test {
