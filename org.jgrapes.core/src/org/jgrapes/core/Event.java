@@ -334,10 +334,11 @@ public class Event<T> extends EventBase<T> {
 	 * Allows access to the intermediate result before the 
 	 * completion of the event. 
 	 * 
-	 * @return the intermediate results or `null`
+	 * @return the intermediate results (which may be an empty list)
 	 */
 	protected List<T> currentResults() {
-		return Collections.unmodifiableList(results);
+		return results == null ? Collections.emptyList() 
+				: Collections.unmodifiableList(results);
 	}
 	
 	/**
