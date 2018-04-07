@@ -41,55 +41,55 @@
 <span class="sourceLineNo">033</span> */<a name="line.33"></a>
 <span class="sourceLineNo">034</span>public class ProtocolSwitchAccepted extends Event&lt;Void&gt; {<a name="line.34"></a>
 <span class="sourceLineNo">035</span><a name="line.35"></a>
-<span class="sourceLineNo">036</span>        private final Request requestEvent;<a name="line.36"></a>
-<span class="sourceLineNo">037</span>        private final String protocol;<a name="line.37"></a>
-<span class="sourceLineNo">038</span>        <a name="line.38"></a>
-<span class="sourceLineNo">039</span>        /**<a name="line.39"></a>
-<span class="sourceLineNo">040</span>         * Creates a new event. The request event passed in as parameter<a name="line.40"></a>
-<span class="sourceLineNo">041</span>         * is used by the {@link HttpServer} to build the response message<a name="line.41"></a>
-<span class="sourceLineNo">042</span>         * and link an existing session to the web socket.<a name="line.42"></a>
-<span class="sourceLineNo">043</span>         * <a name="line.43"></a>
-<span class="sourceLineNo">044</span>         * To be precise, the {@link HttpServer} retrieves the {@link HttpRequest}<a name="line.44"></a>
-<span class="sourceLineNo">045</span>         * from the request event and uses the prepared response provided by <a name="line.45"></a>
-<span class="sourceLineNo">046</span>         * {@link HttpRequest#response()} to build the response. The default<a name="line.46"></a>
-<span class="sourceLineNo">047</span>         * information contained in this prepared response is sufficient to<a name="line.47"></a>
-<span class="sourceLineNo">048</span>         * build the actual response. If required, the accepting component <a name="line.48"></a>
-<span class="sourceLineNo">049</span>         * can add special header fields to the prepared response.<a name="line.49"></a>
-<span class="sourceLineNo">050</span>         *<a name="line.50"></a>
-<span class="sourceLineNo">051</span>         * @param request the base response data<a name="line.51"></a>
-<span class="sourceLineNo">052</span>         * @param protocol the accepted protocol<a name="line.52"></a>
-<span class="sourceLineNo">053</span>         */<a name="line.53"></a>
-<span class="sourceLineNo">054</span>        public ProtocolSwitchAccepted(Request request, String protocol) {<a name="line.54"></a>
-<span class="sourceLineNo">055</span>                this.requestEvent = request;<a name="line.55"></a>
-<span class="sourceLineNo">056</span>                this.protocol = protocol;<a name="line.56"></a>
-<span class="sourceLineNo">057</span>        }<a name="line.57"></a>
+<span class="sourceLineNo">036</span>    private final Request requestEvent;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>    private final String protocol;<a name="line.37"></a>
+<span class="sourceLineNo">038</span><a name="line.38"></a>
+<span class="sourceLineNo">039</span>    /**<a name="line.39"></a>
+<span class="sourceLineNo">040</span>     * Creates a new event. The request event passed in as parameter<a name="line.40"></a>
+<span class="sourceLineNo">041</span>     * is used by the {@link HttpServer} to build the response message<a name="line.41"></a>
+<span class="sourceLineNo">042</span>     * and link an existing session to the web socket.<a name="line.42"></a>
+<span class="sourceLineNo">043</span>     * <a name="line.43"></a>
+<span class="sourceLineNo">044</span>     * To be precise, the {@link HttpServer} retrieves the {@link HttpRequest}<a name="line.44"></a>
+<span class="sourceLineNo">045</span>     * from the request event and uses the prepared response provided by <a name="line.45"></a>
+<span class="sourceLineNo">046</span>     * {@link HttpRequest#response()} to build the response. The default<a name="line.46"></a>
+<span class="sourceLineNo">047</span>     * information contained in this prepared response is sufficient to<a name="line.47"></a>
+<span class="sourceLineNo">048</span>     * build the actual response. If required, the accepting component <a name="line.48"></a>
+<span class="sourceLineNo">049</span>     * can add special header fields to the prepared response.<a name="line.49"></a>
+<span class="sourceLineNo">050</span>     *<a name="line.50"></a>
+<span class="sourceLineNo">051</span>     * @param request the base response data<a name="line.51"></a>
+<span class="sourceLineNo">052</span>     * @param protocol the accepted protocol<a name="line.52"></a>
+<span class="sourceLineNo">053</span>     */<a name="line.53"></a>
+<span class="sourceLineNo">054</span>    public ProtocolSwitchAccepted(Request request, String protocol) {<a name="line.54"></a>
+<span class="sourceLineNo">055</span>        this.requestEvent = request;<a name="line.55"></a>
+<span class="sourceLineNo">056</span>        this.protocol = protocol;<a name="line.56"></a>
+<span class="sourceLineNo">057</span>    }<a name="line.57"></a>
 <span class="sourceLineNo">058</span><a name="line.58"></a>
-<span class="sourceLineNo">059</span>        /**<a name="line.59"></a>
-<span class="sourceLineNo">060</span>         * Returns the resource for which the socket was opened.<a name="line.60"></a>
-<span class="sourceLineNo">061</span>         * <a name="line.61"></a>
-<span class="sourceLineNo">062</span>         * @return the value<a name="line.62"></a>
-<span class="sourceLineNo">063</span>         */<a name="line.63"></a>
-<span class="sourceLineNo">064</span>        public URI resourceName() {<a name="line.64"></a>
-<span class="sourceLineNo">065</span>                return requestEvent.requestUri();<a name="line.65"></a>
-<span class="sourceLineNo">066</span>        }<a name="line.66"></a>
+<span class="sourceLineNo">059</span>    /**<a name="line.59"></a>
+<span class="sourceLineNo">060</span>     * Returns the resource for which the socket was opened.<a name="line.60"></a>
+<span class="sourceLineNo">061</span>     * <a name="line.61"></a>
+<span class="sourceLineNo">062</span>     * @return the value<a name="line.62"></a>
+<span class="sourceLineNo">063</span>     */<a name="line.63"></a>
+<span class="sourceLineNo">064</span>    public URI resourceName() {<a name="line.64"></a>
+<span class="sourceLineNo">065</span>        return requestEvent.requestUri();<a name="line.65"></a>
+<span class="sourceLineNo">066</span>    }<a name="line.66"></a>
 <span class="sourceLineNo">067</span><a name="line.67"></a>
-<span class="sourceLineNo">068</span>        /**<a name="line.68"></a>
-<span class="sourceLineNo">069</span>         * Returns the original request. <a name="line.69"></a>
-<span class="sourceLineNo">070</span>         * <a name="line.70"></a>
-<span class="sourceLineNo">071</span>         * @return the value<a name="line.71"></a>
-<span class="sourceLineNo">072</span>         */<a name="line.72"></a>
-<span class="sourceLineNo">073</span>        public Request requestEvent() {<a name="line.73"></a>
-<span class="sourceLineNo">074</span>                return requestEvent;<a name="line.74"></a>
-<span class="sourceLineNo">075</span>        }<a name="line.75"></a>
-<span class="sourceLineNo">076</span>        <a name="line.76"></a>
-<span class="sourceLineNo">077</span>        /**<a name="line.77"></a>
-<span class="sourceLineNo">078</span>         * The accepted protocol.<a name="line.78"></a>
-<span class="sourceLineNo">079</span>         *<a name="line.79"></a>
-<span class="sourceLineNo">080</span>         * @return the protocol<a name="line.80"></a>
-<span class="sourceLineNo">081</span>         */<a name="line.81"></a>
-<span class="sourceLineNo">082</span>        public String protocol() {<a name="line.82"></a>
-<span class="sourceLineNo">083</span>                return protocol;<a name="line.83"></a>
-<span class="sourceLineNo">084</span>        }<a name="line.84"></a>
+<span class="sourceLineNo">068</span>    /**<a name="line.68"></a>
+<span class="sourceLineNo">069</span>     * Returns the original request. <a name="line.69"></a>
+<span class="sourceLineNo">070</span>     * <a name="line.70"></a>
+<span class="sourceLineNo">071</span>     * @return the value<a name="line.71"></a>
+<span class="sourceLineNo">072</span>     */<a name="line.72"></a>
+<span class="sourceLineNo">073</span>    public Request requestEvent() {<a name="line.73"></a>
+<span class="sourceLineNo">074</span>        return requestEvent;<a name="line.74"></a>
+<span class="sourceLineNo">075</span>    }<a name="line.75"></a>
+<span class="sourceLineNo">076</span><a name="line.76"></a>
+<span class="sourceLineNo">077</span>    /**<a name="line.77"></a>
+<span class="sourceLineNo">078</span>     * The accepted protocol.<a name="line.78"></a>
+<span class="sourceLineNo">079</span>     *<a name="line.79"></a>
+<span class="sourceLineNo">080</span>     * @return the protocol<a name="line.80"></a>
+<span class="sourceLineNo">081</span>     */<a name="line.81"></a>
+<span class="sourceLineNo">082</span>    public String protocol() {<a name="line.82"></a>
+<span class="sourceLineNo">083</span>        return protocol;<a name="line.83"></a>
+<span class="sourceLineNo">084</span>    }<a name="line.84"></a>
 <span class="sourceLineNo">085</span>}<a name="line.85"></a>
 
 
