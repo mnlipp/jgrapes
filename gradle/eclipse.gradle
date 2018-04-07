@@ -18,5 +18,15 @@ eclipse {
             'net.sf.eclipsecs.core.CheckstyleNature'
             'org.eclipse.jdt.groovy.core.groovyNature'
     }
+    jdt {
+        file {
+            withProperties { properties ->
+                def formatterPrefs = new Properties()
+                rootProject.file("gradle/org.eclipse.jdt.core.formatter.prefs")
+                    .withInputStream { formatterPrefs.load(it) }
+                properties.putAll(formatterPrefs)
+            }
+        }
+    }
 }
 tasks.eclipse.dependsOn(cleanEclipse)
