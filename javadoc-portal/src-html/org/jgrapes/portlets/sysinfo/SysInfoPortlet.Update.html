@@ -230,61 +230,59 @@
 <span class="sourceLineNo">222</span>     */<a name="line.222"></a>
 <span class="sourceLineNo">223</span>    @Handler<a name="line.223"></a>
 <span class="sourceLineNo">224</span>    public void onUpdate(Update event, PortalSession portalSession) {<a name="line.224"></a>
-<span class="sourceLineNo">225</span>        Set&lt;String&gt; portletIds = portletIdsByPortalSession().get(portalSession);<a name="line.225"></a>
-<span class="sourceLineNo">226</span>        for (String portletId : portletIds) {<a name="line.226"></a>
-<span class="sourceLineNo">227</span>            updateView(portalSession, portletId);<a name="line.227"></a>
-<span class="sourceLineNo">228</span>        }<a name="line.228"></a>
-<span class="sourceLineNo">229</span>    }<a name="line.229"></a>
-<span class="sourceLineNo">230</span><a name="line.230"></a>
-<span class="sourceLineNo">231</span>    @Override<a name="line.231"></a>
-<span class="sourceLineNo">232</span>    @SuppressWarnings("PMD.DoNotCallGarbageCollectionExplicitly")<a name="line.232"></a>
-<span class="sourceLineNo">233</span>    protected void doNotifyPortletModel(NotifyPortletModel event,<a name="line.233"></a>
-<span class="sourceLineNo">234</span>            PortalSession portalSession, Serializable portletState)<a name="line.234"></a>
-<span class="sourceLineNo">235</span>            throws Exception {<a name="line.235"></a>
-<span class="sourceLineNo">236</span>        event.stop();<a name="line.236"></a>
-<span class="sourceLineNo">237</span>        System.gc();<a name="line.237"></a>
-<span class="sourceLineNo">238</span>        Set&lt;String&gt; portletIds = portletIdsByPortalSession().get(portalSession);<a name="line.238"></a>
-<span class="sourceLineNo">239</span>        for (String portletId : portletIds) {<a name="line.239"></a>
-<span class="sourceLineNo">240</span>            updateView(portalSession, portletId);<a name="line.240"></a>
-<span class="sourceLineNo">241</span>        }<a name="line.241"></a>
-<span class="sourceLineNo">242</span>    }<a name="line.242"></a>
-<span class="sourceLineNo">243</span><a name="line.243"></a>
-<span class="sourceLineNo">244</span>    /**<a name="line.244"></a>
-<span class="sourceLineNo">245</span>     * The portlet's model.<a name="line.245"></a>
-<span class="sourceLineNo">246</span>     */<a name="line.246"></a>
-<span class="sourceLineNo">247</span>    @SuppressWarnings("serial")<a name="line.247"></a>
-<span class="sourceLineNo">248</span>    public static class SysInfoModel extends PortletBaseModel {<a name="line.248"></a>
-<span class="sourceLineNo">249</span><a name="line.249"></a>
-<span class="sourceLineNo">250</span>        /**<a name="line.250"></a>
-<span class="sourceLineNo">251</span>         * Creates a new model with the given type and id.<a name="line.251"></a>
-<span class="sourceLineNo">252</span>         * <a name="line.252"></a>
-<span class="sourceLineNo">253</span>         * @param portletId the portlet id<a name="line.253"></a>
-<span class="sourceLineNo">254</span>         */<a name="line.254"></a>
-<span class="sourceLineNo">255</span>        @ConstructorProperties({ "portletId" })<a name="line.255"></a>
-<span class="sourceLineNo">256</span>        public SysInfoModel(String portletId) {<a name="line.256"></a>
-<span class="sourceLineNo">257</span>            super(portletId);<a name="line.257"></a>
-<span class="sourceLineNo">258</span>        }<a name="line.258"></a>
-<span class="sourceLineNo">259</span><a name="line.259"></a>
-<span class="sourceLineNo">260</span>        /**<a name="line.260"></a>
-<span class="sourceLineNo">261</span>         * Return the system properties.<a name="line.261"></a>
-<span class="sourceLineNo">262</span>         *<a name="line.262"></a>
-<span class="sourceLineNo">263</span>         * @return the properties<a name="line.263"></a>
-<span class="sourceLineNo">264</span>         */<a name="line.264"></a>
-<span class="sourceLineNo">265</span>        public Properties systemProperties() {<a name="line.265"></a>
-<span class="sourceLineNo">266</span>            return System.getProperties();<a name="line.266"></a>
-<span class="sourceLineNo">267</span>        }<a name="line.267"></a>
-<span class="sourceLineNo">268</span><a name="line.268"></a>
-<span class="sourceLineNo">269</span>        /**<a name="line.269"></a>
-<span class="sourceLineNo">270</span>         * Return the {@link Runtime}.<a name="line.270"></a>
-<span class="sourceLineNo">271</span>         *<a name="line.271"></a>
-<span class="sourceLineNo">272</span>         * @return the runtime<a name="line.272"></a>
-<span class="sourceLineNo">273</span>         */<a name="line.273"></a>
-<span class="sourceLineNo">274</span>        public Runtime runtime() {<a name="line.274"></a>
-<span class="sourceLineNo">275</span>            return Runtime.getRuntime();<a name="line.275"></a>
-<span class="sourceLineNo">276</span>        }<a name="line.276"></a>
-<span class="sourceLineNo">277</span>    }<a name="line.277"></a>
-<span class="sourceLineNo">278</span><a name="line.278"></a>
-<span class="sourceLineNo">279</span>}<a name="line.279"></a>
+<span class="sourceLineNo">225</span>        for (String portletId : portletIds(portalSession)) {<a name="line.225"></a>
+<span class="sourceLineNo">226</span>            updateView(portalSession, portletId);<a name="line.226"></a>
+<span class="sourceLineNo">227</span>        }<a name="line.227"></a>
+<span class="sourceLineNo">228</span>    }<a name="line.228"></a>
+<span class="sourceLineNo">229</span><a name="line.229"></a>
+<span class="sourceLineNo">230</span>    @Override<a name="line.230"></a>
+<span class="sourceLineNo">231</span>    @SuppressWarnings("PMD.DoNotCallGarbageCollectionExplicitly")<a name="line.231"></a>
+<span class="sourceLineNo">232</span>    protected void doNotifyPortletModel(NotifyPortletModel event,<a name="line.232"></a>
+<span class="sourceLineNo">233</span>            PortalSession portalSession, Serializable portletState)<a name="line.233"></a>
+<span class="sourceLineNo">234</span>            throws Exception {<a name="line.234"></a>
+<span class="sourceLineNo">235</span>        event.stop();<a name="line.235"></a>
+<span class="sourceLineNo">236</span>        System.gc();<a name="line.236"></a>
+<span class="sourceLineNo">237</span>        for (String portletId : portletIds(portalSession)) {<a name="line.237"></a>
+<span class="sourceLineNo">238</span>            updateView(portalSession, portletId);<a name="line.238"></a>
+<span class="sourceLineNo">239</span>        }<a name="line.239"></a>
+<span class="sourceLineNo">240</span>    }<a name="line.240"></a>
+<span class="sourceLineNo">241</span><a name="line.241"></a>
+<span class="sourceLineNo">242</span>    /**<a name="line.242"></a>
+<span class="sourceLineNo">243</span>     * The portlet's model.<a name="line.243"></a>
+<span class="sourceLineNo">244</span>     */<a name="line.244"></a>
+<span class="sourceLineNo">245</span>    @SuppressWarnings("serial")<a name="line.245"></a>
+<span class="sourceLineNo">246</span>    public static class SysInfoModel extends PortletBaseModel {<a name="line.246"></a>
+<span class="sourceLineNo">247</span><a name="line.247"></a>
+<span class="sourceLineNo">248</span>        /**<a name="line.248"></a>
+<span class="sourceLineNo">249</span>         * Creates a new model with the given type and id.<a name="line.249"></a>
+<span class="sourceLineNo">250</span>         * <a name="line.250"></a>
+<span class="sourceLineNo">251</span>         * @param portletId the portlet id<a name="line.251"></a>
+<span class="sourceLineNo">252</span>         */<a name="line.252"></a>
+<span class="sourceLineNo">253</span>        @ConstructorProperties({ "portletId" })<a name="line.253"></a>
+<span class="sourceLineNo">254</span>        public SysInfoModel(String portletId) {<a name="line.254"></a>
+<span class="sourceLineNo">255</span>            super(portletId);<a name="line.255"></a>
+<span class="sourceLineNo">256</span>        }<a name="line.256"></a>
+<span class="sourceLineNo">257</span><a name="line.257"></a>
+<span class="sourceLineNo">258</span>        /**<a name="line.258"></a>
+<span class="sourceLineNo">259</span>         * Return the system properties.<a name="line.259"></a>
+<span class="sourceLineNo">260</span>         *<a name="line.260"></a>
+<span class="sourceLineNo">261</span>         * @return the properties<a name="line.261"></a>
+<span class="sourceLineNo">262</span>         */<a name="line.262"></a>
+<span class="sourceLineNo">263</span>        public Properties systemProperties() {<a name="line.263"></a>
+<span class="sourceLineNo">264</span>            return System.getProperties();<a name="line.264"></a>
+<span class="sourceLineNo">265</span>        }<a name="line.265"></a>
+<span class="sourceLineNo">266</span><a name="line.266"></a>
+<span class="sourceLineNo">267</span>        /**<a name="line.267"></a>
+<span class="sourceLineNo">268</span>         * Return the {@link Runtime}.<a name="line.268"></a>
+<span class="sourceLineNo">269</span>         *<a name="line.269"></a>
+<span class="sourceLineNo">270</span>         * @return the runtime<a name="line.270"></a>
+<span class="sourceLineNo">271</span>         */<a name="line.271"></a>
+<span class="sourceLineNo">272</span>        public Runtime runtime() {<a name="line.272"></a>
+<span class="sourceLineNo">273</span>            return Runtime.getRuntime();<a name="line.273"></a>
+<span class="sourceLineNo">274</span>        }<a name="line.274"></a>
+<span class="sourceLineNo">275</span>    }<a name="line.275"></a>
+<span class="sourceLineNo">276</span><a name="line.276"></a>
+<span class="sourceLineNo">277</span>}<a name="line.277"></a>
 
 
 
