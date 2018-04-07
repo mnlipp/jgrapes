@@ -28,47 +28,47 @@ import org.jgrapes.core.EventPipeline;
 @SuppressWarnings("serial")
 class HandlerList extends ArrayList<HandlerReference> {
 
-	/**
-	 * Invoke all handlers with the given event as parameter.
-	 * 
-	 * @param eventProcessor
-	 * @param event the event
-	 */
-	public void process(EventPipeline eventPipeline, EventBase<?> event) {
-		try {
-			for (HandlerReference hdlr : this) {
-				try {
-					hdlr.invoke(event);
-					if (event.isStopped()) {
-						break;
-					}
-				} catch (AssertionError t) {
-					// JUnit support
-					Common.setAssertionError((AssertionError) t);
-					event.handlingError(eventPipeline, t);
-				} catch (Error e) { // NOPMD
-					// Wouldn't have caught it, if it was possible.
-					throw (Error)e;
-				} catch (Throwable t) { // NOPMD
-					// Errors have been rethrown, so this should work.
-					event.handlingError(eventPipeline, t);
-				}
-			}
-		} finally { // NOPMD
-			try {
-				event.handled();
-			} catch (AssertionError t) {
-				// JUnit support
-				Common.setAssertionError(t);
-				event.handlingError(eventPipeline, t);
-			} catch (Error e) { // NOPMD
-				// Wouldn't have caught it, if it was possible.
-				throw (Error)e;
-			} catch (Throwable t) { // NOPMD
-				// Errors have been rethrown, so this should work.
-				event.handlingError(eventPipeline, t);
-			}
-		}
-	}
+    /**
+     * Invoke all handlers with the given event as parameter.
+     * 
+     * @param eventProcessor
+     * @param event the event
+     */
+    public void process(EventPipeline eventPipeline, EventBase<?> event) {
+        try {
+            for (HandlerReference hdlr : this) {
+                try {
+                    hdlr.invoke(event);
+                    if (event.isStopped()) {
+                        break;
+                    }
+                } catch (AssertionError t) {
+                    // JUnit support
+                    Common.setAssertionError((AssertionError) t);
+                    event.handlingError(eventPipeline, t);
+                } catch (Error e) { // NOPMD
+                    // Wouldn't have caught it, if it was possible.
+                    throw (Error) e;
+                } catch (Throwable t) { // NOPMD
+                    // Errors have been rethrown, so this should work.
+                    event.handlingError(eventPipeline, t);
+                }
+            }
+        } finally { // NOPMD
+            try {
+                event.handled();
+            } catch (AssertionError t) {
+                // JUnit support
+                Common.setAssertionError(t);
+                event.handlingError(eventPipeline, t);
+            } catch (Error e) { // NOPMD
+                // Wouldn't have caught it, if it was possible.
+                throw (Error) e;
+            } catch (Throwable t) { // NOPMD
+                // Errors have been rethrown, so this should work.
+                event.handlingError(eventPipeline, t);
+            }
+        }
+    }
 
 }

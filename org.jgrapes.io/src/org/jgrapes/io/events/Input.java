@@ -31,33 +31,33 @@ import org.jgrapes.io.util.ManagedBuffer;
  */
 public final class Input<T extends Buffer> extends IOEvent<T> {
 
-	private Input(ManagedBuffer<T> buffer, boolean endOfRecord) {
-		super(buffer, endOfRecord);
-	}
+    private Input(ManagedBuffer<T> buffer, boolean endOfRecord) {
+        super(buffer, endOfRecord);
+    }
 
-	/**
-	 * Create a new event with the given buffer. The buffer must
-	 * have been prepared for invoking `get`-methods.
-	 * 
-	 * @param buffer the buffer with the data
-	 * @param endOfRecord if the event ends a data record
-	 */
-	public static <B extends Buffer> Input<B> fromSource(
-			ManagedBuffer<B> buffer, boolean endOfRecord) {
-		return new Input<>(buffer, endOfRecord);
-	}
+    /**
+     * Create a new event with the given buffer. The buffer must
+     * have been prepared for invoking `get`-methods.
+     * 
+     * @param buffer the buffer with the data
+     * @param endOfRecord if the event ends a data record
+     */
+    public static <B extends Buffer> Input<B> fromSource(
+            ManagedBuffer<B> buffer, boolean endOfRecord) {
+        return new Input<>(buffer, endOfRecord);
+    }
 
-	/**
-	 * Create a new event with the given buffer. Creating the event
-	 * flips the buffer, which is assumed to have been used for
-	 * collecting data up to now.
-	 * 
-	 * @param buffer the buffer with the data
-	 * @param endOfRecord if the event ends a data record
-	 */
-	public static <B extends Buffer> Input<B> fromSink(
-			ManagedBuffer<B> buffer, boolean endOfRecord) {
-		buffer.flip();
-		return new Input<>(buffer, endOfRecord);
-	}
+    /**
+     * Create a new event with the given buffer. Creating the event
+     * flips the buffer, which is assumed to have been used for
+     * collecting data up to now.
+     * 
+     * @param buffer the buffer with the data
+     * @param endOfRecord if the event ends a data record
+     */
+    public static <B extends Buffer> Input<B> fromSink(
+            ManagedBuffer<B> buffer, boolean endOfRecord) {
+        buffer.flip();
+        return new Input<>(buffer, endOfRecord);
+    }
 }

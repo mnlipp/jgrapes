@@ -50,31 +50,31 @@ import org.jgrapes.io.events.Input;
  */
 public class EchoUntilQuit extends Component {
 
-	public EchoUntilQuit(Channel channel) {
-		super(channel);
-	}
+    public EchoUntilQuit(Channel channel) {
+        super(channel);
+    }
 
-	@Handler
-	public void onInput(Input<ByteBuffer> event) {
-		String data = Charset.defaultCharset().decode(event.data()).toString();
-		System.out.print(data);
-		if (data.trim().equals("QUIT")) {
-			fire(new Stop());
-		}
-	}
-	
-	/**
-	 * The main method.
-	 *
-	 * @param args the arguments
-	 * @throws InterruptedException the interrupted exception
-	 */
-	public static void main(String[] args) throws InterruptedException {
-		Channel channel = new NamedChannel("main");
-		EchoUntilQuit app = new EchoUntilQuit(channel);
-		app.attach(new InputStreamMonitor(channel, System.in));
-		Components.start(app);
-		Components.awaitExhaustion();
-		System.exit(0);
-	}
+    @Handler
+    public void onInput(Input<ByteBuffer> event) {
+        String data = Charset.defaultCharset().decode(event.data()).toString();
+        System.out.print(data);
+        if (data.trim().equals("QUIT")) {
+            fire(new Stop());
+        }
+    }
+
+    /**
+     * The main method.
+     *
+     * @param args the arguments
+     * @throws InterruptedException the interrupted exception
+     */
+    public static void main(String[] args) throws InterruptedException {
+        Channel channel = new NamedChannel("main");
+        EchoUntilQuit app = new EchoUntilQuit(channel);
+        app.attach(new InputStreamMonitor(channel, System.in));
+        Components.start(app);
+        Components.awaitExhaustion();
+        System.exit(0);
+    }
 }

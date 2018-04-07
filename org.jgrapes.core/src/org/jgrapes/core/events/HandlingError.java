@@ -28,13 +28,13 @@ import org.jgrapes.core.Event;
  */
 public class HandlingError extends org.jgrapes.core.events.Error {
 
-	/**
-	 * Creates a new event caused by the given throwable.
-	 * 
-	 * @param event the event that was being handled
-	 * @param throwable the throwable that occurred 
-	 */
-	public HandlingError(Event<?> event, Throwable throwable) {
-		super(event, throwable);
-	}
+    /**
+     * Creates a new event caused by the given throwable.
+     * 
+     * @param event the event that was being handled
+     * @param throwable the throwable that occurred 
+     */
+    public HandlingError(Event<?> event, Throwable throwable) {
+        super(event, throwable);
+    }
 }

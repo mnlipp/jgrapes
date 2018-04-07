@@ -34,20 +34,20 @@ package org.jgrapes.core;
  * representation of the kind of the object.
  */
 public interface Eligible {
-	
-	/**
-	 * Returns <code>true</code> if this {@link Eligible}
-	 * is met by the provided criterion.
-	 * 
-	 * @param criterion the criterion
-	 * @return {@code true} if this meets the criterion
-	 */
-	boolean isEligibleFor(Object criterion);
 
-	/**
-	 * Returns a sample criterion that this {@link Eligible} meets.
-	 * 
-	 * @return the criterion
-	 */
-	Object defaultCriterion();
+    /**
+     * Returns <code>true</code> if this {@link Eligible}
+     * is met by the provided criterion.
+     * 
+     * @param criterion the criterion
+     * @return {@code true} if this meets the criterion
+     */
+    boolean isEligibleFor(Object criterion);
+
+    /**
+     * Returns a sample criterion that this {@link Eligible} meets.
+     * 
+     * @return the criterion
+     */
+    Object defaultCriterion();
 }

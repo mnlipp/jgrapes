@@ -29,45 +29,45 @@ import org.jgrapes.core.events.Error;
 @SuppressWarnings("PMD.DoNotExtendJavaLangError")
 public class IOError extends Error {
 
-	/**
-	 * Creates a new event as a copy of an existing event. Useful
-	 * for forwarding an event.
-	 *
-	 * @param event the event to copy
-	 */
-	public IOError(IOError event) {
-		super(event);
-	}
-	
-	/**
-	 * Creates a new instance.
-	 * 
-	 * @param event the event that was being handled when the problem occurred
-	 * @param message the message
-	 */
-	public IOError(Event<?> event, String message) {
-		super(event, message);
-	}
+    /**
+     * Creates a new event as a copy of an existing event. Useful
+     * for forwarding an event.
+     *
+     * @param event the event to copy
+     */
+    public IOError(IOError event) {
+        super(event);
+    }
 
-	/**
-	 * Creates a new instance.
-	 * 
-	 * @param event the event that was being handled when the problem occurred
-	 * @param message the message
-	 * @param throwable the encountered throwable
-	 */
-	public IOError(Event<?> event, String message, Throwable throwable) {
-		super(event, message, throwable);
-	}
+    /**
+     * Creates a new instance.
+     * 
+     * @param event the event that was being handled when the problem occurred
+     * @param message the message
+     */
+    public IOError(Event<?> event, String message) {
+        super(event, message);
+    }
 
-	/**
-	 * Creates a new instance.
-	 * 
-	 * @param event the event that was being handled when the problem occurred
-	 * @param throwable the encountered throwable
-	 */
-	public IOError(Event<?> event, Throwable throwable) {
-		super(event, throwable);
-	}
+    /**
+     * Creates a new instance.
+     * 
+     * @param event the event that was being handled when the problem occurred
+     * @param message the message
+     * @param throwable the encountered throwable
+     */
+    public IOError(Event<?> event, String message, Throwable throwable) {
+        super(event, message, throwable);
+    }
+
+    /**
+     * Creates a new instance.
+     * 
+     * @param event the event that was being handled when the problem occurred
+     * @param throwable the encountered throwable
+     */
+    public IOError(Event<?> event, Throwable throwable) {
+        super(event, throwable);
+    }
 
 }

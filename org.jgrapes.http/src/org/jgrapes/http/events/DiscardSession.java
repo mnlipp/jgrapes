@@ -27,25 +27,25 @@ import org.jgrapes.http.Session;
  */
 public class DiscardSession extends Event<Void> {
 
-	private final Session session;
-	
-	/**
-	 * Creates a new event.
-	 * 
-	 * @param session the session
-	 * @param channels
-	 */
-	public DiscardSession(Session session, Channel... channels) {
-		super(channels);
-		this.session = session;
-	}
+    private final Session session;
 
-	/**
-	 * Returns the session to be discarded.
-	 * 
-	 * @return the session
-	 */
-	public Session session() {
-		return session;
-	}
+    /**
+     * Creates a new event.
+     * 
+     * @param session the session
+     * @param channels
+     */
+    public DiscardSession(Session session, Channel... channels) {
+        super(channels);
+        this.session = session;
+    }
+
+    /**
+     * Returns the session to be discarded.
+     * 
+     * @return the session
+     */
+    public Session session() {
+        return session;
+    }
 }

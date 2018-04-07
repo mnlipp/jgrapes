@@ -41,21 +41,21 @@ import org.jgrapes.core.annotation.Handler.NoChannel;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface ComponentManager {
-	
-	/**
-	 * Specifies the channel to be associated with the component type
-	 * instance as a {@link ClassChannel}'s key.
-	 * 
-	 * @return the channel
-	 */
-	Class<? extends Channel> channel() default NoChannel.class;
 
-	/**
-	 * Specifies the channel to be associated with the component type
-	 * instance as a {@link org.jgrapes.core.NamedChannel}'s 
-	 * key (a <code>String</code>).
-	 * 
-	 * @return the channel
-	 */
-	String namedChannel() default "";
+    /**
+     * Specifies the channel to be associated with the component type
+     * instance as a {@link ClassChannel}'s key.
+     * 
+     * @return the channel
+     */
+    Class<? extends Channel> channel() default NoChannel.class;
+
+    /**
+     * Specifies the channel to be associated with the component type
+     * instance as a {@link org.jgrapes.core.NamedChannel}'s 
+     * key (a <code>String</code>).
+     * 
+     * @return the channel
+     */
+    String namedChannel() default "";
 }

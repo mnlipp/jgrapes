@@ -63,131 +63,133 @@ import org.jgrapes.core.annotation.Handler;
  */
 public interface Channel extends Eligible {
 
-	/**
-	 * A special channel object that can be passed as argument to 
-	 * the constructor of {@link Component#Component(Channel)}. 
-	 * Doing this sets the component's channel to the component 
-	 * (which is not available as argument when calling the 
-	 * constructor).
-	 * 
-	 * @see Component#Component(Channel)
-	 */
-	Channel SELF = new ClassChannel();
-	
-	/**
-	 * This interface's class can be used to specify the component's 
-	 * channel (see {@link Component#channel()}) as criterion in 
-	 * handler annotations.
-	 * 
-	 * Using the component's channel for comparison is the default 
-	 * if no channels are specified in the annotation, so specifying 
-	 * only this class in the handler annotation is equivalent
-	 * to specifying no channel at all. This special channel type is required
-	 * if you want to specify a handler that handles events fired on the 
-	 * component's channel or on additional channels.
-	 */
-	interface Default extends Channel {
-	}
-	
-	/**
-	 * A special channel instance that can be used to send events to
-	 * all components.
-	 */
-	Channel BROADCAST = new ClassChannel() {
+    /**
+     * A special channel object that can be passed as argument to 
+     * the constructor of {@link Component#Component(Channel)}. 
+     * Doing this sets the component's channel to the component 
+     * (which is not available as argument when calling the 
+     * constructor).
+     * 
+     * @see Component#Component(Channel)
+     */
+    Channel SELF = new ClassChannel();
 
-		/**
-		 * Returns <code>Channel.class</code>, the value that must
-		 * by definition be matched by any channel.
-		 * 
-		 * @return <code>Channel.class</code>
-		 */
-		@Override
-		public Object defaultCriterion() {
-			return Channel.class;
-		}
+    /**
+     * This interface's class can be used to specify the component's 
+     * channel (see {@link Component#channel()}) as criterion in 
+     * handler annotations.
+     * 
+     * Using the component's channel for comparison is the default 
+     * if no channels are specified in the annotation, so specifying 
+     * only this class in the handler annotation is equivalent
+     * to specifying no channel at all. This special channel type is required
+     * if you want to specify a handler that handles events fired on the 
+     * component's channel or on additional channels.
+     */
+    interface Default extends Channel {
+    }
 
-		/**
-		 * Always returns {@code true} because the broadcast channel
-		 * is matched by every channel.
-		 * 
-		 * @return {@code true}
-		 */
-		@Override
-		public boolean isEligibleFor(Object criterion) {
-			return true;
-		}
+    /**
+     * A special channel instance that can be used to send events to
+     * all components.
+     */
+    Channel BROADCAST = new ClassChannel() {
 
-		/* (non-Javadoc)
-		 * @see org.jgrapes.core.ClassChannel#toString()
-		 */
-		@Override
-		public String toString() {
-			return "BROADCAST";
-		}
-	};
+        /**
+         * Returns <code>Channel.class</code>, the value that must
+         * by definition be matched by any channel.
+         * 
+         * @return <code>Channel.class</code>
+         */
+        @Override
+        public Object defaultCriterion() {
+            return Channel.class;
+        }
 
-	/**
-	 * Returns a textual representation of a channel's criterion.
-	 * 
-	 * @param criterion the criterion
-	 * @return the representation
-	 */
-	static String criterionToString(Object criterion) {
-		StringBuilder builder = new StringBuilder();
-		if (criterion instanceof Class) {
-			if (criterion == Channel.class) {
-				builder.append("BROADCAST");
-			} else {
-				builder.append(Components.className((Class<?>) criterion));
-			}
-		} else {
-			builder.append(criterion);
-		}
-		return builder.toString();
-	}
+        /**
+         * Always returns {@code true} because the broadcast channel
+         * is matched by every channel.
+         * 
+         * @return {@code true}
+         */
+        @Override
+        public boolean isEligibleFor(Object criterion) {
+            return true;
+        }
 
-	/**
-	 * Returns a textual representation of a channel.
-	 * 
-	 * @param channel the channel
-	 * @return the representation
-	 */
-	static String toString(Channel channel) {
-		if (channel == null) {
-			return "null";
-		}
-		StringBuilder builder = new StringBuilder();
-		if (channel instanceof ClassChannel
-		        || channel instanceof NamedChannel) {
-			builder.append(criterionToString(channel.defaultCriterion()));
-		} else if (channel == channel.defaultCriterion()) {
-			builder.append(Components.objectName(channel));
-		} else {
-			builder.append(channel.toString());
-		}
-		return builder.toString();
-	}
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.jgrapes.core.ClassChannel#toString()
+         */
+        @Override
+        public String toString() {
+            return "BROADCAST";
+        }
+    };
 
-	/**
-	 * Returns a textual representation of an array of channels.
-	 * 
-	 * @param channels the channels
-	 * @return the representation
-	 */
-	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.UseVarargs" })
-	static String toString(Channel[] channels) {
-		StringBuilder builder = new StringBuilder();
-		builder.append('[');
-		boolean first = true;
-		for (Channel c: channels) {
-			if (!first) {
-				builder.append(", ");
-			}
-			builder.append(Channel.toString(c));
-			first = false;
-		}
-		builder.append(']');
-		return builder.toString();
-	}
+    /**
+     * Returns a textual representation of a channel's criterion.
+     * 
+     * @param criterion the criterion
+     * @return the representation
+     */
+    static String criterionToString(Object criterion) {
+        StringBuilder builder = new StringBuilder();
+        if (criterion instanceof Class) {
+            if (criterion == Channel.class) {
+                builder.append("BROADCAST");
+            } else {
+                builder.append(Components.className((Class<?>) criterion));
+            }
+        } else {
+            builder.append(criterion);
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Returns a textual representation of a channel.
+     * 
+     * @param channel the channel
+     * @return the representation
+     */
+    static String toString(Channel channel) {
+        if (channel == null) {
+            return "null";
+        }
+        StringBuilder builder = new StringBuilder();
+        if (channel instanceof ClassChannel
+            || channel instanceof NamedChannel) {
+            builder.append(criterionToString(channel.defaultCriterion()));
+        } else if (channel == channel.defaultCriterion()) {
+            builder.append(Components.objectName(channel));
+        } else {
+            builder.append(channel.toString());
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Returns a textual representation of an array of channels.
+     * 
+     * @param channels the channels
+     * @return the representation
+     */
+    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.UseVarargs" })
+    static String toString(Channel[] channels) {
+        StringBuilder builder = new StringBuilder();
+        builder.append('[');
+        boolean first = true;
+        for (Channel c : channels) {
+            if (!first) {
+                builder.append(", ");
+            }
+            builder.append(Channel.toString(c));
+            first = false;
+        }
+        builder.append(']');
+        return builder.toString();
+    }
 
 }

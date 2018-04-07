@@ -33,53 +33,53 @@ import org.jgrapes.http.HttpServer;
  */
 public class ProtocolSwitchAccepted extends Event<Void> {
 
-	private final Request requestEvent;
-	private final String protocol;
-	
-	/**
-	 * Creates a new event. The request event passed in as parameter
-	 * is used by the {@link HttpServer} to build the response message
-	 * and link an existing session to the web socket.
-	 * 
-	 * To be precise, the {@link HttpServer} retrieves the {@link HttpRequest}
-	 * from the request event and uses the prepared response provided by 
-	 * {@link HttpRequest#response()} to build the response. The default
-	 * information contained in this prepared response is sufficient to
-	 * build the actual response. If required, the accepting component 
-	 * can add special header fields to the prepared response.
-	 *
-	 * @param request the base response data
-	 * @param protocol the accepted protocol
-	 */
-	public ProtocolSwitchAccepted(Request request, String protocol) {
-		this.requestEvent = request;
-		this.protocol = protocol;
-	}
+    private final Request requestEvent;
+    private final String protocol;
 
-	/**
-	 * Returns the resource for which the socket was opened.
-	 * 
-	 * @return the value
-	 */
-	public URI resourceName() {
-		return requestEvent.requestUri();
-	}
+    /**
+     * Creates a new event. The request event passed in as parameter
+     * is used by the {@link HttpServer} to build the response message
+     * and link an existing session to the web socket.
+     * 
+     * To be precise, the {@link HttpServer} retrieves the {@link HttpRequest}
+     * from the request event and uses the prepared response provided by 
+     * {@link HttpRequest#response()} to build the response. The default
+     * information contained in this prepared response is sufficient to
+     * build the actual response. If required, the accepting component 
+     * can add special header fields to the prepared response.
+     *
+     * @param request the base response data
+     * @param protocol the accepted protocol
+     */
+    public ProtocolSwitchAccepted(Request request, String protocol) {
+        this.requestEvent = request;
+        this.protocol = protocol;
+    }
 
-	/**
-	 * Returns the original request. 
-	 * 
-	 * @return the value
-	 */
-	public Request requestEvent() {
-		return requestEvent;
-	}
-	
-	/**
-	 * The accepted protocol.
-	 *
-	 * @return the protocol
-	 */
-	public String protocol() {
-		return protocol;
-	}
+    /**
+     * Returns the resource for which the socket was opened.
+     * 
+     * @return the value
+     */
+    public URI resourceName() {
+        return requestEvent.requestUri();
+    }
+
+    /**
+     * Returns the original request. 
+     * 
+     * @return the value
+     */
+    public Request requestEvent() {
+        return requestEvent;
+    }
+
+    /**
+     * The accepted protocol.
+     *
+     * @return the protocol
+     */
+    public String protocol() {
+        return protocol;
+    }
 }

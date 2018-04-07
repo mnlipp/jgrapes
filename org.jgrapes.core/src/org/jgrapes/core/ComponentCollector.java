@@ -32,48 +32,48 @@ import java.util.function.Function;
  * @param <F> the component factory type
  */
 public class ComponentCollector<F extends ComponentFactory>
-	extends Component {
+        extends Component {
 
-	private static final List<Map<Object,Object>> SINGLE_DEFAULT 
-		= Arrays.asList(Collections.emptyMap());
+    private static final List<Map<Object, Object>> SINGLE_DEFAULT
+        = Arrays.asList(Collections.emptyMap());
 
-	/**
-	 * Creates a new collector that collects the factories of the given 
-	 * type and uses each to create an instance with this component's
-	 * channel. Before the instance is created, the `matcher` 
-	 * function is invoked with the name of the class of the component
-	 * to be created as argument. The list of maps returned is
-	 * used to create components, passing each element in the list
-	 * as parameter to {@link ComponentFactory#create(Channel, Map)}
-	 * 
-	 * @param factoryClass the factory class
-	 * @param componentChannel this component's channel
-	 * @param matcher the matcher function
-	 */
-	public ComponentCollector(
-			Class<F> factoryClass, Channel componentChannel,
-			Function<String,List<Map<Object,Object>>> matcher) {
-		super(componentChannel);
-		ServiceLoader<F> serviceLoader = ServiceLoader.load(factoryClass);
-		for (F factory: serviceLoader) {
-			List<Map<Object,Object>> configs = matcher.apply(
-					factory.componentType().getName());
-			for (Map<Object,Object> config: configs) {
-				factory.create(channel(), config).ifPresent(
-						component -> attach(component));
-			}
-		}
-	}
+    /**
+     * Creates a new collector that collects the factories of the given 
+     * type and uses each to create an instance with this component's
+     * channel. Before the instance is created, the `matcher` 
+     * function is invoked with the name of the class of the component
+     * to be created as argument. The list of maps returned is
+     * used to create components, passing each element in the list
+     * as parameter to {@link ComponentFactory#create(Channel, Map)}
+     * 
+     * @param factoryClass the factory class
+     * @param componentChannel this component's channel
+     * @param matcher the matcher function
+     */
+    public ComponentCollector(
+            Class<F> factoryClass, Channel componentChannel,
+            Function<String, List<Map<Object, Object>>> matcher) {
+        super(componentChannel);
+        ServiceLoader<F> serviceLoader = ServiceLoader.load(factoryClass);
+        for (F factory : serviceLoader) {
+            List<Map<Object, Object>> configs = matcher.apply(
+                factory.componentType().getName());
+            for (Map<Object, Object> config : configs) {
+                factory.create(channel(), config).ifPresent(
+                    component -> attach(component));
+            }
+        }
+    }
 
-	/**
-	 * Utility constructor that uses each factory to create a single
-	 * instance, using an empty map as properties.
-	 * 
-	 * @param factoryClass the factory class
-	 * @param componentChannel this component's channel
-	 */
-	public ComponentCollector(
-			Class<F> factoryClass, Channel componentChannel) {
-		this(factoryClass, componentChannel, type -> SINGLE_DEFAULT);
-	}
+    /**
+     * Utility constructor that uses each factory to create a single
+     * instance, using an empty map as properties.
+     * 
+     * @param factoryClass the factory class
+     * @param componentChannel this component's channel
+     */
+    public ComponentCollector(
+            Class<F> factoryClass, Channel componentChannel) {
+        this(factoryClass, componentChannel, type -> SINGLE_DEFAULT);
+    }
 }

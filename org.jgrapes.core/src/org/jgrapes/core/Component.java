@@ -39,111 +39,115 @@ import org.jgrapes.core.internal.ComponentVertex;
  * @see Handler
  * @see ComponentType
  */
-public abstract class Component extends ComponentVertex 
-	implements ComponentType, Channel {
-	
-	private Channel componentChannel;
-	
-	/**
-	 * Creates a new component base with its channel set to
-	 * itself.
-	 */
-	public Component() {
-		super();
-		componentChannel = this;
-		initComponentsHandlers(null);
-	}
+public abstract class Component extends ComponentVertex
+        implements ComponentType, Channel {
 
-	/**
-	 * Creates a new component base with its channel set to the given 
-	 * channel. As a special case {@link Channel#SELF} can be
-	 * passed to the constructor to make the component use itself
-	 * as channel. The special value is necessary as you 
-	 * obviously cannot pass an object to be constructed to its 
-	 * constructor.
-	 *
-	 * @param componentChannel the channel that the component's
-	 * handlers listen on by default and that 
-	 * {@link Manager#fire(Event, Channel...)} sends the event to
-	 */
-	public Component(Channel componentChannel) {
-		super();
-		if (componentChannel == SELF) {
-			this.componentChannel = this;
-		} else {
-			this.componentChannel = componentChannel;
-		}
-		initComponentsHandlers(null);
-	}
+    private Channel componentChannel;
 
-	/**
-	 * Creates a new component base like {@link #Component(Channel)}
-	 * but with channel mappings for {@link Handler} annotations.
-	 *
-	 * @param componentChannel the channel that the component's
-	 * handlers listen on by default and that 
-	 * {@link Manager#fire(Event, Channel...)} sends the event to
-	 * @param channelReplacements the channel replacements to apply
-	 * to the `channels` elements of the {@link Handler} annotations
-	 */
-	public Component(
-			Channel componentChannel, ChannelReplacements channelReplacements) {
-		super();
-		if (componentChannel == SELF) {
-			this.componentChannel = this;
-		} else {
-			this.componentChannel = componentChannel;
-		}
-		initComponentsHandlers(channelReplacements);
-	}
+    /**
+     * Creates a new component base with its channel set to
+     * itself.
+     */
+    public Component() {
+        super();
+        componentChannel = this;
+        initComponentsHandlers(null);
+    }
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.ComponentVertex#setName(java.lang.String)
-	 */
-	@Override
-	public Component setName(String name) {
-		super.setName(name);
-		return this;
-	}
+    /**
+     * Creates a new component base with its channel set to the given 
+     * channel. As a special case {@link Channel#SELF} can be
+     * passed to the constructor to make the component use itself
+     * as channel. The special value is necessary as you 
+     * obviously cannot pass an object to be constructed to its 
+     * constructor.
+     *
+     * @param componentChannel the channel that the component's
+     * handlers listen on by default and that 
+     * {@link Manager#fire(Event, Channel...)} sends the event to
+     */
+    public Component(Channel componentChannel) {
+        super();
+        if (componentChannel == SELF) {
+            this.componentChannel = this;
+        } else {
+            this.componentChannel = componentChannel;
+        }
+        initComponentsHandlers(null);
+    }
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.ComponentVertex#getComponent()
-	 */
-	@Override
-	protected Component component() {
-		return this;
-	}
+    /**
+     * Creates a new component base like {@link #Component(Channel)}
+     * but with channel mappings for {@link Handler} annotations.
+     *
+     * @param componentChannel the channel that the component's
+     * handlers listen on by default and that 
+     * {@link Manager#fire(Event, Channel...)} sends the event to
+     * @param channelReplacements the channel replacements to apply
+     * to the `channels` elements of the {@link Handler} annotations
+     */
+    public Component(
+            Channel componentChannel, ChannelReplacements channelReplacements) {
+        super();
+        if (componentChannel == SELF) {
+            this.componentChannel = this;
+        } else {
+            this.componentChannel = componentChannel;
+        }
+        initComponentsHandlers(channelReplacements);
+    }
 
-	/**
-	 * Returns the channel associated with the component.
-	 * 
-	 * @return the channel as assigned by the constructor.
-	 * 
-	 * @see org.jgrapes.core.Manager#channel()
-	 */
-	@Override
-	public Channel channel() {
-		return componentChannel;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.jgrapes.core.internal.ComponentVertex#setName(java.lang.String)
+     */
+    @Override
+    public Component setName(String name) {
+        super.setName(name);
+        return this;
+    }
 
-	/**
-	 * Return the object itself as value.
-	 */
-	@Override
-	public Object defaultCriterion() {
-		return this;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.jgrapes.core.internal.ComponentVertex#getComponent()
+     */
+    @Override
+    protected Component component() {
+        return this;
+    }
 
-	/**
-	 * Matches the object itself (using identity comparison) or the
-	 * {@link Channel} class.
-	 * 
-	 * @see Channel#isEligibleFor(Object)
-	 */
-	@Override
-	public boolean isEligibleFor(Object value) {
-		return value.equals(Channel.class) 
-				|| value == defaultCriterion();
-	}
+    /**
+     * Returns the channel associated with the component.
+     * 
+     * @return the channel as assigned by the constructor.
+     * 
+     * @see org.jgrapes.core.Manager#channel()
+     */
+    @Override
+    public Channel channel() {
+        return componentChannel;
+    }
+
+    /**
+     * Return the object itself as value.
+     */
+    @Override
+    public Object defaultCriterion() {
+        return this;
+    }
+
+    /**
+     * Matches the object itself (using identity comparison) or the
+     * {@link Channel} class.
+     * 
+     * @see Channel#isEligibleFor(Object)
+     */
+    @Override
+    public boolean isEligibleFor(Object value) {
+        return value.equals(Channel.class)
+            || value == defaultCriterion();
+    }
 
 }

@@ -79,486 +79,487 @@ import org.jgrapes.io.IOSubchannel;
  */
 @SuppressWarnings({ "PMD.DataClass", "PMD.AvoidPrintStackTrace" })
 public abstract class SessionManager extends Component {
-	
-	private static SecureRandom secureRandom = new SecureRandom();
 
-	private String idName = "id";
-	private String path = "/";
-	private long absoluteTimeout = 9*60*60*1000;
-	private long idleTimeout = 30*60*1000;
-	private int maxSessions = 1000;
-	
-	/**
-	 * Creates a new session manager with its channel set to
-	 * itself and the path set to "/". The manager handles
-	 * all {@link Request} events.
-	 */
-	public SessionManager() {
-		this("/");
-	}
-	
-	/**
-	 * Creates a new session manager with its channel set to
-	 * itself and the path set to the given path. The manager
-	 * handles all requests that match the given path, using the
-	 * same rules as browsers do for selecting the cookies that
-	 * are to be sent.
-	 * 
-	 * @param path the path
-	 */
-	public SessionManager(String path) {
-		this(Channel.SELF, path);
-	}
+    private static SecureRandom secureRandom = new SecureRandom();
 
-	/**
-	 * Creates a new session manager with its channel set to
-	 * the given channel and the path to "/". The manager handles
-	 * all {@link Request} events.
-	 * 
-	 * @param componentChannel the component channel
-	 */
-	public SessionManager(Channel componentChannel) {
-		this(componentChannel, "/");
-	}
+    private String idName = "id";
+    private String path = "/";
+    private long absoluteTimeout = 9 * 60 * 60 * 1000;
+    private long idleTimeout = 30 * 60 * 1000;
+    private int maxSessions = 1000;
 
-	/**
-	 * Creates a new session manager with the given channel and path.
-	 * The manager handles all requests that match the given path, using
-	 * the same rules as browsers do for selecting the cookies that
-	 * are to be sent.
-	 *  
-	 * @param componentChannel the component channel
-	 * @param path the path
-	 */
-	public SessionManager(Channel componentChannel, String path) {
-		this(componentChannel, derivePattern(path), 1000, path);
-	}
+    /**
+     * Creates a new session manager with its channel set to
+     * itself and the path set to "/". The manager handles
+     * all {@link Request} events.
+     */
+    public SessionManager() {
+        this("/");
+    }
 
-	/**
-	 * Derives the resource pattern from the path.
-	 *
-	 * @param path the path
-	 * @return the pattern
-	 */
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-	protected static String derivePattern(String path) {
-		String pattern;
-		if ("/".equals(path)) {
-			pattern = "/**";
-		} else {
-			String patternBase = path;
-			if (patternBase.endsWith("/")) {
-				patternBase = path.substring(0, path.length() - 1);
-			}
-			pattern = path + "," + path + "/**";
-		}
-		return pattern;
-	}
-	
-	/**
-	 * Creates a new session manager using the given channel and path.
-	 * The manager handles only requests that match the given pattern.
-	 * The handler is registered with the given priority.
-	 * 
-	 * This constructor can be used if special handling of top level
-	 * requests is needed.
-	 *
-	 * @param componentChannel the component channel
-	 * @param pattern the path part of a {@link ResourcePattern}
-	 * @param priority the priority
-	 * @param path the path
-	 */
-	public SessionManager(Channel componentChannel, String pattern, 
-			int priority, String path) {
-		super(componentChannel);
-		this.path = path;
-		RequestHandler.Evaluator.add(this, "onRequest", pattern, priority);
-		MBeanView.addManager(this);
-	}
+    /**
+     * Creates a new session manager with its channel set to
+     * itself and the path set to the given path. The manager
+     * handles all requests that match the given path, using the
+     * same rules as browsers do for selecting the cookies that
+     * are to be sent.
+     * 
+     * @param path the path
+     */
+    public SessionManager(String path) {
+        this(Channel.SELF, path);
+    }
 
-	/**
-	 * The name used for the session id cookie. Defaults to "`id`".
-	 * 
-	 * @return the id name
-	 */
-	public String idName() {
-		return idName;
-	}
-	
-	/**
-	 * @param idName the id name to set
-	 * 
-	 * @return the session manager for easy chaining
-	 */
-	public SessionManager setIdName(String idName) {
-		this.idName = idName;
-		return this;
-	}
+    /**
+     * Creates a new session manager with its channel set to
+     * the given channel and the path to "/". The manager handles
+     * all {@link Request} events.
+     * 
+     * @param componentChannel the component channel
+     */
+    public SessionManager(Channel componentChannel) {
+        this(componentChannel, "/");
+    }
 
-	/**
-	 * Set the maximum number of sessions. If the value is zero or less,
-	 * an unlimited number of sessions is supported. The default value
-	 * is 1000.
-	 * 
-	 * If adding a new session would exceed the limit, first all
-	 * sessions older than {@link #absoluteTimeout()} are removed.
-	 * If this doesn't free a slot, the least recently used session
-	 * is removed.
-	 * 
-	 * @param maxSessions the maxSessions to set
-	 * @return the session manager for easy chaining
-	 */
-	public SessionManager setMaxSessions(int maxSessions) {
-		this.maxSessions = maxSessions;
-		return this;
-	}
+    /**
+     * Creates a new session manager with the given channel and path.
+     * The manager handles all requests that match the given path, using
+     * the same rules as browsers do for selecting the cookies that
+     * are to be sent.
+     *  
+     * @param componentChannel the component channel
+     * @param path the path
+     */
+    public SessionManager(Channel componentChannel, String path) {
+        this(componentChannel, derivePattern(path), 1000, path);
+    }
 
-	/**
-	 * @return the maxSessions
-	 */
-	public int maxSessions() {
-		return maxSessions;
-	}
+    /**
+     * Derives the resource pattern from the path.
+     *
+     * @param path the path
+     * @return the pattern
+     */
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    protected static String derivePattern(String path) {
+        String pattern;
+        if ("/".equals(path)) {
+            pattern = "/**";
+        } else {
+            String patternBase = path;
+            if (patternBase.endsWith("/")) {
+                patternBase = path.substring(0, path.length() - 1);
+            }
+            pattern = path + "," + path + "/**";
+        }
+        return pattern;
+    }
 
-	/**
-	 * Sets the absolute timeout for a session in seconds. The absolute
-	 * timeout is the time after which a session is invalidated (relative
-	 * to its creation time). Defaults to 9 hours. Zero or less disables
-	 * the timeout.
-	 * 
-	 * @param absoluteTimeout the absolute timeout
-	 * @return the session manager for easy chaining
-	 */
-	public SessionManager setAbsoluteTimeout(int absoluteTimeout) {
-		this.absoluteTimeout = absoluteTimeout * 1000;
-		return this;
-	}
+    /**
+     * Creates a new session manager using the given channel and path.
+     * The manager handles only requests that match the given pattern.
+     * The handler is registered with the given priority.
+     * 
+     * This constructor can be used if special handling of top level
+     * requests is needed.
+     *
+     * @param componentChannel the component channel
+     * @param pattern the path part of a {@link ResourcePattern}
+     * @param priority the priority
+     * @param path the path
+     */
+    public SessionManager(Channel componentChannel, String pattern,
+            int priority, String path) {
+        super(componentChannel);
+        this.path = path;
+        RequestHandler.Evaluator.add(this, "onRequest", pattern, priority);
+        MBeanView.addManager(this);
+    }
 
-	/**
-	 * @return the absolute session timeout (in seconds)
-	 */
-	public int absoluteTimeout() {
-		return (int)(absoluteTimeout / 1000);
-	}
+    /**
+     * The name used for the session id cookie. Defaults to "`id`".
+     * 
+     * @return the id name
+     */
+    public String idName() {
+        return idName;
+    }
 
-	/**
-	 * Sets the idle timeout for a session in seconds. Defaults to 30 minutes.
-	 * Zero or less disables the timeout. 
-	 * 
-	 * @param idleTimeout the absolute timeout
-	 * @return the session manager for easy chaining
-	 */
-	public SessionManager setIdleTimeout(int idleTimeout) {
-		this.idleTimeout = idleTimeout * 1000;
-		return this;
-	}
+    /**
+     * @param idName the id name to set
+     * 
+     * @return the session manager for easy chaining
+     */
+    public SessionManager setIdName(String idName) {
+        this.idName = idName;
+        return this;
+    }
 
-	/**
-	 * @return the idle timeout (in seconds)
-	 */
-	public int idleTimeout() {
-		return (int)(idleTimeout / 1000);
-	}
+    /**
+     * Set the maximum number of sessions. If the value is zero or less,
+     * an unlimited number of sessions is supported. The default value
+     * is 1000.
+     * 
+     * If adding a new session would exceed the limit, first all
+     * sessions older than {@link #absoluteTimeout()} are removed.
+     * If this doesn't free a slot, the least recently used session
+     * is removed.
+     * 
+     * @param maxSessions the maxSessions to set
+     * @return the session manager for easy chaining
+     */
+    public SessionManager setMaxSessions(int maxSessions) {
+        this.maxSessions = maxSessions;
+        return this;
+    }
 
-	/**
-	 * Associates the event with a {@link Session} object
-	 * using `Session.class` as association identifier.
-	 * 
-	 * @param event the event
-	 */
-	@RequestHandler(dynamic=true)
-	public void onRequest(Request event) {
-		if (event.associated(Session.class).isPresent()) {
-			return;
-		}
-		final HttpRequest request = event.httpRequest();
-		Optional<String> requestedSessionId = request.findValue(
-		        HttpField.COOKIE, Converters.COOKIE_LIST)
-		        .flatMap(cookies -> cookies.stream().filter(
-		                cookie -> cookie.getName().equals(idName()))
-		                .findFirst().map(HttpCookie::getValue));
-		if (requestedSessionId.isPresent()) {
-			String sessionId = requestedSessionId.get();
-			synchronized(this) {
-				Optional<Session> session = lookupSession(sessionId);
-				if (session.isPresent()) {
-					Instant now = Instant.now();
-					if ((absoluteTimeout <= 0
-							|| Duration.between(session.get().createdAt(), 
-									now).toMillis() < absoluteTimeout)
-						&& (idleTimeout <= 0
-							|| Duration.between(session.get().lastUsedAt(),
-									now).toMillis() < idleTimeout)) {
-						event.setAssociated(Session.class, session.get());
-						session.get().updateLastUsedAt();
-						return;
-					}
-					// Invalidate, too old 
-					removeSession(sessionId);
-				}
-			}
-		}
-		String sessionId = createSessionId(request.response().get());
-		Session session = createSession(sessionId);
-		event.setAssociated(Session.class, session);
-	}
+    /**
+     * @return the maxSessions
+     */
+    public int maxSessions() {
+        return maxSessions;
+    }
 
-	/**
-	 * Creates a new session with the given id.
-	 * 
-	 * @param sessionId
-	 * @return the session
-	 */
-	protected abstract Session createSession(String sessionId);
+    /**
+     * Sets the absolute timeout for a session in seconds. The absolute
+     * timeout is the time after which a session is invalidated (relative
+     * to its creation time). Defaults to 9 hours. Zero or less disables
+     * the timeout.
+     * 
+     * @param absoluteTimeout the absolute timeout
+     * @return the session manager for easy chaining
+     */
+    public SessionManager setAbsoluteTimeout(int absoluteTimeout) {
+        this.absoluteTimeout = absoluteTimeout * 1000;
+        return this;
+    }
 
-	/**
-	 * Lookup the session with the given id.
-	 * 
-	 * @param sessionId
-	 * @return the session
-	 */
-	protected abstract Optional<Session> lookupSession(String sessionId);
+    /**
+     * @return the absolute session timeout (in seconds)
+     */
+    public int absoluteTimeout() {
+        return (int) (absoluteTimeout / 1000);
+    }
 
-	/**
-	 * Removed the given session.
-	 * 
-	 * @param sessionId the session id
-	 */
-	protected abstract void removeSession(String sessionId);
+    /**
+     * Sets the idle timeout for a session in seconds. Defaults to 30 minutes.
+     * Zero or less disables the timeout. 
+     * 
+     * @param idleTimeout the absolute timeout
+     * @return the session manager for easy chaining
+     */
+    public SessionManager setIdleTimeout(int idleTimeout) {
+        this.idleTimeout = idleTimeout * 1000;
+        return this;
+    }
 
-	/**
-	 * Return the number of established sessions.
-	 * 
-	 * @return the result
-	 */
-	protected abstract int sessionCount();
-	
-	/**
-	 * Creates a session id and adds the corresponding cookie to the
-	 * response.
-	 * 
-	 * @param response the response
-	 * @return the session id
-	 */
-	protected String createSessionId(HttpResponse response) {
-		StringBuilder sessionIdBuilder = new StringBuilder();
-		byte[] bytes = new byte[16];
-		secureRandom.nextBytes(bytes);
-		for (byte b: bytes) {
-			sessionIdBuilder.append(Integer.toHexString(b & 0xff));
-		}
-		String sessionId = sessionIdBuilder.toString();
-		HttpCookie sessionCookie = new HttpCookie(idName(), sessionId);
-		sessionCookie.setPath(path);
-		sessionCookie.setHttpOnly(true);
-		response.computeIfAbsent(HttpField.SET_COOKIE, CookieList::new)
-			.value().add(sessionCookie);
-		response.computeIfAbsent(
-				HttpField.CACHE_CONTROL, CacheControlDirectives::new)
-			.value().add(new Directive("no-cache", "SetCookie, Set-Cookie2"));
-		return sessionId;
-	}
-	
-	/**
-	 * Discards the given session.
-	 * 
-	 * @param event the event
-	 */
-	@Handler(channels=Channel.class)
-	public void discard(DiscardSession event) {
-		removeSession(event.session().id());
-	}
+    /**
+     * @return the idle timeout (in seconds)
+     */
+    public int idleTimeout() {
+        return (int) (idleTimeout / 1000);
+    }
 
-	/**
-	 * Associates the channel with the session from the upgrade request.
-	 * 
-	 * @param event the event
-	 * @param channel the channel
-	 */
-	@Handler(priority=1000)
-	public void onProtocolSwitchAccepted(
-			ProtocolSwitchAccepted event, IOSubchannel channel) {
-		event.requestEvent().associated(Session.class)
-			.ifPresent(session -> {
-				channel.setAssociated(Session.class, session);
-			});
-	}
-	
-	/**
-	 * An MBean interface for getting information about the 
-	 * established sessions.
-	 */
-	@SuppressWarnings("PMD.CommentRequired")
-	public interface SessionManagerMXBean {
+    /**
+     * Associates the event with a {@link Session} object
+     * using `Session.class` as association identifier.
+     * 
+     * @param event the event
+     */
+    @RequestHandler(dynamic = true)
+    public void onRequest(Request event) {
+        if (event.associated(Session.class).isPresent()) {
+            return;
+        }
+        final HttpRequest request = event.httpRequest();
+        Optional<String> requestedSessionId = request.findValue(
+            HttpField.COOKIE, Converters.COOKIE_LIST)
+            .flatMap(cookies -> cookies.stream().filter(
+                cookie -> cookie.getName().equals(idName()))
+                .findFirst().map(HttpCookie::getValue));
+        if (requestedSessionId.isPresent()) {
+            String sessionId = requestedSessionId.get();
+            synchronized (this) {
+                Optional<Session> session = lookupSession(sessionId);
+                if (session.isPresent()) {
+                    Instant now = Instant.now();
+                    if ((absoluteTimeout <= 0
+                        || Duration.between(session.get().createdAt(),
+                            now).toMillis() < absoluteTimeout)
+                        && (idleTimeout <= 0
+                            || Duration.between(session.get().lastUsedAt(),
+                                now).toMillis() < idleTimeout)) {
+                        event.setAssociated(Session.class, session.get());
+                        session.get().updateLastUsedAt();
+                        return;
+                    }
+                    // Invalidate, too old
+                    removeSession(sessionId);
+                }
+            }
+        }
+        String sessionId = createSessionId(request.response().get());
+        Session session = createSession(sessionId);
+        event.setAssociated(Session.class, session);
+    }
 
-		String getComponentPath();
-		
-		String getPath();
-		
-		int getMaxSessions();
-		
-		int getAbsoluteTimeout();
-		
-		int getIdleTimeout();
-		
-		int getSessionCount();
-	}
-	
-	/**
-	 * The session manager information.
-	 */
-	public static class SessionManagerInfo implements SessionManagerMXBean {
+    /**
+     * Creates a new session with the given id.
+     * 
+     * @param sessionId
+     * @return the session
+     */
+    protected abstract Session createSession(String sessionId);
 
-		private static MBeanServer mbs 
-			= ManagementFactory.getPlatformMBeanServer(); 
+    /**
+     * Lookup the session with the given id.
+     * 
+     * @param sessionId
+     * @return the session
+     */
+    protected abstract Optional<Session> lookupSession(String sessionId);
 
-		private ObjectName mbeanName;
-		private final WeakReference<SessionManager> sessionManagerRef;
-		
-		/**
-		 * Instantiates a new session manager info.
-		 *
-		 * @param sessionManager the session manager
-		 */
-		@SuppressWarnings({ "PMD.AvoidCatchingGenericException",
-		        "PMD.EmptyCatchBlock" })
-		public SessionManagerInfo(SessionManager sessionManager) {
-			try {
-				mbeanName = new ObjectName("org.jgrapes.http:type=" 
-						+ SessionManager.class.getSimpleName() + ",name="
-						+ ObjectName.quote(Components.simpleObjectName(
-								sessionManager)));
-			} catch (MalformedObjectNameException e) {
-				// Won't happen
-			}
-			sessionManagerRef = new WeakReference<>(sessionManager);
-			try {
-				mbs.unregisterMBean(mbeanName);
-			} catch (Exception e) {
-				// Just in case, should not work
-			}
-			try {
-				mbs.registerMBean(this, mbeanName);
-			} catch (InstanceAlreadyExistsException | MBeanRegistrationException
-			        | NotCompliantMBeanException e) {
-				// Have to live with that
-			}
-		}
+    /**
+     * Removed the given session.
+     * 
+     * @param sessionId the session id
+     */
+    protected abstract void removeSession(String sessionId);
 
-		/**
-		 * Returns the session manager.
-		 *
-		 * @return the optional session manager
-		 */
-		@SuppressWarnings({ "PMD.AvoidCatchingGenericException",
-		        "PMD.EmptyCatchBlock" })
-		public Optional<SessionManager> manager() {
-			SessionManager manager = sessionManagerRef.get();
-			if (manager == null) {
-				try {
-					mbs.unregisterMBean(mbeanName);
-				} catch (MBeanRegistrationException 
-						| InstanceNotFoundException e) {
-					// Should work.
-				}
-			}
-			return Optional.ofNullable(manager);
-		}
-		
-		@Override
-		public String getComponentPath() {
-			return manager().map(mgr -> mgr.componentPath()).orElse("<removed>");
-		}
-		
-		@Override
-		public String getPath() {
-			return manager().map(mgr -> mgr.path).orElse("<unknown>");
-		}
-		
-		@Override
-		public int getMaxSessions() {
-			return manager().map(mgr -> mgr.maxSessions()).orElse(0);
-		}
-		
-		@Override
-		public int getAbsoluteTimeout() {
-			return manager().map(mgr -> mgr.absoluteTimeout()).orElse(0);
-		}
-		
-		@Override
-		public int getIdleTimeout() {
-			return manager().map(mgr -> mgr.idleTimeout()).orElse(0);
-		}
-		
-		@Override
-		public int getSessionCount() {
-			return manager().map(mgr -> mgr.sessionCount()).orElse(0);
-		}
-	}
-	
-	/**
-	 * An MBean interface for getting information about all session
-	 * managers.
-	 * 
-	 * There is currently no summary information. However, the (periodic)
-	 * invocation of {@link SessionManagerSummaryMXBean#getManagers()} ensures
-	 * that entries for removed {@link SessionManager}s are unregistered.
-	 */
-	public interface SessionManagerSummaryMXBean {
-		
-		/**
-		 * Gets the managers.
-		 *
-		 * @return the managers
-		 */
-		Set<SessionManagerMXBean> getManagers();
-	}
-	
-	/**
-	 * The MBean view.
-	 */
-	private static class MBeanView implements SessionManagerSummaryMXBean {
-		private static Set<SessionManagerInfo> managerInfos = new HashSet<>();
-		
-		/**
-		 * Adds a manager.
-		 *
-		 * @param manager the manager
-		 */
-		public static void addManager(SessionManager manager) {
-			synchronized (managerInfos) {
-				managerInfos.add(new SessionManagerInfo(manager));
-			}
-		}
-		
-		@Override
-		public Set<SessionManagerMXBean> getManagers() {
-			Set<SessionManagerInfo> expired = new HashSet<>();
-			synchronized (managerInfos) {
-				for (SessionManagerInfo managerInfo: managerInfos) {
-					if (!managerInfo.manager().isPresent()) {
-						expired.add(managerInfo);
-					}
-				}
-				managerInfos.removeAll(expired);
-			}
-			@SuppressWarnings("unchecked")
-			Set<SessionManagerMXBean> result 
-				= (Set<SessionManagerMXBean>)(Object)managerInfos;
-			return result;
-		}
-	}
+    /**
+     * Return the number of established sessions.
+     * 
+     * @return the result
+     */
+    protected abstract int sessionCount();
 
-	static {
-		try {
-			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); 
-			ObjectName mxbeanName = new ObjectName("org.jgrapes.http:type="
-					+ SessionManager.class.getSimpleName() + "s");
-			mbs.registerMBean(new MBeanView(), mxbeanName);
-		} catch (MalformedObjectNameException | InstanceAlreadyExistsException
-				| MBeanRegistrationException | NotCompliantMBeanException e) {
-			// Does not happen
-			e.printStackTrace();
-		}		
-	}
+    /**
+     * Creates a session id and adds the corresponding cookie to the
+     * response.
+     * 
+     * @param response the response
+     * @return the session id
+     */
+    protected String createSessionId(HttpResponse response) {
+        StringBuilder sessionIdBuilder = new StringBuilder();
+        byte[] bytes = new byte[16];
+        secureRandom.nextBytes(bytes);
+        for (byte b : bytes) {
+            sessionIdBuilder.append(Integer.toHexString(b & 0xff));
+        }
+        String sessionId = sessionIdBuilder.toString();
+        HttpCookie sessionCookie = new HttpCookie(idName(), sessionId);
+        sessionCookie.setPath(path);
+        sessionCookie.setHttpOnly(true);
+        response.computeIfAbsent(HttpField.SET_COOKIE, CookieList::new)
+            .value().add(sessionCookie);
+        response.computeIfAbsent(
+            HttpField.CACHE_CONTROL, CacheControlDirectives::new)
+            .value().add(new Directive("no-cache", "SetCookie, Set-Cookie2"));
+        return sessionId;
+    }
+
+    /**
+     * Discards the given session.
+     * 
+     * @param event the event
+     */
+    @Handler(channels = Channel.class)
+    public void discard(DiscardSession event) {
+        removeSession(event.session().id());
+    }
+
+    /**
+     * Associates the channel with the session from the upgrade request.
+     * 
+     * @param event the event
+     * @param channel the channel
+     */
+    @Handler(priority = 1000)
+    public void onProtocolSwitchAccepted(
+            ProtocolSwitchAccepted event, IOSubchannel channel) {
+        event.requestEvent().associated(Session.class)
+            .ifPresent(session -> {
+                channel.setAssociated(Session.class, session);
+            });
+    }
+
+    /**
+     * An MBean interface for getting information about the 
+     * established sessions.
+     */
+    @SuppressWarnings("PMD.CommentRequired")
+    public interface SessionManagerMXBean {
+
+        String getComponentPath();
+
+        String getPath();
+
+        int getMaxSessions();
+
+        int getAbsoluteTimeout();
+
+        int getIdleTimeout();
+
+        int getSessionCount();
+    }
+
+    /**
+     * The session manager information.
+     */
+    public static class SessionManagerInfo implements SessionManagerMXBean {
+
+        private static MBeanServer mbs
+            = ManagementFactory.getPlatformMBeanServer();
+
+        private ObjectName mbeanName;
+        private final WeakReference<SessionManager> sessionManagerRef;
+
+        /**
+         * Instantiates a new session manager info.
+         *
+         * @param sessionManager the session manager
+         */
+        @SuppressWarnings({ "PMD.AvoidCatchingGenericException",
+            "PMD.EmptyCatchBlock" })
+        public SessionManagerInfo(SessionManager sessionManager) {
+            try {
+                mbeanName = new ObjectName("org.jgrapes.http:type="
+                    + SessionManager.class.getSimpleName() + ",name="
+                    + ObjectName.quote(Components.simpleObjectName(
+                        sessionManager)));
+            } catch (MalformedObjectNameException e) {
+                // Won't happen
+            }
+            sessionManagerRef = new WeakReference<>(sessionManager);
+            try {
+                mbs.unregisterMBean(mbeanName);
+            } catch (Exception e) {
+                // Just in case, should not work
+            }
+            try {
+                mbs.registerMBean(this, mbeanName);
+            } catch (InstanceAlreadyExistsException | MBeanRegistrationException
+                    | NotCompliantMBeanException e) {
+                // Have to live with that
+            }
+        }
+
+        /**
+         * Returns the session manager.
+         *
+         * @return the optional session manager
+         */
+        @SuppressWarnings({ "PMD.AvoidCatchingGenericException",
+            "PMD.EmptyCatchBlock" })
+        public Optional<SessionManager> manager() {
+            SessionManager manager = sessionManagerRef.get();
+            if (manager == null) {
+                try {
+                    mbs.unregisterMBean(mbeanName);
+                } catch (MBeanRegistrationException
+                        | InstanceNotFoundException e) {
+                    // Should work.
+                }
+            }
+            return Optional.ofNullable(manager);
+        }
+
+        @Override
+        public String getComponentPath() {
+            return manager().map(mgr -> mgr.componentPath())
+                .orElse("<removed>");
+        }
+
+        @Override
+        public String getPath() {
+            return manager().map(mgr -> mgr.path).orElse("<unknown>");
+        }
+
+        @Override
+        public int getMaxSessions() {
+            return manager().map(mgr -> mgr.maxSessions()).orElse(0);
+        }
+
+        @Override
+        public int getAbsoluteTimeout() {
+            return manager().map(mgr -> mgr.absoluteTimeout()).orElse(0);
+        }
+
+        @Override
+        public int getIdleTimeout() {
+            return manager().map(mgr -> mgr.idleTimeout()).orElse(0);
+        }
+
+        @Override
+        public int getSessionCount() {
+            return manager().map(mgr -> mgr.sessionCount()).orElse(0);
+        }
+    }
+
+    /**
+     * An MBean interface for getting information about all session
+     * managers.
+     * 
+     * There is currently no summary information. However, the (periodic)
+     * invocation of {@link SessionManagerSummaryMXBean#getManagers()} ensures
+     * that entries for removed {@link SessionManager}s are unregistered.
+     */
+    public interface SessionManagerSummaryMXBean {
+
+        /**
+         * Gets the managers.
+         *
+         * @return the managers
+         */
+        Set<SessionManagerMXBean> getManagers();
+    }
+
+    /**
+     * The MBean view.
+     */
+    private static class MBeanView implements SessionManagerSummaryMXBean {
+        private static Set<SessionManagerInfo> managerInfos = new HashSet<>();
+
+        /**
+         * Adds a manager.
+         *
+         * @param manager the manager
+         */
+        public static void addManager(SessionManager manager) {
+            synchronized (managerInfos) {
+                managerInfos.add(new SessionManagerInfo(manager));
+            }
+        }
+
+        @Override
+        public Set<SessionManagerMXBean> getManagers() {
+            Set<SessionManagerInfo> expired = new HashSet<>();
+            synchronized (managerInfos) {
+                for (SessionManagerInfo managerInfo : managerInfos) {
+                    if (!managerInfo.manager().isPresent()) {
+                        expired.add(managerInfo);
+                    }
+                }
+                managerInfos.removeAll(expired);
+            }
+            @SuppressWarnings("unchecked")
+            Set<SessionManagerMXBean> result
+                = (Set<SessionManagerMXBean>) (Object) managerInfos;
+            return result;
+        }
+    }
+
+    static {
+        try {
+            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+            ObjectName mxbeanName = new ObjectName("org.jgrapes.http:type="
+                + SessionManager.class.getSimpleName() + "s");
+            mbs.registerMBean(new MBeanView(), mxbeanName);
+        } catch (MalformedObjectNameException | InstanceAlreadyExistsException
+                | MBeanRegistrationException | NotCompliantMBeanException e) {
+            // Does not happen
+            e.printStackTrace();
+        }
+    }
 }

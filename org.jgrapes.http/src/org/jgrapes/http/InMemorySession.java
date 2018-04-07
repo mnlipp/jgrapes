@@ -27,122 +27,130 @@ import java.util.concurrent.ConcurrentHashMap;
  * Implements the {@link Session} interface using a {@link ConcurrentHashMap}.
  */
 @SuppressWarnings("serial")
-public class InMemorySession 
-		extends ConcurrentHashMap<Serializable, Serializable>
-	implements Session {
+public class InMemorySession
+        extends ConcurrentHashMap<Serializable, Serializable>
+        implements Session {
 
-	@SuppressWarnings("PMD.ShortVariable")
-	private final String id;
-	private final Instant createdAt;
-	private Instant lastUsedAt;
-	private final Map<?,?> transientData = new ConcurrentHashMap<>();
-	
-	/**
-	 * Create a new session.
-	 */
-	@SuppressWarnings("PMD.ShortVariable")
-	public InMemorySession(String id) {
-		this.id = id;
-		createdAt = Instant.now();
-		lastUsedAt = createdAt;
-	}
+    @SuppressWarnings("PMD.ShortVariable")
+    private final String id;
+    private final Instant createdAt;
+    private Instant lastUsedAt;
+    private final Map<?, ?> transientData = new ConcurrentHashMap<>();
 
-	/**
-	 * Returns the session id.
-	 * 
-	 * @return the id
-	 */
-	@SuppressWarnings("PMD.ShortMethodName")
-	public String id() {
-		return id;
-	}
-	
-	/**
-	 * Returns the creation time stamp.
-	 * 
-	 * @return the creation time stamp
-	 */
-	public Instant createdAt() {
-		return createdAt;
-	}
+    /**
+     * Create a new session.
+     */
+    @SuppressWarnings("PMD.ShortVariable")
+    public InMemorySession(String id) {
+        this.id = id;
+        createdAt = Instant.now();
+        lastUsedAt = createdAt;
+    }
 
-	/**
-	 * Returns the last used (referenced in request) time stamp. 
-	 * 
-	 * @return the last used timestamp
-	 */
-	public Instant lastUsedAt() {
-		return lastUsedAt;
-	}
+    /**
+     * Returns the session id.
+     * 
+     * @return the id
+     */
+    @SuppressWarnings("PMD.ShortMethodName")
+    public String id() {
+        return id;
+    }
 
-	/**
-	 * Updates the last used time stamp.
-	 */
-	public void updateLastUsedAt() {
-		this.lastUsedAt = Instant.now();
-	}
+    /**
+     * Returns the creation time stamp.
+     * 
+     * @return the creation time stamp
+     */
+    public Instant createdAt() {
+        return createdAt;
+    }
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.http.Session#transientData()
-	 */
-	@Override
-	public Map<?, ?> transientData() {
-		return transientData;
-	}
+    /**
+     * Returns the last used (referenced in request) time stamp. 
+     * 
+     * @return the last used timestamp
+     */
+    public Instant lastUsedAt() {
+        return lastUsedAt;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return id.hashCode();
-	}
+    /**
+     * Updates the last used time stamp.
+     */
+    public void updateLastUsedAt() {
+        this.lastUsedAt = Instant.now();
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		InMemorySession other = (InMemorySession) obj;
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
-			return false;
-		}
-		return true;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.jgrapes.http.Session#transientData()
+     */
+    @Override
+    public Map<?, ?> transientData() {
+        return transientData;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder(50);
-		builder.append("InMemorySession [");
-		if (id != null) {
-			builder.append("id=");
-			builder.append(id);
-			builder.append(", ");
-		}
-		if (createdAt != null) {
-			builder.append("createdAt=");
-			builder.append(createdAt);
-			builder.append(", ");
-		}
-		if (lastUsedAt != null) {
-			builder.append("lastUsedAt=");
-			builder.append(lastUsedAt);
-		}
-		builder.append(']');
-		return builder.toString();
-	}
-	
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        InMemorySession other = (InMemorySession) obj;
+        if (id == null) {
+            if (other.id != null) {
+                return false;
+            }
+        } else if (!id.equals(other.id)) {
+            return false;
+        }
+        return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder(50);
+        builder.append("InMemorySession [");
+        if (id != null) {
+            builder.append("id=");
+            builder.append(id);
+            builder.append(", ");
+        }
+        if (createdAt != null) {
+            builder.append("createdAt=");
+            builder.append(createdAt);
+            builder.append(", ");
+        }
+        if (lastUsedAt != null) {
+            builder.append("lastUsedAt=");
+            builder.append(lastUsedAt);
+        }
+        builder.append(']');
+        return builder.toString();
+    }
+
 }

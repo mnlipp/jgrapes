@@ -28,15 +28,15 @@ import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
  */
 public interface HandlerScope {
 
-	/**
-	 * Matches the given event and channels against the criteria
-	 * for events and channels of this handler scope.
-	 *
-	 * @param event the event
-	 * @param channels the channels
-	 * @return true, if successful
-	 */
-	@SuppressWarnings("PMD.UseVarargs")
-	boolean includes(Eligible event, Eligible[] channels);
-	
+    /**
+     * Matches the given event and channels against the criteria
+     * for events and channels of this handler scope.
+     *
+     * @param event the event
+     * @param channels the channels
+     * @return true, if successful
+     */
+    @SuppressWarnings("PMD.UseVarargs")
+    boolean includes(Eligible event, Eligible[] channels);
+
 }

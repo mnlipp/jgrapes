@@ -29,24 +29,24 @@ import org.jgrapes.core.Event;
  */
 public class Upgraded extends Event<String> {
 
-	private final URI resourceName;
-	
-	/**
-	 * @param resourceName the resource for which the upgrade was requested
-	 * @param channels
-	 */
-	public Upgraded(URI resourceName, String result, Channel... channels) {
-		super(channels);
-		this.resourceName = resourceName;
-		setResult(result);
-	}
+    private final URI resourceName;
 
-	/**
-	 * Return the resource requested in the upgrade.
-	 * 
-	 * @return the value
-	 */
-	public URI resourceName() {
-		return resourceName;
-	}
+    /**
+     * @param resourceName the resource for which the upgrade was requested
+     * @param channels
+     */
+    public Upgraded(URI resourceName, String result, Channel... channels) {
+        super(channels);
+        this.resourceName = resourceName;
+        setResult(result);
+    }
+
+    /**
+     * Return the resource requested in the upgrade.
+     * 
+     * @return the value
+     */
+    public URI resourceName() {
+        return resourceName;
+    }
 }

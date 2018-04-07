@@ -42,94 +42,98 @@ import org.jgrapes.io.util.ManagedBuffer;
  */
 public abstract class IOEvent<T extends Buffer> extends Event<Void> {
 
-	private ManagedBuffer<T> buffer;
-	private final boolean eor;
-	
-	/**
-	 * Instantiates a new IO event.
-	 *
-	 * @param buffer the buffer
-	 * @param endOfRecord the end of record
-	 */
-	protected IOEvent(ManagedBuffer<T> buffer, boolean endOfRecord) {
-		this.buffer = buffer;
-		this.eor = endOfRecord;
-	}
+    private ManagedBuffer<T> buffer;
+    private final boolean eor;
 
-	/**
-	 * Get the managed buffer with the data from this event.
-	 * 
-	 * @return the buffer
-	 */
-	public ManagedBuffer<T> buffer() {
-		return buffer;
-	}
+    /**
+     * Instantiates a new IO event.
+     *
+     * @param buffer the buffer
+     * @param endOfRecord the end of record
+     */
+    protected IOEvent(ManagedBuffer<T> buffer, boolean endOfRecord) {
+        this.buffer = buffer;
+        this.eor = endOfRecord;
+    }
 
-	/**
-	 * Return the data associated with this event 
-	 * as {@link Buffer}. This is short for
-	 * `buffer().backingBuffer()`.
-	 *
-	 * @return the data
-	 */
-	public T data() {
-		return buffer.backingBuffer();
-	}
-	
-	/**
-	 * Return the end of record flag passed to the constructor.
-	 * The precise interpretation of a record depends on the data
-	 * handled. 
-	 * 
-	 * @return the end of record flag
-	 */
-	public boolean isEndOfRecord() {
-		return eor;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.EventBase#stopped()
-	 */
-	@Override
-	protected void handled() {
-		buffer.unlockBuffer();
-		buffer = null;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this))
-			.append(" [");
-		if (channels().length > 0) {
-			builder.append("channels=");
-			builder.append(Channel.toString(channels()));
-		}
-		builder.append(",size=")
-			.append(Optional.ofNullable(buffer).map(
-				bng -> bng.backingBuffer().remaining()).orElse(0))
-			.append(",eor=")
-			.append(eor)
-			.append(']');
-		return builder.toString();
-	}
-	
-	/**
-	 * @return the result
-	 * @see java.nio.Buffer#hasRemaining()
-	 */
-	public final boolean hasRemaining() {
-		return buffer.hasRemaining();
-	}
+    /**
+     * Get the managed buffer with the data from this event.
+     * 
+     * @return the buffer
+     */
+    public ManagedBuffer<T> buffer() {
+        return buffer;
+    }
 
-	/**
-	 * @return the result
-	 * @see java.nio.Buffer#remaining()
-	 */
-	public final int remaining() {
-		return buffer.remaining();
-	}
+    /**
+     * Return the data associated with this event 
+     * as {@link Buffer}. This is short for
+     * `buffer().backingBuffer()`.
+     *
+     * @return the data
+     */
+    public T data() {
+        return buffer.backingBuffer();
+    }
+
+    /**
+     * Return the end of record flag passed to the constructor.
+     * The precise interpretation of a record depends on the data
+     * handled. 
+     * 
+     * @return the end of record flag
+     */
+    public boolean isEndOfRecord() {
+        return eor;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.jgrapes.core.internal.EventBase#stopped()
+     */
+    @Override
+    protected void handled() {
+        buffer.unlockBuffer();
+        buffer = null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Components.objectName(this))
+            .append(" [");
+        if (channels().length > 0) {
+            builder.append("channels=");
+            builder.append(Channel.toString(channels()));
+        }
+        builder.append(",size=")
+            .append(Optional.ofNullable(buffer).map(
+                bng -> bng.backingBuffer().remaining()).orElse(0))
+            .append(",eor=")
+            .append(eor)
+            .append(']');
+        return builder.toString();
+    }
+
+    /**
+     * @return the result
+     * @see java.nio.Buffer#hasRemaining()
+     */
+    public final boolean hasRemaining() {
+        return buffer.hasRemaining();
+    }
+
+    /**
+     * @return the result
+     * @see java.nio.Buffer#remaining()
+     */
+    public final int remaining() {
+        return buffer.remaining();
+    }
 }

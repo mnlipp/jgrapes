@@ -58,85 +58,91 @@ import org.osgi.framework.BundleContext;
  */
 public class HttpServerDemo extends Component implements BundleActivator {
 
-	HttpServerDemo app;
-	
-	/* (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
-	 */
-	@Override
-	public void start(BundleContext context) throws Exception {
-		// The demo component is the application
-		app = new HttpServerDemo();
-		// Add preferences store
-		app.attach(new PreferencesStore(app.channel(), HttpServerDemo.class));
-		// Attach a general nio dispatcher
-		app.attach(new NioDispatcher());
+    HttpServerDemo app;
 
-		// Network level unencrypted channel.
-		Channel httpTransport = new NamedChannel("httpTransport");
-		// Create a TCP server listening on port 8888
-		// (may be overridden by preferences)
-		app.attach(new TcpServer(httpTransport)
-				.setServerAddress(new InetSocketAddress(8888))
-				.setName("HttpServer"));
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.
+     * BundleContext)
+     */
+    @Override
+    public void start(BundleContext context) throws Exception {
+        // The demo component is the application
+        app = new HttpServerDemo();
+        // Add preferences store
+        app.attach(new PreferencesStore(app.channel(), HttpServerDemo.class));
+        // Attach a general nio dispatcher
+        app.attach(new NioDispatcher());
 
-		// Create TLS "converter"
-		KeyStore serverStore = KeyStore.getInstance("JKS");
-		try (FileInputStream kf 
-				= new FileInputStream("demo-resources/localhost.jks")) {
-			serverStore.load(kf, "nopass".toCharArray());
-		}
-		KeyManagerFactory kmf = KeyManagerFactory.getInstance(
-				KeyManagerFactory.getDefaultAlgorithm());
+        // Network level unencrypted channel.
+        Channel httpTransport = new NamedChannel("httpTransport");
+        // Create a TCP server listening on port 8888
+        // (may be overridden by preferences)
+        app.attach(new TcpServer(httpTransport)
+            .setServerAddress(new InetSocketAddress(8888))
+            .setName("HttpServer"));
+
+        // Create TLS "converter"
+        KeyStore serverStore = KeyStore.getInstance("JKS");
+        try (FileInputStream kf
+            = new FileInputStream("demo-resources/localhost.jks")) {
+            serverStore.load(kf, "nopass".toCharArray());
+        }
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(
+            KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(serverStore, "nopass".toCharArray());
-		SSLContext sslContext = SSLContext.getInstance("TLS");
-		sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
-		// Create a TCP server for SSL
-		Channel securedNetwork = app.attach(
-				new TcpServer().setServerAddress(new InetSocketAddress(4443))
-				.setBacklog(3000).setConnectionLimiter(new PermitsPool(50))
-				.setName("HttpsServer"));
-		app.attach(new SslServer(httpTransport, securedNetwork, sslContext));
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
+        // Create a TCP server for SSL
+        Channel securedNetwork = app.attach(
+            new TcpServer().setServerAddress(new InetSocketAddress(4443))
+                .setBacklog(3000).setConnectionLimiter(new PermitsPool(50))
+                .setName("HttpsServer"));
+        app.attach(new SslServer(httpTransport, securedNetwork, sslContext));
 
-		// Create an HTTP server as converter between transport and application
-		// layer.
-		app.attach(new HttpServer(app, 
-		        httpTransport, GetRequest.class, PostRequest.class));
-		
-		// Build application layer
-		app.attach(new InMemorySessionManager(app.channel()));
-		app.attach(new LanguageSelector(app.channel()));
-		app.attach(new FileStorage(app.channel(), 65536));
-		app.attach(new StaticContentDispatcher(app.channel(),
-		        "/**", Paths.get("demo-resources/static-content").toUri()));
-		app.attach(new StaticContentDispatcher(app.channel(),
-		        "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc").toUri()));
-		app.attach(new FormProcessor(app.channel()));
-		app.attach(new WsEchoServer(app.channel()));
-		Components.start(app);
-	}
+        // Create an HTTP server as converter between transport and application
+        // layer.
+        app.attach(new HttpServer(app,
+            httpTransport, GetRequest.class, PostRequest.class));
 
-	/* (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	@Override
-	public void stop(BundleContext context) throws Exception {
-		app.fire(new Stop(), Channel.BROADCAST);
-		Components.awaitExhaustion();
-	}
+        // Build application layer
+        app.attach(new InMemorySessionManager(app.channel()));
+        app.attach(new LanguageSelector(app.channel()));
+        app.attach(new FileStorage(app.channel(), 65536));
+        app.attach(new StaticContentDispatcher(app.channel(),
+            "/**", Paths.get("demo-resources/static-content").toUri()));
+        app.attach(new StaticContentDispatcher(app.channel(),
+            "/doc|**", Paths.get("../../jgrapes.gh-pages/javadoc").toUri()));
+        app.attach(new FormProcessor(app.channel()));
+        app.attach(new WsEchoServer(app.channel()));
+        Components.start(app);
+    }
 
-	/**
-	 * @param args
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws KeyStoreException 
-	 * @throws UnrecoverableKeyException 
-	 * @throws CertificateException 
-	 * @throws KeyManagementException 
-	 */
-	public static void main(String[] args) throws Exception {
-		new HttpServerDemo().start(null);
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public void stop(BundleContext context) throws Exception {
+        app.fire(new Stop(), Channel.BROADCAST);
+        Components.awaitExhaustion();
+    }
+
+    /**
+     * @param args
+     * @throws IOException 
+     * @throws InterruptedException 
+     * @throws NoSuchAlgorithmException 
+     * @throws KeyStoreException 
+     * @throws UnrecoverableKeyException 
+     * @throws CertificateException 
+     * @throws KeyManagementException 
+     */
+    public static void main(String[] args) throws Exception {
+        new HttpServerDemo().start(null);
+    }
 
 }

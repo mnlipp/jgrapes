@@ -47,5 +47,5 @@ import org.jgrapes.core.annotation.ComponentManager;
  * is added to the tree.
  */
 public interface ComponentType {
-	
+
 }

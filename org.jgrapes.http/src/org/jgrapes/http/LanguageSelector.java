@@ -75,280 +75,282 @@ import org.jgrapes.io.IOSubchannel;
  */
 public class LanguageSelector extends Component {
 
-	private String path;
-	private static final DefaultMultiValueConverter<List<Locale>, Locale> 
-		LOCALE_LIST = new DefaultMultiValueConverter<>(
-				ArrayList<Locale>::new, Converters.LANGUAGE);
-	private String cookieName = LanguageSelector.class.getName();
-	
-	/**
-	 * Creates a new language selector component with its channel set to
-	 * itself and the scope set to "/".
-	 */
-	public LanguageSelector() {
-		this ("/");
-	}
+    private String path;
+    private static final DefaultMultiValueConverter<List<Locale>,
+            Locale> LOCALE_LIST = new DefaultMultiValueConverter<>(
+                ArrayList<Locale>::new, Converters.LANGUAGE);
+    private String cookieName = LanguageSelector.class.getName();
 
-	/**
-	 * Creates a new language selector component with its channel set to
-	 * itself and the scope set to the given value.
-	 * 
-	 * @param scope the scope
-	 */
-	public LanguageSelector(String scope) {
-		this (Channel.SELF, scope);
-	}
+    /**
+     * Creates a new language selector component with its channel set to
+     * itself and the scope set to "/".
+     */
+    public LanguageSelector() {
+        this("/");
+    }
 
-	/**
-	 * Creates a new language selector component with its channel set 
-	 * to the given channel and the scope to "/".
-	 * 
-	 * @param componentChannel the component channel
-	 */
-	public LanguageSelector(Channel componentChannel) {
-		this(componentChannel, "/");
-	}
+    /**
+     * Creates a new language selector component with its channel set to
+     * itself and the scope set to the given value.
+     * 
+     * @param scope the scope
+     */
+    public LanguageSelector(String scope) {
+        this(Channel.SELF, scope);
+    }
 
-	/**
-	 * Creates a new language selector component with its channel set 
-	 * to the given channel and the scope to the given scope.
-	 * 
-	 * @param componentChannel the component channel
-	 * @param scope the scope
-	 */
-	@SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
-	public LanguageSelector(Channel componentChannel, String scope) {
-		super(componentChannel);
-		if ("/".equals(scope) || !scope.endsWith("/")) {
-			path = scope;
-		} else {
-			path = scope.substring(0, scope.length() - 1);
-		}
-		String pattern;
-		if ("/".equals(path)) {
-			pattern = "/**";
-		} else {
-			pattern = path + "," + path + "/**";
-		}
-		RequestHandler.Evaluator.add(this, "onRequest", pattern);
-	}
+    /**
+     * Creates a new language selector component with its channel set 
+     * to the given channel and the scope to "/".
+     * 
+     * @param componentChannel the component channel
+     */
+    public LanguageSelector(Channel componentChannel) {
+        this(componentChannel, "/");
+    }
 
-	/**
-	 * Sets the name of the cookie used to store the locale.
-	 * 
-	 * @param cookieName the cookie name to use
-	 * @return the locale selector for easy chaining
-	 */
-	public LanguageSelector setCookieName(String cookieName) {
-		this.cookieName = cookieName;
-		return this;
-	}
+    /**
+     * Creates a new language selector component with its channel set 
+     * to the given channel and the scope to the given scope.
+     * 
+     * @param componentChannel the component channel
+     * @param scope the scope
+     */
+    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
+    public LanguageSelector(Channel componentChannel, String scope) {
+        super(componentChannel);
+        if ("/".equals(scope) || !scope.endsWith("/")) {
+            path = scope;
+        } else {
+            path = scope.substring(0, scope.length() - 1);
+        }
+        String pattern;
+        if ("/".equals(path)) {
+            pattern = "/**";
+        } else {
+            pattern = path + "," + path + "/**";
+        }
+        RequestHandler.Evaluator.add(this, "onRequest", pattern);
+    }
 
-	/**
-	 * Returns the cookie name. Defaults to the class name.
-	 * 
-	 * @return the cookie name
-	 */
-	public String cookieName() {
-		return cookieName;
-	}
+    /**
+     * Sets the name of the cookie used to store the locale.
+     * 
+     * @param cookieName the cookie name to use
+     * @return the locale selector for easy chaining
+     */
+    public LanguageSelector setCookieName(String cookieName) {
+        this.cookieName = cookieName;
+        return this;
+    }
 
-	/**
-	 * Associates the event with a {@link Selection} object
-	 * using `Selection.class` as association identifier.
-	 * 
-	 * @param event the event
-	 */
-	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.EmptyCatchBlock" })
-	@RequestHandler(priority=990, dynamic=true)
-	public void onRequest(Request event) {
-		@SuppressWarnings("PMD.AccessorClassGeneration")
-		final Selection selection = event.associated(Session.class)
-				.map(session -> (Selection)session.computeIfAbsent(
-					Selection.class, newKey -> new Selection(cookieName, path)))
-				.orElseGet(() -> new Selection(cookieName, path));
-		selection.setCurrentEvent(event);
-		event.setAssociated(Selection.class, selection);
-		if (selection.isExplicitlySet()) {
-			return;
-		}
-		
-		// Try to get locale from cookies
-		final HttpRequest request = event.httpRequest();
-		Optional<String> localeNames = request.findValue(
-				HttpField.COOKIE, Converters.COOKIE_LIST)
-				.flatMap(cookieList -> cookieList.valueForName(cookieName));
-		if (localeNames.isPresent()) {
-			try {
-				List<Locale> cookieLocales = LOCALE_LIST
-						.fromFieldValue(localeNames.get());
-				if (!cookieLocales.isEmpty()) {
-					Collections.reverse(cookieLocales);
-					cookieLocales.stream()
-						.forEach(locale -> selection.prefer(locale));
-					return;
-				}
-			} catch (ParseException e) {
-				// Unusable
-			}
-		}
+    /**
+     * Returns the cookie name. Defaults to the class name.
+     * 
+     * @return the cookie name
+     */
+    public String cookieName() {
+        return cookieName;
+    }
 
-		// Last resport: Accept-Language header field
-		Optional<List<ParameterizedValue<Locale>>> accepted = request.findValue(
-				HttpField.ACCEPT_LANGUAGE, Converters.LANGUAGE_LIST);
-		if (accepted.isPresent()) {
-			Locale[] locales = accepted.get().stream()
-				.sorted(ParameterizedValue.WEIGHT_COMPARATOR)
-				.map(value -> value.value()).toArray(Locale[]::new);
-			selection.updateFallbacks(locales);
-		}
-	}
-	
-	/**
-	 * Handles a procotol switch by associating the language selection
-	 * with the channel.
-	 *
-	 * @param event the event
-	 * @param channel the channel
-	 */
-	@Handler(priority=1000)
-	public void onProtocolSwitchAccepted(
-			ProtocolSwitchAccepted event, IOSubchannel channel) {
-		event.requestEvent().associated(Selection.class)
-			.ifPresent(selection -> 
-				channel.setAssociated(Selection.class, selection));
-	}
+    /**
+     * Associates the event with a {@link Selection} object
+     * using `Selection.class` as association identifier.
+     * 
+     * @param event the event
+     */
+    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.EmptyCatchBlock" })
+    @RequestHandler(priority = 990, dynamic = true)
+    public void onRequest(Request event) {
+        @SuppressWarnings("PMD.AccessorClassGeneration")
+        final Selection selection = event.associated(Session.class)
+            .map(session -> (Selection) session.computeIfAbsent(
+                Selection.class, newKey -> new Selection(cookieName, path)))
+            .orElseGet(() -> new Selection(cookieName, path));
+        selection.setCurrentEvent(event);
+        event.setAssociated(Selection.class, selection);
+        if (selection.isExplicitlySet()) {
+            return;
+        }
 
-	/**
-	 * Convenience method to retrieve a locale from an associator.
-	 * 
-	 * @param assoc the associator
-	 * @return the locale
-	 */
-	public static Locale associatedLocale(Associator assoc) {
-		return assoc.associated(Selection.class)
-				.map(sel -> sel.get()[0]).orElse(Locale.getDefault());
-	}
-	
-	/**
-	 * Represents a locale selection.
-	 */
-	@SuppressWarnings("serial")
-	public static class Selection implements Serializable {
-		private transient WeakReference<Request> currentEvent;
-		private final String cookieName;
-		private final String cookiePath;
-		private boolean explicitlySet;
-		private Locale[] locales;
+        // Try to get locale from cookies
+        final HttpRequest request = event.httpRequest();
+        Optional<String> localeNames = request.findValue(
+            HttpField.COOKIE, Converters.COOKIE_LIST)
+            .flatMap(cookieList -> cookieList.valueForName(cookieName));
+        if (localeNames.isPresent()) {
+            try {
+                List<Locale> cookieLocales = LOCALE_LIST
+                    .fromFieldValue(localeNames.get());
+                if (!cookieLocales.isEmpty()) {
+                    Collections.reverse(cookieLocales);
+                    cookieLocales.stream()
+                        .forEach(locale -> selection.prefer(locale));
+                    return;
+                }
+            } catch (ParseException e) {
+                // Unusable
+            }
+        }
 
-		@ConstructorProperties({"cookieName", "cookiePath"})
-		private Selection(String cookieName, String cookiePath) {
-			this.cookieName = cookieName;
-			this.cookiePath = cookiePath;
-			this.currentEvent = new WeakReference<>(null);
-			explicitlySet = false;
-			locales = new Locale[] { Locale.getDefault() };
-		}
+        // Last resport: Accept-Language header field
+        Optional<List<ParameterizedValue<Locale>>> accepted = request.findValue(
+            HttpField.ACCEPT_LANGUAGE, Converters.LANGUAGE_LIST);
+        if (accepted.isPresent()) {
+            Locale[] locales = accepted.get().stream()
+                .sorted(ParameterizedValue.WEIGHT_COMPARATOR)
+                .map(value -> value.value()).toArray(Locale[]::new);
+            selection.updateFallbacks(locales);
+        }
+    }
 
-		/**
-		 * Gets the cookie name.
-		 *
-		 * @return the cookieName
-		 */
-		public String getCookieName() {
-			return cookieName;
-		}
+    /**
+     * Handles a procotol switch by associating the language selection
+     * with the channel.
+     *
+     * @param event the event
+     * @param channel the channel
+     */
+    @Handler(priority = 1000)
+    public void onProtocolSwitchAccepted(
+            ProtocolSwitchAccepted event, IOSubchannel channel) {
+        event.requestEvent().associated(Selection.class)
+            .ifPresent(
+                selection -> channel.setAssociated(Selection.class, selection));
+    }
 
-		/**
-		 * Gets the cookie path.
-		 *
-		 * @return the cookiePath
-		 */
-		public String getCookiePath() {
-			return cookiePath;
-		}
+    /**
+     * Convenience method to retrieve a locale from an associator.
+     * 
+     * @param assoc the associator
+     * @return the locale
+     */
+    public static Locale associatedLocale(Associator assoc) {
+        return assoc.associated(Selection.class)
+            .map(sel -> sel.get()[0]).orElse(Locale.getDefault());
+    }
 
-		/**
-		 * Checks if is explicitly set.
-		 *
-		 * @return the explicitlySet
-		 */
-		public boolean isExplicitlySet() {
-			return explicitlySet;
-		}
+    /**
+     * Represents a locale selection.
+     */
+    @SuppressWarnings("serial")
+    public static class Selection implements Serializable {
+        private transient WeakReference<Request> currentEvent;
+        private final String cookieName;
+        private final String cookiePath;
+        private boolean explicitlySet;
+        private Locale[] locales;
 
-		/**
-		 * 
-		 * @param locales
-		 */
-		@SuppressWarnings("PMD.UseVarargs")
-		private void updateFallbacks(Locale[] locales) {
-			if (explicitlySet) {
-				return;
-			}
-			this.locales = Arrays.copyOf(locales, locales.length);
-		}
-		
-		/**
-		 * @param currentEvent the currentEvent to set
-		 */
-		private Selection setCurrentEvent(Request currentEvent) {
-			this.currentEvent = new WeakReference<>(currentEvent);
-			return this;
-		}
+        @ConstructorProperties({ "cookieName", "cookiePath" })
+        private Selection(String cookieName, String cookiePath) {
+            this.cookieName = cookieName;
+            this.cookiePath = cookiePath;
+            this.currentEvent = new WeakReference<>(null);
+            explicitlySet = false;
+            locales = new Locale[] { Locale.getDefault() };
+        }
 
-		/**
-		 * Return the current locale.
-		 * 
-		 * @return the value;
-		 */
-		public Locale[] get() {
-			return Arrays.copyOf(locales, locales.length);
-		}
+        /**
+         * Gets the cookie name.
+         *
+         * @return the cookieName
+         */
+        public String getCookieName() {
+            return cookieName;
+        }
 
-		/**
-		 * Updates the current locale.
-		 * 
-		 * @param locale the locale
-		 * @return the selection for easy chaining
-		 */
-		public Selection prefer(Locale locale) {
-			explicitlySet = true;
-			List<Locale> list = new ArrayList<>(Arrays.asList(locales));
-			list.remove(locale);
-			list.add(0, locale);
-			this.locales = list.toArray(new Locale[0]);
-			HttpCookie localesCookie = new HttpCookie(cookieName,
-					LOCALE_LIST.asFieldValue(list));
-			localesCookie.setPath(cookiePath);
-			Request req = currentEvent.get();
-			if (req != null) {
-				req.httpRequest().response().ifPresent(resp -> {
-					resp.computeIfAbsent(
-						HttpField.SET_COOKIE, CookieList::new)
-					.value().add(localesCookie);
-				});
-			}
-			return this;
-		}
+        /**
+         * Gets the cookie path.
+         *
+         * @return the cookiePath
+         */
+        public String getCookiePath() {
+            return cookiePath;
+        }
 
-		/* (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
-		@Override
-		public String toString() {
-			StringBuilder builder = new StringBuilder(50);
-			builder.append("Selection [");
-			if (locales != null) {
-				builder.append("locales=");
-				builder.append(Arrays.toString(locales));
-				builder.append(", ");
-			}
-			builder.append("explicitlySet=")
-				.append(explicitlySet)
-				.append(']');
-			return builder.toString();
-		}
-		
-	}
+        /**
+         * Checks if is explicitly set.
+         *
+         * @return the explicitlySet
+         */
+        public boolean isExplicitlySet() {
+            return explicitlySet;
+        }
+
+        /**
+         * 
+         * @param locales
+         */
+        @SuppressWarnings("PMD.UseVarargs")
+        private void updateFallbacks(Locale[] locales) {
+            if (explicitlySet) {
+                return;
+            }
+            this.locales = Arrays.copyOf(locales, locales.length);
+        }
+
+        /**
+         * @param currentEvent the currentEvent to set
+         */
+        private Selection setCurrentEvent(Request currentEvent) {
+            this.currentEvent = new WeakReference<>(currentEvent);
+            return this;
+        }
+
+        /**
+         * Return the current locale.
+         * 
+         * @return the value;
+         */
+        public Locale[] get() {
+            return Arrays.copyOf(locales, locales.length);
+        }
+
+        /**
+         * Updates the current locale.
+         * 
+         * @param locale the locale
+         * @return the selection for easy chaining
+         */
+        public Selection prefer(Locale locale) {
+            explicitlySet = true;
+            List<Locale> list = new ArrayList<>(Arrays.asList(locales));
+            list.remove(locale);
+            list.add(0, locale);
+            this.locales = list.toArray(new Locale[0]);
+            HttpCookie localesCookie = new HttpCookie(cookieName,
+                LOCALE_LIST.asFieldValue(list));
+            localesCookie.setPath(cookiePath);
+            Request req = currentEvent.get();
+            if (req != null) {
+                req.httpRequest().response().ifPresent(resp -> {
+                    resp.computeIfAbsent(
+                        HttpField.SET_COOKIE, CookieList::new)
+                        .value().add(localesCookie);
+                });
+            }
+            return this;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder(50);
+            builder.append("Selection [");
+            if (locales != null) {
+                builder.append("locales=");
+                builder.append(Arrays.toString(locales));
+                builder.append(", ");
+            }
+            builder.append("explicitlySet=")
+                .append(explicitlySet)
+                .append(']');
+            return builder.toString();
+        }
+
+    }
 }

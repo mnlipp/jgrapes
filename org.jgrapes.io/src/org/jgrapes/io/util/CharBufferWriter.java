@@ -35,164 +35,168 @@ import org.jgrapes.io.events.Output;
  */
 public class CharBufferWriter extends Writer {
 
-	private IOSubchannel channel;
-	private EventPipeline eventPipeline;
-	private boolean sendInputEvents;
-	private ManagedBuffer<CharBuffer> buffer;
-	private boolean sendClose = true;
-	private boolean sendEor = true;
-	private boolean eorSent;
-	private boolean isClosed;
-	
-	/**
-	 * Creates a new instance that uses {@link Output} events to dispatch
-	 * buffers on the given channel, using the given event pipeline.
-	 * 
-	 * @param channel
-	 *            the channel to fire events on
-	 * @param eventPipeline
-	 *            the event pipeline used for firing events
-	 */
-	public CharBufferWriter(IOSubchannel channel, EventPipeline eventPipeline) {
-		this.channel = channel;
-		this.eventPipeline = eventPipeline;
-	}
+    private IOSubchannel channel;
+    private EventPipeline eventPipeline;
+    private boolean sendInputEvents;
+    private ManagedBuffer<CharBuffer> buffer;
+    private boolean sendClose = true;
+    private boolean sendEor = true;
+    private boolean eorSent;
+    private boolean isClosed;
 
-	/**
-	 * Creates a new instance that uses {@link Output} events to dispatch
-	 * buffers on the given channel, using the channel's response pipeline.
-	 * 
-	 * @param channel
-	 *            the channel to fire events on
-	 */
-	public CharBufferWriter(IOSubchannel channel) {
-		this(channel, channel.responsePipeline());
-	}
+    /**
+     * Creates a new instance that uses {@link Output} events to dispatch
+     * buffers on the given channel, using the given event pipeline.
+     * 
+     * @param channel
+     *            the channel to fire events on
+     * @param eventPipeline
+     *            the event pipeline used for firing events
+     */
+    public CharBufferWriter(IOSubchannel channel, EventPipeline eventPipeline) {
+        this.channel = channel;
+        this.eventPipeline = eventPipeline;
+    }
 
-	/**
-	 * Causes the data to be fired as {@link Input} events rather
-	 * than the usual {@link Output} events. 
-	 * 
-	 * @return the stream for easy chaining
-	 */
-	public CharBufferWriter sendInputEvents() {
-		sendInputEvents = true;
-		return this;
-	}
-	
-	/**
-	 * Suppresses sending of a close event when the stream is closed. 
-	 * 
-	 * @return the stream for easy chaining
-	 */
-	public CharBufferWriter suppressClose() {
-		sendClose = false;
-		return this;
-	}
-	
-	/**
-	 * Suppresses setting the end of record flag when the stream is 
-	 * flushed or closed.
-	 * 
-	 * @return the stream for easy chaining
-	 * @see Output#isEndOfRecord()
-	 */
-	public CharBufferWriter suppressEndOfRecord() {
-		sendEor = false;
-		return this;
-	}
-	
-	private void ensureBufferAvailable() throws IOException {
-		if (buffer != null) {
-			return;
-		}
-		try {
-			buffer = channel.charBufferPool().acquire();
-		} catch (InterruptedException e) {
-			throw new IOException(e);
-		}			
-	}
+    /**
+     * Creates a new instance that uses {@link Output} events to dispatch
+     * buffers on the given channel, using the channel's response pipeline.
+     * 
+     * @param channel
+     *            the channel to fire events on
+     */
+    public CharBufferWriter(IOSubchannel channel) {
+        this(channel, channel.responsePipeline());
+    }
 
-	/* (non-Javadoc)
-	 * @see java.io.Writer#write(char[], int, int)
-	 */
-	@Override
-	public void write(char[] data, int offset, int length) throws IOException {
-		while (true) {
-			ensureBufferAvailable();
-			if (buffer.remaining() > length) {
-				buffer.backingBuffer().put(data, offset, length);
-				break;
-			} else if (buffer.remaining() == length) {
-				buffer.backingBuffer().put(data, offset, length);
-				flush(false);
-				break;
-			} else {
-				int chunkSize = buffer.remaining();
-				buffer.backingBuffer().put(data, offset, chunkSize);
-				flush(false);
-				length -= chunkSize;
-				offset += chunkSize;
-			}
-		}
-	}
+    /**
+     * Causes the data to be fired as {@link Input} events rather
+     * than the usual {@link Output} events. 
+     * 
+     * @return the stream for easy chaining
+     */
+    public CharBufferWriter sendInputEvents() {
+        sendInputEvents = true;
+        return this;
+    }
 
-	/**
-	 * Creates and fires an {@link Output} event with the buffer being filled. 
-	 * The end of record flag of the event is set according to the parameter.
-	 * Frees any allocated buffer.
-	 */
-	private void flush(boolean endOfRecord) throws IOException {
-		if (buffer == null) {
-			if (!endOfRecord || eorSent) {
-				return;
-			}
-			ensureBufferAvailable();
-		}
-		if (buffer.position() == 0 && (!endOfRecord || eorSent)) {
-			// Nothing to flush
-			buffer.unlockBuffer();
-		} else {
-			if (sendInputEvents) {
-				eventPipeline.fire(Input.fromSink(buffer, endOfRecord), channel);
-			} else {
-				eventPipeline.fire(Output.fromSink(buffer, endOfRecord), channel);
-			}
-			eorSent = endOfRecord;
-		}
-		buffer = null;
-	}
+    /**
+     * Suppresses sending of a close event when the stream is closed. 
+     * 
+     * @return the stream for easy chaining
+     */
+    public CharBufferWriter suppressClose() {
+        sendClose = false;
+        return this;
+    }
 
-	/**
-	 * Creates and fires a {@link Output} event with the buffer being filled
-	 * if it contains any data.
-	 * 
-	 * By default, the {@link Output} event is created with the end of record
-	 * flag set (see {@link Output#isEndOfRecord()}) in order to forward the 
-	 * flush as event. This implies that an {@link Output} event with no data
-	 * (but the end of record flag set) may be fired. This behavior can
-	 * be disabled with {@link #suppressEndOfRecord()}.
-	 */
-	@Override
-	public void flush() throws IOException {
-		flush(sendEor);
-	}
-	
-	/**
-	 * Flushes any remaining data with the end of record flag set
-	 * (unless {@link #suppressEndOfRecord()} has been called)
-	 * and fires a {@link Close} event (unless {@link #suppressClose()}
-	 * has been called).
-	 */
-	@Override
-	public void close() throws IOException {
-		if (isClosed) {
-			return;
-		}
-		flush(sendEor);
-		if (sendClose) {
-			eventPipeline.fire(new Close(), channel);
-		}
-		isClosed = true;
-	}
+    /**
+     * Suppresses setting the end of record flag when the stream is 
+     * flushed or closed.
+     * 
+     * @return the stream for easy chaining
+     * @see Output#isEndOfRecord()
+     */
+    public CharBufferWriter suppressEndOfRecord() {
+        sendEor = false;
+        return this;
+    }
+
+    private void ensureBufferAvailable() throws IOException {
+        if (buffer != null) {
+            return;
+        }
+        try {
+            buffer = channel.charBufferPool().acquire();
+        } catch (InterruptedException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.io.Writer#write(char[], int, int)
+     */
+    @Override
+    public void write(char[] data, int offset, int length) throws IOException {
+        while (true) {
+            ensureBufferAvailable();
+            if (buffer.remaining() > length) {
+                buffer.backingBuffer().put(data, offset, length);
+                break;
+            } else if (buffer.remaining() == length) {
+                buffer.backingBuffer().put(data, offset, length);
+                flush(false);
+                break;
+            } else {
+                int chunkSize = buffer.remaining();
+                buffer.backingBuffer().put(data, offset, chunkSize);
+                flush(false);
+                length -= chunkSize;
+                offset += chunkSize;
+            }
+        }
+    }
+
+    /**
+     * Creates and fires an {@link Output} event with the buffer being filled. 
+     * The end of record flag of the event is set according to the parameter.
+     * Frees any allocated buffer.
+     */
+    private void flush(boolean endOfRecord) throws IOException {
+        if (buffer == null) {
+            if (!endOfRecord || eorSent) {
+                return;
+            }
+            ensureBufferAvailable();
+        }
+        if (buffer.position() == 0 && (!endOfRecord || eorSent)) {
+            // Nothing to flush
+            buffer.unlockBuffer();
+        } else {
+            if (sendInputEvents) {
+                eventPipeline.fire(Input.fromSink(buffer, endOfRecord),
+                    channel);
+            } else {
+                eventPipeline.fire(Output.fromSink(buffer, endOfRecord),
+                    channel);
+            }
+            eorSent = endOfRecord;
+        }
+        buffer = null;
+    }
+
+    /**
+     * Creates and fires a {@link Output} event with the buffer being filled
+     * if it contains any data.
+     * 
+     * By default, the {@link Output} event is created with the end of record
+     * flag set (see {@link Output#isEndOfRecord()}) in order to forward the 
+     * flush as event. This implies that an {@link Output} event with no data
+     * (but the end of record flag set) may be fired. This behavior can
+     * be disabled with {@link #suppressEndOfRecord()}.
+     */
+    @Override
+    public void flush() throws IOException {
+        flush(sendEor);
+    }
+
+    /**
+     * Flushes any remaining data with the end of record flag set
+     * (unless {@link #suppressEndOfRecord()} has been called)
+     * and fires a {@link Close} event (unless {@link #suppressClose()}
+     * has been called).
+     */
+    @Override
+    public void close() throws IOException {
+        if (isClosed) {
+            return;
+        }
+        flush(sendEor);
+        if (sendClose) {
+            eventPipeline.fire(new Close(), channel);
+        }
+        isClosed = true;
+    }
 }

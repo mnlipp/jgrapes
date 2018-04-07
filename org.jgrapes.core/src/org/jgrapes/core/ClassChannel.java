@@ -24,74 +24,80 @@ package org.jgrapes.core;
  */
 public class ClassChannel implements Channel {
 
-	/**
-	 * Returns the class of this channel as value.
-	 * 
-	 * @return the class of this channel
-	 * 
-	 * @see org.jgrapes.core.Eligible#defaultCriterion()
-	 */
-	@Override
-	public Object defaultCriterion() {
-		return getClass();
-	}
+    /**
+     * Returns the class of this channel as value.
+     * 
+     * @return the class of this channel
+     * 
+     * @see org.jgrapes.core.Eligible#defaultCriterion()
+     */
+    @Override
+    public Object defaultCriterion() {
+        return getClass();
+    }
 
-	/**
-	 * Returns <code>true</code> if the <code>value</code>
-	 * is the same class or a base class of this channel's class.
-	 * 
-	 * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)
-	 */
-	@Override
-	public boolean isEligibleFor(Object value) {
-		return Class.class.isInstance(value) 
-				&& ((Class<?>)value)
-					.isAssignableFrom((Class<?>)defaultCriterion());
-	}
+    /**
+     * Returns <code>true</code> if the <code>value</code>
+     * is the same class or a base class of this channel's class.
+     * 
+     * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)
+     */
+    @Override
+    public boolean isEligibleFor(Object value) {
+        return Class.class.isInstance(value)
+            && ((Class<?>) value)
+                .isAssignableFrom((Class<?>) defaultCriterion());
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return defaultCriterion().hashCode();
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return defaultCriterion().hashCode();
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		ClassChannel other = (ClassChannel) obj;
-		if (defaultCriterion() == null) {
-			if (other.defaultCriterion() != null) {
-				return false;
-			}
-		} else if (!defaultCriterion().equals(other.defaultCriterion())) {
-			return false;
-		}
-		return true;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        ClassChannel other = (ClassChannel) obj;
+        if (defaultCriterion() == null) {
+            if (other.defaultCriterion() != null) {
+                return false;
+            }
+        } else if (!defaultCriterion().equals(other.defaultCriterion())) {
+            return false;
+        }
+        return true;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return Components.className(getClass())
-				+ " [criterion=" 
-				+ (defaultCriterion() instanceof Class
-					?  Components.className((Class<?>)defaultCriterion())
-					: defaultCriterion())
-				+ "]";
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return Components.className(getClass())
+            + " [criterion="
+            + (defaultCriterion() instanceof Class
+                ? Components.className((Class<?>) defaultCriterion())
+                : defaultCriterion())
+            + "]";
+    }
 }

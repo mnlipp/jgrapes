@@ -99,714 +99,726 @@ import org.jgrapes.net.events.Accepted;
 @SuppressWarnings("PMD.ExcessiveImports")
 public class HttpServer extends Component {
 
-	private WeakReference<Channel> networkChannelPassBack;
-	private List<Class<? extends Request>> providedFallbacks;
-	private int matchLevels = 1;
-	private boolean acceptNoSni;
-	private int applicationBufferSize = -1;
+    private WeakReference<Channel> networkChannelPassBack;
+    private List<Class<? extends Request>> providedFallbacks;
+    private int matchLevels = 1;
+    private boolean acceptNoSni;
+    private int applicationBufferSize = -1;
 
-	/**
-	 * Denotes the network channel in handler annotations.
-	 */
-	private static class NetworkChannel extends ClassChannel {}
-	
-	/**
-	 * Create a new server that uses the {@code networkChannel} for network
-	 * level I/O.
-	 * <P>
-	 * As a convenience the server can provide fall back handlers for the
-	 * specified types of requests. The fall back handler simply returns 404 (
-	 * "Not found").
-	 * 
-	 * @param appChannel
-	 *            this component's channel
-	 * @param networkChannel
-	 *            the channel for network level I/O
-	 * @param fallbacks
-	 *            the requests for which a fall back handler is provided
-	 */
-	@SafeVarargs
-	public HttpServer(Channel appChannel, Channel networkChannel,
-	        Class<? extends Request>... fallbacks) {
-		super(appChannel, ChannelReplacements.create()
-				.add(NetworkChannel.class, networkChannel));
-		networkChannelPassBack = new WeakReference<Channel>(networkChannel);
-		this.providedFallbacks = Arrays.asList(fallbacks);
-	}
+    /**
+     * Denotes the network channel in handler annotations.
+     */
+    private static class NetworkChannel extends ClassChannel {
+    }
 
-	/**
-	 * Create a new server that creates its own {@link TcpServer} with the given
-	 * address and uses it for network level I/O.
-	 * 
-	 * @param appChannel
-	 *            this component's channel
-	 * @param serverAddress the address to listen on
-	 * @param fallbacks fall backs
-	 */
-	@SafeVarargs
-	public HttpServer(Channel appChannel, InetSocketAddress serverAddress,
-	        Class<? extends Request>... fallbacks) {
-		this(appChannel, new TcpServer().setServerAddress(serverAddress),
-				fallbacks);
-		attach((TcpServer)networkChannelPassBack.get());
-	}
+    /**
+     * Create a new server that uses the {@code networkChannel} for network
+     * level I/O.
+     * <P>
+     * As a convenience the server can provide fall back handlers for the
+     * specified types of requests. The fall back handler simply returns 404 (
+     * "Not found").
+     * 
+     * @param appChannel
+     *            this component's channel
+     * @param networkChannel
+     *            the channel for network level I/O
+     * @param fallbacks
+     *            the requests for which a fall back handler is provided
+     */
+    @SafeVarargs
+    public HttpServer(Channel appChannel, Channel networkChannel,
+            Class<? extends Request>... fallbacks) {
+        super(appChannel, ChannelReplacements.create()
+            .add(NetworkChannel.class, networkChannel));
+        networkChannelPassBack = new WeakReference<Channel>(networkChannel);
+        this.providedFallbacks = Arrays.asList(fallbacks);
+    }
 
-	/**
-	 * @return the matchLevels
-	 */
-	public int matchLevels() {
-		return matchLevels;
-	}
+    /**
+     * Create a new server that creates its own {@link TcpServer} with the given
+     * address and uses it for network level I/O.
+     * 
+     * @param appChannel
+     *            this component's channel
+     * @param serverAddress the address to listen on
+     * @param fallbacks fall backs
+     */
+    @SafeVarargs
+    public HttpServer(Channel appChannel, InetSocketAddress serverAddress,
+            Class<? extends Request>... fallbacks) {
+        this(appChannel, new TcpServer().setServerAddress(serverAddress),
+            fallbacks);
+        attach((TcpServer) networkChannelPassBack.get());
+    }
 
-	/**
-	 * Sets the number of elements from the request path used in the match value
-	 * of the generated events (see {@link Request#defaultCriterion()}), defaults
-	 * to 1.
-	 * 
-	 * @param matchLevels the matchLevels to set
-	 * @return the http server for easy chaining
-	 */
-	public HttpServer setMatchLevels(int matchLevels) {
-		this.matchLevels = matchLevels;
-		return this;
-	}
+    /**
+     * @return the matchLevels
+     */
+    public int matchLevels() {
+        return matchLevels;
+    }
 
-	/**
-	 * Sets the size of the buffers used for {@link Output} events
-	 * on the application channel. Defaults to the upstream buffer size
-	 * minus 512 (estimate for added protocol overhead).
-	 * 
-	 * @param applicationBufferSize the size to set
-	 * @return the http server for easy chaining
-	 */
-	public HttpServer setApplicationBufferSize(int applicationBufferSize) {
-		this.applicationBufferSize = applicationBufferSize;
-		return this;
-	}
+    /**
+     * Sets the number of elements from the request path used in the match value
+     * of the generated events (see {@link Request#defaultCriterion()}), defaults
+     * to 1.
+     * 
+     * @param matchLevels the matchLevels to set
+     * @return the http server for easy chaining
+     */
+    public HttpServer setMatchLevels(int matchLevels) {
+        this.matchLevels = matchLevels;
+        return this;
+    }
 
-	/**
-	 * Returns the size of the application side (receive) buffers.
-	 * 
-	 * @return the value or -1 if not set
-	 */
-	public int applicationBufferSize() {
-		return applicationBufferSize;
-	}
+    /**
+     * Sets the size of the buffers used for {@link Output} events
+     * on the application channel. Defaults to the upstream buffer size
+     * minus 512 (estimate for added protocol overhead).
+     * 
+     * @param applicationBufferSize the size to set
+     * @return the http server for easy chaining
+     */
+    public HttpServer setApplicationBufferSize(int applicationBufferSize) {
+        this.applicationBufferSize = applicationBufferSize;
+        return this;
+    }
 
-	/**
-	 * Determines if request from secure (TLS) connections without
-	 * SNI are accepted.
-	 *  
-	 * Secure (TLS) requests usually transfer the name of the server that
-	 * they want to connect to during handshake. The HTTP server checks
-	 * that the `Host` header field of decoded requests matches the
-	 * name used to establish the connection. If, however, the connection
-	 * is made using the IP-address, the client does not have a host name.
-	 * If such connections are to be accepted, this flag, which
-	 * defaults to `false`, must be set.
-	 * 
-	 * Note that in request accepted without SNI, the `Host` header field
-	 * will be modified to contain the IP-address of the indicated host
-	 * to prevent accidental matching with virtual host names.  
-	 * 
-	 * @param acceptNoSni the value to set
-	 * @return the http server for easy chaining
-	 */
-	public HttpServer setAcceptNoSni(boolean acceptNoSni) {
-		this.acceptNoSni = acceptNoSni;
-		return this;
-	}
+    /**
+     * Returns the size of the application side (receive) buffers.
+     * 
+     * @return the value or -1 if not set
+     */
+    public int applicationBufferSize() {
+        return applicationBufferSize;
+    }
 
-	/**
-	 * Returns if secure (TLS) requests without SNI are allowed.
-	 * 
-	 * @return the result
-	 */
-	public boolean acceptNoSni() {
-		return acceptNoSni;
-	}
+    /**
+     * Determines if request from secure (TLS) connections without
+     * SNI are accepted.
+     *  
+     * Secure (TLS) requests usually transfer the name of the server that
+     * they want to connect to during handshake. The HTTP server checks
+     * that the `Host` header field of decoded requests matches the
+     * name used to establish the connection. If, however, the connection
+     * is made using the IP-address, the client does not have a host name.
+     * If such connections are to be accepted, this flag, which
+     * defaults to `false`, must be set.
+     * 
+     * Note that in request accepted without SNI, the `Host` header field
+     * will be modified to contain the IP-address of the indicated host
+     * to prevent accidental matching with virtual host names.  
+     * 
+     * @param acceptNoSni the value to set
+     * @return the http server for easy chaining
+     */
+    public HttpServer setAcceptNoSni(boolean acceptNoSni) {
+        this.acceptNoSni = acceptNoSni;
+        return this;
+    }
 
-	/**
-	 * Creates a new downstream connection as {@link LinkedIOSubchannel} 
-	 * of the network connection, a {@link HttpRequestDecoder} and a
-	 * {@link HttpResponseEncoder}.
-	 * 
-	 * @param event
-	 *            the accepted event
-	 */
-	@Handler(channels=NetworkChannel.class)
-	public void onAccepted(Accepted event, IOSubchannel netChannel) {
-		new WebAppMsgChannel(event, netChannel);
-	}
+    /**
+     * Returns if secure (TLS) requests without SNI are allowed.
+     * 
+     * @return the result
+     */
+    public boolean acceptNoSni() {
+        return acceptNoSni;
+    }
 
-	/**
-	 * Handles data from the client (from upstream). The data is send through 
-	 * the {@link HttpRequestDecoder} and events are sent downstream according
-	 * to the decoding results.
-	 * 
-	 * @param event the event
-	 * @throws ProtocolException if a protocol exception occurs
-	 * @throws InterruptedException 
-	 */
-	@Handler(channels=NetworkChannel.class)
-	public void onInput(
-			Input<ByteBuffer> event, IOSubchannel netChannel)
-					throws ProtocolException, InterruptedException {
-		@SuppressWarnings("unchecked")
-		final Optional<WebAppMsgChannel> appChannel = (Optional<WebAppMsgChannel>)
-				LinkedIOSubchannel.downstreamChannel(this, netChannel);
-		if (appChannel.isPresent()) {
-			appChannel.get().handleNetInput(event);
-		}
-	}
+    /**
+     * Creates a new downstream connection as {@link LinkedIOSubchannel} 
+     * of the network connection, a {@link HttpRequestDecoder} and a
+     * {@link HttpResponseEncoder}.
+     * 
+     * @param event
+     *            the accepted event
+     */
+    @Handler(channels = NetworkChannel.class)
+    public void onAccepted(Accepted event, IOSubchannel netChannel) {
+        new WebAppMsgChannel(event, netChannel);
+    }
 
-	/**
-	 * Forwards a {@link Closed} event to the application channel. 
-	 *
-	 * @param event the event
-	 * @param netChannel the net channel
-	 */
-	@Handler(channels=NetworkChannel.class)
-	public void onClosed(Closed event, IOSubchannel netChannel) {
-		LinkedIOSubchannel.downstreamChannel(this, netChannel, 
-				WebAppMsgChannel.class).ifPresent(appChannel -> {
-					appChannel.handleClosed(event);
-				});
-	}
+    /**
+     * Handles data from the client (from upstream). The data is send through 
+     * the {@link HttpRequestDecoder} and events are sent downstream according
+     * to the decoding results.
+     * 
+     * @param event the event
+     * @throws ProtocolException if a protocol exception occurs
+     * @throws InterruptedException 
+     */
+    @Handler(channels = NetworkChannel.class)
+    public void onInput(
+            Input<ByteBuffer> event, IOSubchannel netChannel)
+            throws ProtocolException, InterruptedException {
+        @SuppressWarnings("unchecked")
+        final Optional<WebAppMsgChannel> appChannel
+            = (Optional<WebAppMsgChannel>) LinkedIOSubchannel
+                .downstreamChannel(this, netChannel);
+        if (appChannel.isPresent()) {
+            appChannel.get().handleNetInput(event);
+        }
+    }
 
-	/**
-	 * Forwards a {@link Purge} event to the application channel.
-	 *
-	 * @param event the event
-	 * @param netChannel the net channel
-	 */
-	@Handler(channels=NetworkChannel.class)
-	public void onPurge(Purge event, IOSubchannel netChannel) {
-		LinkedIOSubchannel.downstreamChannel(this, netChannel, 
-				WebAppMsgChannel.class).ifPresent(appChannel -> {
-					appChannel.handlePurge(event);
-				});
-	}
+    /**
+     * Forwards a {@link Closed} event to the application channel. 
+     *
+     * @param event the event
+     * @param netChannel the net channel
+     */
+    @Handler(channels = NetworkChannel.class)
+    public void onClosed(Closed event, IOSubchannel netChannel) {
+        LinkedIOSubchannel.downstreamChannel(this, netChannel,
+            WebAppMsgChannel.class).ifPresent(appChannel -> {
+                appChannel.handleClosed(event);
+            });
+    }
 
-	/**
-	 * Handles a response event from downstream by sending it through an
-	 * {@link HttpResponseEncoder} that generates the data (encoded information)
-	 * and sends it upstream with {@link Output} events. Depending on whether 
-	 * the response has a body, subsequent {@link Output} events can
-	 * follow.
-	 * 
-	 * @param event
-	 *            the response event
-	 * @throws InterruptedException if the execution was interrupted
-	 */
-	@Handler
-	public void onResponse(Response event, WebAppMsgChannel appChannel)
-			throws InterruptedException {
-		appChannel.handleResponse(event);
-	}
+    /**
+     * Forwards a {@link Purge} event to the application channel.
+     *
+     * @param event the event
+     * @param netChannel the net channel
+     */
+    @Handler(channels = NetworkChannel.class)
+    public void onPurge(Purge event, IOSubchannel netChannel) {
+        LinkedIOSubchannel.downstreamChannel(this, netChannel,
+            WebAppMsgChannel.class).ifPresent(appChannel -> {
+                appChannel.handlePurge(event);
+            });
+    }
 
-	/**
-	 * Receives the message body of a response. A {@link Response} event that
-	 * has a message body can be followed by one or more {@link Output} events
-	 * from downstream that contain the data. An {@code Output} event
-	 * with the end of record flag set signals the end of the message body.
-	 * 
-	 * @param event
-	 *            the event with the data
-	 * @throws InterruptedException if the execution was interrupted
-	 */
-	@Handler
-	public void onOutput(Output<?> event, WebAppMsgChannel appChannel)
-	        throws InterruptedException {
-		appChannel.handleAppOutput(event);
-	}
+    /**
+     * Handles a response event from downstream by sending it through an
+     * {@link HttpResponseEncoder} that generates the data (encoded information)
+     * and sends it upstream with {@link Output} events. Depending on whether 
+     * the response has a body, subsequent {@link Output} events can
+     * follow.
+     * 
+     * @param event
+     *            the response event
+     * @throws InterruptedException if the execution was interrupted
+     */
+    @Handler
+    public void onResponse(Response event, WebAppMsgChannel appChannel)
+            throws InterruptedException {
+        appChannel.handleResponse(event);
+    }
 
-	/**
-	 * Handles a close event from downstream by closing the upstream
-	 * connections.
-	 * 
-	 * @param event
-	 *            the close event
-	 * @throws InterruptedException if the execution was interrupted
-	 */
-	@Handler
-	public void onClose(Close event, WebAppMsgChannel appChannel) 
-			throws InterruptedException {
-		appChannel.handleClose(event);
-	}
+    /**
+     * Receives the message body of a response. A {@link Response} event that
+     * has a message body can be followed by one or more {@link Output} events
+     * from downstream that contain the data. An {@code Output} event
+     * with the end of record flag set signals the end of the message body.
+     * 
+     * @param event
+     *            the event with the data
+     * @throws InterruptedException if the execution was interrupted
+     */
+    @Handler
+    public void onOutput(Output<?> event, WebAppMsgChannel appChannel)
+            throws InterruptedException {
+        appChannel.handleAppOutput(event);
+    }
 
-	/**
-	 * Checks whether the request has been handled (value of {@link Request}
-	 * event set to `true`) or the status code in the prepared response
-	 * is no longer "Not Implemented". If not, but a fall back has been set, 
-	 * send a "Not Found" response. If this isn't the case either, send 
-	 * the default response ("Not implemented") to the client.
-	 * 
-	 * @param event
-	 *            the request completed event
-	 * @param appChannel the application channel 
-	 * @throws InterruptedException if the execution was interrupted
-	 */
-	@Handler
-	public void onRequestCompleted(
-			Request.Completed event, IOSubchannel appChannel)
-	        throws InterruptedException {
-		final Request requestEvent = event.event();
-		// A check that also works with null.
-		if (Boolean.TRUE.equals(requestEvent.get())
-				|| requestEvent.httpRequest().response().map(
-						response -> response.statusCode()
-							!= HttpStatus.NOT_IMPLEMENTED.statusCode())
-					.orElse(false)) {
-			// Some other component has taken care
-			return;
-		}
-		
-		// Check if "Not Found" should be sent
-		if (providedFallbacks != null
-		        && providedFallbacks.contains(requestEvent.getClass())) {
-			ResponseCreationSupport.sendResponse(
-					requestEvent.httpRequest(), appChannel, HttpStatus.NOT_FOUND);
-			return;
-		}
-		
-		// Last resort
-		ResponseCreationSupport.sendResponse(requestEvent.httpRequest(),
-				appChannel,	HttpStatus.NOT_IMPLEMENTED);
-	}
+    /**
+     * Handles a close event from downstream by closing the upstream
+     * connections.
+     * 
+     * @param event
+     *            the close event
+     * @throws InterruptedException if the execution was interrupted
+     */
+    @Handler
+    public void onClose(Close event, WebAppMsgChannel appChannel)
+            throws InterruptedException {
+        appChannel.handleClose(event);
+    }
 
-	/**
-	 * Provides a fallback handler for an OPTIONS request with asterisk. Simply
-	 * responds with "OK".
-	 * 
-	 * @param event the event
-	 * @param appChannel the application channel
-	 */
-	@Handler(priority = Integer.MIN_VALUE)
-	public void onOptions(OptionsRequest event, IOSubchannel appChannel) {
-		if (event.requestUri() == HttpRequest.ASTERISK_REQUEST) {
-			HttpResponse response = event.httpRequest().response().get();
-			response.setStatus(HttpStatus.OK);
-			appChannel.respond(new Response(response));
-			event.setResult(true);
-			event.stop();
-		}
-	}
+    /**
+     * Checks whether the request has been handled (value of {@link Request}
+     * event set to `true`) or the status code in the prepared response
+     * is no longer "Not Implemented". If not, but a fall back has been set, 
+     * send a "Not Found" response. If this isn't the case either, send 
+     * the default response ("Not implemented") to the client.
+     * 
+     * @param event
+     *            the request completed event
+     * @param appChannel the application channel 
+     * @throws InterruptedException if the execution was interrupted
+     */
+    @Handler
+    public void onRequestCompleted(
+            Request.Completed event, IOSubchannel appChannel)
+            throws InterruptedException {
+        final Request requestEvent = event.event();
+        // A check that also works with null.
+        if (Boolean.TRUE.equals(requestEvent.get())
+            || requestEvent.httpRequest().response().map(
+                response -> response.statusCode() != HttpStatus.NOT_IMPLEMENTED
+                    .statusCode())
+                .orElse(false)) {
+            // Some other component has taken care
+            return;
+        }
 
-	/**
-	 * Send the response indicating that the protocol switch was accepted
-	 * and causes subsequent data to be handled as {@link Input} and
-	 * {@link Output} events on the channel.
-	 * 
-	 * As a convenience, the channel is associates with the URI that
-	 * was used to request the protocol switch using {@link URI} as key.
-	 * 
-	 * @param event the event
-	 * @param appChannel the channel
-	 */
-	@Handler
-	public void onProtocolSwitchAccepted(
-			ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {
-		appChannel.handleProtocolSwitchAccepted(event, appChannel);
-	}
+        // Check if "Not Found" should be sent
+        if (providedFallbacks != null
+            && providedFallbacks.contains(requestEvent.getClass())) {
+            ResponseCreationSupport.sendResponse(
+                requestEvent.httpRequest(), appChannel, HttpStatus.NOT_FOUND);
+            return;
+        }
 
-	/**
-	 * Delay further processing of the {@link Upgraded} event until
-	 * the confirmation has been sent upstream. 
-	 *
-	 * @param event the event
-	 * @param appChannel the app channel
-	 * @throws InterruptedException the interrupted exception
-	 */
-	@Handler(priority=1000000)
-	public void onUpgraded(Upgraded event, WebAppMsgChannel appChannel) 
-					throws InterruptedException {
-		appChannel.handleUpgraded(event, appChannel);
-	}
-	
-	/**
-	 * The upgraded state.
-	 */
-	private enum UpgradedState { NONE, UPGRADING_TO_WS, WEB_SOCKET }
-	
-	/**
-	 * An application layer channel.
-	 */
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-	private class WebAppMsgChannel extends LinkedIOSubchannel {
-		// Starts as ServerEngine<HttpRequest,HttpResponse> but may change
-		private final ServerEngine<?,?> engine;
-		private ManagedBuffer<ByteBuffer> outBuffer;
-		private final boolean secure;
-		private List<String> snis = Collections.emptyList();
-		private final ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
-			byteBufferPool;
-		private final ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer> 
-			charBufferPool;
-		private ManagedBufferPool<?, ?> currentPool;
-		private final EventPipeline downPipeline;
-		private final Object syncUpgrading = new Object();
-		private UpgradedState upgradedTo = UpgradedState.NONE;
-		private WsMessageHeader currentWsMessage;
+        // Last resort
+        ResponseCreationSupport.sendResponse(requestEvent.httpRequest(),
+            appChannel, HttpStatus.NOT_IMPLEMENTED);
+    }
 
-		/**
-		 * Instantiates a new channel.
-		 *
-		 * @param event the event
-		 * @param netChannel the net channel
-		 */
-		@SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
-		public WebAppMsgChannel(Accepted event, IOSubchannel netChannel) {
-			super(HttpServer.this, channel(), netChannel, newEventPipeline());
-			engine = new ServerEngine<>(
-					new HttpRequestDecoder(), new HttpResponseEncoder());
-			secure = event.isSecure();
-			if (secure) {
-				snis = new ArrayList<>();
-				for (SNIServerName sni: event.requestedServerNames()) {
-					if (sni instanceof SNIHostName) {
-						snis.add(((SNIHostName)sni).getAsciiName());
-					}
-				}
-			}
+    /**
+     * Provides a fallback handler for an OPTIONS request with asterisk. Simply
+     * responds with "OK".
+     * 
+     * @param event the event
+     * @param appChannel the application channel
+     */
+    @Handler(priority = Integer.MIN_VALUE)
+    public void onOptions(OptionsRequest event, IOSubchannel appChannel) {
+        if (event.requestUri() == HttpRequest.ASTERISK_REQUEST) {
+            HttpResponse response = event.httpRequest().response().get();
+            response.setStatus(HttpStatus.OK);
+            appChannel.respond(new Response(response));
+            event.setResult(true);
+            event.stop();
+        }
+    }
 
-			// Calculate "good" application buffer size
-			int bufferSize = applicationBufferSize;
-			if (bufferSize <= 0) {
-				bufferSize = netChannel.byteBufferPool().bufferSize() - 512;
-				if (bufferSize < 4096) {
-					bufferSize = 4096;
-				}
-			}
-			
-			String channelName = Components.objectName(HttpServer.this)
-					+ "." + Components.objectName(this);
-			byteBufferPool().setName(channelName + ".upstream.byteBuffers");
-			charBufferPool().setName(channelName + ".upstream.charBuffers");
-			// Allocate downstream buffer pools. Note that decoding WebSocket
-			// network packets may result in several WS frames that are each 
-			// delivered in independent events. Therefore provide some 
-			// additional buffers.
-			final int bufSize = bufferSize;
-			byteBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,	
-					() -> { return ByteBuffer.allocate(bufSize); }, 2, 100)
-					.setName(channelName + ".downstream.byteBuffers");
-			charBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,	
-					() -> { return CharBuffer.allocate(bufSize); }, 2, 100)
-					.setName(channelName + ".downstream.charBuffers");
-			
-			// Downstream pipeline
-			downPipeline = newEventPipeline();
-		}
-		
-		/**
-		 * Handle {@link Input} events from the network.
-		 *
-		 * @param event the event
-		 * @throws ProtocolException the protocol exception
-		 * @throws InterruptedException the interrupted exception
-		 */
-		@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-		        "PMD.AvoidInstantiatingObjectsInLoops",
-		        "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements" })
-		public void handleNetInput(Input<ByteBuffer> event) 
-				throws ProtocolException, InterruptedException {
-			// Send the data from the event through the decoder.
-			ByteBuffer inData = event.data();
-			// Don't unnecessary allocate a buffer, may be header only message
-			ManagedBuffer<?> bodyData = null;
-			boolean wasOverflow = false;
-			while (inData.hasRemaining()) {
-				if (wasOverflow) {
-					// Message has (more) body
-					bodyData = currentPool.acquire();
-				}
-				Decoder.Result<?> result = engine.decode(inData,
-				        bodyData == null ? null : bodyData.backingBuffer(),
-				        event.isEndOfRecord());
-				if (result.response().isPresent()) {
-					// Feedback required, send it
-					responsePipeline().overrideRestriction().fire(
-							new Response(result.response().get()), this);
-					if (result.response().get().isFinal()) {
-						if (result.isHeaderCompleted()) {
-							engine.currentRequest()
-							.filter(WsCloseFrame.class::isInstance)
-							.ifPresent(closeFrame -> {
-								downPipeline.fire(new WebSocketClosed(
-										(WsCloseFrame)closeFrame, this));
-							});
-						}
-						break;
-					}
-					if (result.isResponseOnly()) {
-						continue;
-					}
-				}
-				if (result.isHeaderCompleted()) {
-					if (!handleRequestHeader(engine.currentRequest().get())) {
-						break;
-					}
-				}
-				if (bodyData != null) {
-					if (bodyData.position() > 0) {
-						downPipeline.fire(Input.fromSink(
-								bodyData, !result.isOverflow() 
-								&& !result.isUnderflow()), this);
-					} else {
-						bodyData.unlockBuffer();
-					}
-					bodyData = null;
-				}
-				wasOverflow = result.isOverflow();
-			}
-		}
+    /**
+     * Send the response indicating that the protocol switch was accepted
+     * and causes subsequent data to be handled as {@link Input} and
+     * {@link Output} events on the channel.
+     * 
+     * As a convenience, the channel is associates with the URI that
+     * was used to request the protocol switch using {@link URI} as key.
+     * 
+     * @param event the event
+     * @param appChannel the channel
+     */
+    @Handler
+    public void onProtocolSwitchAccepted(
+            ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {
+        appChannel.handleProtocolSwitchAccepted(event, appChannel);
+    }
 
-		@SuppressWarnings("PMD.CollapsibleIfStatements")
-		private boolean handleRequestHeader(MessageHeader request) {
-			if (request instanceof HttpRequest) {
-				HttpRequest httpRequest = (HttpRequest)request;
-				if (httpRequest.hasPayload()) {
-					if(httpRequest.findValue(
-						HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)
-							.map(type -> type.value().topLevelType()
-									.equalsIgnoreCase("text"))
-							.orElse(false)) {
-						currentPool = charBufferPool;
-					} else {
-						currentPool = byteBufferPool;
-					}
-				}
-				if (secure) {
-					if (!snis.contains(httpRequest.host())) {
-						if (acceptNoSni && snis.isEmpty()) {
-							convertHostToNumerical(httpRequest);
-						} else {
-							ResponseCreationSupport.sendResponse(httpRequest,
-									this, 421, "Misdirected Request");
-							return false;
-						}
-					}
-				}
-				downPipeline.fire(Request.fromHttpRequest(httpRequest,
-				        secure, matchLevels), this);
-			} else if (request instanceof WsMessageHeader) {
-				WsMessageHeader wsMessage = (WsMessageHeader)request;
-				if (wsMessage.hasPayload()) {
-					if (wsMessage.isTextMode()) {
-						currentPool = charBufferPool;
-					} else {
-						currentPool = byteBufferPool;
-					}
-				}
-			}
-			return true;
-		}
-		
-		@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-		        "PMD.UseStringBufferForStringAppends" })
-		private void convertHostToNumerical(HttpRequest request) {
-			int port = request.port();
-			String host;
-			try {
-				InetAddress addr = InetAddress.getByName(
-						request.host());
-				host = addr.getHostAddress();
-				if (!(addr instanceof Inet4Address)) {
-					host = "[" + host + "]";
-				}
-			} catch (UnknownHostException e) {
-				host = InetAddress.getLoopbackAddress().getHostAddress();
-			}
-			request.setHostAndPort(host, port);
-		}
+    /**
+     * Delay further processing of the {@link Upgraded} event until
+     * the confirmation has been sent upstream. 
+     *
+     * @param event the event
+     * @param appChannel the app channel
+     * @throws InterruptedException the interrupted exception
+     */
+    @Handler(priority = 1000000)
+    public void onUpgraded(Upgraded event, WebAppMsgChannel appChannel)
+            throws InterruptedException {
+        appChannel.handleUpgraded(event, appChannel);
+    }
 
-		/**
-		 * Handle a response event from the appication layer.
-		 *
-		 * @param event the event
-		 * @throws InterruptedException the interrupted exception
-		 */
-		@SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
-		        "PMD.AvoidBranchingStatementAsLastInLoop" })
-		public void handleResponse(Response event) throws InterruptedException {
-			if (!engine.encoding().isAssignableFrom(event.response().getClass())) {
-				return;
-			}
-			final MessageHeader response = event.response();
-			// Start sending the response
-			@SuppressWarnings("unchecked")
-			ServerEngine<?,MessageHeader> msgEngine 
-				= (ServerEngine<?,MessageHeader>)engine;
-			msgEngine.encode(response);
-			boolean hasBody = response.hasPayload();
-			while (true) {
-				outBuffer = upstreamChannel().byteBufferPool().acquire();
-				final ManagedBuffer<ByteBuffer> buffer = outBuffer;
-				Codec.Result result = engine.encode(
-						Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);
-				if (result.isOverflow()) {
-					upstreamChannel().respond(Output.fromSink(buffer, false));
-					continue;
-				}
-				if (hasBody) {
-					// Keep buffer with incomplete response to be further
-					// filled by Output events
-					break;
-				}
-				// Response is complete
-				if (buffer.position() > 0) {
-					upstreamChannel().respond(Output.fromSink(buffer, true));
-				} else {
-					buffer.unlockBuffer();
-				}
-				outBuffer = null;
-				if (result.closeConnection()) {
-					upstreamChannel().respond(new Close());
-				}
-				break;
-			}
-			
-		}
-		
-		/**
-		 * Handle a {@link ProtocolSwitchAccepted} event from the 
-		 * application layer.
-		 *
-		 * @param event the event
-		 * @param appChannel the app channel
-		 */
-		public void handleProtocolSwitchAccepted(
-				ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {
-			upgradedTo = UpgradedState.UPGRADING_TO_WS;
-			appChannel.setAssociated(URI.class, 
-					event.requestEvent().requestUri());
-			final HttpResponse response = event.requestEvent()
-					.httpRequest().response().get()
-					.setStatus(HttpStatus.SWITCHING_PROTOCOLS)
-					.setField(HttpField.UPGRADE, 
-							new StringList(event.protocol()));
-			downPipeline.fire(new Upgraded(event.resourceName(), 
-					event.protocol()), this);
-			respond(new Response(response));
-			// Response is sent, channel may be used by next level now.
-			synchronized (syncUpgrading) {
-				upgradedTo = UpgradedState.WEB_SOCKET;
-				syncUpgrading.notifyAll();
-			}
-		}
+    /**
+     * The upgraded state.
+     */
+    private enum UpgradedState {
+        NONE, UPGRADING_TO_WS, WEB_SOCKET
+    }
 
-		/**
-		 * Handle an {@link Upgraded} event from the applictaion layer.
-		 *
-		 * @param event the event
-		 * @param appChannel the app channel
-		 * @throws InterruptedException the interrupted exception
-		 */
-		public void handleUpgraded(Upgraded event, 
-				WebAppMsgChannel appChannel) throws InterruptedException {
-			synchronized (syncUpgrading) {
-				while (upgradedTo == UpgradedState.UPGRADING_TO_WS) {
-					syncUpgrading.wait();
-				}
-			}
-		}
-		
-		/**
-		 * Handle output from the application layer.
-		 *
-		 * @param event the event
-		 * @throws InterruptedException the interrupted exception
-		 */
-		@SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
-		        "PMD.NPathComplexity", "PMD.AvoidInstantiatingObjectsInLoops" })
-		public void handleAppOutput(Output<?> event) 
-				throws InterruptedException {
-			Buffer eventData = event.data();
-			Buffer input;
-			if (eventData instanceof ByteBuffer) {
-				input = ((ByteBuffer)eventData).duplicate();
-			} else if(eventData instanceof CharBuffer) {
-				input = ((CharBuffer)eventData).duplicate();
-			} else {
-				return;
-			}
-			if (upgradedTo == UpgradedState.WEB_SOCKET 
-					&& currentWsMessage == null) {
-				// When switched to WebSockets, we only have Input and Output
-				// events. Add header automatically.
-				@SuppressWarnings("unchecked")
-				ServerEngine<?,MessageHeader> wsEngine 
-					= (ServerEngine<?,MessageHeader>)engine;
-				currentWsMessage = new WsMessageHeader(
-						event.buffer().backingBuffer() instanceof CharBuffer,
-						true);
-				wsEngine.encode(currentWsMessage);
-			}
-			while (input.hasRemaining() || event.isEndOfRecord()) {
-				if (outBuffer == null) {
-					outBuffer = upstreamChannel().byteBufferPool().acquire();
-				}
-				Codec.Result result = engine.encode(input,
-				        outBuffer.backingBuffer(), event.isEndOfRecord());
-				if (result.isOverflow()) {
-					upstreamChannel().respond(Output.fromSink(outBuffer, false));
-					outBuffer = upstreamChannel().byteBufferPool().acquire();
-					continue;
-				}
-				if (event.isEndOfRecord() || result.closeConnection()) {
-					if (outBuffer.position() > 0) {
-						upstreamChannel().respond(Output.fromSink(outBuffer, true));
-					} else {
-						outBuffer.unlockBuffer();
-					}
-					outBuffer = null;
-					if (result.closeConnection()) {
-						upstreamChannel().respond(new Close());
-					}
-					break;
-				}
-			}
-			if (upgradedTo == UpgradedState.WEB_SOCKET
-					&& event.isEndOfRecord()) {
-				currentWsMessage = null;
-			}
-		}
-		
-		/**
-		 * Handle a {@link Close} event from the application layer.
-		 *
-		 * @param event the event
-		 * @throws InterruptedException the interrupted exception
-		 */
-		public void handleClose(Close event) throws InterruptedException {
-			if (upgradedTo == UpgradedState.WEB_SOCKET) {
-				respond(new Response(new WsCloseFrame(null, null)));
-				return;
-			}
-			upstreamChannel().respond(new Close());
-		}
+    /**
+     * An application layer channel.
+     */
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    private class WebAppMsgChannel extends LinkedIOSubchannel {
+        // Starts as ServerEngine<HttpRequest,HttpResponse> but may change
+        private final ServerEngine<?, ?> engine;
+        private ManagedBuffer<ByteBuffer> outBuffer;
+        private final boolean secure;
+        private List<String> snis = Collections.emptyList();
+        private final ManagedBufferPool<ManagedBuffer<ByteBuffer>,
+                ByteBuffer> byteBufferPool;
+        private final ManagedBufferPool<ManagedBuffer<CharBuffer>,
+                CharBuffer> charBufferPool;
+        private ManagedBufferPool<?, ?> currentPool;
+        private final EventPipeline downPipeline;
+        private final Object syncUpgrading = new Object();
+        private UpgradedState upgradedTo = UpgradedState.NONE;
+        private WsMessageHeader currentWsMessage;
 
-		/**
-		 * Handle a {@link Closed} event from the network by forwarding
-		 * it to the application layer.
-		 *
-		 * @param event the event
-		 */
-		public void handleClosed(Closed event) {
-			downPipeline.fire(new Closed(), this);
-		}
+        /**
+         * Instantiates a new channel.
+         *
+         * @param event the event
+         * @param netChannel the net channel
+         */
+        @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
+        public WebAppMsgChannel(Accepted event, IOSubchannel netChannel) {
+            super(HttpServer.this, channel(), netChannel, newEventPipeline());
+            engine = new ServerEngine<>(
+                new HttpRequestDecoder(), new HttpResponseEncoder());
+            secure = event.isSecure();
+            if (secure) {
+                snis = new ArrayList<>();
+                for (SNIServerName sni : event.requestedServerNames()) {
+                    if (sni instanceof SNIHostName) {
+                        snis.add(((SNIHostName) sni).getAsciiName());
+                    }
+                }
+            }
 
-		/**
-		 * Handle a {@link Purge} event by forwarding it to the
-		 * application layer.
-		 *
-		 * @param event the event
-		 */
-		public void handlePurge(Purge event) {
-			downPipeline.fire(new Purge(), this);
-		}
+            // Calculate "good" application buffer size
+            int bufferSize = applicationBufferSize;
+            if (bufferSize <= 0) {
+                bufferSize = netChannel.byteBufferPool().bufferSize() - 512;
+                if (bufferSize < 4096) {
+                    bufferSize = 4096;
+                }
+            }
 
-	}
+            String channelName = Components.objectName(HttpServer.this)
+                + "." + Components.objectName(this);
+            byteBufferPool().setName(channelName + ".upstream.byteBuffers");
+            charBufferPool().setName(channelName + ".upstream.charBuffers");
+            // Allocate downstream buffer pools. Note that decoding WebSocket
+            // network packets may result in several WS frames that are each
+            // delivered in independent events. Therefore provide some
+            // additional buffers.
+            final int bufSize = bufferSize;
+            byteBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,
+                () -> {
+                    return ByteBuffer.allocate(bufSize);
+                }, 2, 100)
+                    .setName(channelName + ".downstream.byteBuffers");
+            charBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,
+                () -> {
+                    return CharBuffer.allocate(bufSize);
+                }, 2, 100)
+                    .setName(channelName + ".downstream.charBuffers");
+
+            // Downstream pipeline
+            downPipeline = newEventPipeline();
+        }
+
+        /**
+         * Handle {@link Input} events from the network.
+         *
+         * @param event the event
+         * @throws ProtocolException the protocol exception
+         * @throws InterruptedException the interrupted exception
+         */
+        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+            "PMD.AvoidInstantiatingObjectsInLoops",
+            "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements" })
+        public void handleNetInput(Input<ByteBuffer> event)
+                throws ProtocolException, InterruptedException {
+            // Send the data from the event through the decoder.
+            ByteBuffer inData = event.data();
+            // Don't unnecessary allocate a buffer, may be header only message
+            ManagedBuffer<?> bodyData = null;
+            boolean wasOverflow = false;
+            while (inData.hasRemaining()) {
+                if (wasOverflow) {
+                    // Message has (more) body
+                    bodyData = currentPool.acquire();
+                }
+                Decoder.Result<?> result = engine.decode(inData,
+                    bodyData == null ? null : bodyData.backingBuffer(),
+                    event.isEndOfRecord());
+                if (result.response().isPresent()) {
+                    // Feedback required, send it
+                    responsePipeline().overrideRestriction().fire(
+                        new Response(result.response().get()), this);
+                    if (result.response().get().isFinal()) {
+                        if (result.isHeaderCompleted()) {
+                            engine.currentRequest()
+                                .filter(WsCloseFrame.class::isInstance)
+                                .ifPresent(closeFrame -> {
+                                    downPipeline.fire(new WebSocketClosed(
+                                        (WsCloseFrame) closeFrame, this));
+                                });
+                        }
+                        break;
+                    }
+                    if (result.isResponseOnly()) {
+                        continue;
+                    }
+                }
+                if (result.isHeaderCompleted()) {
+                    if (!handleRequestHeader(engine.currentRequest().get())) {
+                        break;
+                    }
+                }
+                if (bodyData != null) {
+                    if (bodyData.position() > 0) {
+                        downPipeline.fire(Input.fromSink(
+                            bodyData, !result.isOverflow()
+                                && !result.isUnderflow()),
+                            this);
+                    } else {
+                        bodyData.unlockBuffer();
+                    }
+                    bodyData = null;
+                }
+                wasOverflow = result.isOverflow();
+            }
+        }
+
+        @SuppressWarnings("PMD.CollapsibleIfStatements")
+        private boolean handleRequestHeader(MessageHeader request) {
+            if (request instanceof HttpRequest) {
+                HttpRequest httpRequest = (HttpRequest) request;
+                if (httpRequest.hasPayload()) {
+                    if (httpRequest.findValue(
+                        HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)
+                        .map(type -> type.value().topLevelType()
+                            .equalsIgnoreCase("text"))
+                        .orElse(false)) {
+                        currentPool = charBufferPool;
+                    } else {
+                        currentPool = byteBufferPool;
+                    }
+                }
+                if (secure) {
+                    if (!snis.contains(httpRequest.host())) {
+                        if (acceptNoSni && snis.isEmpty()) {
+                            convertHostToNumerical(httpRequest);
+                        } else {
+                            ResponseCreationSupport.sendResponse(httpRequest,
+                                this, 421, "Misdirected Request");
+                            return false;
+                        }
+                    }
+                }
+                downPipeline.fire(Request.fromHttpRequest(httpRequest,
+                    secure, matchLevels), this);
+            } else if (request instanceof WsMessageHeader) {
+                WsMessageHeader wsMessage = (WsMessageHeader) request;
+                if (wsMessage.hasPayload()) {
+                    if (wsMessage.isTextMode()) {
+                        currentPool = charBufferPool;
+                    } else {
+                        currentPool = byteBufferPool;
+                    }
+                }
+            }
+            return true;
+        }
+
+        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+            "PMD.UseStringBufferForStringAppends" })
+        private void convertHostToNumerical(HttpRequest request) {
+            int port = request.port();
+            String host;
+            try {
+                InetAddress addr = InetAddress.getByName(
+                    request.host());
+                host = addr.getHostAddress();
+                if (!(addr instanceof Inet4Address)) {
+                    host = "[" + host + "]";
+                }
+            } catch (UnknownHostException e) {
+                host = InetAddress.getLoopbackAddress().getHostAddress();
+            }
+            request.setHostAndPort(host, port);
+        }
+
+        /**
+         * Handle a response event from the appication layer.
+         *
+         * @param event the event
+         * @throws InterruptedException the interrupted exception
+         */
+        @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
+            "PMD.AvoidBranchingStatementAsLastInLoop" })
+        public void handleResponse(Response event) throws InterruptedException {
+            if (!engine.encoding()
+                .isAssignableFrom(event.response().getClass())) {
+                return;
+            }
+            final MessageHeader response = event.response();
+            // Start sending the response
+            @SuppressWarnings("unchecked")
+            ServerEngine<?, MessageHeader> msgEngine
+                = (ServerEngine<?, MessageHeader>) engine;
+            msgEngine.encode(response);
+            boolean hasBody = response.hasPayload();
+            while (true) {
+                outBuffer = upstreamChannel().byteBufferPool().acquire();
+                final ManagedBuffer<ByteBuffer> buffer = outBuffer;
+                Codec.Result result = engine.encode(
+                    Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);
+                if (result.isOverflow()) {
+                    upstreamChannel().respond(Output.fromSink(buffer, false));
+                    continue;
+                }
+                if (hasBody) {
+                    // Keep buffer with incomplete response to be further
+                    // filled by Output events
+                    break;
+                }
+                // Response is complete
+                if (buffer.position() > 0) {
+                    upstreamChannel().respond(Output.fromSink(buffer, true));
+                } else {
+                    buffer.unlockBuffer();
+                }
+                outBuffer = null;
+                if (result.closeConnection()) {
+                    upstreamChannel().respond(new Close());
+                }
+                break;
+            }
+
+        }
+
+        /**
+         * Handle a {@link ProtocolSwitchAccepted} event from the 
+         * application layer.
+         *
+         * @param event the event
+         * @param appChannel the app channel
+         */
+        public void handleProtocolSwitchAccepted(
+                ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {
+            upgradedTo = UpgradedState.UPGRADING_TO_WS;
+            appChannel.setAssociated(URI.class,
+                event.requestEvent().requestUri());
+            final HttpResponse response = event.requestEvent()
+                .httpRequest().response().get()
+                .setStatus(HttpStatus.SWITCHING_PROTOCOLS)
+                .setField(HttpField.UPGRADE,
+                    new StringList(event.protocol()));
+            downPipeline.fire(new Upgraded(event.resourceName(),
+                event.protocol()), this);
+            respond(new Response(response));
+            // Response is sent, channel may be used by next level now.
+            synchronized (syncUpgrading) {
+                upgradedTo = UpgradedState.WEB_SOCKET;
+                syncUpgrading.notifyAll();
+            }
+        }
+
+        /**
+         * Handle an {@link Upgraded} event from the applictaion layer.
+         *
+         * @param event the event
+         * @param appChannel the app channel
+         * @throws InterruptedException the interrupted exception
+         */
+        public void handleUpgraded(Upgraded event,
+                WebAppMsgChannel appChannel) throws InterruptedException {
+            synchronized (syncUpgrading) {
+                while (upgradedTo == UpgradedState.UPGRADING_TO_WS) {
+                    syncUpgrading.wait();
+                }
+            }
+        }
+
+        /**
+         * Handle output from the application layer.
+         *
+         * @param event the event
+         * @throws InterruptedException the interrupted exception
+         */
+        @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
+            "PMD.NPathComplexity", "PMD.AvoidInstantiatingObjectsInLoops" })
+        public void handleAppOutput(Output<?> event)
+                throws InterruptedException {
+            Buffer eventData = event.data();
+            Buffer input;
+            if (eventData instanceof ByteBuffer) {
+                input = ((ByteBuffer) eventData).duplicate();
+            } else if (eventData instanceof CharBuffer) {
+                input = ((CharBuffer) eventData).duplicate();
+            } else {
+                return;
+            }
+            if (upgradedTo == UpgradedState.WEB_SOCKET
+                && currentWsMessage == null) {
+                // When switched to WebSockets, we only have Input and Output
+                // events. Add header automatically.
+                @SuppressWarnings("unchecked")
+                ServerEngine<?, MessageHeader> wsEngine
+                    = (ServerEngine<?, MessageHeader>) engine;
+                currentWsMessage = new WsMessageHeader(
+                    event.buffer().backingBuffer() instanceof CharBuffer,
+                    true);
+                wsEngine.encode(currentWsMessage);
+            }
+            while (input.hasRemaining() || event.isEndOfRecord()) {
+                if (outBuffer == null) {
+                    outBuffer = upstreamChannel().byteBufferPool().acquire();
+                }
+                Codec.Result result = engine.encode(input,
+                    outBuffer.backingBuffer(), event.isEndOfRecord());
+                if (result.isOverflow()) {
+                    upstreamChannel()
+                        .respond(Output.fromSink(outBuffer, false));
+                    outBuffer = upstreamChannel().byteBufferPool().acquire();
+                    continue;
+                }
+                if (event.isEndOfRecord() || result.closeConnection()) {
+                    if (outBuffer.position() > 0) {
+                        upstreamChannel()
+                            .respond(Output.fromSink(outBuffer, true));
+                    } else {
+                        outBuffer.unlockBuffer();
+                    }
+                    outBuffer = null;
+                    if (result.closeConnection()) {
+                        upstreamChannel().respond(new Close());
+                    }
+                    break;
+                }
+            }
+            if (upgradedTo == UpgradedState.WEB_SOCKET
+                && event.isEndOfRecord()) {
+                currentWsMessage = null;
+            }
+        }
+
+        /**
+         * Handle a {@link Close} event from the application layer.
+         *
+         * @param event the event
+         * @throws InterruptedException the interrupted exception
+         */
+        public void handleClose(Close event) throws InterruptedException {
+            if (upgradedTo == UpgradedState.WEB_SOCKET) {
+                respond(new Response(new WsCloseFrame(null, null)));
+                return;
+            }
+            upstreamChannel().respond(new Close());
+        }
+
+        /**
+         * Handle a {@link Closed} event from the network by forwarding
+         * it to the application layer.
+         *
+         * @param event the event
+         */
+        public void handleClosed(Closed event) {
+            downPipeline.fire(new Closed(), this);
+        }
+
+        /**
+         * Handle a {@link Purge} event by forwarding it to the
+         * application layer.
+         *
+         * @param event the event
+         */
+        public void handlePurge(Purge event) {
+            downPipeline.fire(new Purge(), this);
+        }
+
+    }
 
 }

@@ -30,23 +30,23 @@ import org.jgrapes.io.events.Purge;
  */
 public class PurgeTerminator extends Component {
 
-	/**
-	 * @param componentChannel
-	 */
-	public PurgeTerminator(Channel componentChannel) {
-		super(componentChannel);
-	}
+    /**
+     * @param componentChannel
+     */
+    public PurgeTerminator(Channel componentChannel) {
+        super(componentChannel);
+    }
 
-	/**
-	 * Handles a {@link Purge} event by sending a {@link Close} event.
-	 *
-	 * @param event the event
-	 * @param channel the channel
-	 */
-	@Handler
-	public void onPurge(Purge event, IOSubchannel channel) {
-		// Needn't close this more than once 
-		event.stop();
-		channel.respond(new Close());
-	}
+    /**
+     * Handles a {@link Purge} event by sending a {@link Close} event.
+     *
+     * @param event the event
+     * @param channel the channel
+     */
+    @Handler
+    public void onPurge(Purge event, IOSubchannel channel) {
+        // Needn't close this more than once
+        event.stop();
+        channel.respond(new Close());
+    }
 }

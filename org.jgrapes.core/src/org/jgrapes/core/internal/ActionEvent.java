@@ -30,72 +30,71 @@ import org.jgrapes.core.EventPipeline;
  */
 public abstract class ActionEvent<T> extends Event<T> {
 
-	private static Object defaultCriterion = new Object();
+    private static Object defaultCriterion = new Object();
 
-	/* default */ static <V> ActionEvent<V> create(Callable<V> action) {
-		return new CallableActionEvent<>(action);
-	}
+    /* default */ static <V> ActionEvent<V> create(Callable<V> action) {
+        return new CallableActionEvent<>(action);
+    }
 
-	/* default */ static ActionEvent<Void> create(Runnable action) {
-		return new RunnableActionEvent(action);
-	}
-	
-	@SuppressWarnings("PMD.SignatureDeclareThrowsException")
-	/* default */ abstract void execute() throws Exception;
-	
-	@Override
-	public boolean isEligibleFor(Object criterion) {
-		return criterion == defaultCriterion; // NOPMD, comparing references
-	}
+    /* default */ static ActionEvent<Void> create(Runnable action) {
+        return new RunnableActionEvent(action);
+    }
 
-	@Override
-	public Object defaultCriterion() {
-		return defaultCriterion;
-	}
+    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
+    /* default */ abstract void execute() throws Exception;
 
-	/**
-	 * An {@link ActionEvent} that executes a {@link Callable}.
-	 *
-	 * @param <V> the value type
-	 */
-	private static class CallableActionEvent<V> extends ActionEvent<V> {
-		private final Callable<V> action;
-		
-		/**
-		 * Instantiates a new callable action event.
-		 *
-		 * @param callable the callable
-		 */
-		public CallableActionEvent(Callable<V> callable) {
-			this.action = callable;
-		}
+    @Override
+    public boolean isEligibleFor(Object criterion) {
+        return criterion == defaultCriterion; // NOPMD, comparing references
+    }
 
-		@SuppressWarnings("PMD.SignatureDeclareThrowsException")
-		/* default */ void execute() throws Exception {
-			setResult(action.call());
-		}
-	}
-	
-	/**
-	 * An {@link ActionEvent} that executes a {@link Runnable}.
-	 */
-	private static class RunnableActionEvent extends ActionEvent<Void> {
-		private final Runnable action;
-		
-		/**
-		 * Instantiates a new runnable action event.
-		 *
-		 * @param action the action
-		 */
-		public RunnableActionEvent(Runnable action) {
-			this.action = action;
-		}
+    @Override
+    public Object defaultCriterion() {
+        return defaultCriterion;
+    }
 
-		@SuppressWarnings("PMD.SignatureDeclareThrowsException")
-		/* default */ void execute() throws Exception {
-			action.run();
-		}
-		
+    /**
+     * An {@link ActionEvent} that executes a {@link Callable}.
+     *
+     * @param <V> the value type
+     */
+    private static class CallableActionEvent<V> extends ActionEvent<V> {
+        private final Callable<V> action;
 
-	}
+        /**
+         * Instantiates a new callable action event.
+         *
+         * @param callable the callable
+         */
+        public CallableActionEvent(Callable<V> callable) {
+            this.action = callable;
+        }
+
+        @SuppressWarnings("PMD.SignatureDeclareThrowsException")
+        /* default */ void execute() throws Exception {
+            setResult(action.call());
+        }
+    }
+
+    /**
+     * An {@link ActionEvent} that executes a {@link Runnable}.
+     */
+    private static class RunnableActionEvent extends ActionEvent<Void> {
+        private final Runnable action;
+
+        /**
+         * Instantiates a new runnable action event.
+         *
+         * @param action the action
+         */
+        public RunnableActionEvent(Runnable action) {
+            this.action = action;
+        }
+
+        @SuppressWarnings("PMD.SignatureDeclareThrowsException")
+        /* default */ void execute() throws Exception {
+            action.run();
+        }
+
+    }
 }

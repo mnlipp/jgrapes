@@ -38,259 +38,267 @@ import org.jgrapes.http.ResourcePattern.PathSpliterator;
  */
 public class Request extends Event<Boolean> {
 
-	@SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
-	private final HttpRequest request;
-	private URI uri;
-	private MatchValue matchValue;
-	private URI matchUri;
-	
-	/**
-	 * The associated completion event.
-	 */
-	public static class Completed extends CompletionEvent<Request> {
+    @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
+    private final HttpRequest request;
+    private URI uri;
+    private MatchValue matchValue;
+    private URI matchUri;
 
-		/**
-		 * Instantiates a new event.
-		 *
-		 * @param monitoredEvent the monitored event
-		 * @param channels the channels
-		 */
-		public Completed(Request monitoredEvent, Channel... channels) {
-			super(monitoredEvent, channels);
-		}
-	}
-	
-	/**
-	 * Creates a new request event with the associated {@link Completed}
-	 * event.
-	 * 
-	 * @param protocol the protocol as reported by {@link #requestUri()}
-	 * @param request the request data
-	 * @param matchLevels the number of elements from the request path
-	 * to use in the match value (see {@link #matchValue})
-	 * @param channels the channels associated with this event
-	 */
-	@SuppressWarnings("PMD.UselessParentheses")
-	public Request(String protocol, HttpRequest request, 
-			int matchLevels, Channel... channels) {
-		super(channels);
-		new Completed(this);
-		this.request = request;
-		try {
-			URI headerInfo = new URI(protocol, null, 
-					request.host(), request.port(), null, null, null);
-			uri = headerInfo.resolve(request.requestUri());
-			Iterator<String> segs = PathSpliterator.stream(
-					uri.getPath()).skip(1).iterator();
-			StringBuilder pattern = new StringBuilder(20);
-			for (int i = 0; i < matchLevels && segs.hasNext(); i++) {
-				pattern.append('/')
-					.append(segs.next());
-			}
-			if (segs.hasNext()) {
-				pattern.append("/**");
-			}
-			String matchPath = pattern.toString();
-			matchUri = new URI(uri.getScheme(), null, uri.getHost(),
-			        uri.getPort(), uri.getPath(), null, null);
-			matchValue = new MatchValue(getClass(), 
-					(uri.getScheme() == null ? "" 
-						: (uri.getScheme() + "://"))
-					 + (uri.getHost() == null ? "" 
-						: (uri.getHost() + (uri.getPort() == -1 ? "" 
-							: (":" + uri.getPort()))))
-					 + matchPath);
-		} catch (URISyntaxException e) {
-			throw new IllegalArgumentException(e);
-		}
-	}
+    /**
+     * The associated completion event.
+     */
+    public static class Completed extends CompletionEvent<Request> {
 
-	/**
-	 * Creates the appropriate derived request event type from
-	 * a given {@link HttpRequest}.
-	 * 
-	 * @param request the HTTP request
-	 * @param secure whether the request was received over a secure channel
-	 * @param matchLevels the match levels
-	 * @return the request event
-	 */
-	public static Request fromHttpRequest(
-			HttpRequest request, boolean secure, int matchLevels) {
-		switch (request.method()) {
-		case "OPTIONS":
-			return new OptionsRequest(request, secure, matchLevels);
-		case "GET":
-			return new GetRequest(request, secure, matchLevels);
-		case "HEAD":
-			return new HeadRequest(request, secure, matchLevels);
-		case "POST":
-			return new PostRequest(request, secure, matchLevels);
-		case "PUT":
-			return new PutRequest(request, secure, matchLevels);
-		case "DELETE":
-			return new DeleteRequest(request, secure, matchLevels);
-		case "TRACE":
-			return new TraceRequest(request, secure, matchLevels);
-		case "CONNECT":
-			return new ConnectRequest(request, secure, matchLevels);
-		default:
-			return new Request(secure ? "https" : "http", request, matchLevels);
-		}
-	}
-	
-	/**
-	 * Returns the "raw" request as provided by the HTTP decoder.
-	 * 
-	 * @return the request
-	 */
-	public HttpRequest httpRequest() {
-		return request;
-	}
+        /**
+         * Instantiates a new event.
+         *
+         * @param monitoredEvent the monitored event
+         * @param channels the channels
+         */
+        public Completed(Request monitoredEvent, Channel... channels) {
+            super(monitoredEvent, channels);
+        }
+    }
 
-	/**
-	 * Returns an absolute URI of the request that is built from the 
-	 * information provided by the decoder.
-	 * 
-	 * @return the URI
-	 */
-	public URI requestUri() {
-		return uri;
-	}
-	
-	/**
-	 * The match value consists of the event class and a URI.
-	 * The URI is similar to the request URI but its path elements
-	 * are shortened as specified in the constructor.
-	 * 
-	 * As the match value is used as key in a map that speeds up
-	 * the lookup of handlers, having the complete URI in the match
-	 * value would inflate this map.
-	 * 
-	 * @see org.jgrapes.core.Event#defaultCriterion()
-	 */
-	@Override
-	public Object defaultCriterion() {
-		return matchValue;
-	}
+    /**
+     * Creates a new request event with the associated {@link Completed}
+     * event.
+     * 
+     * @param protocol the protocol as reported by {@link #requestUri()}
+     * @param request the request data
+     * @param matchLevels the number of elements from the request path
+     * to use in the match value (see {@link #matchValue})
+     * @param channels the channels associated with this event
+     */
+    @SuppressWarnings("PMD.UselessParentheses")
+    public Request(String protocol, HttpRequest request,
+            int matchLevels, Channel... channels) {
+        super(channels);
+        new Completed(this);
+        this.request = request;
+        try {
+            URI headerInfo = new URI(protocol, null,
+                request.host(), request.port(), null, null, null);
+            uri = headerInfo.resolve(request.requestUri());
+            Iterator<String> segs = PathSpliterator.stream(
+                uri.getPath()).skip(1).iterator();
+            StringBuilder pattern = new StringBuilder(20);
+            for (int i = 0; i < matchLevels && segs.hasNext(); i++) {
+                pattern.append('/')
+                    .append(segs.next());
+            }
+            if (segs.hasNext()) {
+                pattern.append("/**");
+            }
+            String matchPath = pattern.toString();
+            matchUri = new URI(uri.getScheme(), null, uri.getHost(),
+                uri.getPort(), uri.getPath(), null, null);
+            matchValue = new MatchValue(getClass(),
+                (uri.getScheme() == null ? ""
+                    : (uri.getScheme() + "://"))
+                    + (uri.getHost() == null ? ""
+                        : (uri.getHost() + (uri.getPort() == -1 ? ""
+                            : (":" + uri.getPort()))))
+                    + matchPath);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.Event#isMatchedBy(java.lang.Object)
-	 */
-	@Override
-	public boolean isEligibleFor(Object value) {
-		if (!(value instanceof MatchValue)) {
-			return super.isEligibleFor(value);
-		}
-		MatchValue mval = (MatchValue)value;
-		if (!mval.type.isAssignableFrom(matchValue.type)) {
-			return false;
-		}
-		if (mval.resource instanceof ResourcePattern) {
-			return ((ResourcePattern)mval.resource).matches(matchUri) >= 0;
-		}
-		return mval.resource.equals(matchValue.resource);
-	}
+    /**
+     * Creates the appropriate derived request event type from
+     * a given {@link HttpRequest}.
+     * 
+     * @param request the HTTP request
+     * @param secure whether the request was received over a secure channel
+     * @param matchLevels the match levels
+     * @return the request event
+     */
+    public static Request fromHttpRequest(
+            HttpRequest request, boolean secure, int matchLevels) {
+        switch (request.method()) {
+        case "OPTIONS":
+            return new OptionsRequest(request, secure, matchLevels);
+        case "GET":
+            return new GetRequest(request, secure, matchLevels);
+        case "HEAD":
+            return new HeadRequest(request, secure, matchLevels);
+        case "POST":
+            return new PostRequest(request, secure, matchLevels);
+        case "PUT":
+            return new PutRequest(request, secure, matchLevels);
+        case "DELETE":
+            return new DeleteRequest(request, secure, matchLevels);
+        case "TRACE":
+            return new TraceRequest(request, secure, matchLevels);
+        case "CONNECT":
+            return new ConnectRequest(request, secure, matchLevels);
+        default:
+            return new Request(secure ? "https" : "http", request, matchLevels);
+        }
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	@SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this))
-			.append(" [\"");
-		String path = request.requestUri().getPath();
-		if (path.length() > 15) {
-			builder.append("...")
-				.append(path.substring(path.length() - 12));
-		} else {
-			builder.append(path);
-		}
-		builder.append('\"');
-		if (channels().length > 0) {
-			builder.append(", channels=");
-			builder.append(Channel.toString(channels()));
-		}
-		builder.append(']');
-		return builder.toString();
-	}
-	
-	/**
-	 * Creates the match value.
-	 *
-	 * @param type the type
-	 * @param resource the resource
-	 * @return the object
-	 */
-	public static Object createMatchValue(
-			Class<?> type, ResourcePattern resource) {
-		return new MatchValue(type, resource);
-	}
-	
-	/**
-	 * Represents a match value.
-	 */
-	private static class MatchValue {
-		private final Class<?> type;
-		private final Object resource;
+    /**
+     * Returns the "raw" request as provided by the HTTP decoder.
+     * 
+     * @return the request
+     */
+    public HttpRequest httpRequest() {
+        return request;
+    }
 
-		/**
-		 * @param type
-		 * @param resource
-		 */
-		public MatchValue(Class<?> type, Object resource) {
-			super();
-			this.type = type;
-			this.resource = resource;
-		}
+    /**
+     * Returns an absolute URI of the request that is built from the 
+     * information provided by the decoder.
+     * 
+     * @return the URI
+     */
+    public URI requestUri() {
+        return uri;
+    }
 
-		/* (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-		public int hashCode() {
-			@SuppressWarnings("PMD.AvoidFinalLocalVariable")
-			final int prime = 31;
-			int result = 1;
-			result = prime * result
-			        + ((resource == null) ? 0 : resource.hashCode());
-			result = prime * result + ((type == null) ? 0 : type.hashCode());
-			return result;
-		}
+    /**
+     * The match value consists of the event class and a URI.
+     * The URI is similar to the request URI but its path elements
+     * are shortened as specified in the constructor.
+     * 
+     * As the match value is used as key in a map that speeds up
+     * the lookup of handlers, having the complete URI in the match
+     * value would inflate this map.
+     * 
+     * @see org.jgrapes.core.Event#defaultCriterion()
+     */
+    @Override
+    public Object defaultCriterion() {
+        return matchValue;
+    }
 
-		/* (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			MatchValue other = (MatchValue) obj;
-			if (resource == null) {
-				if (other.resource != null) {
-					return false;
-				}
-			} else if (!resource.equals(other.resource)) {
-				return false;
-			}
-			if (type == null) {
-				if (other.type != null) {
-					return false;
-				}
-			} else if (!type.equals(other.type)) {
-				return false;
-			}
-			return true;
-		}
-		
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.jgrapes.core.Event#isMatchedBy(java.lang.Object)
+     */
+    @Override
+    public boolean isEligibleFor(Object value) {
+        if (!(value instanceof MatchValue)) {
+            return super.isEligibleFor(value);
+        }
+        MatchValue mval = (MatchValue) value;
+        if (!mval.type.isAssignableFrom(matchValue.type)) {
+            return false;
+        }
+        if (mval.resource instanceof ResourcePattern) {
+            return ((ResourcePattern) mval.resource).matches(matchUri) >= 0;
+        }
+        return mval.resource.equals(matchValue.resource);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Components.objectName(this))
+            .append(" [\"");
+        String path = request.requestUri().getPath();
+        if (path.length() > 15) {
+            builder.append("...")
+                .append(path.substring(path.length() - 12));
+        } else {
+            builder.append(path);
+        }
+        builder.append('\"');
+        if (channels().length > 0) {
+            builder.append(", channels=");
+            builder.append(Channel.toString(channels()));
+        }
+        builder.append(']');
+        return builder.toString();
+    }
+
+    /**
+     * Creates the match value.
+     *
+     * @param type the type
+     * @param resource the resource
+     * @return the object
+     */
+    public static Object createMatchValue(
+            Class<?> type, ResourcePattern resource) {
+        return new MatchValue(type, resource);
+    }
+
+    /**
+     * Represents a match value.
+     */
+    private static class MatchValue {
+        private final Class<?> type;
+        private final Object resource;
+
+        /**
+         * @param type
+         * @param resource
+         */
+        public MatchValue(Class<?> type, Object resource) {
+            super();
+            this.type = type;
+            this.resource = resource;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see java.lang.Object#hashCode()
+         */
+        @Override
+        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+        public int hashCode() {
+            @SuppressWarnings("PMD.AvoidFinalLocalVariable")
+            final int prime = 31;
+            int result = 1;
+            result = prime * result
+                + ((resource == null) ? 0 : resource.hashCode());
+            result = prime * result + ((type == null) ? 0 : type.hashCode());
+            return result;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            MatchValue other = (MatchValue) obj;
+            if (resource == null) {
+                if (other.resource != null) {
+                    return false;
+                }
+            } else if (!resource.equals(other.resource)) {
+                return false;
+            }
+            if (type == null) {
+                if (other.type != null) {
+                    return false;
+                }
+            } else if (!type.equals(other.type)) {
+                return false;
+            }
+            return true;
+        }
+
+    }
 }

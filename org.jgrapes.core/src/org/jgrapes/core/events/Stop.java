@@ -28,12 +28,12 @@ import org.jgrapes.core.Event;
 @SuppressWarnings("PMD.ShortClassName")
 public class Stop extends Event<Void> {
 
-	/**
-	 * Create a new stop event with the event's channels set to 
-	 * {@link Channel#BROADCAST}.
-	 */
-	public Stop() {
-		super(Channel.BROADCAST);
-	}
-	
+    /**
+     * Create a new stop event with the event's channels set to 
+     * {@link Channel#BROADCAST}.
+     */
+    public Stop() {
+        super(Channel.BROADCAST);
+    }
+
 }

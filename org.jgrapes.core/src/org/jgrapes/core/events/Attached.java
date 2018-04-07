@@ -28,65 +28,67 @@ import org.jgrapes.core.Event;
  */
 public class Attached extends Event<Void> {
 
-	private final ComponentType node;
-	private final ComponentType parent;
-	
-	/**
-	 * Creates a new event. The event is fired on both the
-	 * node's and the parent's channel. If the channels are
-	 * equal, the event is sent only once. If either component
-	 * doesn't have a channel, the event is sent on the
-	 * broadcast channel.
-	 * 
-	 * @param node the component being attached
-	 * @param parent the component that the node is attached to
-	 */
-	public Attached(ComponentType node, ComponentType parent) {
-		this.node = node;
-		this.parent = parent;
-	}
+    private final ComponentType node;
+    private final ComponentType parent;
 
-	/**
-	 * Return the node that has been attached.
-	 * 
-	 * @return the node
-	 */
-	public ComponentType node() {
-		return node;
-	}
+    /**
+     * Creates a new event. The event is fired on both the
+     * node's and the parent's channel. If the channels are
+     * equal, the event is sent only once. If either component
+     * doesn't have a channel, the event is sent on the
+     * broadcast channel.
+     * 
+     * @param node the component being attached
+     * @param parent the component that the node is attached to
+     */
+    public Attached(ComponentType node, ComponentType parent) {
+        this.node = node;
+        this.parent = parent;
+    }
 
-	/**
-	 * Return the parent component. When the root node is added to the 
-	 * component tree, the parent is <code>null</code>.
-	 * 
-	 * @return the parent or <code>null</code>
-	 */
-	public ComponentType parent() {
-		return parent;
-	}
+    /**
+     * Return the node that has been attached.
+     * 
+     * @return the node
+     */
+    public ComponentType node() {
+        return node;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this))
-			.append(" [");
-		if (parent == null) {
-			builder.append("ROOT");
-		} else {
-			builder.append(parent);
-		}
-		builder.append(" <―― ")
-			.append(node)
-			.append(", ");
-		if (channels().length > 0) {
-			builder.append("channels=");
-			builder.append(Channel.toString(channels()));
-		}
-		builder.append(']');
-		return builder.toString();
-	}
-	
+    /**
+     * Return the parent component. When the root node is added to the 
+     * component tree, the parent is <code>null</code>.
+     * 
+     * @return the parent or <code>null</code>
+     */
+    public ComponentType parent() {
+        return parent;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Components.objectName(this))
+            .append(" [");
+        if (parent == null) {
+            builder.append("ROOT");
+        } else {
+            builder.append(parent);
+        }
+        builder.append(" <―― ")
+            .append(node)
+            .append(", ");
+        if (channels().length > 0) {
+            builder.append("channels=");
+            builder.append(Channel.toString(channels()));
+        }
+        builder.append(']');
+        return builder.toString();
+    }
+
 }

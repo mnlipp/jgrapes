@@ -30,41 +30,43 @@ import org.jgrapes.io.events.Opened;
  */
 public class Ready extends Opened {
 
-	private final SocketAddress listenAddress;
+    private final SocketAddress listenAddress;
 
-	/**
-	 * Creates a new event.
-	 * 
-	 * @param socketAddress the socket address
-	 */
-	public Ready(SocketAddress socketAddress) {
-		this.listenAddress = socketAddress;
-	}
+    /**
+     * Creates a new event.
+     * 
+     * @param socketAddress the socket address
+     */
+    public Ready(SocketAddress socketAddress) {
+        this.listenAddress = socketAddress;
+    }
 
-	/**
-	 * The address that the server has bound to.
-	 * 
-	 * @return the address
-	 */
-	public SocketAddress listenAddress() {
-		return listenAddress;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this))
-			.append(" [")
-			.append(listenAddress)
-			.append(", ");
-		if (channels().length > 0) {
-			builder.append("channels=");
-			builder.append(Channel.toString(channels()));
-		}
-		builder.append(']');
-		return builder.toString();
-	}
+    /**
+     * The address that the server has bound to.
+     * 
+     * @return the address
+     */
+    public SocketAddress listenAddress() {
+        return listenAddress;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Components.objectName(this))
+            .append(" [")
+            .append(listenAddress)
+            .append(", ");
+        if (channels().length > 0) {
+            builder.append("channels=");
+            builder.append(Channel.toString(channels()));
+        }
+        builder.append(']');
+        return builder.toString();
+    }
 }

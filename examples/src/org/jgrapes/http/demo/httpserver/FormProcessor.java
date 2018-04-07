@@ -49,69 +49,71 @@ import org.jgrapes.io.util.ManagedBuffer;
  */
 public class FormProcessor extends Component {
 
-	protected static class FormContext {
-		public HttpRequest request;
-		public Session session;
-		public FormUrlDecoder fieldDecoder = new FormUrlDecoder();
-	}
+    protected static class FormContext {
+        public HttpRequest request;
+        public Session session;
+        public FormUrlDecoder fieldDecoder = new FormUrlDecoder();
+    }
 
-	/**
-	 * @param componentChannel
-	 */
-	public FormProcessor(Channel componentChannel) {
-		super(componentChannel);
-	}
+    /**
+     * @param componentChannel
+     */
+    public FormProcessor(Channel componentChannel) {
+        super(componentChannel);
+    }
 
-	@RequestHandler(patterns="/form,/form/**")
-	public void onGet(GetRequest event, IOSubchannel channel)
-			throws ParseException {
-		ResponseCreationSupport.sendStaticContent(event, channel, 
-				path -> FormProcessor.class.getResource(
-						ResourcePattern.removeSegments(path, 1)),
-				null);
-	}
-	
-	@RequestHandler(patterns="/form,/form/**")
-	public void onPost(PostRequest event, IOSubchannel channel) {
-		FormContext ctx = channel
-				.associated(this, FormContext::new);
-		ctx.request = event.httpRequest();
-		ctx.session = event.associated(Session.class).get();
-		event.setResult(true);
-		event.stop();
-	}
-	
-	@Handler
-	public void onInput(Input<ByteBuffer> event, IOSubchannel channel) 
-			throws InterruptedException, UnsupportedEncodingException {
-		Optional<FormContext> ctx = channel.associated(this, FormContext.class);
-		if (!ctx.isPresent()) {
-			return;
-		}
-		ctx.get().fieldDecoder.addData(event.data());
-		if (!event.isEndOfRecord()) {
-			return;
-		}
-		
-		long invocations = (Long)ctx.get().session.computeIfAbsent(
-				"invocations", key -> { return 0L; });
-		ctx.get().session.put("invocations", invocations + 1);
-		
-		HttpResponse response = ctx.get().request.response().get();
-		response.setStatus(HttpStatus.OK);
-		response.setHasPayload(true);
-		response.setField(HttpField.CONTENT_TYPE,
-		        MediaType.builder().setType("text", "plain")
-		                .setParameter("charset", "utf-8").build());
-		String data = "First name: "
-		        + ctx.get().fieldDecoder.fields().get("firstname")
-		        + "\r\n" + "Last name: "
-		        + ctx.get().fieldDecoder.fields().get("lastname")
-		        + "\r\n" + "Previous invocations: " + invocations;
-		channel.respond(new Response(response));
-		ManagedBuffer<ByteBuffer> out = channel.byteBufferPool().acquire();
-		out.backingBuffer().put(data.getBytes("utf-8"));
-		channel.respond(Output.fromSink(out, true));
-	}
+    @RequestHandler(patterns = "/form,/form/**")
+    public void onGet(GetRequest event, IOSubchannel channel)
+            throws ParseException {
+        ResponseCreationSupport.sendStaticContent(event, channel,
+            path -> FormProcessor.class.getResource(
+                ResourcePattern.removeSegments(path, 1)),
+            null);
+    }
+
+    @RequestHandler(patterns = "/form,/form/**")
+    public void onPost(PostRequest event, IOSubchannel channel) {
+        FormContext ctx = channel
+            .associated(this, FormContext::new);
+        ctx.request = event.httpRequest();
+        ctx.session = event.associated(Session.class).get();
+        event.setResult(true);
+        event.stop();
+    }
+
+    @Handler
+    public void onInput(Input<ByteBuffer> event, IOSubchannel channel)
+            throws InterruptedException, UnsupportedEncodingException {
+        Optional<FormContext> ctx = channel.associated(this, FormContext.class);
+        if (!ctx.isPresent()) {
+            return;
+        }
+        ctx.get().fieldDecoder.addData(event.data());
+        if (!event.isEndOfRecord()) {
+            return;
+        }
+
+        long invocations = (Long) ctx.get().session.computeIfAbsent(
+            "invocations", key -> {
+                return 0L;
+            });
+        ctx.get().session.put("invocations", invocations + 1);
+
+        HttpResponse response = ctx.get().request.response().get();
+        response.setStatus(HttpStatus.OK);
+        response.setHasPayload(true);
+        response.setField(HttpField.CONTENT_TYPE,
+            MediaType.builder().setType("text", "plain")
+                .setParameter("charset", "utf-8").build());
+        String data = "First name: "
+            + ctx.get().fieldDecoder.fields().get("firstname")
+            + "\r\n" + "Last name: "
+            + ctx.get().fieldDecoder.fields().get("lastname")
+            + "\r\n" + "Previous invocations: " + invocations;
+        channel.respond(new Response(response));
+        ManagedBuffer<ByteBuffer> out = channel.byteBufferPool().acquire();
+        out.backingBuffer().put(data.getBytes("utf-8"));
+        channel.respond(Output.fromSink(out, true));
+    }
 
 }

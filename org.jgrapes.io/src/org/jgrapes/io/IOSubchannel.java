@@ -59,235 +59,245 @@ import org.jgrapes.io.util.ManagedBufferPool;
  */
 public interface IOSubchannel extends Channel, Associator {
 
-	/**
-	 * Returns the main channel.
-	 * 
-	 * @return the mainChannel
-	 */
-	Channel mainChannel();
+    /**
+     * Returns the main channel.
+     * 
+     * @return the mainChannel
+     */
+    Channel mainChannel();
 
-	/**
-	 * Returns the main channel's match value.
-	 * 
-	 * @see Channel#defaultCriterion()
-	 */
-	@Override
-	default Object defaultCriterion() {
-		return mainChannel().defaultCriterion();
-	}
+    /**
+     * Returns the main channel's match value.
+     * 
+     * @see Channel#defaultCriterion()
+     */
+    @Override
+    default Object defaultCriterion() {
+        return mainChannel().defaultCriterion();
+    }
 
-	/**
-	 * Delegates to main channel.
-	 * 
-	 * @see Channel#isEligibleFor(Object)
-	 */
-	@Override
-	default boolean isEligibleFor(Object value) {
-		return mainChannel().isEligibleFor(value);
-	}
+    /**
+     * Delegates to main channel.
+     * 
+     * @see Channel#isEligibleFor(Object)
+     */
+    @Override
+    default boolean isEligibleFor(Object value) {
+        return mainChannel().isEligibleFor(value);
+    }
 
-	/**
-	 * Gets the {@link EventPipeline} that can be used for events going back to
-	 * the initiator of this connection. Consistently using this event pipeline
-	 * for response events ensures that the events are written in proper
-	 * sequence.
-	 * 
-	 * @return the event pipeline
-	 */
-	EventPipeline responsePipeline();
+    /**
+     * Gets the {@link EventPipeline} that can be used for events going back to
+     * the initiator of this connection. Consistently using this event pipeline
+     * for response events ensures that the events are written in proper
+     * sequence.
+     * 
+     * @return the event pipeline
+     */
+    EventPipeline responsePipeline();
 
-	/**
-	 * Get the subchannel's byte buffer pool.
-	 * 
-	 * @return the buffer pool
-	 */
-	ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> 
-		byteBufferPool();
-	
-	/**
-	 * Get the subchannel's char buffer pool.
-	 * 
-	 * @return the buffer pool
-	 */
-	ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer> 
-		charBufferPool();
-	
-	/**
-	 * Fires the given event on this subchannel using the subchannel's response
-	 * pipeline. Effectively, {@code fire(someEvent)} is a shortcut for
-	 * {@code getResponsePipeline.add(someEvent, this)}.
-	 * 
-	 * @param <T> the event's type
-	 * @param event
-	 *            the event to fire
-	 * @return the event (for easy chaining)
-	 */
-	default <T extends Event<?>> T respond(T event) {
-		return responsePipeline().fire(event, this);
-	}
+    /**
+     * Get the subchannel's byte buffer pool.
+     * 
+     * @return the buffer pool
+     */
+    ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
+            byteBufferPool();
 
-	/**
-	 * Returns a string representation of the channel.
-	 *
-	 * @param subchannel the subchannel
-	 * @return the string
-	 */
-	static String toString(IOSubchannel subchannel) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Channel.toString(subchannel.mainChannel()))
-			.append('{')
-			.append(Components.objectName(subchannel))
-			.append('}');
-		return builder.toString();
-	}
+    /**
+     * Get the subchannel's char buffer pool.
+     * 
+     * @return the buffer pool
+     */
+    ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer>
+            charBufferPool();
 
-	/**
-	 * Creates a new subchannel of the given component's channel with the
-	 * given event pipeline and a buffer pool with two buffers sized 4096.
-	 *
-	 * @param component the component used to get the main channel
-	 * @param responsePipeline the response pipeline
-	 * @return the subchannel
-	 */
-	static IOSubchannel create(
-			Component component, EventPipeline responsePipeline) {
-		return new DefaultSubchannel(component.channel(), responsePipeline);
-	}
+    /**
+     * Fires the given event on this subchannel using the subchannel's response
+     * pipeline. Effectively, {@code fire(someEvent)} is a shortcut for
+     * {@code getResponsePipeline.add(someEvent, this)}.
+     * 
+     * @param <T> the event's type
+     * @param event
+     *            the event to fire
+     * @return the event (for easy chaining)
+     */
+    default <T extends Event<?>> T respond(T event) {
+        return responsePipeline().fire(event, this);
+    }
 
-	/**
-	 * A simple implementation of {@link IOSubchannel}.
-	 */
-	class DefaultSubchannel implements IOSubchannel {
-		private final Channel mainChannel;
-		private final EventPipeline responsePipeline;
-		private ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> 
-			byteBufferPool;
-		private ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer>
-			charBufferPool;
-		private Map<Object,Object> contextData;
-		
-		/**
-		 * Creates a new instance with the given main channel and response
-		 * pipeline.  
-		 * 
-		 * @param mainChannel the main channel
-		 * @param responsePipeline the response pipeline to use
-		 * 
-		 */
-		public DefaultSubchannel(
-				Channel mainChannel, EventPipeline responsePipeline) {
-			super();
-			this.mainChannel = mainChannel;
-			this.responsePipeline = responsePipeline;
-		}
-		
-		protected void setByteBufferPool(
-				ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
-					bufferPool) {
-			this.byteBufferPool = bufferPool;
-		}
-		
-		protected void setCharBufferPool(
-				ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer>
-				bufferPool) {
-			this.charBufferPool = bufferPool;
-		}
-		
-		/* (non-Javadoc)
-		 * @see org.jgrapes.io.IOSubchannel#getMainChannel()
-		 */
-		@Override
-		public Channel mainChannel() {
-			return mainChannel;
-		}
+    /**
+     * Returns a string representation of the channel.
+     *
+     * @param subchannel the subchannel
+     * @return the string
+     */
+    static String toString(IOSubchannel subchannel) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Channel.toString(subchannel.mainChannel()))
+            .append('{')
+            .append(Components.objectName(subchannel))
+            .append('}');
+        return builder.toString();
+    }
 
-		/* (non-Javadoc)
-		 * @see org.jgrapes.io.IOSubchannel#responsePipeline()
-		 */
-		@Override
-		public EventPipeline responsePipeline() {
-			return responsePipeline;
-		}
+    /**
+     * Creates a new subchannel of the given component's channel with the
+     * given event pipeline and a buffer pool with two buffers sized 4096.
+     *
+     * @param component the component used to get the main channel
+     * @param responsePipeline the response pipeline
+     * @return the subchannel
+     */
+    static IOSubchannel create(
+            Component component, EventPipeline responsePipeline) {
+        return new DefaultSubchannel(component.channel(), responsePipeline);
+    }
 
-		/**
-		 * Returns the buffer pool set. If no buffer pool has been set, a
-		 * buffer pool with with two buffers of size 4096 is created.
-		 */
-		public ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer> 
-			byteBufferPool() {
-			if (byteBufferPool == null) {
-				byteBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,
-						() -> { return ByteBuffer.allocate(4096); }, 2)
-						.setName(Components.objectName(this)
-								+ ".upstream.byteBuffers");
-			}
-			return byteBufferPool;
-		}
+    /**
+     * A simple implementation of {@link IOSubchannel}.
+     */
+    class DefaultSubchannel implements IOSubchannel {
+        private final Channel mainChannel;
+        private final EventPipeline responsePipeline;
+        private ManagedBufferPool<ManagedBuffer<ByteBuffer>,
+                ByteBuffer> byteBufferPool;
+        private ManagedBufferPool<ManagedBuffer<CharBuffer>,
+                CharBuffer> charBufferPool;
+        private Map<Object, Object> contextData;
 
-		/**
-		 * Returns the buffer pool set. If no buffer pool has been set, a
-		 * buffer pool with with two buffers of size 4096 is created.
-		 */
-		public ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer> 
-			charBufferPool() {
-			if (charBufferPool == null) {
-				charBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,
-						() -> { return CharBuffer.allocate(4096); }, 2)
-						.setName(Components.objectName(this)
-								+ ".upstream.charBuffers");
-			}
-			return charBufferPool;
-		}
+        /**
+         * Creates a new instance with the given main channel and response
+         * pipeline.  
+         * 
+         * @param mainChannel the main channel
+         * @param responsePipeline the response pipeline to use
+         * 
+         */
+        public DefaultSubchannel(
+                Channel mainChannel, EventPipeline responsePipeline) {
+            super();
+            this.mainChannel = mainChannel;
+            this.responsePipeline = responsePipeline;
+        }
 
-		/**
-		 * Establishes a "named" association to an associated object. Note that 
-		 * anything that represents an id can be used as value for 
-		 * parameter `name`, it does not necessarily have to be a string.
-		 * 
-		 * @param by the "name"
-		 * @param with the object to be associated
-		 */
-		@SuppressWarnings("PMD.ShortVariable")
-		public DefaultSubchannel setAssociated(Object by, Object with) {
-			if (contextData == null) {
-				contextData = new ConcurrentHashMap<>();
-			}
-			if (with == null) {
-				contextData.remove(by);
-			} else {
-				contextData.put(by, with);
-			}
-			return this;
-		}
+        protected void setByteBufferPool(
+                ManagedBufferPool<ManagedBuffer<ByteBuffer>,
+                        ByteBuffer> bufferPool) {
+            this.byteBufferPool = bufferPool;
+        }
 
-		/**
-		 * Retrieves the associated object following the association 
-		 * with the given "name". This general version of the method
-		 * supports the retrieval of values of arbitrary types
-		 * associated by any "name" types. 
-		 * 
-		 * @param by the "name"
-		 * @param type the tape of the value to be retrieved
-		 * @param <V> the type of the value to be retrieved
-		 * @return the associate, if any
-		 */
-		@SuppressWarnings("PMD.ShortVariable")
-		public <V> Optional<V> associated(Object by, Class<V> type) {
-			if (contextData == null) {
-				return Optional.empty();
-			}
-			return Optional.ofNullable(contextData.get(by))
-					.filter(found -> type.isAssignableFrom(found.getClass()))
-					.map(match -> type.cast(match));
-		}
-		
-		/* (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
-		@Override
-		public String toString() {
-			return IOSubchannel.toString(this);
-		}
-		
-	}
+        protected void setCharBufferPool(
+                ManagedBufferPool<ManagedBuffer<CharBuffer>,
+                        CharBuffer> bufferPool) {
+            this.charBufferPool = bufferPool;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.jgrapes.io.IOSubchannel#getMainChannel()
+         */
+        @Override
+        public Channel mainChannel() {
+            return mainChannel;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.jgrapes.io.IOSubchannel#responsePipeline()
+         */
+        @Override
+        public EventPipeline responsePipeline() {
+            return responsePipeline;
+        }
+
+        /**
+         * Returns the buffer pool set. If no buffer pool has been set, a
+         * buffer pool with with two buffers of size 4096 is created.
+         */
+        public ManagedBufferPool<ManagedBuffer<ByteBuffer>, ByteBuffer>
+                byteBufferPool() {
+            if (byteBufferPool == null) {
+                byteBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,
+                    () -> {
+                        return ByteBuffer.allocate(4096);
+                    }, 2)
+                        .setName(Components.objectName(this)
+                            + ".upstream.byteBuffers");
+            }
+            return byteBufferPool;
+        }
+
+        /**
+         * Returns the buffer pool set. If no buffer pool has been set, a
+         * buffer pool with with two buffers of size 4096 is created.
+         */
+        public ManagedBufferPool<ManagedBuffer<CharBuffer>, CharBuffer>
+                charBufferPool() {
+            if (charBufferPool == null) {
+                charBufferPool = new ManagedBufferPool<>(ManagedBuffer::new,
+                    () -> {
+                        return CharBuffer.allocate(4096);
+                    }, 2)
+                        .setName(Components.objectName(this)
+                            + ".upstream.charBuffers");
+            }
+            return charBufferPool;
+        }
+
+        /**
+         * Establishes a "named" association to an associated object. Note that 
+         * anything that represents an id can be used as value for 
+         * parameter `name`, it does not necessarily have to be a string.
+         * 
+         * @param by the "name"
+         * @param with the object to be associated
+         */
+        @SuppressWarnings("PMD.ShortVariable")
+        public DefaultSubchannel setAssociated(Object by, Object with) {
+            if (contextData == null) {
+                contextData = new ConcurrentHashMap<>();
+            }
+            if (with == null) {
+                contextData.remove(by);
+            } else {
+                contextData.put(by, with);
+            }
+            return this;
+        }
+
+        /**
+         * Retrieves the associated object following the association 
+         * with the given "name". This general version of the method
+         * supports the retrieval of values of arbitrary types
+         * associated by any "name" types. 
+         * 
+         * @param by the "name"
+         * @param type the tape of the value to be retrieved
+         * @param <V> the type of the value to be retrieved
+         * @return the associate, if any
+         */
+        @SuppressWarnings("PMD.ShortVariable")
+        public <V> Optional<V> associated(Object by, Class<V> type) {
+            if (contextData == null) {
+                return Optional.empty();
+            }
+            return Optional.ofNullable(contextData.get(by))
+                .filter(found -> type.isAssignableFrom(found.getClass()))
+                .map(match -> type.cast(match));
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            return IOSubchannel.toString(this);
+        }
+
+    }
 }

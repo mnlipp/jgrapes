@@ -45,63 +45,63 @@ import org.jgrapes.io.util.ManagedBuffer;
  */
 public class WsEchoServer extends Component {
 
-	private Set<IOSubchannel> openChannels 
-		= Collections.newSetFromMap(new WeakHashMap<IOSubchannel, Boolean>());
-	
-	/**
-	 * 
-	 */
-	public WsEchoServer() {
-	}
+    private Set<IOSubchannel> openChannels
+        = Collections.newSetFromMap(new WeakHashMap<IOSubchannel, Boolean>());
 
-	/**
-	 * @param componentChannel
-	 */
-	public WsEchoServer(Channel componentChannel) {
-		super(componentChannel);
-	}
+    /**
+     * 
+     */
+    public WsEchoServer() {
+    }
 
-	@RequestHandler(patterns="/ws/echo", priority=100)
-	public void onGet(GetRequest event, IOSubchannel channel) 
-			throws InterruptedException {
-		final HttpRequest request = event.httpRequest();
-		if (!request.findField(
-				HttpField.UPGRADE, Converters.STRING_LIST)
-				.map(f -> f.value().containsIgnoreCase("websocket"))
-				.orElse(false)) {
-			return;
-		}
-		openChannels.add(channel);
-		channel.respond(new ProtocolSwitchAccepted(event, "websocket"));
-		event.stop();
-	}
-	
-	@Handler
-	public void onUpgraded(Upgraded event, IOSubchannel channel) {
-		if (!openChannels.contains(channel)) {
-			return;
-		}
-		channel.respond(Output.from("/Greetings!", true));
-	}
-	
-	@Handler
-	public void onInput(Input<CharBuffer> event, IOSubchannel channel) {
-		if (!openChannels.contains(channel)) {
-			return;
-		}
-		ManagedBuffer<CharBuffer> out = ManagedBuffer.wrap(
-				CharBuffer.wrap(event.data()));
-		out.position(out.limit());
-		out.flip();
-		if (out.backingBuffer().toString().compareToIgnoreCase("/quit") == 0) {
-			channel.respond(new Close());
-			return;
-		}
-		channel.respond(Output.fromSource(out, true));
-	}
-	
-	@Handler
-	public void onClosed(Closed event, IOSubchannel channel) {
-		openChannels.remove(channel);
-	}
+    /**
+     * @param componentChannel
+     */
+    public WsEchoServer(Channel componentChannel) {
+        super(componentChannel);
+    }
+
+    @RequestHandler(patterns = "/ws/echo", priority = 100)
+    public void onGet(GetRequest event, IOSubchannel channel)
+            throws InterruptedException {
+        final HttpRequest request = event.httpRequest();
+        if (!request.findField(
+            HttpField.UPGRADE, Converters.STRING_LIST)
+            .map(f -> f.value().containsIgnoreCase("websocket"))
+            .orElse(false)) {
+            return;
+        }
+        openChannels.add(channel);
+        channel.respond(new ProtocolSwitchAccepted(event, "websocket"));
+        event.stop();
+    }
+
+    @Handler
+    public void onUpgraded(Upgraded event, IOSubchannel channel) {
+        if (!openChannels.contains(channel)) {
+            return;
+        }
+        channel.respond(Output.from("/Greetings!", true));
+    }
+
+    @Handler
+    public void onInput(Input<CharBuffer> event, IOSubchannel channel) {
+        if (!openChannels.contains(channel)) {
+            return;
+        }
+        ManagedBuffer<CharBuffer> out = ManagedBuffer.wrap(
+            CharBuffer.wrap(event.data()));
+        out.position(out.limit());
+        out.flip();
+        if (out.backingBuffer().toString().compareToIgnoreCase("/quit") == 0) {
+            channel.respond(new Close());
+            return;
+        }
+        channel.respond(Output.fromSource(out, true));
+    }
+
+    @Handler
+    public void onClosed(Closed event, IOSubchannel channel) {
+        openChannels.remove(channel);
+    }
 }

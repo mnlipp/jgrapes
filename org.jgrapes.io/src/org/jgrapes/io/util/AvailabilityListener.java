@@ -26,12 +26,12 @@ import java.util.EventListener;
  */
 public interface AvailabilityListener extends EventListener {
 
-	/**
-	 * Called when the availability has changed.
-	 *
-	 * @param pool the pool
-	 * @param available the available
-	 */
-	void availabilityChanged(PermitsPool pool, boolean available);
-	
+    /**
+     * Called when the availability has changed.
+     *
+     * @param pool the pool
+     * @param available the available
+     */
+    void availabilityChanged(PermitsPool pool, boolean available);
+
 }

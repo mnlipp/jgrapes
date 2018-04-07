@@ -30,25 +30,26 @@ import org.jgrapes.core.Channel;
 @SuppressWarnings("serial")
 class EventQueue extends ConcurrentLinkedDeque<EventChannelsTuple> {
 
-	/**
-	 * Convenience method that creates a {@link EventChannelsTuple}
-	 * from the parameters and adds it to the queue.
-	 * 
-	 * @param event the event
-	 * @param channels the channels
-	 */
-	@SuppressWarnings("PMD.UseVarargs")
-	public void add(EventBase<?> event, Channel[] channels) {
-		add(new EventChannelsTuple(event, channels));
-	}
+    /**
+     * Convenience method that creates a {@link EventChannelsTuple}
+     * from the parameters and adds it to the queue.
+     * 
+     * @param event the event
+     * @param channels the channels
+     */
+    @SuppressWarnings("PMD.UseVarargs")
+    public void add(EventBase<?> event, Channel[] channels) {
+        add(new EventChannelsTuple(event, channels));
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return Arrays.toString(toArray());
-	}
-	
-	
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return Arrays.toString(toArray());
+    }
+
 }

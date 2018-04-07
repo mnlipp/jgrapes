@@ -25,38 +25,38 @@ package org.jgrapes.io.util;
  */
 public interface BufferCollector<B extends ManagedBuffer<?>> {
 
-	/**
-	 * A predefined buffer collector that does nothing when the managed buffer
-	 * is no longer used. Using this collector with a managed buffer
-	 * effectively make it an unmanaged buffer.
-	 */
-	BufferCollector<? extends ManagedBuffer<?>> NOOP_COLLECTOR 
-		= new BufferCollector<ManagedBuffer<?>>() {
-		@Override
-		public void recollect(ManagedBuffer<?> buffer) {
-			// Does nothing.
-		}
-	};
+    /**
+     * A predefined buffer collector that does nothing when the managed buffer
+     * is no longer used. Using this collector with a managed buffer
+     * effectively make it an unmanaged buffer.
+     */
+    BufferCollector<? extends ManagedBuffer<?>> NOOP_COLLECTOR
+        = new BufferCollector<ManagedBuffer<?>>() {
+            @Override
+            public void recollect(ManagedBuffer<?> buffer) {
+                // Does nothing.
+            }
+        };
 
-	/**
-	 * A type-safe way to get the {@link #NOOP_COLLECTOR}.
-	 *
-	 * @param <T> the type of buffer that can be collected
-	 * @return the noop buffer collector
-	 */
-	@SuppressWarnings("unchecked")
-	static <T extends ManagedBuffer<?>> BufferCollector<T> 
-		noopCollector() {
-		return (BufferCollector<T>)NOOP_COLLECTOR;
-	}
-	
-	/**
-	 * Recollect the buffer. Invoked after all locks to a managed buffer
-	 * have been released. Usually, the implementation of a buffer collector
-	 * returns the buffer into some kind of pool when this method is invoked.
-	 * 
-	 * @param buffer the buffer
-	 */
-	void recollect(B buffer);
-	
+    /**
+     * A type-safe way to get the {@link #NOOP_COLLECTOR}.
+     *
+     * @param <T> the type of buffer that can be collected
+     * @return the noop buffer collector
+     */
+    @SuppressWarnings("unchecked")
+    static <T extends ManagedBuffer<?>> BufferCollector<T>
+            noopCollector() {
+        return (BufferCollector<T>) NOOP_COLLECTOR;
+    }
+
+    /**
+     * Recollect the buffer. Invoked after all locks to a managed buffer
+     * have been released. Usually, the implementation of a buffer collector
+     * returns the buffer into some kind of pool when this method is invoked.
+     * 
+     * @param buffer the buffer
+     */
+    void recollect(B buffer);
+
 }

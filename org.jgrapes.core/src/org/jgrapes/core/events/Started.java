@@ -26,14 +26,14 @@ import org.jgrapes.core.CompletionEvent;
  */
 public class Started extends CompletionEvent<Start> {
 
-	/**
-	 * Instantiates a new {@link Started} event.
-	 *
-	 * @param monitoredEvent the monitored event
-	 * @param channels the channels
-	 */
-	public Started(Start monitoredEvent, Channel... channels) {
-		super(monitoredEvent, channels);
-	}
+    /**
+     * Instantiates a new {@link Started} event.
+     *
+     * @param monitoredEvent the monitored event
+     * @param channels the channels
+     */
+    public Started(Start monitoredEvent, Channel... channels) {
+        super(monitoredEvent, channels);
+    }
 
 }

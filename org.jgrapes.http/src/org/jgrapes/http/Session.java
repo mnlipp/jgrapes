@@ -54,52 +54,52 @@ import org.jgrapes.http.LanguageSelector.Selection;
  */
 public interface Session extends Map<Serializable, Serializable> {
 
-	/**
-	 * Returns the session id.
-	 * 
-	 * @return the id
-	 */
-	@SuppressWarnings("PMD.ShortMethodName")
-	String id();
-	
-	/**
-	 * Returns the creation time stamp.
-	 * 
-	 * @return the creation time stamp
-	 */
-	Instant createdAt();
+    /**
+     * Returns the session id.
+     * 
+     * @return the id
+     */
+    @SuppressWarnings("PMD.ShortMethodName")
+    String id();
 
-	/**
-	 * Returns the last used (referenced in request) time stamp. 
-	 * 
-	 * @return the last used timestamp
-	 */
-	Instant lastUsedAt();
+    /**
+     * Returns the creation time stamp.
+     * 
+     * @return the creation time stamp
+     */
+    Instant createdAt();
 
-	/**
-	 * Updates the last used time stamp.
-	 */
-	void updateLastUsedAt();
+    /**
+     * Returns the last used (referenced in request) time stamp. 
+     * 
+     * @return the last used timestamp
+     */
+    Instant lastUsedAt();
 
-	/**
-	 * Return the storage area for transient data. Usually implemented
-	 * by a {@link ConcurrentHashMap}. Other implementations must
-	 * at least provide the same support for concurrency as 
-	 * {@link ConcurrentHashMap}.
-	 * 
-	 * @return the storage area
-	 */
-	Map<?,?> transientData();
-	
-	/**
-	 * Convenience method for retrieving the locale 
-	 * set by {@link LanguageSelector} from the session.
-	 * 
-	 * @return the locale
-	 */
-	default Locale locale() {
-		return Optional.ofNullable((Selection)get(Selection.class))
-				.map(selection -> selection.get()[0]).orElse(Locale.getDefault());
-	}
-	
+    /**
+     * Updates the last used time stamp.
+     */
+    void updateLastUsedAt();
+
+    /**
+     * Return the storage area for transient data. Usually implemented
+     * by a {@link ConcurrentHashMap}. Other implementations must
+     * at least provide the same support for concurrency as 
+     * {@link ConcurrentHashMap}.
+     * 
+     * @return the storage area
+     */
+    Map<?, ?> transientData();
+
+    /**
+     * Convenience method for retrieving the locale 
+     * set by {@link LanguageSelector} from the session.
+     * 
+     * @return the locale
+     */
+    default Locale locale() {
+        return Optional.ofNullable((Selection) get(Selection.class))
+            .map(selection -> selection.get()[0]).orElse(Locale.getDefault());
+    }
+
 }

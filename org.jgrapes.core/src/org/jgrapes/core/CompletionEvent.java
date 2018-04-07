@@ -24,45 +24,47 @@ package org.jgrapes.core;
  * the completed event while handling the completion event. 
  */
 public abstract class CompletionEvent<T extends Event<?>>
-		extends Event<T> {
+        extends Event<T> {
 
-	/**
-	 * Instantiates a new completion event.
-	 *
-	 * @param monitoredEvent the monitored event
-	 * @param channels the channels
-	 */
-	public CompletionEvent(T monitoredEvent, Channel... channels) {
-		super(channels);
-		setResult(monitoredEvent);
-		monitoredEvent.addCompletionEvent(this);
-	}
+    /**
+     * Instantiates a new completion event.
+     *
+     * @param monitoredEvent the monitored event
+     * @param channels the channels
+     */
+    public CompletionEvent(T monitoredEvent, Channel... channels) {
+        super(channels);
+        setResult(monitoredEvent);
+        monitoredEvent.addCompletionEvent(this);
+    }
 
-	/**
-	 * Return the completed event. This is simply a shortcut 
-	 * for ``currentResults().get(0)``.
-	 * 
-	 * @return the completed event
-	 */
-	public T event() {
-		return currentResults().get(0);
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Components.className(getClass()))
-			.append('(')
-			.append(Components.objectName(currentResults().get(0)))
-			.append(") [");
-		if (channels().length > 0) {
-			builder.append("channels=");
-			builder.append(Channel.toString(channels()));
-		}
-		builder.append(']');
-		return builder.toString();
-	}
+    /**
+     * Return the completed event. This is simply a shortcut 
+     * for ``currentResults().get(0)``.
+     * 
+     * @return the completed event
+     */
+    public T event() {
+        return currentResults().get(0);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Components.className(getClass()))
+            .append('(')
+            .append(Components.objectName(currentResults().get(0)))
+            .append(") [");
+        if (channels().length > 0) {
+            builder.append("channels=");
+            builder.append(Channel.toString(channels()));
+        }
+        builder.append(']');
+        return builder.toString();
+    }
 }

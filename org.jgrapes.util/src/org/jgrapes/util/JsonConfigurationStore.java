@@ -72,166 +72,166 @@ import org.jgrapes.util.events.InitialPreferences;
  */
 public class JsonConfigurationStore extends Component {
 
-	private File file;
-	private Map<String,Object> cache;
-	
-	/**
-	 * Creates a new component with its channel set to the given 
-	 * channel and the given file.
-	 * 
-	 * @param componentChannel the channel 
-	 * @param file the file used to store the JSON
-	 * @throws JsonDecodeException
-	 */
-	public JsonConfigurationStore(Channel componentChannel, File file)
-		throws IOException {
-		this(componentChannel, file, true);
-	}
+    private File file;
+    private Map<String, Object> cache;
 
-	/**
-	 * Creates a new component with its channel set to the given 
-	 * channel and the given file.
-	 * 
-	 * @param componentChannel the channel 
-	 * @param file the file used to store the JSON
-	 * @throws JsonDecodeException
-	 */
-	@SuppressWarnings("PMD.ShortVariable")
-	public JsonConfigurationStore(Channel componentChannel, File file, 
-			boolean update) throws IOException {
-		super(componentChannel);
-		if (update) {
-			Handler.Evaluator.add(this, "onConfigurationUpdate", 
-					channel().defaultCriterion());
-		}
-		this.file = file;
-		if (!file.exists()) {
-			cache = new HashMap<>();
-		}
-		try (Reader in = new InputStreamReader(
-				Files.newInputStream(file.toPath()), "utf-8")) {
-			@SuppressWarnings("unchecked")
-			Map<String,Object> confCache = (Map<String,Object>)
-					JsonBeanDecoder.create(in).readObject();
-			cache = confCache;
-		} catch (JsonDecodeException e) {
-			throw new IOException(e);
-		}
-	}
+    /**
+     * Creates a new component with its channel set to the given 
+     * channel and the given file.
+     * 
+     * @param componentChannel the channel 
+     * @param file the file used to store the JSON
+     * @throws JsonDecodeException
+     */
+    public JsonConfigurationStore(Channel componentChannel, File file)
+            throws IOException {
+        this(componentChannel, file, true);
+    }
 
-	/**
-	 * Intercepts the {@link Start} event and fires a
-	 * {@link ConfigurationUpdate} event.
-	 *
-	 * @param event the event
-	 * @throws BackingStoreException the backing store exception
-	 * @throws InterruptedException the interrupted exception
-	 */
-	@Handler(priority=999999, channels=Channel.class)
-	public void onStart(Start event) 
-			throws BackingStoreException, InterruptedException {
-		ConfigurationUpdate updEvt = new ConfigurationUpdate();
-		addPrefs(updEvt, "/", cache);
-		newEventPipeline().fire(updEvt, event.channels()).get();
-	}
+    /**
+     * Creates a new component with its channel set to the given 
+     * channel and the given file.
+     * 
+     * @param componentChannel the channel 
+     * @param file the file used to store the JSON
+     * @throws JsonDecodeException
+     */
+    @SuppressWarnings("PMD.ShortVariable")
+    public JsonConfigurationStore(Channel componentChannel, File file,
+            boolean update) throws IOException {
+        super(componentChannel);
+        if (update) {
+            Handler.Evaluator.add(this, "onConfigurationUpdate",
+                channel().defaultCriterion());
+        }
+        this.file = file;
+        if (!file.exists()) {
+            cache = new HashMap<>();
+        }
+        try (Reader in = new InputStreamReader(
+            Files.newInputStream(file.toPath()), "utf-8")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> confCache
+                = (Map<String, Object>) JsonBeanDecoder.create(in).readObject();
+            cache = confCache;
+        } catch (JsonDecodeException e) {
+            throw new IOException(e);
+        }
+    }
 
-	private void addPrefs(
-			ConfigurationUpdate updEvt, String path, Map<String,?> map) {
-		for (Map.Entry<String,?> e: map.entrySet()) {
-			if (e.getValue() instanceof Map) {
-				@SuppressWarnings("unchecked")
-				Map<String,?> value = (Map<String,?>)e.getValue();
-				addPrefs(updEvt, ("/".equals(path) ? "" : path)
-						+ e.getKey(), value);
-				continue;
-			}
-			updEvt.add(path, e.getKey(), e.getValue().toString());
-		}
-	}
-	
-	/**
-	 * Merges and saves configuration updates.
-	 *
-	 * @param event the event
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	@Handler(dynamic=true)
-	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-	        "PMD.AvoidLiteralsInIfCondition",
-	        "PMD.AvoidInstantiatingObjectsInLoops" })
-	public void onConfigurationUpdate(ConfigurationUpdate event) 
-			throws IOException {
-		boolean changed = false;
-		for (String path: event.paths()) {
-			if ("/".equals(path) && !event.values(path).isPresent()) {
-				// Special case, "remove root", i.e. all configuration data
-				cache.clear();
-				changed = true;
-			}
-			changed = changed || handleSegment(cache, 
-					new StringTokenizer(path, "/"), event.values(path));
-		}
-		if (changed) {
-			try (Writer out = new OutputStreamWriter(
-					Files.newOutputStream(file.toPath()), "utf-8");
-					JsonBeanEncoder enc = JsonBeanEncoder.create(out)) {
-				enc.writeObject(cache);
-			}
-		}
-	}
-	
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-	private boolean handleSegment(Map<String,Object> currentMap,
-			StringTokenizer tokenizer,	Optional<Map<String,String>> values) {
-		if (!tokenizer.hasMoreTokens()) {
-			// "Leave" map
-			return mergeValues(currentMap, values.get());
-		}
-		boolean changed = false;
-		String nextSegment = "/" + tokenizer.nextToken();
-		if (!tokenizer.hasMoreTokens() && !values.isPresent()) {
-			// Next segment is last segment from path and we must remove
-			if (currentMap.containsKey(nextSegment)) {
-				// Delete sub-map.
-				currentMap.remove(nextSegment);
-				changed = true;
-			}
-			return changed;
-		}
-		// Check if next map exists
-		@SuppressWarnings("unchecked")
-		Map<String,Object> nextMap 
-			= (Map<String,Object>)currentMap.get(nextSegment);
-		if(nextMap == null) {
-			// Doesn't exist, new sub-map
-			changed = true;
-			nextMap = new HashMap<>();
-			currentMap.put(nextSegment, nextMap);
-		}
-		// Continue with sub-map
-		return changed || handleSegment(nextMap, tokenizer, values);
-	}
+    /**
+     * Intercepts the {@link Start} event and fires a
+     * {@link ConfigurationUpdate} event.
+     *
+     * @param event the event
+     * @throws BackingStoreException the backing store exception
+     * @throws InterruptedException the interrupted exception
+     */
+    @Handler(priority = 999999, channels = Channel.class)
+    public void onStart(Start event)
+            throws BackingStoreException, InterruptedException {
+        ConfigurationUpdate updEvt = new ConfigurationUpdate();
+        addPrefs(updEvt, "/", cache);
+        newEventPipeline().fire(updEvt, event.channels()).get();
+    }
 
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-	private boolean mergeValues(Map<String, Object> currentMap,
-	        Map<String, String> values) {
-		boolean changed = false;
-		for (Map.Entry<String,String> e: values.entrySet()) {
-			if (e.getValue() == null) {
-				// Delete from map
-				if (currentMap.containsKey(e.getKey())) {
-					currentMap.remove(e.getKey());
-					changed = true;
-				}
-				continue;
-			}
-			String oldValue = Optional.ofNullable(currentMap.get(e.getKey()))
-					.map(val -> val.toString()).orElse(null);
-			if (oldValue == null || !e.getValue().equals(oldValue)) {
-				currentMap.put(e.getKey(), e.getValue());
-				changed = true;
-			}
-		}
-		return changed;
-	}
+    private void addPrefs(
+            ConfigurationUpdate updEvt, String path, Map<String, ?> map) {
+        for (Map.Entry<String, ?> e : map.entrySet()) {
+            if (e.getValue() instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, ?> value = (Map<String, ?>) e.getValue();
+                addPrefs(updEvt, ("/".equals(path) ? "" : path)
+                    + e.getKey(), value);
+                continue;
+            }
+            updEvt.add(path, e.getKey(), e.getValue().toString());
+        }
+    }
+
+    /**
+     * Merges and saves configuration updates.
+     *
+     * @param event the event
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    @Handler(dynamic = true)
+    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+        "PMD.AvoidLiteralsInIfCondition",
+        "PMD.AvoidInstantiatingObjectsInLoops" })
+    public void onConfigurationUpdate(ConfigurationUpdate event)
+            throws IOException {
+        boolean changed = false;
+        for (String path : event.paths()) {
+            if ("/".equals(path) && !event.values(path).isPresent()) {
+                // Special case, "remove root", i.e. all configuration data
+                cache.clear();
+                changed = true;
+            }
+            changed = changed || handleSegment(cache,
+                new StringTokenizer(path, "/"), event.values(path));
+        }
+        if (changed) {
+            try (Writer out = new OutputStreamWriter(
+                Files.newOutputStream(file.toPath()), "utf-8");
+                    JsonBeanEncoder enc = JsonBeanEncoder.create(out)) {
+                enc.writeObject(cache);
+            }
+        }
+    }
+
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    private boolean handleSegment(Map<String, Object> currentMap,
+            StringTokenizer tokenizer, Optional<Map<String, String>> values) {
+        if (!tokenizer.hasMoreTokens()) {
+            // "Leave" map
+            return mergeValues(currentMap, values.get());
+        }
+        boolean changed = false;
+        String nextSegment = "/" + tokenizer.nextToken();
+        if (!tokenizer.hasMoreTokens() && !values.isPresent()) {
+            // Next segment is last segment from path and we must remove
+            if (currentMap.containsKey(nextSegment)) {
+                // Delete sub-map.
+                currentMap.remove(nextSegment);
+                changed = true;
+            }
+            return changed;
+        }
+        // Check if next map exists
+        @SuppressWarnings("unchecked")
+        Map<String, Object> nextMap
+            = (Map<String, Object>) currentMap.get(nextSegment);
+        if (nextMap == null) {
+            // Doesn't exist, new sub-map
+            changed = true;
+            nextMap = new HashMap<>();
+            currentMap.put(nextSegment, nextMap);
+        }
+        // Continue with sub-map
+        return changed || handleSegment(nextMap, tokenizer, values);
+    }
+
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    private boolean mergeValues(Map<String, Object> currentMap,
+            Map<String, String> values) {
+        boolean changed = false;
+        for (Map.Entry<String, String> e : values.entrySet()) {
+            if (e.getValue() == null) {
+                // Delete from map
+                if (currentMap.containsKey(e.getKey())) {
+                    currentMap.remove(e.getKey());
+                    changed = true;
+                }
+                continue;
+            }
+            String oldValue = Optional.ofNullable(currentMap.get(e.getKey()))
+                .map(val -> val.toString()).orElse(null);
+            if (oldValue == null || !e.getValue().equals(oldValue)) {
+                currentMap.put(e.getKey(), e.getValue());
+                changed = true;
+            }
+        }
+        return changed;
+    }
 }

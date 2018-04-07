@@ -30,144 +30,149 @@ import org.jgrapes.core.EventPipeline;
  */
 public class EventProcessor implements InternalEventPipeline, Runnable {
 
-	@SuppressWarnings("PMD.VariableNamingConventions")
-	protected static final ThreadLocal<EventBase<?>> 
-		newEventsParent = new ThreadLocal<>();
-	
-	private final ExecutorService executorService;
-	private final ComponentTree componentTree;
-	private final EventPipeline asEventPipeline;
-	protected final EventQueue queue = new EventQueue();
-	private boolean isExecuting;
-	
-	/**
-	 * Instantiates a new event processor.
-	 *
-	 * @param tree the tree
-	 */
-	/* default */ EventProcessor(ComponentTree tree) {
-		this(tree, Components.defaultExecutorService());
-	}
+    @SuppressWarnings("PMD.VariableNamingConventions")
+    protected static final ThreadLocal<EventBase<?>> newEventsParent
+        = new ThreadLocal<>();
 
-	/* default */ EventProcessor(ComponentTree tree, ExecutorService executorService) {
-		this.componentTree = tree;
-		this.executorService = executorService;
-		asEventPipeline = new CheckingPipelineFilter(this);
-	}
+    private final ExecutorService executorService;
+    private final ComponentTree componentTree;
+    private final EventPipeline asEventPipeline;
+    protected final EventQueue queue = new EventQueue();
+    private boolean isExecuting;
 
-	/* default */ EventPipeline asEventPipeline() {
-		return asEventPipeline;
-	}
-	
-	/**
-	 * Called before adding completion events. The parent of
-	 * a completion event is not the event that has completed but
-	 * the event that generated the original event.
-	 *
-	 * @param parent the new parent
-	 */
-	/* default */ void updateNewEventsParent(EventBase<?> parent) {
-		newEventsParent.set(parent);
-	}
-	
-	@Override
-	public <T extends Event<?>> T add(T event, Channel... channels) {
-		((EventBase<?>)event).generatedBy(newEventsParent.get());
-		((EventBase<?>)event).processedBy(this);
-		queue.add(event, channels);
-		synchronized (this) {
-			if (!isExecuting) {
-				GeneratorRegistry.instance().add(this);
-				isExecuting = true;
-				executorService.execute(this);
-			}
-		}
-		return event;
-	}
+    /**
+     * Instantiates a new event processor.
+     *
+     * @param tree the tree
+     */
+    /* default */ EventProcessor(ComponentTree tree) {
+        this(tree, Components.defaultExecutorService());
+    }
 
-	/* default */ void add(EventQueue source) {
-		while (true) {
-			EventChannelsTuple entry = source.poll();
-			if (entry == null) {
-				break;
-			}
-			entry.event.processedBy(this);
-			queue.add(entry);
-		}
-		synchronized (this) {
-			if (!isExecuting) {
-				GeneratorRegistry.instance().add(this);
-				isExecuting = true;
-				executorService.execute(this);
-			}
-		}
-	}
-	
-	@Override
-	public void merge(InternalEventPipeline other) {
-		if (!(other instanceof BufferingEventPipeline)) {
-			throw new IllegalArgumentException(
-					"Can only merge events from an BufferingEventPipeline.");
-		}
-		add(((BufferingEventPipeline) other).retrieveEvents());
-	}
+    /* default */ EventProcessor(ComponentTree tree,
+            ExecutorService executorService) {
+        this.componentTree = tree;
+        this.executorService = executorService;
+        asEventPipeline = new CheckingPipelineFilter(this);
+    }
 
-	@Override
-	public void run() {
-		String origName = Thread.currentThread().getName();
-		try {
-			Thread.currentThread().setName(
-					origName + " (P" + Components.objectId(this) + ")");
-			FeedBackPipelineFilter.setAssociatedPipeline(this);
-			while (true) {
-				// No lock needed if queue is filled
-				EventChannelsTuple next = queue.peek();
-				if (next == null) {
-					synchronized (this) {
-						// Retry with lock for proper synchronization
-						next = queue.peek();
-						if (next == null) {
-							GeneratorRegistry.instance().remove(this);
-							isExecuting = false;
-							break;
-						}
-					}
-				}
-				newEventsParent.set(next.event);
-				componentTree.dispatch(
-						asEventPipeline, next.event, next.channels);
-				newEventsParent.get().decrementOpen();
-				queue.remove();
-			}
-		} finally {
-			Thread.currentThread().setName(origName);
-			newEventsParent.set(null);
-			FeedBackPipelineFilter.setAssociatedPipeline(null);
-		}
-	}
+    /* default */ EventPipeline asEventPipeline() {
+        return asEventPipeline;
+    }
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()
-	 */
-	@Override
-	public ExecutorService executorService() {
-		return executorService;
-	}
+    /**
+     * Called before adding completion events. The parent of
+     * a completion event is not the event that has completed but
+     * the event that generated the original event.
+     *
+     * @param parent the new parent
+     */
+    /* default */ void updateNewEventsParent(EventBase<?> parent) {
+        newEventsParent.set(parent);
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this))
-			.append(" [");
-		if (queue != null) {
-			builder.append("queue=")
-				.append(queue);
-		}
-		builder.append(']');
-		return builder.toString();
-	}
+    @Override
+    public <T extends Event<?>> T add(T event, Channel... channels) {
+        ((EventBase<?>) event).generatedBy(newEventsParent.get());
+        ((EventBase<?>) event).processedBy(this);
+        queue.add(event, channels);
+        synchronized (this) {
+            if (!isExecuting) {
+                GeneratorRegistry.instance().add(this);
+                isExecuting = true;
+                executorService.execute(this);
+            }
+        }
+        return event;
+    }
+
+    /* default */ void add(EventQueue source) {
+        while (true) {
+            EventChannelsTuple entry = source.poll();
+            if (entry == null) {
+                break;
+            }
+            entry.event.processedBy(this);
+            queue.add(entry);
+        }
+        synchronized (this) {
+            if (!isExecuting) {
+                GeneratorRegistry.instance().add(this);
+                isExecuting = true;
+                executorService.execute(this);
+            }
+        }
+    }
+
+    @Override
+    public void merge(InternalEventPipeline other) {
+        if (!(other instanceof BufferingEventPipeline)) {
+            throw new IllegalArgumentException(
+                "Can only merge events from an BufferingEventPipeline.");
+        }
+        add(((BufferingEventPipeline) other).retrieveEvents());
+    }
+
+    @Override
+    public void run() {
+        String origName = Thread.currentThread().getName();
+        try {
+            Thread.currentThread().setName(
+                origName + " (P" + Components.objectId(this) + ")");
+            FeedBackPipelineFilter.setAssociatedPipeline(this);
+            while (true) {
+                // No lock needed if queue is filled
+                EventChannelsTuple next = queue.peek();
+                if (next == null) {
+                    synchronized (this) {
+                        // Retry with lock for proper synchronization
+                        next = queue.peek();
+                        if (next == null) {
+                            GeneratorRegistry.instance().remove(this);
+                            isExecuting = false;
+                            break;
+                        }
+                    }
+                }
+                newEventsParent.set(next.event);
+                componentTree.dispatch(
+                    asEventPipeline, next.event, next.channels);
+                newEventsParent.get().decrementOpen();
+                queue.remove();
+            }
+        } finally {
+            Thread.currentThread().setName(origName);
+            newEventsParent.set(null);
+            FeedBackPipelineFilter.setAssociatedPipeline(null);
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()
+     */
+    @Override
+    public ExecutorService executorService() {
+        return executorService;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Components.objectName(this))
+            .append(" [");
+        if (queue != null) {
+            builder.append("queue=")
+                .append(queue);
+        }
+        builder.append(']');
+        return builder.toString();
+    }
 
 }

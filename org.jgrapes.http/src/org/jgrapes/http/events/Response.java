@@ -26,24 +26,23 @@ import org.jgrapes.core.Event;
  */
 public class Response extends Event<Void> {
 
-	@SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
-	private final MessageHeader response;
-	
-	/**
-	 * Instantiates a new response.
-	 *
-	 * @param response the response
-	 */
-	public Response(MessageHeader response) {
-		this.response = response;
-	}
+    @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
+    private final MessageHeader response;
 
-	/**
-	 * @return the response
-	 */
-	public MessageHeader response() {
-		return response;
-	}
+    /**
+     * Instantiates a new response.
+     *
+     * @param response the response
+     */
+    public Response(MessageHeader response) {
+        this.response = response;
+    }
 
-	
+    /**
+     * @return the response
+     */
+    public MessageHeader response() {
+        return response;
+    }
+
 }

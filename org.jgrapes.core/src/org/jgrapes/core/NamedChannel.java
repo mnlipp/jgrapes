@@ -25,86 +25,92 @@ package org.jgrapes.core;
  */
 public final class NamedChannel implements Channel {
 
-	private final String name;
+    private final String name;
 
-	/**
-	 * Creates a new named channel with the given name.
-	 * 
-	 * @param name the channel's name
-	 */
-	public NamedChannel(String name) {
-		super();
-		this.name = name;
-	}
+    /**
+     * Creates a new named channel with the given name.
+     * 
+     * @param name the channel's name
+     */
+    public NamedChannel(String name) {
+        super();
+        this.name = name;
+    }
 
-	/**
-	 * Returns the name of the channel as its value.
-	 * 
-	 * @return the name
-	 * 
-	 * @see org.jgrapes.core.Channel#defaultCriterion()
-	 */
-	@Override
-	public Object defaultCriterion() {
-		return name;
-	}
+    /**
+     * Returns the name of the channel as its value.
+     * 
+     * @return the name
+     * 
+     * @see org.jgrapes.core.Channel#defaultCriterion()
+     */
+    @Override
+    public Object defaultCriterion() {
+        return name;
+    }
 
-	/**
-	 * Returns <code>true</code> if the <code>value</code>
-	 * matches the name of this channel or is the broadcast channel's value. 
-	 * 
-	 * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)
-	 */
-	@Override
-	public boolean isEligibleFor(Object value) {
-		return value.equals(BROADCAST.defaultCriterion())
-				|| value.equals(name);
-	}
+    /**
+     * Returns <code>true</code> if the <code>value</code>
+     * matches the name of this channel or is the broadcast channel's value. 
+     * 
+     * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)
+     */
+    @Override
+    public boolean isEligibleFor(Object value) {
+        return value.equals(BROADCAST.defaultCriterion())
+            || value.equals(name);
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "NamedChannel [name=" + name + "]";
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "NamedChannel [name=" + name + "]";
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-	public int hashCode() {
-		@SuppressWarnings("PMD.AvoidFinalLocalVariable")
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    public int hashCode() {
+        @SuppressWarnings("PMD.AvoidFinalLocalVariable")
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        return result;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		NamedChannel other = (NamedChannel) obj;
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
-			return false;
-		}
-		return true;
-	}
-	
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        NamedChannel other = (NamedChannel) obj;
+        if (name == null) {
+            if (other.name != null) {
+                return false;
+            }
+        } else if (!name.equals(other.name)) {
+            return false;
+        }
+        return true;
+    }
+
 }

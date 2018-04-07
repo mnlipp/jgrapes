@@ -36,92 +36,92 @@ import org.jgrapes.io.events.Output;
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class InputStreamPipeline implements Runnable {
-	
-	private InputStream inStream;
-	private IOSubchannel channel;
-	private EventPipeline eventPipeline;
-	private boolean sendClose = true;
 
-	/**
-	 * Creates a new pipeline that sends the data from the given input stream
-	 * as events on the given channel, using the given event pipeline.
-	 * 
-	 * @param in the input stream to read from
-	 * @param channel the channel to send to
-	 * @param eventPipeline
-	 *            the event pipeline used for firing events
-	 */
-	@SuppressWarnings("PMD.ShortVariable")
-	public InputStreamPipeline(InputStream in, IOSubchannel channel,
-			EventPipeline eventPipeline) {
-		this.inStream = in;
-		this.channel = channel;
-		this.eventPipeline = eventPipeline;
-	}
+    private InputStream inStream;
+    private IOSubchannel channel;
+    private EventPipeline eventPipeline;
+    private boolean sendClose = true;
 
-	/**
-	 * Creates a new pipeline that sends the data from the given input stream
-	 * as events on the given channel, using the channel's response pipeline.
-	 * 
-	 * @param in the input stream to read from
-	 * @param channel the channel to send to
-	 */
-	@SuppressWarnings("PMD.ShortVariable")
-	public InputStreamPipeline(InputStream in, IOSubchannel channel) {
-		this(in, channel, channel.responsePipeline());
-	}
-	
-	/**
-	 * Suppresses the sending of a close event when the stream is closed. 
-	 * 
-	 * @return the stream for easy chaining
-	 */
-	public InputStreamPipeline suppressClose() {
-		sendClose = false;
-		return this;
-	}
-	
-	@Override
-	public void run() {
-		try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {
-			ManagedBuffer<ByteBuffer> lookAhead = ManagedBuffer.wrap(
-					ByteBuffer.allocate(channel.byteBufferPool().bufferSize()));
-			// First attempt 
-			if (lookAhead.fillFromChannel(inChannel) == -1) {
-				ManagedBuffer<ByteBuffer> buffer 
-					= channel.byteBufferPool().acquire();
-				eventPipeline.fire(Output.fromSink(buffer, true), channel);
-			} else {
-				while (true) {
-					// Save data read so far
-					ManagedBuffer<ByteBuffer> buffer 
-						= channel.byteBufferPool().acquire();
-					buffer.linkBackingBuffer(lookAhead);
-					// Get new look ahead
-					lookAhead = ManagedBuffer.wrap(ByteBuffer.allocate(
-							channel.byteBufferPool().bufferSize()));
-					// Next read attempt
-					boolean eof;
-					try {
-						eof = lookAhead.fillFromChannel(inChannel) == -1;
-					} catch (IOException e) {
-						buffer.unlockBuffer();
-						throw e;
-					}
-					// Fire "old" data with up-to-date end of record flag. 
-					eventPipeline.fire(Output.fromSink(buffer, eof), channel);
-					if (eof) {
-						break;
-					}
-				}
-			}
-			if (sendClose) {
-				eventPipeline.fire(new Close(), channel);
-			}
-		} catch (InterruptedException e) {
-			// Just stop
-		} catch (IOException e) {
-			eventPipeline.fire(new IOError(null, e), channel);
-		}
-	}
+    /**
+     * Creates a new pipeline that sends the data from the given input stream
+     * as events on the given channel, using the given event pipeline.
+     * 
+     * @param in the input stream to read from
+     * @param channel the channel to send to
+     * @param eventPipeline
+     *            the event pipeline used for firing events
+     */
+    @SuppressWarnings("PMD.ShortVariable")
+    public InputStreamPipeline(InputStream in, IOSubchannel channel,
+            EventPipeline eventPipeline) {
+        this.inStream = in;
+        this.channel = channel;
+        this.eventPipeline = eventPipeline;
+    }
+
+    /**
+     * Creates a new pipeline that sends the data from the given input stream
+     * as events on the given channel, using the channel's response pipeline.
+     * 
+     * @param in the input stream to read from
+     * @param channel the channel to send to
+     */
+    @SuppressWarnings("PMD.ShortVariable")
+    public InputStreamPipeline(InputStream in, IOSubchannel channel) {
+        this(in, channel, channel.responsePipeline());
+    }
+
+    /**
+     * Suppresses the sending of a close event when the stream is closed. 
+     * 
+     * @return the stream for easy chaining
+     */
+    public InputStreamPipeline suppressClose() {
+        sendClose = false;
+        return this;
+    }
+
+    @Override
+    public void run() {
+        try (ReadableByteChannel inChannel = Channels.newChannel(inStream)) {
+            ManagedBuffer<ByteBuffer> lookAhead = ManagedBuffer.wrap(
+                ByteBuffer.allocate(channel.byteBufferPool().bufferSize()));
+            // First attempt
+            if (lookAhead.fillFromChannel(inChannel) == -1) {
+                ManagedBuffer<ByteBuffer> buffer
+                    = channel.byteBufferPool().acquire();
+                eventPipeline.fire(Output.fromSink(buffer, true), channel);
+            } else {
+                while (true) {
+                    // Save data read so far
+                    ManagedBuffer<ByteBuffer> buffer
+                        = channel.byteBufferPool().acquire();
+                    buffer.linkBackingBuffer(lookAhead);
+                    // Get new look ahead
+                    lookAhead = ManagedBuffer.wrap(ByteBuffer.allocate(
+                        channel.byteBufferPool().bufferSize()));
+                    // Next read attempt
+                    boolean eof;
+                    try {
+                        eof = lookAhead.fillFromChannel(inChannel) == -1;
+                    } catch (IOException e) {
+                        buffer.unlockBuffer();
+                        throw e;
+                    }
+                    // Fire "old" data with up-to-date end of record flag.
+                    eventPipeline.fire(Output.fromSink(buffer, eof), channel);
+                    if (eof) {
+                        break;
+                    }
+                }
+            }
+            if (sendClose) {
+                eventPipeline.fire(new Close(), channel);
+            }
+        } catch (InterruptedException e) {
+            // Just stop
+        } catch (IOException e) {
+            eventPipeline.fire(new IOError(null, e), channel);
+        }
+    }
 }

@@ -26,31 +26,32 @@ import org.jgrapes.core.events.Error;
  */
 public class ErrorPrinter implements ComponentType {
 
-	/**
-	 * Prints the error.
-	 *
-	 * @param event the event
-	 */
-	@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-	        "PMD.AvoidCatchingGenericException",
-	        "PMD.UseStringBufferForStringAppends", "PMD.SystemPrintln" })
-	public void printError(Error event) {
-		String msg = "(No event)";
-		if (event.event() != null) {
-			try {
-				msg = event.event().toString();
-			} catch (Exception t) {
-				msg = "(Cannot convert event to string: " + t.getMessage() + ")";
-			}
-		}
-		msg += ": " + (event.message() == null ? "(No message)" 
-				: event.message());
-		System.err.println(msg);
-		if (event.throwable() == null) {
-			System.err.println("No stack trace available.");			
-		} else {
-			event.throwable().printStackTrace();
-		}
-	}
+    /**
+     * Prints the error.
+     *
+     * @param event the event
+     */
+    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+        "PMD.AvoidCatchingGenericException",
+        "PMD.UseStringBufferForStringAppends", "PMD.SystemPrintln" })
+    public void printError(Error event) {
+        String msg = "(No event)";
+        if (event.event() != null) {
+            try {
+                msg = event.event().toString();
+            } catch (Exception t) {
+                msg = "(Cannot convert event to string: " + t.getMessage()
+                    + ")";
+            }
+        }
+        msg += ": " + (event.message() == null ? "(No message)"
+            : event.message());
+        System.err.println(msg);
+        if (event.throwable() == null) {
+            System.err.println("No stack trace available.");
+        } else {
+            event.throwable().printStackTrace();
+        }
+    }
 
 }

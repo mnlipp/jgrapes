@@ -34,166 +34,166 @@ import java.util.concurrent.Semaphore;
  */
 public class PermitsPool {
 
-	private final MySemaphore delegee;
-	private final List<WeakReference<AvailabilityListener>> 
-		listeners = new LinkedList<>();
-	private boolean lastNotification = true;
-	
-	/**
-	 * A variant of {@link Semaphore}.
-	 */
-	private static class MySemaphore extends Semaphore {
-		private static final long serialVersionUID = 8758302721594300704L;
+    private final MySemaphore delegee;
+    private final List<WeakReference<AvailabilityListener>> listeners
+        = new LinkedList<>();
+    private boolean lastNotification = true;
 
-		/**
-		 * Instantiates a new semaphore.
-		 *
-		 * @param permits the number of permits
-		 */
-		public MySemaphore(int permits) {
-			super(permits);
-		}
+    /**
+     * A variant of {@link Semaphore}.
+     */
+    private static class MySemaphore extends Semaphore {
+        private static final long serialVersionUID = 8758302721594300704L;
 
-		@Override
-		@SuppressWarnings("PMD.UselessOverridingMethod")
-		public void reducePermits(int reduction) {
-			super.reducePermits(reduction);
-		}
-	}
-	
-	/**
-	 * Instantiates a new permits pool.
-	 *
-	 * @param permits the permits
-	 */
-	public PermitsPool(int permits) {
-		delegee = new MySemaphore(permits);
-	}
+        /**
+         * Instantiates a new semaphore.
+         *
+         * @param permits the number of permits
+         */
+        public MySemaphore(int permits) {
+            super(permits);
+        }
 
-	/**
-	 * Returns the number of currently available permits.
-	 *
-	 * @return the result
-	 */
-	public int availablePermits() {
-		return delegee.availablePermits();
-	}
+        @Override
+        @SuppressWarnings("PMD.UselessOverridingMethod")
+        public void reducePermits(int reduction) {
+            super.reducePermits(reduction);
+        }
+    }
 
-	/**
-	 * Adds the given number of permits to the pool.
-	 *
-	 * @param permits the number of permits to add
-	 * @return the permits pool
-	 */
-	public PermitsPool augmentPermits(int permits) {
-		delegee.release(permits);
-		return this;
-	}
-	
-	/**
-	 * Remove the given number of permits from the pool.
-	 *
-	 * @param permits the number of permits to remove
-	 * @return the permits pool
-	 */
-	public PermitsPool reducePermits(int permits) {
-		delegee.reducePermits(permits);
-		return this;
-	}
-	
-	/**
-	 * Adds an AvailabilityListener.
-	 *
-	 * @param listener the AvailabilityListener
-	 * @return the permits pool
-	 */
-	public PermitsPool addListener(AvailabilityListener listener) {
-		synchronized (listeners) {
-			listeners.add(new WeakReference<>(listener));
-		}
-		return this;
-	}
+    /**
+     * Instantiates a new permits pool.
+     *
+     * @param permits the permits
+     */
+    public PermitsPool(int permits) {
+        delegee = new MySemaphore(permits);
+    }
 
-	/**
-	 * Removes the listener.
-	 *
-	 * @param listener the AvailabilityListener
-	 * @return the permits pool
-	 */
-	public PermitsPool removeListener(AvailabilityListener listener) {
-		synchronized (listeners) {
-			for (Iterator<WeakReference<AvailabilityListener>> 
-				iter = listeners.iterator(); iter.hasNext();) {
-				WeakReference<AvailabilityListener> item = iter.next();
-				if (item.get() == null || item.get() == listener) {
-					iter.remove();
-				}
-			}
-		}
-		return this;
-	}
+    /**
+     * Returns the number of currently available permits.
+     *
+     * @return the result
+     */
+    public int availablePermits() {
+        return delegee.availablePermits();
+    }
 
-	private void notifyAvailabilityListeners() {
-		boolean available = availablePermits() > 0;
-		if (available == lastNotification) {
-			return;
-		}
-		lastNotification = available;
-		List<AvailabilityListener> copy = new ArrayList<>();
-		synchronized (listeners) {
-			for (Iterator<WeakReference<AvailabilityListener>> 
-				iter = listeners.iterator(); iter.hasNext();) {
-				WeakReference<AvailabilityListener> item = iter.next();
-				AvailabilityListener listener = item.get();
-				if (listener == null) {
-					iter.remove();
-					continue;
-				}
-				copy.add(listener);
-			}
-		}
-		for (AvailabilityListener l: copy) {
-			l.availabilityChanged(this, available);
-		}
-	}
+    /**
+     * Adds the given number of permits to the pool.
+     *
+     * @param permits the number of permits to add
+     * @return the permits pool
+     */
+    public PermitsPool augmentPermits(int permits) {
+        delegee.release(permits);
+        return this;
+    }
 
-	/**
-	 * Release a previously obtained permit.
-	 */
-	public PermitsPool release() {
-		synchronized(this) {
-			delegee.release();
-			notifyAvailabilityListeners();
-			return this;
-		}
-	}
+    /**
+     * Remove the given number of permits from the pool.
+     *
+     * @param permits the number of permits to remove
+     * @return the permits pool
+     */
+    public PermitsPool reducePermits(int permits) {
+        delegee.reducePermits(permits);
+        return this;
+    }
 
-	/**
-	 * Acquire a permit, waiting until one becomes available.
-	 *
-	 * @return the permits pool
-	 * @throws InterruptedException the interrupted exception
-	 */
-	public PermitsPool acquire() throws InterruptedException {
-		delegee.acquire();
-		notifyAvailabilityListeners();
-		return this;
-	}
-	
-	/**
-	 * Try to acquire a permit.
-	 *
-	 * @return `true` if successful
-	 */
-	public boolean tryAcquire() {
-		synchronized(this) {
-			boolean gotOne = delegee.tryAcquire();
-			if (gotOne) {
-				notifyAvailabilityListeners();
-				return true;
-			}
-			return false;
-		}
-	}
+    /**
+     * Adds an AvailabilityListener.
+     *
+     * @param listener the AvailabilityListener
+     * @return the permits pool
+     */
+    public PermitsPool addListener(AvailabilityListener listener) {
+        synchronized (listeners) {
+            listeners.add(new WeakReference<>(listener));
+        }
+        return this;
+    }
+
+    /**
+     * Removes the listener.
+     *
+     * @param listener the AvailabilityListener
+     * @return the permits pool
+     */
+    public PermitsPool removeListener(AvailabilityListener listener) {
+        synchronized (listeners) {
+            for (Iterator<WeakReference<AvailabilityListener>> iter
+                = listeners.iterator(); iter.hasNext();) {
+                WeakReference<AvailabilityListener> item = iter.next();
+                if (item.get() == null || item.get() == listener) {
+                    iter.remove();
+                }
+            }
+        }
+        return this;
+    }
+
+    private void notifyAvailabilityListeners() {
+        boolean available = availablePermits() > 0;
+        if (available == lastNotification) {
+            return;
+        }
+        lastNotification = available;
+        List<AvailabilityListener> copy = new ArrayList<>();
+        synchronized (listeners) {
+            for (Iterator<WeakReference<AvailabilityListener>> iter
+                = listeners.iterator(); iter.hasNext();) {
+                WeakReference<AvailabilityListener> item = iter.next();
+                AvailabilityListener listener = item.get();
+                if (listener == null) {
+                    iter.remove();
+                    continue;
+                }
+                copy.add(listener);
+            }
+        }
+        for (AvailabilityListener l : copy) {
+            l.availabilityChanged(this, available);
+        }
+    }
+
+    /**
+     * Release a previously obtained permit.
+     */
+    public PermitsPool release() {
+        synchronized (this) {
+            delegee.release();
+            notifyAvailabilityListeners();
+            return this;
+        }
+    }
+
+    /**
+     * Acquire a permit, waiting until one becomes available.
+     *
+     * @return the permits pool
+     * @throws InterruptedException the interrupted exception
+     */
+    public PermitsPool acquire() throws InterruptedException {
+        delegee.acquire();
+        notifyAvailabilityListeners();
+        return this;
+    }
+
+    /**
+     * Try to acquire a permit.
+     *
+     * @return `true` if successful
+     */
+    public boolean tryAcquire() {
+        synchronized (this) {
+            boolean gotOne = delegee.tryAcquire();
+            if (gotOne) {
+                notifyAvailabilityListeners();
+                return true;
+            }
+            return false;
+        }
+    }
 
 }

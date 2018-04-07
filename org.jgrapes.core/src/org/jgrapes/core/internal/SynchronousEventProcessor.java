@@ -26,56 +26,60 @@ import org.jgrapes.core.Event;
  */
 class SynchronousEventProcessor extends EventProcessor {
 
-	private boolean isRunning;
-	
-	/**
-	 * Instantiates a new synchronous event processor.
-	 *
-	 * @param tree the tree
-	 */
-	public SynchronousEventProcessor(ComponentTree tree) {
-		super(tree);
-	}
+    private boolean isRunning;
 
-	/* (non-Javadoc)
-	 * @see EventProcessor#add(EventBase, org.jgrapes.core.Channel[])
-	 */
-	@Override
-	public <T extends Event<?>> T add(T event, Channel... channels) {
-		((EventBase<?>)event).generatedBy(newEventsParent.get());
-		((EventBase<?>)event).processedBy(this);
-		synchronized(queue) {
-			queue.add(event, channels);
-		}
-		if (isRunning) {
-			return event;
-		}
-		isRunning = true;
-		GeneratorRegistry.instance().add(this);
-		run();
-		isRunning = false;
-		return event;
-	}
+    /**
+     * Instantiates a new synchronous event processor.
+     *
+     * @param tree the tree
+     */
+    public SynchronousEventProcessor(ComponentTree tree) {
+        super(tree);
+    }
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.EventProcessor#run()
-	 */
-	@Override
-	public void run() {
-		synchronized (this) {
-			// Save current event pipeline and currently handled event
-			// because a SynchronousEventPipeline can be called while
-			// handling an event (from another event processor).
-			InternalEventPipeline currentPipeline = FeedBackPipelineFilter
-			        .getAssociatedPipeline();
-			EventBase<?> currentEvent = newEventsParent.get();
-			try {
-				super.run();
-			} finally {
-				newEventsParent.set(currentEvent);
-				FeedBackPipelineFilter.setAssociatedPipeline(currentPipeline);
-			}
-		}
-	}
-	
+    /*
+     * (non-Javadoc)
+     * 
+     * @see EventProcessor#add(EventBase, org.jgrapes.core.Channel[])
+     */
+    @Override
+    public <T extends Event<?>> T add(T event, Channel... channels) {
+        ((EventBase<?>) event).generatedBy(newEventsParent.get());
+        ((EventBase<?>) event).processedBy(this);
+        synchronized (queue) {
+            queue.add(event, channels);
+        }
+        if (isRunning) {
+            return event;
+        }
+        isRunning = true;
+        GeneratorRegistry.instance().add(this);
+        run();
+        isRunning = false;
+        return event;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.jgrapes.core.internal.EventProcessor#run()
+     */
+    @Override
+    public void run() {
+        synchronized (this) {
+            // Save current event pipeline and currently handled event
+            // because a SynchronousEventPipeline can be called while
+            // handling an event (from another event processor).
+            InternalEventPipeline currentPipeline = FeedBackPipelineFilter
+                .getAssociatedPipeline();
+            EventBase<?> currentEvent = newEventsParent.get();
+            try {
+                super.run();
+            } finally {
+                newEventsParent.set(currentEvent);
+                FeedBackPipelineFilter.setAssociatedPipeline(currentPipeline);
+            }
+        }
+    }
+
 }

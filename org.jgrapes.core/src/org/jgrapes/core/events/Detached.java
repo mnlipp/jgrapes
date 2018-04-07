@@ -30,52 +30,54 @@ import org.jgrapes.core.Event;
  */
 public class Detached extends Event<Void> {
 
-	private final ComponentType node;
-	private final ComponentType parent;
-	
-	/**
-	 * Creates a new event.
-	 * 
-	 * @param node the component being removed
-	 * @param parent the component that the node is removed from
-	 */
-	public Detached(ComponentType node, ComponentType parent) {
-		this.parent = parent;
-		this.node = node;
-	}
+    private final ComponentType node;
+    private final ComponentType parent;
 
-	/**
-	 * @return the node
-	 */
-	public ComponentType node() {
-		return node;
-	}
+    /**
+     * Creates a new event.
+     * 
+     * @param node the component being removed
+     * @param parent the component that the node is removed from
+     */
+    public Detached(ComponentType node, ComponentType parent) {
+        this.parent = parent;
+        this.node = node;
+    }
 
-	/**
-	 * @return the parent
-	 */
-	public ComponentType parent() {
-		return parent;
-	}
+    /**
+     * @return the node
+     */
+    public ComponentType node() {
+        return node;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(Components.objectName(this))
-			.append(" [")
-			.append(parent)
-			.append(" <―/― ")
-			.append(node)
-			.append(", ");
-		if (channels().length > 0) {
-			builder.append("channels=");
-			builder.append(Channel.toString(channels()));
-		}
-		builder.append(']');
-		return builder.toString();
-	}
-	
+    /**
+     * @return the parent
+     */
+    public ComponentType parent() {
+        return parent;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Components.objectName(this))
+            .append(" [")
+            .append(parent)
+            .append(" <―/― ")
+            .append(node)
+            .append(", ");
+        if (channels().length > 0) {
+            builder.append("channels=");
+            builder.append(Channel.toString(channels()));
+        }
+        builder.append(']');
+        return builder.toString();
+    }
+
 }

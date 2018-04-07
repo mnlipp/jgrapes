@@ -35,24 +35,24 @@ import org.jgrapes.core.internal.EventBase;
  */
 public class CompletionLock extends CompletionLockBase {
 
-	/**
-	 * Creates a completion lock for the given event with the given timeout. 
-	 * 
-	 * @param event the event to be locked
-	 * @param timeout the timeout, if zero, the lock will be held up until
-	 * it is released
-	 */
-	public CompletionLock(Event<?> event, long timeout) {
-		super(event, timeout);
-	}
-	
-	/**
-	 * Creates a completion lock without timeout.
-	 * 
-	 * @param event the event to be locked
-	 */
-	public CompletionLock(Event<?> event) {
-		super(event, 0);
-	}
-	
+    /**
+     * Creates a completion lock for the given event with the given timeout. 
+     * 
+     * @param event the event to be locked
+     * @param timeout the timeout, if zero, the lock will be held up until
+     * it is released
+     */
+    public CompletionLock(Event<?> event, long timeout) {
+        super(event, timeout);
+    }
+
+    /**
+     * Creates a completion lock without timeout.
+     * 
+     * @param event the event to be locked
+     */
+    public CompletionLock(Event<?> event) {
+        super(event, 0);
+    }
+
 }

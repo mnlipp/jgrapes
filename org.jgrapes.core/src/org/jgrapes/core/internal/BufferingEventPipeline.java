@@ -30,89 +30,93 @@ import org.jgrapes.core.events.Start;
  * It simply buffers all events until a {@link Start} event is added.
  */
 public class BufferingEventPipeline implements InternalEventPipeline {
-	
-	private final ComponentTree componentTree;
-	/** Buffered events. */
-	private EventQueue buffered = new EventQueue();
-	/** The event pipeline that we delegate to after the start
-	 * event has been detected. */
-	private InternalEventPipeline activePipeline;
-	
-	/**
-	 * Instantiates a new buffering event pipeline.
-	 *
-	 * @param componentTree the component tree
-	 */
-	/* default */ BufferingEventPipeline(ComponentTree componentTree) {
-		super();
-		this.componentTree = componentTree;
-	}
 
-	@Override
-	public void merge(InternalEventPipeline other) {
-		synchronized(this) {
-			if (!(other instanceof BufferingEventPipeline)) {
-				throw new IllegalArgumentException(
-						"Can only merge events from an BufferingEventPipeline.");
-			}
-			buffered.addAll(((BufferingEventPipeline) other).retrieveEvents());
-		}
-	}
+    private final ComponentTree componentTree;
+    /** Buffered events. */
+    private EventQueue buffered = new EventQueue();
+    /** The event pipeline that we delegate to after the start
+     * event has been detected. */
+    private InternalEventPipeline activePipeline;
 
-	@Override
-	public <T extends Event<?>> T add(T event, Channel... channels) {
-		synchronized (this) {
-			// If thread1 adds the start event and thread2 gets here before we
-			// have changed the event processor for the tree, forward the
-			// event to the event processor that should already have been used.
-			if (activePipeline != null) {
-				activePipeline.add(event, channels);
-				return event;
-			}
-			// Invoke although argument is null!
-			((EventBase<?>)event).generatedBy(null);
-			buffered.add(event, channels);
-			if (event instanceof Start) {
-				// Merge all events into a "standard" event processor
-				// and set it as default processor for the tree (with
-				// any thread specific pipelines taking precedence).
-				EventProcessor processor = new EventProcessor(componentTree);
-				activePipeline = new FeedBackPipelineFilter(processor);
-				componentTree.setEventPipeline(activePipeline);
-				processor.add(buffered);
-			}
-			return event;
-		}
-	}
+    /**
+     * Instantiates a new buffering event pipeline.
+     *
+     * @param componentTree the component tree
+     */
+    /* default */ BufferingEventPipeline(ComponentTree componentTree) {
+        super();
+        this.componentTree = componentTree;
+    }
 
-	/* default */ EventQueue retrieveEvents() {
-		synchronized(this) {
-			EventQueue old = buffered;
-			buffered = new EventQueue();
-			return old;
-		}
-	}
+    @Override
+    public void merge(InternalEventPipeline other) {
+        synchronized (this) {
+            if (!(other instanceof BufferingEventPipeline)) {
+                throw new IllegalArgumentException(
+                    "Can only merge events from an BufferingEventPipeline.");
+            }
+            buffered.addAll(((BufferingEventPipeline) other).retrieveEvents());
+        }
+    }
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()
-	 */
-	@Override
-	public ExecutorService executorService() {
-		return Components.defaultExecutorService();
-	}
+    @Override
+    public <T extends Event<?>> T add(T event, Channel... channels) {
+        synchronized (this) {
+            // If thread1 adds the start event and thread2 gets here before we
+            // have changed the event processor for the tree, forward the
+            // event to the event processor that should already have been used.
+            if (activePipeline != null) {
+                activePipeline.add(event, channels);
+                return event;
+            }
+            // Invoke although argument is null!
+            ((EventBase<?>) event).generatedBy(null);
+            buffered.add(event, channels);
+            if (event instanceof Start) {
+                // Merge all events into a "standard" event processor
+                // and set it as default processor for the tree (with
+                // any thread specific pipelines taking precedence).
+                EventProcessor processor = new EventProcessor(componentTree);
+                activePipeline = new FeedBackPipelineFilter(processor);
+                componentTree.setEventPipeline(activePipeline);
+                processor.add(buffered);
+            }
+            return event;
+        }
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder(50);
-		builder.append("BufferingEventPipeline [");
-		if (buffered != null) {
-			builder.append("buffered=");
-			builder.append(buffered);
-		}
-		builder.append(']');
-		return builder.toString();
-	}
+    /* default */ EventQueue retrieveEvents() {
+        synchronized (this) {
+            EventQueue old = buffered;
+            buffered = new EventQueue();
+            return old;
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()
+     */
+    @Override
+    public ExecutorService executorService() {
+        return Components.defaultExecutorService();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder(50);
+        builder.append("BufferingEventPipeline [");
+        if (buffered != null) {
+            builder.append("buffered=");
+            builder.append(buffered);
+        }
+        builder.append(']');
+        return builder.toString();
+    }
 }

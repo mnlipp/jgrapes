@@ -62,102 +62,102 @@ import org.jgrapes.util.events.InitialPreferences;
  */
 public class PreferencesStore extends Component {
 
-	private Preferences preferences;
-	
-	/**
-	 * Creates a new component with its channel set to the given 
-	 * channel and a base path derived from the given class.
-	 * 
-	 * @param componentChannel the channel 
-	 * @param appClass the application class; the base path
-	 * is formed by replacing each dot in the class's package's full 
-	 * name with a slash, prepending a slash, and appending 
-	 * "`/PreferencesStore`".
-	 */
-	public PreferencesStore(Channel componentChannel, Class<?> appClass) {
-		this(componentChannel, appClass, true);
-	}
+    private Preferences preferences;
 
-	/**
-	 * Allows the creation of a "read-only" store.
-	 * 
-	 * @param componentChannel the channel 
-	 * @param appClass the application class; the base path
-	 * is formed by replacing each dot in the class's package's full 
-	 * name with a slash, prepending a slash, and appending 
-	 * "`/PreferencesStore`".
-	 * @param update whether to update the store when 
-	 * {@link ConfigurationUpdate} events are received
-	 * 
-	 * @see #PreferencesStore(Channel, Class)
-	 */
-	public PreferencesStore(
-			Channel componentChannel, Class<?> appClass, boolean update) {
-		super(componentChannel);
-		if (update) {
-			Handler.Evaluator.add(this, "onConfigurationUpdate", 
-					channel().defaultCriterion());
-		}
-		preferences = Preferences.userNodeForPackage(appClass)
-				.node("PreferencesStore");
-	}
+    /**
+     * Creates a new component with its channel set to the given 
+     * channel and a base path derived from the given class.
+     * 
+     * @param componentChannel the channel 
+     * @param appClass the application class; the base path
+     * is formed by replacing each dot in the class's package's full 
+     * name with a slash, prepending a slash, and appending 
+     * "`/PreferencesStore`".
+     */
+    public PreferencesStore(Channel componentChannel, Class<?> appClass) {
+        this(componentChannel, appClass, true);
+    }
 
-	/**
-	 * Intercepts the {@link Start} event and fires a
-	 * {@link ConfigurationUpdate} event.
-	 *
-	 * @param event the event
-	 * @throws BackingStoreException the backing store exception
-	 * @throws InterruptedException the interrupted exception
-	 */
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-	@Handler(priority=999999, channels=Channel.class)
-	public void onStart(Start event) 
-			throws BackingStoreException, InterruptedException {
-		InitialPreferences updEvt 
-			= new InitialPreferences(preferences.parent().absolutePath());
-		addPrefs(updEvt, preferences.absolutePath(), preferences);
-		newEventPipeline().fire(updEvt, event.channels()).get();
-	}
+    /**
+     * Allows the creation of a "read-only" store.
+     * 
+     * @param componentChannel the channel 
+     * @param appClass the application class; the base path
+     * is formed by replacing each dot in the class's package's full 
+     * name with a slash, prepending a slash, and appending 
+     * "`/PreferencesStore`".
+     * @param update whether to update the store when 
+     * {@link ConfigurationUpdate} events are received
+     * 
+     * @see #PreferencesStore(Channel, Class)
+     */
+    public PreferencesStore(
+            Channel componentChannel, Class<?> appClass, boolean update) {
+        super(componentChannel);
+        if (update) {
+            Handler.Evaluator.add(this, "onConfigurationUpdate",
+                channel().defaultCriterion());
+        }
+        preferences = Preferences.userNodeForPackage(appClass)
+            .node("PreferencesStore");
+    }
 
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-	private void addPrefs(
-			InitialPreferences updEvt, String rootPath, Preferences node) 
-					throws BackingStoreException {
-		String nodePath = node.absolutePath();
-		String relPath = "/" + nodePath.substring(Math.min(
-				rootPath.length() + 1, nodePath.length()));
-		for (String key: node.keys()) {
-			updEvt.add(relPath, key, node.get(key, null));
-		}
-		for (String child: node.childrenNames()) {
-			addPrefs(updEvt, rootPath, node.node(child));
-		}
-	}
-	
-	/**
-	 * Merges and saves configuration updates.
-	 *
-	 * @param event the event
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	@Handler(dynamic=true)
-	public void onConfigurationUpdate(ConfigurationUpdate event) 
-			throws BackingStoreException {
-		if (event instanceof InitialPreferences) {
-			return;
-		}
-		for (String path: event.paths()) {
-			Optional<Map<String,String>> prefs = event.values(path);
-			path = path.substring(1); // Remove leading slash
-			if (!prefs.isPresent()) {
-				preferences.node(path).removeNode();
-				continue;
-			}
-			for (Map.Entry<String, String> e: prefs.get().entrySet()) {
-				preferences.node(path).put(e.getKey(), e.getValue());
-			}
-		}
-		preferences.flush();
-	}
+    /**
+     * Intercepts the {@link Start} event and fires a
+     * {@link ConfigurationUpdate} event.
+     *
+     * @param event the event
+     * @throws BackingStoreException the backing store exception
+     * @throws InterruptedException the interrupted exception
+     */
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    @Handler(priority = 999999, channels = Channel.class)
+    public void onStart(Start event)
+            throws BackingStoreException, InterruptedException {
+        InitialPreferences updEvt
+            = new InitialPreferences(preferences.parent().absolutePath());
+        addPrefs(updEvt, preferences.absolutePath(), preferences);
+        newEventPipeline().fire(updEvt, event.channels()).get();
+    }
+
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    private void addPrefs(
+            InitialPreferences updEvt, String rootPath, Preferences node)
+            throws BackingStoreException {
+        String nodePath = node.absolutePath();
+        String relPath = "/" + nodePath.substring(Math.min(
+            rootPath.length() + 1, nodePath.length()));
+        for (String key : node.keys()) {
+            updEvt.add(relPath, key, node.get(key, null));
+        }
+        for (String child : node.childrenNames()) {
+            addPrefs(updEvt, rootPath, node.node(child));
+        }
+    }
+
+    /**
+     * Merges and saves configuration updates.
+     *
+     * @param event the event
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    @Handler(dynamic = true)
+    public void onConfigurationUpdate(ConfigurationUpdate event)
+            throws BackingStoreException {
+        if (event instanceof InitialPreferences) {
+            return;
+        }
+        for (String path : event.paths()) {
+            Optional<Map<String, String>> prefs = event.values(path);
+            path = path.substring(1); // Remove leading slash
+            if (!prefs.isPresent()) {
+                preferences.node(path).removeNode();
+                continue;
+            }
+            for (Map.Entry<String, String> e : prefs.get().entrySet()) {
+                preferences.node(path).put(e.getKey(), e.getValue());
+            }
+        }
+        preferences.flush();
+    }
 }

@@ -26,11 +26,11 @@ import org.jgrapes.core.EventPipeline;
  */
 public interface InternalEventPipelineWrapper {
 
-	/**
-	 * Return the internal event pipeline.
-	 *
-	 * @return the internal event pipeline
-	 */
-	InternalEventPipeline wrapped();
-	
+    /**
+     * Return the internal event pipeline.
+     *
+     * @return the internal event pipeline
+     */
+    InternalEventPipeline wrapped();
+
 }

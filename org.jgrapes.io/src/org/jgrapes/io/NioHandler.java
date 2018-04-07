@@ -26,12 +26,12 @@ import java.nio.channels.SelectionKey;
  */
 public interface NioHandler {
 
-	/**
-	 * Invoked by the {@link NioDispatcher} when operations are pending.
-	 * 
-	 * @param ops the pending operations as or'ed constants defined
-	 * by {@link SelectionKey}
-	 */
-	void handleOps(int ops) throws InterruptedException;
-	
+    /**
+     * Invoked by the {@link NioDispatcher} when operations are pending.
+     * 
+     * @param ops the pending operations as or'ed constants defined
+     * by {@link SelectionKey}
+     */
+    void handleOps(int ops) throws InterruptedException;
+
 }

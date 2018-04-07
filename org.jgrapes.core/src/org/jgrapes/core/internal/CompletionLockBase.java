@@ -28,50 +28,50 @@ import org.jgrapes.core.Components;
 @SuppressWarnings("PMD.AbstractClassWithoutAbstractMethod")
 public abstract class CompletionLockBase {
 
-	private final EventBase<?> event;
-	private final long timeout;
-	private Components.Timer timer;
+    private final EventBase<?> event;
+    private final long timeout;
+    private Components.Timer timer;
 
-	/**
-	 * @param event the event to be locked
-	 * @param timeout
-	 */
-	protected CompletionLockBase(EventBase<?> event, long timeout) {
-		this.event = event;
-		this.timeout = timeout;
-		event.addCompletionLock(this);
-	}
-	
-	/* default */ long getTimeout() {
-		return timeout;
-	}
+    /**
+     * @param event the event to be locked
+     * @param timeout
+     */
+    protected CompletionLockBase(EventBase<?> event, long timeout) {
+        this.event = event;
+        this.timeout = timeout;
+        event.addCompletionLock(this);
+    }
 
-	/**
-	 * Removes this completion lock from the event that it was created for.
-	 * 
-	 * This method may be invoked even if the completion lock has already
-	 * been removed. This allows locks to be used for disjunctive wait.
-	 */
-	public void remove() {
-		event.removeCompletionLock(this);
-	}
-	
-	/* default */ CompletionLockBase startTimer() {
-		if (timeout == 0) {
-			return this;
-		}
-		timer = Components.schedule(scheduledFor -> {
-			event.removeCompletionLock(this);
-		}, Instant.now().plusMillis(timeout));
-		return this;
-	}
+    /* default */ long getTimeout() {
+        return timeout;
+    }
 
-	/* default */ void cancelTimer() {
-		synchronized (this) {
-			if (timer != null) {
-				timer.cancel();
-				timer = null;
-			}
-		}
-	}
+    /**
+     * Removes this completion lock from the event that it was created for.
+     * 
+     * This method may be invoked even if the completion lock has already
+     * been removed. This allows locks to be used for disjunctive wait.
+     */
+    public void remove() {
+        event.removeCompletionLock(this);
+    }
+
+    /* default */ CompletionLockBase startTimer() {
+        if (timeout == 0) {
+            return this;
+        }
+        timer = Components.schedule(scheduledFor -> {
+            event.removeCompletionLock(this);
+        }, Instant.now().plusMillis(timeout));
+        return this;
+    }
+
+    /* default */ void cancelTimer() {
+        synchronized (this) {
+            if (timer != null) {
+                timer.cancel();
+                timer = null;
+            }
+        }
+    }
 }

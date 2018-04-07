@@ -44,98 +44,99 @@ import org.jgrapes.core.HandlerScope;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface HandlerDefinition {
-	
-	/**
-	 * Returns the evaluator for the annotated handler annotation.
-	 * 
-	 * @return the evaluator
-	 */
-	Class<? extends Evaluator> evaluator();
 
-	/**
-	 * This interface allows access to the properties defined by arbitrary
-	 * handler annotations in a uniform way. Handler annotations
-	 * must specify the scope of a handler, i.e. for which events and
-	 * channels the handler should be invoked, and the priority of
-	 * the handler.  
-	 */
-	interface Evaluator {
+    /**
+     * Returns the evaluator for the annotated handler annotation.
+     * 
+     * @return the evaluator
+     */
+    Class<? extends Evaluator> evaluator();
 
-		/**
-		 * Returns the information about the events and channels handled
-		 * by the handler that annotates the given method of the given
-		 * comonent as a {@link HandlerScope} object. This method
-		 * is invoked during object initialization. It may return
-		 * {@code null} if a handler is not supposed to be added for
-		 * this method during initialization (dynamic handler,
-		 * see {@link Handler#dynamic()}). 
-		 *
-		 * @param component the component
-		 * @param method the annotated method
-		 * @param channelReplacements replacements for channel classes in 
-		 * the annotation's `channels` element
-		 * @return the scope or {@code null} if a handler for the method
-		 * should not be created
-		 */
-		HandlerScope scope(ComponentType component, Method method, 
-				ChannelReplacements channelReplacements);
-		
-		/**
-		 * Returns the priority defined by the annotation
-		 * 
-		 * @param annotation the annotation
-		 * @return the priority
-		 */
-		int priority(Annotation annotation);
-		
-		/**
-		 * Utility method for checking if the method can be used as handler.
-		 * 
-		 * @param method the method
-		 * @return the result
-		 */
-		static boolean checkMethodSignature(Method method) {
-			return method.getParameterTypes().length == 0
-			        || method.getParameterTypes().length == 1
-			                && Event.class.isAssignableFrom(
-			                        method.getParameterTypes()[0])
-			        || (method.getParameterTypes().length == 2
-			                && Event.class.isAssignableFrom(
-			                        method.getParameterTypes()[0]))
-			                && Channel.class.isAssignableFrom(
-			                        method.getParameterTypes()[1]);
-		}
-	}
+    /**
+     * This interface allows access to the properties defined by arbitrary
+     * handler annotations in a uniform way. Handler annotations
+     * must specify the scope of a handler, i.e. for which events and
+     * channels the handler should be invoked, and the priority of
+     * the handler.  
+     */
+    interface Evaluator {
 
-	/**
-	 * Represents channel (criteria) replacements that are to
-	 * be applied to `channels` elements of {@link Handler}
-	 * annotations.
-	 */
-	@SuppressWarnings("serial")
-	class ChannelReplacements 
-		extends HashMap<Class<? extends Channel>, Object> {
+        /**
+         * Returns the information about the events and channels handled
+         * by the handler that annotates the given method of the given
+         * comonent as a {@link HandlerScope} object. This method
+         * is invoked during object initialization. It may return
+         * {@code null} if a handler is not supposed to be added for
+         * this method during initialization (dynamic handler,
+         * see {@link Handler#dynamic()}). 
+         *
+         * @param component the component
+         * @param method the annotated method
+         * @param channelReplacements replacements for channel classes in 
+         * the annotation's `channels` element
+         * @return the scope or {@code null} if a handler for the method
+         * should not be created
+         */
+        HandlerScope scope(ComponentType component, Method method,
+                ChannelReplacements channelReplacements);
 
-		/**
-		 * Create a new replacements specification object.
-		 *
-		 * @return the channel replacements
-		 */
-		public static ChannelReplacements create() {
-			return new ChannelReplacements();
-		}
-		
-		/**
-		 * Adds a replacements to the resplacements.
-		 *
-		 * @param annotationCriterion the criterion used in the annotation
-		 * @param replacement the replacement
-		 * @return the channel replacements for easy chaining
-		 */
-		public ChannelReplacements add(Class<? extends Channel> annotationCriterion,
-				Channel replacement) {
-			put(annotationCriterion, replacement.defaultCriterion());
-			return this;
-		}
-	}
+        /**
+         * Returns the priority defined by the annotation
+         * 
+         * @param annotation the annotation
+         * @return the priority
+         */
+        int priority(Annotation annotation);
+
+        /**
+         * Utility method for checking if the method can be used as handler.
+         * 
+         * @param method the method
+         * @return the result
+         */
+        static boolean checkMethodSignature(Method method) {
+            return method.getParameterTypes().length == 0
+                || method.getParameterTypes().length == 1
+                    && Event.class.isAssignableFrom(
+                        method.getParameterTypes()[0])
+                || (method.getParameterTypes().length == 2
+                    && Event.class.isAssignableFrom(
+                        method.getParameterTypes()[0]))
+                    && Channel.class.isAssignableFrom(
+                        method.getParameterTypes()[1]);
+        }
+    }
+
+    /**
+     * Represents channel (criteria) replacements that are to
+     * be applied to `channels` elements of {@link Handler}
+     * annotations.
+     */
+    @SuppressWarnings("serial")
+    class ChannelReplacements
+            extends HashMap<Class<? extends Channel>, Object> {
+
+        /**
+         * Create a new replacements specification object.
+         *
+         * @return the channel replacements
+         */
+        public static ChannelReplacements create() {
+            return new ChannelReplacements();
+        }
+
+        /**
+         * Adds a replacements to the resplacements.
+         *
+         * @param annotationCriterion the criterion used in the annotation
+         * @param replacement the replacement
+         * @return the channel replacements for easy chaining
+         */
+        public ChannelReplacements add(
+                Class<? extends Channel> annotationCriterion,
+                Channel replacement) {
+            put(annotationCriterion, replacement.defaultCriterion());
+            return this;
+        }
+    }
 }

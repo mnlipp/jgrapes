@@ -41,254 +41,260 @@ import org.jgrapes.core.events.Error;
  */
 class ComponentTree {
 
-	@SuppressWarnings("PMD.VariableNamingConventions")
-	private static final Logger handlerTracking 
-		= Logger.getLogger(ComponentType.class.getPackage().getName() 
-				+ ".handlerTracking");	
-	
-	private final ComponentVertex root;
-	@SuppressWarnings("PMD.UseConcurrentHashMap") // Used synchronized only
-	private final Map<CacheKey,HandlerList> handlerCache = new HashMap<>();
-	private InternalEventPipeline eventPipeline;
-	private static HandlerReference fallbackErrorHandler;
-	private static HandlerReference actionEventHandler;
+    @SuppressWarnings("PMD.VariableNamingConventions")
+    private static final Logger handlerTracking
+        = Logger.getLogger(ComponentType.class.getPackage().getName()
+            + ".handlerTracking");
 
-	/** The Constant DUMMY_HANDLER. */
-	public static final ComponentVertex DUMMY_HANDLER = new DummyComponent(); 
-	
-	static {
-		ErrorPrinter errorPrinter = new ErrorPrinter();
-		try {
-			fallbackErrorHandler = new HandlerReference(errorPrinter,
-					ErrorPrinter.class.getMethod("printError", Error.class),
-					0, new HandlerScope() {
-				@Override
-				public boolean includes(
-						Eligible event, Eligible[] channels) {
-					return true;
-				}
-			});
-		} catch (NoSuchMethodException | SecurityException e) {
-			// Doesn't happen, but just in case
-			e.printStackTrace(); // NOPMD, won't define a logger for that.
-		}
-		
-		ActionExecutor actionExecutor = new ActionExecutor();
-		try {
-			actionEventHandler = new HandlerReference(actionExecutor,
-					ActionExecutor.class.getMethod("execute", ActionEvent.class),
-					0, new HandlerScope() {
-				@Override
-				public boolean includes(
-						Eligible event, Eligible[] channels) {
-					return true;
-				}
-			});
-		} catch (NoSuchMethodException | SecurityException e) {
-			// Doesn't happen, but just in case
-			e.printStackTrace(); // NOPMD, won't define a logger for that.
-		}
-	}
-	
-	/* This could simply be declared as an anonymous class. But then
-	 * "Find bugs" complains about the noop() not being callable, because it
-	 * doesn't consider that it is called by reflection. */
-	/**
-	 * A dummy component.
-	 */
-	private static class DummyComponent extends Component {
-		
-		/**
-		 * Instantiates a new dummy component.
-		 */
-		public DummyComponent() {
-			super(Channel.SELF);
-		}
-		
-		/**
-		 * Dummy handler does nothing.
-		 * 
-		 * @param event the event
-		 */
-		@Handler(channels={Channel.class})
-		public void noop(Event<?> event) {
-			// ... really nothing.
-		}
-	}
-	
-	/**
-	 * Creates a new tree for the given node or sub tree.
-	 * 
-	 * @param root the root node of the new tree
-	 */
-	/* default */ ComponentTree(ComponentVertex root) {
-		super();
-		this.root = root;
-	}
+    private final ComponentVertex root;
+    @SuppressWarnings("PMD.UseConcurrentHashMap") // Used synchronized only
+    private final Map<CacheKey, HandlerList> handlerCache = new HashMap<>();
+    private InternalEventPipeline eventPipeline;
+    private static HandlerReference fallbackErrorHandler;
+    private static HandlerReference actionEventHandler;
 
-	/* default */ ComponentVertex root() {
-		return root;
-	}
-	
-	/* default */ boolean isStarted() {
-		return !(eventPipeline instanceof BufferingEventPipeline);
-	}
+    /** The Constant DUMMY_HANDLER. */
+    public static final ComponentVertex DUMMY_HANDLER = new DummyComponent();
 
-	/* default */ void setEventPipeline(InternalEventPipeline pipeline) {
-		eventPipeline = pipeline;
-	}
-	
-	/* default */ InternalEventPipeline getEventPipeline() {
-		return eventPipeline;
-	}
-	
-	/**
-	 * Forward to the thread's event manager.
-	 *
-	 * @param event the event
-	 * @param channels the channels
-	 */
-	@SuppressWarnings("PMD.UseVarargs")
-	public void fire(Event<?> event, Channel[] channels) {
-		eventPipeline.add(event, channels);
-	}
+    static {
+        ErrorPrinter errorPrinter = new ErrorPrinter();
+        try {
+            fallbackErrorHandler = new HandlerReference(errorPrinter,
+                ErrorPrinter.class.getMethod("printError", Error.class),
+                0, new HandlerScope() {
+                    @Override
+                    public boolean includes(
+                            Eligible event, Eligible[] channels) {
+                        return true;
+                    }
+                });
+        } catch (NoSuchMethodException | SecurityException e) {
+            // Doesn't happen, but just in case
+            e.printStackTrace(); // NOPMD, won't define a logger for that.
+        }
 
-	/**
-	 * Merge all events stored with <code>source</code> with our own.
-	 * This is invoked if a component (or component tree) is attached 
-	 * to another tree (that uses this component common).
-	 * 
-	 * @param source
-	 */
-	/* default */ void mergeEvents(ComponentTree source) {
-		eventPipeline.merge(source.eventPipeline);
-	}
-	
-	/**
-	 * Send the event to all matching handlers.
-	 * 
-	 * @param event the event
-	 * @param channels the channels the event is sent to
-	 */
-	@SuppressWarnings("PMD.UseVarargs")
-	/* default */ void dispatch(EventPipeline pipeline, 
-			EventBase<?> event, Channel[] channels) {
-		HandlerList handlers = getEventHandlers(event, channels);
-		handlers.process(pipeline, event);
-	}
+        ActionExecutor actionExecutor = new ActionExecutor();
+        try {
+            actionEventHandler = new HandlerReference(actionExecutor,
+                ActionExecutor.class.getMethod("execute", ActionEvent.class),
+                0, new HandlerScope() {
+                    @Override
+                    public boolean includes(
+                            Eligible event, Eligible[] channels) {
+                        return true;
+                    }
+                });
+        } catch (NoSuchMethodException | SecurityException e) {
+            // Doesn't happen, but just in case
+            e.printStackTrace(); // NOPMD, won't define a logger for that.
+        }
+    }
 
-	@SuppressWarnings("PMD.UseVarargs")
-	private HandlerList getEventHandlers(
-			EventBase<?> event, Channel[] channels) {
-		CacheKey key = new CacheKey(event, channels);
-		// Several event processors may call dispatch and update the cache 
-		// concurrently, and the cache may be cleared by a concurrent call
-		// to detach.
-		HandlerList hdlrs = handlerCache.get(key);
-		if (hdlrs != null) {
-			return hdlrs;
-		}
-		// Don't allow tree modifications while collecting
-		synchronized (this) {
-			// Optimization for highly concurrent first-time access
-			// with the same key: another thread may have created the
-			// handlers while this one was waiting for the lock.
-			hdlrs = handlerCache.get(key);
-			if (hdlrs != null) {
-				return hdlrs;
-			}
-			hdlrs = new HandlerList();
-			root.collectHandlers(hdlrs, event, channels);
-			if (hdlrs.isEmpty()) {
-				// Make sure that errors are reported.
-				if (event instanceof Error) {
-					hdlrs.add(fallbackErrorHandler);
-				// Handle (internal) action events
-				} else if (event instanceof ActionEvent) {
-					hdlrs.add(actionEventHandler);
-				} else {
-					if (handlerTracking.isLoggable(Level.FINER)) {
-						DUMMY_HANDLER.collectHandlers(hdlrs, event,
-						        channels);
-					}
-				}
-			}
-			Collections.sort(hdlrs);
-			handlerCache.put(key, hdlrs);
-		}
-		return hdlrs;
-	}
-	
-	/* default */ void clearHandlerCache() {
-		synchronized (this) {
-			handlerCache.clear();
-		}
-	}
+    /*
+     * This could simply be declared as an anonymous class. But then
+     * "Find bugs" complains about the noop() not being callable, because it
+     * doesn't consider that it is called by reflection.
+     */
+    /**
+     * A dummy component.
+     */
+    private static class DummyComponent extends Component {
 
-	/**
-	 * An artificial key for handler caching.
-	 */
-	private static class CacheKey {
-		private final Object eventMatchValue;
-		private final Object[] channelMatchValues;
-		
-		/**
-		 * Instantiates a new cache key.
-		 *
-		 * @param event the event
-		 * @param channels the channels
-		 */
-		public CacheKey(EventBase<?> event, Channel... channels) {
-			eventMatchValue = event.defaultCriterion();
-			channelMatchValues = new Object[channels.length];
-			for (int i = 0; i < channels.length; i++) {
-				channelMatchValues[i] = channels[i].defaultCriterion();
-			}
-		}
-		
-		/* (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-		public int hashCode() {
-			@SuppressWarnings("PMD.AvoidFinalLocalVariable")
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + Arrays.hashCode(channelMatchValues);
-			result = prime * result + ((eventMatchValue == null) ? 0
-			        : eventMatchValue.hashCode());
-			return result;
-		}
-		
-		/* (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
-		@Override
-		@SuppressWarnings("PMD.SimplifyBooleanReturns")
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (getClass() != obj.getClass()) {
-				return false;
-			}
-			CacheKey other = (CacheKey) obj;
-			if (eventMatchValue == null) {
-				if (other.eventMatchValue != null) {
-					return false;
-				}
-			} else if (!eventMatchValue.equals(other.eventMatchValue)) {
-				return false;
-			}
-			if (!Arrays.equals(channelMatchValues, other.channelMatchValues)) {
-				return false;
-			}
-			return true;
-		}
-	}
-	
+        /**
+         * Instantiates a new dummy component.
+         */
+        public DummyComponent() {
+            super(Channel.SELF);
+        }
+
+        /**
+         * Dummy handler does nothing.
+         * 
+         * @param event the event
+         */
+        @Handler(channels = { Channel.class })
+        public void noop(Event<?> event) {
+            // ... really nothing.
+        }
+    }
+
+    /**
+     * Creates a new tree for the given node or sub tree.
+     * 
+     * @param root the root node of the new tree
+     */
+    /* default */ ComponentTree(ComponentVertex root) {
+        super();
+        this.root = root;
+    }
+
+    /* default */ ComponentVertex root() {
+        return root;
+    }
+
+    /* default */ boolean isStarted() {
+        return !(eventPipeline instanceof BufferingEventPipeline);
+    }
+
+    /* default */ void setEventPipeline(InternalEventPipeline pipeline) {
+        eventPipeline = pipeline;
+    }
+
+    /* default */ InternalEventPipeline getEventPipeline() {
+        return eventPipeline;
+    }
+
+    /**
+     * Forward to the thread's event manager.
+     *
+     * @param event the event
+     * @param channels the channels
+     */
+    @SuppressWarnings("PMD.UseVarargs")
+    public void fire(Event<?> event, Channel[] channels) {
+        eventPipeline.add(event, channels);
+    }
+
+    /**
+     * Merge all events stored with <code>source</code> with our own.
+     * This is invoked if a component (or component tree) is attached 
+     * to another tree (that uses this component common).
+     * 
+     * @param source
+     */
+    /* default */ void mergeEvents(ComponentTree source) {
+        eventPipeline.merge(source.eventPipeline);
+    }
+
+    /**
+     * Send the event to all matching handlers.
+     * 
+     * @param event the event
+     * @param channels the channels the event is sent to
+     */
+    @SuppressWarnings("PMD.UseVarargs")
+    /* default */ void dispatch(EventPipeline pipeline,
+            EventBase<?> event, Channel[] channels) {
+        HandlerList handlers = getEventHandlers(event, channels);
+        handlers.process(pipeline, event);
+    }
+
+    @SuppressWarnings("PMD.UseVarargs")
+    private HandlerList getEventHandlers(
+            EventBase<?> event, Channel[] channels) {
+        CacheKey key = new CacheKey(event, channels);
+        // Several event processors may call dispatch and update the cache
+        // concurrently, and the cache may be cleared by a concurrent call
+        // to detach.
+        HandlerList hdlrs = handlerCache.get(key);
+        if (hdlrs != null) {
+            return hdlrs;
+        }
+        // Don't allow tree modifications while collecting
+        synchronized (this) {
+            // Optimization for highly concurrent first-time access
+            // with the same key: another thread may have created the
+            // handlers while this one was waiting for the lock.
+            hdlrs = handlerCache.get(key);
+            if (hdlrs != null) {
+                return hdlrs;
+            }
+            hdlrs = new HandlerList();
+            root.collectHandlers(hdlrs, event, channels);
+            if (hdlrs.isEmpty()) {
+                // Make sure that errors are reported.
+                if (event instanceof Error) {
+                    hdlrs.add(fallbackErrorHandler);
+                    // Handle (internal) action events
+                } else if (event instanceof ActionEvent) {
+                    hdlrs.add(actionEventHandler);
+                } else {
+                    if (handlerTracking.isLoggable(Level.FINER)) {
+                        DUMMY_HANDLER.collectHandlers(hdlrs, event,
+                            channels);
+                    }
+                }
+            }
+            Collections.sort(hdlrs);
+            handlerCache.put(key, hdlrs);
+        }
+        return hdlrs;
+    }
+
+    /* default */ void clearHandlerCache() {
+        synchronized (this) {
+            handlerCache.clear();
+        }
+    }
+
+    /**
+     * An artificial key for handler caching.
+     */
+    private static class CacheKey {
+        private final Object eventMatchValue;
+        private final Object[] channelMatchValues;
+
+        /**
+         * Instantiates a new cache key.
+         *
+         * @param event the event
+         * @param channels the channels
+         */
+        public CacheKey(EventBase<?> event, Channel... channels) {
+            eventMatchValue = event.defaultCriterion();
+            channelMatchValues = new Object[channels.length];
+            for (int i = 0; i < channels.length; i++) {
+                channelMatchValues[i] = channels[i].defaultCriterion();
+            }
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see java.lang.Object#hashCode()
+         */
+        @Override
+        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+        public int hashCode() {
+            @SuppressWarnings("PMD.AvoidFinalLocalVariable")
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + Arrays.hashCode(channelMatchValues);
+            result = prime * result + ((eventMatchValue == null) ? 0
+                : eventMatchValue.hashCode());
+            return result;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
+        @Override
+        @SuppressWarnings("PMD.SimplifyBooleanReturns")
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            CacheKey other = (CacheKey) obj;
+            if (eventMatchValue == null) {
+                if (other.eventMatchValue != null) {
+                    return false;
+                }
+            } else if (!eventMatchValue.equals(other.eventMatchValue)) {
+                return false;
+            }
+            if (!Arrays.equals(channelMatchValues, other.channelMatchValues)) {
+                return false;
+            }
+            return true;
+        }
+    }
+
 }

@@ -27,72 +27,74 @@ import java.util.Map;
  */
 public final class NamedEvent<T> extends Event<T> {
 
-	private final String kind;
-	private Map<Object,Object> data;
-	
-	/**
-	 * Creates a new named event with the given name.
-	 * 
-	 * @param kind the event's kind
-	 */
-	public NamedEvent(String kind) {
-		super();
-		this.kind = kind;
-	}
+    private final String kind;
+    private Map<Object, Object> data;
 
-	/**
-	 * Returns the kind of the event as the String passed to the
-	 * constructor.
-	 * 
-	 * @return the kind
-	 * 
-	 * @see org.jgrapes.core.Channel#defaultCriterion()
-	 */
-	@Override
-	public Object defaultCriterion() {
-		return kind;
-	}
+    /**
+     * Creates a new named event with the given name.
+     * 
+     * @param kind the event's kind
+     */
+    public NamedEvent(String kind) {
+        super();
+        this.kind = kind;
+    }
 
-	/**
-	 * Returns `true` if the criterion is `Event.class` (representing 
-	 * "any event") or if the criterion is a String equal to this 
-	 * event's kind (the String passed to the constructor).
-	 * 
-	 * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)
-	 */
-	@Override
-	public boolean isEligibleFor(Object criterion) {
-		return criterion.equals(Event.class) || criterion.equals(kind);
-	}
+    /**
+     * Returns the kind of the event as the String passed to the
+     * constructor.
+     * 
+     * @return the kind
+     * 
+     * @see org.jgrapes.core.Channel#defaultCriterion()
+     */
+    @Override
+    public Object defaultCriterion() {
+        return kind;
+    }
 
-	/**
-	 * Returns a map with data that belongs to the event. The map
-	 * is only created if requested. If a component uses
-	 * {@link NamedEvent}s and data that consists of JDK types only,
-	 * it is completely loosely coupled.
-	 * 
-	 * @return the map
-	 */
-	public Map<Object,Object> data() {
-		if (data == null) {
-			data = new HashMap<>();
-		}
-		return data;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder result = new StringBuilder(50);
-		result.append("NamedEvent [name=")
-			.append(kind);
-		if (channels().length > 0) {
-			result.append(", channels=")
-				.append(Arrays.toString(channels())); 
-		}
-		result.append(']');
-		return result.toString();
-	}
+    /**
+     * Returns `true` if the criterion is `Event.class` (representing 
+     * "any event") or if the criterion is a String equal to this 
+     * event's kind (the String passed to the constructor).
+     * 
+     * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)
+     */
+    @Override
+    public boolean isEligibleFor(Object criterion) {
+        return criterion.equals(Event.class) || criterion.equals(kind);
+    }
+
+    /**
+     * Returns a map with data that belongs to the event. The map
+     * is only created if requested. If a component uses
+     * {@link NamedEvent}s and data that consists of JDK types only,
+     * it is completely loosely coupled.
+     * 
+     * @return the map
+     */
+    public Map<Object, Object> data() {
+        if (data == null) {
+            data = new HashMap<>();
+        }
+        return data;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder(50);
+        result.append("NamedEvent [name=")
+            .append(kind);
+        if (channels().length > 0) {
+            result.append(", channels=")
+                .append(Arrays.toString(channels()));
+        }
+        result.append(']');
+        return result.toString();
+    }
 }

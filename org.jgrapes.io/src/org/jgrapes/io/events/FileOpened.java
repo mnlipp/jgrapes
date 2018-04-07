@@ -27,32 +27,32 @@ import java.util.Arrays;
  */
 public class FileOpened extends Opened {
 
-	private final Path path;
-	private final OpenOption[] options;
-	
-	/**
-	 * Instantiates a new event.
-	 *
-	 * @param path the path
-	 * @param options the options
-	 */
-	public FileOpened(Path path, OpenOption... options) {
-		this.path = path;
-		this.options = Arrays.copyOf(options, options.length);
-	}
+    private final Path path;
+    private final OpenOption[] options;
 
-	/**
-	 * @return the path
-	 */
-	public Path path() {
-		return path;
-	}
+    /**
+     * Instantiates a new event.
+     *
+     * @param path the path
+     * @param options the options
+     */
+    public FileOpened(Path path, OpenOption... options) {
+        this.path = path;
+        this.options = Arrays.copyOf(options, options.length);
+    }
 
-	/**
-	 * @return the options
-	 */
-	public OpenOption[] options() {
-		return Arrays.copyOf(options, options.length);
-	}
+    /**
+     * @return the path
+     */
+    public Path path() {
+        return path;
+    }
+
+    /**
+     * @return the options
+     */
+    public OpenOption[] options() {
+        return Arrays.copyOf(options, options.length);
+    }
 
 }

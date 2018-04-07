@@ -29,83 +29,88 @@ import org.jgrapes.core.Channel;
  * about an event being fired on some channels.
  */
 public class EventChannelsTuple {
-	public EventBase<?> event;		
-	public Channel[] channels;
-	
-	/**
-	 * Create a new instance.
-	 * 
-	 * @param event the event
-	 * @param channels the channels
-	 */
-	@SuppressWarnings("PMD.UseVarargs")
-	public EventChannelsTuple(EventBase<?> event, Channel[] channels) {
-		super();
-		this.event = event;
-		this.channels = Arrays.copyOf(channels, channels.length);
-	}
+    public EventBase<?> event;
+    public Channel[] channels;
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-	public int hashCode() {
-		@SuppressWarnings("PMD.AvoidFinalLocalVariable")
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + Arrays.hashCode(channels);
-		result = prime * result + ((event == null) ? 0 : event.hashCode());
-		return result;
-	}
+    /**
+     * Create a new instance.
+     * 
+     * @param event the event
+     * @param channels the channels
+     */
+    @SuppressWarnings("PMD.UseVarargs")
+    public EventChannelsTuple(EventBase<?> event, Channel[] channels) {
+        super();
+        this.event = event;
+        this.channels = Arrays.copyOf(channels, channels.length);
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		EventChannelsTuple other = (EventChannelsTuple) obj;
-		if (!Arrays.equals(channels, other.channels)) {
-			return false;
-		}
-		if (event == null) {
-			if (other.event != null) {
-				return false;
-			}
-		} else if (!event.equals(other.event)) {
-			return false;
-		}
-		return true;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    public int hashCode() {
+        @SuppressWarnings("PMD.AvoidFinalLocalVariable")
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + Arrays.hashCode(channels);
+        result = prime * result + ((event == null) ? 0 : event.hashCode());
+        return result;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder(50);
-		builder.append("EventChannelsTuple [");
-		if (event != null) {
-			builder.append("event=")
-				.append(event)
-				.append(", ");
-		}
-		if (channels != null) {
-			builder.append("channels=")
-				.append(Arrays.toString(channels));
-		}
-		builder.append(']');
-		return builder.toString();
-	}
-	
-	
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        EventChannelsTuple other = (EventChannelsTuple) obj;
+        if (!Arrays.equals(channels, other.channels)) {
+            return false;
+        }
+        if (event == null) {
+            if (other.event != null) {
+                return false;
+            }
+        } else if (!event.equals(other.event)) {
+            return false;
+        }
+        return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder(50);
+        builder.append("EventChannelsTuple [");
+        if (event != null) {
+            builder.append("event=")
+                .append(event)
+                .append(", ");
+        }
+        if (channels != null) {
+            builder.append("channels=")
+                .append(Arrays.toString(channels));
+        }
+        builder.append(']');
+        return builder.toString();
+    }
+
 }

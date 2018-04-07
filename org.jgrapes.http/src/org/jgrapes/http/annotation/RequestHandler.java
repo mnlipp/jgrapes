@@ -63,307 +63,315 @@ import org.jgrapes.http.events.Request;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@HandlerDefinition(evaluator=RequestHandler.Evaluator.class)
+@HandlerDefinition(evaluator = RequestHandler.Evaluator.class)
 public @interface RequestHandler {
-	
-	/**
-	 * Specifies classes of events that the handler is to receive.
-	 * 
-	 * @return the event classes
-	 */
-	@SuppressWarnings("rawtypes")
-	Class<? extends Event>[] events() default NoEvent.class;
-	
-	/**
-	 * Specifies classes of channels that the handler listens on.
-	 * 
-	 * @return the channel classes
-	 */
-	Class<? extends Channel>[] channels() default NoChannel.class;
 
-	/**
-	 * Specifies the patterns that the handler is supposed to handle
-	 * (see {@link ResourcePattern}).
-	 * 
-	 * @return the patterns
-	 */
-	String[] patterns() default "";
+    /**
+     * Specifies classes of events that the handler is to receive.
+     * 
+     * @return the event classes
+     */
+    @SuppressWarnings("rawtypes")
+    Class<? extends Event>[] events() default NoEvent.class;
 
-	/**
-	 * Specifies a priority. The value is used to sort handlers.
-	 * Handlers with higher priority are invoked first.
-	 * 
-	 * @return the priority
-	 */
-	int priority() default 0;
+    /**
+     * Specifies classes of channels that the handler listens on.
+     * 
+     * @return the channel classes
+     */
+    Class<? extends Channel>[] channels() default NoChannel.class;
 
-	/**
-	 * Returns {@code true} if the annotated annotation defines a
-	 * dynamic handler. A dynamic handler must be added to the set of
-	 * handlers of a component explicitly.
-	 * 
-	 * @return the result
-	 */
-	boolean dynamic() default false;
-	
-	/**
-	 * This class provides the {@link Evaluator} for the {@link RequestHandler}
-	 * annotation. It implements the behavior as described for the annotation.
-	 */
-	class Evaluator implements HandlerDefinition.Evaluator {
+    /**
+     * Specifies the patterns that the handler is supposed to handle
+     * (see {@link ResourcePattern}).
+     * 
+     * @return the patterns
+     */
+    String[] patterns() default "";
 
-		/* (non-Javadoc)
-		 * @see org.jgrapes.core.annotation.HandlerDefinition.Evaluator#getPriority()
-		 */
-		@Override
-		public int priority(Annotation annotation) {
-			return ((RequestHandler)annotation).priority();
-		}
+    /**
+     * Specifies a priority. The value is used to sort handlers.
+     * Handlers with higher priority are invoked first.
+     * 
+     * @return the priority
+     */
+    int priority() default 0;
 
-		@Override
-		public HandlerScope scope(ComponentType component, Method method, 
-				ChannelReplacements channelReplacements) {
-			RequestHandler annotation 
-				= method.getAnnotation(RequestHandler.class);
-			if (annotation.dynamic()) {
-				return null;
-			}
-			return new Scope(component, method, (RequestHandler)annotation,
-					channelReplacements, null);
-		}
+    /**
+     * Returns {@code true} if the annotated annotation defines a
+     * dynamic handler. A dynamic handler must be added to the set of
+     * handlers of a component explicitly.
+     * 
+     * @return the result
+     */
+    boolean dynamic() default false;
 
-		/**
-		 * Adds the given method of the given component as a 
-		 * dynamic handler for a specific pattern. Other informations
-		 * are taken from the annotation.
-		 * 
-		 * @param component the component
-		 * @param method the name of the method that implements the handler
-		 * @param pattern the pattern
-		 */
-		public static void add(ComponentType component, String method,
-				String pattern) {
-			add(component, method, pattern, null);
-		}
-		
-		/**
-		 * Adds the given method of the given component as a 
-		 * dynamic handler for a specific pattern with the specified
-		 * priority. Other informations are taken from the annotation.
-		 *
-		 * @param component the component
-		 * @param method the name of the method that implements the handler
-		 * @param pattern the pattern
-		 * @param priority the priority
-		 */
-		public static void add(ComponentType component, String method,
-				String pattern, int priority) {
-			add(component, method, pattern, Integer.valueOf(priority));
-		}
-		
-		@SuppressWarnings("PMD.AvoidBranchingStatementAsLastInLoop")
-		private static void add(ComponentType component, String method,
-				String pattern, Integer priority) {
-			try {
-				for (Method m: component.getClass().getMethods()) {
-					if (!m.getName().equals(method)) {
-						continue;
-					}
-					for (Annotation annotation: m.getDeclaredAnnotations()) {
-						Class<?> annoType = annotation.annotationType();
-						HandlerDefinition hda 
-							= annoType.getAnnotation(HandlerDefinition.class);
-						if (hda == null
-							|| !RequestHandler.class.isAssignableFrom(annoType)
-							|| !((RequestHandler)annotation).dynamic()) {
-							continue;
-						}
-						@SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-						Scope scope = new Scope(component, m, 
-								(RequestHandler)annotation, 
-								Collections.emptyMap(), pattern);
-						Components.manager(component)
-							.addHandler(m, scope, priority == null
-							? ((RequestHandler)annotation).priority()
-									: priority);
-						return;
-					}
-				}
-				throw new IllegalArgumentException(
-						"No method named \"" + method + "\" with DynamicHandler"
-						+ " annotation and correct parameter list.");
-			} catch (SecurityException e) {
-				throw (RuntimeException)
-					(new IllegalArgumentException().initCause(e));
-			}
-		}
-		
-		/**
-		 * The scope implementation.
-		 */
-		public static class Scope implements HandlerScope {
+    /**
+     * This class provides the {@link Evaluator} for the {@link RequestHandler}
+     * annotation. It implements the behavior as described for the annotation.
+     */
+    class Evaluator implements HandlerDefinition.Evaluator {
 
-			private final Set<Object> handledEventTypes = new HashSet<>();
-			private final Set<Object> handledChannels = new HashSet<>();
-			private final Set<ResourcePattern> handledPatterns = new HashSet<>();
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * org.jgrapes.core.annotation.HandlerDefinition.Evaluator#getPriority()
+         */
+        @Override
+        public int priority(Annotation annotation) {
+            return ((RequestHandler) annotation).priority();
+        }
 
-			/**
-			 * Instantiates a new scope.
-			 *
-			 * @param component the component
-			 * @param method the method
-			 * @param annotation the annotation
-			 * @param channelReplacements the channel replacements
-			 * @param pattern the pattern
-			 */
-			@SuppressWarnings({ "PMD.CyclomaticComplexity",
-			        "PMD.NPathComplexity", "PMD.AvoidDeeplyNestedIfStmts",
-			        "PMD.CollapsibleIfStatements",
-			        "PMD.AvoidInstantiatingObjectsInLoops" })
-			public Scope(ComponentType component, 
-					Method method, RequestHandler annotation, 
-					Map<Class<? extends Channel>,Object> channelReplacements, 
-					String pattern) {
-				if (!HandlerDefinition.Evaluator.checkMethodSignature(method)) {
-					throw new IllegalArgumentException("Method "
-							 + method.toString() + " cannot be used as"
-							 + " handler (wrong signature).");
-				}
-				// Get all event keys from the handler annotation.
-				if (annotation.events()[0] != NoEvent.class) {
-					handledEventTypes.addAll(Arrays.asList(annotation.events()));
-				}
-				// If no event types are given, try first parameter.
-				if (handledEventTypes.isEmpty()) {
-					Class<?>[] paramTypes = method.getParameterTypes();
-					if (paramTypes.length > 0) {
-						if (Event.class.isAssignableFrom(paramTypes[0])) {
-							handledEventTypes.add(paramTypes[0]);
-						}
-					}
-				}
-				
-				// Get channel keys from the annotation.
-				boolean addDefaultChannel = false;
-				if (annotation.channels()[0] != NoChannel.class) {
-					for (Class<?> c: annotation.channels()) {
-						if (c == Self.class) {
-							if (!(component instanceof Channel)) {
-								throw new IllegalArgumentException(
-								    "Canot use channel This.class in "
-									+ "annotation of " + method 
-									+ " because " + getClass().getName()
-								    + " does not implement Channel.");
-							}
-							// Will be added anyway, see below
-						} else if (c == Channel.Default.class) {
-							addDefaultChannel = true;
-						} else {
-							handledChannels.add(channelReplacements == null
-									? c : channelReplacements.getOrDefault(c, c));
-						}
-					}
-				}
-				if (handledChannels.isEmpty() || addDefaultChannel) {
-					handledChannels.add(Components.manager(component)
-					        .channel().defaultCriterion());
-				}
-				// Finally, a comoponent always handles events
-				// directed at it directly.
-				if (component instanceof Channel) {
-					handledChannels.add(
-							((Channel) component).defaultCriterion());
-				}
-				
-				try {
-				// Get all paths from the annotation.
-					if (!annotation.patterns()[0].equals("")) {
-						for (String p: annotation.patterns()) {
-							handledPatterns.add(new ResourcePattern(p));
-						}
-					}
-				
-					// Add additionally provided path
-					if (pattern != null) {
-						handledPatterns.add(new ResourcePattern(pattern));
-					}
-				} catch (ParseException e) {
-					throw new IllegalArgumentException(e.getMessage(), e);
-				}
-			}
-			
-			@Override
-			@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-			        "PMD.NPathComplexity" })
-			public boolean includes(Eligible event, Eligible[] channels) {
-				boolean match = false;
-				for (Object eventType: handledEventTypes) {
-					if (Class.class.isInstance(eventType)
-					        && ((Class<?>) eventType)
-					                .isAssignableFrom(event.getClass())) {
-						match = true;
-						break;
-					}
-					
-				}
-				if (!match) {
-					return false;
-				}
-				match = false;
-				// Try channels
-				for (Eligible channel: channels) {
-					for (Object channelValue: handledChannels) {
-						if (channel.isEligibleFor(channelValue)) {
-							match = true;
-							break;
-						}
-					}
-				}
-				if (!match) {
-					return false;
-				}
-				if (!(event instanceof Request)) {
-					return false;
-				}
-				for (ResourcePattern rp: handledPatterns) {
-					if (((Request)event).isEligibleFor(
-							Request.createMatchValue(Request.class, rp))) {
-						return true;
-					}
-				}
-				return false;
-			}
+        @Override
+        public HandlerScope scope(ComponentType component, Method method,
+                ChannelReplacements channelReplacements) {
+            RequestHandler annotation
+                = method.getAnnotation(RequestHandler.class);
+            if (annotation.dynamic()) {
+                return null;
+            }
+            return new Scope(component, method, (RequestHandler) annotation,
+                channelReplacements, null);
+        }
 
-			/* (non-Javadoc)
-			 * @see java.lang.Object#toString()
-			 */
-			@Override
-			public String toString() {
-				StringBuilder builder = new StringBuilder();
-				builder.append("Scope [");
-				if (handledEventTypes != null) {
-					builder.append("handledEventTypes=")
-						.append(handledEventTypes.stream().map(value -> {
-						if (value instanceof Class) {
-							return Components.className((Class<?>) value);
-						}
-						return value.toString();
-					}).collect(Collectors.toSet()));
-					builder.append(", ");
-				}
-				if (handledChannels != null) {
-					builder.append("handledChannels=");
-					builder.append(handledChannels);
-					builder.append(", ");
-				}
-				if (handledPatterns != null) {
-					builder.append("handledPatterns=");
-					builder.append(handledPatterns);
-				}
-				builder.append(']');
-				return builder.toString();
-			}
-			
-		}
-	}
+        /**
+         * Adds the given method of the given component as a 
+         * dynamic handler for a specific pattern. Other informations
+         * are taken from the annotation.
+         * 
+         * @param component the component
+         * @param method the name of the method that implements the handler
+         * @param pattern the pattern
+         */
+        public static void add(ComponentType component, String method,
+                String pattern) {
+            add(component, method, pattern, null);
+        }
+
+        /**
+         * Adds the given method of the given component as a 
+         * dynamic handler for a specific pattern with the specified
+         * priority. Other informations are taken from the annotation.
+         *
+         * @param component the component
+         * @param method the name of the method that implements the handler
+         * @param pattern the pattern
+         * @param priority the priority
+         */
+        public static void add(ComponentType component, String method,
+                String pattern, int priority) {
+            add(component, method, pattern, Integer.valueOf(priority));
+        }
+
+        @SuppressWarnings("PMD.AvoidBranchingStatementAsLastInLoop")
+        private static void add(ComponentType component, String method,
+                String pattern, Integer priority) {
+            try {
+                for (Method m : component.getClass().getMethods()) {
+                    if (!m.getName().equals(method)) {
+                        continue;
+                    }
+                    for (Annotation annotation : m.getDeclaredAnnotations()) {
+                        Class<?> annoType = annotation.annotationType();
+                        HandlerDefinition hda
+                            = annoType.getAnnotation(HandlerDefinition.class);
+                        if (hda == null
+                            || !RequestHandler.class.isAssignableFrom(annoType)
+                            || !((RequestHandler) annotation).dynamic()) {
+                            continue;
+                        }
+                        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+                        Scope scope = new Scope(component, m,
+                            (RequestHandler) annotation,
+                            Collections.emptyMap(), pattern);
+                        Components.manager(component)
+                            .addHandler(m, scope, priority == null
+                                ? ((RequestHandler) annotation).priority()
+                                : priority);
+                        return;
+                    }
+                }
+                throw new IllegalArgumentException(
+                    "No method named \"" + method + "\" with DynamicHandler"
+                        + " annotation and correct parameter list.");
+            } catch (SecurityException e) {
+                throw (RuntimeException) (new IllegalArgumentException()
+                    .initCause(e));
+            }
+        }
+
+        /**
+         * The scope implementation.
+         */
+        public static class Scope implements HandlerScope {
+
+            private final Set<Object> handledEventTypes = new HashSet<>();
+            private final Set<Object> handledChannels = new HashSet<>();
+            private final Set<ResourcePattern> handledPatterns
+                = new HashSet<>();
+
+            /**
+             * Instantiates a new scope.
+             *
+             * @param component the component
+             * @param method the method
+             * @param annotation the annotation
+             * @param channelReplacements the channel replacements
+             * @param pattern the pattern
+             */
+            @SuppressWarnings({ "PMD.CyclomaticComplexity",
+                "PMD.NPathComplexity", "PMD.AvoidDeeplyNestedIfStmts",
+                "PMD.CollapsibleIfStatements",
+                "PMD.AvoidInstantiatingObjectsInLoops" })
+            public Scope(ComponentType component,
+                    Method method, RequestHandler annotation,
+                    Map<Class<? extends Channel>, Object> channelReplacements,
+                    String pattern) {
+                if (!HandlerDefinition.Evaluator.checkMethodSignature(method)) {
+                    throw new IllegalArgumentException("Method "
+                        + method.toString() + " cannot be used as"
+                        + " handler (wrong signature).");
+                }
+                // Get all event keys from the handler annotation.
+                if (annotation.events()[0] != NoEvent.class) {
+                    handledEventTypes
+                        .addAll(Arrays.asList(annotation.events()));
+                }
+                // If no event types are given, try first parameter.
+                if (handledEventTypes.isEmpty()) {
+                    Class<?>[] paramTypes = method.getParameterTypes();
+                    if (paramTypes.length > 0) {
+                        if (Event.class.isAssignableFrom(paramTypes[0])) {
+                            handledEventTypes.add(paramTypes[0]);
+                        }
+                    }
+                }
+
+                // Get channel keys from the annotation.
+                boolean addDefaultChannel = false;
+                if (annotation.channels()[0] != NoChannel.class) {
+                    for (Class<?> c : annotation.channels()) {
+                        if (c == Self.class) {
+                            if (!(component instanceof Channel)) {
+                                throw new IllegalArgumentException(
+                                    "Canot use channel This.class in "
+                                        + "annotation of " + method
+                                        + " because " + getClass().getName()
+                                        + " does not implement Channel.");
+                            }
+                            // Will be added anyway, see below
+                        } else if (c == Channel.Default.class) {
+                            addDefaultChannel = true;
+                        } else {
+                            handledChannels.add(channelReplacements == null
+                                ? c
+                                : channelReplacements.getOrDefault(c, c));
+                        }
+                    }
+                }
+                if (handledChannels.isEmpty() || addDefaultChannel) {
+                    handledChannels.add(Components.manager(component)
+                        .channel().defaultCriterion());
+                }
+                // Finally, a comoponent always handles events
+                // directed at it directly.
+                if (component instanceof Channel) {
+                    handledChannels.add(
+                        ((Channel) component).defaultCriterion());
+                }
+
+                try {
+                    // Get all paths from the annotation.
+                    if (!annotation.patterns()[0].equals("")) {
+                        for (String p : annotation.patterns()) {
+                            handledPatterns.add(new ResourcePattern(p));
+                        }
+                    }
+
+                    // Add additionally provided path
+                    if (pattern != null) {
+                        handledPatterns.add(new ResourcePattern(pattern));
+                    }
+                } catch (ParseException e) {
+                    throw new IllegalArgumentException(e.getMessage(), e);
+                }
+            }
+
+            @Override
+            @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+                "PMD.NPathComplexity" })
+            public boolean includes(Eligible event, Eligible[] channels) {
+                boolean match = false;
+                for (Object eventType : handledEventTypes) {
+                    if (Class.class.isInstance(eventType)
+                        && ((Class<?>) eventType)
+                            .isAssignableFrom(event.getClass())) {
+                        match = true;
+                        break;
+                    }
+
+                }
+                if (!match) {
+                    return false;
+                }
+                match = false;
+                // Try channels
+                for (Eligible channel : channels) {
+                    for (Object channelValue : handledChannels) {
+                        if (channel.isEligibleFor(channelValue)) {
+                            match = true;
+                            break;
+                        }
+                    }
+                }
+                if (!match) {
+                    return false;
+                }
+                if (!(event instanceof Request)) {
+                    return false;
+                }
+                for (ResourcePattern rp : handledPatterns) {
+                    if (((Request) event).isEligibleFor(
+                        Request.createMatchValue(Request.class, rp))) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            /*
+             * (non-Javadoc)
+             * 
+             * @see java.lang.Object#toString()
+             */
+            @Override
+            public String toString() {
+                StringBuilder builder = new StringBuilder();
+                builder.append("Scope [");
+                if (handledEventTypes != null) {
+                    builder.append("handledEventTypes=")
+                        .append(handledEventTypes.stream().map(value -> {
+                            if (value instanceof Class) {
+                                return Components.className((Class<?>) value);
+                            }
+                            return value.toString();
+                        }).collect(Collectors.toSet()));
+                    builder.append(", ");
+                }
+                if (handledChannels != null) {
+                    builder.append("handledChannels=");
+                    builder.append(handledChannels);
+                    builder.append(", ");
+                }
+                if (handledPatterns != null) {
+                    builder.append("handledPatterns=");
+                    builder.append(handledPatterns);
+                }
+                builder.append(']');
+                return builder.toString();
+            }
+
+        }
+    }
 }

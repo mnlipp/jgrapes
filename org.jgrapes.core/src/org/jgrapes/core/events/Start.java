@@ -33,15 +33,15 @@ import org.jgrapes.core.Manager;
  * already started tree.
  */
 public class Start extends Event<Void> {
-	
-	/**
-	 * Create a new start event and set its completion event to {@link Started}.
-	 * The completion event may not be changed. The event's channels
-	 * are set to {@link Channel#BROADCAST}.
-	 */
-	public Start() {
-		super(Channel.BROADCAST);
-		new Started(this);
-	}
+
+    /**
+     * Create a new start event and set its completion event to {@link Started}.
+     * The completion event may not be changed. The event's channels
+     * are set to {@link Channel#BROADCAST}.
+     */
+    public Start() {
+        super(Channel.BROADCAST);
+        new Started(this);
+    }
 
 }

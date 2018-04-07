@@ -30,92 +30,99 @@ import org.jgrapes.core.Event;
  */
 class FeedBackPipelineFilter implements InternalEventPipeline {
 
-	protected static ThreadLocal<InternalEventPipeline> 
-		currentPipeline = new ThreadLocal<>();
-	private final InternalEventPipeline fallback;
-	
-	/**
-	 * Create a new instance that forwards events added from different threads
-	 * to the given fall back pipeline.
-	 * 
-	 * @param fallback
-	 */
-	public FeedBackPipelineFilter(InternalEventPipeline fallback) {
-		super();
-		this.fallback = fallback;
-	}
+    protected static ThreadLocal<InternalEventPipeline> currentPipeline
+        = new ThreadLocal<>();
+    private final InternalEventPipeline fallback;
 
-	/**
-	 * Associate the invoking thread with the given pipeline.
-	 * 
-	 * @param pipeline the pipeline
-	 */
-	public static void setAssociatedPipeline(InternalEventPipeline pipeline) {
-		currentPipeline.set(pipeline);
-	}
+    /**
+     * Create a new instance that forwards events added from different threads
+     * to the given fall back pipeline.
+     * 
+     * @param fallback
+     */
+    public FeedBackPipelineFilter(InternalEventPipeline fallback) {
+        super();
+        this.fallback = fallback;
+    }
 
-	/**
-	 * Get the pipeline associated with the invoking thread.
-	 * 
-	 * @return the pipeline or {@code null}
-	 */
-	public static InternalEventPipeline getAssociatedPipeline() {
-		return currentPipeline.get();
-	}
-	
-	@Override
-	public <T extends Event<?>> T add(T event, Channel... channels) {
-		InternalEventPipeline pipeline = currentPipeline.get();
-		if (pipeline != null) {
-			return pipeline.add(event, channels);
-		} 
-		return fallback.add(event, channels);
-	}
+    /**
+     * Associate the invoking thread with the given pipeline.
+     * 
+     * @param pipeline the pipeline
+     */
+    public static void setAssociatedPipeline(InternalEventPipeline pipeline) {
+        currentPipeline.set(pipeline);
+    }
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.MergingEventPipeline#merge(org.jgrapes.core.EventPipeline)
-	 */
-	@Override
-	public void merge(InternalEventPipeline other) {
-		InternalEventPipeline pipeline = currentPipeline.get();
-		if (pipeline == null) {
-			fallback.merge(other);
-			return;
-		}
-		pipeline.merge(other);
-	}
+    /**
+     * Get the pipeline associated with the invoking thread.
+     * 
+     * @return the pipeline or {@code null}
+     */
+    public static InternalEventPipeline getAssociatedPipeline() {
+        return currentPipeline.get();
+    }
 
-	/* (non-Javadoc)
-	 * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()
-	 */
-	@Override
-	public ExecutorService executorService() {
-		InternalEventPipeline pipeline = currentPipeline.get();
-		if (pipeline != null) {
-			return pipeline.executorService();
-		}
-		return fallback.executorService();
-	}
+    @Override
+    public <T extends Event<?>> T add(T event, Channel... channels) {
+        InternalEventPipeline pipeline = currentPipeline.get();
+        if (pipeline != null) {
+            return pipeline.add(event, channels);
+        }
+        return fallback.add(event, channels);
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-	public String toString() {
-		StringBuilder builder = new StringBuilder(50);
-		String sinkName = "(current) ";
-		builder.append("FeedBackPipelineFilter [");
-		InternalEventPipeline pipeline = currentPipeline.get();
-		if (pipeline == null) {
-			pipeline = fallback;
-			sinkName = "(fallback) ";
-		} 
-		builder.append(sinkName)
-			.append(pipeline)
-			.append(']');
-		return builder.toString();
-	}
-	
-	
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.jgrapes.core.internal.MergingEventPipeline#merge(org.jgrapes.core.
+     * EventPipeline)
+     */
+    @Override
+    public void merge(InternalEventPipeline other) {
+        InternalEventPipeline pipeline = currentPipeline.get();
+        if (pipeline == null) {
+            fallback.merge(other);
+            return;
+        }
+        pipeline.merge(other);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()
+     */
+    @Override
+    public ExecutorService executorService() {
+        InternalEventPipeline pipeline = currentPipeline.get();
+        if (pipeline != null) {
+            return pipeline.executorService();
+        }
+        return fallback.executorService();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    public String toString() {
+        StringBuilder builder = new StringBuilder(50);
+        String sinkName = "(current) ";
+        builder.append("FeedBackPipelineFilter [");
+        InternalEventPipeline pipeline = currentPipeline.get();
+        if (pipeline == null) {
+            pipeline = fallback;
+            sinkName = "(fallback) ";
+        }
+        builder.append(sinkName)
+            .append(pipeline)
+            .append(']');
+        return builder.toString();
+    }
+
 }

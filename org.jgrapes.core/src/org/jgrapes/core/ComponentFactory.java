@@ -42,49 +42,49 @@ import java.util.ServiceLoader;
  */
 public interface ComponentFactory {
 
-	/**
-	 * Returns the type of the components created by this factory.
-	 * 
-	 * @return the component type
-	 */
-	Class<? extends ComponentType> componentType();
-	
-	/**
-	 * Creates a new component with its channel set to
-	 * itself.
-	 * 
-	 * @return the component
-	 */
-	default ComponentType create() {
-		return create(Channel.SELF);
-	}
-	
-	/**
-	 * Creates a new component with its channel set to the given 
-	 * channel.
-	 * 
-	 * @param componentChannel the channel that the component's 
-	 * handlers listen on by default and that 
-	 * {@link Manager#fire(Event, Channel...)} sends the event to
-	 * @return the component
-	 */
-	default ComponentType create(Channel componentChannel) {
-		return create(componentChannel, Collections.emptyMap()).get();
-	}
-	
-	/**
-	 * Creates a new component with its channel set to the given 
-	 * channel using the given additional properties. If the requested
-	 * properties or combination of properties cannot be provided by
-	 * the component, the factory may return an empty {@link Optional}. 
-	 * 
-	 * @param componentChannel the channel that the component's 
-	 * handlers listen on by default and that 
-	 * {@link Manager#fire(Event, Channel...)} sends the event to 
-	 * @param properties additional properties for the creation of the
-	 * component
-	 * @return the component
-	 */
-	Optional<ComponentType> create(
-			Channel componentChannel, Map<Object, Object> properties);
+    /**
+     * Returns the type of the components created by this factory.
+     * 
+     * @return the component type
+     */
+    Class<? extends ComponentType> componentType();
+
+    /**
+     * Creates a new component with its channel set to
+     * itself.
+     * 
+     * @return the component
+     */
+    default ComponentType create() {
+        return create(Channel.SELF);
+    }
+
+    /**
+     * Creates a new component with its channel set to the given 
+     * channel.
+     * 
+     * @param componentChannel the channel that the component's 
+     * handlers listen on by default and that 
+     * {@link Manager#fire(Event, Channel...)} sends the event to
+     * @return the component
+     */
+    default ComponentType create(Channel componentChannel) {
+        return create(componentChannel, Collections.emptyMap()).get();
+    }
+
+    /**
+     * Creates a new component with its channel set to the given 
+     * channel using the given additional properties. If the requested
+     * properties or combination of properties cannot be provided by
+     * the component, the factory may return an empty {@link Optional}. 
+     * 
+     * @param componentChannel the channel that the component's 
+     * handlers listen on by default and that 
+     * {@link Manager#fire(Event, Channel...)} sends the event to 
+     * @param properties additional properties for the creation of the
+     * component
+     * @return the component
+     */
+    Optional<ComponentType> create(
+            Channel componentChannel, Map<Object, Object> properties);
 }

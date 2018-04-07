@@ -35,38 +35,38 @@ import org.jgrapes.core.EventPipeline;
  */
 interface InternalEventPipeline extends IdInfoProvider {
 
-	/**
-	 * Add an event to be sent to components listening for such events on
-	 * the given channels to the end of the queue without any checking.
-	 * 
-	 * @param <T> the event's type
-	 * @param event the event to process
-	 * @param channels the channels that the event was fired on
-	 * @return the event (for easy chaining)
-	 */
-	<T extends Event<?>> T add(T event, Channel... channels);
+    /**
+     * Add an event to be sent to components listening for such events on
+     * the given channels to the end of the queue without any checking.
+     * 
+     * @param <T> the event's type
+     * @param event the event to process
+     * @param channels the channels that the event was fired on
+     * @return the event (for easy chaining)
+     */
+    <T extends Event<?>> T add(T event, Channel... channels);
 
-	/**
-	 * Merge the events from the other event pipeline into this one.
-	 * 
-	 * @param other the other event pipeline
-	 */
-	void merge(InternalEventPipeline other);
+    /**
+     * Merge the events from the other event pipeline into this one.
+     * 
+     * @param other the other event pipeline
+     */
+    void merge(InternalEventPipeline other);
 
-	/**
-	 * All pipelines use the same id scope to make them uniquely identifiable
-	 * by their number.
-	 */
-	@Override
-	default Class<?> idScope() {
-		return EventPipeline.class;
-	}	
-	
-	/**
-	 * Returns the executor service used by this event pipeline to
-	 * obtain its thread.
-	 * 
-	 * @return the executor service
-	 */
-	ExecutorService executorService();
+    /**
+     * All pipelines use the same id scope to make them uniquely identifiable
+     * by their number.
+     */
+    @Override
+    default Class<?> idScope() {
+        return EventPipeline.class;
+    }
+
+    /**
+     * Returns the executor service used by this event pipeline to
+     * obtain its thread.
+     * 
+     * @return the executor service
+     */
+    ExecutorService executorService();
 }

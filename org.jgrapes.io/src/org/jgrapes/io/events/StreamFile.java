@@ -31,36 +31,36 @@ import org.jgrapes.core.Event;
  */
 public class StreamFile extends Event<Void> {
 
-	private final Path path;
-	private final OpenOption[] options;
+    private final Path path;
+    private final OpenOption[] options;
 
-	/**
-	 * Creates a new instance.
-	 * 
-	 * @param path the file's path
-	 * @param options open options
-	 */
-	public StreamFile(Path path, OpenOption... options) {
-		this.path = path;
-		this.options = Arrays.copyOf(options, options.length);
-	}
+    /**
+     * Creates a new instance.
+     * 
+     * @param path the file's path
+     * @param options open options
+     */
+    public StreamFile(Path path, OpenOption... options) {
+        this.path = path;
+        this.options = Arrays.copyOf(options, options.length);
+    }
 
-	/**
-	 * Returns the event's path.
-	 * 
-	 * @return the path
-	 */
-	public Path path() {
-		return path;
-	}
+    /**
+     * Returns the event's path.
+     * 
+     * @return the path
+     */
+    public Path path() {
+        return path;
+    }
 
-	/**
-	 * Returns the event's options.
-	 * 
-	 * @return the options
-	 */
-	public OpenOption[] options() {
-		return Arrays.copyOf(options, options.length);
-	}
+    /**
+     * Returns the event's options.
+     * 
+     * @return the options
+     */
+    public OpenOption[] options() {
+        return Arrays.copyOf(options, options.length);
+    }
 
 }

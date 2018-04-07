@@ -38,140 +38,140 @@ import org.jgrapes.io.events.NioRegistration;
  */
 public class NioDispatcher extends Component implements Runnable {
 
-	private final Selector selector;
-	private Thread runner;
-	private final Object selectorGate = new Object();
-	
-	/**
-	 * Creates a new Dispatcher.
-	 * 
-	 * @throws IOException if an I/O exception occurred
-	 */
-	public NioDispatcher() throws IOException {
-		selector = Selector.open();
-	}
+    private final Selector selector;
+    private Thread runner;
+    private final Object selectorGate = new Object();
 
-	/**
-	 * Starts this dispatcher. A dispatcher has an associated thread that
-	 * keeps it running.
-	 * 
-	 * @param event the event
-	 */
-	@Handler
-	public void onStart(Start event) {
-		synchronized (this) {
-			if (runner != null && !runner.isInterrupted()) {
-				return;
-			}
-			runner = new Thread(this, Components.simpleObjectName(this));
-			runner.start();
-		}
-	}
+    /**
+     * Creates a new Dispatcher.
+     * 
+     * @throws IOException if an I/O exception occurred
+     */
+    public NioDispatcher() throws IOException {
+        selector = Selector.open();
+    }
 
-	/**
-	 * Stops the thread that is associated with this dispatcher.
-	 * 
-	 * @param event the event
-	 * @throws InterruptedException if the execution is interrupted
-	 */
-	@Handler(priority=-10000)
-	public void onStop(Stop event) throws InterruptedException {
-		synchronized (this) {
-			if (runner == null) {
-				return;
-			}
-			// It just might happen that the wakeup() occurs between the
-			// check for running and the select() in the thread's run loop,
-			// but we -- obviously -- cannot put the select() in a
-			// synchronized(this).
-			while (runner.isAlive()) {
-				runner.interrupt(); // *Should* be sufficient, but...
-				selector.wakeup(); // Make sure
-				runner.join(10);
-			}
-			runner = null;
-		}
-	}
+    /**
+     * Starts this dispatcher. A dispatcher has an associated thread that
+     * keeps it running.
+     * 
+     * @param event the event
+     */
+    @Handler
+    public void onStart(Start event) {
+        synchronized (this) {
+            if (runner != null && !runner.isInterrupted()) {
+                return;
+            }
+            runner = new Thread(this, Components.simpleObjectName(this));
+            runner.start();
+        }
+    }
 
-	/**
-	 * Invoked once by the thread associated with the dispatcher. Handles
-	 * all events from the underlying {@link Selector}.  
-	 */
-	@Override
-	@SuppressWarnings({ "PMD.EmptySynchronizedBlock", "PMD.EmptyCatchBlock",
-	        "PMD.AvoidCatchingThrowable" })
-	public void run() {
-		try {
-			registerAsGenerator();
-			while (!Thread.currentThread().isInterrupted()) {
-				try {
-					selector.select();
-					Set<SelectionKey> selected = selector.selectedKeys();
-					for (SelectionKey key: selected) {
-						((NioHandler)key.attachment())
-							.handleOps(key.readyOps());
-					}
-					selected.clear();
-					synchronized (selectorGate) {
-						// Delay next iteration if another thread has the lock.
-						// "Find bugs" complains, but this is really okay.
-					}
-				} catch (InterruptedIOException | InterruptedException 
-						| Error e) {
-					break;
-				} catch (Throwable e) {
-					// Ignore anything else, this loop is crucial.
-				}
-			}
-		} finally {
-			unregisterAsGenerator();
-		}
-	}
+    /**
+     * Stops the thread that is associated with this dispatcher.
+     * 
+     * @param event the event
+     * @throws InterruptedException if the execution is interrupted
+     */
+    @Handler(priority = -10000)
+    public void onStop(Stop event) throws InterruptedException {
+        synchronized (this) {
+            if (runner == null) {
+                return;
+            }
+            // It just might happen that the wakeup() occurs between the
+            // check for running and the select() in the thread's run loop,
+            // but we -- obviously -- cannot put the select() in a
+            // synchronized(this).
+            while (runner.isAlive()) {
+                runner.interrupt(); // *Should* be sufficient, but...
+                selector.wakeup(); // Make sure
+                runner.join(10);
+            }
+            runner = null;
+        }
+    }
 
-	/**
-	 * Handle the NIO registration.
-	 *
-	 * @param event the event
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	@Handler
-	public void onNioRegistration(NioRegistration event)
-			throws IOException {
-		SelectableChannel channel = event.ioChannel();
-		channel.configureBlocking(false);
-		SelectionKey key;
-		synchronized (selectorGate) {
-			selector.wakeup(); // make sure selector isn't blocking
-			key = channel.register(
-					selector, event.ops(), event.handler());
-		}
-		event.setResult(new Registration(key));
-	}
-	
-	/**
-	 * Represents a NIO registration.
-	 */
-	public class Registration extends NioRegistration.Registration {
+    /**
+     * Invoked once by the thread associated with the dispatcher. Handles
+     * all events from the underlying {@link Selector}.  
+     */
+    @Override
+    @SuppressWarnings({ "PMD.EmptySynchronizedBlock", "PMD.EmptyCatchBlock",
+        "PMD.AvoidCatchingThrowable" })
+    public void run() {
+        try {
+            registerAsGenerator();
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    selector.select();
+                    Set<SelectionKey> selected = selector.selectedKeys();
+                    for (SelectionKey key : selected) {
+                        ((NioHandler) key.attachment())
+                            .handleOps(key.readyOps());
+                    }
+                    selected.clear();
+                    synchronized (selectorGate) {
+                        // Delay next iteration if another thread has the lock.
+                        // "Find bugs" complains, but this is really okay.
+                    }
+                } catch (InterruptedIOException | InterruptedException
+                        | Error e) {
+                    break;
+                } catch (Throwable e) {
+                    // Ignore anything else, this loop is crucial.
+                }
+            }
+        } finally {
+            unregisterAsGenerator();
+        }
+    }
 
-		private final SelectionKey key;
-		
-		/**
-		 * Instantiates a new registration.
-		 *
-		 * @param key the key
-		 */
-		public Registration(SelectionKey key) {
-			super();
-			this.key = key;
-		}
+    /**
+     * Handle the NIO registration.
+     *
+     * @param event the event
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    @Handler
+    public void onNioRegistration(NioRegistration event)
+            throws IOException {
+        SelectableChannel channel = event.ioChannel();
+        channel.configureBlocking(false);
+        SelectionKey key;
+        synchronized (selectorGate) {
+            selector.wakeup(); // make sure selector isn't blocking
+            key = channel.register(
+                selector, event.ops(), event.handler());
+        }
+        event.setResult(new Registration(key));
+    }
 
-		@Override
-		public void updateInterested(int ops) {
-			synchronized (selectorGate) {
-				selector.wakeup(); // make sure selector isn't blocking
-				key.interestOps(ops);
-			}
-		}
-	}
-	
+    /**
+     * Represents a NIO registration.
+     */
+    public class Registration extends NioRegistration.Registration {
+
+        private final SelectionKey key;
+
+        /**
+         * Instantiates a new registration.
+         *
+         * @param key the key
+         */
+        public Registration(SelectionKey key) {
+            super();
+            this.key = key;
+        }
+
+        @Override
+        public void updateInterested(int ops) {
+            synchronized (selectorGate) {
+                selector.wakeup(); // make sure selector isn't blocking
+                key.interestOps(ops);
+            }
+        }
+    }
+
 }
