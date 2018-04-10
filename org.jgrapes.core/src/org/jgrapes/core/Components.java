@@ -396,7 +396,7 @@ public class Components {
         /**
          * Returns the instant that this handler is scheduled for.
          * 
-         * @return the instant
+         * @return the instant or `null` if the timer has been cancelled.
          */
         public Instant scheduledFor() {
             return scheduledFor;
@@ -479,6 +479,7 @@ public class Components {
             synchronized (timers) {
                 timers.remove(timer);
                 timers.notifyAll();
+                timer.scheduledFor = null;
             }
         }
 
