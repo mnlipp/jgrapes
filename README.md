@@ -10,7 +10,7 @@ JGrapes
 | io      | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.io.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.io%22)
 | http    | [![Maven Central](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.http.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.http%22)
 
-See the [project's home page](http://mnlipp.github.io/jgrapes/).
+See the [project's home page](https://mnlipp.github.io/jgrapes/).
 
 This repository comprises the sources for jars that provide the basic
 packages (org.jgrapes.core, ...util, ...io etc.). The jars have augmented
@@ -55,8 +55,3 @@ seperate [JGrapes Portal](https://github.com/mnlipp/jgrapes-portal) project.
 The JGrapes OSGi components (that depend on the OSGi framework and 
 provide JGrapes based OSGi services) can also be found in a
 [repository of their own](https://github.com/mnlipp/jgrapes-osgi). 
-
-<!-- Piwik Image Tracker-->
-<img src="https://piwik.mnl.de/piwik.php?idsite=10&rec=1&url=https%3A%2F%2Fgithub.com%2Fmnlipp%2Fjgrapes" style="border:0" alt="" />
-<!-- End Piwik -->
-
