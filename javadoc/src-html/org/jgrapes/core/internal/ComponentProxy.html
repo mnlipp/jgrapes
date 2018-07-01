@@ -126,7 +126,7 @@
 <span class="sourceLineNo">118</span>     * @param componentChannel the component's channel<a name="line.118"></a>
 <span class="sourceLineNo">119</span>     * @return the node representing the component in the tree<a name="line.119"></a>
 <span class="sourceLineNo">120</span>     */<a name="line.120"></a>
-<span class="sourceLineNo">121</span>    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.121"></a>
+<span class="sourceLineNo">121</span>    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "deprecation" })<a name="line.121"></a>
 <span class="sourceLineNo">122</span>    /* default */ static ComponentVertex getComponentProxy(<a name="line.122"></a>
 <span class="sourceLineNo">123</span>            ComponentType component, Channel componentChannel) {<a name="line.123"></a>
 <span class="sourceLineNo">124</span>        ComponentProxy componentProxy = null;<a name="line.124"></a>
