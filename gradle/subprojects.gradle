@@ -30,7 +30,7 @@ if (project.file("bnd.bnd").exists()) {
 dependencies {
     compileOnly 'org.osgi:org.osgi.annotation:6.0.0'
     testCompile 'junit:junit:4.12', 'net.jodah:concurrentunit:0.4.2'
-    testCompile "org.spockframework:spock-core:1.1-groovy-2.4-rc-3"
+    testCompile "org.spockframework:spock-core:1.1-groovy-2.4"
 }
 
 apply from: "${project.rootDir}/gradle/layout.gradle"
@@ -66,3 +66,4 @@ if (project.name != 'examples') {
 }
 
 apply from: "${project.rootDir}/gradle/eclipse.gradle"
+ 
