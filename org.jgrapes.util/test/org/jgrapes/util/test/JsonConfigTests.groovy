@@ -21,84 +21,82 @@ import org.jgrapes.core.events.Start
 import org.jgrapes.util.JsonConfigurationStore
 import org.jgrapes.util.PreferencesStore
 import org.jgrapes.util.events.InitialPreferences
-import org.omg.CORBA.portable.OutputStream
 import org.jgrapes.util.events.ConfigurationUpdate
 
 import groovy.transform.CompileStatic
 import spock.lang.*
 
 class JsonConfigTests extends Specification {
-	
-	class UpdateTrigger extends Event<Void> {
-	}
-	
-	class App extends Component {
 
-		public int value = 0;
-		public int subValue = 0;
-		
-		@Handler
-		public void onConfigurationUpdate(ConfigurationUpdate event) {
-			event.value("/", "answer").ifPresent({ value = Integer.parseInt(it) })
-			event.values("/sub/tree")
-				.ifPresent({ subValue = Integer.parseInt(it.get("value")) })
-		}
-		
-		@Handler
-		public void onTriggerUpdate(UpdateTrigger event) {
-			fire(new ConfigurationUpdate().add("/", "updated", "new"))
-		}
-	}
+    class UpdateTrigger extends Event<Void> {
+    }
 
-	void "Init Test"() {
-		setup: "Create app and initial file"
-		App app = new App();
-		File file = new File("testConfig.json");
-		Writer out = new OutputStreamWriter(new FileOutputStream(file), "utf-8")
-		out.write("{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24}}}")
-		out.close()
-		app.attach(new JsonConfigurationStore(app, file))
+    class App extends Component {
 
-		when: "Start"
-		Components.start(app)
-		Components.awaitExhaustion();
+        public int value = 0;
+        public int subValue = 0;
 
-		then: "Values must have been set in component"
-		app.value == 42
-		app.subValue == 24
+        @Handler
+        public void onConfigurationUpdate(ConfigurationUpdate event) {
+            event.value("/", "answer").ifPresent({ value = Integer.parseInt(it) })
+            event.values("/sub/tree")
+                    .ifPresent({ subValue = Integer.parseInt(it.get("value")) })
+        }
 
-		when: "Update fired"
-		app.fire(new UpdateTrigger(), app)
-		Components.awaitExhaustion();
-		Reader input = new InputStreamReader(new FileInputStream(file), "utf-8")
-		Map root = JsonBeanDecoder.create(input).readObject(HashMap.class);
-		input.close();
-		
-		then: "File must have been updated"
-		root.get("updated") == "new"
+        @Handler
+        public void onTriggerUpdate(UpdateTrigger event) {
+            fire(new ConfigurationUpdate().add("/", "updated", "new"))
+        }
+    }
 
-		when: "Remove sub tree event"
-		app.fire(new ConfigurationUpdate().removePath("/sub"), app)
-		Components.awaitExhaustion();
-		input = new InputStreamReader(new FileInputStream(file), "utf-8")
-		root = JsonBeanDecoder.create(input).readObject(HashMap.class);
-		input.close();
+    void "Init Test"() {
+        setup: "Create app and initial file"
+        App app = new App();
+        File file = new File("testConfig.json");
+        Writer out = new OutputStreamWriter(new FileOutputStream(file), "utf-8")
+        out.write("{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24}}}")
+        out.close()
+        app.attach(new JsonConfigurationStore(app, file))
 
-		then: "Sub tree must have been removed in file"
-		!root.containsKey("/sub")
-		
-		when: "Remove test preferences"
-		app.fire(new ConfigurationUpdate().removePath("/"), app)
-		Components.awaitExhaustion();
-		input = new InputStreamReader(new FileInputStream(file), "utf-8")
-		root = JsonBeanDecoder.create(input).readObject(HashMap.class);
-		input.close();
+        when: "Start"
+        Components.start(app)
+        Components.awaitExhaustion();
 
-		then: "Data must have been removed"
-		root.isEmpty()
-		
-		cleanup:
-		file.delete();
-	}
-	
+        then: "Values must have been set in component"
+        app.value == 42
+        app.subValue == 24
+
+        when: "Update fired"
+        app.fire(new UpdateTrigger(), app)
+        Components.awaitExhaustion();
+        Reader input = new InputStreamReader(new FileInputStream(file), "utf-8")
+        Map root = JsonBeanDecoder.create(input).readObject(HashMap.class);
+        input.close();
+
+        then: "File must have been updated"
+        root.get("updated") == "new"
+
+        when: "Remove sub tree event"
+        app.fire(new ConfigurationUpdate().removePath("/sub"), app)
+        Components.awaitExhaustion();
+        input = new InputStreamReader(new FileInputStream(file), "utf-8")
+        root = JsonBeanDecoder.create(input).readObject(HashMap.class);
+        input.close();
+
+        then: "Sub tree must have been removed in file"
+        !root.containsKey("/sub")
+
+        when: "Remove test preferences"
+        app.fire(new ConfigurationUpdate().removePath("/"), app)
+        Components.awaitExhaustion();
+        input = new InputStreamReader(new FileInputStream(file), "utf-8")
+        root = JsonBeanDecoder.create(input).readObject(HashMap.class);
+        input.close();
+
+        then: "Data must have been removed"
+        root.isEmpty()
+
+        cleanup:
+        file.delete();
+    }
 }
