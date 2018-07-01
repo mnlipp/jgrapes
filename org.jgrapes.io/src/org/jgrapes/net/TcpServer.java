@@ -1051,7 +1051,7 @@ public class TcpServer extends Component implements NioHandler {
          */
         @Override
         public int getPort() {
-            return server().map(server -> ((InetSocketAddress) server
+            return server().map(server -> (server
                 .serverAddress()).getPort()).orElse(0);
         }
 

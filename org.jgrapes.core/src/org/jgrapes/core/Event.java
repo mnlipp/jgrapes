@@ -142,7 +142,7 @@ public class Event<T> extends EventBase<T> {
                 "Channels cannot be changed after fire");
         }
         this.channels = Arrays.copyOf(channels, channels.length);
-        return (Event<T>) this;
+        return this;
     }
 
     /**
@@ -224,7 +224,7 @@ public class Event<T> extends EventBase<T> {
             completionEvents = new HashSet<>();
         }
         completionEvents.add(completionEvent);
-        return (Event<T>) this;
+        return this;
     }
 
     /*
@@ -325,10 +325,10 @@ public class Event<T> extends EventBase<T> {
                 results = new ArrayList<T>();
                 results.add(result);
                 firstResultAssigned();
-                return (Event<T>) this;
+                return this;
             }
             results.add(result);
-            return (Event<T>) this;
+            return this;
         }
     }
 
@@ -361,7 +361,7 @@ public class Event<T> extends EventBase<T> {
                 other.results = new ArrayList<T>();
             }
             results = other.results;
-            return (Event<T>) this;
+            return this;
         }
     }
 
@@ -468,7 +468,7 @@ public class Event<T> extends EventBase<T> {
         } else {
             contextData.put(by, with);
         }
-        return (Event<T>) this;
+        return this;
     }
 
     @Override
