@@ -61,6 +61,8 @@ test {
     }
 }
 
-apply from: "${project.rootDir}/gradle/publishing.gradle"
+if (project.name != 'examples') {
+    apply from: "${project.rootDir}/gradle/publishing.gradle"
+}
 
 apply from: "${project.rootDir}/gradle/eclipse.gradle"
