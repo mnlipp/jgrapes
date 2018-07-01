@@ -6,190 +6,190 @@
 </head>
 <body>
 <div class="sourceContainer">
-<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
-<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2016-2018 Michael N. Lipp<a name="line.3"></a>
-<span class="sourceLineNo">004</span> * <a name="line.4"></a>
-<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
-<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
-<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
-<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
-<span class="sourceLineNo">009</span> * <a name="line.9"></a>
-<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
-<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
-<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
-<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
-<span class="sourceLineNo">014</span> * <a name="line.14"></a>
-<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
-<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
-<span class="sourceLineNo">017</span> */<a name="line.17"></a>
+<pre><span class="sourceLineNo">001</span><a name="line.1">/*</a>
+<span class="sourceLineNo">002</span><a name="line.2"> * JGrapes Event Driven Framework</a>
+<span class="sourceLineNo">003</span><a name="line.3"> * Copyright (C) 2016-2018 Michael N. Lipp</a>
+<span class="sourceLineNo">004</span><a name="line.4"> * </a>
+<span class="sourceLineNo">005</span><a name="line.5"> * This program is free software; you can redistribute it and/or modify it </a>
+<span class="sourceLineNo">006</span><a name="line.6"> * under the terms of the GNU General Public License as published by </a>
+<span class="sourceLineNo">007</span><a name="line.7"> * the Free Software Foundation; either version 3 of the License, or </a>
+<span class="sourceLineNo">008</span><a name="line.8"> * (at your option) any later version.</a>
+<span class="sourceLineNo">009</span><a name="line.9"> * </a>
+<span class="sourceLineNo">010</span><a name="line.10"> * This program is distributed in the hope that it will be useful, but </a>
+<span class="sourceLineNo">011</span><a name="line.11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</a>
+<span class="sourceLineNo">012</span><a name="line.12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License </a>
+<span class="sourceLineNo">013</span><a name="line.13"> * for more details.</a>
+<span class="sourceLineNo">014</span><a name="line.14"> * </a>
+<span class="sourceLineNo">015</span><a name="line.15"> * You should have received a copy of the GNU General Public License along </a>
+<span class="sourceLineNo">016</span><a name="line.16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<span class="sourceLineNo">017</span><a name="line.17"> */</a>
 <span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span>package org.jgrapes.core.internal;<a name="line.19"></a>
+<span class="sourceLineNo">019</span><a name="line.19">package org.jgrapes.core.internal;</a>
 <span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>import java.lang.reflect.Field;<a name="line.21"></a>
-<span class="sourceLineNo">022</span>import java.lang.reflect.InvocationTargetException;<a name="line.22"></a>
+<span class="sourceLineNo">021</span><a name="line.21">import java.lang.reflect.Field;</a>
+<span class="sourceLineNo">022</span><a name="line.22">import java.lang.reflect.InvocationTargetException;</a>
 <span class="sourceLineNo">023</span><a name="line.23"></a>
-<span class="sourceLineNo">024</span>import org.jgrapes.core.Channel;<a name="line.24"></a>
-<span class="sourceLineNo">025</span>import org.jgrapes.core.ComponentType;<a name="line.25"></a>
-<span class="sourceLineNo">026</span>import org.jgrapes.core.Manager;<a name="line.26"></a>
-<span class="sourceLineNo">027</span>import org.jgrapes.core.NamedChannel;<a name="line.27"></a>
-<span class="sourceLineNo">028</span>import org.jgrapes.core.annotation.ComponentManager;<a name="line.28"></a>
-<span class="sourceLineNo">029</span>import org.jgrapes.core.annotation.Handler;<a name="line.29"></a>
+<span class="sourceLineNo">024</span><a name="line.24">import org.jgrapes.core.Channel;</a>
+<span class="sourceLineNo">025</span><a name="line.25">import org.jgrapes.core.ComponentType;</a>
+<span class="sourceLineNo">026</span><a name="line.26">import org.jgrapes.core.Manager;</a>
+<span class="sourceLineNo">027</span><a name="line.27">import org.jgrapes.core.NamedChannel;</a>
+<span class="sourceLineNo">028</span><a name="line.28">import org.jgrapes.core.annotation.ComponentManager;</a>
+<span class="sourceLineNo">029</span><a name="line.29">import org.jgrapes.core.annotation.Handler;</a>
 <span class="sourceLineNo">030</span><a name="line.30"></a>
-<span class="sourceLineNo">031</span>/**<a name="line.31"></a>
-<span class="sourceLineNo">032</span> * The ComponentProxy is a special ComponentVertex that references the<a name="line.32"></a>
-<span class="sourceLineNo">033</span> * object implementing the Component interface (instead of being<a name="line.33"></a>
-<span class="sourceLineNo">034</span> * its base class).<a name="line.34"></a>
-<span class="sourceLineNo">035</span> */<a name="line.35"></a>
-<span class="sourceLineNo">036</span>public final class ComponentProxy extends ComponentVertex {<a name="line.36"></a>
+<span class="sourceLineNo">031</span><a name="line.31">/**</a>
+<span class="sourceLineNo">032</span><a name="line.32"> * The ComponentProxy is a special ComponentVertex that references the</a>
+<span class="sourceLineNo">033</span><a name="line.33"> * object implementing the Component interface (instead of being</a>
+<span class="sourceLineNo">034</span><a name="line.34"> * its base class).</a>
+<span class="sourceLineNo">035</span><a name="line.35"> */</a>
+<span class="sourceLineNo">036</span><a name="line.36">public final class ComponentProxy extends ComponentVertex {</a>
 <span class="sourceLineNo">037</span><a name="line.37"></a>
-<span class="sourceLineNo">038</span>    /** The reference to the actual component. */<a name="line.38"></a>
-<span class="sourceLineNo">039</span>    private final ComponentType component;<a name="line.39"></a>
-<span class="sourceLineNo">040</span>    /** The referenced component's channel. */<a name="line.40"></a>
-<span class="sourceLineNo">041</span>    private Channel componentChannel;<a name="line.41"></a>
+<span class="sourceLineNo">038</span><a name="line.38">    /** The reference to the actual component. */</a>
+<span class="sourceLineNo">039</span><a name="line.39">    private final ComponentType component;</a>
+<span class="sourceLineNo">040</span><a name="line.40">    /** The referenced component's channel. */</a>
+<span class="sourceLineNo">041</span><a name="line.41">    private Channel componentChannel;</a>
 <span class="sourceLineNo">042</span><a name="line.42"></a>
-<span class="sourceLineNo">043</span>    private static Field getManagerField(Class&lt;?&gt; clazz) {<a name="line.43"></a>
-<span class="sourceLineNo">044</span>        try {<a name="line.44"></a>
-<span class="sourceLineNo">045</span>            while (true) {<a name="line.45"></a>
-<span class="sourceLineNo">046</span>                for (Field field : clazz.getDeclaredFields()) {<a name="line.46"></a>
-<span class="sourceLineNo">047</span>                    if (Manager.class.isAssignableFrom(field.getType())<a name="line.47"></a>
-<span class="sourceLineNo">048</span>                        &amp;&amp; field<a name="line.48"></a>
-<span class="sourceLineNo">049</span>                            .getAnnotation(ComponentManager.class) != null) {<a name="line.49"></a>
-<span class="sourceLineNo">050</span>                        return field;<a name="line.50"></a>
-<span class="sourceLineNo">051</span>                    }<a name="line.51"></a>
-<span class="sourceLineNo">052</span>                }<a name="line.52"></a>
-<span class="sourceLineNo">053</span>                clazz = clazz.getSuperclass();<a name="line.53"></a>
-<span class="sourceLineNo">054</span>                if (clazz == null) {<a name="line.54"></a>
-<span class="sourceLineNo">055</span>                    throw new IllegalArgumentException(<a name="line.55"></a>
-<span class="sourceLineNo">056</span>                        "Components must have a manager attribute");<a name="line.56"></a>
-<span class="sourceLineNo">057</span>                }<a name="line.57"></a>
-<span class="sourceLineNo">058</span>            }<a name="line.58"></a>
-<span class="sourceLineNo">059</span>        } catch (SecurityException e) {<a name="line.59"></a>
-<span class="sourceLineNo">060</span>            throw (RuntimeException) (new IllegalArgumentException(<a name="line.60"></a>
-<span class="sourceLineNo">061</span>                "Cannot access component's manager attribute")).initCause(e);<a name="line.61"></a>
-<span class="sourceLineNo">062</span>        }<a name="line.62"></a>
-<span class="sourceLineNo">063</span>    }<a name="line.63"></a>
+<span class="sourceLineNo">043</span><a name="line.43">    private static Field getManagerField(Class&lt;?&gt; clazz) {</a>
+<span class="sourceLineNo">044</span><a name="line.44">        try {</a>
+<span class="sourceLineNo">045</span><a name="line.45">            while (true) {</a>
+<span class="sourceLineNo">046</span><a name="line.46">                for (Field field : clazz.getDeclaredFields()) {</a>
+<span class="sourceLineNo">047</span><a name="line.47">                    if (Manager.class.isAssignableFrom(field.getType())</a>
+<span class="sourceLineNo">048</span><a name="line.48">                        &amp;&amp; field</a>
+<span class="sourceLineNo">049</span><a name="line.49">                            .getAnnotation(ComponentManager.class) != null) {</a>
+<span class="sourceLineNo">050</span><a name="line.50">                        return field;</a>
+<span class="sourceLineNo">051</span><a name="line.51">                    }</a>
+<span class="sourceLineNo">052</span><a name="line.52">                }</a>
+<span class="sourceLineNo">053</span><a name="line.53">                clazz = clazz.getSuperclass();</a>
+<span class="sourceLineNo">054</span><a name="line.54">                if (clazz == null) {</a>
+<span class="sourceLineNo">055</span><a name="line.55">                    throw new IllegalArgumentException(</a>
+<span class="sourceLineNo">056</span><a name="line.56">                        "Components must have a manager attribute");</a>
+<span class="sourceLineNo">057</span><a name="line.57">                }</a>
+<span class="sourceLineNo">058</span><a name="line.58">            }</a>
+<span class="sourceLineNo">059</span><a name="line.59">        } catch (SecurityException e) {</a>
+<span class="sourceLineNo">060</span><a name="line.60">            throw (RuntimeException) (new IllegalArgumentException(</a>
+<span class="sourceLineNo">061</span><a name="line.61">                "Cannot access component's manager attribute")).initCause(e);</a>
+<span class="sourceLineNo">062</span><a name="line.62">        }</a>
+<span class="sourceLineNo">063</span><a name="line.63">    }</a>
 <span class="sourceLineNo">064</span><a name="line.64"></a>
-<span class="sourceLineNo">065</span>    private static Channel getComponentChannel(Field field) {<a name="line.65"></a>
-<span class="sourceLineNo">066</span>        ComponentManager cma = field.getAnnotation(ComponentManager.class);<a name="line.66"></a>
-<span class="sourceLineNo">067</span>        if (cma.channel() != Handler.NoChannel.class) {<a name="line.67"></a>
-<span class="sourceLineNo">068</span>            if (cma.channel() != Channel.BROADCAST.defaultCriterion()) {<a name="line.68"></a>
-<span class="sourceLineNo">069</span>                try {<a name="line.69"></a>
-<span class="sourceLineNo">070</span>                    return cma.channel().getConstructor().newInstance();<a name="line.70"></a>
-<span class="sourceLineNo">071</span>                } catch (InstantiationException // NOPMD<a name="line.71"></a>
-<span class="sourceLineNo">072</span>                        | IllegalAccessException | IllegalArgumentException<a name="line.72"></a>
-<span class="sourceLineNo">073</span>                        | InvocationTargetException | NoSuchMethodException<a name="line.73"></a>
-<span class="sourceLineNo">074</span>                        | SecurityException e) {<a name="line.74"></a>
-<span class="sourceLineNo">075</span>                    // Ignored<a name="line.75"></a>
-<span class="sourceLineNo">076</span>                }<a name="line.76"></a>
-<span class="sourceLineNo">077</span>            }<a name="line.77"></a>
-<span class="sourceLineNo">078</span>            return Channel.BROADCAST;<a name="line.78"></a>
-<span class="sourceLineNo">079</span>        }<a name="line.79"></a>
-<span class="sourceLineNo">080</span>        if (!cma.namedChannel().equals("")) {<a name="line.80"></a>
-<span class="sourceLineNo">081</span>            return new NamedChannel(cma.namedChannel());<a name="line.81"></a>
-<span class="sourceLineNo">082</span>        }<a name="line.82"></a>
-<span class="sourceLineNo">083</span>        return Channel.SELF;<a name="line.83"></a>
-<span class="sourceLineNo">084</span>    }<a name="line.84"></a>
+<span class="sourceLineNo">065</span><a name="line.65">    private static Channel getComponentChannel(Field field) {</a>
+<span class="sourceLineNo">066</span><a name="line.66">        ComponentManager cma = field.getAnnotation(ComponentManager.class);</a>
+<span class="sourceLineNo">067</span><a name="line.67">        if (cma.channel() != Handler.NoChannel.class) {</a>
+<span class="sourceLineNo">068</span><a name="line.68">            if (cma.channel() != Channel.BROADCAST.defaultCriterion()) {</a>
+<span class="sourceLineNo">069</span><a name="line.69">                try {</a>
+<span class="sourceLineNo">070</span><a name="line.70">                    return cma.channel().getConstructor().newInstance();</a>
+<span class="sourceLineNo">071</span><a name="line.71">                } catch (InstantiationException // NOPMD</a>
+<span class="sourceLineNo">072</span><a name="line.72">                        | IllegalAccessException | IllegalArgumentException</a>
+<span class="sourceLineNo">073</span><a name="line.73">                        | InvocationTargetException | NoSuchMethodException</a>
+<span class="sourceLineNo">074</span><a name="line.74">                        | SecurityException e) {</a>
+<span class="sourceLineNo">075</span><a name="line.75">                    // Ignored</a>
+<span class="sourceLineNo">076</span><a name="line.76">                }</a>
+<span class="sourceLineNo">077</span><a name="line.77">            }</a>
+<span class="sourceLineNo">078</span><a name="line.78">            return Channel.BROADCAST;</a>
+<span class="sourceLineNo">079</span><a name="line.79">        }</a>
+<span class="sourceLineNo">080</span><a name="line.80">        if (!cma.namedChannel().equals("")) {</a>
+<span class="sourceLineNo">081</span><a name="line.81">            return new NamedChannel(cma.namedChannel());</a>
+<span class="sourceLineNo">082</span><a name="line.82">        }</a>
+<span class="sourceLineNo">083</span><a name="line.83">        return Channel.SELF;</a>
+<span class="sourceLineNo">084</span><a name="line.84">    }</a>
 <span class="sourceLineNo">085</span><a name="line.85"></a>
-<span class="sourceLineNo">086</span>    /**<a name="line.86"></a>
-<span class="sourceLineNo">087</span>     * Create a new component proxy for the component and assign it to <a name="line.87"></a>
-<span class="sourceLineNo">088</span>     * the specified field which must be of type {@link Manager}.<a name="line.88"></a>
-<span class="sourceLineNo">089</span>     * <a name="line.89"></a>
-<span class="sourceLineNo">090</span>     * @param field the field that gets the proxy assigned<a name="line.90"></a>
-<span class="sourceLineNo">091</span>     * @param componentChannel the componen't channel<a name="line.91"></a>
-<span class="sourceLineNo">092</span>     * @param component the component<a name="line.92"></a>
-<span class="sourceLineNo">093</span>     */<a name="line.93"></a>
-<span class="sourceLineNo">094</span>    private ComponentProxy(<a name="line.94"></a>
-<span class="sourceLineNo">095</span>            Field field, ComponentType component, Channel componentChannel) {<a name="line.95"></a>
-<span class="sourceLineNo">096</span>        this.component = component;<a name="line.96"></a>
-<span class="sourceLineNo">097</span>        try {<a name="line.97"></a>
-<span class="sourceLineNo">098</span>            field.set(component, this);<a name="line.98"></a>
-<span class="sourceLineNo">099</span>            if (componentChannel == null) {<a name="line.99"></a>
-<span class="sourceLineNo">100</span>                componentChannel = getComponentChannel(field);<a name="line.100"></a>
-<span class="sourceLineNo">101</span>            }<a name="line.101"></a>
-<span class="sourceLineNo">102</span>            if (componentChannel.equals(Channel.SELF)) {<a name="line.102"></a>
-<span class="sourceLineNo">103</span>                componentChannel = this;<a name="line.103"></a>
-<span class="sourceLineNo">104</span>            }<a name="line.104"></a>
-<span class="sourceLineNo">105</span>            this.componentChannel = componentChannel;<a name="line.105"></a>
-<span class="sourceLineNo">106</span>            initComponentsHandlers(null);<a name="line.106"></a>
-<span class="sourceLineNo">107</span>        } catch (SecurityException | IllegalAccessException e) {<a name="line.107"></a>
-<span class="sourceLineNo">108</span>            throw (RuntimeException) (new IllegalArgumentException(<a name="line.108"></a>
-<span class="sourceLineNo">109</span>                "Cannot access component's manager attribute")).initCause(e);<a name="line.109"></a>
-<span class="sourceLineNo">110</span>        }<a name="line.110"></a>
-<span class="sourceLineNo">111</span>    }<a name="line.111"></a>
+<span class="sourceLineNo">086</span><a name="line.86">    /**</a>
+<span class="sourceLineNo">087</span><a name="line.87">     * Create a new component proxy for the component and assign it to </a>
+<span class="sourceLineNo">088</span><a name="line.88">     * the specified field which must be of type {@link Manager}.</a>
+<span class="sourceLineNo">089</span><a name="line.89">     * </a>
+<span class="sourceLineNo">090</span><a name="line.90">     * @param field the field that gets the proxy assigned</a>
+<span class="sourceLineNo">091</span><a name="line.91">     * @param componentChannel the componen't channel</a>
+<span class="sourceLineNo">092</span><a name="line.92">     * @param component the component</a>
+<span class="sourceLineNo">093</span><a name="line.93">     */</a>
+<span class="sourceLineNo">094</span><a name="line.94">    private ComponentProxy(</a>
+<span class="sourceLineNo">095</span><a name="line.95">            Field field, ComponentType component, Channel componentChannel) {</a>
+<span class="sourceLineNo">096</span><a name="line.96">        this.component = component;</a>
+<span class="sourceLineNo">097</span><a name="line.97">        try {</a>
+<span class="sourceLineNo">098</span><a name="line.98">            field.set(component, this);</a>
+<span class="sourceLineNo">099</span><a name="line.99">            if (componentChannel == null) {</a>
+<span class="sourceLineNo">100</span><a name="line.100">                componentChannel = getComponentChannel(field);</a>
+<span class="sourceLineNo">101</span><a name="line.101">            }</a>
+<span class="sourceLineNo">102</span><a name="line.102">            if (componentChannel.equals(Channel.SELF)) {</a>
+<span class="sourceLineNo">103</span><a name="line.103">                componentChannel = this;</a>
+<span class="sourceLineNo">104</span><a name="line.104">            }</a>
+<span class="sourceLineNo">105</span><a name="line.105">            this.componentChannel = componentChannel;</a>
+<span class="sourceLineNo">106</span><a name="line.106">            initComponentsHandlers(null);</a>
+<span class="sourceLineNo">107</span><a name="line.107">        } catch (SecurityException | IllegalAccessException e) {</a>
+<span class="sourceLineNo">108</span><a name="line.108">            throw (RuntimeException) (new IllegalArgumentException(</a>
+<span class="sourceLineNo">109</span><a name="line.109">                "Cannot access component's manager attribute")).initCause(e);</a>
+<span class="sourceLineNo">110</span><a name="line.110">        }</a>
+<span class="sourceLineNo">111</span><a name="line.111">    }</a>
 <span class="sourceLineNo">112</span><a name="line.112"></a>
-<span class="sourceLineNo">113</span>    /**<a name="line.113"></a>
-<span class="sourceLineNo">114</span>     * Return the component node for a component that is represented<a name="line.114"></a>
-<span class="sourceLineNo">115</span>     * by a proxy in the tree.<a name="line.115"></a>
-<span class="sourceLineNo">116</span>     * <a name="line.116"></a>
-<span class="sourceLineNo">117</span>     * @param component the component<a name="line.117"></a>
-<span class="sourceLineNo">118</span>     * @param componentChannel the component's channel<a name="line.118"></a>
-<span class="sourceLineNo">119</span>     * @return the node representing the component in the tree<a name="line.119"></a>
-<span class="sourceLineNo">120</span>     */<a name="line.120"></a>
-<span class="sourceLineNo">121</span>    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "deprecation" })<a name="line.121"></a>
-<span class="sourceLineNo">122</span>    /* default */ static ComponentVertex getComponentProxy(<a name="line.122"></a>
-<span class="sourceLineNo">123</span>            ComponentType component, Channel componentChannel) {<a name="line.123"></a>
-<span class="sourceLineNo">124</span>        ComponentProxy componentProxy = null;<a name="line.124"></a>
-<span class="sourceLineNo">125</span>        try {<a name="line.125"></a>
-<span class="sourceLineNo">126</span>            Field field = getManagerField(component.getClass());<a name="line.126"></a>
-<span class="sourceLineNo">127</span>            synchronized (component) {<a name="line.127"></a>
-<span class="sourceLineNo">128</span>                if (!field.isAccessible()) { // NOPMD, handle problem first<a name="line.128"></a>
-<span class="sourceLineNo">129</span>                    field.setAccessible(true);<a name="line.129"></a>
-<span class="sourceLineNo">130</span>                    componentProxy = (ComponentProxy) field.get(component);<a name="line.130"></a>
-<span class="sourceLineNo">131</span>                    if (componentProxy == null) {<a name="line.131"></a>
-<span class="sourceLineNo">132</span>                        componentProxy = new ComponentProxy(<a name="line.132"></a>
-<span class="sourceLineNo">133</span>                            field, component, componentChannel);<a name="line.133"></a>
-<span class="sourceLineNo">134</span>                    }<a name="line.134"></a>
-<span class="sourceLineNo">135</span>                    field.setAccessible(false);<a name="line.135"></a>
-<span class="sourceLineNo">136</span>                } else {<a name="line.136"></a>
-<span class="sourceLineNo">137</span>                    componentProxy = (ComponentProxy) field.get(component);<a name="line.137"></a>
-<span class="sourceLineNo">138</span>                    if (componentProxy == null) {<a name="line.138"></a>
-<span class="sourceLineNo">139</span>                        componentProxy = new ComponentProxy(<a name="line.139"></a>
-<span class="sourceLineNo">140</span>                            field, component, componentChannel);<a name="line.140"></a>
-<span class="sourceLineNo">141</span>                    }<a name="line.141"></a>
-<span class="sourceLineNo">142</span>                }<a name="line.142"></a>
-<span class="sourceLineNo">143</span>            }<a name="line.143"></a>
-<span class="sourceLineNo">144</span>        } catch (SecurityException | IllegalAccessException e) {<a name="line.144"></a>
-<span class="sourceLineNo">145</span>            throw (RuntimeException) (new IllegalArgumentException(<a name="line.145"></a>
-<span class="sourceLineNo">146</span>                "Cannot access component's manager attribute")).initCause(e);<a name="line.146"></a>
-<span class="sourceLineNo">147</span>        }<a name="line.147"></a>
-<span class="sourceLineNo">148</span>        return componentProxy;<a name="line.148"></a>
-<span class="sourceLineNo">149</span>    }<a name="line.149"></a>
+<span class="sourceLineNo">113</span><a name="line.113">    /**</a>
+<span class="sourceLineNo">114</span><a name="line.114">     * Return the component node for a component that is represented</a>
+<span class="sourceLineNo">115</span><a name="line.115">     * by a proxy in the tree.</a>
+<span class="sourceLineNo">116</span><a name="line.116">     * </a>
+<span class="sourceLineNo">117</span><a name="line.117">     * @param component the component</a>
+<span class="sourceLineNo">118</span><a name="line.118">     * @param componentChannel the component's channel</a>
+<span class="sourceLineNo">119</span><a name="line.119">     * @return the node representing the component in the tree</a>
+<span class="sourceLineNo">120</span><a name="line.120">     */</a>
+<span class="sourceLineNo">121</span><a name="line.121">    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "deprecation" })</a>
+<span class="sourceLineNo">122</span><a name="line.122">    /* default */ static ComponentVertex getComponentProxy(</a>
+<span class="sourceLineNo">123</span><a name="line.123">            ComponentType component, Channel componentChannel) {</a>
+<span class="sourceLineNo">124</span><a name="line.124">        ComponentProxy componentProxy = null;</a>
+<span class="sourceLineNo">125</span><a name="line.125">        try {</a>
+<span class="sourceLineNo">126</span><a name="line.126">            Field field = getManagerField(component.getClass());</a>
+<span class="sourceLineNo">127</span><a name="line.127">            synchronized (component) {</a>
+<span class="sourceLineNo">128</span><a name="line.128">                if (!field.isAccessible()) { // NOPMD, handle problem first</a>
+<span class="sourceLineNo">129</span><a name="line.129">                    field.setAccessible(true);</a>
+<span class="sourceLineNo">130</span><a name="line.130">                    componentProxy = (ComponentProxy) field.get(component);</a>
+<span class="sourceLineNo">131</span><a name="line.131">                    if (componentProxy == null) {</a>
+<span class="sourceLineNo">132</span><a name="line.132">                        componentProxy = new ComponentProxy(</a>
+<span class="sourceLineNo">133</span><a name="line.133">                            field, component, componentChannel);</a>
+<span class="sourceLineNo">134</span><a name="line.134">                    }</a>
+<span class="sourceLineNo">135</span><a name="line.135">                    field.setAccessible(false);</a>
+<span class="sourceLineNo">136</span><a name="line.136">                } else {</a>
+<span class="sourceLineNo">137</span><a name="line.137">                    componentProxy = (ComponentProxy) field.get(component);</a>
+<span class="sourceLineNo">138</span><a name="line.138">                    if (componentProxy == null) {</a>
+<span class="sourceLineNo">139</span><a name="line.139">                        componentProxy = new ComponentProxy(</a>
+<span class="sourceLineNo">140</span><a name="line.140">                            field, component, componentChannel);</a>
+<span class="sourceLineNo">141</span><a name="line.141">                    }</a>
+<span class="sourceLineNo">142</span><a name="line.142">                }</a>
+<span class="sourceLineNo">143</span><a name="line.143">            }</a>
+<span class="sourceLineNo">144</span><a name="line.144">        } catch (SecurityException | IllegalAccessException e) {</a>
+<span class="sourceLineNo">145</span><a name="line.145">            throw (RuntimeException) (new IllegalArgumentException(</a>
+<span class="sourceLineNo">146</span><a name="line.146">                "Cannot access component's manager attribute")).initCause(e);</a>
+<span class="sourceLineNo">147</span><a name="line.147">        }</a>
+<span class="sourceLineNo">148</span><a name="line.148">        return componentProxy;</a>
+<span class="sourceLineNo">149</span><a name="line.149">    }</a>
 <span class="sourceLineNo">150</span><a name="line.150"></a>
-<span class="sourceLineNo">151</span>    public ComponentType component() {<a name="line.151"></a>
-<span class="sourceLineNo">152</span>        return component;<a name="line.152"></a>
-<span class="sourceLineNo">153</span>    }<a name="line.153"></a>
+<span class="sourceLineNo">151</span><a name="line.151">    public ComponentType component() {</a>
+<span class="sourceLineNo">152</span><a name="line.152">        return component;</a>
+<span class="sourceLineNo">153</span><a name="line.153">    }</a>
 <span class="sourceLineNo">154</span><a name="line.154"></a>
-<span class="sourceLineNo">155</span>    /*<a name="line.155"></a>
-<span class="sourceLineNo">156</span>     * (non-Javadoc)<a name="line.156"></a>
-<span class="sourceLineNo">157</span>     * <a name="line.157"></a>
-<span class="sourceLineNo">158</span>     * @see org.jgrapes.core.Manager#getChannel()<a name="line.158"></a>
-<span class="sourceLineNo">159</span>     */<a name="line.159"></a>
-<span class="sourceLineNo">160</span>    @Override<a name="line.160"></a>
-<span class="sourceLineNo">161</span>    public Channel channel() {<a name="line.161"></a>
-<span class="sourceLineNo">162</span>        return componentChannel;<a name="line.162"></a>
-<span class="sourceLineNo">163</span>    }<a name="line.163"></a>
+<span class="sourceLineNo">155</span><a name="line.155">    /*</a>
+<span class="sourceLineNo">156</span><a name="line.156">     * (non-Javadoc)</a>
+<span class="sourceLineNo">157</span><a name="line.157">     * </a>
+<span class="sourceLineNo">158</span><a name="line.158">     * @see org.jgrapes.core.Manager#getChannel()</a>
+<span class="sourceLineNo">159</span><a name="line.159">     */</a>
+<span class="sourceLineNo">160</span><a name="line.160">    @Override</a>
+<span class="sourceLineNo">161</span><a name="line.161">    public Channel channel() {</a>
+<span class="sourceLineNo">162</span><a name="line.162">        return componentChannel;</a>
+<span class="sourceLineNo">163</span><a name="line.163">    }</a>
 <span class="sourceLineNo">164</span><a name="line.164"></a>
-<span class="sourceLineNo">165</span>    /**<a name="line.165"></a>
-<span class="sourceLineNo">166</span>     * Return the object itself as value.<a name="line.166"></a>
-<span class="sourceLineNo">167</span>     */<a name="line.167"></a>
-<span class="sourceLineNo">168</span>    @Override<a name="line.168"></a>
-<span class="sourceLineNo">169</span>    public Object defaultCriterion() {<a name="line.169"></a>
-<span class="sourceLineNo">170</span>        return this;<a name="line.170"></a>
-<span class="sourceLineNo">171</span>    }<a name="line.171"></a>
+<span class="sourceLineNo">165</span><a name="line.165">    /**</a>
+<span class="sourceLineNo">166</span><a name="line.166">     * Return the object itself as value.</a>
+<span class="sourceLineNo">167</span><a name="line.167">     */</a>
+<span class="sourceLineNo">168</span><a name="line.168">    @Override</a>
+<span class="sourceLineNo">169</span><a name="line.169">    public Object defaultCriterion() {</a>
+<span class="sourceLineNo">170</span><a name="line.170">        return this;</a>
+<span class="sourceLineNo">171</span><a name="line.171">    }</a>
 <span class="sourceLineNo">172</span><a name="line.172"></a>
-<span class="sourceLineNo">173</span>    /**<a name="line.173"></a>
-<span class="sourceLineNo">174</span>     * Matches the object itself (using identity comparison) or the<a name="line.174"></a>
-<span class="sourceLineNo">175</span>     * {@link Channel} class.<a name="line.175"></a>
-<span class="sourceLineNo">176</span>     * <a name="line.176"></a>
-<span class="sourceLineNo">177</span>     * @see Channel#isEligibleFor(Object)<a name="line.177"></a>
-<span class="sourceLineNo">178</span>     */<a name="line.178"></a>
-<span class="sourceLineNo">179</span>    @Override<a name="line.179"></a>
-<span class="sourceLineNo">180</span>    public boolean isEligibleFor(Object value) {<a name="line.180"></a>
-<span class="sourceLineNo">181</span>        return value.equals(Channel.class)<a name="line.181"></a>
-<span class="sourceLineNo">182</span>            || value == defaultCriterion();<a name="line.182"></a>
-<span class="sourceLineNo">183</span>    }<a name="line.183"></a>
-<span class="sourceLineNo">184</span>}<a name="line.184"></a>
+<span class="sourceLineNo">173</span><a name="line.173">    /**</a>
+<span class="sourceLineNo">174</span><a name="line.174">     * Matches the object itself (using identity comparison) or the</a>
+<span class="sourceLineNo">175</span><a name="line.175">     * {@link Channel} class.</a>
+<span class="sourceLineNo">176</span><a name="line.176">     * </a>
+<span class="sourceLineNo">177</span><a name="line.177">     * @see Channel#isEligibleFor(Object)</a>
+<span class="sourceLineNo">178</span><a name="line.178">     */</a>
+<span class="sourceLineNo">179</span><a name="line.179">    @Override</a>
+<span class="sourceLineNo">180</span><a name="line.180">    public boolean isEligibleFor(Object value) {</a>
+<span class="sourceLineNo">181</span><a name="line.181">        return value.equals(Channel.class)</a>
+<span class="sourceLineNo">182</span><a name="line.182">            || value == defaultCriterion();</a>
+<span class="sourceLineNo">183</span><a name="line.183">    }</a>
+<span class="sourceLineNo">184</span><a name="line.184">}</a>
 
 
 

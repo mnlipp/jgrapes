@@ -6,128 +6,128 @@
 </head>
 <body>
 <div class="sourceContainer">
-<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
-<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2016-2018 Michael N. Lipp<a name="line.3"></a>
-<span class="sourceLineNo">004</span> * <a name="line.4"></a>
-<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
-<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
-<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
-<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
-<span class="sourceLineNo">009</span> * <a name="line.9"></a>
-<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
-<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
-<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
-<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
-<span class="sourceLineNo">014</span> * <a name="line.14"></a>
-<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
-<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
-<span class="sourceLineNo">017</span> */<a name="line.17"></a>
+<pre><span class="sourceLineNo">001</span><a name="line.1">/*</a>
+<span class="sourceLineNo">002</span><a name="line.2"> * JGrapes Event Driven Framework</a>
+<span class="sourceLineNo">003</span><a name="line.3"> * Copyright (C) 2016-2018 Michael N. Lipp</a>
+<span class="sourceLineNo">004</span><a name="line.4"> * </a>
+<span class="sourceLineNo">005</span><a name="line.5"> * This program is free software; you can redistribute it and/or modify it </a>
+<span class="sourceLineNo">006</span><a name="line.6"> * under the terms of the GNU General Public License as published by </a>
+<span class="sourceLineNo">007</span><a name="line.7"> * the Free Software Foundation; either version 3 of the License, or </a>
+<span class="sourceLineNo">008</span><a name="line.8"> * (at your option) any later version.</a>
+<span class="sourceLineNo">009</span><a name="line.9"> * </a>
+<span class="sourceLineNo">010</span><a name="line.10"> * This program is distributed in the hope that it will be useful, but </a>
+<span class="sourceLineNo">011</span><a name="line.11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</a>
+<span class="sourceLineNo">012</span><a name="line.12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License </a>
+<span class="sourceLineNo">013</span><a name="line.13"> * for more details.</a>
+<span class="sourceLineNo">014</span><a name="line.14"> * </a>
+<span class="sourceLineNo">015</span><a name="line.15"> * You should have received a copy of the GNU General Public License along </a>
+<span class="sourceLineNo">016</span><a name="line.16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<span class="sourceLineNo">017</span><a name="line.17"> */</a>
 <span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span>package org.jgrapes.core.internal;<a name="line.19"></a>
+<span class="sourceLineNo">019</span><a name="line.19">package org.jgrapes.core.internal;</a>
 <span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>import java.util.concurrent.ExecutorService;<a name="line.21"></a>
+<span class="sourceLineNo">021</span><a name="line.21">import java.util.concurrent.ExecutorService;</a>
 <span class="sourceLineNo">022</span><a name="line.22"></a>
-<span class="sourceLineNo">023</span>import org.jgrapes.core.Channel;<a name="line.23"></a>
-<span class="sourceLineNo">024</span>import org.jgrapes.core.Components;<a name="line.24"></a>
-<span class="sourceLineNo">025</span>import org.jgrapes.core.Event;<a name="line.25"></a>
-<span class="sourceLineNo">026</span>import org.jgrapes.core.events.Start;<a name="line.26"></a>
+<span class="sourceLineNo">023</span><a name="line.23">import org.jgrapes.core.Channel;</a>
+<span class="sourceLineNo">024</span><a name="line.24">import org.jgrapes.core.Components;</a>
+<span class="sourceLineNo">025</span><a name="line.25">import org.jgrapes.core.Event;</a>
+<span class="sourceLineNo">026</span><a name="line.26">import org.jgrapes.core.events.Start;</a>
 <span class="sourceLineNo">027</span><a name="line.27"></a>
-<span class="sourceLineNo">028</span>/**<a name="line.28"></a>
-<span class="sourceLineNo">029</span> * The buffering event pipeline is used before a tree has been started. <a name="line.29"></a>
-<span class="sourceLineNo">030</span> * It simply buffers all events until a {@link Start} event is added.<a name="line.30"></a>
-<span class="sourceLineNo">031</span> */<a name="line.31"></a>
-<span class="sourceLineNo">032</span>public class BufferingEventPipeline implements InternalEventPipeline {<a name="line.32"></a>
+<span class="sourceLineNo">028</span><a name="line.28">/**</a>
+<span class="sourceLineNo">029</span><a name="line.29"> * The buffering event pipeline is used before a tree has been started. </a>
+<span class="sourceLineNo">030</span><a name="line.30"> * It simply buffers all events until a {@link Start} event is added.</a>
+<span class="sourceLineNo">031</span><a name="line.31"> */</a>
+<span class="sourceLineNo">032</span><a name="line.32">public class BufferingEventPipeline implements InternalEventPipeline {</a>
 <span class="sourceLineNo">033</span><a name="line.33"></a>
-<span class="sourceLineNo">034</span>    private final ComponentTree componentTree;<a name="line.34"></a>
-<span class="sourceLineNo">035</span>    /** Buffered events. */<a name="line.35"></a>
-<span class="sourceLineNo">036</span>    private EventQueue buffered = new EventQueue();<a name="line.36"></a>
-<span class="sourceLineNo">037</span>    /** The event pipeline that we delegate to after the start<a name="line.37"></a>
-<span class="sourceLineNo">038</span>     * event has been detected. */<a name="line.38"></a>
-<span class="sourceLineNo">039</span>    private InternalEventPipeline activePipeline;<a name="line.39"></a>
+<span class="sourceLineNo">034</span><a name="line.34">    private final ComponentTree componentTree;</a>
+<span class="sourceLineNo">035</span><a name="line.35">    /** Buffered events. */</a>
+<span class="sourceLineNo">036</span><a name="line.36">    private EventQueue buffered = new EventQueue();</a>
+<span class="sourceLineNo">037</span><a name="line.37">    /** The event pipeline that we delegate to after the start</a>
+<span class="sourceLineNo">038</span><a name="line.38">     * event has been detected. */</a>
+<span class="sourceLineNo">039</span><a name="line.39">    private InternalEventPipeline activePipeline;</a>
 <span class="sourceLineNo">040</span><a name="line.40"></a>
-<span class="sourceLineNo">041</span>    /**<a name="line.41"></a>
-<span class="sourceLineNo">042</span>     * Instantiates a new buffering event pipeline.<a name="line.42"></a>
-<span class="sourceLineNo">043</span>     *<a name="line.43"></a>
-<span class="sourceLineNo">044</span>     * @param componentTree the component tree<a name="line.44"></a>
-<span class="sourceLineNo">045</span>     */<a name="line.45"></a>
-<span class="sourceLineNo">046</span>    /* default */ BufferingEventPipeline(ComponentTree componentTree) {<a name="line.46"></a>
-<span class="sourceLineNo">047</span>        super();<a name="line.47"></a>
-<span class="sourceLineNo">048</span>        this.componentTree = componentTree;<a name="line.48"></a>
-<span class="sourceLineNo">049</span>    }<a name="line.49"></a>
+<span class="sourceLineNo">041</span><a name="line.41">    /**</a>
+<span class="sourceLineNo">042</span><a name="line.42">     * Instantiates a new buffering event pipeline.</a>
+<span class="sourceLineNo">043</span><a name="line.43">     *</a>
+<span class="sourceLineNo">044</span><a name="line.44">     * @param componentTree the component tree</a>
+<span class="sourceLineNo">045</span><a name="line.45">     */</a>
+<span class="sourceLineNo">046</span><a name="line.46">    /* default */ BufferingEventPipeline(ComponentTree componentTree) {</a>
+<span class="sourceLineNo">047</span><a name="line.47">        super();</a>
+<span class="sourceLineNo">048</span><a name="line.48">        this.componentTree = componentTree;</a>
+<span class="sourceLineNo">049</span><a name="line.49">    }</a>
 <span class="sourceLineNo">050</span><a name="line.50"></a>
-<span class="sourceLineNo">051</span>    @Override<a name="line.51"></a>
-<span class="sourceLineNo">052</span>    public void merge(InternalEventPipeline other) {<a name="line.52"></a>
-<span class="sourceLineNo">053</span>        synchronized (this) {<a name="line.53"></a>
-<span class="sourceLineNo">054</span>            if (!(other instanceof BufferingEventPipeline)) {<a name="line.54"></a>
-<span class="sourceLineNo">055</span>                throw new IllegalArgumentException(<a name="line.55"></a>
-<span class="sourceLineNo">056</span>                    "Can only merge events from an BufferingEventPipeline.");<a name="line.56"></a>
-<span class="sourceLineNo">057</span>            }<a name="line.57"></a>
-<span class="sourceLineNo">058</span>            buffered.addAll(((BufferingEventPipeline) other).retrieveEvents());<a name="line.58"></a>
-<span class="sourceLineNo">059</span>        }<a name="line.59"></a>
-<span class="sourceLineNo">060</span>    }<a name="line.60"></a>
+<span class="sourceLineNo">051</span><a name="line.51">    @Override</a>
+<span class="sourceLineNo">052</span><a name="line.52">    public void merge(InternalEventPipeline other) {</a>
+<span class="sourceLineNo">053</span><a name="line.53">        synchronized (this) {</a>
+<span class="sourceLineNo">054</span><a name="line.54">            if (!(other instanceof BufferingEventPipeline)) {</a>
+<span class="sourceLineNo">055</span><a name="line.55">                throw new IllegalArgumentException(</a>
+<span class="sourceLineNo">056</span><a name="line.56">                    "Can only merge events from an BufferingEventPipeline.");</a>
+<span class="sourceLineNo">057</span><a name="line.57">            }</a>
+<span class="sourceLineNo">058</span><a name="line.58">            buffered.addAll(((BufferingEventPipeline) other).retrieveEvents());</a>
+<span class="sourceLineNo">059</span><a name="line.59">        }</a>
+<span class="sourceLineNo">060</span><a name="line.60">    }</a>
 <span class="sourceLineNo">061</span><a name="line.61"></a>
-<span class="sourceLineNo">062</span>    @Override<a name="line.62"></a>
-<span class="sourceLineNo">063</span>    public &lt;T extends Event&lt;?&gt;&gt; T add(T event, Channel... channels) {<a name="line.63"></a>
-<span class="sourceLineNo">064</span>        synchronized (this) {<a name="line.64"></a>
-<span class="sourceLineNo">065</span>            // If thread1 adds the start event and thread2 gets here before we<a name="line.65"></a>
-<span class="sourceLineNo">066</span>            // have changed the event processor for the tree, forward the<a name="line.66"></a>
-<span class="sourceLineNo">067</span>            // event to the event processor that should already have been used.<a name="line.67"></a>
-<span class="sourceLineNo">068</span>            if (activePipeline != null) {<a name="line.68"></a>
-<span class="sourceLineNo">069</span>                activePipeline.add(event, channels);<a name="line.69"></a>
-<span class="sourceLineNo">070</span>                return event;<a name="line.70"></a>
-<span class="sourceLineNo">071</span>            }<a name="line.71"></a>
-<span class="sourceLineNo">072</span>            // Invoke although argument is null!<a name="line.72"></a>
-<span class="sourceLineNo">073</span>            ((EventBase&lt;?&gt;) event).generatedBy(null);<a name="line.73"></a>
-<span class="sourceLineNo">074</span>            buffered.add(event, channels);<a name="line.74"></a>
-<span class="sourceLineNo">075</span>            if (event instanceof Start) {<a name="line.75"></a>
-<span class="sourceLineNo">076</span>                // Merge all events into a "standard" event processor<a name="line.76"></a>
-<span class="sourceLineNo">077</span>                // and set it as default processor for the tree (with<a name="line.77"></a>
-<span class="sourceLineNo">078</span>                // any thread specific pipelines taking precedence).<a name="line.78"></a>
-<span class="sourceLineNo">079</span>                EventProcessor processor = new EventProcessor(componentTree);<a name="line.79"></a>
-<span class="sourceLineNo">080</span>                activePipeline = new FeedBackPipelineFilter(processor);<a name="line.80"></a>
-<span class="sourceLineNo">081</span>                componentTree.setEventPipeline(activePipeline);<a name="line.81"></a>
-<span class="sourceLineNo">082</span>                processor.add(buffered);<a name="line.82"></a>
-<span class="sourceLineNo">083</span>            }<a name="line.83"></a>
-<span class="sourceLineNo">084</span>            return event;<a name="line.84"></a>
-<span class="sourceLineNo">085</span>        }<a name="line.85"></a>
-<span class="sourceLineNo">086</span>    }<a name="line.86"></a>
+<span class="sourceLineNo">062</span><a name="line.62">    @Override</a>
+<span class="sourceLineNo">063</span><a name="line.63">    public &lt;T extends Event&lt;?&gt;&gt; T add(T event, Channel... channels) {</a>
+<span class="sourceLineNo">064</span><a name="line.64">        synchronized (this) {</a>
+<span class="sourceLineNo">065</span><a name="line.65">            // If thread1 adds the start event and thread2 gets here before we</a>
+<span class="sourceLineNo">066</span><a name="line.66">            // have changed the event processor for the tree, forward the</a>
+<span class="sourceLineNo">067</span><a name="line.67">            // event to the event processor that should already have been used.</a>
+<span class="sourceLineNo">068</span><a name="line.68">            if (activePipeline != null) {</a>
+<span class="sourceLineNo">069</span><a name="line.69">                activePipeline.add(event, channels);</a>
+<span class="sourceLineNo">070</span><a name="line.70">                return event;</a>
+<span class="sourceLineNo">071</span><a name="line.71">            }</a>
+<span class="sourceLineNo">072</span><a name="line.72">            // Invoke although argument is null!</a>
+<span class="sourceLineNo">073</span><a name="line.73">            ((EventBase&lt;?&gt;) event).generatedBy(null);</a>
+<span class="sourceLineNo">074</span><a name="line.74">            buffered.add(event, channels);</a>
+<span class="sourceLineNo">075</span><a name="line.75">            if (event instanceof Start) {</a>
+<span class="sourceLineNo">076</span><a name="line.76">                // Merge all events into a "standard" event processor</a>
+<span class="sourceLineNo">077</span><a name="line.77">                // and set it as default processor for the tree (with</a>
+<span class="sourceLineNo">078</span><a name="line.78">                // any thread specific pipelines taking precedence).</a>
+<span class="sourceLineNo">079</span><a name="line.79">                EventProcessor processor = new EventProcessor(componentTree);</a>
+<span class="sourceLineNo">080</span><a name="line.80">                activePipeline = new FeedBackPipelineFilter(processor);</a>
+<span class="sourceLineNo">081</span><a name="line.81">                componentTree.setEventPipeline(activePipeline);</a>
+<span class="sourceLineNo">082</span><a name="line.82">                processor.add(buffered);</a>
+<span class="sourceLineNo">083</span><a name="line.83">            }</a>
+<span class="sourceLineNo">084</span><a name="line.84">            return event;</a>
+<span class="sourceLineNo">085</span><a name="line.85">        }</a>
+<span class="sourceLineNo">086</span><a name="line.86">    }</a>
 <span class="sourceLineNo">087</span><a name="line.87"></a>
-<span class="sourceLineNo">088</span>    /* default */ EventQueue retrieveEvents() {<a name="line.88"></a>
-<span class="sourceLineNo">089</span>        synchronized (this) {<a name="line.89"></a>
-<span class="sourceLineNo">090</span>            EventQueue old = buffered;<a name="line.90"></a>
-<span class="sourceLineNo">091</span>            buffered = new EventQueue();<a name="line.91"></a>
-<span class="sourceLineNo">092</span>            return old;<a name="line.92"></a>
-<span class="sourceLineNo">093</span>        }<a name="line.93"></a>
-<span class="sourceLineNo">094</span>    }<a name="line.94"></a>
+<span class="sourceLineNo">088</span><a name="line.88">    /* default */ EventQueue retrieveEvents() {</a>
+<span class="sourceLineNo">089</span><a name="line.89">        synchronized (this) {</a>
+<span class="sourceLineNo">090</span><a name="line.90">            EventQueue old = buffered;</a>
+<span class="sourceLineNo">091</span><a name="line.91">            buffered = new EventQueue();</a>
+<span class="sourceLineNo">092</span><a name="line.92">            return old;</a>
+<span class="sourceLineNo">093</span><a name="line.93">        }</a>
+<span class="sourceLineNo">094</span><a name="line.94">    }</a>
 <span class="sourceLineNo">095</span><a name="line.95"></a>
-<span class="sourceLineNo">096</span>    /*<a name="line.96"></a>
-<span class="sourceLineNo">097</span>     * (non-Javadoc)<a name="line.97"></a>
-<span class="sourceLineNo">098</span>     * <a name="line.98"></a>
-<span class="sourceLineNo">099</span>     * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()<a name="line.99"></a>
-<span class="sourceLineNo">100</span>     */<a name="line.100"></a>
-<span class="sourceLineNo">101</span>    @Override<a name="line.101"></a>
-<span class="sourceLineNo">102</span>    public ExecutorService executorService() {<a name="line.102"></a>
-<span class="sourceLineNo">103</span>        return Components.defaultExecutorService();<a name="line.103"></a>
-<span class="sourceLineNo">104</span>    }<a name="line.104"></a>
+<span class="sourceLineNo">096</span><a name="line.96">    /*</a>
+<span class="sourceLineNo">097</span><a name="line.97">     * (non-Javadoc)</a>
+<span class="sourceLineNo">098</span><a name="line.98">     * </a>
+<span class="sourceLineNo">099</span><a name="line.99">     * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()</a>
+<span class="sourceLineNo">100</span><a name="line.100">     */</a>
+<span class="sourceLineNo">101</span><a name="line.101">    @Override</a>
+<span class="sourceLineNo">102</span><a name="line.102">    public ExecutorService executorService() {</a>
+<span class="sourceLineNo">103</span><a name="line.103">        return Components.defaultExecutorService();</a>
+<span class="sourceLineNo">104</span><a name="line.104">    }</a>
 <span class="sourceLineNo">105</span><a name="line.105"></a>
-<span class="sourceLineNo">106</span>    /*<a name="line.106"></a>
-<span class="sourceLineNo">107</span>     * (non-Javadoc)<a name="line.107"></a>
-<span class="sourceLineNo">108</span>     * <a name="line.108"></a>
-<span class="sourceLineNo">109</span>     * @see java.lang.Object#toString()<a name="line.109"></a>
-<span class="sourceLineNo">110</span>     */<a name="line.110"></a>
-<span class="sourceLineNo">111</span>    @Override<a name="line.111"></a>
-<span class="sourceLineNo">112</span>    public String toString() {<a name="line.112"></a>
-<span class="sourceLineNo">113</span>        StringBuilder builder = new StringBuilder(50);<a name="line.113"></a>
-<span class="sourceLineNo">114</span>        builder.append("BufferingEventPipeline [");<a name="line.114"></a>
-<span class="sourceLineNo">115</span>        if (buffered != null) {<a name="line.115"></a>
-<span class="sourceLineNo">116</span>            builder.append("buffered=");<a name="line.116"></a>
-<span class="sourceLineNo">117</span>            builder.append(buffered);<a name="line.117"></a>
-<span class="sourceLineNo">118</span>        }<a name="line.118"></a>
-<span class="sourceLineNo">119</span>        builder.append(']');<a name="line.119"></a>
-<span class="sourceLineNo">120</span>        return builder.toString();<a name="line.120"></a>
-<span class="sourceLineNo">121</span>    }<a name="line.121"></a>
-<span class="sourceLineNo">122</span>}<a name="line.122"></a>
+<span class="sourceLineNo">106</span><a name="line.106">    /*</a>
+<span class="sourceLineNo">107</span><a name="line.107">     * (non-Javadoc)</a>
+<span class="sourceLineNo">108</span><a name="line.108">     * </a>
+<span class="sourceLineNo">109</span><a name="line.109">     * @see java.lang.Object#toString()</a>
+<span class="sourceLineNo">110</span><a name="line.110">     */</a>
+<span class="sourceLineNo">111</span><a name="line.111">    @Override</a>
+<span class="sourceLineNo">112</span><a name="line.112">    public String toString() {</a>
+<span class="sourceLineNo">113</span><a name="line.113">        StringBuilder builder = new StringBuilder(50);</a>
+<span class="sourceLineNo">114</span><a name="line.114">        builder.append("BufferingEventPipeline [");</a>
+<span class="sourceLineNo">115</span><a name="line.115">        if (buffered != null) {</a>
+<span class="sourceLineNo">116</span><a name="line.116">            builder.append("buffered=");</a>
+<span class="sourceLineNo">117</span><a name="line.117">            builder.append(buffered);</a>
+<span class="sourceLineNo">118</span><a name="line.118">        }</a>
+<span class="sourceLineNo">119</span><a name="line.119">        builder.append(']');</a>
+<span class="sourceLineNo">120</span><a name="line.120">        return builder.toString();</a>
+<span class="sourceLineNo">121</span><a name="line.121">    }</a>
+<span class="sourceLineNo">122</span><a name="line.122">}</a>
 
 
 

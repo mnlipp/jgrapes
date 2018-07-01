@@ -6,59 +6,59 @@
 </head>
 <body>
 <div class="sourceContainer">
-<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
-<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2016-2018 Michael N. Lipp<a name="line.3"></a>
-<span class="sourceLineNo">004</span> * <a name="line.4"></a>
-<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
-<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
-<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
-<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
-<span class="sourceLineNo">009</span> * <a name="line.9"></a>
-<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
-<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
-<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
-<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
-<span class="sourceLineNo">014</span> * <a name="line.14"></a>
-<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
-<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
-<span class="sourceLineNo">017</span> */<a name="line.17"></a>
+<pre><span class="sourceLineNo">001</span><a name="line.1">/*</a>
+<span class="sourceLineNo">002</span><a name="line.2"> * JGrapes Event Driven Framework</a>
+<span class="sourceLineNo">003</span><a name="line.3"> * Copyright (C) 2016-2018 Michael N. Lipp</a>
+<span class="sourceLineNo">004</span><a name="line.4"> * </a>
+<span class="sourceLineNo">005</span><a name="line.5"> * This program is free software; you can redistribute it and/or modify it </a>
+<span class="sourceLineNo">006</span><a name="line.6"> * under the terms of the GNU General Public License as published by </a>
+<span class="sourceLineNo">007</span><a name="line.7"> * the Free Software Foundation; either version 3 of the License, or </a>
+<span class="sourceLineNo">008</span><a name="line.8"> * (at your option) any later version.</a>
+<span class="sourceLineNo">009</span><a name="line.9"> * </a>
+<span class="sourceLineNo">010</span><a name="line.10"> * This program is distributed in the hope that it will be useful, but </a>
+<span class="sourceLineNo">011</span><a name="line.11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</a>
+<span class="sourceLineNo">012</span><a name="line.12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License </a>
+<span class="sourceLineNo">013</span><a name="line.13"> * for more details.</a>
+<span class="sourceLineNo">014</span><a name="line.14"> * </a>
+<span class="sourceLineNo">015</span><a name="line.15"> * You should have received a copy of the GNU General Public License along </a>
+<span class="sourceLineNo">016</span><a name="line.16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<span class="sourceLineNo">017</span><a name="line.17"> */</a>
 <span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span>package org.jgrapes.core;<a name="line.19"></a>
+<span class="sourceLineNo">019</span><a name="line.19">package org.jgrapes.core;</a>
 <span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>/**<a name="line.21"></a>
-<span class="sourceLineNo">022</span> * This interface provides a mechanism for matching objects, using<a name="line.22"></a>
-<span class="sourceLineNo">023</span> * a filter on the object's "kind" as criterion. How the kind is <a name="line.23"></a>
-<span class="sourceLineNo">024</span> * represented depends completely on the class that implements this <a name="line.24"></a>
-<span class="sourceLineNo">025</span> * interface.<a name="line.25"></a>
-<span class="sourceLineNo">026</span> * <a name="line.26"></a>
-<span class="sourceLineNo">027</span> * Every instance of a class that implement this interface must provide <a name="line.27"></a>
-<span class="sourceLineNo">028</span> * a default criterion (filter) that accepts the instance (though, of course,<a name="line.28"></a>
-<span class="sourceLineNo">029</span> * not *only* this particular instance). Formally: for every instance "`obj`"<a name="line.29"></a>
-<span class="sourceLineNo">030</span> * of `Eligible`, the expression <a name="line.30"></a>
-<span class="sourceLineNo">031</span> * `obj.isEligibleFor(obj.getDefaultCrtiterion())` must return `true`.<a name="line.31"></a>
-<span class="sourceLineNo">032</span> * <a name="line.32"></a>
-<span class="sourceLineNo">033</span> * The default criterion can therefore be interpreted as the <a name="line.33"></a>
-<span class="sourceLineNo">034</span> * representation of the kind of the object.<a name="line.34"></a>
-<span class="sourceLineNo">035</span> */<a name="line.35"></a>
-<span class="sourceLineNo">036</span>public interface Eligible {<a name="line.36"></a>
+<span class="sourceLineNo">021</span><a name="line.21">/**</a>
+<span class="sourceLineNo">022</span><a name="line.22"> * This interface provides a mechanism for matching objects, using</a>
+<span class="sourceLineNo">023</span><a name="line.23"> * a filter on the object's "kind" as criterion. How the kind is </a>
+<span class="sourceLineNo">024</span><a name="line.24"> * represented depends completely on the class that implements this </a>
+<span class="sourceLineNo">025</span><a name="line.25"> * interface.</a>
+<span class="sourceLineNo">026</span><a name="line.26"> * </a>
+<span class="sourceLineNo">027</span><a name="line.27"> * Every instance of a class that implement this interface must provide </a>
+<span class="sourceLineNo">028</span><a name="line.28"> * a default criterion (filter) that accepts the instance (though, of course,</a>
+<span class="sourceLineNo">029</span><a name="line.29"> * not *only* this particular instance). Formally: for every instance "`obj`"</a>
+<span class="sourceLineNo">030</span><a name="line.30"> * of `Eligible`, the expression </a>
+<span class="sourceLineNo">031</span><a name="line.31"> * `obj.isEligibleFor(obj.getDefaultCrtiterion())` must return `true`.</a>
+<span class="sourceLineNo">032</span><a name="line.32"> * </a>
+<span class="sourceLineNo">033</span><a name="line.33"> * The default criterion can therefore be interpreted as the </a>
+<span class="sourceLineNo">034</span><a name="line.34"> * representation of the kind of the object.</a>
+<span class="sourceLineNo">035</span><a name="line.35"> */</a>
+<span class="sourceLineNo">036</span><a name="line.36">public interface Eligible {</a>
 <span class="sourceLineNo">037</span><a name="line.37"></a>
-<span class="sourceLineNo">038</span>    /**<a name="line.38"></a>
-<span class="sourceLineNo">039</span>     * Returns &lt;code&gt;true&lt;/code&gt; if this {@link Eligible}<a name="line.39"></a>
-<span class="sourceLineNo">040</span>     * is met by the provided criterion.<a name="line.40"></a>
-<span class="sourceLineNo">041</span>     * <a name="line.41"></a>
-<span class="sourceLineNo">042</span>     * @param criterion the criterion<a name="line.42"></a>
-<span class="sourceLineNo">043</span>     * @return {@code true} if this meets the criterion<a name="line.43"></a>
-<span class="sourceLineNo">044</span>     */<a name="line.44"></a>
-<span class="sourceLineNo">045</span>    boolean isEligibleFor(Object criterion);<a name="line.45"></a>
+<span class="sourceLineNo">038</span><a name="line.38">    /**</a>
+<span class="sourceLineNo">039</span><a name="line.39">     * Returns &lt;code&gt;true&lt;/code&gt; if this {@link Eligible}</a>
+<span class="sourceLineNo">040</span><a name="line.40">     * is met by the provided criterion.</a>
+<span class="sourceLineNo">041</span><a name="line.41">     * </a>
+<span class="sourceLineNo">042</span><a name="line.42">     * @param criterion the criterion</a>
+<span class="sourceLineNo">043</span><a name="line.43">     * @return {@code true} if this meets the criterion</a>
+<span class="sourceLineNo">044</span><a name="line.44">     */</a>
+<span class="sourceLineNo">045</span><a name="line.45">    boolean isEligibleFor(Object criterion);</a>
 <span class="sourceLineNo">046</span><a name="line.46"></a>
-<span class="sourceLineNo">047</span>    /**<a name="line.47"></a>
-<span class="sourceLineNo">048</span>     * Returns a sample criterion that this {@link Eligible} meets.<a name="line.48"></a>
-<span class="sourceLineNo">049</span>     * <a name="line.49"></a>
-<span class="sourceLineNo">050</span>     * @return the criterion<a name="line.50"></a>
-<span class="sourceLineNo">051</span>     */<a name="line.51"></a>
-<span class="sourceLineNo">052</span>    Object defaultCriterion();<a name="line.52"></a>
-<span class="sourceLineNo">053</span>}<a name="line.53"></a>
+<span class="sourceLineNo">047</span><a name="line.47">    /**</a>
+<span class="sourceLineNo">048</span><a name="line.48">     * Returns a sample criterion that this {@link Eligible} meets.</a>
+<span class="sourceLineNo">049</span><a name="line.49">     * </a>
+<span class="sourceLineNo">050</span><a name="line.50">     * @return the criterion</a>
+<span class="sourceLineNo">051</span><a name="line.51">     */</a>
+<span class="sourceLineNo">052</span><a name="line.52">    Object defaultCriterion();</a>
+<span class="sourceLineNo">053</span><a name="line.53">}</a>
 
 
 

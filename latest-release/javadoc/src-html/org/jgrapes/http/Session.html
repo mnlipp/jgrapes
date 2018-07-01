@@ -6,111 +6,111 @@
 </head>
 <body>
 <div class="sourceContainer">
-<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
-<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2017-2018 Michael N. Lipp<a name="line.3"></a>
-<span class="sourceLineNo">004</span> * <a name="line.4"></a>
-<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
-<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
-<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
-<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
-<span class="sourceLineNo">009</span> * <a name="line.9"></a>
-<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
-<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
-<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
-<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
-<span class="sourceLineNo">014</span> * <a name="line.14"></a>
-<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
-<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
-<span class="sourceLineNo">017</span> */<a name="line.17"></a>
+<pre><span class="sourceLineNo">001</span><a name="line.1">/*</a>
+<span class="sourceLineNo">002</span><a name="line.2"> * JGrapes Event Driven Framework</a>
+<span class="sourceLineNo">003</span><a name="line.3"> * Copyright (C) 2017-2018 Michael N. Lipp</a>
+<span class="sourceLineNo">004</span><a name="line.4"> * </a>
+<span class="sourceLineNo">005</span><a name="line.5"> * This program is free software; you can redistribute it and/or modify it </a>
+<span class="sourceLineNo">006</span><a name="line.6"> * under the terms of the GNU General Public License as published by </a>
+<span class="sourceLineNo">007</span><a name="line.7"> * the Free Software Foundation; either version 3 of the License, or </a>
+<span class="sourceLineNo">008</span><a name="line.8"> * (at your option) any later version.</a>
+<span class="sourceLineNo">009</span><a name="line.9"> * </a>
+<span class="sourceLineNo">010</span><a name="line.10"> * This program is distributed in the hope that it will be useful, but </a>
+<span class="sourceLineNo">011</span><a name="line.11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</a>
+<span class="sourceLineNo">012</span><a name="line.12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License </a>
+<span class="sourceLineNo">013</span><a name="line.13"> * for more details.</a>
+<span class="sourceLineNo">014</span><a name="line.14"> * </a>
+<span class="sourceLineNo">015</span><a name="line.15"> * You should have received a copy of the GNU General Public License along </a>
+<span class="sourceLineNo">016</span><a name="line.16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<span class="sourceLineNo">017</span><a name="line.17"> */</a>
 <span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span>package org.jgrapes.http;<a name="line.19"></a>
+<span class="sourceLineNo">019</span><a name="line.19">package org.jgrapes.http;</a>
 <span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>import java.io.Serializable;<a name="line.21"></a>
-<span class="sourceLineNo">022</span>import java.time.Instant;<a name="line.22"></a>
-<span class="sourceLineNo">023</span>import java.util.Locale;<a name="line.23"></a>
-<span class="sourceLineNo">024</span>import java.util.Map;<a name="line.24"></a>
-<span class="sourceLineNo">025</span>import java.util.Optional;<a name="line.25"></a>
-<span class="sourceLineNo">026</span>import java.util.concurrent.ConcurrentHashMap;<a name="line.26"></a>
+<span class="sourceLineNo">021</span><a name="line.21">import java.io.Serializable;</a>
+<span class="sourceLineNo">022</span><a name="line.22">import java.time.Instant;</a>
+<span class="sourceLineNo">023</span><a name="line.23">import java.util.Locale;</a>
+<span class="sourceLineNo">024</span><a name="line.24">import java.util.Map;</a>
+<span class="sourceLineNo">025</span><a name="line.25">import java.util.Optional;</a>
+<span class="sourceLineNo">026</span><a name="line.26">import java.util.concurrent.ConcurrentHashMap;</a>
 <span class="sourceLineNo">027</span><a name="line.27"></a>
-<span class="sourceLineNo">028</span>import org.jgrapes.http.LanguageSelector.Selection;<a name="line.28"></a>
+<span class="sourceLineNo">028</span><a name="line.28">import org.jgrapes.http.LanguageSelector.Selection;</a>
 <span class="sourceLineNo">029</span><a name="line.29"></a>
-<span class="sourceLineNo">030</span>/**<a name="line.30"></a>
-<span class="sourceLineNo">031</span> * Represents a browser session. Session objects are used to store<a name="line.31"></a>
-<span class="sourceLineNo">032</span> * data related to the browser session. Servers with a small number<a name="line.32"></a>
-<span class="sourceLineNo">033</span> * of clients usually keep session objects and the associated data<a name="line.33"></a>
-<span class="sourceLineNo">034</span> * in memory. Servers with a large number of clients may choose to<a name="line.34"></a>
-<span class="sourceLineNo">035</span> * only keep a LRU cache of session objects in memory and swap<a name="line.35"></a>
-<span class="sourceLineNo">036</span> * out (persist) other session objects. Therefore the keys and<a name="line.36"></a>
-<span class="sourceLineNo">037</span> * values stored using a session object must be serializable.<a name="line.37"></a>
-<span class="sourceLineNo">038</span> * <a name="line.38"></a>
-<span class="sourceLineNo">039</span> * Occasionally, data associated with a session object is already<a name="line.39"></a>
-<span class="sourceLineNo">040</span> * persisted anyway, because its lifetime is beyond that of a session.<a name="line.40"></a>
-<span class="sourceLineNo">041</span> * To avoid persisting such data twice, the session provides a special<a name="line.41"></a>
-<span class="sourceLineNo">042</span> * area for "transient data". If components choose to store data<a name="line.42"></a>
-<span class="sourceLineNo">043</span> * in this area, they must always check before use if the data is<a name="line.43"></a>
-<span class="sourceLineNo">044</span> * available and recover it if necessary. Using this approach, the<a name="line.44"></a>
-<span class="sourceLineNo">045</span> * components automatically profit from the LRU caching mechanism<a name="line.45"></a>
-<span class="sourceLineNo">046</span> * provided by the session manager. As an alternative, components<a name="line.46"></a>
-<span class="sourceLineNo">047</span> * can use the session {@link #id()} as key to manage the data<a name="line.47"></a>
-<span class="sourceLineNo">048</span> * on their own.<a name="line.48"></a>
-<span class="sourceLineNo">049</span> * <a name="line.49"></a>
-<span class="sourceLineNo">050</span> * Implementations should override {@link Object#hashCode()}<a name="line.50"></a>
-<span class="sourceLineNo">051</span> * and {@link Object#equals(Object)} in such a way<a name="line.51"></a>
-<span class="sourceLineNo">052</span> * that the session id is the only relevant attribute (cannot be<a name="line.52"></a>
-<span class="sourceLineNo">053</span> * done by default methods of the interface).<a name="line.53"></a>
-<span class="sourceLineNo">054</span> */<a name="line.54"></a>
-<span class="sourceLineNo">055</span>public interface Session extends Map&lt;Serializable, Serializable&gt; {<a name="line.55"></a>
+<span class="sourceLineNo">030</span><a name="line.30">/**</a>
+<span class="sourceLineNo">031</span><a name="line.31"> * Represents a browser session. Session objects are used to store</a>
+<span class="sourceLineNo">032</span><a name="line.32"> * data related to the browser session. Servers with a small number</a>
+<span class="sourceLineNo">033</span><a name="line.33"> * of clients usually keep session objects and the associated data</a>
+<span class="sourceLineNo">034</span><a name="line.34"> * in memory. Servers with a large number of clients may choose to</a>
+<span class="sourceLineNo">035</span><a name="line.35"> * only keep a LRU cache of session objects in memory and swap</a>
+<span class="sourceLineNo">036</span><a name="line.36"> * out (persist) other session objects. Therefore the keys and</a>
+<span class="sourceLineNo">037</span><a name="line.37"> * values stored using a session object must be serializable.</a>
+<span class="sourceLineNo">038</span><a name="line.38"> * </a>
+<span class="sourceLineNo">039</span><a name="line.39"> * Occasionally, data associated with a session object is already</a>
+<span class="sourceLineNo">040</span><a name="line.40"> * persisted anyway, because its lifetime is beyond that of a session.</a>
+<span class="sourceLineNo">041</span><a name="line.41"> * To avoid persisting such data twice, the session provides a special</a>
+<span class="sourceLineNo">042</span><a name="line.42"> * area for "transient data". If components choose to store data</a>
+<span class="sourceLineNo">043</span><a name="line.43"> * in this area, they must always check before use if the data is</a>
+<span class="sourceLineNo">044</span><a name="line.44"> * available and recover it if necessary. Using this approach, the</a>
+<span class="sourceLineNo">045</span><a name="line.45"> * components automatically profit from the LRU caching mechanism</a>
+<span class="sourceLineNo">046</span><a name="line.46"> * provided by the session manager. As an alternative, components</a>
+<span class="sourceLineNo">047</span><a name="line.47"> * can use the session {@link #id()} as key to manage the data</a>
+<span class="sourceLineNo">048</span><a name="line.48"> * on their own.</a>
+<span class="sourceLineNo">049</span><a name="line.49"> * </a>
+<span class="sourceLineNo">050</span><a name="line.50"> * Implementations should override {@link Object#hashCode()}</a>
+<span class="sourceLineNo">051</span><a name="line.51"> * and {@link Object#equals(Object)} in such a way</a>
+<span class="sourceLineNo">052</span><a name="line.52"> * that the session id is the only relevant attribute (cannot be</a>
+<span class="sourceLineNo">053</span><a name="line.53"> * done by default methods of the interface).</a>
+<span class="sourceLineNo">054</span><a name="line.54"> */</a>
+<span class="sourceLineNo">055</span><a name="line.55">public interface Session extends Map&lt;Serializable, Serializable&gt; {</a>
 <span class="sourceLineNo">056</span><a name="line.56"></a>
-<span class="sourceLineNo">057</span>    /**<a name="line.57"></a>
-<span class="sourceLineNo">058</span>     * Returns the session id.<a name="line.58"></a>
-<span class="sourceLineNo">059</span>     * <a name="line.59"></a>
-<span class="sourceLineNo">060</span>     * @return the id<a name="line.60"></a>
-<span class="sourceLineNo">061</span>     */<a name="line.61"></a>
-<span class="sourceLineNo">062</span>    @SuppressWarnings("PMD.ShortMethodName")<a name="line.62"></a>
-<span class="sourceLineNo">063</span>    String id();<a name="line.63"></a>
+<span class="sourceLineNo">057</span><a name="line.57">    /**</a>
+<span class="sourceLineNo">058</span><a name="line.58">     * Returns the session id.</a>
+<span class="sourceLineNo">059</span><a name="line.59">     * </a>
+<span class="sourceLineNo">060</span><a name="line.60">     * @return the id</a>
+<span class="sourceLineNo">061</span><a name="line.61">     */</a>
+<span class="sourceLineNo">062</span><a name="line.62">    @SuppressWarnings("PMD.ShortMethodName")</a>
+<span class="sourceLineNo">063</span><a name="line.63">    String id();</a>
 <span class="sourceLineNo">064</span><a name="line.64"></a>
-<span class="sourceLineNo">065</span>    /**<a name="line.65"></a>
-<span class="sourceLineNo">066</span>     * Returns the creation time stamp.<a name="line.66"></a>
-<span class="sourceLineNo">067</span>     * <a name="line.67"></a>
-<span class="sourceLineNo">068</span>     * @return the creation time stamp<a name="line.68"></a>
-<span class="sourceLineNo">069</span>     */<a name="line.69"></a>
-<span class="sourceLineNo">070</span>    Instant createdAt();<a name="line.70"></a>
+<span class="sourceLineNo">065</span><a name="line.65">    /**</a>
+<span class="sourceLineNo">066</span><a name="line.66">     * Returns the creation time stamp.</a>
+<span class="sourceLineNo">067</span><a name="line.67">     * </a>
+<span class="sourceLineNo">068</span><a name="line.68">     * @return the creation time stamp</a>
+<span class="sourceLineNo">069</span><a name="line.69">     */</a>
+<span class="sourceLineNo">070</span><a name="line.70">    Instant createdAt();</a>
 <span class="sourceLineNo">071</span><a name="line.71"></a>
-<span class="sourceLineNo">072</span>    /**<a name="line.72"></a>
-<span class="sourceLineNo">073</span>     * Returns the last used (referenced in request) time stamp. <a name="line.73"></a>
-<span class="sourceLineNo">074</span>     * <a name="line.74"></a>
-<span class="sourceLineNo">075</span>     * @return the last used timestamp<a name="line.75"></a>
-<span class="sourceLineNo">076</span>     */<a name="line.76"></a>
-<span class="sourceLineNo">077</span>    Instant lastUsedAt();<a name="line.77"></a>
+<span class="sourceLineNo">072</span><a name="line.72">    /**</a>
+<span class="sourceLineNo">073</span><a name="line.73">     * Returns the last used (referenced in request) time stamp. </a>
+<span class="sourceLineNo">074</span><a name="line.74">     * </a>
+<span class="sourceLineNo">075</span><a name="line.75">     * @return the last used timestamp</a>
+<span class="sourceLineNo">076</span><a name="line.76">     */</a>
+<span class="sourceLineNo">077</span><a name="line.77">    Instant lastUsedAt();</a>
 <span class="sourceLineNo">078</span><a name="line.78"></a>
-<span class="sourceLineNo">079</span>    /**<a name="line.79"></a>
-<span class="sourceLineNo">080</span>     * Updates the last used time stamp.<a name="line.80"></a>
-<span class="sourceLineNo">081</span>     */<a name="line.81"></a>
-<span class="sourceLineNo">082</span>    void updateLastUsedAt();<a name="line.82"></a>
+<span class="sourceLineNo">079</span><a name="line.79">    /**</a>
+<span class="sourceLineNo">080</span><a name="line.80">     * Updates the last used time stamp.</a>
+<span class="sourceLineNo">081</span><a name="line.81">     */</a>
+<span class="sourceLineNo">082</span><a name="line.82">    void updateLastUsedAt();</a>
 <span class="sourceLineNo">083</span><a name="line.83"></a>
-<span class="sourceLineNo">084</span>    /**<a name="line.84"></a>
-<span class="sourceLineNo">085</span>     * Return the storage area for transient data. Usually implemented<a name="line.85"></a>
-<span class="sourceLineNo">086</span>     * by a {@link ConcurrentHashMap}. Other implementations must<a name="line.86"></a>
-<span class="sourceLineNo">087</span>     * at least provide the same support for concurrency as <a name="line.87"></a>
-<span class="sourceLineNo">088</span>     * {@link ConcurrentHashMap}.<a name="line.88"></a>
-<span class="sourceLineNo">089</span>     * <a name="line.89"></a>
-<span class="sourceLineNo">090</span>     * @return the storage area<a name="line.90"></a>
-<span class="sourceLineNo">091</span>     */<a name="line.91"></a>
-<span class="sourceLineNo">092</span>    Map&lt;?, ?&gt; transientData();<a name="line.92"></a>
+<span class="sourceLineNo">084</span><a name="line.84">    /**</a>
+<span class="sourceLineNo">085</span><a name="line.85">     * Return the storage area for transient data. Usually implemented</a>
+<span class="sourceLineNo">086</span><a name="line.86">     * by a {@link ConcurrentHashMap}. Other implementations must</a>
+<span class="sourceLineNo">087</span><a name="line.87">     * at least provide the same support for concurrency as </a>
+<span class="sourceLineNo">088</span><a name="line.88">     * {@link ConcurrentHashMap}.</a>
+<span class="sourceLineNo">089</span><a name="line.89">     * </a>
+<span class="sourceLineNo">090</span><a name="line.90">     * @return the storage area</a>
+<span class="sourceLineNo">091</span><a name="line.91">     */</a>
+<span class="sourceLineNo">092</span><a name="line.92">    Map&lt;?, ?&gt; transientData();</a>
 <span class="sourceLineNo">093</span><a name="line.93"></a>
-<span class="sourceLineNo">094</span>    /**<a name="line.94"></a>
-<span class="sourceLineNo">095</span>     * Convenience method for retrieving the locale <a name="line.95"></a>
-<span class="sourceLineNo">096</span>     * set by {@link LanguageSelector} from the session.<a name="line.96"></a>
-<span class="sourceLineNo">097</span>     * <a name="line.97"></a>
-<span class="sourceLineNo">098</span>     * @return the locale<a name="line.98"></a>
-<span class="sourceLineNo">099</span>     */<a name="line.99"></a>
-<span class="sourceLineNo">100</span>    default Locale locale() {<a name="line.100"></a>
-<span class="sourceLineNo">101</span>        return Optional.ofNullable((Selection) get(Selection.class))<a name="line.101"></a>
-<span class="sourceLineNo">102</span>            .map(selection -&gt; selection.get()[0]).orElse(Locale.getDefault());<a name="line.102"></a>
-<span class="sourceLineNo">103</span>    }<a name="line.103"></a>
+<span class="sourceLineNo">094</span><a name="line.94">    /**</a>
+<span class="sourceLineNo">095</span><a name="line.95">     * Convenience method for retrieving the locale </a>
+<span class="sourceLineNo">096</span><a name="line.96">     * set by {@link LanguageSelector} from the session.</a>
+<span class="sourceLineNo">097</span><a name="line.97">     * </a>
+<span class="sourceLineNo">098</span><a name="line.98">     * @return the locale</a>
+<span class="sourceLineNo">099</span><a name="line.99">     */</a>
+<span class="sourceLineNo">100</span><a name="line.100">    default Locale locale() {</a>
+<span class="sourceLineNo">101</span><a name="line.101">        return Optional.ofNullable((Selection) get(Selection.class))</a>
+<span class="sourceLineNo">102</span><a name="line.102">            .map(selection -&gt; selection.get()[0]).orElse(Locale.getDefault());</a>
+<span class="sourceLineNo">103</span><a name="line.103">    }</a>
 <span class="sourceLineNo">104</span><a name="line.104"></a>
-<span class="sourceLineNo">105</span>}<a name="line.105"></a>
+<span class="sourceLineNo">105</span><a name="line.105">}</a>
 
 
 
