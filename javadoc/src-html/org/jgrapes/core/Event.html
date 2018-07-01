@@ -150,7 +150,7 @@
 <span class="sourceLineNo">142</span>                "Channels cannot be changed after fire");<a name="line.142"></a>
 <span class="sourceLineNo">143</span>        }<a name="line.143"></a>
 <span class="sourceLineNo">144</span>        this.channels = Arrays.copyOf(channels, channels.length);<a name="line.144"></a>
-<span class="sourceLineNo">145</span>        return (Event&lt;T&gt;) this;<a name="line.145"></a>
+<span class="sourceLineNo">145</span>        return this;<a name="line.145"></a>
 <span class="sourceLineNo">146</span>    }<a name="line.146"></a>
 <span class="sourceLineNo">147</span><a name="line.147"></a>
 <span class="sourceLineNo">148</span>    /**<a name="line.148"></a>
@@ -232,7 +232,7 @@
 <span class="sourceLineNo">224</span>            completionEvents = new HashSet&lt;&gt;();<a name="line.224"></a>
 <span class="sourceLineNo">225</span>        }<a name="line.225"></a>
 <span class="sourceLineNo">226</span>        completionEvents.add(completionEvent);<a name="line.226"></a>
-<span class="sourceLineNo">227</span>        return (Event&lt;T&gt;) this;<a name="line.227"></a>
+<span class="sourceLineNo">227</span>        return this;<a name="line.227"></a>
 <span class="sourceLineNo">228</span>    }<a name="line.228"></a>
 <span class="sourceLineNo">229</span><a name="line.229"></a>
 <span class="sourceLineNo">230</span>    /*<a name="line.230"></a>
@@ -333,10 +333,10 @@
 <span class="sourceLineNo">325</span>                results = new ArrayList&lt;T&gt;();<a name="line.325"></a>
 <span class="sourceLineNo">326</span>                results.add(result);<a name="line.326"></a>
 <span class="sourceLineNo">327</span>                firstResultAssigned();<a name="line.327"></a>
-<span class="sourceLineNo">328</span>                return (Event&lt;T&gt;) this;<a name="line.328"></a>
+<span class="sourceLineNo">328</span>                return this;<a name="line.328"></a>
 <span class="sourceLineNo">329</span>            }<a name="line.329"></a>
 <span class="sourceLineNo">330</span>            results.add(result);<a name="line.330"></a>
-<span class="sourceLineNo">331</span>            return (Event&lt;T&gt;) this;<a name="line.331"></a>
+<span class="sourceLineNo">331</span>            return this;<a name="line.331"></a>
 <span class="sourceLineNo">332</span>        }<a name="line.332"></a>
 <span class="sourceLineNo">333</span>    }<a name="line.333"></a>
 <span class="sourceLineNo">334</span><a name="line.334"></a>
@@ -369,7 +369,7 @@
 <span class="sourceLineNo">361</span>                other.results = new ArrayList&lt;T&gt;();<a name="line.361"></a>
 <span class="sourceLineNo">362</span>            }<a name="line.362"></a>
 <span class="sourceLineNo">363</span>            results = other.results;<a name="line.363"></a>
-<span class="sourceLineNo">364</span>            return (Event&lt;T&gt;) this;<a name="line.364"></a>
+<span class="sourceLineNo">364</span>            return this;<a name="line.364"></a>
 <span class="sourceLineNo">365</span>        }<a name="line.365"></a>
 <span class="sourceLineNo">366</span>    }<a name="line.366"></a>
 <span class="sourceLineNo">367</span><a name="line.367"></a>
@@ -476,7 +476,7 @@
 <span class="sourceLineNo">468</span>        } else {<a name="line.468"></a>
 <span class="sourceLineNo">469</span>            contextData.put(by, with);<a name="line.469"></a>
 <span class="sourceLineNo">470</span>        }<a name="line.470"></a>
-<span class="sourceLineNo">471</span>        return (Event&lt;T&gt;) this;<a name="line.471"></a>
+<span class="sourceLineNo">471</span>        return this;<a name="line.471"></a>
 <span class="sourceLineNo">472</span>    }<a name="line.472"></a>
 <span class="sourceLineNo">473</span><a name="line.473"></a>
 <span class="sourceLineNo">474</span>    @Override<a name="line.474"></a>
