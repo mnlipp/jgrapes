@@ -94,7 +94,7 @@ class CheckingPipelineFilter
             allowNext.set(null);
             if (!allowed // i.e. if not allowed anyway...
                 && (allowedSourceRef.get() == null
-                    || ((InternalEventPipelineWrapper) allowedSourceRef.get())
+                    || (allowedSourceRef.get())
                         .wrapped() != FeedBackPipelineFilter
                             .getAssociatedPipeline())) {
                 Common.fireRestrictionLogger.log(Level.SEVERE,
