@@ -19,6 +19,7 @@
 package org.jgrapes.core.internal;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
@@ -66,9 +67,11 @@ public final class ComponentProxy extends ComponentVertex {
         if (cma.channel() != Handler.NoChannel.class) {
             if (cma.channel() != Channel.BROADCAST.defaultCriterion()) {
                 try {
-                    return cma.channel().newInstance();
+                    return cma.channel().getConstructor().newInstance();
                 } catch (InstantiationException // NOPMD
-                        | IllegalAccessException e) {
+                        | IllegalAccessException | IllegalArgumentException
+                        | InvocationTargetException | NoSuchMethodException
+                        | SecurityException e) {
                     // Ignored
                 }
             }

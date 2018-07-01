@@ -18,6 +18,7 @@
 
 package org.jgrapes.core.internal;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,9 +66,10 @@ public final class Common {
             HandlerDefinition hda) {
         return definitionEvaluators.computeIfAbsent(hda.evaluator(), key -> {
             try {
-                return hda.evaluator().newInstance();
-            } catch (InstantiationException
-                    | IllegalAccessException e) {
+                return hda.evaluator().getConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException
+                    | IllegalArgumentException | InvocationTargetException
+                    | NoSuchMethodException | SecurityException e) {
                 throw new IllegalStateException(e);
             }
         });
