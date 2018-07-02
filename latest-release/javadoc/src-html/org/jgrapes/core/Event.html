@@ -6,509 +6,509 @@
 </head>
 <body>
 <div class="sourceContainer">
-<pre><span class="sourceLineNo">001</span><a name="line.1">/*</a>
-<span class="sourceLineNo">002</span><a name="line.2"> * JGrapes Event Driven Framework</a>
-<span class="sourceLineNo">003</span><a name="line.3"> * Copyright (C) 2016-2018 Michael N. Lipp</a>
-<span class="sourceLineNo">004</span><a name="line.4"> * </a>
-<span class="sourceLineNo">005</span><a name="line.5"> * This program is free software; you can redistribute it and/or modify it </a>
-<span class="sourceLineNo">006</span><a name="line.6"> * under the terms of the GNU General Public License as published by </a>
-<span class="sourceLineNo">007</span><a name="line.7"> * the Free Software Foundation; either version 3 of the License, or </a>
-<span class="sourceLineNo">008</span><a name="line.8"> * (at your option) any later version.</a>
-<span class="sourceLineNo">009</span><a name="line.9"> * </a>
-<span class="sourceLineNo">010</span><a name="line.10"> * This program is distributed in the hope that it will be useful, but </a>
-<span class="sourceLineNo">011</span><a name="line.11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</a>
-<span class="sourceLineNo">012</span><a name="line.12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License </a>
-<span class="sourceLineNo">013</span><a name="line.13"> * for more details.</a>
-<span class="sourceLineNo">014</span><a name="line.14"> * </a>
-<span class="sourceLineNo">015</span><a name="line.15"> * You should have received a copy of the GNU General Public License along </a>
-<span class="sourceLineNo">016</span><a name="line.16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
-<span class="sourceLineNo">017</span><a name="line.17"> */</a>
+<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
+<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
+<span class="sourceLineNo">003</span> * Copyright (C) 2016-2018 Michael N. Lipp<a name="line.3"></a>
+<span class="sourceLineNo">004</span> * <a name="line.4"></a>
+<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
+<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
+<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
+<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
+<span class="sourceLineNo">009</span> * <a name="line.9"></a>
+<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
+<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
+<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
+<span class="sourceLineNo">014</span> * <a name="line.14"></a>
+<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
+<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
+<span class="sourceLineNo">017</span> */<a name="line.17"></a>
 <span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span><a name="line.19">package org.jgrapes.core;</a>
+<span class="sourceLineNo">019</span>package org.jgrapes.core;<a name="line.19"></a>
 <span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span><a name="line.21">import java.lang.reflect.Array;</a>
-<span class="sourceLineNo">022</span><a name="line.22">import java.util.ArrayList;</a>
-<span class="sourceLineNo">023</span><a name="line.23">import java.util.Arrays;</a>
-<span class="sourceLineNo">024</span><a name="line.24">import java.util.Collections;</a>
-<span class="sourceLineNo">025</span><a name="line.25">import java.util.HashSet;</a>
-<span class="sourceLineNo">026</span><a name="line.26">import java.util.List;</a>
-<span class="sourceLineNo">027</span><a name="line.27">import java.util.Map;</a>
-<span class="sourceLineNo">028</span><a name="line.28">import java.util.Optional;</a>
-<span class="sourceLineNo">029</span><a name="line.29">import java.util.Set;</a>
-<span class="sourceLineNo">030</span><a name="line.30">import java.util.concurrent.ConcurrentHashMap;</a>
-<span class="sourceLineNo">031</span><a name="line.31">import java.util.concurrent.Future;</a>
-<span class="sourceLineNo">032</span><a name="line.32">import java.util.concurrent.TimeUnit;</a>
-<span class="sourceLineNo">033</span><a name="line.33">import java.util.concurrent.TimeoutException;</a>
-<span class="sourceLineNo">034</span><a name="line.34">import java.util.function.BiConsumer;</a>
+<span class="sourceLineNo">021</span>import java.lang.reflect.Array;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import java.util.ArrayList;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import java.util.Arrays;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import java.util.Collections;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import java.util.HashSet;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import java.util.List;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import java.util.Map;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import java.util.Optional;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import java.util.Set;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>import java.util.concurrent.ConcurrentHashMap;<a name="line.30"></a>
+<span class="sourceLineNo">031</span>import java.util.concurrent.Future;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>import java.util.concurrent.TimeUnit;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import java.util.concurrent.TimeoutException;<a name="line.33"></a>
+<span class="sourceLineNo">034</span>import java.util.function.BiConsumer;<a name="line.34"></a>
 <span class="sourceLineNo">035</span><a name="line.35"></a>
-<span class="sourceLineNo">036</span><a name="line.36">import org.jgrapes.core.events.HandlingError;</a>
-<span class="sourceLineNo">037</span><a name="line.37">import org.jgrapes.core.internal.EventBase;</a>
-<span class="sourceLineNo">038</span><a name="line.38">import org.jgrapes.core.internal.EventProcessor;</a>
+<span class="sourceLineNo">036</span>import org.jgrapes.core.events.HandlingError;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>import org.jgrapes.core.internal.EventBase;<a name="line.37"></a>
+<span class="sourceLineNo">038</span>import org.jgrapes.core.internal.EventProcessor;<a name="line.38"></a>
 <span class="sourceLineNo">039</span><a name="line.39"></a>
-<span class="sourceLineNo">040</span><a name="line.40">/**</a>
-<span class="sourceLineNo">041</span><a name="line.41"> * This class is the base class for all events.</a>
-<span class="sourceLineNo">042</span><a name="line.42"> *  </a>
-<span class="sourceLineNo">043</span><a name="line.43"> * By default (i.e. as implemented by this class), the event's kind is</a>
-<span class="sourceLineNo">044</span><a name="line.44"> * represented by its Java class and the eligibility is based on</a>
-<span class="sourceLineNo">045</span><a name="line.45"> * the "is a" relationship between classes. An event is eligible if its class</a>
-<span class="sourceLineNo">046</span><a name="line.46"> * is equal to or a super class of the class used as criterion. </a>
-<span class="sourceLineNo">047</span><a name="line.47"> * This default behavior can be changed by overriding the</a>
-<span class="sourceLineNo">048</span><a name="line.48"> * methods from {@link Eligible}. See {@link NamedEvent} as an example.</a>
-<span class="sourceLineNo">049</span><a name="line.49"> * </a>
-<span class="sourceLineNo">050</span><a name="line.50"> * @param &lt;T&gt;</a>
-<span class="sourceLineNo">051</span><a name="line.51"> *            the result type of the event. Use {@link Void} if handling the</a>
-<span class="sourceLineNo">052</span><a name="line.52"> *            event does not produce a result</a>
-<span class="sourceLineNo">053</span><a name="line.53"> */</a>
-<span class="sourceLineNo">054</span><a name="line.54">public class Event&lt;T&gt; extends EventBase&lt;T&gt; {</a>
+<span class="sourceLineNo">040</span>/**<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * This class is the base class for all events.<a name="line.41"></a>
+<span class="sourceLineNo">042</span> *  <a name="line.42"></a>
+<span class="sourceLineNo">043</span> * By default (i.e. as implemented by this class), the event's kind is<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * represented by its Java class and the eligibility is based on<a name="line.44"></a>
+<span class="sourceLineNo">045</span> * the "is a" relationship between classes. An event is eligible if its class<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * is equal to or a super class of the class used as criterion. <a name="line.46"></a>
+<span class="sourceLineNo">047</span> * This default behavior can be changed by overriding the<a name="line.47"></a>
+<span class="sourceLineNo">048</span> * methods from {@link Eligible}. See {@link NamedEvent} as an example.<a name="line.48"></a>
+<span class="sourceLineNo">049</span> * <a name="line.49"></a>
+<span class="sourceLineNo">050</span> * @param &lt;T&gt;<a name="line.50"></a>
+<span class="sourceLineNo">051</span> *            the result type of the event. Use {@link Void} if handling the<a name="line.51"></a>
+<span class="sourceLineNo">052</span> *            event does not produce a result<a name="line.52"></a>
+<span class="sourceLineNo">053</span> */<a name="line.53"></a>
+<span class="sourceLineNo">054</span>public class Event&lt;T&gt; extends EventBase&lt;T&gt; {<a name="line.54"></a>
 <span class="sourceLineNo">055</span><a name="line.55"></a>
-<span class="sourceLineNo">056</span><a name="line.56">    /** The channels that this event is to be fired on if no</a>
-<span class="sourceLineNo">057</span><a name="line.57">     * channels are specified explicitly when firing. */</a>
-<span class="sourceLineNo">058</span><a name="line.58">    private Channel[] channels;</a>
-<span class="sourceLineNo">059</span><a name="line.59">    /** Indicates that the event should not processed further. */</a>
-<span class="sourceLineNo">060</span><a name="line.60">    private boolean stopped;</a>
-<span class="sourceLineNo">061</span><a name="line.61">    /** The results of handling the event (if any). */</a>
-<span class="sourceLineNo">062</span><a name="line.62">    private List&lt;T&gt; results;</a>
-<span class="sourceLineNo">063</span><a name="line.63">    /** Context data. */</a>
-<span class="sourceLineNo">064</span><a name="line.64">    private Map&lt;Object, Object&gt; contextData;</a>
-<span class="sourceLineNo">065</span><a name="line.65">    private boolean cancelled;</a>
+<span class="sourceLineNo">056</span>    /** The channels that this event is to be fired on if no<a name="line.56"></a>
+<span class="sourceLineNo">057</span>     * channels are specified explicitly when firing. */<a name="line.57"></a>
+<span class="sourceLineNo">058</span>    private Channel[] channels;<a name="line.58"></a>
+<span class="sourceLineNo">059</span>    /** Indicates that the event should not processed further. */<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    private boolean stopped;<a name="line.60"></a>
+<span class="sourceLineNo">061</span>    /** The results of handling the event (if any). */<a name="line.61"></a>
+<span class="sourceLineNo">062</span>    private List&lt;T&gt; results;<a name="line.62"></a>
+<span class="sourceLineNo">063</span>    /** Context data. */<a name="line.63"></a>
+<span class="sourceLineNo">064</span>    private Map&lt;Object, Object&gt; contextData;<a name="line.64"></a>
+<span class="sourceLineNo">065</span>    private boolean cancelled;<a name="line.65"></a>
 <span class="sourceLineNo">066</span><a name="line.66"></a>
-<span class="sourceLineNo">067</span><a name="line.67">    /**</a>
-<span class="sourceLineNo">068</span><a name="line.68">     * Creates a new event. Passing channels is equivalent to first</a>
-<span class="sourceLineNo">069</span><a name="line.69">     * creating the event and then calling {@link #setChannels(Channel...)}</a>
-<span class="sourceLineNo">070</span><a name="line.70">     * with the given channels.</a>
-<span class="sourceLineNo">071</span><a name="line.71">     * </a>
-<span class="sourceLineNo">072</span><a name="line.72">     * @param channels the channels to set</a>
-<span class="sourceLineNo">073</span><a name="line.73">     */</a>
-<span class="sourceLineNo">074</span><a name="line.74">    public Event(Channel... channels) {</a>
-<span class="sourceLineNo">075</span><a name="line.75">        super();</a>
-<span class="sourceLineNo">076</span><a name="line.76">        this.channels = Arrays.copyOf(channels, channels.length);</a>
-<span class="sourceLineNo">077</span><a name="line.77">    }</a>
+<span class="sourceLineNo">067</span>    /**<a name="line.67"></a>
+<span class="sourceLineNo">068</span>     * Creates a new event. Passing channels is equivalent to first<a name="line.68"></a>
+<span class="sourceLineNo">069</span>     * creating the event and then calling {@link #setChannels(Channel...)}<a name="line.69"></a>
+<span class="sourceLineNo">070</span>     * with the given channels.<a name="line.70"></a>
+<span class="sourceLineNo">071</span>     * <a name="line.71"></a>
+<span class="sourceLineNo">072</span>     * @param channels the channels to set<a name="line.72"></a>
+<span class="sourceLineNo">073</span>     */<a name="line.73"></a>
+<span class="sourceLineNo">074</span>    public Event(Channel... channels) {<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        super();<a name="line.75"></a>
+<span class="sourceLineNo">076</span>        this.channels = Arrays.copyOf(channels, channels.length);<a name="line.76"></a>
+<span class="sourceLineNo">077</span>    }<a name="line.77"></a>
 <span class="sourceLineNo">078</span><a name="line.78"></a>
-<span class="sourceLineNo">079</span><a name="line.79">    /**</a>
-<span class="sourceLineNo">080</span><a name="line.80">     * Returns the class of this event as representation of its kind.</a>
-<span class="sourceLineNo">081</span><a name="line.81">     * </a>
-<span class="sourceLineNo">082</span><a name="line.82">     * @return the class of this event</a>
-<span class="sourceLineNo">083</span><a name="line.83">     * </a>
-<span class="sourceLineNo">084</span><a name="line.84">     * @see org.jgrapes.core.Eligible#defaultCriterion()</a>
-<span class="sourceLineNo">085</span><a name="line.85">     */</a>
-<span class="sourceLineNo">086</span><a name="line.86">    @Override</a>
-<span class="sourceLineNo">087</span><a name="line.87">    public Object defaultCriterion() {</a>
-<span class="sourceLineNo">088</span><a name="line.88">        return getClass();</a>
-<span class="sourceLineNo">089</span><a name="line.89">    }</a>
+<span class="sourceLineNo">079</span>    /**<a name="line.79"></a>
+<span class="sourceLineNo">080</span>     * Returns the class of this event as representation of its kind.<a name="line.80"></a>
+<span class="sourceLineNo">081</span>     * <a name="line.81"></a>
+<span class="sourceLineNo">082</span>     * @return the class of this event<a name="line.82"></a>
+<span class="sourceLineNo">083</span>     * <a name="line.83"></a>
+<span class="sourceLineNo">084</span>     * @see org.jgrapes.core.Eligible#defaultCriterion()<a name="line.84"></a>
+<span class="sourceLineNo">085</span>     */<a name="line.85"></a>
+<span class="sourceLineNo">086</span>    @Override<a name="line.86"></a>
+<span class="sourceLineNo">087</span>    public Object defaultCriterion() {<a name="line.87"></a>
+<span class="sourceLineNo">088</span>        return getClass();<a name="line.88"></a>
+<span class="sourceLineNo">089</span>    }<a name="line.89"></a>
 <span class="sourceLineNo">090</span><a name="line.90"></a>
-<span class="sourceLineNo">091</span><a name="line.91">    /**</a>
-<span class="sourceLineNo">092</span><a name="line.92">     * Returns &lt;code&gt;true&lt;/code&gt; if the `criterion` </a>
-<span class="sourceLineNo">093</span><a name="line.93">     * is of the same class or a base class of this event's class.</a>
-<span class="sourceLineNo">094</span><a name="line.94">     * </a>
-<span class="sourceLineNo">095</span><a name="line.95">     * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)</a>
-<span class="sourceLineNo">096</span><a name="line.96">     */</a>
-<span class="sourceLineNo">097</span><a name="line.97">    @Override</a>
-<span class="sourceLineNo">098</span><a name="line.98">    public boolean isEligibleFor(Object criterion) {</a>
-<span class="sourceLineNo">099</span><a name="line.99">        return Class.class.isInstance(criterion)</a>
-<span class="sourceLineNo">100</span><a name="line.100">            &amp;&amp; ((Class&lt;?&gt;) criterion).isAssignableFrom(getClass());</a>
-<span class="sourceLineNo">101</span><a name="line.101">    }</a>
+<span class="sourceLineNo">091</span>    /**<a name="line.91"></a>
+<span class="sourceLineNo">092</span>     * Returns &lt;code&gt;true&lt;/code&gt; if the `criterion` <a name="line.92"></a>
+<span class="sourceLineNo">093</span>     * is of the same class or a base class of this event's class.<a name="line.93"></a>
+<span class="sourceLineNo">094</span>     * <a name="line.94"></a>
+<span class="sourceLineNo">095</span>     * @see org.jgrapes.core.Eligible#isEligibleFor(java.lang.Object)<a name="line.95"></a>
+<span class="sourceLineNo">096</span>     */<a name="line.96"></a>
+<span class="sourceLineNo">097</span>    @Override<a name="line.97"></a>
+<span class="sourceLineNo">098</span>    public boolean isEligibleFor(Object criterion) {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>        return Class.class.isInstance(criterion)<a name="line.99"></a>
+<span class="sourceLineNo">100</span>            &amp;&amp; ((Class&lt;?&gt;) criterion).isAssignableFrom(getClass());<a name="line.100"></a>
+<span class="sourceLineNo">101</span>    }<a name="line.101"></a>
 <span class="sourceLineNo">102</span><a name="line.102"></a>
-<span class="sourceLineNo">103</span><a name="line.103">    /**</a>
-<span class="sourceLineNo">104</span><a name="line.104">     * Return the event pipeline that currently processes the event</a>
-<span class="sourceLineNo">105</span><a name="line.105">     * (if any).</a>
-<span class="sourceLineNo">106</span><a name="line.106">     * </a>
-<span class="sourceLineNo">107</span><a name="line.107">     * @return the event pipeline if the event is being processed</a>
-<span class="sourceLineNo">108</span><a name="line.108">     */</a>
-<span class="sourceLineNo">109</span><a name="line.109">    @SuppressWarnings("PMD.UselessOverridingMethod")</a>
-<span class="sourceLineNo">110</span><a name="line.110">    public Optional&lt;EventPipeline&gt; processedBy() {</a>
-<span class="sourceLineNo">111</span><a name="line.111">        return super.processedBy();</a>
-<span class="sourceLineNo">112</span><a name="line.112">    }</a>
+<span class="sourceLineNo">103</span>    /**<a name="line.103"></a>
+<span class="sourceLineNo">104</span>     * Return the event pipeline that currently processes the event<a name="line.104"></a>
+<span class="sourceLineNo">105</span>     * (if any).<a name="line.105"></a>
+<span class="sourceLineNo">106</span>     * <a name="line.106"></a>
+<span class="sourceLineNo">107</span>     * @return the event pipeline if the event is being processed<a name="line.107"></a>
+<span class="sourceLineNo">108</span>     */<a name="line.108"></a>
+<span class="sourceLineNo">109</span>    @SuppressWarnings("PMD.UselessOverridingMethod")<a name="line.109"></a>
+<span class="sourceLineNo">110</span>    public Optional&lt;EventPipeline&gt; processedBy() {<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        return super.processedBy();<a name="line.111"></a>
+<span class="sourceLineNo">112</span>    }<a name="line.112"></a>
 <span class="sourceLineNo">113</span><a name="line.113"></a>
-<span class="sourceLineNo">114</span><a name="line.114">    /**</a>
-<span class="sourceLineNo">115</span><a name="line.115">     * Implements the default behavior for handling events thrown</a>
-<span class="sourceLineNo">116</span><a name="line.116">     * by a handler. Fires a {@link HandlingError handling error} event</a>
-<span class="sourceLineNo">117</span><a name="line.117">     * for this event and the given throwable.</a>
-<span class="sourceLineNo">118</span><a name="line.118">     * </a>
-<span class="sourceLineNo">119</span><a name="line.119">     * @see HandlingError</a>
-<span class="sourceLineNo">120</span><a name="line.120">     */</a>
-<span class="sourceLineNo">121</span><a name="line.121">    @Override</a>
-<span class="sourceLineNo">122</span><a name="line.122">    protected void handlingError(</a>
-<span class="sourceLineNo">123</span><a name="line.123">            EventPipeline eventProcessor, Throwable throwable) {</a>
-<span class="sourceLineNo">124</span><a name="line.124">        eventProcessor.fire(</a>
-<span class="sourceLineNo">125</span><a name="line.125">            new HandlingError(this, throwable), channels());</a>
-<span class="sourceLineNo">126</span><a name="line.126">    }</a>
+<span class="sourceLineNo">114</span>    /**<a name="line.114"></a>
+<span class="sourceLineNo">115</span>     * Implements the default behavior for handling events thrown<a name="line.115"></a>
+<span class="sourceLineNo">116</span>     * by a handler. Fires a {@link HandlingError handling error} event<a name="line.116"></a>
+<span class="sourceLineNo">117</span>     * for this event and the given throwable.<a name="line.117"></a>
+<span class="sourceLineNo">118</span>     * <a name="line.118"></a>
+<span class="sourceLineNo">119</span>     * @see HandlingError<a name="line.119"></a>
+<span class="sourceLineNo">120</span>     */<a name="line.120"></a>
+<span class="sourceLineNo">121</span>    @Override<a name="line.121"></a>
+<span class="sourceLineNo">122</span>    protected void handlingError(<a name="line.122"></a>
+<span class="sourceLineNo">123</span>            EventPipeline eventProcessor, Throwable throwable) {<a name="line.123"></a>
+<span class="sourceLineNo">124</span>        eventProcessor.fire(<a name="line.124"></a>
+<span class="sourceLineNo">125</span>            new HandlingError(this, throwable), channels());<a name="line.125"></a>
+<span class="sourceLineNo">126</span>    }<a name="line.126"></a>
 <span class="sourceLineNo">127</span><a name="line.127"></a>
-<span class="sourceLineNo">128</span><a name="line.128">    /**</a>
-<span class="sourceLineNo">129</span><a name="line.129">     * Sets the channels that the event is fired on if no channels</a>
-<span class="sourceLineNo">130</span><a name="line.130">     * are specified explicitly when firing the event</a>
-<span class="sourceLineNo">131</span><a name="line.131">     * (see {@link org.jgrapes.core.Manager#fire(Event, Channel...)}).</a>
-<span class="sourceLineNo">132</span><a name="line.132">     * </a>
-<span class="sourceLineNo">133</span><a name="line.133">     * @param channels the channels to set</a>
-<span class="sourceLineNo">134</span><a name="line.134">     * @return the object for easy chaining</a>
-<span class="sourceLineNo">135</span><a name="line.135">     * </a>
-<span class="sourceLineNo">136</span><a name="line.136">     * @throws IllegalStateException if the method is called after</a>
-<span class="sourceLineNo">137</span><a name="line.137">     * this event has been fired</a>
-<span class="sourceLineNo">138</span><a name="line.138">     */</a>
-<span class="sourceLineNo">139</span><a name="line.139">    public Event&lt;T&gt; setChannels(Channel... channels) {</a>
-<span class="sourceLineNo">140</span><a name="line.140">        if (enqueued()) {</a>
-<span class="sourceLineNo">141</span><a name="line.141">            throw new IllegalStateException(</a>
-<span class="sourceLineNo">142</span><a name="line.142">                "Channels cannot be changed after fire");</a>
-<span class="sourceLineNo">143</span><a name="line.143">        }</a>
-<span class="sourceLineNo">144</span><a name="line.144">        this.channels = Arrays.copyOf(channels, channels.length);</a>
-<span class="sourceLineNo">145</span><a name="line.145">        return this;</a>
-<span class="sourceLineNo">146</span><a name="line.146">    }</a>
+<span class="sourceLineNo">128</span>    /**<a name="line.128"></a>
+<span class="sourceLineNo">129</span>     * Sets the channels that the event is fired on if no channels<a name="line.129"></a>
+<span class="sourceLineNo">130</span>     * are specified explicitly when firing the event<a name="line.130"></a>
+<span class="sourceLineNo">131</span>     * (see {@link org.jgrapes.core.Manager#fire(Event, Channel...)}).<a name="line.131"></a>
+<span class="sourceLineNo">132</span>     * <a name="line.132"></a>
+<span class="sourceLineNo">133</span>     * @param channels the channels to set<a name="line.133"></a>
+<span class="sourceLineNo">134</span>     * @return the object for easy chaining<a name="line.134"></a>
+<span class="sourceLineNo">135</span>     * <a name="line.135"></a>
+<span class="sourceLineNo">136</span>     * @throws IllegalStateException if the method is called after<a name="line.136"></a>
+<span class="sourceLineNo">137</span>     * this event has been fired<a name="line.137"></a>
+<span class="sourceLineNo">138</span>     */<a name="line.138"></a>
+<span class="sourceLineNo">139</span>    public Event&lt;T&gt; setChannels(Channel... channels) {<a name="line.139"></a>
+<span class="sourceLineNo">140</span>        if (enqueued()) {<a name="line.140"></a>
+<span class="sourceLineNo">141</span>            throw new IllegalStateException(<a name="line.141"></a>
+<span class="sourceLineNo">142</span>                "Channels cannot be changed after fire");<a name="line.142"></a>
+<span class="sourceLineNo">143</span>        }<a name="line.143"></a>
+<span class="sourceLineNo">144</span>        this.channels = Arrays.copyOf(channels, channels.length);<a name="line.144"></a>
+<span class="sourceLineNo">145</span>        return this;<a name="line.145"></a>
+<span class="sourceLineNo">146</span>    }<a name="line.146"></a>
 <span class="sourceLineNo">147</span><a name="line.147"></a>
-<span class="sourceLineNo">148</span><a name="line.148">    /**</a>
-<span class="sourceLineNo">149</span><a name="line.149">     * Returns the channels associated with the event. Before an</a>
-<span class="sourceLineNo">150</span><a name="line.150">     * event has been fired, this returns the channels set with</a>
-<span class="sourceLineNo">151</span><a name="line.151">     * {@link #setChannels(Channel[])}. After an event has been</a>
-<span class="sourceLineNo">152</span><a name="line.152">     * fired, this returns the channels that the event has</a>
-<span class="sourceLineNo">153</span><a name="line.153">     * effectively been fired on </a>
-<span class="sourceLineNo">154</span><a name="line.154">     * (see {@link Manager#fire(Event, Channel...)}).</a>
-<span class="sourceLineNo">155</span><a name="line.155">     * </a>
-<span class="sourceLineNo">156</span><a name="line.156">     * @return the channels (never `null`, but may be empty)</a>
-<span class="sourceLineNo">157</span><a name="line.157">     */</a>
-<span class="sourceLineNo">158</span><a name="line.158">    @Override</a>
-<span class="sourceLineNo">159</span><a name="line.159">    public Channel[] channels() {</a>
-<span class="sourceLineNo">160</span><a name="line.160">        return Arrays.copyOf(channels, channels.length);</a>
-<span class="sourceLineNo">161</span><a name="line.161">    }</a>
+<span class="sourceLineNo">148</span>    /**<a name="line.148"></a>
+<span class="sourceLineNo">149</span>     * Returns the channels associated with the event. Before an<a name="line.149"></a>
+<span class="sourceLineNo">150</span>     * event has been fired, this returns the channels set with<a name="line.150"></a>
+<span class="sourceLineNo">151</span>     * {@link #setChannels(Channel[])}. After an event has been<a name="line.151"></a>
+<span class="sourceLineNo">152</span>     * fired, this returns the channels that the event has<a name="line.152"></a>
+<span class="sourceLineNo">153</span>     * effectively been fired on <a name="line.153"></a>
+<span class="sourceLineNo">154</span>     * (see {@link Manager#fire(Event, Channel...)}).<a name="line.154"></a>
+<span class="sourceLineNo">155</span>     * <a name="line.155"></a>
+<span class="sourceLineNo">156</span>     * @return the channels (never `null`, but may be empty)<a name="line.156"></a>
+<span class="sourceLineNo">157</span>     */<a name="line.157"></a>
+<span class="sourceLineNo">158</span>    @Override<a name="line.158"></a>
+<span class="sourceLineNo">159</span>    public Channel[] channels() {<a name="line.159"></a>
+<span class="sourceLineNo">160</span>        return Arrays.copyOf(channels, channels.length);<a name="line.160"></a>
+<span class="sourceLineNo">161</span>    }<a name="line.161"></a>
 <span class="sourceLineNo">162</span><a name="line.162"></a>
-<span class="sourceLineNo">163</span><a name="line.163">    /**</a>
-<span class="sourceLineNo">164</span><a name="line.164">     * Returns the subset of channels that are assignable to the given type.</a>
-<span class="sourceLineNo">165</span><a name="line.165">     * </a>
-<span class="sourceLineNo">166</span><a name="line.166">     * @param &lt;C&gt; the given type's class</a>
-<span class="sourceLineNo">167</span><a name="line.167">     * @param type the class to look for</a>
-<span class="sourceLineNo">168</span><a name="line.168">     * @return the filtered channels</a>
-<span class="sourceLineNo">169</span><a name="line.169">     * @see #channels()</a>
-<span class="sourceLineNo">170</span><a name="line.170">     */</a>
-<span class="sourceLineNo">171</span><a name="line.171">    @SuppressWarnings({ "unchecked", "PMD.ShortVariable",</a>
-<span class="sourceLineNo">172</span><a name="line.172">        "PMD.AvoidDuplicateLiterals" })</a>
-<span class="sourceLineNo">173</span><a name="line.173">    public &lt;C&gt; C[] channels(Class&lt;C&gt; type) {</a>
-<span class="sourceLineNo">174</span><a name="line.174">        return Arrays.stream(channels)</a>
-<span class="sourceLineNo">175</span><a name="line.175">            .filter(c -&gt; type.isAssignableFrom(c.getClass())).toArray(</a>
-<span class="sourceLineNo">176</span><a name="line.176">                size -&gt; (C[]) Array.newInstance(type, size));</a>
-<span class="sourceLineNo">177</span><a name="line.177">    }</a>
+<span class="sourceLineNo">163</span>    /**<a name="line.163"></a>
+<span class="sourceLineNo">164</span>     * Returns the subset of channels that are assignable to the given type.<a name="line.164"></a>
+<span class="sourceLineNo">165</span>     * <a name="line.165"></a>
+<span class="sourceLineNo">166</span>     * @param &lt;C&gt; the given type's class<a name="line.166"></a>
+<span class="sourceLineNo">167</span>     * @param type the class to look for<a name="line.167"></a>
+<span class="sourceLineNo">168</span>     * @return the filtered channels<a name="line.168"></a>
+<span class="sourceLineNo">169</span>     * @see #channels()<a name="line.169"></a>
+<span class="sourceLineNo">170</span>     */<a name="line.170"></a>
+<span class="sourceLineNo">171</span>    @SuppressWarnings({ "unchecked", "PMD.ShortVariable",<a name="line.171"></a>
+<span class="sourceLineNo">172</span>        "PMD.AvoidDuplicateLiterals" })<a name="line.172"></a>
+<span class="sourceLineNo">173</span>    public &lt;C&gt; C[] channels(Class&lt;C&gt; type) {<a name="line.173"></a>
+<span class="sourceLineNo">174</span>        return Arrays.stream(channels)<a name="line.174"></a>
+<span class="sourceLineNo">175</span>            .filter(c -&gt; type.isAssignableFrom(c.getClass())).toArray(<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                size -&gt; (C[]) Array.newInstance(type, size));<a name="line.176"></a>
+<span class="sourceLineNo">177</span>    }<a name="line.177"></a>
 <span class="sourceLineNo">178</span><a name="line.178"></a>
-<span class="sourceLineNo">179</span><a name="line.179">    /**</a>
-<span class="sourceLineNo">180</span><a name="line.180">     * Execute the given handler for all channels of the given type.</a>
-<span class="sourceLineNo">181</span><a name="line.181">     * </a>
-<span class="sourceLineNo">182</span><a name="line.182">     * @param &lt;E&gt; the type of the event</a>
-<span class="sourceLineNo">183</span><a name="line.183">     * @param &lt;C&gt; the type of the channel</a>
-<span class="sourceLineNo">184</span><a name="line.184">     * @param type the channel type</a>
-<span class="sourceLineNo">185</span><a name="line.185">     * @param handler the handler</a>
-<span class="sourceLineNo">186</span><a name="line.186">     */</a>
-<span class="sourceLineNo">187</span><a name="line.187">    @SuppressWarnings({ "unchecked", "PMD.ShortVariable" })</a>
-<span class="sourceLineNo">188</span><a name="line.188">    public &lt;E extends EventBase&lt;?&gt;, C extends Channel&gt; void forChannels(</a>
-<span class="sourceLineNo">189</span><a name="line.189">            Class&lt;C&gt; type, BiConsumer&lt;E, C&gt; handler) {</a>
-<span class="sourceLineNo">190</span><a name="line.190">        Arrays.stream(channels)</a>
-<span class="sourceLineNo">191</span><a name="line.191">            .filter(c -&gt; type.isAssignableFrom(c.getClass()))</a>
-<span class="sourceLineNo">192</span><a name="line.192">            .forEach(c -&gt; handler.accept((E) this, (C) c));</a>
-<span class="sourceLineNo">193</span><a name="line.193">    }</a>
+<span class="sourceLineNo">179</span>    /**<a name="line.179"></a>
+<span class="sourceLineNo">180</span>     * Execute the given handler for all channels of the given type.<a name="line.180"></a>
+<span class="sourceLineNo">181</span>     * <a name="line.181"></a>
+<span class="sourceLineNo">182</span>     * @param &lt;E&gt; the type of the event<a name="line.182"></a>
+<span class="sourceLineNo">183</span>     * @param &lt;C&gt; the type of the channel<a name="line.183"></a>
+<span class="sourceLineNo">184</span>     * @param type the channel type<a name="line.184"></a>
+<span class="sourceLineNo">185</span>     * @param handler the handler<a name="line.185"></a>
+<span class="sourceLineNo">186</span>     */<a name="line.186"></a>
+<span class="sourceLineNo">187</span>    @SuppressWarnings({ "unchecked", "PMD.ShortVariable" })<a name="line.187"></a>
+<span class="sourceLineNo">188</span>    public &lt;E extends EventBase&lt;?&gt;, C extends Channel&gt; void forChannels(<a name="line.188"></a>
+<span class="sourceLineNo">189</span>            Class&lt;C&gt; type, BiConsumer&lt;E, C&gt; handler) {<a name="line.189"></a>
+<span class="sourceLineNo">190</span>        Arrays.stream(channels)<a name="line.190"></a>
+<span class="sourceLineNo">191</span>            .filter(c -&gt; type.isAssignableFrom(c.getClass()))<a name="line.191"></a>
+<span class="sourceLineNo">192</span>            .forEach(c -&gt; handler.accept((E) this, (C) c));<a name="line.192"></a>
+<span class="sourceLineNo">193</span>    }<a name="line.193"></a>
 <span class="sourceLineNo">194</span><a name="line.194"></a>
-<span class="sourceLineNo">195</span><a name="line.195">    /**</a>
-<span class="sourceLineNo">196</span><a name="line.196">     * Returns the events to be thrown when this event has completed</a>
-<span class="sourceLineNo">197</span><a name="line.197">     * (see {@link #isDone()}).</a>
-<span class="sourceLineNo">198</span><a name="line.198">     * </a>
-<span class="sourceLineNo">199</span><a name="line.199">     * @return the completed events</a>
-<span class="sourceLineNo">200</span><a name="line.200">     */</a>
-<span class="sourceLineNo">201</span><a name="line.201">    public Set&lt;Event&lt;?&gt;&gt; completionEvents() {</a>
-<span class="sourceLineNo">202</span><a name="line.202">        return completionEvents == null ? Collections.emptySet()</a>
-<span class="sourceLineNo">203</span><a name="line.203">            : Collections.unmodifiableSet(completionEvents);</a>
-<span class="sourceLineNo">204</span><a name="line.204">    }</a>
+<span class="sourceLineNo">195</span>    /**<a name="line.195"></a>
+<span class="sourceLineNo">196</span>     * Returns the events to be thrown when this event has completed<a name="line.196"></a>
+<span class="sourceLineNo">197</span>     * (see {@link #isDone()}).<a name="line.197"></a>
+<span class="sourceLineNo">198</span>     * <a name="line.198"></a>
+<span class="sourceLineNo">199</span>     * @return the completed events<a name="line.199"></a>
+<span class="sourceLineNo">200</span>     */<a name="line.200"></a>
+<span class="sourceLineNo">201</span>    public Set&lt;Event&lt;?&gt;&gt; completionEvents() {<a name="line.201"></a>
+<span class="sourceLineNo">202</span>        return completionEvents == null ? Collections.emptySet()<a name="line.202"></a>
+<span class="sourceLineNo">203</span>            : Collections.unmodifiableSet(completionEvents);<a name="line.203"></a>
+<span class="sourceLineNo">204</span>    }<a name="line.204"></a>
 <span class="sourceLineNo">205</span><a name="line.205"></a>
-<span class="sourceLineNo">206</span><a name="line.206">    /**</a>
-<span class="sourceLineNo">207</span><a name="line.207">     * Adds the given event to the events to be thrown when this event </a>
-<span class="sourceLineNo">208</span><a name="line.208">     * has completed (see {@link #isDone()}). Such an event is called </a>
-<span class="sourceLineNo">209</span><a name="line.209">     * a "completion event".</a>
-<span class="sourceLineNo">210</span><a name="line.210">     * </a>
-<span class="sourceLineNo">211</span><a name="line.211">     * Completion events are considered to be caused by the event that </a>
-<span class="sourceLineNo">212</span><a name="line.212">     * caused the completed event. If an event *e1* caused an event</a>
-<span class="sourceLineNo">213</span><a name="line.213">     * *e2* which has a completion event *e2c*, *e1* is only put in </a>
-<span class="sourceLineNo">214</span><a name="line.214">     * state completed when *e2c* has been handled.</a>
-<span class="sourceLineNo">215</span><a name="line.215">     * </a>
-<span class="sourceLineNo">216</span><a name="line.216">     * Completion events are handled by the same {@link EventProcessor}</a>
-<span class="sourceLineNo">217</span><a name="line.217">     * as the event that has been completed.</a>
-<span class="sourceLineNo">218</span><a name="line.218">     * </a>
-<span class="sourceLineNo">219</span><a name="line.219">     * @param completionEvent the completion event to add</a>
-<span class="sourceLineNo">220</span><a name="line.220">     * @return the object for easy chaining</a>
-<span class="sourceLineNo">221</span><a name="line.221">     */</a>
-<span class="sourceLineNo">222</span><a name="line.222">    public Event&lt;T&gt; addCompletionEvent(Event&lt;?&gt; completionEvent) {</a>
-<span class="sourceLineNo">223</span><a name="line.223">        if (completionEvents == null) {</a>
-<span class="sourceLineNo">224</span><a name="line.224">            completionEvents = new HashSet&lt;&gt;();</a>
-<span class="sourceLineNo">225</span><a name="line.225">        }</a>
-<span class="sourceLineNo">226</span><a name="line.226">        completionEvents.add(completionEvent);</a>
-<span class="sourceLineNo">227</span><a name="line.227">        return this;</a>
-<span class="sourceLineNo">228</span><a name="line.228">    }</a>
+<span class="sourceLineNo">206</span>    /**<a name="line.206"></a>
+<span class="sourceLineNo">207</span>     * Adds the given event to the events to be thrown when this event <a name="line.207"></a>
+<span class="sourceLineNo">208</span>     * has completed (see {@link #isDone()}). Such an event is called <a name="line.208"></a>
+<span class="sourceLineNo">209</span>     * a "completion event".<a name="line.209"></a>
+<span class="sourceLineNo">210</span>     * <a name="line.210"></a>
+<span class="sourceLineNo">211</span>     * Completion events are considered to be caused by the event that <a name="line.211"></a>
+<span class="sourceLineNo">212</span>     * caused the completed event. If an event *e1* caused an event<a name="line.212"></a>
+<span class="sourceLineNo">213</span>     * *e2* which has a completion event *e2c*, *e1* is only put in <a name="line.213"></a>
+<span class="sourceLineNo">214</span>     * state completed when *e2c* has been handled.<a name="line.214"></a>
+<span class="sourceLineNo">215</span>     * <a name="line.215"></a>
+<span class="sourceLineNo">216</span>     * Completion events are handled by the same {@link EventProcessor}<a name="line.216"></a>
+<span class="sourceLineNo">217</span>     * as the event that has been completed.<a name="line.217"></a>
+<span class="sourceLineNo">218</span>     * <a name="line.218"></a>
+<span class="sourceLineNo">219</span>     * @param completionEvent the completion event to add<a name="line.219"></a>
+<span class="sourceLineNo">220</span>     * @return the object for easy chaining<a name="line.220"></a>
+<span class="sourceLineNo">221</span>     */<a name="line.221"></a>
+<span class="sourceLineNo">222</span>    public Event&lt;T&gt; addCompletionEvent(Event&lt;?&gt; completionEvent) {<a name="line.222"></a>
+<span class="sourceLineNo">223</span>        if (completionEvents == null) {<a name="line.223"></a>
+<span class="sourceLineNo">224</span>            completionEvents = new HashSet&lt;&gt;();<a name="line.224"></a>
+<span class="sourceLineNo">225</span>        }<a name="line.225"></a>
+<span class="sourceLineNo">226</span>        completionEvents.add(completionEvent);<a name="line.226"></a>
+<span class="sourceLineNo">227</span>        return this;<a name="line.227"></a>
+<span class="sourceLineNo">228</span>    }<a name="line.228"></a>
 <span class="sourceLineNo">229</span><a name="line.229"></a>
-<span class="sourceLineNo">230</span><a name="line.230">    /*</a>
-<span class="sourceLineNo">231</span><a name="line.231">     * (non-Javadoc)</a>
-<span class="sourceLineNo">232</span><a name="line.232">     * </a>
-<span class="sourceLineNo">233</span><a name="line.233">     * @see org.jgrapes.core.internal.EventBase#setRequiresResult(boolean)</a>
-<span class="sourceLineNo">234</span><a name="line.234">     */</a>
-<span class="sourceLineNo">235</span><a name="line.235">    @Override</a>
-<span class="sourceLineNo">236</span><a name="line.236">    public Event&lt;T&gt; setRequiresResult(boolean value) {</a>
-<span class="sourceLineNo">237</span><a name="line.237">        return (Event&lt;T&gt;) super.setRequiresResult(value);</a>
-<span class="sourceLineNo">238</span><a name="line.238">    }</a>
+<span class="sourceLineNo">230</span>    /*<a name="line.230"></a>
+<span class="sourceLineNo">231</span>     * (non-Javadoc)<a name="line.231"></a>
+<span class="sourceLineNo">232</span>     * <a name="line.232"></a>
+<span class="sourceLineNo">233</span>     * @see org.jgrapes.core.internal.EventBase#setRequiresResult(boolean)<a name="line.233"></a>
+<span class="sourceLineNo">234</span>     */<a name="line.234"></a>
+<span class="sourceLineNo">235</span>    @Override<a name="line.235"></a>
+<span class="sourceLineNo">236</span>    public Event&lt;T&gt; setRequiresResult(boolean value) {<a name="line.236"></a>
+<span class="sourceLineNo">237</span>        return (Event&lt;T&gt;) super.setRequiresResult(value);<a name="line.237"></a>
+<span class="sourceLineNo">238</span>    }<a name="line.238"></a>
 <span class="sourceLineNo">239</span><a name="line.239"></a>
-<span class="sourceLineNo">240</span><a name="line.240">    /**</a>
-<span class="sourceLineNo">241</span><a name="line.241">     * Check if this event has completed. An event is completed</a>
-<span class="sourceLineNo">242</span><a name="line.242">     * if </a>
-<span class="sourceLineNo">243</span><a name="line.243">     *  * all its handlers have been invoked (or the event has</a>
-<span class="sourceLineNo">244</span><a name="line.244">     *    been stopped or cancelled), </a>
-<span class="sourceLineNo">245</span><a name="line.245">     *  * all events caused by it have completed,</a>
-<span class="sourceLineNo">246</span><a name="line.246">     *  * no {@link CompletionLock}s remain, and  </a>
-<span class="sourceLineNo">247</span><a name="line.247">     *  * a result has been set (only required if </a>
-<span class="sourceLineNo">248</span><a name="line.248">     *    {@link #setRequiresResult(boolean)} has been called with `true`).</a>
-<span class="sourceLineNo">249</span><a name="line.249">     * </a>
-<span class="sourceLineNo">250</span><a name="line.250">     * @return the completed state</a>
-<span class="sourceLineNo">251</span><a name="line.251">     */</a>
-<span class="sourceLineNo">252</span><a name="line.252">    @Override</a>
-<span class="sourceLineNo">253</span><a name="line.253">    public boolean isDone() {</a>
-<span class="sourceLineNo">254</span><a name="line.254">        return completed;</a>
-<span class="sourceLineNo">255</span><a name="line.255">    }</a>
+<span class="sourceLineNo">240</span>    /**<a name="line.240"></a>
+<span class="sourceLineNo">241</span>     * Check if this event has completed. An event is completed<a name="line.241"></a>
+<span class="sourceLineNo">242</span>     * if <a name="line.242"></a>
+<span class="sourceLineNo">243</span>     *  * all its handlers have been invoked (or the event has<a name="line.243"></a>
+<span class="sourceLineNo">244</span>     *    been stopped or cancelled), <a name="line.244"></a>
+<span class="sourceLineNo">245</span>     *  * all events caused by it have completed,<a name="line.245"></a>
+<span class="sourceLineNo">246</span>     *  * no {@link CompletionLock}s remain, and  <a name="line.246"></a>
+<span class="sourceLineNo">247</span>     *  * a result has been set (only required if <a name="line.247"></a>
+<span class="sourceLineNo">248</span>     *    {@link #setRequiresResult(boolean)} has been called with `true`).<a name="line.248"></a>
+<span class="sourceLineNo">249</span>     * <a name="line.249"></a>
+<span class="sourceLineNo">250</span>     * @return the completed state<a name="line.250"></a>
+<span class="sourceLineNo">251</span>     */<a name="line.251"></a>
+<span class="sourceLineNo">252</span>    @Override<a name="line.252"></a>
+<span class="sourceLineNo">253</span>    public boolean isDone() {<a name="line.253"></a>
+<span class="sourceLineNo">254</span>        return completed;<a name="line.254"></a>
+<span class="sourceLineNo">255</span>    }<a name="line.255"></a>
 <span class="sourceLineNo">256</span><a name="line.256"></a>
-<span class="sourceLineNo">257</span><a name="line.257">    /**</a>
-<span class="sourceLineNo">258</span><a name="line.258">     * Invoked after all handlers for the event have been executed. </a>
-<span class="sourceLineNo">259</span><a name="line.259">     * May be overridden by derived classes to cause some immediate effect</a>
-<span class="sourceLineNo">260</span><a name="line.260">     * (instead of e.g. waiting for the completion event). The default </a>
-<span class="sourceLineNo">261</span><a name="line.261">     * implementation does nothing. This method is invoked by the event </a>
-<span class="sourceLineNo">262</span><a name="line.262">     * handler thread and must not block.</a>
-<span class="sourceLineNo">263</span><a name="line.263">     */</a>
-<span class="sourceLineNo">264</span><a name="line.264">    protected void handled() {</a>
-<span class="sourceLineNo">265</span><a name="line.265">        // Default is to do nothing.</a>
-<span class="sourceLineNo">266</span><a name="line.266">    }</a>
+<span class="sourceLineNo">257</span>    /**<a name="line.257"></a>
+<span class="sourceLineNo">258</span>     * Invoked after all handlers for the event have been executed. <a name="line.258"></a>
+<span class="sourceLineNo">259</span>     * May be overridden by derived classes to cause some immediate effect<a name="line.259"></a>
+<span class="sourceLineNo">260</span>     * (instead of e.g. waiting for the completion event). The default <a name="line.260"></a>
+<span class="sourceLineNo">261</span>     * implementation does nothing. This method is invoked by the event <a name="line.261"></a>
+<span class="sourceLineNo">262</span>     * handler thread and must not block.<a name="line.262"></a>
+<span class="sourceLineNo">263</span>     */<a name="line.263"></a>
+<span class="sourceLineNo">264</span>    protected void handled() {<a name="line.264"></a>
+<span class="sourceLineNo">265</span>        // Default is to do nothing.<a name="line.265"></a>
+<span class="sourceLineNo">266</span>    }<a name="line.266"></a>
 <span class="sourceLineNo">267</span><a name="line.267"></a>
-<span class="sourceLineNo">268</span><a name="line.268">    /**</a>
-<span class="sourceLineNo">269</span><a name="line.269">     * Can be called during the execution of an event handler to indicate</a>
-<span class="sourceLineNo">270</span><a name="line.270">     * that the event should not be processed further. All remaining </a>
-<span class="sourceLineNo">271</span><a name="line.271">     * handlers for this event will be skipped.</a>
-<span class="sourceLineNo">272</span><a name="line.272">     * </a>
-<span class="sourceLineNo">273</span><a name="line.273">     * @return the object for easy chaining</a>
-<span class="sourceLineNo">274</span><a name="line.274">     */</a>
-<span class="sourceLineNo">275</span><a name="line.275">    public Event&lt;T&gt; stop() {</a>
-<span class="sourceLineNo">276</span><a name="line.276">        stopped = true;</a>
-<span class="sourceLineNo">277</span><a name="line.277">        return this;</a>
-<span class="sourceLineNo">278</span><a name="line.278">    }</a>
+<span class="sourceLineNo">268</span>    /**<a name="line.268"></a>
+<span class="sourceLineNo">269</span>     * Can be called during the execution of an event handler to indicate<a name="line.269"></a>
+<span class="sourceLineNo">270</span>     * that the event should not be processed further. All remaining <a name="line.270"></a>
+<span class="sourceLineNo">271</span>     * handlers for this event will be skipped.<a name="line.271"></a>
+<span class="sourceLineNo">272</span>     * <a name="line.272"></a>
+<span class="sourceLineNo">273</span>     * @return the object for easy chaining<a name="line.273"></a>
+<span class="sourceLineNo">274</span>     */<a name="line.274"></a>
+<span class="sourceLineNo">275</span>    public Event&lt;T&gt; stop() {<a name="line.275"></a>
+<span class="sourceLineNo">276</span>        stopped = true;<a name="line.276"></a>
+<span class="sourceLineNo">277</span>        return this;<a name="line.277"></a>
+<span class="sourceLineNo">278</span>    }<a name="line.278"></a>
 <span class="sourceLineNo">279</span><a name="line.279"></a>
-<span class="sourceLineNo">280</span><a name="line.280">    /**</a>
-<span class="sourceLineNo">281</span><a name="line.281">     * Returns &lt;code&gt;true&lt;/code&gt; if {@link #stop} has been called.</a>
-<span class="sourceLineNo">282</span><a name="line.282">     * </a>
-<span class="sourceLineNo">283</span><a name="line.283">     * @return the stopped state</a>
-<span class="sourceLineNo">284</span><a name="line.284">     */</a>
-<span class="sourceLineNo">285</span><a name="line.285">    public boolean isStopped() {</a>
-<span class="sourceLineNo">286</span><a name="line.286">        return stopped;</a>
-<span class="sourceLineNo">287</span><a name="line.287">    }</a>
+<span class="sourceLineNo">280</span>    /**<a name="line.280"></a>
+<span class="sourceLineNo">281</span>     * Returns &lt;code&gt;true&lt;/code&gt; if {@link #stop} has been called.<a name="line.281"></a>
+<span class="sourceLineNo">282</span>     * <a name="line.282"></a>
+<span class="sourceLineNo">283</span>     * @return the stopped state<a name="line.283"></a>
+<span class="sourceLineNo">284</span>     */<a name="line.284"></a>
+<span class="sourceLineNo">285</span>    public boolean isStopped() {<a name="line.285"></a>
+<span class="sourceLineNo">286</span>        return stopped;<a name="line.286"></a>
+<span class="sourceLineNo">287</span>    }<a name="line.287"></a>
 <span class="sourceLineNo">288</span><a name="line.288"></a>
-<span class="sourceLineNo">289</span><a name="line.289">    /**</a>
-<span class="sourceLineNo">290</span><a name="line.290">     * Prevents the invocation of further handlers (like {@link #stop()} </a>
-<span class="sourceLineNo">291</span><a name="line.291">     * and (in addition) the invocation of any added completed events.</a>
-<span class="sourceLineNo">292</span><a name="line.292">     * </a>
-<span class="sourceLineNo">293</span><a name="line.293">     * @param mayInterruptIfRunning ignored</a>
-<span class="sourceLineNo">294</span><a name="line.294">     * @return `false` if the event has already been completed</a>
-<span class="sourceLineNo">295</span><a name="line.295">     * @see java.util.concurrent.Future#cancel(boolean)</a>
-<span class="sourceLineNo">296</span><a name="line.296">     */</a>
-<span class="sourceLineNo">297</span><a name="line.297">    @Override</a>
-<span class="sourceLineNo">298</span><a name="line.298">    public boolean cancel(boolean mayInterruptIfRunning) {</a>
-<span class="sourceLineNo">299</span><a name="line.299">        if (!completed &amp;&amp; !cancelled) {</a>
-<span class="sourceLineNo">300</span><a name="line.300">            stop();</a>
-<span class="sourceLineNo">301</span><a name="line.301">            cancelled = true;</a>
-<span class="sourceLineNo">302</span><a name="line.302">            return true;</a>
-<span class="sourceLineNo">303</span><a name="line.303">        }</a>
-<span class="sourceLineNo">304</span><a name="line.304">        return false;</a>
-<span class="sourceLineNo">305</span><a name="line.305">    }</a>
+<span class="sourceLineNo">289</span>    /**<a name="line.289"></a>
+<span class="sourceLineNo">290</span>     * Prevents the invocation of further handlers (like {@link #stop()} <a name="line.290"></a>
+<span class="sourceLineNo">291</span>     * and (in addition) the invocation of any added completed events.<a name="line.291"></a>
+<span class="sourceLineNo">292</span>     * <a name="line.292"></a>
+<span class="sourceLineNo">293</span>     * @param mayInterruptIfRunning ignored<a name="line.293"></a>
+<span class="sourceLineNo">294</span>     * @return `false` if the event has already been completed<a name="line.294"></a>
+<span class="sourceLineNo">295</span>     * @see java.util.concurrent.Future#cancel(boolean)<a name="line.295"></a>
+<span class="sourceLineNo">296</span>     */<a name="line.296"></a>
+<span class="sourceLineNo">297</span>    @Override<a name="line.297"></a>
+<span class="sourceLineNo">298</span>    public boolean cancel(boolean mayInterruptIfRunning) {<a name="line.298"></a>
+<span class="sourceLineNo">299</span>        if (!completed &amp;&amp; !cancelled) {<a name="line.299"></a>
+<span class="sourceLineNo">300</span>            stop();<a name="line.300"></a>
+<span class="sourceLineNo">301</span>            cancelled = true;<a name="line.301"></a>
+<span class="sourceLineNo">302</span>            return true;<a name="line.302"></a>
+<span class="sourceLineNo">303</span>        }<a name="line.303"></a>
+<span class="sourceLineNo">304</span>        return false;<a name="line.304"></a>
+<span class="sourceLineNo">305</span>    }<a name="line.305"></a>
 <span class="sourceLineNo">306</span><a name="line.306"></a>
-<span class="sourceLineNo">307</span><a name="line.307">    @Override</a>
-<span class="sourceLineNo">308</span><a name="line.308">    public boolean isCancelled() {</a>
-<span class="sourceLineNo">309</span><a name="line.309">        return cancelled;</a>
-<span class="sourceLineNo">310</span><a name="line.310">    }</a>
+<span class="sourceLineNo">307</span>    @Override<a name="line.307"></a>
+<span class="sourceLineNo">308</span>    public boolean isCancelled() {<a name="line.308"></a>
+<span class="sourceLineNo">309</span>        return cancelled;<a name="line.309"></a>
+<span class="sourceLineNo">310</span>    }<a name="line.310"></a>
 <span class="sourceLineNo">311</span><a name="line.311"></a>
-<span class="sourceLineNo">312</span><a name="line.312">    /**</a>
-<span class="sourceLineNo">313</span><a name="line.313">     * Sets the result of handling this event. If this method is invoked </a>
-<span class="sourceLineNo">314</span><a name="line.314">     * more then once, the various results are collected in a list. This</a>
-<span class="sourceLineNo">315</span><a name="line.315">     * can happen if the event is handled by several components. </a>
-<span class="sourceLineNo">316</span><a name="line.316">     * </a>
-<span class="sourceLineNo">317</span><a name="line.317">     * @param result the result to set</a>
-<span class="sourceLineNo">318</span><a name="line.318">     * @return the object for easy chaining</a>
-<span class="sourceLineNo">319</span><a name="line.319">     */</a>
-<span class="sourceLineNo">320</span><a name="line.320">    public Event&lt;T&gt; setResult(T result) {</a>
-<span class="sourceLineNo">321</span><a name="line.321">        synchronized (this) {</a>
-<span class="sourceLineNo">322</span><a name="line.322">            if (results == null) {</a>
-<span class="sourceLineNo">323</span><a name="line.323">                // Make sure that we have a valid result before</a>
-<span class="sourceLineNo">324</span><a name="line.324">                // calling decrementOpen</a>
-<span class="sourceLineNo">325</span><a name="line.325">                results = new ArrayList&lt;T&gt;();</a>
-<span class="sourceLineNo">326</span><a name="line.326">                results.add(result);</a>
-<span class="sourceLineNo">327</span><a name="line.327">                firstResultAssigned();</a>
-<span class="sourceLineNo">328</span><a name="line.328">                return this;</a>
-<span class="sourceLineNo">329</span><a name="line.329">            }</a>
-<span class="sourceLineNo">330</span><a name="line.330">            results.add(result);</a>
-<span class="sourceLineNo">331</span><a name="line.331">            return this;</a>
-<span class="sourceLineNo">332</span><a name="line.332">        }</a>
-<span class="sourceLineNo">333</span><a name="line.333">    }</a>
+<span class="sourceLineNo">312</span>    /**<a name="line.312"></a>
+<span class="sourceLineNo">313</span>     * Sets the result of handling this event. If this method is invoked <a name="line.313"></a>
+<span class="sourceLineNo">314</span>     * more then once, the various results are collected in a list. This<a name="line.314"></a>
+<span class="sourceLineNo">315</span>     * can happen if the event is handled by several components. <a name="line.315"></a>
+<span class="sourceLineNo">316</span>     * <a name="line.316"></a>
+<span class="sourceLineNo">317</span>     * @param result the result to set<a name="line.317"></a>
+<span class="sourceLineNo">318</span>     * @return the object for easy chaining<a name="line.318"></a>
+<span class="sourceLineNo">319</span>     */<a name="line.319"></a>
+<span class="sourceLineNo">320</span>    public Event&lt;T&gt; setResult(T result) {<a name="line.320"></a>
+<span class="sourceLineNo">321</span>        synchronized (this) {<a name="line.321"></a>
+<span class="sourceLineNo">322</span>            if (results == null) {<a name="line.322"></a>
+<span class="sourceLineNo">323</span>                // Make sure that we have a valid result before<a name="line.323"></a>
+<span class="sourceLineNo">324</span>                // calling decrementOpen<a name="line.324"></a>
+<span class="sourceLineNo">325</span>                results = new ArrayList&lt;T&gt;();<a name="line.325"></a>
+<span class="sourceLineNo">326</span>                results.add(result);<a name="line.326"></a>
+<span class="sourceLineNo">327</span>                firstResultAssigned();<a name="line.327"></a>
+<span class="sourceLineNo">328</span>                return this;<a name="line.328"></a>
+<span class="sourceLineNo">329</span>            }<a name="line.329"></a>
+<span class="sourceLineNo">330</span>            results.add(result);<a name="line.330"></a>
+<span class="sourceLineNo">331</span>            return this;<a name="line.331"></a>
+<span class="sourceLineNo">332</span>        }<a name="line.332"></a>
+<span class="sourceLineNo">333</span>    }<a name="line.333"></a>
 <span class="sourceLineNo">334</span><a name="line.334"></a>
-<span class="sourceLineNo">335</span><a name="line.335">    /**</a>
-<span class="sourceLineNo">336</span><a name="line.336">     * Allows access to the intermediate result before the </a>
-<span class="sourceLineNo">337</span><a name="line.337">     * completion of the event. </a>
-<span class="sourceLineNo">338</span><a name="line.338">     * </a>
-<span class="sourceLineNo">339</span><a name="line.339">     * @return the intermediate results (which may be an empty list)</a>
-<span class="sourceLineNo">340</span><a name="line.340">     */</a>
-<span class="sourceLineNo">341</span><a name="line.341">    protected List&lt;T&gt; currentResults() {</a>
-<span class="sourceLineNo">342</span><a name="line.342">        return results == null ? Collections.emptyList()</a>
-<span class="sourceLineNo">343</span><a name="line.343">            : Collections.unmodifiableList(results);</a>
-<span class="sourceLineNo">344</span><a name="line.344">    }</a>
+<span class="sourceLineNo">335</span>    /**<a name="line.335"></a>
+<span class="sourceLineNo">336</span>     * Allows access to the intermediate result before the <a name="line.336"></a>
+<span class="sourceLineNo">337</span>     * completion of the event. <a name="line.337"></a>
+<span class="sourceLineNo">338</span>     * <a name="line.338"></a>
+<span class="sourceLineNo">339</span>     * @return the intermediate results (which may be an empty list)<a name="line.339"></a>
+<span class="sourceLineNo">340</span>     */<a name="line.340"></a>
+<span class="sourceLineNo">341</span>    protected List&lt;T&gt; currentResults() {<a name="line.341"></a>
+<span class="sourceLineNo">342</span>        return results == null ? Collections.emptyList()<a name="line.342"></a>
+<span class="sourceLineNo">343</span>            : Collections.unmodifiableList(results);<a name="line.343"></a>
+<span class="sourceLineNo">344</span>    }<a name="line.344"></a>
 <span class="sourceLineNo">345</span><a name="line.345"></a>
-<span class="sourceLineNo">346</span><a name="line.346">    /**</a>
-<span class="sourceLineNo">347</span><a name="line.347">     * Tie the result of this event to the result of the other event.</a>
-<span class="sourceLineNo">348</span><a name="line.348">     * Changes of either event's results will subsequently be applied</a>
-<span class="sourceLineNo">349</span><a name="line.349">     * to both events.</a>
-<span class="sourceLineNo">350</span><a name="line.350">     * &lt;P&gt;</a>
-<span class="sourceLineNo">351</span><a name="line.351">     * This is useful when an event is replaced by another event during</a>
-<span class="sourceLineNo">352</span><a name="line.352">     * handling like:</a>
-<span class="sourceLineNo">353</span><a name="line.353">     * {@code fire((new Event()).tieTo(oldEvent.stop()))}  </a>
-<span class="sourceLineNo">354</span><a name="line.354">     * </a>
-<span class="sourceLineNo">355</span><a name="line.355">     * @param other the event to tie to</a>
-<span class="sourceLineNo">356</span><a name="line.356">     * @return the object for easy chaining</a>
-<span class="sourceLineNo">357</span><a name="line.357">     */</a>
-<span class="sourceLineNo">358</span><a name="line.358">    public Event&lt;T&gt; tieTo(Event&lt;T&gt; other) {</a>
-<span class="sourceLineNo">359</span><a name="line.359">        synchronized (this) {</a>
-<span class="sourceLineNo">360</span><a name="line.360">            if (other.results == null) {</a>
-<span class="sourceLineNo">361</span><a name="line.361">                other.results = new ArrayList&lt;T&gt;();</a>
-<span class="sourceLineNo">362</span><a name="line.362">            }</a>
-<span class="sourceLineNo">363</span><a name="line.363">            results = other.results;</a>
-<span class="sourceLineNo">364</span><a name="line.364">            return this;</a>
-<span class="sourceLineNo">365</span><a name="line.365">        }</a>
-<span class="sourceLineNo">366</span><a name="line.366">    }</a>
+<span class="sourceLineNo">346</span>    /**<a name="line.346"></a>
+<span class="sourceLineNo">347</span>     * Tie the result of this event to the result of the other event.<a name="line.347"></a>
+<span class="sourceLineNo">348</span>     * Changes of either event's results will subsequently be applied<a name="line.348"></a>
+<span class="sourceLineNo">349</span>     * to both events.<a name="line.349"></a>
+<span class="sourceLineNo">350</span>     * &lt;P&gt;<a name="line.350"></a>
+<span class="sourceLineNo">351</span>     * This is useful when an event is replaced by another event during<a name="line.351"></a>
+<span class="sourceLineNo">352</span>     * handling like:<a name="line.352"></a>
+<span class="sourceLineNo">353</span>     * {@code fire((new Event()).tieTo(oldEvent.stop()))}  <a name="line.353"></a>
+<span class="sourceLineNo">354</span>     * <a name="line.354"></a>
+<span class="sourceLineNo">355</span>     * @param other the event to tie to<a name="line.355"></a>
+<span class="sourceLineNo">356</span>     * @return the object for easy chaining<a name="line.356"></a>
+<span class="sourceLineNo">357</span>     */<a name="line.357"></a>
+<span class="sourceLineNo">358</span>    public Event&lt;T&gt; tieTo(Event&lt;T&gt; other) {<a name="line.358"></a>
+<span class="sourceLineNo">359</span>        synchronized (this) {<a name="line.359"></a>
+<span class="sourceLineNo">360</span>            if (other.results == null) {<a name="line.360"></a>
+<span class="sourceLineNo">361</span>                other.results = new ArrayList&lt;T&gt;();<a name="line.361"></a>
+<span class="sourceLineNo">362</span>            }<a name="line.362"></a>
+<span class="sourceLineNo">363</span>            results = other.results;<a name="line.363"></a>
+<span class="sourceLineNo">364</span>            return this;<a name="line.364"></a>
+<span class="sourceLineNo">365</span>        }<a name="line.365"></a>
+<span class="sourceLineNo">366</span>    }<a name="line.366"></a>
 <span class="sourceLineNo">367</span><a name="line.367"></a>
-<span class="sourceLineNo">368</span><a name="line.368">    /**</a>
-<span class="sourceLineNo">369</span><a name="line.369">     * Waits for the event to be completed (see {@link #isDone()})</a>
-<span class="sourceLineNo">370</span><a name="line.370">     * and returns the first (or only) result.</a>
-<span class="sourceLineNo">371</span><a name="line.371">     * </a>
-<span class="sourceLineNo">372</span><a name="line.372">     * @see Future#get()</a>
-<span class="sourceLineNo">373</span><a name="line.373">     */</a>
-<span class="sourceLineNo">374</span><a name="line.374">    @Override</a>
-<span class="sourceLineNo">375</span><a name="line.375">    public T get() throws InterruptedException {</a>
-<span class="sourceLineNo">376</span><a name="line.376">        while (true) {</a>
-<span class="sourceLineNo">377</span><a name="line.377">            synchronized (this) {</a>
-<span class="sourceLineNo">378</span><a name="line.378">                if (completed) {</a>
-<span class="sourceLineNo">379</span><a name="line.379">                    return results == null || results.isEmpty()</a>
-<span class="sourceLineNo">380</span><a name="line.380">                        ? null</a>
-<span class="sourceLineNo">381</span><a name="line.381">                        : results.get(0);</a>
-<span class="sourceLineNo">382</span><a name="line.382">                }</a>
-<span class="sourceLineNo">383</span><a name="line.383">                wait();</a>
-<span class="sourceLineNo">384</span><a name="line.384">            }</a>
-<span class="sourceLineNo">385</span><a name="line.385">        }</a>
-<span class="sourceLineNo">386</span><a name="line.386">    }</a>
+<span class="sourceLineNo">368</span>    /**<a name="line.368"></a>
+<span class="sourceLineNo">369</span>     * Waits for the event to be completed (see {@link #isDone()})<a name="line.369"></a>
+<span class="sourceLineNo">370</span>     * and returns the first (or only) result.<a name="line.370"></a>
+<span class="sourceLineNo">371</span>     * <a name="line.371"></a>
+<span class="sourceLineNo">372</span>     * @see Future#get()<a name="line.372"></a>
+<span class="sourceLineNo">373</span>     */<a name="line.373"></a>
+<span class="sourceLineNo">374</span>    @Override<a name="line.374"></a>
+<span class="sourceLineNo">375</span>    public T get() throws InterruptedException {<a name="line.375"></a>
+<span class="sourceLineNo">376</span>        while (true) {<a name="line.376"></a>
+<span class="sourceLineNo">377</span>            synchronized (this) {<a name="line.377"></a>
+<span class="sourceLineNo">378</span>                if (completed) {<a name="line.378"></a>
+<span class="sourceLineNo">379</span>                    return results == null || results.isEmpty()<a name="line.379"></a>
+<span class="sourceLineNo">380</span>                        ? null<a name="line.380"></a>
+<span class="sourceLineNo">381</span>                        : results.get(0);<a name="line.381"></a>
+<span class="sourceLineNo">382</span>                }<a name="line.382"></a>
+<span class="sourceLineNo">383</span>                wait();<a name="line.383"></a>
+<span class="sourceLineNo">384</span>            }<a name="line.384"></a>
+<span class="sourceLineNo">385</span>        }<a name="line.385"></a>
+<span class="sourceLineNo">386</span>    }<a name="line.386"></a>
 <span class="sourceLineNo">387</span><a name="line.387"></a>
-<span class="sourceLineNo">388</span><a name="line.388">    /**</a>
-<span class="sourceLineNo">389</span><a name="line.389">     * Causes the invoking thread to wait until the processing of the </a>
-<span class="sourceLineNo">390</span><a name="line.390">     * event has been completed (see {@link #isDone()}) or the given </a>
-<span class="sourceLineNo">391</span><a name="line.391">     * timeout has expired and returns the first (or only) result. </a>
-<span class="sourceLineNo">392</span><a name="line.392">     * </a>
-<span class="sourceLineNo">393</span><a name="line.393">     * @return the result</a>
-<span class="sourceLineNo">394</span><a name="line.394">     * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)</a>
-<span class="sourceLineNo">395</span><a name="line.395">     */</a>
-<span class="sourceLineNo">396</span><a name="line.396">    @Override</a>
-<span class="sourceLineNo">397</span><a name="line.397">    public T get(long timeout, TimeUnit unit)</a>
-<span class="sourceLineNo">398</span><a name="line.398">            throws InterruptedException, TimeoutException {</a>
-<span class="sourceLineNo">399</span><a name="line.399">        synchronized (this) {</a>
-<span class="sourceLineNo">400</span><a name="line.400">            if (completed) {</a>
-<span class="sourceLineNo">401</span><a name="line.401">                return results == null || results.isEmpty()</a>
-<span class="sourceLineNo">402</span><a name="line.402">                    ? null</a>
-<span class="sourceLineNo">403</span><a name="line.403">                    : results.get(0);</a>
-<span class="sourceLineNo">404</span><a name="line.404">            }</a>
-<span class="sourceLineNo">405</span><a name="line.405">            wait(unit.toMillis(timeout));</a>
-<span class="sourceLineNo">406</span><a name="line.406">        }</a>
-<span class="sourceLineNo">407</span><a name="line.407">        if (completed) {</a>
-<span class="sourceLineNo">408</span><a name="line.408">            return results == null || results.isEmpty()</a>
-<span class="sourceLineNo">409</span><a name="line.409">                ? null</a>
-<span class="sourceLineNo">410</span><a name="line.410">                : results.get(0);</a>
-<span class="sourceLineNo">411</span><a name="line.411">        }</a>
-<span class="sourceLineNo">412</span><a name="line.412">        throw new TimeoutException();</a>
-<span class="sourceLineNo">413</span><a name="line.413">    }</a>
+<span class="sourceLineNo">388</span>    /**<a name="line.388"></a>
+<span class="sourceLineNo">389</span>     * Causes the invoking thread to wait until the processing of the <a name="line.389"></a>
+<span class="sourceLineNo">390</span>     * event has been completed (see {@link #isDone()}) or the given <a name="line.390"></a>
+<span class="sourceLineNo">391</span>     * timeout has expired and returns the first (or only) result. <a name="line.391"></a>
+<span class="sourceLineNo">392</span>     * <a name="line.392"></a>
+<span class="sourceLineNo">393</span>     * @return the result<a name="line.393"></a>
+<span class="sourceLineNo">394</span>     * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)<a name="line.394"></a>
+<span class="sourceLineNo">395</span>     */<a name="line.395"></a>
+<span class="sourceLineNo">396</span>    @Override<a name="line.396"></a>
+<span class="sourceLineNo">397</span>    public T get(long timeout, TimeUnit unit)<a name="line.397"></a>
+<span class="sourceLineNo">398</span>            throws InterruptedException, TimeoutException {<a name="line.398"></a>
+<span class="sourceLineNo">399</span>        synchronized (this) {<a name="line.399"></a>
+<span class="sourceLineNo">400</span>            if (completed) {<a name="line.400"></a>
+<span class="sourceLineNo">401</span>                return results == null || results.isEmpty()<a name="line.401"></a>
+<span class="sourceLineNo">402</span>                    ? null<a name="line.402"></a>
+<span class="sourceLineNo">403</span>                    : results.get(0);<a name="line.403"></a>
+<span class="sourceLineNo">404</span>            }<a name="line.404"></a>
+<span class="sourceLineNo">405</span>            wait(unit.toMillis(timeout));<a name="line.405"></a>
+<span class="sourceLineNo">406</span>        }<a name="line.406"></a>
+<span class="sourceLineNo">407</span>        if (completed) {<a name="line.407"></a>
+<span class="sourceLineNo">408</span>            return results == null || results.isEmpty()<a name="line.408"></a>
+<span class="sourceLineNo">409</span>                ? null<a name="line.409"></a>
+<span class="sourceLineNo">410</span>                : results.get(0);<a name="line.410"></a>
+<span class="sourceLineNo">411</span>        }<a name="line.411"></a>
+<span class="sourceLineNo">412</span>        throw new TimeoutException();<a name="line.412"></a>
+<span class="sourceLineNo">413</span>    }<a name="line.413"></a>
 <span class="sourceLineNo">414</span><a name="line.414"></a>
-<span class="sourceLineNo">415</span><a name="line.415">    /**</a>
-<span class="sourceLineNo">416</span><a name="line.416">     * Waits for the event to be completed (see {@link #isDone()})</a>
-<span class="sourceLineNo">417</span><a name="line.417">     * and returns the list of results (which may be empty if the</a>
-<span class="sourceLineNo">418</span><a name="line.418">     * event's result type is {@link Void}).</a>
-<span class="sourceLineNo">419</span><a name="line.419">     * </a>
-<span class="sourceLineNo">420</span><a name="line.420">     * @return the results</a>
-<span class="sourceLineNo">421</span><a name="line.421">     * @see Future#get()</a>
-<span class="sourceLineNo">422</span><a name="line.422">     */</a>
-<span class="sourceLineNo">423</span><a name="line.423">    public List&lt;T&gt; results() throws InterruptedException {</a>
-<span class="sourceLineNo">424</span><a name="line.424">        while (true) {</a>
-<span class="sourceLineNo">425</span><a name="line.425">            synchronized (this) {</a>
-<span class="sourceLineNo">426</span><a name="line.426">                if (completed) {</a>
-<span class="sourceLineNo">427</span><a name="line.427">                    return results == null ? Collections.emptyList()</a>
-<span class="sourceLineNo">428</span><a name="line.428">                        : Collections.unmodifiableList(results);</a>
-<span class="sourceLineNo">429</span><a name="line.429">                }</a>
-<span class="sourceLineNo">430</span><a name="line.430">                wait();</a>
-<span class="sourceLineNo">431</span><a name="line.431">            }</a>
-<span class="sourceLineNo">432</span><a name="line.432">        }</a>
-<span class="sourceLineNo">433</span><a name="line.433">    }</a>
+<span class="sourceLineNo">415</span>    /**<a name="line.415"></a>
+<span class="sourceLineNo">416</span>     * Waits for the event to be completed (see {@link #isDone()})<a name="line.416"></a>
+<span class="sourceLineNo">417</span>     * and returns the list of results (which may be empty if the<a name="line.417"></a>
+<span class="sourceLineNo">418</span>     * event's result type is {@link Void}).<a name="line.418"></a>
+<span class="sourceLineNo">419</span>     * <a name="line.419"></a>
+<span class="sourceLineNo">420</span>     * @return the results<a name="line.420"></a>
+<span class="sourceLineNo">421</span>     * @see Future#get()<a name="line.421"></a>
+<span class="sourceLineNo">422</span>     */<a name="line.422"></a>
+<span class="sourceLineNo">423</span>    public List&lt;T&gt; results() throws InterruptedException {<a name="line.423"></a>
+<span class="sourceLineNo">424</span>        while (true) {<a name="line.424"></a>
+<span class="sourceLineNo">425</span>            synchronized (this) {<a name="line.425"></a>
+<span class="sourceLineNo">426</span>                if (completed) {<a name="line.426"></a>
+<span class="sourceLineNo">427</span>                    return results == null ? Collections.emptyList()<a name="line.427"></a>
+<span class="sourceLineNo">428</span>                        : Collections.unmodifiableList(results);<a name="line.428"></a>
+<span class="sourceLineNo">429</span>                }<a name="line.429"></a>
+<span class="sourceLineNo">430</span>                wait();<a name="line.430"></a>
+<span class="sourceLineNo">431</span>            }<a name="line.431"></a>
+<span class="sourceLineNo">432</span>        }<a name="line.432"></a>
+<span class="sourceLineNo">433</span>    }<a name="line.433"></a>
 <span class="sourceLineNo">434</span><a name="line.434"></a>
-<span class="sourceLineNo">435</span><a name="line.435">    /**</a>
-<span class="sourceLineNo">436</span><a name="line.436">     * Causes the invoking thread to wait until the processing of the </a>
-<span class="sourceLineNo">437</span><a name="line.437">     * event has been completed (see {@link #isDone()}) or given timeout </a>
-<span class="sourceLineNo">438</span><a name="line.438">     * has expired and returns the list of results (which may be empty</a>
-<span class="sourceLineNo">439</span><a name="line.439">     * if the event's result type is {@link Void}). </a>
-<span class="sourceLineNo">440</span><a name="line.440">     * </a>
-<span class="sourceLineNo">441</span><a name="line.441">     * @return the results</a>
-<span class="sourceLineNo">442</span><a name="line.442">     * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)</a>
-<span class="sourceLineNo">443</span><a name="line.443">     */</a>
-<span class="sourceLineNo">444</span><a name="line.444">    public List&lt;T&gt; results(long timeout, TimeUnit unit)</a>
-<span class="sourceLineNo">445</span><a name="line.445">            throws InterruptedException, TimeoutException {</a>
-<span class="sourceLineNo">446</span><a name="line.446">        synchronized (this) {</a>
-<span class="sourceLineNo">447</span><a name="line.447">            if (completed) {</a>
-<span class="sourceLineNo">448</span><a name="line.448">                return results == null ? Collections.emptyList()</a>
-<span class="sourceLineNo">449</span><a name="line.449">                    : Collections.unmodifiableList(results);</a>
-<span class="sourceLineNo">450</span><a name="line.450">            }</a>
-<span class="sourceLineNo">451</span><a name="line.451">            wait(unit.toMillis(timeout));</a>
-<span class="sourceLineNo">452</span><a name="line.452">        }</a>
-<span class="sourceLineNo">453</span><a name="line.453">        if (completed) {</a>
-<span class="sourceLineNo">454</span><a name="line.454">            return results == null ? Collections.emptyList()</a>
-<span class="sourceLineNo">455</span><a name="line.455">                : Collections.unmodifiableList(results);</a>
-<span class="sourceLineNo">456</span><a name="line.456">        }</a>
-<span class="sourceLineNo">457</span><a name="line.457">        throw new TimeoutException();</a>
-<span class="sourceLineNo">458</span><a name="line.458">    }</a>
+<span class="sourceLineNo">435</span>    /**<a name="line.435"></a>
+<span class="sourceLineNo">436</span>     * Causes the invoking thread to wait until the processing of the <a name="line.436"></a>
+<span class="sourceLineNo">437</span>     * event has been completed (see {@link #isDone()}) or given timeout <a name="line.437"></a>
+<span class="sourceLineNo">438</span>     * has expired and returns the list of results (which may be empty<a name="line.438"></a>
+<span class="sourceLineNo">439</span>     * if the event's result type is {@link Void}). <a name="line.439"></a>
+<span class="sourceLineNo">440</span>     * <a name="line.440"></a>
+<span class="sourceLineNo">441</span>     * @return the results<a name="line.441"></a>
+<span class="sourceLineNo">442</span>     * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)<a name="line.442"></a>
+<span class="sourceLineNo">443</span>     */<a name="line.443"></a>
+<span class="sourceLineNo">444</span>    public List&lt;T&gt; results(long timeout, TimeUnit unit)<a name="line.444"></a>
+<span class="sourceLineNo">445</span>            throws InterruptedException, TimeoutException {<a name="line.445"></a>
+<span class="sourceLineNo">446</span>        synchronized (this) {<a name="line.446"></a>
+<span class="sourceLineNo">447</span>            if (completed) {<a name="line.447"></a>
+<span class="sourceLineNo">448</span>                return results == null ? Collections.emptyList()<a name="line.448"></a>
+<span class="sourceLineNo">449</span>                    : Collections.unmodifiableList(results);<a name="line.449"></a>
+<span class="sourceLineNo">450</span>            }<a name="line.450"></a>
+<span class="sourceLineNo">451</span>            wait(unit.toMillis(timeout));<a name="line.451"></a>
+<span class="sourceLineNo">452</span>        }<a name="line.452"></a>
+<span class="sourceLineNo">453</span>        if (completed) {<a name="line.453"></a>
+<span class="sourceLineNo">454</span>            return results == null ? Collections.emptyList()<a name="line.454"></a>
+<span class="sourceLineNo">455</span>                : Collections.unmodifiableList(results);<a name="line.455"></a>
+<span class="sourceLineNo">456</span>        }<a name="line.456"></a>
+<span class="sourceLineNo">457</span>        throw new TimeoutException();<a name="line.457"></a>
+<span class="sourceLineNo">458</span>    }<a name="line.458"></a>
 <span class="sourceLineNo">459</span><a name="line.459"></a>
-<span class="sourceLineNo">460</span><a name="line.460">    @Override</a>
-<span class="sourceLineNo">461</span><a name="line.461">    @SuppressWarnings("PMD.ShortVariable")</a>
-<span class="sourceLineNo">462</span><a name="line.462">    public Event&lt;T&gt; setAssociated(Object by, Object with) {</a>
-<span class="sourceLineNo">463</span><a name="line.463">        if (contextData == null) {</a>
-<span class="sourceLineNo">464</span><a name="line.464">            contextData = new ConcurrentHashMap&lt;&gt;();</a>
-<span class="sourceLineNo">465</span><a name="line.465">        }</a>
-<span class="sourceLineNo">466</span><a name="line.466">        if (with == null) {</a>
-<span class="sourceLineNo">467</span><a name="line.467">            contextData.remove(by);</a>
-<span class="sourceLineNo">468</span><a name="line.468">        } else {</a>
-<span class="sourceLineNo">469</span><a name="line.469">            contextData.put(by, with);</a>
-<span class="sourceLineNo">470</span><a name="line.470">        }</a>
-<span class="sourceLineNo">471</span><a name="line.471">        return this;</a>
-<span class="sourceLineNo">472</span><a name="line.472">    }</a>
+<span class="sourceLineNo">460</span>    @Override<a name="line.460"></a>
+<span class="sourceLineNo">461</span>    @SuppressWarnings("PMD.ShortVariable")<a name="line.461"></a>
+<span class="sourceLineNo">462</span>    public Event&lt;T&gt; setAssociated(Object by, Object with) {<a name="line.462"></a>
+<span class="sourceLineNo">463</span>        if (contextData == null) {<a name="line.463"></a>
+<span class="sourceLineNo">464</span>            contextData = new ConcurrentHashMap&lt;&gt;();<a name="line.464"></a>
+<span class="sourceLineNo">465</span>        }<a name="line.465"></a>
+<span class="sourceLineNo">466</span>        if (with == null) {<a name="line.466"></a>
+<span class="sourceLineNo">467</span>            contextData.remove(by);<a name="line.467"></a>
+<span class="sourceLineNo">468</span>        } else {<a name="line.468"></a>
+<span class="sourceLineNo">469</span>            contextData.put(by, with);<a name="line.469"></a>
+<span class="sourceLineNo">470</span>        }<a name="line.470"></a>
+<span class="sourceLineNo">471</span>        return this;<a name="line.471"></a>
+<span class="sourceLineNo">472</span>    }<a name="line.472"></a>
 <span class="sourceLineNo">473</span><a name="line.473"></a>
-<span class="sourceLineNo">474</span><a name="line.474">    @Override</a>
-<span class="sourceLineNo">475</span><a name="line.475">    @SuppressWarnings("PMD.ShortVariable")</a>
-<span class="sourceLineNo">476</span><a name="line.476">    public &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type) {</a>
-<span class="sourceLineNo">477</span><a name="line.477">        if (contextData == null) {</a>
-<span class="sourceLineNo">478</span><a name="line.478">            return Optional.empty();</a>
-<span class="sourceLineNo">479</span><a name="line.479">        }</a>
-<span class="sourceLineNo">480</span><a name="line.480">        return Optional.ofNullable(contextData.get(by))</a>
-<span class="sourceLineNo">481</span><a name="line.481">            .filter(found -&gt; type.isAssignableFrom(found.getClass()))</a>
-<span class="sourceLineNo">482</span><a name="line.482">            .map(match -&gt; type.cast(match));</a>
-<span class="sourceLineNo">483</span><a name="line.483">    }</a>
+<span class="sourceLineNo">474</span>    @Override<a name="line.474"></a>
+<span class="sourceLineNo">475</span>    @SuppressWarnings("PMD.ShortVariable")<a name="line.475"></a>
+<span class="sourceLineNo">476</span>    public &lt;V&gt; Optional&lt;V&gt; associated(Object by, Class&lt;V&gt; type) {<a name="line.476"></a>
+<span class="sourceLineNo">477</span>        if (contextData == null) {<a name="line.477"></a>
+<span class="sourceLineNo">478</span>            return Optional.empty();<a name="line.478"></a>
+<span class="sourceLineNo">479</span>        }<a name="line.479"></a>
+<span class="sourceLineNo">480</span>        return Optional.ofNullable(contextData.get(by))<a name="line.480"></a>
+<span class="sourceLineNo">481</span>            .filter(found -&gt; type.isAssignableFrom(found.getClass()))<a name="line.481"></a>
+<span class="sourceLineNo">482</span>            .map(match -&gt; type.cast(match));<a name="line.482"></a>
+<span class="sourceLineNo">483</span>    }<a name="line.483"></a>
 <span class="sourceLineNo">484</span><a name="line.484"></a>
-<span class="sourceLineNo">485</span><a name="line.485">    /*</a>
-<span class="sourceLineNo">486</span><a name="line.486">     * (non-Javadoc)</a>
-<span class="sourceLineNo">487</span><a name="line.487">     * </a>
-<span class="sourceLineNo">488</span><a name="line.488">     * @see java.lang.Object#toString()</a>
-<span class="sourceLineNo">489</span><a name="line.489">     */</a>
-<span class="sourceLineNo">490</span><a name="line.490">    @Override</a>
-<span class="sourceLineNo">491</span><a name="line.491">    public String toString() {</a>
-<span class="sourceLineNo">492</span><a name="line.492">        StringBuilder builder = new StringBuilder();</a>
-<span class="sourceLineNo">493</span><a name="line.493">        builder.append(Components.objectName(this))</a>
-<span class="sourceLineNo">494</span><a name="line.494">            .append(" [");</a>
-<span class="sourceLineNo">495</span><a name="line.495">        if (channels != null) {</a>
-<span class="sourceLineNo">496</span><a name="line.496">            builder.append("channels=");</a>
-<span class="sourceLineNo">497</span><a name="line.497">            builder.append(Channel.toString(channels));</a>
-<span class="sourceLineNo">498</span><a name="line.498">        }</a>
-<span class="sourceLineNo">499</span><a name="line.499">        builder.append(']');</a>
-<span class="sourceLineNo">500</span><a name="line.500">        return builder.toString();</a>
-<span class="sourceLineNo">501</span><a name="line.501">    }</a>
+<span class="sourceLineNo">485</span>    /*<a name="line.485"></a>
+<span class="sourceLineNo">486</span>     * (non-Javadoc)<a name="line.486"></a>
+<span class="sourceLineNo">487</span>     * <a name="line.487"></a>
+<span class="sourceLineNo">488</span>     * @see java.lang.Object#toString()<a name="line.488"></a>
+<span class="sourceLineNo">489</span>     */<a name="line.489"></a>
+<span class="sourceLineNo">490</span>    @Override<a name="line.490"></a>
+<span class="sourceLineNo">491</span>    public String toString() {<a name="line.491"></a>
+<span class="sourceLineNo">492</span>        StringBuilder builder = new StringBuilder();<a name="line.492"></a>
+<span class="sourceLineNo">493</span>        builder.append(Components.objectName(this))<a name="line.493"></a>
+<span class="sourceLineNo">494</span>            .append(" [");<a name="line.494"></a>
+<span class="sourceLineNo">495</span>        if (channels != null) {<a name="line.495"></a>
+<span class="sourceLineNo">496</span>            builder.append("channels=");<a name="line.496"></a>
+<span class="sourceLineNo">497</span>            builder.append(Channel.toString(channels));<a name="line.497"></a>
+<span class="sourceLineNo">498</span>        }<a name="line.498"></a>
+<span class="sourceLineNo">499</span>        builder.append(']');<a name="line.499"></a>
+<span class="sourceLineNo">500</span>        return builder.toString();<a name="line.500"></a>
+<span class="sourceLineNo">501</span>    }<a name="line.501"></a>
 <span class="sourceLineNo">502</span><a name="line.502"></a>
-<span class="sourceLineNo">503</span><a name="line.503">}</a>
+<span class="sourceLineNo">503</span>}<a name="line.503"></a>
 
 
 
