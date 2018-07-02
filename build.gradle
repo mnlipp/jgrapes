@@ -92,10 +92,12 @@ task stage {
 	description = 'To be executed by travis, build and update JavaDoc.'
 	group = 'build'
 	
-	// Build everything first
-	subprojects.tasks.each { tc -> dependsOn tc.findByName("build") }
-	// Publish JavaDoc
-	dependsOn gitPublishPush	
+    if (!isTravisBuild || JavaVersion.current().isJava8()) {
+    	// Build everything first
+    	subprojects.tasks.each { tc -> dependsOn tc.findByName("build") }
+    	// Publish JavaDoc
+    	dependsOn gitPublishPush
+    }	
 }
 
 apply plugin: 'eclipse'
