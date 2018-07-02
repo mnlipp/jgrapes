@@ -6,488 +6,488 @@
 </head>
 <body>
 <div class="sourceContainer">
-<pre><span class="sourceLineNo">001</span><a name="line.1">/*</a>
-<span class="sourceLineNo">002</span><a name="line.2"> * JGrapes Event Driven Framework</a>
-<span class="sourceLineNo">003</span><a name="line.3"> * Copyright (C) 2017-2018 Michael N. Lipp</a>
-<span class="sourceLineNo">004</span><a name="line.4"> * </a>
-<span class="sourceLineNo">005</span><a name="line.5"> * This program is free software; you can redistribute it and/or modify it </a>
-<span class="sourceLineNo">006</span><a name="line.6"> * under the terms of the GNU General Public License as published by </a>
-<span class="sourceLineNo">007</span><a name="line.7"> * the Free Software Foundation; either version 3 of the License, or </a>
-<span class="sourceLineNo">008</span><a name="line.8"> * (at your option) any later version.</a>
-<span class="sourceLineNo">009</span><a name="line.9"> * </a>
-<span class="sourceLineNo">010</span><a name="line.10"> * This program is distributed in the hope that it will be useful, but </a>
-<span class="sourceLineNo">011</span><a name="line.11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</a>
-<span class="sourceLineNo">012</span><a name="line.12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License </a>
-<span class="sourceLineNo">013</span><a name="line.13"> * for more details.</a>
-<span class="sourceLineNo">014</span><a name="line.14"> * </a>
-<span class="sourceLineNo">015</span><a name="line.15"> * You should have received a copy of the GNU General Public License along </a>
-<span class="sourceLineNo">016</span><a name="line.16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
-<span class="sourceLineNo">017</span><a name="line.17"> */</a>
+<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
+<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
+<span class="sourceLineNo">003</span> * Copyright (C) 2017-2018 Michael N. Lipp<a name="line.3"></a>
+<span class="sourceLineNo">004</span> * <a name="line.4"></a>
+<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
+<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
+<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
+<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
+<span class="sourceLineNo">009</span> * <a name="line.9"></a>
+<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
+<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
+<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
+<span class="sourceLineNo">014</span> * <a name="line.14"></a>
+<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
+<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
+<span class="sourceLineNo">017</span> */<a name="line.17"></a>
 <span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span><a name="line.19">package org.jgrapes.portlets.markdowndisplay;</a>
+<span class="sourceLineNo">019</span>package org.jgrapes.portlets.markdowndisplay;<a name="line.19"></a>
 <span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span><a name="line.21">import freemarker.core.ParseException;</a>
-<span class="sourceLineNo">022</span><a name="line.22">import freemarker.template.MalformedTemplateNameException;</a>
-<span class="sourceLineNo">023</span><a name="line.23">import freemarker.template.Template;</a>
-<span class="sourceLineNo">024</span><a name="line.24">import freemarker.template.TemplateNotFoundException;</a>
+<span class="sourceLineNo">021</span>import freemarker.core.ParseException;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import freemarker.template.MalformedTemplateNameException;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import freemarker.template.Template;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import freemarker.template.TemplateNotFoundException;<a name="line.24"></a>
 <span class="sourceLineNo">025</span><a name="line.25"></a>
-<span class="sourceLineNo">026</span><a name="line.26">import java.beans.ConstructorProperties;</a>
-<span class="sourceLineNo">027</span><a name="line.27">import java.io.IOException;</a>
-<span class="sourceLineNo">028</span><a name="line.28">import java.io.Serializable;</a>
-<span class="sourceLineNo">029</span><a name="line.29">import java.security.Principal;</a>
-<span class="sourceLineNo">030</span><a name="line.30">import java.util.HashMap;</a>
-<span class="sourceLineNo">031</span><a name="line.31">import java.util.HashSet;</a>
-<span class="sourceLineNo">032</span><a name="line.32">import java.util.Map;</a>
-<span class="sourceLineNo">033</span><a name="line.33">import java.util.ResourceBundle;</a>
-<span class="sourceLineNo">034</span><a name="line.34">import java.util.Set;</a>
+<span class="sourceLineNo">026</span>import java.beans.ConstructorProperties;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import java.io.IOException;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import java.io.Serializable;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import java.security.Principal;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>import java.util.HashMap;<a name="line.30"></a>
+<span class="sourceLineNo">031</span>import java.util.HashSet;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>import java.util.Map;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import java.util.ResourceBundle;<a name="line.33"></a>
+<span class="sourceLineNo">034</span>import java.util.Set;<a name="line.34"></a>
 <span class="sourceLineNo">035</span><a name="line.35"></a>
-<span class="sourceLineNo">036</span><a name="line.36">import org.jdrupes.json.JsonBeanDecoder;</a>
-<span class="sourceLineNo">037</span><a name="line.37">import org.jdrupes.json.JsonBeanEncoder;</a>
-<span class="sourceLineNo">038</span><a name="line.38">import org.jdrupes.json.JsonDecodeException;</a>
-<span class="sourceLineNo">039</span><a name="line.39">import org.jgrapes.core.Channel;</a>
-<span class="sourceLineNo">040</span><a name="line.40">import org.jgrapes.core.Event;</a>
-<span class="sourceLineNo">041</span><a name="line.41">import org.jgrapes.core.Manager;</a>
-<span class="sourceLineNo">042</span><a name="line.42">import org.jgrapes.core.annotation.Handler;</a>
-<span class="sourceLineNo">043</span><a name="line.43">import org.jgrapes.http.Session;</a>
-<span class="sourceLineNo">044</span><a name="line.44">import org.jgrapes.io.IOSubchannel;</a>
-<span class="sourceLineNo">045</span><a name="line.45">import org.jgrapes.portal.PortalSession;</a>
-<span class="sourceLineNo">046</span><a name="line.46">import org.jgrapes.portal.PortalWeblet;</a>
+<span class="sourceLineNo">036</span>import org.jdrupes.json.JsonBeanDecoder;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>import org.jdrupes.json.JsonBeanEncoder;<a name="line.37"></a>
+<span class="sourceLineNo">038</span>import org.jdrupes.json.JsonDecodeException;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>import org.jgrapes.core.Channel;<a name="line.39"></a>
+<span class="sourceLineNo">040</span>import org.jgrapes.core.Event;<a name="line.40"></a>
+<span class="sourceLineNo">041</span>import org.jgrapes.core.Manager;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>import org.jgrapes.core.annotation.Handler;<a name="line.42"></a>
+<span class="sourceLineNo">043</span>import org.jgrapes.http.Session;<a name="line.43"></a>
+<span class="sourceLineNo">044</span>import org.jgrapes.io.IOSubchannel;<a name="line.44"></a>
+<span class="sourceLineNo">045</span>import org.jgrapes.portal.PortalSession;<a name="line.45"></a>
+<span class="sourceLineNo">046</span>import org.jgrapes.portal.PortalWeblet;<a name="line.46"></a>
 <span class="sourceLineNo">047</span><a name="line.47"></a>
-<span class="sourceLineNo">048</span><a name="line.48">import static org.jgrapes.portal.Portlet.RenderMode;</a>
+<span class="sourceLineNo">048</span>import static org.jgrapes.portal.Portlet.RenderMode;<a name="line.48"></a>
 <span class="sourceLineNo">049</span><a name="line.49"></a>
-<span class="sourceLineNo">050</span><a name="line.50">import org.jgrapes.portal.UserPrincipal;</a>
-<span class="sourceLineNo">051</span><a name="line.51">import org.jgrapes.portal.Utils;</a>
-<span class="sourceLineNo">052</span><a name="line.52">import org.jgrapes.portal.events.AddPageResources.ScriptResource;</a>
-<span class="sourceLineNo">053</span><a name="line.53">import org.jgrapes.portal.events.AddPortletRequest;</a>
-<span class="sourceLineNo">054</span><a name="line.54">import org.jgrapes.portal.events.AddPortletType;</a>
-<span class="sourceLineNo">055</span><a name="line.55">import org.jgrapes.portal.events.DeletePortlet;</a>
-<span class="sourceLineNo">056</span><a name="line.56">import org.jgrapes.portal.events.DeletePortletRequest;</a>
-<span class="sourceLineNo">057</span><a name="line.57">import org.jgrapes.portal.events.NotifyPortletModel;</a>
-<span class="sourceLineNo">058</span><a name="line.58">import org.jgrapes.portal.events.NotifyPortletView;</a>
-<span class="sourceLineNo">059</span><a name="line.59">import org.jgrapes.portal.events.PortalReady;</a>
-<span class="sourceLineNo">060</span><a name="line.60">import org.jgrapes.portal.events.RenderPortletRequest;</a>
-<span class="sourceLineNo">061</span><a name="line.61">import org.jgrapes.portal.events.RenderPortletRequestBase;</a>
-<span class="sourceLineNo">062</span><a name="line.62">import org.jgrapes.portal.events.UpdatePortletModel;</a>
-<span class="sourceLineNo">063</span><a name="line.63">import org.jgrapes.portal.freemarker.FreeMarkerPortlet;</a>
-<span class="sourceLineNo">064</span><a name="line.64">import org.jgrapes.util.events.KeyValueStoreData;</a>
-<span class="sourceLineNo">065</span><a name="line.65">import org.jgrapes.util.events.KeyValueStoreQuery;</a>
-<span class="sourceLineNo">066</span><a name="line.66">import org.jgrapes.util.events.KeyValueStoreUpdate;</a>
+<span class="sourceLineNo">050</span>import org.jgrapes.portal.UserPrincipal;<a name="line.50"></a>
+<span class="sourceLineNo">051</span>import org.jgrapes.portal.Utils;<a name="line.51"></a>
+<span class="sourceLineNo">052</span>import org.jgrapes.portal.events.AddPageResources.ScriptResource;<a name="line.52"></a>
+<span class="sourceLineNo">053</span>import org.jgrapes.portal.events.AddPortletRequest;<a name="line.53"></a>
+<span class="sourceLineNo">054</span>import org.jgrapes.portal.events.AddPortletType;<a name="line.54"></a>
+<span class="sourceLineNo">055</span>import org.jgrapes.portal.events.DeletePortlet;<a name="line.55"></a>
+<span class="sourceLineNo">056</span>import org.jgrapes.portal.events.DeletePortletRequest;<a name="line.56"></a>
+<span class="sourceLineNo">057</span>import org.jgrapes.portal.events.NotifyPortletModel;<a name="line.57"></a>
+<span class="sourceLineNo">058</span>import org.jgrapes.portal.events.NotifyPortletView;<a name="line.58"></a>
+<span class="sourceLineNo">059</span>import org.jgrapes.portal.events.PortalReady;<a name="line.59"></a>
+<span class="sourceLineNo">060</span>import org.jgrapes.portal.events.RenderPortletRequest;<a name="line.60"></a>
+<span class="sourceLineNo">061</span>import org.jgrapes.portal.events.RenderPortletRequestBase;<a name="line.61"></a>
+<span class="sourceLineNo">062</span>import org.jgrapes.portal.events.UpdatePortletModel;<a name="line.62"></a>
+<span class="sourceLineNo">063</span>import org.jgrapes.portal.freemarker.FreeMarkerPortlet;<a name="line.63"></a>
+<span class="sourceLineNo">064</span>import org.jgrapes.util.events.KeyValueStoreData;<a name="line.64"></a>
+<span class="sourceLineNo">065</span>import org.jgrapes.util.events.KeyValueStoreQuery;<a name="line.65"></a>
+<span class="sourceLineNo">066</span>import org.jgrapes.util.events.KeyValueStoreUpdate;<a name="line.66"></a>
 <span class="sourceLineNo">067</span><a name="line.67"></a>
-<span class="sourceLineNo">068</span><a name="line.68">/**</a>
-<span class="sourceLineNo">069</span><a name="line.69"> * A portlet used to display information to the user. Instances</a>
-<span class="sourceLineNo">070</span><a name="line.70"> * may be used as a kind of note, i.e. created and configured by</a>
-<span class="sourceLineNo">071</span><a name="line.71"> * a user himself. A typical use case, however, is to create</a>
-<span class="sourceLineNo">072</span><a name="line.72"> * an instance during startup by a portal policy.</a>
-<span class="sourceLineNo">073</span><a name="line.73"> */</a>
-<span class="sourceLineNo">074</span><a name="line.74">@SuppressWarnings("PMD.DataClass")</a>
-<span class="sourceLineNo">075</span><a name="line.75">public class MarkdownDisplayPortlet extends FreeMarkerPortlet {</a>
+<span class="sourceLineNo">068</span>/**<a name="line.68"></a>
+<span class="sourceLineNo">069</span> * A portlet used to display information to the user. Instances<a name="line.69"></a>
+<span class="sourceLineNo">070</span> * may be used as a kind of note, i.e. created and configured by<a name="line.70"></a>
+<span class="sourceLineNo">071</span> * a user himself. A typical use case, however, is to create<a name="line.71"></a>
+<span class="sourceLineNo">072</span> * an instance during startup by a portal policy.<a name="line.72"></a>
+<span class="sourceLineNo">073</span> */<a name="line.73"></a>
+<span class="sourceLineNo">074</span>@SuppressWarnings("PMD.DataClass")<a name="line.74"></a>
+<span class="sourceLineNo">075</span>public class MarkdownDisplayPortlet extends FreeMarkerPortlet {<a name="line.75"></a>
 <span class="sourceLineNo">076</span><a name="line.76"></a>
-<span class="sourceLineNo">077</span><a name="line.77">    /** Property for forcing a portlet id (used for singleton instaces). */</a>
-<span class="sourceLineNo">078</span><a name="line.78">    public static final String PORTLET_ID = "PortletId";</a>
-<span class="sourceLineNo">079</span><a name="line.79">    /** Property for setting a title. */</a>
-<span class="sourceLineNo">080</span><a name="line.80">    public static final String TITLE = "Title";</a>
-<span class="sourceLineNo">081</span><a name="line.81">    /** Property for setting the preview source. */</a>
-<span class="sourceLineNo">082</span><a name="line.82">    public static final String PREVIEW_SOURCE = "PreviewSource";</a>
-<span class="sourceLineNo">083</span><a name="line.83">    /** Property for setting the view source. */</a>
-<span class="sourceLineNo">084</span><a name="line.84">    public static final String VIEW_SOURCE = "ViewSource";</a>
-<span class="sourceLineNo">085</span><a name="line.85">    /** Boolean property that controls if the preview is deletable. */</a>
-<span class="sourceLineNo">086</span><a name="line.86">    public static final String DELETABLE = "Deletable";</a>
-<span class="sourceLineNo">087</span><a name="line.87">    /** Property of type `Set&lt;Principal&gt;` for restricting who </a>
-<span class="sourceLineNo">088</span><a name="line.88">     * can edit the content. */</a>
-<span class="sourceLineNo">089</span><a name="line.89">    public static final String EDITABLE_BY = "EditableBy";</a>
+<span class="sourceLineNo">077</span>    /** Property for forcing a portlet id (used for singleton instaces). */<a name="line.77"></a>
+<span class="sourceLineNo">078</span>    public static final String PORTLET_ID = "PortletId";<a name="line.78"></a>
+<span class="sourceLineNo">079</span>    /** Property for setting a title. */<a name="line.79"></a>
+<span class="sourceLineNo">080</span>    public static final String TITLE = "Title";<a name="line.80"></a>
+<span class="sourceLineNo">081</span>    /** Property for setting the preview source. */<a name="line.81"></a>
+<span class="sourceLineNo">082</span>    public static final String PREVIEW_SOURCE = "PreviewSource";<a name="line.82"></a>
+<span class="sourceLineNo">083</span>    /** Property for setting the view source. */<a name="line.83"></a>
+<span class="sourceLineNo">084</span>    public static final String VIEW_SOURCE = "ViewSource";<a name="line.84"></a>
+<span class="sourceLineNo">085</span>    /** Boolean property that controls if the preview is deletable. */<a name="line.85"></a>
+<span class="sourceLineNo">086</span>    public static final String DELETABLE = "Deletable";<a name="line.86"></a>
+<span class="sourceLineNo">087</span>    /** Property of type `Set&lt;Principal&gt;` for restricting who <a name="line.87"></a>
+<span class="sourceLineNo">088</span>     * can edit the content. */<a name="line.88"></a>
+<span class="sourceLineNo">089</span>    public static final String EDITABLE_BY = "EditableBy";<a name="line.89"></a>
 <span class="sourceLineNo">090</span><a name="line.90"></a>
-<span class="sourceLineNo">091</span><a name="line.91">    /**</a>
-<span class="sourceLineNo">092</span><a name="line.92">     * Creates a new component with its channel set to the given </a>
-<span class="sourceLineNo">093</span><a name="line.93">     * channel.</a>
-<span class="sourceLineNo">094</span><a name="line.94">     * </a>
-<span class="sourceLineNo">095</span><a name="line.95">     * @param componentChannel the channel that the component's </a>
-<span class="sourceLineNo">096</span><a name="line.96">     * handlers listen on by default and that </a>
-<span class="sourceLineNo">097</span><a name="line.97">     * {@link Manager#fire(Event, Channel...)} sends the event to </a>
-<span class="sourceLineNo">098</span><a name="line.98">     */</a>
-<span class="sourceLineNo">099</span><a name="line.99">    public MarkdownDisplayPortlet(Channel componentChannel) {</a>
-<span class="sourceLineNo">100</span><a name="line.100">        super(componentChannel, false);</a>
-<span class="sourceLineNo">101</span><a name="line.101">    }</a>
+<span class="sourceLineNo">091</span>    /**<a name="line.91"></a>
+<span class="sourceLineNo">092</span>     * Creates a new component with its channel set to the given <a name="line.92"></a>
+<span class="sourceLineNo">093</span>     * channel.<a name="line.93"></a>
+<span class="sourceLineNo">094</span>     * <a name="line.94"></a>
+<span class="sourceLineNo">095</span>     * @param componentChannel the channel that the component's <a name="line.95"></a>
+<span class="sourceLineNo">096</span>     * handlers listen on by default and that <a name="line.96"></a>
+<span class="sourceLineNo">097</span>     * {@link Manager#fire(Event, Channel...)} sends the event to <a name="line.97"></a>
+<span class="sourceLineNo">098</span>     */<a name="line.98"></a>
+<span class="sourceLineNo">099</span>    public MarkdownDisplayPortlet(Channel componentChannel) {<a name="line.99"></a>
+<span class="sourceLineNo">100</span>        super(componentChannel, false);<a name="line.100"></a>
+<span class="sourceLineNo">101</span>    }<a name="line.101"></a>
 <span class="sourceLineNo">102</span><a name="line.102"></a>
-<span class="sourceLineNo">103</span><a name="line.103">    private String storagePath(Session session) {</a>
-<span class="sourceLineNo">104</span><a name="line.104">        return "/" + Utils.userFromSession(session)</a>
-<span class="sourceLineNo">105</span><a name="line.105">            .map(UserPrincipal::toString).orElse("")</a>
-<span class="sourceLineNo">106</span><a name="line.106">            + "/portlets/" + MarkdownDisplayPortlet.class.getName() + "/";</a>
-<span class="sourceLineNo">107</span><a name="line.107">    }</a>
+<span class="sourceLineNo">103</span>    private String storagePath(Session session) {<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        return "/" + Utils.userFromSession(session)<a name="line.104"></a>
+<span class="sourceLineNo">105</span>            .map(UserPrincipal::toString).orElse("")<a name="line.105"></a>
+<span class="sourceLineNo">106</span>            + "/portlets/" + MarkdownDisplayPortlet.class.getName() + "/";<a name="line.106"></a>
+<span class="sourceLineNo">107</span>    }<a name="line.107"></a>
 <span class="sourceLineNo">108</span><a name="line.108"></a>
-<span class="sourceLineNo">109</span><a name="line.109">    /**</a>
-<span class="sourceLineNo">110</span><a name="line.110">     * On {@link PortalReady}, fire the {@link AddPortletType}.</a>
-<span class="sourceLineNo">111</span><a name="line.111">     *</a>
-<span class="sourceLineNo">112</span><a name="line.112">     * @param event the event</a>
-<span class="sourceLineNo">113</span><a name="line.113">     * @param portalSession the portal session</a>
-<span class="sourceLineNo">114</span><a name="line.114">     * @throws TemplateNotFoundException the template not found exception</a>
-<span class="sourceLineNo">115</span><a name="line.115">     * @throws MalformedTemplateNameException the malformed template name exception</a>
-<span class="sourceLineNo">116</span><a name="line.116">     * @throws ParseException the parse exception</a>
-<span class="sourceLineNo">117</span><a name="line.117">     * @throws IOException Signals that an I/O exception has occurred.</a>
-<span class="sourceLineNo">118</span><a name="line.118">     */</a>
-<span class="sourceLineNo">119</span><a name="line.119">    @Handler</a>
-<span class="sourceLineNo">120</span><a name="line.120">    public void onPortalReady(PortalReady event, PortalSession portalSession)</a>
-<span class="sourceLineNo">121</span><a name="line.121">            throws TemplateNotFoundException, MalformedTemplateNameException,</a>
-<span class="sourceLineNo">122</span><a name="line.122">            ParseException, IOException {</a>
-<span class="sourceLineNo">123</span><a name="line.123">        ResourceBundle resourceBundle = resourceBundle(portalSession.locale());</a>
-<span class="sourceLineNo">124</span><a name="line.124">        // Add MarkdownDisplayPortlet resources to page</a>
-<span class="sourceLineNo">125</span><a name="line.125">        portalSession.respond(new AddPortletType(type())</a>
-<span class="sourceLineNo">126</span><a name="line.126">            .setDisplayName(resourceBundle.getString("portletName"))</a>
-<span class="sourceLineNo">127</span><a name="line.127">            .addScript(new ScriptResource()</a>
-<span class="sourceLineNo">128</span><a name="line.128">                .setRequires(new String[] { "markdown-it.github.io",</a>
-<span class="sourceLineNo">129</span><a name="line.129">                    "github.com/markdown-it/markdown-it-abbr",</a>
-<span class="sourceLineNo">130</span><a name="line.130">                    "github.com/markdown-it/markdown-it-container",</a>
-<span class="sourceLineNo">131</span><a name="line.131">                    "github.com/markdown-it/markdown-it-deflist",</a>
-<span class="sourceLineNo">132</span><a name="line.132">                    "github.com/markdown-it/markdown-it-emoji",</a>
-<span class="sourceLineNo">133</span><a name="line.133">                    "github.com/markdown-it/markdown-it-footnote",</a>
-<span class="sourceLineNo">134</span><a name="line.134">                    "github.com/markdown-it/markdown-it-ins",</a>
-<span class="sourceLineNo">135</span><a name="line.135">                    "github.com/markdown-it/markdown-it-mark",</a>
-<span class="sourceLineNo">136</span><a name="line.136">                    "github.com/markdown-it/markdown-it-sub",</a>
-<span class="sourceLineNo">137</span><a name="line.137">                    "github.com/markdown-it/markdown-it-sup" })</a>
-<span class="sourceLineNo">138</span><a name="line.138">                .setScriptUri(event.renderSupport().portletResource(</a>
-<span class="sourceLineNo">139</span><a name="line.139">                    type(), "MarkdownDisplay-functions.ftl.js")))</a>
-<span class="sourceLineNo">140</span><a name="line.140">            .addCss(event.renderSupport(), PortalWeblet.uriFromPath(</a>
-<span class="sourceLineNo">141</span><a name="line.141">                "MarkdownDisplay-style.css"))</a>
-<span class="sourceLineNo">142</span><a name="line.142">            .setInstantiable());</a>
-<span class="sourceLineNo">143</span><a name="line.143">        KeyValueStoreQuery query = new KeyValueStoreQuery(</a>
-<span class="sourceLineNo">144</span><a name="line.144">            storagePath(portalSession.browserSession()), portalSession);</a>
-<span class="sourceLineNo">145</span><a name="line.145">        fire(query, portalSession);</a>
-<span class="sourceLineNo">146</span><a name="line.146">    }</a>
+<span class="sourceLineNo">109</span>    /**<a name="line.109"></a>
+<span class="sourceLineNo">110</span>     * On {@link PortalReady}, fire the {@link AddPortletType}.<a name="line.110"></a>
+<span class="sourceLineNo">111</span>     *<a name="line.111"></a>
+<span class="sourceLineNo">112</span>     * @param event the event<a name="line.112"></a>
+<span class="sourceLineNo">113</span>     * @param portalSession the portal session<a name="line.113"></a>
+<span class="sourceLineNo">114</span>     * @throws TemplateNotFoundException the template not found exception<a name="line.114"></a>
+<span class="sourceLineNo">115</span>     * @throws MalformedTemplateNameException the malformed template name exception<a name="line.115"></a>
+<span class="sourceLineNo">116</span>     * @throws ParseException the parse exception<a name="line.116"></a>
+<span class="sourceLineNo">117</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.117"></a>
+<span class="sourceLineNo">118</span>     */<a name="line.118"></a>
+<span class="sourceLineNo">119</span>    @Handler<a name="line.119"></a>
+<span class="sourceLineNo">120</span>    public void onPortalReady(PortalReady event, PortalSession portalSession)<a name="line.120"></a>
+<span class="sourceLineNo">121</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.121"></a>
+<span class="sourceLineNo">122</span>            ParseException, IOException {<a name="line.122"></a>
+<span class="sourceLineNo">123</span>        ResourceBundle resourceBundle = resourceBundle(portalSession.locale());<a name="line.123"></a>
+<span class="sourceLineNo">124</span>        // Add MarkdownDisplayPortlet resources to page<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        portalSession.respond(new AddPortletType(type())<a name="line.125"></a>
+<span class="sourceLineNo">126</span>            .setDisplayName(resourceBundle.getString("portletName"))<a name="line.126"></a>
+<span class="sourceLineNo">127</span>            .addScript(new ScriptResource()<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                .setRequires(new String[] { "markdown-it.github.io",<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                    "github.com/markdown-it/markdown-it-abbr",<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                    "github.com/markdown-it/markdown-it-container",<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                    "github.com/markdown-it/markdown-it-deflist",<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                    "github.com/markdown-it/markdown-it-emoji",<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                    "github.com/markdown-it/markdown-it-footnote",<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                    "github.com/markdown-it/markdown-it-ins",<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                    "github.com/markdown-it/markdown-it-mark",<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                    "github.com/markdown-it/markdown-it-sub",<a name="line.136"></a>
+<span class="sourceLineNo">137</span>                    "github.com/markdown-it/markdown-it-sup" })<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                .setScriptUri(event.renderSupport().portletResource(<a name="line.138"></a>
+<span class="sourceLineNo">139</span>                    type(), "MarkdownDisplay-functions.ftl.js")))<a name="line.139"></a>
+<span class="sourceLineNo">140</span>            .addCss(event.renderSupport(), PortalWeblet.uriFromPath(<a name="line.140"></a>
+<span class="sourceLineNo">141</span>                "MarkdownDisplay-style.css"))<a name="line.141"></a>
+<span class="sourceLineNo">142</span>            .setInstantiable());<a name="line.142"></a>
+<span class="sourceLineNo">143</span>        KeyValueStoreQuery query = new KeyValueStoreQuery(<a name="line.143"></a>
+<span class="sourceLineNo">144</span>            storagePath(portalSession.browserSession()), portalSession);<a name="line.144"></a>
+<span class="sourceLineNo">145</span>        fire(query, portalSession);<a name="line.145"></a>
+<span class="sourceLineNo">146</span>    }<a name="line.146"></a>
 <span class="sourceLineNo">147</span><a name="line.147"></a>
-<span class="sourceLineNo">148</span><a name="line.148">    /**</a>
-<span class="sourceLineNo">149</span><a name="line.149">     * Restore portlet information, if contained in the event.</a>
-<span class="sourceLineNo">150</span><a name="line.150">     *</a>
-<span class="sourceLineNo">151</span><a name="line.151">     * @param event the event</a>
-<span class="sourceLineNo">152</span><a name="line.152">     * @param channel the channel</a>
-<span class="sourceLineNo">153</span><a name="line.153">     * @throws JsonDecodeException the json decode exception</a>
-<span class="sourceLineNo">154</span><a name="line.154">     */</a>
-<span class="sourceLineNo">155</span><a name="line.155">    @Handler</a>
-<span class="sourceLineNo">156</span><a name="line.156">    public void onKeyValueStoreData(</a>
-<span class="sourceLineNo">157</span><a name="line.157">            KeyValueStoreData event, PortalSession channel)</a>
-<span class="sourceLineNo">158</span><a name="line.158">            throws JsonDecodeException {</a>
-<span class="sourceLineNo">159</span><a name="line.159">        if (!event.event().query()</a>
-<span class="sourceLineNo">160</span><a name="line.160">            .equals(storagePath(channel.browserSession()))) {</a>
-<span class="sourceLineNo">161</span><a name="line.161">            return;</a>
-<span class="sourceLineNo">162</span><a name="line.162">        }</a>
-<span class="sourceLineNo">163</span><a name="line.163">        for (String json : event.data().values()) {</a>
-<span class="sourceLineNo">164</span><a name="line.164">            MarkdownDisplayModel model = JsonBeanDecoder.create(json)</a>
-<span class="sourceLineNo">165</span><a name="line.165">                .readObject(MarkdownDisplayModel.class);</a>
-<span class="sourceLineNo">166</span><a name="line.166">            putInSession(channel.browserSession(), model);</a>
-<span class="sourceLineNo">167</span><a name="line.167">        }</a>
-<span class="sourceLineNo">168</span><a name="line.168">    }</a>
+<span class="sourceLineNo">148</span>    /**<a name="line.148"></a>
+<span class="sourceLineNo">149</span>     * Restore portlet information, if contained in the event.<a name="line.149"></a>
+<span class="sourceLineNo">150</span>     *<a name="line.150"></a>
+<span class="sourceLineNo">151</span>     * @param event the event<a name="line.151"></a>
+<span class="sourceLineNo">152</span>     * @param channel the channel<a name="line.152"></a>
+<span class="sourceLineNo">153</span>     * @throws JsonDecodeException the json decode exception<a name="line.153"></a>
+<span class="sourceLineNo">154</span>     */<a name="line.154"></a>
+<span class="sourceLineNo">155</span>    @Handler<a name="line.155"></a>
+<span class="sourceLineNo">156</span>    public void onKeyValueStoreData(<a name="line.156"></a>
+<span class="sourceLineNo">157</span>            KeyValueStoreData event, PortalSession channel)<a name="line.157"></a>
+<span class="sourceLineNo">158</span>            throws JsonDecodeException {<a name="line.158"></a>
+<span class="sourceLineNo">159</span>        if (!event.event().query()<a name="line.159"></a>
+<span class="sourceLineNo">160</span>            .equals(storagePath(channel.browserSession()))) {<a name="line.160"></a>
+<span class="sourceLineNo">161</span>            return;<a name="line.161"></a>
+<span class="sourceLineNo">162</span>        }<a name="line.162"></a>
+<span class="sourceLineNo">163</span>        for (String json : event.data().values()) {<a name="line.163"></a>
+<span class="sourceLineNo">164</span>            MarkdownDisplayModel model = JsonBeanDecoder.create(json)<a name="line.164"></a>
+<span class="sourceLineNo">165</span>                .readObject(MarkdownDisplayModel.class);<a name="line.165"></a>
+<span class="sourceLineNo">166</span>            putInSession(channel.browserSession(), model);<a name="line.166"></a>
+<span class="sourceLineNo">167</span>        }<a name="line.167"></a>
+<span class="sourceLineNo">168</span>    }<a name="line.168"></a>
 <span class="sourceLineNo">169</span><a name="line.169"></a>
-<span class="sourceLineNo">170</span><a name="line.170">    /**</a>
-<span class="sourceLineNo">171</span><a name="line.171">     * Adds the portlet to the portal. The portlet supports the </a>
-<span class="sourceLineNo">172</span><a name="line.172">     * following options (see {@link AddPortletRequest#properties()}:</a>
-<span class="sourceLineNo">173</span><a name="line.173">     * </a>
-<span class="sourceLineNo">174</span><a name="line.174">     * * `PORTLET_ID` (String): The portlet id.</a>
-<span class="sourceLineNo">175</span><a name="line.175">     * </a>
-<span class="sourceLineNo">176</span><a name="line.176">     * * `TITLE` (String): The portlet title.</a>
-<span class="sourceLineNo">177</span><a name="line.177">     * </a>
-<span class="sourceLineNo">178</span><a name="line.178">     * * `PREVIEW_SOURCE` (String): The markdown source that is rendered </a>
-<span class="sourceLineNo">179</span><a name="line.179">     *   in the portlet preview.</a>
-<span class="sourceLineNo">180</span><a name="line.180">     * </a>
-<span class="sourceLineNo">181</span><a name="line.181">     * * `VIEW_SOURCE` (String): The markdown source that is rendered </a>
-<span class="sourceLineNo">182</span><a name="line.182">     *   in the portlet view.</a>
-<span class="sourceLineNo">183</span><a name="line.183">     * </a>
-<span class="sourceLineNo">184</span><a name="line.184">     * * `DELETABLE` (Boolean): Indicates that the portlet may be </a>
-<span class="sourceLineNo">185</span><a name="line.185">     *   deleted from the overview page.</a>
-<span class="sourceLineNo">186</span><a name="line.186">     * </a>
-<span class="sourceLineNo">187</span><a name="line.187">     * * `EDITABLE_BY` (Set&amp;lt;Principal&amp;gt;): The principals that may edit </a>
-<span class="sourceLineNo">188</span><a name="line.188">     *   the portlet instance.</a>
-<span class="sourceLineNo">189</span><a name="line.189">     */</a>
-<span class="sourceLineNo">190</span><a name="line.190">    @Override</a>
-<span class="sourceLineNo">191</span><a name="line.191">    public String doAddPortlet(AddPortletRequest event,</a>
-<span class="sourceLineNo">192</span><a name="line.192">            PortalSession portalSession) throws Exception {</a>
-<span class="sourceLineNo">193</span><a name="line.193">        ResourceBundle resourceBundle = resourceBundle(portalSession.locale());</a>
+<span class="sourceLineNo">170</span>    /**<a name="line.170"></a>
+<span class="sourceLineNo">171</span>     * Adds the portlet to the portal. The portlet supports the <a name="line.171"></a>
+<span class="sourceLineNo">172</span>     * following options (see {@link AddPortletRequest#properties()}:<a name="line.172"></a>
+<span class="sourceLineNo">173</span>     * <a name="line.173"></a>
+<span class="sourceLineNo">174</span>     * * `PORTLET_ID` (String): The portlet id.<a name="line.174"></a>
+<span class="sourceLineNo">175</span>     * <a name="line.175"></a>
+<span class="sourceLineNo">176</span>     * * `TITLE` (String): The portlet title.<a name="line.176"></a>
+<span class="sourceLineNo">177</span>     * <a name="line.177"></a>
+<span class="sourceLineNo">178</span>     * * `PREVIEW_SOURCE` (String): The markdown source that is rendered <a name="line.178"></a>
+<span class="sourceLineNo">179</span>     *   in the portlet preview.<a name="line.179"></a>
+<span class="sourceLineNo">180</span>     * <a name="line.180"></a>
+<span class="sourceLineNo">181</span>     * * `VIEW_SOURCE` (String): The markdown source that is rendered <a name="line.181"></a>
+<span class="sourceLineNo">182</span>     *   in the portlet view.<a name="line.182"></a>
+<span class="sourceLineNo">183</span>     * <a name="line.183"></a>
+<span class="sourceLineNo">184</span>     * * `DELETABLE` (Boolean): Indicates that the portlet may be <a name="line.184"></a>
+<span class="sourceLineNo">185</span>     *   deleted from the overview page.<a name="line.185"></a>
+<span class="sourceLineNo">186</span>     * <a name="line.186"></a>
+<span class="sourceLineNo">187</span>     * * `EDITABLE_BY` (Set&amp;lt;Principal&amp;gt;): The principals that may edit <a name="line.187"></a>
+<span class="sourceLineNo">188</span>     *   the portlet instance.<a name="line.188"></a>
+<span class="sourceLineNo">189</span>     */<a name="line.189"></a>
+<span class="sourceLineNo">190</span>    @Override<a name="line.190"></a>
+<span class="sourceLineNo">191</span>    public String doAddPortlet(AddPortletRequest event,<a name="line.191"></a>
+<span class="sourceLineNo">192</span>            PortalSession portalSession) throws Exception {<a name="line.192"></a>
+<span class="sourceLineNo">193</span>        ResourceBundle resourceBundle = resourceBundle(portalSession.locale());<a name="line.193"></a>
 <span class="sourceLineNo">194</span><a name="line.194"></a>
-<span class="sourceLineNo">195</span><a name="line.195">        // Create new model</a>
-<span class="sourceLineNo">196</span><a name="line.196">        String portletId = (String) event.properties().get(PORTLET_ID);</a>
-<span class="sourceLineNo">197</span><a name="line.197">        if (portletId == null) {</a>
-<span class="sourceLineNo">198</span><a name="line.198">            portletId = generatePortletId();</a>
-<span class="sourceLineNo">199</span><a name="line.199">        }</a>
-<span class="sourceLineNo">200</span><a name="line.200">        MarkdownDisplayModel model = putInSession(</a>
-<span class="sourceLineNo">201</span><a name="line.201">            portalSession.browserSession(),</a>
-<span class="sourceLineNo">202</span><a name="line.202">            new MarkdownDisplayModel(portletId));</a>
-<span class="sourceLineNo">203</span><a name="line.203">        model.setTitle((String) event.properties().getOrDefault(TITLE,</a>
-<span class="sourceLineNo">204</span><a name="line.204">            resourceBundle.getString("portletName")));</a>
-<span class="sourceLineNo">205</span><a name="line.205">        model.setPreviewContent((String) event.properties().getOrDefault(</a>
-<span class="sourceLineNo">206</span><a name="line.206">            PREVIEW_SOURCE, ""));</a>
-<span class="sourceLineNo">207</span><a name="line.207">        model.setViewContent((String) event.properties().getOrDefault(</a>
-<span class="sourceLineNo">208</span><a name="line.208">            VIEW_SOURCE, ""));</a>
-<span class="sourceLineNo">209</span><a name="line.209">        model.setDeletable((Boolean) event.properties().getOrDefault(</a>
-<span class="sourceLineNo">210</span><a name="line.210">            DELETABLE, Boolean.TRUE));</a>
-<span class="sourceLineNo">211</span><a name="line.211">        @SuppressWarnings("unchecked")</a>
-<span class="sourceLineNo">212</span><a name="line.212">        Set&lt;Principal&gt; editableBy = (Set&lt;Principal&gt;) event.properties().get(</a>
-<span class="sourceLineNo">213</span><a name="line.213">            EDITABLE_BY);</a>
-<span class="sourceLineNo">214</span><a name="line.214">        model.setEditableBy(editableBy);</a>
+<span class="sourceLineNo">195</span>        // Create new model<a name="line.195"></a>
+<span class="sourceLineNo">196</span>        String portletId = (String) event.properties().get(PORTLET_ID);<a name="line.196"></a>
+<span class="sourceLineNo">197</span>        if (portletId == null) {<a name="line.197"></a>
+<span class="sourceLineNo">198</span>            portletId = generatePortletId();<a name="line.198"></a>
+<span class="sourceLineNo">199</span>        }<a name="line.199"></a>
+<span class="sourceLineNo">200</span>        MarkdownDisplayModel model = putInSession(<a name="line.200"></a>
+<span class="sourceLineNo">201</span>            portalSession.browserSession(),<a name="line.201"></a>
+<span class="sourceLineNo">202</span>            new MarkdownDisplayModel(portletId));<a name="line.202"></a>
+<span class="sourceLineNo">203</span>        model.setTitle((String) event.properties().getOrDefault(TITLE,<a name="line.203"></a>
+<span class="sourceLineNo">204</span>            resourceBundle.getString("portletName")));<a name="line.204"></a>
+<span class="sourceLineNo">205</span>        model.setPreviewContent((String) event.properties().getOrDefault(<a name="line.205"></a>
+<span class="sourceLineNo">206</span>            PREVIEW_SOURCE, ""));<a name="line.206"></a>
+<span class="sourceLineNo">207</span>        model.setViewContent((String) event.properties().getOrDefault(<a name="line.207"></a>
+<span class="sourceLineNo">208</span>            VIEW_SOURCE, ""));<a name="line.208"></a>
+<span class="sourceLineNo">209</span>        model.setDeletable((Boolean) event.properties().getOrDefault(<a name="line.209"></a>
+<span class="sourceLineNo">210</span>            DELETABLE, Boolean.TRUE));<a name="line.210"></a>
+<span class="sourceLineNo">211</span>        @SuppressWarnings("unchecked")<a name="line.211"></a>
+<span class="sourceLineNo">212</span>        Set&lt;Principal&gt; editableBy = (Set&lt;Principal&gt;) event.properties().get(<a name="line.212"></a>
+<span class="sourceLineNo">213</span>            EDITABLE_BY);<a name="line.213"></a>
+<span class="sourceLineNo">214</span>        model.setEditableBy(editableBy);<a name="line.214"></a>
 <span class="sourceLineNo">215</span><a name="line.215"></a>
-<span class="sourceLineNo">216</span><a name="line.216">        // Save model</a>
-<span class="sourceLineNo">217</span><a name="line.217">        String jsonState = JsonBeanEncoder.create()</a>
-<span class="sourceLineNo">218</span><a name="line.218">            .writeObject(model).toJson();</a>
-<span class="sourceLineNo">219</span><a name="line.219">        portalSession.respond(new KeyValueStoreUpdate().update(</a>
-<span class="sourceLineNo">220</span><a name="line.220">            storagePath(portalSession.browserSession()) + model.getPortletId(),</a>
-<span class="sourceLineNo">221</span><a name="line.221">            jsonState));</a>
+<span class="sourceLineNo">216</span>        // Save model<a name="line.216"></a>
+<span class="sourceLineNo">217</span>        String jsonState = JsonBeanEncoder.create()<a name="line.217"></a>
+<span class="sourceLineNo">218</span>            .writeObject(model).toJson();<a name="line.218"></a>
+<span class="sourceLineNo">219</span>        portalSession.respond(new KeyValueStoreUpdate().update(<a name="line.219"></a>
+<span class="sourceLineNo">220</span>            storagePath(portalSession.browserSession()) + model.getPortletId(),<a name="line.220"></a>
+<span class="sourceLineNo">221</span>            jsonState));<a name="line.221"></a>
 <span class="sourceLineNo">222</span><a name="line.222"></a>
-<span class="sourceLineNo">223</span><a name="line.223">        // Send HTML</a>
-<span class="sourceLineNo">224</span><a name="line.224">        renderPortlet(event, portalSession, model);</a>
-<span class="sourceLineNo">225</span><a name="line.225">        return portletId;</a>
-<span class="sourceLineNo">226</span><a name="line.226">    }</a>
+<span class="sourceLineNo">223</span>        // Send HTML<a name="line.223"></a>
+<span class="sourceLineNo">224</span>        renderPortlet(event, portalSession, model);<a name="line.224"></a>
+<span class="sourceLineNo">225</span>        return portletId;<a name="line.225"></a>
+<span class="sourceLineNo">226</span>    }<a name="line.226"></a>
 <span class="sourceLineNo">227</span><a name="line.227"></a>
-<span class="sourceLineNo">228</span><a name="line.228">    /*</a>
-<span class="sourceLineNo">229</span><a name="line.229">     * (non-Javadoc)</a>
-<span class="sourceLineNo">230</span><a name="line.230">     * </a>
-<span class="sourceLineNo">231</span><a name="line.231">     * @see org.jgrapes.portal.AbstractPortlet#doRenderPortlet</a>
-<span class="sourceLineNo">232</span><a name="line.232">     */</a>
-<span class="sourceLineNo">233</span><a name="line.233">    @Override</a>
-<span class="sourceLineNo">234</span><a name="line.234">    protected void doRenderPortlet(RenderPortletRequest event,</a>
-<span class="sourceLineNo">235</span><a name="line.235">            PortalSession portalSession, String portletId,</a>
-<span class="sourceLineNo">236</span><a name="line.236">            Serializable retrievedState) throws Exception {</a>
-<span class="sourceLineNo">237</span><a name="line.237">        MarkdownDisplayModel model = (MarkdownDisplayModel) retrievedState;</a>
-<span class="sourceLineNo">238</span><a name="line.238">        renderPortlet(event, portalSession, model);</a>
-<span class="sourceLineNo">239</span><a name="line.239">    }</a>
+<span class="sourceLineNo">228</span>    /*<a name="line.228"></a>
+<span class="sourceLineNo">229</span>     * (non-Javadoc)<a name="line.229"></a>
+<span class="sourceLineNo">230</span>     * <a name="line.230"></a>
+<span class="sourceLineNo">231</span>     * @see org.jgrapes.portal.AbstractPortlet#doRenderPortlet<a name="line.231"></a>
+<span class="sourceLineNo">232</span>     */<a name="line.232"></a>
+<span class="sourceLineNo">233</span>    @Override<a name="line.233"></a>
+<span class="sourceLineNo">234</span>    protected void doRenderPortlet(RenderPortletRequest event,<a name="line.234"></a>
+<span class="sourceLineNo">235</span>            PortalSession portalSession, String portletId,<a name="line.235"></a>
+<span class="sourceLineNo">236</span>            Serializable retrievedState) throws Exception {<a name="line.236"></a>
+<span class="sourceLineNo">237</span>        MarkdownDisplayModel model = (MarkdownDisplayModel) retrievedState;<a name="line.237"></a>
+<span class="sourceLineNo">238</span>        renderPortlet(event, portalSession, model);<a name="line.238"></a>
+<span class="sourceLineNo">239</span>    }<a name="line.239"></a>
 <span class="sourceLineNo">240</span><a name="line.240"></a>
-<span class="sourceLineNo">241</span><a name="line.241">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</a>
-<span class="sourceLineNo">242</span><a name="line.242">    private void renderPortlet(RenderPortletRequestBase&lt;?&gt; event,</a>
-<span class="sourceLineNo">243</span><a name="line.243">            PortalSession portalSession, MarkdownDisplayModel model)</a>
-<span class="sourceLineNo">244</span><a name="line.244">            throws TemplateNotFoundException, MalformedTemplateNameException,</a>
-<span class="sourceLineNo">245</span><a name="line.245">            ParseException, IOException {</a>
-<span class="sourceLineNo">246</span><a name="line.246">        Set&lt;RenderMode&gt; modes = renderModes(model);</a>
-<span class="sourceLineNo">247</span><a name="line.247">        if (model.getViewContent() != null</a>
-<span class="sourceLineNo">248</span><a name="line.248">            &amp;&amp; !model.getViewContent().isEmpty()) {</a>
-<span class="sourceLineNo">249</span><a name="line.249">            modes.add(RenderMode.View);</a>
-<span class="sourceLineNo">250</span><a name="line.250">        }</a>
-<span class="sourceLineNo">251</span><a name="line.251">        switch (event.renderMode()) {</a>
-<span class="sourceLineNo">252</span><a name="line.252">        case Preview:</a>
-<span class="sourceLineNo">253</span><a name="line.253">        case DeleteablePreview: {</a>
-<span class="sourceLineNo">254</span><a name="line.254">            Template tpl = freemarkerConfig()</a>
-<span class="sourceLineNo">255</span><a name="line.255">                .getTemplate("MarkdownDisplay-preview.ftl.html");</a>
-<span class="sourceLineNo">256</span><a name="line.256">            portalSession.respond(new RenderPortletFromTemplate(event,</a>
-<span class="sourceLineNo">257</span><a name="line.257">                MarkdownDisplayPortlet.class, model.getPortletId(),</a>
-<span class="sourceLineNo">258</span><a name="line.258">                tpl, fmModel(event, portalSession, model))</a>
-<span class="sourceLineNo">259</span><a name="line.259">                    .setRenderMode(event.renderMode()).setSupportedModes(modes)</a>
-<span class="sourceLineNo">260</span><a name="line.260">                    .setForeground(event.isForeground()));</a>
-<span class="sourceLineNo">261</span><a name="line.261">            updateView(portalSession, model);</a>
-<span class="sourceLineNo">262</span><a name="line.262">            break;</a>
-<span class="sourceLineNo">263</span><a name="line.263">        }</a>
-<span class="sourceLineNo">264</span><a name="line.264">        case View: {</a>
-<span class="sourceLineNo">265</span><a name="line.265">            Template tpl = freemarkerConfig()</a>
-<span class="sourceLineNo">266</span><a name="line.266">                .getTemplate("MarkdownDisplay-view.ftl.html");</a>
-<span class="sourceLineNo">267</span><a name="line.267">            portalSession.respond(new RenderPortletFromTemplate(event,</a>
-<span class="sourceLineNo">268</span><a name="line.268">                MarkdownDisplayPortlet.class, model.getPortletId(),</a>
-<span class="sourceLineNo">269</span><a name="line.269">                tpl, fmModel(event, portalSession, model))</a>
-<span class="sourceLineNo">270</span><a name="line.270">                    .setRenderMode(RenderMode.View).setSupportedModes(modes)</a>
-<span class="sourceLineNo">271</span><a name="line.271">                    .setForeground(event.isForeground()));</a>
-<span class="sourceLineNo">272</span><a name="line.272">            updateView(portalSession, model);</a>
-<span class="sourceLineNo">273</span><a name="line.273">            break;</a>
-<span class="sourceLineNo">274</span><a name="line.274">        }</a>
-<span class="sourceLineNo">275</span><a name="line.275">        case Edit: {</a>
-<span class="sourceLineNo">276</span><a name="line.276">            Template tpl = freemarkerConfig()</a>
-<span class="sourceLineNo">277</span><a name="line.277">                .getTemplate("MarkdownDisplay-edit.ftl.html");</a>
-<span class="sourceLineNo">278</span><a name="line.278">            portalSession.respond(new RenderPortletFromTemplate(event,</a>
-<span class="sourceLineNo">279</span><a name="line.279">                MarkdownDisplayPortlet.class, model.getPortletId(),</a>
-<span class="sourceLineNo">280</span><a name="line.280">                tpl, fmModel(event, portalSession, model))</a>
-<span class="sourceLineNo">281</span><a name="line.281">                    .setRenderMode(RenderMode.Edit).setSupportedModes(modes));</a>
-<span class="sourceLineNo">282</span><a name="line.282">            break;</a>
-<span class="sourceLineNo">283</span><a name="line.283">        }</a>
-<span class="sourceLineNo">284</span><a name="line.284">        default:</a>
-<span class="sourceLineNo">285</span><a name="line.285">            break;</a>
-<span class="sourceLineNo">286</span><a name="line.286">        }</a>
-<span class="sourceLineNo">287</span><a name="line.287">    }</a>
+<span class="sourceLineNo">241</span>    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.241"></a>
+<span class="sourceLineNo">242</span>    private void renderPortlet(RenderPortletRequestBase&lt;?&gt; event,<a name="line.242"></a>
+<span class="sourceLineNo">243</span>            PortalSession portalSession, MarkdownDisplayModel model)<a name="line.243"></a>
+<span class="sourceLineNo">244</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.244"></a>
+<span class="sourceLineNo">245</span>            ParseException, IOException {<a name="line.245"></a>
+<span class="sourceLineNo">246</span>        Set&lt;RenderMode&gt; modes = renderModes(model);<a name="line.246"></a>
+<span class="sourceLineNo">247</span>        if (model.getViewContent() != null<a name="line.247"></a>
+<span class="sourceLineNo">248</span>            &amp;&amp; !model.getViewContent().isEmpty()) {<a name="line.248"></a>
+<span class="sourceLineNo">249</span>            modes.add(RenderMode.View);<a name="line.249"></a>
+<span class="sourceLineNo">250</span>        }<a name="line.250"></a>
+<span class="sourceLineNo">251</span>        switch (event.renderMode()) {<a name="line.251"></a>
+<span class="sourceLineNo">252</span>        case Preview:<a name="line.252"></a>
+<span class="sourceLineNo">253</span>        case DeleteablePreview: {<a name="line.253"></a>
+<span class="sourceLineNo">254</span>            Template tpl = freemarkerConfig()<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                .getTemplate("MarkdownDisplay-preview.ftl.html");<a name="line.255"></a>
+<span class="sourceLineNo">256</span>            portalSession.respond(new RenderPortletFromTemplate(event,<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                MarkdownDisplayPortlet.class, model.getPortletId(),<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                tpl, fmModel(event, portalSession, model))<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                    .setRenderMode(event.renderMode()).setSupportedModes(modes)<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                    .setForeground(event.isForeground()));<a name="line.260"></a>
+<span class="sourceLineNo">261</span>            updateView(portalSession, model);<a name="line.261"></a>
+<span class="sourceLineNo">262</span>            break;<a name="line.262"></a>
+<span class="sourceLineNo">263</span>        }<a name="line.263"></a>
+<span class="sourceLineNo">264</span>        case View: {<a name="line.264"></a>
+<span class="sourceLineNo">265</span>            Template tpl = freemarkerConfig()<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                .getTemplate("MarkdownDisplay-view.ftl.html");<a name="line.266"></a>
+<span class="sourceLineNo">267</span>            portalSession.respond(new RenderPortletFromTemplate(event,<a name="line.267"></a>
+<span class="sourceLineNo">268</span>                MarkdownDisplayPortlet.class, model.getPortletId(),<a name="line.268"></a>
+<span class="sourceLineNo">269</span>                tpl, fmModel(event, portalSession, model))<a name="line.269"></a>
+<span class="sourceLineNo">270</span>                    .setRenderMode(RenderMode.View).setSupportedModes(modes)<a name="line.270"></a>
+<span class="sourceLineNo">271</span>                    .setForeground(event.isForeground()));<a name="line.271"></a>
+<span class="sourceLineNo">272</span>            updateView(portalSession, model);<a name="line.272"></a>
+<span class="sourceLineNo">273</span>            break;<a name="line.273"></a>
+<span class="sourceLineNo">274</span>        }<a name="line.274"></a>
+<span class="sourceLineNo">275</span>        case Edit: {<a name="line.275"></a>
+<span class="sourceLineNo">276</span>            Template tpl = freemarkerConfig()<a name="line.276"></a>
+<span class="sourceLineNo">277</span>                .getTemplate("MarkdownDisplay-edit.ftl.html");<a name="line.277"></a>
+<span class="sourceLineNo">278</span>            portalSession.respond(new RenderPortletFromTemplate(event,<a name="line.278"></a>
+<span class="sourceLineNo">279</span>                MarkdownDisplayPortlet.class, model.getPortletId(),<a name="line.279"></a>
+<span class="sourceLineNo">280</span>                tpl, fmModel(event, portalSession, model))<a name="line.280"></a>
+<span class="sourceLineNo">281</span>                    .setRenderMode(RenderMode.Edit).setSupportedModes(modes));<a name="line.281"></a>
+<span class="sourceLineNo">282</span>            break;<a name="line.282"></a>
+<span class="sourceLineNo">283</span>        }<a name="line.283"></a>
+<span class="sourceLineNo">284</span>        default:<a name="line.284"></a>
+<span class="sourceLineNo">285</span>            break;<a name="line.285"></a>
+<span class="sourceLineNo">286</span>        }<a name="line.286"></a>
+<span class="sourceLineNo">287</span>    }<a name="line.287"></a>
 <span class="sourceLineNo">288</span><a name="line.288"></a>
-<span class="sourceLineNo">289</span><a name="line.289">    private Set&lt;RenderMode&gt; renderModes(MarkdownDisplayModel model) {</a>
-<span class="sourceLineNo">290</span><a name="line.290">        Set&lt;RenderMode&gt; modes = new HashSet&lt;&gt;();</a>
-<span class="sourceLineNo">291</span><a name="line.291">        modes.add(model.isDeletable() ? RenderMode.DeleteablePreview</a>
-<span class="sourceLineNo">292</span><a name="line.292">            : RenderMode.Preview);</a>
-<span class="sourceLineNo">293</span><a name="line.293">        if (model.getViewContent() != null</a>
-<span class="sourceLineNo">294</span><a name="line.294">            &amp;&amp; !model.getViewContent().isEmpty()) {</a>
-<span class="sourceLineNo">295</span><a name="line.295">            modes.add(RenderMode.View);</a>
-<span class="sourceLineNo">296</span><a name="line.296">        }</a>
-<span class="sourceLineNo">297</span><a name="line.297">        if (model.getEditableBy() == null) {</a>
-<span class="sourceLineNo">298</span><a name="line.298">            modes.add(RenderMode.Edit);</a>
-<span class="sourceLineNo">299</span><a name="line.299">        }</a>
-<span class="sourceLineNo">300</span><a name="line.300">        return modes;</a>
-<span class="sourceLineNo">301</span><a name="line.301">    }</a>
+<span class="sourceLineNo">289</span>    private Set&lt;RenderMode&gt; renderModes(MarkdownDisplayModel model) {<a name="line.289"></a>
+<span class="sourceLineNo">290</span>        Set&lt;RenderMode&gt; modes = new HashSet&lt;&gt;();<a name="line.290"></a>
+<span class="sourceLineNo">291</span>        modes.add(model.isDeletable() ? RenderMode.DeleteablePreview<a name="line.291"></a>
+<span class="sourceLineNo">292</span>            : RenderMode.Preview);<a name="line.292"></a>
+<span class="sourceLineNo">293</span>        if (model.getViewContent() != null<a name="line.293"></a>
+<span class="sourceLineNo">294</span>            &amp;&amp; !model.getViewContent().isEmpty()) {<a name="line.294"></a>
+<span class="sourceLineNo">295</span>            modes.add(RenderMode.View);<a name="line.295"></a>
+<span class="sourceLineNo">296</span>        }<a name="line.296"></a>
+<span class="sourceLineNo">297</span>        if (model.getEditableBy() == null) {<a name="line.297"></a>
+<span class="sourceLineNo">298</span>            modes.add(RenderMode.Edit);<a name="line.298"></a>
+<span class="sourceLineNo">299</span>        }<a name="line.299"></a>
+<span class="sourceLineNo">300</span>        return modes;<a name="line.300"></a>
+<span class="sourceLineNo">301</span>    }<a name="line.301"></a>
 <span class="sourceLineNo">302</span><a name="line.302"></a>
-<span class="sourceLineNo">303</span><a name="line.303">    private void updateView(IOSubchannel channel, MarkdownDisplayModel model) {</a>
-<span class="sourceLineNo">304</span><a name="line.304">        channel.respond(new NotifyPortletView(type(),</a>
-<span class="sourceLineNo">305</span><a name="line.305">            model.getPortletId(), "updateAll", model.getTitle(),</a>
-<span class="sourceLineNo">306</span><a name="line.306">            model.getPreviewContent(), model.getViewContent(),</a>
-<span class="sourceLineNo">307</span><a name="line.307">            renderModes(model)));</a>
-<span class="sourceLineNo">308</span><a name="line.308">    }</a>
+<span class="sourceLineNo">303</span>    private void updateView(IOSubchannel channel, MarkdownDisplayModel model) {<a name="line.303"></a>
+<span class="sourceLineNo">304</span>        channel.respond(new NotifyPortletView(type(),<a name="line.304"></a>
+<span class="sourceLineNo">305</span>            model.getPortletId(), "updateAll", model.getTitle(),<a name="line.305"></a>
+<span class="sourceLineNo">306</span>            model.getPreviewContent(), model.getViewContent(),<a name="line.306"></a>
+<span class="sourceLineNo">307</span>            renderModes(model)));<a name="line.307"></a>
+<span class="sourceLineNo">308</span>    }<a name="line.308"></a>
 <span class="sourceLineNo">309</span><a name="line.309"></a>
-<span class="sourceLineNo">310</span><a name="line.310">    /*</a>
-<span class="sourceLineNo">311</span><a name="line.311">     * (non-Javadoc)</a>
-<span class="sourceLineNo">312</span><a name="line.312">     * </a>
-<span class="sourceLineNo">313</span><a name="line.313">     * @see org.jgrapes.portal.AbstractPortlet#doDeletePortlet</a>
-<span class="sourceLineNo">314</span><a name="line.314">     */</a>
-<span class="sourceLineNo">315</span><a name="line.315">    @Override</a>
-<span class="sourceLineNo">316</span><a name="line.316">    protected void doDeletePortlet(DeletePortletRequest event,</a>
-<span class="sourceLineNo">317</span><a name="line.317">            PortalSession channel, String portletId,</a>
-<span class="sourceLineNo">318</span><a name="line.318">            Serializable retrievedState) throws Exception {</a>
-<span class="sourceLineNo">319</span><a name="line.319">        channel.respond(new KeyValueStoreUpdate().delete(</a>
-<span class="sourceLineNo">320</span><a name="line.320">            storagePath(channel.browserSession()) + portletId));</a>
-<span class="sourceLineNo">321</span><a name="line.321">        channel.respond(new DeletePortlet(portletId));</a>
-<span class="sourceLineNo">322</span><a name="line.322">    }</a>
+<span class="sourceLineNo">310</span>    /*<a name="line.310"></a>
+<span class="sourceLineNo">311</span>     * (non-Javadoc)<a name="line.311"></a>
+<span class="sourceLineNo">312</span>     * <a name="line.312"></a>
+<span class="sourceLineNo">313</span>     * @see org.jgrapes.portal.AbstractPortlet#doDeletePortlet<a name="line.313"></a>
+<span class="sourceLineNo">314</span>     */<a name="line.314"></a>
+<span class="sourceLineNo">315</span>    @Override<a name="line.315"></a>
+<span class="sourceLineNo">316</span>    protected void doDeletePortlet(DeletePortletRequest event,<a name="line.316"></a>
+<span class="sourceLineNo">317</span>            PortalSession channel, String portletId,<a name="line.317"></a>
+<span class="sourceLineNo">318</span>            Serializable retrievedState) throws Exception {<a name="line.318"></a>
+<span class="sourceLineNo">319</span>        channel.respond(new KeyValueStoreUpdate().delete(<a name="line.319"></a>
+<span class="sourceLineNo">320</span>            storagePath(channel.browserSession()) + portletId));<a name="line.320"></a>
+<span class="sourceLineNo">321</span>        channel.respond(new DeletePortlet(portletId));<a name="line.321"></a>
+<span class="sourceLineNo">322</span>    }<a name="line.322"></a>
 <span class="sourceLineNo">323</span><a name="line.323"></a>
-<span class="sourceLineNo">324</span><a name="line.324">    /*</a>
-<span class="sourceLineNo">325</span><a name="line.325">     * (non-Javadoc)</a>
-<span class="sourceLineNo">326</span><a name="line.326">     * </a>
-<span class="sourceLineNo">327</span><a name="line.327">     * @see org.jgrapes.portal.AbstractPortlet#doNotifyPortletModel</a>
-<span class="sourceLineNo">328</span><a name="line.328">     */</a>
-<span class="sourceLineNo">329</span><a name="line.329">    @Override</a>
-<span class="sourceLineNo">330</span><a name="line.330">    protected void doNotifyPortletModel(NotifyPortletModel event,</a>
-<span class="sourceLineNo">331</span><a name="line.331">            PortalSession portalSession, Serializable portletState)</a>
-<span class="sourceLineNo">332</span><a name="line.332">            throws Exception {</a>
-<span class="sourceLineNo">333</span><a name="line.333">        event.stop();</a>
-<span class="sourceLineNo">334</span><a name="line.334">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
-<span class="sourceLineNo">335</span><a name="line.335">        Map&lt;String, String&gt; properties = new HashMap&lt;&gt;();</a>
-<span class="sourceLineNo">336</span><a name="line.336">        if (event.params().get(0) != null) {</a>
-<span class="sourceLineNo">337</span><a name="line.337">            properties.put(TITLE, event.params().asString(0));</a>
-<span class="sourceLineNo">338</span><a name="line.338">        }</a>
-<span class="sourceLineNo">339</span><a name="line.339">        if (event.params().get(1) != null) {</a>
-<span class="sourceLineNo">340</span><a name="line.340">            properties.put(PREVIEW_SOURCE, event.params().asString(1));</a>
-<span class="sourceLineNo">341</span><a name="line.341">        }</a>
-<span class="sourceLineNo">342</span><a name="line.342">        if (event.params().get(2) != null) {</a>
-<span class="sourceLineNo">343</span><a name="line.343">            properties.put(VIEW_SOURCE, event.params().asString(2));</a>
-<span class="sourceLineNo">344</span><a name="line.344">        }</a>
-<span class="sourceLineNo">345</span><a name="line.345">        fire(new UpdatePortletModel(event.portletId(), properties),</a>
-<span class="sourceLineNo">346</span><a name="line.346">            portalSession);</a>
-<span class="sourceLineNo">347</span><a name="line.347">    }</a>
+<span class="sourceLineNo">324</span>    /*<a name="line.324"></a>
+<span class="sourceLineNo">325</span>     * (non-Javadoc)<a name="line.325"></a>
+<span class="sourceLineNo">326</span>     * <a name="line.326"></a>
+<span class="sourceLineNo">327</span>     * @see org.jgrapes.portal.AbstractPortlet#doNotifyPortletModel<a name="line.327"></a>
+<span class="sourceLineNo">328</span>     */<a name="line.328"></a>
+<span class="sourceLineNo">329</span>    @Override<a name="line.329"></a>
+<span class="sourceLineNo">330</span>    protected void doNotifyPortletModel(NotifyPortletModel event,<a name="line.330"></a>
+<span class="sourceLineNo">331</span>            PortalSession portalSession, Serializable portletState)<a name="line.331"></a>
+<span class="sourceLineNo">332</span>            throws Exception {<a name="line.332"></a>
+<span class="sourceLineNo">333</span>        event.stop();<a name="line.333"></a>
+<span class="sourceLineNo">334</span>        @SuppressWarnings("PMD.UseConcurrentHashMap")<a name="line.334"></a>
+<span class="sourceLineNo">335</span>        Map&lt;String, String&gt; properties = new HashMap&lt;&gt;();<a name="line.335"></a>
+<span class="sourceLineNo">336</span>        if (event.params().get(0) != null) {<a name="line.336"></a>
+<span class="sourceLineNo">337</span>            properties.put(TITLE, event.params().asString(0));<a name="line.337"></a>
+<span class="sourceLineNo">338</span>        }<a name="line.338"></a>
+<span class="sourceLineNo">339</span>        if (event.params().get(1) != null) {<a name="line.339"></a>
+<span class="sourceLineNo">340</span>            properties.put(PREVIEW_SOURCE, event.params().asString(1));<a name="line.340"></a>
+<span class="sourceLineNo">341</span>        }<a name="line.341"></a>
+<span class="sourceLineNo">342</span>        if (event.params().get(2) != null) {<a name="line.342"></a>
+<span class="sourceLineNo">343</span>            properties.put(VIEW_SOURCE, event.params().asString(2));<a name="line.343"></a>
+<span class="sourceLineNo">344</span>        }<a name="line.344"></a>
+<span class="sourceLineNo">345</span>        fire(new UpdatePortletModel(event.portletId(), properties),<a name="line.345"></a>
+<span class="sourceLineNo">346</span>            portalSession);<a name="line.346"></a>
+<span class="sourceLineNo">347</span>    }<a name="line.347"></a>
 <span class="sourceLineNo">348</span><a name="line.348"></a>
-<span class="sourceLineNo">349</span><a name="line.349">    /**</a>
-<span class="sourceLineNo">350</span><a name="line.350">     * Stores the modified properties using a {@link KeyValueStoreUpdate}</a>
-<span class="sourceLineNo">351</span><a name="line.351">     * event and updates the view with a {@link NotifyPortletView}. </a>
-<span class="sourceLineNo">352</span><a name="line.352">     *</a>
-<span class="sourceLineNo">353</span><a name="line.353">     * @param event the event</a>
-<span class="sourceLineNo">354</span><a name="line.354">     * @param portalSession the portal session</a>
-<span class="sourceLineNo">355</span><a name="line.355">     */</a>
-<span class="sourceLineNo">356</span><a name="line.356">    @SuppressWarnings("unchecked")</a>
-<span class="sourceLineNo">357</span><a name="line.357">    @Handler</a>
-<span class="sourceLineNo">358</span><a name="line.358">    public void onUpdatePortletModel(UpdatePortletModel event,</a>
-<span class="sourceLineNo">359</span><a name="line.359">            PortalSession portalSession) {</a>
-<span class="sourceLineNo">360</span><a name="line.360">        stateFromSession(portalSession.browserSession(), event.portletId(),</a>
-<span class="sourceLineNo">361</span><a name="line.361">            MarkdownDisplayModel.class).ifPresent(model -&gt; {</a>
-<span class="sourceLineNo">362</span><a name="line.362">                event.ifPresent(TITLE,</a>
-<span class="sourceLineNo">363</span><a name="line.363">                    (key, value) -&gt; model.setTitle((String) value))</a>
-<span class="sourceLineNo">364</span><a name="line.364">                    .ifPresent(PREVIEW_SOURCE,</a>
-<span class="sourceLineNo">365</span><a name="line.365">                        (key, value) -&gt; model.setPreviewContent((String) value))</a>
-<span class="sourceLineNo">366</span><a name="line.366">                    .ifPresent(VIEW_SOURCE,</a>
-<span class="sourceLineNo">367</span><a name="line.367">                        (key, value) -&gt; model.setViewContent((String) value))</a>
-<span class="sourceLineNo">368</span><a name="line.368">                    .ifPresent(DELETABLE,</a>
-<span class="sourceLineNo">369</span><a name="line.369">                        (key, value) -&gt; model.setDeletable((Boolean) value))</a>
-<span class="sourceLineNo">370</span><a name="line.370">                    .ifPresent(EDITABLE_BY,</a>
-<span class="sourceLineNo">371</span><a name="line.371">                        (key, value) -&gt; {</a>
-<span class="sourceLineNo">372</span><a name="line.372">                            model.setEditableBy((Set&lt;Principal&gt;) value);</a>
-<span class="sourceLineNo">373</span><a name="line.373">                        });</a>
-<span class="sourceLineNo">374</span><a name="line.374">                try {</a>
-<span class="sourceLineNo">375</span><a name="line.375">                    String jsonState = JsonBeanEncoder.create()</a>
-<span class="sourceLineNo">376</span><a name="line.376">                        .writeObject(model).toJson();</a>
-<span class="sourceLineNo">377</span><a name="line.377">                    portalSession.respond(new KeyValueStoreUpdate().update(</a>
-<span class="sourceLineNo">378</span><a name="line.378">                        storagePath(portalSession.browserSession())</a>
-<span class="sourceLineNo">379</span><a name="line.379">                            + model.getPortletId(),</a>
-<span class="sourceLineNo">380</span><a name="line.380">                        jsonState));</a>
-<span class="sourceLineNo">381</span><a name="line.381">                    updateView(portalSession, model);</a>
-<span class="sourceLineNo">382</span><a name="line.382">                } catch (IOException e) { // NOPMD</a>
-<span class="sourceLineNo">383</span><a name="line.383">                    // Won't happen, uses internal writer</a>
-<span class="sourceLineNo">384</span><a name="line.384">                }</a>
-<span class="sourceLineNo">385</span><a name="line.385">            });</a>
-<span class="sourceLineNo">386</span><a name="line.386">    }</a>
+<span class="sourceLineNo">349</span>    /**<a name="line.349"></a>
+<span class="sourceLineNo">350</span>     * Stores the modified properties using a {@link KeyValueStoreUpdate}<a name="line.350"></a>
+<span class="sourceLineNo">351</span>     * event and updates the view with a {@link NotifyPortletView}. <a name="line.351"></a>
+<span class="sourceLineNo">352</span>     *<a name="line.352"></a>
+<span class="sourceLineNo">353</span>     * @param event the event<a name="line.353"></a>
+<span class="sourceLineNo">354</span>     * @param portalSession the portal session<a name="line.354"></a>
+<span class="sourceLineNo">355</span>     */<a name="line.355"></a>
+<span class="sourceLineNo">356</span>    @SuppressWarnings("unchecked")<a name="line.356"></a>
+<span class="sourceLineNo">357</span>    @Handler<a name="line.357"></a>
+<span class="sourceLineNo">358</span>    public void onUpdatePortletModel(UpdatePortletModel event,<a name="line.358"></a>
+<span class="sourceLineNo">359</span>            PortalSession portalSession) {<a name="line.359"></a>
+<span class="sourceLineNo">360</span>        stateFromSession(portalSession.browserSession(), event.portletId(),<a name="line.360"></a>
+<span class="sourceLineNo">361</span>            MarkdownDisplayModel.class).ifPresent(model -&gt; {<a name="line.361"></a>
+<span class="sourceLineNo">362</span>                event.ifPresent(TITLE,<a name="line.362"></a>
+<span class="sourceLineNo">363</span>                    (key, value) -&gt; model.setTitle((String) value))<a name="line.363"></a>
+<span class="sourceLineNo">364</span>                    .ifPresent(PREVIEW_SOURCE,<a name="line.364"></a>
+<span class="sourceLineNo">365</span>                        (key, value) -&gt; model.setPreviewContent((String) value))<a name="line.365"></a>
+<span class="sourceLineNo">366</span>                    .ifPresent(VIEW_SOURCE,<a name="line.366"></a>
+<span class="sourceLineNo">367</span>                        (key, value) -&gt; model.setViewContent((String) value))<a name="line.367"></a>
+<span class="sourceLineNo">368</span>                    .ifPresent(DELETABLE,<a name="line.368"></a>
+<span class="sourceLineNo">369</span>                        (key, value) -&gt; model.setDeletable((Boolean) value))<a name="line.369"></a>
+<span class="sourceLineNo">370</span>                    .ifPresent(EDITABLE_BY,<a name="line.370"></a>
+<span class="sourceLineNo">371</span>                        (key, value) -&gt; {<a name="line.371"></a>
+<span class="sourceLineNo">372</span>                            model.setEditableBy((Set&lt;Principal&gt;) value);<a name="line.372"></a>
+<span class="sourceLineNo">373</span>                        });<a name="line.373"></a>
+<span class="sourceLineNo">374</span>                try {<a name="line.374"></a>
+<span class="sourceLineNo">375</span>                    String jsonState = JsonBeanEncoder.create()<a name="line.375"></a>
+<span class="sourceLineNo">376</span>                        .writeObject(model).toJson();<a name="line.376"></a>
+<span class="sourceLineNo">377</span>                    portalSession.respond(new KeyValueStoreUpdate().update(<a name="line.377"></a>
+<span class="sourceLineNo">378</span>                        storagePath(portalSession.browserSession())<a name="line.378"></a>
+<span class="sourceLineNo">379</span>                            + model.getPortletId(),<a name="line.379"></a>
+<span class="sourceLineNo">380</span>                        jsonState));<a name="line.380"></a>
+<span class="sourceLineNo">381</span>                    updateView(portalSession, model);<a name="line.381"></a>
+<span class="sourceLineNo">382</span>                } catch (IOException e) { // NOPMD<a name="line.382"></a>
+<span class="sourceLineNo">383</span>                    // Won't happen, uses internal writer<a name="line.383"></a>
+<span class="sourceLineNo">384</span>                }<a name="line.384"></a>
+<span class="sourceLineNo">385</span>            });<a name="line.385"></a>
+<span class="sourceLineNo">386</span>    }<a name="line.386"></a>
 <span class="sourceLineNo">387</span><a name="line.387"></a>
-<span class="sourceLineNo">388</span><a name="line.388">    /**</a>
-<span class="sourceLineNo">389</span><a name="line.389">     * The portlet's model.</a>
-<span class="sourceLineNo">390</span><a name="line.390">     */</a>
-<span class="sourceLineNo">391</span><a name="line.391">    @SuppressWarnings("serial")</a>
-<span class="sourceLineNo">392</span><a name="line.392">    public static class MarkdownDisplayModel extends PortletBaseModel {</a>
+<span class="sourceLineNo">388</span>    /**<a name="line.388"></a>
+<span class="sourceLineNo">389</span>     * The portlet's model.<a name="line.389"></a>
+<span class="sourceLineNo">390</span>     */<a name="line.390"></a>
+<span class="sourceLineNo">391</span>    @SuppressWarnings("serial")<a name="line.391"></a>
+<span class="sourceLineNo">392</span>    public static class MarkdownDisplayModel extends PortletBaseModel {<a name="line.392"></a>
 <span class="sourceLineNo">393</span><a name="line.393"></a>
-<span class="sourceLineNo">394</span><a name="line.394">        private String title = "";</a>
-<span class="sourceLineNo">395</span><a name="line.395">        private String previewContent = "";</a>
-<span class="sourceLineNo">396</span><a name="line.396">        private String viewContent = "";</a>
-<span class="sourceLineNo">397</span><a name="line.397">        private boolean deletable = true;</a>
-<span class="sourceLineNo">398</span><a name="line.398">        private Set&lt;Principal&gt; editableBy;</a>
+<span class="sourceLineNo">394</span>        private String title = "";<a name="line.394"></a>
+<span class="sourceLineNo">395</span>        private String previewContent = "";<a name="line.395"></a>
+<span class="sourceLineNo">396</span>        private String viewContent = "";<a name="line.396"></a>
+<span class="sourceLineNo">397</span>        private boolean deletable = true;<a name="line.397"></a>
+<span class="sourceLineNo">398</span>        private Set&lt;Principal&gt; editableBy;<a name="line.398"></a>
 <span class="sourceLineNo">399</span><a name="line.399"></a>
-<span class="sourceLineNo">400</span><a name="line.400">        /**</a>
-<span class="sourceLineNo">401</span><a name="line.401">         * Creates a new model with the given type and id.</a>
-<span class="sourceLineNo">402</span><a name="line.402">         * </a>
-<span class="sourceLineNo">403</span><a name="line.403">         * @param portletId the portlet id</a>
-<span class="sourceLineNo">404</span><a name="line.404">         */</a>
-<span class="sourceLineNo">405</span><a name="line.405">        @ConstructorProperties({ "portletId" })</a>
-<span class="sourceLineNo">406</span><a name="line.406">        public MarkdownDisplayModel(String portletId) {</a>
-<span class="sourceLineNo">407</span><a name="line.407">            super(portletId);</a>
-<span class="sourceLineNo">408</span><a name="line.408">        }</a>
+<span class="sourceLineNo">400</span>        /**<a name="line.400"></a>
+<span class="sourceLineNo">401</span>         * Creates a new model with the given type and id.<a name="line.401"></a>
+<span class="sourceLineNo">402</span>         * <a name="line.402"></a>
+<span class="sourceLineNo">403</span>         * @param portletId the portlet id<a name="line.403"></a>
+<span class="sourceLineNo">404</span>         */<a name="line.404"></a>
+<span class="sourceLineNo">405</span>        @ConstructorProperties({ "portletId" })<a name="line.405"></a>
+<span class="sourceLineNo">406</span>        public MarkdownDisplayModel(String portletId) {<a name="line.406"></a>
+<span class="sourceLineNo">407</span>            super(portletId);<a name="line.407"></a>
+<span class="sourceLineNo">408</span>        }<a name="line.408"></a>
 <span class="sourceLineNo">409</span><a name="line.409"></a>
-<span class="sourceLineNo">410</span><a name="line.410">        /**</a>
-<span class="sourceLineNo">411</span><a name="line.411">         * @return the title</a>
-<span class="sourceLineNo">412</span><a name="line.412">         */</a>
-<span class="sourceLineNo">413</span><a name="line.413">        public String getTitle() {</a>
-<span class="sourceLineNo">414</span><a name="line.414">            return title;</a>
-<span class="sourceLineNo">415</span><a name="line.415">        }</a>
+<span class="sourceLineNo">410</span>        /**<a name="line.410"></a>
+<span class="sourceLineNo">411</span>         * @return the title<a name="line.411"></a>
+<span class="sourceLineNo">412</span>         */<a name="line.412"></a>
+<span class="sourceLineNo">413</span>        public String getTitle() {<a name="line.413"></a>
+<span class="sourceLineNo">414</span>            return title;<a name="line.414"></a>
+<span class="sourceLineNo">415</span>        }<a name="line.415"></a>
 <span class="sourceLineNo">416</span><a name="line.416"></a>
-<span class="sourceLineNo">417</span><a name="line.417">        /**</a>
-<span class="sourceLineNo">418</span><a name="line.418">         * @param title the title to set</a>
-<span class="sourceLineNo">419</span><a name="line.419">         */</a>
-<span class="sourceLineNo">420</span><a name="line.420">        public void setTitle(String title) {</a>
-<span class="sourceLineNo">421</span><a name="line.421">            this.title = title;</a>
-<span class="sourceLineNo">422</span><a name="line.422">        }</a>
+<span class="sourceLineNo">417</span>        /**<a name="line.417"></a>
+<span class="sourceLineNo">418</span>         * @param title the title to set<a name="line.418"></a>
+<span class="sourceLineNo">419</span>         */<a name="line.419"></a>
+<span class="sourceLineNo">420</span>        public void setTitle(String title) {<a name="line.420"></a>
+<span class="sourceLineNo">421</span>            this.title = title;<a name="line.421"></a>
+<span class="sourceLineNo">422</span>        }<a name="line.422"></a>
 <span class="sourceLineNo">423</span><a name="line.423"></a>
-<span class="sourceLineNo">424</span><a name="line.424">        /**</a>
-<span class="sourceLineNo">425</span><a name="line.425">         * @return the previewContent</a>
-<span class="sourceLineNo">426</span><a name="line.426">         */</a>
-<span class="sourceLineNo">427</span><a name="line.427">        public String getPreviewContent() {</a>
-<span class="sourceLineNo">428</span><a name="line.428">            return previewContent;</a>
-<span class="sourceLineNo">429</span><a name="line.429">        }</a>
+<span class="sourceLineNo">424</span>        /**<a name="line.424"></a>
+<span class="sourceLineNo">425</span>         * @return the previewContent<a name="line.425"></a>
+<span class="sourceLineNo">426</span>         */<a name="line.426"></a>
+<span class="sourceLineNo">427</span>        public String getPreviewContent() {<a name="line.427"></a>
+<span class="sourceLineNo">428</span>            return previewContent;<a name="line.428"></a>
+<span class="sourceLineNo">429</span>        }<a name="line.429"></a>
 <span class="sourceLineNo">430</span><a name="line.430"></a>
-<span class="sourceLineNo">431</span><a name="line.431">        /**</a>
-<span class="sourceLineNo">432</span><a name="line.432">         * @param previewContent the previewContent to set</a>
-<span class="sourceLineNo">433</span><a name="line.433">         */</a>
-<span class="sourceLineNo">434</span><a name="line.434">        public void setPreviewContent(String previewContent) {</a>
-<span class="sourceLineNo">435</span><a name="line.435">            this.previewContent = previewContent;</a>
-<span class="sourceLineNo">436</span><a name="line.436">        }</a>
+<span class="sourceLineNo">431</span>        /**<a name="line.431"></a>
+<span class="sourceLineNo">432</span>         * @param previewContent the previewContent to set<a name="line.432"></a>
+<span class="sourceLineNo">433</span>         */<a name="line.433"></a>
+<span class="sourceLineNo">434</span>        public void setPreviewContent(String previewContent) {<a name="line.434"></a>
+<span class="sourceLineNo">435</span>            this.previewContent = previewContent;<a name="line.435"></a>
+<span class="sourceLineNo">436</span>        }<a name="line.436"></a>
 <span class="sourceLineNo">437</span><a name="line.437"></a>
-<span class="sourceLineNo">438</span><a name="line.438">        /**</a>
-<span class="sourceLineNo">439</span><a name="line.439">         * @return the viewContent</a>
-<span class="sourceLineNo">440</span><a name="line.440">         */</a>
-<span class="sourceLineNo">441</span><a name="line.441">        public String getViewContent() {</a>
-<span class="sourceLineNo">442</span><a name="line.442">            return viewContent;</a>
-<span class="sourceLineNo">443</span><a name="line.443">        }</a>
+<span class="sourceLineNo">438</span>        /**<a name="line.438"></a>
+<span class="sourceLineNo">439</span>         * @return the viewContent<a name="line.439"></a>
+<span class="sourceLineNo">440</span>         */<a name="line.440"></a>
+<span class="sourceLineNo">441</span>        public String getViewContent() {<a name="line.441"></a>
+<span class="sourceLineNo">442</span>            return viewContent;<a name="line.442"></a>
+<span class="sourceLineNo">443</span>        }<a name="line.443"></a>
 <span class="sourceLineNo">444</span><a name="line.444"></a>
-<span class="sourceLineNo">445</span><a name="line.445">        /**</a>
-<span class="sourceLineNo">446</span><a name="line.446">         * @param viewContent the viewContent to set</a>
-<span class="sourceLineNo">447</span><a name="line.447">         */</a>
-<span class="sourceLineNo">448</span><a name="line.448">        public void setViewContent(String viewContent) {</a>
-<span class="sourceLineNo">449</span><a name="line.449">            this.viewContent = viewContent;</a>
-<span class="sourceLineNo">450</span><a name="line.450">        }</a>
+<span class="sourceLineNo">445</span>        /**<a name="line.445"></a>
+<span class="sourceLineNo">446</span>         * @param viewContent the viewContent to set<a name="line.446"></a>
+<span class="sourceLineNo">447</span>         */<a name="line.447"></a>
+<span class="sourceLineNo">448</span>        public void setViewContent(String viewContent) {<a name="line.448"></a>
+<span class="sourceLineNo">449</span>            this.viewContent = viewContent;<a name="line.449"></a>
+<span class="sourceLineNo">450</span>        }<a name="line.450"></a>
 <span class="sourceLineNo">451</span><a name="line.451"></a>
-<span class="sourceLineNo">452</span><a name="line.452">        /**</a>
-<span class="sourceLineNo">453</span><a name="line.453">         * @return the deletable</a>
-<span class="sourceLineNo">454</span><a name="line.454">         */</a>
-<span class="sourceLineNo">455</span><a name="line.455">        public boolean isDeletable() {</a>
-<span class="sourceLineNo">456</span><a name="line.456">            return deletable;</a>
-<span class="sourceLineNo">457</span><a name="line.457">        }</a>
+<span class="sourceLineNo">452</span>        /**<a name="line.452"></a>
+<span class="sourceLineNo">453</span>         * @return the deletable<a name="line.453"></a>
+<span class="sourceLineNo">454</span>         */<a name="line.454"></a>
+<span class="sourceLineNo">455</span>        public boolean isDeletable() {<a name="line.455"></a>
+<span class="sourceLineNo">456</span>            return deletable;<a name="line.456"></a>
+<span class="sourceLineNo">457</span>        }<a name="line.457"></a>
 <span class="sourceLineNo">458</span><a name="line.458"></a>
-<span class="sourceLineNo">459</span><a name="line.459">        /**</a>
-<span class="sourceLineNo">460</span><a name="line.460">         * @param deletable the deletable to set</a>
-<span class="sourceLineNo">461</span><a name="line.461">         */</a>
-<span class="sourceLineNo">462</span><a name="line.462">        public void setDeletable(boolean deletable) {</a>
-<span class="sourceLineNo">463</span><a name="line.463">            this.deletable = deletable;</a>
-<span class="sourceLineNo">464</span><a name="line.464">        }</a>
+<span class="sourceLineNo">459</span>        /**<a name="line.459"></a>
+<span class="sourceLineNo">460</span>         * @param deletable the deletable to set<a name="line.460"></a>
+<span class="sourceLineNo">461</span>         */<a name="line.461"></a>
+<span class="sourceLineNo">462</span>        public void setDeletable(boolean deletable) {<a name="line.462"></a>
+<span class="sourceLineNo">463</span>            this.deletable = deletable;<a name="line.463"></a>
+<span class="sourceLineNo">464</span>        }<a name="line.464"></a>
 <span class="sourceLineNo">465</span><a name="line.465"></a>
-<span class="sourceLineNo">466</span><a name="line.466">        /**</a>
-<span class="sourceLineNo">467</span><a name="line.467">         * @return the editableBy</a>
-<span class="sourceLineNo">468</span><a name="line.468">         */</a>
-<span class="sourceLineNo">469</span><a name="line.469">        public Set&lt;Principal&gt; getEditableBy() {</a>
-<span class="sourceLineNo">470</span><a name="line.470">            return editableBy;</a>
-<span class="sourceLineNo">471</span><a name="line.471">        }</a>
+<span class="sourceLineNo">466</span>        /**<a name="line.466"></a>
+<span class="sourceLineNo">467</span>         * @return the editableBy<a name="line.467"></a>
+<span class="sourceLineNo">468</span>         */<a name="line.468"></a>
+<span class="sourceLineNo">469</span>        public Set&lt;Principal&gt; getEditableBy() {<a name="line.469"></a>
+<span class="sourceLineNo">470</span>            return editableBy;<a name="line.470"></a>
+<span class="sourceLineNo">471</span>        }<a name="line.471"></a>
 <span class="sourceLineNo">472</span><a name="line.472"></a>
-<span class="sourceLineNo">473</span><a name="line.473">        /**</a>
-<span class="sourceLineNo">474</span><a name="line.474">         * @param editableBy the editableBy to set</a>
-<span class="sourceLineNo">475</span><a name="line.475">         */</a>
-<span class="sourceLineNo">476</span><a name="line.476">        public void setEditableBy(Set&lt;Principal&gt; editableBy) {</a>
-<span class="sourceLineNo">477</span><a name="line.477">            this.editableBy = editableBy;</a>
-<span class="sourceLineNo">478</span><a name="line.478">        }</a>
+<span class="sourceLineNo">473</span>        /**<a name="line.473"></a>
+<span class="sourceLineNo">474</span>         * @param editableBy the editableBy to set<a name="line.474"></a>
+<span class="sourceLineNo">475</span>         */<a name="line.475"></a>
+<span class="sourceLineNo">476</span>        public void setEditableBy(Set&lt;Principal&gt; editableBy) {<a name="line.476"></a>
+<span class="sourceLineNo">477</span>            this.editableBy = editableBy;<a name="line.477"></a>
+<span class="sourceLineNo">478</span>        }<a name="line.478"></a>
 <span class="sourceLineNo">479</span><a name="line.479"></a>
-<span class="sourceLineNo">480</span><a name="line.480">    }</a>
+<span class="sourceLineNo">480</span>    }<a name="line.480"></a>
 <span class="sourceLineNo">481</span><a name="line.481"></a>
-<span class="sourceLineNo">482</span><a name="line.482">}</a>
+<span class="sourceLineNo">482</span>}<a name="line.482"></a>
 
 
 
