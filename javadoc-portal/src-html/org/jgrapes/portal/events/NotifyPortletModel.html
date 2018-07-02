@@ -6,116 +6,116 @@
 </head>
 <body>
 <div class="sourceContainer">
-<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
-<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2017-2018 Michael N. Lipp<a name="line.3"></a>
-<span class="sourceLineNo">004</span> * <a name="line.4"></a>
-<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
-<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
-<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
-<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
-<span class="sourceLineNo">009</span> * <a name="line.9"></a>
-<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
-<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
-<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
-<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
-<span class="sourceLineNo">014</span> * <a name="line.14"></a>
-<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
-<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
-<span class="sourceLineNo">017</span> */<a name="line.17"></a>
+<pre><span class="sourceLineNo">001</span><a name="line.1">/*</a>
+<span class="sourceLineNo">002</span><a name="line.2"> * JGrapes Event Driven Framework</a>
+<span class="sourceLineNo">003</span><a name="line.3"> * Copyright (C) 2017-2018 Michael N. Lipp</a>
+<span class="sourceLineNo">004</span><a name="line.4"> * </a>
+<span class="sourceLineNo">005</span><a name="line.5"> * This program is free software; you can redistribute it and/or modify it </a>
+<span class="sourceLineNo">006</span><a name="line.6"> * under the terms of the GNU General Public License as published by </a>
+<span class="sourceLineNo">007</span><a name="line.7"> * the Free Software Foundation; either version 3 of the License, or </a>
+<span class="sourceLineNo">008</span><a name="line.8"> * (at your option) any later version.</a>
+<span class="sourceLineNo">009</span><a name="line.9"> * </a>
+<span class="sourceLineNo">010</span><a name="line.10"> * This program is distributed in the hope that it will be useful, but </a>
+<span class="sourceLineNo">011</span><a name="line.11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</a>
+<span class="sourceLineNo">012</span><a name="line.12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License </a>
+<span class="sourceLineNo">013</span><a name="line.13"> * for more details.</a>
+<span class="sourceLineNo">014</span><a name="line.14"> * </a>
+<span class="sourceLineNo">015</span><a name="line.15"> * You should have received a copy of the GNU General Public License along </a>
+<span class="sourceLineNo">016</span><a name="line.16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<span class="sourceLineNo">017</span><a name="line.17"> */</a>
 <span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span>package org.jgrapes.portal.events;<a name="line.19"></a>
+<span class="sourceLineNo">019</span><a name="line.19">package org.jgrapes.portal.events;</a>
 <span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>import org.jdrupes.json.JsonArray;<a name="line.21"></a>
-<span class="sourceLineNo">022</span>import org.jgrapes.core.Event;<a name="line.22"></a>
-<span class="sourceLineNo">023</span>import org.jgrapes.portal.RenderSupport;<a name="line.23"></a>
+<span class="sourceLineNo">021</span><a name="line.21">import org.jdrupes.json.JsonArray;</a>
+<span class="sourceLineNo">022</span><a name="line.22">import org.jgrapes.core.Event;</a>
+<span class="sourceLineNo">023</span><a name="line.23">import org.jgrapes.portal.RenderSupport;</a>
 <span class="sourceLineNo">024</span><a name="line.24"></a>
-<span class="sourceLineNo">025</span>/**<a name="line.25"></a>
-<span class="sourceLineNo">026</span> * A decoded notification (as defined by the JSON RPC specification) that<a name="line.26"></a>
-<span class="sourceLineNo">027</span> * invokes a method on a portlet model. Usually, though not necessarily,<a name="line.27"></a>
-<span class="sourceLineNo">028</span> * the portlet component responds by sending a<a name="line.28"></a>
-<span class="sourceLineNo">029</span> * {@link NotifyPortletView} to update the portlet representation.<a name="line.29"></a>
-<span class="sourceLineNo">030</span> * <a name="line.30"></a>
-<span class="sourceLineNo">031</span> * ![Event Sequence](NotifyPortletModelSeq.svg)<a name="line.31"></a>
-<span class="sourceLineNo">032</span> * <a name="line.32"></a>
-<span class="sourceLineNo">033</span> * @startuml NotifyPortletModelSeq.svg<a name="line.33"></a>
-<span class="sourceLineNo">034</span> * hide footbox<a name="line.34"></a>
-<span class="sourceLineNo">035</span> * <a name="line.35"></a>
-<span class="sourceLineNo">036</span> * Browser -&gt; Portal: "notifyPortletModel"<a name="line.36"></a>
-<span class="sourceLineNo">037</span> * activate Portal<a name="line.37"></a>
-<span class="sourceLineNo">038</span> * Portal -&gt; Portlet: NotifyPortletModel<a name="line.38"></a>
-<span class="sourceLineNo">039</span> * deactivate Portal<a name="line.39"></a>
-<span class="sourceLineNo">040</span> * activate Portlet<a name="line.40"></a>
-<span class="sourceLineNo">041</span> * Portlet -&gt; Portal: NotifyPortletView<a name="line.41"></a>
-<span class="sourceLineNo">042</span> * deactivate Portlet<a name="line.42"></a>
-<span class="sourceLineNo">043</span> * activate Portal<a name="line.43"></a>
-<span class="sourceLineNo">044</span> * Portal -&gt; Browser: "notifyPortletView"<a name="line.44"></a>
-<span class="sourceLineNo">045</span> * deactivate Portal<a name="line.45"></a>
-<span class="sourceLineNo">046</span> * <a name="line.46"></a>
-<span class="sourceLineNo">047</span> * @enduml<a name="line.47"></a>
-<span class="sourceLineNo">048</span> */<a name="line.48"></a>
-<span class="sourceLineNo">049</span>@SuppressWarnings("PMD.DataClass")<a name="line.49"></a>
-<span class="sourceLineNo">050</span>public class NotifyPortletModel extends Event&lt;Void&gt; {<a name="line.50"></a>
+<span class="sourceLineNo">025</span><a name="line.25">/**</a>
+<span class="sourceLineNo">026</span><a name="line.26"> * A decoded notification (as defined by the JSON RPC specification) that</a>
+<span class="sourceLineNo">027</span><a name="line.27"> * invokes a method on a portlet model. Usually, though not necessarily,</a>
+<span class="sourceLineNo">028</span><a name="line.28"> * the portlet component responds by sending a</a>
+<span class="sourceLineNo">029</span><a name="line.29"> * {@link NotifyPortletView} to update the portlet representation.</a>
+<span class="sourceLineNo">030</span><a name="line.30"> * </a>
+<span class="sourceLineNo">031</span><a name="line.31"> * ![Event Sequence](NotifyPortletModelSeq.svg)</a>
+<span class="sourceLineNo">032</span><a name="line.32"> * </a>
+<span class="sourceLineNo">033</span><a name="line.33"> * @startuml NotifyPortletModelSeq.svg</a>
+<span class="sourceLineNo">034</span><a name="line.34"> * hide footbox</a>
+<span class="sourceLineNo">035</span><a name="line.35"> * </a>
+<span class="sourceLineNo">036</span><a name="line.36"> * Browser -&gt; Portal: "notifyPortletModel"</a>
+<span class="sourceLineNo">037</span><a name="line.37"> * activate Portal</a>
+<span class="sourceLineNo">038</span><a name="line.38"> * Portal -&gt; Portlet: NotifyPortletModel</a>
+<span class="sourceLineNo">039</span><a name="line.39"> * deactivate Portal</a>
+<span class="sourceLineNo">040</span><a name="line.40"> * activate Portlet</a>
+<span class="sourceLineNo">041</span><a name="line.41"> * Portlet -&gt; Portal: NotifyPortletView</a>
+<span class="sourceLineNo">042</span><a name="line.42"> * deactivate Portlet</a>
+<span class="sourceLineNo">043</span><a name="line.43"> * activate Portal</a>
+<span class="sourceLineNo">044</span><a name="line.44"> * Portal -&gt; Browser: "notifyPortletView"</a>
+<span class="sourceLineNo">045</span><a name="line.45"> * deactivate Portal</a>
+<span class="sourceLineNo">046</span><a name="line.46"> * </a>
+<span class="sourceLineNo">047</span><a name="line.47"> * @enduml</a>
+<span class="sourceLineNo">048</span><a name="line.48"> */</a>
+<span class="sourceLineNo">049</span><a name="line.49">@SuppressWarnings("PMD.DataClass")</a>
+<span class="sourceLineNo">050</span><a name="line.50">public class NotifyPortletModel extends Event&lt;Void&gt; {</a>
 <span class="sourceLineNo">051</span><a name="line.51"></a>
-<span class="sourceLineNo">052</span>    private final RenderSupport renderSupport;<a name="line.52"></a>
-<span class="sourceLineNo">053</span>    private final String portletId;<a name="line.53"></a>
-<span class="sourceLineNo">054</span>    private final String method;<a name="line.54"></a>
-<span class="sourceLineNo">055</span>    private final JsonArray params;<a name="line.55"></a>
+<span class="sourceLineNo">052</span><a name="line.52">    private final RenderSupport renderSupport;</a>
+<span class="sourceLineNo">053</span><a name="line.53">    private final String portletId;</a>
+<span class="sourceLineNo">054</span><a name="line.54">    private final String method;</a>
+<span class="sourceLineNo">055</span><a name="line.55">    private final JsonArray params;</a>
 <span class="sourceLineNo">056</span><a name="line.56"></a>
-<span class="sourceLineNo">057</span>    /**<a name="line.57"></a>
-<span class="sourceLineNo">058</span>     * Creates a new event.<a name="line.58"></a>
-<span class="sourceLineNo">059</span>     * <a name="line.59"></a>
-<span class="sourceLineNo">060</span>     * @param renderSupport the render support from the portal in case<a name="line.60"></a>
-<span class="sourceLineNo">061</span>     * the response requires it<a name="line.61"></a>
-<span class="sourceLineNo">062</span>     * @param portletId the portlet model that the notification is <a name="line.62"></a>
-<span class="sourceLineNo">063</span>     * directed at <a name="line.63"></a>
-<span class="sourceLineNo">064</span>     * @param method the method to be executed<a name="line.64"></a>
-<span class="sourceLineNo">065</span>     * @param params parameters<a name="line.65"></a>
-<span class="sourceLineNo">066</span>     */<a name="line.66"></a>
-<span class="sourceLineNo">067</span>    public NotifyPortletModel(RenderSupport renderSupport,<a name="line.67"></a>
-<span class="sourceLineNo">068</span>            String portletId, String method, JsonArray params) {<a name="line.68"></a>
-<span class="sourceLineNo">069</span>        this.renderSupport = renderSupport;<a name="line.69"></a>
-<span class="sourceLineNo">070</span>        this.portletId = portletId;<a name="line.70"></a>
-<span class="sourceLineNo">071</span>        this.method = method;<a name="line.71"></a>
-<span class="sourceLineNo">072</span>        this.params = params;<a name="line.72"></a>
-<span class="sourceLineNo">073</span>    }<a name="line.73"></a>
+<span class="sourceLineNo">057</span><a name="line.57">    /**</a>
+<span class="sourceLineNo">058</span><a name="line.58">     * Creates a new event.</a>
+<span class="sourceLineNo">059</span><a name="line.59">     * </a>
+<span class="sourceLineNo">060</span><a name="line.60">     * @param renderSupport the render support from the portal in case</a>
+<span class="sourceLineNo">061</span><a name="line.61">     * the response requires it</a>
+<span class="sourceLineNo">062</span><a name="line.62">     * @param portletId the portlet model that the notification is </a>
+<span class="sourceLineNo">063</span><a name="line.63">     * directed at </a>
+<span class="sourceLineNo">064</span><a name="line.64">     * @param method the method to be executed</a>
+<span class="sourceLineNo">065</span><a name="line.65">     * @param params parameters</a>
+<span class="sourceLineNo">066</span><a name="line.66">     */</a>
+<span class="sourceLineNo">067</span><a name="line.67">    public NotifyPortletModel(RenderSupport renderSupport,</a>
+<span class="sourceLineNo">068</span><a name="line.68">            String portletId, String method, JsonArray params) {</a>
+<span class="sourceLineNo">069</span><a name="line.69">        this.renderSupport = renderSupport;</a>
+<span class="sourceLineNo">070</span><a name="line.70">        this.portletId = portletId;</a>
+<span class="sourceLineNo">071</span><a name="line.71">        this.method = method;</a>
+<span class="sourceLineNo">072</span><a name="line.72">        this.params = params;</a>
+<span class="sourceLineNo">073</span><a name="line.73">    }</a>
 <span class="sourceLineNo">074</span><a name="line.74"></a>
-<span class="sourceLineNo">075</span>    /**<a name="line.75"></a>
-<span class="sourceLineNo">076</span>     * Returns the render support.<a name="line.76"></a>
-<span class="sourceLineNo">077</span>     * <a name="line.77"></a>
-<span class="sourceLineNo">078</span>     * @return the render support<a name="line.78"></a>
-<span class="sourceLineNo">079</span>     */<a name="line.79"></a>
-<span class="sourceLineNo">080</span>    public RenderSupport renderSupport() {<a name="line.80"></a>
-<span class="sourceLineNo">081</span>        return renderSupport;<a name="line.81"></a>
-<span class="sourceLineNo">082</span>    }<a name="line.82"></a>
+<span class="sourceLineNo">075</span><a name="line.75">    /**</a>
+<span class="sourceLineNo">076</span><a name="line.76">     * Returns the render support.</a>
+<span class="sourceLineNo">077</span><a name="line.77">     * </a>
+<span class="sourceLineNo">078</span><a name="line.78">     * @return the render support</a>
+<span class="sourceLineNo">079</span><a name="line.79">     */</a>
+<span class="sourceLineNo">080</span><a name="line.80">    public RenderSupport renderSupport() {</a>
+<span class="sourceLineNo">081</span><a name="line.81">        return renderSupport;</a>
+<span class="sourceLineNo">082</span><a name="line.82">    }</a>
 <span class="sourceLineNo">083</span><a name="line.83"></a>
-<span class="sourceLineNo">084</span>    /**<a name="line.84"></a>
-<span class="sourceLineNo">085</span>     * Returns the portlet id.<a name="line.85"></a>
-<span class="sourceLineNo">086</span>     * <a name="line.86"></a>
-<span class="sourceLineNo">087</span>     * @return the portlet id<a name="line.87"></a>
-<span class="sourceLineNo">088</span>     */<a name="line.88"></a>
-<span class="sourceLineNo">089</span>    public String portletId() {<a name="line.89"></a>
-<span class="sourceLineNo">090</span>        return portletId;<a name="line.90"></a>
-<span class="sourceLineNo">091</span>    }<a name="line.91"></a>
+<span class="sourceLineNo">084</span><a name="line.84">    /**</a>
+<span class="sourceLineNo">085</span><a name="line.85">     * Returns the portlet id.</a>
+<span class="sourceLineNo">086</span><a name="line.86">     * </a>
+<span class="sourceLineNo">087</span><a name="line.87">     * @return the portlet id</a>
+<span class="sourceLineNo">088</span><a name="line.88">     */</a>
+<span class="sourceLineNo">089</span><a name="line.89">    public String portletId() {</a>
+<span class="sourceLineNo">090</span><a name="line.90">        return portletId;</a>
+<span class="sourceLineNo">091</span><a name="line.91">    }</a>
 <span class="sourceLineNo">092</span><a name="line.92"></a>
-<span class="sourceLineNo">093</span>    /**<a name="line.93"></a>
-<span class="sourceLineNo">094</span>     * Returns the method.<a name="line.94"></a>
-<span class="sourceLineNo">095</span>     * <a name="line.95"></a>
-<span class="sourceLineNo">096</span>     * @return the method<a name="line.96"></a>
-<span class="sourceLineNo">097</span>     */<a name="line.97"></a>
-<span class="sourceLineNo">098</span>    public String method() {<a name="line.98"></a>
-<span class="sourceLineNo">099</span>        return method;<a name="line.99"></a>
-<span class="sourceLineNo">100</span>    }<a name="line.100"></a>
+<span class="sourceLineNo">093</span><a name="line.93">    /**</a>
+<span class="sourceLineNo">094</span><a name="line.94">     * Returns the method.</a>
+<span class="sourceLineNo">095</span><a name="line.95">     * </a>
+<span class="sourceLineNo">096</span><a name="line.96">     * @return the method</a>
+<span class="sourceLineNo">097</span><a name="line.97">     */</a>
+<span class="sourceLineNo">098</span><a name="line.98">    public String method() {</a>
+<span class="sourceLineNo">099</span><a name="line.99">        return method;</a>
+<span class="sourceLineNo">100</span><a name="line.100">    }</a>
 <span class="sourceLineNo">101</span><a name="line.101"></a>
-<span class="sourceLineNo">102</span>    /**<a name="line.102"></a>
-<span class="sourceLineNo">103</span>     * Returns the parameters.<a name="line.103"></a>
-<span class="sourceLineNo">104</span>     * <a name="line.104"></a>
-<span class="sourceLineNo">105</span>     * @return the parameters<a name="line.105"></a>
-<span class="sourceLineNo">106</span>     */<a name="line.106"></a>
-<span class="sourceLineNo">107</span>    public JsonArray params() {<a name="line.107"></a>
-<span class="sourceLineNo">108</span>        return params;<a name="line.108"></a>
-<span class="sourceLineNo">109</span>    }<a name="line.109"></a>
-<span class="sourceLineNo">110</span>}<a name="line.110"></a>
+<span class="sourceLineNo">102</span><a name="line.102">    /**</a>
+<span class="sourceLineNo">103</span><a name="line.103">     * Returns the parameters.</a>
+<span class="sourceLineNo">104</span><a name="line.104">     * </a>
+<span class="sourceLineNo">105</span><a name="line.105">     * @return the parameters</a>
+<span class="sourceLineNo">106</span><a name="line.106">     */</a>
+<span class="sourceLineNo">107</span><a name="line.107">    public JsonArray params() {</a>
+<span class="sourceLineNo">108</span><a name="line.108">        return params;</a>
+<span class="sourceLineNo">109</span><a name="line.109">    }</a>
+<span class="sourceLineNo">110</span><a name="line.110">}</a>
 
 
 

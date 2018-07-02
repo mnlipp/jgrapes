@@ -6,119 +6,119 @@
 </head>
 <body>
 <div class="sourceContainer">
-<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
-<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2017-2018 Michael N. Lipp<a name="line.3"></a>
-<span class="sourceLineNo">004</span> * <a name="line.4"></a>
-<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
-<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
-<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
-<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
-<span class="sourceLineNo">009</span> * <a name="line.9"></a>
-<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
-<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
-<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
-<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
-<span class="sourceLineNo">014</span> * <a name="line.14"></a>
-<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
-<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
-<span class="sourceLineNo">017</span> */<a name="line.17"></a>
+<pre><span class="sourceLineNo">001</span><a name="line.1">/*</a>
+<span class="sourceLineNo">002</span><a name="line.2"> * JGrapes Event Driven Framework</a>
+<span class="sourceLineNo">003</span><a name="line.3"> * Copyright (C) 2017-2018 Michael N. Lipp</a>
+<span class="sourceLineNo">004</span><a name="line.4"> * </a>
+<span class="sourceLineNo">005</span><a name="line.5"> * This program is free software; you can redistribute it and/or modify it </a>
+<span class="sourceLineNo">006</span><a name="line.6"> * under the terms of the GNU General Public License as published by </a>
+<span class="sourceLineNo">007</span><a name="line.7"> * the Free Software Foundation; either version 3 of the License, or </a>
+<span class="sourceLineNo">008</span><a name="line.8"> * (at your option) any later version.</a>
+<span class="sourceLineNo">009</span><a name="line.9"> * </a>
+<span class="sourceLineNo">010</span><a name="line.10"> * This program is distributed in the hope that it will be useful, but </a>
+<span class="sourceLineNo">011</span><a name="line.11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</a>
+<span class="sourceLineNo">012</span><a name="line.12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License </a>
+<span class="sourceLineNo">013</span><a name="line.13"> * for more details.</a>
+<span class="sourceLineNo">014</span><a name="line.14"> * </a>
+<span class="sourceLineNo">015</span><a name="line.15"> * You should have received a copy of the GNU General Public License along </a>
+<span class="sourceLineNo">016</span><a name="line.16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<span class="sourceLineNo">017</span><a name="line.17"> */</a>
 <span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span>package org.jgrapes.portal.providers.datatables;<a name="line.19"></a>
+<span class="sourceLineNo">019</span><a name="line.19">package org.jgrapes.portal.providers.datatables;</a>
 <span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>import freemarker.core.ParseException;<a name="line.21"></a>
-<span class="sourceLineNo">022</span>import freemarker.template.MalformedTemplateNameException;<a name="line.22"></a>
-<span class="sourceLineNo">023</span>import freemarker.template.TemplateNotFoundException;<a name="line.23"></a>
+<span class="sourceLineNo">021</span><a name="line.21">import freemarker.core.ParseException;</a>
+<span class="sourceLineNo">022</span><a name="line.22">import freemarker.template.MalformedTemplateNameException;</a>
+<span class="sourceLineNo">023</span><a name="line.23">import freemarker.template.TemplateNotFoundException;</a>
 <span class="sourceLineNo">024</span><a name="line.24"></a>
-<span class="sourceLineNo">025</span>import java.io.IOException;<a name="line.25"></a>
-<span class="sourceLineNo">026</span>import java.util.Locale;<a name="line.26"></a>
-<span class="sourceLineNo">027</span>import java.util.ResourceBundle;<a name="line.27"></a>
+<span class="sourceLineNo">025</span><a name="line.25">import java.io.IOException;</a>
+<span class="sourceLineNo">026</span><a name="line.26">import java.util.Locale;</a>
+<span class="sourceLineNo">027</span><a name="line.27">import java.util.ResourceBundle;</a>
 <span class="sourceLineNo">028</span><a name="line.28"></a>
-<span class="sourceLineNo">029</span>import org.jgrapes.core.Channel;<a name="line.29"></a>
-<span class="sourceLineNo">030</span>import org.jgrapes.core.Event;<a name="line.30"></a>
-<span class="sourceLineNo">031</span>import org.jgrapes.core.Manager;<a name="line.31"></a>
-<span class="sourceLineNo">032</span>import org.jgrapes.core.annotation.Handler;<a name="line.32"></a>
-<span class="sourceLineNo">033</span>import org.jgrapes.portal.PageResourceProvider;<a name="line.33"></a>
-<span class="sourceLineNo">034</span>import org.jgrapes.portal.PortalSession;<a name="line.34"></a>
-<span class="sourceLineNo">035</span>import org.jgrapes.portal.events.AddPageResources;<a name="line.35"></a>
-<span class="sourceLineNo">036</span>import org.jgrapes.portal.events.AddPageResources.ScriptResource;<a name="line.36"></a>
-<span class="sourceLineNo">037</span>import org.jgrapes.portal.events.PortalReady;<a name="line.37"></a>
+<span class="sourceLineNo">029</span><a name="line.29">import org.jgrapes.core.Channel;</a>
+<span class="sourceLineNo">030</span><a name="line.30">import org.jgrapes.core.Event;</a>
+<span class="sourceLineNo">031</span><a name="line.31">import org.jgrapes.core.Manager;</a>
+<span class="sourceLineNo">032</span><a name="line.32">import org.jgrapes.core.annotation.Handler;</a>
+<span class="sourceLineNo">033</span><a name="line.33">import org.jgrapes.portal.PageResourceProvider;</a>
+<span class="sourceLineNo">034</span><a name="line.34">import org.jgrapes.portal.PortalSession;</a>
+<span class="sourceLineNo">035</span><a name="line.35">import org.jgrapes.portal.events.AddPageResources;</a>
+<span class="sourceLineNo">036</span><a name="line.36">import org.jgrapes.portal.events.AddPageResources.ScriptResource;</a>
+<span class="sourceLineNo">037</span><a name="line.37">import org.jgrapes.portal.events.PortalReady;</a>
 <span class="sourceLineNo">038</span><a name="line.38"></a>
-<span class="sourceLineNo">039</span>/**<a name="line.39"></a>
-<span class="sourceLineNo">040</span> * Provider for the [Datatables](https://datatables.net/) library.<a name="line.40"></a>
-<span class="sourceLineNo">041</span> */<a name="line.41"></a>
-<span class="sourceLineNo">042</span>public class DatatablesProvider extends PageResourceProvider {<a name="line.42"></a>
+<span class="sourceLineNo">039</span><a name="line.39">/**</a>
+<span class="sourceLineNo">040</span><a name="line.40"> * Provider for the [Datatables](https://datatables.net/) library.</a>
+<span class="sourceLineNo">041</span><a name="line.41"> */</a>
+<span class="sourceLineNo">042</span><a name="line.42">public class DatatablesProvider extends PageResourceProvider {</a>
 <span class="sourceLineNo">043</span><a name="line.43"></a>
-<span class="sourceLineNo">044</span>    /**<a name="line.44"></a>
-<span class="sourceLineNo">045</span>     * Creates a new component with its channel set to the given <a name="line.45"></a>
-<span class="sourceLineNo">046</span>     * channel.<a name="line.46"></a>
-<span class="sourceLineNo">047</span>     * <a name="line.47"></a>
-<span class="sourceLineNo">048</span>     * @param componentChannel the channel that the component's <a name="line.48"></a>
-<span class="sourceLineNo">049</span>     * handlers listen on by default and that <a name="line.49"></a>
-<span class="sourceLineNo">050</span>     * {@link Manager#fire(Event, Channel...)} sends the event to <a name="line.50"></a>
-<span class="sourceLineNo">051</span>     */<a name="line.51"></a>
-<span class="sourceLineNo">052</span>    public DatatablesProvider(Channel componentChannel) {<a name="line.52"></a>
-<span class="sourceLineNo">053</span>        super(componentChannel);<a name="line.53"></a>
-<span class="sourceLineNo">054</span>    }<a name="line.54"></a>
+<span class="sourceLineNo">044</span><a name="line.44">    /**</a>
+<span class="sourceLineNo">045</span><a name="line.45">     * Creates a new component with its channel set to the given </a>
+<span class="sourceLineNo">046</span><a name="line.46">     * channel.</a>
+<span class="sourceLineNo">047</span><a name="line.47">     * </a>
+<span class="sourceLineNo">048</span><a name="line.48">     * @param componentChannel the channel that the component's </a>
+<span class="sourceLineNo">049</span><a name="line.49">     * handlers listen on by default and that </a>
+<span class="sourceLineNo">050</span><a name="line.50">     * {@link Manager#fire(Event, Channel...)} sends the event to </a>
+<span class="sourceLineNo">051</span><a name="line.51">     */</a>
+<span class="sourceLineNo">052</span><a name="line.52">    public DatatablesProvider(Channel componentChannel) {</a>
+<span class="sourceLineNo">053</span><a name="line.53">        super(componentChannel);</a>
+<span class="sourceLineNo">054</span><a name="line.54">    }</a>
 <span class="sourceLineNo">055</span><a name="line.55"></a>
-<span class="sourceLineNo">056</span>    /**<a name="line.56"></a>
-<span class="sourceLineNo">057</span>     * Provides a resource bundle for localization.<a name="line.57"></a>
-<span class="sourceLineNo">058</span>     * The default implementation looks up a bundle using the<a name="line.58"></a>
-<span class="sourceLineNo">059</span>     * package name plus "l10n" as base name.<a name="line.59"></a>
-<span class="sourceLineNo">060</span>     * <a name="line.60"></a>
-<span class="sourceLineNo">061</span>     * @return the resource bundle<a name="line.61"></a>
-<span class="sourceLineNo">062</span>     */<a name="line.62"></a>
-<span class="sourceLineNo">063</span>    protected ResourceBundle resourceBundle(Locale locale) {<a name="line.63"></a>
-<span class="sourceLineNo">064</span>        return ResourceBundle.getBundle(<a name="line.64"></a>
-<span class="sourceLineNo">065</span>            getClass().getPackage().getName() + ".datatables.l10n", locale,<a name="line.65"></a>
-<span class="sourceLineNo">066</span>            getClass().getClassLoader(),<a name="line.66"></a>
-<span class="sourceLineNo">067</span>            ResourceBundle.Control.getNoFallbackControl(<a name="line.67"></a>
-<span class="sourceLineNo">068</span>                ResourceBundle.Control.FORMAT_DEFAULT));<a name="line.68"></a>
-<span class="sourceLineNo">069</span>    }<a name="line.69"></a>
+<span class="sourceLineNo">056</span><a name="line.56">    /**</a>
+<span class="sourceLineNo">057</span><a name="line.57">     * Provides a resource bundle for localization.</a>
+<span class="sourceLineNo">058</span><a name="line.58">     * The default implementation looks up a bundle using the</a>
+<span class="sourceLineNo">059</span><a name="line.59">     * package name plus "l10n" as base name.</a>
+<span class="sourceLineNo">060</span><a name="line.60">     * </a>
+<span class="sourceLineNo">061</span><a name="line.61">     * @return the resource bundle</a>
+<span class="sourceLineNo">062</span><a name="line.62">     */</a>
+<span class="sourceLineNo">063</span><a name="line.63">    protected ResourceBundle resourceBundle(Locale locale) {</a>
+<span class="sourceLineNo">064</span><a name="line.64">        return ResourceBundle.getBundle(</a>
+<span class="sourceLineNo">065</span><a name="line.65">            getClass().getPackage().getName() + ".datatables.l10n", locale,</a>
+<span class="sourceLineNo">066</span><a name="line.66">            getClass().getClassLoader(),</a>
+<span class="sourceLineNo">067</span><a name="line.67">            ResourceBundle.Control.getNoFallbackControl(</a>
+<span class="sourceLineNo">068</span><a name="line.68">                ResourceBundle.Control.FORMAT_DEFAULT));</a>
+<span class="sourceLineNo">069</span><a name="line.69">    }</a>
 <span class="sourceLineNo">070</span><a name="line.70"></a>
-<span class="sourceLineNo">071</span>    /**<a name="line.71"></a>
-<span class="sourceLineNo">072</span>     * On {@link PortalReady}, fire the appropriate {@link AddPageResources}.<a name="line.72"></a>
-<span class="sourceLineNo">073</span>     *<a name="line.73"></a>
-<span class="sourceLineNo">074</span>     * @param event the event<a name="line.74"></a>
-<span class="sourceLineNo">075</span>     * @param portalSession the portal session<a name="line.75"></a>
-<span class="sourceLineNo">076</span>     * @throws TemplateNotFoundException the template not found exception<a name="line.76"></a>
-<span class="sourceLineNo">077</span>     * @throws MalformedTemplateNameException the malformed template name exception<a name="line.77"></a>
-<span class="sourceLineNo">078</span>     * @throws ParseException the parse exception<a name="line.78"></a>
-<span class="sourceLineNo">079</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.79"></a>
-<span class="sourceLineNo">080</span>     */<a name="line.80"></a>
-<span class="sourceLineNo">081</span>    @Handler(priority = 100)<a name="line.81"></a>
-<span class="sourceLineNo">082</span>    public void onPortalReady(PortalReady event, PortalSession portalSession)<a name="line.82"></a>
-<span class="sourceLineNo">083</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.83"></a>
-<span class="sourceLineNo">084</span>            ParseException, IOException {<a name="line.84"></a>
-<span class="sourceLineNo">085</span>        String minExt = event.renderSupport()<a name="line.85"></a>
-<span class="sourceLineNo">086</span>            .useMinifiedResources() ? ".min" : "";<a name="line.86"></a>
-<span class="sourceLineNo">087</span>        ResourceBundle bundle = resourceBundle(portalSession.locale());<a name="line.87"></a>
-<span class="sourceLineNo">088</span>        String script = "$.fn.dataTable.defaults.oLanguage._hungarianMap"<a name="line.88"></a>
-<span class="sourceLineNo">089</span>            + "[\"lengthAll\"] = \"sLengthAll\";\n"<a name="line.89"></a>
-<span class="sourceLineNo">090</span>            + "$.extend( $.fn.dataTable.defaults.oLanguage, {\n"<a name="line.90"></a>
-<span class="sourceLineNo">091</span>            + " 'sLengthAll': 'all',\n"<a name="line.91"></a>
-<span class="sourceLineNo">092</span>            + "} );\n"<a name="line.92"></a>
-<span class="sourceLineNo">093</span>            + "$.extend( $.fn.dataTable.defaults.oLanguage, "<a name="line.93"></a>
-<span class="sourceLineNo">094</span>            + bundle.getString("DataTablesL10n") + ");\n";<a name="line.94"></a>
-<span class="sourceLineNo">095</span>        portalSession.respond(new AddPageResources()<a name="line.95"></a>
-<span class="sourceLineNo">096</span>            .addCss(event.renderSupport().pageResource(<a name="line.96"></a>
-<span class="sourceLineNo">097</span>                "datatables/datatables" + minExt + ".css"))<a name="line.97"></a>
-<span class="sourceLineNo">098</span>            .addCss(event.renderSupport().pageResource(<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                "datatables/overrides-1.0.0.css"))<a name="line.99"></a>
-<span class="sourceLineNo">100</span>            .addScriptResource(new ScriptResource()<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                .setProvides(new String[] { "datatables.net" })<a name="line.101"></a>
-<span class="sourceLineNo">102</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.102"></a>
-<span class="sourceLineNo">103</span>                    "datatables/datatables" + minExt + ".js")))<a name="line.103"></a>
-<span class="sourceLineNo">104</span>            .addScriptResource(new ScriptResource()<a name="line.104"></a>
-<span class="sourceLineNo">105</span>                .setRequires(new String[] { "datatables.net" })<a name="line.105"></a>
-<span class="sourceLineNo">106</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.106"></a>
-<span class="sourceLineNo">107</span>                    "datatables/processing().js")))<a name="line.107"></a>
-<span class="sourceLineNo">108</span>            .addScriptResource(new ScriptResource()<a name="line.108"></a>
-<span class="sourceLineNo">109</span>                .setRequires(new String[] { "datatables.net" })<a name="line.109"></a>
-<span class="sourceLineNo">110</span>                .setScriptSource(script)));<a name="line.110"></a>
-<span class="sourceLineNo">111</span>    }<a name="line.111"></a>
+<span class="sourceLineNo">071</span><a name="line.71">    /**</a>
+<span class="sourceLineNo">072</span><a name="line.72">     * On {@link PortalReady}, fire the appropriate {@link AddPageResources}.</a>
+<span class="sourceLineNo">073</span><a name="line.73">     *</a>
+<span class="sourceLineNo">074</span><a name="line.74">     * @param event the event</a>
+<span class="sourceLineNo">075</span><a name="line.75">     * @param portalSession the portal session</a>
+<span class="sourceLineNo">076</span><a name="line.76">     * @throws TemplateNotFoundException the template not found exception</a>
+<span class="sourceLineNo">077</span><a name="line.77">     * @throws MalformedTemplateNameException the malformed template name exception</a>
+<span class="sourceLineNo">078</span><a name="line.78">     * @throws ParseException the parse exception</a>
+<span class="sourceLineNo">079</span><a name="line.79">     * @throws IOException Signals that an I/O exception has occurred.</a>
+<span class="sourceLineNo">080</span><a name="line.80">     */</a>
+<span class="sourceLineNo">081</span><a name="line.81">    @Handler(priority = 100)</a>
+<span class="sourceLineNo">082</span><a name="line.82">    public void onPortalReady(PortalReady event, PortalSession portalSession)</a>
+<span class="sourceLineNo">083</span><a name="line.83">            throws TemplateNotFoundException, MalformedTemplateNameException,</a>
+<span class="sourceLineNo">084</span><a name="line.84">            ParseException, IOException {</a>
+<span class="sourceLineNo">085</span><a name="line.85">        String minExt = event.renderSupport()</a>
+<span class="sourceLineNo">086</span><a name="line.86">            .useMinifiedResources() ? ".min" : "";</a>
+<span class="sourceLineNo">087</span><a name="line.87">        ResourceBundle bundle = resourceBundle(portalSession.locale());</a>
+<span class="sourceLineNo">088</span><a name="line.88">        String script = "$.fn.dataTable.defaults.oLanguage._hungarianMap"</a>
+<span class="sourceLineNo">089</span><a name="line.89">            + "[\"lengthAll\"] = \"sLengthAll\";\n"</a>
+<span class="sourceLineNo">090</span><a name="line.90">            + "$.extend( $.fn.dataTable.defaults.oLanguage, {\n"</a>
+<span class="sourceLineNo">091</span><a name="line.91">            + " 'sLengthAll': 'all',\n"</a>
+<span class="sourceLineNo">092</span><a name="line.92">            + "} );\n"</a>
+<span class="sourceLineNo">093</span><a name="line.93">            + "$.extend( $.fn.dataTable.defaults.oLanguage, "</a>
+<span class="sourceLineNo">094</span><a name="line.94">            + bundle.getString("DataTablesL10n") + ");\n";</a>
+<span class="sourceLineNo">095</span><a name="line.95">        portalSession.respond(new AddPageResources()</a>
+<span class="sourceLineNo">096</span><a name="line.96">            .addCss(event.renderSupport().pageResource(</a>
+<span class="sourceLineNo">097</span><a name="line.97">                "datatables/datatables" + minExt + ".css"))</a>
+<span class="sourceLineNo">098</span><a name="line.98">            .addCss(event.renderSupport().pageResource(</a>
+<span class="sourceLineNo">099</span><a name="line.99">                "datatables/overrides-1.0.0.css"))</a>
+<span class="sourceLineNo">100</span><a name="line.100">            .addScriptResource(new ScriptResource()</a>
+<span class="sourceLineNo">101</span><a name="line.101">                .setProvides(new String[] { "datatables.net" })</a>
+<span class="sourceLineNo">102</span><a name="line.102">                .setScriptUri(event.renderSupport().pageResource(</a>
+<span class="sourceLineNo">103</span><a name="line.103">                    "datatables/datatables" + minExt + ".js")))</a>
+<span class="sourceLineNo">104</span><a name="line.104">            .addScriptResource(new ScriptResource()</a>
+<span class="sourceLineNo">105</span><a name="line.105">                .setRequires(new String[] { "datatables.net" })</a>
+<span class="sourceLineNo">106</span><a name="line.106">                .setScriptUri(event.renderSupport().pageResource(</a>
+<span class="sourceLineNo">107</span><a name="line.107">                    "datatables/processing().js")))</a>
+<span class="sourceLineNo">108</span><a name="line.108">            .addScriptResource(new ScriptResource()</a>
+<span class="sourceLineNo">109</span><a name="line.109">                .setRequires(new String[] { "datatables.net" })</a>
+<span class="sourceLineNo">110</span><a name="line.110">                .setScriptSource(script)));</a>
+<span class="sourceLineNo">111</span><a name="line.111">    }</a>
 <span class="sourceLineNo">112</span><a name="line.112"></a>
-<span class="sourceLineNo">113</span>}<a name="line.113"></a>
+<span class="sourceLineNo">113</span><a name="line.113">}</a>
 
 
 
