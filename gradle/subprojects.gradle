@@ -63,6 +63,12 @@ test {
 
 if (project.name != 'examples') {
     apply from: "${project.rootDir}/gradle/publishing.gradle"
+    
+    tasks.compileJava {
+        if (!JavaVersion.current().isJava8()) {
+            options.compilerArgs.addAll(['--release', '8'])
+        }
+    }
 }
 
 apply from: "${project.rootDir}/gradle/eclipse.gradle"

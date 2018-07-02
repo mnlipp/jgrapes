@@ -53,11 +53,6 @@ allprojects {
 	
 	// Makes Eclipse-groovy handle *.gradle file properly
 	apply plugin:'groovy'
-	
-    compileJava {
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
-    }
 }
 
 subprojects {
