@@ -276,9 +276,6 @@ public class SslServer extends Component {
          * @throws InterruptedException the interrupted exception
          * @throws ExecutionException the execution exception
          */
-        @SuppressWarnings({ "PMD.CyclomaticComplexity",
-            "PMD.ExcessiveMethodLength", "PMD.NcssCount",
-            "PMD.NPathComplexity" })
         public void sendDownstream(Input<ByteBuffer> event)
                 throws SSLException, InterruptedException, ExecutionException {
             ManagedBuffer<ByteBuffer> unwrapped = downstreamPool.acquire();
@@ -298,6 +295,33 @@ public class SslServer extends Component {
                 input = carryOver;
                 carryOver = null;
             }
+
+            // Main processing
+            SSLEngineResult processingResult = processInput(unwrapped, input);
+
+            // final message?
+            if (processingResult.getStatus() == Status.CLOSED
+                && !isInputClosed) {
+                Closed evt = new Closed();
+                newEventPipeline().fire(evt, this);
+                evt.get();
+                isInputClosed = true;
+                return;
+            }
+
+            // Check if data from incomplete packet remains in input buffer
+            if (input.hasRemaining()) {
+                // Actually, packet buffer size should be sufficient,
+                // but since this is hard to test and doesn't really matter...
+                carryOver = ByteBuffer.allocate(input.remaining()
+                    + sslEngine.getSession().getPacketBufferSize() + 50);
+                carryOver.put(input);
+            }
+        }
+
+        private SSLEngineResult processInput(
+                ManagedBuffer<ByteBuffer> unwrapped, ByteBuffer input)
+                throws SSLException, InterruptedException, ExecutionException {
             SSLEngineResult unwrapResult;
             while (true) {
                 unwrapResult = sslEngine.unwrap(
@@ -353,11 +377,22 @@ public class SslServer extends Component {
                     break;
                 }
 
-                // Just to make sure...
+                // Just to make sure... (Initial allocation should be
+                // big enough.)
                 if (unwrapResult.getStatus() == Status.BUFFER_OVERFLOW) {
-                    unwrapped.replaceBackingBuffer(ByteBuffer.allocate(
-                        sslEngine.getSession()
-                            .getApplicationBufferSize() + 50));
+                    if (unwrapped.position() > 0) {
+                        // forward data received up to now
+                        fire(Input.fromSink(unwrapped,
+                            sslEngine.isInboundDone()), this);
+                    }
+                    unwrapped = downstreamPool.acquire();
+                    if (unwrapped.capacity() < sslEngine.getSession()
+                        .getApplicationBufferSize() + 50) {
+                        unwrapped.replaceBackingBuffer(ByteBuffer.allocate(
+                            sslEngine.getSession()
+                                .getApplicationBufferSize() + 50));
+                    }
+                    continue;
                 }
 
                 // If we get here, handshake has completed or no input is left
@@ -375,25 +410,7 @@ public class SslServer extends Component {
                 fire(Input.fromSink(unwrapped, sslEngine.isInboundDone()),
                     this);
             }
-
-            // final message?
-            if (unwrapResult.getStatus() == Status.CLOSED
-                && !isInputClosed) {
-                Closed evt = new Closed();
-                newEventPipeline().fire(evt, this);
-                evt.get();
-                isInputClosed = true;
-                return;
-            }
-
-            // Check if data from incomplete packet remains in input buffer
-            if (input.hasRemaining()) {
-                // Actually, packet buffer size should be sufficient,
-                // but since this is hard to test and doesn't really matter...
-                carryOver = ByteBuffer.allocate(input.remaining()
-                    + sslEngine.getSession().getPacketBufferSize() + 50);
-                carryOver.put(input);
-            }
+            return unwrapResult;
         }
 
         /**
