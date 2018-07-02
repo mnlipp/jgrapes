@@ -19,6 +19,11 @@ eclipse {
             'org.eclipse.jdt.groovy.core.groovyNature'
     }
     jdt {
+        if (project.name.startsWith("org.jgrapes.")) {
+            sourceCompatibility = 1.8
+            targetCompatibility = 1.8
+            javaRuntimeName = "JavaSE-1.8"
+        }
         file {
             withProperties { properties ->
                 def formatterPrefs = new Properties()

@@ -61,7 +61,7 @@ test {
     }
 }
 
-if (project.name != 'examples') {
+if (project.name.startsWith("org.jgrapes.")) {
     apply from: "${project.rootDir}/gradle/publishing.gradle"
     
     tasks.compileJava {
