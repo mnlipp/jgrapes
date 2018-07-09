@@ -470,6 +470,13 @@ public class TcpServer extends Component implements NioHandler {
             }
             try {
                 SocketChannel socketChannel = serverSocketChannel.accept();
+                if (socketChannel == null) {
+                    // "False alarm"
+                    if (connLimiter != null) {
+                        connLimiter.release();
+                    }
+                    return;
+                }
                 channels.add(new TcpChannel(socketChannel));
             } catch (IOException e) {
                 fire(new IOError(null, e));
