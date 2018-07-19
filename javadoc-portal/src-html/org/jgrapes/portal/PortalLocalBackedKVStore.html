@@ -50,160 +50,161 @@
 <span class="sourceLineNo">042</span>/**<a name="line.42"></a>
 <span class="sourceLineNo">043</span> * <a name="line.43"></a>
 <span class="sourceLineNo">044</span> */<a name="line.44"></a>
-<span class="sourceLineNo">045</span>public class PortalLocalBackedKVStore extends Component {<a name="line.45"></a>
-<span class="sourceLineNo">046</span><a name="line.46"></a>
-<span class="sourceLineNo">047</span>    private final String portalPrefix;<a name="line.47"></a>
-<span class="sourceLineNo">048</span><a name="line.48"></a>
-<span class="sourceLineNo">049</span>    /**<a name="line.49"></a>
-<span class="sourceLineNo">050</span>     * Create a new key/value store that uses the browser's local storage<a name="line.50"></a>
-<span class="sourceLineNo">051</span>     * for persisting the values.<a name="line.51"></a>
-<span class="sourceLineNo">052</span>     * <a name="line.52"></a>
-<span class="sourceLineNo">053</span>     * @param componentChannel the channel that the component's <a name="line.53"></a>
-<span class="sourceLineNo">054</span>     * handlers listen on by default and that <a name="line.54"></a>
-<span class="sourceLineNo">055</span>     * {@link Manager#fire(Event, Channel...)} sends the event to <a name="line.55"></a>
-<span class="sourceLineNo">056</span>     * @param portalPrefix the portal's prefix as returned by<a name="line.56"></a>
-<span class="sourceLineNo">057</span>     * {@link Portal#prefix()}, i.e. staring and ending with a slash<a name="line.57"></a>
-<span class="sourceLineNo">058</span>     */<a name="line.58"></a>
-<span class="sourceLineNo">059</span>    public PortalLocalBackedKVStore(<a name="line.59"></a>
-<span class="sourceLineNo">060</span>            Channel componentChannel, String portalPrefix) {<a name="line.60"></a>
-<span class="sourceLineNo">061</span>        super(componentChannel);<a name="line.61"></a>
-<span class="sourceLineNo">062</span>        this.portalPrefix = portalPrefix;<a name="line.62"></a>
-<span class="sourceLineNo">063</span>    }<a name="line.63"></a>
-<span class="sourceLineNo">064</span><a name="line.64"></a>
-<span class="sourceLineNo">065</span>    /**<a name="line.65"></a>
-<span class="sourceLineNo">066</span>     * Intercept {@link PortalReady} event to first get data.<a name="line.66"></a>
-<span class="sourceLineNo">067</span>     *<a name="line.67"></a>
-<span class="sourceLineNo">068</span>     * @param event the event<a name="line.68"></a>
-<span class="sourceLineNo">069</span>     * @param channel the channel<a name="line.69"></a>
-<span class="sourceLineNo">070</span>     * @throws InterruptedException the interrupted exception<a name="line.70"></a>
-<span class="sourceLineNo">071</span>     */<a name="line.71"></a>
-<span class="sourceLineNo">072</span>    @Handler(priority = 1000)<a name="line.72"></a>
-<span class="sourceLineNo">073</span>    public void onPortalReady(PortalReady event, PortalSession channel)<a name="line.73"></a>
-<span class="sourceLineNo">074</span>            throws InterruptedException {<a name="line.74"></a>
-<span class="sourceLineNo">075</span>        // Put there by onJsonInput if retrieval has been done.<a name="line.75"></a>
-<span class="sourceLineNo">076</span>        if (channel.browserSession().containsKey(<a name="line.76"></a>
-<span class="sourceLineNo">077</span>            PortalLocalBackedKVStore.class)) {<a name="line.77"></a>
-<span class="sourceLineNo">078</span>            return;<a name="line.78"></a>
-<span class="sourceLineNo">079</span>        }<a name="line.79"></a>
-<span class="sourceLineNo">080</span>        // Remove portal ready event from queue and save it<a name="line.80"></a>
-<span class="sourceLineNo">081</span>        event.cancel(false);<a name="line.81"></a>
-<span class="sourceLineNo">082</span>        channel.setAssociated(PortalLocalBackedKVStore.class, event);<a name="line.82"></a>
-<span class="sourceLineNo">083</span>        String keyStart = portalPrefix<a name="line.83"></a>
-<span class="sourceLineNo">084</span>            + PortalLocalBackedKVStore.class.getName() + "/";<a name="line.84"></a>
-<span class="sourceLineNo">085</span>        channel.respond(new SimplePortalCommand("retrieveLocalData", keyStart));<a name="line.85"></a>
-<span class="sourceLineNo">086</span>    }<a name="line.86"></a>
-<span class="sourceLineNo">087</span><a name="line.87"></a>
-<span class="sourceLineNo">088</span>    @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })<a name="line.88"></a>
-<span class="sourceLineNo">089</span>    private Map&lt;String, String&gt; getStore(PortalSession channel) {<a name="line.89"></a>
-<span class="sourceLineNo">090</span>        return (Map&lt;String, String&gt;) channel<a name="line.90"></a>
-<span class="sourceLineNo">091</span>            .browserSession().computeIfAbsent(<a name="line.91"></a>
-<span class="sourceLineNo">092</span>                PortalLocalBackedKVStore.class, newKey -&gt; new HashMap&lt;&gt;());<a name="line.92"></a>
-<span class="sourceLineNo">093</span>    }<a name="line.93"></a>
-<span class="sourceLineNo">094</span><a name="line.94"></a>
-<span class="sourceLineNo">095</span>    /**<a name="line.95"></a>
-<span class="sourceLineNo">096</span>     * Evaluate "retrievedLocalData" response.<a name="line.96"></a>
-<span class="sourceLineNo">097</span>     *<a name="line.97"></a>
-<span class="sourceLineNo">098</span>     * @param event the event<a name="line.98"></a>
-<span class="sourceLineNo">099</span>     * @param channel the channel<a name="line.99"></a>
-<span class="sourceLineNo">100</span>     * @throws InterruptedException the interrupted exception<a name="line.100"></a>
-<span class="sourceLineNo">101</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.101"></a>
-<span class="sourceLineNo">102</span>     */<a name="line.102"></a>
-<span class="sourceLineNo">103</span>    @Handler<a name="line.103"></a>
-<span class="sourceLineNo">104</span>    public void onJsonInput(JsonInput event, PortalSession channel)<a name="line.104"></a>
-<span class="sourceLineNo">105</span>            throws InterruptedException, IOException {<a name="line.105"></a>
-<span class="sourceLineNo">106</span>        if (!event.request().method().equals("retrievedLocalData")) {<a name="line.106"></a>
-<span class="sourceLineNo">107</span>            return;<a name="line.107"></a>
-<span class="sourceLineNo">108</span>        }<a name="line.108"></a>
-<span class="sourceLineNo">109</span>        final String keyStart = portalPrefix<a name="line.109"></a>
-<span class="sourceLineNo">110</span>            + PortalLocalBackedKVStore.class.getName() + "/";<a name="line.110"></a>
-<span class="sourceLineNo">111</span>        channel.associated(PortalLocalBackedKVStore.class, PortalReady.class)<a name="line.111"></a>
-<span class="sourceLineNo">112</span>            .ifPresent(origEvent -&gt; {<a name="line.112"></a>
-<span class="sourceLineNo">113</span>                // We have intercepted the portal ready, fill out store.<a name="line.113"></a>
-<span class="sourceLineNo">114</span>                // Having a store now also shows that retrieval has been done.<a name="line.114"></a>
-<span class="sourceLineNo">115</span>                @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.115"></a>
-<span class="sourceLineNo">116</span>                Map&lt;String, String&gt; data = getStore(channel);<a name="line.116"></a>
-<span class="sourceLineNo">117</span>                JsonArray params = (JsonArray) event.request().params();<a name="line.117"></a>
-<span class="sourceLineNo">118</span>                params.asArray(0).arrayStream().forEach(item -&gt; {<a name="line.118"></a>
-<span class="sourceLineNo">119</span>                    String key = item.asString(0);<a name="line.119"></a>
-<span class="sourceLineNo">120</span>                    if (key.startsWith(keyStart)) {<a name="line.120"></a>
-<span class="sourceLineNo">121</span>                        data.put(key.substring(<a name="line.121"></a>
-<span class="sourceLineNo">122</span>                            keyStart.length() - 1), item.asString(1));<a name="line.122"></a>
-<span class="sourceLineNo">123</span>                    }<a name="line.123"></a>
-<span class="sourceLineNo">124</span>                });<a name="line.124"></a>
-<span class="sourceLineNo">125</span>                channel.setAssociated(PortalLocalBackedKVStore.class, null);<a name="line.125"></a>
-<span class="sourceLineNo">126</span>                // Let others process the portal ready event<a name="line.126"></a>
-<span class="sourceLineNo">127</span>                fire(new PortalReady(origEvent.renderSupport()), channel);<a name="line.127"></a>
-<span class="sourceLineNo">128</span>            });<a name="line.128"></a>
-<span class="sourceLineNo">129</span>    }<a name="line.129"></a>
-<span class="sourceLineNo">130</span><a name="line.130"></a>
-<span class="sourceLineNo">131</span>    /**<a name="line.131"></a>
-<span class="sourceLineNo">132</span>     * Handle data update events.<a name="line.132"></a>
-<span class="sourceLineNo">133</span>     *<a name="line.133"></a>
-<span class="sourceLineNo">134</span>     * @param event the event<a name="line.134"></a>
-<span class="sourceLineNo">135</span>     * @param channel the channel<a name="line.135"></a>
-<span class="sourceLineNo">136</span>     * @throws InterruptedException the interrupted exception<a name="line.136"></a>
-<span class="sourceLineNo">137</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.137"></a>
-<span class="sourceLineNo">138</span>     */<a name="line.138"></a>
-<span class="sourceLineNo">139</span>    @Handler<a name="line.139"></a>
-<span class="sourceLineNo">140</span>    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",<a name="line.140"></a>
-<span class="sourceLineNo">141</span>        "PMD.AvoidInstantiatingObjectsInLoops" })<a name="line.141"></a>
-<span class="sourceLineNo">142</span>    public void onKeyValueStoreUpdate(<a name="line.142"></a>
-<span class="sourceLineNo">143</span>            KeyValueStoreUpdate event, PortalSession channel)<a name="line.143"></a>
-<span class="sourceLineNo">144</span>            throws InterruptedException, IOException {<a name="line.144"></a>
-<span class="sourceLineNo">145</span>        Map&lt;String, String&gt; data = getStore(channel);<a name="line.145"></a>
-<span class="sourceLineNo">146</span>        List&lt;String[]&gt; actions = new ArrayList&lt;&gt;();<a name="line.146"></a>
-<span class="sourceLineNo">147</span>        String keyStart = portalPrefix<a name="line.147"></a>
-<span class="sourceLineNo">148</span>            + PortalLocalBackedKVStore.class.getName();<a name="line.148"></a>
-<span class="sourceLineNo">149</span>        for (Action action : event.actions()) {<a name="line.149"></a>
-<span class="sourceLineNo">150</span>            @SuppressWarnings("PMD.UselessParentheses")<a name="line.150"></a>
-<span class="sourceLineNo">151</span>            String key = keyStart + (action.key().startsWith("/")<a name="line.151"></a>
-<span class="sourceLineNo">152</span>                ? action.key()<a name="line.152"></a>
-<span class="sourceLineNo">153</span>                : ("/" + action.key()));<a name="line.153"></a>
-<span class="sourceLineNo">154</span>            if (action instanceof Update) {<a name="line.154"></a>
-<span class="sourceLineNo">155</span>                actions.add(new String[] { "u", key,<a name="line.155"></a>
-<span class="sourceLineNo">156</span>                    ((Update) action).value() });<a name="line.156"></a>
-<span class="sourceLineNo">157</span>                data.put(action.key(), ((Update) action).value());<a name="line.157"></a>
-<span class="sourceLineNo">158</span>            } else if (action instanceof Deletion) {<a name="line.158"></a>
-<span class="sourceLineNo">159</span>                actions.add(new String[] { "d", key });<a name="line.159"></a>
-<span class="sourceLineNo">160</span>                data.remove(action.key());<a name="line.160"></a>
-<span class="sourceLineNo">161</span>            }<a name="line.161"></a>
-<span class="sourceLineNo">162</span>        }<a name="line.162"></a>
-<span class="sourceLineNo">163</span>        channel.respond(new SimplePortalCommand("storeLocalData",<a name="line.163"></a>
-<span class="sourceLineNo">164</span>            new Object[] { actions.toArray() }));<a name="line.164"></a>
-<span class="sourceLineNo">165</span>    }<a name="line.165"></a>
-<span class="sourceLineNo">166</span><a name="line.166"></a>
-<span class="sourceLineNo">167</span>    /**<a name="line.167"></a>
-<span class="sourceLineNo">168</span>     * Handle data query..<a name="line.168"></a>
-<span class="sourceLineNo">169</span>     *<a name="line.169"></a>
-<span class="sourceLineNo">170</span>     * @param event the event<a name="line.170"></a>
-<span class="sourceLineNo">171</span>     * @param channel the channel<a name="line.171"></a>
-<span class="sourceLineNo">172</span>     */<a name="line.172"></a>
-<span class="sourceLineNo">173</span>    @Handler<a name="line.173"></a>
-<span class="sourceLineNo">174</span>    @SuppressWarnings("PMD.ConfusingTernary")<a name="line.174"></a>
-<span class="sourceLineNo">175</span>    public void onKeyValueStoreQuery(<a name="line.175"></a>
-<span class="sourceLineNo">176</span>            KeyValueStoreQuery event, PortalSession channel) {<a name="line.176"></a>
-<span class="sourceLineNo">177</span>        @SuppressWarnings("PMD.UseConcurrentHashMap")<a name="line.177"></a>
-<span class="sourceLineNo">178</span>        Map&lt;String, String&gt; result = new HashMap&lt;&gt;();<a name="line.178"></a>
-<span class="sourceLineNo">179</span>        @SuppressWarnings("unchecked")<a name="line.179"></a>
-<span class="sourceLineNo">180</span>        Map&lt;String, String&gt; data = (Map&lt;String, String&gt;) channel<a name="line.180"></a>
-<span class="sourceLineNo">181</span>            .browserSession().get(PortalLocalBackedKVStore.class);<a name="line.181"></a>
-<span class="sourceLineNo">182</span>        if (data != null) {<a name="line.182"></a>
-<span class="sourceLineNo">183</span>            if (!event.query().endsWith("/")) {<a name="line.183"></a>
-<span class="sourceLineNo">184</span>                // Single value<a name="line.184"></a>
-<span class="sourceLineNo">185</span>                if (data.containsKey(event.query())) {<a name="line.185"></a>
-<span class="sourceLineNo">186</span>                    result.put(event.query(), data.get(event.query()));<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                }<a name="line.187"></a>
-<span class="sourceLineNo">188</span>            } else {<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                for (Map.Entry&lt;String, String&gt; e : data.entrySet()) {<a name="line.189"></a>
-<span class="sourceLineNo">190</span>                    if (e.getKey().startsWith(event.query())) {<a name="line.190"></a>
-<span class="sourceLineNo">191</span>                        result.put(e.getKey(), e.getValue());<a name="line.191"></a>
-<span class="sourceLineNo">192</span>                    }<a name="line.192"></a>
-<span class="sourceLineNo">193</span>                }<a name="line.193"></a>
-<span class="sourceLineNo">194</span>            }<a name="line.194"></a>
-<span class="sourceLineNo">195</span>        }<a name="line.195"></a>
-<span class="sourceLineNo">196</span>        event.setResult(result);<a name="line.196"></a>
-<span class="sourceLineNo">197</span>    }<a name="line.197"></a>
-<span class="sourceLineNo">198</span>}<a name="line.198"></a>
+<span class="sourceLineNo">045</span>@Deprecated<a name="line.45"></a>
+<span class="sourceLineNo">046</span>public class PortalLocalBackedKVStore extends Component {<a name="line.46"></a>
+<span class="sourceLineNo">047</span><a name="line.47"></a>
+<span class="sourceLineNo">048</span>    private final String portalPrefix;<a name="line.48"></a>
+<span class="sourceLineNo">049</span><a name="line.49"></a>
+<span class="sourceLineNo">050</span>    /**<a name="line.50"></a>
+<span class="sourceLineNo">051</span>     * Create a new key/value store that uses the browser's local storage<a name="line.51"></a>
+<span class="sourceLineNo">052</span>     * for persisting the values.<a name="line.52"></a>
+<span class="sourceLineNo">053</span>     * <a name="line.53"></a>
+<span class="sourceLineNo">054</span>     * @param componentChannel the channel that the component's <a name="line.54"></a>
+<span class="sourceLineNo">055</span>     * handlers listen on by default and that <a name="line.55"></a>
+<span class="sourceLineNo">056</span>     * {@link Manager#fire(Event, Channel...)} sends the event to <a name="line.56"></a>
+<span class="sourceLineNo">057</span>     * @param portalPrefix the portal's prefix as returned by<a name="line.57"></a>
+<span class="sourceLineNo">058</span>     * {@link Portal#prefix()}, i.e. staring and ending with a slash<a name="line.58"></a>
+<span class="sourceLineNo">059</span>     */<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    public PortalLocalBackedKVStore(<a name="line.60"></a>
+<span class="sourceLineNo">061</span>            Channel componentChannel, String portalPrefix) {<a name="line.61"></a>
+<span class="sourceLineNo">062</span>        super(componentChannel);<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        this.portalPrefix = portalPrefix;<a name="line.63"></a>
+<span class="sourceLineNo">064</span>    }<a name="line.64"></a>
+<span class="sourceLineNo">065</span><a name="line.65"></a>
+<span class="sourceLineNo">066</span>    /**<a name="line.66"></a>
+<span class="sourceLineNo">067</span>     * Intercept {@link PortalReady} event to first get data.<a name="line.67"></a>
+<span class="sourceLineNo">068</span>     *<a name="line.68"></a>
+<span class="sourceLineNo">069</span>     * @param event the event<a name="line.69"></a>
+<span class="sourceLineNo">070</span>     * @param channel the channel<a name="line.70"></a>
+<span class="sourceLineNo">071</span>     * @throws InterruptedException the interrupted exception<a name="line.71"></a>
+<span class="sourceLineNo">072</span>     */<a name="line.72"></a>
+<span class="sourceLineNo">073</span>    @Handler(priority = 1000)<a name="line.73"></a>
+<span class="sourceLineNo">074</span>    public void onPortalReady(PortalReady event, PortalSession channel)<a name="line.74"></a>
+<span class="sourceLineNo">075</span>            throws InterruptedException {<a name="line.75"></a>
+<span class="sourceLineNo">076</span>        // Put there by onJsonInput if retrieval has been done.<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        if (channel.browserSession().containsKey(<a name="line.77"></a>
+<span class="sourceLineNo">078</span>            PortalLocalBackedKVStore.class)) {<a name="line.78"></a>
+<span class="sourceLineNo">079</span>            return;<a name="line.79"></a>
+<span class="sourceLineNo">080</span>        }<a name="line.80"></a>
+<span class="sourceLineNo">081</span>        // Remove portal ready event from queue and save it<a name="line.81"></a>
+<span class="sourceLineNo">082</span>        event.cancel(false);<a name="line.82"></a>
+<span class="sourceLineNo">083</span>        channel.setAssociated(PortalLocalBackedKVStore.class, event);<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        String keyStart = portalPrefix<a name="line.84"></a>
+<span class="sourceLineNo">085</span>            + PortalLocalBackedKVStore.class.getName() + "/";<a name="line.85"></a>
+<span class="sourceLineNo">086</span>        channel.respond(new SimplePortalCommand("retrieveLocalData", keyStart));<a name="line.86"></a>
+<span class="sourceLineNo">087</span>    }<a name="line.87"></a>
+<span class="sourceLineNo">088</span><a name="line.88"></a>
+<span class="sourceLineNo">089</span>    @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })<a name="line.89"></a>
+<span class="sourceLineNo">090</span>    private Map&lt;String, String&gt; getStore(PortalSession channel) {<a name="line.90"></a>
+<span class="sourceLineNo">091</span>        return (Map&lt;String, String&gt;) channel<a name="line.91"></a>
+<span class="sourceLineNo">092</span>            .browserSession().computeIfAbsent(<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                PortalLocalBackedKVStore.class, newKey -&gt; new HashMap&lt;&gt;());<a name="line.93"></a>
+<span class="sourceLineNo">094</span>    }<a name="line.94"></a>
+<span class="sourceLineNo">095</span><a name="line.95"></a>
+<span class="sourceLineNo">096</span>    /**<a name="line.96"></a>
+<span class="sourceLineNo">097</span>     * Evaluate "retrievedLocalData" response.<a name="line.97"></a>
+<span class="sourceLineNo">098</span>     *<a name="line.98"></a>
+<span class="sourceLineNo">099</span>     * @param event the event<a name="line.99"></a>
+<span class="sourceLineNo">100</span>     * @param channel the channel<a name="line.100"></a>
+<span class="sourceLineNo">101</span>     * @throws InterruptedException the interrupted exception<a name="line.101"></a>
+<span class="sourceLineNo">102</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.102"></a>
+<span class="sourceLineNo">103</span>     */<a name="line.103"></a>
+<span class="sourceLineNo">104</span>    @Handler<a name="line.104"></a>
+<span class="sourceLineNo">105</span>    public void onJsonInput(JsonInput event, PortalSession channel)<a name="line.105"></a>
+<span class="sourceLineNo">106</span>            throws InterruptedException, IOException {<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        if (!event.request().method().equals("retrievedLocalData")) {<a name="line.107"></a>
+<span class="sourceLineNo">108</span>            return;<a name="line.108"></a>
+<span class="sourceLineNo">109</span>        }<a name="line.109"></a>
+<span class="sourceLineNo">110</span>        final String keyStart = portalPrefix<a name="line.110"></a>
+<span class="sourceLineNo">111</span>            + PortalLocalBackedKVStore.class.getName() + "/";<a name="line.111"></a>
+<span class="sourceLineNo">112</span>        channel.associated(PortalLocalBackedKVStore.class, PortalReady.class)<a name="line.112"></a>
+<span class="sourceLineNo">113</span>            .ifPresent(origEvent -&gt; {<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                // We have intercepted the portal ready, fill out store.<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                // Having a store now also shows that retrieval has been done.<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                Map&lt;String, String&gt; data = getStore(channel);<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                JsonArray params = (JsonArray) event.request().params();<a name="line.118"></a>
+<span class="sourceLineNo">119</span>                params.asArray(0).arrayStream().forEach(item -&gt; {<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                    String key = item.asString(0);<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                    if (key.startsWith(keyStart)) {<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                        data.put(key.substring(<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                            keyStart.length() - 1), item.asString(1));<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                    }<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                });<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                channel.setAssociated(PortalLocalBackedKVStore.class, null);<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                // Let others process the portal ready event<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                fire(new PortalReady(origEvent.renderSupport()), channel);<a name="line.128"></a>
+<span class="sourceLineNo">129</span>            });<a name="line.129"></a>
+<span class="sourceLineNo">130</span>    }<a name="line.130"></a>
+<span class="sourceLineNo">131</span><a name="line.131"></a>
+<span class="sourceLineNo">132</span>    /**<a name="line.132"></a>
+<span class="sourceLineNo">133</span>     * Handle data update events.<a name="line.133"></a>
+<span class="sourceLineNo">134</span>     *<a name="line.134"></a>
+<span class="sourceLineNo">135</span>     * @param event the event<a name="line.135"></a>
+<span class="sourceLineNo">136</span>     * @param channel the channel<a name="line.136"></a>
+<span class="sourceLineNo">137</span>     * @throws InterruptedException the interrupted exception<a name="line.137"></a>
+<span class="sourceLineNo">138</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.138"></a>
+<span class="sourceLineNo">139</span>     */<a name="line.139"></a>
+<span class="sourceLineNo">140</span>    @Handler<a name="line.140"></a>
+<span class="sourceLineNo">141</span>    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",<a name="line.141"></a>
+<span class="sourceLineNo">142</span>        "PMD.AvoidInstantiatingObjectsInLoops" })<a name="line.142"></a>
+<span class="sourceLineNo">143</span>    public void onKeyValueStoreUpdate(<a name="line.143"></a>
+<span class="sourceLineNo">144</span>            KeyValueStoreUpdate event, PortalSession channel)<a name="line.144"></a>
+<span class="sourceLineNo">145</span>            throws InterruptedException, IOException {<a name="line.145"></a>
+<span class="sourceLineNo">146</span>        Map&lt;String, String&gt; data = getStore(channel);<a name="line.146"></a>
+<span class="sourceLineNo">147</span>        List&lt;String[]&gt; actions = new ArrayList&lt;&gt;();<a name="line.147"></a>
+<span class="sourceLineNo">148</span>        String keyStart = portalPrefix<a name="line.148"></a>
+<span class="sourceLineNo">149</span>            + PortalLocalBackedKVStore.class.getName();<a name="line.149"></a>
+<span class="sourceLineNo">150</span>        for (Action action : event.actions()) {<a name="line.150"></a>
+<span class="sourceLineNo">151</span>            @SuppressWarnings("PMD.UselessParentheses")<a name="line.151"></a>
+<span class="sourceLineNo">152</span>            String key = keyStart + (action.key().startsWith("/")<a name="line.152"></a>
+<span class="sourceLineNo">153</span>                ? action.key()<a name="line.153"></a>
+<span class="sourceLineNo">154</span>                : ("/" + action.key()));<a name="line.154"></a>
+<span class="sourceLineNo">155</span>            if (action instanceof Update) {<a name="line.155"></a>
+<span class="sourceLineNo">156</span>                actions.add(new String[] { "u", key,<a name="line.156"></a>
+<span class="sourceLineNo">157</span>                    ((Update) action).value() });<a name="line.157"></a>
+<span class="sourceLineNo">158</span>                data.put(action.key(), ((Update) action).value());<a name="line.158"></a>
+<span class="sourceLineNo">159</span>            } else if (action instanceof Deletion) {<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                actions.add(new String[] { "d", key });<a name="line.160"></a>
+<span class="sourceLineNo">161</span>                data.remove(action.key());<a name="line.161"></a>
+<span class="sourceLineNo">162</span>            }<a name="line.162"></a>
+<span class="sourceLineNo">163</span>        }<a name="line.163"></a>
+<span class="sourceLineNo">164</span>        channel.respond(new SimplePortalCommand("storeLocalData",<a name="line.164"></a>
+<span class="sourceLineNo">165</span>            new Object[] { actions.toArray() }));<a name="line.165"></a>
+<span class="sourceLineNo">166</span>    }<a name="line.166"></a>
+<span class="sourceLineNo">167</span><a name="line.167"></a>
+<span class="sourceLineNo">168</span>    /**<a name="line.168"></a>
+<span class="sourceLineNo">169</span>     * Handle data query..<a name="line.169"></a>
+<span class="sourceLineNo">170</span>     *<a name="line.170"></a>
+<span class="sourceLineNo">171</span>     * @param event the event<a name="line.171"></a>
+<span class="sourceLineNo">172</span>     * @param channel the channel<a name="line.172"></a>
+<span class="sourceLineNo">173</span>     */<a name="line.173"></a>
+<span class="sourceLineNo">174</span>    @Handler<a name="line.174"></a>
+<span class="sourceLineNo">175</span>    @SuppressWarnings("PMD.ConfusingTernary")<a name="line.175"></a>
+<span class="sourceLineNo">176</span>    public void onKeyValueStoreQuery(<a name="line.176"></a>
+<span class="sourceLineNo">177</span>            KeyValueStoreQuery event, PortalSession channel) {<a name="line.177"></a>
+<span class="sourceLineNo">178</span>        @SuppressWarnings("PMD.UseConcurrentHashMap")<a name="line.178"></a>
+<span class="sourceLineNo">179</span>        Map&lt;String, String&gt; result = new HashMap&lt;&gt;();<a name="line.179"></a>
+<span class="sourceLineNo">180</span>        @SuppressWarnings("unchecked")<a name="line.180"></a>
+<span class="sourceLineNo">181</span>        Map&lt;String, String&gt; data = (Map&lt;String, String&gt;) channel<a name="line.181"></a>
+<span class="sourceLineNo">182</span>            .browserSession().get(PortalLocalBackedKVStore.class);<a name="line.182"></a>
+<span class="sourceLineNo">183</span>        if (data != null) {<a name="line.183"></a>
+<span class="sourceLineNo">184</span>            if (!event.query().endsWith("/")) {<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                // Single value<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                if (data.containsKey(event.query())) {<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                    result.put(event.query(), data.get(event.query()));<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                }<a name="line.188"></a>
+<span class="sourceLineNo">189</span>            } else {<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                for (Map.Entry&lt;String, String&gt; e : data.entrySet()) {<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                    if (e.getKey().startsWith(event.query())) {<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                        result.put(e.getKey(), e.getValue());<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                    }<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                }<a name="line.194"></a>
+<span class="sourceLineNo">195</span>            }<a name="line.195"></a>
+<span class="sourceLineNo">196</span>        }<a name="line.196"></a>
+<span class="sourceLineNo">197</span>        event.setResult(result);<a name="line.197"></a>
+<span class="sourceLineNo">198</span>    }<a name="line.198"></a>
+<span class="sourceLineNo">199</span>}<a name="line.199"></a>
 
 
 
