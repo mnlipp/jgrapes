@@ -1,7 +1,7 @@
 org.jgrapes.portal.base
 org.jgrapes.portal.base.events
 org.jgrapes.portal.base.freemarker
-org.jgrapes.portal.bootstrap3
+org.jgrapes.portal.bootstrap4
 org.jgrapes.portal.jqueryui
 org.jgrapes.portal.jqueryui.events
 org.jgrapes.portal.jqueryui.themes.base
