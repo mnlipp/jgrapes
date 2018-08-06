@@ -8,5 +8,6 @@ org.jgrapes.portal.jqueryui.themes.base
 org.jgrapes.portal.providers.chartjs
 org.jgrapes.portal.providers.datatables
 org.jgrapes.portal.providers.markdownit
+org.jgrapes.portal.providers.vuejs
 org.jgrapes.portlets.markdowndisplay
 org.jgrapes.portlets.sysinfo
