@@ -235,7 +235,7 @@
 <span class="sourceLineNo">227</span>        @SuppressWarnings("PMD.UseConcurrentHashMap")<a name="line.227"></a>
 <span class="sourceLineNo">228</span>        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();<a name="line.228"></a>
 <span class="sourceLineNo">229</span>        result.put("id",<a name="line.229"></a>
-<span class="sourceLineNo">230</span>            serviceRef.getProperty(Constants.SERVICE_ID).toString());<a name="line.230"></a>
+<span class="sourceLineNo">230</span>            serviceRef.getProperty(Constants.SERVICE_ID));<a name="line.230"></a>
 <span class="sourceLineNo">231</span>        String[] interfaces<a name="line.231"></a>
 <span class="sourceLineNo">232</span>            = (String[]) serviceRef.getProperty(Constants.OBJECTCLASS);<a name="line.232"></a>
 <span class="sourceLineNo">233</span>        result.put("type", String.join(", ", interfaces));<a name="line.233"></a>
