@@ -723,7 +723,7 @@
 <span class="sourceLineNo">715</span>     */<a name="line.715"></a>
 <span class="sourceLineNo">716</span>    @Handler(channels = PortalChannel.class)<a name="line.716"></a>
 <span class="sourceLineNo">717</span>    public void onPortalReady(PortalReady event, PortalSession portalSession) {<a name="line.717"></a>
-<span class="sourceLineNo">718</span>        String principal = Utils.userFromSession(portalSession.browserSession())<a name="line.718"></a>
+<span class="sourceLineNo">718</span>        String principal = PortalUtils.userFromSession(portalSession.browserSession())<a name="line.718"></a>
 <span class="sourceLineNo">719</span>            .map(UserPrincipal::toString).orElse("");<a name="line.719"></a>
 <span class="sourceLineNo">720</span>        KeyValueStoreQuery query = new KeyValueStoreQuery(<a name="line.720"></a>
 <span class="sourceLineNo">721</span>            "/" + principal + "/themeProvider", portalSession);<a name="line.721"></a>
