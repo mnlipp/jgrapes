@@ -1,6 +1,7 @@
 org.jgrapes.osgi.core
 org.jgrapes.osgi.demo.httpserver
 org.jgrapes.osgi.demo.portal
+org.jgrapes.osgi.demo.upnp
 org.jgrapes.osgi.portlets.bundles
 org.jgrapes.osgi.portlets.services
-org.jgrapes.osgi.upnpserver
+org.jgrapes.osgi.portlets.upnpbrowser
