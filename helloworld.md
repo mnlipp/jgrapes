@@ -39,7 +39,7 @@ for
 
 A predefined event from the core package is the
 [Start](latest-release/javadoc/index.html?org/jgrapes/core/events/Start.html)
-event. This events triggers the event processing by the framework. Other
+event. This event triggers the event processing by the framework. Other
 events, that have been generated before, won't be delivered to handlers
 until a `Start` event has been received.
 
@@ -51,8 +51,8 @@ application and waits until it is processed.
 
 [^finalS]: Note the "s" at the end.
 
-The `Start` event is processed by the handler method of the class `Greeter`,
-which simply outputs `Hello World!`.
+In our application, the `Start` event is processed by the handler method 
+of the class `Greeter`, which simply outputs "`Hello World!`".
 
 Handlers for events are invoked by threads from a thread pool which is
 created by the framework. The program won't terminate until all threads
