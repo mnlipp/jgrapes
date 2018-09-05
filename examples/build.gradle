@@ -35,5 +35,16 @@ runOsgi {
     // ' -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1044'
 }
 
-
 tasks.runOsgi.dependsOn tasks.copyResources
+
+
+task runGreeter(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.jgrapes.examples.core.helloworld.Greeter'
+}
+
+task runEchoUntilQuit(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.jgrapes.examples.io.consoleinput.EchoUntilQuit'
+    standardInput = System.in
+}
