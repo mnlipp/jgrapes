@@ -51,13 +51,11 @@ application and waits until it is processed.
 
 In our application, the `Start` event is handled by the method `onStart`
 of the class `Greeter`, which simply outputs "`Hello World!`". The method
-is marked as a hanler method using the 
+is marked as a handler method using the 
 [@Handler](latest-release/javadoc/index.html?org/jgrapes/core/annotation/Handler.html)
 annotation. The annotation is evaluated when a new `Component` is created.
 By reflection, it finds that the annotated method accepts an event of type
 `Start` as first parameter and therefore registers it as handler for such an
 event. 
-
-*ToDo*
 
 ---
