@@ -28,6 +28,7 @@ import java.util.PriorityQueue;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
@@ -45,7 +46,15 @@ import org.jgrapes.core.internal.GeneratorRegistry;
 public class Components {
 
     private static ExecutorService defaultExecutorService
-        = Executors.newCachedThreadPool();
+        = Executors.newCachedThreadPool(
+            new ThreadFactory() {
+                public Thread newThread(Runnable runnable) {
+                    Thread thread
+                        = Executors.defaultThreadFactory().newThread(runnable);
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            });
 
     private static ExecutorService timerExecutorService
         = defaultExecutorService;
