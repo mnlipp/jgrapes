@@ -36,7 +36,5 @@ public class Greeter extends Component {
     public static void main(String[] args)
             throws InterruptedException {
         Components.start(new Greeter());
-        Components.awaitExhaustion();
-        System.exit(0);
     }
 }
