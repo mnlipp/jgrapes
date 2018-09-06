@@ -74,7 +74,7 @@ public class Components {
     /**
      * Set the default executor service for the framework. The default 
      * value is a cached thread pool (see @link 
-     * {@link Executors#newCachedThreadPool()}).
+     * {@link Executors#newCachedThreadPool()}) with daemon threads.
      * 
      * @param defaultExecutorService the executor service to set
      */
