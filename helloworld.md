@@ -24,8 +24,6 @@ public class Greeter extends Component {
     public static void main(String[] args) 
             throws InterruptedException {
         Components.start(new Greeter());
-        Components.awaitExhaustion();
-        System.exit(0);
     }
 }
 ```
@@ -51,14 +49,14 @@ application and waits until it is processed.
 
 [^finalS]: Note the "s" at the end.
 
-In our application, the `Start` event is processed by the handler method 
-of the class `Greeter`, which simply outputs "`Hello World!`".
-
-Handlers for events are invoked by threads from a thread pool which is
-created by the framework. The program won't terminate until all threads
-from the pool have terminted due to their idle timeout. As we don't want 
-to wait for this to happen eventually, we use the main thread to wait until
-all events have been processed and then terminate the program explicitly.
+In our application, the `Start` event is processed by the method 
+of the class `Greeter`, which simply outputs "`Hello World!`". The method
+is marked as a hanler method using the 
+[@Handler](latest-release/javadoc/index.html?org/jgrapes/core/annotation/Handler.html)
+annotation. The annotation is evaluated when a new `Component` is created.
+By reflection, it finds that the method accepts an event of type `Start`
+as first parameter and therefore registers it as handler for such an
+event. 
 
 *ToDo*
 
