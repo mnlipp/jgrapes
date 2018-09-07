@@ -48,3 +48,9 @@ task runEchoUntilQuit(type: JavaExec) {
     main = 'org.jgrapes.examples.io.consoleinput.EchoUntilQuit'
     standardInput = System.in
 }
+
+task runEchoServer(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.jgrapes.examples.io.tcpecho.EchoServer'
+    standardInput = System.in
+}
