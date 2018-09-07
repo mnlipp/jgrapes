@@ -75,6 +75,5 @@ public class EchoUntilQuit extends Component {
         app.attach(new InputStreamMonitor(channel, System.in));
         Components.start(app);
         Components.awaitExhaustion();
-        System.exit(0);
     }
 }
