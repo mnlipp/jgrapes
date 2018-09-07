@@ -23,7 +23,6 @@ The two components are created and connected to a channel in the `main` method.
         app.attach(new InputStreamMonitor(channel, System.in));
         Components.start(app);
         Components.awaitExhaustion();
-        System.exit(0);
     }
 ```
 
