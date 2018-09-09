@@ -33,7 +33,22 @@ import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.net.TcpServer;
 
 /**
+ * An application that echos data from a TCP connection.
  *
+ * @startuml EchoServer.svg
+ * 
+ * object "app: EchoServer" as app
+ * object "dispatcher: NioDispatcher" as dispatcher
+ * object "tcpServer: TcpServer" as tcpServer
+ * 
+ * app *-- dispatcher
+ * app *-- tcpServer
+ * app -- app: connected to >
+ * tcpServer -up- app: connected to >
+ * 
+ * note left of app: Also serves\nas Channel
+ * 
+ * @enduml
  */
 public class EchoServer extends Component {
 
