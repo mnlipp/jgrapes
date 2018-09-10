@@ -22,11 +22,9 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -34,11 +32,9 @@ import java.util.HashSet;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import javax.management.InstanceAlreadyExistsException;
@@ -49,17 +45,13 @@ import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Error;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
 import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
@@ -71,8 +63,6 @@ import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.Purge;
 import org.jgrapes.io.util.AvailabilityListener;
 import org.jgrapes.io.util.LinkedIOSubchannel;
-import org.jgrapes.io.util.ManagedBuffer;
-import org.jgrapes.io.util.ManagedBufferPool;
 import org.jgrapes.io.util.PermitsPool;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
@@ -108,14 +98,11 @@ import org.jgrapes.util.events.ConfigurationUpdate;
 @SuppressWarnings({ "PMD.ExcessiveImports", "PMD.ExcessivePublicCount",
     "PMD.NcssCount", "PMD.EmptyCatchBlock", "PMD.AvoidDuplicateLiterals",
     "PMD.ExcessiveClassLength" })
-public class TcpServer extends Component implements NioHandler {
+public class TcpServer extends TcpConnectionManager implements NioHandler {
 
     private InetSocketAddress serverAddress;
     private ServerSocketChannel serverSocketChannel;
-    private int bufferSize;
-    private final Set<TcpChannel> channels = new HashSet<>();
     private boolean closing;
-    private ExecutorService executorService;
     private int backlog;
     private PermitsPool connLimiter;
     private Registration registration;
@@ -176,14 +163,17 @@ public class TcpServer extends Component implements NioHandler {
                         = System.currentTimeMillis() - minimumPurgeableTime;
                     candidates = candidates.stream()
                         .filter(channel -> channel.isPurgeable()
-                            && channel.becamePurgeableAt < purgeableSince)
+                            && channel.becamePurgeableAt() < purgeableSince)
                         .sorted(new Comparator<TcpChannel>() {
                             @Override
+                            @SuppressWarnings("PMD.ShortVariable")
                             public int compare(TcpChannel c1, TcpChannel c2) {
-                                if (c1.becamePurgeableAt < c2.becamePurgeableAt) {
+                                if (c1.becamePurgeableAt() < c2
+                                    .becamePurgeableAt()) {
                                     return 1;
                                 }
-                                if (c1.becamePurgeableAt > c2.becamePurgeableAt) {
+                                if (c1.becamePurgeableAt() > c2
+                                    .becamePurgeableAt()) {
                                     return -1;
                                 }
                                 return 0;
@@ -195,7 +185,7 @@ public class TcpServer extends Component implements NioHandler {
                         if (!channel.isPurgeable()) {
                             continue;
                         }
-                        channel.downPipeline.fire(new Purge(), channel);
+                        channel.downPipeline().fire(new Purge(), channel);
                         // Continue only as long as necessary
                         if (permitsAvailable) {
                             break;
@@ -301,27 +291,6 @@ public class TcpServer extends Component implements NioHandler {
     }
 
     /**
-     * Sets the buffer size for the send an receive buffers.
-     * If no size is set, the system defaults will be used.
-     * 
-     * @param bufferSize the size to use for the send and receive buffers
-     * @return the TCP server for easy chaining
-     */
-    public TcpServer setBufferSize(int bufferSize) {
-        this.bufferSize = bufferSize;
-        return this;
-    }
-
-    /**
-     * Return the configured buffer size.
-     *
-     * @return the bufferSize
-     */
-    public int bufferSize() {
-        return bufferSize;
-    }
-
-    /**
      * Sets the backlog size.
      * 
      * @param backlog the backlog to set
@@ -386,30 +355,6 @@ public class TcpServer extends Component implements NioHandler {
     }
 
     /**
-     * Sets an executor service to be used by the event pipelines
-     * that process the data from the network. Setting this
-     * to an executor service with a limited number of threads
-     * allows to control the maximum load from the network.
-     * 
-     * @param executorService the executorService to set
-     * @return the TCP server for easy chaining
-     * @see Manager#newEventPipeline(ExecutorService)
-     */
-    public TcpServer setExecutorService(ExecutorService executorService) {
-        this.executorService = executorService;
-        return this;
-    }
-
-    /**
-     * Returns the executor service.
-     *
-     * @return the executorService
-     */
-    public ExecutorService executorService() {
-        return executorService;
-    }
-
-    /**
      * Starts the server.
      * 
      * @param event the start event
@@ -449,8 +394,13 @@ public class TcpServer extends Component implements NioHandler {
             return;
         }
         if (handler instanceof TcpChannel) {
-            ((TcpChannel) handler)
-                .registrationComplete(event.event());
+            TcpChannel channel = (TcpChannel) handler;
+            channel.registrationComplete(event.event());
+            channel.downPipeline()
+                .fire(new Accepted(channel.nioChannel().getLocalAddress(),
+                    channel.nioChannel().getRemoteAddress(), false,
+                    Collections.emptyList()), channel);
+
         }
     }
 
@@ -484,7 +434,8 @@ public class TcpServer extends Component implements NioHandler {
         }
     }
 
-    private boolean removeChannel(TcpChannel channel) {
+    @Override
+    protected boolean removeChannel(TcpChannel channel) {
         synchronized (channels) {
             if (!channels.remove(channel)) {
                 // Closed already
@@ -497,27 +448,6 @@ public class TcpServer extends Component implements NioHandler {
             connLimiter.release();
         }
         return true;
-    }
-
-    /**
-     * Writes the data passed in the event to the client. 
-     * 
-     * The end of record flag is used to determine if a channel is 
-     * eligible for purging. If the flag is set and all output has 
-     * been processed, the channel is purgeable until input is 
-     * received or another output event causes the state to be 
-     * reevaluated. 
-     *
-     * @param event the event
-     * @param channel the channel
-     * @throws InterruptedException the interrupted exception
-     */
-    @Handler
-    public void onOutput(Output<ByteBuffer> event,
-            TcpChannel channel) throws InterruptedException {
-        if (channels.contains(channel)) {
-            channel.write(event);
-        }
     }
 
     /**
@@ -578,329 +508,6 @@ public class TcpServer extends Component implements NioHandler {
         newSyncEventPipeline().fire(new Close(), this);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return Components.objectName(this);
-    }
-
-    /**
-     * The purgeable state.
-     */
-    private enum PurgeableState {
-        NO, PENDING, YES
-    }
-
-    /**
-     * The internal representation of a connected client. 
-     */
-    private class TcpChannel
-            extends DefaultSubchannel implements NioHandler {
-
-        private final SocketChannel nioChannel;
-        private EventPipeline downPipeline;
-        private final ManagedBufferPool<ManagedBuffer<ByteBuffer>,
-                ByteBuffer> readBuffers;
-        private Registration registration;
-        private final Queue<
-                ManagedBuffer<ByteBuffer>.ByteBufferView> pendingWrites
-                    = new ArrayDeque<>();
-        private boolean pendingClose;
-        private PurgeableState purgeable = PurgeableState.NO;
-        private long becamePurgeableAt;
-
-        /**
-         * @param nioChannel the channel
-         * @throws IOException if an I/O error occured
-         */
-        public TcpChannel(SocketChannel nioChannel) throws IOException {
-            super(channel(), newEventPipeline());
-            this.nioChannel = nioChannel;
-            if (executorService == null) {
-                downPipeline = newEventPipeline();
-            } else {
-                downPipeline = newEventPipeline(executorService);
-            }
-
-            String channelName = Components.objectName(TcpServer.this)
-                + "." + Components.objectName(this);
-            int writeBufferSize = bufferSize == 0
-                ? nioChannel.socket().getSendBufferSize()
-                : bufferSize;
-            setByteBufferPool(new ManagedBufferPool<>(ManagedBuffer::new,
-                () -> {
-                    return ByteBuffer.allocate(writeBufferSize);
-                }, 2)
-                    .setName(channelName + ".upstream.buffers"));
-
-            int readBufferSize = bufferSize == 0
-                ? nioChannel.socket().getReceiveBufferSize()
-                : bufferSize;
-            readBuffers = new ManagedBufferPool<>(ManagedBuffer::new,
-                () -> {
-                    return ByteBuffer.allocate(readBufferSize);
-                }, 2)
-                    .setName(channelName + ".downstream.buffers");
-
-            // Register with dispatcher
-            nioChannel.configureBlocking(false);
-            TcpServer.this.fire(
-                new NioRegistration(this, nioChannel, 0, TcpServer.this),
-                Channel.BROADCAST);
-        }
-
-        /**
-         * Invoked when registration has completed.
-         * 
-         * @param event the completed event
-         * @throws InterruptedException if the execution was interrupted
-         * @throws IOException if an I/O error occurred
-         */
-        public void registrationComplete(NioRegistration event)
-                throws InterruptedException, IOException {
-            registration = event.get();
-            downPipeline.fire(new Accepted(nioChannel.getLocalAddress(),
-                nioChannel.getRemoteAddress(), false,
-                Collections.emptyList()), this);
-            registration.updateInterested(SelectionKey.OP_READ);
-
-        }
-
-        public boolean isPurgeable() {
-            return purgeable == PurgeableState.YES;
-        }
-
-        /**
-         * Write the data on this channel.
-         * 
-         * @param event the event
-         */
-        public void write(Output<ByteBuffer> event)
-                throws InterruptedException {
-            synchronized (pendingWrites) {
-                if (!nioChannel.isOpen()) {
-                    return;
-                }
-                ManagedBuffer<ByteBuffer>.ByteBufferView reader
-                    = event.buffer().newByteBufferView();
-                if (!pendingWrites.isEmpty()) {
-                    reader.managedBuffer().lockBuffer();
-                    purgeable = event.isEndOfRecord() ? PurgeableState.PENDING
-                        : PurgeableState.NO;
-                    pendingWrites.add(reader);
-                    return;
-                }
-                try {
-                    nioChannel.write(reader.get());
-                } catch (IOException e) {
-                    removeChannel(e);
-                    return;
-                }
-                if (!reader.get().hasRemaining()) {
-                    if (event.isEndOfRecord()) {
-                        becamePurgeableAt = System.currentTimeMillis();
-                        purgeable = PurgeableState.YES;
-                    } else {
-                        purgeable = PurgeableState.NO;
-                    }
-                    return;
-                }
-                reader.managedBuffer().lockBuffer();
-                purgeable = event.isEndOfRecord() ? PurgeableState.PENDING
-                    : PurgeableState.NO;
-                pendingWrites.add(reader);
-                registration.updateInterested(
-                    SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-            }
-        }
-
-        @Override
-        public void handleOps(int ops) throws InterruptedException {
-            if ((ops & SelectionKey.OP_READ) != 0) {
-                handleReadOp();
-            }
-            if ((ops & SelectionKey.OP_WRITE) != 0) {
-                handleWriteOp();
-            }
-        }
-
-        /**
-         * Gets a buffer from the pool and reads available data into it.
-         * Sends the result as event. 
-         * 
-         * @throws InterruptedException
-         * @throws IOException
-         */
-        @SuppressWarnings("PMD.EmptyCatchBlock")
-        private void handleReadOp() throws InterruptedException {
-            ManagedBuffer<ByteBuffer> buffer;
-            buffer = readBuffers.acquire();
-            try {
-                int bytes = buffer.fillFromChannel(nioChannel);
-                if (bytes == 0) {
-                    buffer.unlockBuffer();
-                    return;
-                }
-                if (bytes > 0) {
-                    purgeable = PurgeableState.NO;
-                    downPipeline.fire(Input.fromSink(buffer, false), this);
-                    return;
-                }
-            } catch (IOException e) {
-                // Buffer already unlocked by fillFromChannel
-                removeChannel(e);
-                return;
-            }
-            // EOF (-1) from client
-            buffer.unlockBuffer();
-            synchronized (nioChannel) {
-                if (nioChannel.socket().isOutputShutdown()) {
-                    // Client confirms our close, complete close
-                    try {
-                        nioChannel.close();
-                    } catch (IOException e) {
-                        // Ignored for close
-                    }
-                    return;
-                }
-
-            }
-            // Client initiates close
-            removeChannel(null);
-            synchronized (pendingWrites) {
-                synchronized (nioChannel) {
-                    try {
-                        if (!pendingWrites.isEmpty()) {
-                            // Pending writes, delay close
-                            pendingClose = true;
-                            // Mark as client initiated close
-                            nioChannel.shutdownInput();
-                            return;
-                        }
-                        // Nothing left to do, close
-                        nioChannel.close();
-                    } catch (IOException e) {
-                        // Ignored for close
-                    }
-                }
-            }
-        }
-
-        /**
-         * Checks if there is still data to be written. This may be
-         * a left over in an incompletely written buffer or a complete
-         * pending buffer. 
-         * 
-         * @throws IOException
-         * @throws InterruptedException 
-         */
-        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-            "PMD.EmptyCatchBlock",
-            "PMD.AvoidBranchingStatementAsLastInLoop" })
-        private void handleWriteOp() throws InterruptedException {
-            while (true) {
-                ManagedBuffer<ByteBuffer>.ByteBufferView head = null;
-                synchronized (pendingWrites) {
-                    if (pendingWrites.isEmpty()) {
-                        // Nothing left to write, stop getting ops
-                        registration.updateInterested(SelectionKey.OP_READ);
-                        // Was the connection closed while we were writing?
-                        if (pendingClose) {
-                            synchronized (nioChannel) {
-                                try {
-                                    if (nioChannel.socket().isInputShutdown()) {
-                                        // Delayed close from client, complete
-                                        nioChannel.close();
-                                    } else {
-                                        // Delayed close from server, initiate
-                                        nioChannel.shutdownOutput();
-                                    }
-                                } catch (IOException e) {
-                                    // Ignored for close
-                                }
-                            }
-                            pendingClose = false;
-                        } else {
-                            if (purgeable == PurgeableState.PENDING) {
-                                purgeable = PurgeableState.YES;
-                            }
-                        }
-                        break; // Nothing left to do
-                    }
-                    head = pendingWrites.peek();
-                    if (!head.get().hasRemaining()) {
-                        // Nothing left in head buffer, try next
-                        head.managedBuffer().unlockBuffer();
-                        pendingWrites.remove();
-                        continue;
-                    }
-                }
-                try {
-                    nioChannel.write(head.get()); // write...
-                } catch (IOException e) {
-                    removeChannel(e);
-                    return;
-                }
-                break; // ... and wait for next op
-            }
-        }
-
-        /**
-         * Closes this channel.
-         * 
-         * @throws IOException if an error occurs
-         * @throws InterruptedException if the execution was interrupted 
-         */
-        public void close() throws IOException, InterruptedException {
-            removeChannel(null);
-            synchronized (pendingWrites) {
-                if (!pendingWrites.isEmpty()) {
-                    // Pending writes, delay close until done
-                    pendingClose = true;
-                    return;
-                }
-                // Nothing left to do, proceed
-                synchronized (nioChannel) {
-                    if (nioChannel.isOpen()) {
-                        // Initiate close, must be confirmed by client
-                        nioChannel.shutdownOutput();
-                    }
-                }
-            }
-        }
-
-        @SuppressWarnings("PMD.EmptyCatchBlock")
-        private void removeChannel(Throwable error)
-                throws InterruptedException {
-            if (error != null) {
-                try {
-                    nioChannel.close();
-                } catch (IOException e) {
-                    // Closed only to make sure, any failure can be ignored.
-                }
-            }
-            if (TcpServer.this.removeChannel(this)) {
-                Closed evt = new Closed(error);
-                downPipeline.fire(evt, this);
-                evt.get();
-            }
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.jgrapes.io.IOSubchannel.DefaultSubchannel#toString()
-         */
-        @SuppressWarnings("PMD.CommentRequired")
-        public String toString() {
-            return IOSubchannel.toString(this);
-        }
-    }
-
     /**
      * The Interface of the TcpServer MXBean.
      */
@@ -937,7 +544,7 @@ public class TcpServer extends Component implements NioHandler {
              * @return the downstream pool
              */
             public String getDownstreamPool() {
-                return channel.readBuffers.name();
+                return channel.readBuffers().name();
             }
 
             /**
@@ -1058,8 +665,8 @@ public class TcpServer extends Component implements NioHandler {
          */
         @Override
         public int getPort() {
-            return server().map(server -> (server
-                .serverAddress()).getPort()).orElse(0);
+            return server().map(server -> server
+                .serverAddress().getPort()).orElse(0);
         }
 
         /*
@@ -1083,7 +690,7 @@ public class TcpServer extends Component implements NioHandler {
             return server().map(server -> {
                 SortedMap<String, ChannelInfo> result = new TreeMap<>();
                 for (TcpChannel channel : server.channels) {
-                    result.put(channel.nioChannel.socket()
+                    result.put(channel.nioChannel().socket()
                         .getRemoteSocketAddress().toString(),
                         new ChannelInfo(channel));
                 }

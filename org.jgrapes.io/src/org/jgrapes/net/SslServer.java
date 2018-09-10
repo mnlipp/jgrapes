@@ -319,6 +319,7 @@ public class SslServer extends Component {
             }
         }
 
+        @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount" })
         private SSLEngineResult processInput(
                 ManagedBuffer<ByteBuffer> unwrapped, ByteBuffer input)
                 throws SSLException, InterruptedException, ExecutionException {
