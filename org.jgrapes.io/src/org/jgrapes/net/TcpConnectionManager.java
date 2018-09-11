@@ -71,7 +71,7 @@ public abstract class TcpConnectionManager extends Component {
      * If no size is set, the system defaults will be used.
      * 
      * @param bufferSize the size to use for the send and receive buffers
-     * @return the TCP server for easy chaining
+     * @return the TCP connection manager for easy chaining
      */
     public TcpConnectionManager setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
@@ -94,7 +94,7 @@ public abstract class TcpConnectionManager extends Component {
      * allows to control the maximum load from the network.
      * 
      * @param executorService the executorService to set
-     * @return the TCP server for easy chaining
+     * @return the TCP connection manager for easy chaining
      * @see Manager#newEventPipeline(ExecutorService)
      */
     public TcpConnectionManager
@@ -113,7 +113,7 @@ public abstract class TcpConnectionManager extends Component {
     }
 
     /**
-     * Writes the data passed in the event to the client. 
+     * Writes the data passed in the event. 
      * 
      * The end of record flag is used to determine if a channel is 
      * eligible for purging. If the flag is set and all output has 
@@ -369,11 +369,11 @@ public abstract class TcpConnectionManager extends Component {
                 removeChannel(e);
                 return;
             }
-            // EOF (-1) from client
+            // EOF (-1) from other end
             buffer.unlockBuffer();
             synchronized (nioChannel) {
                 if (closeState == CloseState.HALF_CLOSED) {
-                    // Client confirms our close, complete close
+                    // Other end confirms our close, complete close
                     try {
                         nioChannel.close();
                     } catch (IOException e) {
@@ -383,7 +383,7 @@ public abstract class TcpConnectionManager extends Component {
                 }
 
             }
-            // Client initiates close
+            // Other end initiates close
             removeChannel(null);
             synchronized (pendingWrites) {
                 synchronized (nioChannel) {
@@ -391,7 +391,7 @@ public abstract class TcpConnectionManager extends Component {
                         if (!pendingWrites.isEmpty()) {
                             // Pending writes, delay close
                             closeState = CloseState.DELAYED_REQUEST;
-                            // Mark as client initiated close
+                            // Mark as initiated close
                             nioChannel.shutdownInput();
                             return;
                         }
@@ -428,12 +428,13 @@ public abstract class TcpConnectionManager extends Component {
                             synchronized (nioChannel) {
                                 try {
                                     if (closeState == CloseState.DELAYED_REQUEST) {
-                                        // Delayed close from client, complete
+                                        // Delayed close from other end,
+                                        // complete
                                         nioChannel.close();
                                         closeState = CloseState.CLOSED;
                                     }
                                     if (closeState == CloseState.DELAYED_EVENT) {
-                                        // Delayed close from server, initiate
+                                        // Delayed close from this end, initiate
                                         nioChannel.shutdownOutput();
                                         closeState = CloseState.HALF_CLOSED;
                                     }
@@ -483,7 +484,7 @@ public abstract class TcpConnectionManager extends Component {
                 // Nothing left to do, proceed
                 synchronized (nioChannel) {
                     if (nioChannel.isOpen()) {
-                        // Initiate close, must be confirmed by client
+                        // Initiate close, must be confirmed by other end
                         nioChannel.shutdownOutput();
                         closeState = CloseState.HALF_CLOSED;
                     }
