@@ -183,7 +183,7 @@ public abstract class TcpConnectionManager extends Component {
         private final Queue<
                 ManagedBuffer<ByteBuffer>.ByteBufferView> pendingWrites
                     = new ArrayDeque<>();
-        private CloseState closeState = CloseState.OPEN;
+        private boolean pendingClose;
         private PurgeableState purgeable = PurgeableState.NO;
         private long becamePurgeableAt;
 
@@ -311,7 +311,7 @@ public abstract class TcpConnectionManager extends Component {
                 try {
                     nioChannel.write(reader.get());
                 } catch (IOException e) {
-                    forceClose(e);
+                    removeChannel(e);
                     return;
                 }
                 if (!reader.get().hasRemaining()) {
@@ -366,29 +366,40 @@ public abstract class TcpConnectionManager extends Component {
                 }
             } catch (IOException e) {
                 // Buffer already unlocked by fillFromChannel
-                forceClose(e);
+                removeChannel(e);
                 return;
             }
-            // EOF (-1) from other end
+            // EOF (-1) from client
             buffer.unlockBuffer();
-            // Check if other end confirms close
             synchronized (nioChannel) {
-                if (closeState == CloseState.HALF_CLOSED) {
-                    completeClose();
+                if (nioChannel.socket().isOutputShutdown()) {
+                    // Client confirms our close, complete close
+                    try {
+                        nioChannel.close();
+                    } catch (IOException e) {
+                        // Ignored for close
+                    }
                     return;
                 }
+
             }
-            // Other end initiates close
+            // Client initiates close
+            removeChannel(null);
             synchronized (pendingWrites) {
                 synchronized (nioChannel) {
-                    if (!pendingWrites.isEmpty()) {
-                        // Pending writes, delay close
-                        closeState = CloseState.DELAYED_REQUEST;
-                        return;
+                    try {
+                        if (!pendingWrites.isEmpty()) {
+                            // Pending writes, delay close
+                            pendingClose = true;
+                            // Mark as client initiated close
+                            nioChannel.shutdownInput();
+                            return;
+                        }
+                        // Nothing left to do, close
+                        nioChannel.close();
+                    } catch (IOException e) {
+                        // Ignored for close
                     }
-                    // Nothing left to do, close
-                    removeChannel(this);
-                    completeClose();
                 }
             }
         }
@@ -411,17 +422,25 @@ public abstract class TcpConnectionManager extends Component {
                     if (pendingWrites.isEmpty()) {
                         // Nothing left to write, stop getting ops
                         registration.updateInterested(SelectionKey.OP_READ);
-                        synchronized (nioChannel) {
-                            // Was close requested while we were writing?
-                            if (closeState == CloseState.DELAYED_EVENT) {
-                                halfClose();
-                            } else if (closeState == CloseState.DELAYED_REQUEST) {
-                                removeChannel(this);
-                                completeClose();
-                            } else {
-                                if (purgeable == PurgeableState.PENDING) {
-                                    purgeable = PurgeableState.YES;
+                        // Was the connection closed while we were writing?
+                        if (pendingClose) {
+                            synchronized (nioChannel) {
+                                try {
+                                    if (nioChannel.socket().isInputShutdown()) {
+                                        // Delayed close from client, complete
+                                        nioChannel.close();
+                                    } else {
+                                        // Delayed close from server, initiate
+                                        nioChannel.shutdownOutput();
+                                    }
+                                } catch (IOException e) {
+                                    // Ignored for close
                                 }
+                            }
+                            pendingClose = false;
+                        } else {
+                            if (purgeable == PurgeableState.PENDING) {
+                                purgeable = PurgeableState.YES;
                             }
                         }
                         break; // Nothing left to do
@@ -437,7 +456,7 @@ public abstract class TcpConnectionManager extends Component {
                 try {
                     nioChannel.write(head.get()); // write...
                 } catch (IOException e) {
-                    forceClose(e);
+                    removeChannel(e);
                     return;
                 }
                 break; // ... and wait for next op
@@ -445,60 +464,44 @@ public abstract class TcpConnectionManager extends Component {
         }
 
         /**
-         * Initiates a close from this side of the connection.
+         * Closes this channel.
          * 
          * @throws IOException if an error occurs
          * @throws InterruptedException if the execution was interrupted 
          */
         public void close() throws IOException, InterruptedException {
-            removeChannel(this);
+            removeChannel(null);
             synchronized (pendingWrites) {
                 if (!pendingWrites.isEmpty()) {
                     // Pending writes, delay close until done
-                    closeState = CloseState.DELAYED_EVENT;
+                    pendingClose = true;
                     return;
                 }
                 // Nothing left to do, proceed
-                halfClose();
-            }
-        }
-
-        @SuppressWarnings("PMD.EmptyCatchBlock")
-        private void forceClose(Throwable error) throws InterruptedException {
-            if (removeChannel(this)) {
-                try {
-                    nioChannel.close();
-                } catch (IOException e) {
-                    // Closed only to make sure, any failure can be ignored.
-                }
-                downPipeline.fire(new Closed(error), this);
-            }
-        }
-
-        private void halfClose() throws InterruptedException {
-            synchronized (nioChannel) {
-                if (closeState.ordinal() >= CloseState.HALF_CLOSED.ordinal()) {
-                    return;
-                }
-                if (nioChannel.isOpen()) {
-                    try {
+                synchronized (nioChannel) {
+                    if (nioChannel.isOpen()) {
+                        // Initiate close, must be confirmed by client
                         nioChannel.shutdownOutput();
-                        closeState = CloseState.HALF_CLOSED;
-                    } catch (IOException e) {
-                        forceClose(e);
                     }
                 }
             }
         }
 
-        private void completeClose() throws InterruptedException {
-            try {
-                nioChannel.close();
-            } catch (IOException e) {
-                // Closed only to make sure, any failure can be ignored.
+        @SuppressWarnings("PMD.EmptyCatchBlock")
+        private void removeChannel(Throwable error)
+                throws InterruptedException {
+            if (error != null) {
+                try {
+                    nioChannel.close();
+                } catch (IOException e) {
+                    // Closed only to make sure, any failure can be ignored.
+                }
             }
-            downPipeline.fire(new Closed(), this).get();
-            closeState = CloseState.CLOSED;
+            if (TcpConnectionManager.this.removeChannel(this)) {
+                Closed evt = new Closed(error);
+                downPipeline.fire(evt, this);
+                evt.get();
+            }
         }
 
         /*

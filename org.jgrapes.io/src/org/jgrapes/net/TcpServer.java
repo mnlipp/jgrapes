@@ -395,12 +395,11 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
         }
         if (handler instanceof TcpChannel) {
             TcpChannel channel = (TcpChannel) handler;
-            channel.registrationComplete(event.event());
             channel.downPipeline()
                 .fire(new Accepted(channel.nioChannel().getLocalAddress(),
                     channel.nioChannel().getRemoteAddress(), false,
                     Collections.emptyList()), channel);
-
+            channel.registrationComplete(event.event());
         }
     }
 
