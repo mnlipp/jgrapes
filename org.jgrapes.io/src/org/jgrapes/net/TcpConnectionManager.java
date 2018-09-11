@@ -183,7 +183,7 @@ public abstract class TcpConnectionManager extends Component {
         private final Queue<
                 ManagedBuffer<ByteBuffer>.ByteBufferView> pendingWrites
                     = new ArrayDeque<>();
-        private boolean pendingClose;
+        private CloseState closeState = CloseState.OPEN;
         private PurgeableState purgeable = PurgeableState.NO;
         private long becamePurgeableAt;
 
@@ -372,7 +372,7 @@ public abstract class TcpConnectionManager extends Component {
             // EOF (-1) from client
             buffer.unlockBuffer();
             synchronized (nioChannel) {
-                if (nioChannel.socket().isOutputShutdown()) {
+                if (closeState == CloseState.HALF_CLOSED) {
                     // Client confirms our close, complete close
                     try {
                         nioChannel.close();
@@ -390,7 +390,7 @@ public abstract class TcpConnectionManager extends Component {
                     try {
                         if (!pendingWrites.isEmpty()) {
                             // Pending writes, delay close
-                            pendingClose = true;
+                            closeState = CloseState.DELAYED_REQUEST;
                             // Mark as client initiated close
                             nioChannel.shutdownInput();
                             return;
@@ -423,21 +423,24 @@ public abstract class TcpConnectionManager extends Component {
                         // Nothing left to write, stop getting ops
                         registration.updateInterested(SelectionKey.OP_READ);
                         // Was the connection closed while we were writing?
-                        if (pendingClose) {
+                        if (closeState == CloseState.DELAYED_REQUEST
+                            || closeState == CloseState.DELAYED_EVENT) {
                             synchronized (nioChannel) {
                                 try {
-                                    if (nioChannel.socket().isInputShutdown()) {
+                                    if (closeState == CloseState.DELAYED_REQUEST) {
                                         // Delayed close from client, complete
                                         nioChannel.close();
-                                    } else {
+                                        closeState = CloseState.CLOSED;
+                                    }
+                                    if (closeState == CloseState.DELAYED_EVENT) {
                                         // Delayed close from server, initiate
                                         nioChannel.shutdownOutput();
+                                        closeState = CloseState.HALF_CLOSED;
                                     }
                                 } catch (IOException e) {
                                     // Ignored for close
                                 }
                             }
-                            pendingClose = false;
                         } else {
                             if (purgeable == PurgeableState.PENDING) {
                                 purgeable = PurgeableState.YES;
@@ -474,7 +477,7 @@ public abstract class TcpConnectionManager extends Component {
             synchronized (pendingWrites) {
                 if (!pendingWrites.isEmpty()) {
                     // Pending writes, delay close until done
-                    pendingClose = true;
+                    closeState = CloseState.DELAYED_EVENT;
                     return;
                 }
                 // Nothing left to do, proceed
@@ -482,6 +485,7 @@ public abstract class TcpConnectionManager extends Component {
                     if (nioChannel.isOpen()) {
                         // Initiate close, must be confirmed by client
                         nioChannel.shutdownOutput();
+                        closeState = CloseState.HALF_CLOSED;
                     }
                 }
             }
