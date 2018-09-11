@@ -311,7 +311,7 @@ public abstract class TcpConnectionManager extends Component {
                 try {
                     nioChannel.write(reader.get());
                 } catch (IOException e) {
-                    removeChannel(e);
+                    forceClose(e);
                     return;
                 }
                 if (!reader.get().hasRemaining()) {
@@ -366,7 +366,7 @@ public abstract class TcpConnectionManager extends Component {
                 }
             } catch (IOException e) {
                 // Buffer already unlocked by fillFromChannel
-                removeChannel(e);
+                forceClose(e);
                 return;
             }
             // EOF (-1) from other end
@@ -384,15 +384,13 @@ public abstract class TcpConnectionManager extends Component {
 
             }
             // Other end initiates close
-            removeChannel(null);
+            removeAndNotify();
             synchronized (pendingWrites) {
                 synchronized (nioChannel) {
                     try {
                         if (!pendingWrites.isEmpty()) {
                             // Pending writes, delay close
                             closeState = CloseState.DELAYED_REQUEST;
-                            // Mark as initiated close
-                            nioChannel.shutdownInput();
                             return;
                         }
                         // Nothing left to do, close
@@ -460,7 +458,7 @@ public abstract class TcpConnectionManager extends Component {
                 try {
                     nioChannel.write(head.get()); // write...
                 } catch (IOException e) {
-                    removeChannel(e);
+                    forceClose(e);
                     return;
                 }
                 break; // ... and wait for next op
@@ -474,7 +472,7 @@ public abstract class TcpConnectionManager extends Component {
          * @throws InterruptedException if the execution was interrupted 
          */
         public void close() throws IOException, InterruptedException {
-            removeChannel(null);
+            removeAndNotify();
             synchronized (pendingWrites) {
                 if (!pendingWrites.isEmpty()) {
                     // Pending writes, delay close until done
@@ -493,16 +491,23 @@ public abstract class TcpConnectionManager extends Component {
         }
 
         @SuppressWarnings("PMD.EmptyCatchBlock")
-        private void removeChannel(Throwable error)
+        private void removeAndNotify()
                 throws InterruptedException {
-            if (error != null) {
-                try {
-                    nioChannel.close();
-                } catch (IOException e) {
-                    // Closed only to make sure, any failure can be ignored.
-                }
+            if (removeChannel(this)) {
+                Closed evt = new Closed();
+                downPipeline.fire(evt, this);
+                evt.get();
             }
-            if (TcpConnectionManager.this.removeChannel(this)) {
+        }
+
+        @SuppressWarnings("PMD.EmptyCatchBlock")
+        private void forceClose(Throwable error) throws InterruptedException {
+            try {
+                nioChannel.close();
+            } catch (IOException e) {
+                // Closed only to make sure, any failure can be ignored.
+            }
+            if (removeChannel(this)) {
                 Closed evt = new Closed(error);
                 downPipeline.fire(evt, this);
                 evt.get();
