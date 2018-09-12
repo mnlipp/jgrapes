@@ -171,11 +171,21 @@
  *   invocation logging involves some performance penalty because additional
  *   information (not required for normal operation) has to be maintained.</dd>
  *   
+ *   <dt>{@code org.jgrapes.core.generatorTracking.level}</dt>
+ *   <dd>If set to {@code FINE}, the 
+ *   event generators added and removed are tracked (usually, they are 
+ *   only counted). Differences between the counted and the tracked
+ *   generators are reported as errors when
+ *   {@link org.jgrapes.core.Components#awaitExhaustion()} is invoked.
+ *   In addition, the generators blocking the exhaustion are reported.
+ *   If set to {@code FINEST}, addition and removal of generators is
+ *   reported as well.
+ *   </dd>
+ *   
  *   <dt>{@code org.jgrapes.core.classNames.level}</dt>
  *   <dd>If set to {@code FINER}, class names are converted to fully
  *   qualified names in {@code toString()} methods.</dd>
- *   </dl>
- * 
+ * </dl>
  *
  * @startuml ComponentTree.svg
  * object Component1 #NavajoWhite
