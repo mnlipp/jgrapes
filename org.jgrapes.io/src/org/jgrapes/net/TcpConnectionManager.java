@@ -181,6 +181,7 @@ public abstract class TcpConnectionManager extends Component {
         private final ManagedBufferPool<ManagedBuffer<ByteBuffer>,
                 ByteBuffer> readBuffers;
         private Registration registration;
+        private int selectionKeys;
         private final Queue<
                 ManagedBuffer<ByteBuffer>.ByteBufferView> pendingWrites
                     = new ArrayDeque<>();
@@ -268,7 +269,8 @@ public abstract class TcpConnectionManager extends Component {
         public void registrationComplete(NioRegistration event)
                 throws InterruptedException, IOException {
             registration = event.get();
-            registration.updateInterested(SelectionKey.OP_READ);
+            selectionKeys |= SelectionKey.OP_READ;
+            registration.updateInterested(selectionKeys);
         }
 
         /**
@@ -328,8 +330,8 @@ public abstract class TcpConnectionManager extends Component {
                 purgeable = event.isEndOfRecord() ? PurgeableState.PENDING
                     : PurgeableState.NO;
                 pendingWrites.add(reader);
-                registration.updateInterested(
-                    SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                selectionKeys |= SelectionKey.OP_WRITE;
+                registration.updateInterested(selectionKeys);
             }
         }
 
@@ -387,6 +389,8 @@ public abstract class TcpConnectionManager extends Component {
 
             }
             // Other end initiates close
+            selectionKeys &= ~SelectionKey.OP_READ;
+            registration.updateInterested(selectionKeys);
             downPipeline.executorService().submit(() -> {
                 try {
                     // Inform downstream and wait until everything has settled.
@@ -434,7 +438,8 @@ public abstract class TcpConnectionManager extends Component {
                 synchronized (pendingWrites) {
                     if (pendingWrites.isEmpty()) {
                         // Nothing left to write, stop getting ops
-                        registration.updateInterested(SelectionKey.OP_READ);
+                        selectionKeys &= ~SelectionKey.OP_WRITE;
+                        registration.updateInterested(selectionKeys);
                         // Was the connection closed while we were writing?
                         if (connState == ConnectionState.DELAYED_REQUEST
                             || connState == ConnectionState.DELAYED_EVENT) {
