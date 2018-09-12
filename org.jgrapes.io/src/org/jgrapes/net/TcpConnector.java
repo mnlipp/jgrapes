@@ -51,7 +51,7 @@ public class TcpConnector extends TcpConnectionManager {
      * Sets the buffer size for the send an receive buffers.
      * If no size is set, the system defaults will be used.
      * 
-     * @param bufferSize the size to use for the send and receive buffers
+     * @param size the size to use for the send and receive buffers
      * @return the TCP connector for easy chaining
      */
     public TcpConnector setBufferSize(int size) {

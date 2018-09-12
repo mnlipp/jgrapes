@@ -38,8 +38,6 @@ public class Connected extends Opened {
      * 
      * @param localAddress the local address
      * @param remoteAddress the remote address
-     * @param secure indicates that this is a secure connection
-     * @param requestedServerNames the requested server names
      * (in case of a TLS connection)
      */
     public Connected(SocketAddress localAddress, SocketAddress remoteAddress) {

@@ -34,7 +34,6 @@ public class OpenTcpConnection extends Event<Void> {
      * Signals that a new TCP connection should be opened.
      *
      * @param address the address
-     * @param port the port
      */
     public OpenTcpConnection(InetSocketAddress address) {
         this.address = address;
