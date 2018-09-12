@@ -96,7 +96,7 @@ public class EchoTest2 {
         }
     }
 
-    // @Test
+    @Test
     public void testTcp() throws IOException, InterruptedException,
             ExecutionException, TimeoutException {
         // Create server
@@ -123,6 +123,7 @@ public class EchoTest2 {
         done.get();
 
         // Stop
+        Components.manager(clntApp).fire(new Stop(), Channel.BROADCAST);
         Components.manager(srvApp).fire(new Stop(), Channel.BROADCAST);
         long waitEnd = System.currentTimeMillis() + 300000;
         while (true) {
