@@ -387,25 +387,32 @@ public abstract class TcpConnectionManager extends Component {
 
             }
             // Other end initiates close
-            downPipeline.fire(new HalfClosed(), this);
-            downPipeline.submit(() -> {
-                removeChannel(this);
-                downPipeline.fire(new Closed(), this);
-                synchronized (pendingWrites) {
-                    synchronized (nioChannel) {
-                        try {
-                            if (!pendingWrites.isEmpty()) {
-                                // Pending writes, delay close
-                                connState = ConnectionState.DELAYED_REQUEST;
-                                return;
+            downPipeline.executorService().submit(() -> {
+                try {
+                    // Inform downstream and wait until everything has settled.
+                    downPipeline.fire(new HalfClosed(), this).get();
+                    // All settled.
+                    removeChannel(this);
+                    downPipeline.fire(new Closed(), this);
+                    // Close our end when everything has been written.
+                    synchronized (pendingWrites) {
+                        synchronized (nioChannel) {
+                            try {
+                                if (!pendingWrites.isEmpty()) {
+                                    // Pending writes, delay close
+                                    connState = ConnectionState.DELAYED_REQUEST;
+                                    return;
+                                }
+                                // Nothing left to do, close
+                                nioChannel.close();
+                                connState = ConnectionState.CLOSED;
+                            } catch (IOException e) {
+                                // Ignored for close
                             }
-                            // Nothing left to do, close
-                            nioChannel.close();
-                            connState = ConnectionState.CLOSED;
-                        } catch (IOException e) {
-                            // Ignored for close
                         }
                     }
+                } catch (InterruptedException e) {
+                    // Nothing to do about this
                 }
             });
         }
