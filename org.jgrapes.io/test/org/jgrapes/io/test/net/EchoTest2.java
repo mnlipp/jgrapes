@@ -30,14 +30,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -214,28 +211,9 @@ public class EchoTest2 {
         ClientApp clntApp = new ClientApp(serverAddr);
         clntApp.attach(new NioDispatcher());
 
-        // Create a trust manager that does not validate certificate chains
-        TrustManager[] trustAllCerts = new TrustManager[] {
-            new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-
-                public void checkClientTrusted(
-                        X509Certificate[] certs, String authType) {
-                }
-
-                public void checkServerTrusted(
-                        X509Certificate[] certs, String authType) {
-                }
-            }
-        };
-        SSLContext sslClntContext = SSLContext.getInstance("SSL");
-        sslClntContext.init(null, trustAllCerts, null);
-
         // Create a TCP connector for SSL
         TcpConnector secClntNetwork = clntApp.attach(new TcpConnector());
-        clntApp.attach(new SslCodec(clntApp, secClntNetwork, sslClntContext));
+        clntApp.attach(new SslCodec(clntApp, secClntNetwork, true));
         WaitForTests done
             = new WaitForTests(clntApp, Done.class, clntApp.defaultCriterion());
         Components.start(clntApp);

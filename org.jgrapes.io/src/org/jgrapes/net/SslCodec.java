@@ -21,6 +21,9 @@ package org.jgrapes.net;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +40,8 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ClassChannel;
@@ -80,6 +85,8 @@ public class SslCodec extends Component {
     }
 
     /**
+     * Creates a new codec that uses the given {@link SSLContext}.
+     * 
      * @param plainChannel the component's channel
      * @param encryptedChannel the channel with the encrypted data
      * @param sslContext the SSL context to use
@@ -90,6 +97,48 @@ public class SslCodec extends Component {
             .add(EncryptedChannel.class, encryptedChannel));
         this.encryptedChannel = encryptedChannel;
         this.sslContext = sslContext;
+    }
+
+    /**
+     * Creates a new codec to be used as client.
+     * 
+     * @param plainChannel the component's channel
+     * @param encryptedChannel the channel with the encrypted data
+     * @param dontValidate if `true` accept all kinds of certificates
+     */
+    public SslCodec(Channel plainChannel, Channel encryptedChannel,
+            boolean dontValidate) {
+        super(plainChannel, ChannelReplacements.create()
+            .add(EncryptedChannel.class, encryptedChannel));
+        this.encryptedChannel = encryptedChannel;
+        try {
+            SSLContext sslContext = SSLContext.getInstance("SSL");
+            if (dontValidate) {
+                // Create a trust manager that does not validate certificate
+                // chains
+                TrustManager[] trustAllCerts = new TrustManager[] {
+                    new X509TrustManager() {
+                        public X509Certificate[] getAcceptedIssuers() {
+                            return null;
+                        }
+
+                        public void checkClientTrusted(
+                                X509Certificate[] certs, String authType) {
+                        }
+
+                        public void checkServerTrusted(
+                                X509Certificate[] certs, String authType) {
+                        }
+                    }
+                };
+                sslContext.init(null, trustAllCerts, null);
+            } else {
+                sslContext.init(null, null, null);
+            }
+            this.sslContext = sslContext;
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new IllegalArgumentException();
+        }
     }
 
     /**
