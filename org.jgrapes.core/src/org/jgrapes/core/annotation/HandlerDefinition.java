@@ -126,7 +126,7 @@ public @interface HandlerDefinition {
         }
 
         /**
-         * Adds a replacements to the resplacements.
+         * Adds a replacements to the replacements.
          *
          * @param annotationCriterion the criterion used in the annotation
          * @param replacement the replacement
