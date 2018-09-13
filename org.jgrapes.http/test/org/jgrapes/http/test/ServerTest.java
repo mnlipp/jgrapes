@@ -64,7 +64,7 @@ import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.PurgeTerminator;
 import org.jgrapes.io.util.PermitsPool;
-import org.jgrapes.net.SslServer;
+import org.jgrapes.net.SslCodec;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Ready;
 import org.junit.AfterClass;
@@ -113,7 +113,7 @@ public class ServerTest {
             TcpServer securedNetwork = attach(new TcpServer()
                 .setBacklog(3000)
                 .setConnectionLimiter(new PermitsPool(50)));
-            attach(new SslServer(httpTransport, securedNetwork, sslContext));
+            attach(new SslCodec(httpTransport, securedNetwork, sslContext));
 
             // Create an HTTP server as converter between transport and
             // application

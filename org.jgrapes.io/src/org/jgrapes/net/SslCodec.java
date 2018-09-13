@@ -49,25 +49,28 @@ import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
+import org.jgrapes.io.events.OpenTcpConnection;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.Purge;
 import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
 import org.jgrapes.net.events.Accepted;
+import org.jgrapes.net.events.Connected;
 
 /**
  * A component that receives and send byte buffers on an
  * encrypted channel and sends and receives the corresponding
- * decrypted data on its own channel.
+ * decrypted data on a plain channel.
  */
 @SuppressWarnings("PMD.ExcessiveImports")
-public class SslServer extends Component {
+public class SslCodec extends Component {
 
     @SuppressWarnings("PMD.VariableNamingConventions")
     private static final Logger logger
-        = Logger.getLogger(SslServer.class.getName());
+        = Logger.getLogger(SslCodec.class.getName());
 
+    private final Channel encryptedChannel;
     private final SSLContext sslContext;
 
     /**
@@ -81,10 +84,11 @@ public class SslServer extends Component {
      * @param encryptedChannel the channel with the encrypted data
      * @param sslContext the SSL context to use
      */
-    public SslServer(Channel plainChannel, Channel encryptedChannel,
+    public SslCodec(Channel plainChannel, Channel encryptedChannel,
             SSLContext sslContext) {
         super(plainChannel, ChannelReplacements.create()
             .add(EncryptedChannel.class, encryptedChannel));
+        this.encryptedChannel = encryptedChannel;
         this.sslContext = sslContext;
     }
 
@@ -97,6 +101,28 @@ public class SslServer extends Component {
      */
     @Handler(channels = EncryptedChannel.class)
     public void onAccepted(Accepted event, IOSubchannel encryptedChannel) {
+        new PlainChannel(event, encryptedChannel);
+    }
+
+    /**
+     * Forward the connection request to the encrypted network.
+     *
+     * @param event the event
+     */
+    @Handler
+    public void onOpenConnection(OpenTcpConnection event) {
+        fire(new OpenTcpConnection(event.address()), encryptedChannel);
+    }
+
+    /**
+     * Creates a new downstream connection as {@link LinkedIOSubchannel} 
+     * of the network connection together with an {@link SSLEngine}.
+     * 
+     * @param event
+     *            the accepted event
+     */
+    @Handler(channels = EncryptedChannel.class)
+    public void onConnected(Connected event, IOSubchannel encryptedChannel) {
         new PlainChannel(event, encryptedChannel);
     }
 
@@ -188,11 +214,12 @@ public class SslServer extends Component {
      *            the event with the data
      * @throws InterruptedException if the execution was interrupted
      * @throws SSLException if some SSL related problem occurs
+     * @throws ExecutionException 
      */
     @Handler
     public void onOutput(Output<ByteBuffer> event,
             PlainChannel plainChannel)
-            throws InterruptedException, SSLException {
+            throws InterruptedException, SSLException, ExecutionException {
         if (plainChannel.hub() != this) {
             return;
         }
@@ -223,22 +250,47 @@ public class SslServer extends Component {
         public SocketAddress localAddress;
         public SocketAddress remoteAddress;
         public SSLEngine sslEngine;
-        private final ManagedBufferPool<ManagedBuffer<ByteBuffer>,
+        private ManagedBufferPool<ManagedBuffer<ByteBuffer>,
                 ByteBuffer> downstreamPool;
         private boolean isInputClosed;
         private ByteBuffer carryOver;
+        private boolean[] inputProcessed = { false };
 
         /**
-         * Instantiates a new plain channel.
+         * Instantiates a new plain channel from an accepted connection.
          *
          * @param event the event
          * @param upstreamChannel the upstream channel
          */
         public PlainChannel(Accepted event, IOSubchannel upstreamChannel) {
-            super(SslServer.this, channel(), upstreamChannel,
+            super(SslCodec.this, channel(), upstreamChannel,
                 newEventPipeline());
             localAddress = event.localAddress();
             remoteAddress = event.remoteAddress();
+            init();
+            sslEngine.setUseClientMode(false);
+        }
+
+        /**
+         * Instantiates a new plain channel from an initiated connection.
+         *
+         * @param event the event
+         * @param upstreamChannel the upstream channel
+         */
+        public PlainChannel(Connected event, IOSubchannel upstreamChannel) {
+            super(SslCodec.this, channel(), upstreamChannel,
+                newEventPipeline());
+            localAddress = event.localAddress();
+            remoteAddress = event.remoteAddress();
+            init();
+            sslEngine.setUseClientMode(true);
+
+            // Forward downstream
+            fire(new Connected(event.localAddress(), event.remoteAddress()),
+                this);
+        }
+
+        private void init() {
             if (remoteAddress instanceof InetSocketAddress) {
                 sslEngine = sslContext.createSSLEngine(
                     ((InetSocketAddress) remoteAddress).getAddress()
@@ -247,9 +299,7 @@ public class SslServer extends Component {
             } else {
                 sslEngine = sslContext.createSSLEngine();
             }
-            sslEngine.setUseClientMode(false);
-
-            String channelName = Components.objectName(SslServer.this)
+            String channelName = Components.objectName(SslCodec.this)
                 + "." + Components.objectName(this);
             // Create buffer pools, adding 50 to application buffer size, see
             // https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/samples/sslengine/SSLEngineSimpleDemo.java
@@ -325,8 +375,12 @@ public class SslServer extends Component {
                 throws SSLException, InterruptedException, ExecutionException {
             SSLEngineResult unwrapResult;
             while (true) {
-                unwrapResult = sslEngine.unwrap(
-                    input, unwrapped.backingBuffer());
+                unwrapResult
+                    = sslEngine.unwrap(input, unwrapped.backingBuffer());
+                synchronized (inputProcessed) {
+                    inputProcessed[0] = true;
+                    inputProcessed.notifyAll();
+                }
                 // Handle any handshaking procedures
                 switch (unwrapResult.getHandshakeStatus()) {
                 case NEED_TASK:
@@ -365,14 +419,15 @@ public class SslServer extends Component {
                     fireAccepted();
                     // fall through
                 case NEED_UNWRAP:
-                    // sslEngine.unwrap sometimes return NEED_UNWRAP in
+                    // sslEngine.unwrap sometimes returns NEED_UNWRAP in
                     // combination with CLOSED, though this doesn't really
-                    // make sense.
-                    if (unwrapResult.getStatus() != Status.BUFFER_UNDERFLOW
-                        && unwrapResult.getStatus() != Status.CLOSED) {
-                        continue;
+                    // make sense. As unwrapping is what we do here anyway,
+                    // continue unless no data is left.
+                    if (unwrapResult.getStatus() == Status.BUFFER_UNDERFLOW
+                        || unwrapResult.getStatus() == Status.CLOSED) {
+                        break;
                     }
-                    break;
+                    continue;
 
                 default:
                     break;
@@ -420,17 +475,96 @@ public class SslServer extends Component {
          * @param event the event
          * @throws SSLException the SSL exception
          * @throws InterruptedException the interrupted exception
+         * @throws ExecutionException 
          */
         public void sendUpstream(Output<ByteBuffer> event)
-                throws SSLException, InterruptedException {
+                throws SSLException, InterruptedException, ExecutionException {
             ByteBuffer output = event.buffer().backingBuffer().duplicate();
-            while (output.hasRemaining() && !sslEngine.isInboundDone()) {
-                ManagedBuffer<ByteBuffer> out
-                    = upstreamChannel().byteBufferPool().acquire();
-                sslEngine.wrap(output, out.backingBuffer());
-                upstreamChannel().respond(
-                    Output.fromSink(out, event.isEndOfRecord()
-                        && !output.hasRemaining()));
+            processOutput(output);
+        }
+
+        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+            "PMD.CyclomaticComplexity", "PMD.NcssCount",
+            "PMD.NPathComplexity" })
+        private void processOutput(ByteBuffer output)
+                throws InterruptedException, SSLException, ExecutionException {
+            ManagedBuffer<ByteBuffer> wrapped
+                = upstreamChannel().byteBufferPool().acquire();
+            while (true) {
+                while (true) {
+                    // Cheap synchronization: no (relevant) input
+                    inputProcessed[0] = false;
+                    SSLEngineResult wrapResult
+                        = sslEngine.wrap(output, wrapped.backingBuffer());
+                    switch (wrapResult.getHandshakeStatus()) {
+                    case NEED_TASK:
+                        while (true) {
+                            Runnable runnable = sslEngine.getDelegatedTask();
+                            if (runnable == null) {
+                                break;
+                            }
+                            runnable.run();
+                        }
+                        continue;
+
+                    case NEED_UNWRAP:
+                        if (wrapped.position() == 0) {
+                            // Nothing to send, input required. Wait until
+                            // input becomes available and retry.
+                            synchronized (inputProcessed) {
+                                while (!inputProcessed[0]) {
+                                    inputProcessed.wait();
+                                }
+                            }
+                            continue;
+                        }
+                        break;
+
+                    default:
+                        break;
+                    }
+
+                    // Just to make sure... (Initial allocation should be
+                    // big enough.)
+                    if (wrapResult.getStatus() == Status.BUFFER_OVERFLOW) {
+                        if (wrapped.position() > 0) {
+                            // forward data received up to now
+                            upstreamChannel().respond(Output.fromSink(wrapped,
+                                sslEngine.isInboundDone()));
+                        }
+                        wrapped = upstreamChannel().byteBufferPool().acquire();
+                        if (wrapped.capacity() < sslEngine.getSession()
+                            .getApplicationBufferSize() + 50) {
+                            wrapped.replaceBackingBuffer(ByteBuffer.allocate(
+                                sslEngine.getSession()
+                                    .getApplicationBufferSize() + 50));
+                        }
+                        continue;
+                    }
+
+                    // If we get here, handshake needs wrap or no output is
+                    // left
+                    if (wrapResult.getStatus() == Status.OK
+                        || wrapResult.getStatus() == Status.CLOSED) {
+                        break;
+                    }
+                }
+                if (wrapped.position() == 0) {
+                    if (!output.hasRemaining()) {
+                        wrapped.unlockBuffer();
+                        break;
+                    }
+                    // Nothing sent, but data remains, try again
+                    continue;
+                }
+                // Something needs to be sent (handshake or data)
+                upstreamChannel().respond(Output.fromSink(wrapped,
+                    sslEngine.isInboundDone()));
+                if (!output.hasRemaining()) {
+                    break;
+                }
+                // Was handshake (or partial content), try again
+                wrapped = upstreamChannel().byteBufferPool().acquire();
             }
         }
 

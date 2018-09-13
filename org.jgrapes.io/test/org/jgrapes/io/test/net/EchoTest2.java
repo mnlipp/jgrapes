@@ -18,11 +18,26 @@
 
 package org.jgrapes.io.test.net;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
@@ -40,6 +55,7 @@ import org.jgrapes.io.events.OpenTcpConnection;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ManagedBuffer;
+import org.jgrapes.net.SslCodec;
 import org.jgrapes.net.TcpConnector;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Connected;
@@ -81,13 +97,29 @@ public class EchoTest2 {
         }
 
         @Handler
-        public void onStarted(Started event) {
+        public void onStarted(Started event) throws InterruptedException {
             fire(new OpenTcpConnection(serverAddr));
         }
 
         @Handler
-        public void onConnected(Connected event, IOSubchannel channel) {
-            newEventPipeline().fire(new Close(), channel);
+        public void onConnected(Connected event, IOSubchannel channel)
+                throws InterruptedException {
+            channel.setAssociated(EchoTest2.class, true);
+            ManagedBuffer<ByteBuffer> buf = channel.byteBufferPool().acquire();
+            buf.backingBuffer().put("Hello World!".getBytes());
+            channel.respond(Output.fromSink(buf, true));
+        }
+
+        @Handler
+        public void onInput(Input<ByteBuffer> event, IOSubchannel channel) {
+            if (!(channel.associated(EchoTest2.class, Boolean.class)
+                .orElse(false))) {
+                return;
+            }
+            String data
+                = Charset.defaultCharset().decode(event.data()).toString();
+            assertEquals("Hello World!", data);
+            channel.respond(new Close());
         }
 
         @Handler
@@ -117,6 +149,93 @@ public class EchoTest2 {
         ClientApp clntApp = new ClientApp(serverAddr);
         clntApp.attach(new TcpConnector(clntApp));
         clntApp.attach(new NioDispatcher());
+        WaitForTests done
+            = new WaitForTests(clntApp, Done.class, clntApp.defaultCriterion());
+        Components.start(clntApp);
+        done.get();
+
+        // Stop
+        Components.manager(clntApp).fire(new Stop(), Channel.BROADCAST);
+        Components.manager(srvApp).fire(new Stop(), Channel.BROADCAST);
+        long waitEnd = System.currentTimeMillis() + 3000;
+        while (true) {
+            long waitTime = waitEnd - System.currentTimeMillis();
+            if (waitTime <= 0) {
+                fail();
+            }
+            Components.checkAssertions();
+            try {
+                assertTrue(Components.awaitExhaustion(waitTime));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            break;
+        }
+        Components.checkAssertions();
+    }
+
+    @Test
+    public void testSsl() throws IOException, InterruptedException,
+            ExecutionException, TimeoutException, KeyStoreException,
+            NoSuchAlgorithmException, CertificateException,
+            UnrecoverableKeyException, KeyManagementException {
+        // Create server
+        EchoServer srvApp = new EchoServer();
+        srvApp.attach(new NioDispatcher());
+
+        // Create TLS "converter"
+        KeyStore serverStore = KeyStore.getInstance("JKS");
+        try (FileInputStream kf
+            = new FileInputStream("test-resources/localhost.jks")) {
+            serverStore.load(kf, "nopass".toCharArray());
+        }
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(
+            KeyManagerFactory.getDefaultAlgorithm());
+        kmf.init(serverStore, "nopass".toCharArray());
+        SSLContext sslSrvContext = SSLContext.getInstance("TLS");
+        sslSrvContext.init(kmf.getKeyManagers(), null, new SecureRandom());
+
+        // Create a TCP server for SSL
+        TcpServer secSrvNetwork = srvApp.attach(new TcpServer());
+        srvApp.attach(new SslCodec(srvApp, secSrvNetwork, sslSrvContext));
+
+        // Server prepared, start it.
+        WaitForTests wf = new WaitForTests(
+            secSrvNetwork, Ready.class, secSrvNetwork.defaultCriterion());
+        Components.start(srvApp);
+        Ready readyEvent = (Ready) wf.get();
+        if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
+            fail();
+        }
+        InetSocketAddress serverAddr = new InetSocketAddress("localhost",
+            ((InetSocketAddress) readyEvent.listenAddress()).getPort());
+
+        // Create client
+        ClientApp clntApp = new ClientApp(serverAddr);
+        clntApp.attach(new NioDispatcher());
+
+        // Create a trust manager that does not validate certificate chains
+        TrustManager[] trustAllCerts = new TrustManager[] {
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                public void checkClientTrusted(
+                        X509Certificate[] certs, String authType) {
+                }
+
+                public void checkServerTrusted(
+                        X509Certificate[] certs, String authType) {
+                }
+            }
+        };
+        SSLContext sslClntContext = SSLContext.getInstance("SSL");
+        sslClntContext.init(null, trustAllCerts, null);
+
+        // Create a TCP connector for SSL
+        TcpConnector secClntNetwork = clntApp.attach(new TcpConnector());
+        clntApp.attach(new SslCodec(clntApp, secClntNetwork, sslClntContext));
         WaitForTests done
             = new WaitForTests(clntApp, Done.class, clntApp.defaultCriterion());
         Components.start(clntApp);

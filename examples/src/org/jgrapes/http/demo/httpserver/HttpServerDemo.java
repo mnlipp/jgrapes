@@ -47,7 +47,7 @@ import org.jgrapes.http.events.PostRequest;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.util.PermitsPool;
-import org.jgrapes.net.SslServer;
+import org.jgrapes.net.SslCodec;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.util.PreferencesStore;
 import org.osgi.framework.BundleActivator;
@@ -99,7 +99,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
             new TcpServer().setServerAddress(new InetSocketAddress(4443))
                 .setBacklog(3000).setConnectionLimiter(new PermitsPool(50))
                 .setName("HttpsServer"));
-        app.attach(new SslServer(httpTransport, securedNetwork, sslContext));
+        app.attach(new SslCodec(httpTransport, securedNetwork, sslContext));
 
         // Create an HTTP server as converter between transport and application
         // layer.

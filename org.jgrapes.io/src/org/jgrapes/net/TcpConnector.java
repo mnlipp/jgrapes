@@ -48,6 +48,13 @@ public class TcpConnector extends TcpConnectionManager {
     }
 
     /**
+     * Creates a new connector, using itself as component channel. 
+     */
+    public TcpConnector() {
+        this(Channel.SELF);
+    }
+
+    /**
      * Sets the buffer size for the send an receive buffers.
      * If no size is set, the system defaults will be used.
      * 

@@ -60,7 +60,7 @@ import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.io.util.ManagedBuffer;
-import org.jgrapes.net.SslServer;
+import org.jgrapes.net.SslCodec;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Ready;
 
@@ -218,7 +218,7 @@ public class EchoTest {
 		
 		// Create a TCP server for SSL
 		TcpServer securedNetwork = app.attach(new TcpServer());
-		app.attach(new SslServer(app, securedNetwork, sslContext));
+		app.attach(new SslCodec(app, securedNetwork, sslContext));
 		
 		// App ready.
 		WaitForTests wf = new WaitForTests(
