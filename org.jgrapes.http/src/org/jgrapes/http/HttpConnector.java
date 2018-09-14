@@ -83,36 +83,30 @@ import org.jgrapes.net.events.Accepted;
  * byte buffers on associated network channels.
  */
 @SuppressWarnings("PMD.ExcessiveImports")
-public class HttpClient extends Component {
+public class HttpConnector extends Component {
 
-//    /**
-//     * Denotes the network channel in handler annotations.
-//     */
-//    private static class NetworkChannel extends ClassChannel {
-//    }
-//
-//    /**
-//     * Create a new server that uses the {@code networkChannel} for network
-//     * level I/O.
-//     * <P>
-//     * As a convenience the server can provide fall back handlers for the
-//     * specified types of requests. The fall back handler simply returns 404 (
-//     * "Not found").
-//     * 
-//     * @param appChannel
-//     *            this component's channel
-//     * @param networkChannel
-//     *            the channel for network level I/O
-//     * @param fallbacks
-//     *            the requests for which a fall back handler is provided
-//     */
-//    public HttpClient(Channel appChannel, Channel networkChannel) {
-//        super(appChannel, ChannelReplacements.create()
-//            .add(NetworkChannel.class, networkChannel));
-//    }
-//
-//    ////////////////////////////////////
-//
+    /**
+     * Denotes the network channel in handler annotations.
+     */
+    private static class NetworkChannel extends ClassChannel {
+    }
+
+    /**
+     * Create a new connector that uses the {@code networkChannel} for network
+     * level I/O.
+     * 
+     * @param appChannel
+     *            this component's channel
+     * @param networkChannel
+     *            the channel for network level I/O
+     */
+    public HttpConnector(Channel appChannel, Channel networkChannel) {
+        super(appChannel, ChannelReplacements.create()
+            .add(NetworkChannel.class, networkChannel));
+    }
+
+    ////////////////////////////////////
+
 //    /**
 //     * Handles data from the client (from downstream). The data is send through 
 //     * the {@link HttpRequestEncoder} and events are sent upstream according
