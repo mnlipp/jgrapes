@@ -59,7 +59,6 @@ import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.internal.EventProcessor;
-import org.jgrapes.http.events.OptionsRequest;
 import org.jgrapes.http.events.ProtocolSwitchAccepted;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
@@ -100,7 +99,7 @@ import org.jgrapes.net.events.Accepted;
 public class HttpServer extends Component {
 
     private WeakReference<Channel> networkChannelPassBack;
-    private List<Class<? extends Request>> providedFallbacks;
+    private List<Class<? extends Request.In>> providedFallbacks;
     private int matchLevels = 1;
     private boolean acceptNoSni;
     private int applicationBufferSize = -1;
@@ -128,7 +127,7 @@ public class HttpServer extends Component {
      */
     @SafeVarargs
     public HttpServer(Channel appChannel, Channel networkChannel,
-            Class<? extends Request>... fallbacks) {
+            Class<? extends Request.In>... fallbacks) {
         super(appChannel, ChannelReplacements.create()
             .add(NetworkChannel.class, networkChannel));
         networkChannelPassBack = new WeakReference<Channel>(networkChannel);
@@ -146,7 +145,7 @@ public class HttpServer extends Component {
      */
     @SafeVarargs
     public HttpServer(Channel appChannel, InetSocketAddress serverAddress,
-            Class<? extends Request>... fallbacks) {
+            Class<? extends Request.In>... fallbacks) {
         this(appChannel, new TcpServer().setServerAddress(serverAddress),
             fallbacks);
         attach((TcpServer) networkChannelPassBack.get());
@@ -351,9 +350,9 @@ public class HttpServer extends Component {
      */
     @Handler
     public void onRequestCompleted(
-            Request.Completed event, IOSubchannel appChannel)
+            Request.In.Completed event, IOSubchannel appChannel)
             throws InterruptedException {
-        final Request requestEvent = event.event();
+        final Request.In requestEvent = event.event();
         // A check that also works with null.
         if (Boolean.TRUE.equals(requestEvent.get())
             || requestEvent.httpRequest().response().map(
@@ -385,7 +384,7 @@ public class HttpServer extends Component {
      * @param appChannel the application channel
      */
     @Handler(priority = Integer.MIN_VALUE)
-    public void onOptions(OptionsRequest event, IOSubchannel appChannel) {
+    public void onOptions(Request.In.Options event, IOSubchannel appChannel) {
         if (event.requestUri() == HttpRequest.ASTERISK_REQUEST) {
             HttpResponse response = event.httpRequest().response().get();
             response.setStatus(HttpStatus.OK);
@@ -597,7 +596,7 @@ public class HttpServer extends Component {
                         }
                     }
                 }
-                downPipeline.fire(Request.fromHttpRequest(httpRequest,
+                downPipeline.fire(Request.In.fromHttpRequest(httpRequest,
                     secure, matchLevels), this);
             } else if (request instanceof WsMessageHeader) {
                 WsMessageHeader wsMessage = (WsMessageHeader) request;

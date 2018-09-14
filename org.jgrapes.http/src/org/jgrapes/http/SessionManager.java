@@ -267,7 +267,7 @@ public abstract class SessionManager extends Component {
      * @param event the event
      */
     @RequestHandler(dynamic = true)
-    public void onRequest(Request event) {
+    public void onRequest(Request.In event) {
         if (event.associated(Session.class).isPresent()) {
             return;
         }

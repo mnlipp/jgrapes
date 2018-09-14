@@ -58,8 +58,7 @@ import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.StaticContentDispatcher;
-import org.jgrapes.http.events.GetRequest;
-import org.jgrapes.http.events.PostRequest;
+import org.jgrapes.http.events.Request;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.PurgeTerminator;
@@ -119,7 +118,7 @@ public class ServerTest {
             // application
             // layer.
             attach(new HttpServer(channel(),
-                httpTransport, GetRequest.class, PostRequest.class)
+                httpTransport, Request.In.Get.class, Request.In.Post.class)
                     .setAcceptNoSni(true));
 
             // Build application layer
@@ -281,5 +280,41 @@ public class ServerTest {
         System.out.println("min/avg/max (ms): "
             + minTime + "/" + (accumTime / calls) + "/" + maxTime);
     }
+
+//    @Test
+//    public void testHttps() throws IOException, InterruptedException,
+//            ExecutionException, TimeoutException, KeyStoreException,
+//            NoSuchAlgorithmException, CertificateException,
+//            UnrecoverableKeyException, KeyManagementException {
+//        // Create client
+//        ClientApp clntApp = new ClientApp(server.getSocketAddress());
+//        clntApp.attach(new NioDispatcher());
+//
+//        // Create a TCP connector for SSL
+//        TcpConnector secClntNetwork = clntApp.attach(new TcpConnector());
+//        clntApp.attach(new SslCodec(clntApp, secClntNetwork, true));
+//        WaitForTests done
+//            = new WaitForTests(clntApp, Done.class, clntApp.defaultCriterion());
+//        Components.start(clntApp);
+//        done.get();
+//
+//        // Stop
+//        Components.manager(clntApp).fire(new Stop(), Channel.BROADCAST);
+//        long waitEnd = System.currentTimeMillis() + 300000;
+//        while (true) {
+//            long waitTime = waitEnd - System.currentTimeMillis();
+//            if (waitTime <= 0) {
+//                fail();
+//            }
+//            Components.checkAssertions();
+//            try {
+//                assertTrue(Components.awaitExhaustion(waitTime));
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            break;
+//        }
+//        Components.checkAssertions();
+//    }
 
 }

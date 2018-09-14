@@ -205,7 +205,7 @@ public abstract class ResponseCreationSupport {
      * @throws ParseException the parse exception
      */
     public static boolean sendStaticContent(
-            Request event, IOSubchannel channel,
+            Request.In event, IOSubchannel channel,
             Function<String, URL> resolver, MaxAgeCalculator maxAgeCalculator) {
         if (sendStaticContent(
             event.httpRequest(), channel, resolver, maxAgeCalculator)) {

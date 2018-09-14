@@ -192,7 +192,7 @@ public class FreeMarkerRequestHandler extends Component {
      * Removes the prefix specified in the constructor from the
      * path in the request. Checks if the resulting path  
      * ends with `*.ftl.*`. If so, processes the template with the
-     * {@link #sendProcessedTemplate(Request, IOSubchannel, String)} (which 
+     * {@link #sendProcessedTemplate(Request.In, IOSubchannel, String)} (which 
      * uses {@link #fmSessionModel(Optional)}) and sends the result. 
      * Else, tries to serve static content with the optionally 
      * shortened path.
@@ -202,7 +202,7 @@ public class FreeMarkerRequestHandler extends Component {
      * @throws ParseException the parse exception
      */
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    protected void doRespond(Request event, IOSubchannel channel)
+    protected void doRespond(Request.In event, IOSubchannel channel)
             throws ParseException {
         final HttpRequest request = event.httpRequest();
         prefixPattern.pathRemainder(request.requestUri()).ifPresent(path -> {
@@ -236,7 +236,7 @@ public class FreeMarkerRequestHandler extends Component {
      * @return false if an error occurred
      */
     protected boolean sendProcessedTemplate(
-            Request event, IOSubchannel channel, Template tpl) {
+            Request.In event, IOSubchannel channel, Template tpl) {
         // Prepare response
         HttpResponse response = event.httpRequest().response().get();
         MediaType mediaType = contentType(
@@ -284,7 +284,7 @@ public class FreeMarkerRequestHandler extends Component {
      *            the path
      */
     protected boolean sendProcessedTemplate(
-            Request event, IOSubchannel channel, String path) {
+            Request.In event, IOSubchannel channel, String path) {
         try {
             // Get template (no need to continue if this fails).
             Template tpl = freemarkerConfig().getTemplate(path);
@@ -362,8 +362,8 @@ public class FreeMarkerRequestHandler extends Component {
 
     /**
      * Used to get the content type when generating a response with
-     * {@link #sendProcessedTemplate(Request, IOSubchannel, Template)}. May be
-     * overridden by derived classes. This implementation simply invokes
+     * {@link #sendProcessedTemplate(Request.In, IOSubchannel, Template)}. 
+     * May be overridden by derived classes. This implementation simply invokes
      * {@link HttpResponse#contentType(URI)}.
      *
      * @param request the request

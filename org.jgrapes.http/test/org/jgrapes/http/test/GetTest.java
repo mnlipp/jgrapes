@@ -42,7 +42,7 @@ import org.jgrapes.core.events.Stop;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResponseCreationSupport;
 import org.jgrapes.http.annotation.RequestHandler;
-import org.jgrapes.http.events.GetRequest;
+import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Output;
@@ -56,258 +56,258 @@ import org.junit.Test;
 
 public class GetTest {
 
-	public static class TestServer extends BasicTestServer {
+    public static class TestServer extends BasicTestServer {
 
-		public TestServer()
-		        throws IOException, InterruptedException, ExecutionException {
-			super(GetRequest.class);
-		}
+        public TestServer()
+                throws IOException, InterruptedException, ExecutionException {
+            super(Request.In.Get.class);
+        }
 
-	}
-	
-	private static TestServer server;
-	private static ContentProvider contentProvider;
-	
-	public static class ContentProvider extends Component {
-		
-		public int invocations = 0;
-		public ClassLoader jarLoader;
-		
-		public ContentProvider(Channel componentChannel) {
-			super(componentChannel);
-			contentProvider = this;
-			jarLoader = new URLClassLoader(new URL[] {
-					GetTest.class.getResource("/static-content.jar") });
-			RequestHandler.Evaluator.add(this, "getDynamic", "/dynamic");
-		}
+    }
 
-		@RequestHandler(patterns="*://*/top,/top/**")
-		public void getTop(GetRequest event, IOSubchannel channel)
-				throws ParseException {
-			invocations += 1;
-			
-			final HttpResponse response = event.httpRequest().response().get();
-			response.setStatus(HttpStatus.OK);
-			response.setHasPayload(true);
-			response.setField(HttpField.CONTENT_TYPE,
-					MediaType.builder().setType("text", "plain")
-					.setParameter("charset", "utf-8").build());
-			fire(new Response(response), channel);
-			try {
-				fire(Output.from("Top!".getBytes("utf-8"), true), channel);
-			} catch (UnsupportedEncodingException e) {
-				// Supported by definition
-			}
-			event.setResult(true);
-			event.stop();
-		}
-		
-		@RequestHandler(patterns="/not-found-status-only")
-		public void getNotFoundStatusOnly(
-				GetRequest event, IOSubchannel channel) throws ParseException {
-			invocations += 1;
+    private static TestServer server;
+    private static ContentProvider contentProvider;
 
-			ResponseCreationSupport.sendResponse(
-					event.httpRequest(), channel, HttpStatus.NOT_FOUND);
-			// Deliberately omit setting the result.
-			event.stop();
-		}
-		
-		@RequestHandler(dynamic=true)
-		public void getDynamic(GetRequest event, IOSubchannel channel)
-				throws ParseException {
-			invocations += 1;
-			
-			final HttpResponse response = event.httpRequest().response().get();
-			response.setStatus(HttpStatus.OK);
-			response.setHasPayload(true);
-			response.setField(HttpField.CONTENT_TYPE,
-					MediaType.builder().setType("text", "plain")
-					.setParameter("charset", "utf-8").build());
-			fire(new Response(response), channel);
-			try {
-				fire(Output.from("Dynamic!".getBytes("utf-8"), true), channel);
-			} catch (UnsupportedEncodingException e) {
-				// Supported by definition
-			}
-			event.setResult(true);
-			event.stop();
-		}
-		
-		@RequestHandler(patterns="/static-content/**")
-		public void getStaticContent(GetRequest event, IOSubchannel channel)
-				throws ParseException {
-			invocations += 1;
-			
-			ResponseCreationSupport.sendStaticContent(event, channel, 
-					path -> GetTest.class.getResource(path), null);
-		}
-		
-		@RequestHandler(patterns="/from-jar/**")
-		public void getFromJar(GetRequest event, IOSubchannel channel)
-				throws ParseException {
-			invocations += 1;
-			
-			ResponseCreationSupport.sendStaticContent(event, channel, 
-					path -> jarLoader.getResource("only-in-jar/"
-							+ ResourcePattern.removeSegments(path, 2)),
-					null);
-		}
-	}
-	
-	@BeforeClass
-	public static void startServer() throws IOException, InterruptedException, 
-			ExecutionException {
-		server = new TestServer();
-		server.attach(new ContentProvider(server.channel()));
-		Components.start(server);
-	}
-	
-	@Before
-	public void startTest() {
-		contentProvider.invocations = 0;
-	}
-	
-	@AfterClass
-	public static void stopServer() throws InterruptedException {
-		server.fire(new Stop(), Channel.BROADCAST);
-		Components.awaitExhaustion();
-		Components.checkAssertions();
-	}
-	
-	@Test(timeout=1500)
-	public void testNoGetRoot() 
-			throws IOException, InterruptedException, ExecutionException {
-		try {
-			URL url = new URL("http", "localhost", server.getPort(), "/");
-			URLConnection conn = url.openConnection();
-			conn.setConnectTimeout(1000);
-			conn.setReadTimeout(1000);
-			conn.getInputStream();
-			fail();
-		} catch (FileNotFoundException e) {
-			// Expected
-		}
-		assertEquals(0, contentProvider.invocations);
-	}
-	
-	@Test(timeout=1500)
-	public void testNotFoundStatusOnly() 
-			throws IOException, InterruptedException, ExecutionException {
-		try {
-			URL url = new URL("http", "localhost", server.getPort(), 
-					"/not-found-status-only");
-			URLConnection conn = url.openConnection();
-			conn.setConnectTimeout(1000);
-			conn.setReadTimeout(1000);
-			conn.getInputStream();
-			fail();
-		} catch (FileNotFoundException e) {
-			// Expected
-		}
-		assertEquals(1, contentProvider.invocations);
-	}
-	
-	@Test(timeout=1500)
-	public void testGetMatchTop() 
-	        throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", "localhost", server.getPort(), "/top");
-		URLConnection conn = url.openConnection();
-		conn.setConnectTimeout(1000);
-		conn.setReadTimeout(1000);
-		try (BufferedReader br = new BufferedReader(
-		        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-			String str = br.lines().findFirst().get();
-			assertEquals("Top!", str);
-		}
-		assertEquals(1, contentProvider.invocations);
-	}
+    public static class ContentProvider extends Component {
 
-	@Test(timeout=1500)
-	public void testGetMatchTopPlus() 
-	        throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", "localhost", server.getPort(), "/top/plus");
-		URLConnection conn = url.openConnection();
-		conn.setConnectTimeout(1000);
-		conn.setReadTimeout(1000);
-		conn.getInputStream();
-		assertEquals(1, contentProvider.invocations);
-	}
+        public int invocations = 0;
+        public ClassLoader jarLoader;
 
-	@Test(timeout=1500)
-	public void testGetMatchDynamic() 
-			throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", "localhost", server.getPort(), "/dynamic");
-		URLConnection conn = url.openConnection();
-		conn.setConnectTimeout(1000);
-		conn.setReadTimeout(1000);
-		try (BufferedReader br = new BufferedReader(
-		        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-			String str = br.lines().findFirst().get();
-			assertEquals("Dynamic!", str);
-		}
-		assertEquals(1, contentProvider.invocations);
-	}
+        public ContentProvider(Channel componentChannel) {
+            super(componentChannel);
+            contentProvider = this;
+            jarLoader = new URLClassLoader(new URL[] {
+                GetTest.class.getResource("/static-content.jar") });
+            RequestHandler.Evaluator.add(this, "getDynamic", "/dynamic");
+        }
 
-	@Test(timeout=2500)
-	public void testGetUnversionedStatic() 
-			throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", "localhost", server.getPort(), 
-				"/static-content/index.html");
-		URLConnection conn = url.openConnection();
-		conn.setConnectTimeout(2000);
-		conn.setReadTimeout(2000);
-		conn.connect();
-		String field = conn.getHeaderField("Cache-Control");
-		((HttpURLConnection)conn).disconnect();
-		assertEquals("max-age=60", field);
+        @RequestHandler(patterns = "*://*/top,/top/**")
+        public void getTop(Request.In.Get event, IOSubchannel channel)
+                throws ParseException {
+            invocations += 1;
 
-		assertEquals(1, contentProvider.invocations);
-	}
+            final HttpResponse response = event.httpRequest().response().get();
+            response.setStatus(HttpStatus.OK);
+            response.setHasPayload(true);
+            response.setField(HttpField.CONTENT_TYPE,
+                MediaType.builder().setType("text", "plain")
+                    .setParameter("charset", "utf-8").build());
+            fire(new Response(response), channel);
+            try {
+                fire(Output.from("Top!".getBytes("utf-8"), true), channel);
+            } catch (UnsupportedEncodingException e) {
+                // Supported by definition
+            }
+            event.setResult(true);
+            event.stop();
+        }
 
-	@Test(timeout=2500)
-	public void testGetVersionedStatic() 
-			throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", "localhost", server.getPort(), 
-				"/static-content/versioned-1.0.0.html");
-		URLConnection conn = url.openConnection();
-		conn.setConnectTimeout(2000);
-		conn.setReadTimeout(2000);
-		conn.connect();
-		String field = conn.getHeaderField("Cache-Control");
-		((HttpURLConnection)conn).disconnect();
-		assertEquals("max-age=31536000", field);
+        @RequestHandler(patterns = "/not-found-status-only")
+        public void getNotFoundStatusOnly(Request.In.Get event,
+                IOSubchannel channel) throws ParseException {
+            invocations += 1;
 
-		assertEquals(1, contentProvider.invocations);
-	}
+            ResponseCreationSupport.sendResponse(
+                event.httpRequest(), channel, HttpStatus.NOT_FOUND);
+            // Deliberately omit setting the result.
+            event.stop();
+        }
 
-	@Test(timeout=2500)
-	public void testGetFromJar() 
-			throws IOException, InterruptedException, ExecutionException {
-		URL url = new URL("http", "localhost", server.getPort(), 
-				"/from-jar/static-content/index.html");
-		// Unconditional fetch
-		URLConnection conn = url.openConnection();
-		conn.setConnectTimeout(2000);
-		conn.setReadTimeout(2000);
-		conn.setUseCaches(false);
-		try (BufferedReader br = new BufferedReader(
-		        new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-			assertTrue(br.lines().anyMatch(l -> l.contains("<head>")));
-		}
-		((HttpURLConnection)conn).disconnect();
-		// Conditional fetch
-		conn = url.openConnection();
-		conn.setConnectTimeout(1000);
-		conn.setReadTimeout(1000);
-		conn.setIfModifiedSince(Instant.now().toEpochMilli());
-		conn.setUseCaches(false);
-		conn.connect();
-		assertEquals(HttpURLConnection.HTTP_NOT_MODIFIED,
-				((HttpURLConnection)conn).getResponseCode());
-		((HttpURLConnection)conn).disconnect();
-		
-		assertEquals(2, contentProvider.invocations);
-	}
+        @RequestHandler(dynamic = true)
+        public void getDynamic(Request.In.Get event, IOSubchannel channel)
+                throws ParseException {
+            invocations += 1;
+
+            final HttpResponse response = event.httpRequest().response().get();
+            response.setStatus(HttpStatus.OK);
+            response.setHasPayload(true);
+            response.setField(HttpField.CONTENT_TYPE,
+                MediaType.builder().setType("text", "plain")
+                    .setParameter("charset", "utf-8").build());
+            fire(new Response(response), channel);
+            try {
+                fire(Output.from("Dynamic!".getBytes("utf-8"), true), channel);
+            } catch (UnsupportedEncodingException e) {
+                // Supported by definition
+            }
+            event.setResult(true);
+            event.stop();
+        }
+
+        @RequestHandler(patterns = "/static-content/**")
+        public void getStaticContent(Request.In.Get event, IOSubchannel channel)
+                throws ParseException {
+            invocations += 1;
+
+            ResponseCreationSupport.sendStaticContent(event, channel,
+                path -> GetTest.class.getResource(path), null);
+        }
+
+        @RequestHandler(patterns = "/from-jar/**")
+        public void getFromJar(Request.In.Get event, IOSubchannel channel)
+                throws ParseException {
+            invocations += 1;
+
+            ResponseCreationSupport.sendStaticContent(event, channel,
+                path -> jarLoader.getResource("only-in-jar/"
+                    + ResourcePattern.removeSegments(path, 2)),
+                null);
+        }
+    }
+
+    @BeforeClass
+    public static void startServer() throws IOException, InterruptedException,
+            ExecutionException {
+        server = new TestServer();
+        server.attach(new ContentProvider(server.channel()));
+        Components.start(server);
+    }
+
+    @Before
+    public void startTest() {
+        contentProvider.invocations = 0;
+    }
+
+    @AfterClass
+    public static void stopServer() throws InterruptedException {
+        server.fire(new Stop(), Channel.BROADCAST);
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+    }
+
+    @Test(timeout = 1500)
+    public void testNoGetRoot()
+            throws IOException, InterruptedException, ExecutionException {
+        try {
+            URL url = new URL("http", "localhost", server.getPort(), "/");
+            URLConnection conn = url.openConnection();
+            conn.setConnectTimeout(1000);
+            conn.setReadTimeout(1000);
+            conn.getInputStream();
+            fail();
+        } catch (FileNotFoundException e) {
+            // Expected
+        }
+        assertEquals(0, contentProvider.invocations);
+    }
+
+    @Test(timeout = 1500)
+    public void testNotFoundStatusOnly()
+            throws IOException, InterruptedException, ExecutionException {
+        try {
+            URL url = new URL("http", "localhost", server.getPort(),
+                "/not-found-status-only");
+            URLConnection conn = url.openConnection();
+            conn.setConnectTimeout(1000);
+            conn.setReadTimeout(1000);
+            conn.getInputStream();
+            fail();
+        } catch (FileNotFoundException e) {
+            // Expected
+        }
+        assertEquals(1, contentProvider.invocations);
+    }
+
+    @Test(timeout = 1500)
+    public void testGetMatchTop()
+            throws IOException, InterruptedException, ExecutionException {
+        URL url = new URL("http", "localhost", server.getPort(), "/top");
+        URLConnection conn = url.openConnection();
+        conn.setConnectTimeout(1000);
+        conn.setReadTimeout(1000);
+        try (BufferedReader br = new BufferedReader(
+            new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+            String str = br.lines().findFirst().get();
+            assertEquals("Top!", str);
+        }
+        assertEquals(1, contentProvider.invocations);
+    }
+
+    @Test(timeout = 1500)
+    public void testGetMatchTopPlus()
+            throws IOException, InterruptedException, ExecutionException {
+        URL url = new URL("http", "localhost", server.getPort(), "/top/plus");
+        URLConnection conn = url.openConnection();
+        conn.setConnectTimeout(1000);
+        conn.setReadTimeout(1000);
+        conn.getInputStream();
+        assertEquals(1, contentProvider.invocations);
+    }
+
+    @Test(timeout = 1500)
+    public void testGetMatchDynamic()
+            throws IOException, InterruptedException, ExecutionException {
+        URL url = new URL("http", "localhost", server.getPort(), "/dynamic");
+        URLConnection conn = url.openConnection();
+        conn.setConnectTimeout(1000);
+        conn.setReadTimeout(1000);
+        try (BufferedReader br = new BufferedReader(
+            new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+            String str = br.lines().findFirst().get();
+            assertEquals("Dynamic!", str);
+        }
+        assertEquals(1, contentProvider.invocations);
+    }
+
+    @Test(timeout = 2500)
+    public void testGetUnversionedStatic()
+            throws IOException, InterruptedException, ExecutionException {
+        URL url = new URL("http", "localhost", server.getPort(),
+            "/static-content/index.html");
+        URLConnection conn = url.openConnection();
+        conn.setConnectTimeout(2000);
+        conn.setReadTimeout(2000);
+        conn.connect();
+        String field = conn.getHeaderField("Cache-Control");
+        ((HttpURLConnection) conn).disconnect();
+        assertEquals("max-age=60", field);
+
+        assertEquals(1, contentProvider.invocations);
+    }
+
+    @Test(timeout = 2500)
+    public void testGetVersionedStatic()
+            throws IOException, InterruptedException, ExecutionException {
+        URL url = new URL("http", "localhost", server.getPort(),
+            "/static-content/versioned-1.0.0.html");
+        URLConnection conn = url.openConnection();
+        conn.setConnectTimeout(2000);
+        conn.setReadTimeout(2000);
+        conn.connect();
+        String field = conn.getHeaderField("Cache-Control");
+        ((HttpURLConnection) conn).disconnect();
+        assertEquals("max-age=31536000", field);
+
+        assertEquals(1, contentProvider.invocations);
+    }
+
+    @Test(timeout = 2500)
+    public void testGetFromJar()
+            throws IOException, InterruptedException, ExecutionException {
+        URL url = new URL("http", "localhost", server.getPort(),
+            "/from-jar/static-content/index.html");
+        // Unconditional fetch
+        URLConnection conn = url.openConnection();
+        conn.setConnectTimeout(2000);
+        conn.setReadTimeout(2000);
+        conn.setUseCaches(false);
+        try (BufferedReader br = new BufferedReader(
+            new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+            assertTrue(br.lines().anyMatch(l -> l.contains("<head>")));
+        }
+        ((HttpURLConnection) conn).disconnect();
+        // Conditional fetch
+        conn = url.openConnection();
+        conn.setConnectTimeout(1000);
+        conn.setReadTimeout(1000);
+        conn.setIfModifiedSince(Instant.now().toEpochMilli());
+        conn.setUseCaches(false);
+        conn.connect();
+        assertEquals(HttpURLConnection.HTTP_NOT_MODIFIED,
+            ((HttpURLConnection) conn).getResponseCode());
+        ((HttpURLConnection) conn).disconnect();
+
+        assertEquals(2, contentProvider.invocations);
+    }
 
 }

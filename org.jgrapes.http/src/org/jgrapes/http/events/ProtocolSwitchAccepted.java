@@ -25,7 +25,7 @@ import org.jgrapes.core.Event;
 import org.jgrapes.http.HttpServer;
 
 /**
- * Indicates that a component has accepted a {@link GetRequest} with
+ * Indicates that a component has accepted a {@link Request.In.Get} with
  * a header that requested an upgrade to another protocol.
  * 
  * The {@link HttpServer} component listens for such events and 
@@ -33,7 +33,7 @@ import org.jgrapes.http.HttpServer;
  */
 public class ProtocolSwitchAccepted extends Event<Void> {
 
-    private final Request requestEvent;
+    private final Request.In requestEvent;
     private final String protocol;
 
     /**
@@ -51,7 +51,7 @@ public class ProtocolSwitchAccepted extends Event<Void> {
      * @param request the base response data
      * @param protocol the accepted protocol
      */
-    public ProtocolSwitchAccepted(Request request, String protocol) {
+    public ProtocolSwitchAccepted(Request.In request, String protocol) {
         this.requestEvent = request;
         this.protocol = protocol;
     }
@@ -70,7 +70,7 @@ public class ProtocolSwitchAccepted extends Event<Void> {
      * 
      * @return the value
      */
-    public Request requestEvent() {
+    public Request.In requestEvent() {
         return requestEvent;
     }
 

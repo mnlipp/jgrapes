@@ -36,41 +36,40 @@ import static org.junit.Assert.fail;
  *
  */
 public class BasicTestServer extends Component {
-	private InetSocketAddress addr;
-	private WaitForTests readyMonitor;
+    private InetSocketAddress addr;
+    private WaitForTests readyMonitor;
 
-	@SafeVarargs
-	public BasicTestServer(Class<? extends Request>... fallbacks) 
-			throws IOException, InterruptedException, ExecutionException {
-		attach(new NioDispatcher());
-		TcpServer networkServer = attach(new TcpServer());
-		attach(new HttpServer(channel(), networkServer.channel(),
-				fallbacks));
-		readyMonitor = new WaitForTests(
-				this, Ready.class, networkServer.channel().defaultCriterion());
-	}
-	
-	private InetSocketAddress getSocketAddress() 
-				throws InterruptedException, ExecutionException {
-		if (addr == null) {
-			Ready readyEvent = (Ready) readyMonitor.get();
-			if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
-				fail();
-			}
-			addr = ((InetSocketAddress)readyEvent.listenAddress());
-		}
-		return addr;
-		
-	}
-	
-	public InetAddress getAddress() 
-				throws InterruptedException, ExecutionException {
-		return getSocketAddress().getAddress();
-	}
-	
-	public int getPort() 
-				throws InterruptedException, ExecutionException {
-		return getSocketAddress().getPort();
-	}
+    @SafeVarargs
+    public BasicTestServer(Class<? extends Request.In>... fallbacks)
+            throws IOException, InterruptedException, ExecutionException {
+        attach(new NioDispatcher());
+        TcpServer networkServer = attach(new TcpServer());
+        attach(new HttpServer(channel(), networkServer.channel(),
+            fallbacks));
+        readyMonitor = new WaitForTests(
+            this, Ready.class, networkServer.channel().defaultCriterion());
+    }
+
+    private InetSocketAddress getSocketAddress()
+            throws InterruptedException, ExecutionException {
+        if (addr == null) {
+            Ready readyEvent = (Ready) readyMonitor.get();
+            if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
+                fail();
+            }
+            addr = ((InetSocketAddress) readyEvent.listenAddress());
+        }
+        return addr;
+
+    }
+
+    public InetAddress getAddress()
+            throws InterruptedException, ExecutionException {
+        return getSocketAddress().getAddress();
+    }
+
+    public int getPort()
+            throws InterruptedException, ExecutionException {
+        return getSocketAddress().getPort();
+    }
 }
-

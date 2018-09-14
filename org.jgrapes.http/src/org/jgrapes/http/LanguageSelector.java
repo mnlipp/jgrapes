@@ -161,7 +161,7 @@ public class LanguageSelector extends Component {
      */
     @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.EmptyCatchBlock" })
     @RequestHandler(priority = 990, dynamic = true)
-    public void onRequest(Request event) {
+    public void onRequest(Request.In event) {
         @SuppressWarnings("PMD.AccessorClassGeneration")
         final Selection selection = event.associated(Session.class)
             .map(session -> (Selection) session.computeIfAbsent(
@@ -235,7 +235,7 @@ public class LanguageSelector extends Component {
      */
     @SuppressWarnings("serial")
     public static class Selection implements Serializable {
-        private transient WeakReference<Request> currentEvent;
+        private transient WeakReference<Request.In> currentEvent;
         private final String cookieName;
         private final String cookiePath;
         private boolean explicitlySet;
@@ -292,7 +292,7 @@ public class LanguageSelector extends Component {
         /**
          * @param currentEvent the currentEvent to set
          */
-        private Selection setCurrentEvent(Request currentEvent) {
+        private Selection setCurrentEvent(Request.In currentEvent) {
             this.currentEvent = new WeakReference<>(currentEvent);
             return this;
         }
@@ -321,7 +321,7 @@ public class LanguageSelector extends Component {
             HttpCookie localesCookie = new HttpCookie(cookieName,
                 LOCALE_LIST.asFieldValue(list));
             localesCookie.setPath(cookiePath);
-            Request req = currentEvent.get();
+            Request.In req = currentEvent.get();
             if (req != null) {
                 req.httpRequest().response().ifPresent(resp -> {
                     resp.computeIfAbsent(

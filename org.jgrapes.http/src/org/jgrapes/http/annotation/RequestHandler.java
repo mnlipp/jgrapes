@@ -328,12 +328,12 @@ public @interface RequestHandler {
                 if (!match) {
                     return false;
                 }
-                if (!(event instanceof Request)) {
+                if (!(event instanceof Request.In)) {
                     return false;
                 }
                 for (ResourcePattern rp : handledPatterns) {
-                    if (((Request) event).isEligibleFor(
-                        Request.createMatchValue(Request.class, rp))) {
+                    if (((Request.In) event).isEligibleFor(
+                        Request.In.createMatchValue(Request.In.class, rp))) {
                         return true;
                     }
                 }

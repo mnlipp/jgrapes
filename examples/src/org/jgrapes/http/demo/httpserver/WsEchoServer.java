@@ -30,8 +30,8 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.http.annotation.RequestHandler;
-import org.jgrapes.http.events.GetRequest;
 import org.jgrapes.http.events.ProtocolSwitchAccepted;
+import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Upgraded;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
@@ -62,7 +62,7 @@ public class WsEchoServer extends Component {
     }
 
     @RequestHandler(patterns = "/ws/echo", priority = 100)
-    public void onGet(GetRequest event, IOSubchannel channel)
+    public void onGet(Request.In.Get event, IOSubchannel channel)
             throws InterruptedException {
         final HttpRequest request = event.httpRequest();
         if (!request.findField(

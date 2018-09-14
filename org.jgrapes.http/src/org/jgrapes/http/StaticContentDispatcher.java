@@ -42,7 +42,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.http.ResponseCreationSupport.MaxAgeCalculator;
 import org.jgrapes.http.annotation.RequestHandler;
-import org.jgrapes.http.events.GetRequest;
+import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.StreamFile;
@@ -133,7 +133,7 @@ public class StaticContentDispatcher extends Component {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     @RequestHandler(dynamic = true)
-    public void onGet(GetRequest event, IOSubchannel channel)
+    public void onGet(Request.In.Get event, IOSubchannel channel)
             throws ParseException, IOException {
         int prefixSegs = resourcePattern.matches(event.requestUri());
         if (prefixSegs < 0) {
@@ -147,8 +147,9 @@ public class StaticContentDispatcher extends Component {
     }
 
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    private boolean getFromFileSystem(GetRequest event, IOSubchannel channel,
-            int prefixSegs) throws IOException, ParseException {
+    private boolean getFromFileSystem(Request.In.Get event,
+            IOSubchannel channel, int prefixSegs)
+            throws IOException, ParseException {
         // Final wrapper for usage in closure
         final Path[] assembly = new Path[] { contentDirectory };
         Arrays.stream(event.requestUri().getPath().split("/"))
@@ -198,7 +199,7 @@ public class StaticContentDispatcher extends Component {
         return true;
     }
 
-    private boolean getFromUri(GetRequest event, IOSubchannel channel,
+    private boolean getFromUri(Request.In.Get event, IOSubchannel channel,
             int prefixSegs) throws ParseException {
         return ResponseCreationSupport.sendStaticContent(
             event, channel, path -> {

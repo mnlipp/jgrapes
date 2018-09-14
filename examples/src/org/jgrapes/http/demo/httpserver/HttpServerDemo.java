@@ -42,8 +42,7 @@ import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.InMemorySessionManager;
 import org.jgrapes.http.LanguageSelector;
 import org.jgrapes.http.StaticContentDispatcher;
-import org.jgrapes.http.events.GetRequest;
-import org.jgrapes.http.events.PostRequest;
+import org.jgrapes.http.events.Request;
 import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.io.util.PermitsPool;
@@ -104,7 +103,7 @@ public class HttpServerDemo extends Component implements BundleActivator {
         // Create an HTTP server as converter between transport and application
         // layer.
         app.attach(new HttpServer(app,
-            httpTransport, GetRequest.class, PostRequest.class));
+            httpTransport, Request.In.Get.class, Request.In.Post.class));
 
         // Build application layer
         app.attach(new InMemorySessionManager(app.channel()));

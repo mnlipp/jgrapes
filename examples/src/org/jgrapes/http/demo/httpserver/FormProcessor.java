@@ -36,8 +36,7 @@ import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResponseCreationSupport;
 import org.jgrapes.http.Session;
 import org.jgrapes.http.annotation.RequestHandler;
-import org.jgrapes.http.events.GetRequest;
-import org.jgrapes.http.events.PostRequest;
+import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Input;
@@ -63,7 +62,7 @@ public class FormProcessor extends Component {
     }
 
     @RequestHandler(patterns = "/form,/form/**")
-    public void onGet(GetRequest event, IOSubchannel channel)
+    public void onGet(Request.In.Get event, IOSubchannel channel)
             throws ParseException {
         ResponseCreationSupport.sendStaticContent(event, channel,
             path -> FormProcessor.class.getResource(
@@ -72,7 +71,7 @@ public class FormProcessor extends Component {
     }
 
     @RequestHandler(patterns = "/form,/form/**")
-    public void onPost(PostRequest event, IOSubchannel channel) {
+    public void onPost(Request.In.Post event, IOSubchannel channel) {
         FormContext ctx = channel
             .associated(this, FormContext::new);
         ctx.request = event.httpRequest();
