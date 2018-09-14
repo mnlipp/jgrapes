@@ -59,7 +59,7 @@
 <span class="sourceLineNo">051</span>import org.jdrupes.httpcodec.types.MediaType;<a name="line.51"></a>
 <span class="sourceLineNo">052</span>import org.jgrapes.core.Channel;<a name="line.52"></a>
 <span class="sourceLineNo">053</span>import org.jgrapes.http.LanguageSelector.Selection;<a name="line.53"></a>
-<span class="sourceLineNo">054</span>import org.jgrapes.http.events.GetRequest;<a name="line.54"></a>
+<span class="sourceLineNo">054</span>import org.jgrapes.http.events.Request;<a name="line.54"></a>
 <span class="sourceLineNo">055</span>import org.jgrapes.http.events.Response;<a name="line.55"></a>
 <span class="sourceLineNo">056</span>import org.jgrapes.io.IOSubchannel;<a name="line.56"></a>
 <span class="sourceLineNo">057</span>import org.jgrapes.io.util.ByteBufferOutputStream;<a name="line.57"></a>
@@ -169,7 +169,7 @@
 <span class="sourceLineNo">161</span>     */<a name="line.161"></a>
 <span class="sourceLineNo">162</span>    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.162"></a>
 <span class="sourceLineNo">163</span>    protected Map&lt;String, Object&gt; expandPortalModel(<a name="line.163"></a>
-<span class="sourceLineNo">164</span>            Map&lt;String, Object&gt; model, GetRequest event,<a name="line.164"></a>
+<span class="sourceLineNo">164</span>            Map&lt;String, Object&gt; model, Request.In.Get event,<a name="line.164"></a>
 <span class="sourceLineNo">165</span>            UUID portalSessionId) {<a name="line.165"></a>
 <span class="sourceLineNo">166</span>        // Portal Session UUID<a name="line.166"></a>
 <span class="sourceLineNo">167</span>        model.put("portalSessionId", portalSessionId.toString());<a name="line.167"></a>
@@ -216,7 +216,7 @@
 <span class="sourceLineNo">208</span>    }<a name="line.208"></a>
 <span class="sourceLineNo">209</span><a name="line.209"></a>
 <span class="sourceLineNo">210</span>    @Override<a name="line.210"></a>
-<span class="sourceLineNo">211</span>    protected void renderPortal(GetRequest event, IOSubchannel channel,<a name="line.211"></a>
+<span class="sourceLineNo">211</span>    protected void renderPortal(Request.In.Get event, IOSubchannel channel,<a name="line.211"></a>
 <span class="sourceLineNo">212</span>            UUID portalSessionId) throws IOException, InterruptedException {<a name="line.212"></a>
 <span class="sourceLineNo">213</span>        event.setResult(true);<a name="line.213"></a>
 <span class="sourceLineNo">214</span>        event.stop();<a name="line.214"></a>
