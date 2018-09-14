@@ -540,10 +540,11 @@ public class SslCodec extends Component {
             ManagedBuffer<ByteBuffer> wrapped
                 = upstreamChannel().byteBufferPool().acquire();
             while (true) {
+                SSLEngineResult wrapResult;
                 while (true) {
                     // Cheap synchronization: no (relevant) input
                     inputProcessed[0] = false;
-                    SSLEngineResult wrapResult
+                    wrapResult
                         = sslEngine.wrap(output, wrapped.backingBuffer());
                     switch (wrapResult.getHandshakeStatus()) {
                     case NEED_TASK:
@@ -599,20 +600,25 @@ public class SslCodec extends Component {
                     }
                 }
                 if (wrapped.position() == 0) {
-                    if (!output.hasRemaining()) {
-                        wrapped.unlockBuffer();
-                        break;
+                    if (output.hasRemaining()
+                        && wrapResult.getStatus() != Status.CLOSED) {
+                        // Nothing sent, but data remains, try again
+                        continue;
                     }
-                    // Nothing sent, but data remains, try again
-                    continue;
+                    // Nothing remains to be done, unlock buffer and quit
+                    wrapped.unlockBuffer();
+                    break;
                 }
                 // Something needs to be sent (handshake or data)
                 upstreamChannel().respond(Output.fromSink(wrapped,
                     sslEngine.isInboundDone()));
-                if (!output.hasRemaining()) {
+                if (!output.hasRemaining()
+                    || wrapResult.getStatus() == Status.CLOSED) {
+                    // Nothing remains to be done
                     break;
                 }
-                // Was handshake (or partial content), try again
+                // Was handshake (or partial content), get new buffer and try
+                // again
                 wrapped = upstreamChannel().byteBufferPool().acquire();
             }
         }
