@@ -74,7 +74,7 @@
 <span class="sourceLineNo">066</span><a name="line.66"></a>
 <span class="sourceLineNo">067</span>    /**<a name="line.67"></a>
 <span class="sourceLineNo">068</span>     * The base class for all incoming HTTP requests. Incoming<a name="line.68"></a>
-<span class="sourceLineNo">069</span>     * request flow downstream and are served. <a name="line.69"></a>
+<span class="sourceLineNo">069</span>     * request flow downstream and are served by the framework. <a name="line.69"></a>
 <span class="sourceLineNo">070</span>     * <a name="line.70"></a>
 <span class="sourceLineNo">071</span>     * A result of `true` indicates that the request has been processed, <a name="line.71"></a>
 <span class="sourceLineNo">072</span>     * i.e. a response has been sent or will sent.<a name="line.72"></a>
@@ -523,7 +523,17 @@
 <span class="sourceLineNo">515</span>            }<a name="line.515"></a>
 <span class="sourceLineNo">516</span>        }<a name="line.516"></a>
 <span class="sourceLineNo">517</span>    }<a name="line.517"></a>
-<span class="sourceLineNo">518</span>}<a name="line.518"></a>
+<span class="sourceLineNo">518</span><a name="line.518"></a>
+<span class="sourceLineNo">519</span>    /**<a name="line.519"></a>
+<span class="sourceLineNo">520</span>     * The base class for all outgoing HTTP requests. Outgoing<a name="line.520"></a>
+<span class="sourceLineNo">521</span>     * request flow upstream and are served externally. <a name="line.521"></a>
+<span class="sourceLineNo">522</span>     * <a name="line.522"></a>
+<span class="sourceLineNo">523</span>     * A result of `true` indicates that the request has been processed, <a name="line.523"></a>
+<span class="sourceLineNo">524</span>     * i.e. a response has been sent or will sent.<a name="line.524"></a>
+<span class="sourceLineNo">525</span>     */<a name="line.525"></a>
+<span class="sourceLineNo">526</span>    public static class Out extends Request&lt;Void&gt; {<a name="line.526"></a>
+<span class="sourceLineNo">527</span>    }<a name="line.527"></a>
+<span class="sourceLineNo">528</span>}<a name="line.528"></a>
 
 
 
