@@ -200,7 +200,7 @@
 <span class="sourceLineNo">192</span>     * Removes the prefix specified in the constructor from the<a name="line.192"></a>
 <span class="sourceLineNo">193</span>     * path in the request. Checks if the resulting path  <a name="line.193"></a>
 <span class="sourceLineNo">194</span>     * ends with `*.ftl.*`. If so, processes the template with the<a name="line.194"></a>
-<span class="sourceLineNo">195</span>     * {@link #sendProcessedTemplate(Request, IOSubchannel, String)} (which <a name="line.195"></a>
+<span class="sourceLineNo">195</span>     * {@link #sendProcessedTemplate(Request.In, IOSubchannel, String)} (which <a name="line.195"></a>
 <span class="sourceLineNo">196</span>     * uses {@link #fmSessionModel(Optional)}) and sends the result. <a name="line.196"></a>
 <span class="sourceLineNo">197</span>     * Else, tries to serve static content with the optionally <a name="line.197"></a>
 <span class="sourceLineNo">198</span>     * shortened path.<a name="line.198"></a>
@@ -210,7 +210,7 @@
 <span class="sourceLineNo">202</span>     * @throws ParseException the parse exception<a name="line.202"></a>
 <span class="sourceLineNo">203</span>     */<a name="line.203"></a>
 <span class="sourceLineNo">204</span>    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.204"></a>
-<span class="sourceLineNo">205</span>    protected void doRespond(Request event, IOSubchannel channel)<a name="line.205"></a>
+<span class="sourceLineNo">205</span>    protected void doRespond(Request.In event, IOSubchannel channel)<a name="line.205"></a>
 <span class="sourceLineNo">206</span>            throws ParseException {<a name="line.206"></a>
 <span class="sourceLineNo">207</span>        final HttpRequest request = event.httpRequest();<a name="line.207"></a>
 <span class="sourceLineNo">208</span>        prefixPattern.pathRemainder(request.requestUri()).ifPresent(path -&gt; {<a name="line.208"></a>
@@ -244,7 +244,7 @@
 <span class="sourceLineNo">236</span>     * @return false if an error occurred<a name="line.236"></a>
 <span class="sourceLineNo">237</span>     */<a name="line.237"></a>
 <span class="sourceLineNo">238</span>    protected boolean sendProcessedTemplate(<a name="line.238"></a>
-<span class="sourceLineNo">239</span>            Request event, IOSubchannel channel, Template tpl) {<a name="line.239"></a>
+<span class="sourceLineNo">239</span>            Request.In event, IOSubchannel channel, Template tpl) {<a name="line.239"></a>
 <span class="sourceLineNo">240</span>        // Prepare response<a name="line.240"></a>
 <span class="sourceLineNo">241</span>        HttpResponse response = event.httpRequest().response().get();<a name="line.241"></a>
 <span class="sourceLineNo">242</span>        MediaType mediaType = contentType(<a name="line.242"></a>
@@ -292,7 +292,7 @@
 <span class="sourceLineNo">284</span>     *            the path<a name="line.284"></a>
 <span class="sourceLineNo">285</span>     */<a name="line.285"></a>
 <span class="sourceLineNo">286</span>    protected boolean sendProcessedTemplate(<a name="line.286"></a>
-<span class="sourceLineNo">287</span>            Request event, IOSubchannel channel, String path) {<a name="line.287"></a>
+<span class="sourceLineNo">287</span>            Request.In event, IOSubchannel channel, String path) {<a name="line.287"></a>
 <span class="sourceLineNo">288</span>        try {<a name="line.288"></a>
 <span class="sourceLineNo">289</span>            // Get template (no need to continue if this fails).<a name="line.289"></a>
 <span class="sourceLineNo">290</span>            Template tpl = freemarkerConfig().getTemplate(path);<a name="line.290"></a>
@@ -370,8 +370,8 @@
 <span class="sourceLineNo">362</span><a name="line.362"></a>
 <span class="sourceLineNo">363</span>    /**<a name="line.363"></a>
 <span class="sourceLineNo">364</span>     * Used to get the content type when generating a response with<a name="line.364"></a>
-<span class="sourceLineNo">365</span>     * {@link #sendProcessedTemplate(Request, IOSubchannel, Template)}. May be<a name="line.365"></a>
-<span class="sourceLineNo">366</span>     * overridden by derived classes. This implementation simply invokes<a name="line.366"></a>
+<span class="sourceLineNo">365</span>     * {@link #sendProcessedTemplate(Request.In, IOSubchannel, Template)}. <a name="line.365"></a>
+<span class="sourceLineNo">366</span>     * May be overridden by derived classes. This implementation simply invokes<a name="line.366"></a>
 <span class="sourceLineNo">367</span>     * {@link HttpResponse#contentType(URI)}.<a name="line.367"></a>
 <span class="sourceLineNo">368</span>     *<a name="line.368"></a>
 <span class="sourceLineNo">369</span>     * @param request the request<a name="line.369"></a>
