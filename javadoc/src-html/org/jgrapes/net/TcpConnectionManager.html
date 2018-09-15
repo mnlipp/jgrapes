@@ -399,14 +399,14 @@
 <span class="sourceLineNo">391</span>            // Other end initiates close<a name="line.391"></a>
 <span class="sourceLineNo">392</span>            selectionKeys &amp;= ~SelectionKey.OP_READ;<a name="line.392"></a>
 <span class="sourceLineNo">393</span>            registration.updateInterested(selectionKeys);<a name="line.393"></a>
-<span class="sourceLineNo">394</span>            downPipeline.executorService().submit(() -&gt; {<a name="line.394"></a>
+<span class="sourceLineNo">394</span>            downPipeline.submit(() -&gt; {<a name="line.394"></a>
 <span class="sourceLineNo">395</span>                try {<a name="line.395"></a>
 <span class="sourceLineNo">396</span>                    // Inform downstream and wait until everything has settled.<a name="line.396"></a>
-<span class="sourceLineNo">397</span>                    downPipeline.fire(new HalfClosed(), this).get();<a name="line.397"></a>
+<span class="sourceLineNo">397</span>                    newEventPipeline().fire(new HalfClosed(), this).get();<a name="line.397"></a>
 <span class="sourceLineNo">398</span>                    // All settled.<a name="line.398"></a>
 <span class="sourceLineNo">399</span>                    removeChannel(this);<a name="line.399"></a>
 <span class="sourceLineNo">400</span>                    downPipeline.fire(new Closed(), this);<a name="line.400"></a>
-<span class="sourceLineNo">401</span>                    // Close our end when everything has been written.<a name="line.401"></a>
+<span class="sourceLineNo">401</span>                    // Close our end if everything has been written.<a name="line.401"></a>
 <span class="sourceLineNo">402</span>                    synchronized (pendingWrites) {<a name="line.402"></a>
 <span class="sourceLineNo">403</span>                        synchronized (nioChannel) {<a name="line.403"></a>
 <span class="sourceLineNo">404</span>                            try {<a name="line.404"></a>
