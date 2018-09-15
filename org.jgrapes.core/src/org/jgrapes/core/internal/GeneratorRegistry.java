@@ -113,6 +113,8 @@ public class GeneratorRegistry {
                     + generators.keySet());
             }
             if (running == 0) {
+                generatorTracking
+                    .finest(() -> "Zero generators, notifying all.");
                 keepAlive.interrupt();
                 notifyAll();
             }
