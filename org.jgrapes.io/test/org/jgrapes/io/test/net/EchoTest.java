@@ -69,217 +69,217 @@ import org.junit.Test;
 
 public class EchoTest {
 
-	public class EchoServer extends Component {
+    public class EchoServer extends Component {
 
-		/**
-		 * @throws IOException 
-		 */
-		public EchoServer() throws IOException {
-		}
+        /**
+         * @throws IOException 
+         */
+        public EchoServer() throws IOException {
+        }
 
-		@Handler
-		public void onRead(Input<ByteBuffer> event, IOSubchannel channel)
-				throws InterruptedException {
-			ManagedBuffer<ByteBuffer> out = channel.byteBufferPool().acquire();
-			out.backingBuffer().put(event.data());
-			channel.respond(Output.fromSink(out, event.isEndOfRecord()));
-		}
-	}
+        @Handler
+        public void onRead(Input<ByteBuffer> event, IOSubchannel channel)
+                throws InterruptedException {
+            ManagedBuffer<ByteBuffer> out = channel.byteBufferPool().acquire();
+            out.backingBuffer().put(event.data());
+            channel.respond(Output.fromSink(out, event.isEndOfRecord()));
+        }
+    }
 
-	private class Receiver implements Callable<Integer> {
+    private class Receiver implements Callable<Integer> {
 
-		private InputStream fromServer;
-		private int times;
+        private InputStream fromServer;
+        private int times;
 
-		/**
-		 * @param fromServer
-		 */
-		public Receiver(InputStream fromServer, int times) {
-			this.fromServer = fromServer;
-			this.times = times;
-		}
+        /**
+         * @param fromServer
+         */
+        public Receiver(InputStream fromServer, int times) {
+            this.fromServer = fromServer;
+            this.times = times;
+        }
 
-		@Override
-		public Integer call() throws Exception {
-			final AtomicInteger expected = new AtomicInteger(0);
-			BufferedReader in = new BufferedReader(
-						new InputStreamReader(fromServer, "ascii"));
-			while (expected.get() < times) {
-				String line = in.readLine();
-				if (line == null) {
-					break;
-				}
-				String[] parts = line.split(":");
-				assertEquals(expected.get(), Integer.parseInt(parts[0]));
-				assertEquals("Hello World!", parts[1]);
-				expected.incrementAndGet();
-			}
-			return expected.get();
-		}
-	}
+        @Override
+        public Integer call() throws Exception {
+            final AtomicInteger expected = new AtomicInteger(0);
+            BufferedReader in = new BufferedReader(
+                new InputStreamReader(fromServer, "ascii"));
+            while (expected.get() < times) {
+                String line = in.readLine();
+                if (line == null) {
+                    break;
+                }
+                String[] parts = line.split(":");
+                assertEquals(expected.get(), Integer.parseInt(parts[0]));
+                assertEquals("Hello World!", parts[1]);
+                expected.incrementAndGet();
+            }
+            return expected.get();
+        }
+    }
 
-	private class Sender extends Thread {
+    private class Sender extends Thread {
 
-		private OutputStream toServer;
-		private int times;
-		
-		public Sender(OutputStream toServer, int times) {
-			this.toServer = toServer;
-			this.times = times;
-		}
+        private OutputStream toServer;
+        private int times;
 
-		@Override
-		public void run() {
-			try {
-				for (int i = 0; i < times; i++) {
-					String line = i + ":Hello World!\n";
-					toServer.write(line.getBytes("ascii"));
+        public Sender(OutputStream toServer, int times) {
+            this.toServer = toServer;
+            this.times = times;
+        }
+
+        @Override
+        public void run() {
+            try {
+                for (int i = 0; i < times; i++) {
+                    String line = i + ":Hello World!\n";
+                    toServer.write(line.getBytes("ascii"));
 //					if (times < 100) {
-						toServer.flush();
-						try {
-							// If we're too fast, data will be appended
-							// to previous, not yet flushed out chunk
-							Thread.sleep(5);
-						} catch (InterruptedException e) {
-							// Ignored
-						}
+                    toServer.flush();
+                    try {
+                        // If we're too fast, data will be appended
+                        // to previous, not yet flushed out chunk
+                        Thread.sleep(5);
+                    } catch (InterruptedException e) {
+                        // Ignored
+                    }
 //					}
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	@Test
-	public void testTcp() throws IOException, InterruptedException, 
-			ExecutionException, TimeoutException {
-		EchoServer app = new EchoServer();
-		app.attach(new TcpServer(app));
-		app.attach(new NioDispatcher());
-		WaitForTests wf = new WaitForTests(
-				app, Ready.class, app.defaultCriterion());
-		Components.start(app);
-		Ready readyEvent = (Ready) wf.get();
-		if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
-			fail();
-		}
-		InetSocketAddress serverAddr = new InetSocketAddress("localhost",
-				((InetSocketAddress)readyEvent.listenAddress()).getPort());
-		try (Socket client = new Socket(serverAddr.getAddress(),
-		        serverAddr.getPort())) {
-			FutureTask<Integer> receive = new FutureTask<>(
-					new Receiver(client.getInputStream(), 16));
-			new Thread(receive).start();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
-			new Sender(client.getOutputStream(), 16).run();
+    @Test
+    public void testTcp() throws IOException, InterruptedException,
+            ExecutionException, TimeoutException {
+        EchoServer app = new EchoServer();
+        app.attach(new TcpServer(app));
+        app.attach(new NioDispatcher());
+        WaitForTests wf = new WaitForTests(
+            app, Ready.class, app.defaultCriterion());
+        Components.start(app);
+        Ready readyEvent = (Ready) wf.get();
+        if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
+            fail();
+        }
+        InetSocketAddress serverAddr = new InetSocketAddress("localhost",
+            ((InetSocketAddress) readyEvent.listenAddress()).getPort());
+        try (Socket client = new Socket(serverAddr.getAddress(),
+            serverAddr.getPort())) {
+            FutureTask<Integer> receive = new FutureTask<>(
+                new Receiver(client.getInputStream(), 16));
+            new Thread(receive).start();
 
-			int received = receive.get(5000, TimeUnit.MILLISECONDS);
-			assertEquals(16, received);
-		}
-	
-		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
-		long waitEnd = System.currentTimeMillis() + 3000;
-		while (true) {
-			long waitTime = waitEnd - System.currentTimeMillis();
-			if (waitTime <= 0) {
-				fail();
-			}
-			Components.checkAssertions();
-			try {
-				assertTrue(Components.awaitExhaustion(waitTime));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			break;
-		}
-		Components.checkAssertions();
-	}
+            new Sender(client.getOutputStream(), 16).run();
 
-	@Test
-	public void testSsl() throws IOException, InterruptedException, 
-			ExecutionException, TimeoutException, KeyStoreException, 
-			NoSuchAlgorithmException, CertificateException, 
-			UnrecoverableKeyException, KeyManagementException {
-		EchoServer app = new EchoServer();
-		app.attach(new NioDispatcher());
-		
-		// Create TLS "converter"
-		KeyStore serverStore = KeyStore.getInstance("JKS");
-		try (FileInputStream kf 
-				= new FileInputStream("test-resources/localhost.jks")) {
-			serverStore.load(kf, "nopass".toCharArray());
-		}
-		KeyManagerFactory kmf = KeyManagerFactory.getInstance(
-				KeyManagerFactory.getDefaultAlgorithm());
-	    kmf.init(serverStore, "nopass".toCharArray());
-		SSLContext sslContext = SSLContext.getInstance("TLS");
-		sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
-		
-		// Create a TCP server for SSL
-		TcpServer securedNetwork = app.attach(new TcpServer());
-		app.attach(new SslCodec(app, securedNetwork, sslContext));
-		
-		// App ready.
-		WaitForTests wf = new WaitForTests(
-				securedNetwork, Ready.class, securedNetwork.defaultCriterion());
-		Components.start(app);
-		Ready readyEvent = (Ready) wf.get();
-		if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
-			fail();
-		}
-		InetSocketAddress serverAddr = new InetSocketAddress("localhost",
-				((InetSocketAddress)readyEvent.listenAddress()).getPort());
-		
-		// Create a trust manager that does not validate certificate chains
-		TrustManager[] trustAllCerts = new TrustManager[]{
-		    new X509TrustManager() {
-		        public X509Certificate[] getAcceptedIssuers() {
-		        	return null;
-		        }
-		        
-		        public void checkClientTrusted(
-		            X509Certificate[] certs, String authType) {
-		        }
-		        
-		        public void checkServerTrusted(
-		            X509Certificate[] certs, String authType) {
-		        }
-		    }
-		};
-		SSLContext clientContext = SSLContext.getInstance("SSL");
-	    clientContext.init(null, trustAllCerts, null);
-		SSLSocketFactory sslsocketfactory = clientContext.getSocketFactory();
-		try (SSLSocket client = (SSLSocket) sslsocketfactory.createSocket(
-				serverAddr.getAddress(), serverAddr.getPort())) {
-			client.startHandshake();
-			int expected = 256;
-			FutureTask<Integer> receive = new FutureTask<>(
-					new Receiver(client.getInputStream(), expected));
-			new Thread(receive).start();
+            int received = receive.get(5000, TimeUnit.MILLISECONDS);
+            assertEquals(16, received);
+        }
 
-			new Sender(client.getOutputStream(), expected).run();
+        Components.manager(app).fire(new Stop(), Channel.BROADCAST);
+        long waitEnd = System.currentTimeMillis() + 3000;
+        while (true) {
+            long waitTime = waitEnd - System.currentTimeMillis();
+            if (waitTime <= 0) {
+                fail();
+            }
+            Components.checkAssertions();
+            try {
+                assertTrue(Components.awaitExhaustion(waitTime));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            break;
+        }
+        Components.checkAssertions();
+    }
 
-			int received = receive.get(5000, TimeUnit.MILLISECONDS);
-			assertEquals(expected, received);
-		}
-	
-		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
-		long waitEnd = System.currentTimeMillis() + 3000;
-		while (true) {
-			long waitTime = waitEnd - System.currentTimeMillis();
-			if (waitTime <= 0) {
-				fail();
-			}
-			Components.checkAssertions();
-			try {
-				assertTrue(Components.awaitExhaustion(waitTime));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			break;
-		}
-		Components.checkAssertions();
-	}
+    @Test
+    public void testSsl() throws IOException, InterruptedException,
+            ExecutionException, TimeoutException, KeyStoreException,
+            NoSuchAlgorithmException, CertificateException,
+            UnrecoverableKeyException, KeyManagementException {
+        EchoServer app = new EchoServer();
+        app.attach(new NioDispatcher());
+
+        // Create TLS "converter"
+        KeyStore serverStore = KeyStore.getInstance("JKS");
+        try (FileInputStream kf
+            = new FileInputStream("test-resources/localhost.jks")) {
+            serverStore.load(kf, "nopass".toCharArray());
+        }
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(
+            KeyManagerFactory.getDefaultAlgorithm());
+        kmf.init(serverStore, "nopass".toCharArray());
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
+
+        // Create a TCP server for SSL
+        TcpServer securedNetwork = app.attach(new TcpServer());
+        app.attach(new SslCodec(app, securedNetwork, sslContext));
+
+        // App ready.
+        WaitForTests wf = new WaitForTests(
+            securedNetwork, Ready.class, securedNetwork.defaultCriterion());
+        Components.start(app);
+        Ready readyEvent = (Ready) wf.get();
+        if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
+            fail();
+        }
+        InetSocketAddress serverAddr = new InetSocketAddress("localhost",
+            ((InetSocketAddress) readyEvent.listenAddress()).getPort());
+
+        // Create a trust manager that does not validate certificate chains
+        TrustManager[] trustAllCerts = new TrustManager[] {
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                public void checkClientTrusted(
+                        X509Certificate[] certs, String authType) {
+                }
+
+                public void checkServerTrusted(
+                        X509Certificate[] certs, String authType) {
+                }
+            }
+        };
+        SSLContext clientContext = SSLContext.getInstance("SSL");
+        clientContext.init(null, trustAllCerts, null);
+        SSLSocketFactory sslsocketfactory = clientContext.getSocketFactory();
+        try (SSLSocket client = (SSLSocket) sslsocketfactory.createSocket(
+            serverAddr.getAddress(), serverAddr.getPort())) {
+            client.startHandshake();
+            int expected = 256;
+            FutureTask<Integer> receive = new FutureTask<>(
+                new Receiver(client.getInputStream(), expected));
+            new Thread(receive).start();
+
+            new Sender(client.getOutputStream(), expected).run();
+
+            int received = receive.get(5000, TimeUnit.MILLISECONDS);
+            assertEquals(expected, received);
+        }
+
+        Components.manager(app).fire(new Stop(), Channel.BROADCAST);
+        long waitEnd = System.currentTimeMillis() + 3000;
+        while (true) {
+            long waitTime = waitEnd - System.currentTimeMillis();
+            if (waitTime <= 0) {
+                fail();
+            }
+            Components.checkAssertions();
+            try {
+                assertTrue(Components.awaitExhaustion(waitTime));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            break;
+        }
+        Components.checkAssertions();
+    }
 
 }
