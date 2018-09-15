@@ -391,14 +391,14 @@ public abstract class TcpConnectionManager extends Component {
             // Other end initiates close
             selectionKeys &= ~SelectionKey.OP_READ;
             registration.updateInterested(selectionKeys);
-            downPipeline.executorService().submit(() -> {
+            downPipeline.submit(() -> {
                 try {
                     // Inform downstream and wait until everything has settled.
-                    downPipeline.fire(new HalfClosed(), this).get();
+                    newEventPipeline().fire(new HalfClosed(), this).get();
                     // All settled.
                     removeChannel(this);
                     downPipeline.fire(new Closed(), this);
-                    // Close our end when everything has been written.
+                    // Close our end if everything has been written.
                     synchronized (pendingWrites) {
                         synchronized (nioChannel) {
                             try {
