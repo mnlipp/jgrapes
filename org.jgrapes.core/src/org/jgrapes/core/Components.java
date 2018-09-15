@@ -42,12 +42,13 @@ import org.jgrapes.core.internal.GeneratorRegistry;
 /**
  * This class provides some utility functions.
  */
-@SuppressWarnings("PMD.TooManyMethods")
+@SuppressWarnings({ "PMD.TooManyMethods", "PMD.ClassNamingConventions" })
 public class Components {
 
     private static ExecutorService defaultExecutorService
         = Executors.newCachedThreadPool(
             new ThreadFactory() {
+                @SuppressWarnings("PMD.CommentRequired")
                 public Thread newThread(Runnable runnable) {
                     Thread thread
                         = Executors.defaultThreadFactory().newThread(runnable);
