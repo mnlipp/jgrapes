@@ -24,6 +24,7 @@ import java.nio.channels.SocketChannel;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.core.events.Error;
 import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.IOError;
@@ -102,14 +103,19 @@ public class TcpConnector extends TcpConnectionManager {
     public void onRegistered(NioRegistration.Completed event)
             throws InterruptedException, IOException {
         NioHandler handler = event.event().handler();
-        if (handler instanceof TcpChannel) {
-            TcpChannel channel = (TcpChannel) handler;
-            channel.registrationComplete(event.event());
-            channel.downPipeline()
-                .fire(new Connected(
-                    channel.nioChannel().getLocalAddress(),
-                    channel.nioChannel().getRemoteAddress()), channel);
+        if (!(handler instanceof TcpChannel)) {
+            return;
         }
+        if (event.event().get() == null) {
+            fire(new Error(event, "Registration failed, no NioDispatcher?",
+                new Throwable()));
+            return;
+        }
+        TcpChannel channel = (TcpChannel) handler;
+        channel.registrationComplete(event.event());
+        channel.downPipeline()
+            .fire(new Connected(channel.nioChannel().getLocalAddress(),
+                channel.nioChannel().getRemoteAddress()), channel);
     }
 
     /**
