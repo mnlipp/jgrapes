@@ -29,6 +29,16 @@ import org.jgrapes.core.Event;
 public class HandlingError extends org.jgrapes.core.events.Error {
 
     /**
+     * Creates a new event as a copy of an existing event. Useful
+     * for forwarding an event.
+     *  
+     * @param event
+     */
+    public HandlingError(HandlingError event) {
+        super(event);
+    }
+
+    /**
      * Creates a new event caused by the given throwable.
      * 
      * @param event the event that was being handled

@@ -35,17 +35,7 @@ public class ErrorPrinter implements ComponentType {
         "PMD.AvoidCatchingGenericException",
         "PMD.UseStringBufferForStringAppends", "PMD.SystemPrintln" })
     public void printError(Error event) {
-        String msg = "(No event)";
-        if (event.event() != null) {
-            try {
-                msg = event.event().toString();
-            } catch (Exception t) {
-                msg = "(Cannot convert event to string: " + t.getMessage()
-                    + ")";
-            }
-        }
-        msg += ": " + (event.message() == null ? "(No message)"
-            : event.message());
+        String msg = "Unhandled " + event;
         System.err.println(msg);
         if (event.throwable() == null) {
             System.err.println("No stack trace available.");

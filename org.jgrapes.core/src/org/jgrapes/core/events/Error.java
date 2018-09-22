@@ -18,6 +18,8 @@
 
 package org.jgrapes.core.events;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
@@ -33,7 +35,8 @@ public class Error extends Event<Void> {
 
     /**
      * Creates a new event as a copy of an existing event. Useful
-     * for forwarding an event.
+     * for forwarding an event. Constructors "`<T extend Error> T(T event)`"
+     * must be implemented by all derived classes.
      *
      * @param event the event to copy
      */
@@ -41,6 +44,31 @@ public class Error extends Event<Void> {
         this.event = event.event;
         this.message = event.message;
         this.throwable = event.throwable;
+    }
+
+    /**
+     * Duplicate the event. Returns a new event with the same class
+     * and the same properties of the given event. Relies on the
+     * proper implementation of constructors "`<T extend Error> T(T event)`"
+     * for derived classes.
+     * 
+     * Creating a duplicate id useful for forwarding a derived `Error` while
+     * handling a base class.
+     *
+     * @param <T> the generic type
+     * @param event the event
+     * @return the t
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends Error> T duplicate(T event) {
+        try {
+            return (T) event.getClass().getConstructor(event.getClass())
+                .newInstance(event);
+        } catch (InstantiationException | IllegalAccessException
+                | IllegalArgumentException | InvocationTargetException
+                | NoSuchMethodException | SecurityException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -128,6 +156,10 @@ public class Error extends Event<Void> {
             builder.append(", message=\"");
             builder.append(message);
             builder.append('"');
+        }
+        if (event != null) {
+            builder.append(", caused by: ");
+            builder.append(event.toString());
         }
         builder.append(']');
         return builder.toString();
