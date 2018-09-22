@@ -18,13 +18,18 @@
 
 package org.jgrapes.core;
 
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -769,4 +774,198 @@ public class Components {
         return Collections.unmodifiableMap(result);
     }
 
+    public static class PoolingIndex<K, V> {
+
+        private class ValueReference extends WeakReference<V> {
+
+            private K key;
+
+            public ValueReference(K key, V referent) {
+                super(referent, orphanedEntries);
+                this.key = key;
+            }
+
+            /*
+             * (non-Javadoc)
+             * 
+             * @see java.lang.Object#hashCode()
+             */
+            @Override
+            public int hashCode() {
+                V value = get();
+                if (value == null) {
+                    return 0;
+                }
+                return value.hashCode();
+            }
+
+            /*
+             * (non-Javadoc)
+             * 
+             * @see java.lang.Object#equals(java.lang.Object)
+             */
+            @Override
+            public boolean equals(Object obj) {
+                if (obj == null) {
+                    return false;
+                }
+                if (!obj.getClass().equals(ValueReference.class)) {
+                    return false;
+                }
+                V value1 = get();
+                @SuppressWarnings("unchecked")
+                V value2 = ((ValueReference) obj).get();
+                if (value1 == null || value2 == null) {
+                    return false;
+                }
+                return value1.equals(value2);
+            }
+        }
+
+        private Map<K, Set<ValueReference>> backing = new HashMap<>();
+        private final ReferenceQueue<V> orphanedEntries
+            = new ReferenceQueue<>();
+
+        private void cleanOrphaned() {
+            while (true) {
+                @SuppressWarnings("unchecked")
+                ValueReference orphaned
+                    = (ValueReference) orphanedEntries.poll();
+                if (orphaned == null) {
+                    return;
+                }
+                synchronized (this) {
+                    Set<ValueReference> set = backing.get(orphaned.key);
+                    if (set == null) {
+                        continue;
+                    }
+                    Iterator<ValueReference> iter = set.iterator();
+                    while (iter.hasNext()) {
+                        ValueReference ref = iter.next();
+                        if (ref == orphaned) {
+                            iter.remove();
+                            if (set.size() == 0) {
+                                backing.remove(orphaned.key);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void clear() {
+            backing.clear();
+            cleanOrphaned();
+        }
+
+        public boolean containsKey(Object key) {
+            return backing.containsKey(key);
+        }
+
+        public boolean isEmpty() {
+            return backing.isEmpty();
+        }
+
+        public Set<K> keySet() {
+            synchronized (this) {
+                return backing.keySet();
+            }
+        }
+
+        public V add(K key, V value) {
+            synchronized (this) {
+                cleanOrphaned();
+                backing.computeIfAbsent(key, k -> new HashSet<>())
+                    .add(new ValueReference(key, value));
+                return value;
+            }
+        }
+
+        public V poll(K key) {
+            synchronized (this) {
+                cleanOrphaned();
+                Set<ValueReference> set = backing.get(key);
+                if (set == null) {
+                    return null;
+                }
+                Iterator<ValueReference> iter = set.iterator();
+                while (iter.hasNext()) {
+                    ValueReference ref = iter.next();
+                    V value = ref.get();
+                    iter.remove();
+                    if (value == null) {
+                        continue;
+                    }
+                    if (set.size() == 0) {
+                        backing.remove(key);
+                    }
+                    return value;
+                }
+            }
+            return null;
+        }
+
+        public void removeAll(K key) {
+            synchronized (this) {
+                cleanOrphaned();
+                backing.remove(key);
+            }
+        }
+
+        public V remove(K key, V value) {
+            synchronized (this) {
+                cleanOrphaned();
+                Set<ValueReference> set = backing.get(key);
+                if (set == null) {
+                    return null;
+                }
+                Iterator<ValueReference> iter = set.iterator();
+                while (iter.hasNext()) {
+                    ValueReference ref = iter.next();
+                    V stored = ref.get();
+                    boolean found = false;
+                    if (stored == null) {
+                        iter.remove();
+                    }
+                    if (stored.equals(value)) {
+                        iter.remove();
+                        found = true;
+                    }
+                    if (set.size() == 0) {
+                        backing.remove(key);
+                    }
+                    if (found) {
+                        return value;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public V remove(V value) {
+            synchronized (this) {
+                for (Set<ValueReference> set : backing.values()) {
+                    Iterator<ValueReference> iter = set.iterator();
+                    while (iter.hasNext()) {
+                        ValueReference ref = iter.next();
+                        V stored = ref.get();
+                        if (stored == null) {
+                            iter.remove();
+                        }
+                        if (stored.equals(value)) {
+                            iter.remove();
+                            return value;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        public int keysSize() {
+            return backing.size();
+        }
+
+    }
 }
