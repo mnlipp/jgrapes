@@ -660,7 +660,7 @@ public class HttpServer extends Component {
                 }
                 if (hasBody) {
                     // Keep buffer with incomplete response to be further
-                    // filled by Output events
+                    // filled by subsequent Output events
                     break;
                 }
                 // Response is complete
