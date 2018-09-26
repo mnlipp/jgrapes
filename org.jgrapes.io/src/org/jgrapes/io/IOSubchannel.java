@@ -49,13 +49,16 @@ import org.jgrapes.io.util.ManagedBufferPool;
  * Upstream and downstream events are usually handled by two different pipelines
  * managed by the initiator. One pipeline, accessible only to the initiator,
  * handles the downstream events. The other, made available as a property of the
- * I/O subchannel, handles the upstream events. Of course, any pipeline can be
+ * I/O subchannel (see {@link responsePipeline()} and {@link #respond(Event)}), 
+ * handles the upstream events. Of course, any pipeline can be
  * used to send events upstream to the initiator component. However, using
  * arbitrary pipelines holds the risk that events aren't delivered in the
  * intended order.
  * 
- * As a convenience, an I/O subchannel also has an associated buffer pool. 
- * Buffers from this pool should only be acquired for upstream events.
+ * An I/O subchannel also provides associated buffer pools for byte buffers
+ * and character buffers. Buffers used in responses (upstream events)
+ * should be acquired from these pools only. The initiator should initialize 
+ * the pools in such a way that it suits its needs.
  */
 public interface IOSubchannel extends Channel, Associator {
 
