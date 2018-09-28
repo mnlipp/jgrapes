@@ -75,13 +75,18 @@ class ComponentTree {
 
         ActionExecutor actionExecutor = new ActionExecutor();
         try {
-            actionEventHandler = new HandlerReference(actionExecutor,
+            actionEventHandler = HandlerReference.newRef(actionExecutor,
                 ActionExecutor.class.getMethod("execute", ActionEvent.class),
                 0, new HandlerScope() {
                     @Override
                     public boolean includes(
                             Eligible event, Eligible[] channels) {
                         return true;
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "wildcard";
                     }
                 });
         } catch (NoSuchMethodException | SecurityException e) {
