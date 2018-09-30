@@ -43,8 +43,7 @@ import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Input;
-import org.jgrapes.io.events.Output;
-import org.jgrapes.io.util.ManagedBuffer;
+import org.jgrapes.io.util.CharBufferWriter;
 import org.junit.AfterClass;
 
 import static org.junit.Assert.*;
@@ -94,17 +93,21 @@ public class PostTest {
 
         @Handler
         public void onInput(Input<CharBuffer> event, IOSubchannel channel)
-                throws InterruptedException {
+                throws InterruptedException, IOException {
             Optional<String> marker
                 = channel.associated(ContentProvider.class, String.class);
             if (!marker.isPresent() || !marker.get().equals("submit")) {
                 return;
             }
-            ManagedBuffer<CharBuffer> outBuffer
-                = channel.charBufferPool().acquire();
-            outBuffer.backingBuffer().put(event.buffer().backingBuffer());
-            channel.respond(
-                Output.fromSink(outBuffer, event.isEndOfRecord()));
+            CharBufferWriter out = new CharBufferWriter(channel);
+            out.write("->");
+            out.write(event.buffer().backingBuffer().toString());
+            if (event.isEndOfRecord()) {
+                out.suppressClose();
+            } else {
+                out.suppressEndOfRecord().suppressClose();
+            }
+            out.close();
         }
     }
 
@@ -144,7 +147,7 @@ public class PostTest {
         try (BufferedReader br = new BufferedReader(
             new InputStreamReader(conn.getInputStream(), "utf-8"))) {
             String str = br.lines().findFirst().get();
-            assertEquals("Hello!", str);
+            assertEquals("->Hello!", str);
         }
         assertEquals(1, contentProvider.invocations);
     }
