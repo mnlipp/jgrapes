@@ -19,6 +19,7 @@
 package org.jgrapes.net;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.nio.channels.SocketChannel;
 
 import org.jgrapes.core.Channel;
@@ -27,7 +28,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Error;
 import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Close;
-import org.jgrapes.io.events.IOError;
+import org.jgrapes.io.events.ConnectError;
 import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.OpenTcpConnection;
 import org.jgrapes.net.events.Connected;
@@ -85,9 +86,11 @@ public class TcpConnector extends TcpConnectionManager {
     public void onOpenConnection(OpenTcpConnection event) {
         try {
             SocketChannel socketChannel = SocketChannel.open(event.address());
-            channels.add(new TcpChannel(socketChannel));
+            channels.add(new TcpChannelImpl(socketChannel));
+        } catch (ConnectException e) {
+            fire(new ConnectError(event, "Connection refused.", e));
         } catch (IOException e) {
-            fire(new IOError(event, "Failed to open TCP connection.", e));
+            fire(new ConnectError(event, "Failed to open TCP connection.", e));
         }
     }
 
@@ -103,7 +106,7 @@ public class TcpConnector extends TcpConnectionManager {
     public void onRegistered(NioRegistration.Completed event)
             throws InterruptedException, IOException {
         NioHandler handler = event.event().handler();
-        if (!(handler instanceof TcpChannel)) {
+        if (!(handler instanceof TcpChannelImpl)) {
             return;
         }
         if (event.event().get() == null) {
@@ -111,7 +114,7 @@ public class TcpConnector extends TcpConnectionManager {
                 new Throwable()));
             return;
         }
-        TcpChannel channel = (TcpChannel) handler;
+        TcpChannelImpl channel = (TcpChannelImpl) handler;
         channel.registrationComplete(event.event());
         channel.downPipeline()
             .fire(new Connected(channel.nioChannel().getLocalAddress(),
@@ -129,8 +132,9 @@ public class TcpConnector extends TcpConnectionManager {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void onClose(Close event) throws IOException, InterruptedException {
         for (Channel channel : event.channels()) {
-            if (channel instanceof TcpChannel && channels.contains(channel)) {
-                ((TcpChannel) channel).close();
+            if (channel instanceof TcpChannelImpl
+                && channels.contains(channel)) {
+                ((TcpChannelImpl) channel).close();
             }
         }
     }

@@ -49,7 +49,7 @@ import org.jgrapes.io.util.ManagedBufferPool;
  * Upstream and downstream events are usually handled by two different pipelines
  * managed by the initiator. One pipeline, accessible only to the initiator,
  * handles the downstream events. The other, made available as a property of the
- * I/O subchannel (see {@link responsePipeline()} and {@link #respond(Event)}), 
+ * I/O subchannel (see {@link #responsePipeline()} and {@link #respond(Event)}), 
  * handles the upstream events. Of course, any pipeline can be
  * used to send events upstream to the initiator component. However, using
  * arbitrary pipelines holds the risk that events aren't delivered in the

@@ -19,6 +19,7 @@
 package org.jgrapes.net;
 
 import java.io.IOException;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -55,7 +56,7 @@ import org.jgrapes.io.util.ManagedBufferPool;
 public abstract class TcpConnectionManager extends Component {
 
     private int bufferSize;
-    protected final Set<TcpChannel> channels = new HashSet<>();
+    protected final Set<TcpChannelImpl> channels = new HashSet<>();
     private ExecutorService executorService;
 
     /**
@@ -128,7 +129,7 @@ public abstract class TcpConnectionManager extends Component {
      */
     @Handler
     public void onOutput(Output<ByteBuffer> event,
-            TcpChannel channel) throws InterruptedException {
+            TcpChannelImpl channel) throws InterruptedException {
         if (channels.contains(channel)) {
             channel.write(event);
         }
@@ -140,7 +141,7 @@ public abstract class TcpConnectionManager extends Component {
      * @param channel the channel
      * @return true, if channel was registered
      */
-    protected boolean removeChannel(TcpChannel channel) {
+    protected boolean removeChannel(TcpChannelImpl channel) {
         synchronized (channels) {
             return channels.remove(channel);
         }
@@ -173,8 +174,8 @@ public abstract class TcpConnectionManager extends Component {
     /**
      * The internal representation of a connection. 
      */
-    protected class TcpChannel
-            extends DefaultSubchannel implements NioHandler {
+    protected class TcpChannelImpl
+            extends DefaultSubchannel implements NioHandler, TcpChannel {
 
         private final SocketChannel nioChannel;
         private EventPipeline downPipeline;
@@ -193,7 +194,7 @@ public abstract class TcpConnectionManager extends Component {
          * @param nioChannel the channel
          * @throws IOException if an I/O error occured
          */
-        public TcpChannel(SocketChannel nioChannel) throws IOException {
+        public TcpChannelImpl(SocketChannel nioChannel) throws IOException {
             super(channel(), newEventPipeline());
             this.nioChannel = nioChannel;
             if (executorService == null) {
@@ -201,10 +202,11 @@ public abstract class TcpConnectionManager extends Component {
             } else {
                 downPipeline = newEventPipeline(executorService);
             }
-
             String channelName
                 = Components.objectName(TcpConnectionManager.this)
                     + "." + Components.objectName(this);
+
+            // Prepare write buffers
             int writeBufferSize = bufferSize == 0
                 ? nioChannel.socket().getSendBufferSize()
                 : bufferSize;
@@ -214,6 +216,7 @@ public abstract class TcpConnectionManager extends Component {
                 }, 2)
                     .setName(channelName + ".upstream.buffers"));
 
+            // Prepare read buffers
             int readBufferSize = bufferSize == 0
                 ? nioChannel.socket().getReceiveBufferSize()
                 : bufferSize;
@@ -238,6 +241,16 @@ public abstract class TcpConnectionManager extends Component {
          */
         public SocketChannel nioChannel() {
             return nioChannel;
+        }
+
+        @Override
+        public SocketAddress localAddress() throws IOException {
+            return nioChannel.getLocalAddress();
+        }
+
+        @Override
+        public SocketAddress remoteAddress() throws IOException {
+            return nioChannel.getRemoteAddress();
         }
 
         /**
@@ -287,7 +300,7 @@ public abstract class TcpConnectionManager extends Component {
          *
          * @return the time
          */
-        public long becamePurgeableAt() {
+        public long purgeableSince() {
             return becamePurgeableAt;
         }
 
@@ -386,7 +399,6 @@ public abstract class TcpConnectionManager extends Component {
                     downPipeline.fire(new Closed(), this);
                     return;
                 }
-
             }
             // Other end initiates close
             selectionKeys &= ~SelectionKey.OP_READ;

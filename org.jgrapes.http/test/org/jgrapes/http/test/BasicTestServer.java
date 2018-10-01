@@ -37,7 +37,7 @@ import static org.junit.Assert.fail;
  */
 public class BasicTestServer extends Component {
     private InetSocketAddress addr;
-    private WaitForTests readyMonitor;
+    private WaitForTests<Ready> readyMonitor;
 
     @SafeVarargs
     public BasicTestServer(Class<? extends Request.In>... fallbacks)
@@ -46,11 +46,11 @@ public class BasicTestServer extends Component {
         TcpServer networkServer = attach(new TcpServer());
         attach(new HttpServer(channel(), networkServer.channel(),
             fallbacks));
-        readyMonitor = new WaitForTests(
+        readyMonitor = new WaitForTests<>(
             this, Ready.class, networkServer.channel().defaultCriterion());
     }
 
-    private InetSocketAddress getSocketAddress()
+    public InetSocketAddress getSocketAddress()
             throws InterruptedException, ExecutionException {
         if (addr == null) {
             Ready readyEvent = (Ready) readyMonitor.get();

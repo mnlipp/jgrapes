@@ -63,23 +63,23 @@ public class PostTest {
     }
 
     private static TestServer server;
-    private static ContentProvider contentProvider;
+    private static ReflectProvider contentProvider;
 
-    public static class ContentProvider extends Component {
+    public static class ReflectProvider extends Component {
 
         public int invocations = 0;
 
-        public ContentProvider(Channel componentChannel) {
+        public ReflectProvider(Channel componentChannel) {
             super(componentChannel);
             contentProvider = this;
         }
 
-        @RequestHandler(patterns = "/submit")
+        @RequestHandler(patterns = "/reflect")
         public void onPost(Request.In.Post event, IOSubchannel channel)
                 throws ParseException {
             invocations += 1;
 
-            channel.setAssociated(ContentProvider.class, "submit");
+            channel.setAssociated(ReflectProvider.class, "reflect");
             final HttpResponse response = event.httpRequest().response().get();
             response.setStatus(HttpStatus.OK);
             response.setHasPayload(true);
@@ -95,8 +95,8 @@ public class PostTest {
         public void onInput(Input<CharBuffer> event, IOSubchannel channel)
                 throws InterruptedException, IOException {
             Optional<String> marker
-                = channel.associated(ContentProvider.class, String.class);
-            if (!marker.isPresent() || !marker.get().equals("submit")) {
+                = channel.associated(ReflectProvider.class, String.class);
+            if (!marker.isPresent() || !marker.get().equals("reflect")) {
                 return;
             }
             CharBufferWriter out = new CharBufferWriter(channel);
@@ -115,7 +115,7 @@ public class PostTest {
     public static void startServer() throws IOException, InterruptedException,
             ExecutionException {
         server = new TestServer();
-        server.attach(new ContentProvider(server.channel()));
+        server.attach(new ReflectProvider(server.channel()));
         Components.start(server);
     }
 
@@ -134,7 +134,7 @@ public class PostTest {
     @Test(timeout = 1500)
     public void testPost()
             throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", server.getPort(), "/submit");
+        URL url = new URL("http", "localhost", server.getPort(), "/reflect");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(1000);
         conn.setReadTimeout(1000);

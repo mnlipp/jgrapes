@@ -90,7 +90,7 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * each channel that is purgeable for at least the time span
  * set with {@link #setMinimalPurgeableTime(long)}. Purgeability 
  * is derived from the end of record flag of {@link Output} events
- * (see {@link #onOutput(Output, TcpChannel)}. When using this feature, 
+ * (see {@link #onOutput(Output, TcpChannelImpl)}. When using this feature, 
  * make sure that connections are either short lived or the application
  * level components support the {@link Purge} event. Else, it may become
  * impossible to establish new connections.
@@ -155,7 +155,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
                         }
                     }
                     // Copy to avoid ConcurrentModificationException
-                    List<TcpChannel> candidates;
+                    List<TcpChannelImpl> candidates;
                     synchronized (channels) {
                         candidates = new ArrayList<>(channels);
                     }
@@ -163,24 +163,24 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
                         = System.currentTimeMillis() - minimumPurgeableTime;
                     candidates = candidates.stream()
                         .filter(channel -> channel.isPurgeable()
-                            && channel.becamePurgeableAt() < purgeableSince)
-                        .sorted(new Comparator<TcpChannel>() {
+                            && channel.purgeableSince() < purgeableSince)
+                        .sorted(new Comparator<TcpChannelImpl>() {
                             @Override
                             @SuppressWarnings("PMD.ShortVariable")
-                            public int compare(TcpChannel c1, TcpChannel c2) {
-                                if (c1.becamePurgeableAt() < c2
-                                    .becamePurgeableAt()) {
+                            public int compare(TcpChannelImpl c1, TcpChannelImpl c2) {
+                                if (c1.purgeableSince() < c2
+                                    .purgeableSince()) {
                                     return 1;
                                 }
-                                if (c1.becamePurgeableAt() > c2
-                                    .becamePurgeableAt()) {
+                                if (c1.purgeableSince() > c2
+                                    .purgeableSince()) {
                                     return -1;
                                 }
                                 return 0;
                             }
                         })
                         .collect(Collectors.toList());
-                    for (TcpChannel channel : candidates) {
+                    for (TcpChannelImpl channel : candidates) {
                         // Sorting may have taken time...
                         if (!channel.isPurgeable()) {
                             continue;
@@ -393,8 +393,8 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
             fire(new Ready(serverSocketChannel.getLocalAddress()));
             return;
         }
-        if (handler instanceof TcpChannel) {
-            TcpChannel channel = (TcpChannel) handler;
+        if (handler instanceof TcpChannelImpl) {
+            TcpChannelImpl channel = (TcpChannelImpl) handler;
             channel.downPipeline()
                 .fire(new Accepted(channel.nioChannel().getLocalAddress(),
                     channel.nioChannel().getRemoteAddress(), false,
@@ -426,7 +426,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
                     }
                     return;
                 }
-                channels.add(new TcpChannel(socketChannel));
+                channels.add(new TcpChannelImpl(socketChannel));
             } catch (IOException e) {
                 fire(new IOError(null, e));
             }
@@ -434,7 +434,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
     }
 
     @Override
-    protected boolean removeChannel(TcpChannel channel) {
+    protected boolean removeChannel(TcpChannelImpl channel) {
         synchronized (channels) {
             if (!channels.remove(channel)) {
                 // Closed already
@@ -461,9 +461,9 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
     public void onClose(Close event) throws IOException, InterruptedException {
         boolean subOnly = true;
         for (Channel channel : event.channels()) {
-            if (channel instanceof TcpChannel) {
+            if (channel instanceof TcpChannelImpl) {
                 if (channels.contains(channel)) {
-                    ((TcpChannel) channel).close();
+                    ((TcpChannelImpl) channel).close();
                 }
             } else {
                 subOnly = false;
@@ -477,8 +477,8 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
         synchronized (channels) {
             closing = true;
             // Copy to avoid concurrent modification exception
-            Set<TcpChannel> conns = new HashSet<>(channels);
-            for (TcpChannel conn : conns) {
+            Set<TcpChannelImpl> conns = new HashSet<>(channels);
+            for (TcpChannelImpl conn : conns) {
                 conn.close();
             }
             while (!channels.isEmpty()) {
@@ -517,14 +517,14 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
          */
         class ChannelInfo {
 
-            private final TcpChannel channel;
+            private final TcpChannelImpl channel;
 
             /**
              * Instantiates a new channel info.
              *
              * @param channel the channel
              */
-            public ChannelInfo(TcpChannel channel) {
+            public ChannelInfo(TcpChannelImpl channel) {
                 this.channel = channel;
             }
 
@@ -688,7 +688,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
         public SortedMap<String, ChannelInfo> getChannels() {
             return server().map(server -> {
                 SortedMap<String, ChannelInfo> result = new TreeMap<>();
-                for (TcpChannel channel : server.channels) {
+                for (TcpChannelImpl channel : server.channels) {
                     result.put(channel.nioChannel().socket()
                         .getRemoteSocketAddress().toString(),
                         new ChannelInfo(channel));

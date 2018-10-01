@@ -20,8 +20,10 @@ package org.jgrapes.http.events;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Iterator;
 
+import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletionEvent;
@@ -30,38 +32,20 @@ import org.jgrapes.core.Event;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResourcePattern.PathSpliterator;
 
+// TODO: Auto-generated Javadoc
 /**
  * The base class for all HTTP requests such as {@link Request.In.Get},
  * {@link Request.In.Post} etc.
+ *
+ * @param <R> the generic type
  */
 public class Request<R> extends Event<R> {
-
-    private URI uri;
 
     /**
      * @param channels
      */
     protected Request(Channel... channels) {
         super(channels);
-    }
-
-    /**
-     * Sets the request URI.
-     *
-     * @param uri the new request URI
-     */
-    protected void setRequestUri(URI uri) {
-        this.uri = uri;
-    }
-
-    /**
-     * Returns an absolute URI of the request. For incoming requests, the 
-     * URI is built from the information provided by the decoder.
-     * 
-     * @return the URI
-     */
-    public URI requestUri() {
-        return uri;
     }
 
     /**
@@ -77,6 +61,7 @@ public class Request<R> extends Event<R> {
         private final HttpRequest request;
         private MatchValue matchValue;
         private URI matchUri;
+        private URI uri;
 
         /**
          * Creates a new request event with the associated {@link Completed}
@@ -158,6 +143,25 @@ public class Request<R> extends Event<R> {
         }
 
         /**
+         * Sets the request URI.
+         *
+         * @param uri the new request URI
+         */
+        protected void setRequestUri(URI uri) {
+            this.uri = uri;
+        }
+
+        /**
+         * Returns an absolute URI of the request. For incoming requests, the 
+         * URI is built from the information provided by the decoder.
+         * 
+         * @return the URI
+         */
+        public URI requestUri() {
+            return uri;
+        }
+
+        /**
          * Returns the "raw" request as provided by the HTTP decoder.
          * 
          * @return the request
@@ -174,7 +178,8 @@ public class Request<R> extends Event<R> {
          * As the match value is used as key in a map that speeds up
          * the lookup of handlers, having the complete URI in the match
          * value would inflate this map.
-         * 
+         *
+         * @return the object
          * @see org.jgrapes.core.Event#defaultCriterion()
          */
         @Override
@@ -353,7 +358,7 @@ public class Request<R> extends Event<R> {
         }
 
         /**
-         *
+         * The Class Delete.
          */
         public static class Delete extends In {
 
@@ -524,5 +529,181 @@ public class Request<R> extends Event<R> {
      * i.e. a response has been sent or will sent.
      */
     public static class Out extends Request<Void> {
+
+        private HttpRequest request;
+
+        /**
+         * Instantiates a new request.
+         *
+         * @param method the method
+         * @param url the url
+         */
+        public Out(String method, URL url) {
+            try {
+                request = new HttpRequest(method, url.toURI(),
+                    HttpProtocol.HTTP_1_1, false);
+            } catch (URISyntaxException e) {
+                // This should not happen because every valid URL can be
+                // converted to a URI.
+                throw new IllegalArgumentException(e);
+            }
+        }
+
+        /**
+         * The HTTP request that will be sent by the event.
+         *
+         * @return the http request
+         */
+        public HttpRequest httpRequest() {
+            return request;
+        }
+
+        /**
+         * Returns an absolute URI of the request.
+         * 
+         * @return the URI
+         */
+        public URI requestUri() {
+            return request.requestUri();
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(Components.objectName(this))
+                .append(" [");
+            builder.append(request.toString());
+            if (channels().length > 0) {
+                builder.append(", channels=");
+                builder.append(Channel.toString(channels()));
+            }
+            builder.append(']');
+            return builder.toString();
+        }
+
+        /**
+         * Represents a HTTP CONNECT request.
+         */
+        public static class Connect extends Out {
+
+            /**
+             * Instantiates a new request.
+             *
+             * @param uri the uri
+             */
+            public Connect(URL uri) {
+                super("CONNECT", uri);
+            }
+        }
+
+        /**
+         * Represents a HTTP DELETE request.
+         */
+        public static class Delete extends Out {
+
+            /**
+             * Instantiates a new request.
+             *
+             * @param uri the uri
+             */
+            public Delete(URL uri) {
+                super("DELETE", uri);
+            }
+        }
+
+        /**
+         * Represents a HTTP GET request.
+         */
+        public static class Get extends Out {
+
+            /**
+             * Instantiates a new request.
+             *
+             * @param uri the uri
+             */
+            public Get(URL uri) {
+                super("GET", uri);
+            }
+        }
+
+        /**
+         * Represents a HTTP HEAD request.
+         */
+        public static class Head extends Out {
+
+            /**
+             * Instantiates a new request.
+             *
+             * @param uri the uri
+             */
+            public Head(URL uri) {
+                super("HEAD", uri);
+            }
+        }
+
+        /**
+         * Represents a HTTP OPTIONS request.
+         */
+        public static class Options extends Out {
+
+            /**
+             * Instantiates a new request.
+             *
+             * @param uri the uri
+             */
+            public Options(URL uri) {
+                super("OPTIONS", uri);
+            }
+        }
+
+        /**
+         * Represents a HTTP POST request.
+         */
+        public static class Post extends Out {
+
+            /**
+             * Instantiates a new request.
+             *
+             * @param uri the uri
+             */
+            public Post(URL uri) {
+                super("POST", uri);
+            }
+        }
+
+        /**
+         * Represents a HTTP PUT request.
+         */
+        public static class Put extends Out {
+
+            /**
+             * Instantiates a new request.
+             *
+             * @param uri the uri
+             */
+            public Put(URL uri) {
+                super("PUT", uri);
+            }
+        }
+
+        /**
+         * Represents a HTTP TRACE request.
+         */
+        public static class Trace extends Out {
+
+            /**
+             * Instantiates a new request.
+             *
+             * @param uri the uri
+             */
+            public Trace(URL uri) {
+                super("TRACE", uri);
+            }
+        }
     }
 }

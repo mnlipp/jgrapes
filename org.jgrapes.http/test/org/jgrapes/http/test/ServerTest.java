@@ -84,7 +84,7 @@ public class ServerTest {
     public static class TestServer extends Component {
 
         private InetSocketAddress addr;
-        private WaitForTests readyMonitor;
+        private WaitForTests<Ready> readyMonitor;
 
         public TestServer() throws IOException, KeyStoreException,
                 NoSuchAlgorithmException, CertificateException,
@@ -127,7 +127,7 @@ public class ServerTest {
                 "/**", Paths.get("test-resources/static-content").toUri()));
             attach(new PurgeTerminator(channel()));
 
-            readyMonitor = new WaitForTests(this, Ready.class,
+            readyMonitor = new WaitForTests<>(this, Ready.class,
                 securedNetwork.channel().defaultCriterion());
         }
 

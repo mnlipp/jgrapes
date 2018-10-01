@@ -32,85 +32,96 @@ import org.jgrapes.core.annotation.Handler;
 /**
  * A helper component that can be used to wait for the occurrence of 
  * an event.
- * 
  */
-public class WaitForTests extends Component implements Future<Event<?>> {
+public class WaitForTests<T extends Event<?>> extends Component
+        implements Future<T> {
 
-	Event<?> result = null;
-	
-	/**
-	 * Create a component that attaches itself to the given tree and
-	 * waits for the occurrence of an event of the given type on
-	 * the given channel. 
-	 */
-	public WaitForTests(ComponentType app, Object eventKey, Object channelKey) {
-		Handler.Evaluator.add(
-				this, "onEvent", eventKey, channelKey, Integer.MIN_VALUE);
-		Components.manager(app).attach(this);
-	}
+    T result = null;
 
-	/**
-	 * Called when the event occurs.
-	 * 
-	 * @param event
-	 */
-	@Handler(dynamic=true)
-	public void onEvent(Event<?> event) {
-		synchronized (this) {
-			this.result = event;
-			notifyAll();
-		}
-		detach();
-	}
+    /**
+     * Create a component that attaches itself to the given tree and
+     * waits for the occurrence of an event of the given type on
+     * the given channel. 
+     */
+    public WaitForTests(ComponentType app, Object eventKey, Object channelKey) {
+        Handler.Evaluator.add(
+            this, "onEvent", eventKey, channelKey, Integer.MIN_VALUE);
+        Components.manager(app).attach(this);
+    }
 
-	/* (non-Javadoc)
-	 * @see java.util.concurrent.Future#cancel(boolean)
-	 */
-	@Override
-	public boolean cancel(boolean mayInterruptIfRunning) {
-		return false;
-	}
+    /**
+     * Called when the event occurs.
+     * 
+     * @param event
+     */
+    @Handler(dynamic = true)
+    public void onEvent(T event) {
+        synchronized (this) {
+            this.result = event;
+            notifyAll();
+        }
+        detach();
+    }
 
-	/* (non-Javadoc)
-	 * @see java.util.concurrent.Future#get()
-	 */
-	@Override
-	public Event<?> get() throws InterruptedException, ExecutionException {
-		synchronized (this) {
-			while (result == null) {
-				wait();
-			}
-		}
-		return result;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.util.concurrent.Future#cancel(boolean)
+     */
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)
-	 */
-	@Override
-	public Event<?> get(long timeout, TimeUnit unit)
-	        throws InterruptedException, ExecutionException, TimeoutException {
-		synchronized (this) {
-			while (result == null) {
-				wait(unit.toMillis(timeout));
-			}
-		}
-		return result;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.util.concurrent.Future#get()
+     */
+    @Override
+    public T get() throws InterruptedException, ExecutionException {
+        synchronized (this) {
+            while (result == null) {
+                wait();
+            }
+        }
+        return result;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.util.concurrent.Future#isCancelled()
-	 */
-	@Override
-	public boolean isCancelled() {
-		return false;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)
+     */
+    @Override
+    public T get(long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+        synchronized (this) {
+            while (result == null) {
+                wait(unit.toMillis(timeout));
+            }
+        }
+        return result;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.util.concurrent.Future#isDone()
-	 */
-	@Override
-	public boolean isDone() {
-		return result != null;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.util.concurrent.Future#isCancelled()
+     */
+    @Override
+    public boolean isCancelled() {
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.util.concurrent.Future#isDone()
+     */
+    @Override
+    public boolean isDone() {
+        return result != null;
+    }
 }
