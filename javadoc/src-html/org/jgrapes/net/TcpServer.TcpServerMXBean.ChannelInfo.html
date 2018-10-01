@@ -98,7 +98,7 @@
 <span class="sourceLineNo">090</span> * each channel that is purgeable for at least the time span<a name="line.90"></a>
 <span class="sourceLineNo">091</span> * set with {@link #setMinimalPurgeableTime(long)}. Purgeability <a name="line.91"></a>
 <span class="sourceLineNo">092</span> * is derived from the end of record flag of {@link Output} events<a name="line.92"></a>
-<span class="sourceLineNo">093</span> * (see {@link #onOutput(Output, TcpChannel)}. When using this feature, <a name="line.93"></a>
+<span class="sourceLineNo">093</span> * (see {@link #onOutput(Output, TcpChannelImpl)}. When using this feature, <a name="line.93"></a>
 <span class="sourceLineNo">094</span> * make sure that connections are either short lived or the application<a name="line.94"></a>
 <span class="sourceLineNo">095</span> * level components support the {@link Purge} event. Else, it may become<a name="line.95"></a>
 <span class="sourceLineNo">096</span> * impossible to establish new connections.<a name="line.96"></a>
@@ -163,7 +163,7 @@
 <span class="sourceLineNo">155</span>                        }<a name="line.155"></a>
 <span class="sourceLineNo">156</span>                    }<a name="line.156"></a>
 <span class="sourceLineNo">157</span>                    // Copy to avoid ConcurrentModificationException<a name="line.157"></a>
-<span class="sourceLineNo">158</span>                    List&lt;TcpChannel&gt; candidates;<a name="line.158"></a>
+<span class="sourceLineNo">158</span>                    List&lt;TcpChannelImpl&gt; candidates;<a name="line.158"></a>
 <span class="sourceLineNo">159</span>                    synchronized (channels) {<a name="line.159"></a>
 <span class="sourceLineNo">160</span>                        candidates = new ArrayList&lt;&gt;(channels);<a name="line.160"></a>
 <span class="sourceLineNo">161</span>                    }<a name="line.161"></a>
@@ -171,24 +171,24 @@
 <span class="sourceLineNo">163</span>                        = System.currentTimeMillis() - minimumPurgeableTime;<a name="line.163"></a>
 <span class="sourceLineNo">164</span>                    candidates = candidates.stream()<a name="line.164"></a>
 <span class="sourceLineNo">165</span>                        .filter(channel -&gt; channel.isPurgeable()<a name="line.165"></a>
-<span class="sourceLineNo">166</span>                            &amp;&amp; channel.becamePurgeableAt() &lt; purgeableSince)<a name="line.166"></a>
-<span class="sourceLineNo">167</span>                        .sorted(new Comparator&lt;TcpChannel&gt;() {<a name="line.167"></a>
+<span class="sourceLineNo">166</span>                            &amp;&amp; channel.purgeableSince() &lt; purgeableSince)<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                        .sorted(new Comparator&lt;TcpChannelImpl&gt;() {<a name="line.167"></a>
 <span class="sourceLineNo">168</span>                            @Override<a name="line.168"></a>
 <span class="sourceLineNo">169</span>                            @SuppressWarnings("PMD.ShortVariable")<a name="line.169"></a>
-<span class="sourceLineNo">170</span>                            public int compare(TcpChannel c1, TcpChannel c2) {<a name="line.170"></a>
-<span class="sourceLineNo">171</span>                                if (c1.becamePurgeableAt() &lt; c2<a name="line.171"></a>
-<span class="sourceLineNo">172</span>                                    .becamePurgeableAt()) {<a name="line.172"></a>
+<span class="sourceLineNo">170</span>                            public int compare(TcpChannelImpl c1, TcpChannelImpl c2) {<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                                if (c1.purgeableSince() &lt; c2<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                                    .purgeableSince()) {<a name="line.172"></a>
 <span class="sourceLineNo">173</span>                                    return 1;<a name="line.173"></a>
 <span class="sourceLineNo">174</span>                                }<a name="line.174"></a>
-<span class="sourceLineNo">175</span>                                if (c1.becamePurgeableAt() &gt; c2<a name="line.175"></a>
-<span class="sourceLineNo">176</span>                                    .becamePurgeableAt()) {<a name="line.176"></a>
+<span class="sourceLineNo">175</span>                                if (c1.purgeableSince() &gt; c2<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                                    .purgeableSince()) {<a name="line.176"></a>
 <span class="sourceLineNo">177</span>                                    return -1;<a name="line.177"></a>
 <span class="sourceLineNo">178</span>                                }<a name="line.178"></a>
 <span class="sourceLineNo">179</span>                                return 0;<a name="line.179"></a>
 <span class="sourceLineNo">180</span>                            }<a name="line.180"></a>
 <span class="sourceLineNo">181</span>                        })<a name="line.181"></a>
 <span class="sourceLineNo">182</span>                        .collect(Collectors.toList());<a name="line.182"></a>
-<span class="sourceLineNo">183</span>                    for (TcpChannel channel : candidates) {<a name="line.183"></a>
+<span class="sourceLineNo">183</span>                    for (TcpChannelImpl channel : candidates) {<a name="line.183"></a>
 <span class="sourceLineNo">184</span>                        // Sorting may have taken time...<a name="line.184"></a>
 <span class="sourceLineNo">185</span>                        if (!channel.isPurgeable()) {<a name="line.185"></a>
 <span class="sourceLineNo">186</span>                            continue;<a name="line.186"></a>
@@ -401,8 +401,8 @@
 <span class="sourceLineNo">393</span>            fire(new Ready(serverSocketChannel.getLocalAddress()));<a name="line.393"></a>
 <span class="sourceLineNo">394</span>            return;<a name="line.394"></a>
 <span class="sourceLineNo">395</span>        }<a name="line.395"></a>
-<span class="sourceLineNo">396</span>        if (handler instanceof TcpChannel) {<a name="line.396"></a>
-<span class="sourceLineNo">397</span>            TcpChannel channel = (TcpChannel) handler;<a name="line.397"></a>
+<span class="sourceLineNo">396</span>        if (handler instanceof TcpChannelImpl) {<a name="line.396"></a>
+<span class="sourceLineNo">397</span>            TcpChannelImpl channel = (TcpChannelImpl) handler;<a name="line.397"></a>
 <span class="sourceLineNo">398</span>            channel.downPipeline()<a name="line.398"></a>
 <span class="sourceLineNo">399</span>                .fire(new Accepted(channel.nioChannel().getLocalAddress(),<a name="line.399"></a>
 <span class="sourceLineNo">400</span>                    channel.nioChannel().getRemoteAddress(), false,<a name="line.400"></a>
@@ -434,7 +434,7 @@
 <span class="sourceLineNo">426</span>                    }<a name="line.426"></a>
 <span class="sourceLineNo">427</span>                    return;<a name="line.427"></a>
 <span class="sourceLineNo">428</span>                }<a name="line.428"></a>
-<span class="sourceLineNo">429</span>                channels.add(new TcpChannel(socketChannel));<a name="line.429"></a>
+<span class="sourceLineNo">429</span>                channels.add(new TcpChannelImpl(socketChannel));<a name="line.429"></a>
 <span class="sourceLineNo">430</span>            } catch (IOException e) {<a name="line.430"></a>
 <span class="sourceLineNo">431</span>                fire(new IOError(null, e));<a name="line.431"></a>
 <span class="sourceLineNo">432</span>            }<a name="line.432"></a>
@@ -442,7 +442,7 @@
 <span class="sourceLineNo">434</span>    }<a name="line.434"></a>
 <span class="sourceLineNo">435</span><a name="line.435"></a>
 <span class="sourceLineNo">436</span>    @Override<a name="line.436"></a>
-<span class="sourceLineNo">437</span>    protected boolean removeChannel(TcpChannel channel) {<a name="line.437"></a>
+<span class="sourceLineNo">437</span>    protected boolean removeChannel(TcpChannelImpl channel) {<a name="line.437"></a>
 <span class="sourceLineNo">438</span>        synchronized (channels) {<a name="line.438"></a>
 <span class="sourceLineNo">439</span>            if (!channels.remove(channel)) {<a name="line.439"></a>
 <span class="sourceLineNo">440</span>                // Closed already<a name="line.440"></a>
@@ -469,9 +469,9 @@
 <span class="sourceLineNo">461</span>    public void onClose(Close event) throws IOException, InterruptedException {<a name="line.461"></a>
 <span class="sourceLineNo">462</span>        boolean subOnly = true;<a name="line.462"></a>
 <span class="sourceLineNo">463</span>        for (Channel channel : event.channels()) {<a name="line.463"></a>
-<span class="sourceLineNo">464</span>            if (channel instanceof TcpChannel) {<a name="line.464"></a>
+<span class="sourceLineNo">464</span>            if (channel instanceof TcpChannelImpl) {<a name="line.464"></a>
 <span class="sourceLineNo">465</span>                if (channels.contains(channel)) {<a name="line.465"></a>
-<span class="sourceLineNo">466</span>                    ((TcpChannel) channel).close();<a name="line.466"></a>
+<span class="sourceLineNo">466</span>                    ((TcpChannelImpl) channel).close();<a name="line.466"></a>
 <span class="sourceLineNo">467</span>                }<a name="line.467"></a>
 <span class="sourceLineNo">468</span>            } else {<a name="line.468"></a>
 <span class="sourceLineNo">469</span>                subOnly = false;<a name="line.469"></a>
@@ -485,8 +485,8 @@
 <span class="sourceLineNo">477</span>        synchronized (channels) {<a name="line.477"></a>
 <span class="sourceLineNo">478</span>            closing = true;<a name="line.478"></a>
 <span class="sourceLineNo">479</span>            // Copy to avoid concurrent modification exception<a name="line.479"></a>
-<span class="sourceLineNo">480</span>            Set&lt;TcpChannel&gt; conns = new HashSet&lt;&gt;(channels);<a name="line.480"></a>
-<span class="sourceLineNo">481</span>            for (TcpChannel conn : conns) {<a name="line.481"></a>
+<span class="sourceLineNo">480</span>            Set&lt;TcpChannelImpl&gt; conns = new HashSet&lt;&gt;(channels);<a name="line.480"></a>
+<span class="sourceLineNo">481</span>            for (TcpChannelImpl conn : conns) {<a name="line.481"></a>
 <span class="sourceLineNo">482</span>                conn.close();<a name="line.482"></a>
 <span class="sourceLineNo">483</span>            }<a name="line.483"></a>
 <span class="sourceLineNo">484</span>            while (!channels.isEmpty()) {<a name="line.484"></a>
@@ -525,14 +525,14 @@
 <span class="sourceLineNo">517</span>         */<a name="line.517"></a>
 <span class="sourceLineNo">518</span>        class ChannelInfo {<a name="line.518"></a>
 <span class="sourceLineNo">519</span><a name="line.519"></a>
-<span class="sourceLineNo">520</span>            private final TcpChannel channel;<a name="line.520"></a>
+<span class="sourceLineNo">520</span>            private final TcpChannelImpl channel;<a name="line.520"></a>
 <span class="sourceLineNo">521</span><a name="line.521"></a>
 <span class="sourceLineNo">522</span>            /**<a name="line.522"></a>
 <span class="sourceLineNo">523</span>             * Instantiates a new channel info.<a name="line.523"></a>
 <span class="sourceLineNo">524</span>             *<a name="line.524"></a>
 <span class="sourceLineNo">525</span>             * @param channel the channel<a name="line.525"></a>
 <span class="sourceLineNo">526</span>             */<a name="line.526"></a>
-<span class="sourceLineNo">527</span>            public ChannelInfo(TcpChannel channel) {<a name="line.527"></a>
+<span class="sourceLineNo">527</span>            public ChannelInfo(TcpChannelImpl channel) {<a name="line.527"></a>
 <span class="sourceLineNo">528</span>                this.channel = channel;<a name="line.528"></a>
 <span class="sourceLineNo">529</span>            }<a name="line.529"></a>
 <span class="sourceLineNo">530</span><a name="line.530"></a>
@@ -696,7 +696,7 @@
 <span class="sourceLineNo">688</span>        public SortedMap&lt;String, ChannelInfo&gt; getChannels() {<a name="line.688"></a>
 <span class="sourceLineNo">689</span>            return server().map(server -&gt; {<a name="line.689"></a>
 <span class="sourceLineNo">690</span>                SortedMap&lt;String, ChannelInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.690"></a>
-<span class="sourceLineNo">691</span>                for (TcpChannel channel : server.channels) {<a name="line.691"></a>
+<span class="sourceLineNo">691</span>                for (TcpChannelImpl channel : server.channels) {<a name="line.691"></a>
 <span class="sourceLineNo">692</span>                    result.put(channel.nioChannel().socket()<a name="line.692"></a>
 <span class="sourceLineNo">693</span>                        .getRemoteSocketAddress().toString(),<a name="line.693"></a>
 <span class="sourceLineNo">694</span>                        new ChannelInfo(channel));<a name="line.694"></a>
