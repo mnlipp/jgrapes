@@ -412,24 +412,10 @@ public class HttpServer extends Component {
     }
 
     /**
-     * Delay further processing of the {@link Upgraded} event until
-     * the confirmation has been sent upstream. 
-     *
-     * @param event the event
-     * @param appChannel the app channel
-     * @throws InterruptedException the interrupted exception
-     */
-    @Handler(priority = 1000000)
-    public void onUpgraded(Upgraded event, WebAppMsgChannel appChannel)
-            throws InterruptedException {
-        appChannel.handleUpgraded(event, appChannel);
-    }
-
-    /**
      * The upgraded state.
      */
     private enum UpgradedState {
-        NONE, UPGRADING_TO_WS, WEB_SOCKET
+        NONE, WEB_SOCKET
     }
 
     /**
@@ -448,8 +434,8 @@ public class HttpServer extends Component {
                 CharBuffer> charBufferPool;
         private ManagedBufferPool<?, ?> currentPool;
         private final EventPipeline downPipeline;
-        private final Object syncUpgrading = new Object();
         private UpgradedState upgradedTo = UpgradedState.NONE;
+        private Upgraded pendingUpgraded = null;
         private WsMessageHeader currentWsMessage;
 
         /**
@@ -648,6 +634,14 @@ public class HttpServer extends Component {
             ServerEngine<?, MessageHeader> msgEngine
                 = (ServerEngine<?, MessageHeader>) engine;
             msgEngine.encode(response);
+            if (pendingUpgraded != null) {
+                if (response instanceof HttpResponse
+                    && ((HttpResponse) response).statusCode() % 100 == 1) {
+                    upgradedTo = UpgradedState.WEB_SOCKET;
+                    downPipeline.fire(pendingUpgraded, this);
+                }
+                pendingUpgraded = null;
+            }
             boolean hasBody = response.hasPayload();
             while (true) {
                 outBuffer = upstreamChannel().byteBufferPool().acquire();
@@ -687,7 +681,6 @@ public class HttpServer extends Component {
          */
         public void handleProtocolSwitchAccepted(
                 ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {
-            upgradedTo = UpgradedState.UPGRADING_TO_WS;
             appChannel.setAssociated(URI.class,
                 event.requestEvent().requestUri());
             final HttpResponse response = event.requestEvent()
@@ -695,30 +688,11 @@ public class HttpServer extends Component {
                 .setStatus(HttpStatus.SWITCHING_PROTOCOLS)
                 .setField(HttpField.UPGRADE,
                     new StringList(event.protocol()));
-            downPipeline.fire(new Upgraded(event.resourceName(),
-                event.protocol()), this);
+            // We send the Upgraded event only after the response has
+            // successfully been encoded (and thus checked).
+            pendingUpgraded = new Upgraded(event.resourceName(),
+                event.protocol());
             respond(new Response(response));
-            // Response is sent, channel may be used by next level now.
-            synchronized (syncUpgrading) {
-                upgradedTo = UpgradedState.WEB_SOCKET;
-                syncUpgrading.notifyAll();
-            }
-        }
-
-        /**
-         * Handle an {@link Upgraded} event from the applictaion layer.
-         *
-         * @param event the event
-         * @param appChannel the app channel
-         * @throws InterruptedException the interrupted exception
-         */
-        public void handleUpgraded(Upgraded event,
-                WebAppMsgChannel appChannel) throws InterruptedException {
-            synchronized (syncUpgrading) {
-                while (upgradedTo == UpgradedState.UPGRADING_TO_WS) {
-                    syncUpgrading.wait();
-                }
-            }
         }
 
         /**
