@@ -33,7 +33,7 @@ import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
  * Common utility methods.
  */
 @SuppressWarnings("PMD.MoreThanOneLogger")
-public final class Common {
+public final class CoreUtils {
 
     @SuppressWarnings("PMD.VariableNamingConventions")
     public static final Logger classNames
@@ -42,7 +42,7 @@ public final class Common {
 
     @SuppressWarnings("PMD.VariableNamingConventions")
     /* default */ static final Logger fireRestrictionLogger
-        = Logger.getLogger(Common.class.getPackage().getName()
+        = Logger.getLogger(CoreUtils.class.getPackage().getName()
             + ".fireRestriction");
 
     /** Handler factory cache. */
@@ -53,7 +53,7 @@ public final class Common {
     private static AtomicReference<AssertionError> assertionError
         = new AtomicReference<>();
 
-    private Common() {
+    private CoreUtils() {
     }
 
     /**

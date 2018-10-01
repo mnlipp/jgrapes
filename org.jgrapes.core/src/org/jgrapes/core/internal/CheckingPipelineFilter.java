@@ -97,7 +97,7 @@ class CheckingPipelineFilter
                     || (allowedSourceRef.get())
                         .wrapped() != FeedBackPipelineFilter
                             .getAssociatedPipeline())) {
-                Common.fireRestrictionLogger.log(Level.SEVERE,
+                CoreUtils.fireRestrictionLogger.log(Level.SEVERE,
                     Components.objectName(FeedBackPipelineFilter
                         .getAssociatedPipeline()) + " cannot add "
                         + event.toString() + " to pipeline "

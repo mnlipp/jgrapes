@@ -26,7 +26,7 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.core.internal.Common;
+import org.jgrapes.core.internal.CoreUtils;
 
 import org.junit.After;
 
@@ -73,7 +73,7 @@ public class EventProcessorTests {
 	@Before
 	public void setup() {
 		fireRestrictionLogger 
-			= Logger.getLogger(Common.class.getPackage().getName()
+			= Logger.getLogger(CoreUtils.class.getPackage().getName()
 				+ ".fireRestriction");
 		oldLevel = fireRestrictionLogger.getLevel();
 		fireRestrictionLogger.setLevel(Level.OFF);

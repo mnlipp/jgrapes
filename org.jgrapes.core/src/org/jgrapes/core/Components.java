@@ -40,8 +40,8 @@ import java.util.logging.Level;
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
-import org.jgrapes.core.internal.Common;
 import org.jgrapes.core.internal.ComponentVertex;
+import org.jgrapes.core.internal.CoreUtils;
 import org.jgrapes.core.internal.GeneratorRegistry;
 
 /**
@@ -186,7 +186,7 @@ public class Components {
      * executing the application
      */
     public static void checkAssertions() {
-        Common.checkAssertions();
+        CoreUtils.checkAssertions();
     }
 
     /**
@@ -276,7 +276,7 @@ public class Components {
      * @return the name
      */
     public static String className(Class<?> clazz) {
-        if (Common.classNames.isLoggable(Level.FINER)) {
+        if (CoreUtils.classNames.isLoggable(Level.FINER)) {
             return clazz.getName();
         } else {
             return simpleClassName(clazz);

@@ -44,7 +44,7 @@ class HandlerList extends ArrayList<HandlerReference> {
                     }
                 } catch (AssertionError t) {
                     // JUnit support
-                    Common.setAssertionError(t);
+                    CoreUtils.setAssertionError(t);
                     event.handlingError(eventPipeline, t);
                 } catch (Error e) { // NOPMD
                     // Wouldn't have caught it, if it was possible.
@@ -59,7 +59,7 @@ class HandlerList extends ArrayList<HandlerReference> {
                 event.handled();
             } catch (AssertionError t) {
                 // JUnit support
-                Common.setAssertionError(t);
+                CoreUtils.setAssertionError(t);
                 event.handlingError(eventPipeline, t);
             } catch (Error e) { // NOPMD
                 // Wouldn't have caught it, if it was possible.

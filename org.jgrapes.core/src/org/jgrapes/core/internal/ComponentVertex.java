@@ -100,7 +100,7 @@ public abstract class ComponentVertex implements Manager, Channel {
                 continue;
             }
             HandlerDefinition.Evaluator evaluator
-                = Common.definitionEvaluator(hda);
+                = CoreUtils.definitionEvaluator(hda);
             HandlerScope scope = evaluator.scope(component(), method,
                 channelReplacements);
             if (scope == null) {
