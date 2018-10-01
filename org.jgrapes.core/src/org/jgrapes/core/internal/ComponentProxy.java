@@ -118,7 +118,7 @@ public final class ComponentProxy extends ComponentVertex {
      * @param componentChannel the component's channel
      * @return the node representing the component in the tree
      */
-    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "deprecation" })
+    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis" })
     /* default */ static ComponentVertex getComponentProxy(
             ComponentType component, Channel componentChannel) {
         ComponentProxy componentProxy = null;
