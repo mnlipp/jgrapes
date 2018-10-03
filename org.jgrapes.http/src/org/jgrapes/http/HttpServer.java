@@ -616,7 +616,7 @@ public class HttpServer extends Component {
         }
 
         /**
-         * Handle a response event from the appication layer.
+         * Handle a response event from the application layer.
          *
          * @param event the event
          * @throws InterruptedException the interrupted exception
