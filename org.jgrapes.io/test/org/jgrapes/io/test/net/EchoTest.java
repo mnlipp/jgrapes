@@ -157,7 +157,7 @@ public class EchoTest {
         EchoServer app = new EchoServer();
         app.attach(new TcpServer(app));
         app.attach(new NioDispatcher());
-        WaitForTests wf = new WaitForTests(
+        WaitForTests<Ready> wf = new WaitForTests<>(
             app, Ready.class, app.defaultCriterion());
         Components.start(app);
         Ready readyEvent = (Ready) wf.get();
@@ -221,7 +221,7 @@ public class EchoTest {
         app.attach(new SslCodec(app, securedNetwork, sslContext));
 
         // App ready.
-        WaitForTests wf = new WaitForTests(
+        WaitForTests<Ready> wf = new WaitForTests<>(
             securedNetwork, Ready.class, securedNetwork.defaultCriterion());
         Components.start(app);
         Ready readyEvent = (Ready) wf.get();

@@ -76,88 +76,88 @@ public class BigReadTest {
 //		logger.setLevel(Level.INFO);
 //		localLogging = false;		
 //	}
-	
-	public class EchoServer extends Component {
 
-		/**
-		 * @throws IOException 
-		 */
-		public EchoServer() throws IOException {
-			super();
-			attach(new TcpServer(this));
-		}
+    public class EchoServer extends Component {
 
-		/**
-		 * Sends a lot of data to make sure that the data cannot be sent
-		 * with a single write. Only then will the selector generate write
-		 * the ops that we want to test here. 
-		 * 
-		 * @param event
-		 * @throws IOException
-		 * @throws InterruptedException
-		 */
-		@Handler
-		public void onAcctepted(Accepted event) 
-				throws IOException, InterruptedException {
-			for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
-				try (ByteBufferOutputStream out = new ByteBufferOutputStream(
-				        channel, newEventPipeline())) {
-					for (int i = 0; i < 1000000; i++) {
-						out.write(new String(i + ":Hello World!\n").getBytes());
-					}
-				}
-			}
-		}
-	}
+        /**
+         * @throws IOException 
+         */
+        public EchoServer() throws IOException {
+            super();
+            attach(new TcpServer(this));
+        }
 
-	@Test(timeout=10000)
-	public void test() throws IOException, InterruptedException, 
-			ExecutionException {
-		EchoServer app = new EchoServer();
-		app.attach(new NioDispatcher());
-		WaitForTests wf = new WaitForTests(
-				app, Ready.class, app.defaultCriterion());
-		Components.start(app);
-		Ready readyEvent = (Ready) wf.get();
-		if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
-			fail();
-		}
-		InetSocketAddress serverAddr 
-			= ((InetSocketAddress)readyEvent.listenAddress());
+        /**
+         * Sends a lot of data to make sure that the data cannot be sent
+         * with a single write. Only then will the selector generate write
+         * the ops that we want to test here. 
+         * 
+         * @param event
+         * @throws IOException
+         * @throws InterruptedException
+         */
+        @Handler
+        public void onAcctepted(Accepted event)
+                throws IOException, InterruptedException {
+            for (IOSubchannel channel : event.channels(IOSubchannel.class)) {
+                try (ByteBufferOutputStream out = new ByteBufferOutputStream(
+                    channel, newEventPipeline())) {
+                    for (int i = 0; i < 1000000; i++) {
+                        out.write(new String(i + ":Hello World!\n").getBytes());
+                    }
+                }
+            }
+        }
+    }
 
-		AtomicInteger expected = new AtomicInteger(0);
-		try (Socket client = new Socket("localhost", serverAddr.getPort())) {
-			InputStream fromServer = client.getInputStream();
-			BufferedReader in = new BufferedReader(
-			        new InputStreamReader(fromServer, "ascii"));
-			while (expected.get() < 1000000) {
-				String line = in.readLine();
-				assertNotEquals(null, line);
-				String[] parts = line.split(":");
-				assertEquals(expected.get(),
-				        Integer.parseInt(parts[0]));
-				assertEquals("Hello World!", parts[1]);
-				expected.incrementAndGet();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		assertEquals(1000000, expected.get());
-		
-		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
-		long waitEnd = System.currentTimeMillis() + 3000;
-		while (true) {
-			long waitTime = waitEnd - System.currentTimeMillis();
-			if (waitTime <= 0) {
-				fail();
-			}
-			try {
-				assertTrue(Components.awaitExhaustion(waitTime));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			break;
-		}
-	}
+    @Test(timeout = 10000)
+    public void test() throws IOException, InterruptedException,
+            ExecutionException {
+        EchoServer app = new EchoServer();
+        app.attach(new NioDispatcher());
+        WaitForTests<Ready> wf = new WaitForTests<>(
+            app, Ready.class, app.defaultCriterion());
+        Components.start(app);
+        Ready readyEvent = (Ready) wf.get();
+        if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
+            fail();
+        }
+        InetSocketAddress serverAddr
+            = ((InetSocketAddress) readyEvent.listenAddress());
+
+        AtomicInteger expected = new AtomicInteger(0);
+        try (Socket client = new Socket("localhost", serverAddr.getPort())) {
+            InputStream fromServer = client.getInputStream();
+            BufferedReader in = new BufferedReader(
+                new InputStreamReader(fromServer, "ascii"));
+            while (expected.get() < 1000000) {
+                String line = in.readLine();
+                assertNotEquals(null, line);
+                String[] parts = line.split(":");
+                assertEquals(expected.get(),
+                    Integer.parseInt(parts[0]));
+                assertEquals("Hello World!", parts[1]);
+                expected.incrementAndGet();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        assertEquals(1000000, expected.get());
+
+        Components.manager(app).fire(new Stop(), Channel.BROADCAST);
+        long waitEnd = System.currentTimeMillis() + 3000;
+        while (true) {
+            long waitTime = waitEnd - System.currentTimeMillis();
+            if (waitTime <= 0) {
+                fail();
+            }
+            try {
+                assertTrue(Components.awaitExhaustion(waitTime));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            break;
+        }
+    }
 
 }

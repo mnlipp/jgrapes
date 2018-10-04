@@ -132,7 +132,7 @@ public class EchoTest2 {
         EchoServer srvApp = new EchoServer();
         srvApp.attach(new TcpServer(srvApp));
         srvApp.attach(new NioDispatcher());
-        WaitForTests wf = new WaitForTests(
+        WaitForTests<Ready> wf = new WaitForTests<>(
             srvApp, Ready.class, srvApp.defaultCriterion());
         Components.start(srvApp);
         Ready readyEvent = (Ready) wf.get();
@@ -146,8 +146,9 @@ public class EchoTest2 {
         ClientApp clntApp = new ClientApp(serverAddr);
         clntApp.attach(new TcpConnector(clntApp));
         clntApp.attach(new NioDispatcher());
-        WaitForTests done
-            = new WaitForTests(clntApp, Done.class, clntApp.defaultCriterion());
+        WaitForTests<Done> done
+            = new WaitForTests<>(clntApp, Done.class,
+                clntApp.defaultCriterion());
         Components.start(clntApp);
         done.get();
 
@@ -197,7 +198,7 @@ public class EchoTest2 {
         srvApp.attach(new SslCodec(srvApp, secSrvNetwork, sslSrvContext));
 
         // Server prepared, start it.
-        WaitForTests wf = new WaitForTests(
+        WaitForTests<Ready> wf = new WaitForTests<>(
             secSrvNetwork, Ready.class, secSrvNetwork.defaultCriterion());
         Components.start(srvApp);
         Ready readyEvent = (Ready) wf.get();
@@ -214,8 +215,9 @@ public class EchoTest2 {
         // Create a TCP connector for SSL
         TcpConnector secClntNetwork = clntApp.attach(new TcpConnector());
         clntApp.attach(new SslCodec(clntApp, secClntNetwork, true));
-        WaitForTests done
-            = new WaitForTests(clntApp, Done.class, clntApp.defaultCriterion());
+        WaitForTests<Ready> done
+            = new WaitForTests<>(clntApp, Done.class,
+                clntApp.defaultCriterion());
         Components.start(clntApp);
         done.get();
 

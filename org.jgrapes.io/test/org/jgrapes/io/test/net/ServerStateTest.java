@@ -36,71 +36,74 @@ import org.junit.Test;
 
 public class ServerStateTest {
 
-	public enum State { NEW, READY, CLOSING, CLOSED }
-	
-	public class StateChecker extends Component {
-		
-		public Channel serverChannel = null;
-		
-		public State state = State.NEW;
+    public enum State {
+        NEW, READY, CLOSING, CLOSED
+    }
 
-		public StateChecker() {
-			super(Channel.BROADCAST);
-		}
-		
-		@Handler
-		public void onReady(Ready event) {
-			assertTrue(state == State.NEW);
-			state = State.READY;
-			serverChannel = event.channels()[0];
-		}
-		
-		@Handler
-		public void onClose(Close event) {
-			assertTrue(state == State.READY);
-			state = State.CLOSING;
-		}
-		
-		@Handler
-		public void onClosed(Closed event) {
-			assertTrue(state == State.CLOSING);
-			state = State.CLOSED;
-		}
+    public class StateChecker extends Component {
 
-	}
-	
-	TcpServer app;
-	StateChecker checker;
+        public Channel serverChannel = null;
 
-	@Before
-	public void setUp() throws Exception {
-		NioDispatcher root = new NioDispatcher();
-		app = root.attach(new TcpServer());
-		checker = new StateChecker();
-		app.attach(checker);
-		WaitForTests wf = new WaitForTests(app, Ready.class, Channel.class);
-		Components.start(app);
-		wf.get();
-	}
-	
-	@Test
-	public void testStartClose() throws InterruptedException {
-		assertEquals(State.READY, checker.state);
-		Components.manager(app).fire(
-				new Close(), app.channel()).get();
-		assertEquals(State.CLOSED, checker.state);
-		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
-		Components.awaitExhaustion();
-		Components.checkAssertions();
-	}
+        public State state = State.NEW;
 
-	@Test
-	public void testStartStop() throws InterruptedException {
-		assertEquals(State.READY, checker.state);
-		Components.manager(app).fire(new Stop(), Channel.BROADCAST);
-		Components.awaitExhaustion();
-		assertEquals(State.CLOSED, checker.state);
-		Components.checkAssertions();
-	}
+        public StateChecker() {
+            super(Channel.BROADCAST);
+        }
+
+        @Handler
+        public void onReady(Ready event) {
+            assertTrue(state == State.NEW);
+            state = State.READY;
+            serverChannel = event.channels()[0];
+        }
+
+        @Handler
+        public void onClose(Close event) {
+            assertTrue(state == State.READY);
+            state = State.CLOSING;
+        }
+
+        @Handler
+        public void onClosed(Closed event) {
+            assertTrue(state == State.CLOSING);
+            state = State.CLOSED;
+        }
+
+    }
+
+    TcpServer app;
+    StateChecker checker;
+
+    @Before
+    public void setUp() throws Exception {
+        NioDispatcher root = new NioDispatcher();
+        app = root.attach(new TcpServer());
+        checker = new StateChecker();
+        app.attach(checker);
+        WaitForTests<Ready> wf
+            = new WaitForTests<>(app, Ready.class, Channel.class);
+        Components.start(app);
+        wf.get();
+    }
+
+    @Test
+    public void testStartClose() throws InterruptedException {
+        assertEquals(State.READY, checker.state);
+        Components.manager(app).fire(
+            new Close(), app.channel()).get();
+        assertEquals(State.CLOSED, checker.state);
+        Components.manager(app).fire(new Stop(), Channel.BROADCAST);
+        Components.awaitExhaustion();
+        Components.checkAssertions();
+    }
+
+    @Test
+    public void testStartStop() throws InterruptedException {
+        assertEquals(State.READY, checker.state);
+        Components.manager(app).fire(new Stop(), Channel.BROADCAST);
+        Components.awaitExhaustion();
+        assertEquals(State.CLOSED, checker.state);
+        Components.checkAssertions();
+    }
 
 }
