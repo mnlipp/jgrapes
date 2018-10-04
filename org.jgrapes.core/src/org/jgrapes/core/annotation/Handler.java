@@ -202,6 +202,9 @@ public @interface Handler {
      * Specifying `channels=Channel.class` make the handler listen
      * for all events, independent of the channel that they are fired on.
      * 
+     * Specifying `channels=Self.class` make the handler listen
+     * for events that are fired on the conponent.
+     * 
      * @return the channel classes
      */
     Class<? extends Channel>[] channels() default NoChannel.class;
@@ -454,7 +457,11 @@ public @interface Handler {
                                             + " because " + getClass().getName()
                                             + " does not implement Channel.");
                                 }
-                                // Will be added anyway, see below
+                                // Will be added anyway, see below, but
+                                // channelCriteria must not remain empty,
+                                // else the default channel is added.
+                                channelCriteria.add(
+                                    ((Channel) component).defaultCriterion());
                             } else if (c == Channel.Default.class) {
                                 addDefaultChannel = true;
                             } else {
