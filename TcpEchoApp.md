@@ -6,6 +6,8 @@ title: JGrapes TCP Echo Server Example
 TCP Echo Server
 ===============
 
+![Structure](EchoServer.svg)
+
 ```java
 public class EchoServer extends Component {
 

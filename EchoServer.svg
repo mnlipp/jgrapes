@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="169px" preserveAspectRatio="none" style="width:431px;height:169px;" version="1.1" viewBox="0 0 431 169" width="431px" zoomAndPan="magnify"><defs><filter height="300%" id="fne3fa1s6xgc8" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><rect fill="#FEFECE" filter="url(#fne3fa1s6xgc8)" height="33.9688" style="stroke: #A80036; stroke-width: 1.5;" width="114" x="167" y="11"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="100" x="174" y="24.1387">app: EchoServer</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="168" x2="280" y1="28.9688" y2="28.9688"/><rect fill="#FEFECE" filter="url(#fne3fa1s6xgc8)" height="33.9688" style="stroke: #A80036; stroke-width: 1.5;" width="170" x="6" y="125"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="156" x="13" y="138.1387">dispatcher: NioDispatcher</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="7" x2="175" y1="142.9688" y2="142.9688"/><rect fill="#FEFECE" filter="url(#fne3fa1s6xgc8)" height="33.9688" style="stroke: #A80036; stroke-width: 1.5;" width="142" x="211" y="125"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="128" x="218" y="138.1387">tcpServer: TcpServer</text><line style="stroke: #A80036; stroke-width: 1.5;" x1="212" x2="352" y1="142.9688" y2="142.9688"/><polygon fill="#FBFB77" filter="url(#fne3fa1s6xgc8)" points="36,8,36,48.2656,132,48.2656,132,18,122,8,36,8" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#FBFB77" points="36,8,36,48.2656,132,48.2656,132,32,166.937,28,132,24,132,18,122,8,36,8" style="stroke: #A80036; stroke-width: 1.0;"/><line style="stroke: #A80036; stroke-width: 1.0;" x1="122" x2="122" y1="8" y2="18"/><line style="stroke: #A80036; stroke-width: 1.0;" x1="132" x2="122" y1="18" y2="18"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="75" x="42" y="25.0669">Also serves</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="72" x="42" y="40.1997">as Channel</text><!--link app to dispatcher--><path d="M193.923,53.7803 C168.5842,75.4993 133.0427,105.9634 111.0476,124.8164 " fill="none" id="app-dispatcher" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="204.0886,45.067,196.9299,45.9347,194.9775,52.8765,202.1362,52.0088,204.0886,45.067" style="stroke: #A80036; stroke-width: 1.0;"/><!--link app to tcpServer--><path d="M231.4176,57.7178 C234.9932,69.6727 239.8571,83.356 246,95 C251.5633,105.5453 259.4764,116.1841 266.4676,124.6664 " fill="none" id="app-tcpServer" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="227.9286,45.1554,225.6802,52.007,231.14,56.7177,233.3884,49.8661,227.9286,45.1554" style="stroke: #A80036; stroke-width: 1.0;"/><!--link app to tcpServer--><path d="M232.809,45.3141 C243.7737,66.8656 262.3835,103.4434 273.2982,124.8964 " fill="none" id="app-tcpServer" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#000000" points="294.5,89,297.5,83,300.5,89,294.5,89" style="stroke: #000000; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="84" x="257" y="104.0669">connected to</text><!--link app to app--><path d="M281.0501,17.1257 C300.4261,17.0686 316,20.6934 316,28 C316,35.3066 300.4261,38.9314 281.0501,38.8743 " fill="none" id="app-app" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#000000" points="324,26.5664,318,29.5664,324,32.5664,324,26.5664" style="stroke: #000000; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="84" x="335" y="32.5669">connected to</text><!--
+@startuml EchoServer.svg
+
+object "app: EchoServer" as app
+object "dispatcher: NioDispatcher" as dispatcher
+object "tcpServer: TcpServer" as tcpServer
+
+app *- - dispatcher
+app *- - tcpServer
+app - - app: connected to >
+tcpServer -up- app: connected to >
+
+note left of app: Also serves\nas Channel
+
+@enduml
+
+PlantUML version 1.2017.15(Mon Jul 03 18:45:34 CEST 2017)
+(EPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 1.8.0_181-b13
+Operating System: Linux
+OS Version: 4.17.19-200.fc28.x86_64
+Default Encoding: UTF-8
+Language: de
+Country: DE
+--></g></svg>
