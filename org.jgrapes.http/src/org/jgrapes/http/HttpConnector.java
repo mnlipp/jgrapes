@@ -542,7 +542,7 @@ public class HttpConnector extends Component {
                     if (bodyData.position() > 0) {
                         boolean eor
                             = !result.isOverflow() && !result.isUnderflow();
-                        respond(Input.fromSink(bodyData, eor));
+                        downPipeline.fire(Input.fromSink(bodyData, eor), this);
                     } else {
                         bodyData.unlockBuffer();
                     }
