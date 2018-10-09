@@ -63,7 +63,7 @@ import org.jgrapes.http.events.ProtocolSwitchAccepted;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.Upgraded;
-import org.jgrapes.http.events.WebSocketClosed;
+import org.jgrapes.http.events.WebSocketClose;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
@@ -412,13 +412,6 @@ public class HttpServer extends Component {
     }
 
     /**
-     * The upgraded state.
-     */
-    private enum UpgradedState {
-        NONE, WEB_SOCKET
-    }
-
-    /**
      * An application layer channel.
      */
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
@@ -434,7 +427,6 @@ public class HttpServer extends Component {
                 CharBuffer> charBufferPool;
         private ManagedBufferPool<?, ?> currentPool;
         private final EventPipeline downPipeline;
-        private UpgradedState upgradedTo = UpgradedState.NONE;
         private Upgraded pendingUpgraded = null;
         private WsMessageHeader currentWsMessage;
 
@@ -521,23 +513,14 @@ public class HttpServer extends Component {
                     // Feedback required, send it
                     responsePipeline().overrideRestriction().fire(
                         new Response(result.response().get()), this);
-                    if (result.response().get().isFinal()) {
-                        if (result.isHeaderCompleted()) {
-                            engine.currentRequest()
-                                .filter(WsCloseFrame.class::isInstance)
-                                .ifPresent(closeFrame -> {
-                                    downPipeline.fire(new WebSocketClosed(
-                                        (WsCloseFrame) closeFrame, this));
-                                });
-                        }
-                        break;
-                    }
                     if (result.isResponseOnly()) {
+                        maybeCloseConnection(result);
                         continue;
                     }
                 }
                 if (result.isHeaderCompleted()) {
                     if (!handleRequestHeader(engine.currentRequest().get())) {
+                        maybeCloseConnection(result);
                         break;
                     }
                 }
@@ -552,7 +535,14 @@ public class HttpServer extends Component {
                     }
                     bodyData = null;
                 }
+                maybeCloseConnection(result);
                 wasOverflow = result.isOverflow();
+            }
+        }
+
+        private void maybeCloseConnection(Decoder.Result<?> result) {
+            if (result.closeConnection()) {
+                respond(new Close());
             }
         }
 
@@ -593,6 +583,9 @@ public class HttpServer extends Component {
                         currentPool = byteBufferPool;
                     }
                 }
+            } else if (request instanceof WsCloseFrame) {
+                downPipeline.fire(
+                    new WebSocketClose((WsCloseFrame) request, this));
             }
             return true;
         }
@@ -637,7 +630,6 @@ public class HttpServer extends Component {
             if (pendingUpgraded != null) {
                 if (response instanceof HttpResponse
                     && ((HttpResponse) response).statusCode() % 100 == 1) {
-                    upgradedTo = UpgradedState.WEB_SOCKET;
                     downPipeline.fire(pendingUpgraded, this);
                 }
                 pendingUpgraded = null;
@@ -714,7 +706,7 @@ public class HttpServer extends Component {
             } else {
                 return;
             }
-            if (upgradedTo == UpgradedState.WEB_SOCKET
+            if (engine.switchedTo().equals(Optional.of("websocket"))
                 && currentWsMessage == null) {
                 // When switched to WebSockets, we only have Input and Output
                 // events. Add header automatically.
@@ -752,7 +744,7 @@ public class HttpServer extends Component {
                     break;
                 }
             }
-            if (upgradedTo == UpgradedState.WEB_SOCKET
+            if (engine.switchedTo().equals(Optional.of("websocket"))
                 && event.isEndOfRecord()) {
                 currentWsMessage = null;
             }
@@ -765,8 +757,8 @@ public class HttpServer extends Component {
          * @throws InterruptedException the interrupted exception
          */
         public void handleClose(Close event) throws InterruptedException {
-            if (upgradedTo == UpgradedState.WEB_SOCKET) {
-                respond(new Response(new WsCloseFrame(null, null)));
+            if (engine.switchedTo().equals(Optional.of("websocket"))) {
+                fire(new Response(new WsCloseFrame(null, null)), this);
                 return;
             }
             upstreamChannel().respond(new Close());

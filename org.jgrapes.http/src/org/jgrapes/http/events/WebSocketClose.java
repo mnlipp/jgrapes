@@ -22,13 +22,12 @@ import java.util.Optional;
 
 import org.jdrupes.httpcodec.protocols.websocket.WsCloseFrame;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Event;
 
 /**
  * An event that provides the close information when a WebSockt is closed.
  * Note that this is fired in addition to the connection close event.
  */
-public class WebSocketClosed extends Event<Void> {
+public class WebSocketClose extends MessageReceived<Void> {
 
     private final Optional<Integer> statusCode;
     private final Optional<String> reason;
@@ -37,7 +36,7 @@ public class WebSocketClosed extends Event<Void> {
      * @param closeFrame the close frame
      * @param channels
      */
-    public WebSocketClosed(WsCloseFrame closeFrame, Channel... channels) {
+    public WebSocketClose(WsCloseFrame closeFrame, Channel... channels) {
         super(channels);
         statusCode = closeFrame.statusCode();
         reason = closeFrame.reason();

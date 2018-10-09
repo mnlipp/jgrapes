@@ -178,6 +178,8 @@ public abstract class TcpConnectionManager extends Component {
             extends DefaultSubchannel implements NioHandler, TcpChannel {
 
         private final SocketChannel nioChannel;
+        private final SocketAddress localAddress;
+        private final SocketAddress remoteAddress;
         private EventPipeline downPipeline;
         private final ManagedBufferPool<ManagedBuffer<ByteBuffer>,
                 ByteBuffer> readBuffers;
@@ -197,6 +199,9 @@ public abstract class TcpConnectionManager extends Component {
         public TcpChannelImpl(SocketChannel nioChannel) throws IOException {
             super(channel(), newEventPipeline());
             this.nioChannel = nioChannel;
+            // Copy, because they are only available while channel is open.
+            localAddress = nioChannel.getLocalAddress();
+            remoteAddress = nioChannel.getRemoteAddress();
             if (executorService == null) {
                 downPipeline = newEventPipeline();
             } else {
@@ -244,13 +249,13 @@ public abstract class TcpConnectionManager extends Component {
         }
 
         @Override
-        public SocketAddress localAddress() throws IOException {
-            return nioChannel.getLocalAddress();
+        public SocketAddress localAddress() {
+            return localAddress;
         }
 
         @Override
-        public SocketAddress remoteAddress() throws IOException {
-            return nioChannel.getRemoteAddress();
+        public SocketAddress remoteAddress() {
+            return remoteAddress;
         }
 
         /**

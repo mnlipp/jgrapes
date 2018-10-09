@@ -18,7 +18,6 @@
 
 package org.jgrapes.net;
 
-import java.io.IOException;
 import java.net.SocketAddress;
 
 import org.jgrapes.io.IOSubchannel;
@@ -32,17 +31,15 @@ public interface TcpChannel extends IOSubchannel {
      * Returns the local address.
      *
      * @return the socket address
-     * @throws IOException 
      */
-    SocketAddress localAddress() throws IOException;
+    SocketAddress localAddress();
 
     /**
      * Returns the remote address.
      *
      * @return the socket address
-     * @throws IOException 
      */
-    SocketAddress remoteAddress() throws IOException;
+    SocketAddress remoteAddress();
 
     /**
      * Checks if the connection is purgeable.

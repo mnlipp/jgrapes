@@ -24,26 +24,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.CharBuffer;
-import java.text.ParseException;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
-import org.jdrupes.httpcodec.protocols.http.HttpField;
-import org.jdrupes.httpcodec.protocols.http.HttpResponse;
-import org.jdrupes.httpcodec.types.MediaType;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
-import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.Request;
-import org.jgrapes.http.events.Response;
-import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.events.Input;
-import org.jgrapes.io.util.CharBufferWriter;
 import org.junit.AfterClass;
 
 import static org.junit.Assert.*;
@@ -63,53 +49,7 @@ public class PostTest {
     }
 
     private static TestServer server;
-    private static ReflectProvider contentProvider;
-
-    public static class ReflectProvider extends Component {
-
-        public int invocations = 0;
-
-        public ReflectProvider(Channel componentChannel) {
-            super(componentChannel);
-            contentProvider = this;
-        }
-
-        @RequestHandler(patterns = "/reflect")
-        public void onPost(Request.In.Post event, IOSubchannel channel)
-                throws ParseException {
-            invocations += 1;
-
-            channel.setAssociated(ReflectProvider.class, "reflect");
-            final HttpResponse response = event.httpRequest().response().get();
-            response.setStatus(HttpStatus.OK);
-            response.setHasPayload(true);
-            response.setField(HttpField.CONTENT_TYPE,
-                MediaType.builder().setType("text", "plain")
-                    .setParameter("charset", "utf-8").build());
-            channel.respond(new Response(response));
-            event.setResult(true);
-            event.stop();
-        }
-
-        @Handler
-        public void onInput(Input<CharBuffer> event, IOSubchannel channel)
-                throws InterruptedException, IOException {
-            Optional<String> marker
-                = channel.associated(ReflectProvider.class, String.class);
-            if (!marker.isPresent() || !marker.get().equals("reflect")) {
-                return;
-            }
-            CharBufferWriter out = new CharBufferWriter(channel);
-            out.write("->");
-            out.write(event.buffer().backingBuffer().toString());
-            if (event.isEndOfRecord()) {
-                out.suppressClose();
-            } else {
-                out.suppressEndOfRecord().suppressClose();
-            }
-            out.close();
-        }
-    }
+    static ReflectProvider contentProvider;
 
     @BeforeClass
     public static void startServer() throws IOException, InterruptedException,

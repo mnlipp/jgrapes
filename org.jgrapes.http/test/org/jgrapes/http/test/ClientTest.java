@@ -23,6 +23,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.CharBuffer;
 import java.text.ParseException;
+import java.util.Base64;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
@@ -31,6 +33,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.MediaType;
+import org.jdrupes.httpcodec.types.StringList;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -44,9 +47,10 @@ import org.jgrapes.http.events.HostUnresolved;
 import org.jgrapes.http.events.HttpConnected;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
-import org.jgrapes.http.test.PostTest.ReflectProvider;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioDispatcher;
+import org.jgrapes.io.events.Close;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.ConnectError;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.Output;
@@ -97,12 +101,36 @@ public class ClientTest {
 
     }
 
-    public static class Done extends Event<Object> {
+    public static class ErrorReceived extends Event<Object> {
+    }
+
+    public static class ResponseReceived extends Event<Object> {
+    }
+
+    public static class InputReceived extends Event<Object> {
+    }
+
+    public static class ClosedReceived extends Event<Object> {
+    }
+
+    public static class SendToServer extends Event<Object> {
+        private String data;
+
+        public SendToServer(String data) {
+            this.data = data;
+        }
+
+        public String data() {
+            return data;
+        }
+    }
+
+    public static class CloseConnection extends Event<Void> {
     }
 
     public static class TestClient extends Component {
 
-        public IOSubchannel requestChannel;
+        public IOSubchannel upChannel;
         public MessageHeader response;
         public String textResult;
 
@@ -120,7 +148,7 @@ public class ClientTest {
 
         @Handler
         public void onError(Error event) {
-            fire(new Done().setResult(event));
+            fire(new ErrorReceived().setResult(event));
         }
 
         @SuppressWarnings("unchecked")
@@ -134,21 +162,43 @@ public class ClientTest {
         @Handler
         public void onResponse(Response event, IOSubchannel channel) {
             channel.setAssociated(TestClient.class, this);
+            upChannel = channel;
             response = event.response();
             if (!response.hasPayload()) {
-                fire(new Done());
+                fire(new ResponseReceived());
             }
         }
 
         @Handler
-        public void onInput(Input<?> event) {
+        public void onInput(Input<?> event, IOSubchannel channel) {
+            if (!channel.associated(TestClient.class).isPresent()) {
+                return;
+            }
             if (event.buffer().backingBuffer() instanceof CharBuffer) {
                 textResult
                     = ((CharBuffer) event.buffer().backingBuffer()).toString();
             }
             if (event.isEndOfRecord()) {
-                fire(new Done());
+                fire(new InputReceived());
             }
+        }
+
+        @Handler
+        public void onClosed(Closed event, IOSubchannel channel) {
+            if (!channel.associated(TestClient.class).isPresent()) {
+                return;
+            }
+            fire(new ClosedReceived());
+        }
+
+        @Handler
+        public void onSendToServer(SendToServer event) {
+            upChannel.respond(Output.from(event.data(), true));
+        }
+
+        @Handler
+        public void onCloseConnection(CloseConnection event) {
+            upChannel.respond(new Close());
         }
     }
 
@@ -161,6 +211,7 @@ public class ClientTest {
         srvApp = new TestServer();
         srvApp.attach(new TopProvider(srvApp.channel()));
         srvApp.attach(new ReflectProvider(srvApp.channel()));
+        srvApp.attach(new WsEchoProvider(srvApp.channel()));
         Components.start(srvApp);
         clntApp = new TestClient();
         Components.start(clntApp);
@@ -178,11 +229,11 @@ public class ClientTest {
     public void testUnknownHost()
             throws IOException, InterruptedException, ExecutionException {
         URL url = new URL("http", "never.ever.known", srvApp.getPort(), "/");
-        WaitForTests<Done> doneWaiter = new WaitForTests<>(clntApp, Done.class,
-            clntApp.defaultCriterion());
+        WaitForTests<ErrorReceived> doneWaiter = new WaitForTests<>(clntApp,
+            ErrorReceived.class, clntApp.defaultCriterion());
         clntApp.startRequest(new Request.Out.Get(url), channel -> {
         });
-        Done doneEvent = doneWaiter.get();
+        ErrorReceived doneEvent = doneWaiter.get();
         assertEquals(HostUnresolved.class, doneEvent.get().getClass());
     }
 
@@ -191,11 +242,11 @@ public class ClientTest {
             throws IOException, InterruptedException, ExecutionException {
         // Though not impossible, it's highly unlikely to have a server here
         URL url = new URL("http", "localhost", srvApp.getPort() + 1, "/top");
-        WaitForTests<Done> doneWaiter = new WaitForTests<>(clntApp, Done.class,
-            clntApp.defaultCriterion());
+        WaitForTests<ErrorReceived> doneWaiter = new WaitForTests<>(clntApp,
+            ErrorReceived.class, clntApp.defaultCriterion());
         clntApp.startRequest(new Request.Out.Get(url), channel -> {
         });
-        Done doneEvent = doneWaiter.get();
+        ErrorReceived doneEvent = doneWaiter.get();
         assertEquals(ConnectError.class, doneEvent.get().getClass());
     }
 
@@ -203,19 +254,19 @@ public class ClientTest {
     public void testGetMatchTop()
             throws IOException, InterruptedException, ExecutionException {
         URL url = new URL("http", "localhost", srvApp.getPort(), "/top");
-        WaitForTests<Done> done = new WaitForTests<>(clntApp, Done.class,
-            clntApp.defaultCriterion());
+        WaitForTests<InputReceived> done = new WaitForTests<>(clntApp,
+            InputReceived.class, clntApp.defaultCriterion());
         clntApp.startRequest(new Request.Out.Get(url), channel -> {
         });
         done.get();
         assertEquals("Top!", clntApp.textResult);
-        done = new WaitForTests<>(clntApp, Done.class,
+        done = new WaitForTests<>(clntApp, InputReceived.class,
             clntApp.defaultCriterion());
         clntApp.fire(new Request.Out.Get(url));
         done.get();
     }
 
-    @Test // (timeout = 1500)
+    @Test(timeout = 1500)
     public void testPost()
             throws IOException, InterruptedException, ExecutionException {
         URL url = new URL("http", "localhost", srvApp.getPort(), "/reflect");
@@ -223,8 +274,8 @@ public class ClientTest {
         post.httpRequest().setField("Content-Type",
             "text/plain; charset=utf-8");
         post.httpRequest().setHasPayload(true);
-        WaitForTests<Done> done = new WaitForTests<>(clntApp, Done.class,
-            clntApp.defaultCriterion());
+        WaitForTests<InputReceived> done = new WaitForTests<>(clntApp,
+            InputReceived.class, clntApp.defaultCriterion());
         clntApp.startRequest(post, channel -> {
             try (CharBufferWriter out = new CharBufferWriter(channel)) {
                 out.suppressClose();
@@ -242,5 +293,76 @@ public class ClientTest {
         done.get();
         assertTrue(clntApp.textResult.startsWith("->Hello!"));
         assertTrue(clntApp.textResult.endsWith("Full Stop!"));
+    }
+
+    @Test(timeout = 1500)
+    public void testWsEcho()
+            throws IOException, InterruptedException, ExecutionException {
+        URL url = new URL("http", "localhost", srvApp.getPort(), "/ws/echo");
+        Request.Out.Get upgrade = new Request.Out.Get(url);
+        upgrade.httpRequest().setField(HttpField.UPGRADE,
+            new StringList("websocket"));
+        upgrade.setConnectedCallback((request, connection) -> {
+            request.httpRequest().setField("Origin", "null");
+        });
+        upgrade.httpRequest().setField("Sec-WebSocket-Version", "13");
+        byte[] randomBytes = new byte[16];
+        new Random().nextBytes(randomBytes);
+        upgrade.httpRequest().setField("Sec-WebSocket-Key",
+            Base64.getEncoder().encodeToString(randomBytes));
+
+        // Expect greeting
+        WaitForTests<?> done = new WaitForTests<>(clntApp,
+            InputReceived.class, clntApp.defaultCriterion());
+        clntApp.startRequest(upgrade, channel -> {
+        });
+        done.get();
+        assertEquals("/Greetings!", clntApp.textResult);
+
+        // Expect echo
+        done = new WaitForTests<>(clntApp,
+            InputReceived.class, clntApp.defaultCriterion());
+        clntApp.fire(new SendToServer("Hello!"), clntApp);
+        done.get();
+        assertEquals("Hello!", clntApp.textResult);
+
+        // Expect closed
+        done = new WaitForTests<>(clntApp,
+            ClosedReceived.class, clntApp.defaultCriterion());
+        clntApp.fire(new SendToServer("/quit"), clntApp);
+        done.get();
+        assertEquals("Hello!", clntApp.textResult);
+        done.get();
+    }
+
+    @Test(timeout = 1500)
+    public void testWsClientClose()
+            throws IOException, InterruptedException, ExecutionException {
+        URL url = new URL("http", "localhost", srvApp.getPort(), "/ws/echo");
+        Request.Out.Get upgrade = new Request.Out.Get(url);
+        upgrade.httpRequest().setField(HttpField.UPGRADE,
+            new StringList("websocket"));
+        upgrade.setConnectedCallback((request, connection) -> {
+            request.httpRequest().setField("Origin", "null");
+        });
+        upgrade.httpRequest().setField("Sec-WebSocket-Version", "13");
+        byte[] randomBytes = new byte[16];
+        new Random().nextBytes(randomBytes);
+        upgrade.httpRequest().setField("Sec-WebSocket-Key",
+            Base64.getEncoder().encodeToString(randomBytes));
+
+        // Expect greeting
+        WaitForTests<?> done = new WaitForTests<>(clntApp,
+            InputReceived.class, clntApp.defaultCriterion());
+        clntApp.startRequest(upgrade, channel -> {
+        });
+        done.get();
+        assertEquals("/Greetings!", clntApp.textResult);
+
+        // Expect closed
+        done = new WaitForTests<>(clntApp,
+            ClosedReceived.class, clntApp.defaultCriterion());
+        clntApp.fire(new CloseConnection(), clntApp);
+        done.get();
     }
 }

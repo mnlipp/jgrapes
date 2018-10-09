@@ -21,7 +21,6 @@ package org.jgrapes.http.events;
 import java.net.URI;
 
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
-import org.jgrapes.core.Event;
 import org.jgrapes.http.HttpServer;
 
 /**
@@ -31,7 +30,7 @@ import org.jgrapes.http.HttpServer;
  * The {@link HttpServer} component listens for such events and 
  * automatically creates the required {@link Response} event.
  */
-public class ProtocolSwitchAccepted extends Event<Void> {
+public class ProtocolSwitchAccepted extends MessageReceived<Void> {
 
     private final Request.In requestEvent;
     private final String protocol;

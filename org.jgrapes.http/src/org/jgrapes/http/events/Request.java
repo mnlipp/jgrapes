@@ -22,15 +22,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletionEvent;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.Event;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResourcePattern.PathSpliterator;
+import org.jgrapes.net.TcpChannel;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -39,7 +41,7 @@ import org.jgrapes.http.ResourcePattern.PathSpliterator;
  *
  * @param <R> the generic type
  */
-public class Request<R> extends Event<R> {
+public class Request<R> extends MessageReceived<R> {
 
     /**
      * @param channels
@@ -531,6 +533,7 @@ public class Request<R> extends Event<R> {
     public static class Out extends Request<Void> {
 
         private HttpRequest request;
+        private BiConsumer<Request.Out, TcpChannel> connectedCallback;
 
         /**
          * Instantiates a new request.
@@ -547,6 +550,33 @@ public class Request<R> extends Event<R> {
                 // converted to a URI.
                 throw new IllegalArgumentException(e);
             }
+        }
+
+        /**
+         * Sets a "connected callback". When the {@link Out} event is
+         * created, the network connection is not yet known. Some
+         * header fields' values, however, need e.g. the port information
+         * from the connection. Therefore a callback may be set which is
+         * invoked when the connection has been obtained that will be used
+         * to send the request.
+         *
+         * @param connectedCallback the connected callback
+         * @return the out
+         */
+        public Out setConnectedCallback(
+                BiConsumer<Request.Out, TcpChannel> connectedCallback) {
+            this.connectedCallback = connectedCallback;
+            return this;
+        }
+
+        /**
+         * Returns the connected callback.
+         *
+         * @return the connected callback, if set
+         */
+        public Optional<BiConsumer<Request.Out, TcpChannel>>
+                connectedCallback() {
+            return Optional.ofNullable(connectedCallback);
         }
 
         /**

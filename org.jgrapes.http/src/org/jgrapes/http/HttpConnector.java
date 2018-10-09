@@ -38,10 +38,11 @@ import org.jdrupes.httpcodec.Decoder;
 import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.ProtocolException;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
-import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.protocols.http.client.HttpRequestEncoder;
 import org.jdrupes.httpcodec.protocols.http.client.HttpResponseDecoder;
+import org.jdrupes.httpcodec.protocols.websocket.WsCloseFrame;
+import org.jdrupes.httpcodec.protocols.websocket.WsMessageHeader;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ClassChannel;
@@ -55,9 +56,10 @@ import org.jgrapes.http.events.HostUnresolved;
 import org.jgrapes.http.events.HttpConnected;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
-import org.jgrapes.io.IOSubchannel;
+import org.jgrapes.http.events.WebSocketClose;
 import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
 import org.jgrapes.io.events.Close;
+import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.OpenTcpConnection;
@@ -69,8 +71,7 @@ import org.jgrapes.net.events.Connected;
 
 /**
  * A converter component that receives and sends web application
- * layer messages on {@link IOSubchannel}s of its channel and
- * byte buffers on associated network channels.
+ * layer messages and byte buffers on associated network channels.
  */
 @SuppressWarnings("PMD.ExcessiveImports")
 public class HttpConnector extends Component {
@@ -125,18 +126,46 @@ public class HttpConnector extends Component {
         return applicationBufferSize;
     }
 
+    /**
+     * Starts the processing of a request from the application layer.
+     * When a network connection has been established, the application
+     * layer will be informed by a {@link HttpConnected} event, fired
+     * on a subchannel that is created for the processing of this
+     * request.
+     *
+     * @param event the request
+     * @throws InterruptedException if processing is interrupted
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     @Handler
     public void onRequest(Request.Out event)
             throws InterruptedException, IOException {
         new WebAppMsgChannel(event);
     }
 
+    /**
+     * Handles output from the application. This may be the payload
+     * of e.g. a POST or data to be transferes on a websocket connection.
+     *
+     * @param event the event
+     * @param appChannel the application layer channel
+     * @throws InterruptedException the interrupted exception
+     */
     @Handler
     public void onOutput(Output<?> event, WebAppMsgChannel appChannel)
             throws InterruptedException {
-        appChannel.appOutput(event);
+        appChannel.handleAppOutput(event);
     }
 
+    /**
+     * Called when the network connection is established. Triggers the
+     * frther processing of the initial request.
+     *
+     * @param event the event
+     * @param netConnChannel the network layer channel
+     * @throws InterruptedException if the execution is interrupted
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     @Handler(channels = NetworkChannel.class)
     public void onConnected(Connected event, TcpChannel netConnChannel)
             throws InterruptedException, IOException {
@@ -155,6 +184,12 @@ public class HttpConnector extends Component {
         }
     }
 
+    /**
+     * Handles I/O error events from the network layer.
+     *
+     * @param event the event
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     @Handler(channels = NetworkChannel.class)
     public void onIoError(IOError event) throws IOException {
         for (Channel channel : event.channels()) {
@@ -165,7 +200,7 @@ public class HttpConnector extends Component {
                     = netConnChannel.associated(WebAppMsgChannel.class);
                 if (appChannel.isPresent()) {
                     // Error while using a network connection
-                    appChannel.get().ioError(event, netConnChannel);
+                    appChannel.get().handleIoError(event, netConnChannel);
                     continue;
                 }
                 // Just in case...
@@ -191,20 +226,48 @@ public class HttpConnector extends Component {
         }
     }
 
+    /**
+     * Processes any input from the network layer.
+     *
+     * @param event the event
+     * @param netConnChannel the network layer channel
+     * @throws InterruptedException if the thread is interrupted
+     * @throws ProtocolException if the protocol is violated
+     */
     @Handler(channels = NetworkChannel.class)
     public void onInput(Input<ByteBuffer> event, TcpChannel netConnChannel)
             throws InterruptedException, ProtocolException {
         Optional<WebAppMsgChannel> appChannel
             = netConnChannel.associated(WebAppMsgChannel.class);
         if (appChannel.isPresent()) {
-            appChannel.get().netInput(event, netConnChannel);
+            appChannel.get().handleNetInput(event, netConnChannel);
         }
     }
 
+    /**
+     * Called when the network connection is closed. 
+     *
+     * @param event the event
+     * @param netConnChannel the net conn channel
+     */
     @Handler(channels = NetworkChannel.class)
-    public void onClosed(Input<ByteBuffer> event, TcpChannel netConnChannel)
-            throws IOException {
+    public void onClosed(Closed event, TcpChannel netConnChannel) {
+        netConnChannel.associated(WebAppMsgChannel.class).ifPresent(
+            appChannel -> appChannel.handleClosed(event));
         pooled.remove(netConnChannel.remoteAddress(), netConnChannel);
+    }
+
+    /**
+     * Handles a close event from the application channel. Such an
+     * event may only be fired of the connection has been upgraded
+     * to a websocket connection.
+     *
+     * @param event the event
+     * @param appChannel the application channel
+     */
+    @Handler
+    public void onClose(Close event, WebAppMsgChannel appChannel) {
+        appChannel.handleClose(event);
     }
 
     /**
@@ -215,7 +278,7 @@ public class HttpConnector extends Component {
      */
     private class WebAppMsgChannel extends DefaultSubchannel {
         // Starts as ClientEngine<HttpRequest,HttpResponse> but may change
-        private ClientEngine<HttpRequest, HttpResponse> engine
+        private ClientEngine<?, ?> engine
             = new ClientEngine<>(new HttpRequestEncoder(),
                 new HttpResponseDecoder());
         private InetSocketAddress serverAddress;
@@ -228,6 +291,7 @@ public class HttpConnector extends Component {
         private ManagedBufferPool<?, ?> currentPool;
         private TcpChannel netConnChannel;
         private EventPipeline downPipeline;
+        private WsMessageHeader currentWsMessage;
 
         /**
          * Instantiates a new channel.
@@ -291,7 +355,7 @@ public class HttpConnector extends Component {
          * @param event the event
          * @param netConnChannel the network channel
          */
-        public void ioError(IOError event, TcpChannel netConnChannel) {
+        public void handleIoError(IOError event, TcpChannel netConnChannel) {
             // TODO
             downPipeline.fire(IOError.duplicate(event), this);
         }
@@ -301,6 +365,8 @@ public class HttpConnector extends Component {
             // Associate the network channel with this application channel
             this.netConnChannel = netConnChannel;
             netConnChannel.setAssociated(WebAppMsgChannel.class, this);
+            request.connectedCallback().ifPresent(
+                consumer -> consumer.accept(request, netConnChannel));
 
             // Estimate "good" application buffer size
             int bufferSize = applicationBufferSize;
@@ -330,14 +396,28 @@ public class HttpConnector extends Component {
                 }, 2, 100)
                     .setName(channelName + ".downstream.charBuffers");
 
+            sendMessageUpstream(request.httpRequest(), netConnChannel);
+
+            // Forward Connected event downstream to e.g. start preparation
+            // of output events for payload data.
+            downPipeline.fire(new HttpConnected(request,
+                netConnChannel.localAddress(), netConnChannel.remoteAddress()),
+                this);
+        }
+
+        private void sendMessageUpstream(MessageHeader message,
+                TcpChannel netConnChannel) {
             // Now send request as if it came from downstream (to
             // avoid confusion with output events that may be
             // generated in parallel, see below).
             responsePipeline().submit(new Callable<Void>() {
 
                 public Void call() throws InterruptedException {
-                    engine.encode(request.httpRequest());
-                    boolean hasBody = request.httpRequest().hasPayload();
+                    @SuppressWarnings("unchecked")
+                    ClientEngine<MessageHeader, MessageHeader> untypedEngine
+                        = (ClientEngine<MessageHeader, MessageHeader>) engine;
+                    untypedEngine.encode(message);
+                    boolean hasBody = message.hasPayload();
                     while (true) {
                         outBuffer = netConnChannel.byteBufferPool().acquire();
                         Codec.Result result
@@ -369,15 +449,10 @@ public class HttpConnector extends Component {
                     return null;
                 }
             });
-
-            // Forward Connected event downstream to e.g. start preparation
-            // of output events for payload data.
-            downPipeline.fire(new HttpConnected(request,
-                netConnChannel.localAddress(), netConnChannel.remoteAddress()),
-                this);
         }
 
-        public void appOutput(Output<?> event) throws InterruptedException {
+        public void handleAppOutput(Output<?> event)
+                throws InterruptedException {
             Buffer eventData = event.data();
             Buffer input;
             if (eventData instanceof ByteBuffer) {
@@ -387,18 +462,18 @@ public class HttpConnector extends Component {
             } else {
                 return;
             }
-//            if (upgradedTo == UpgradedState.WEB_SOCKET
-//                && currentWsMessage == null) {
-//                // When switched to WebSockets, we only have Input and Output
-//                // events. Add header automatically.
-//                @SuppressWarnings("unchecked")
-//                ServerEngine<?, MessageHeader> wsEngine
-//                    = (ServerEngine<?, MessageHeader>) engine;
-//                currentWsMessage = new WsMessageHeader(
-//                    event.buffer().backingBuffer() instanceof CharBuffer,
-//                    true);
-//                wsEngine.encode(currentWsMessage);
-//            }
+            if (engine.switchedTo().equals(Optional.of("websocket"))
+                && currentWsMessage == null) {
+                // When switched to WebSockets, we only have Input and Output
+                // events. Add header automatically.
+                @SuppressWarnings("unchecked")
+                ClientEngine<MessageHeader, ?> wsEngine
+                    = (ClientEngine<MessageHeader, ?>) engine;
+                currentWsMessage = new WsMessageHeader(
+                    event.buffer().backingBuffer() instanceof CharBuffer,
+                    true);
+                wsEngine.encode(currentWsMessage);
+            }
             while (input.hasRemaining() || event.isEndOfRecord()) {
                 if (outBuffer == null) {
                     outBuffer = netConnChannel.byteBufferPool().acquire();
@@ -424,35 +499,43 @@ public class HttpConnector extends Component {
                     break;
                 }
             }
-//            if (upgradedTo == UpgradedState.WEB_SOCKET
-//                && event.isEndOfRecord()) {
-//                currentWsMessage = null;
-//            }
+            if (engine.switchedTo().equals(Optional.of("websocket"))
+                && event.isEndOfRecord()) {
+                currentWsMessage = null;
+            }
         }
 
-        public void netInput(Input<ByteBuffer> event, TcpChannel channel)
+        public void handleNetInput(Input<ByteBuffer> event,
+                TcpChannel netConnChannel)
                 throws InterruptedException, ProtocolException {
             // Send the data from the event through the decoder.
             ByteBuffer inData = event.data();
             // Don't unnecessary allocate a buffer, may be header only message
             ManagedBuffer<?> bodyData = null;
             boolean wasOverflow = false;
+            Decoder.Result<?> result;
             while (inData.hasRemaining()) {
                 if (wasOverflow) {
                     // Message has (more) body
                     bodyData = currentPool.acquire();
                 }
-                Decoder.Result<?> result = engine.decode(inData,
+                result = engine.decode(inData,
                     bodyData == null ? null : bodyData.backingBuffer(),
                     event.isEndOfRecord());
+                if (result.response().isPresent()) {
+                    sendMessageUpstream(result.response().get(),
+                        netConnChannel);
+                    if (result.isResponseOnly()) {
+                        maybeReleaseConnection(result);
+                        continue;
+                    }
+                }
                 if (result.isHeaderCompleted()) {
-                    HttpResponse header
+                    MessageHeader header
                         = engine.responseDecoder().header().get();
                     if (!handleResponseHeader(header)) {
+                        maybeReleaseConnection(result);
                         break;
-                    }
-                    if (!header.hasPayload()) {
-                        releaseConnection(serverAddress, channel);
                     }
                 }
                 if (bodyData != null) {
@@ -460,14 +543,12 @@ public class HttpConnector extends Component {
                         boolean eor
                             = !result.isOverflow() && !result.isUnderflow();
                         respond(Input.fromSink(bodyData, eor));
-                        if (eor) {
-                            releaseConnection(serverAddress, channel);
-                        }
                     } else {
                         bodyData.unlockBuffer();
                     }
                     bodyData = null;
                 }
+                maybeReleaseConnection(result);
                 wasOverflow = result.isOverflow();
             }
         }
@@ -487,25 +568,62 @@ public class HttpConnector extends Component {
                     }
                 }
                 downPipeline.fire(new Response(httpResponse), this);
-//            } else if (request instanceof WsMessageHeader) {
-//                WsMessageHeader wsMessage = (WsMessageHeader) request;
-//                if (wsMessage.hasPayload()) {
-//                    if (wsMessage.isTextMode()) {
-//                        currentPool = charBufferPool;
-//                    } else {
-//                        currentPool = byteBufferPool;
-//                    }
-//                }
+            } else if (response instanceof WsMessageHeader) {
+                WsMessageHeader wsMessage = (WsMessageHeader) response;
+                if (wsMessage.hasPayload()) {
+                    if (wsMessage.isTextMode()) {
+                        currentPool = charBufferPool;
+                    } else {
+                        currentPool = byteBufferPool;
+                    }
+                }
+            } else if (response instanceof WsCloseFrame) {
+                downPipeline.fire(
+                    new WebSocketClose((WsCloseFrame) response, this));
             }
             return true;
         }
 
-        private void releaseConnection(SocketAddress address,
-                TcpChannel netConnChannel) {
+        private void maybeReleaseConnection(Decoder.Result<?> result) {
+            if (result.isOverflow() || result.isUnderflow()) {
+                // Data remains to be processed
+                return;
+            }
+            MessageHeader header
+                = engine.responseDecoder().header().get();
+            // Don't release if something follows
+            if (header instanceof HttpResponse
+                && ((HttpResponse) header).statusCode() % 100 == 1) {
+                return;
+            }
+            if (engine.switchedTo().equals(Optional.of("websocket"))) {
+                if (!result.closeConnection()) {
+                    return;
+                }
+                // Is web socket close, inform application layer
+                downPipeline.fire(new Closed(), this);
+            }
             netConnChannel.setAssociated(WebAppMsgChannel.class, null);
-            pooled.add(address, netConnChannel);
-            this.netConnChannel = null;
+            if (!result.closeConnection()) {
+                // May be reused
+                pooled.add(serverAddress, netConnChannel);
+            }
+            netConnChannel = null;
         }
+
+        public void handleClose(Close event) {
+            if (engine.switchedTo().equals(Optional.of("websocket"))) {
+                sendMessageUpstream(new WsCloseFrame(null, null),
+                    netConnChannel);
+            }
+        }
+
+        public void handleClosed(Closed event) {
+            if (engine.switchedTo().equals(Optional.of("websocket"))) {
+                downPipeline.fire(new Closed(), this);
+            }
+        }
+
     }
 
 }

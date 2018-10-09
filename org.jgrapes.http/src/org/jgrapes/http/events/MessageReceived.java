@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2018 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -18,30 +18,21 @@
 
 package org.jgrapes.http.events;
 
-import org.jdrupes.httpcodec.MessageHeader;
+import org.jgrapes.core.Channel;
+import org.jgrapes.core.Event;
 
 /**
- * Represents the response (header).
+ * Base class for events that signal the reception of a message.
  */
-public class Response extends MessageReceived<Void> {
-
-    @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
-    private final MessageHeader response;
+public class MessageReceived<T> extends Event<T> {
 
     /**
-     * Instantiates a new response.
+     * Instantiates a new message.
      *
-     * @param response the response
+     * @param channels the channels
      */
-    public Response(MessageHeader response) {
-        this.response = response;
-    }
-
-    /**
-     * @return the response
-     */
-    public MessageHeader response() {
-        return response;
+    public MessageReceived(Channel... channels) {
+        super(channels);
     }
 
 }
