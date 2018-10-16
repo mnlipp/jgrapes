@@ -11,11 +11,8 @@ TCP Echo Server
 ```java
 public class EchoServer extends Component {
 
-    public EchoServer() throws IOException {
-        super();
-        attach(new NioDispatcher());
-        attach(new TcpServer(this).setServerAddress(
-            new InetSocketAddress(8888)).setBufferSize(120000));
+    public EchoServer(Channel componentChannel) throws IOException {
+        super(componentChannel);
     }
 
     @Handler
@@ -28,14 +25,15 @@ public class EchoServer extends Component {
         }
     }
 
-    public static void main(String[] args) {
-        try {
-            EchoServer app = new EchoServer();
-            Components.start(app);
-            Components.awaitExhaustion();
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
-        }
+    public static void main(String[] args)
+            throws IOException, InterruptedException {
+        Channel networkChannel = new NamedChannel("network i/o");
+        Component app = new EchoServer(networkChannel)
+            .attach(new NioDispatcher())
+            .attach(new TcpServer(networkChannel).setServerAddress(
+                new InetSocketAddress(8888)).setBufferSize(120000));
+        Components.start(app);
+        Components.awaitExhaustion();
     }
 }
 ```
