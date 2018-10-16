@@ -38,7 +38,7 @@ import org.jgrapes.io.events.Input;
  * 
  * object "app: EchoUntilQuit" as app
  * object "console: InputStreamMonitor" as console
- * object "channel: Channel" as channel
+ * object "mainChannel: NamedChannel" as channel
  * 
  * app *-- console
  * app -- channel: connected to >
@@ -70,9 +70,9 @@ public class EchoUntilQuit extends Component {
      * @throws InterruptedException the interrupted exception
      */
     public static void main(String[] args) throws InterruptedException {
-        Channel channel = new NamedChannel("main");
-        EchoUntilQuit app = new EchoUntilQuit(channel);
-        app.attach(new InputStreamMonitor(channel, System.in));
+        Channel mainChannel = new NamedChannel("main");
+        EchoUntilQuit app = new EchoUntilQuit(mainChannel);
+        app.attach(new InputStreamMonitor(mainChannel, System.in));
         Components.start(app);
         Components.awaitExhaustion();
     }
