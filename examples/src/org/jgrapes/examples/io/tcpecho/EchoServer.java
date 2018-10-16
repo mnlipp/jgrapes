@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
+import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.NioDispatcher;
@@ -33,20 +35,21 @@ import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.net.TcpServer;
 
 /**
- * An application that echos data from a TCP connection.
+ * An application that echoes data on a TCP connection.
  *
  * @startuml EchoServer.svg
  * 
  * object "app: EchoServer" as app
- * object "dispatcher: NioDispatcher" as dispatcher
+ * object "networkChannel: NamedChannel" as channel
+ * object "connectionChannel: IOSubchannel" as subchannel
  * object "tcpServer: TcpServer" as tcpServer
+ * object "dispatcher: NioDispatcher" as dispatcher
  * 
  * app *-- dispatcher
  * app *-- tcpServer
- * app -- app: connected to >
- * tcpServer -up- app: connected to >
- * 
- * note left of app: Also serves\nas Channel
+ * app -- channel: connected to >
+ * tcpServer -up- channel: connected to >
+ * subchannel -up-> channel
  * 
  * @enduml
  */
@@ -55,11 +58,8 @@ public class EchoServer extends Component {
     /**
      * @throws IOException 
      */
-    public EchoServer() throws IOException {
-        super();
-        attach(new NioDispatcher());
-        attach(new TcpServer(this).setServerAddress(
-            new InetSocketAddress(8888)).setBufferSize(120000));
+    public EchoServer(Channel componentChannel) throws IOException {
+        super(componentChannel);
     }
 
     @Handler
@@ -74,15 +74,18 @@ public class EchoServer extends Component {
 
     /**
      * @param args
+     * @throws IOException 
+     * @throws InterruptedException 
      */
-    public static void main(String[] args) {
-        try {
-            EchoServer app = new EchoServer();
-            Components.start(app);
-            Components.awaitExhaustion();
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
-        }
+    public static void main(String[] args)
+            throws IOException, InterruptedException {
+        Channel networkChannel = new NamedChannel("network i/o");
+        Component app = new EchoServer(networkChannel)
+            .attach(new NioDispatcher())
+            .attach(new TcpServer(networkChannel).setServerAddress(
+                new InetSocketAddress(8888)).setBufferSize(120000));
+        Components.start(app);
+        Components.awaitExhaustion();
     }
 
 }
