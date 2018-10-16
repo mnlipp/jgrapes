@@ -18,9 +18,9 @@ The two components are created and connected to a channel in the `main` method.
 
 ```java
     public static void main(String[] args) throws InterruptedException {
-        Channel channel = new NamedChannel("main");
-        EchoUntilQuit app = new EchoUntilQuit(channel);
-        app.attach(new InputStreamMonitor(channel, System.in));
+        Channel mainChannel = new NamedChannel("main");
+        EchoUntilQuit app = new EchoUntilQuit(mainChannel);
+        app.attach(new InputStreamMonitor(mainChannel, System.in));
         Components.start(app);
         Components.awaitExhaustion();
     }
@@ -29,7 +29,7 @@ The two components are created and connected to a channel in the `main` method.
 Attaching the `InputStreamMonitor` to the `EchoUntilQuit` component 
 establishes the composition relationship. The components' connection
 to their associated channel is established by passing the channel
-as argument to the component's constructor.
+as argument to the respective component's constructor.
 
 The "application logic" is provided by the handler method of `EchoUntilQuit`.
 
