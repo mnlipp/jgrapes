@@ -16,7 +16,7 @@ To simplify the a task to a certain degree, JGrapes provides exhaustive
 logging of events with a carefully designed format. Below is the
 log of
 
- * staring the TCP Echo Application,
+ * starting the TCP Echo Application,
  * connecting a client,
  * sending data from the client to the server,
  * sending back the data to the client, and
