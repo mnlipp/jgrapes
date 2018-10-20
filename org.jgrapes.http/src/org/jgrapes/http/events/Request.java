@@ -34,7 +34,6 @@ import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.ResourcePattern.PathSpliterator;
 import org.jgrapes.net.TcpChannel;
 
-// TODO: Auto-generated Javadoc
 /**
  * The base class for all HTTP requests such as {@link Request.In.Get},
  * {@link Request.In.Post} etc.
@@ -57,6 +56,7 @@ public class Request<R> extends MessageReceived<R> {
      * A result of `true` indicates that the request has been processed, 
      * i.e. a response has been sent or will sent.
      */
+    @SuppressWarnings("PMD.ShortClassName")
     public static class In extends Request<Boolean> {
 
         @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
@@ -120,6 +120,7 @@ public class Request<R> extends MessageReceived<R> {
          * @param matchLevels the match levels
          * @return the request event
          */
+        @SuppressWarnings("PMD.AvoidDuplicateLiterals")
         public static In fromHttpRequest(
                 HttpRequest request, boolean secure, int matchLevels) {
             switch (request.method()) {
@@ -149,7 +150,7 @@ public class Request<R> extends MessageReceived<R> {
          *
          * @param uri the new request URI
          */
-        protected void setRequestUri(URI uri) {
+        protected final void setRequestUri(URI uri) {
             this.uri = uri;
         }
 
@@ -159,7 +160,7 @@ public class Request<R> extends MessageReceived<R> {
          * 
          * @return the URI
          */
-        public URI requestUri() {
+        public final URI requestUri() {
             return uri;
         }
 
@@ -530,6 +531,7 @@ public class Request<R> extends MessageReceived<R> {
      * A result of `true` indicates that the request has been processed, 
      * i.e. a response has been sent or will sent.
      */
+    @SuppressWarnings("PMD.ShortClassName")
     public static class Out extends Request<Void> {
 
         private HttpRequest request;
@@ -606,8 +608,7 @@ public class Request<R> extends MessageReceived<R> {
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append(Components.objectName(this))
-                .append(" [");
-            builder.append(request.toString());
+                .append(" [").append(request.toString());
             if (channels().length > 0) {
                 builder.append(", channels=");
                 builder.append(Channel.toString(channels()));

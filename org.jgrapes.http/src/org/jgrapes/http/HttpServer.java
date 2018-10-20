@@ -427,7 +427,7 @@ public class HttpServer extends Component {
                 CharBuffer> charBufferPool;
         private ManagedBufferPool<?, ?> currentPool;
         private final EventPipeline downPipeline;
-        private Upgraded pendingUpgraded = null;
+        private Upgraded pendingUpgraded;
         private WsMessageHeader currentWsMessage;
 
         /**

@@ -30,7 +30,7 @@ import org.jgrapes.net.events.Connected;
  */
 public class HttpConnected extends Connected {
 
-    private Request.Out request;
+    private final Request.Out request;
 
     /**
      * Instantiates a new event.

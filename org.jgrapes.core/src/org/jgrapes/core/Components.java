@@ -775,11 +775,24 @@ public class Components {
         return Collections.unmodifiableMap(result);
     }
 
+    /**
+     * An index of pooled items. Each key is associated with a set
+     * of values. Values can be added or retrieved from the set.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     */
     public static class PoolingIndex<K, V> {
 
+        @SuppressWarnings("PMD.UseConcurrentHashMap")
+        private final Map<K, Set<ValueReference>> backing = new HashMap<>();
+        private final ReferenceQueue<V> orphanedEntries
+            = new ReferenceQueue<>();
+
+        @SuppressWarnings("PMD.CommentRequired")
         private class ValueReference extends WeakReference<V> {
 
-            private K key;
+            private final K key;
 
             public ValueReference(K key, V referent) {
                 super(referent, orphanedEntries);
@@ -823,10 +836,7 @@ public class Components {
             }
         }
 
-        private Map<K, Set<ValueReference>> backing = new HashMap<>();
-        private final ReferenceQueue<V> orphanedEntries
-            = new ReferenceQueue<>();
-
+        @SuppressWarnings("PMD.CompareObjectsWithEquals")
         private void cleanOrphaned() {
             while (true) {
                 @SuppressWarnings("unchecked")
@@ -845,7 +855,7 @@ public class Components {
                         ValueReference ref = iter.next();
                         if (ref == orphaned) {
                             iter.remove();
-                            if (set.size() == 0) {
+                            if (set.isEmpty()) {
                                 backing.remove(orphaned.key);
                             }
                             break;
@@ -855,25 +865,51 @@ public class Components {
             }
         }
 
+        /**
+         * Remove all entries.
+         */
         public void clear() {
             backing.clear();
             cleanOrphaned();
         }
 
+        /**
+         * Checks if the key is in the index.
+         *
+         * @param key the key
+         * @return true, if successful
+         */
         public boolean containsKey(Object key) {
             return backing.containsKey(key);
         }
 
+        /**
+         * Checks if the index is empty.
+         *
+         * @return true, if is empty
+         */
         public boolean isEmpty() {
             return backing.isEmpty();
         }
 
+        /**
+         * Returns all keys.
+         *
+         * @return the sets the
+         */
         public Set<K> keySet() {
             synchronized (this) {
                 return backing.keySet();
             }
         }
 
+        /**
+         * Adds the value to the pool of values associated with the key.
+         *
+         * @param key the key
+         * @param value the value
+         * @return the v
+         */
         public V add(K key, V value) {
             synchronized (this) {
                 cleanOrphaned();
@@ -883,6 +919,13 @@ public class Components {
             }
         }
 
+        /**
+         * Retrives and removes an item from the pool associated with the key.
+         *
+         * @param key the key
+         * @return the removed item or `null` if the pool is empty
+         */
+        @SuppressWarnings("PMD.AvoidBranchingStatementAsLastInLoop")
         public V poll(K key) {
             synchronized (this) {
                 cleanOrphaned();
@@ -898,7 +941,7 @@ public class Components {
                     if (value == null) {
                         continue;
                     }
-                    if (set.size() == 0) {
+                    if (set.isEmpty()) {
                         backing.remove(key);
                     }
                     return value;
@@ -907,6 +950,11 @@ public class Components {
             return null;
         }
 
+        /**
+         * Removes all values associated with the key.
+         *
+         * @param key the key
+         */
         public void removeAll(K key) {
             synchronized (this) {
                 cleanOrphaned();
@@ -914,6 +962,14 @@ public class Components {
             }
         }
 
+        /**
+         * Removes the given value from the pool associated with the given key.
+         *
+         * @param key the key
+         * @param value the value
+         * @return the v
+         */
+        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
         public V remove(K key, V value) {
             synchronized (this) {
                 cleanOrphaned();
@@ -933,7 +989,7 @@ public class Components {
                         iter.remove();
                         found = true;
                     }
-                    if (set.size() == 0) {
+                    if (set.isEmpty()) {
                         backing.remove(key);
                     }
                     if (found) {
@@ -944,6 +1000,12 @@ public class Components {
             return null;
         }
 
+        /**
+         * Removes the value from the first pool in which it is found.
+         *
+         * @param value the value
+         * @return the value or `null` if the value is not found
+         */
         public V remove(V value) {
             synchronized (this) {
                 for (Set<ValueReference> set : backing.values()) {
@@ -964,6 +1026,11 @@ public class Components {
             return null;
         }
 
+        /**
+         * Returns the number of keys in the index.
+         *
+         * @return the numer of keys
+         */
         public int keysSize() {
             return backing.size();
         }

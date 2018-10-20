@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
@@ -33,8 +34,8 @@ import org.jgrapes.http.events.Request;
  */
 public class InMemorySessionManager extends SessionManager {
 
-    @SuppressWarnings("serial")
-    private final LinkedHashMap<String, Session> sessionsById
+    @SuppressWarnings({ "serial", "PMD.UseConcurrentHashMap" })
+    private final Map<String, Session> sessionsById
         = new LinkedHashMap<String, Session>(16, 0.75f, true) {
 
             @Override

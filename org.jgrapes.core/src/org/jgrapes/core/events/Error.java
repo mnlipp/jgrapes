@@ -59,7 +59,8 @@ public class Error extends Event<Void> {
      * @param event the event
      * @return the t
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked",
+        "PMD.AvoidThrowingNewInstanceOfSameException" })
     public static <T extends Error> T duplicate(T event) {
         try {
             return (T) event.getClass().getConstructor(event.getClass())
