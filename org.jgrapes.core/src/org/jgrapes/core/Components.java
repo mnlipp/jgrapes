@@ -47,7 +47,8 @@ import org.jgrapes.core.internal.GeneratorRegistry;
 /**
  * This class provides some utility functions.
  */
-@SuppressWarnings({ "PMD.TooManyMethods", "PMD.ClassNamingConventions" })
+@SuppressWarnings({ "PMD.TooManyMethods", "PMD.ClassNamingConventions",
+    "PMD.ExcessivePublicCount" })
 public class Components {
 
     private static ExecutorService defaultExecutorService
