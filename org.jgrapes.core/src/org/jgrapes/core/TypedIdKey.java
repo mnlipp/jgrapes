@@ -29,11 +29,11 @@ import java.util.Optional;
  * only because they are used as keys) and the identifier alone cannot 
  * be guaranteed to be unique.
  */
-@SuppressWarnings("serial")
-public class TypedIdKey<V> implements Serializable {
+@SuppressWarnings({ "serial", "PMD.ShortVariable" })
+public final class TypedIdKey<V> implements Serializable {
 
-    private Class<V> type;
-    private Serializable id;
+    private final Class<V> type;
+    private final Serializable id;
 
     private TypedIdKey(Class<V> type, Serializable id) {
         this.type = type;
@@ -50,7 +50,7 @@ public class TypedIdKey<V> implements Serializable {
      * @param value the value
      * @return the value for easy chaining
      */
-    @SuppressWarnings({ "PMD.ShortVariable", "unchecked" })
+    @SuppressWarnings({ "unchecked" })
     public static <V> V associate(Associator associator, Serializable id,
             V value) {
         associator.setAssociated(
@@ -68,7 +68,7 @@ public class TypedIdKey<V> implements Serializable {
      * @param value the value
      * @return the value for easy chaining
      */
-    @SuppressWarnings({ "PMD.ShortVariable", "unchecked" })
+    @SuppressWarnings({ "unchecked" })
     public static <V> V put(Map<? super TypedIdKey<V>, ? super V> map,
             Serializable id, V value) {
         map.put(new TypedIdKey<V>((Class<V>) value.getClass(), id), value);
@@ -84,7 +84,6 @@ public class TypedIdKey<V> implements Serializable {
      * @param id the id
      * @return the associated value, if any
      */
-    @SuppressWarnings("PMD.ShortVariable")
     public static <V> Optional<V> associated(Associator associator,
             Class<V> type, Serializable id) {
         return associator.associated(new TypedIdKey<>(type, id), type);
@@ -99,7 +98,7 @@ public class TypedIdKey<V> implements Serializable {
      * @param id the id
      * @return the associated value, if any
      */
-    @SuppressWarnings({ "unchecked", "PMD.ShortVariable" })
+    @SuppressWarnings({ "unchecked" })
     public static <V> Optional<V> get(Map<?, ?> map, Class<V> type,
             Serializable id) {
         return Optional
@@ -107,7 +106,9 @@ public class TypedIdKey<V> implements Serializable {
     }
 
     @Override
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public int hashCode() {
+        @SuppressWarnings("PMD.AvoidFinalLocalVariable")
         final int prime = 31;
         int result = 1;
         result = prime * result + ((id == null) ? 0 : id.hashCode());
