@@ -61,6 +61,13 @@ public class FormProcessor extends Component {
         super(componentChannel);
     }
 
+    /**
+     * Handle a `GET` request.
+     *
+     * @param event the event
+     * @param channel the channel
+     * @throws ParseException the parse exception
+     */
     @RequestHandler(patterns = "/form,/form/**")
     public void onGet(Request.In.Get event, IOSubchannel channel)
             throws ParseException {
@@ -70,6 +77,12 @@ public class FormProcessor extends Component {
             null);
     }
 
+    /**
+     * Handle a `POST` request.
+     *
+     * @param event the event
+     * @param channel the channel
+     */
     @RequestHandler(patterns = "/form,/form/**")
     public void onPost(Request.In.Post event, IOSubchannel channel) {
         FormContext ctx = channel
@@ -80,6 +93,14 @@ public class FormProcessor extends Component {
         event.stop();
     }
 
+    /**
+     * Hanlde input.
+     *
+     * @param event the event
+     * @param channel the channel
+     * @throws InterruptedException the interrupted exception
+     * @throws UnsupportedEncodingException the unsupported encoding exception
+     */
     @Handler
     public void onInput(Input<ByteBuffer> event, IOSubchannel channel)
             throws InterruptedException, UnsupportedEncodingException {

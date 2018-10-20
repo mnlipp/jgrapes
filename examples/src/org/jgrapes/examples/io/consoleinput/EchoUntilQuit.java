@@ -50,10 +50,20 @@ import org.jgrapes.io.events.Input;
  */
 public class EchoUntilQuit extends Component {
 
+    /**
+     * Instantiates a new component.
+     *
+     * @param channel the channel
+     */
     public EchoUntilQuit(Channel channel) {
         super(channel);
     }
 
+    /**
+     * Handle input.
+     *
+     * @param event the event
+     */
     @Handler
     public void onInput(Input<ByteBuffer> event) {
         String data = Charset.defaultCharset().decode(event.data()).toString();
