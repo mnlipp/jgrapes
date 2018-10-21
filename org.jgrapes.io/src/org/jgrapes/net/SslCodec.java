@@ -68,7 +68,7 @@ import org.jgrapes.net.events.Connected;
  * encrypted channel and sends and receives the corresponding
  * decrypted data on a plain channel.
  */
-@SuppressWarnings("PMD.ExcessiveImports")
+@SuppressWarnings({ "PMD.ExcessiveImports" })
 public class SslCodec extends Component {
 
     @SuppressWarnings("PMD.VariableNamingConventions")
@@ -106,6 +106,9 @@ public class SslCodec extends Component {
      * @param encryptedChannel the channel with the encrypted data
      * @param dontValidate if `true` accept all kinds of certificates
      */
+    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.CommentRequired",
+        "PMD.ReturnEmptyArrayRatherThanNull",
+        "PMD.UncommentedEmptyMethodBody" })
     public SslCodec(Channel plainChannel, Channel encryptedChannel,
             boolean dontValidate) {
         super(plainChannel, ChannelReplacements.create()
@@ -137,7 +140,7 @@ public class SslCodec extends Component {
             }
             this.sslContext = sslContext;
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(e);
         }
     }
 
