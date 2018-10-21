@@ -268,8 +268,9 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
                 buffer.lockBuffer();
                 return buffer;
             }
-            logger.fine(() -> "Waiting > " + acquireWarningLimit
-                + "ms for buffer: " + Thread.currentThread().getName());
+            logger.log(Level.FINE, new Throwable(),
+                () -> Thread.currentThread().getName() + " waiting > "
+                    + acquireWarningLimit + "ms for buffer, while executing:");
         }
         W buffer = queue.take();
         buffer.lockBuffer();
