@@ -28,11 +28,23 @@ import org.jgrapes.core.events.Start;
  */
 public class Greeter extends Component {
 
+    /**
+     * Handle the start event.
+     *
+     * @param event the event
+     */
     @Handler
+    @SuppressWarnings("PMD.SystemPrintln")
     public void onStart(Start event) {
         System.out.println("Hello World!");
     }
 
+    /**
+     * The main method.
+     *
+     * @param args the arguments
+     * @throws InterruptedException the interrupted exception
+     */
     public static void main(String[] args)
             throws InterruptedException {
         Components.start(new Greeter());

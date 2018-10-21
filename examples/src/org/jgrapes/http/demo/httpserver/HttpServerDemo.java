@@ -18,17 +18,12 @@
 
 package org.jgrapes.http.demo.httpserver;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -57,7 +52,7 @@ import org.osgi.framework.BundleContext;
  */
 public class HttpServerDemo extends Component implements BundleActivator {
 
-    HttpServerDemo app;
+    private HttpServerDemo app;
 
     /*
      * (non-Javadoc)
@@ -84,9 +79,9 @@ public class HttpServerDemo extends Component implements BundleActivator {
 
         // Create TLS "converter"
         KeyStore serverStore = KeyStore.getInstance("JKS");
-        try (FileInputStream kf
-            = new FileInputStream("demo-resources/localhost.jks")) {
-            serverStore.load(kf, "nopass".toCharArray());
+        try (InputStream keyFile
+            = Files.newInputStream(Paths.get("demo-resources/localhost.jks"))) {
+            serverStore.load(keyFile, "nopass".toCharArray());
         }
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(
             KeyManagerFactory.getDefaultAlgorithm());
@@ -132,14 +127,9 @@ public class HttpServerDemo extends Component implements BundleActivator {
 
     /**
      * @param args
-     * @throws IOException 
-     * @throws InterruptedException 
-     * @throws NoSuchAlgorithmException 
-     * @throws KeyStoreException 
-     * @throws UnrecoverableKeyException 
-     * @throws CertificateException 
-     * @throws KeyManagementException 
+     * @throws Exception 
      */
+    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public static void main(String[] args) throws Exception {
         new HttpServerDemo().start(null);
     }

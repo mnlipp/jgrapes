@@ -45,14 +45,8 @@ import org.jgrapes.io.util.ManagedBuffer;
  */
 public class WsEchoServer extends Component {
 
-    private Set<IOSubchannel> openChannels
+    private final Set<IOSubchannel> openChannels
         = Collections.newSetFromMap(new WeakHashMap<IOSubchannel, Boolean>());
-
-    /**
-     * 
-     */
-    public WsEchoServer() {
-    }
 
     /**
      * @param componentChannel
@@ -61,6 +55,13 @@ public class WsEchoServer extends Component {
         super(componentChannel);
     }
 
+    /**
+     * Handle `GET` requests.
+     *
+     * @param event the event
+     * @param channel the channel
+     * @throws InterruptedException the interrupted exception
+     */
     @RequestHandler(patterns = "/ws/echo", priority = 100)
     public void onGet(Request.In.Get event, IOSubchannel channel)
             throws InterruptedException {
@@ -76,6 +77,12 @@ public class WsEchoServer extends Component {
         event.stop();
     }
 
+    /**
+     * Handle upgrade confirmation.
+     *
+     * @param event the event
+     * @param channel the channel
+     */
     @Handler
     public void onUpgraded(Upgraded event, IOSubchannel channel) {
         if (!openChannels.contains(channel)) {
@@ -84,6 +91,12 @@ public class WsEchoServer extends Component {
         channel.respond(Output.from("/Greetings!", true));
     }
 
+    /**
+     * Process the input data.
+     *
+     * @param event the event
+     * @param channel the channel
+     */
     @Handler
     public void onInput(Input<CharBuffer> event, IOSubchannel channel) {
         if (!openChannels.contains(channel)) {
@@ -100,6 +113,12 @@ public class WsEchoServer extends Component {
         channel.respond(Output.fromSource(out, true));
     }
 
+    /**
+     * Handle connection close events.
+     *
+     * @param event the event
+     * @param channel the channel
+     */
     @Handler
     public void onClosed(Closed event, IOSubchannel channel) {
         openChannels.remove(channel);

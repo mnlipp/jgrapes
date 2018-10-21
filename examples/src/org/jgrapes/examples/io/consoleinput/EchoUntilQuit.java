@@ -65,6 +65,7 @@ public class EchoUntilQuit extends Component {
      * @param event the event
      */
     @Handler
+    @SuppressWarnings("PMD.SystemPrintln")
     public void onInput(Input<ByteBuffer> event) {
         String data = Charset.defaultCharset().decode(event.data()).toString();
         System.out.print(data);

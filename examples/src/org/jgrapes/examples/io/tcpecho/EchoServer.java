@@ -62,6 +62,12 @@ public class EchoServer extends Component {
         super(componentChannel);
     }
 
+    /**
+     * Handle input data.
+     *
+     * @param event the event
+     * @throws InterruptedException the interrupted exception
+     */
     @Handler
     public void onRead(Input<ByteBuffer> event)
             throws InterruptedException {

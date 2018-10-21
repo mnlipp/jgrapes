@@ -62,6 +62,13 @@ public class EchoServer2 extends Component {
         super(componentChannel);
     }
 
+    /**
+     * Handle input data.
+     *
+     * @param event the event
+     * @param channel the channel
+     * @throws InterruptedException the interrupted exception
+     */
     @Handler
     public void onRead(Input<ByteBuffer> event, IOSubchannel channel)
             throws InterruptedException {

@@ -46,8 +46,12 @@ import org.jgrapes.io.util.ManagedBuffer;
 /**
  * 
  */
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class FormProcessor extends Component {
 
+    /**
+     * Context information for handling forms.
+     */
     protected static class FormContext {
         public HttpRequest request;
         public Session session;
