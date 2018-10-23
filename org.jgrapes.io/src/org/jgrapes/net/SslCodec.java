@@ -47,6 +47,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.io.IOSubchannel;
@@ -302,6 +303,7 @@ public class SslCodec extends Component {
         public SocketAddress localAddress;
         public SocketAddress remoteAddress;
         public SSLEngine sslEngine;
+        private EventPipeline downPipeline;
         private ManagedBufferPool<ManagedBuffer<ByteBuffer>,
                 ByteBuffer> downstreamPool;
         private boolean isInputClosed;
@@ -338,7 +340,8 @@ public class SslCodec extends Component {
             sslEngine.setUseClientMode(true);
 
             // Forward downstream
-            fire(new Connected(event.localAddress(), event.remoteAddress()),
+            downPipeline.fire(
+                new Connected(event.localAddress(), event.remoteAddress()),
                 this);
         }
 
@@ -368,6 +371,7 @@ public class SslCodec extends Component {
                     return ByteBuffer.allocate(encBufSize);
                 }, 2)
                     .setName(channelName + ".upstream.buffers"));
+            downPipeline = newEventPipeline();
         }
 
         /**
@@ -405,7 +409,7 @@ public class SslCodec extends Component {
             if (processingResult.getStatus() == Status.CLOSED
                 && !isInputClosed) {
                 Closed evt = new Closed();
-                newEventPipeline().fire(evt, this);
+                downPipeline.fire(evt, this);
                 evt.get();
                 isInputClosed = true;
                 return;
@@ -490,7 +494,7 @@ public class SslCodec extends Component {
                 if (unwrapResult.getStatus() == Status.BUFFER_OVERFLOW) {
                     if (unwrapped.position() > 0) {
                         // forward data received up to now
-                        fire(Input.fromSink(unwrapped,
+                        downPipeline.fire(Input.fromSink(unwrapped,
                             sslEngine.isInboundDone()), this);
                     }
                     unwrapped = downstreamPool.acquire();
@@ -515,10 +519,21 @@ public class SslCodec extends Component {
                 unwrapped.unlockBuffer();
             } else {
                 // forward data received
-                fire(Input.fromSink(unwrapped, sslEngine.isInboundDone()),
-                    this);
+                downPipeline.fire(
+                    Input.fromSink(unwrapped, sslEngine.isInboundDone()), this);
             }
             return unwrapResult;
+        }
+
+        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+        private void fireAccepted() {
+            List<SNIServerName> snis = Collections.emptyList();
+            if (sslEngine.getSession() instanceof ExtendedSSLSession) {
+                snis = ((ExtendedSSLSession) sslEngine.getSession())
+                    .getRequestedServerNames();
+            }
+            downPipeline.fire(new Accepted(
+                localAddress, remoteAddress, true, snis), this);
         }
 
         /**
@@ -646,17 +661,6 @@ public class SslCodec extends Component {
             upstreamChannel().respond(new Close());
         }
 
-        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-        private void fireAccepted() {
-            List<SNIServerName> snis = Collections.emptyList();
-            if (sslEngine.getSession() instanceof ExtendedSSLSession) {
-                snis = ((ExtendedSSLSession) sslEngine.getSession())
-                    .getRequestedServerNames();
-            }
-            fire(new Accepted(
-                localAddress, remoteAddress, true, snis), this);
-        }
-
         /**
          * Forwards the {@link Closed} event downstream.
          *
@@ -693,7 +697,7 @@ public class SslCodec extends Component {
          * Fire a {@link Purge} event downstream.
          */
         public void purge() {
-            fire(new Purge(), this);
+            downPipeline.fire(new Purge(), this);
         }
     }
 }
