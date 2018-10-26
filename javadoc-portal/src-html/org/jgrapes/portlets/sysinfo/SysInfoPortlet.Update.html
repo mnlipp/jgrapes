@@ -46,7 +46,7 @@
 <span class="sourceLineNo">038</span>import org.jgrapes.core.annotation.Handler;<a name="line.38"></a>
 <span class="sourceLineNo">039</span>import org.jgrapes.http.Session;<a name="line.39"></a>
 <span class="sourceLineNo">040</span>import org.jgrapes.portal.base.PortalSession;<a name="line.40"></a>
-<span class="sourceLineNo">041</span>import org.jgrapes.portal.base.PortalWeblet;<a name="line.41"></a>
+<span class="sourceLineNo">041</span>import org.jgrapes.portal.base.PortalUtils;<a name="line.41"></a>
 <span class="sourceLineNo">042</span>import org.jgrapes.portal.base.Portlet.RenderMode;<a name="line.42"></a>
 <span class="sourceLineNo">043</span>import org.jgrapes.portal.base.events.AddPageResources.ScriptResource;<a name="line.43"></a>
 <span class="sourceLineNo">044</span>import org.jgrapes.portal.base.events.AddPortletRequest;<a name="line.44"></a>
@@ -109,7 +109,7 @@
 <span class="sourceLineNo">101</span>                .setRequires(new String[] { "chartjs.org" })<a name="line.101"></a>
 <span class="sourceLineNo">102</span>                .setScriptUri(event.renderSupport().portletResource(<a name="line.102"></a>
 <span class="sourceLineNo">103</span>                    type(), "SysInfo-functions.ftl.js")))<a name="line.103"></a>
-<span class="sourceLineNo">104</span>            .addCss(event.renderSupport(), PortalWeblet.uriFromPath(<a name="line.104"></a>
+<span class="sourceLineNo">104</span>            .addCss(event.renderSupport(), PortalUtils.uriFromPath(<a name="line.104"></a>
 <span class="sourceLineNo">105</span>                "SysInfo-style.css"))<a name="line.105"></a>
 <span class="sourceLineNo">106</span>            .setInstantiable());<a name="line.106"></a>
 <span class="sourceLineNo">107</span>    }<a name="line.107"></a>
