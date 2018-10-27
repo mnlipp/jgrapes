@@ -247,11 +247,10 @@ public class FreeMarkerRequestHandler extends Component {
         response.setStatus(HttpStatus.OK);
         response.setField(HttpField.LAST_MODIFIED, Instant.now());
         if (maxAgeCalculator == null) {
-            ResponseCreationSupport.setMaxAge(response,
-                (req, mtype) -> 0, event.httpRequest(), mediaType);
+            ResponseCreationSupport.setMaxAge(response, 0);
         } else {
-            ResponseCreationSupport.setMaxAge(
-                response, maxAgeCalculator, event.httpRequest(), mediaType);
+            ResponseCreationSupport.setMaxAge(response,
+                maxAgeCalculator.maxAge(event.httpRequest(), mediaType));
         }
         channel.respond(new Response(response));
 

@@ -170,7 +170,9 @@ public abstract class ResponseCreationSupport {
         // Get content type and derive max age
         MediaType mediaType = HttpResponse.contentType(
             ResponseCreationSupport.uriFromUrl(resourceUrl));
-        setMaxAge(response, maxAgeCalculator, request, mediaType);
+        setMaxAge(response,
+            (maxAgeCalculator == null ? DEFAULT_MAX_AGE_CALCULATOR
+                : maxAgeCalculator).maxAge(request, mediaType));
 
         // Check if sending is really required.
         Optional<Instant> modifiedSince = request
@@ -332,23 +334,14 @@ public abstract class ResponseCreationSupport {
     }
 
     /**
-     * Sets the cache control header in the given response,
-     * looking up the value for the given media type or using
-     * the default value.
+     * Sets the cache control header in the given response.
      *
      * @param response the response
-     * @param maxAgeCalculator the max age calculator
-     * @param request the request
-     * @param mediaType the media type
+     * @param maxAge the max age
      * @return the value set
      */
-    public static long setMaxAge(HttpResponse response,
-            MaxAgeCalculator maxAgeCalculator,
-            HttpRequest request, MediaType mediaType) {
+    public static long setMaxAge(HttpResponse response, int maxAge) {
         List<Directive> directives = new ArrayList<>();
-        int maxAge = maxAgeCalculator == null
-            ? DEFAULT_MAX_AGE_CALCULATOR.maxAge(request, mediaType)
-            : maxAgeCalculator.maxAge(request, mediaType);
         directives.add(new Directive("max-age", maxAge));
         response.setField(HttpField.CACHE_CONTROL, directives);
         return maxAge;

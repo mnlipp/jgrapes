@@ -174,7 +174,7 @@ public class StaticContentDispatcher extends Component {
 
         // Derive max-age
         ResponseCreationSupport.setMaxAge(
-            response, maxAgeCalculator, event.httpRequest(), mediaType);
+            response, maxAgeCalculator.maxAge(event.httpRequest(), mediaType));
 
         // Check if sending is really required.
         Instant lastModified = Files.getLastModifiedTime(resourcePath)
