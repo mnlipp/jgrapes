@@ -255,146 +255,145 @@
 <span class="sourceLineNo">247</span>        response.setStatus(HttpStatus.OK);<a name="line.247"></a>
 <span class="sourceLineNo">248</span>        response.setField(HttpField.LAST_MODIFIED, Instant.now());<a name="line.248"></a>
 <span class="sourceLineNo">249</span>        if (maxAgeCalculator == null) {<a name="line.249"></a>
-<span class="sourceLineNo">250</span>            ResponseCreationSupport.setMaxAge(response,<a name="line.250"></a>
-<span class="sourceLineNo">251</span>                (req, mtype) -&gt; 0, event.httpRequest(), mediaType);<a name="line.251"></a>
-<span class="sourceLineNo">252</span>        } else {<a name="line.252"></a>
-<span class="sourceLineNo">253</span>            ResponseCreationSupport.setMaxAge(<a name="line.253"></a>
-<span class="sourceLineNo">254</span>                response, maxAgeCalculator, event.httpRequest(), mediaType);<a name="line.254"></a>
-<span class="sourceLineNo">255</span>        }<a name="line.255"></a>
-<span class="sourceLineNo">256</span>        channel.respond(new Response(response));<a name="line.256"></a>
-<span class="sourceLineNo">257</span><a name="line.257"></a>
-<span class="sourceLineNo">258</span>        // Send content<a name="line.258"></a>
-<span class="sourceLineNo">259</span>        try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(<a name="line.259"></a>
-<span class="sourceLineNo">260</span>            channel, channel.responsePipeline());<a name="line.260"></a>
-<span class="sourceLineNo">261</span>                Writer out = new OutputStreamWriter(<a name="line.261"></a>
-<span class="sourceLineNo">262</span>                    bbos.suppressClose(), "utf-8")) {<a name="line.262"></a>
-<span class="sourceLineNo">263</span>            Map&lt;String, Object&gt; model = fmSessionModel(<a name="line.263"></a>
-<span class="sourceLineNo">264</span>                event.associated(Session.class));<a name="line.264"></a>
-<span class="sourceLineNo">265</span>            tpl.setLocale((Locale) model.get("locale"));<a name="line.265"></a>
-<span class="sourceLineNo">266</span>            tpl.process(model, out);<a name="line.266"></a>
-<span class="sourceLineNo">267</span>            return true;<a name="line.267"></a>
-<span class="sourceLineNo">268</span>        } catch (IOException | TemplateException e) {<a name="line.268"></a>
-<span class="sourceLineNo">269</span>            // Too late to do anything about this (header was sent).<a name="line.269"></a>
-<span class="sourceLineNo">270</span>            fire(new Error(event, e), channel);<a name="line.270"></a>
-<span class="sourceLineNo">271</span>        }<a name="line.271"></a>
-<span class="sourceLineNo">272</span>        return false;<a name="line.272"></a>
-<span class="sourceLineNo">273</span>    }<a name="line.273"></a>
-<span class="sourceLineNo">274</span><a name="line.274"></a>
-<span class="sourceLineNo">275</span>    /**<a name="line.275"></a>
-<span class="sourceLineNo">276</span>     * Render a response using the template obtained from the config with<a name="line.276"></a>
-<span class="sourceLineNo">277</span>     * {@link Configuration#getTemplate(String)} and the given path.<a name="line.277"></a>
-<span class="sourceLineNo">278</span>     *<a name="line.278"></a>
-<span class="sourceLineNo">279</span>     * @param event<a name="line.279"></a>
-<span class="sourceLineNo">280</span>     *            the event<a name="line.280"></a>
-<span class="sourceLineNo">281</span>     * @param channel<a name="line.281"></a>
-<span class="sourceLineNo">282</span>     *            the channel<a name="line.282"></a>
-<span class="sourceLineNo">283</span>     * @param path<a name="line.283"></a>
-<span class="sourceLineNo">284</span>     *            the path<a name="line.284"></a>
-<span class="sourceLineNo">285</span>     */<a name="line.285"></a>
-<span class="sourceLineNo">286</span>    protected boolean sendProcessedTemplate(<a name="line.286"></a>
-<span class="sourceLineNo">287</span>            Request.In event, IOSubchannel channel, String path) {<a name="line.287"></a>
-<span class="sourceLineNo">288</span>        try {<a name="line.288"></a>
-<span class="sourceLineNo">289</span>            // Get template (no need to continue if this fails).<a name="line.289"></a>
-<span class="sourceLineNo">290</span>            Template tpl = freemarkerConfig().getTemplate(path);<a name="line.290"></a>
-<span class="sourceLineNo">291</span>            return sendProcessedTemplate(event, channel, tpl);<a name="line.291"></a>
-<span class="sourceLineNo">292</span>        } catch (IOException e) {<a name="line.292"></a>
-<span class="sourceLineNo">293</span>            fire(new Error(event, e), channel);<a name="line.293"></a>
-<span class="sourceLineNo">294</span>            return false;<a name="line.294"></a>
-<span class="sourceLineNo">295</span>        }<a name="line.295"></a>
-<span class="sourceLineNo">296</span>    }<a name="line.296"></a>
-<span class="sourceLineNo">297</span><a name="line.297"></a>
-<span class="sourceLineNo">298</span>    /**<a name="line.298"></a>
-<span class="sourceLineNo">299</span>     * Creates the configuration for freemarker template processing.<a name="line.299"></a>
-<span class="sourceLineNo">300</span>     * <a name="line.300"></a>
-<span class="sourceLineNo">301</span>     * @return the configuration<a name="line.301"></a>
-<span class="sourceLineNo">302</span>     */<a name="line.302"></a>
-<span class="sourceLineNo">303</span>    protected Configuration freemarkerConfig() {<a name="line.303"></a>
-<span class="sourceLineNo">304</span>        if (fmConfig == null) {<a name="line.304"></a>
-<span class="sourceLineNo">305</span>            fmConfig = new Configuration(Configuration.VERSION_2_3_26);<a name="line.305"></a>
-<span class="sourceLineNo">306</span>            fmConfig.setClassLoaderForTemplateLoading(<a name="line.306"></a>
-<span class="sourceLineNo">307</span>                contentLoader, contentPath);<a name="line.307"></a>
-<span class="sourceLineNo">308</span>            fmConfig.setDefaultEncoding("utf-8");<a name="line.308"></a>
-<span class="sourceLineNo">309</span>            fmConfig.setTemplateExceptionHandler(<a name="line.309"></a>
-<span class="sourceLineNo">310</span>                TemplateExceptionHandler.RETHROW_HANDLER);<a name="line.310"></a>
-<span class="sourceLineNo">311</span>            fmConfig.setLogTemplateExceptions(false);<a name="line.311"></a>
-<span class="sourceLineNo">312</span>        }<a name="line.312"></a>
-<span class="sourceLineNo">313</span>        return fmConfig;<a name="line.313"></a>
-<span class="sourceLineNo">314</span>    }<a name="line.314"></a>
-<span class="sourceLineNo">315</span><a name="line.315"></a>
-<span class="sourceLineNo">316</span>    /**<a name="line.316"></a>
-<span class="sourceLineNo">317</span>     * Build a freemarker model holding the information associated with the<a name="line.317"></a>
-<span class="sourceLineNo">318</span>     * session.<a name="line.318"></a>
-<span class="sourceLineNo">319</span>     * <a name="line.319"></a>
-<span class="sourceLineNo">320</span>     * This model provides: <a name="line.320"></a>
-<span class="sourceLineNo">321</span>     * <a name="line.321"></a>
-<span class="sourceLineNo">322</span>     * * The `locale` (of type {@link Locale}). <a name="line.322"></a>
-<span class="sourceLineNo">323</span>     * <a name="line.323"></a>
-<span class="sourceLineNo">324</span>     * * The `resourceBundle` (of type {@link ResourceBundle}). <a name="line.324"></a>
-<span class="sourceLineNo">325</span>     * <a name="line.325"></a>
-<span class="sourceLineNo">326</span>     * * A function "`_`" that looks up the given key in the <a name="line.326"></a>
-<span class="sourceLineNo">327</span>     *   resource bundle.<a name="line.327"></a>
-<span class="sourceLineNo">328</span>     * <a name="line.328"></a>
-<span class="sourceLineNo">329</span>     * @param session<a name="line.329"></a>
-<span class="sourceLineNo">330</span>     *            the session<a name="line.330"></a>
-<span class="sourceLineNo">331</span>     * @return the model<a name="line.331"></a>
-<span class="sourceLineNo">332</span>     */<a name="line.332"></a>
-<span class="sourceLineNo">333</span>    protected Map&lt;String, Object&gt; fmSessionModel(Optional&lt;Session&gt; session) {<a name="line.333"></a>
-<span class="sourceLineNo">334</span>        @SuppressWarnings("PMD.UseConcurrentHashMap")<a name="line.334"></a>
-<span class="sourceLineNo">335</span>        final Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();<a name="line.335"></a>
-<span class="sourceLineNo">336</span>        Locale locale = session.map(<a name="line.336"></a>
-<span class="sourceLineNo">337</span>            sess -&gt; sess.locale()).orElse(Locale.getDefault());<a name="line.337"></a>
-<span class="sourceLineNo">338</span>        model.put("locale", locale);<a name="line.338"></a>
-<span class="sourceLineNo">339</span>        final ResourceBundle resourceBundle = resourceBundle(locale);<a name="line.339"></a>
-<span class="sourceLineNo">340</span>        model.put("resourceBundle", resourceBundle);<a name="line.340"></a>
-<span class="sourceLineNo">341</span>        model.put("_", new TemplateMethodModelEx() {<a name="line.341"></a>
-<span class="sourceLineNo">342</span>            @Override<a name="line.342"></a>
-<span class="sourceLineNo">343</span>            @SuppressWarnings("PMD.EmptyCatchBlock")<a name="line.343"></a>
-<span class="sourceLineNo">344</span>            public Object exec(@SuppressWarnings("rawtypes") List arguments)<a name="line.344"></a>
-<span class="sourceLineNo">345</span>                    throws TemplateModelException {<a name="line.345"></a>
-<span class="sourceLineNo">346</span>                @SuppressWarnings("unchecked")<a name="line.346"></a>
-<span class="sourceLineNo">347</span>                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;<a name="line.347"></a>
-<span class="sourceLineNo">348</span>                if (!(args.get(0) instanceof SimpleScalar)) {<a name="line.348"></a>
-<span class="sourceLineNo">349</span>                    throw new TemplateModelException("Not a string.");<a name="line.349"></a>
-<span class="sourceLineNo">350</span>                }<a name="line.350"></a>
-<span class="sourceLineNo">351</span>                String key = ((SimpleScalar) args.get(0)).getAsString();<a name="line.351"></a>
-<span class="sourceLineNo">352</span>                try {<a name="line.352"></a>
-<span class="sourceLineNo">353</span>                    return resourceBundle.getString(key);<a name="line.353"></a>
-<span class="sourceLineNo">354</span>                } catch (MissingResourceException e) {<a name="line.354"></a>
-<span class="sourceLineNo">355</span>                    // no luck<a name="line.355"></a>
-<span class="sourceLineNo">356</span>                }<a name="line.356"></a>
-<span class="sourceLineNo">357</span>                return key;<a name="line.357"></a>
-<span class="sourceLineNo">358</span>            }<a name="line.358"></a>
-<span class="sourceLineNo">359</span>        });<a name="line.359"></a>
-<span class="sourceLineNo">360</span>        return model;<a name="line.360"></a>
-<span class="sourceLineNo">361</span>    }<a name="line.361"></a>
-<span class="sourceLineNo">362</span><a name="line.362"></a>
-<span class="sourceLineNo">363</span>    /**<a name="line.363"></a>
-<span class="sourceLineNo">364</span>     * Used to get the content type when generating a response with<a name="line.364"></a>
-<span class="sourceLineNo">365</span>     * {@link #sendProcessedTemplate(Request.In, IOSubchannel, Template)}. <a name="line.365"></a>
-<span class="sourceLineNo">366</span>     * May be overridden by derived classes. This implementation simply invokes<a name="line.366"></a>
-<span class="sourceLineNo">367</span>     * {@link HttpResponse#contentType(URI)}.<a name="line.367"></a>
-<span class="sourceLineNo">368</span>     *<a name="line.368"></a>
-<span class="sourceLineNo">369</span>     * @param request the request<a name="line.369"></a>
-<span class="sourceLineNo">370</span>     * @return the content type<a name="line.370"></a>
-<span class="sourceLineNo">371</span>     */<a name="line.371"></a>
-<span class="sourceLineNo">372</span>    protected MediaType contentType(URI request) {<a name="line.372"></a>
-<span class="sourceLineNo">373</span>        return HttpResponse.contentType(request);<a name="line.373"></a>
-<span class="sourceLineNo">374</span>    }<a name="line.374"></a>
-<span class="sourceLineNo">375</span><a name="line.375"></a>
-<span class="sourceLineNo">376</span>    /**<a name="line.376"></a>
-<span class="sourceLineNo">377</span>     * Provides a resource bundle for localization.<a name="line.377"></a>
-<span class="sourceLineNo">378</span>     * The default implementation looks up a bundle using the<a name="line.378"></a>
-<span class="sourceLineNo">379</span>     * package name plus "l10n" as base name.<a name="line.379"></a>
-<span class="sourceLineNo">380</span>     * <a name="line.380"></a>
-<span class="sourceLineNo">381</span>     * @return the resource bundle<a name="line.381"></a>
-<span class="sourceLineNo">382</span>     */<a name="line.382"></a>
-<span class="sourceLineNo">383</span>    protected ResourceBundle resourceBundle(Locale locale) {<a name="line.383"></a>
-<span class="sourceLineNo">384</span>        return ResourceBundle.getBundle(<a name="line.384"></a>
-<span class="sourceLineNo">385</span>            contentPath.replace('/', '.') + ".l10n", locale,<a name="line.385"></a>
-<span class="sourceLineNo">386</span>            contentLoader, ResourceBundle.Control.getNoFallbackControl(<a name="line.386"></a>
-<span class="sourceLineNo">387</span>                ResourceBundle.Control.FORMAT_DEFAULT));<a name="line.387"></a>
-<span class="sourceLineNo">388</span>    }<a name="line.388"></a>
-<span class="sourceLineNo">389</span>}<a name="line.389"></a>
+<span class="sourceLineNo">250</span>            ResponseCreationSupport.setMaxAge(response, 0);<a name="line.250"></a>
+<span class="sourceLineNo">251</span>        } else {<a name="line.251"></a>
+<span class="sourceLineNo">252</span>            ResponseCreationSupport.setMaxAge(response,<a name="line.252"></a>
+<span class="sourceLineNo">253</span>                maxAgeCalculator.maxAge(event.httpRequest(), mediaType));<a name="line.253"></a>
+<span class="sourceLineNo">254</span>        }<a name="line.254"></a>
+<span class="sourceLineNo">255</span>        channel.respond(new Response(response));<a name="line.255"></a>
+<span class="sourceLineNo">256</span><a name="line.256"></a>
+<span class="sourceLineNo">257</span>        // Send content<a name="line.257"></a>
+<span class="sourceLineNo">258</span>        try (ByteBufferOutputStream bbos = new ByteBufferOutputStream(<a name="line.258"></a>
+<span class="sourceLineNo">259</span>            channel, channel.responsePipeline());<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                Writer out = new OutputStreamWriter(<a name="line.260"></a>
+<span class="sourceLineNo">261</span>                    bbos.suppressClose(), "utf-8")) {<a name="line.261"></a>
+<span class="sourceLineNo">262</span>            Map&lt;String, Object&gt; model = fmSessionModel(<a name="line.262"></a>
+<span class="sourceLineNo">263</span>                event.associated(Session.class));<a name="line.263"></a>
+<span class="sourceLineNo">264</span>            tpl.setLocale((Locale) model.get("locale"));<a name="line.264"></a>
+<span class="sourceLineNo">265</span>            tpl.process(model, out);<a name="line.265"></a>
+<span class="sourceLineNo">266</span>            return true;<a name="line.266"></a>
+<span class="sourceLineNo">267</span>        } catch (IOException | TemplateException e) {<a name="line.267"></a>
+<span class="sourceLineNo">268</span>            // Too late to do anything about this (header was sent).<a name="line.268"></a>
+<span class="sourceLineNo">269</span>            fire(new Error(event, e), channel);<a name="line.269"></a>
+<span class="sourceLineNo">270</span>        }<a name="line.270"></a>
+<span class="sourceLineNo">271</span>        return false;<a name="line.271"></a>
+<span class="sourceLineNo">272</span>    }<a name="line.272"></a>
+<span class="sourceLineNo">273</span><a name="line.273"></a>
+<span class="sourceLineNo">274</span>    /**<a name="line.274"></a>
+<span class="sourceLineNo">275</span>     * Render a response using the template obtained from the config with<a name="line.275"></a>
+<span class="sourceLineNo">276</span>     * {@link Configuration#getTemplate(String)} and the given path.<a name="line.276"></a>
+<span class="sourceLineNo">277</span>     *<a name="line.277"></a>
+<span class="sourceLineNo">278</span>     * @param event<a name="line.278"></a>
+<span class="sourceLineNo">279</span>     *            the event<a name="line.279"></a>
+<span class="sourceLineNo">280</span>     * @param channel<a name="line.280"></a>
+<span class="sourceLineNo">281</span>     *            the channel<a name="line.281"></a>
+<span class="sourceLineNo">282</span>     * @param path<a name="line.282"></a>
+<span class="sourceLineNo">283</span>     *            the path<a name="line.283"></a>
+<span class="sourceLineNo">284</span>     */<a name="line.284"></a>
+<span class="sourceLineNo">285</span>    protected boolean sendProcessedTemplate(<a name="line.285"></a>
+<span class="sourceLineNo">286</span>            Request.In event, IOSubchannel channel, String path) {<a name="line.286"></a>
+<span class="sourceLineNo">287</span>        try {<a name="line.287"></a>
+<span class="sourceLineNo">288</span>            // Get template (no need to continue if this fails).<a name="line.288"></a>
+<span class="sourceLineNo">289</span>            Template tpl = freemarkerConfig().getTemplate(path);<a name="line.289"></a>
+<span class="sourceLineNo">290</span>            return sendProcessedTemplate(event, channel, tpl);<a name="line.290"></a>
+<span class="sourceLineNo">291</span>        } catch (IOException e) {<a name="line.291"></a>
+<span class="sourceLineNo">292</span>            fire(new Error(event, e), channel);<a name="line.292"></a>
+<span class="sourceLineNo">293</span>            return false;<a name="line.293"></a>
+<span class="sourceLineNo">294</span>        }<a name="line.294"></a>
+<span class="sourceLineNo">295</span>    }<a name="line.295"></a>
+<span class="sourceLineNo">296</span><a name="line.296"></a>
+<span class="sourceLineNo">297</span>    /**<a name="line.297"></a>
+<span class="sourceLineNo">298</span>     * Creates the configuration for freemarker template processing.<a name="line.298"></a>
+<span class="sourceLineNo">299</span>     * <a name="line.299"></a>
+<span class="sourceLineNo">300</span>     * @return the configuration<a name="line.300"></a>
+<span class="sourceLineNo">301</span>     */<a name="line.301"></a>
+<span class="sourceLineNo">302</span>    protected Configuration freemarkerConfig() {<a name="line.302"></a>
+<span class="sourceLineNo">303</span>        if (fmConfig == null) {<a name="line.303"></a>
+<span class="sourceLineNo">304</span>            fmConfig = new Configuration(Configuration.VERSION_2_3_26);<a name="line.304"></a>
+<span class="sourceLineNo">305</span>            fmConfig.setClassLoaderForTemplateLoading(<a name="line.305"></a>
+<span class="sourceLineNo">306</span>                contentLoader, contentPath);<a name="line.306"></a>
+<span class="sourceLineNo">307</span>            fmConfig.setDefaultEncoding("utf-8");<a name="line.307"></a>
+<span class="sourceLineNo">308</span>            fmConfig.setTemplateExceptionHandler(<a name="line.308"></a>
+<span class="sourceLineNo">309</span>                TemplateExceptionHandler.RETHROW_HANDLER);<a name="line.309"></a>
+<span class="sourceLineNo">310</span>            fmConfig.setLogTemplateExceptions(false);<a name="line.310"></a>
+<span class="sourceLineNo">311</span>        }<a name="line.311"></a>
+<span class="sourceLineNo">312</span>        return fmConfig;<a name="line.312"></a>
+<span class="sourceLineNo">313</span>    }<a name="line.313"></a>
+<span class="sourceLineNo">314</span><a name="line.314"></a>
+<span class="sourceLineNo">315</span>    /**<a name="line.315"></a>
+<span class="sourceLineNo">316</span>     * Build a freemarker model holding the information associated with the<a name="line.316"></a>
+<span class="sourceLineNo">317</span>     * session.<a name="line.317"></a>
+<span class="sourceLineNo">318</span>     * <a name="line.318"></a>
+<span class="sourceLineNo">319</span>     * This model provides: <a name="line.319"></a>
+<span class="sourceLineNo">320</span>     * <a name="line.320"></a>
+<span class="sourceLineNo">321</span>     * * The `locale` (of type {@link Locale}). <a name="line.321"></a>
+<span class="sourceLineNo">322</span>     * <a name="line.322"></a>
+<span class="sourceLineNo">323</span>     * * The `resourceBundle` (of type {@link ResourceBundle}). <a name="line.323"></a>
+<span class="sourceLineNo">324</span>     * <a name="line.324"></a>
+<span class="sourceLineNo">325</span>     * * A function "`_`" that looks up the given key in the <a name="line.325"></a>
+<span class="sourceLineNo">326</span>     *   resource bundle.<a name="line.326"></a>
+<span class="sourceLineNo">327</span>     * <a name="line.327"></a>
+<span class="sourceLineNo">328</span>     * @param session<a name="line.328"></a>
+<span class="sourceLineNo">329</span>     *            the session<a name="line.329"></a>
+<span class="sourceLineNo">330</span>     * @return the model<a name="line.330"></a>
+<span class="sourceLineNo">331</span>     */<a name="line.331"></a>
+<span class="sourceLineNo">332</span>    protected Map&lt;String, Object&gt; fmSessionModel(Optional&lt;Session&gt; session) {<a name="line.332"></a>
+<span class="sourceLineNo">333</span>        @SuppressWarnings("PMD.UseConcurrentHashMap")<a name="line.333"></a>
+<span class="sourceLineNo">334</span>        final Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();<a name="line.334"></a>
+<span class="sourceLineNo">335</span>        Locale locale = session.map(<a name="line.335"></a>
+<span class="sourceLineNo">336</span>            sess -&gt; sess.locale()).orElse(Locale.getDefault());<a name="line.336"></a>
+<span class="sourceLineNo">337</span>        model.put("locale", locale);<a name="line.337"></a>
+<span class="sourceLineNo">338</span>        final ResourceBundle resourceBundle = resourceBundle(locale);<a name="line.338"></a>
+<span class="sourceLineNo">339</span>        model.put("resourceBundle", resourceBundle);<a name="line.339"></a>
+<span class="sourceLineNo">340</span>        model.put("_", new TemplateMethodModelEx() {<a name="line.340"></a>
+<span class="sourceLineNo">341</span>            @Override<a name="line.341"></a>
+<span class="sourceLineNo">342</span>            @SuppressWarnings("PMD.EmptyCatchBlock")<a name="line.342"></a>
+<span class="sourceLineNo">343</span>            public Object exec(@SuppressWarnings("rawtypes") List arguments)<a name="line.343"></a>
+<span class="sourceLineNo">344</span>                    throws TemplateModelException {<a name="line.344"></a>
+<span class="sourceLineNo">345</span>                @SuppressWarnings("unchecked")<a name="line.345"></a>
+<span class="sourceLineNo">346</span>                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;<a name="line.346"></a>
+<span class="sourceLineNo">347</span>                if (!(args.get(0) instanceof SimpleScalar)) {<a name="line.347"></a>
+<span class="sourceLineNo">348</span>                    throw new TemplateModelException("Not a string.");<a name="line.348"></a>
+<span class="sourceLineNo">349</span>                }<a name="line.349"></a>
+<span class="sourceLineNo">350</span>                String key = ((SimpleScalar) args.get(0)).getAsString();<a name="line.350"></a>
+<span class="sourceLineNo">351</span>                try {<a name="line.351"></a>
+<span class="sourceLineNo">352</span>                    return resourceBundle.getString(key);<a name="line.352"></a>
+<span class="sourceLineNo">353</span>                } catch (MissingResourceException e) {<a name="line.353"></a>
+<span class="sourceLineNo">354</span>                    // no luck<a name="line.354"></a>
+<span class="sourceLineNo">355</span>                }<a name="line.355"></a>
+<span class="sourceLineNo">356</span>                return key;<a name="line.356"></a>
+<span class="sourceLineNo">357</span>            }<a name="line.357"></a>
+<span class="sourceLineNo">358</span>        });<a name="line.358"></a>
+<span class="sourceLineNo">359</span>        return model;<a name="line.359"></a>
+<span class="sourceLineNo">360</span>    }<a name="line.360"></a>
+<span class="sourceLineNo">361</span><a name="line.361"></a>
+<span class="sourceLineNo">362</span>    /**<a name="line.362"></a>
+<span class="sourceLineNo">363</span>     * Used to get the content type when generating a response with<a name="line.363"></a>
+<span class="sourceLineNo">364</span>     * {@link #sendProcessedTemplate(Request.In, IOSubchannel, Template)}. <a name="line.364"></a>
+<span class="sourceLineNo">365</span>     * May be overridden by derived classes. This implementation simply invokes<a name="line.365"></a>
+<span class="sourceLineNo">366</span>     * {@link HttpResponse#contentType(URI)}.<a name="line.366"></a>
+<span class="sourceLineNo">367</span>     *<a name="line.367"></a>
+<span class="sourceLineNo">368</span>     * @param request the request<a name="line.368"></a>
+<span class="sourceLineNo">369</span>     * @return the content type<a name="line.369"></a>
+<span class="sourceLineNo">370</span>     */<a name="line.370"></a>
+<span class="sourceLineNo">371</span>    protected MediaType contentType(URI request) {<a name="line.371"></a>
+<span class="sourceLineNo">372</span>        return HttpResponse.contentType(request);<a name="line.372"></a>
+<span class="sourceLineNo">373</span>    }<a name="line.373"></a>
+<span class="sourceLineNo">374</span><a name="line.374"></a>
+<span class="sourceLineNo">375</span>    /**<a name="line.375"></a>
+<span class="sourceLineNo">376</span>     * Provides a resource bundle for localization.<a name="line.376"></a>
+<span class="sourceLineNo">377</span>     * The default implementation looks up a bundle using the<a name="line.377"></a>
+<span class="sourceLineNo">378</span>     * package name plus "l10n" as base name.<a name="line.378"></a>
+<span class="sourceLineNo">379</span>     * <a name="line.379"></a>
+<span class="sourceLineNo">380</span>     * @return the resource bundle<a name="line.380"></a>
+<span class="sourceLineNo">381</span>     */<a name="line.381"></a>
+<span class="sourceLineNo">382</span>    protected ResourceBundle resourceBundle(Locale locale) {<a name="line.382"></a>
+<span class="sourceLineNo">383</span>        return ResourceBundle.getBundle(<a name="line.383"></a>
+<span class="sourceLineNo">384</span>            contentPath.replace('/', '.') + ".l10n", locale,<a name="line.384"></a>
+<span class="sourceLineNo">385</span>            contentLoader, ResourceBundle.Control.getNoFallbackControl(<a name="line.385"></a>
+<span class="sourceLineNo">386</span>                ResourceBundle.Control.FORMAT_DEFAULT));<a name="line.386"></a>
+<span class="sourceLineNo">387</span>    }<a name="line.387"></a>
+<span class="sourceLineNo">388</span>}<a name="line.388"></a>
 
 
 
