@@ -416,7 +416,7 @@
 <span class="sourceLineNo">408</span>            // Other end initiates close<a name="line.408"></a>
 <span class="sourceLineNo">409</span>            selectionKeys &amp;= ~SelectionKey.OP_READ;<a name="line.409"></a>
 <span class="sourceLineNo">410</span>            registration.updateInterested(selectionKeys);<a name="line.410"></a>
-<span class="sourceLineNo">411</span>            downPipeline.submit(() -&gt; {<a name="line.411"></a>
+<span class="sourceLineNo">411</span>            downPipeline.submit("SendHalfClosed", () -&gt; {<a name="line.411"></a>
 <span class="sourceLineNo">412</span>                try {<a name="line.412"></a>
 <span class="sourceLineNo">413</span>                    // Inform downstream and wait until everything has settled.<a name="line.413"></a>
 <span class="sourceLineNo">414</span>                    newEventPipeline().fire(new HalfClosed(), this).get();<a name="line.414"></a>
