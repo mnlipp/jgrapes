@@ -103,10 +103,27 @@ public interface EventPipeline extends IdInfoProvider {
      * 
      * This is a short-cut for firing a special kind of event 
      * and defining a handler for only this kind of event.
+     * Submitting a callable instead of firing an event and defining
+     * a handler should only be done when no use case is imaginable
+     * in which such an event could be intercepted by other 
+     * components or could trigger some action.
+     *
+     * @param <V> the value type
+     * @param name the name of the action; used in the event debug log 
+     * @param action the action to execute
+     * @return the future
+     */
+    <V> Future<V> submit(String name, Callable<V> action);
+
+    /**
+     * Like {@link #submit(String, Callable)} but without specifying a
+     * name for the event debug log.
      * 
      * @param action the action to execute
      */
-    <V> Future<V> submit(Callable<V> action);
+    default <V> Future<V> submit(Callable<V> action) {
+        return submit(null, action);
+    }
 
     /**
      * Adds an action to be executed to the event pipeline. 
@@ -116,10 +133,25 @@ public interface EventPipeline extends IdInfoProvider {
      * 
      * This is a short-cut for firing a special kind of event 
      * and defining a handler for only this kind of event.
+     * Submitting a runnable instead of firing an event and defining
+     * a handler should only be done when no use case is imaginable
+     * in which such an event could be intercepted by other 
+     * components or could trigger some action.
+     *
+     * @param name the name of the action; used in the event debug log 
+     * @param action the action to execute
+     */
+    void submit(String name, Runnable action);
+
+    /**
+     * Like {@link #submit(String, Callable)} but without specifiying
+     * a name for the event debug log.
      * 
      * @param action the action to execute
      */
-    void submit(Runnable action);
+    default void submit(Runnable action) {
+        submit(null, action);
+    }
 
     /**
      * All pipelines use the same id scope to make them uniquely identifiable

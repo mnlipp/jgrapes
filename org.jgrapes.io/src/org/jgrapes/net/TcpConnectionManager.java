@@ -408,7 +408,7 @@ public abstract class TcpConnectionManager extends Component {
             // Other end initiates close
             selectionKeys &= ~SelectionKey.OP_READ;
             registration.updateInterested(selectionKeys);
-            downPipeline.submit(() -> {
+            downPipeline.submit("SendHalfClosed", () -> {
                 try {
                     // Inform downstream and wait until everything has settled.
                     newEventPipeline().fire(new HalfClosed(), this).get();

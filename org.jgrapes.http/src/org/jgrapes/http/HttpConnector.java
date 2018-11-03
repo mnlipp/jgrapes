@@ -418,48 +418,52 @@ public class HttpConnector extends Component {
             // Now send request as if it came from downstream (to
             // avoid confusion with output events that may be
             // generated in parallel, see below).
-            responsePipeline().submit(new Callable<Void>() {
+            responsePipeline().submit("SynchronizedResponse",
+                new Callable<Void>() {
 
-                @SuppressWarnings({ "PMD.CommentRequired",
-                    "PMD.AvoidBranchingStatementAsLastInLoop",
-                    "PMD.AvoidDuplicateLiterals" })
-                public Void call() throws InterruptedException {
-                    @SuppressWarnings("unchecked")
-                    ClientEngine<MessageHeader, MessageHeader> untypedEngine
-                        = (ClientEngine<MessageHeader, MessageHeader>) engine;
-                    untypedEngine.encode(message);
-                    boolean hasBody = message.hasPayload();
-                    while (true) {
-                        outBuffer = netConnChannel.byteBufferPool().acquire();
-                        Codec.Result result
-                            = engine.encode(Codec.EMPTY_IN,
-                                outBuffer.backingBuffer(), !hasBody);
-                        if (result.isOverflow()) {
-                            netConnChannel
-                                .respond(Output.fromSink(outBuffer, false));
-                            continue;
-                        }
-                        if (hasBody) {
-                            // Keep buffer with incomplete request to be further
-                            // filled by subsequent Output events
+                    @SuppressWarnings({ "PMD.CommentRequired",
+                        "PMD.AvoidBranchingStatementAsLastInLoop",
+                        "PMD.AvoidDuplicateLiterals" })
+                    public Void call() throws InterruptedException {
+                        @SuppressWarnings("unchecked")
+                        ClientEngine<MessageHeader, MessageHeader> untypedEngine
+                            = (ClientEngine<MessageHeader,
+                                    MessageHeader>) engine;
+                        untypedEngine.encode(message);
+                        boolean hasBody = message.hasPayload();
+                        while (true) {
+                            outBuffer
+                                = netConnChannel.byteBufferPool().acquire();
+                            Codec.Result result
+                                = engine.encode(Codec.EMPTY_IN,
+                                    outBuffer.backingBuffer(), !hasBody);
+                            if (result.isOverflow()) {
+                                netConnChannel
+                                    .respond(Output.fromSink(outBuffer, false));
+                                continue;
+                            }
+                            if (hasBody) {
+                                // Keep buffer with incomplete request to be
+                                // further
+                                // filled by subsequent Output events
+                                break;
+                            }
+                            // Request is completely encoded
+                            if (outBuffer.position() > 0) {
+                                netConnChannel
+                                    .respond(Output.fromSink(outBuffer, true));
+                            } else {
+                                outBuffer.unlockBuffer();
+                            }
+                            outBuffer = null;
+                            if (result.closeConnection()) {
+                                netConnChannel.respond(new Close());
+                            }
                             break;
                         }
-                        // Request is completely encoded
-                        if (outBuffer.position() > 0) {
-                            netConnChannel
-                                .respond(Output.fromSink(outBuffer, true));
-                        } else {
-                            outBuffer.unlockBuffer();
-                        }
-                        outBuffer = null;
-                        if (result.closeConnection()) {
-                            netConnChannel.respond(new Close());
-                        }
-                        break;
+                        return null;
                     }
-                    return null;
-                }
-            });
+                });
         }
 
         @SuppressWarnings({ "PMD.CommentRequired", "PMD.CyclomaticComplexity",

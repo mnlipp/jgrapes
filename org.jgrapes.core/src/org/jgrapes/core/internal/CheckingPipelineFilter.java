@@ -130,8 +130,8 @@ class CheckingPipelineFilter
      * @see org.jgrapes.core.EventPipeline#submit(java.util.concurrent.Callable)
      */
     @Override
-    public <V> Future<V> submit(Callable<V> action) {
-        ActionEvent<V> event = ActionEvent.create(action);
+    public <V> Future<V> submit(String name, Callable<V> action) {
+        ActionEvent<V> event = ActionEvent.create(name, action);
         return sink.add(event, Channel.BROADCAST);
     }
 
@@ -141,8 +141,8 @@ class CheckingPipelineFilter
      * @see org.jgrapes.core.EventPipeline#submit(java.lang.Runnable)
      */
     @Override
-    public void submit(Runnable action) {
-        ActionEvent<Void> event = ActionEvent.create(action);
+    public void submit(String name, Runnable action) {
+        ActionEvent<Void> event = ActionEvent.create(name, action);
         sink.add(event, Channel.BROADCAST);
     }
 

@@ -20,6 +20,8 @@ package org.jgrapes.core.internal;
 
 import java.util.concurrent.Callable;
 
+import org.jgrapes.core.Channel;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
 
@@ -31,13 +33,25 @@ import org.jgrapes.core.EventPipeline;
 public abstract class ActionEvent<T> extends Event<T> {
 
     private static Object defaultCriterion = new Object();
+    protected String name;
 
-    /* default */ static <V> ActionEvent<V> create(Callable<V> action) {
-        return new CallableActionEvent<>(action);
+    /**
+     * Instantiates a new action event.
+     *
+     * @param name the name
+     */
+    protected ActionEvent(String name) {
+        this.name = name;
     }
 
-    /* default */ static ActionEvent<Void> create(Runnable action) {
-        return new RunnableActionEvent(action);
+    /* default */ static <V> ActionEvent<V> create(String name,
+            Callable<V> action) {
+        return new CallableActionEvent<>(name, action);
+    }
+
+    /* default */ static ActionEvent<Void> create(String name,
+            Runnable action) {
+        return new RunnableActionEvent(name, action);
     }
 
     @SuppressWarnings("PMD.SignatureDeclareThrowsException")
@@ -53,6 +67,22 @@ public abstract class ActionEvent<T> extends Event<T> {
         return defaultCriterion;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Components.objectName(this));
+        if (name != null) {
+            builder.append('(').append(name).append(')');
+        }
+        builder.append(" [");
+        if (channels() != null) {
+            builder.append("channels=");
+            builder.append(Channel.toString(channels()));
+        }
+        builder.append(']');
+        return builder.toString();
+    }
+
     /**
      * An {@link ActionEvent} that executes a {@link Callable}.
      *
@@ -64,9 +94,11 @@ public abstract class ActionEvent<T> extends Event<T> {
         /**
          * Instantiates a new callable action event.
          *
+         * @param name the name
          * @param callable the callable
          */
-        public CallableActionEvent(Callable<V> callable) {
+        public CallableActionEvent(String name, Callable<V> callable) {
+            super(name);
             this.action = callable;
         }
 
@@ -85,9 +117,11 @@ public abstract class ActionEvent<T> extends Event<T> {
         /**
          * Instantiates a new runnable action event.
          *
+         * @param name the name
          * @param action the action
          */
-        public RunnableActionEvent(Runnable action) {
+        public RunnableActionEvent(String name, Runnable action) {
+            super(name);
             this.action = action;
         }
 
