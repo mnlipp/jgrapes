@@ -102,19 +102,22 @@
 <span class="sourceLineNo">094</span>        }<a name="line.94"></a>
 <span class="sourceLineNo">095</span>        if (mediaType != null) {<a name="line.95"></a>
 <span class="sourceLineNo">096</span>            response.setContentType(mediaType);<a name="line.96"></a>
-<span class="sourceLineNo">097</span>        }<a name="line.97"></a>
-<span class="sourceLineNo">098</span>        ResponseCreationSupport.setMaxAge(response, maxAge);<a name="line.98"></a>
-<span class="sourceLineNo">099</span>        response.setStatus(HttpStatus.OK);<a name="line.99"></a>
-<span class="sourceLineNo">100</span>        request().httpChannel().respond(new Response(response));<a name="line.100"></a>
-<span class="sourceLineNo">101</span>        // Start sending content<a name="line.101"></a>
-<span class="sourceLineNo">102</span>        try (@SuppressWarnings("resource")<a name="line.102"></a>
-<span class="sourceLineNo">103</span>        OutputStream out = new ByteBufferOutputStream(<a name="line.103"></a>
-<span class="sourceLineNo">104</span>            request().httpChannel()).suppressClose()) {<a name="line.104"></a>
-<span class="sourceLineNo">105</span>            generator.write(out);<a name="line.105"></a>
-<span class="sourceLineNo">106</span>        }<a name="line.106"></a>
-<span class="sourceLineNo">107</span>    }<a name="line.107"></a>
-<span class="sourceLineNo">108</span><a name="line.108"></a>
-<span class="sourceLineNo">109</span>}<a name="line.109"></a>
+<span class="sourceLineNo">097</span>        } else {<a name="line.97"></a>
+<span class="sourceLineNo">098</span>            // Usually set by setContenType<a name="line.98"></a>
+<span class="sourceLineNo">099</span>            response.setHasPayload(true);<a name="line.99"></a>
+<span class="sourceLineNo">100</span>        }<a name="line.100"></a>
+<span class="sourceLineNo">101</span>        ResponseCreationSupport.setMaxAge(response, maxAge);<a name="line.101"></a>
+<span class="sourceLineNo">102</span>        response.setStatus(HttpStatus.OK);<a name="line.102"></a>
+<span class="sourceLineNo">103</span>        request().httpChannel().respond(new Response(response));<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        // Start sending content<a name="line.104"></a>
+<span class="sourceLineNo">105</span>        try (@SuppressWarnings("resource")<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        OutputStream out = new ByteBufferOutputStream(<a name="line.106"></a>
+<span class="sourceLineNo">107</span>            request().httpChannel()).suppressClose()) {<a name="line.107"></a>
+<span class="sourceLineNo">108</span>            generator.write(out);<a name="line.108"></a>
+<span class="sourceLineNo">109</span>        }<a name="line.109"></a>
+<span class="sourceLineNo">110</span>    }<a name="line.110"></a>
+<span class="sourceLineNo">111</span><a name="line.111"></a>
+<span class="sourceLineNo">112</span>}<a name="line.112"></a>
 
 
 
