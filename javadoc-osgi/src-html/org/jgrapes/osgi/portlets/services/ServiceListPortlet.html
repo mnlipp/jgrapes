@@ -49,7 +49,7 @@
 <span class="sourceLineNo">041</span>import org.jgrapes.core.annotation.Handler;<a name="line.41"></a>
 <span class="sourceLineNo">042</span>import org.jgrapes.http.Session;<a name="line.42"></a>
 <span class="sourceLineNo">043</span>import org.jgrapes.portal.base.PortalSession;<a name="line.43"></a>
-<span class="sourceLineNo">044</span>import org.jgrapes.portal.base.PortalWeblet;<a name="line.44"></a>
+<span class="sourceLineNo">044</span>import org.jgrapes.portal.base.PortalUtils;<a name="line.44"></a>
 <span class="sourceLineNo">045</span>import org.jgrapes.portal.base.Portlet.RenderMode;<a name="line.45"></a>
 <span class="sourceLineNo">046</span><a name="line.46"></a>
 <span class="sourceLineNo">047</span>import static org.jgrapes.portal.base.Portlet.RenderMode.DeleteablePreview;<a name="line.47"></a>
@@ -125,7 +125,7 @@
 <span class="sourceLineNo">117</span>                .setScriptUri(event.renderSupport().portletResource(<a name="line.117"></a>
 <span class="sourceLineNo">118</span>                    type(), "Services-functions.ftl.js")))<a name="line.118"></a>
 <span class="sourceLineNo">119</span>            .addCss(event.renderSupport(),<a name="line.119"></a>
-<span class="sourceLineNo">120</span>                PortalWeblet.uriFromPath("Services-style.css"))<a name="line.120"></a>
+<span class="sourceLineNo">120</span>                PortalUtils.uriFromPath("Services-style.css"))<a name="line.120"></a>
 <span class="sourceLineNo">121</span>            .setInstantiable());<a name="line.121"></a>
 <span class="sourceLineNo">122</span>    }<a name="line.122"></a>
 <span class="sourceLineNo">123</span><a name="line.123"></a>
