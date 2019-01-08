@@ -21,7 +21,7 @@ package org.jgrapes.core;
 import org.jgrapes.core.annotation.Handler;
 
 /**
- * Instances of this this interface can be used as a communication 
+ * Instances of this interface can be used as a communication 
  * bus for sending events between components. The instances work
  * as identifiers of channels. Their only functionality is defined
  * by the {@link Eligible} interface, which allows a channel
