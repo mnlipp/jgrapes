@@ -91,7 +91,7 @@ import org.jgrapes.io.events.Output;
 public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
         implements BufferCollector<W> {
 
-    @SuppressWarnings("PMD.VariableNamingConventions")
+    @SuppressWarnings("PMD.FieldNamingConventions")
     protected static final Logger logger
         = Logger.getLogger(ManagedBufferPool.class.getName());
 

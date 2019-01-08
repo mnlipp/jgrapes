@@ -72,7 +72,7 @@ import org.jgrapes.net.events.Connected;
 @SuppressWarnings({ "PMD.ExcessiveImports" })
 public class SslCodec extends Component {
 
-    @SuppressWarnings("PMD.VariableNamingConventions")
+    @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger logger
         = Logger.getLogger(SslCodec.class.getName());
 

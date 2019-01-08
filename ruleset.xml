@@ -29,6 +29,11 @@ JGrapes rules
          <property name="minimum" value="25" />
       </properties>
     </rule>    
+    <rule ref="category/java/codestyle.xml/LinguisticNaming">
+      <properties>
+         <property name="checkSetters" value="false" />
+      </properties>
+    </rule>    
     
     <rule ref="category/java/design.xml">
         <exclude name="LawOfDemeter"/>
@@ -66,7 +71,7 @@ JGrapes rules
       <properties>
          <property name="fieldCommentRequirement" value="Ignored" />
       </properties>
-    </rule>    
+    </rule>
     
     <rule ref="category/java/errorprone.xml">
         <exclude name="AvoidFieldNameMatchingMethodName"/>

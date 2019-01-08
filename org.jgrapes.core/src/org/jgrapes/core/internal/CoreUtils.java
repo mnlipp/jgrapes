@@ -35,12 +35,12 @@ import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;
 @SuppressWarnings("PMD.MoreThanOneLogger")
 public final class CoreUtils {
 
-    @SuppressWarnings("PMD.VariableNamingConventions")
+    @SuppressWarnings("PMD.FieldNamingConventions")
     public static final Logger classNames
         = Logger.getLogger(ComponentType.class.getPackage().getName()
             + ".classNames");
 
-    @SuppressWarnings("PMD.VariableNamingConventions")
+    @SuppressWarnings("PMD.FieldNamingConventions")
     /* default */ static final Logger fireRestrictionLogger
         = Logger.getLogger(CoreUtils.class.getPackage().getName()
             + ".fireRestriction");

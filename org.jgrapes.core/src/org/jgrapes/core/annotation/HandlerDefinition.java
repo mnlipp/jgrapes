@@ -113,7 +113,7 @@ public @interface HandlerDefinition {
      * annotations.
      */
     @SuppressWarnings("serial")
-    class ChannelReplacements
+    class ChannelReplacements // NOPMD (for missing serialVersionUID)
             extends HashMap<Class<? extends Channel>, Object> {
 
         /**

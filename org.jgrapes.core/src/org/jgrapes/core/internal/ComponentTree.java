@@ -41,7 +41,7 @@ import org.jgrapes.core.events.Error;
  */
 class ComponentTree {
 
-    @SuppressWarnings("PMD.VariableNamingConventions")
+    @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger handlerTracking
         = Logger.getLogger(ComponentType.class.getPackage().getName()
             + ".handlerTracking");

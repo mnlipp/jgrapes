@@ -31,7 +31,7 @@ import org.jgrapes.core.ComponentType;
  */
 public class GeneratorRegistry {
 
-    @SuppressWarnings("PMD.VariableNamingConventions")
+    @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger generatorTracking
         = Logger.getLogger(ComponentType.class.getPackage().getName()
             + ".generatorTracking");

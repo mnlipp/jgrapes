@@ -30,7 +30,7 @@ import org.jgrapes.core.EventPipeline;
  */
 public class EventProcessor implements InternalEventPipeline, Runnable {
 
-    @SuppressWarnings("PMD.VariableNamingConventions")
+    @SuppressWarnings("PMD.FieldNamingConventions")
     protected static final ThreadLocal<EventBase<?>> newEventsParent
         = new ThreadLocal<>();
 

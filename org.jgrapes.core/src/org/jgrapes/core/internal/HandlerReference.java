@@ -34,7 +34,7 @@ import org.jgrapes.core.HandlerScope;
  */
 class HandlerReference implements Comparable<HandlerReference> {
 
-    @SuppressWarnings("PMD.VariableNamingConventions")
+    @SuppressWarnings("PMD.FieldNamingConventions")
     protected static final Logger handlerTracking
         = Logger.getLogger(ComponentType.class.getPackage().getName()
             + ".handlerTracking");
