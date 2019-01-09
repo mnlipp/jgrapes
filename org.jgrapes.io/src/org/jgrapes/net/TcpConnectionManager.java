@@ -36,7 +36,6 @@ import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Subchannel;
 import org.jgrapes.core.annotation.Handler;
-import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.IOSubchannel.DefaultIOSubchannel;
 import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Closed;
