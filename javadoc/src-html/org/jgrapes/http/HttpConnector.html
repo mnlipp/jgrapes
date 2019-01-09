@@ -65,7 +65,7 @@
 <span class="sourceLineNo">057</span>import org.jgrapes.http.events.Request;<a name="line.57"></a>
 <span class="sourceLineNo">058</span>import org.jgrapes.http.events.Response;<a name="line.58"></a>
 <span class="sourceLineNo">059</span>import org.jgrapes.http.events.WebSocketClose;<a name="line.59"></a>
-<span class="sourceLineNo">060</span>import org.jgrapes.io.IOSubchannel.DefaultSubchannel;<a name="line.60"></a>
+<span class="sourceLineNo">060</span>import org.jgrapes.io.IOSubchannel.DefaultIOSubchannel;<a name="line.60"></a>
 <span class="sourceLineNo">061</span>import org.jgrapes.io.events.Close;<a name="line.61"></a>
 <span class="sourceLineNo">062</span>import org.jgrapes.io.events.Closed;<a name="line.62"></a>
 <span class="sourceLineNo">063</span>import org.jgrapes.io.events.IOError;<a name="line.63"></a>
@@ -286,7 +286,7 @@
 <span class="sourceLineNo">278</span>     * channel has been assigned to it, it is primarily referenced by that <a name="line.278"></a>
 <span class="sourceLineNo">279</span>     * network channel. <a name="line.279"></a>
 <span class="sourceLineNo">280</span>     */<a name="line.280"></a>
-<span class="sourceLineNo">281</span>    private class WebAppMsgChannel extends DefaultSubchannel {<a name="line.281"></a>
+<span class="sourceLineNo">281</span>    private class WebAppMsgChannel extends DefaultIOSubchannel {<a name="line.281"></a>
 <span class="sourceLineNo">282</span>        // Starts as ClientEngine&lt;HttpRequest,HttpResponse&gt; but may change<a name="line.282"></a>
 <span class="sourceLineNo">283</span>        private final ClientEngine&lt;?, ?&gt; engine<a name="line.283"></a>
 <span class="sourceLineNo">284</span>            = new ClientEngine&lt;&gt;(new HttpRequestEncoder(),<a name="line.284"></a>
