@@ -57,7 +57,7 @@ import org.jgrapes.http.events.HttpConnected;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.http.events.WebSocketClose;
-import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
+import org.jgrapes.io.IOSubchannel.DefaultIOSubchannel;
 import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.IOError;
@@ -278,7 +278,7 @@ public class HttpConnector extends Component {
      * channel has been assigned to it, it is primarily referenced by that 
      * network channel. 
      */
-    private class WebAppMsgChannel extends DefaultSubchannel {
+    private class WebAppMsgChannel extends DefaultIOSubchannel {
         // Starts as ClientEngine<HttpRequest,HttpResponse> but may change
         private final ClientEngine<?, ?> engine
             = new ClientEngine<>(new HttpRequestEncoder(),

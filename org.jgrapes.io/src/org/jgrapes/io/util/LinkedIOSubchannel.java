@@ -23,8 +23,9 @@ import java.util.Optional;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
+import org.jgrapes.core.Subchannel;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
+import org.jgrapes.io.IOSubchannel.DefaultIOSubchannel;
 
 /**
  * Provides an I/O subchannel that is linked to another I/O subchannel. A
@@ -52,7 +53,7 @@ import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
  * the converter component as key. This allows a subchannel to have several
  * associated linked subchannels.
  */
-public class LinkedIOSubchannel extends DefaultSubchannel {
+public class LinkedIOSubchannel extends DefaultIOSubchannel {
 
     private final Manager hub;
     private final IOSubchannel upstreamChannel;
@@ -208,7 +209,7 @@ public class LinkedIOSubchannel extends DefaultSubchannel {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(IOSubchannel.toString(this));
+        builder.append(Subchannel.toString(this));
         if (upstreamChannel != null) {
             builder.append(upstreamToString(upstreamChannel));
         }

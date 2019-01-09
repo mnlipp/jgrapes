@@ -34,9 +34,10 @@ import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;
+import org.jgrapes.core.Subchannel;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.io.IOSubchannel;
-import org.jgrapes.io.IOSubchannel.DefaultSubchannel;
+import org.jgrapes.io.IOSubchannel.DefaultIOSubchannel;
 import org.jgrapes.io.NioHandler;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.HalfClosed;
@@ -175,7 +176,7 @@ public abstract class TcpConnectionManager extends Component {
      * The internal representation of a connection. 
      */
     protected class TcpChannelImpl
-            extends DefaultSubchannel implements NioHandler, TcpChannel {
+            extends DefaultIOSubchannel implements NioHandler, TcpChannel {
 
         private final SocketChannel nioChannel;
         private final SocketAddress localAddress;
@@ -550,7 +551,7 @@ public abstract class TcpConnectionManager extends Component {
          */
         @SuppressWarnings("PMD.CommentRequired")
         public String toString() {
-            return IOSubchannel.toString(this);
+            return Subchannel.toString(this);
         }
     }
 

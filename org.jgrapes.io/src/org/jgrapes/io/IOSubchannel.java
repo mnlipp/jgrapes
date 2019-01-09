@@ -20,31 +20,23 @@ package org.jgrapes.io;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.jgrapes.core.Associator;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.EventPipeline;
+import org.jgrapes.core.Subchannel;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
 
 /**
- * Represents an I/O subchannel. Subchannels delegate the invocations of a
- * {@link Channel}'s methods to their respective main channel. Events fired on a
- * subchannel are therefore handled by the framework as if they were fired on
- * the main channel. Firing events on a subchannel instance instead of on the
- * main channel is a means to group related events. In particular, I/O
- * subchannels are used to group events that relate to an I/O resource such as
- * an opened file or a network connection.
+ * Represents a subchannel for grouping input and output events related
+ * to an I/O resource such as an opened file or a network connection.
  * 
- * A subchannel has an initiator that creates and manages the subchannel. Events
- * fired by the initiator are said to flow downstream on the channel. Events
- * fired by components in response are said to flow upstream.
+ * An I/O subchannel has an initiator that creates and manages the subchannel.
+ * Events fired by the initiator are said to flow downstream on the channel.
+ * Events fired by components in response are said to flow upstream.
  * 
  * Upstream and downstream events are usually handled by two different pipelines
  * managed by the initiator. One pipeline, accessible only to the initiator,
@@ -60,34 +52,7 @@ import org.jgrapes.io.util.ManagedBufferPool;
  * should be acquired from these pools only. The initiator should initialize 
  * the pools in such a way that it suits its needs.
  */
-public interface IOSubchannel extends Channel, Associator {
-
-    /**
-     * Returns the main channel.
-     * 
-     * @return the mainChannel
-     */
-    Channel mainChannel();
-
-    /**
-     * Returns the main channel's match value.
-     * 
-     * @see Channel#defaultCriterion()
-     */
-    @Override
-    default Object defaultCriterion() {
-        return mainChannel().defaultCriterion();
-    }
-
-    /**
-     * Delegates to main channel.
-     * 
-     * @see Channel#isEligibleFor(Object)
-     */
-    @Override
-    default boolean isEligibleFor(Object value) {
-        return mainChannel().isEligibleFor(value);
-    }
+public interface IOSubchannel extends Subchannel {
 
     /**
      * Gets the {@link EventPipeline} that can be used for events going back to
@@ -130,21 +95,6 @@ public interface IOSubchannel extends Channel, Associator {
     }
 
     /**
-     * Returns a string representation of the channel.
-     *
-     * @param subchannel the subchannel
-     * @return the string
-     */
-    static String toString(IOSubchannel subchannel) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(Channel.toString(subchannel.mainChannel()))
-            .append('{')
-            .append(Components.objectName(subchannel))
-            .append('}');
-        return builder.toString();
-    }
-
-    /**
      * Creates a new subchannel of the given component's channel with the
      * given event pipeline and a buffer pool with two buffers sized 4096.
      *
@@ -154,20 +104,19 @@ public interface IOSubchannel extends Channel, Associator {
      */
     static IOSubchannel create(
             Component component, EventPipeline responsePipeline) {
-        return new DefaultSubchannel(component.channel(), responsePipeline);
+        return new DefaultIOSubchannel(component.channel(), responsePipeline);
     }
 
     /**
      * A simple implementation of {@link IOSubchannel}.
      */
-    class DefaultSubchannel implements IOSubchannel {
-        private final Channel mainChannel;
+    class DefaultIOSubchannel extends Subchannel.DefaultSubchannel
+            implements IOSubchannel {
         private final EventPipeline responsePipeline;
         private ManagedBufferPool<ManagedBuffer<ByteBuffer>,
                 ByteBuffer> byteBufferPool;
         private ManagedBufferPool<ManagedBuffer<CharBuffer>,
                 CharBuffer> charBufferPool;
-        private Map<Object, Object> contextData;
 
         /**
          * Creates a new instance with the given main channel and response
@@ -177,10 +126,9 @@ public interface IOSubchannel extends Channel, Associator {
          * @param responsePipeline the response pipeline to use
          * 
          */
-        public DefaultSubchannel(
+        public DefaultIOSubchannel(
                 Channel mainChannel, EventPipeline responsePipeline) {
-            super();
-            this.mainChannel = mainChannel;
+            super(mainChannel);
             this.responsePipeline = responsePipeline;
         }
 
@@ -194,16 +142,6 @@ public interface IOSubchannel extends Channel, Associator {
                 ManagedBufferPool<ManagedBuffer<CharBuffer>,
                         CharBuffer> bufferPool) {
             this.charBufferPool = bufferPool;
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.jgrapes.io.IOSubchannel#getMainChannel()
-         */
-        @Override
-        public Channel mainChannel() {
-            return mainChannel;
         }
 
         /*
@@ -248,58 +186,6 @@ public interface IOSubchannel extends Channel, Associator {
                             + ".upstream.charBuffers");
             }
             return charBufferPool;
-        }
-
-        /**
-         * Establishes a "named" association to an associated object. Note that 
-         * anything that represents an id can be used as value for 
-         * parameter `name`, it does not necessarily have to be a string.
-         * 
-         * @param by the "name"
-         * @param with the object to be associated
-         */
-        @SuppressWarnings("PMD.ShortVariable")
-        public DefaultSubchannel setAssociated(Object by, Object with) {
-            if (contextData == null) {
-                contextData = new ConcurrentHashMap<>();
-            }
-            if (with == null) {
-                contextData.remove(by);
-            } else {
-                contextData.put(by, with);
-            }
-            return this;
-        }
-
-        /**
-         * Retrieves the associated object following the association 
-         * with the given "name". This general version of the method
-         * supports the retrieval of values of arbitrary types
-         * associated by any "name" types. 
-         * 
-         * @param by the "name"
-         * @param type the tape of the value to be retrieved
-         * @param <V> the type of the value to be retrieved
-         * @return the associate, if any
-         */
-        @SuppressWarnings("PMD.ShortVariable")
-        public <V> Optional<V> associated(Object by, Class<V> type) {
-            if (contextData == null) {
-                return Optional.empty();
-            }
-            return Optional.ofNullable(contextData.get(by))
-                .filter(found -> type.isAssignableFrom(found.getClass()))
-                .map(match -> type.cast(match));
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see java.lang.Object#toString()
-         */
-        @Override
-        public String toString() {
-            return IOSubchannel.toString(this);
         }
 
     }
