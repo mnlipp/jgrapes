@@ -44,7 +44,7 @@ JGrapes takes the latter approach by introducing
 associated "main" channel. This causes events to be propagated according
 to the associations between components and the "main" channel. However,
 when an event is delivered to a handler, the channel that it is associated
-with is the `IOSubChannel` that the event was fired on.
+with is the `IOSubchannel` that the event was fired on.
 
 In our example application, the `TcpServer` creates a new `IOSubchannel` 
 instance (with `networkChannel`
@@ -53,8 +53,8 @@ as `connectionChannel` in the object diagram). The server then fires all
 connection related events on this `IOSubchannel`. 
 
 A component that handles events (such as the `EchoServer`) does not simply
-assume that events have been fired on the channel that it is connected to
-(and thus "listens on"). Instead it retrieves the channel that the event
+assume that events have been fired on the (main) channel that it is connected
+to (and thus "listens on"). Instead it retrieves the channel that the event
 was fired on from the event[^retrievedChannel].
 
 ```java
