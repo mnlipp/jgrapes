@@ -42,9 +42,9 @@
 <span class="sourceLineNo">034</span>import org.jgrapes.core.Components;<a name="line.34"></a>
 <span class="sourceLineNo">035</span>import org.jgrapes.core.EventPipeline;<a name="line.35"></a>
 <span class="sourceLineNo">036</span>import org.jgrapes.core.Manager;<a name="line.36"></a>
-<span class="sourceLineNo">037</span>import org.jgrapes.core.annotation.Handler;<a name="line.37"></a>
-<span class="sourceLineNo">038</span>import org.jgrapes.io.IOSubchannel;<a name="line.38"></a>
-<span class="sourceLineNo">039</span>import org.jgrapes.io.IOSubchannel.DefaultSubchannel;<a name="line.39"></a>
+<span class="sourceLineNo">037</span>import org.jgrapes.core.Subchannel;<a name="line.37"></a>
+<span class="sourceLineNo">038</span>import org.jgrapes.core.annotation.Handler;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>import org.jgrapes.io.IOSubchannel.DefaultIOSubchannel;<a name="line.39"></a>
 <span class="sourceLineNo">040</span>import org.jgrapes.io.NioHandler;<a name="line.40"></a>
 <span class="sourceLineNo">041</span>import org.jgrapes.io.events.Closed;<a name="line.41"></a>
 <span class="sourceLineNo">042</span>import org.jgrapes.io.events.HalfClosed;<a name="line.42"></a>
@@ -183,7 +183,7 @@
 <span class="sourceLineNo">175</span>     * The internal representation of a connection. <a name="line.175"></a>
 <span class="sourceLineNo">176</span>     */<a name="line.176"></a>
 <span class="sourceLineNo">177</span>    protected class TcpChannelImpl<a name="line.177"></a>
-<span class="sourceLineNo">178</span>            extends DefaultSubchannel implements NioHandler, TcpChannel {<a name="line.178"></a>
+<span class="sourceLineNo">178</span>            extends DefaultIOSubchannel implements NioHandler, TcpChannel {<a name="line.178"></a>
 <span class="sourceLineNo">179</span><a name="line.179"></a>
 <span class="sourceLineNo">180</span>        private final SocketChannel nioChannel;<a name="line.180"></a>
 <span class="sourceLineNo">181</span>        private final SocketAddress localAddress;<a name="line.181"></a>
@@ -558,7 +558,7 @@
 <span class="sourceLineNo">550</span>         */<a name="line.550"></a>
 <span class="sourceLineNo">551</span>        @SuppressWarnings("PMD.CommentRequired")<a name="line.551"></a>
 <span class="sourceLineNo">552</span>        public String toString() {<a name="line.552"></a>
-<span class="sourceLineNo">553</span>            return IOSubchannel.toString(this);<a name="line.553"></a>
+<span class="sourceLineNo">553</span>            return Subchannel.toString(this);<a name="line.553"></a>
 <span class="sourceLineNo">554</span>        }<a name="line.554"></a>
 <span class="sourceLineNo">555</span>    }<a name="line.555"></a>
 <span class="sourceLineNo">556</span><a name="line.556"></a>
