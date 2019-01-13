@@ -95,8 +95,6 @@ public interface Subchannel extends Channel, Associator {
          * pipeline.  
          * 
          * @param mainChannel the main channel
-         * @param responsePipeline the response pipeline to use
-         * 
          */
         public DefaultSubchannel(Channel mainChannel) {
             this.mainChannel = mainChannel;
