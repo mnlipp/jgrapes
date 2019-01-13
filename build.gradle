@@ -34,8 +34,8 @@ if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
 allprojects {
     group = 'org.jgrapes'
     
-    ext.releaseVersion = "0.20.1"
-    ext.isSnapshot = false
+    ext.releaseVersion = "1.0.0"
+    ext.isSnapshot = true
     version = releaseVersion + (isSnapshot ? "-SNAPSHOT" : "")
     
     repositories {
