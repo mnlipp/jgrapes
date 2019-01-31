@@ -438,7 +438,9 @@ public class SslCodec extends Component {
                     inputProcessed.notifyAll();
                 }
                 // Handle any handshaking procedures
-                switch (unwrapResult.getHandshakeStatus()) {
+                switch (unwrapResult.getStatus() == Status.CLOSED
+                    ? HandshakeStatus.NOT_HANDSHAKING
+                    : unwrapResult.getHandshakeStatus()) {
                 case NEED_TASK:
                     while (true) {
                         Runnable runnable = sslEngine.getDelegatedTask();
@@ -680,8 +682,17 @@ public class SslCodec extends Component {
                 while (!sslEngine.isOutboundDone()) {
                     ManagedBuffer<ByteBuffer> feedback
                         = upstreamChannel().byteBufferPool().acquire();
-                    sslEngine.wrap(ManagedBuffer.EMPTY_BYTE_BUFFER
-                        .backingBuffer(), feedback.backingBuffer());
+                    SSLEngineResult result = sslEngine.wrap(
+                        ManagedBuffer.EMPTY_BYTE_BUFFER.backingBuffer(),
+                        feedback.backingBuffer());
+                    // This is required for/since JDK 11. It claims that
+                    // outbound is not done, but doesn't produce any additional
+                    // data.
+                    if (result.getStatus() == Status.CLOSED
+                        || feedback.position() == 0) {
+                        feedback.unlockBuffer();
+                        break;
+                    }
                     upstreamChannel().respond(Output.fromSink(feedback, false));
                 }
             } catch (SSLException e) {
