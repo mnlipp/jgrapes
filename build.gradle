@@ -17,7 +17,7 @@ plugins {
 	id "signing"
 	id "org.jdrupes.mdoclet" version "1.0.3"
 	id "com.moowork.node" version "1.2.0"
-	id 'org.ajoberstar.git-publish' version '0.4.0-rc.2'
+	id 'org.ajoberstar.git-publish' version '2.0.0'
 }
 
 ext {
