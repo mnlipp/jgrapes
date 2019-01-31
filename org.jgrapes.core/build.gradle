@@ -19,7 +19,7 @@ artifacts {
 
 javadoc {
     // Does not work on JitPack, no /usr/bin/dot
-    enabled = !isJitPackBuild
+    enabled = JavaVersion.current().isJava8() && !isJitPackBuild
 
 	options.tagletPath = rootProject.configurations.javadocTaglets.files as List
 	options.taglets = ["org.jdrupes.taglets.plantUml.Taglet"]
