@@ -7,7 +7,7 @@ addons:
   apt:
     packages:
     - graphviz
-script: "./gradlew --stacktrace stage"
+script: "./gradlew check"
 env:
   global:
     secure: 68QpmmxrpPlqwSsh5w2hbZJpJhdBekOm3wt4ReBffzEa3rD+4wwOPcydUKo+TEs1tqbjz4Gyv6g/wdCgxz9XjRg3B9Gl32VNW99R9OHjrFn/ptbqt54Bd4KJ1+9Cdsky1Ye5dBJoMpNQO+vLDcl13s5+r5ofAkY4RJYlBzuUQ+xyf3gAYo15TSay4GAOxiZ1BGWZl1DWD0o50Ha8uGsVhkbZHzK0oxGqLdWivBPhdFIda9C0/SQ2NMn1zi/Qjw7gQCSB9NFcZxHNwG/gd2jkk80sUz5m4syJAh6vYsnDiuY9u6ii/33MPlqQC5W0Ha4obRHv9OPVFT446jhx+VJXLGH2vZQ8KjxdfkHislhVclQmxAvXa/oxAcsMbbB8gtHPDVmbsnCkkdCaPj3NDugwf8n4FQonbBfWkiZmIb2UIFbg56hR68TM7LrcZmn9gVLrIKZVpGIHYKZygW8bC2YKayCOQSW6XX335gH5cm4G2PaZ1DLkytRdQ/AahFFF2YMlsrekM1Sh2dYjCjRcXsFJ6a/dgpo0LBqN/H5vqBnc25l2TUm8gWiTjQobsXos7kL9Q0fx9Wg1RoEFHfjzF69aeMx6ixJa4PnQHkBb4Y8GaBkxHMR1Cv8ZMr8S9E62kV+NiRtk2eu0lYAp+Nf/ezIvfJVaC5pyBkwbY6OoUwfRbUs=
