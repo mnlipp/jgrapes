@@ -35,7 +35,7 @@ allprojects {
     group = 'org.jgrapes'
     
     ext.releaseVersion = "1.0.0"
-    ext.isSnapshot = true
+    ext.isSnapshot = false
     version = releaseVersion + (isSnapshot ? "-SNAPSHOT" : "")
     
     repositories {
