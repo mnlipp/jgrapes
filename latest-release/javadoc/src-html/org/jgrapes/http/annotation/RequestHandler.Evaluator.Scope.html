@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="en">
+<html lang="de">
 <head>
 <title>Source code</title>
 <link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
@@ -11,16 +11,16 @@
 <span class="sourceLineNo">003</span> * Copyright (C) 2016-2018 Michael N. Lipp<a name="line.3"></a>
 <span class="sourceLineNo">004</span> * <a name="line.4"></a>
 <span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
-<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
+<span class="sourceLineNo">006</span> * under the terms of the GNU Affero General Public License as published by <a name="line.6"></a>
 <span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
 <span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
 <span class="sourceLineNo">009</span> * <a name="line.9"></a>
 <span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
 <span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
-<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
+<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License <a name="line.12"></a>
 <span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
 <span class="sourceLineNo">014</span> * <a name="line.14"></a>
-<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
+<span class="sourceLineNo">015</span> * You should have received a copy of the GNU Affero General Public License along <a name="line.15"></a>
 <span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
 <span class="sourceLineNo">017</span> */<a name="line.17"></a>
 <span class="sourceLineNo">018</span><a name="line.18"></a>
@@ -336,12 +336,12 @@
 <span class="sourceLineNo">328</span>                if (!match) {<a name="line.328"></a>
 <span class="sourceLineNo">329</span>                    return false;<a name="line.329"></a>
 <span class="sourceLineNo">330</span>                }<a name="line.330"></a>
-<span class="sourceLineNo">331</span>                if (!(event instanceof Request)) {<a name="line.331"></a>
+<span class="sourceLineNo">331</span>                if (!(event instanceof Request.In)) {<a name="line.331"></a>
 <span class="sourceLineNo">332</span>                    return false;<a name="line.332"></a>
 <span class="sourceLineNo">333</span>                }<a name="line.333"></a>
 <span class="sourceLineNo">334</span>                for (ResourcePattern rp : handledPatterns) {<a name="line.334"></a>
-<span class="sourceLineNo">335</span>                    if (((Request) event).isEligibleFor(<a name="line.335"></a>
-<span class="sourceLineNo">336</span>                        Request.createMatchValue(Request.class, rp))) {<a name="line.336"></a>
+<span class="sourceLineNo">335</span>                    if (((Request.In) event).isEligibleFor(<a name="line.335"></a>
+<span class="sourceLineNo">336</span>                        Request.In.createMatchValue(Request.In.class, rp))) {<a name="line.336"></a>
 <span class="sourceLineNo">337</span>                        return true;<a name="line.337"></a>
 <span class="sourceLineNo">338</span>                    }<a name="line.338"></a>
 <span class="sourceLineNo">339</span>                }<a name="line.339"></a>
