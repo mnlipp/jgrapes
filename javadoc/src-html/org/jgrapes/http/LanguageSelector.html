@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="de">
+<html lang="en">
 <head>
 <title>Source code</title>
 <link rel="stylesheet" type="text/css" href="../../../../stylesheet.css" title="Style">
@@ -11,16 +11,16 @@
 <span class="sourceLineNo">003</span> * Copyright (C) 2017-2018 Michael N. Lipp<a name="line.3"></a>
 <span class="sourceLineNo">004</span> * <a name="line.4"></a>
 <span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
-<span class="sourceLineNo">006</span> * under the terms of the GNU Affero General Public License as published by <a name="line.6"></a>
+<span class="sourceLineNo">006</span> * under the terms of the GNU General Public License as published by <a name="line.6"></a>
 <span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
 <span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
 <span class="sourceLineNo">009</span> * <a name="line.9"></a>
 <span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
 <span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
-<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License <a name="line.12"></a>
+<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License <a name="line.12"></a>
 <span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
 <span class="sourceLineNo">014</span> * <a name="line.14"></a>
-<span class="sourceLineNo">015</span> * You should have received a copy of the GNU Affero General Public License along <a name="line.15"></a>
+<span class="sourceLineNo">015</span> * You should have received a copy of the GNU General Public License along <a name="line.15"></a>
 <span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
 <span class="sourceLineNo">017</span> */<a name="line.17"></a>
 <span class="sourceLineNo">018</span><a name="line.18"></a>
@@ -169,7 +169,7 @@
 <span class="sourceLineNo">161</span>     */<a name="line.161"></a>
 <span class="sourceLineNo">162</span>    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.EmptyCatchBlock" })<a name="line.162"></a>
 <span class="sourceLineNo">163</span>    @RequestHandler(priority = 990, dynamic = true)<a name="line.163"></a>
-<span class="sourceLineNo">164</span>    public void onRequest(Request.In event) {<a name="line.164"></a>
+<span class="sourceLineNo">164</span>    public void onRequest(Request event) {<a name="line.164"></a>
 <span class="sourceLineNo">165</span>        @SuppressWarnings("PMD.AccessorClassGeneration")<a name="line.165"></a>
 <span class="sourceLineNo">166</span>        final Selection selection = event.associated(Session.class)<a name="line.166"></a>
 <span class="sourceLineNo">167</span>            .map(session -&gt; (Selection) session.computeIfAbsent(<a name="line.167"></a>
@@ -243,7 +243,7 @@
 <span class="sourceLineNo">235</span>     */<a name="line.235"></a>
 <span class="sourceLineNo">236</span>    @SuppressWarnings("serial")<a name="line.236"></a>
 <span class="sourceLineNo">237</span>    public static class Selection implements Serializable {<a name="line.237"></a>
-<span class="sourceLineNo">238</span>        private transient WeakReference&lt;Request.In&gt; currentEvent;<a name="line.238"></a>
+<span class="sourceLineNo">238</span>        private transient WeakReference&lt;Request&gt; currentEvent;<a name="line.238"></a>
 <span class="sourceLineNo">239</span>        private final String cookieName;<a name="line.239"></a>
 <span class="sourceLineNo">240</span>        private final String cookiePath;<a name="line.240"></a>
 <span class="sourceLineNo">241</span>        private boolean explicitlySet;<a name="line.241"></a>
@@ -300,7 +300,7 @@
 <span class="sourceLineNo">292</span>        /**<a name="line.292"></a>
 <span class="sourceLineNo">293</span>         * @param currentEvent the currentEvent to set<a name="line.293"></a>
 <span class="sourceLineNo">294</span>         */<a name="line.294"></a>
-<span class="sourceLineNo">295</span>        private Selection setCurrentEvent(Request.In currentEvent) {<a name="line.295"></a>
+<span class="sourceLineNo">295</span>        private Selection setCurrentEvent(Request currentEvent) {<a name="line.295"></a>
 <span class="sourceLineNo">296</span>            this.currentEvent = new WeakReference&lt;&gt;(currentEvent);<a name="line.296"></a>
 <span class="sourceLineNo">297</span>            return this;<a name="line.297"></a>
 <span class="sourceLineNo">298</span>        }<a name="line.298"></a>
@@ -329,7 +329,7 @@
 <span class="sourceLineNo">321</span>            HttpCookie localesCookie = new HttpCookie(cookieName,<a name="line.321"></a>
 <span class="sourceLineNo">322</span>                LOCALE_LIST.asFieldValue(list));<a name="line.322"></a>
 <span class="sourceLineNo">323</span>            localesCookie.setPath(cookiePath);<a name="line.323"></a>
-<span class="sourceLineNo">324</span>            Request.In req = currentEvent.get();<a name="line.324"></a>
+<span class="sourceLineNo">324</span>            Request req = currentEvent.get();<a name="line.324"></a>
 <span class="sourceLineNo">325</span>            if (req != null) {<a name="line.325"></a>
 <span class="sourceLineNo">326</span>                req.httpRequest().response().ifPresent(resp -&gt; {<a name="line.326"></a>
 <span class="sourceLineNo">327</span>                    resp.computeIfAbsent(<a name="line.327"></a>
