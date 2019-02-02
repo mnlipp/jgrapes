@@ -1,6 +1,6 @@
 Bundle-Name: JGrapes examples
 Bundle-Copyright: Michael N. Lipp (c) 2017, 2018
-Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
+Bundle-License: http://www.gnu.org/licenses/agpl-3.0.txt
 
 -buildpath: \
 	osgi.core;version=6.0,\

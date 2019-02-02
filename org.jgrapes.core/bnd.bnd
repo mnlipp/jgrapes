@@ -1,7 +1,7 @@
 Bundle-Name: JGrapes Core
 Bundle-SymbolicName: org.jgrapes.core
 Bundle-Copyright: Michael N. Lipp (c) 2016, 2018
-Bundle-License: http://www.gnu.org/licenses/gpl-3.0.txt
+Bundle-License: http://www.gnu.org/licenses/agpl-3.0.txt
 
 api_version = 1.0.0.${tstamp}
 
