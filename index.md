@@ -1,6 +1,7 @@
 ---
 layout: default
 title: JGrapes by mnlipp
+description: Introductory description of the JGrapes event driven component framework for Java
 ---
 
 Welcome to JGrapes
@@ -17,13 +18,14 @@ component libraries extending the core have as few dependencies
 as possible.
 
 The documentation of the framework and its components can be found
-in the JavaDoc. Make sure to check the package descriptions. They tend to
+in the <a href="latest-release/javadoc/index.html" target="_top">JavaDoc</a>. 
+Make sure to check the package descriptions. They tend to
 be overlooked because they come after the sometimes rather lengthy list
 of packages or classes (though the standard layout *does* put a link
 to the description at the top of the page). To get started, read
 the framework's architectural description on the
-<a href="javadoc/index.html" target="_top">overview page</a>. This
-provides an introduction to the concepts, the main classes and 
+<a href="latest-release/javadoc/index.html" target="_top">overview page</a>. 
+This provides an introduction to the concepts, the main classes and 
 links to the details.
 
 The JavaDoc for the portal components is available 
