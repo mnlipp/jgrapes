@@ -16,7 +16,14 @@ dependencies {
     }
         
     baseline("${group}:${project.name}:(,${cmpVer}]") {
+        force true
         transitive false
+    }
+}
+
+tasks.baseline {
+    doFirst {
+        println "Baselining against ${configurations.baseline.singleFile}"
     }
 }
 
