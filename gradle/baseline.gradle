@@ -1,51 +1,60 @@
-dependencies {
-    // Use gradle mechanims to get the artifact to baseline against.
-    // We baseline against the previous release 
+def baselineCompareVersion(String releaseVersion) {
+    // We baseline against the previous release
     // (latest excluding current)
     def relVer = org.gradle.util.VersionNumber.parse(releaseVersion)
     def cmpVer = null
     if (relVer.getMicro() > 0) {
         cmpVer = new org.gradle.util.VersionNumber(
-            relVer.getMajor(), relVer.getMinor(), relVer.getMicro() - 1, null)
+                relVer.getMajor(), relVer.getMinor(), relVer.getMicro() - 1, null)
     } else if (relVer.getMinor() > 0) {
         cmpVer = new org.gradle.util.VersionNumber(
-            relVer.getMajor(), relVer.getMinor() - 1, 999999, null)
-    } else {
+                relVer.getMajor(), relVer.getMinor() - 1, 999999, null)
+    } else if(relVer.getMajor() > 0) {
         cmpVer = new org.gradle.util.VersionNumber(
-            relVer.getMajor() - 1, 999999, 999999, null)
+                relVer.getMajor() - 1, 999999, 999999, null)
+    } else {
+        cmpVer = "0.0.0"
     }
-        
-    baseline("${group}:${project.name}:(,${cmpVer}]") {
-        force true
-        transitive false
-    }
+    return cmpVer
 }
 
-tasks.baseline {
-    doFirst {
-        println "Baselining against ${configurations.baseline.singleFile}"
-    }
-}
-
-if (project.hasProperty('ignoreBaselineFailures')) {
-    baseline {
-        ignoreFailures true
-    }
-}
-
-model {
-    tasks.publishMavenPublicationToSnapshotRepository {
-        dependsOn baseline
-    }
-    tasks.publishMavenPublicationToReleaseRepository {
-        dependsOn baseline
-    }
-}
-
+// We need the version number after it has been updated in
+// <subproject>/build.gradle.
 afterEvaluate {
-    if(!project.name.startsWith("org.jgrapes")) {
-        tasks.matching { it.name == "baseline" }.all {
-            enabled = false
+    def relVer = org.gradle.util.VersionNumber.parse(releaseVersion)
+    // Don't baseline before 1.0.0
+    if (plugins.hasPlugin('biz.aQute.bnd.builder') && relVer.getMajor() > 0) {
+        dependencies {
+            // Use gradle mechanims to get the artifact to baseline against.
+            baseline("${group}:${project.name}:(,${baselineCompareVersion(project.releaseVersion)}]") {
+                transitive false
+            }
+        }
+
+        // Resolve with different group id,
+        // see https://github.com/gradle/gradle/issues/8717
+        def oldGroup = project.group
+        try {
+            project.group = 'dummy_group_for_baselining'
+            configurations.baseline.files
+        } finally {
+            project.group = oldGroup
+        }
+
+        if (project.hasProperty('ignoreBaselineFailures')) {
+            baseline {
+                ignoreFailures true
+            }
+        }
+
+        model {
+            tasks.publishMavenPublicationToSnapshotRepository {
+                dependsOn baseline
+            }
+            tasks.publishMavenPublicationToReleaseRepository {
+                dependsOn baseline
+            }
         }
     }
 }
+
