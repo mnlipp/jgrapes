@@ -25,11 +25,11 @@ interface Manager {
 
 PlantUML version 1.2017.18(Fri Oct 06 18:56:32 CEST 2017)
 (GPL source distribution)
-Java Runtime: Java(TM) SE Runtime Environment
-JVM: Java HotSpot(TM) 64-Bit Server VM
-Java Version: 1.8.0_181-b13
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 1.8.0_201-b09
 Operating System: Linux
-OS Version: 4.20.5-100.fc28.x86_64
+OS Version: 5.0.3-200.fc29.x86_64
 Default Encoding: UTF-8
 Language: de
 Country: DE
