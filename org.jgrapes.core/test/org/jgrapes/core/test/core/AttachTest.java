@@ -32,54 +32,82 @@ import org.junit.Test;
 
 public class AttachTest {
 
-	public static class AttachCatcher extends Component {
+    public static class Trigger extends Event<Void> {
+    }
 
-		public AttachCatcher() {
-			super(Channel.BROADCAST);
-		}
-		
-		public ComponentType attachRoot = null;
-		public ComponentType attachParent = null;
-		public ComponentType attachChild = null;
-		public ComponentType detachParent = null;
-		public ComponentType detachChild = null;
-		
-		@Handler
-		public void onAttached(Attached evt) {
-			if (evt.parent() == null) {
-				attachRoot = evt.node();
-			}
-			attachParent = evt.parent();
-			attachChild = evt.node();
-		}
-		
-		@Handler
-		public void onDetached(Detached evt) {
-			detachParent = evt.parent();
-			detachChild = evt.node();
-		}
-	}
-	
-	@Test
-	public void testPostStart() 
-			throws InterruptedException {
-		AttachCatcher c1 = new AttachCatcher();
-		AttachCatcher c2 = new AttachCatcher();
-		c1.attach(c2);
-		Components.start(c1);
-		assertEquals(c1, c1.attachRoot);
-		assertEquals(c1, c2.attachRoot);
-		assertEquals(c1, c1.attachParent);
-		assertEquals(c2, c1.attachChild);
-		assertEquals(c1, c2.attachParent);
-		assertEquals(c2, c2.attachChild);
-		c2.detach();
-		c1.fire(new Event<Void>()).get();
-		c2.fire(new Event<Void>()).get();
-		assertEquals(c1, c1.detachParent);
-		assertEquals(c2, c1.detachChild);
-		assertEquals(c1, c2.detachParent);
-		assertEquals(c2, c2.detachChild);
-	}
+    public static class AttachCatcher extends Component {
+
+        public AttachCatcher() {
+            super(Channel.BROADCAST);
+        }
+
+        public ComponentType attachRoot = null;
+        public ComponentType attachParent = null;
+        public ComponentType attachChild = null;
+        public ComponentType detachParent = null;
+        public ComponentType detachChild = null;
+
+        @Handler
+        public void onAttached(Attached evt) {
+            if (evt.parent() == null) {
+                attachRoot = evt.node();
+            }
+            attachParent = evt.parent();
+            attachChild = evt.node();
+        }
+
+        @Handler
+        public void onDetached(Detached evt) {
+            detachParent = evt.parent();
+            detachChild = evt.node();
+        }
+
+        @Handler
+        public void onTrigger(Trigger event) {
+            Components.manager(children().get(0)).detach();
+        }
+    }
+
+    @Test
+    public void testDetachExternal()
+            throws InterruptedException {
+        AttachCatcher c1 = new AttachCatcher();
+        AttachCatcher c2 = new AttachCatcher();
+        c1.attach(c2);
+        Components.start(c1);
+        assertEquals(c1, c1.attachRoot);
+        assertEquals(c1, c2.attachRoot);
+        assertEquals(c1, c1.attachParent);
+        assertEquals(c2, c1.attachChild);
+        assertEquals(c1, c2.attachParent);
+        assertEquals(c2, c2.attachChild);
+        c2.detach();
+        Components.awaitExhaustion();
+        assertEquals(c1, c1.detachParent);
+        assertEquals(c2, c1.detachChild);
+        assertEquals(c1, c2.detachParent);
+        assertEquals(c2, c2.detachChild);
+    }
+
+    @Test
+    public void testDetachInternal()
+            throws InterruptedException {
+        AttachCatcher c1 = new AttachCatcher();
+        AttachCatcher c2 = new AttachCatcher();
+        c1.attach(c2);
+        Components.start(c1);
+        assertEquals(c1, c1.attachRoot);
+        assertEquals(c1, c2.attachRoot);
+        assertEquals(c1, c1.attachParent);
+        assertEquals(c2, c1.attachChild);
+        assertEquals(c1, c2.attachParent);
+        assertEquals(c2, c2.attachChild);
+        c1.fire(new Trigger());
+        Components.awaitExhaustion();
+        assertEquals(c1, c1.detachParent);
+        assertEquals(c2, c1.detachChild);
+        assertEquals(c1, c2.detachParent);
+        assertEquals(c2, c2.detachChild);
+    }
 
 }

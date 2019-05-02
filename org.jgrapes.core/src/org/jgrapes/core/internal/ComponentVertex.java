@@ -326,6 +326,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     @Override
     public ComponentType detach() {
+        EventProcessor childProcessor;
         synchronized (this) {
             if (parent != null) {
                 ComponentVertex oldParent = parent;
@@ -341,14 +342,16 @@ public abstract class ComponentVertex implements Manager, Channel {
                         parent = null;
                     }
                     ComponentTree newTree = new ComponentTree(this);
+                    childProcessor = new EventProcessor(newTree);
                     newTree.setEventPipeline(new FeedBackPipelineFilter(
-                        new EventProcessor(newTree)));
+                        childProcessor));
                     setTree(newTree);
                 }
                 Detached evt = new Detached(component(), oldParent.component());
                 oldParent.fire(evt);
                 evt = new Detached(component(), oldParent.component());
-                fire(evt);
+                evt.setChannels(channel());
+                childProcessor.add(evt, evt.channels());
             }
             return component();
         }
