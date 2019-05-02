@@ -64,7 +64,7 @@ import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
  * 
  * Channel matching is performed by matching the event's channels
  * (see {@link Event#channels()}) with the channels specified in the
- * handler. The matching algorithm invokes  
+ * handler. The matching algorithm invokes
  * {@link Eligible#isEligibleFor(Object) isEligibleFor} for each of the 
  * event's channels with the class (or name, see {@link #channels()} and 
  * {@link Handler#namedChannels()}) of each of the channels specified
@@ -72,7 +72,7 @@ import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
  * 
  * If neither channel classes not named channels are specified in the 
  * handler, or `{@link Default Channel.Default}.class` is specified as one 
- * of the channel classes, the matching algorithm invokes  
+ * of the channel classes, the matching algorithm invokes
  * {@link Eligible#isEligibleFor(Object) isEligibleFor} for each of
  * the event's channels with the default criterion of the component's 
  * channel (see {@link Manager#channel()} and 
