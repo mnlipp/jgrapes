@@ -150,7 +150,7 @@ class ComponentTree {
     }
 
     /**
-     * Forward to the thread's event manager.
+     * Adds the event to the tree's default pipeline.
      *
      * @param event the event
      * @param channels the channels
