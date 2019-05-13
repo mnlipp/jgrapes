@@ -391,8 +391,8 @@ public @interface Handler {
          */
         private static class Scope implements HandlerScope {
 
-            private final Set<Object> eventCriteria = new HashSet<Object>();
-            private final Set<Object> channelCriteria = new HashSet<Object>();
+            private final Set<Object> eventCriteria = new HashSet<>();
+            private final Set<Object> channelCriteria = new HashSet<>();
 
             /**
              * Instantiates a new scope.
