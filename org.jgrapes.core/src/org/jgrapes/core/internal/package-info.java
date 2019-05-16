@@ -18,5 +18,5 @@
 /**
  * Classes implementing the public API of the library.
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
+@org.osgi.annotation.versioning.Version("1.1.0")
 package org.jgrapes.core.internal;

@@ -40,7 +40,8 @@ import org.jgrapes.core.EventPipeline;
 class CheckingPipelineFilter
         implements EventPipeline, InternalEventPipelineWrapper, IdInfoProvider {
 
-    private InternalEventPipeline sink;
+    private final ComponentTree componentTree;
+    private final InternalEventPipeline sink;
     private Channel channel;
     private WeakReference<InternalEventPipelineWrapper> allowedSourceRef;
     private final ThreadLocal<Boolean> allowNext = new ThreadLocal<>();
@@ -48,11 +49,14 @@ class CheckingPipelineFilter
     /**
      * Create a new instance that forwards the events to the given
      * pipeline with the given channel after checking.
-     * 
-     * @param sink
+     *
+     * @param componentTree the component tree
+     * @param sink the sink
+     * @param channel the channel
      */
-    public CheckingPipelineFilter(InternalEventPipeline sink, Channel channel) {
-        super();
+    public CheckingPipelineFilter(ComponentTree componentTree,
+            InternalEventPipeline sink, Channel channel) {
+        this.componentTree = componentTree;
         this.sink = sink;
         this.channel = channel;
     }
@@ -65,11 +69,13 @@ class CheckingPipelineFilter
     /**
      * Create a new instance that forwards the events to the given
      * pipeline after checking.
-     * 
-     * @param sink
+     *
+     * @param componentTree the component tree
+     * @param sink the sink
      */
-    public CheckingPipelineFilter(InternalEventPipeline sink) {
-        this(sink, null);
+    public CheckingPipelineFilter(ComponentTree componentTree,
+            InternalEventPipeline sink) {
+        this(componentTree, sink, null);
     }
 
     @Override
@@ -95,11 +101,10 @@ class CheckingPipelineFilter
             if (!allowed // i.e. if not allowed anyway...
                 && (allowedSourceRef.get() == null
                     || (allowedSourceRef.get())
-                        .wrapped() != FeedBackPipelineFilter
-                            .getAssociatedPipeline())) {
+                        .wrapped() != componentTree.dispatchingPipeline())) {
                 CoreUtils.fireRestrictionLogger.log(Level.SEVERE,
-                    Components.objectName(FeedBackPipelineFilter
-                        .getAssociatedPipeline()) + " cannot add "
+                    Components.objectName(componentTree.dispatchingPipeline())
+                        + " cannot add "
                         + event.toString() + " to pipeline "
                         + Components.objectName(this.wrapped())
                         + " (accepts only from "

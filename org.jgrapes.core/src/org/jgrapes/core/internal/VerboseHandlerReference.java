@@ -114,7 +114,7 @@ class VerboseHandlerReference extends HandlerReference {
         }
         builder.append('P')
             .append(Components
-                .objectId(FeedBackPipelineFilter.getAssociatedPipeline()))
+                .objectId(ComponentTree.currentPipeline()))
             .append(": ")
             .append(event);
         if (component == ComponentTree.DUMMY_HANDLER) {

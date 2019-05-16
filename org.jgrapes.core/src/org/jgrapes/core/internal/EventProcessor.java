@@ -53,7 +53,16 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
             ExecutorService executorService) {
         this.componentTree = tree;
         this.executorService = executorService;
-        asEventPipeline = new CheckingPipelineFilter(this);
+        asEventPipeline = new CheckingPipelineFilter(tree, this);
+    }
+
+    /**
+     * Gets the component tree.
+     *
+     * @return the component tree
+     */
+    protected ComponentTree tree() {
+        return componentTree;
     }
 
     /* default */ EventPipeline asEventPipeline() {
@@ -119,7 +128,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
         try {
             Thread.currentThread().setName(
                 origName + " (P" + Components.objectId(this) + ")");
-            FeedBackPipelineFilter.setAssociatedPipeline(this);
+            componentTree.setDispatchingPipeline(this);
             while (true) {
                 // No lock needed if queue is filled
                 EventChannelsTuple next = queue.peek();
@@ -141,9 +150,9 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
                 queue.remove();
             }
         } finally {
-            Thread.currentThread().setName(origName);
             newEventsParent.set(null);
-            FeedBackPipelineFilter.setAssociatedPipeline(null);
+            componentTree.setDispatchingPipeline(null);
+            Thread.currentThread().setName(origName);
         }
     }
 

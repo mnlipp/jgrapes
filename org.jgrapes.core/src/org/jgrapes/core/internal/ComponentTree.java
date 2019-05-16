@@ -52,6 +52,11 @@ class ComponentTree {
     private InternalEventPipeline eventPipeline;
     private static HandlerReference fallbackErrorHandler;
     private static HandlerReference actionEventHandler;
+    private final ThreadLocal<InternalEventPipeline> dispatchingPipeline
+        = new ThreadLocal<>();
+    @SuppressWarnings("PMD.FieldNamingConventions")
+    private static final ThreadLocal<InternalEventPipeline> currentPipeline
+        = new ThreadLocal<>();
 
     /** The Constant DUMMY_HANDLER. */
     public static final ComponentVertex DUMMY_HANDLER = new DummyComponent();
@@ -145,12 +150,44 @@ class ComponentTree {
         eventPipeline = pipeline;
     }
 
-    /* default */ InternalEventPipeline getEventPipeline() {
+    /* default */ InternalEventPipeline eventPipeline() {
         return eventPipeline;
     }
 
     /**
-     * Adds the event to the tree's default pipeline.
+     * Sets the the currently dispatching pipeline. Must be called by
+     * an event processors before invoking 
+     * {@link #dispatch(EventPipeline, EventBase, Channel[])}.
+     *
+     * @param pipeline the new dispatching pipeline
+     */
+    public void setDispatchingPipeline(InternalEventPipeline pipeline) {
+        dispatchingPipeline.set(pipeline);
+        currentPipeline.set(pipeline);
+    }
+
+    /**
+     * Gets the the event pipeline that currently dispatches events to
+     * this tree.
+     *
+     * @return the dispatching pipeline
+     */
+    public InternalEventPipeline dispatchingPipeline() {
+        return dispatchingPipeline.get();
+    }
+
+    /**
+     * Gets the the pipeline associated with the currently executing
+     * thread.
+     *
+     * @return the dispatching pipeline
+     */
+    public static InternalEventPipeline currentPipeline() {
+        return currentPipeline.get();
+    }
+
+    /**
+     * Adds the event to the tree's event pipeline.
      *
      * @param event the event
      * @param channels the channels
@@ -172,13 +209,13 @@ class ComponentTree {
     }
 
     /**
-     * Send the event to all matching handlers.
+     * Execute all matching handlers.
      * 
      * @param event the event
      * @param channels the channels the event is sent to
      */
     @SuppressWarnings("PMD.UseVarargs")
-    /* default */ void dispatch(EventPipeline pipeline,
+    public void dispatch(EventPipeline pipeline,
             EventBase<?> event, Channel[] channels) {
         HandlerList handlers = getEventHandlers(event, channels);
         handlers.process(pipeline, event);

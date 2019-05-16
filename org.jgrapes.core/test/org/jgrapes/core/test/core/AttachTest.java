@@ -39,6 +39,7 @@ public class AttachTest {
 
         public AttachCatcher() {
             super(Channel.BROADCAST);
+            Handler.Evaluator.add(this, "onTrigger", this);
         }
 
         public ComponentType attachRoot = null;
@@ -62,7 +63,7 @@ public class AttachTest {
             detachChild = evt.node();
         }
 
-        @Handler
+        @Handler(dynamic = true)
         public void onTrigger(Trigger event) {
             Components.manager(children().get(0)).detach();
         }
@@ -102,7 +103,7 @@ public class AttachTest {
         assertEquals(c2, c1.attachChild);
         assertEquals(c1, c2.attachParent);
         assertEquals(c2, c2.attachChild);
-        c1.fire(new Trigger());
+        c1.fire(new Trigger(), c1);
         Components.awaitExhaustion();
         assertEquals(c1, c1.detachParent);
         assertEquals(c2, c1.detachChild);

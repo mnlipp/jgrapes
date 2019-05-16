@@ -82,7 +82,7 @@ public abstract class ComponentVertex implements Manager, Channel {
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     protected void initComponentsHandlers(
             ChannelReplacements channelReplacements) {
-        handlers = new ArrayList<HandlerReference>();
+        handlers = new ArrayList<>();
         // Have a look at all methods.
         for (Method m : component().getClass().getMethods()) {
             maybeAddHandler(m, channelReplacements);
@@ -183,7 +183,7 @@ public abstract class ComponentVertex implements Manager, Channel {
     @Override
     public List<ComponentType> children() {
         synchronized (this) {
-            List<ComponentType> children = new ArrayList<ComponentType>();
+            List<ComponentType> children = new ArrayList<>();
             for (ComponentVertex child : this.children) {
                 children.add(child.component());
             }
@@ -326,7 +326,6 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     @Override
     public ComponentType detach() {
-        EventProcessor childProcessor;
         synchronized (this) {
             if (parent != null) {
                 ComponentVertex oldParent = parent;
@@ -342,16 +341,14 @@ public abstract class ComponentVertex implements Manager, Channel {
                         parent = null;
                     }
                     ComponentTree newTree = new ComponentTree(this);
-                    childProcessor = new EventProcessor(newTree);
                     newTree.setEventPipeline(new FeedBackPipelineFilter(
-                        childProcessor));
+                        newTree, new EventProcessor(newTree)));
                     setTree(newTree);
                 }
                 Detached evt = new Detached(component(), oldParent.component());
                 oldParent.fire(evt);
                 evt = new Detached(component(), oldParent.component());
-                evt.setChannels(channel());
-                childProcessor.add(evt, evt.channels());
+                fire(evt);
             }
             return component();
         }
@@ -399,7 +396,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     private static class TreeIterator implements Iterator<ComponentVertex> {
 
-        private final Stack<CurPos> stack = new Stack<CurPos>();
+        private final Stack<CurPos> stack = new Stack<>();
         private final ComponentTree tree;
 
         /**
@@ -538,8 +535,8 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     @Override
     public EventPipeline activeEventPipeline() {
-        return new CheckingPipelineFilter(
-            tree().getEventPipeline(), channel());
+        return new CheckingPipelineFilter(tree(),
+            tree().eventPipeline(), channel());
     }
 
     /*
@@ -549,7 +546,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     @Override
     public EventPipeline newSyncEventPipeline() {
-        return new CheckingPipelineFilter(
+        return new CheckingPipelineFilter(tree(),
             new SynchronousEventProcessor(tree()), channel());
     }
 
@@ -560,7 +557,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     @Override
     public EventPipeline newEventPipeline() {
-        return new CheckingPipelineFilter(new EventProcessor(tree()),
+        return new CheckingPipelineFilter(tree(), new EventProcessor(tree()),
             channel());
     }
 
@@ -572,7 +569,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     @Override
     public EventPipeline newEventPipeline(ExecutorService executorService) {
-        return new CheckingPipelineFilter(
+        return new CheckingPipelineFilter(tree(),
             new EventProcessor(tree(), executorService), channel());
     }
 

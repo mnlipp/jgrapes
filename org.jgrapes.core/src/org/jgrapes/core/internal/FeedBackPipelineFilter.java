@@ -30,42 +30,25 @@ import org.jgrapes.core.Event;
  */
 class FeedBackPipelineFilter implements InternalEventPipeline {
 
-    protected static ThreadLocal<InternalEventPipeline> currentPipeline
-        = new ThreadLocal<>();
+    private final ComponentTree componentTree;
     private final InternalEventPipeline fallback;
 
     /**
      * Create a new instance that forwards events added from different threads
      * to the given fall back pipeline.
-     * 
-     * @param fallback
+     *
+     * @param componentTree the component tree
+     * @param fallback the fallback pipeline
      */
-    public FeedBackPipelineFilter(InternalEventPipeline fallback) {
-        super();
+    public FeedBackPipelineFilter(ComponentTree componentTree,
+            InternalEventPipeline fallback) {
+        this.componentTree = componentTree;
         this.fallback = fallback;
-    }
-
-    /**
-     * Associate the invoking thread with the given pipeline.
-     * 
-     * @param pipeline the pipeline
-     */
-    public static void setAssociatedPipeline(InternalEventPipeline pipeline) {
-        currentPipeline.set(pipeline);
-    }
-
-    /**
-     * Get the pipeline associated with the invoking thread.
-     * 
-     * @return the pipeline or {@code null}
-     */
-    public static InternalEventPipeline getAssociatedPipeline() {
-        return currentPipeline.get();
     }
 
     @Override
     public <T extends Event<?>> T add(T event, Channel... channels) {
-        InternalEventPipeline pipeline = currentPipeline.get();
+        InternalEventPipeline pipeline = componentTree.dispatchingPipeline();
         if (pipeline != null) {
             return pipeline.add(event, channels);
         }
@@ -81,7 +64,7 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
      */
     @Override
     public void merge(InternalEventPipeline other) {
-        InternalEventPipeline pipeline = currentPipeline.get();
+        InternalEventPipeline pipeline = componentTree.dispatchingPipeline();
         if (pipeline == null) {
             fallback.merge(other);
             return;
@@ -96,7 +79,7 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
      */
     @Override
     public ExecutorService executorService() {
-        InternalEventPipeline pipeline = currentPipeline.get();
+        InternalEventPipeline pipeline = componentTree.dispatchingPipeline();
         if (pipeline != null) {
             return pipeline.executorService();
         }
@@ -114,7 +97,7 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
         StringBuilder builder = new StringBuilder(50);
         String sinkName = "(current) ";
         builder.append("FeedBackPipelineFilter [");
-        InternalEventPipeline pipeline = currentPipeline.get();
+        InternalEventPipeline pipeline = componentTree.dispatchingPipeline();
         if (pipeline == null) {
             pipeline = fallback;
             sinkName = "(fallback) ";

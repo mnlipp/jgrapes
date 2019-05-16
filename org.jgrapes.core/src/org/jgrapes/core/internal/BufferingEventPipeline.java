@@ -77,7 +77,8 @@ public class BufferingEventPipeline implements InternalEventPipeline {
                 // and set it as default processor for the tree (with
                 // any thread specific pipelines taking precedence).
                 EventProcessor processor = new EventProcessor(componentTree);
-                activePipeline = new FeedBackPipelineFilter(processor);
+                activePipeline
+                    = new FeedBackPipelineFilter(componentTree, processor);
                 componentTree.setEventPipeline(activePipeline);
                 processor.add(buffered);
             }
