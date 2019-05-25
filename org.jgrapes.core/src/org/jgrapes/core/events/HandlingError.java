@@ -26,6 +26,7 @@ import org.jgrapes.core.Event;
  * {@link org.jgrapes.core.internal.EventBase#handlingError} in
  * {@link Event}.
  */
+@SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
 public class HandlingError extends org.jgrapes.core.events.Error {
 
     /**
