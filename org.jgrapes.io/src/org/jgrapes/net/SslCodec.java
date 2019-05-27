@@ -363,20 +363,19 @@ public class SslCodec extends Component {
                 + "." + Components.objectName(this);
             // Create buffer pools, adding 50 to application buffer size, see
             // https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/samples/sslengine/SSLEngineSimpleDemo.java
-            int decBufSize = sslEngine.getSession()
-                .getApplicationBufferSize() + 50;
+            int plainBufSize
+                = sslEngine.getSession().getApplicationBufferSize() + 50;
             downstreamPool = new ManagedBufferPool<>(ManagedBuffer::new,
-                () -> {
-                    return ByteBuffer.allocate(decBufSize);
-                }, 2)
+                () -> ByteBuffer.allocate(plainBufSize), 2)
                     .setName(channelName + ".downstream.buffers");
-            int encBufSize = sslEngine.getSession().getPacketBufferSize();
+            // Provide buffers with application buffer size
+            // for use by downstream components.
             setByteBufferPool(new ManagedBufferPool<>(ManagedBuffer::new,
-                () -> {
-                    return ByteBuffer.allocate(encBufSize);
-                }, 2)
+                () -> ByteBuffer.allocate(plainBufSize), 2)
                     .setName(channelName + ".upstream.buffers"));
             downPipeline = newEventPipeline();
+            // Buffers for sending encrypted data upstream will be
+            // obtained from upstream() and resized if required.
         }
 
         /**
@@ -608,11 +607,11 @@ public class SslCodec extends Component {
                                 sslEngine.isInboundDone()));
                         }
                         wrapped = upstreamChannel().byteBufferPool().acquire();
-                        if (wrapped.capacity() < sslEngine.getSession()
-                            .getApplicationBufferSize() + 50) {
+                        int encSize
+                            = sslEngine.getSession().getPacketBufferSize() + 50;
+                        if (wrapped.capacity() < encSize) {
                             wrapped.replaceBackingBuffer(ByteBuffer.allocate(
-                                sslEngine.getSession()
-                                    .getApplicationBufferSize() + 50));
+                                encSize));
                         }
                         continue;
                     }
