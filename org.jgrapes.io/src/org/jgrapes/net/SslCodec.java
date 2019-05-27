@@ -65,9 +65,14 @@ import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Connected;
 
 /**
- * A component that receives and send byte buffers on an
+ * A component that receives and sends byte buffers on an
  * encrypted channel and sends and receives the corresponding
  * decrypted data on a plain channel.
+ * 
+ * The encrypted channel is assumed to be the network side
+ * ("upstream") and therefore {@link Input} events represent
+ * encrypted data and are decoded to {@link Output} events on
+ * the plain channel ("downstream") and vice versa.
  */
 @SuppressWarnings({ "PMD.ExcessiveImports" })
 public class SslCodec extends Component {
@@ -261,7 +266,7 @@ public class SslCodec extends Component {
     }
 
     /**
-     * Sends decrypted data through the engine and then upstream.
+     * Sends plain data through the engine and then upstream.
      * 
      * @param event
      *            the event with the data
