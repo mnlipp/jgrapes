@@ -502,8 +502,8 @@ public class SslCodec extends Component {
                         // forward data received up to now
                         downPipeline.fire(Input.fromSink(unwrapped,
                             sslEngine.isInboundDone()), this);
+                        unwrapped = downstreamPool.acquire();
                     }
-                    unwrapped = downstreamPool.acquire();
                     if (unwrapped.capacity() < sslEngine.getSession()
                         .getApplicationBufferSize() + 50) {
                         unwrapped.replaceBackingBuffer(ByteBuffer.allocate(
@@ -605,8 +605,9 @@ public class SslCodec extends Component {
                             // forward data received up to now
                             upstreamChannel().respond(Output.fromSink(wrapped,
                                 sslEngine.isInboundDone()));
+                            wrapped
+                                = upstreamChannel().byteBufferPool().acquire();
                         }
-                        wrapped = upstreamChannel().byteBufferPool().acquire();
                         int encSize
                             = sslEngine.getSession().getPacketBufferSize() + 50;
                         if (wrapped.capacity() < encSize) {
