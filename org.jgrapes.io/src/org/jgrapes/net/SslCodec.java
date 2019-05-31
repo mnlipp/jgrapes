@@ -388,7 +388,6 @@ public class SslCodec extends Component {
          */
         public void sendDownstream(Input<ByteBuffer> event)
                 throws SSLException, InterruptedException, ExecutionException {
-            ManagedBuffer<ByteBuffer> unwrapped = downstreamPool.acquire();
             ByteBuffer input = event.buffer().duplicate();
             if (carryOver != null) {
                 if (carryOver.remaining() < input.remaining()) {
@@ -407,7 +406,7 @@ public class SslCodec extends Component {
             }
 
             // Main processing
-            SSLEngineResult processingResult = processInput(unwrapped, input);
+            SSLEngineResult processingResult = processInput(input);
 
             // final message?
             if (processingResult.getStatus() == Status.CLOSED
@@ -430,10 +429,10 @@ public class SslCodec extends Component {
         }
 
         @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount" })
-        private SSLEngineResult processInput(
-                ManagedBuffer<ByteBuffer> unwrapped, ByteBuffer input)
+        private SSLEngineResult processInput(ByteBuffer input)
                 throws SSLException, InterruptedException, ExecutionException {
             SSLEngineResult unwrapResult;
+            ManagedBuffer<ByteBuffer> unwrapped = downstreamPool.acquire();
             while (true) {
                 unwrapResult
                     = sslEngine.unwrap(input, unwrapped.backingBuffer());
@@ -465,10 +464,9 @@ public class SslCodec extends Component {
 
                 case NEED_WRAP:
                     ManagedBuffer<ByteBuffer> feedback
-                        = upstreamChannel().byteBufferPool().acquire();
+                        = acquireFeedbackBuffer();
                     SSLEngineResult wrapResult = sslEngine.wrap(
-                        ManagedBuffer.EMPTY_BYTE_BUFFER
-                            .backingBuffer(),
+                        ManagedBuffer.EMPTY_BYTE_BUFFER.backingBuffer(),
                         feedback.backingBuffer());
                     upstreamChannel().respond(Output.fromSink(feedback, false));
                     if (wrapResult
@@ -659,8 +657,7 @@ public class SslCodec extends Component {
                 throws InterruptedException, SSLException {
             sslEngine.closeOutbound();
             while (!sslEngine.isOutboundDone()) {
-                ManagedBuffer<ByteBuffer> feedback
-                    = upstreamChannel().byteBufferPool().acquire();
+                ManagedBuffer<ByteBuffer> feedback = acquireFeedbackBuffer();
                 sslEngine.wrap(ManagedBuffer.EMPTY_BYTE_BUFFER
                     .backingBuffer(), feedback.backingBuffer());
                 upstreamChannel().respond(Output.fromSink(feedback, false));
@@ -686,7 +683,7 @@ public class SslCodec extends Component {
                 sslEngine.closeInbound();
                 while (!sslEngine.isOutboundDone()) {
                     ManagedBuffer<ByteBuffer> feedback
-                        = upstreamChannel().byteBufferPool().acquire();
+                        = acquireFeedbackBuffer();
                     SSLEngineResult result = sslEngine.wrap(
                         ManagedBuffer.EMPTY_BYTE_BUFFER.backingBuffer(),
                         feedback.backingBuffer());
@@ -707,6 +704,19 @@ public class SslCodec extends Component {
                 // interested in this message
                 logger.log(Level.FINEST, e.getMessage(), e);
             }
+        }
+
+        ManagedBuffer<ByteBuffer> acquireFeedbackBuffer()
+                throws InterruptedException {
+            ManagedBuffer<ByteBuffer> feedback
+                = upstreamChannel().byteBufferPool().acquire();
+            int encSize
+                = sslEngine.getSession().getPacketBufferSize() + 50;
+            if (feedback.capacity() < encSize) {
+                feedback.replaceBackingBuffer(ByteBuffer.allocate(
+                    encSize));
+            }
+            return feedback;
         }
 
         /**
