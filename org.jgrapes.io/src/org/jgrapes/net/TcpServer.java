@@ -167,7 +167,8 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
                         .sorted(new Comparator<TcpChannelImpl>() {
                             @Override
                             @SuppressWarnings("PMD.ShortVariable")
-                            public int compare(TcpChannelImpl c1, TcpChannelImpl c2) {
+                            public int compare(TcpChannelImpl c1,
+                                    TcpChannelImpl c2) {
                                 if (c1.purgeableSince() < c2
                                     .purgeableSince()) {
                                     return 1;
