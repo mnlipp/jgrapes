@@ -53,7 +53,7 @@ import org.jgrapes.http.events.Request;
  * are matched by one of the specified {@link ResourcePattern}s.
  * 
  * Note that matching uses a shortened request URI for reasons outlined
- * in {@link Request#defaultCriterion()}. Specifying patterns with
+ * in {@link Request.In#defaultCriterion()}. Specifying patterns with
  * more path components than are used by the event's default criterion
  * may therefore result in unexpected events. If the default criterion
  * of an event shortens a requested URI "/foo/bar" to "/foo/**" and
