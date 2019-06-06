@@ -48,6 +48,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Self;
+import org.jgrapes.core.Subchannel;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Error;
 import org.jgrapes.core.events.Start;
@@ -460,17 +461,24 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
     @Handler
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void onClose(Close event) throws IOException, InterruptedException {
-        boolean subOnly = true;
+        boolean closeServer = false;
         for (Channel channel : event.channels()) {
-            if (channel instanceof TcpChannelImpl) {
-                if (channels.contains(channel)) {
-                    ((TcpChannelImpl) channel).close();
-                }
-            } else {
-                subOnly = false;
+            if (channels.contains(channel)) {
+                ((TcpChannelImpl) channel).close();
+                continue;
             }
+            if (channel instanceof Subchannel) {
+                // Some subchannel that we're not interested in.
+                continue;
+            }
+            // Close event on "main" channel
+            closeServer = true;
         }
-        if (subOnly || !serverSocketChannel.isOpen()) {
+        if (!closeServer) {
+            // Only connection(s) were to be closed.
+            return;
+        }
+        if (!serverSocketChannel.isOpen()) {
             // Closed already
             fire(new Closed());
             return;
