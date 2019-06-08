@@ -195,6 +195,21 @@ public class ResourcePattern {
     @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NPathComplexity",
         "PMD.CollapsibleIfStatements", "PMD.DataflowAnomalyAnalysis" })
     public int matches(URI resource) {
+        return matches(resource, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Matches the given resource URI against the pattern, comparing
+     * at most the given number of path segments.
+     *
+     * @param resource the URI specifying the resource to match
+     * @param pathSegs the maximum number of path segments to compare
+     * @return -1 if the resource does not match, else the number
+     * of prefix segments (which may be 0)
+     */
+    @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NPathComplexity",
+        "PMD.CollapsibleIfStatements", "PMD.DataflowAnomalyAnalysis" })
+    public int matches(URI resource, int pathSegs) {
         if (protocol != null && !protocol.equals("*")) {
             if (resource.getScheme() == null) {
                 return -1;
@@ -232,11 +247,11 @@ public class ResourcePattern {
                         reqElementsPlus[reqElementsPlus.length - 1] = "";
                     }
                 }
-                if (matchPath(pathPattern, reqElementsPlus)) {
+                if (matchPath(pathPattern, reqElementsPlus, pathSegs)) {
                     return prefixSegs[pathIdx];
                 }
             } else {
-                if (matchPath(pathPattern, reqElements)) {
+                if (matchPath(pathPattern, reqElements, pathSegs)) {
                     return prefixSegs[pathIdx];
                 }
             }
@@ -257,6 +272,23 @@ public class ResourcePattern {
         return (new ResourcePattern(pattern)).matches(resource) >= 0;
     }
 
+    /**
+     * Matches the given pattern against the given resource URI, comparing
+     * at most the given number of path segments.
+     *
+     * @param pattern the pattern to match
+     * @param resource the URI specifying the resource to match
+     * @param pathSegments the maximum number of path segments to compare
+     * @return {@code true} if the resource URI matches
+     * @throws ParseException if an invalid pattern is specified
+     */
+    public static boolean matches(String pattern, URI resource,
+            int pathSegments)
+            throws ParseException {
+        return (new ResourcePattern(pattern)).matches(resource,
+            pathSegments) >= 0;
+    }
+
     @SuppressWarnings("PMD.UseVarargs")
     private static boolean lastIsEmpty(String[] elements) {
         return elements.length > 0
@@ -265,22 +297,31 @@ public class ResourcePattern {
 
     @SuppressWarnings({ "PMD.UseVarargs", "PMD.DataflowAnomalyAnalysis",
         "PMD.PositionLiteralsFirstInComparisons" })
-    private boolean matchPath(String[] patternElements, String[] reqElements) {
+    private boolean matchPath(String[] patternElements, String[] reqElements,
+            int maxSegs) {
         int pathIdx = 0;
         int reqIdx = 0;
+        int patternEls = Math.min(patternElements.length, maxSegs);
+        int reqEls = Math.min(reqElements.length, maxSegs);
         while (true) {
-            if (pathIdx == patternElements.length) {
-                return reqIdx == reqElements.length;
+            if (pathIdx == patternEls) {
+                // Reached pattern end, is match if we also reached end
+                // of requested elements.
+                return reqIdx == reqEls;
             }
-            if (reqIdx == reqElements.length) {
+            if (reqIdx == reqEls) {
+                // Not pattern end, but more segments from request
+                // means no match.
                 return false;
             }
             String matchElement = patternElements[pathIdx++];
             if ("**".equals(matchElement)) {
+                // Accept anything left means match.
                 return true;
             }
             String reqElement = reqElements[reqIdx++];
             if (!matchElement.equals("*") && !matchElement.equals(reqElement)) {
+                // If not equal (or wildcard) we have no match.
                 return false;
             }
         }
