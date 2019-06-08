@@ -322,7 +322,7 @@ public class Event<T> extends EventBase<T> {
             if (results == null) {
                 // Make sure that we have a valid result before
                 // calling decrementOpen
-                results = new ArrayList<T>();
+                results = new ArrayList<>();
                 results.add(result);
                 firstResultAssigned();
                 return this;
@@ -358,7 +358,7 @@ public class Event<T> extends EventBase<T> {
     public Event<T> tieTo(Event<T> other) {
         synchronized (this) {
             if (other.results == null) {
-                other.results = new ArrayList<T>();
+                other.results = new ArrayList<>();
             }
             results = other.results;
             return this;
