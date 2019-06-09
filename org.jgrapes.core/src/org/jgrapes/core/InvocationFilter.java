@@ -46,7 +46,7 @@ public interface InvocationFilter {
      * It is therefore not required to re-test conditions already
      * checked by {@link HandlerScope#includes(Eligible, Eligible[])}.
      *
-     * @param events the events
+     * @param event the event
      * @return true, if successful
      */
     boolean includes(EventBase<?> event);
