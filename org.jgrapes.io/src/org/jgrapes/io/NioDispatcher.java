@@ -74,7 +74,7 @@ public class NioDispatcher extends Component implements Runnable {
      * @param event the event
      * @throws InterruptedException if the execution is interrupted
      */
-    @Handler(priority = -10000)
+    @Handler(priority = -10_000)
     public void onStop(Stop event) throws InterruptedException {
         synchronized (this) {
             if (runner == null) {
