@@ -157,7 +157,7 @@ public class InputStreamMonitor extends Component implements Runnable {
      * @param event the event
      * @throws InterruptedException the interrupted exception
      */
-    @Handler(priority = -10000)
+    @Handler(priority = -10_000)
     public void onStop(Stop event) throws InterruptedException {
         synchronized (this) {
             if (runner == null) {
