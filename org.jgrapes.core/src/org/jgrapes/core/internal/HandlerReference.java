@@ -28,6 +28,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Eligible;
 import org.jgrapes.core.HandlerScope;
+import org.jgrapes.core.InvocationFilter;
 
 /**
  * A reference to a method that handles an event.
@@ -39,7 +40,8 @@ class HandlerReference implements Comparable<HandlerReference> {
         = Logger.getLogger(ComponentType.class.getPackage().getName()
             + ".handlerTracking");
 
-    private final HandlerScope filter;
+    protected final HandlerScope filter;
+    protected final boolean needsFiltering;
     protected MethodHandle method;
     private final int priority;
 
@@ -56,6 +58,7 @@ class HandlerReference implements Comparable<HandlerReference> {
             int priority, HandlerScope filter) {
         super();
         this.filter = filter;
+        needsFiltering = filter instanceof InvocationFilter;
         this.priority = priority;
         try {
             this.method = MethodHandles.lookup().unreflect(method);
@@ -109,6 +112,9 @@ class HandlerReference implements Comparable<HandlerReference> {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void invoke(EventBase<?> event) throws Throwable {
         // ADAPT VERBOSEHANDLERREFERENCE TO ANY CHANGES MADE HERE
+        if (needsFiltering && !((InvocationFilter) filter).includes(event)) {
+            return;
+        }
         switch (method.type().parameterCount()) {
         case 0:
             // No parameters

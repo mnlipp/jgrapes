@@ -61,6 +61,7 @@ public class Request<R> extends MessageReceived<R> {
 
         @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
         private final HttpRequest request;
+        private int matchLevels;
         private MatchValue matchValue;
         private URI matchUri;
         private URI uri;
@@ -81,6 +82,7 @@ public class Request<R> extends MessageReceived<R> {
             super(channels);
             new Completed(this);
             this.request = request;
+            this.matchLevels = matchLevels;
             try {
                 URI headerInfo = new URI(protocol, null,
                     request.host(), request.port(), null, null, null);
@@ -89,11 +91,10 @@ public class Request<R> extends MessageReceived<R> {
                     requestUri().getPath()).skip(1).iterator();
                 StringBuilder pattern = new StringBuilder(20);
                 for (int i = 0; i < matchLevels && segs.hasNext(); i++) {
-                    pattern.append('/')
-                        .append(segs.next());
+                    pattern.append('/').append(segs.next());
                 }
                 if (segs.hasNext()) {
-                    pattern.append("/**");
+                    pattern.append("/…");
                 }
                 String matchPath = pattern.toString();
                 URI uri = requestUri();
@@ -178,8 +179,8 @@ public class Request<R> extends MessageReceived<R> {
          * The URI is similar to the request URI but its path elements
          * are shortened as specified in the constructor.
          * 
-         * As the match value is used as key in a map that speeds up
-         * the lookup of handlers, having the complete URI in the match
+         * The match value is used as key in a map that speeds up
+         * the lookup of handlers. Having the complete URI in the match
          * value would inflate this map.
          *
          * @return the object
@@ -205,7 +206,8 @@ public class Request<R> extends MessageReceived<R> {
                 return false;
             }
             if (mval.resource instanceof ResourcePattern) {
-                return ((ResourcePattern) mval.resource).matches(matchUri) >= 0;
+                return ((ResourcePattern) mval.resource).matches(matchUri,
+                    matchLevels) >= 0;
             }
             return mval.resource.equals(matchValue.resource);
         }

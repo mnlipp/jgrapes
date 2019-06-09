@@ -26,6 +26,7 @@ import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.HandlerScope;
+import org.jgrapes.core.InvocationFilter;
 
 /**
  * An variant of handler reference that provides better debug information (at
@@ -61,6 +62,9 @@ class VerboseHandlerReference extends HandlerReference {
     @Override
     @SuppressWarnings("PMD.NcssCount")
     public void invoke(EventBase<?> event) throws Throwable {
+        if (needsFiltering && !((InvocationFilter) filter).includes(event)) {
+            return;
+        }
         if (component == ComponentTree.DUMMY_HANDLER) {
             reportInvocation(event, false);
             return;

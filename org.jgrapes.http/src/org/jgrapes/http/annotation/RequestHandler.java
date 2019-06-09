@@ -39,11 +39,13 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Event;
 import org.jgrapes.core.HandlerScope;
+import org.jgrapes.core.InvocationFilter;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler.NoChannel;
 import org.jgrapes.core.annotation.Handler.NoEvent;
 import org.jgrapes.core.annotation.HandlerDefinition;
 import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
+import org.jgrapes.core.internal.EventBase;
 import org.jgrapes.http.ResourcePattern;
 import org.jgrapes.http.events.Request;
 
@@ -204,7 +206,7 @@ public @interface RequestHandler {
         /**
          * The scope implementation.
          */
-        public static class Scope implements HandlerScope {
+        public static class Scope implements HandlerScope, InvocationFilter {
 
             private final Set<Object> handledEventTypes = new HashSet<>();
             private final Set<Object> handledChannels = new HashSet<>();
@@ -274,7 +276,7 @@ public @interface RequestHandler {
                     handledChannels.add(Components.manager(component)
                         .channel().defaultCriterion());
                 }
-                // Finally, a comoponent always handles events
+                // Finally, a component always handles events
                 // directed at it directly.
                 if (component instanceof Channel) {
                     handledChannels.add(
@@ -334,6 +336,16 @@ public @interface RequestHandler {
                 for (ResourcePattern rp : handledPatterns) {
                     if (((Request.In) event).isEligibleFor(
                         Request.In.createMatchValue(Request.In.class, rp))) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public boolean includes(EventBase<?> event) {
+                for (ResourcePattern rp : handledPatterns) {
+                    if (rp.matches(((Request.In) event).requestUri()) >= 0) {
                         return true;
                     }
                 }
