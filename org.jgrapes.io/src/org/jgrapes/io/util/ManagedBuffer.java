@@ -155,6 +155,7 @@ public class ManagedBuffer<T extends Buffer> {
      * @throws IllegalStateException if the buffer is not locked or 
      * has been released already
      */
+    @SuppressWarnings("PMD.AvoidUncheckedExceptionsInSignatures")
     public void unlockBuffer() throws IllegalStateException {
         int locks = lockCount.decrementAndGet();
         if (locks < 0) {
