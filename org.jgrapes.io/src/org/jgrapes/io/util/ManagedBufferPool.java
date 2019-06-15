@@ -150,7 +150,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
         preservedBufs = lowerThreshold;
         maximumBufs = upperLimit;
         createdBufs = new AtomicInteger();
-        queue = new ArrayBlockingQueue<W>(lowerThreshold);
+        queue = new ArrayBlockingQueue<>(lowerThreshold);
         bufferMonitor = new BufferMonitor(upperLimit);
         MBeanView.addPool(this);
     }
@@ -268,9 +268,10 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
                 buffer.lockBuffer();
                 return buffer;
             }
-            logger.log(Level.FINE, new Throwable(),
-                () -> Thread.currentThread().getName() + " waiting > "
-                    + acquireWarningLimit + "ms for buffer, while executing:");
+            logger.log(Level.FINE,
+                Thread.currentThread().getName() + " waiting > "
+                    + acquireWarningLimit + "ms for buffer, while executing:",
+                new Throwable());
         }
         W buffer = queue.take();
         buffer.lockBuffer();
