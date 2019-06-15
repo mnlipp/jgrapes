@@ -489,243 +489,252 @@
 <span class="sourceLineNo">481</span>                        SSLEngineResult wrapResult = sslEngine.wrap(<a name="line.481"></a>
 <span class="sourceLineNo">482</span>                            ManagedBuffer.EMPTY_BYTE_BUFFER.backingBuffer(),<a name="line.482"></a>
 <span class="sourceLineNo">483</span>                            feedback.backingBuffer());<a name="line.483"></a>
-<span class="sourceLineNo">484</span>                        upstreamChannel()<a name="line.484"></a>
-<span class="sourceLineNo">485</span>                            .respond(Output.fromSink(feedback, false));<a name="line.485"></a>
-<span class="sourceLineNo">486</span>                        if (wrapResult<a name="line.486"></a>
-<span class="sourceLineNo">487</span>                            .getHandshakeStatus() == HandshakeStatus.FINISHED) {<a name="line.487"></a>
-<span class="sourceLineNo">488</span>                            fireAccepted();<a name="line.488"></a>
-<span class="sourceLineNo">489</span>                        }<a name="line.489"></a>
-<span class="sourceLineNo">490</span>                    }<a name="line.490"></a>
-<span class="sourceLineNo">491</span>                    continue;<a name="line.491"></a>
-<span class="sourceLineNo">492</span><a name="line.492"></a>
-<span class="sourceLineNo">493</span>                case FINISHED:<a name="line.493"></a>
-<span class="sourceLineNo">494</span>                    fireAccepted();<a name="line.494"></a>
-<span class="sourceLineNo">495</span>                    break;<a name="line.495"></a>
-<span class="sourceLineNo">496</span><a name="line.496"></a>
-<span class="sourceLineNo">497</span>                default:<a name="line.497"></a>
-<span class="sourceLineNo">498</span>                    break;<a name="line.498"></a>
-<span class="sourceLineNo">499</span>                }<a name="line.499"></a>
-<span class="sourceLineNo">500</span><a name="line.500"></a>
-<span class="sourceLineNo">501</span>                // Anything to forward downstream?<a name="line.501"></a>
-<span class="sourceLineNo">502</span>                if (unwrapped.position() &gt; 0) {<a name="line.502"></a>
-<span class="sourceLineNo">503</span>                    // forward unwrapped data<a name="line.503"></a>
-<span class="sourceLineNo">504</span>                    downPipeline.fire(Input.fromSink(unwrapped,<a name="line.504"></a>
-<span class="sourceLineNo">505</span>                        sslEngine.isInboundDone()), this);<a name="line.505"></a>
-<span class="sourceLineNo">506</span>                    unwrapped = null;<a name="line.506"></a>
-<span class="sourceLineNo">507</span>                }<a name="line.507"></a>
-<span class="sourceLineNo">508</span><a name="line.508"></a>
-<span class="sourceLineNo">509</span>                // If we have a buffer overflow or everything was okay<a name="line.509"></a>
-<span class="sourceLineNo">510</span>                // and there's data left, we try again, else we quit.<a name="line.510"></a>
-<span class="sourceLineNo">511</span>                if (unwrapResult.getStatus() != Status.BUFFER_OVERFLOW<a name="line.511"></a>
-<span class="sourceLineNo">512</span>                    &amp;&amp; (unwrapResult.getStatus() != Status.OK<a name="line.512"></a>
-<span class="sourceLineNo">513</span>                        || !input.hasRemaining())) {<a name="line.513"></a>
-<span class="sourceLineNo">514</span>                    // Underflow or closed<a name="line.514"></a>
-<span class="sourceLineNo">515</span>                    if (unwrapped != null) {<a name="line.515"></a>
-<span class="sourceLineNo">516</span>                        unwrapped.unlockBuffer();<a name="line.516"></a>
-<span class="sourceLineNo">517</span>                    }<a name="line.517"></a>
-<span class="sourceLineNo">518</span>                    break;<a name="line.518"></a>
-<span class="sourceLineNo">519</span>                }<a name="line.519"></a>
-<span class="sourceLineNo">520</span><a name="line.520"></a>
-<span class="sourceLineNo">521</span>                // Make sure we have an output buffer.<a name="line.521"></a>
-<span class="sourceLineNo">522</span>                if (unwrapped == null) {<a name="line.522"></a>
-<span class="sourceLineNo">523</span>                    unwrapped = downstreamPool.acquire();<a name="line.523"></a>
-<span class="sourceLineNo">524</span>                }<a name="line.524"></a>
-<span class="sourceLineNo">525</span>            }<a name="line.525"></a>
-<span class="sourceLineNo">526</span>            return unwrapResult;<a name="line.526"></a>
-<span class="sourceLineNo">527</span>        }<a name="line.527"></a>
-<span class="sourceLineNo">528</span><a name="line.528"></a>
-<span class="sourceLineNo">529</span>        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.529"></a>
-<span class="sourceLineNo">530</span>        private void fireAccepted() {<a name="line.530"></a>
-<span class="sourceLineNo">531</span>            List&lt;SNIServerName&gt; snis = Collections.emptyList();<a name="line.531"></a>
-<span class="sourceLineNo">532</span>            if (sslEngine.getSession() instanceof ExtendedSSLSession) {<a name="line.532"></a>
-<span class="sourceLineNo">533</span>                snis = ((ExtendedSSLSession) sslEngine.getSession())<a name="line.533"></a>
-<span class="sourceLineNo">534</span>                    .getRequestedServerNames();<a name="line.534"></a>
-<span class="sourceLineNo">535</span>            }<a name="line.535"></a>
-<span class="sourceLineNo">536</span>            downPipeline.fire(new Accepted(<a name="line.536"></a>
-<span class="sourceLineNo">537</span>                localAddress, remoteAddress, true, snis), this);<a name="line.537"></a>
-<span class="sourceLineNo">538</span>        }<a name="line.538"></a>
-<span class="sourceLineNo">539</span><a name="line.539"></a>
-<span class="sourceLineNo">540</span>        /**<a name="line.540"></a>
-<span class="sourceLineNo">541</span>         * Send output upstream.<a name="line.541"></a>
-<span class="sourceLineNo">542</span>         *<a name="line.542"></a>
-<span class="sourceLineNo">543</span>         * @param event the event<a name="line.543"></a>
-<span class="sourceLineNo">544</span>         * @throws SSLException the SSL exception<a name="line.544"></a>
-<span class="sourceLineNo">545</span>         * @throws InterruptedException the interrupted exception<a name="line.545"></a>
-<span class="sourceLineNo">546</span>         * @throws ExecutionException <a name="line.546"></a>
-<span class="sourceLineNo">547</span>         */<a name="line.547"></a>
-<span class="sourceLineNo">548</span>        public void sendUpstream(Output&lt;ByteBuffer&gt; event)<a name="line.548"></a>
-<span class="sourceLineNo">549</span>                throws SSLException, InterruptedException, ExecutionException {<a name="line.549"></a>
-<span class="sourceLineNo">550</span>            ByteBuffer output = event.buffer().backingBuffer().duplicate();<a name="line.550"></a>
-<span class="sourceLineNo">551</span>            processOutput(output, event.isEndOfRecord());<a name="line.551"></a>
-<span class="sourceLineNo">552</span>        }<a name="line.552"></a>
-<span class="sourceLineNo">553</span><a name="line.553"></a>
-<span class="sourceLineNo">554</span>        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",<a name="line.554"></a>
-<span class="sourceLineNo">555</span>            "PMD.CyclomaticComplexity", "PMD.NcssCount",<a name="line.555"></a>
-<span class="sourceLineNo">556</span>            "PMD.NPathComplexity" })<a name="line.556"></a>
-<span class="sourceLineNo">557</span>        private void processOutput(ByteBuffer output, boolean eor)<a name="line.557"></a>
-<span class="sourceLineNo">558</span>                throws InterruptedException, SSLException, ExecutionException {<a name="line.558"></a>
-<span class="sourceLineNo">559</span>            ManagedBuffer&lt;ByteBuffer&gt; wrapped = acquireUpstreamBuffer();<a name="line.559"></a>
-<span class="sourceLineNo">560</span>            while (true) {<a name="line.560"></a>
-<span class="sourceLineNo">561</span>                SSLEngineResult wrapResult;<a name="line.561"></a>
-<span class="sourceLineNo">562</span>                // Cheap synchronization: no (relevant) input<a name="line.562"></a>
-<span class="sourceLineNo">563</span>                inputProcessed[0] = false;<a name="line.563"></a>
-<span class="sourceLineNo">564</span>                synchronized (sslEngine) {<a name="line.564"></a>
-<span class="sourceLineNo">565</span>                    wrapResult<a name="line.565"></a>
-<span class="sourceLineNo">566</span>                        = sslEngine.wrap(output, wrapped.backingBuffer());<a name="line.566"></a>
-<span class="sourceLineNo">567</span>                    // Anything to be sent upstream?<a name="line.567"></a>
-<span class="sourceLineNo">568</span>                    if (wrapped.position() &gt; 0) {<a name="line.568"></a>
-<span class="sourceLineNo">569</span>                        upstreamChannel().respond(Output.fromSink(wrapped,<a name="line.569"></a>
-<span class="sourceLineNo">570</span>                            sslEngine.isInboundDone()<a name="line.570"></a>
-<span class="sourceLineNo">571</span>                                || eor &amp;&amp; !output.hasRemaining()));<a name="line.571"></a>
-<span class="sourceLineNo">572</span>                        wrapped = null;<a name="line.572"></a>
-<span class="sourceLineNo">573</span>                    }<a name="line.573"></a>
-<span class="sourceLineNo">574</span>                }<a name="line.574"></a>
-<span class="sourceLineNo">575</span>                switch (wrapResult.getHandshakeStatus()) {<a name="line.575"></a>
-<span class="sourceLineNo">576</span>                case NEED_TASK:<a name="line.576"></a>
-<span class="sourceLineNo">577</span>                    while (true) {<a name="line.577"></a>
-<span class="sourceLineNo">578</span>                        Runnable runnable = sslEngine.getDelegatedTask();<a name="line.578"></a>
-<span class="sourceLineNo">579</span>                        if (runnable == null) {<a name="line.579"></a>
-<span class="sourceLineNo">580</span>                            break;<a name="line.580"></a>
-<span class="sourceLineNo">581</span>                        }<a name="line.581"></a>
-<span class="sourceLineNo">582</span>                        runnable.run();<a name="line.582"></a>
-<span class="sourceLineNo">583</span>                    }<a name="line.583"></a>
-<span class="sourceLineNo">584</span>                    continue;<a name="line.584"></a>
-<span class="sourceLineNo">585</span><a name="line.585"></a>
-<span class="sourceLineNo">586</span>                case NEED_UNWRAP:<a name="line.586"></a>
-<span class="sourceLineNo">587</span>                    // Input required. Wait until<a name="line.587"></a>
-<span class="sourceLineNo">588</span>                    // input becomes available and retry.<a name="line.588"></a>
-<span class="sourceLineNo">589</span>                    synchronized (inputProcessed) {<a name="line.589"></a>
-<span class="sourceLineNo">590</span>                        while (!inputProcessed[0]) {<a name="line.590"></a>
-<span class="sourceLineNo">591</span>                            inputProcessed.wait();<a name="line.591"></a>
-<span class="sourceLineNo">592</span>                        }<a name="line.592"></a>
-<span class="sourceLineNo">593</span>                    }<a name="line.593"></a>
-<span class="sourceLineNo">594</span>                    break;<a name="line.594"></a>
-<span class="sourceLineNo">595</span><a name="line.595"></a>
-<span class="sourceLineNo">596</span>                default:<a name="line.596"></a>
-<span class="sourceLineNo">597</span>                    break;<a name="line.597"></a>
-<span class="sourceLineNo">598</span>                }<a name="line.598"></a>
-<span class="sourceLineNo">599</span><a name="line.599"></a>
-<span class="sourceLineNo">600</span>                // If we have a buffer overflow or everything was okay<a name="line.600"></a>
-<span class="sourceLineNo">601</span>                // and there's data left, we try again, else we quit.<a name="line.601"></a>
-<span class="sourceLineNo">602</span>                if (wrapResult.getStatus() != Status.BUFFER_OVERFLOW<a name="line.602"></a>
-<span class="sourceLineNo">603</span>                    &amp;&amp; (wrapResult.getStatus() != Status.OK<a name="line.603"></a>
-<span class="sourceLineNo">604</span>                        || !output.hasRemaining())) {<a name="line.604"></a>
-<span class="sourceLineNo">605</span>                    // Underflow or closed<a name="line.605"></a>
-<span class="sourceLineNo">606</span>                    if (wrapped != null) {<a name="line.606"></a>
-<span class="sourceLineNo">607</span>                        wrapped.unlockBuffer();<a name="line.607"></a>
-<span class="sourceLineNo">608</span>                    }<a name="line.608"></a>
-<span class="sourceLineNo">609</span>                    // Warn if data is discarded<a name="line.609"></a>
-<span class="sourceLineNo">610</span>                    if (output.hasRemaining()) {<a name="line.610"></a>
-<span class="sourceLineNo">611</span>                        logger.warning(() -&gt; toString()<a name="line.611"></a>
-<span class="sourceLineNo">612</span>                            + ": Upstream data discarded, SSLEngine status: "<a name="line.612"></a>
-<span class="sourceLineNo">613</span>                            + wrapResult.getStatus());<a name="line.613"></a>
-<span class="sourceLineNo">614</span>                    }<a name="line.614"></a>
-<span class="sourceLineNo">615</span>                    break;<a name="line.615"></a>
-<span class="sourceLineNo">616</span>                }<a name="line.616"></a>
-<span class="sourceLineNo">617</span><a name="line.617"></a>
-<span class="sourceLineNo">618</span>                // Was handshake (or partial content), get new buffer and try<a name="line.618"></a>
-<span class="sourceLineNo">619</span>                // again<a name="line.619"></a>
-<span class="sourceLineNo">620</span>                if (wrapped == null) {<a name="line.620"></a>
-<span class="sourceLineNo">621</span>                    wrapped = acquireUpstreamBuffer();<a name="line.621"></a>
-<span class="sourceLineNo">622</span>                }<a name="line.622"></a>
-<span class="sourceLineNo">623</span>            }<a name="line.623"></a>
-<span class="sourceLineNo">624</span>        }<a name="line.624"></a>
-<span class="sourceLineNo">625</span><a name="line.625"></a>
-<span class="sourceLineNo">626</span>        /**<a name="line.626"></a>
-<span class="sourceLineNo">627</span>         * Close the connection.<a name="line.627"></a>
-<span class="sourceLineNo">628</span>         *<a name="line.628"></a>
-<span class="sourceLineNo">629</span>         * @param event the event<a name="line.629"></a>
-<span class="sourceLineNo">630</span>         * @throws InterruptedException the interrupted exception<a name="line.630"></a>
-<span class="sourceLineNo">631</span>         * @throws SSLException the SSL exception<a name="line.631"></a>
-<span class="sourceLineNo">632</span>         */<a name="line.632"></a>
-<span class="sourceLineNo">633</span>        public void close(Close event)<a name="line.633"></a>
-<span class="sourceLineNo">634</span>                throws InterruptedException, SSLException {<a name="line.634"></a>
-<span class="sourceLineNo">635</span>            sslEngine.closeOutbound();<a name="line.635"></a>
-<span class="sourceLineNo">636</span>            while (!sslEngine.isOutboundDone()) {<a name="line.636"></a>
-<span class="sourceLineNo">637</span>                ManagedBuffer&lt;ByteBuffer&gt; feedback = acquireUpstreamBuffer();<a name="line.637"></a>
-<span class="sourceLineNo">638</span>                sslEngine.wrap(ManagedBuffer.EMPTY_BYTE_BUFFER<a name="line.638"></a>
-<span class="sourceLineNo">639</span>                    .backingBuffer(), feedback.backingBuffer());<a name="line.639"></a>
-<span class="sourceLineNo">640</span>                upstreamChannel().respond(Output.fromSink(feedback, false));<a name="line.640"></a>
-<span class="sourceLineNo">641</span>            }<a name="line.641"></a>
-<span class="sourceLineNo">642</span>            upstreamChannel().respond(new Close());<a name="line.642"></a>
-<span class="sourceLineNo">643</span>        }<a name="line.643"></a>
-<span class="sourceLineNo">644</span><a name="line.644"></a>
-<span class="sourceLineNo">645</span>        /**<a name="line.645"></a>
-<span class="sourceLineNo">646</span>         * Handles the {@link HalfClosed} event.<a name="line.646"></a>
-<span class="sourceLineNo">647</span>         *<a name="line.647"></a>
-<span class="sourceLineNo">648</span>         * @throws SSLException the SSL exception<a name="line.648"></a>
-<span class="sourceLineNo">649</span>         * @throws InterruptedException the interrupted exception<a name="line.649"></a>
-<span class="sourceLineNo">650</span>         */<a name="line.650"></a>
-<span class="sourceLineNo">651</span>        public void upstreamHalfClosed()<a name="line.651"></a>
-<span class="sourceLineNo">652</span>                throws SSLException, InterruptedException {<a name="line.652"></a>
-<span class="sourceLineNo">653</span>            if (sslEngine.isInboundDone()) {<a name="line.653"></a>
-<span class="sourceLineNo">654</span>                // Was properly closed on SSL level<a name="line.654"></a>
-<span class="sourceLineNo">655</span>                return;<a name="line.655"></a>
-<span class="sourceLineNo">656</span>            }<a name="line.656"></a>
-<span class="sourceLineNo">657</span>            try {<a name="line.657"></a>
-<span class="sourceLineNo">658</span>                sslEngine.closeInbound();<a name="line.658"></a>
-<span class="sourceLineNo">659</span>                sslEngine.closeOutbound();<a name="line.659"></a>
-<span class="sourceLineNo">660</span>                while (!sslEngine.isOutboundDone()) {<a name="line.660"></a>
-<span class="sourceLineNo">661</span>                    ManagedBuffer&lt;ByteBuffer&gt; feedback<a name="line.661"></a>
-<span class="sourceLineNo">662</span>                        = acquireUpstreamBuffer();<a name="line.662"></a>
-<span class="sourceLineNo">663</span>                    SSLEngineResult result = sslEngine.wrap(<a name="line.663"></a>
-<span class="sourceLineNo">664</span>                        ManagedBuffer.EMPTY_BYTE_BUFFER.backingBuffer(),<a name="line.664"></a>
-<span class="sourceLineNo">665</span>                        feedback.backingBuffer());<a name="line.665"></a>
-<span class="sourceLineNo">666</span>                    // This is required for/since JDK 11. It claims that<a name="line.666"></a>
-<span class="sourceLineNo">667</span>                    // outbound is not done, but doesn't produce any<a name="line.667"></a>
-<span class="sourceLineNo">668</span>                    // additional<a name="line.668"></a>
-<span class="sourceLineNo">669</span>                    // data.<a name="line.669"></a>
-<span class="sourceLineNo">670</span>                    if (result.getStatus() == Status.CLOSED<a name="line.670"></a>
-<span class="sourceLineNo">671</span>                        || feedback.position() == 0) {<a name="line.671"></a>
-<span class="sourceLineNo">672</span>                        feedback.unlockBuffer();<a name="line.672"></a>
-<span class="sourceLineNo">673</span>                        break;<a name="line.673"></a>
-<span class="sourceLineNo">674</span>                    }<a name="line.674"></a>
-<span class="sourceLineNo">675</span>                    upstreamChannel()<a name="line.675"></a>
-<span class="sourceLineNo">676</span>                        .respond(Output.fromSink(feedback, false));<a name="line.676"></a>
-<span class="sourceLineNo">677</span>                }<a name="line.677"></a>
-<span class="sourceLineNo">678</span>            } catch (SSLException e) {<a name="line.678"></a>
-<span class="sourceLineNo">679</span>                // Several clients (notably chromium, see<a name="line.679"></a>
-<span class="sourceLineNo">680</span>                // https://bugs.chromium.org/p/chromium/issues/detail?id=118366<a name="line.680"></a>
-<span class="sourceLineNo">681</span>                // don't close the connection properly. So nobody is really<a name="line.681"></a>
-<span class="sourceLineNo">682</span>                // interested in this message<a name="line.682"></a>
-<span class="sourceLineNo">683</span>                logger.log(Level.FINEST, e.getMessage(), e);<a name="line.683"></a>
-<span class="sourceLineNo">684</span>            } catch (InterruptedException e) {<a name="line.684"></a>
-<span class="sourceLineNo">685</span>                logger.log(Level.WARNING, e.getMessage(), e);<a name="line.685"></a>
-<span class="sourceLineNo">686</span>            }<a name="line.686"></a>
-<span class="sourceLineNo">687</span>        }<a name="line.687"></a>
-<span class="sourceLineNo">688</span><a name="line.688"></a>
-<span class="sourceLineNo">689</span>        /**<a name="line.689"></a>
-<span class="sourceLineNo">690</span>         * Forwards the {@link Closed} event downstream.<a name="line.690"></a>
-<span class="sourceLineNo">691</span>         *<a name="line.691"></a>
-<span class="sourceLineNo">692</span>         * @throws SSLException the SSL exception<a name="line.692"></a>
-<span class="sourceLineNo">693</span>         * @throws InterruptedException the interrupted exception<a name="line.693"></a>
-<span class="sourceLineNo">694</span>         */<a name="line.694"></a>
-<span class="sourceLineNo">695</span>        public void upstreamClosed()<a name="line.695"></a>
-<span class="sourceLineNo">696</span>                throws SSLException, InterruptedException {<a name="line.696"></a>
-<span class="sourceLineNo">697</span>            downPipeline.fire(new Closed(), this);<a name="line.697"></a>
-<span class="sourceLineNo">698</span>        }<a name="line.698"></a>
-<span class="sourceLineNo">699</span><a name="line.699"></a>
-<span class="sourceLineNo">700</span>        private ManagedBuffer&lt;ByteBuffer&gt; acquireUpstreamBuffer()<a name="line.700"></a>
-<span class="sourceLineNo">701</span>                throws InterruptedException {<a name="line.701"></a>
-<span class="sourceLineNo">702</span>            ManagedBuffer&lt;ByteBuffer&gt; feedback<a name="line.702"></a>
-<span class="sourceLineNo">703</span>                = upstreamChannel().byteBufferPool().acquire();<a name="line.703"></a>
-<span class="sourceLineNo">704</span>            int encSize<a name="line.704"></a>
-<span class="sourceLineNo">705</span>                = sslEngine.getSession().getPacketBufferSize() + 50;<a name="line.705"></a>
-<span class="sourceLineNo">706</span>            if (feedback.capacity() &lt; encSize) {<a name="line.706"></a>
-<span class="sourceLineNo">707</span>                feedback.replaceBackingBuffer(ByteBuffer.allocate(<a name="line.707"></a>
-<span class="sourceLineNo">708</span>                    encSize));<a name="line.708"></a>
-<span class="sourceLineNo">709</span>            }<a name="line.709"></a>
-<span class="sourceLineNo">710</span>            return feedback;<a name="line.710"></a>
-<span class="sourceLineNo">711</span>        }<a name="line.711"></a>
-<span class="sourceLineNo">712</span><a name="line.712"></a>
-<span class="sourceLineNo">713</span>        /**<a name="line.713"></a>
-<span class="sourceLineNo">714</span>         * Fire a {@link Purge} event downstream.<a name="line.714"></a>
-<span class="sourceLineNo">715</span>         */<a name="line.715"></a>
-<span class="sourceLineNo">716</span>        public void purge() {<a name="line.716"></a>
-<span class="sourceLineNo">717</span>            downPipeline.fire(new Purge(), this);<a name="line.717"></a>
-<span class="sourceLineNo">718</span>        }<a name="line.718"></a>
-<span class="sourceLineNo">719</span>    }<a name="line.719"></a>
-<span class="sourceLineNo">720</span>}<a name="line.720"></a>
+<span class="sourceLineNo">484</span>                        // JDK11 sometimes returns NEED_WRAP (together<a name="line.484"></a>
+<span class="sourceLineNo">485</span>                        // with status is CLOSED) but does not produce<a name="line.485"></a>
+<span class="sourceLineNo">486</span>                        // anything when wrapping (all of which does<a name="line.486"></a>
+<span class="sourceLineNo">487</span>                        // not make sense).<a name="line.487"></a>
+<span class="sourceLineNo">488</span>                        if (feedback.position() == 0<a name="line.488"></a>
+<span class="sourceLineNo">489</span>                            &amp;&amp; unwrapResult.getStatus() == Status.CLOSED) {<a name="line.489"></a>
+<span class="sourceLineNo">490</span>                            feedback.unlockBuffer();<a name="line.490"></a>
+<span class="sourceLineNo">491</span>                            break;<a name="line.491"></a>
+<span class="sourceLineNo">492</span>                        }<a name="line.492"></a>
+<span class="sourceLineNo">493</span>                        upstreamChannel()<a name="line.493"></a>
+<span class="sourceLineNo">494</span>                            .respond(Output.fromSink(feedback, false));<a name="line.494"></a>
+<span class="sourceLineNo">495</span>                        if (wrapResult<a name="line.495"></a>
+<span class="sourceLineNo">496</span>                            .getHandshakeStatus() == HandshakeStatus.FINISHED) {<a name="line.496"></a>
+<span class="sourceLineNo">497</span>                            fireAccepted();<a name="line.497"></a>
+<span class="sourceLineNo">498</span>                        }<a name="line.498"></a>
+<span class="sourceLineNo">499</span>                    }<a name="line.499"></a>
+<span class="sourceLineNo">500</span>                    continue;<a name="line.500"></a>
+<span class="sourceLineNo">501</span><a name="line.501"></a>
+<span class="sourceLineNo">502</span>                case FINISHED:<a name="line.502"></a>
+<span class="sourceLineNo">503</span>                    fireAccepted();<a name="line.503"></a>
+<span class="sourceLineNo">504</span>                    break;<a name="line.504"></a>
+<span class="sourceLineNo">505</span><a name="line.505"></a>
+<span class="sourceLineNo">506</span>                default:<a name="line.506"></a>
+<span class="sourceLineNo">507</span>                    break;<a name="line.507"></a>
+<span class="sourceLineNo">508</span>                }<a name="line.508"></a>
+<span class="sourceLineNo">509</span><a name="line.509"></a>
+<span class="sourceLineNo">510</span>                // Anything to forward downstream?<a name="line.510"></a>
+<span class="sourceLineNo">511</span>                if (unwrapped.position() &gt; 0) {<a name="line.511"></a>
+<span class="sourceLineNo">512</span>                    // forward unwrapped data<a name="line.512"></a>
+<span class="sourceLineNo">513</span>                    downPipeline.fire(Input.fromSink(unwrapped,<a name="line.513"></a>
+<span class="sourceLineNo">514</span>                        sslEngine.isInboundDone()), this);<a name="line.514"></a>
+<span class="sourceLineNo">515</span>                    unwrapped = null;<a name="line.515"></a>
+<span class="sourceLineNo">516</span>                }<a name="line.516"></a>
+<span class="sourceLineNo">517</span><a name="line.517"></a>
+<span class="sourceLineNo">518</span>                // If we have a buffer overflow or everything was okay<a name="line.518"></a>
+<span class="sourceLineNo">519</span>                // and there's data left, we try again, else we quit.<a name="line.519"></a>
+<span class="sourceLineNo">520</span>                if (unwrapResult.getStatus() != Status.BUFFER_OVERFLOW<a name="line.520"></a>
+<span class="sourceLineNo">521</span>                    &amp;&amp; (unwrapResult.getStatus() != Status.OK<a name="line.521"></a>
+<span class="sourceLineNo">522</span>                        || !input.hasRemaining())) {<a name="line.522"></a>
+<span class="sourceLineNo">523</span>                    // Underflow or closed<a name="line.523"></a>
+<span class="sourceLineNo">524</span>                    if (unwrapped != null) {<a name="line.524"></a>
+<span class="sourceLineNo">525</span>                        unwrapped.unlockBuffer();<a name="line.525"></a>
+<span class="sourceLineNo">526</span>                    }<a name="line.526"></a>
+<span class="sourceLineNo">527</span>                    break;<a name="line.527"></a>
+<span class="sourceLineNo">528</span>                }<a name="line.528"></a>
+<span class="sourceLineNo">529</span><a name="line.529"></a>
+<span class="sourceLineNo">530</span>                // Make sure we have an output buffer.<a name="line.530"></a>
+<span class="sourceLineNo">531</span>                if (unwrapped == null) {<a name="line.531"></a>
+<span class="sourceLineNo">532</span>                    unwrapped = downstreamPool.acquire();<a name="line.532"></a>
+<span class="sourceLineNo">533</span>                }<a name="line.533"></a>
+<span class="sourceLineNo">534</span>            }<a name="line.534"></a>
+<span class="sourceLineNo">535</span>            return unwrapResult;<a name="line.535"></a>
+<span class="sourceLineNo">536</span>        }<a name="line.536"></a>
+<span class="sourceLineNo">537</span><a name="line.537"></a>
+<span class="sourceLineNo">538</span>        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.538"></a>
+<span class="sourceLineNo">539</span>        private void fireAccepted() {<a name="line.539"></a>
+<span class="sourceLineNo">540</span>            List&lt;SNIServerName&gt; snis = Collections.emptyList();<a name="line.540"></a>
+<span class="sourceLineNo">541</span>            if (sslEngine.getSession() instanceof ExtendedSSLSession) {<a name="line.541"></a>
+<span class="sourceLineNo">542</span>                snis = ((ExtendedSSLSession) sslEngine.getSession())<a name="line.542"></a>
+<span class="sourceLineNo">543</span>                    .getRequestedServerNames();<a name="line.543"></a>
+<span class="sourceLineNo">544</span>            }<a name="line.544"></a>
+<span class="sourceLineNo">545</span>            downPipeline.fire(new Accepted(<a name="line.545"></a>
+<span class="sourceLineNo">546</span>                localAddress, remoteAddress, true, snis), this);<a name="line.546"></a>
+<span class="sourceLineNo">547</span>        }<a name="line.547"></a>
+<span class="sourceLineNo">548</span><a name="line.548"></a>
+<span class="sourceLineNo">549</span>        /**<a name="line.549"></a>
+<span class="sourceLineNo">550</span>         * Send output upstream.<a name="line.550"></a>
+<span class="sourceLineNo">551</span>         *<a name="line.551"></a>
+<span class="sourceLineNo">552</span>         * @param event the event<a name="line.552"></a>
+<span class="sourceLineNo">553</span>         * @throws SSLException the SSL exception<a name="line.553"></a>
+<span class="sourceLineNo">554</span>         * @throws InterruptedException the interrupted exception<a name="line.554"></a>
+<span class="sourceLineNo">555</span>         * @throws ExecutionException <a name="line.555"></a>
+<span class="sourceLineNo">556</span>         */<a name="line.556"></a>
+<span class="sourceLineNo">557</span>        public void sendUpstream(Output&lt;ByteBuffer&gt; event)<a name="line.557"></a>
+<span class="sourceLineNo">558</span>                throws SSLException, InterruptedException, ExecutionException {<a name="line.558"></a>
+<span class="sourceLineNo">559</span>            ByteBuffer output = event.buffer().backingBuffer().duplicate();<a name="line.559"></a>
+<span class="sourceLineNo">560</span>            processOutput(output, event.isEndOfRecord());<a name="line.560"></a>
+<span class="sourceLineNo">561</span>        }<a name="line.561"></a>
+<span class="sourceLineNo">562</span><a name="line.562"></a>
+<span class="sourceLineNo">563</span>        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",<a name="line.563"></a>
+<span class="sourceLineNo">564</span>            "PMD.CyclomaticComplexity", "PMD.NcssCount",<a name="line.564"></a>
+<span class="sourceLineNo">565</span>            "PMD.NPathComplexity" })<a name="line.565"></a>
+<span class="sourceLineNo">566</span>        private void processOutput(ByteBuffer output, boolean eor)<a name="line.566"></a>
+<span class="sourceLineNo">567</span>                throws InterruptedException, SSLException, ExecutionException {<a name="line.567"></a>
+<span class="sourceLineNo">568</span>            ManagedBuffer&lt;ByteBuffer&gt; wrapped = acquireUpstreamBuffer();<a name="line.568"></a>
+<span class="sourceLineNo">569</span>            while (true) {<a name="line.569"></a>
+<span class="sourceLineNo">570</span>                SSLEngineResult wrapResult;<a name="line.570"></a>
+<span class="sourceLineNo">571</span>                // Cheap synchronization: no (relevant) input<a name="line.571"></a>
+<span class="sourceLineNo">572</span>                inputProcessed[0] = false;<a name="line.572"></a>
+<span class="sourceLineNo">573</span>                synchronized (sslEngine) {<a name="line.573"></a>
+<span class="sourceLineNo">574</span>                    wrapResult<a name="line.574"></a>
+<span class="sourceLineNo">575</span>                        = sslEngine.wrap(output, wrapped.backingBuffer());<a name="line.575"></a>
+<span class="sourceLineNo">576</span>                    // Anything to be sent upstream?<a name="line.576"></a>
+<span class="sourceLineNo">577</span>                    if (wrapped.position() &gt; 0) {<a name="line.577"></a>
+<span class="sourceLineNo">578</span>                        upstreamChannel().respond(Output.fromSink(wrapped,<a name="line.578"></a>
+<span class="sourceLineNo">579</span>                            sslEngine.isInboundDone()<a name="line.579"></a>
+<span class="sourceLineNo">580</span>                                || eor &amp;&amp; !output.hasRemaining()));<a name="line.580"></a>
+<span class="sourceLineNo">581</span>                        wrapped = null;<a name="line.581"></a>
+<span class="sourceLineNo">582</span>                    }<a name="line.582"></a>
+<span class="sourceLineNo">583</span>                }<a name="line.583"></a>
+<span class="sourceLineNo">584</span>                switch (wrapResult.getHandshakeStatus()) {<a name="line.584"></a>
+<span class="sourceLineNo">585</span>                case NEED_TASK:<a name="line.585"></a>
+<span class="sourceLineNo">586</span>                    while (true) {<a name="line.586"></a>
+<span class="sourceLineNo">587</span>                        Runnable runnable = sslEngine.getDelegatedTask();<a name="line.587"></a>
+<span class="sourceLineNo">588</span>                        if (runnable == null) {<a name="line.588"></a>
+<span class="sourceLineNo">589</span>                            break;<a name="line.589"></a>
+<span class="sourceLineNo">590</span>                        }<a name="line.590"></a>
+<span class="sourceLineNo">591</span>                        runnable.run();<a name="line.591"></a>
+<span class="sourceLineNo">592</span>                    }<a name="line.592"></a>
+<span class="sourceLineNo">593</span>                    continue;<a name="line.593"></a>
+<span class="sourceLineNo">594</span><a name="line.594"></a>
+<span class="sourceLineNo">595</span>                case NEED_UNWRAP:<a name="line.595"></a>
+<span class="sourceLineNo">596</span>                    // Input required. Wait until<a name="line.596"></a>
+<span class="sourceLineNo">597</span>                    // input becomes available and retry.<a name="line.597"></a>
+<span class="sourceLineNo">598</span>                    synchronized (inputProcessed) {<a name="line.598"></a>
+<span class="sourceLineNo">599</span>                        while (!inputProcessed[0]) {<a name="line.599"></a>
+<span class="sourceLineNo">600</span>                            inputProcessed.wait();<a name="line.600"></a>
+<span class="sourceLineNo">601</span>                        }<a name="line.601"></a>
+<span class="sourceLineNo">602</span>                    }<a name="line.602"></a>
+<span class="sourceLineNo">603</span>                    break;<a name="line.603"></a>
+<span class="sourceLineNo">604</span><a name="line.604"></a>
+<span class="sourceLineNo">605</span>                default:<a name="line.605"></a>
+<span class="sourceLineNo">606</span>                    break;<a name="line.606"></a>
+<span class="sourceLineNo">607</span>                }<a name="line.607"></a>
+<span class="sourceLineNo">608</span><a name="line.608"></a>
+<span class="sourceLineNo">609</span>                // If we have a buffer overflow or everything was okay<a name="line.609"></a>
+<span class="sourceLineNo">610</span>                // and there's data left, we try again, else we quit.<a name="line.610"></a>
+<span class="sourceLineNo">611</span>                if (wrapResult.getStatus() != Status.BUFFER_OVERFLOW<a name="line.611"></a>
+<span class="sourceLineNo">612</span>                    &amp;&amp; (wrapResult.getStatus() != Status.OK<a name="line.612"></a>
+<span class="sourceLineNo">613</span>                        || !output.hasRemaining())) {<a name="line.613"></a>
+<span class="sourceLineNo">614</span>                    // Underflow or closed<a name="line.614"></a>
+<span class="sourceLineNo">615</span>                    if (wrapped != null) {<a name="line.615"></a>
+<span class="sourceLineNo">616</span>                        wrapped.unlockBuffer();<a name="line.616"></a>
+<span class="sourceLineNo">617</span>                    }<a name="line.617"></a>
+<span class="sourceLineNo">618</span>                    // Warn if data is discarded<a name="line.618"></a>
+<span class="sourceLineNo">619</span>                    if (output.hasRemaining()) {<a name="line.619"></a>
+<span class="sourceLineNo">620</span>                        logger.warning(() -&gt; toString()<a name="line.620"></a>
+<span class="sourceLineNo">621</span>                            + ": Upstream data discarded, SSLEngine status: "<a name="line.621"></a>
+<span class="sourceLineNo">622</span>                            + wrapResult.getStatus());<a name="line.622"></a>
+<span class="sourceLineNo">623</span>                    }<a name="line.623"></a>
+<span class="sourceLineNo">624</span>                    break;<a name="line.624"></a>
+<span class="sourceLineNo">625</span>                }<a name="line.625"></a>
+<span class="sourceLineNo">626</span><a name="line.626"></a>
+<span class="sourceLineNo">627</span>                // Was handshake (or partial content), get new buffer and try<a name="line.627"></a>
+<span class="sourceLineNo">628</span>                // again<a name="line.628"></a>
+<span class="sourceLineNo">629</span>                if (wrapped == null) {<a name="line.629"></a>
+<span class="sourceLineNo">630</span>                    wrapped = acquireUpstreamBuffer();<a name="line.630"></a>
+<span class="sourceLineNo">631</span>                }<a name="line.631"></a>
+<span class="sourceLineNo">632</span>            }<a name="line.632"></a>
+<span class="sourceLineNo">633</span>        }<a name="line.633"></a>
+<span class="sourceLineNo">634</span><a name="line.634"></a>
+<span class="sourceLineNo">635</span>        /**<a name="line.635"></a>
+<span class="sourceLineNo">636</span>         * Close the connection.<a name="line.636"></a>
+<span class="sourceLineNo">637</span>         *<a name="line.637"></a>
+<span class="sourceLineNo">638</span>         * @param event the event<a name="line.638"></a>
+<span class="sourceLineNo">639</span>         * @throws InterruptedException the interrupted exception<a name="line.639"></a>
+<span class="sourceLineNo">640</span>         * @throws SSLException the SSL exception<a name="line.640"></a>
+<span class="sourceLineNo">641</span>         */<a name="line.641"></a>
+<span class="sourceLineNo">642</span>        public void close(Close event)<a name="line.642"></a>
+<span class="sourceLineNo">643</span>                throws InterruptedException, SSLException {<a name="line.643"></a>
+<span class="sourceLineNo">644</span>            sslEngine.closeOutbound();<a name="line.644"></a>
+<span class="sourceLineNo">645</span>            while (!sslEngine.isOutboundDone()) {<a name="line.645"></a>
+<span class="sourceLineNo">646</span>                ManagedBuffer&lt;ByteBuffer&gt; feedback = acquireUpstreamBuffer();<a name="line.646"></a>
+<span class="sourceLineNo">647</span>                sslEngine.wrap(ManagedBuffer.EMPTY_BYTE_BUFFER<a name="line.647"></a>
+<span class="sourceLineNo">648</span>                    .backingBuffer(), feedback.backingBuffer());<a name="line.648"></a>
+<span class="sourceLineNo">649</span>                upstreamChannel().respond(Output.fromSink(feedback, false));<a name="line.649"></a>
+<span class="sourceLineNo">650</span>            }<a name="line.650"></a>
+<span class="sourceLineNo">651</span>            upstreamChannel().respond(new Close());<a name="line.651"></a>
+<span class="sourceLineNo">652</span>        }<a name="line.652"></a>
+<span class="sourceLineNo">653</span><a name="line.653"></a>
+<span class="sourceLineNo">654</span>        /**<a name="line.654"></a>
+<span class="sourceLineNo">655</span>         * Handles the {@link HalfClosed} event.<a name="line.655"></a>
+<span class="sourceLineNo">656</span>         *<a name="line.656"></a>
+<span class="sourceLineNo">657</span>         * @throws SSLException the SSL exception<a name="line.657"></a>
+<span class="sourceLineNo">658</span>         * @throws InterruptedException the interrupted exception<a name="line.658"></a>
+<span class="sourceLineNo">659</span>         */<a name="line.659"></a>
+<span class="sourceLineNo">660</span>        public void upstreamHalfClosed()<a name="line.660"></a>
+<span class="sourceLineNo">661</span>                throws SSLException, InterruptedException {<a name="line.661"></a>
+<span class="sourceLineNo">662</span>            if (sslEngine.isInboundDone()) {<a name="line.662"></a>
+<span class="sourceLineNo">663</span>                // Was properly closed on SSL level<a name="line.663"></a>
+<span class="sourceLineNo">664</span>                return;<a name="line.664"></a>
+<span class="sourceLineNo">665</span>            }<a name="line.665"></a>
+<span class="sourceLineNo">666</span>            try {<a name="line.666"></a>
+<span class="sourceLineNo">667</span>                sslEngine.closeInbound();<a name="line.667"></a>
+<span class="sourceLineNo">668</span>                sslEngine.closeOutbound();<a name="line.668"></a>
+<span class="sourceLineNo">669</span>                while (!sslEngine.isOutboundDone()) {<a name="line.669"></a>
+<span class="sourceLineNo">670</span>                    ManagedBuffer&lt;ByteBuffer&gt; feedback<a name="line.670"></a>
+<span class="sourceLineNo">671</span>                        = acquireUpstreamBuffer();<a name="line.671"></a>
+<span class="sourceLineNo">672</span>                    SSLEngineResult result = sslEngine.wrap(<a name="line.672"></a>
+<span class="sourceLineNo">673</span>                        ManagedBuffer.EMPTY_BYTE_BUFFER.backingBuffer(),<a name="line.673"></a>
+<span class="sourceLineNo">674</span>                        feedback.backingBuffer());<a name="line.674"></a>
+<span class="sourceLineNo">675</span>                    // This is required for/since JDK 11. It claims that<a name="line.675"></a>
+<span class="sourceLineNo">676</span>                    // outbound is not done, but doesn't produce any<a name="line.676"></a>
+<span class="sourceLineNo">677</span>                    // additional<a name="line.677"></a>
+<span class="sourceLineNo">678</span>                    // data.<a name="line.678"></a>
+<span class="sourceLineNo">679</span>                    if (result.getStatus() == Status.CLOSED<a name="line.679"></a>
+<span class="sourceLineNo">680</span>                        || feedback.position() == 0) {<a name="line.680"></a>
+<span class="sourceLineNo">681</span>                        feedback.unlockBuffer();<a name="line.681"></a>
+<span class="sourceLineNo">682</span>                        break;<a name="line.682"></a>
+<span class="sourceLineNo">683</span>                    }<a name="line.683"></a>
+<span class="sourceLineNo">684</span>                    upstreamChannel()<a name="line.684"></a>
+<span class="sourceLineNo">685</span>                        .respond(Output.fromSink(feedback, false));<a name="line.685"></a>
+<span class="sourceLineNo">686</span>                }<a name="line.686"></a>
+<span class="sourceLineNo">687</span>            } catch (SSLException e) {<a name="line.687"></a>
+<span class="sourceLineNo">688</span>                // Several clients (notably chromium, see<a name="line.688"></a>
+<span class="sourceLineNo">689</span>                // https://bugs.chromium.org/p/chromium/issues/detail?id=118366<a name="line.689"></a>
+<span class="sourceLineNo">690</span>                // don't close the connection properly. So nobody is really<a name="line.690"></a>
+<span class="sourceLineNo">691</span>                // interested in this message<a name="line.691"></a>
+<span class="sourceLineNo">692</span>                logger.log(Level.FINEST, e.getMessage(), e);<a name="line.692"></a>
+<span class="sourceLineNo">693</span>            } catch (InterruptedException e) {<a name="line.693"></a>
+<span class="sourceLineNo">694</span>                logger.log(Level.WARNING, e.getMessage(), e);<a name="line.694"></a>
+<span class="sourceLineNo">695</span>            }<a name="line.695"></a>
+<span class="sourceLineNo">696</span>        }<a name="line.696"></a>
+<span class="sourceLineNo">697</span><a name="line.697"></a>
+<span class="sourceLineNo">698</span>        /**<a name="line.698"></a>
+<span class="sourceLineNo">699</span>         * Forwards the {@link Closed} event downstream.<a name="line.699"></a>
+<span class="sourceLineNo">700</span>         *<a name="line.700"></a>
+<span class="sourceLineNo">701</span>         * @throws SSLException the SSL exception<a name="line.701"></a>
+<span class="sourceLineNo">702</span>         * @throws InterruptedException the interrupted exception<a name="line.702"></a>
+<span class="sourceLineNo">703</span>         */<a name="line.703"></a>
+<span class="sourceLineNo">704</span>        public void upstreamClosed()<a name="line.704"></a>
+<span class="sourceLineNo">705</span>                throws SSLException, InterruptedException {<a name="line.705"></a>
+<span class="sourceLineNo">706</span>            downPipeline.fire(new Closed(), this);<a name="line.706"></a>
+<span class="sourceLineNo">707</span>        }<a name="line.707"></a>
+<span class="sourceLineNo">708</span><a name="line.708"></a>
+<span class="sourceLineNo">709</span>        private ManagedBuffer&lt;ByteBuffer&gt; acquireUpstreamBuffer()<a name="line.709"></a>
+<span class="sourceLineNo">710</span>                throws InterruptedException {<a name="line.710"></a>
+<span class="sourceLineNo">711</span>            ManagedBuffer&lt;ByteBuffer&gt; feedback<a name="line.711"></a>
+<span class="sourceLineNo">712</span>                = upstreamChannel().byteBufferPool().acquire();<a name="line.712"></a>
+<span class="sourceLineNo">713</span>            int encSize<a name="line.713"></a>
+<span class="sourceLineNo">714</span>                = sslEngine.getSession().getPacketBufferSize() + 50;<a name="line.714"></a>
+<span class="sourceLineNo">715</span>            if (feedback.capacity() &lt; encSize) {<a name="line.715"></a>
+<span class="sourceLineNo">716</span>                feedback.replaceBackingBuffer(ByteBuffer.allocate(<a name="line.716"></a>
+<span class="sourceLineNo">717</span>                    encSize));<a name="line.717"></a>
+<span class="sourceLineNo">718</span>            }<a name="line.718"></a>
+<span class="sourceLineNo">719</span>            return feedback;<a name="line.719"></a>
+<span class="sourceLineNo">720</span>        }<a name="line.720"></a>
+<span class="sourceLineNo">721</span><a name="line.721"></a>
+<span class="sourceLineNo">722</span>        /**<a name="line.722"></a>
+<span class="sourceLineNo">723</span>         * Fire a {@link Purge} event downstream.<a name="line.723"></a>
+<span class="sourceLineNo">724</span>         */<a name="line.724"></a>
+<span class="sourceLineNo">725</span>        public void purge() {<a name="line.725"></a>
+<span class="sourceLineNo">726</span>            downPipeline.fire(new Purge(), this);<a name="line.726"></a>
+<span class="sourceLineNo">727</span>        }<a name="line.727"></a>
+<span class="sourceLineNo">728</span>    }<a name="line.728"></a>
+<span class="sourceLineNo">729</span>}<a name="line.729"></a>
 
 
 
