@@ -330,7 +330,7 @@
 <span class="sourceLineNo">322</span>            if (results == null) {<a name="line.322"></a>
 <span class="sourceLineNo">323</span>                // Make sure that we have a valid result before<a name="line.323"></a>
 <span class="sourceLineNo">324</span>                // calling decrementOpen<a name="line.324"></a>
-<span class="sourceLineNo">325</span>                results = new ArrayList&lt;T&gt;();<a name="line.325"></a>
+<span class="sourceLineNo">325</span>                results = new ArrayList&lt;&gt;();<a name="line.325"></a>
 <span class="sourceLineNo">326</span>                results.add(result);<a name="line.326"></a>
 <span class="sourceLineNo">327</span>                firstResultAssigned();<a name="line.327"></a>
 <span class="sourceLineNo">328</span>                return this;<a name="line.328"></a>
@@ -366,7 +366,7 @@
 <span class="sourceLineNo">358</span>    public Event&lt;T&gt; tieTo(Event&lt;T&gt; other) {<a name="line.358"></a>
 <span class="sourceLineNo">359</span>        synchronized (this) {<a name="line.359"></a>
 <span class="sourceLineNo">360</span>            if (other.results == null) {<a name="line.360"></a>
-<span class="sourceLineNo">361</span>                other.results = new ArrayList&lt;T&gt;();<a name="line.361"></a>
+<span class="sourceLineNo">361</span>                other.results = new ArrayList&lt;&gt;();<a name="line.361"></a>
 <span class="sourceLineNo">362</span>            }<a name="line.362"></a>
 <span class="sourceLineNo">363</span>            results = other.results;<a name="line.363"></a>
 <span class="sourceLineNo">364</span>            return this;<a name="line.364"></a>
