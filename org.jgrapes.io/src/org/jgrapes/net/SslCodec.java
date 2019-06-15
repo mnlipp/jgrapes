@@ -481,6 +481,15 @@ public class SslCodec extends Component {
                         SSLEngineResult wrapResult = sslEngine.wrap(
                             ManagedBuffer.EMPTY_BYTE_BUFFER.backingBuffer(),
                             feedback.backingBuffer());
+                        // JDK11 sometimes returns NEED_WRAP (together
+                        // with status is CLOSED) but does not produce
+                        // anything when wrapping (all of which does
+                        // not make sense).
+                        if (feedback.position() == 0
+                            && unwrapResult.getStatus() == Status.CLOSED) {
+                            feedback.unlockBuffer();
+                            break;
+                        }
                         upstreamChannel()
                             .respond(Output.fromSink(feedback, false));
                         if (wrapResult
