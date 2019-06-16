@@ -4,7 +4,8 @@ buildscript {
     repositories {
         jcenter()
         mavenCentral()
-		maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url "https://oss.sonatype.org/content/repositories/staging/" }
+        // maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url 'https://jitpack.io' }
     }
     dependencies {
@@ -34,8 +35,8 @@ if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
 allprojects {
     group = 'org.jgrapes'
     
-    ext.releaseVersion = "1.1.0"
-    ext.isSnapshot = false
+    ext.releaseVersion = "1.1.1"
+    ext.isSnapshot = true
 
     // Default values, can be overridden in subproject
     version = "${-> releaseVersion + (isSnapshot ? '-SNAPSHOT' : '') }"

@@ -2,7 +2,7 @@ dependencies {
 
     compile project(':org.jgrapes.io')
 	// BndPomRepository (3.5.0) cannot handle ranges without upper limit 
-    compile 'org.jdrupes.httpcodec:httpcodec:[2.0.1,2.1.0)'
+    compile 'org.jdrupes.httpcodec:httpcodec:[2.0.3,3)'
     
     sourceSets {
         test {

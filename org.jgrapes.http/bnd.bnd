@@ -2,9 +2,10 @@ Bundle-Name: JGrapes HTTP
 Bundle-SymbolicName: org.jgrapes.http
 Bundle-Copyright: Michael N. Lipp (c) 2016, 2018
 Bundle-License: http://www.gnu.org/licenses/agpl-3.0.txt
-Require-Bundle: org.jgrapes.core, org.jgrapes.io, org.jdrupes.httpcodec
 
-api_version = 1.0.0.${tstamp}
+api_version = 1.1.0.${tstamp}
+
+Import-Package: org.jdrupes.httpcodec.*;version='[2.0.3,3)', *
 
 -sources: true
 -runee: JavaSE-1.8
