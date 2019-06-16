@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="de">
+<html lang="en">
 <head>
 <title>Source code</title>
 <link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
@@ -313,7 +313,7 @@
 <span class="sourceLineNo">305</span>                Class&lt;?&gt; portletClass, String portletId, Template template,<a name="line.305"></a>
 <span class="sourceLineNo">306</span>                Object dataModel) {<a name="line.306"></a>
 <span class="sourceLineNo">307</span>            super(portletClass, portletId);<a name="line.307"></a>
-<span class="sourceLineNo">308</span>            setRenderMode(request.renderMode());<a name="line.308"></a>
+<span class="sourceLineNo">308</span>            setRenderMode(request.preferredRenderMode());<a name="line.308"></a>
 <span class="sourceLineNo">309</span>            // Start to prepare the content immediately and concurrently.<a name="line.309"></a>
 <span class="sourceLineNo">310</span>            content<a name="line.310"></a>
 <span class="sourceLineNo">311</span>                = request.processedBy().map(procBy -&gt; procBy.executorService())<a name="line.311"></a>
