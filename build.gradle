@@ -33,8 +33,8 @@ if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
 allprojects {
     group = 'org.jgrapes'
     
-    ext.releaseVersion = "1.1.1"
-    ext.isSnapshot = false
+    ext.releaseVersion = "1.1.2"
+    ext.isSnapshot = true
 
     // Default values, can be overridden in subproject
     version = "${-> releaseVersion + (isSnapshot ? '-SNAPSHOT' : '') }"

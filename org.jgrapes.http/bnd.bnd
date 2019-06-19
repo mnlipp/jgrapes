@@ -5,7 +5,8 @@ Bundle-License: http://www.gnu.org/licenses/agpl-3.0.txt
 
 api_version = 1.1.0.${tstamp}
 
-Import-Package: org.jdrupes.httpcodec.*;version='[2.0.3,3)', *
+# Require at least 2.0.3, everything below is known to have bugs.
+Require-Bundle: org.jdrupes.httpcodec; bundle-version="[2.0.3,3)"
 
 -sources: true
 -runee: JavaSE-1.8
