@@ -13,11 +13,11 @@ hide footbox
 
 PlantUML version 1.2017.18(Fri Oct 06 16:56:32 UTC 2017)
 (GPL source distribution)
-Java Runtime: Java(TM) SE Runtime Environment
-JVM: Java HotSpot(TM) 64-Bit Server VM
-Java Version: 1.8.0_151-b12
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 1.8.0_222-8u222-b10-1ubuntu1~16.04.1-b10
 Operating System: Linux
-OS Version: 4.4.0-101-generic
+OS Version: 4.15.0-1037-gcp
 Default Encoding: UTF-8
 Language: en
 Country: US
