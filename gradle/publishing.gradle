@@ -82,11 +82,19 @@ bintray {
         name = "org.jgrapes:" + project.name
         licenses = ['AGPL-V3']
         vcsUrl = 'https://github.com/mnlipp/jgrapes.git'
+        githubRepo = 'mnlipp/jgrapes'
+        githubReleaseNotesFile = 'README.md'
         version {
              name = project.version
              gpg {
                  sign = true
              }
+             mavenCentralSync {
+                sync = true
+                user = project.properties['sonatypeTokenKey'] ?: "nokey"
+                password = project.properties['sonatypeTokenSecret'] ?: "nosecret"
+                close = '1'
+            }
         }
     }
 }
