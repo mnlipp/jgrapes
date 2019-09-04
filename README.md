@@ -3,8 +3,8 @@ JGrapes
 
 [![Build Status](https://travis-ci.org/mnlipp/jgrapes.svg?branch=master)](https://travis-ci.org/mnlipp/jgrapes) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/42ed1920969d4b878d7ce80c08141a85)](https://www.codacy.com/app/mnlipp/jgrapes?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mnlipp/jgrapes&amp;utm_campaign=Badge_Grade)
 
-| Package | Maven |
-| ------- | ----- |
+| Package | Bintray |
+| ------- | ------- |
 | core    | [ ![Download](https://api.bintray.com/packages/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.core/images/download.svg) ](https://bintray.com/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.core/_latestVersion)
 | util    | [ ![Download](https://api.bintray.com/packages/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.util/images/download.svg) ](https://bintray.com/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.util/_latestVersion)
 | io      | [ ![Download](https://api.bintray.com/packages/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.io/images/download.svg) ](https://bintray.com/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.io/_latestVersion)
@@ -18,11 +18,11 @@ manifests that allow them to be used without wrapping as OSGi bundles,
 but they do not depend in any way on the OSGi framework.
 
 JGrapes requires Java 8 SE. Binaries are currently made
-available at JCenter (and sync'd to Maven Central).
+available at Bintray (and sync'd to Maven Central).
 
 ```gradle
 repositories {
-        mavenCentral()
+        jcenter()
 }
 
 dependencies {
