@@ -76,7 +76,7 @@ bintray {
     user = project.properties['bintrayUser'] ?: "nouser"
     key = project.properties['bintrayApiKey'] ?: "nokey"
     publications = ['maven']
-    // publish = true
+    publish = true
     pkg {
         repo = "jgrapes"
         name = "org.jgrapes:" + project.name
