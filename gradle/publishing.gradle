@@ -79,7 +79,7 @@ bintray {
     // publish = true
     pkg {
         repo = "jgrapes"
-        name = project.name
+        name = "org.jgrapes:" + project.name
         licenses = ['AGPL-V3']
         vcsUrl = 'https://github.com/mnlipp/jgrapes.git'
         version {
