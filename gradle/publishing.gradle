@@ -69,7 +69,28 @@ configurePublishing {
         }
     }
 }
-    
+
+apply plugin: 'com.jfrog.bintray'
+
+bintray {
+    user = project.properties['bintrayUser'] ?: "nouser"
+    key = project.properties['bintrayApiKey'] ?: "nokey"
+    publications = ['maven']
+    // publish = true
+    pkg {
+        repo = "jgrapes"
+        name = project.name
+        licenses = ['AGPL-V3']
+        vcsUrl = 'https://github.com/mnlipp/jgrapes.git'
+        version {
+             name = project.version
+             gpg {
+                 sign = true
+             }
+        }
+    }
+}
+
 afterEvaluate {
     if(!project.name.startsWith("org.jgrapes")) {
         tasks.matching { it.group == "publishing" }.all {

@@ -17,6 +17,7 @@ plugins {
 	id "org.jdrupes.mdoclet" version "1.0.5"
 	id "com.moowork.node" version "1.2.0"
 	id 'org.ajoberstar.git-publish' version '1.0.1'
+	id "com.jfrog.bintray" version "1.8.4"
 }
 
 ext {
@@ -59,6 +60,9 @@ allprojects {
 subprojects {
     apply from: "${project.rootDir}/gradle/subprojects.gradle"
 }
+
+// Don't know why this task exists in the first place...
+project.tasks.bintrayUpload.enabled = false
 
 configurations {
     javadocTaglets
