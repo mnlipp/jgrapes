@@ -85,7 +85,6 @@ bintray {
         githubRepo = 'mnlipp/jgrapes'
         githubReleaseNotesFile = 'README.md'
         version {
-             name = project.version
              gpg {
                  sign = true
              }
@@ -97,6 +96,11 @@ bintray {
             }
         }
     }
+}
+
+afterEvaluate {
+    bintray.pkg.version.name = project.version
+    bintrayUpload.mustRunAfter "build"
 }
 
 afterEvaluate {
