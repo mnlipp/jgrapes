@@ -1040,6 +1040,8 @@ var JGPortal = {};
     }
     
     /**
+     * Delegates to {@link Portal#registerPortletMethod}.
+     * 
      * @memberof JGPortal
      */
     JGPortal.registerPortletMethod = function(...params) {
@@ -1047,6 +1049,8 @@ var JGPortal = {};
     }
     
     /**
+     * Delegates to {@link Portal#notifyPortletModel}.
+     * 
      * @memberof JGPortal
      */
     JGPortal.notifyPortletModel = function(...params) {
@@ -1054,6 +1058,8 @@ var JGPortal = {};
     }
     
     /**
+     * Delegates to {@link Portal#lockMessageQueue}.
+     * 
      * @memberof JGPortal
      */
     JGPortal.lockMessageQueue = function(...params) {
@@ -1061,6 +1067,8 @@ var JGPortal = {};
     }
     
     /**
+     * Delegates to {@link Portal#unlockMessageQueue}.
+     * 
      * @memberof JGPortal
      */
     JGPortal.unlockMessageQueue = function(...params) {
@@ -1068,6 +1076,8 @@ var JGPortal = {};
     }
     
     /**
+     * Delegates to the portal's {@link JGPortal.Renderer#findPortletPreview}.
+     * 
      * @memberof JGPortal
      */
     JGPortal.findPortletPreview = function(...params) {
@@ -1075,6 +1085,8 @@ var JGPortal = {};
     }
     
     /**
+     * Delegates to the portal's {@link JGPortal.Renderer#findPortletView}.
+     * 
      * @memberof JGPortal
      */
     JGPortal.findPortletView = function(...params) {
@@ -1082,6 +1094,15 @@ var JGPortal = {};
     }
     
     /**
+     * Returns the data (`data-*` Attribute) of the specified
+     * element with the given key. If it does not exist, it
+     * set to the value provided by the supplier function.
+     * 
+     * @param {Object} node - the DOM element
+     * @param {string} key - the key of the data
+     * @param {Object} supplier - the supplier function
+     * @returns {Object} the data
+     * 
      * @memberof JGPortal
      */
     JGPortal.createIfMissing = function(node, key, supplier) {
@@ -1102,6 +1123,15 @@ var JGPortal = {};
      */
     JGPortal.TableController = class {
         
+        /**
+         * Creates a new controller for a table with the given numer
+         * of columns.
+         * 
+         * @param {string[][]} columns - the columns as a list
+         *     of pairs of column key and column label
+         * @param {string} options.sortKey - the initial sort key
+         * @param {string} options.sortOrder - the initial sort order
+         */
         constructor(columns, options) {
             this.keys = [];
             this.labelsByKey = {};
@@ -1125,14 +1155,34 @@ var JGPortal = {};
             }
         }
         
+        /**
+         * Returns the column label for the given column key.
+         * 
+         * @param {string} key - the column key
+         */
         label(key) {
             return this.labelsByKey[key];
         }
         
+        /**
+         * Returns the sort order of the column with the given key
+         * (1 for "up" and -1 for "down").
+         * 
+         * @param {string} key - the column key
+         */
         sortOrder(key) {
             return this.sortOrders[key];
         }
         
+        /**
+         * This method sets the primary sort key. If the order is
+         * `undefined`, and the current sort key is the same as the
+         * specified key, the current sort order is inverted.
+         * 
+         * @param {string} key - the column key
+         * @param {number} order - the sort order (1 for ascending 
+         *     and -1 for descending) or `undefined`
+         */
         sortBy(key, order) {
             if (this.sortKey != key) {
                 this.sortKey = key;
@@ -1150,14 +1200,30 @@ var JGPortal = {};
             }
         }
         
+        /**
+         * Returns `true` if given key is the current sort key 
+         * and the current sort order for is ascending.
+         * 
+         * @param {string} key - the column key
+         */
         sortedByAsc(key) {
             return this.sortKey == key &amp;&amp; this.sortOrders[key] == 1;
         }
         
+        /**
+         * Returns `true` if given key is the current sort key 
+         * and the current sort order for is descending.
+         * 
+         * @param {string} key - the column key
+         */
         sortedByDesc(key) {
             return this.sortKey == key &amp;&amp; this.sortOrders[key] == -1;
         }
         
+        /**
+         * Sort and filter the given data according to the current state
+         * of the controller. Returns the sorted data.
+         */
         filter(data) {
             let filterKey = this.filterKey &amp;&amp; this.filterKey.toLowerCase();
             if (filterKey) {
@@ -1179,14 +1245,34 @@ var JGPortal = {};
             return data;
         }
         
+        /**
+         * Sets a filter for the data.
+         * 
+         * @param {string} filter - the string to match
+         */
         filterBy(filter) {
             this.filterKey = filter;
         }
         
+        /**
+         * A convenience method to update the filter from the
+         * value of the passed in event.
+         * 
+         * @param {Object} event - the event which must provide
+         *     a value for `$(event.target).val()`. 
+         */
         updateFilter(event) {
             this.filterKey = $(event.target).val();
         }
         
+        /**
+         * A convenience method for clearing an input element
+         * that is used to specify a filter. Searches for 
+         * an `input` element in the `event.target`'s enclosing
+         * `form` element and sets its value to the empty string.
+         * 
+         * @param {Object} event - the event 
+         */
         clearFilter(event) {
             let form = $(event.target).closest("form");
             let input = form.find("input");
@@ -1194,6 +1280,13 @@ var JGPortal = {};
             this.filterKey = '';
         }
         
+        /**
+         * A convenience function that inserts word breaks
+         * (`&amp;#x200b`) before every dot in the given text
+         * and returns the result.
+         * 
+         * @param {string} text - the text
+         */
         breakBeforeDots(text) {
             return String(text).replace(/\./g, "&amp;#x200b;.");
         }
@@ -1346,7 +1439,7 @@ var JGPortal = {};
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sat Sep 14 2019 19:08:56 GMT+0000 (UTC)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sun Sep 15 2019 11:11:15 GMT+0000 (UTC)
 </footer>
 
 <script> prettyPrint(); </script>
