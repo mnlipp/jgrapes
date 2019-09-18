@@ -13,10 +13,19 @@ if (project.file("bnd.bnd").exists()) {
         
     // Provide the Bundle-Version (shared by all libraries)
     ext.bundleVersion = "${-> releaseVersion + (isSnapshot ? '.-\${tstamp}-SNAPSHOT' : '.ga')}"
-        
+
     jar {
         manifest {
+            inputs.property("gitDecriptor", { grgit.describe() })
+            
             attributes('Bundle-Version': bundleVersion)
+            // Set Git revision information in the manifests of built bundles
+            attributes('Git-SHA': grgit.head().id)
+        }
+        doFirst {
+            manifest {
+                attributes('Git-Descriptor': inputs.properties['gitDecriptor'])
+            }
         }
     }
 

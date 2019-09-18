@@ -100,7 +100,7 @@ bintray {
 
 afterEvaluate {
     bintray.pkg.version.name = project.version
-    bintrayUpload.mustRunAfter "build"
+    bintrayUpload.dependsOn "build"
 }
 
 task releaseTag {
@@ -120,8 +120,6 @@ task releaseToBintray {
     group = "publishing"
     
     dependsOn "releaseTag"
-    dependsOn "clean"
-    dependsOn "build"
     dependsOn "bintrayUpload"
 }
 
