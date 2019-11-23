@@ -108,6 +108,9 @@ class VerboseHandlerReference extends HandlerReference {
     }
 
     private long reportInvocation(EventBase<?> event, boolean noChannel) {
+        if (!event.isTrackable()) {
+            return 0;
+        }
         long invocation = 0;
         StringBuilder builder = new StringBuilder();
         if (handlerTracking.isLoggable(Level.FINEST)) {
@@ -136,14 +139,15 @@ class VerboseHandlerReference extends HandlerReference {
     }
 
     private void reportResult(EventBase<?> event, long invocation) {
-        if (handlerTracking.isLoggable(Level.FINEST)) {
-            StringBuilder builder = new StringBuilder();
-            builder.append("Result [")
-                .append(Long.toString(invocation))
-                .append("]: ")
-                .append(event.currentResults());
-            handlerTracking.fine(builder.toString());
+        if (!handlerTracking.isLoggable(Level.FINEST) || !event.isTrackable()) {
+            return;
         }
+        StringBuilder builder = new StringBuilder();
+        builder.append("Result [")
+            .append(Long.toString(invocation))
+            .append("]: ")
+            .append(event.currentResults());
+        handlerTracking.fine(builder.toString());
     }
 
     @Override

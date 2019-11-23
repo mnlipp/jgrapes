@@ -63,6 +63,8 @@ public abstract class EventBase<T>
     /** Set when the event has been completed. */
     protected boolean completed;
     private boolean requiresResult;
+    /** Event is tracked by {@link VerboseHandlerReference}. */
+    private boolean tracked = true;
 
     /**
      * See {@link Event#channels()}.
@@ -224,4 +226,27 @@ public abstract class EventBase<T>
         lock.cancelTimer();
     }
 
+    /**
+     * Disables tracking for this event and all events generated
+     * when handling it.
+     */
+    public Event<T> disableTracking() {
+        tracked = false;
+        return (Event<T>) this;
+    }
+
+    /**
+     * Whether the event (and all events generated when handling it)
+     * is tracked.
+     * 
+     * @return
+     */
+    public boolean isTracked() {
+        return tracked;
+    }
+
+    /* default */ boolean isTrackable() {
+        return generatedBy == null ? tracked
+            : (tracked && generatedBy.isTrackable());
+    }
 }
