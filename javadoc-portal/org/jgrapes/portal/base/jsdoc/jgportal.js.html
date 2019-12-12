@@ -62,35 +62,54 @@ window.JGPortal = JGPortal;
 
 /**
  * Easy access to logging.
- * @memberof JGPortal
  */
-var log = {
+JGPortal.Log = class Log {
+
     /**
-     * Output debug message.
-     * @memberof log 
+     * Output a debug message.
+     * @param {string} message the message to print
      */
-    debug: function(message) {
+    static debug (message) {
         if (console &amp;&amp; console.debug) {
             console.debug(message)
         }
-    },
-    info: function(message) {
+    }
+    
+    /**
+     * Output an info message.
+     * @param {string} message the message to print
+     */
+    static info(message) {
         if (console &amp;&amp; console.info) {
             console.info(message)
         }
-    },
-    warn: function(message) {
+    }
+    
+    /**
+     * Output a warn message.
+     * @param {string} message the message to print
+     */
+    static warn(message) {
         if (console &amp;&amp; console.warn) {
             console.warn(message)
         }
-    },
-    error: function(message) {
+    }
+    
+    /**
+     * Output an error message.
+     * @param {string} message the message to print
+     */
+    static error(message) {
         if (console &amp;&amp; console.error) {
             console.error(message)
         }
     }
-}
-JGPortal.log = log;
+};
+
+// For Backward compatibility
+JGPortal.log = JGPortal.Log;
+// Local access
+var log = JGPortal.Log;
 
 // ///////////////////
 // WebSocket "wrapper"
@@ -523,33 +542,63 @@ class ResourceManager {
 }
 
 /**
- * The renderer.
+ * A base class for implementing a portral renderer. The renderer
+ * provides the DOM, based on the initial DOM from the portal page.
  */
 JGPortal.Renderer = class {
 
     init() {
     }
 
+    /**
+     * Called from the portal when the connection to the server is lost.
+     * The default implementation prints a warning message to the console.
+     * Should be overridden by a funtion that displays a notification.
+     */
     connectionLost() {
-        log.warn("Not implemented!");
+        log.warn("Connection lost notification not implemented!");
     }
 
+    /**
+     * Called from the portal when the connection to the server is restored.
+     * The default implementation prints a warning message to the console.
+     * Should be overridden by a funtion that displays a notification.
+     */
     connectionRestored() {
-        log.warn("Not implemented!");
+        log.warn("Connection restored notification not implemented!");
     }
 
+    /**
+     * Called from the portal when the connection to the server is syspended.
+     * The default implementation prints a warning message to the console.
+     * Should be overridden by a funtion that displays a modal dialog.
+     */
     connectionSuspended(resume) {
-        log.warn("Not implemented!");
+        log.warn("Connection suspended dialog not implemented!");
     }
 
+    /**
+     * Called from the portal when the portal is configured.
+     * The default implementation prints a warning message to the console.
+     * Should be overridden by a funtion that displays a modal dialog.
+     */
     portalConfigured() {
-        log.warn("Not implemented!");
+        log.warn("Portal configured handling not implemented!");
     }
 
+    /**
+     * Called from the portal when a new portlet type is been added.
+     * @param {string} portletType the portlet type
+     * @param {string} displayName the display name
+     * @param {Array.string} renderModes the render modes
+     */
     addPortletType(portletType, displayName, renderModes) {
         log.warn("Not implemented!");
     }
 
+    /**
+     * Called from the portal when the preview lay is received.
+     */
     lastPortalLayout(previewLayout, tabsLayout, xtraInfo) {
         log.warn("Not implemented!");
     }
@@ -1448,13 +1497,13 @@ JGPortal.OptionsSet = class {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-portal-base-resource_jgportal.html">portal-base-resource/jgportal</a></li></ul><h3>Classes</h3><ul><li><a href="module-portal-base-resource_jgportal.JGPortal.html">JGPortal</a></li><li><a href="module-portal-base-resource_jgportal.JGPortal.OptionsSet.html">OptionsSet</a></li><li><a href="module-portal-base-resource_jgportal.JGPortal.Renderer.html">Renderer</a></li><li><a href="module-portal-base-resource_jgportal.JGPortal.TableController.html">TableController</a></li><li><a href="module-portal-base-resource_jgportal-Portal.html">Portal</a></li><li><a href="module-portal-base-resource_jgportal-PortalWebSocket.html">PortalWebSocket</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-portal-base-resource_jgportal.html">portal-base-resource/jgportal</a></li></ul><h3>Classes</h3><ul><li><a href="module-portal-base-resource_jgportal.JGPortal.html">JGPortal</a></li><li><a href="module-portal-base-resource_jgportal.JGPortal.Log.html">Log</a></li><li><a href="module-portal-base-resource_jgportal.JGPortal.OptionsSet.html">OptionsSet</a></li><li><a href="module-portal-base-resource_jgportal.JGPortal.Renderer.html">Renderer</a></li><li><a href="module-portal-base-resource_jgportal.JGPortal.TableController.html">TableController</a></li><li><a href="module-portal-base-resource_jgportal-Portal.html">Portal</a></li><li><a href="module-portal-base-resource_jgportal-PortalWebSocket.html">PortalWebSocket</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Mon Dec 09 2019 13:25:33 GMT+0000 (UTC)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 12 2019 17:40:52 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
