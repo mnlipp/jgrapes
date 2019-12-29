@@ -126,10 +126,10 @@
 <span class="sourceLineNo">118</span>    public void onPortalReady(PortalReady event, PortalSession portalSession)<a name="line.118"></a>
 <span class="sourceLineNo">119</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.119"></a>
 <span class="sourceLineNo">120</span>            ParseException, IOException {<a name="line.120"></a>
-<span class="sourceLineNo">121</span>        ResourceBundle resourceBundle = resourceBundle(portalSession.locale());<a name="line.121"></a>
-<span class="sourceLineNo">122</span>        // Add MarkdownDisplayPortlet resources to page<a name="line.122"></a>
-<span class="sourceLineNo">123</span>        portalSession.respond(new AddPortletType(type())<a name="line.123"></a>
-<span class="sourceLineNo">124</span>            .setDisplayName(resourceBundle.getString("portletName"))<a name="line.124"></a>
+<span class="sourceLineNo">121</span>        // Add MarkdownDisplayPortlet resources to page<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        portalSession.respond(new AddPortletType(type())<a name="line.122"></a>
+<span class="sourceLineNo">123</span>            .setDisplayNames(<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                displayNames(portalSession.supportedLocales(), "portletName"))<a name="line.124"></a>
 <span class="sourceLineNo">125</span>            .addScript(new ScriptResource()<a name="line.125"></a>
 <span class="sourceLineNo">126</span>                .setRequires(new String[] { "markdown-it.github.io",<a name="line.126"></a>
 <span class="sourceLineNo">127</span>                    "github.com/markdown-it/markdown-it-abbr",<a name="line.127"></a>
