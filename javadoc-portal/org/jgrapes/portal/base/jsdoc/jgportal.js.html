@@ -551,6 +551,15 @@ JGPortal.Renderer = class {
     }
 
     /**
+     * Provides access to the portal instance.
+     *
+     * @return {Portal} the portal
+     */
+    portal() {
+        return thePortal;
+    }
+
+    /**
      * Called from the portal when the connection to the server is lost.
      * The default implementation prints a warning message to the console.
      * Should be overridden by a funtion that displays a notification.
@@ -592,12 +601,18 @@ JGPortal.Renderer = class {
      * @param {Object} displayNames the display names by lang
      * @param {Array.string} renderModes the render modes
      */
-    addPortletType(portletType, displayName, renderModes) {
+    addPortletType(portletType, displayNames, renderModes) {
         log.warn("Not implemented!");
     }
 
     /**
-     * Called from the portal when the preview lay is received.
+     * Called from the portal when the portal layout is received.
+     *
+     * @param {string[]} previewLayout the portlet ids from top left
+     * to bottom right
+     * @param {string[]} tabsLayout the ids of the portlets viewable in tabs
+     * @param {Object} xtraInfo extra information spcific to the 
+     * portal implementation
      */
     lastPortalLayout(previewLayout, tabsLayout, xtraInfo) {
         log.warn("Not implemented!");
@@ -642,12 +657,13 @@ JGPortal.Renderer = class {
     }
 
     /**
-     * Called if a portlet is been removed.
+     * Remove the given portlet representations, which may be 
+     * preview or view containers, from the DOM.
      *
      * @param {NodeList} containers the existing containers for
      * the preview or views 
      */
-    portletRemoved(containers) {
+    removePortletDisplays(containers) {
         log.warn("Not implemented!");
     }
 
@@ -682,52 +698,45 @@ JGPortal.Renderer = class {
     // Send methods
 
     /**
-     * Sends a notification for changing the language to the server.
-     * 
-     * @param {string} locale the id of the selected locale
+     * @deprecated Use portal().setLocale() instead.
      */
     sendSetLocale(locale, reload) {
-        thePortal.send("setLocale", locale, reload);
+        this.portal().setLocale(locale, reload);
     };
 
     /**
-     * Sends a notification that requests the rendering of a portlet.
-     * 
-     * @param {string} portletId the portlet id
-     * @param {string[]} modes the requested render mode(s)
+     * @deprecated Use portal().renderPortlet() instead.
      */
     sendRenderPortlet(portletId, modes) {
-        thePortal.send("renderPortlet", portletId, modes);
+        this.portal().renderPortlet(portletId, modes);
     };
 
     /**
-     * Sends a notification that requests the addition of a portlet.
-     * 
-     * @param {string} portletType the type of the portlet to add
-     * @param {string[]} renderModes the requested render mode(s)
+     * @deprecated Use portal().addPortlet() instead.
      */
     sendAddPortlet(portletType, renderModes) {
-        thePortal.send("addPortlet", portletType, renderModes);
+        this.portal().addPortlet(portletType, renderModes);
     };
 
     /**
-     * Send a notification that request the removal of a portlet.
-     * 
-     * @param {string} portletId the id of the portlet to be deleted
+     * @deprecated Use portal().removePreview() and portal().removeView() instead.
      */
     sendDeletePortlet(portletId) {
-        thePortal.send("deletePortlet", portletId);
+        this.send("deletePortlet", portletId);
     };
 
+    /**
+     * @deprecated Use portal().updateLayout() instead.
+     */
     sendLayout(previewLayout, tabLayout, xtraInfo) {
-        if (!thePortal.isConfigured) {
-            return;
-        }
-        thePortal.send("portalLayout", previewLayout, tabLayout, xtraInfo);
+        this.portal().updateLayout(previewLayout, tabLayout, xtraInfo);
     };
 
+    /**
+     * @deprecated Use portal().send() instead.
+     */
     send(method, ...params) {
-        thePortal.send(method, ...params);
+        this.portal().send(method, ...params);
     };
 
     // Utility methods.
@@ -862,10 +871,10 @@ class Portal {
                 self._resourceManager.addPageResources(cssUris, cssSource, scriptResources);
             });
         this._webSocket.addMessageHandler('addPortletType',
-            function(portletType, displayName, cssUris, scriptResources,
+            function(portletType, displayNames, cssUris, scriptResources,
                 renderModes) {
                 self._resourceManager.addPageResources(cssUris, null, scriptResources);
-                self._renderer.addPortletType(portletType, displayName, renderModes);
+                self._renderer.addPortletType(portletType, displayNames, renderModes);
             });
         this._webSocket.addMessageHandler('lastPortalLayout',
             function(previewLayout, tabsLayout, xtraInfo) {
@@ -905,7 +914,7 @@ class Portal {
             function deletePortlet(portletId) {
                 let portletDisplays = self._renderer.findPortletContainers(portletId);
                 if (portletDisplays.length > 0) {
-                    self._renderer.portletRemoved(portletDisplays);
+                    self._renderer.removePortletDisplays(portletDisplays);
                 }
             });
         this._webSocket.addMessageHandler('displayNotification',
@@ -1087,6 +1096,12 @@ class Portal {
 
     // Send methods
 
+    /**
+     * Invokes the given method on the server.
+     *
+     * @param {string} the method
+     * @param {...any} params the parameters
+     */
     send(method, ...params) {
         if (params.length > 0) {
             this._webSocket.send({
@@ -1099,6 +1114,86 @@ class Portal {
     }
 
     /**
+     * Sends a notification for changing the language to the server.
+     * 
+     * @param {string} locale the id of the selected locale
+     */
+    setLocale(locale, reload) {
+        this.send("setLocale", locale, reload);
+    };
+
+    /**
+     * Sends a notification that requests the rendering of a portlet.
+     * 
+     * @param {string} portletId the portlet id
+     * @param {string[]} modes the requested render mode(s)
+     */
+    renderPortlet(portletId, modes) {
+        this.send("renderPortlet", portletId, modes);
+    };
+
+    /**
+     * Sends a notification that requests the addition of a portlet.
+     * 
+     * @param {string} portletType the type of the portlet to add
+     * @param {string[]} renderModes the requested render mode(s)
+     */
+    addPortlet(portletType, renderModes) {
+        this.send("addPortlet", portletType, renderModes);
+    };
+
+    /**
+     * Requests the removal of a portlet preview. If a view of the
+     * portlet exists, it will be removed also.
+     *
+     * @param {string} the portlet id
+     */
+    removePreview(portletId) {
+        this.send("deletePortlet", portletId);
+    }
+
+    /**
+     * Requests the removal of a portlet view.
+     *
+     * @param {string} the portlet id
+     */
+    removeView(portletId) {
+        if (this._renderer.findPortletPreview(portletId)) {
+            let view = this._renderer.findPortletView(portletId);
+            if (view) {
+                this._renderer.removePortletDisplays($(view).get());
+            }
+        } else {
+            this.send("deletePortlet", portletId);
+        }
+    }
+
+    /**
+     * Send a notification that request the removal of a portlet.
+     * 
+     * @param {string} portletId the id of the portlet to be deleted
+     */
+    deletePortlet(portletId) {
+        this.send("deletePortlet", portletId);
+    };
+
+    /**
+     * Send the current portal layout to the server.
+     *
+     * @param {string[]} previewLayout the portlet ids from top left
+     * to bottom right
+     * @param {string[]} tabsLayout the ids of the portlets viewable in tabs
+     * @param {Object} xtraInfo extra information spcific to the 
+     * portal implementation
+     */
+    updateLayout(previewLayout, tabLayout, xtraInfo) {
+        if (!thePortal.isConfigured) {
+            return;
+        }
+        this.send("portalLayout", previewLayout, tabLayout, xtraInfo);
+    };
+
+    /**
      * Send a notification with method &lt;code>notifyPortletModel&lt;/code>
      * and the given portlet id, method and parameters as the 
      * notification's parameters to the server.
@@ -1109,9 +1204,9 @@ class Portal {
      */
     notifyPortletModel(portletId, method, ...params) {
         if (params === undefined) {
-            thePortal.send("notifyPortletModel", portletId, method);
+            this.send("notifyPortletModel", portletId, method);
         } else {
-            thePortal.send("notifyPortletModel", portletId, method, params);
+            this.send("notifyPortletModel", portletId, method, params);
         }
     };
 
@@ -1543,7 +1638,7 @@ JGPortal.OptionsSet = class {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sat Jan 04 2020 13:53:36 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sat Jan 04 2020 22:19:26 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
