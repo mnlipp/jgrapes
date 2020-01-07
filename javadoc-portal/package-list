@@ -8,6 +8,7 @@ org.jgrapes.portal.jqueryui.themes.base
 org.jgrapes.portal.providers.chartjs
 org.jgrapes.portal.providers.datatables
 org.jgrapes.portal.providers.fontawesome
+org.jgrapes.portal.providers.jquery
 org.jgrapes.portal.providers.markdownit
 org.jgrapes.portal.providers.vuejs
 org.jgrapes.portal.vuejs
