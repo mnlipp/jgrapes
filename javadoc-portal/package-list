@@ -10,6 +10,7 @@ org.jgrapes.portal.providers.datatables
 org.jgrapes.portal.providers.fontawesome
 org.jgrapes.portal.providers.gridstack
 org.jgrapes.portal.providers.jquery
+org.jgrapes.portal.providers.lodash
 org.jgrapes.portal.providers.markdownit
 org.jgrapes.portal.providers.moment
 org.jgrapes.portal.providers.vue
