@@ -105,7 +105,7 @@
 <span class="sourceLineNo">097</span> * the {@link AbstractPortlet} does not provide any support. The<a name="line.97"></a>
 <span class="sourceLineNo">098</span> * handler for the {@link PortalReady} must be implemented by<a name="line.98"></a>
 <span class="sourceLineNo">099</span> * the derived class itself.<a name="line.99"></a>
-<span class="sourceLineNo">100</span> *<a name="line.100"></a>
+<span class="sourceLineNo">100</span> * <a name="line.100"></a>
 <span class="sourceLineNo">101</span> * ## AddPortletRequest<a name="line.101"></a>
 <span class="sourceLineNo">102</span> * <a name="line.102"></a>
 <span class="sourceLineNo">103</span> * ![Add portlet handling](AddPortletHandling.svg)<a name="line.103"></a>
@@ -151,10 +151,10 @@
 <span class="sourceLineNo">143</span> * it checks if state information for the portlet id exists. If so,<a name="line.143"></a>
 <span class="sourceLineNo">144</span> * it deletes the state information from the session and<a name="line.144"></a>
 <span class="sourceLineNo">145</span> * invokes <a name="line.145"></a>
-<span class="sourceLineNo">146</span> * {@link #doDeletePortlet(DeletePortletRequest, PortalSession, String, Serializable)}<a name="line.146"></a>
+<span class="sourceLineNo">146</span> * {@link #doDeletePortlet(DeletePortletRequest, PortalSession, String, S)}<a name="line.146"></a>
 <span class="sourceLineNo">147</span> * with the state information. This method fires the {@link DeletePortlet}<a name="line.147"></a>
 <span class="sourceLineNo">148</span> * event that confirms the deletion of the portlet.<a name="line.148"></a>
-<span class="sourceLineNo">149</span> *<a name="line.149"></a>
+<span class="sourceLineNo">149</span> * <a name="line.149"></a>
 <span class="sourceLineNo">150</span> * ## NotifyPortletModel<a name="line.150"></a>
 <span class="sourceLineNo">151</span> * <a name="line.151"></a>
 <span class="sourceLineNo">152</span> * ![Notify portlet model handling](NotifyPortletModelHandling.svg)<a name="line.152"></a>
@@ -168,7 +168,7 @@
 <span class="sourceLineNo">160</span> * retrieved information. The portal component usually responds with<a name="line.160"></a>
 <span class="sourceLineNo">161</span> * a {@link NotifyPortletView} event. However, it can also<a name="line.161"></a>
 <span class="sourceLineNo">162</span> * re-render the complete portelt display.<a name="line.162"></a>
-<span class="sourceLineNo">163</span> *<a name="line.163"></a>
+<span class="sourceLineNo">163</span> * <a name="line.163"></a>
 <span class="sourceLineNo">164</span> * Support for unsolicited updates<a name="line.164"></a>
 <span class="sourceLineNo">165</span> * -------------------------------<a name="line.165"></a>
 <span class="sourceLineNo">166</span> * <a name="line.166"></a>
@@ -176,43 +176,43 @@
 <span class="sourceLineNo">168</span> * relationship between {@link PortalSession}s and the ids <a name="line.168"></a>
 <span class="sourceLineNo">169</span> * of portlets displayed in the portal session and support for<a name="line.169"></a>
 <span class="sourceLineNo">170</span> * unsolicited updates.<a name="line.170"></a>
-<span class="sourceLineNo">171</span> * <a name="line.171"></a>
-<span class="sourceLineNo">172</span> * @startuml AddPortletTypeHandling.svg<a name="line.172"></a>
-<span class="sourceLineNo">173</span> * hide footbox<a name="line.173"></a>
-<span class="sourceLineNo">174</span> * <a name="line.174"></a>
-<span class="sourceLineNo">175</span> * activate Portal<a name="line.175"></a>
-<span class="sourceLineNo">176</span> * Portal -&gt; PortletComponent: PortalReady<a name="line.176"></a>
-<span class="sourceLineNo">177</span> * deactivate Portal<a name="line.177"></a>
-<span class="sourceLineNo">178</span> * activate PortletComponent<a name="line.178"></a>
-<span class="sourceLineNo">179</span> * PortletComponent -&gt; Portal: AddPortletType <a name="line.179"></a>
-<span class="sourceLineNo">180</span> * deactivate PortletComponent<a name="line.180"></a>
-<span class="sourceLineNo">181</span> * activate Portal<a name="line.181"></a>
-<span class="sourceLineNo">182</span> * deactivate Portal<a name="line.182"></a>
-<span class="sourceLineNo">183</span> * @enduml<a name="line.183"></a>
-<span class="sourceLineNo">184</span> * <a name="line.184"></a>
-<span class="sourceLineNo">185</span> * @startuml AddPortletHandling.svg<a name="line.185"></a>
-<span class="sourceLineNo">186</span> * hide footbox<a name="line.186"></a>
-<span class="sourceLineNo">187</span> * <a name="line.187"></a>
-<span class="sourceLineNo">188</span> * activate Portal<a name="line.188"></a>
-<span class="sourceLineNo">189</span> * Portal -&gt; PortletComponent: AddPortletRequest<a name="line.189"></a>
-<span class="sourceLineNo">190</span> * deactivate Portal<a name="line.190"></a>
-<span class="sourceLineNo">191</span> * activate PortletComponent<a name="line.191"></a>
-<span class="sourceLineNo">192</span> * PortletComponent -&gt; PortletComponent: doAddPortlet<a name="line.192"></a>
-<span class="sourceLineNo">193</span> * activate PortletComponent<a name="line.193"></a>
-<span class="sourceLineNo">194</span> * opt<a name="line.194"></a>
-<span class="sourceLineNo">195</span> *         PortletComponent -&gt; PortletComponent: generatePortletId<a name="line.195"></a>
-<span class="sourceLineNo">196</span> * end opt<a name="line.196"></a>
-<span class="sourceLineNo">197</span> * PortletComponent -&gt; PortletComponent: putInSession<a name="line.197"></a>
-<span class="sourceLineNo">198</span> * PortletComponent -&gt; Portal: RenderPortlet<a name="line.198"></a>
-<span class="sourceLineNo">199</span> * opt <a name="line.199"></a>
-<span class="sourceLineNo">200</span> *     PortletComponent -&gt; Portal: NotifyPortletView<a name="line.200"></a>
-<span class="sourceLineNo">201</span> * end opt <a name="line.201"></a>
-<span class="sourceLineNo">202</span> * deactivate PortletComponent<a name="line.202"></a>
+<span class="sourceLineNo">171</span> *<a name="line.171"></a>
+<span class="sourceLineNo">172</span> * @param &lt;S&gt; the type of the portlet state information<a name="line.172"></a>
+<span class="sourceLineNo">173</span> * <a name="line.173"></a>
+<span class="sourceLineNo">174</span> * @startuml AddPortletTypeHandling.svg<a name="line.174"></a>
+<span class="sourceLineNo">175</span> * hide footbox<a name="line.175"></a>
+<span class="sourceLineNo">176</span> * <a name="line.176"></a>
+<span class="sourceLineNo">177</span> * activate Portal<a name="line.177"></a>
+<span class="sourceLineNo">178</span> * Portal -&gt; PortletComponent: PortalReady<a name="line.178"></a>
+<span class="sourceLineNo">179</span> * deactivate Portal<a name="line.179"></a>
+<span class="sourceLineNo">180</span> * activate PortletComponent<a name="line.180"></a>
+<span class="sourceLineNo">181</span> * PortletComponent -&gt; Portal: AddPortletType <a name="line.181"></a>
+<span class="sourceLineNo">182</span> * deactivate PortletComponent<a name="line.182"></a>
+<span class="sourceLineNo">183</span> * activate Portal<a name="line.183"></a>
+<span class="sourceLineNo">184</span> * deactivate Portal<a name="line.184"></a>
+<span class="sourceLineNo">185</span> * @enduml <a name="line.185"></a>
+<span class="sourceLineNo">186</span> * @startuml AddPortletHandling.svg<a name="line.186"></a>
+<span class="sourceLineNo">187</span> * hide footbox<a name="line.187"></a>
+<span class="sourceLineNo">188</span> * <a name="line.188"></a>
+<span class="sourceLineNo">189</span> * activate Portal<a name="line.189"></a>
+<span class="sourceLineNo">190</span> * Portal -&gt; PortletComponent: AddPortletRequest<a name="line.190"></a>
+<span class="sourceLineNo">191</span> * deactivate Portal<a name="line.191"></a>
+<span class="sourceLineNo">192</span> * activate PortletComponent<a name="line.192"></a>
+<span class="sourceLineNo">193</span> * PortletComponent -&gt; PortletComponent: doAddPortlet<a name="line.193"></a>
+<span class="sourceLineNo">194</span> * activate PortletComponent<a name="line.194"></a>
+<span class="sourceLineNo">195</span> * opt<a name="line.195"></a>
+<span class="sourceLineNo">196</span> *         PortletComponent -&gt; PortletComponent: generatePortletId<a name="line.196"></a>
+<span class="sourceLineNo">197</span> * end opt<a name="line.197"></a>
+<span class="sourceLineNo">198</span> * PortletComponent -&gt; PortletComponent: putInSession<a name="line.198"></a>
+<span class="sourceLineNo">199</span> * PortletComponent -&gt; Portal: RenderPortlet<a name="line.199"></a>
+<span class="sourceLineNo">200</span> * opt <a name="line.200"></a>
+<span class="sourceLineNo">201</span> *     PortletComponent -&gt; Portal: NotifyPortletView<a name="line.201"></a>
+<span class="sourceLineNo">202</span> * end opt <a name="line.202"></a>
 <span class="sourceLineNo">203</span> * deactivate PortletComponent<a name="line.203"></a>
-<span class="sourceLineNo">204</span> * activate Portal<a name="line.204"></a>
-<span class="sourceLineNo">205</span> * deactivate Portal<a name="line.205"></a>
-<span class="sourceLineNo">206</span> * @enduml<a name="line.206"></a>
-<span class="sourceLineNo">207</span> * <a name="line.207"></a>
+<span class="sourceLineNo">204</span> * deactivate PortletComponent<a name="line.204"></a>
+<span class="sourceLineNo">205</span> * activate Portal<a name="line.205"></a>
+<span class="sourceLineNo">206</span> * deactivate Portal<a name="line.206"></a>
+<span class="sourceLineNo">207</span> * @enduml <a name="line.207"></a>
 <span class="sourceLineNo">208</span> * @startuml RenderPortletHandling.svg<a name="line.208"></a>
 <span class="sourceLineNo">209</span> * hide footbox<a name="line.209"></a>
 <span class="sourceLineNo">210</span> * <a name="line.210"></a>
@@ -230,89 +230,89 @@
 <span class="sourceLineNo">222</span> * deactivate PortletComponent<a name="line.222"></a>
 <span class="sourceLineNo">223</span> * activate Portal<a name="line.223"></a>
 <span class="sourceLineNo">224</span> * deactivate Portal<a name="line.224"></a>
-<span class="sourceLineNo">225</span> * @enduml<a name="line.225"></a>
-<span class="sourceLineNo">226</span> * <a name="line.226"></a>
-<span class="sourceLineNo">227</span> * @startuml NotifyPortletModelHandling.svg<a name="line.227"></a>
-<span class="sourceLineNo">228</span> * hide footbox<a name="line.228"></a>
-<span class="sourceLineNo">229</span> * <a name="line.229"></a>
-<span class="sourceLineNo">230</span> * activate Portal<a name="line.230"></a>
-<span class="sourceLineNo">231</span> * Portal -&gt; PortletComponent: NotifyPortletModel<a name="line.231"></a>
-<span class="sourceLineNo">232</span> * deactivate Portal<a name="line.232"></a>
-<span class="sourceLineNo">233</span> * activate PortletComponent<a name="line.233"></a>
-<span class="sourceLineNo">234</span> * PortletComponent -&gt; PortletComponent: doNotifyPortletModel<a name="line.234"></a>
-<span class="sourceLineNo">235</span> * activate PortletComponent<a name="line.235"></a>
-<span class="sourceLineNo">236</span> * opt<a name="line.236"></a>
-<span class="sourceLineNo">237</span> *     PortletComponent -&gt; Portal: RenderPortlet<a name="line.237"></a>
-<span class="sourceLineNo">238</span> * end opt <a name="line.238"></a>
-<span class="sourceLineNo">239</span> * opt <a name="line.239"></a>
-<span class="sourceLineNo">240</span> *     PortletComponent -&gt; Portal: NotifyPortletView<a name="line.240"></a>
-<span class="sourceLineNo">241</span> * end opt <a name="line.241"></a>
+<span class="sourceLineNo">225</span> * @enduml <a name="line.225"></a>
+<span class="sourceLineNo">226</span> * @startuml NotifyPortletModelHandling.svg<a name="line.226"></a>
+<span class="sourceLineNo">227</span> * hide footbox<a name="line.227"></a>
+<span class="sourceLineNo">228</span> * <a name="line.228"></a>
+<span class="sourceLineNo">229</span> * activate Portal<a name="line.229"></a>
+<span class="sourceLineNo">230</span> * Portal -&gt; PortletComponent: NotifyPortletModel<a name="line.230"></a>
+<span class="sourceLineNo">231</span> * deactivate Portal<a name="line.231"></a>
+<span class="sourceLineNo">232</span> * activate PortletComponent<a name="line.232"></a>
+<span class="sourceLineNo">233</span> * PortletComponent -&gt; PortletComponent: doNotifyPortletModel<a name="line.233"></a>
+<span class="sourceLineNo">234</span> * activate PortletComponent<a name="line.234"></a>
+<span class="sourceLineNo">235</span> * opt<a name="line.235"></a>
+<span class="sourceLineNo">236</span> *     PortletComponent -&gt; Portal: RenderPortlet<a name="line.236"></a>
+<span class="sourceLineNo">237</span> * end opt <a name="line.237"></a>
+<span class="sourceLineNo">238</span> * opt <a name="line.238"></a>
+<span class="sourceLineNo">239</span> *     PortletComponent -&gt; Portal: NotifyPortletView<a name="line.239"></a>
+<span class="sourceLineNo">240</span> * end opt <a name="line.240"></a>
+<span class="sourceLineNo">241</span> * deactivate PortletComponent<a name="line.241"></a>
 <span class="sourceLineNo">242</span> * deactivate PortletComponent<a name="line.242"></a>
-<span class="sourceLineNo">243</span> * deactivate PortletComponent<a name="line.243"></a>
-<span class="sourceLineNo">244</span> * activate Portal<a name="line.244"></a>
-<span class="sourceLineNo">245</span> * deactivate Portal<a name="line.245"></a>
-<span class="sourceLineNo">246</span> * @enduml<a name="line.246"></a>
-<span class="sourceLineNo">247</span> * <a name="line.247"></a>
-<span class="sourceLineNo">248</span> * @startuml DeletePortletHandling.svg<a name="line.248"></a>
-<span class="sourceLineNo">249</span> * hide footbox<a name="line.249"></a>
-<span class="sourceLineNo">250</span> * <a name="line.250"></a>
-<span class="sourceLineNo">251</span> * activate Portal<a name="line.251"></a>
-<span class="sourceLineNo">252</span> * Portal -&gt; PortletComponent: DeletePortletRequest<a name="line.252"></a>
-<span class="sourceLineNo">253</span> * deactivate Portal<a name="line.253"></a>
+<span class="sourceLineNo">243</span> * activate Portal<a name="line.243"></a>
+<span class="sourceLineNo">244</span> * deactivate Portal<a name="line.244"></a>
+<span class="sourceLineNo">245</span> * @enduml <a name="line.245"></a>
+<span class="sourceLineNo">246</span> * @startuml DeletePortletHandling.svg<a name="line.246"></a>
+<span class="sourceLineNo">247</span> * hide footbox<a name="line.247"></a>
+<span class="sourceLineNo">248</span> * <a name="line.248"></a>
+<span class="sourceLineNo">249</span> * activate Portal<a name="line.249"></a>
+<span class="sourceLineNo">250</span> * Portal -&gt; PortletComponent: DeletePortletRequest<a name="line.250"></a>
+<span class="sourceLineNo">251</span> * deactivate Portal<a name="line.251"></a>
+<span class="sourceLineNo">252</span> * activate PortletComponent<a name="line.252"></a>
+<span class="sourceLineNo">253</span> * PortletComponent -&gt; PortletComponent: doDeletePortlet<a name="line.253"></a>
 <span class="sourceLineNo">254</span> * activate PortletComponent<a name="line.254"></a>
-<span class="sourceLineNo">255</span> * PortletComponent -&gt; PortletComponent: doDeletePortlet<a name="line.255"></a>
-<span class="sourceLineNo">256</span> * activate PortletComponent<a name="line.256"></a>
-<span class="sourceLineNo">257</span> * PortletComponent -&gt; Portal: DeletePortlet <a name="line.257"></a>
-<span class="sourceLineNo">258</span> * deactivate PortletComponent<a name="line.258"></a>
-<span class="sourceLineNo">259</span> * deactivate PortletComponent<a name="line.259"></a>
-<span class="sourceLineNo">260</span> * activate Portal<a name="line.260"></a>
-<span class="sourceLineNo">261</span> * deactivate Portal<a name="line.261"></a>
-<span class="sourceLineNo">262</span> * @enduml<a name="line.262"></a>
-<span class="sourceLineNo">263</span> */<a name="line.263"></a>
-<span class="sourceLineNo">264</span>@SuppressWarnings({ "PMD.TooManyMethods",<a name="line.264"></a>
-<span class="sourceLineNo">265</span>    "PMD.EmptyMethodInAbstractClassShouldBeAbstract" })<a name="line.265"></a>
-<span class="sourceLineNo">266</span>public abstract class AbstractPortlet extends Component {<a name="line.266"></a>
-<span class="sourceLineNo">267</span><a name="line.267"></a>
-<span class="sourceLineNo">268</span>    private Map&lt;PortalSession, Set&lt;String&gt;&gt; portletIdsByPortalSession;<a name="line.268"></a>
-<span class="sourceLineNo">269</span>    private Duration refreshInterval;<a name="line.269"></a>
-<span class="sourceLineNo">270</span>    private Supplier&lt;Event&lt;?&gt;&gt; refreshEventSupplier;<a name="line.270"></a>
-<span class="sourceLineNo">271</span>    private Timer refreshTimer;<a name="line.271"></a>
-<span class="sourceLineNo">272</span>    private Map&lt;Locale, ResourceBundle&gt; l10nBundles = new HashMap&lt;&gt;();<a name="line.272"></a>
-<span class="sourceLineNo">273</span><a name="line.273"></a>
-<span class="sourceLineNo">274</span>    /**<a name="line.274"></a>
-<span class="sourceLineNo">275</span>     * Creates a new component that listens for new events<a name="line.275"></a>
-<span class="sourceLineNo">276</span>     * on the given channel.<a name="line.276"></a>
-<span class="sourceLineNo">277</span>     * <a name="line.277"></a>
-<span class="sourceLineNo">278</span>     * @param channel the channel to listen on<a name="line.278"></a>
-<span class="sourceLineNo">279</span>     */<a name="line.279"></a>
-<span class="sourceLineNo">280</span>    public AbstractPortlet(Channel channel) {<a name="line.280"></a>
-<span class="sourceLineNo">281</span>        this(channel, null);<a name="line.281"></a>
-<span class="sourceLineNo">282</span>    }<a name="line.282"></a>
-<span class="sourceLineNo">283</span><a name="line.283"></a>
-<span class="sourceLineNo">284</span>    /**<a name="line.284"></a>
-<span class="sourceLineNo">285</span>     * Like {@link #AbstractPortlet(Channel)}, but supports<a name="line.285"></a>
-<span class="sourceLineNo">286</span>     * the specification of channel replacements.<a name="line.286"></a>
-<span class="sourceLineNo">287</span>     *<a name="line.287"></a>
-<span class="sourceLineNo">288</span>     * @param channel the channel to listen on<a name="line.288"></a>
-<span class="sourceLineNo">289</span>     * @param channelReplacements the channel replacements (see<a name="line.289"></a>
-<span class="sourceLineNo">290</span>     * {@link Component})<a name="line.290"></a>
-<span class="sourceLineNo">291</span>     */<a name="line.291"></a>
-<span class="sourceLineNo">292</span>    public AbstractPortlet(Channel channel,<a name="line.292"></a>
-<span class="sourceLineNo">293</span>            ChannelReplacements channelReplacements) {<a name="line.293"></a>
-<span class="sourceLineNo">294</span>        super(channel, channelReplacements);<a name="line.294"></a>
-<span class="sourceLineNo">295</span>        portletIdsByPortalSession<a name="line.295"></a>
-<span class="sourceLineNo">296</span>            = Collections.synchronizedMap(new WeakHashMap&lt;&gt;());<a name="line.296"></a>
-<span class="sourceLineNo">297</span>    }<a name="line.297"></a>
-<span class="sourceLineNo">298</span><a name="line.298"></a>
-<span class="sourceLineNo">299</span>    /**<a name="line.299"></a>
-<span class="sourceLineNo">300</span>     * If set to a value different from `null` causes an event<a name="line.300"></a>
-<span class="sourceLineNo">301</span>     * from the given supplier to be fired on all tracked portal<a name="line.301"></a>
-<span class="sourceLineNo">302</span>     * sessions periodically.<a name="line.302"></a>
-<span class="sourceLineNo">303</span>     * <a name="line.303"></a>
-<span class="sourceLineNo">304</span>     * @param interval the refresh interval<a name="line.304"></a>
+<span class="sourceLineNo">255</span> * PortletComponent -&gt; Portal: DeletePortlet <a name="line.255"></a>
+<span class="sourceLineNo">256</span> * deactivate PortletComponent<a name="line.256"></a>
+<span class="sourceLineNo">257</span> * deactivate PortletComponent<a name="line.257"></a>
+<span class="sourceLineNo">258</span> * activate Portal<a name="line.258"></a>
+<span class="sourceLineNo">259</span> * deactivate Portal<a name="line.259"></a>
+<span class="sourceLineNo">260</span> * @enduml <a name="line.260"></a>
+<span class="sourceLineNo">261</span> */<a name="line.261"></a>
+<span class="sourceLineNo">262</span>@SuppressWarnings({ "PMD.TooManyMethods",<a name="line.262"></a>
+<span class="sourceLineNo">263</span>    "PMD.EmptyMethodInAbstractClassShouldBeAbstract" })<a name="line.263"></a>
+<span class="sourceLineNo">264</span>public abstract class AbstractPortlet&lt;S extends Serializable&gt;<a name="line.264"></a>
+<span class="sourceLineNo">265</span>        extends Component {<a name="line.265"></a>
+<span class="sourceLineNo">266</span><a name="line.266"></a>
+<span class="sourceLineNo">267</span>    private Map&lt;PortalSession, Set&lt;String&gt;&gt; portletIdsByPortalSession;<a name="line.267"></a>
+<span class="sourceLineNo">268</span>    private Duration refreshInterval;<a name="line.268"></a>
+<span class="sourceLineNo">269</span>    private Supplier&lt;Event&lt;?&gt;&gt; refreshEventSupplier;<a name="line.269"></a>
+<span class="sourceLineNo">270</span>    private Timer refreshTimer;<a name="line.270"></a>
+<span class="sourceLineNo">271</span>    private Map&lt;Locale, ResourceBundle&gt; l10nBundles = new HashMap&lt;&gt;();<a name="line.271"></a>
+<span class="sourceLineNo">272</span><a name="line.272"></a>
+<span class="sourceLineNo">273</span>    /**<a name="line.273"></a>
+<span class="sourceLineNo">274</span>     * Creates a new component that listens for new events<a name="line.274"></a>
+<span class="sourceLineNo">275</span>     * on the given channel.<a name="line.275"></a>
+<span class="sourceLineNo">276</span>     * <a name="line.276"></a>
+<span class="sourceLineNo">277</span>     * @param channel the channel to listen on<a name="line.277"></a>
+<span class="sourceLineNo">278</span>     */<a name="line.278"></a>
+<span class="sourceLineNo">279</span>    public AbstractPortlet(Channel channel) {<a name="line.279"></a>
+<span class="sourceLineNo">280</span>        this(channel, null);<a name="line.280"></a>
+<span class="sourceLineNo">281</span>    }<a name="line.281"></a>
+<span class="sourceLineNo">282</span><a name="line.282"></a>
+<span class="sourceLineNo">283</span>    /**<a name="line.283"></a>
+<span class="sourceLineNo">284</span>     * Like {@link #AbstractPortlet(Channel)}, but supports<a name="line.284"></a>
+<span class="sourceLineNo">285</span>     * the specification of channel replacements.<a name="line.285"></a>
+<span class="sourceLineNo">286</span>     *<a name="line.286"></a>
+<span class="sourceLineNo">287</span>     * @param channel the channel to listen on<a name="line.287"></a>
+<span class="sourceLineNo">288</span>     * @param channelReplacements the channel replacements (see<a name="line.288"></a>
+<span class="sourceLineNo">289</span>     * {@link Component})<a name="line.289"></a>
+<span class="sourceLineNo">290</span>     */<a name="line.290"></a>
+<span class="sourceLineNo">291</span>    public AbstractPortlet(Channel channel,<a name="line.291"></a>
+<span class="sourceLineNo">292</span>            ChannelReplacements channelReplacements) {<a name="line.292"></a>
+<span class="sourceLineNo">293</span>        super(channel, channelReplacements);<a name="line.293"></a>
+<span class="sourceLineNo">294</span>        portletIdsByPortalSession<a name="line.294"></a>
+<span class="sourceLineNo">295</span>            = Collections.synchronizedMap(new WeakHashMap&lt;&gt;());<a name="line.295"></a>
+<span class="sourceLineNo">296</span>    }<a name="line.296"></a>
+<span class="sourceLineNo">297</span><a name="line.297"></a>
+<span class="sourceLineNo">298</span>    /**<a name="line.298"></a>
+<span class="sourceLineNo">299</span>     * If set to a value different from `null` causes an event<a name="line.299"></a>
+<span class="sourceLineNo">300</span>     * from the given supplier to be fired on all tracked portal<a name="line.300"></a>
+<span class="sourceLineNo">301</span>     * sessions periodically.<a name="line.301"></a>
+<span class="sourceLineNo">302</span>     *<a name="line.302"></a>
+<span class="sourceLineNo">303</span>     * @param interval the refresh interval<a name="line.303"></a>
+<span class="sourceLineNo">304</span>     * @param supplier the supplier<a name="line.304"></a>
 <span class="sourceLineNo">305</span>     * @return the portlet for easy chaining<a name="line.305"></a>
 <span class="sourceLineNo">306</span>     */<a name="line.306"></a>
-<span class="sourceLineNo">307</span>    public AbstractPortlet setPeriodicRefresh(<a name="line.307"></a>
+<span class="sourceLineNo">307</span>    public AbstractPortlet&lt;S&gt; setPeriodicRefresh(<a name="line.307"></a>
 <span class="sourceLineNo">308</span>            Duration interval, Supplier&lt;Event&lt;?&gt;&gt; supplier) {<a name="line.308"></a>
 <span class="sourceLineNo">309</span>        refreshInterval = interval;<a name="line.309"></a>
 <span class="sourceLineNo">310</span>        refreshEventSupplier = supplier;<a name="line.310"></a>
@@ -522,8 +522,8 @@
 <span class="sourceLineNo">514</span>     * @return the portlet state<a name="line.514"></a>
 <span class="sourceLineNo">515</span>     */<a name="line.515"></a>
 <span class="sourceLineNo">516</span>    @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })<a name="line.516"></a>
-<span class="sourceLineNo">517</span>    protected &lt;T extends Serializable&gt; T putInSession(<a name="line.517"></a>
-<span class="sourceLineNo">518</span>            Session session, String portletId, T portletState) {<a name="line.518"></a>
+<span class="sourceLineNo">517</span>    protected Serializable putInSession(Session session, String portletId,<a name="line.517"></a>
+<span class="sourceLineNo">518</span>            Serializable portletState) {<a name="line.518"></a>
 <span class="sourceLineNo">519</span>        ((Map&lt;Serializable,<a name="line.519"></a>
 <span class="sourceLineNo">520</span>                Map&lt;Serializable, Map&lt;String, Serializable&gt;&gt;&gt;) (Map&lt;<a name="line.520"></a>
 <span class="sourceLineNo">521</span>                        Serializable, ?&gt;) session)<a name="line.521"></a>
@@ -546,24 +546,24 @@
 <span class="sourceLineNo">538</span>     */<a name="line.538"></a>
 <span class="sourceLineNo">539</span>    protected &lt;T extends PortletBaseModel&gt; T putInSession(<a name="line.539"></a>
 <span class="sourceLineNo">540</span>            Session session, T portletModel) {<a name="line.540"></a>
-<span class="sourceLineNo">541</span>        return putInSession(session, portletModel.getPortletId(), portletModel);<a name="line.541"></a>
-<span class="sourceLineNo">542</span>    }<a name="line.542"></a>
-<span class="sourceLineNo">543</span><a name="line.543"></a>
-<span class="sourceLineNo">544</span>    /**<a name="line.544"></a>
-<span class="sourceLineNo">545</span>     * Returns the portlet state of this portlet's type with the given id<a name="line.545"></a>
-<span class="sourceLineNo">546</span>     * from the session.<a name="line.546"></a>
-<span class="sourceLineNo">547</span>     * <a name="line.547"></a>
-<span class="sourceLineNo">548</span>     * @param session the session to use<a name="line.548"></a>
-<span class="sourceLineNo">549</span>     * @param portletId the portlet id<a name="line.549"></a>
-<span class="sourceLineNo">550</span>     * @param type the state's type<a name="line.550"></a>
-<span class="sourceLineNo">551</span>     * @return the portlet state<a name="line.551"></a>
-<span class="sourceLineNo">552</span>     */<a name="line.552"></a>
-<span class="sourceLineNo">553</span>    @SuppressWarnings("unchecked")<a name="line.553"></a>
-<span class="sourceLineNo">554</span>    protected &lt;T extends Serializable&gt; Optional&lt;T&gt; stateFromSession(<a name="line.554"></a>
-<span class="sourceLineNo">555</span>            Session session, String portletId, Class&lt;T&gt; type) {<a name="line.555"></a>
+<span class="sourceLineNo">541</span>        putInSession(session, portletModel.getPortletId(), portletModel);<a name="line.541"></a>
+<span class="sourceLineNo">542</span>        return portletModel;<a name="line.542"></a>
+<span class="sourceLineNo">543</span>    }<a name="line.543"></a>
+<span class="sourceLineNo">544</span><a name="line.544"></a>
+<span class="sourceLineNo">545</span>    /**<a name="line.545"></a>
+<span class="sourceLineNo">546</span>     * Returns the portlet state of this portlet's type with the given id<a name="line.546"></a>
+<span class="sourceLineNo">547</span>     * from the session.<a name="line.547"></a>
+<span class="sourceLineNo">548</span>     * <a name="line.548"></a>
+<span class="sourceLineNo">549</span>     * @param session the session to use<a name="line.549"></a>
+<span class="sourceLineNo">550</span>     * @param portletId the portlet id<a name="line.550"></a>
+<span class="sourceLineNo">551</span>     * @param type the state's type<a name="line.551"></a>
+<span class="sourceLineNo">552</span>     * @return the portlet state<a name="line.552"></a>
+<span class="sourceLineNo">553</span>     */<a name="line.553"></a>
+<span class="sourceLineNo">554</span>    @SuppressWarnings("unchecked")<a name="line.554"></a>
+<span class="sourceLineNo">555</span>    protected Optional&lt;S&gt; stateFromSession(Session session, String portletId) {<a name="line.555"></a>
 <span class="sourceLineNo">556</span>        return Optional.ofNullable(<a name="line.556"></a>
 <span class="sourceLineNo">557</span>            ((Map&lt;Serializable,<a name="line.557"></a>
-<span class="sourceLineNo">558</span>                    Map&lt;Serializable, Map&lt;String, T&gt;&gt;&gt;) (Map&lt;Serializable,<a name="line.558"></a>
+<span class="sourceLineNo">558</span>                    Map&lt;Serializable, Map&lt;String, S&gt;&gt;&gt;) (Map&lt;Serializable,<a name="line.558"></a>
 <span class="sourceLineNo">559</span>                            ?&gt;) session)<a name="line.559"></a>
 <span class="sourceLineNo">560</span>                                .computeIfAbsent(AbstractPortlet.class,<a name="line.560"></a>
 <span class="sourceLineNo">561</span>                                    newKey -&gt; new HashMap&lt;&gt;())<a name="line.561"></a>
@@ -581,189 +581,189 @@
 <span class="sourceLineNo">573</span>     * @return the states<a name="line.573"></a>
 <span class="sourceLineNo">574</span>     */<a name="line.574"></a>
 <span class="sourceLineNo">575</span>    @SuppressWarnings("unchecked")<a name="line.575"></a>
-<span class="sourceLineNo">576</span>    protected &lt;T extends Serializable&gt; Collection&lt;T&gt; statesFromSession(<a name="line.576"></a>
-<span class="sourceLineNo">577</span>            IOSubchannel channel, Class&lt;T&gt; type) {<a name="line.577"></a>
-<span class="sourceLineNo">578</span>        return channel.associated(Session.class)<a name="line.578"></a>
-<span class="sourceLineNo">579</span>            .map(session -&gt; ((Map&lt;Serializable,<a name="line.579"></a>
-<span class="sourceLineNo">580</span>                    Map&lt;Serializable, Map&lt;String, T&gt;&gt;&gt;) (Map&lt;Serializable,<a name="line.580"></a>
-<span class="sourceLineNo">581</span>                            ?&gt;) session)<a name="line.581"></a>
-<span class="sourceLineNo">582</span>                                .computeIfAbsent(AbstractPortlet.class,<a name="line.582"></a>
-<span class="sourceLineNo">583</span>                                    newKey -&gt; new HashMap&lt;&gt;())<a name="line.583"></a>
-<span class="sourceLineNo">584</span>                                .computeIfAbsent(type(),<a name="line.584"></a>
-<span class="sourceLineNo">585</span>                                    newKey -&gt; new HashMap&lt;&gt;())<a name="line.585"></a>
-<span class="sourceLineNo">586</span>                                .values())<a name="line.586"></a>
-<span class="sourceLineNo">587</span>            .orElseThrow(<a name="line.587"></a>
-<span class="sourceLineNo">588</span>                () -&gt; new IllegalStateException("Session is missing."));<a name="line.588"></a>
-<span class="sourceLineNo">589</span>    }<a name="line.589"></a>
-<span class="sourceLineNo">590</span><a name="line.590"></a>
-<span class="sourceLineNo">591</span>    /**<a name="line.591"></a>
-<span class="sourceLineNo">592</span>     * Removes the portlet state of the portlet with the given id<a name="line.592"></a>
-<span class="sourceLineNo">593</span>     * from the session. <a name="line.593"></a>
-<span class="sourceLineNo">594</span>     * <a name="line.594"></a>
-<span class="sourceLineNo">595</span>     * @param session the session to use<a name="line.595"></a>
-<span class="sourceLineNo">596</span>     * @param portletId the portlet id<a name="line.596"></a>
-<span class="sourceLineNo">597</span>     * @return the removed state if state existed<a name="line.597"></a>
-<span class="sourceLineNo">598</span>     */<a name="line.598"></a>
-<span class="sourceLineNo">599</span>    @SuppressWarnings("unchecked")<a name="line.599"></a>
-<span class="sourceLineNo">600</span>    protected Optional&lt;? extends Serializable&gt; removeState(<a name="line.600"></a>
-<span class="sourceLineNo">601</span>            Session session, String portletId) {<a name="line.601"></a>
-<span class="sourceLineNo">602</span>        Serializable state = ((Map&lt;Serializable,<a name="line.602"></a>
-<span class="sourceLineNo">603</span>                Map&lt;Serializable, Map&lt;String, Serializable&gt;&gt;&gt;) (Map&lt;<a name="line.603"></a>
-<span class="sourceLineNo">604</span>                        Serializable, ?&gt;) session)<a name="line.604"></a>
-<span class="sourceLineNo">605</span>                            .computeIfAbsent(AbstractPortlet.class,<a name="line.605"></a>
-<span class="sourceLineNo">606</span>                                newKey -&gt; new HashMap&lt;&gt;())<a name="line.606"></a>
-<span class="sourceLineNo">607</span>                            .computeIfAbsent(type(), newKey -&gt; new HashMap&lt;&gt;())<a name="line.607"></a>
-<span class="sourceLineNo">608</span>                            .remove(portletId);<a name="line.608"></a>
-<span class="sourceLineNo">609</span>        return Optional.ofNullable(state);<a name="line.609"></a>
-<span class="sourceLineNo">610</span>    }<a name="line.610"></a>
-<span class="sourceLineNo">611</span><a name="line.611"></a>
-<span class="sourceLineNo">612</span>    /**<a name="line.612"></a>
-<span class="sourceLineNo">613</span>     * Checks if the request applies to this component. If so, stops the event,<a name="line.613"></a>
-<span class="sourceLineNo">614</span>     * and calls {@link #doAddPortlet}. <a name="line.614"></a>
-<span class="sourceLineNo">615</span>     * <a name="line.615"></a>
-<span class="sourceLineNo">616</span>     * @param event the event<a name="line.616"></a>
-<span class="sourceLineNo">617</span>     * @param portalSession the channel<a name="line.617"></a>
-<span class="sourceLineNo">618</span>     */<a name="line.618"></a>
-<span class="sourceLineNo">619</span>    @Handler<a name="line.619"></a>
-<span class="sourceLineNo">620</span>    @SuppressWarnings({ "PMD.SignatureDeclareThrowsException",<a name="line.620"></a>
-<span class="sourceLineNo">621</span>        "PMD.AvoidDuplicateLiterals" })<a name="line.621"></a>
-<span class="sourceLineNo">622</span>    public final void onAddPortletRequest(AddPortletRequest event,<a name="line.622"></a>
-<span class="sourceLineNo">623</span>            PortalSession portalSession) throws Exception {<a name="line.623"></a>
-<span class="sourceLineNo">624</span>        if (!event.portletType().equals(type())) {<a name="line.624"></a>
-<span class="sourceLineNo">625</span>            return;<a name="line.625"></a>
-<span class="sourceLineNo">626</span>        }<a name="line.626"></a>
-<span class="sourceLineNo">627</span>        event.stop();<a name="line.627"></a>
-<span class="sourceLineNo">628</span>        String portletId = doAddPortlet(event, portalSession);<a name="line.628"></a>
-<span class="sourceLineNo">629</span>        event.setResult(portletId);<a name="line.629"></a>
-<span class="sourceLineNo">630</span>        trackPortlet(portalSession, portletId);<a name="line.630"></a>
-<span class="sourceLineNo">631</span>    }<a name="line.631"></a>
-<span class="sourceLineNo">632</span><a name="line.632"></a>
-<span class="sourceLineNo">633</span>    /**<a name="line.633"></a>
-<span class="sourceLineNo">634</span>     * Called by {@link #onAddPortletRequest} to complete adding the portlet.<a name="line.634"></a>
-<span class="sourceLineNo">635</span>     * If the portlet has associated state, the implementation should<a name="line.635"></a>
-<span class="sourceLineNo">636</span>     * call {@link #putInSession(Session, String, Serializable)} to create<a name="line.636"></a>
-<span class="sourceLineNo">637</span>     * the state and put it in the session.<a name="line.637"></a>
-<span class="sourceLineNo">638</span>     * <a name="line.638"></a>
-<span class="sourceLineNo">639</span>     * @param event the event<a name="line.639"></a>
-<span class="sourceLineNo">640</span>     * @param portalSession the channel<a name="line.640"></a>
-<span class="sourceLineNo">641</span>     * @return the id of the created portlet<a name="line.641"></a>
-<span class="sourceLineNo">642</span>     */<a name="line.642"></a>
-<span class="sourceLineNo">643</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.643"></a>
-<span class="sourceLineNo">644</span>    protected abstract String doAddPortlet(AddPortletRequest event,<a name="line.644"></a>
-<span class="sourceLineNo">645</span>            PortalSession portalSession) throws Exception;<a name="line.645"></a>
-<span class="sourceLineNo">646</span><a name="line.646"></a>
-<span class="sourceLineNo">647</span>    /**<a name="line.647"></a>
-<span class="sourceLineNo">648</span>     * Checks if the request applies to this component. If so, stops <a name="line.648"></a>
-<span class="sourceLineNo">649</span>     * the event, removes the portlet state from the browser session<a name="line.649"></a>
-<span class="sourceLineNo">650</span>     * and calls {@link #doDeletePortlet} with the state.<a name="line.650"></a>
-<span class="sourceLineNo">651</span>     * <a name="line.651"></a>
-<span class="sourceLineNo">652</span>     * If the association of {@link PortalSession}s and portlet ids<a name="line.652"></a>
-<span class="sourceLineNo">653</span>     * is tracked for this portlet, any existing association is<a name="line.653"></a>
-<span class="sourceLineNo">654</span>     * also removed.<a name="line.654"></a>
-<span class="sourceLineNo">655</span>     * <a name="line.655"></a>
-<span class="sourceLineNo">656</span>     * @param event the event<a name="line.656"></a>
-<span class="sourceLineNo">657</span>     * @param portalSession the portal session<a name="line.657"></a>
+<span class="sourceLineNo">576</span>    protected Collection&lt;S&gt; statesFromSession(IOSubchannel channel) {<a name="line.576"></a>
+<span class="sourceLineNo">577</span>        return channel.associated(Session.class)<a name="line.577"></a>
+<span class="sourceLineNo">578</span>            .map(session -&gt; ((Map&lt;Serializable,<a name="line.578"></a>
+<span class="sourceLineNo">579</span>                    Map&lt;Serializable, Map&lt;String, S&gt;&gt;&gt;) (Map&lt;Serializable,<a name="line.579"></a>
+<span class="sourceLineNo">580</span>                            ?&gt;) session)<a name="line.580"></a>
+<span class="sourceLineNo">581</span>                                .computeIfAbsent(AbstractPortlet.class,<a name="line.581"></a>
+<span class="sourceLineNo">582</span>                                    newKey -&gt; new HashMap&lt;&gt;())<a name="line.582"></a>
+<span class="sourceLineNo">583</span>                                .computeIfAbsent(type(),<a name="line.583"></a>
+<span class="sourceLineNo">584</span>                                    newKey -&gt; new HashMap&lt;&gt;())<a name="line.584"></a>
+<span class="sourceLineNo">585</span>                                .values())<a name="line.585"></a>
+<span class="sourceLineNo">586</span>            .orElseThrow(<a name="line.586"></a>
+<span class="sourceLineNo">587</span>                () -&gt; new IllegalStateException("Session is missing."));<a name="line.587"></a>
+<span class="sourceLineNo">588</span>    }<a name="line.588"></a>
+<span class="sourceLineNo">589</span><a name="line.589"></a>
+<span class="sourceLineNo">590</span>    /**<a name="line.590"></a>
+<span class="sourceLineNo">591</span>     * Removes the portlet state of the portlet with the given id<a name="line.591"></a>
+<span class="sourceLineNo">592</span>     * from the session. <a name="line.592"></a>
+<span class="sourceLineNo">593</span>     * <a name="line.593"></a>
+<span class="sourceLineNo">594</span>     * @param session the session to use<a name="line.594"></a>
+<span class="sourceLineNo">595</span>     * @param portletId the portlet id<a name="line.595"></a>
+<span class="sourceLineNo">596</span>     * @return the removed state if state existed<a name="line.596"></a>
+<span class="sourceLineNo">597</span>     */<a name="line.597"></a>
+<span class="sourceLineNo">598</span>    @SuppressWarnings("unchecked")<a name="line.598"></a>
+<span class="sourceLineNo">599</span>    protected Optional&lt;S&gt; removeState(Session session, String portletId) {<a name="line.599"></a>
+<span class="sourceLineNo">600</span>        S state = ((Map&lt;Serializable,<a name="line.600"></a>
+<span class="sourceLineNo">601</span>                Map&lt;Serializable, Map&lt;String, S&gt;&gt;&gt;) (Map&lt;Serializable,<a name="line.601"></a>
+<span class="sourceLineNo">602</span>                        ?&gt;) session)<a name="line.602"></a>
+<span class="sourceLineNo">603</span>                            .computeIfAbsent(AbstractPortlet.class,<a name="line.603"></a>
+<span class="sourceLineNo">604</span>                                newKey -&gt; new HashMap&lt;&gt;())<a name="line.604"></a>
+<span class="sourceLineNo">605</span>                            .computeIfAbsent(type(), newKey -&gt; new HashMap&lt;&gt;())<a name="line.605"></a>
+<span class="sourceLineNo">606</span>                            .remove(portletId);<a name="line.606"></a>
+<span class="sourceLineNo">607</span>        return Optional.ofNullable(state);<a name="line.607"></a>
+<span class="sourceLineNo">608</span>    }<a name="line.608"></a>
+<span class="sourceLineNo">609</span><a name="line.609"></a>
+<span class="sourceLineNo">610</span>    /**<a name="line.610"></a>
+<span class="sourceLineNo">611</span>     * Checks if the request applies to this component. If so, stops the event,<a name="line.611"></a>
+<span class="sourceLineNo">612</span>     * and calls {@link #doAddPortlet}. <a name="line.612"></a>
+<span class="sourceLineNo">613</span>     *<a name="line.613"></a>
+<span class="sourceLineNo">614</span>     * @param event the event<a name="line.614"></a>
+<span class="sourceLineNo">615</span>     * @param portalSession the channel<a name="line.615"></a>
+<span class="sourceLineNo">616</span>     * @throws Exception the exception<a name="line.616"></a>
+<span class="sourceLineNo">617</span>     */<a name="line.617"></a>
+<span class="sourceLineNo">618</span>    @Handler<a name="line.618"></a>
+<span class="sourceLineNo">619</span>    @SuppressWarnings({ "PMD.SignatureDeclareThrowsException",<a name="line.619"></a>
+<span class="sourceLineNo">620</span>        "PMD.AvoidDuplicateLiterals" })<a name="line.620"></a>
+<span class="sourceLineNo">621</span>    public final void onAddPortletRequest(AddPortletRequest event,<a name="line.621"></a>
+<span class="sourceLineNo">622</span>            PortalSession portalSession) throws Exception {<a name="line.622"></a>
+<span class="sourceLineNo">623</span>        if (!event.portletType().equals(type())) {<a name="line.623"></a>
+<span class="sourceLineNo">624</span>            return;<a name="line.624"></a>
+<span class="sourceLineNo">625</span>        }<a name="line.625"></a>
+<span class="sourceLineNo">626</span>        event.stop();<a name="line.626"></a>
+<span class="sourceLineNo">627</span>        String portletId = doAddPortlet(event, portalSession);<a name="line.627"></a>
+<span class="sourceLineNo">628</span>        event.setResult(portletId);<a name="line.628"></a>
+<span class="sourceLineNo">629</span>        trackPortlet(portalSession, portletId);<a name="line.629"></a>
+<span class="sourceLineNo">630</span>    }<a name="line.630"></a>
+<span class="sourceLineNo">631</span><a name="line.631"></a>
+<span class="sourceLineNo">632</span>    /**<a name="line.632"></a>
+<span class="sourceLineNo">633</span>     * Called by {@link #onAddPortletRequest} to complete adding the portlet.<a name="line.633"></a>
+<span class="sourceLineNo">634</span>     * If the portlet has associated state, the implementation should<a name="line.634"></a>
+<span class="sourceLineNo">635</span>     * call {@link #putInSession(Session, String, Serializable)} to create<a name="line.635"></a>
+<span class="sourceLineNo">636</span>     * the state and put it in the session.<a name="line.636"></a>
+<span class="sourceLineNo">637</span>     * <a name="line.637"></a>
+<span class="sourceLineNo">638</span>     * @param event the event<a name="line.638"></a>
+<span class="sourceLineNo">639</span>     * @param portalSession the channel<a name="line.639"></a>
+<span class="sourceLineNo">640</span>     * @return the id of the created portlet<a name="line.640"></a>
+<span class="sourceLineNo">641</span>     */<a name="line.641"></a>
+<span class="sourceLineNo">642</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.642"></a>
+<span class="sourceLineNo">643</span>    protected abstract String doAddPortlet(AddPortletRequest event,<a name="line.643"></a>
+<span class="sourceLineNo">644</span>            PortalSession portalSession) throws Exception;<a name="line.644"></a>
+<span class="sourceLineNo">645</span><a name="line.645"></a>
+<span class="sourceLineNo">646</span>    /**<a name="line.646"></a>
+<span class="sourceLineNo">647</span>     * Checks if the request applies to this component. If so, stops <a name="line.647"></a>
+<span class="sourceLineNo">648</span>     * the event, removes the portlet state from the browser session<a name="line.648"></a>
+<span class="sourceLineNo">649</span>     * and calls {@link #doDeletePortlet} with the state.<a name="line.649"></a>
+<span class="sourceLineNo">650</span>     * <a name="line.650"></a>
+<span class="sourceLineNo">651</span>     * If the association of {@link PortalSession}s and portlet ids<a name="line.651"></a>
+<span class="sourceLineNo">652</span>     * is tracked for this portlet, any existing association is<a name="line.652"></a>
+<span class="sourceLineNo">653</span>     * also removed.<a name="line.653"></a>
+<span class="sourceLineNo">654</span>     *<a name="line.654"></a>
+<span class="sourceLineNo">655</span>     * @param event the event<a name="line.655"></a>
+<span class="sourceLineNo">656</span>     * @param portalSession the portal session<a name="line.656"></a>
+<span class="sourceLineNo">657</span>     * @throws Exception the exception<a name="line.657"></a>
 <span class="sourceLineNo">658</span>     */<a name="line.658"></a>
 <span class="sourceLineNo">659</span>    @Handler<a name="line.659"></a>
 <span class="sourceLineNo">660</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.660"></a>
 <span class="sourceLineNo">661</span>    public final void onDeletePortletRequest(DeletePortletRequest event,<a name="line.661"></a>
 <span class="sourceLineNo">662</span>            PortalSession portalSession) throws Exception {<a name="line.662"></a>
-<span class="sourceLineNo">663</span>        Optional&lt;? extends Serializable&gt; optPortletState<a name="line.663"></a>
-<span class="sourceLineNo">664</span>            = stateFromSession(portalSession.browserSession(),<a name="line.664"></a>
-<span class="sourceLineNo">665</span>                event.portletId(), Serializable.class);<a name="line.665"></a>
-<span class="sourceLineNo">666</span>        if (!optPortletState.isPresent()) {<a name="line.666"></a>
-<span class="sourceLineNo">667</span>            return;<a name="line.667"></a>
-<span class="sourceLineNo">668</span>        }<a name="line.668"></a>
-<span class="sourceLineNo">669</span>        String portletId = event.portletId();<a name="line.669"></a>
-<span class="sourceLineNo">670</span>        removeState(portalSession.browserSession(), portletId);<a name="line.670"></a>
-<span class="sourceLineNo">671</span>        for (Iterator&lt;PortalSession&gt; psi = portletIdsByPortalSession<a name="line.671"></a>
-<span class="sourceLineNo">672</span>            .keySet().iterator(); psi.hasNext();) {<a name="line.672"></a>
-<span class="sourceLineNo">673</span>            Set&lt;String&gt; idSet = portletIdsByPortalSession.get(psi.next());<a name="line.673"></a>
-<span class="sourceLineNo">674</span>            idSet.remove(portletId);<a name="line.674"></a>
-<span class="sourceLineNo">675</span>            if (idSet.isEmpty()) {<a name="line.675"></a>
-<span class="sourceLineNo">676</span>                psi.remove();<a name="line.676"></a>
-<span class="sourceLineNo">677</span>            }<a name="line.677"></a>
-<span class="sourceLineNo">678</span>        }<a name="line.678"></a>
-<span class="sourceLineNo">679</span>        updateRefresh();<a name="line.679"></a>
-<span class="sourceLineNo">680</span>        event.stop();<a name="line.680"></a>
-<span class="sourceLineNo">681</span>        doDeletePortlet(event, portalSession, event.portletId(),<a name="line.681"></a>
-<span class="sourceLineNo">682</span>            optPortletState.get());<a name="line.682"></a>
-<span class="sourceLineNo">683</span>    }<a name="line.683"></a>
-<span class="sourceLineNo">684</span><a name="line.684"></a>
-<span class="sourceLineNo">685</span>    /**<a name="line.685"></a>
-<span class="sourceLineNo">686</span>     * Called by {@link #onDeletePortletRequest} to complete deleting<a name="line.686"></a>
-<span class="sourceLineNo">687</span>     * the portlet. If the portlet component wants to veto the<a name="line.687"></a>
-<span class="sourceLineNo">688</span>     * deletion of the portlet, it puts the state information back in<a name="line.688"></a>
-<span class="sourceLineNo">689</span>     * the session with <a name="line.689"></a>
-<span class="sourceLineNo">690</span>     * {@link #putInSession(Session, String, Serializable)} and does<a name="line.690"></a>
-<span class="sourceLineNo">691</span>     * not fire the {@link DeletePortlet} event.<a name="line.691"></a>
-<span class="sourceLineNo">692</span>     * <a name="line.692"></a>
-<span class="sourceLineNo">693</span>     * @param event the event<a name="line.693"></a>
-<span class="sourceLineNo">694</span>     * @param channel the channel<a name="line.694"></a>
-<span class="sourceLineNo">695</span>     * @param portletId the portlet id<a name="line.695"></a>
-<span class="sourceLineNo">696</span>     * @param portletState the portlet state<a name="line.696"></a>
-<span class="sourceLineNo">697</span>     */<a name="line.697"></a>
-<span class="sourceLineNo">698</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.698"></a>
-<span class="sourceLineNo">699</span>    protected abstract void doDeletePortlet(DeletePortletRequest event,<a name="line.699"></a>
-<span class="sourceLineNo">700</span>            PortalSession channel, String portletId,<a name="line.700"></a>
-<span class="sourceLineNo">701</span>            Serializable portletState) throws Exception;<a name="line.701"></a>
-<span class="sourceLineNo">702</span><a name="line.702"></a>
-<span class="sourceLineNo">703</span>    /**<a name="line.703"></a>
-<span class="sourceLineNo">704</span>     * Checks if the request applies to this component by calling<a name="line.704"></a>
-<span class="sourceLineNo">705</span>     * {@link #stateFromSession(Session, String, Class)}. If a model<a name="line.705"></a>
-<span class="sourceLineNo">706</span>     * is found, sets the event's result to `true`, stops the event, and <a name="line.706"></a>
-<span class="sourceLineNo">707</span>     * calls {@link #doRenderPortlet} with the state information. <a name="line.707"></a>
-<span class="sourceLineNo">708</span>     * <a name="line.708"></a>
-<span class="sourceLineNo">709</span>     * Some portlets that do not persist their models between sessions<a name="line.709"></a>
-<span class="sourceLineNo">710</span>     * (e.g. because the model only references data maintained elsewhere)<a name="line.710"></a>
-<span class="sourceLineNo">711</span>     * should override {@link #stateFromSession(Session, String, Class)}<a name="line.711"></a>
-<span class="sourceLineNo">712</span>     * in such a way that it creates the requested model if it doesn't <a name="line.712"></a>
-<span class="sourceLineNo">713</span>     * exist yet.<a name="line.713"></a>
-<span class="sourceLineNo">714</span>     * <a name="line.714"></a>
-<span class="sourceLineNo">715</span>     * @param event the event<a name="line.715"></a>
-<span class="sourceLineNo">716</span>     * @param portalSession the portal session<a name="line.716"></a>
+<span class="sourceLineNo">663</span>        Optional&lt;S&gt; optPortletState = stateFromSession(<a name="line.663"></a>
+<span class="sourceLineNo">664</span>            portalSession.browserSession(), event.portletId());<a name="line.664"></a>
+<span class="sourceLineNo">665</span>        if (!optPortletState.isPresent()) {<a name="line.665"></a>
+<span class="sourceLineNo">666</span>            return;<a name="line.666"></a>
+<span class="sourceLineNo">667</span>        }<a name="line.667"></a>
+<span class="sourceLineNo">668</span>        String portletId = event.portletId();<a name="line.668"></a>
+<span class="sourceLineNo">669</span>        removeState(portalSession.browserSession(), portletId);<a name="line.669"></a>
+<span class="sourceLineNo">670</span>        for (Iterator&lt;PortalSession&gt; psi = portletIdsByPortalSession<a name="line.670"></a>
+<span class="sourceLineNo">671</span>            .keySet().iterator(); psi.hasNext();) {<a name="line.671"></a>
+<span class="sourceLineNo">672</span>            Set&lt;String&gt; idSet = portletIdsByPortalSession.get(psi.next());<a name="line.672"></a>
+<span class="sourceLineNo">673</span>            idSet.remove(portletId);<a name="line.673"></a>
+<span class="sourceLineNo">674</span>            if (idSet.isEmpty()) {<a name="line.674"></a>
+<span class="sourceLineNo">675</span>                psi.remove();<a name="line.675"></a>
+<span class="sourceLineNo">676</span>            }<a name="line.676"></a>
+<span class="sourceLineNo">677</span>        }<a name="line.677"></a>
+<span class="sourceLineNo">678</span>        updateRefresh();<a name="line.678"></a>
+<span class="sourceLineNo">679</span>        event.stop();<a name="line.679"></a>
+<span class="sourceLineNo">680</span>        doDeletePortlet(event, portalSession, event.portletId(),<a name="line.680"></a>
+<span class="sourceLineNo">681</span>            optPortletState.get());<a name="line.681"></a>
+<span class="sourceLineNo">682</span>    }<a name="line.682"></a>
+<span class="sourceLineNo">683</span><a name="line.683"></a>
+<span class="sourceLineNo">684</span>    /**<a name="line.684"></a>
+<span class="sourceLineNo">685</span>     * Called by {@link #onDeletePortletRequest} to complete deleting<a name="line.685"></a>
+<span class="sourceLineNo">686</span>     * the portlet. If the portlet component wants to veto the<a name="line.686"></a>
+<span class="sourceLineNo">687</span>     * deletion of the portlet, it puts the state information back in<a name="line.687"></a>
+<span class="sourceLineNo">688</span>     * the session with <a name="line.688"></a>
+<span class="sourceLineNo">689</span>     * {@link #putInSession(Session, String, Serializable)} and does<a name="line.689"></a>
+<span class="sourceLineNo">690</span>     * not fire the {@link DeletePortlet} event.<a name="line.690"></a>
+<span class="sourceLineNo">691</span>     * <a name="line.691"></a>
+<span class="sourceLineNo">692</span>     * @param event the event<a name="line.692"></a>
+<span class="sourceLineNo">693</span>     * @param channel the channel<a name="line.693"></a>
+<span class="sourceLineNo">694</span>     * @param portletId the portlet id<a name="line.694"></a>
+<span class="sourceLineNo">695</span>     * @param portletState the portlet state<a name="line.695"></a>
+<span class="sourceLineNo">696</span>     */<a name="line.696"></a>
+<span class="sourceLineNo">697</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.697"></a>
+<span class="sourceLineNo">698</span>    protected abstract void doDeletePortlet(DeletePortletRequest event,<a name="line.698"></a>
+<span class="sourceLineNo">699</span>            PortalSession channel, String portletId, S portletState)<a name="line.699"></a>
+<span class="sourceLineNo">700</span>            throws Exception;<a name="line.700"></a>
+<span class="sourceLineNo">701</span><a name="line.701"></a>
+<span class="sourceLineNo">702</span>    /**<a name="line.702"></a>
+<span class="sourceLineNo">703</span>     * Checks if the request applies to this component by calling<a name="line.703"></a>
+<span class="sourceLineNo">704</span>     * {@link #stateFromSession(Session, String, Class)}. If a model<a name="line.704"></a>
+<span class="sourceLineNo">705</span>     * is found, sets the event's result to `true`, stops the event, and <a name="line.705"></a>
+<span class="sourceLineNo">706</span>     * calls {@link #doRenderPortlet} with the state information. <a name="line.706"></a>
+<span class="sourceLineNo">707</span>     * <a name="line.707"></a>
+<span class="sourceLineNo">708</span>     * Some portlets that do not persist their models between sessions<a name="line.708"></a>
+<span class="sourceLineNo">709</span>     * (e.g. because the model only references data maintained elsewhere)<a name="line.709"></a>
+<span class="sourceLineNo">710</span>     * should override {@link #stateFromSession(Session, String, Class)}<a name="line.710"></a>
+<span class="sourceLineNo">711</span>     * in such a way that it creates the requested model if it doesn't <a name="line.711"></a>
+<span class="sourceLineNo">712</span>     * exist yet.<a name="line.712"></a>
+<span class="sourceLineNo">713</span>     *<a name="line.713"></a>
+<span class="sourceLineNo">714</span>     * @param event the event<a name="line.714"></a>
+<span class="sourceLineNo">715</span>     * @param portalSession the portal session<a name="line.715"></a>
+<span class="sourceLineNo">716</span>     * @throws Exception the exception<a name="line.716"></a>
 <span class="sourceLineNo">717</span>     */<a name="line.717"></a>
 <span class="sourceLineNo">718</span>    @Handler<a name="line.718"></a>
 <span class="sourceLineNo">719</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.719"></a>
 <span class="sourceLineNo">720</span>    public final void onRenderPortlet(RenderPortletRequest event,<a name="line.720"></a>
 <span class="sourceLineNo">721</span>            PortalSession portalSession) throws Exception {<a name="line.721"></a>
-<span class="sourceLineNo">722</span>        Optional&lt;? extends Serializable&gt; optPortletState<a name="line.722"></a>
-<span class="sourceLineNo">723</span>            = stateFromSession(portalSession.browserSession(),<a name="line.723"></a>
-<span class="sourceLineNo">724</span>                event.portletId(), Serializable.class);<a name="line.724"></a>
-<span class="sourceLineNo">725</span>        if (!optPortletState.isPresent()) {<a name="line.725"></a>
-<span class="sourceLineNo">726</span>            return;<a name="line.726"></a>
-<span class="sourceLineNo">727</span>        }<a name="line.727"></a>
-<span class="sourceLineNo">728</span>        event.setResult(true);<a name="line.728"></a>
-<span class="sourceLineNo">729</span>        event.stop();<a name="line.729"></a>
-<span class="sourceLineNo">730</span>        doRenderPortlet(<a name="line.730"></a>
-<span class="sourceLineNo">731</span>            event, portalSession, event.portletId(), optPortletState.get());<a name="line.731"></a>
-<span class="sourceLineNo">732</span>        trackPortlet(portalSession, event.portletId());<a name="line.732"></a>
-<span class="sourceLineNo">733</span>    }<a name="line.733"></a>
-<span class="sourceLineNo">734</span><a name="line.734"></a>
-<span class="sourceLineNo">735</span>    /**<a name="line.735"></a>
-<span class="sourceLineNo">736</span>     * Called by {@link #onRenderPortlet} to complete rendering<a name="line.736"></a>
-<span class="sourceLineNo">737</span>     * the portlet.<a name="line.737"></a>
-<span class="sourceLineNo">738</span>     * <a name="line.738"></a>
-<span class="sourceLineNo">739</span>     * @param event the event<a name="line.739"></a>
-<span class="sourceLineNo">740</span>     * @param channel the channel<a name="line.740"></a>
-<span class="sourceLineNo">741</span>     * @param portletId the portlet id<a name="line.741"></a>
-<span class="sourceLineNo">742</span>     * @param portletState the portletState<a name="line.742"></a>
-<span class="sourceLineNo">743</span>     */<a name="line.743"></a>
-<span class="sourceLineNo">744</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.744"></a>
-<span class="sourceLineNo">745</span>    protected abstract void doRenderPortlet(RenderPortletRequest event,<a name="line.745"></a>
-<span class="sourceLineNo">746</span>            PortalSession channel, String portletId,<a name="line.746"></a>
-<span class="sourceLineNo">747</span>            Serializable portletState) throws Exception;<a name="line.747"></a>
-<span class="sourceLineNo">748</span><a name="line.748"></a>
-<span class="sourceLineNo">749</span>    /**<a name="line.749"></a>
-<span class="sourceLineNo">750</span>     * Invokes {@link #doSetLocale(SetLocale, PortalSession, String)}<a name="line.750"></a>
-<span class="sourceLineNo">751</span>     * for each portlet in the portal session.<a name="line.751"></a>
-<span class="sourceLineNo">752</span>     * <a name="line.752"></a>
-<span class="sourceLineNo">753</span>     * If the vent has the reload flag set, does nothing.<a name="line.753"></a>
-<span class="sourceLineNo">754</span>     * <a name="line.754"></a>
-<span class="sourceLineNo">755</span>     * The default implementation fires a <a name="line.755"></a>
-<span class="sourceLineNo">756</span>     * <a name="line.756"></a>
-<span class="sourceLineNo">757</span>     * @param event the event<a name="line.757"></a>
-<span class="sourceLineNo">758</span>     * @param portalSession the portal session<a name="line.758"></a>
+<span class="sourceLineNo">722</span>        Optional&lt;S&gt; optPortletState = stateFromSession(<a name="line.722"></a>
+<span class="sourceLineNo">723</span>            portalSession.browserSession(), event.portletId());<a name="line.723"></a>
+<span class="sourceLineNo">724</span>        if (!optPortletState.isPresent()) {<a name="line.724"></a>
+<span class="sourceLineNo">725</span>            return;<a name="line.725"></a>
+<span class="sourceLineNo">726</span>        }<a name="line.726"></a>
+<span class="sourceLineNo">727</span>        event.setResult(true);<a name="line.727"></a>
+<span class="sourceLineNo">728</span>        event.stop();<a name="line.728"></a>
+<span class="sourceLineNo">729</span>        doRenderPortlet(<a name="line.729"></a>
+<span class="sourceLineNo">730</span>            event, portalSession, event.portletId(), optPortletState.get());<a name="line.730"></a>
+<span class="sourceLineNo">731</span>        trackPortlet(portalSession, event.portletId());<a name="line.731"></a>
+<span class="sourceLineNo">732</span>    }<a name="line.732"></a>
+<span class="sourceLineNo">733</span><a name="line.733"></a>
+<span class="sourceLineNo">734</span>    /**<a name="line.734"></a>
+<span class="sourceLineNo">735</span>     * Called by {@link #onRenderPortlet} to complete rendering<a name="line.735"></a>
+<span class="sourceLineNo">736</span>     * the portlet.<a name="line.736"></a>
+<span class="sourceLineNo">737</span>     * <a name="line.737"></a>
+<span class="sourceLineNo">738</span>     * @param event the event<a name="line.738"></a>
+<span class="sourceLineNo">739</span>     * @param channel the channel<a name="line.739"></a>
+<span class="sourceLineNo">740</span>     * @param portletId the portlet id<a name="line.740"></a>
+<span class="sourceLineNo">741</span>     * @param portletState the portletState<a name="line.741"></a>
+<span class="sourceLineNo">742</span>     */<a name="line.742"></a>
+<span class="sourceLineNo">743</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.743"></a>
+<span class="sourceLineNo">744</span>    protected abstract void doRenderPortlet(RenderPortletRequest event,<a name="line.744"></a>
+<span class="sourceLineNo">745</span>            PortalSession channel, String portletId, S portletState)<a name="line.745"></a>
+<span class="sourceLineNo">746</span>            throws Exception;<a name="line.746"></a>
+<span class="sourceLineNo">747</span><a name="line.747"></a>
+<span class="sourceLineNo">748</span>    /**<a name="line.748"></a>
+<span class="sourceLineNo">749</span>     * Invokes {@link #doSetLocale(SetLocale, PortalSession, String)}<a name="line.749"></a>
+<span class="sourceLineNo">750</span>     * for each portlet in the portal session.<a name="line.750"></a>
+<span class="sourceLineNo">751</span>     * <a name="line.751"></a>
+<span class="sourceLineNo">752</span>     * If the vent has the reload flag set, does nothing.<a name="line.752"></a>
+<span class="sourceLineNo">753</span>     * <a name="line.753"></a>
+<span class="sourceLineNo">754</span>     * The default implementation fires a <a name="line.754"></a>
+<span class="sourceLineNo">755</span>     *<a name="line.755"></a>
+<span class="sourceLineNo">756</span>     * @param event the event<a name="line.756"></a>
+<span class="sourceLineNo">757</span>     * @param portalSession the portal session<a name="line.757"></a>
+<span class="sourceLineNo">758</span>     * @throws Exception the exception<a name="line.758"></a>
 <span class="sourceLineNo">759</span>     */<a name="line.759"></a>
 <span class="sourceLineNo">760</span>    @Handler<a name="line.760"></a>
 <span class="sourceLineNo">761</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.761"></a>
@@ -813,17 +813,17 @@
 <span class="sourceLineNo">805</span>     * {@link #stateFromSession(Session, String, Class)}. If a model<a name="line.805"></a>
 <span class="sourceLineNo">806</span>     * is found, calls {@link #doNotifyPortletModel} with the state <a name="line.806"></a>
 <span class="sourceLineNo">807</span>     * information. <a name="line.807"></a>
-<span class="sourceLineNo">808</span>     * <a name="line.808"></a>
+<span class="sourceLineNo">808</span>     *<a name="line.808"></a>
 <span class="sourceLineNo">809</span>     * @param event the event<a name="line.809"></a>
 <span class="sourceLineNo">810</span>     * @param channel the channel<a name="line.810"></a>
-<span class="sourceLineNo">811</span>     */<a name="line.811"></a>
-<span class="sourceLineNo">812</span>    @Handler<a name="line.812"></a>
-<span class="sourceLineNo">813</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.813"></a>
-<span class="sourceLineNo">814</span>    public final void onNotifyPortletModel(NotifyPortletModel event,<a name="line.814"></a>
-<span class="sourceLineNo">815</span>            PortalSession channel) throws Exception {<a name="line.815"></a>
-<span class="sourceLineNo">816</span>        Optional&lt;? extends Serializable&gt; optPortletState<a name="line.816"></a>
-<span class="sourceLineNo">817</span>            = stateFromSession(channel.browserSession(), event.portletId(),<a name="line.817"></a>
-<span class="sourceLineNo">818</span>                Serializable.class);<a name="line.818"></a>
+<span class="sourceLineNo">811</span>     * @throws Exception the exception<a name="line.811"></a>
+<span class="sourceLineNo">812</span>     */<a name="line.812"></a>
+<span class="sourceLineNo">813</span>    @Handler<a name="line.813"></a>
+<span class="sourceLineNo">814</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.814"></a>
+<span class="sourceLineNo">815</span>    public final void onNotifyPortletModel(NotifyPortletModel event,<a name="line.815"></a>
+<span class="sourceLineNo">816</span>            PortalSession channel) throws Exception {<a name="line.816"></a>
+<span class="sourceLineNo">817</span>        Optional&lt;S&gt; optPortletState<a name="line.817"></a>
+<span class="sourceLineNo">818</span>            = stateFromSession(channel.browserSession(), event.portletId());<a name="line.818"></a>
 <span class="sourceLineNo">819</span>        if (!optPortletState.isPresent()) {<a name="line.819"></a>
 <span class="sourceLineNo">820</span>            return;<a name="line.820"></a>
 <span class="sourceLineNo">821</span>        }<a name="line.821"></a>
@@ -840,161 +840,172 @@
 <span class="sourceLineNo">832</span>     */<a name="line.832"></a>
 <span class="sourceLineNo">833</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.833"></a>
 <span class="sourceLineNo">834</span>    protected void doNotifyPortletModel(NotifyPortletModel event,<a name="line.834"></a>
-<span class="sourceLineNo">835</span>            PortalSession channel, Serializable portletState)<a name="line.835"></a>
-<span class="sourceLineNo">836</span>            throws Exception {<a name="line.836"></a>
-<span class="sourceLineNo">837</span>        // Default is to do nothing.<a name="line.837"></a>
-<span class="sourceLineNo">838</span>    }<a name="line.838"></a>
-<span class="sourceLineNo">839</span><a name="line.839"></a>
-<span class="sourceLineNo">840</span>    /**<a name="line.840"></a>
-<span class="sourceLineNo">841</span>     * Removes the {@link PortalSession} from the set of tracked sessions.<a name="line.841"></a>
-<span class="sourceLineNo">842</span>     * If derived portlets need to perform extra actions when a<a name="line.842"></a>
-<span class="sourceLineNo">843</span>     * portalSession is closed, they have to override <a name="line.843"></a>
-<span class="sourceLineNo">844</span>     * {@link #afterOnClosed(Closed, PortalSession)}.<a name="line.844"></a>
-<span class="sourceLineNo">845</span>     * <a name="line.845"></a>
-<span class="sourceLineNo">846</span>     * @param event the closed event<a name="line.846"></a>
-<span class="sourceLineNo">847</span>     * @param portalSession the portal session<a name="line.847"></a>
-<span class="sourceLineNo">848</span>     */<a name="line.848"></a>
-<span class="sourceLineNo">849</span>    @Handler<a name="line.849"></a>
-<span class="sourceLineNo">850</span>    public final void onClosed(Closed event, PortalSession portalSession) {<a name="line.850"></a>
-<span class="sourceLineNo">851</span>        portletIdsByPortalSession.remove(portalSession);<a name="line.851"></a>
-<span class="sourceLineNo">852</span>        updateRefresh();<a name="line.852"></a>
-<span class="sourceLineNo">853</span>        afterOnClosed(event, portalSession);<a name="line.853"></a>
-<span class="sourceLineNo">854</span>    }<a name="line.854"></a>
-<span class="sourceLineNo">855</span><a name="line.855"></a>
-<span class="sourceLineNo">856</span>    /**<a name="line.856"></a>
-<span class="sourceLineNo">857</span>     * Invoked by {@link #onClosed(Closed, PortalSession)} after<a name="line.857"></a>
-<span class="sourceLineNo">858</span>     * the portal session has been removed from the set of<a name="line.858"></a>
-<span class="sourceLineNo">859</span>     * tracked sessions. The default implementation does<a name="line.859"></a>
-<span class="sourceLineNo">860</span>     * nothing.<a name="line.860"></a>
-<span class="sourceLineNo">861</span>     * <a name="line.861"></a>
-<span class="sourceLineNo">862</span>     * @param event the closed event<a name="line.862"></a>
-<span class="sourceLineNo">863</span>     * @param portalSession the portal session<a name="line.863"></a>
-<span class="sourceLineNo">864</span>     */<a name="line.864"></a>
-<span class="sourceLineNo">865</span>    protected void afterOnClosed(Closed event, PortalSession portalSession) {<a name="line.865"></a>
-<span class="sourceLineNo">866</span>        // Default is to do nothing.<a name="line.866"></a>
-<span class="sourceLineNo">867</span>    }<a name="line.867"></a>
-<span class="sourceLineNo">868</span><a name="line.868"></a>
-<span class="sourceLineNo">869</span>    /**<a name="line.869"></a>
-<span class="sourceLineNo">870</span>     * Defines the portlet model following the JavaBean conventions.<a name="line.870"></a>
-<span class="sourceLineNo">871</span>     * <a name="line.871"></a>
-<span class="sourceLineNo">872</span>     * Portlet models should follow these conventions because<a name="line.872"></a>
-<span class="sourceLineNo">873</span>     * many template engines rely on them and to support serialization<a name="line.873"></a>
-<span class="sourceLineNo">874</span>     * to portable formats. <a name="line.874"></a>
-<span class="sourceLineNo">875</span>     */<a name="line.875"></a>
-<span class="sourceLineNo">876</span>    @SuppressWarnings("serial")<a name="line.876"></a>
-<span class="sourceLineNo">877</span>    public static class PortletBaseModel implements Serializable {<a name="line.877"></a>
-<span class="sourceLineNo">878</span><a name="line.878"></a>
-<span class="sourceLineNo">879</span>        protected String portletId;<a name="line.879"></a>
-<span class="sourceLineNo">880</span><a name="line.880"></a>
-<span class="sourceLineNo">881</span>        /**<a name="line.881"></a>
-<span class="sourceLineNo">882</span>         * Creates a new model with the given type and id.<a name="line.882"></a>
-<span class="sourceLineNo">883</span>         * <a name="line.883"></a>
-<span class="sourceLineNo">884</span>         * @param portletId the portlet id<a name="line.884"></a>
-<span class="sourceLineNo">885</span>         */<a name="line.885"></a>
-<span class="sourceLineNo">886</span>        @ConstructorProperties({ "portletId" })<a name="line.886"></a>
-<span class="sourceLineNo">887</span>        public PortletBaseModel(String portletId) {<a name="line.887"></a>
-<span class="sourceLineNo">888</span>            this.portletId = portletId;<a name="line.888"></a>
-<span class="sourceLineNo">889</span>        }<a name="line.889"></a>
-<span class="sourceLineNo">890</span><a name="line.890"></a>
-<span class="sourceLineNo">891</span>        /**<a name="line.891"></a>
-<span class="sourceLineNo">892</span>         * Returns the portlet id.<a name="line.892"></a>
-<span class="sourceLineNo">893</span>         * <a name="line.893"></a>
-<span class="sourceLineNo">894</span>         * @return the portlet id<a name="line.894"></a>
-<span class="sourceLineNo">895</span>         */<a name="line.895"></a>
-<span class="sourceLineNo">896</span>        public String getPortletId() {<a name="line.896"></a>
-<span class="sourceLineNo">897</span>            return portletId;<a name="line.897"></a>
-<span class="sourceLineNo">898</span>        }<a name="line.898"></a>
-<span class="sourceLineNo">899</span><a name="line.899"></a>
-<span class="sourceLineNo">900</span>        /*<a name="line.900"></a>
-<span class="sourceLineNo">901</span>         * (non-Javadoc)<a name="line.901"></a>
-<span class="sourceLineNo">902</span>         * <a name="line.902"></a>
-<span class="sourceLineNo">903</span>         * @see java.lang.Object#hashCode()<a name="line.903"></a>
-<span class="sourceLineNo">904</span>         */<a name="line.904"></a>
-<span class="sourceLineNo">905</span>        @Override<a name="line.905"></a>
-<span class="sourceLineNo">906</span>        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.906"></a>
-<span class="sourceLineNo">907</span>        public int hashCode() {<a name="line.907"></a>
-<span class="sourceLineNo">908</span>            @SuppressWarnings("PMD.AvoidFinalLocalVariable")<a name="line.908"></a>
-<span class="sourceLineNo">909</span>            final int prime = 31;<a name="line.909"></a>
-<span class="sourceLineNo">910</span>            int result = 1;<a name="line.910"></a>
-<span class="sourceLineNo">911</span>            result = prime * result<a name="line.911"></a>
-<span class="sourceLineNo">912</span>                + ((portletId == null) ? 0 : portletId.hashCode());<a name="line.912"></a>
-<span class="sourceLineNo">913</span>            return result;<a name="line.913"></a>
-<span class="sourceLineNo">914</span>        }<a name="line.914"></a>
-<span class="sourceLineNo">915</span><a name="line.915"></a>
-<span class="sourceLineNo">916</span>        /**<a name="line.916"></a>
-<span class="sourceLineNo">917</span>         * Two objects are equal if they have equal portlet ids.<a name="line.917"></a>
-<span class="sourceLineNo">918</span>         * <a name="line.918"></a>
-<span class="sourceLineNo">919</span>         * @param obj the other object<a name="line.919"></a>
-<span class="sourceLineNo">920</span>         * @return the result<a name="line.920"></a>
-<span class="sourceLineNo">921</span>         */<a name="line.921"></a>
-<span class="sourceLineNo">922</span>        @Override<a name="line.922"></a>
-<span class="sourceLineNo">923</span>        public boolean equals(Object obj) {<a name="line.923"></a>
-<span class="sourceLineNo">924</span>            if (this == obj) {<a name="line.924"></a>
-<span class="sourceLineNo">925</span>                return true;<a name="line.925"></a>
-<span class="sourceLineNo">926</span>            }<a name="line.926"></a>
-<span class="sourceLineNo">927</span>            if (obj == null) {<a name="line.927"></a>
-<span class="sourceLineNo">928</span>                return false;<a name="line.928"></a>
-<span class="sourceLineNo">929</span>            }<a name="line.929"></a>
-<span class="sourceLineNo">930</span>            if (getClass() != obj.getClass()) {<a name="line.930"></a>
-<span class="sourceLineNo">931</span>                return false;<a name="line.931"></a>
-<span class="sourceLineNo">932</span>            }<a name="line.932"></a>
-<span class="sourceLineNo">933</span>            PortletBaseModel other = (PortletBaseModel) obj;<a name="line.933"></a>
-<span class="sourceLineNo">934</span>            if (portletId == null) {<a name="line.934"></a>
-<span class="sourceLineNo">935</span>                if (other.portletId != null) {<a name="line.935"></a>
-<span class="sourceLineNo">936</span>                    return false;<a name="line.936"></a>
-<span class="sourceLineNo">937</span>                }<a name="line.937"></a>
-<span class="sourceLineNo">938</span>            } else if (!portletId.equals(other.portletId)) {<a name="line.938"></a>
-<span class="sourceLineNo">939</span>                return false;<a name="line.939"></a>
-<span class="sourceLineNo">940</span>            }<a name="line.940"></a>
-<span class="sourceLineNo">941</span>            return true;<a name="line.941"></a>
-<span class="sourceLineNo">942</span>        }<a name="line.942"></a>
-<span class="sourceLineNo">943</span>    }<a name="line.943"></a>
-<span class="sourceLineNo">944</span><a name="line.944"></a>
-<span class="sourceLineNo">945</span>    /**<a name="line.945"></a>
-<span class="sourceLineNo">946</span>     * Send to the portal page for adding or updating a complete portlet<a name="line.946"></a>
-<span class="sourceLineNo">947</span>     * representation.<a name="line.947"></a>
-<span class="sourceLineNo">948</span>     */<a name="line.948"></a>
-<span class="sourceLineNo">949</span>    public class RenderPortletFromReader extends RenderPortlet {<a name="line.949"></a>
-<span class="sourceLineNo">950</span><a name="line.950"></a>
-<span class="sourceLineNo">951</span>        private final Future&lt;String&gt; content;<a name="line.951"></a>
-<span class="sourceLineNo">952</span><a name="line.952"></a>
-<span class="sourceLineNo">953</span>        /**<a name="line.953"></a>
-<span class="sourceLineNo">954</span>         * Creates a new event.<a name="line.954"></a>
-<span class="sourceLineNo">955</span>         * <a name="line.955"></a>
-<span class="sourceLineNo">956</span>         * @param portletClass the portlet class<a name="line.956"></a>
-<span class="sourceLineNo">957</span>         * @param portletId the id of the portlet<a name="line.957"></a>
-<span class="sourceLineNo">958</span>         */<a name="line.958"></a>
-<span class="sourceLineNo">959</span>        public RenderPortletFromReader(RenderPortletRequestBase&lt;?&gt; request,<a name="line.959"></a>
-<span class="sourceLineNo">960</span>                Class&lt;?&gt; portletClass, String portletId, Reader contentReader) {<a name="line.960"></a>
-<span class="sourceLineNo">961</span>            super(portletClass, portletId);<a name="line.961"></a>
-<span class="sourceLineNo">962</span>            // Start to prepare the content immediately and concurrently.<a name="line.962"></a>
-<span class="sourceLineNo">963</span>            content = request.processedBy().map(pby -&gt; pby.executorService())<a name="line.963"></a>
-<span class="sourceLineNo">964</span>                .orElse(Components.defaultExecutorService()).submit(() -&gt; {<a name="line.964"></a>
-<span class="sourceLineNo">965</span>                    StringWriter content = new StringWriter();<a name="line.965"></a>
-<span class="sourceLineNo">966</span>                    CharBuffer buffer = CharBuffer.allocate(8192);<a name="line.966"></a>
-<span class="sourceLineNo">967</span>                    try (Reader rdr = new BufferedReader(contentReader)) {<a name="line.967"></a>
-<span class="sourceLineNo">968</span>                        while (true) {<a name="line.968"></a>
-<span class="sourceLineNo">969</span>                            if (rdr.read(buffer) &lt; 0) {<a name="line.969"></a>
-<span class="sourceLineNo">970</span>                                break;<a name="line.970"></a>
-<span class="sourceLineNo">971</span>                            }<a name="line.971"></a>
-<span class="sourceLineNo">972</span>                            buffer.flip();<a name="line.972"></a>
-<span class="sourceLineNo">973</span>                            content.append(buffer);<a name="line.973"></a>
-<span class="sourceLineNo">974</span>                            buffer.clear();<a name="line.974"></a>
-<span class="sourceLineNo">975</span>                        }<a name="line.975"></a>
-<span class="sourceLineNo">976</span>                    } catch (IOException e) {<a name="line.976"></a>
-<span class="sourceLineNo">977</span>                        throw new IllegalStateException(e);<a name="line.977"></a>
-<span class="sourceLineNo">978</span>                    }<a name="line.978"></a>
-<span class="sourceLineNo">979</span>                    return content.toString();<a name="line.979"></a>
-<span class="sourceLineNo">980</span>                });<a name="line.980"></a>
-<span class="sourceLineNo">981</span><a name="line.981"></a>
-<span class="sourceLineNo">982</span>        }<a name="line.982"></a>
-<span class="sourceLineNo">983</span><a name="line.983"></a>
-<span class="sourceLineNo">984</span>        @Override<a name="line.984"></a>
-<span class="sourceLineNo">985</span>        public Future&lt;String&gt; content() {<a name="line.985"></a>
-<span class="sourceLineNo">986</span>            return content;<a name="line.986"></a>
-<span class="sourceLineNo">987</span>        }<a name="line.987"></a>
-<span class="sourceLineNo">988</span>    }<a name="line.988"></a>
-<span class="sourceLineNo">989</span>}<a name="line.989"></a>
+<span class="sourceLineNo">835</span>            PortalSession channel, S portletState) throws Exception {<a name="line.835"></a>
+<span class="sourceLineNo">836</span>        // Default is to do nothing.<a name="line.836"></a>
+<span class="sourceLineNo">837</span>    }<a name="line.837"></a>
+<span class="sourceLineNo">838</span><a name="line.838"></a>
+<span class="sourceLineNo">839</span>    /**<a name="line.839"></a>
+<span class="sourceLineNo">840</span>     * Removes the {@link PortalSession} from the set of tracked sessions.<a name="line.840"></a>
+<span class="sourceLineNo">841</span>     * If derived portlets need to perform extra actions when a<a name="line.841"></a>
+<span class="sourceLineNo">842</span>     * portalSession is closed, they have to override <a name="line.842"></a>
+<span class="sourceLineNo">843</span>     * {@link #afterOnClosed(Closed, PortalSession)}.<a name="line.843"></a>
+<span class="sourceLineNo">844</span>     * <a name="line.844"></a>
+<span class="sourceLineNo">845</span>     * @param event the closed event<a name="line.845"></a>
+<span class="sourceLineNo">846</span>     * @param portalSession the portal session<a name="line.846"></a>
+<span class="sourceLineNo">847</span>     */<a name="line.847"></a>
+<span class="sourceLineNo">848</span>    @Handler<a name="line.848"></a>
+<span class="sourceLineNo">849</span>    public final void onClosed(Closed event, PortalSession portalSession) {<a name="line.849"></a>
+<span class="sourceLineNo">850</span>        portletIdsByPortalSession.remove(portalSession);<a name="line.850"></a>
+<span class="sourceLineNo">851</span>        updateRefresh();<a name="line.851"></a>
+<span class="sourceLineNo">852</span>        afterOnClosed(event, portalSession);<a name="line.852"></a>
+<span class="sourceLineNo">853</span>    }<a name="line.853"></a>
+<span class="sourceLineNo">854</span><a name="line.854"></a>
+<span class="sourceLineNo">855</span>    /**<a name="line.855"></a>
+<span class="sourceLineNo">856</span>     * Invoked by {@link #onClosed(Closed, PortalSession)} after<a name="line.856"></a>
+<span class="sourceLineNo">857</span>     * the portal session has been removed from the set of<a name="line.857"></a>
+<span class="sourceLineNo">858</span>     * tracked sessions. The default implementation does<a name="line.858"></a>
+<span class="sourceLineNo">859</span>     * nothing.<a name="line.859"></a>
+<span class="sourceLineNo">860</span>     * <a name="line.860"></a>
+<span class="sourceLineNo">861</span>     * @param event the closed event<a name="line.861"></a>
+<span class="sourceLineNo">862</span>     * @param portalSession the portal session<a name="line.862"></a>
+<span class="sourceLineNo">863</span>     */<a name="line.863"></a>
+<span class="sourceLineNo">864</span>    protected void afterOnClosed(Closed event, PortalSession portalSession) {<a name="line.864"></a>
+<span class="sourceLineNo">865</span>        // Default is to do nothing.<a name="line.865"></a>
+<span class="sourceLineNo">866</span>    }<a name="line.866"></a>
+<span class="sourceLineNo">867</span><a name="line.867"></a>
+<span class="sourceLineNo">868</span>    /**<a name="line.868"></a>
+<span class="sourceLineNo">869</span>     * Defines the portlet model following the JavaBean conventions.<a name="line.869"></a>
+<span class="sourceLineNo">870</span>     * <a name="line.870"></a>
+<span class="sourceLineNo">871</span>     * Portlet models should follow these conventions because<a name="line.871"></a>
+<span class="sourceLineNo">872</span>     * many template engines rely on them and to support serialization<a name="line.872"></a>
+<span class="sourceLineNo">873</span>     * to portable formats. <a name="line.873"></a>
+<span class="sourceLineNo">874</span>     */<a name="line.874"></a>
+<span class="sourceLineNo">875</span>    @SuppressWarnings("serial")<a name="line.875"></a>
+<span class="sourceLineNo">876</span>    public static class PortletBaseModel implements Serializable {<a name="line.876"></a>
+<span class="sourceLineNo">877</span><a name="line.877"></a>
+<span class="sourceLineNo">878</span>        protected String portletId;<a name="line.878"></a>
+<span class="sourceLineNo">879</span><a name="line.879"></a>
+<span class="sourceLineNo">880</span>        /**<a name="line.880"></a>
+<span class="sourceLineNo">881</span>         * Creates a new model with the given type and id.<a name="line.881"></a>
+<span class="sourceLineNo">882</span>         * <a name="line.882"></a>
+<span class="sourceLineNo">883</span>         * @param portletId the portlet id<a name="line.883"></a>
+<span class="sourceLineNo">884</span>         */<a name="line.884"></a>
+<span class="sourceLineNo">885</span>        @ConstructorProperties({ "portletId" })<a name="line.885"></a>
+<span class="sourceLineNo">886</span>        public PortletBaseModel(String portletId) {<a name="line.886"></a>
+<span class="sourceLineNo">887</span>            this.portletId = portletId;<a name="line.887"></a>
+<span class="sourceLineNo">888</span>        }<a name="line.888"></a>
+<span class="sourceLineNo">889</span><a name="line.889"></a>
+<span class="sourceLineNo">890</span>        /**<a name="line.890"></a>
+<span class="sourceLineNo">891</span>         * Returns the portlet id.<a name="line.891"></a>
+<span class="sourceLineNo">892</span>         * <a name="line.892"></a>
+<span class="sourceLineNo">893</span>         * @return the portlet id<a name="line.893"></a>
+<span class="sourceLineNo">894</span>         */<a name="line.894"></a>
+<span class="sourceLineNo">895</span>        public String getPortletId() {<a name="line.895"></a>
+<span class="sourceLineNo">896</span>            return portletId;<a name="line.896"></a>
+<span class="sourceLineNo">897</span>        }<a name="line.897"></a>
+<span class="sourceLineNo">898</span><a name="line.898"></a>
+<span class="sourceLineNo">899</span>        /**<a name="line.899"></a>
+<span class="sourceLineNo">900</span>         * Hash code.<a name="line.900"></a>
+<span class="sourceLineNo">901</span>         *<a name="line.901"></a>
+<span class="sourceLineNo">902</span>         * @return the int<a name="line.902"></a>
+<span class="sourceLineNo">903</span>         */<a name="line.903"></a>
+<span class="sourceLineNo">904</span>        /*<a name="line.904"></a>
+<span class="sourceLineNo">905</span>         * (non-Javadoc)<a name="line.905"></a>
+<span class="sourceLineNo">906</span>         * <a name="line.906"></a>
+<span class="sourceLineNo">907</span>         * @see java.lang.Object#hashCode()<a name="line.907"></a>
+<span class="sourceLineNo">908</span>         */<a name="line.908"></a>
+<span class="sourceLineNo">909</span>        @Override<a name="line.909"></a>
+<span class="sourceLineNo">910</span>        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.910"></a>
+<span class="sourceLineNo">911</span>        public int hashCode() {<a name="line.911"></a>
+<span class="sourceLineNo">912</span>            @SuppressWarnings("PMD.AvoidFinalLocalVariable")<a name="line.912"></a>
+<span class="sourceLineNo">913</span>            final int prime = 31;<a name="line.913"></a>
+<span class="sourceLineNo">914</span>            int result = 1;<a name="line.914"></a>
+<span class="sourceLineNo">915</span>            result = prime * result<a name="line.915"></a>
+<span class="sourceLineNo">916</span>                + ((portletId == null) ? 0 : portletId.hashCode());<a name="line.916"></a>
+<span class="sourceLineNo">917</span>            return result;<a name="line.917"></a>
+<span class="sourceLineNo">918</span>        }<a name="line.918"></a>
+<span class="sourceLineNo">919</span><a name="line.919"></a>
+<span class="sourceLineNo">920</span>        /**<a name="line.920"></a>
+<span class="sourceLineNo">921</span>         * Two objects are equal if they have equal portlet ids.<a name="line.921"></a>
+<span class="sourceLineNo">922</span>         * <a name="line.922"></a>
+<span class="sourceLineNo">923</span>         * @param obj the other object<a name="line.923"></a>
+<span class="sourceLineNo">924</span>         * @return the result<a name="line.924"></a>
+<span class="sourceLineNo">925</span>         */<a name="line.925"></a>
+<span class="sourceLineNo">926</span>        @Override<a name="line.926"></a>
+<span class="sourceLineNo">927</span>        public boolean equals(Object obj) {<a name="line.927"></a>
+<span class="sourceLineNo">928</span>            if (this == obj) {<a name="line.928"></a>
+<span class="sourceLineNo">929</span>                return true;<a name="line.929"></a>
+<span class="sourceLineNo">930</span>            }<a name="line.930"></a>
+<span class="sourceLineNo">931</span>            if (obj == null) {<a name="line.931"></a>
+<span class="sourceLineNo">932</span>                return false;<a name="line.932"></a>
+<span class="sourceLineNo">933</span>            }<a name="line.933"></a>
+<span class="sourceLineNo">934</span>            if (getClass() != obj.getClass()) {<a name="line.934"></a>
+<span class="sourceLineNo">935</span>                return false;<a name="line.935"></a>
+<span class="sourceLineNo">936</span>            }<a name="line.936"></a>
+<span class="sourceLineNo">937</span>            PortletBaseModel other = (PortletBaseModel) obj;<a name="line.937"></a>
+<span class="sourceLineNo">938</span>            if (portletId == null) {<a name="line.938"></a>
+<span class="sourceLineNo">939</span>                if (other.portletId != null) {<a name="line.939"></a>
+<span class="sourceLineNo">940</span>                    return false;<a name="line.940"></a>
+<span class="sourceLineNo">941</span>                }<a name="line.941"></a>
+<span class="sourceLineNo">942</span>            } else if (!portletId.equals(other.portletId)) {<a name="line.942"></a>
+<span class="sourceLineNo">943</span>                return false;<a name="line.943"></a>
+<span class="sourceLineNo">944</span>            }<a name="line.944"></a>
+<span class="sourceLineNo">945</span>            return true;<a name="line.945"></a>
+<span class="sourceLineNo">946</span>        }<a name="line.946"></a>
+<span class="sourceLineNo">947</span>    }<a name="line.947"></a>
+<span class="sourceLineNo">948</span><a name="line.948"></a>
+<span class="sourceLineNo">949</span>    /**<a name="line.949"></a>
+<span class="sourceLineNo">950</span>     * Send to the portal page for adding or updating a complete portlet<a name="line.950"></a>
+<span class="sourceLineNo">951</span>     * representation.<a name="line.951"></a>
+<span class="sourceLineNo">952</span>     */<a name="line.952"></a>
+<span class="sourceLineNo">953</span>    public class RenderPortletFromReader extends RenderPortlet {<a name="line.953"></a>
+<span class="sourceLineNo">954</span><a name="line.954"></a>
+<span class="sourceLineNo">955</span>        private final Future&lt;String&gt; content;<a name="line.955"></a>
+<span class="sourceLineNo">956</span><a name="line.956"></a>
+<span class="sourceLineNo">957</span>        /**<a name="line.957"></a>
+<span class="sourceLineNo">958</span>         * Creates a new event.<a name="line.958"></a>
+<span class="sourceLineNo">959</span>         *<a name="line.959"></a>
+<span class="sourceLineNo">960</span>         * @param request the request<a name="line.960"></a>
+<span class="sourceLineNo">961</span>         * @param portletClass the portlet class<a name="line.961"></a>
+<span class="sourceLineNo">962</span>         * @param portletId the id of the portlet<a name="line.962"></a>
+<span class="sourceLineNo">963</span>         * @param contentReader the content reader<a name="line.963"></a>
+<span class="sourceLineNo">964</span>         */<a name="line.964"></a>
+<span class="sourceLineNo">965</span>        public RenderPortletFromReader(RenderPortletRequestBase&lt;?&gt; request,<a name="line.965"></a>
+<span class="sourceLineNo">966</span>                Class&lt;?&gt; portletClass, String portletId, Reader contentReader) {<a name="line.966"></a>
+<span class="sourceLineNo">967</span>            super(portletClass, portletId);<a name="line.967"></a>
+<span class="sourceLineNo">968</span>            // Start to prepare the content immediately and concurrently.<a name="line.968"></a>
+<span class="sourceLineNo">969</span>            content = request.processedBy().map(pby -&gt; pby.executorService())<a name="line.969"></a>
+<span class="sourceLineNo">970</span>                .orElse(Components.defaultExecutorService()).submit(() -&gt; {<a name="line.970"></a>
+<span class="sourceLineNo">971</span>                    StringWriter content = new StringWriter();<a name="line.971"></a>
+<span class="sourceLineNo">972</span>                    CharBuffer buffer = CharBuffer.allocate(8192);<a name="line.972"></a>
+<span class="sourceLineNo">973</span>                    try (Reader rdr = new BufferedReader(contentReader)) {<a name="line.973"></a>
+<span class="sourceLineNo">974</span>                        while (true) {<a name="line.974"></a>
+<span class="sourceLineNo">975</span>                            if (rdr.read(buffer) &lt; 0) {<a name="line.975"></a>
+<span class="sourceLineNo">976</span>                                break;<a name="line.976"></a>
+<span class="sourceLineNo">977</span>                            }<a name="line.977"></a>
+<span class="sourceLineNo">978</span>                            buffer.flip();<a name="line.978"></a>
+<span class="sourceLineNo">979</span>                            content.append(buffer);<a name="line.979"></a>
+<span class="sourceLineNo">980</span>                            buffer.clear();<a name="line.980"></a>
+<span class="sourceLineNo">981</span>                        }<a name="line.981"></a>
+<span class="sourceLineNo">982</span>                    } catch (IOException e) {<a name="line.982"></a>
+<span class="sourceLineNo">983</span>                        throw new IllegalStateException(e);<a name="line.983"></a>
+<span class="sourceLineNo">984</span>                    }<a name="line.984"></a>
+<span class="sourceLineNo">985</span>                    return content.toString();<a name="line.985"></a>
+<span class="sourceLineNo">986</span>                });<a name="line.986"></a>
+<span class="sourceLineNo">987</span><a name="line.987"></a>
+<span class="sourceLineNo">988</span>        }<a name="line.988"></a>
+<span class="sourceLineNo">989</span><a name="line.989"></a>
+<span class="sourceLineNo">990</span>        /**<a name="line.990"></a>
+<span class="sourceLineNo">991</span>         * Content.<a name="line.991"></a>
+<span class="sourceLineNo">992</span>         *<a name="line.992"></a>
+<span class="sourceLineNo">993</span>         * @return the future<a name="line.993"></a>
+<span class="sourceLineNo">994</span>         */<a name="line.994"></a>
+<span class="sourceLineNo">995</span>        @Override<a name="line.995"></a>
+<span class="sourceLineNo">996</span>        public Future&lt;String&gt; content() {<a name="line.996"></a>
+<span class="sourceLineNo">997</span>            return content;<a name="line.997"></a>
+<span class="sourceLineNo">998</span>        }<a name="line.998"></a>
+<span class="sourceLineNo">999</span>    }<a name="line.999"></a>
+<span class="sourceLineNo">1000</span>}<a name="line.1000"></a>
 
 
 
