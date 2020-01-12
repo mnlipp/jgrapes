@@ -17,6 +17,7 @@ org.jgrapes.portal.providers.markdownit
 org.jgrapes.portal.providers.moment
 org.jgrapes.portal.providers.vue
 org.jgrapes.portal.providers.vuejs
+org.jgrapes.portal.providers.vuex
 org.jgrapes.portal.vuejs
 org.jgrapes.portlets.markdowndisplay
 org.jgrapes.portlets.sysinfo
