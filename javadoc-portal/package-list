@@ -9,6 +9,7 @@ org.jgrapes.portal.providers.chartjs
 org.jgrapes.portal.providers.datatables
 org.jgrapes.portal.providers.fontawesome
 org.jgrapes.portal.providers.gridstack
+org.jgrapes.portal.providers.jgpvuecomponents
 org.jgrapes.portal.providers.jquery
 org.jgrapes.portal.providers.jqueryui
 org.jgrapes.portal.providers.jquitouchpunch
