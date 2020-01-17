@@ -38,11 +38,11 @@
 <span class="sourceLineNo">030</span>import org.jgrapes.core.Event;<a name="line.30"></a>
 <span class="sourceLineNo">031</span>import org.jgrapes.core.Manager;<a name="line.31"></a>
 <span class="sourceLineNo">032</span>import org.jgrapes.core.annotation.Handler;<a name="line.32"></a>
-<span class="sourceLineNo">033</span>import org.jgrapes.webcon.base.PageResourceProvider;<a name="line.33"></a>
-<span class="sourceLineNo">034</span>import org.jgrapes.webcon.base.PortalSession;<a name="line.34"></a>
+<span class="sourceLineNo">033</span>import org.jgrapes.webcon.base.ConsoleSession;<a name="line.33"></a>
+<span class="sourceLineNo">034</span>import org.jgrapes.webcon.base.PageResourceProvider;<a name="line.34"></a>
 <span class="sourceLineNo">035</span>import org.jgrapes.webcon.base.events.AddPageResources;<a name="line.35"></a>
-<span class="sourceLineNo">036</span>import org.jgrapes.webcon.base.events.PortalReady;<a name="line.36"></a>
-<span class="sourceLineNo">037</span>import org.jgrapes.webcon.base.events.AddPageResources.ScriptResource;<a name="line.37"></a>
+<span class="sourceLineNo">036</span>import org.jgrapes.webcon.base.events.AddPageResources.ScriptResource;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>import org.jgrapes.webcon.base.events.ConsoleReady;<a name="line.37"></a>
 <span class="sourceLineNo">038</span><a name="line.38"></a>
 <span class="sourceLineNo">039</span>/**<a name="line.39"></a>
 <span class="sourceLineNo">040</span> * Provider for the [Gridstack.js](http://gridstackjs.com/) library.<a name="line.40"></a>
@@ -81,7 +81,7 @@
 <span class="sourceLineNo">073</span>    }<a name="line.73"></a>
 <span class="sourceLineNo">074</span><a name="line.74"></a>
 <span class="sourceLineNo">075</span>    /**<a name="line.75"></a>
-<span class="sourceLineNo">076</span>     * On {@link PortalReady}, fire the appropriate {@link AddPageResources}.<a name="line.76"></a>
+<span class="sourceLineNo">076</span>     * On {@link ConsoleReady}, fire the appropriate {@link AddPageResources}.<a name="line.76"></a>
 <span class="sourceLineNo">077</span>     *<a name="line.77"></a>
 <span class="sourceLineNo">078</span>     * @param event the event<a name="line.78"></a>
 <span class="sourceLineNo">079</span>     * @param portalSession the portal session<a name="line.79"></a>
@@ -91,7 +91,7 @@
 <span class="sourceLineNo">083</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.83"></a>
 <span class="sourceLineNo">084</span>     */<a name="line.84"></a>
 <span class="sourceLineNo">085</span>    @Handler(priority = 100)<a name="line.85"></a>
-<span class="sourceLineNo">086</span>    public void onPortalReady(PortalReady event, PortalSession portalSession)<a name="line.86"></a>
+<span class="sourceLineNo">086</span>    public void onPortalReady(ConsoleReady event, ConsoleSession portalSession)<a name="line.86"></a>
 <span class="sourceLineNo">087</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.87"></a>
 <span class="sourceLineNo">088</span>            ParseException, IOException {<a name="line.88"></a>
 <span class="sourceLineNo">089</span>        String minExt = event.renderSupport()<a name="line.89"></a>

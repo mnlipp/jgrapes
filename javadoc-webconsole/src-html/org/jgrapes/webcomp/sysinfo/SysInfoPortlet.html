@@ -43,27 +43,27 @@
 <span class="sourceLineNo">035</span>import org.jgrapes.core.Manager;<a name="line.35"></a>
 <span class="sourceLineNo">036</span>import org.jgrapes.core.annotation.Handler;<a name="line.36"></a>
 <span class="sourceLineNo">037</span>import org.jgrapes.http.Session;<a name="line.37"></a>
-<span class="sourceLineNo">038</span>import org.jgrapes.webcon.base.AbstractPortlet;<a name="line.38"></a>
-<span class="sourceLineNo">039</span>import org.jgrapes.webcon.base.PortalSession;<a name="line.39"></a>
-<span class="sourceLineNo">040</span>import org.jgrapes.webcon.base.PortalUtils;<a name="line.40"></a>
-<span class="sourceLineNo">041</span>import org.jgrapes.webcon.base.Portlet.RenderMode;<a name="line.41"></a>
-<span class="sourceLineNo">042</span>import org.jgrapes.webcon.base.events.AddPortletRequest;<a name="line.42"></a>
-<span class="sourceLineNo">043</span>import org.jgrapes.webcon.base.events.AddPortletType;<a name="line.43"></a>
-<span class="sourceLineNo">044</span>import org.jgrapes.webcon.base.events.DeletePortlet;<a name="line.44"></a>
-<span class="sourceLineNo">045</span>import org.jgrapes.webcon.base.events.DeletePortletRequest;<a name="line.45"></a>
-<span class="sourceLineNo">046</span>import org.jgrapes.webcon.base.events.NotifyPortletModel;<a name="line.46"></a>
-<span class="sourceLineNo">047</span>import org.jgrapes.webcon.base.events.NotifyPortletView;<a name="line.47"></a>
-<span class="sourceLineNo">048</span>import org.jgrapes.webcon.base.events.PortalReady;<a name="line.48"></a>
-<span class="sourceLineNo">049</span>import org.jgrapes.webcon.base.events.RenderPortletRequest;<a name="line.49"></a>
-<span class="sourceLineNo">050</span>import org.jgrapes.webcon.base.events.RenderPortletRequestBase;<a name="line.50"></a>
-<span class="sourceLineNo">051</span>import org.jgrapes.webcon.base.events.AddPageResources.ScriptResource;<a name="line.51"></a>
-<span class="sourceLineNo">052</span>import org.jgrapes.webcon.base.freemarker.FreeMarkerPortlet;<a name="line.52"></a>
+<span class="sourceLineNo">038</span>import org.jgrapes.webcon.base.AbstractComponent;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>import org.jgrapes.webcon.base.ConsoleComponent.RenderMode;<a name="line.39"></a>
+<span class="sourceLineNo">040</span>import org.jgrapes.webcon.base.ConsoleSession;<a name="line.40"></a>
+<span class="sourceLineNo">041</span>import org.jgrapes.webcon.base.WebConsoleUtils;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>import org.jgrapes.webcon.base.events.AddComponentRequest;<a name="line.42"></a>
+<span class="sourceLineNo">043</span>import org.jgrapes.webcon.base.events.AddComponentType;<a name="line.43"></a>
+<span class="sourceLineNo">044</span>import org.jgrapes.webcon.base.events.AddPageResources.ScriptResource;<a name="line.44"></a>
+<span class="sourceLineNo">045</span>import org.jgrapes.webcon.base.events.ConsoleReady;<a name="line.45"></a>
+<span class="sourceLineNo">046</span>import org.jgrapes.webcon.base.events.DeleteComponent;<a name="line.46"></a>
+<span class="sourceLineNo">047</span>import org.jgrapes.webcon.base.events.DeleteComponentRequest;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>import org.jgrapes.webcon.base.events.NotifyComponentModel;<a name="line.48"></a>
+<span class="sourceLineNo">049</span>import org.jgrapes.webcon.base.events.NotifyPortletView;<a name="line.49"></a>
+<span class="sourceLineNo">050</span>import org.jgrapes.webcon.base.events.RenderComponentRequest;<a name="line.50"></a>
+<span class="sourceLineNo">051</span>import org.jgrapes.webcon.base.events.RenderComponentRequestBase;<a name="line.51"></a>
+<span class="sourceLineNo">052</span>import org.jgrapes.webcon.base.freemarker.FreeMarkerComponent;<a name="line.52"></a>
 <span class="sourceLineNo">053</span><a name="line.53"></a>
 <span class="sourceLineNo">054</span>/**<a name="line.54"></a>
 <span class="sourceLineNo">055</span> * <a name="line.55"></a>
 <span class="sourceLineNo">056</span> */<a name="line.56"></a>
 <span class="sourceLineNo">057</span>public class SysInfoPortlet<a name="line.57"></a>
-<span class="sourceLineNo">058</span>        extends FreeMarkerPortlet&lt;SysInfoPortlet.SysInfoModel&gt; {<a name="line.58"></a>
+<span class="sourceLineNo">058</span>        extends FreeMarkerComponent&lt;SysInfoPortlet.SysInfoModel&gt; {<a name="line.58"></a>
 <span class="sourceLineNo">059</span><a name="line.59"></a>
 <span class="sourceLineNo">060</span>    private static final Set&lt;RenderMode&gt; MODES = RenderMode.asSet(<a name="line.60"></a>
 <span class="sourceLineNo">061</span>        RenderMode.DeleteablePreview, RenderMode.View);<a name="line.61"></a>
@@ -87,7 +87,7 @@
 <span class="sourceLineNo">079</span>    }<a name="line.79"></a>
 <span class="sourceLineNo">080</span><a name="line.80"></a>
 <span class="sourceLineNo">081</span>    /**<a name="line.81"></a>
-<span class="sourceLineNo">082</span>     * On {@link PortalReady}, fire the {@link AddPortletType}.<a name="line.82"></a>
+<span class="sourceLineNo">082</span>     * On {@link ConsoleReady}, fire the {@link AddComponentType}.<a name="line.82"></a>
 <span class="sourceLineNo">083</span>     *<a name="line.83"></a>
 <span class="sourceLineNo">084</span>     * @param event the event<a name="line.84"></a>
 <span class="sourceLineNo">085</span>     * @param portalSession the portal session<a name="line.85"></a>
@@ -98,18 +98,18 @@
 <span class="sourceLineNo">090</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.90"></a>
 <span class="sourceLineNo">091</span>     */<a name="line.91"></a>
 <span class="sourceLineNo">092</span>    @Handler<a name="line.92"></a>
-<span class="sourceLineNo">093</span>    public void onPortalReady(PortalReady event, PortalSession portalSession)<a name="line.93"></a>
+<span class="sourceLineNo">093</span>    public void onPortalReady(ConsoleReady event, ConsoleSession portalSession)<a name="line.93"></a>
 <span class="sourceLineNo">094</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.94"></a>
 <span class="sourceLineNo">095</span>            ParseException, IOException {<a name="line.95"></a>
 <span class="sourceLineNo">096</span>        // Add SysInfoPortlet resources to page<a name="line.96"></a>
-<span class="sourceLineNo">097</span>        portalSession.respond(new AddPortletType(type())<a name="line.97"></a>
+<span class="sourceLineNo">097</span>        portalSession.respond(new AddComponentType(type())<a name="line.97"></a>
 <span class="sourceLineNo">098</span>            .setDisplayNames(<a name="line.98"></a>
 <span class="sourceLineNo">099</span>                displayNames(portalSession.supportedLocales(), "portletName"))<a name="line.99"></a>
 <span class="sourceLineNo">100</span>            .addScript(new ScriptResource()<a name="line.100"></a>
 <span class="sourceLineNo">101</span>                .setRequires("chart.js")<a name="line.101"></a>
 <span class="sourceLineNo">102</span>                .setScriptUri(event.renderSupport().portletResource(<a name="line.102"></a>
 <span class="sourceLineNo">103</span>                    type(), "SysInfo-functions.ftl.js")))<a name="line.103"></a>
-<span class="sourceLineNo">104</span>            .addCss(event.renderSupport(), PortalUtils.uriFromPath(<a name="line.104"></a>
+<span class="sourceLineNo">104</span>            .addCss(event.renderSupport(), WebConsoleUtils.uriFromPath(<a name="line.104"></a>
 <span class="sourceLineNo">105</span>                "SysInfo-style.css")));<a name="line.105"></a>
 <span class="sourceLineNo">106</span>    }<a name="line.106"></a>
 <span class="sourceLineNo">107</span><a name="line.107"></a>
@@ -138,8 +138,8 @@
 <span class="sourceLineNo">130</span>    }<a name="line.130"></a>
 <span class="sourceLineNo">131</span><a name="line.131"></a>
 <span class="sourceLineNo">132</span>    @Override<a name="line.132"></a>
-<span class="sourceLineNo">133</span>    public String doAddPortlet(AddPortletRequest event,<a name="line.133"></a>
-<span class="sourceLineNo">134</span>            PortalSession portalSession) throws Exception {<a name="line.134"></a>
+<span class="sourceLineNo">133</span>    public String doAddPortlet(AddComponentRequest event,<a name="line.133"></a>
+<span class="sourceLineNo">134</span>            ConsoleSession portalSession) throws Exception {<a name="line.134"></a>
 <span class="sourceLineNo">135</span>        String portletId = generatePortletId();<a name="line.135"></a>
 <span class="sourceLineNo">136</span>        SysInfoModel portletModel = putInSession(<a name="line.136"></a>
 <span class="sourceLineNo">137</span>            portalSession.browserSession(), new SysInfoModel(portletId));<a name="line.137"></a>
@@ -153,15 +153,15 @@
 <span class="sourceLineNo">145</span>     * @see org.jgrapes.portal.AbstractPortlet#doRenderPortlet<a name="line.145"></a>
 <span class="sourceLineNo">146</span>     */<a name="line.146"></a>
 <span class="sourceLineNo">147</span>    @Override<a name="line.147"></a>
-<span class="sourceLineNo">148</span>    protected void doRenderPortlet(RenderPortletRequest event,<a name="line.148"></a>
-<span class="sourceLineNo">149</span>            PortalSession portalSession, String portletId,<a name="line.149"></a>
+<span class="sourceLineNo">148</span>    protected void doRenderPortlet(RenderComponentRequest event,<a name="line.148"></a>
+<span class="sourceLineNo">149</span>            ConsoleSession portalSession, String portletId,<a name="line.149"></a>
 <span class="sourceLineNo">150</span>            SysInfoModel portletModel) throws Exception {<a name="line.150"></a>
 <span class="sourceLineNo">151</span>        renderPortlet(event, portalSession, portletModel);<a name="line.151"></a>
 <span class="sourceLineNo">152</span>    }<a name="line.152"></a>
 <span class="sourceLineNo">153</span><a name="line.153"></a>
 <span class="sourceLineNo">154</span>    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.154"></a>
-<span class="sourceLineNo">155</span>    private void renderPortlet(RenderPortletRequestBase&lt;?&gt; event,<a name="line.155"></a>
-<span class="sourceLineNo">156</span>            PortalSession portalSession, SysInfoModel portletModel)<a name="line.156"></a>
+<span class="sourceLineNo">155</span>    private void renderPortlet(RenderComponentRequestBase&lt;?&gt; event,<a name="line.155"></a>
+<span class="sourceLineNo">156</span>            ConsoleSession portalSession, SysInfoModel portletModel)<a name="line.156"></a>
 <span class="sourceLineNo">157</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.157"></a>
 <span class="sourceLineNo">158</span>            ParseException, IOException {<a name="line.158"></a>
 <span class="sourceLineNo">159</span>        if (event.renderPreview()) {<a name="line.159"></a>
@@ -187,7 +187,7 @@
 <span class="sourceLineNo">179</span>        }<a name="line.179"></a>
 <span class="sourceLineNo">180</span>    }<a name="line.180"></a>
 <span class="sourceLineNo">181</span><a name="line.181"></a>
-<span class="sourceLineNo">182</span>    private void updateView(PortalSession portalSession, String portletId) {<a name="line.182"></a>
+<span class="sourceLineNo">182</span>    private void updateView(ConsoleSession portalSession, String portletId) {<a name="line.182"></a>
 <span class="sourceLineNo">183</span>        if (!portalSession.isConnected()) {<a name="line.183"></a>
 <span class="sourceLineNo">184</span>            return;<a name="line.184"></a>
 <span class="sourceLineNo">185</span>        }<a name="line.185"></a>
@@ -205,10 +205,10 @@
 <span class="sourceLineNo">197</span>     * @see org.jgrapes.portal.AbstractPortlet#doDeletePortlet<a name="line.197"></a>
 <span class="sourceLineNo">198</span>     */<a name="line.198"></a>
 <span class="sourceLineNo">199</span>    @Override<a name="line.199"></a>
-<span class="sourceLineNo">200</span>    protected void doDeletePortlet(DeletePortletRequest event,<a name="line.200"></a>
-<span class="sourceLineNo">201</span>            PortalSession portalSession, String portletId,<a name="line.201"></a>
+<span class="sourceLineNo">200</span>    protected void doDeletePortlet(DeleteComponentRequest event,<a name="line.200"></a>
+<span class="sourceLineNo">201</span>            ConsoleSession portalSession, String portletId,<a name="line.201"></a>
 <span class="sourceLineNo">202</span>            SysInfoModel retrievedState) throws Exception {<a name="line.202"></a>
-<span class="sourceLineNo">203</span>        portalSession.respond(new DeletePortlet(portletId));<a name="line.203"></a>
+<span class="sourceLineNo">203</span>        portalSession.respond(new DeleteComponent(portletId));<a name="line.203"></a>
 <span class="sourceLineNo">204</span>    }<a name="line.204"></a>
 <span class="sourceLineNo">205</span><a name="line.205"></a>
 <span class="sourceLineNo">206</span>    /**<a name="line.206"></a>
@@ -219,7 +219,7 @@
 <span class="sourceLineNo">211</span>     * @param portalSession the portal session<a name="line.211"></a>
 <span class="sourceLineNo">212</span>     */<a name="line.212"></a>
 <span class="sourceLineNo">213</span>    @Handler<a name="line.213"></a>
-<span class="sourceLineNo">214</span>    public void onUpdate(Update event, PortalSession portalSession) {<a name="line.214"></a>
+<span class="sourceLineNo">214</span>    public void onUpdate(Update event, ConsoleSession portalSession) {<a name="line.214"></a>
 <span class="sourceLineNo">215</span>        for (String portletId : portletIds(portalSession)) {<a name="line.215"></a>
 <span class="sourceLineNo">216</span>            updateView(portalSession, portletId);<a name="line.216"></a>
 <span class="sourceLineNo">217</span>        }<a name="line.217"></a>
@@ -227,8 +227,8 @@
 <span class="sourceLineNo">219</span><a name="line.219"></a>
 <span class="sourceLineNo">220</span>    @Override<a name="line.220"></a>
 <span class="sourceLineNo">221</span>    @SuppressWarnings("PMD.DoNotCallGarbageCollectionExplicitly")<a name="line.221"></a>
-<span class="sourceLineNo">222</span>    protected void doNotifyPortletModel(NotifyPortletModel event,<a name="line.222"></a>
-<span class="sourceLineNo">223</span>            PortalSession portalSession, SysInfoModel portletState)<a name="line.223"></a>
+<span class="sourceLineNo">222</span>    protected void doNotifyPortletModel(NotifyComponentModel event,<a name="line.222"></a>
+<span class="sourceLineNo">223</span>            ConsoleSession portalSession, SysInfoModel portletState)<a name="line.223"></a>
 <span class="sourceLineNo">224</span>            throws Exception {<a name="line.224"></a>
 <span class="sourceLineNo">225</span>        event.stop();<a name="line.225"></a>
 <span class="sourceLineNo">226</span>        System.gc();<a name="line.226"></a>
@@ -241,38 +241,39 @@
 <span class="sourceLineNo">233</span>     * The portlet's model.<a name="line.233"></a>
 <span class="sourceLineNo">234</span>     */<a name="line.234"></a>
 <span class="sourceLineNo">235</span>    @SuppressWarnings("serial")<a name="line.235"></a>
-<span class="sourceLineNo">236</span>    public static class SysInfoModel extends AbstractPortlet.PortletBaseModel {<a name="line.236"></a>
-<span class="sourceLineNo">237</span><a name="line.237"></a>
-<span class="sourceLineNo">238</span>        /**<a name="line.238"></a>
-<span class="sourceLineNo">239</span>         * Creates a new model with the given type and id.<a name="line.239"></a>
-<span class="sourceLineNo">240</span>         * <a name="line.240"></a>
-<span class="sourceLineNo">241</span>         * @param portletId the portlet id<a name="line.241"></a>
-<span class="sourceLineNo">242</span>         */<a name="line.242"></a>
-<span class="sourceLineNo">243</span>        @ConstructorProperties({ "portletId" })<a name="line.243"></a>
-<span class="sourceLineNo">244</span>        public SysInfoModel(String portletId) {<a name="line.244"></a>
-<span class="sourceLineNo">245</span>            super(portletId);<a name="line.245"></a>
-<span class="sourceLineNo">246</span>        }<a name="line.246"></a>
-<span class="sourceLineNo">247</span><a name="line.247"></a>
-<span class="sourceLineNo">248</span>        /**<a name="line.248"></a>
-<span class="sourceLineNo">249</span>         * Return the system properties.<a name="line.249"></a>
-<span class="sourceLineNo">250</span>         *<a name="line.250"></a>
-<span class="sourceLineNo">251</span>         * @return the properties<a name="line.251"></a>
-<span class="sourceLineNo">252</span>         */<a name="line.252"></a>
-<span class="sourceLineNo">253</span>        public Properties systemProperties() {<a name="line.253"></a>
-<span class="sourceLineNo">254</span>            return System.getProperties();<a name="line.254"></a>
-<span class="sourceLineNo">255</span>        }<a name="line.255"></a>
-<span class="sourceLineNo">256</span><a name="line.256"></a>
-<span class="sourceLineNo">257</span>        /**<a name="line.257"></a>
-<span class="sourceLineNo">258</span>         * Return the {@link Runtime}.<a name="line.258"></a>
-<span class="sourceLineNo">259</span>         *<a name="line.259"></a>
-<span class="sourceLineNo">260</span>         * @return the runtime<a name="line.260"></a>
-<span class="sourceLineNo">261</span>         */<a name="line.261"></a>
-<span class="sourceLineNo">262</span>        public Runtime runtime() {<a name="line.262"></a>
-<span class="sourceLineNo">263</span>            return Runtime.getRuntime();<a name="line.263"></a>
-<span class="sourceLineNo">264</span>        }<a name="line.264"></a>
-<span class="sourceLineNo">265</span>    }<a name="line.265"></a>
-<span class="sourceLineNo">266</span><a name="line.266"></a>
-<span class="sourceLineNo">267</span>}<a name="line.267"></a>
+<span class="sourceLineNo">236</span>    public static class SysInfoModel<a name="line.236"></a>
+<span class="sourceLineNo">237</span>            extends AbstractComponent.PortletBaseModel {<a name="line.237"></a>
+<span class="sourceLineNo">238</span><a name="line.238"></a>
+<span class="sourceLineNo">239</span>        /**<a name="line.239"></a>
+<span class="sourceLineNo">240</span>         * Creates a new model with the given type and id.<a name="line.240"></a>
+<span class="sourceLineNo">241</span>         * <a name="line.241"></a>
+<span class="sourceLineNo">242</span>         * @param portletId the portlet id<a name="line.242"></a>
+<span class="sourceLineNo">243</span>         */<a name="line.243"></a>
+<span class="sourceLineNo">244</span>        @ConstructorProperties({ "portletId" })<a name="line.244"></a>
+<span class="sourceLineNo">245</span>        public SysInfoModel(String portletId) {<a name="line.245"></a>
+<span class="sourceLineNo">246</span>            super(portletId);<a name="line.246"></a>
+<span class="sourceLineNo">247</span>        }<a name="line.247"></a>
+<span class="sourceLineNo">248</span><a name="line.248"></a>
+<span class="sourceLineNo">249</span>        /**<a name="line.249"></a>
+<span class="sourceLineNo">250</span>         * Return the system properties.<a name="line.250"></a>
+<span class="sourceLineNo">251</span>         *<a name="line.251"></a>
+<span class="sourceLineNo">252</span>         * @return the properties<a name="line.252"></a>
+<span class="sourceLineNo">253</span>         */<a name="line.253"></a>
+<span class="sourceLineNo">254</span>        public Properties systemProperties() {<a name="line.254"></a>
+<span class="sourceLineNo">255</span>            return System.getProperties();<a name="line.255"></a>
+<span class="sourceLineNo">256</span>        }<a name="line.256"></a>
+<span class="sourceLineNo">257</span><a name="line.257"></a>
+<span class="sourceLineNo">258</span>        /**<a name="line.258"></a>
+<span class="sourceLineNo">259</span>         * Return the {@link Runtime}.<a name="line.259"></a>
+<span class="sourceLineNo">260</span>         *<a name="line.260"></a>
+<span class="sourceLineNo">261</span>         * @return the runtime<a name="line.261"></a>
+<span class="sourceLineNo">262</span>         */<a name="line.262"></a>
+<span class="sourceLineNo">263</span>        public Runtime runtime() {<a name="line.263"></a>
+<span class="sourceLineNo">264</span>            return Runtime.getRuntime();<a name="line.264"></a>
+<span class="sourceLineNo">265</span>        }<a name="line.265"></a>
+<span class="sourceLineNo">266</span>    }<a name="line.266"></a>
+<span class="sourceLineNo">267</span><a name="line.267"></a>
+<span class="sourceLineNo">268</span>}<a name="line.268"></a>
 
 
 

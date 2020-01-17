@@ -35,14 +35,14 @@
 <span class="sourceLineNo">027</span>import org.jgrapes.core.annotation.Handler;<a name="line.27"></a>
 <span class="sourceLineNo">028</span>import org.jgrapes.io.IOSubchannel;<a name="line.28"></a>
 <span class="sourceLineNo">029</span>import org.jgrapes.webcon.base.events.AddPageResources;<a name="line.29"></a>
-<span class="sourceLineNo">030</span>import org.jgrapes.webcon.base.events.PageResourceRequest;<a name="line.30"></a>
-<span class="sourceLineNo">031</span>import org.jgrapes.webcon.base.events.PortalReady;<a name="line.31"></a>
+<span class="sourceLineNo">030</span>import org.jgrapes.webcon.base.events.ConsoleReady;<a name="line.30"></a>
+<span class="sourceLineNo">031</span>import org.jgrapes.webcon.base.events.PageResourceRequest;<a name="line.31"></a>
 <span class="sourceLineNo">032</span><a name="line.32"></a>
 <span class="sourceLineNo">033</span>/**<a name="line.33"></a>
 <span class="sourceLineNo">034</span> * Base class for implementing components that add resources to<a name="line.34"></a>
 <span class="sourceLineNo">035</span> * the `&lt;HEAD&gt;` section of the portal page.<a name="line.35"></a>
 <span class="sourceLineNo">036</span> * <a name="line.36"></a>
-<span class="sourceLineNo">037</span> * A derived class must implement a handler for {@link PortalReady}<a name="line.37"></a>
+<span class="sourceLineNo">037</span> * A derived class must implement a handler for {@link ConsoleReady}<a name="line.37"></a>
 <span class="sourceLineNo">038</span> * that generates an {@link AddPageResources} event. This<a name="line.38"></a>
 <span class="sourceLineNo">039</span> * will, in turn, result in a {@link PageResourceRequest} that must<a name="line.39"></a>
 <span class="sourceLineNo">040</span> * be handled by the derived class' <a name="line.40"></a>

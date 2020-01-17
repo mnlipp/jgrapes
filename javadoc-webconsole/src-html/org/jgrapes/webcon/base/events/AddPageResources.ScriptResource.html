@@ -40,7 +40,7 @@
 <span class="sourceLineNo">032</span>import org.jdrupes.json.JsonArray;<a name="line.32"></a>
 <span class="sourceLineNo">033</span>import org.jdrupes.json.JsonObject;<a name="line.33"></a>
 <span class="sourceLineNo">034</span>import org.jgrapes.webcon.base.PageResourceProvider;<a name="line.34"></a>
-<span class="sourceLineNo">035</span>import org.jgrapes.webcon.base.freemarker.FreeMarkerPortalWeblet;<a name="line.35"></a>
+<span class="sourceLineNo">035</span>import org.jgrapes.webcon.base.freemarker.FreeMarkerConsoleWeblet;<a name="line.35"></a>
 <span class="sourceLineNo">036</span><a name="line.36"></a>
 <span class="sourceLineNo">037</span>/**<a name="line.37"></a>
 <span class="sourceLineNo">038</span> * Adds `&lt;link .../&gt;`, `&lt;style&gt;...&lt;/style&gt;` or `&lt;script ...&gt;&lt;/script&gt;` nodes<a name="line.38"></a>
@@ -53,7 +53,7 @@
 <span class="sourceLineNo">045</span> * <a name="line.45"></a>
 <span class="sourceLineNo">046</span> * The sequence of events is shown in the diagram.<a name="line.46"></a>
 <span class="sourceLineNo">047</span> * <a name="line.47"></a>
-<span class="sourceLineNo">048</span> * ![Portal Ready Event Sequence](AddToHead.svg)<a name="line.48"></a>
+<span class="sourceLineNo">048</span> * ![WebConsole Ready Event Sequence](AddToHead.svg)<a name="line.48"></a>
 <span class="sourceLineNo">049</span> * <a name="line.49"></a>
 <span class="sourceLineNo">050</span> * See {@link ResourceRequest} for details about the processing<a name="line.50"></a>
 <span class="sourceLineNo">051</span> * of the {@link PageResourceRequest}.<a name="line.51"></a>
@@ -81,7 +81,7 @@
 <span class="sourceLineNo">073</span> * names provided by loading the script resource. The name(s) must match<a name="line.73"></a>
 <span class="sourceLineNo">074</span> * the name(s) used in the {@link AddPageResources} request generated<a name="line.74"></a>
 <span class="sourceLineNo">075</span> * by the {@link PageResourceProvider} for the pre-loaded resource(s).<a name="line.75"></a>
-<span class="sourceLineNo">076</span> * Here's an example (for a portal using the {@link FreeMarkerPortalWeblet}<a name="line.76"></a>
+<span class="sourceLineNo">076</span> * Here's an example (for a portal using the {@link FreeMarkerConsoleWeblet}<a name="line.76"></a>
 <span class="sourceLineNo">077</span> * to generate the initial portal page):<a name="line.77"></a>
 <span class="sourceLineNo">078</span> * ```html<a name="line.78"></a>
 <span class="sourceLineNo">079</span> * {@code &lt;}script data-jgp-provides="jquery"<a name="line.79"></a>
@@ -93,26 +93,26 @@
 <span class="sourceLineNo">085</span> * hide footbox<a name="line.85"></a>
 <span class="sourceLineNo">086</span> * <a name="line.86"></a>
 <span class="sourceLineNo">087</span> * activate Browser<a name="line.87"></a>
-<span class="sourceLineNo">088</span> * Browser -&gt; Portal: "portalReady"<a name="line.88"></a>
+<span class="sourceLineNo">088</span> * Browser -&gt; WebConsole: "portalReady"<a name="line.88"></a>
 <span class="sourceLineNo">089</span> * deactivate Browser<a name="line.89"></a>
-<span class="sourceLineNo">090</span> * activate Portal<a name="line.90"></a>
-<span class="sourceLineNo">091</span> * Portal -&gt; PageResourceProvider: PortalReady <a name="line.91"></a>
+<span class="sourceLineNo">090</span> * activate WebConsole<a name="line.90"></a>
+<span class="sourceLineNo">091</span> * WebConsole -&gt; PageResourceProvider: ConsoleReady <a name="line.91"></a>
 <span class="sourceLineNo">092</span> * activate PageResourceProvider<a name="line.92"></a>
-<span class="sourceLineNo">093</span> * PageResourceProvider -&gt; Portal: AddPageResources<a name="line.93"></a>
+<span class="sourceLineNo">093</span> * PageResourceProvider -&gt; WebConsole: AddPageResources<a name="line.93"></a>
 <span class="sourceLineNo">094</span> * deactivate PageResourceProvider<a name="line.94"></a>
-<span class="sourceLineNo">095</span> * Portal -&gt; Browser: "addPageResource"<a name="line.95"></a>
-<span class="sourceLineNo">096</span> * deactivate Portal<a name="line.96"></a>
+<span class="sourceLineNo">095</span> * WebConsole -&gt; Browser: "addPageResource"<a name="line.95"></a>
+<span class="sourceLineNo">096</span> * deactivate WebConsole<a name="line.96"></a>
 <span class="sourceLineNo">097</span> * activate Browser<a name="line.97"></a>
-<span class="sourceLineNo">098</span> * deactivate Portal<a name="line.98"></a>
-<span class="sourceLineNo">099</span> * Browser -&gt; Portal: "GET &lt;page resource URI&gt;"<a name="line.99"></a>
-<span class="sourceLineNo">100</span> * activate Portal<a name="line.100"></a>
-<span class="sourceLineNo">101</span> * Portal -&gt; PageResourceProvider: PageResourceRequest<a name="line.101"></a>
-<span class="sourceLineNo">102</span> * deactivate Portal<a name="line.102"></a>
+<span class="sourceLineNo">098</span> * deactivate WebConsole<a name="line.98"></a>
+<span class="sourceLineNo">099</span> * Browser -&gt; WebConsole: "GET &lt;page resource URI&gt;"<a name="line.99"></a>
+<span class="sourceLineNo">100</span> * activate WebConsole<a name="line.100"></a>
+<span class="sourceLineNo">101</span> * WebConsole -&gt; PageResourceProvider: PageResourceRequest<a name="line.101"></a>
+<span class="sourceLineNo">102</span> * deactivate WebConsole<a name="line.102"></a>
 <span class="sourceLineNo">103</span> * activate PageResourceProvider<a name="line.103"></a>
 <span class="sourceLineNo">104</span> * deactivate PageResourceProvider<a name="line.104"></a>
 <span class="sourceLineNo">105</span> * @enduml<a name="line.105"></a>
 <span class="sourceLineNo">106</span> */<a name="line.106"></a>
-<span class="sourceLineNo">107</span>public class AddPageResources extends PortalCommand {<a name="line.107"></a>
+<span class="sourceLineNo">107</span>public class AddPageResources extends ConsoleCommand {<a name="line.107"></a>
 <span class="sourceLineNo">108</span><a name="line.108"></a>
 <span class="sourceLineNo">109</span>    private final List&lt;ScriptResource&gt; scriptResources = new ArrayList&lt;&gt;();<a name="line.109"></a>
 <span class="sourceLineNo">110</span>    private final List&lt;URI&gt; cssUris = new ArrayList&lt;&gt;();<a name="line.110"></a>

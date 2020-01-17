@@ -82,19 +82,19 @@
 <span class="sourceLineNo">074</span> * @startuml ResourceResponseSeq.svg<a name="line.74"></a>
 <span class="sourceLineNo">075</span> * hide footbox<a name="line.75"></a>
 <span class="sourceLineNo">076</span> * <a name="line.76"></a>
-<span class="sourceLineNo">077</span> * activate Portal<a name="line.77"></a>
+<span class="sourceLineNo">077</span> * activate WebConsole<a name="line.77"></a>
 <span class="sourceLineNo">078</span> * actor Framework<a name="line.78"></a>
-<span class="sourceLineNo">079</span> * Portal -&gt; ResourceProvider: ResourceRequest<a name="line.79"></a>
+<span class="sourceLineNo">079</span> * WebConsole -&gt; ResourceProvider: ResourceRequest<a name="line.79"></a>
 <span class="sourceLineNo">080</span> * activate ResourceProvider<a name="line.80"></a>
 <span class="sourceLineNo">081</span> * deactivate ResourceProvider<a name="line.81"></a>
-<span class="sourceLineNo">082</span> * deactivate Portal<a name="line.82"></a>
-<span class="sourceLineNo">083</span> * Framework -&gt; Portal: ResourceRequestCompleted<a name="line.83"></a>
-<span class="sourceLineNo">084</span> * activate Portal<a name="line.84"></a>
-<span class="sourceLineNo">085</span> * Portal -&gt; Browser: "Response Header"<a name="line.85"></a>
+<span class="sourceLineNo">082</span> * deactivate WebConsole<a name="line.82"></a>
+<span class="sourceLineNo">083</span> * Framework -&gt; WebConsole: ResourceRequestCompleted<a name="line.83"></a>
+<span class="sourceLineNo">084</span> * activate WebConsole<a name="line.84"></a>
+<span class="sourceLineNo">085</span> * WebConsole -&gt; Browser: "Response Header"<a name="line.85"></a>
 <span class="sourceLineNo">086</span> * loop until end of data<a name="line.86"></a>
-<span class="sourceLineNo">087</span> *     Portal -&gt; Browser: Output<a name="line.87"></a>
-<span class="sourceLineNo">088</span> *     Portal -&gt; Browser: "Response body"<a name="line.88"></a>
-<span class="sourceLineNo">089</span> *     deactivate Portal<a name="line.89"></a>
+<span class="sourceLineNo">087</span> *     WebConsole -&gt; Browser: Output<a name="line.87"></a>
+<span class="sourceLineNo">088</span> *     WebConsole -&gt; Browser: "Response body"<a name="line.88"></a>
+<span class="sourceLineNo">089</span> *     deactivate WebConsole<a name="line.89"></a>
 <span class="sourceLineNo">090</span> * end loop<a name="line.90"></a>
 <span class="sourceLineNo">091</span> * deactivate ResourceProvider<a name="line.91"></a>
 <span class="sourceLineNo">092</span> * deactivate Browser<a name="line.92"></a>
@@ -103,17 +103,17 @@
 <span class="sourceLineNo">095</span> * @startuml ResourceResponseSelfSeq.svg<a name="line.95"></a>
 <span class="sourceLineNo">096</span> * hide footbox<a name="line.96"></a>
 <span class="sourceLineNo">097</span> * <a name="line.97"></a>
-<span class="sourceLineNo">098</span> * activate Portal<a name="line.98"></a>
+<span class="sourceLineNo">098</span> * activate WebConsole<a name="line.98"></a>
 <span class="sourceLineNo">099</span> * actor Framework<a name="line.99"></a>
-<span class="sourceLineNo">100</span> * Portal -&gt; ResourceProvider: ResourceRequest<a name="line.100"></a>
+<span class="sourceLineNo">100</span> * WebConsole -&gt; ResourceProvider: ResourceRequest<a name="line.100"></a>
 <span class="sourceLineNo">101</span> * activate ResourceProvider<a name="line.101"></a>
-<span class="sourceLineNo">102</span> * Framework -&gt; Portal: ResourceRequestCompleted<a name="line.102"></a>
-<span class="sourceLineNo">103</span> * deactivate Portal<a name="line.103"></a>
+<span class="sourceLineNo">102</span> * Framework -&gt; WebConsole: ResourceRequestCompleted<a name="line.102"></a>
+<span class="sourceLineNo">103</span> * deactivate WebConsole<a name="line.103"></a>
 <span class="sourceLineNo">104</span> * ResourceProvider -&gt; Browser: "Response Header"<a name="line.104"></a>
 <span class="sourceLineNo">105</span> * loop until end of data<a name="line.105"></a>
 <span class="sourceLineNo">106</span> *     ResourceProvider -&gt; Browser: Output<a name="line.106"></a>
 <span class="sourceLineNo">107</span> *     ResourceProvider -&gt; Browser: "Response body"<a name="line.107"></a>
-<span class="sourceLineNo">108</span> *     deactivate Portal<a name="line.108"></a>
+<span class="sourceLineNo">108</span> *     deactivate WebConsole<a name="line.108"></a>
 <span class="sourceLineNo">109</span> * end loop<a name="line.109"></a>
 <span class="sourceLineNo">110</span> * deactivate ResourceProvider<a name="line.110"></a>
 <span class="sourceLineNo">111</span> * deactivate Browser<a name="line.111"></a>
