@@ -49,8 +49,9 @@ simply restart Eclipse.
 Additional JGrapes components
 -----------------------------
 
-A portal built on top of the basic libraries is maintained as a
-seperate [JGrapes Portal](https://github.com/mnlipp/jgrapes-portal) project.
+A web console built on top of the basic libraries is maintained as a
+seperate [JGrapes Web Console](https://github.com/mnlipp/jgrapes-webconsole)
+project.
 
 The JGrapes OSGi components (that depend on the OSGi framework and 
 provide JGrapes based OSGi services) can also be found in a
