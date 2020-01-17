@@ -9,7 +9,7 @@ Welcome to JGrapes
 
 JGrapes is an event driven component framework written in Java.
 It includes support for asynchronous I/O and provides some complex 
-components such as an HTTP server and a portal. It was inspired by the 
+components such as an HTTP server and a web console. It was inspired by the 
 ["circuits framework"](http://circuitsframework.com/) written for Python.
 
 JGrapes makes full use of the Java 8 SE environment. The core 
@@ -28,8 +28,8 @@ the framework's architectural description on the
 This provides an introduction to the concepts, the main classes and 
 links to the details.
 
-The JavaDoc for the portal components is available 
-<a href="javadoc-portal/index.html" target="_top">here</a>.
+The JavaDoc for the web console components is available 
+<a href="javadoc-webconsole/index.html" target="_top">here</a>.
 
 All jars have the required information in `META-INF/MANIFEST.MF`
 to use them as (library) bundles in an OSGi environment, without 
