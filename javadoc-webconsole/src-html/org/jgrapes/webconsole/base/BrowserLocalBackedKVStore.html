@@ -80,7 +80,7 @@
 <span class="sourceLineNo">072</span>     * @throws InterruptedException the interrupted exception<a name="line.72"></a>
 <span class="sourceLineNo">073</span>     */<a name="line.73"></a>
 <span class="sourceLineNo">074</span>    @Handler(priority = 1000)<a name="line.74"></a>
-<span class="sourceLineNo">075</span>    public void onPortalReady(ConsoleReady event, ConsoleSession channel)<a name="line.75"></a>
+<span class="sourceLineNo">075</span>    public void onConsoleReady(ConsoleReady event, ConsoleSession channel)<a name="line.75"></a>
 <span class="sourceLineNo">076</span>            throws InterruptedException {<a name="line.76"></a>
 <span class="sourceLineNo">077</span>        // Put there by onJsonInput if retrieval has been done.<a name="line.77"></a>
 <span class="sourceLineNo">078</span>        if (TypedIdKey.get(channel.browserSession(), Store.class,<a name="line.78"></a>
