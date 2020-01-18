@@ -45,12 +45,12 @@
 <span class="sourceLineNo">037</span>import org.jgrapes.util.events.KeyValueStoreData;<a name="line.37"></a>
 <span class="sourceLineNo">038</span>import org.jgrapes.util.events.KeyValueStoreQuery;<a name="line.38"></a>
 <span class="sourceLineNo">039</span>import org.jgrapes.util.events.KeyValueStoreUpdate;<a name="line.39"></a>
-<span class="sourceLineNo">040</span>import org.jgrapes.webconsole.base.ConsoleComponent.RenderMode;<a name="line.40"></a>
+<span class="sourceLineNo">040</span>import org.jgrapes.webconsole.base.Conlet.RenderMode;<a name="line.40"></a>
 <span class="sourceLineNo">041</span>import org.jgrapes.webconsole.base.events.ConsoleLayoutChanged;<a name="line.41"></a>
 <span class="sourceLineNo">042</span>import org.jgrapes.webconsole.base.events.ConsolePrepared;<a name="line.42"></a>
 <span class="sourceLineNo">043</span>import org.jgrapes.webconsole.base.events.ConsoleReady;<a name="line.43"></a>
 <span class="sourceLineNo">044</span>import org.jgrapes.webconsole.base.events.LastConsoleLayout;<a name="line.44"></a>
-<span class="sourceLineNo">045</span>import org.jgrapes.webconsole.base.events.RenderComponentRequest;<a name="line.45"></a>
+<span class="sourceLineNo">045</span>import org.jgrapes.webconsole.base.events.RenderConletRequest;<a name="line.45"></a>
 <span class="sourceLineNo">046</span><a name="line.46"></a>
 <span class="sourceLineNo">047</span>/**<a name="line.47"></a>
 <span class="sourceLineNo">048</span> * A component that restores the console layout<a name="line.48"></a>
@@ -93,9 +93,9 @@
 <span class="sourceLineNo">085</span> * WebConsole -&gt; Browser: "lastPortalLayout"<a name="line.85"></a>
 <span class="sourceLineNo">086</span> * deactivate WebConsole<a name="line.86"></a>
 <span class="sourceLineNo">087</span> * loop for all portlets to be displayed<a name="line.87"></a>
-<span class="sourceLineNo">088</span> *     KVStoreBasedConsolePolicy -&gt; PortletX: RenderComponentRequest<a name="line.88"></a>
+<span class="sourceLineNo">088</span> *     KVStoreBasedConsolePolicy -&gt; PortletX: RenderConletRequest<a name="line.88"></a>
 <span class="sourceLineNo">089</span> *     activate PortletX<a name="line.89"></a>
-<span class="sourceLineNo">090</span> *     PortletX -&gt; WebConsole: RenderComponent<a name="line.90"></a>
+<span class="sourceLineNo">090</span> *     PortletX -&gt; WebConsole: RenderConlet<a name="line.90"></a>
 <span class="sourceLineNo">091</span> *     deactivate PortletX<a name="line.91"></a>
 <span class="sourceLineNo">092</span> *     activate WebConsole<a name="line.92"></a>
 <span class="sourceLineNo">093</span> *     WebConsole -&gt; Browser: "renderPortlet"<a name="line.93"></a>
@@ -270,12 +270,12 @@
 <span class="sourceLineNo">262</span><a name="line.262"></a>
 <span class="sourceLineNo">263</span>            // Restore portlets<a name="line.263"></a>
 <span class="sourceLineNo">264</span>            for (String portletId : tabsLayout) {<a name="line.264"></a>
-<span class="sourceLineNo">265</span>                fire(new RenderComponentRequest(<a name="line.265"></a>
+<span class="sourceLineNo">265</span>                fire(new RenderConletRequest(<a name="line.265"></a>
 <span class="sourceLineNo">266</span>                    event.event().renderSupport(), portletId,<a name="line.266"></a>
 <span class="sourceLineNo">267</span>                    RenderMode.asSet(RenderMode.View)), channel);<a name="line.267"></a>
 <span class="sourceLineNo">268</span>            }<a name="line.268"></a>
 <span class="sourceLineNo">269</span>            for (String portletId : previewLayout) {<a name="line.269"></a>
-<span class="sourceLineNo">270</span>                fire(new RenderComponentRequest(<a name="line.270"></a>
+<span class="sourceLineNo">270</span>                fire(new RenderConletRequest(<a name="line.270"></a>
 <span class="sourceLineNo">271</span>                    event.event().renderSupport(), portletId,<a name="line.271"></a>
 <span class="sourceLineNo">272</span>                    RenderMode.asSet(RenderMode.Preview,<a name="line.272"></a>
 <span class="sourceLineNo">273</span>                        RenderMode.Foreground)),<a name="line.273"></a>

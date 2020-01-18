@@ -69,7 +69,7 @@
 <span class="sourceLineNo">061</span>import org.jgrapes.io.util.CharBufferWriter;<a name="line.61"></a>
 <span class="sourceLineNo">062</span>import org.jgrapes.io.util.LinkedIOSubchannel;<a name="line.62"></a>
 <span class="sourceLineNo">063</span>import org.jgrapes.util.events.KeyValueStoreQuery;<a name="line.63"></a>
-<span class="sourceLineNo">064</span>import org.jgrapes.webconsole.base.events.ComponentResourceRequest;<a name="line.64"></a>
+<span class="sourceLineNo">064</span>import org.jgrapes.webconsole.base.events.ConletResourceRequest;<a name="line.64"></a>
 <span class="sourceLineNo">065</span>import org.jgrapes.webconsole.base.events.ConsoleCommand;<a name="line.65"></a>
 <span class="sourceLineNo">066</span>import org.jgrapes.webconsole.base.events.ConsoleReady;<a name="line.66"></a>
 <span class="sourceLineNo">067</span>import org.jgrapes.webconsole.base.events.PageResourceRequest;<a name="line.67"></a>
@@ -514,8 +514,8 @@
 <span class="sourceLineNo">506</span>            String resPath = resource.getPath();<a name="line.506"></a>
 <span class="sourceLineNo">507</span>            int sep = resPath.indexOf('/');<a name="line.507"></a>
 <span class="sourceLineNo">508</span>            // Send events to portlets on portal's channel<a name="line.508"></a>
-<span class="sourceLineNo">509</span>            ComponentResourceRequest portletRequest<a name="line.509"></a>
-<span class="sourceLineNo">510</span>                = new ComponentResourceRequest(<a name="line.510"></a>
+<span class="sourceLineNo">509</span>            ConletResourceRequest portletRequest<a name="line.509"></a>
+<span class="sourceLineNo">510</span>                = new ConletResourceRequest(<a name="line.510"></a>
 <span class="sourceLineNo">511</span>                    resPath.substring(0, sep),<a name="line.511"></a>
 <span class="sourceLineNo">512</span>                    new URI(null, null, resPath.substring(sep + 1),<a name="line.512"></a>
 <span class="sourceLineNo">513</span>                        event.requestUri().getQuery(),<a name="line.513"></a>
@@ -779,7 +779,7 @@
 <span class="sourceLineNo">771</span><a name="line.771"></a>
 <span class="sourceLineNo">772</span>    /**<a name="line.772"></a>
 <span class="sourceLineNo">773</span>     * The channel used to send {@link PageResourceRequest}s and<a name="line.773"></a>
-<span class="sourceLineNo">774</span>     * {@link ComponentResourceRequest}s to the portlets (via the<a name="line.774"></a>
+<span class="sourceLineNo">774</span>     * {@link ConletResourceRequest}s to the portlets (via the<a name="line.774"></a>
 <span class="sourceLineNo">775</span>     * portal).<a name="line.775"></a>
 <span class="sourceLineNo">776</span>     */<a name="line.776"></a>
 <span class="sourceLineNo">777</span>    public class PortalResourceChannel extends LinkedIOSubchannel {<a name="line.777"></a>
