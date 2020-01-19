@@ -32,7 +32,7 @@
 <span class="sourceLineNo">024</span>import org.jgrapes.core.Components;<a name="line.24"></a>
 <span class="sourceLineNo">025</span><a name="line.25"></a>
 <span class="sourceLineNo">026</span>/**<a name="line.26"></a>
-<span class="sourceLineNo">027</span> * Evaluates and provides the styling info to a portal component.<a name="line.27"></a>
+<span class="sourceLineNo">027</span> * Evaluates and provides the styling info to a web console component.<a name="line.27"></a>
 <span class="sourceLineNo">028</span> */<a name="line.28"></a>
 <span class="sourceLineNo">029</span>public class StylingInfo {<a name="line.29"></a>
 <span class="sourceLineNo">030</span><a name="line.30"></a>
@@ -72,17 +72,17 @@
 <span class="sourceLineNo">064</span>            styling = (String) properties.get("styling");<a name="line.64"></a>
 <span class="sourceLineNo">065</span>        }<a name="line.65"></a>
 <span class="sourceLineNo">066</span>        if (styling == null) {<a name="line.66"></a>
-<span class="sourceLineNo">067</span>            // Try to get the information from the portal (weblet)<a name="line.67"></a>
-<span class="sourceLineNo">068</span>            ComponentType portal = component;<a name="line.68"></a>
+<span class="sourceLineNo">067</span>            // Try to get the information from the web console (weblet)<a name="line.67"></a>
+<span class="sourceLineNo">068</span>            ComponentType console = component;<a name="line.68"></a>
 <span class="sourceLineNo">069</span>            while (true) {<a name="line.69"></a>
-<span class="sourceLineNo">070</span>                portal = Components.manager(portal).parent();<a name="line.70"></a>
-<span class="sourceLineNo">071</span>                if (portal == null) {<a name="line.71"></a>
+<span class="sourceLineNo">070</span>                console = Components.manager(console).parent();<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                if (console == null) {<a name="line.71"></a>
 <span class="sourceLineNo">072</span>                    break;<a name="line.72"></a>
 <span class="sourceLineNo">073</span>                }<a name="line.73"></a>
 <span class="sourceLineNo">074</span>                // Component is in tree, cache result.<a name="line.74"></a>
 <span class="sourceLineNo">075</span>                styling = "standard";<a name="line.75"></a>
-<span class="sourceLineNo">076</span>                if (portal instanceof ConsoleWeblet) {<a name="line.76"></a>
-<span class="sourceLineNo">077</span>                    styling = ((ConsoleWeblet) portal).styling();<a name="line.77"></a>
+<span class="sourceLineNo">076</span>                if (console instanceof ConsoleWeblet) {<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                    styling = ((ConsoleWeblet) console).styling();<a name="line.77"></a>
 <span class="sourceLineNo">078</span>                    break;<a name="line.78"></a>
 <span class="sourceLineNo">079</span>                }<a name="line.79"></a>
 <span class="sourceLineNo">080</span>            }<a name="line.80"></a>

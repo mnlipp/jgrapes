@@ -86,54 +86,55 @@
 <span class="sourceLineNo">078</span>     * On {@link ConsoleReady}, fire the appropriate {@link AddPageResources}.<a name="line.78"></a>
 <span class="sourceLineNo">079</span>     *<a name="line.79"></a>
 <span class="sourceLineNo">080</span>     * @param event the event<a name="line.80"></a>
-<span class="sourceLineNo">081</span>     * @param portalSession the portal session<a name="line.81"></a>
+<span class="sourceLineNo">081</span>     * @param consoleSession the web console session<a name="line.81"></a>
 <span class="sourceLineNo">082</span>     * @throws TemplateNotFoundException the template not found exception<a name="line.82"></a>
 <span class="sourceLineNo">083</span>     * @throws MalformedTemplateNameException the malformed template name exception<a name="line.83"></a>
 <span class="sourceLineNo">084</span>     * @throws ParseException the parse exception<a name="line.84"></a>
 <span class="sourceLineNo">085</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.85"></a>
 <span class="sourceLineNo">086</span>     */<a name="line.86"></a>
 <span class="sourceLineNo">087</span>    @Handler(priority = 100)<a name="line.87"></a>
-<span class="sourceLineNo">088</span>    public void onConsoleReady(ConsoleReady event, ConsoleSession portalSession)<a name="line.88"></a>
-<span class="sourceLineNo">089</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.89"></a>
-<span class="sourceLineNo">090</span>            ParseException, IOException {<a name="line.90"></a>
-<span class="sourceLineNo">091</span>        String minExt = event.renderSupport()<a name="line.91"></a>
-<span class="sourceLineNo">092</span>            .useMinifiedResources() ? ".min" : "";<a name="line.92"></a>
-<span class="sourceLineNo">093</span>        ResourceBundle bundle = resourceBundle(portalSession.locale());<a name="line.93"></a>
-<span class="sourceLineNo">094</span>        String script = "$.fn.dataTable.defaults.oLanguage._hungarianMap"<a name="line.94"></a>
-<span class="sourceLineNo">095</span>            + "[\"lengthAll\"] = \"sLengthAll\";\n"<a name="line.95"></a>
-<span class="sourceLineNo">096</span>            + "$.extend( $.fn.dataTable.defaults.oLanguage, {\n"<a name="line.96"></a>
-<span class="sourceLineNo">097</span>            + " 'sLengthAll': 'all',\n"<a name="line.97"></a>
-<span class="sourceLineNo">098</span>            + "} );\n"<a name="line.98"></a>
-<span class="sourceLineNo">099</span>            + "$.extend( $.fn.dataTable.defaults.oLanguage, "<a name="line.99"></a>
-<span class="sourceLineNo">100</span>            + bundle.getString("DataTablesL10n") + ");\n";<a name="line.100"></a>
-<span class="sourceLineNo">101</span>        String baseDir = "datatables-20180804";<a name="line.101"></a>
-<span class="sourceLineNo">102</span>        String styling = stylingInfo.get();<a name="line.102"></a>
-<span class="sourceLineNo">103</span>        if (!"jqueryui".equals(styling) &amp;&amp; !"bootstrap4".equals(styling)) {<a name="line.103"></a>
-<span class="sourceLineNo">104</span>            styling = "standard";<a name="line.104"></a>
-<span class="sourceLineNo">105</span>        }<a name="line.105"></a>
-<span class="sourceLineNo">106</span>        AddPageResources addRequest = new AddPageResources()<a name="line.106"></a>
-<span class="sourceLineNo">107</span>            .addCss(event.renderSupport()<a name="line.107"></a>
-<span class="sourceLineNo">108</span>                .pageResource(baseDir + "/" + styling + "/datatables"<a name="line.108"></a>
-<span class="sourceLineNo">109</span>                    + minExt + ".css"))<a name="line.109"></a>
-<span class="sourceLineNo">110</span>            .addScriptResource(new ScriptResource()<a name="line.110"></a>
-<span class="sourceLineNo">111</span>                .setProvides(new String[] { "datatables.net" })<a name="line.111"></a>
-<span class="sourceLineNo">112</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.112"></a>
-<span class="sourceLineNo">113</span>                    baseDir + "/" + styling + "/datatables" + minExt + ".js")))<a name="line.113"></a>
-<span class="sourceLineNo">114</span>            .addScriptResource(new ScriptResource()<a name="line.114"></a>
-<span class="sourceLineNo">115</span>                .setRequires(new String[] { "datatables.net" })<a name="line.115"></a>
-<span class="sourceLineNo">116</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.116"></a>
-<span class="sourceLineNo">117</span>                    baseDir + "/processing().js")))<a name="line.117"></a>
-<span class="sourceLineNo">118</span>            .addScriptResource(new ScriptResource()<a name="line.118"></a>
-<span class="sourceLineNo">119</span>                .setRequires(new String[] { "datatables.net" })<a name="line.119"></a>
-<span class="sourceLineNo">120</span>                .setScriptSource(script));<a name="line.120"></a>
-<span class="sourceLineNo">121</span>        if ("jqueryui".equals(styling)) {<a name="line.121"></a>
-<span class="sourceLineNo">122</span>            addRequest.addCss(event.renderSupport().pageResource(<a name="line.122"></a>
-<span class="sourceLineNo">123</span>                "jqueryui-overrides-1.0.0.css"));<a name="line.123"></a>
-<span class="sourceLineNo">124</span>        }<a name="line.124"></a>
-<span class="sourceLineNo">125</span>        portalSession.respond(addRequest);<a name="line.125"></a>
-<span class="sourceLineNo">126</span>    }<a name="line.126"></a>
-<span class="sourceLineNo">127</span><a name="line.127"></a>
-<span class="sourceLineNo">128</span>}<a name="line.128"></a>
+<span class="sourceLineNo">088</span>    public void onConsoleReady(ConsoleReady event,<a name="line.88"></a>
+<span class="sourceLineNo">089</span>            ConsoleSession consoleSession)<a name="line.89"></a>
+<span class="sourceLineNo">090</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.90"></a>
+<span class="sourceLineNo">091</span>            ParseException, IOException {<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        String minExt = event.renderSupport()<a name="line.92"></a>
+<span class="sourceLineNo">093</span>            .useMinifiedResources() ? ".min" : "";<a name="line.93"></a>
+<span class="sourceLineNo">094</span>        ResourceBundle bundle = resourceBundle(consoleSession.locale());<a name="line.94"></a>
+<span class="sourceLineNo">095</span>        String script = "$.fn.dataTable.defaults.oLanguage._hungarianMap"<a name="line.95"></a>
+<span class="sourceLineNo">096</span>            + "[\"lengthAll\"] = \"sLengthAll\";\n"<a name="line.96"></a>
+<span class="sourceLineNo">097</span>            + "$.extend( $.fn.dataTable.defaults.oLanguage, {\n"<a name="line.97"></a>
+<span class="sourceLineNo">098</span>            + " 'sLengthAll': 'all',\n"<a name="line.98"></a>
+<span class="sourceLineNo">099</span>            + "} );\n"<a name="line.99"></a>
+<span class="sourceLineNo">100</span>            + "$.extend( $.fn.dataTable.defaults.oLanguage, "<a name="line.100"></a>
+<span class="sourceLineNo">101</span>            + bundle.getString("DataTablesL10n") + ");\n";<a name="line.101"></a>
+<span class="sourceLineNo">102</span>        String baseDir = "datatables-20180804";<a name="line.102"></a>
+<span class="sourceLineNo">103</span>        String styling = stylingInfo.get();<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        if (!"jqueryui".equals(styling) &amp;&amp; !"bootstrap4".equals(styling)) {<a name="line.104"></a>
+<span class="sourceLineNo">105</span>            styling = "standard";<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        }<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        AddPageResources addRequest = new AddPageResources()<a name="line.107"></a>
+<span class="sourceLineNo">108</span>            .addCss(event.renderSupport()<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                .pageResource(baseDir + "/" + styling + "/datatables"<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                    + minExt + ".css"))<a name="line.110"></a>
+<span class="sourceLineNo">111</span>            .addScriptResource(new ScriptResource()<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                .setProvides(new String[] { "datatables.net" })<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                    baseDir + "/" + styling + "/datatables" + minExt + ".js")))<a name="line.114"></a>
+<span class="sourceLineNo">115</span>            .addScriptResource(new ScriptResource()<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                .setRequires(new String[] { "datatables.net" })<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                    baseDir + "/processing().js")))<a name="line.118"></a>
+<span class="sourceLineNo">119</span>            .addScriptResource(new ScriptResource()<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                .setRequires(new String[] { "datatables.net" })<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                .setScriptSource(script));<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        if ("jqueryui".equals(styling)) {<a name="line.122"></a>
+<span class="sourceLineNo">123</span>            addRequest.addCss(event.renderSupport().pageResource(<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                "jqueryui-overrides-1.0.0.css"));<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        }<a name="line.125"></a>
+<span class="sourceLineNo">126</span>        consoleSession.respond(addRequest);<a name="line.126"></a>
+<span class="sourceLineNo">127</span>    }<a name="line.127"></a>
+<span class="sourceLineNo">128</span><a name="line.128"></a>
+<span class="sourceLineNo">129</span>}<a name="line.129"></a>
 
 
 

@@ -63,7 +63,7 @@
 <span class="sourceLineNo">055</span>     * @param componentChannel the channel that the component's <a name="line.55"></a>
 <span class="sourceLineNo">056</span>     * handlers listen on by default and that <a name="line.56"></a>
 <span class="sourceLineNo">057</span>     * {@link Manager#fire(Event, Channel...)} sends the event to <a name="line.57"></a>
-<span class="sourceLineNo">058</span>     * @param consolePrefix the portal's prefix as returned by<a name="line.58"></a>
+<span class="sourceLineNo">058</span>     * @param consolePrefix the web console's prefix as returned by<a name="line.58"></a>
 <span class="sourceLineNo">059</span>     * {@link ConsoleWeblet#prefix()}, i.e. staring and ending with a slash<a name="line.59"></a>
 <span class="sourceLineNo">060</span>     */<a name="line.60"></a>
 <span class="sourceLineNo">061</span>    public BrowserLocalBackedKVStore(<a name="line.61"></a>
@@ -89,7 +89,7 @@
 <span class="sourceLineNo">081</span>            // Already have store, nothing to do<a name="line.81"></a>
 <span class="sourceLineNo">082</span>            return;<a name="line.82"></a>
 <span class="sourceLineNo">083</span>        }<a name="line.83"></a>
-<span class="sourceLineNo">084</span>        // Remove portal ready event from queue and save it<a name="line.84"></a>
+<span class="sourceLineNo">084</span>        // Remove web console ready event from queue and save it<a name="line.84"></a>
 <span class="sourceLineNo">085</span>        event.cancel(false);<a name="line.85"></a>
 <span class="sourceLineNo">086</span>        channel.setAssociated(this, event);<a name="line.86"></a>
 <span class="sourceLineNo">087</span>        String keyStart = consolePrefix<a name="line.87"></a>
@@ -122,7 +122,7 @@
 <span class="sourceLineNo">114</span>        }<a name="line.114"></a>
 <span class="sourceLineNo">115</span>        channel.associated(this, ConsoleReady.class)<a name="line.115"></a>
 <span class="sourceLineNo">116</span>            .ifPresent(origEvent -&gt; {<a name="line.116"></a>
-<span class="sourceLineNo">117</span>                // We have intercepted the portal ready event, fill store.<a name="line.117"></a>
+<span class="sourceLineNo">117</span>                // We have intercepted the web console ready event, fill store.<a name="line.117"></a>
 <span class="sourceLineNo">118</span>                // Having a store now also shows that retrieval has been done.<a name="line.118"></a>
 <span class="sourceLineNo">119</span>                final String keyStart = consolePrefix<a name="line.119"></a>
 <span class="sourceLineNo">120</span>                    + BrowserLocalBackedKVStore.class.getName() + "/";<a name="line.120"></a>
@@ -138,7 +138,7 @@
 <span class="sourceLineNo">130</span>                });<a name="line.130"></a>
 <span class="sourceLineNo">131</span>                // Don't intercept again<a name="line.131"></a>
 <span class="sourceLineNo">132</span>                channel.setAssociated(this, null);<a name="line.132"></a>
-<span class="sourceLineNo">133</span>                // Let others process the portal ready event<a name="line.133"></a>
+<span class="sourceLineNo">133</span>                // Let others process the web console ready event<a name="line.133"></a>
 <span class="sourceLineNo">134</span>                fire(new ConsoleReady(origEvent.renderSupport()), channel);<a name="line.134"></a>
 <span class="sourceLineNo">135</span>            });<a name="line.135"></a>
 <span class="sourceLineNo">136</span>    }<a name="line.136"></a>

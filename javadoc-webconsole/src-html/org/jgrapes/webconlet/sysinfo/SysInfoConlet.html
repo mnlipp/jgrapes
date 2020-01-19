@@ -90,7 +90,7 @@
 <span class="sourceLineNo">082</span>     * On {@link ConsoleReady}, fire the {@link AddConletType}.<a name="line.82"></a>
 <span class="sourceLineNo">083</span>     *<a name="line.83"></a>
 <span class="sourceLineNo">084</span>     * @param event the event<a name="line.84"></a>
-<span class="sourceLineNo">085</span>     * @param portalSession the portal session<a name="line.85"></a>
+<span class="sourceLineNo">085</span>     * @param consoleSession the console session<a name="line.85"></a>
 <span class="sourceLineNo">086</span>     * @throws TemplateNotFoundException the template not found exception<a name="line.86"></a>
 <span class="sourceLineNo">087</span>     * @throws MalformedTemplateNameException the malformed template name<a name="line.87"></a>
 <span class="sourceLineNo">088</span>     *             exception<a name="line.88"></a>
@@ -98,162 +98,163 @@
 <span class="sourceLineNo">090</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.90"></a>
 <span class="sourceLineNo">091</span>     */<a name="line.91"></a>
 <span class="sourceLineNo">092</span>    @Handler<a name="line.92"></a>
-<span class="sourceLineNo">093</span>    public void onConsoleReady(ConsoleReady event, ConsoleSession portalSession)<a name="line.93"></a>
-<span class="sourceLineNo">094</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.94"></a>
-<span class="sourceLineNo">095</span>            ParseException, IOException {<a name="line.95"></a>
-<span class="sourceLineNo">096</span>        // Add SysInfoConlet resources to page<a name="line.96"></a>
-<span class="sourceLineNo">097</span>        portalSession.respond(new AddConletType(type())<a name="line.97"></a>
-<span class="sourceLineNo">098</span>            .setDisplayNames(<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                displayNames(portalSession.supportedLocales(), "conletName"))<a name="line.99"></a>
-<span class="sourceLineNo">100</span>            .addScript(new ScriptResource()<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                .setRequires("chart.js")<a name="line.101"></a>
-<span class="sourceLineNo">102</span>                .setScriptUri(event.renderSupport().conletResource(<a name="line.102"></a>
-<span class="sourceLineNo">103</span>                    type(), "SysInfo-functions.ftl.js")))<a name="line.103"></a>
-<span class="sourceLineNo">104</span>            .addCss(event.renderSupport(), WebConsoleUtils.uriFromPath(<a name="line.104"></a>
-<span class="sourceLineNo">105</span>                "SysInfo-style.css")));<a name="line.105"></a>
-<span class="sourceLineNo">106</span>    }<a name="line.106"></a>
-<span class="sourceLineNo">107</span><a name="line.107"></a>
-<span class="sourceLineNo">108</span>    @Override<a name="line.108"></a>
-<span class="sourceLineNo">109</span>    protected String generateConletId() {<a name="line.109"></a>
-<span class="sourceLineNo">110</span>        return type() + "-" + super.generateConletId();<a name="line.110"></a>
-<span class="sourceLineNo">111</span>    }<a name="line.111"></a>
-<span class="sourceLineNo">112</span><a name="line.112"></a>
-<span class="sourceLineNo">113</span>    @Override<a name="line.113"></a>
-<span class="sourceLineNo">114</span>    protected Optional&lt;SysInfoModel&gt; stateFromSession(<a name="line.114"></a>
-<span class="sourceLineNo">115</span>            Session session, String conletId) {<a name="line.115"></a>
-<span class="sourceLineNo">116</span>        if (conletId.startsWith(type() + "-")) {<a name="line.116"></a>
-<span class="sourceLineNo">117</span>            return Optional.of(new SysInfoModel(conletId));<a name="line.117"></a>
-<span class="sourceLineNo">118</span>        }<a name="line.118"></a>
-<span class="sourceLineNo">119</span>        return Optional.empty();<a name="line.119"></a>
-<span class="sourceLineNo">120</span>    }<a name="line.120"></a>
-<span class="sourceLineNo">121</span><a name="line.121"></a>
-<span class="sourceLineNo">122</span>    @Override<a name="line.122"></a>
-<span class="sourceLineNo">123</span>    public String doAddConlet(AddConletRequest event,<a name="line.123"></a>
-<span class="sourceLineNo">124</span>            ConsoleSession consoleSession) throws Exception {<a name="line.124"></a>
-<span class="sourceLineNo">125</span>        String conletId = generateConletId();<a name="line.125"></a>
-<span class="sourceLineNo">126</span>        SysInfoModel conletModel = putInSession(<a name="line.126"></a>
-<span class="sourceLineNo">127</span>            consoleSession.browserSession(), new SysInfoModel(conletId));<a name="line.127"></a>
-<span class="sourceLineNo">128</span>        renderConlet(event, consoleSession, conletModel);<a name="line.128"></a>
-<span class="sourceLineNo">129</span>        return conletId;<a name="line.129"></a>
-<span class="sourceLineNo">130</span>    }<a name="line.130"></a>
-<span class="sourceLineNo">131</span><a name="line.131"></a>
-<span class="sourceLineNo">132</span>    @Override<a name="line.132"></a>
-<span class="sourceLineNo">133</span>    protected void doRenderConlet(RenderConletRequest event,<a name="line.133"></a>
-<span class="sourceLineNo">134</span>            ConsoleSession consoleSession, String conletId,<a name="line.134"></a>
-<span class="sourceLineNo">135</span>            SysInfoModel conletModel) throws Exception {<a name="line.135"></a>
-<span class="sourceLineNo">136</span>        renderConlet(event, consoleSession, conletModel);<a name="line.136"></a>
-<span class="sourceLineNo">137</span>    }<a name="line.137"></a>
-<span class="sourceLineNo">138</span><a name="line.138"></a>
-<span class="sourceLineNo">139</span>    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.139"></a>
-<span class="sourceLineNo">140</span>    private void renderConlet(RenderConletRequestBase&lt;?&gt; event,<a name="line.140"></a>
-<span class="sourceLineNo">141</span>            ConsoleSession portalSession, SysInfoModel conletModel)<a name="line.141"></a>
-<span class="sourceLineNo">142</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.142"></a>
-<span class="sourceLineNo">143</span>            ParseException, IOException {<a name="line.143"></a>
-<span class="sourceLineNo">144</span>        if (event.renderPreview()) {<a name="line.144"></a>
-<span class="sourceLineNo">145</span>            Template tpl<a name="line.145"></a>
-<span class="sourceLineNo">146</span>                = freemarkerConfig().getTemplate("SysInfo-preview.ftl.html");<a name="line.146"></a>
-<span class="sourceLineNo">147</span>            portalSession.respond(new RenderConletFromTemplate(event,<a name="line.147"></a>
-<span class="sourceLineNo">148</span>                SysInfoConlet.class, conletModel.getConletId(),<a name="line.148"></a>
-<span class="sourceLineNo">149</span>                tpl, fmModel(event, portalSession, conletModel))<a name="line.149"></a>
-<span class="sourceLineNo">150</span>                    .setRenderMode(RenderMode.DeleteablePreview)<a name="line.150"></a>
-<span class="sourceLineNo">151</span>                    .setSupportedModes(MODES)<a name="line.151"></a>
-<span class="sourceLineNo">152</span>                    .setForeground(event.isForeground()));<a name="line.152"></a>
-<span class="sourceLineNo">153</span>            updateView(portalSession, conletModel.getConletId());<a name="line.153"></a>
-<span class="sourceLineNo">154</span>        }<a name="line.154"></a>
-<span class="sourceLineNo">155</span>        if (event.renderModes().contains(RenderMode.View)) {<a name="line.155"></a>
-<span class="sourceLineNo">156</span>            Template tpl<a name="line.156"></a>
-<span class="sourceLineNo">157</span>                = freemarkerConfig().getTemplate("SysInfo-view.ftl.html");<a name="line.157"></a>
-<span class="sourceLineNo">158</span>            portalSession.respond(new RenderConletFromTemplate(event,<a name="line.158"></a>
-<span class="sourceLineNo">159</span>                SysInfoConlet.class, conletModel.getConletId(),<a name="line.159"></a>
-<span class="sourceLineNo">160</span>                tpl, fmModel(event, portalSession, conletModel))<a name="line.160"></a>
-<span class="sourceLineNo">161</span>                    .setRenderMode(RenderMode.View)<a name="line.161"></a>
-<span class="sourceLineNo">162</span>                    .setSupportedModes(MODES)<a name="line.162"></a>
-<span class="sourceLineNo">163</span>                    .setForeground(event.isForeground()));<a name="line.163"></a>
-<span class="sourceLineNo">164</span>        }<a name="line.164"></a>
-<span class="sourceLineNo">165</span>    }<a name="line.165"></a>
-<span class="sourceLineNo">166</span><a name="line.166"></a>
-<span class="sourceLineNo">167</span>    private void updateView(ConsoleSession portalSession, String conletId) {<a name="line.167"></a>
-<span class="sourceLineNo">168</span>        if (!portalSession.isConnected()) {<a name="line.168"></a>
-<span class="sourceLineNo">169</span>            return;<a name="line.169"></a>
-<span class="sourceLineNo">170</span>        }<a name="line.170"></a>
-<span class="sourceLineNo">171</span>        Runtime runtime = Runtime.getRuntime();<a name="line.171"></a>
-<span class="sourceLineNo">172</span>        portalSession.respond(new NotifyConletView(type(),<a name="line.172"></a>
-<span class="sourceLineNo">173</span>            conletId, "updateMemorySizes",<a name="line.173"></a>
-<span class="sourceLineNo">174</span>            System.currentTimeMillis(), runtime.maxMemory(),<a name="line.174"></a>
-<span class="sourceLineNo">175</span>            runtime.totalMemory(),<a name="line.175"></a>
-<span class="sourceLineNo">176</span>            runtime.totalMemory() - runtime.freeMemory()));<a name="line.176"></a>
-<span class="sourceLineNo">177</span>    }<a name="line.177"></a>
-<span class="sourceLineNo">178</span><a name="line.178"></a>
-<span class="sourceLineNo">179</span>    @Override<a name="line.179"></a>
-<span class="sourceLineNo">180</span>    protected void doDeleteConlet(DeleteConletRequest event,<a name="line.180"></a>
-<span class="sourceLineNo">181</span>            ConsoleSession portalSession, String conletId,<a name="line.181"></a>
-<span class="sourceLineNo">182</span>            SysInfoModel retrievedState) throws Exception {<a name="line.182"></a>
-<span class="sourceLineNo">183</span>        portalSession.respond(new DeleteConlet(conletId));<a name="line.183"></a>
-<span class="sourceLineNo">184</span>    }<a name="line.184"></a>
-<span class="sourceLineNo">185</span><a name="line.185"></a>
-<span class="sourceLineNo">186</span>    /**<a name="line.186"></a>
-<span class="sourceLineNo">187</span>     * Handle the periodic update event by sending {@link NotifyConletView}<a name="line.187"></a>
-<span class="sourceLineNo">188</span>     * events.<a name="line.188"></a>
-<span class="sourceLineNo">189</span>     *<a name="line.189"></a>
-<span class="sourceLineNo">190</span>     * @param event the event<a name="line.190"></a>
-<span class="sourceLineNo">191</span>     * @param consoleSession the console session<a name="line.191"></a>
-<span class="sourceLineNo">192</span>     */<a name="line.192"></a>
-<span class="sourceLineNo">193</span>    @Handler<a name="line.193"></a>
-<span class="sourceLineNo">194</span>    public void onUpdate(Update event, ConsoleSession consoleSession) {<a name="line.194"></a>
-<span class="sourceLineNo">195</span>        for (String conletId : conletIds(consoleSession)) {<a name="line.195"></a>
-<span class="sourceLineNo">196</span>            updateView(consoleSession, conletId);<a name="line.196"></a>
-<span class="sourceLineNo">197</span>        }<a name="line.197"></a>
-<span class="sourceLineNo">198</span>    }<a name="line.198"></a>
-<span class="sourceLineNo">199</span><a name="line.199"></a>
-<span class="sourceLineNo">200</span>    @Override<a name="line.200"></a>
-<span class="sourceLineNo">201</span>    @SuppressWarnings("PMD.DoNotCallGarbageCollectionExplicitly")<a name="line.201"></a>
-<span class="sourceLineNo">202</span>    protected void doNotifyConletModel(NotifyConletModel event,<a name="line.202"></a>
-<span class="sourceLineNo">203</span>            ConsoleSession portalSession, SysInfoModel conletState)<a name="line.203"></a>
-<span class="sourceLineNo">204</span>            throws Exception {<a name="line.204"></a>
-<span class="sourceLineNo">205</span>        event.stop();<a name="line.205"></a>
-<span class="sourceLineNo">206</span>        System.gc();<a name="line.206"></a>
-<span class="sourceLineNo">207</span>        for (String conletId : conletIds(portalSession)) {<a name="line.207"></a>
-<span class="sourceLineNo">208</span>            updateView(portalSession, conletId);<a name="line.208"></a>
-<span class="sourceLineNo">209</span>        }<a name="line.209"></a>
-<span class="sourceLineNo">210</span>    }<a name="line.210"></a>
-<span class="sourceLineNo">211</span><a name="line.211"></a>
-<span class="sourceLineNo">212</span>    /**<a name="line.212"></a>
-<span class="sourceLineNo">213</span>     * The conlet's model.<a name="line.213"></a>
-<span class="sourceLineNo">214</span>     */<a name="line.214"></a>
-<span class="sourceLineNo">215</span>    @SuppressWarnings("serial")<a name="line.215"></a>
-<span class="sourceLineNo">216</span>    public static class SysInfoModel<a name="line.216"></a>
-<span class="sourceLineNo">217</span>            extends AbstractConlet.ConletBaseModel {<a name="line.217"></a>
-<span class="sourceLineNo">218</span><a name="line.218"></a>
-<span class="sourceLineNo">219</span>        /**<a name="line.219"></a>
-<span class="sourceLineNo">220</span>         * Creates a new model with the given type and id.<a name="line.220"></a>
-<span class="sourceLineNo">221</span>         * <a name="line.221"></a>
-<span class="sourceLineNo">222</span>         * @param conletId the web console component id<a name="line.222"></a>
-<span class="sourceLineNo">223</span>         */<a name="line.223"></a>
-<span class="sourceLineNo">224</span>        @ConstructorProperties({ "conletId" })<a name="line.224"></a>
-<span class="sourceLineNo">225</span>        public SysInfoModel(String conletId) {<a name="line.225"></a>
-<span class="sourceLineNo">226</span>            super(conletId);<a name="line.226"></a>
-<span class="sourceLineNo">227</span>        }<a name="line.227"></a>
-<span class="sourceLineNo">228</span><a name="line.228"></a>
-<span class="sourceLineNo">229</span>        /**<a name="line.229"></a>
-<span class="sourceLineNo">230</span>         * Return the system properties.<a name="line.230"></a>
-<span class="sourceLineNo">231</span>         *<a name="line.231"></a>
-<span class="sourceLineNo">232</span>         * @return the properties<a name="line.232"></a>
-<span class="sourceLineNo">233</span>         */<a name="line.233"></a>
-<span class="sourceLineNo">234</span>        public Properties systemProperties() {<a name="line.234"></a>
-<span class="sourceLineNo">235</span>            return System.getProperties();<a name="line.235"></a>
-<span class="sourceLineNo">236</span>        }<a name="line.236"></a>
-<span class="sourceLineNo">237</span><a name="line.237"></a>
-<span class="sourceLineNo">238</span>        /**<a name="line.238"></a>
-<span class="sourceLineNo">239</span>         * Return the {@link Runtime}.<a name="line.239"></a>
-<span class="sourceLineNo">240</span>         *<a name="line.240"></a>
-<span class="sourceLineNo">241</span>         * @return the runtime<a name="line.241"></a>
-<span class="sourceLineNo">242</span>         */<a name="line.242"></a>
-<span class="sourceLineNo">243</span>        public Runtime runtime() {<a name="line.243"></a>
-<span class="sourceLineNo">244</span>            return Runtime.getRuntime();<a name="line.244"></a>
-<span class="sourceLineNo">245</span>        }<a name="line.245"></a>
-<span class="sourceLineNo">246</span>    }<a name="line.246"></a>
-<span class="sourceLineNo">247</span><a name="line.247"></a>
-<span class="sourceLineNo">248</span>}<a name="line.248"></a>
+<span class="sourceLineNo">093</span>    public void onConsoleReady(ConsoleReady event,<a name="line.93"></a>
+<span class="sourceLineNo">094</span>            ConsoleSession consoleSession)<a name="line.94"></a>
+<span class="sourceLineNo">095</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.95"></a>
+<span class="sourceLineNo">096</span>            ParseException, IOException {<a name="line.96"></a>
+<span class="sourceLineNo">097</span>        // Add SysInfoConlet resources to page<a name="line.97"></a>
+<span class="sourceLineNo">098</span>        consoleSession.respond(new AddConletType(type())<a name="line.98"></a>
+<span class="sourceLineNo">099</span>            .setDisplayNames(<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                displayNames(consoleSession.supportedLocales(), "conletName"))<a name="line.100"></a>
+<span class="sourceLineNo">101</span>            .addScript(new ScriptResource()<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                .setRequires("chart.js")<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                .setScriptUri(event.renderSupport().conletResource(<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                    type(), "SysInfo-functions.ftl.js")))<a name="line.104"></a>
+<span class="sourceLineNo">105</span>            .addCss(event.renderSupport(), WebConsoleUtils.uriFromPath(<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                "SysInfo-style.css")));<a name="line.106"></a>
+<span class="sourceLineNo">107</span>    }<a name="line.107"></a>
+<span class="sourceLineNo">108</span><a name="line.108"></a>
+<span class="sourceLineNo">109</span>    @Override<a name="line.109"></a>
+<span class="sourceLineNo">110</span>    protected String generateConletId() {<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        return type() + "-" + super.generateConletId();<a name="line.111"></a>
+<span class="sourceLineNo">112</span>    }<a name="line.112"></a>
+<span class="sourceLineNo">113</span><a name="line.113"></a>
+<span class="sourceLineNo">114</span>    @Override<a name="line.114"></a>
+<span class="sourceLineNo">115</span>    protected Optional&lt;SysInfoModel&gt; stateFromSession(<a name="line.115"></a>
+<span class="sourceLineNo">116</span>            Session session, String conletId) {<a name="line.116"></a>
+<span class="sourceLineNo">117</span>        if (conletId.startsWith(type() + "-")) {<a name="line.117"></a>
+<span class="sourceLineNo">118</span>            return Optional.of(new SysInfoModel(conletId));<a name="line.118"></a>
+<span class="sourceLineNo">119</span>        }<a name="line.119"></a>
+<span class="sourceLineNo">120</span>        return Optional.empty();<a name="line.120"></a>
+<span class="sourceLineNo">121</span>    }<a name="line.121"></a>
+<span class="sourceLineNo">122</span><a name="line.122"></a>
+<span class="sourceLineNo">123</span>    @Override<a name="line.123"></a>
+<span class="sourceLineNo">124</span>    public String doAddConlet(AddConletRequest event,<a name="line.124"></a>
+<span class="sourceLineNo">125</span>            ConsoleSession consoleSession) throws Exception {<a name="line.125"></a>
+<span class="sourceLineNo">126</span>        String conletId = generateConletId();<a name="line.126"></a>
+<span class="sourceLineNo">127</span>        SysInfoModel conletModel = putInSession(<a name="line.127"></a>
+<span class="sourceLineNo">128</span>            consoleSession.browserSession(), new SysInfoModel(conletId));<a name="line.128"></a>
+<span class="sourceLineNo">129</span>        renderConlet(event, consoleSession, conletModel);<a name="line.129"></a>
+<span class="sourceLineNo">130</span>        return conletId;<a name="line.130"></a>
+<span class="sourceLineNo">131</span>    }<a name="line.131"></a>
+<span class="sourceLineNo">132</span><a name="line.132"></a>
+<span class="sourceLineNo">133</span>    @Override<a name="line.133"></a>
+<span class="sourceLineNo">134</span>    protected void doRenderConlet(RenderConletRequest event,<a name="line.134"></a>
+<span class="sourceLineNo">135</span>            ConsoleSession consoleSession, String conletId,<a name="line.135"></a>
+<span class="sourceLineNo">136</span>            SysInfoModel conletModel) throws Exception {<a name="line.136"></a>
+<span class="sourceLineNo">137</span>        renderConlet(event, consoleSession, conletModel);<a name="line.137"></a>
+<span class="sourceLineNo">138</span>    }<a name="line.138"></a>
+<span class="sourceLineNo">139</span><a name="line.139"></a>
+<span class="sourceLineNo">140</span>    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.140"></a>
+<span class="sourceLineNo">141</span>    private void renderConlet(RenderConletRequestBase&lt;?&gt; event,<a name="line.141"></a>
+<span class="sourceLineNo">142</span>            ConsoleSession consoleSession, SysInfoModel conletModel)<a name="line.142"></a>
+<span class="sourceLineNo">143</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.143"></a>
+<span class="sourceLineNo">144</span>            ParseException, IOException {<a name="line.144"></a>
+<span class="sourceLineNo">145</span>        if (event.renderPreview()) {<a name="line.145"></a>
+<span class="sourceLineNo">146</span>            Template tpl<a name="line.146"></a>
+<span class="sourceLineNo">147</span>                = freemarkerConfig().getTemplate("SysInfo-preview.ftl.html");<a name="line.147"></a>
+<span class="sourceLineNo">148</span>            consoleSession.respond(new RenderConletFromTemplate(event,<a name="line.148"></a>
+<span class="sourceLineNo">149</span>                SysInfoConlet.class, conletModel.getConletId(),<a name="line.149"></a>
+<span class="sourceLineNo">150</span>                tpl, fmModel(event, consoleSession, conletModel))<a name="line.150"></a>
+<span class="sourceLineNo">151</span>                    .setRenderMode(RenderMode.DeleteablePreview)<a name="line.151"></a>
+<span class="sourceLineNo">152</span>                    .setSupportedModes(MODES)<a name="line.152"></a>
+<span class="sourceLineNo">153</span>                    .setForeground(event.isForeground()));<a name="line.153"></a>
+<span class="sourceLineNo">154</span>            updateView(consoleSession, conletModel.getConletId());<a name="line.154"></a>
+<span class="sourceLineNo">155</span>        }<a name="line.155"></a>
+<span class="sourceLineNo">156</span>        if (event.renderModes().contains(RenderMode.View)) {<a name="line.156"></a>
+<span class="sourceLineNo">157</span>            Template tpl<a name="line.157"></a>
+<span class="sourceLineNo">158</span>                = freemarkerConfig().getTemplate("SysInfo-view.ftl.html");<a name="line.158"></a>
+<span class="sourceLineNo">159</span>            consoleSession.respond(new RenderConletFromTemplate(event,<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                SysInfoConlet.class, conletModel.getConletId(),<a name="line.160"></a>
+<span class="sourceLineNo">161</span>                tpl, fmModel(event, consoleSession, conletModel))<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                    .setRenderMode(RenderMode.View)<a name="line.162"></a>
+<span class="sourceLineNo">163</span>                    .setSupportedModes(MODES)<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                    .setForeground(event.isForeground()));<a name="line.164"></a>
+<span class="sourceLineNo">165</span>        }<a name="line.165"></a>
+<span class="sourceLineNo">166</span>    }<a name="line.166"></a>
+<span class="sourceLineNo">167</span><a name="line.167"></a>
+<span class="sourceLineNo">168</span>    private void updateView(ConsoleSession consoleSession, String conletId) {<a name="line.168"></a>
+<span class="sourceLineNo">169</span>        if (!consoleSession.isConnected()) {<a name="line.169"></a>
+<span class="sourceLineNo">170</span>            return;<a name="line.170"></a>
+<span class="sourceLineNo">171</span>        }<a name="line.171"></a>
+<span class="sourceLineNo">172</span>        Runtime runtime = Runtime.getRuntime();<a name="line.172"></a>
+<span class="sourceLineNo">173</span>        consoleSession.respond(new NotifyConletView(type(),<a name="line.173"></a>
+<span class="sourceLineNo">174</span>            conletId, "updateMemorySizes",<a name="line.174"></a>
+<span class="sourceLineNo">175</span>            System.currentTimeMillis(), runtime.maxMemory(),<a name="line.175"></a>
+<span class="sourceLineNo">176</span>            runtime.totalMemory(),<a name="line.176"></a>
+<span class="sourceLineNo">177</span>            runtime.totalMemory() - runtime.freeMemory()));<a name="line.177"></a>
+<span class="sourceLineNo">178</span>    }<a name="line.178"></a>
+<span class="sourceLineNo">179</span><a name="line.179"></a>
+<span class="sourceLineNo">180</span>    @Override<a name="line.180"></a>
+<span class="sourceLineNo">181</span>    protected void doDeleteConlet(DeleteConletRequest event,<a name="line.181"></a>
+<span class="sourceLineNo">182</span>            ConsoleSession consoleSession, String conletId,<a name="line.182"></a>
+<span class="sourceLineNo">183</span>            SysInfoModel retrievedState) throws Exception {<a name="line.183"></a>
+<span class="sourceLineNo">184</span>        consoleSession.respond(new DeleteConlet(conletId));<a name="line.184"></a>
+<span class="sourceLineNo">185</span>    }<a name="line.185"></a>
+<span class="sourceLineNo">186</span><a name="line.186"></a>
+<span class="sourceLineNo">187</span>    /**<a name="line.187"></a>
+<span class="sourceLineNo">188</span>     * Handle the periodic update event by sending {@link NotifyConletView}<a name="line.188"></a>
+<span class="sourceLineNo">189</span>     * events.<a name="line.189"></a>
+<span class="sourceLineNo">190</span>     *<a name="line.190"></a>
+<span class="sourceLineNo">191</span>     * @param event the event<a name="line.191"></a>
+<span class="sourceLineNo">192</span>     * @param consoleSession the console session<a name="line.192"></a>
+<span class="sourceLineNo">193</span>     */<a name="line.193"></a>
+<span class="sourceLineNo">194</span>    @Handler<a name="line.194"></a>
+<span class="sourceLineNo">195</span>    public void onUpdate(Update event, ConsoleSession consoleSession) {<a name="line.195"></a>
+<span class="sourceLineNo">196</span>        for (String conletId : conletIds(consoleSession)) {<a name="line.196"></a>
+<span class="sourceLineNo">197</span>            updateView(consoleSession, conletId);<a name="line.197"></a>
+<span class="sourceLineNo">198</span>        }<a name="line.198"></a>
+<span class="sourceLineNo">199</span>    }<a name="line.199"></a>
+<span class="sourceLineNo">200</span><a name="line.200"></a>
+<span class="sourceLineNo">201</span>    @Override<a name="line.201"></a>
+<span class="sourceLineNo">202</span>    @SuppressWarnings("PMD.DoNotCallGarbageCollectionExplicitly")<a name="line.202"></a>
+<span class="sourceLineNo">203</span>    protected void doNotifyConletModel(NotifyConletModel event,<a name="line.203"></a>
+<span class="sourceLineNo">204</span>            ConsoleSession consoleSession, SysInfoModel conletState)<a name="line.204"></a>
+<span class="sourceLineNo">205</span>            throws Exception {<a name="line.205"></a>
+<span class="sourceLineNo">206</span>        event.stop();<a name="line.206"></a>
+<span class="sourceLineNo">207</span>        System.gc();<a name="line.207"></a>
+<span class="sourceLineNo">208</span>        for (String conletId : conletIds(consoleSession)) {<a name="line.208"></a>
+<span class="sourceLineNo">209</span>            updateView(consoleSession, conletId);<a name="line.209"></a>
+<span class="sourceLineNo">210</span>        }<a name="line.210"></a>
+<span class="sourceLineNo">211</span>    }<a name="line.211"></a>
+<span class="sourceLineNo">212</span><a name="line.212"></a>
+<span class="sourceLineNo">213</span>    /**<a name="line.213"></a>
+<span class="sourceLineNo">214</span>     * The conlet's model.<a name="line.214"></a>
+<span class="sourceLineNo">215</span>     */<a name="line.215"></a>
+<span class="sourceLineNo">216</span>    @SuppressWarnings("serial")<a name="line.216"></a>
+<span class="sourceLineNo">217</span>    public static class SysInfoModel<a name="line.217"></a>
+<span class="sourceLineNo">218</span>            extends AbstractConlet.ConletBaseModel {<a name="line.218"></a>
+<span class="sourceLineNo">219</span><a name="line.219"></a>
+<span class="sourceLineNo">220</span>        /**<a name="line.220"></a>
+<span class="sourceLineNo">221</span>         * Creates a new model with the given type and id.<a name="line.221"></a>
+<span class="sourceLineNo">222</span>         * <a name="line.222"></a>
+<span class="sourceLineNo">223</span>         * @param conletId the web console component id<a name="line.223"></a>
+<span class="sourceLineNo">224</span>         */<a name="line.224"></a>
+<span class="sourceLineNo">225</span>        @ConstructorProperties({ "conletId" })<a name="line.225"></a>
+<span class="sourceLineNo">226</span>        public SysInfoModel(String conletId) {<a name="line.226"></a>
+<span class="sourceLineNo">227</span>            super(conletId);<a name="line.227"></a>
+<span class="sourceLineNo">228</span>        }<a name="line.228"></a>
+<span class="sourceLineNo">229</span><a name="line.229"></a>
+<span class="sourceLineNo">230</span>        /**<a name="line.230"></a>
+<span class="sourceLineNo">231</span>         * Return the system properties.<a name="line.231"></a>
+<span class="sourceLineNo">232</span>         *<a name="line.232"></a>
+<span class="sourceLineNo">233</span>         * @return the properties<a name="line.233"></a>
+<span class="sourceLineNo">234</span>         */<a name="line.234"></a>
+<span class="sourceLineNo">235</span>        public Properties systemProperties() {<a name="line.235"></a>
+<span class="sourceLineNo">236</span>            return System.getProperties();<a name="line.236"></a>
+<span class="sourceLineNo">237</span>        }<a name="line.237"></a>
+<span class="sourceLineNo">238</span><a name="line.238"></a>
+<span class="sourceLineNo">239</span>        /**<a name="line.239"></a>
+<span class="sourceLineNo">240</span>         * Return the {@link Runtime}.<a name="line.240"></a>
+<span class="sourceLineNo">241</span>         *<a name="line.241"></a>
+<span class="sourceLineNo">242</span>         * @return the runtime<a name="line.242"></a>
+<span class="sourceLineNo">243</span>         */<a name="line.243"></a>
+<span class="sourceLineNo">244</span>        public Runtime runtime() {<a name="line.244"></a>
+<span class="sourceLineNo">245</span>            return Runtime.getRuntime();<a name="line.245"></a>
+<span class="sourceLineNo">246</span>        }<a name="line.246"></a>
+<span class="sourceLineNo">247</span>    }<a name="line.247"></a>
+<span class="sourceLineNo">248</span><a name="line.248"></a>
+<span class="sourceLineNo">249</span>}<a name="line.249"></a>
 
 
 

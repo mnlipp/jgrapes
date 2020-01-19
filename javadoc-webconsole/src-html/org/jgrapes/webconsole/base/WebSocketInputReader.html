@@ -100,14 +100,14 @@
 <span class="sourceLineNo">092</span>     * Instantiates a new web socket input reader.<a name="line.92"></a>
 <span class="sourceLineNo">093</span>     *<a name="line.93"></a>
 <span class="sourceLineNo">094</span>     * @param wsInPipeline the ws in pipeline<a name="line.94"></a>
-<span class="sourceLineNo">095</span>     * @param portalChannel the portal channel<a name="line.95"></a>
+<span class="sourceLineNo">095</span>     * @param consoleChannel the web console channel<a name="line.95"></a>
 <span class="sourceLineNo">096</span>     */<a name="line.96"></a>
 <span class="sourceLineNo">097</span>    public WebSocketInputReader(EventPipeline wsInPipeline,<a name="line.97"></a>
-<span class="sourceLineNo">098</span>            ConsoleSession portalChannel) {<a name="line.98"></a>
+<span class="sourceLineNo">098</span>            ConsoleSession consoleChannel) {<a name="line.98"></a>
 <span class="sourceLineNo">099</span>        pipelineRef<a name="line.99"></a>
 <span class="sourceLineNo">100</span>            = new WebSocketInputReader.RefWithThread&lt;&gt;(wsInPipeline, this);<a name="line.100"></a>
 <span class="sourceLineNo">101</span>        channelRef<a name="line.101"></a>
-<span class="sourceLineNo">102</span>            = new WebSocketInputReader.RefWithThread&lt;&gt;(portalChannel, this);<a name="line.102"></a>
+<span class="sourceLineNo">102</span>            = new WebSocketInputReader.RefWithThread&lt;&gt;(consoleChannel, this);<a name="line.102"></a>
 <span class="sourceLineNo">103</span>        setDaemon(true);<a name="line.103"></a>
 <span class="sourceLineNo">104</span>    }<a name="line.104"></a>
 <span class="sourceLineNo">105</span><a name="line.105"></a>
@@ -164,24 +164,24 @@
 <span class="sourceLineNo">156</span>                break;<a name="line.156"></a>
 <span class="sourceLineNo">157</span>            }<a name="line.157"></a>
 <span class="sourceLineNo">158</span>            // Fully decoded JSON available.<a name="line.158"></a>
-<span class="sourceLineNo">159</span>            ConsoleSession portalSession = channelRef.get();<a name="line.159"></a>
+<span class="sourceLineNo">159</span>            ConsoleSession consoleSession = channelRef.get();<a name="line.159"></a>
 <span class="sourceLineNo">160</span>            EventPipeline eventPipeline = pipelineRef.get();<a name="line.160"></a>
-<span class="sourceLineNo">161</span>            if (eventPipeline == null || portalSession == null) {<a name="line.161"></a>
+<span class="sourceLineNo">161</span>            if (eventPipeline == null || consoleSession == null) {<a name="line.161"></a>
 <span class="sourceLineNo">162</span>                break;<a name="line.162"></a>
 <span class="sourceLineNo">163</span>            }<a name="line.163"></a>
 <span class="sourceLineNo">164</span>            // WebConsole session established, check for special disconnect<a name="line.164"></a>
 <span class="sourceLineNo">165</span>            if ("disconnect".equals(rpc.method())<a name="line.165"></a>
-<span class="sourceLineNo">166</span>                &amp;&amp; portalSession.consoleSessionId().equals(<a name="line.166"></a>
+<span class="sourceLineNo">166</span>                &amp;&amp; consoleSession.consoleSessionId().equals(<a name="line.166"></a>
 <span class="sourceLineNo">167</span>                    rpc.params().asString(0))) {<a name="line.167"></a>
-<span class="sourceLineNo">168</span>                portalSession.discard();<a name="line.168"></a>
+<span class="sourceLineNo">168</span>                consoleSession.discard();<a name="line.168"></a>
 <span class="sourceLineNo">169</span>                return;<a name="line.169"></a>
 <span class="sourceLineNo">170</span>            }<a name="line.170"></a>
-<span class="sourceLineNo">171</span>            // Ordinary message from portal (view) to server.<a name="line.171"></a>
-<span class="sourceLineNo">172</span>            portalSession.refresh();<a name="line.172"></a>
+<span class="sourceLineNo">171</span>            // Ordinary message from web console (view) to server.<a name="line.171"></a>
+<span class="sourceLineNo">172</span>            consoleSession.refresh();<a name="line.172"></a>
 <span class="sourceLineNo">173</span>            if ("keepAlive".equals(rpc.method())) {<a name="line.173"></a>
 <span class="sourceLineNo">174</span>                continue;<a name="line.174"></a>
 <span class="sourceLineNo">175</span>            }<a name="line.175"></a>
-<span class="sourceLineNo">176</span>            eventPipeline.fire(new JsonInput(rpc), portalSession);<a name="line.176"></a>
+<span class="sourceLineNo">176</span>            eventPipeline.fire(new JsonInput(rpc), consoleSession);<a name="line.176"></a>
 <span class="sourceLineNo">177</span>        }<a name="line.177"></a>
 <span class="sourceLineNo">178</span>    }<a name="line.178"></a>
 <span class="sourceLineNo">179</span>}<a name="line.179"></a>
