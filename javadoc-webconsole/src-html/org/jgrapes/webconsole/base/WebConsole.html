@@ -69,7 +69,7 @@
 <span class="sourceLineNo">061</span>import org.jgrapes.webconsole.base.events.SimpleConsoleCommand;<a name="line.61"></a>
 <span class="sourceLineNo">062</span><a name="line.62"></a>
 <span class="sourceLineNo">063</span>/**<a name="line.63"></a>
-<span class="sourceLineNo">064</span> * Provides the portlet related part of the portal.<a name="line.64"></a>
+<span class="sourceLineNo">064</span> * Provides the web console component related part of the console.<a name="line.64"></a>
 <span class="sourceLineNo">065</span> */<a name="line.65"></a>
 <span class="sourceLineNo">066</span>public class WebConsole extends Component {<a name="line.66"></a>
 <span class="sourceLineNo">067</span><a name="line.67"></a>
@@ -102,14 +102,14 @@
 <span class="sourceLineNo">094</span>    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.94"></a>
 <span class="sourceLineNo">095</span>    public void onJsonInput(JsonInput event, ConsoleSession channel)<a name="line.95"></a>
 <span class="sourceLineNo">096</span>            throws InterruptedException, IOException {<a name="line.96"></a>
-<span class="sourceLineNo">097</span>        // Send events to portlets on portal's channel<a name="line.97"></a>
+<span class="sourceLineNo">097</span>        // Send events to web console components on console's channel<a name="line.97"></a>
 <span class="sourceLineNo">098</span>        JsonArray params = event.request().params();<a name="line.98"></a>
 <span class="sourceLineNo">099</span>        switch (event.request().method()) {<a name="line.99"></a>
-<span class="sourceLineNo">100</span>        case "portalReady": {<a name="line.100"></a>
+<span class="sourceLineNo">100</span>        case "consoleReady": {<a name="line.100"></a>
 <span class="sourceLineNo">101</span>            fire(new ConsoleReady(view.renderSupport()), channel);<a name="line.101"></a>
 <span class="sourceLineNo">102</span>            break;<a name="line.102"></a>
 <span class="sourceLineNo">103</span>        }<a name="line.103"></a>
-<span class="sourceLineNo">104</span>        case "addPortlet": {<a name="line.104"></a>
+<span class="sourceLineNo">104</span>        case "addConlet": {<a name="line.104"></a>
 <span class="sourceLineNo">105</span>            fire(new AddConletRequest(view.renderSupport(),<a name="line.105"></a>
 <span class="sourceLineNo">106</span>                params.asString(0), params.asArray(1).stream().map(<a name="line.106"></a>
 <span class="sourceLineNo">107</span>                    value -&gt; RenderMode.valueOf((String) value))<a name="line.107"></a>
@@ -117,12 +117,12 @@
 <span class="sourceLineNo">109</span>                channel);<a name="line.109"></a>
 <span class="sourceLineNo">110</span>            break;<a name="line.110"></a>
 <span class="sourceLineNo">111</span>        }<a name="line.111"></a>
-<span class="sourceLineNo">112</span>        case "deletePortlet": {<a name="line.112"></a>
+<span class="sourceLineNo">112</span>        case "deleteConlet": {<a name="line.112"></a>
 <span class="sourceLineNo">113</span>            fire(new DeleteConletRequest(<a name="line.113"></a>
 <span class="sourceLineNo">114</span>                view.renderSupport(), params.asString(0)), channel);<a name="line.114"></a>
 <span class="sourceLineNo">115</span>            break;<a name="line.115"></a>
 <span class="sourceLineNo">116</span>        }<a name="line.116"></a>
-<span class="sourceLineNo">117</span>        case "portalLayout": {<a name="line.117"></a>
+<span class="sourceLineNo">117</span>        case "consoleLayout": {<a name="line.117"></a>
 <span class="sourceLineNo">118</span>            List&lt;String&gt; previewLayout = params.asArray(0).stream().map(<a name="line.118"></a>
 <span class="sourceLineNo">119</span>                value -&gt; (String) value).collect(Collectors.toList());<a name="line.119"></a>
 <span class="sourceLineNo">120</span>            List&lt;String&gt; tabsLayout = params.asArray(1).stream().map(<a name="line.120"></a>
@@ -132,7 +132,7 @@
 <span class="sourceLineNo">124</span>                previewLayout, tabsLayout, xtraInfo), channel);<a name="line.124"></a>
 <span class="sourceLineNo">125</span>            break;<a name="line.125"></a>
 <span class="sourceLineNo">126</span>        }<a name="line.126"></a>
-<span class="sourceLineNo">127</span>        case "renderPortlet": {<a name="line.127"></a>
+<span class="sourceLineNo">127</span>        case "renderConlet": {<a name="line.127"></a>
 <span class="sourceLineNo">128</span>            fire(new RenderConletRequest(view.renderSupport(),<a name="line.128"></a>
 <span class="sourceLineNo">129</span>                params.asString(0),<a name="line.129"></a>
 <span class="sourceLineNo">130</span>                params.asArray(1).stream().map(<a name="line.130"></a>
@@ -147,7 +147,7 @@
 <span class="sourceLineNo">139</span>                params.asBoolean(1)), channel);<a name="line.139"></a>
 <span class="sourceLineNo">140</span>            break;<a name="line.140"></a>
 <span class="sourceLineNo">141</span>        }<a name="line.141"></a>
-<span class="sourceLineNo">142</span>        case "notifyPortletModel": {<a name="line.142"></a>
+<span class="sourceLineNo">142</span>        case "notifyConletModel": {<a name="line.142"></a>
 <span class="sourceLineNo">143</span>            fire(new NotifyConletModel(view.renderSupport(),<a name="line.143"></a>
 <span class="sourceLineNo">144</span>                params.asString(0), params.asString(1),<a name="line.144"></a>
 <span class="sourceLineNo">145</span>                params.size() &lt;= 2<a name="line.145"></a>
@@ -174,7 +174,7 @@
 <span class="sourceLineNo">166</span>    public void onConsoleConfigured(<a name="line.166"></a>
 <span class="sourceLineNo">167</span>            ConsoleConfigured event, ConsoleSession channel)<a name="line.167"></a>
 <span class="sourceLineNo">168</span>            throws InterruptedException, IOException {<a name="line.168"></a>
-<span class="sourceLineNo">169</span>        channel.respond(new SimpleConsoleCommand("portalConfigured"));<a name="line.169"></a>
+<span class="sourceLineNo">169</span>        channel.respond(new SimpleConsoleCommand("consoleConfigured"));<a name="line.169"></a>
 <span class="sourceLineNo">170</span>    }<a name="line.170"></a>
 <span class="sourceLineNo">171</span><a name="line.171"></a>
 <span class="sourceLineNo">172</span>    /**<a name="line.172"></a>
@@ -186,7 +186,7 @@
 <span class="sourceLineNo">178</span>     * @param channel the channel<a name="line.178"></a>
 <span class="sourceLineNo">179</span>     */<a name="line.179"></a>
 <span class="sourceLineNo">180</span>    @Handler(priority = -1000000)<a name="line.180"></a>
-<span class="sourceLineNo">181</span>    public void onRenderPortlet(<a name="line.181"></a>
+<span class="sourceLineNo">181</span>    public void onRenderConlet(<a name="line.181"></a>
 <span class="sourceLineNo">182</span>            RenderConletRequest event, ConsoleSession channel) {<a name="line.182"></a>
 <span class="sourceLineNo">183</span>        if (!event.hasBeenRendered()) {<a name="line.183"></a>
 <span class="sourceLineNo">184</span>            channel.respond(new DeleteConlet(event.conletId()));<a name="line.184"></a>
@@ -194,7 +194,7 @@
 <span class="sourceLineNo">186</span>    }<a name="line.186"></a>
 <span class="sourceLineNo">187</span><a name="line.187"></a>
 <span class="sourceLineNo">188</span>    /**<a name="line.188"></a>
-<span class="sourceLineNo">189</span>     * Discard all portal sessions on stop.<a name="line.189"></a>
+<span class="sourceLineNo">189</span>     * Discard all console sessions on stop.<a name="line.189"></a>
 <span class="sourceLineNo">190</span>     *<a name="line.190"></a>
 <span class="sourceLineNo">191</span>     * @param event the event<a name="line.191"></a>
 <span class="sourceLineNo">192</span>     */<a name="line.192"></a>
@@ -206,17 +206,17 @@
 <span class="sourceLineNo">198</span>    }<a name="line.198"></a>
 <span class="sourceLineNo">199</span><a name="line.199"></a>
 <span class="sourceLineNo">200</span>    /**<a name="line.200"></a>
-<span class="sourceLineNo">201</span>     * The MBeans view of a portal.<a name="line.201"></a>
+<span class="sourceLineNo">201</span>     * The MBeans view of a console.<a name="line.201"></a>
 <span class="sourceLineNo">202</span>     */<a name="line.202"></a>
 <span class="sourceLineNo">203</span>    @SuppressWarnings({ "PMD.CommentRequired", "PMD.AvoidDuplicateLiterals" })<a name="line.203"></a>
 <span class="sourceLineNo">204</span>    public interface ConsoleMXBean {<a name="line.204"></a>
 <span class="sourceLineNo">205</span><a name="line.205"></a>
 <span class="sourceLineNo">206</span>        @SuppressWarnings("PMD.CommentRequired")<a name="line.206"></a>
-<span class="sourceLineNo">207</span>        class PortalSessionInfo {<a name="line.207"></a>
+<span class="sourceLineNo">207</span>        class ConsoleSessionInfo {<a name="line.207"></a>
 <span class="sourceLineNo">208</span><a name="line.208"></a>
 <span class="sourceLineNo">209</span>            private final ConsoleSession session;<a name="line.209"></a>
 <span class="sourceLineNo">210</span><a name="line.210"></a>
-<span class="sourceLineNo">211</span>            public PortalSessionInfo(ConsoleSession session) {<a name="line.211"></a>
+<span class="sourceLineNo">211</span>            public ConsoleSessionInfo(ConsoleSession session) {<a name="line.211"></a>
 <span class="sourceLineNo">212</span>                super();<a name="line.212"></a>
 <span class="sourceLineNo">213</span>                this.session = session;<a name="line.213"></a>
 <span class="sourceLineNo">214</span>            }<a name="line.214"></a>
@@ -239,7 +239,7 @@
 <span class="sourceLineNo">231</span><a name="line.231"></a>
 <span class="sourceLineNo">232</span>        void setUseMinifiedResources(boolean useMinifiedResources);<a name="line.232"></a>
 <span class="sourceLineNo">233</span><a name="line.233"></a>
-<span class="sourceLineNo">234</span>        SortedMap&lt;String, PortalSessionInfo&gt; getConsoleSessions();<a name="line.234"></a>
+<span class="sourceLineNo">234</span>        SortedMap&lt;String, ConsoleSessionInfo&gt; getConsoleSessions();<a name="line.234"></a>
 <span class="sourceLineNo">235</span>    }<a name="line.235"></a>
 <span class="sourceLineNo">236</span><a name="line.236"></a>
 <span class="sourceLineNo">237</span>    @SuppressWarnings("PMD.CommentRequired")<a name="line.237"></a>
@@ -249,19 +249,19 @@
 <span class="sourceLineNo">241</span>            = ManagementFactory.getPlatformMBeanServer();<a name="line.241"></a>
 <span class="sourceLineNo">242</span><a name="line.242"></a>
 <span class="sourceLineNo">243</span>        private ObjectName mbeanName;<a name="line.243"></a>
-<span class="sourceLineNo">244</span>        private final WeakReference&lt;WebConsole&gt; portalRef;<a name="line.244"></a>
+<span class="sourceLineNo">244</span>        private final WeakReference&lt;WebConsole&gt; consoleRef;<a name="line.244"></a>
 <span class="sourceLineNo">245</span><a name="line.245"></a>
-<span class="sourceLineNo">246</span>        public WebConsoleInfo(WebConsole portal) {<a name="line.246"></a>
+<span class="sourceLineNo">246</span>        public WebConsoleInfo(WebConsole console) {<a name="line.246"></a>
 <span class="sourceLineNo">247</span>            try {<a name="line.247"></a>
-<span class="sourceLineNo">248</span>                mbeanName = new ObjectName("org.jgrapes.portal:type="<a name="line.248"></a>
+<span class="sourceLineNo">248</span>                mbeanName = new ObjectName("org.jgrapes.webconsole:type="<a name="line.248"></a>
 <span class="sourceLineNo">249</span>                    + WebConsole.class.getSimpleName() + ",name="<a name="line.249"></a>
-<span class="sourceLineNo">250</span>                    + ObjectName.quote(Components.simpleObjectName(portal)<a name="line.250"></a>
-<span class="sourceLineNo">251</span>                        + " (" + portal.view.prefix().toString() + ")"));<a name="line.251"></a>
+<span class="sourceLineNo">250</span>                    + ObjectName.quote(Components.simpleObjectName(console)<a name="line.250"></a>
+<span class="sourceLineNo">251</span>                        + " (" + console.view.prefix().toString() + ")"));<a name="line.251"></a>
 <span class="sourceLineNo">252</span>            } catch (MalformedObjectNameException e) {<a name="line.252"></a>
 <span class="sourceLineNo">253</span>                // Should not happen<a name="line.253"></a>
 <span class="sourceLineNo">254</span>                logger.log(Level.WARNING, e.getMessage(), e);<a name="line.254"></a>
 <span class="sourceLineNo">255</span>            }<a name="line.255"></a>
-<span class="sourceLineNo">256</span>            portalRef = new WeakReference&lt;&gt;(portal);<a name="line.256"></a>
+<span class="sourceLineNo">256</span>            consoleRef = new WeakReference&lt;&gt;(console);<a name="line.256"></a>
 <span class="sourceLineNo">257</span>            try {<a name="line.257"></a>
 <span class="sourceLineNo">258</span>                mbs.unregisterMBean(mbeanName);<a name="line.258"></a>
 <span class="sourceLineNo">259</span>            } catch (Exception e) { // NOPMD<a name="line.259"></a>
@@ -277,15 +277,15 @@
 <span class="sourceLineNo">269</span>        }<a name="line.269"></a>
 <span class="sourceLineNo">270</span><a name="line.270"></a>
 <span class="sourceLineNo">271</span>        public Optional&lt;WebConsole&gt; console() {<a name="line.271"></a>
-<span class="sourceLineNo">272</span>            WebConsole portal = portalRef.get();<a name="line.272"></a>
-<span class="sourceLineNo">273</span>            if (portal == null) {<a name="line.273"></a>
+<span class="sourceLineNo">272</span>            WebConsole console = consoleRef.get();<a name="line.272"></a>
+<span class="sourceLineNo">273</span>            if (console == null) {<a name="line.273"></a>
 <span class="sourceLineNo">274</span>                try {<a name="line.274"></a>
 <span class="sourceLineNo">275</span>                    mbs.unregisterMBean(mbeanName);<a name="line.275"></a>
 <span class="sourceLineNo">276</span>                } catch (Exception e) { // NOPMD<a name="line.276"></a>
 <span class="sourceLineNo">277</span>                    // Should work.<a name="line.277"></a>
 <span class="sourceLineNo">278</span>                }<a name="line.278"></a>
 <span class="sourceLineNo">279</span>            }<a name="line.279"></a>
-<span class="sourceLineNo">280</span>            return Optional.ofNullable(portal);<a name="line.280"></a>
+<span class="sourceLineNo">280</span>            return Optional.ofNullable(console);<a name="line.280"></a>
 <span class="sourceLineNo">281</span>        }<a name="line.281"></a>
 <span class="sourceLineNo">282</span><a name="line.282"></a>
 <span class="sourceLineNo">283</span>        @Override<a name="line.283"></a>
@@ -297,96 +297,97 @@
 <span class="sourceLineNo">289</span>        @Override<a name="line.289"></a>
 <span class="sourceLineNo">290</span>        public String getPrefix() {<a name="line.290"></a>
 <span class="sourceLineNo">291</span>            return console().map(<a name="line.291"></a>
-<span class="sourceLineNo">292</span>                portal -&gt; portal.view.prefix().toString()).orElse("&lt;unknown&gt;");<a name="line.292"></a>
-<span class="sourceLineNo">293</span>        }<a name="line.293"></a>
-<span class="sourceLineNo">294</span><a name="line.294"></a>
-<span class="sourceLineNo">295</span>        @Override<a name="line.295"></a>
-<span class="sourceLineNo">296</span>        public boolean isUseMinifiedResources() {<a name="line.296"></a>
-<span class="sourceLineNo">297</span>            return console().map(<a name="line.297"></a>
-<span class="sourceLineNo">298</span>                portal -&gt; portal.view.useMinifiedResources())<a name="line.298"></a>
-<span class="sourceLineNo">299</span>                .orElse(false);<a name="line.299"></a>
-<span class="sourceLineNo">300</span>        }<a name="line.300"></a>
-<span class="sourceLineNo">301</span><a name="line.301"></a>
-<span class="sourceLineNo">302</span>        @Override<a name="line.302"></a>
-<span class="sourceLineNo">303</span>        public void setUseMinifiedResources(boolean useMinifiedResources) {<a name="line.303"></a>
-<span class="sourceLineNo">304</span>            console().ifPresent(portal -&gt; portal.view.setUseMinifiedResources(<a name="line.304"></a>
-<span class="sourceLineNo">305</span>                useMinifiedResources));<a name="line.305"></a>
-<span class="sourceLineNo">306</span>        }<a name="line.306"></a>
-<span class="sourceLineNo">307</span><a name="line.307"></a>
-<span class="sourceLineNo">308</span>        @Override<a name="line.308"></a>
-<span class="sourceLineNo">309</span>        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")<a name="line.309"></a>
-<span class="sourceLineNo">310</span>        public SortedMap&lt;String, PortalSessionInfo&gt; getConsoleSessions() {<a name="line.310"></a>
-<span class="sourceLineNo">311</span>            SortedMap&lt;String, PortalSessionInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.311"></a>
-<span class="sourceLineNo">312</span>            console().ifPresent(portal -&gt; {<a name="line.312"></a>
-<span class="sourceLineNo">313</span>                for (ConsoleSession ps : ConsoleSession.byConsole(portal)) {<a name="line.313"></a>
-<span class="sourceLineNo">314</span>                    result.put(Components.simpleObjectName(ps),<a name="line.314"></a>
-<span class="sourceLineNo">315</span>                        new PortalSessionInfo(ps));<a name="line.315"></a>
-<span class="sourceLineNo">316</span>                }<a name="line.316"></a>
-<span class="sourceLineNo">317</span>            });<a name="line.317"></a>
-<span class="sourceLineNo">318</span>            return result;<a name="line.318"></a>
-<span class="sourceLineNo">319</span>        }<a name="line.319"></a>
-<span class="sourceLineNo">320</span>    }<a name="line.320"></a>
-<span class="sourceLineNo">321</span><a name="line.321"></a>
-<span class="sourceLineNo">322</span>    /**<a name="line.322"></a>
-<span class="sourceLineNo">323</span>     * An MBean interface for getting information about all portals.<a name="line.323"></a>
-<span class="sourceLineNo">324</span>     * <a name="line.324"></a>
-<span class="sourceLineNo">325</span>     * There is currently no summary information. However, the (periodic)<a name="line.325"></a>
-<span class="sourceLineNo">326</span>     * invocation of {@link PortalSummaryMXBean#getConsoles()} ensures<a name="line.326"></a>
-<span class="sourceLineNo">327</span>     * that entries for removed {@link WebConsole}s are unregistered.<a name="line.327"></a>
-<span class="sourceLineNo">328</span>     */<a name="line.328"></a>
-<span class="sourceLineNo">329</span>    @SuppressWarnings("PMD.CommentRequired")<a name="line.329"></a>
-<span class="sourceLineNo">330</span>    public interface PortalSummaryMXBean {<a name="line.330"></a>
-<span class="sourceLineNo">331</span><a name="line.331"></a>
-<span class="sourceLineNo">332</span>        Set&lt;ConsoleMXBean&gt; getConsoles();<a name="line.332"></a>
-<span class="sourceLineNo">333</span><a name="line.333"></a>
-<span class="sourceLineNo">334</span>    }<a name="line.334"></a>
-<span class="sourceLineNo">335</span><a name="line.335"></a>
-<span class="sourceLineNo">336</span>    /**<a name="line.336"></a>
-<span class="sourceLineNo">337</span>     * Provides an MBean view of the portal.<a name="line.337"></a>
-<span class="sourceLineNo">338</span>     */<a name="line.338"></a>
-<span class="sourceLineNo">339</span>    @SuppressWarnings("PMD.CommentRequired")<a name="line.339"></a>
-<span class="sourceLineNo">340</span>    private static class MBeanView implements PortalSummaryMXBean {<a name="line.340"></a>
-<span class="sourceLineNo">341</span><a name="line.341"></a>
-<span class="sourceLineNo">342</span>        private static Set&lt;WebConsoleInfo&gt; consoleInfos = new HashSet&lt;&gt;();<a name="line.342"></a>
-<span class="sourceLineNo">343</span><a name="line.343"></a>
-<span class="sourceLineNo">344</span>        public static void addConsole(WebConsole portal) {<a name="line.344"></a>
-<span class="sourceLineNo">345</span>            synchronized (consoleInfos) {<a name="line.345"></a>
-<span class="sourceLineNo">346</span>                consoleInfos.add(new WebConsoleInfo(portal));<a name="line.346"></a>
-<span class="sourceLineNo">347</span>            }<a name="line.347"></a>
-<span class="sourceLineNo">348</span>        }<a name="line.348"></a>
-<span class="sourceLineNo">349</span><a name="line.349"></a>
-<span class="sourceLineNo">350</span>        @Override<a name="line.350"></a>
-<span class="sourceLineNo">351</span>        public Set&lt;ConsoleMXBean&gt; getConsoles() {<a name="line.351"></a>
-<span class="sourceLineNo">352</span>            Set&lt;WebConsoleInfo&gt; expired = new HashSet&lt;&gt;();<a name="line.352"></a>
-<span class="sourceLineNo">353</span>            synchronized (consoleInfos) {<a name="line.353"></a>
-<span class="sourceLineNo">354</span>                for (WebConsoleInfo portalInfo : consoleInfos) {<a name="line.354"></a>
-<span class="sourceLineNo">355</span>                    if (!portalInfo.console().isPresent()) {<a name="line.355"></a>
-<span class="sourceLineNo">356</span>                        expired.add(portalInfo);<a name="line.356"></a>
-<span class="sourceLineNo">357</span>                    }<a name="line.357"></a>
-<span class="sourceLineNo">358</span>                }<a name="line.358"></a>
-<span class="sourceLineNo">359</span>                consoleInfos.removeAll(expired);<a name="line.359"></a>
-<span class="sourceLineNo">360</span>            }<a name="line.360"></a>
-<span class="sourceLineNo">361</span>            @SuppressWarnings("unchecked")<a name="line.361"></a>
-<span class="sourceLineNo">362</span>            Set&lt;ConsoleMXBean&gt; result<a name="line.362"></a>
-<span class="sourceLineNo">363</span>                = (Set&lt;ConsoleMXBean&gt;) (Object) consoleInfos;<a name="line.363"></a>
-<span class="sourceLineNo">364</span>            return result;<a name="line.364"></a>
-<span class="sourceLineNo">365</span>        }<a name="line.365"></a>
-<span class="sourceLineNo">366</span>    }<a name="line.366"></a>
-<span class="sourceLineNo">367</span><a name="line.367"></a>
-<span class="sourceLineNo">368</span>    static {<a name="line.368"></a>
-<span class="sourceLineNo">369</span>        try {<a name="line.369"></a>
-<span class="sourceLineNo">370</span>            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();<a name="line.370"></a>
-<span class="sourceLineNo">371</span>            ObjectName mxbeanName<a name="line.371"></a>
-<span class="sourceLineNo">372</span>                = new ObjectName("org.jgrapes.webconsole:type="<a name="line.372"></a>
-<span class="sourceLineNo">373</span>                    + WebConsole.class.getSimpleName() + "s");<a name="line.373"></a>
-<span class="sourceLineNo">374</span>            mbs.registerMBean(new MBeanView(), mxbeanName);<a name="line.374"></a>
-<span class="sourceLineNo">375</span>        } catch (MalformedObjectNameException | InstanceAlreadyExistsException<a name="line.375"></a>
-<span class="sourceLineNo">376</span>                | MBeanRegistrationException | NotCompliantMBeanException e) {<a name="line.376"></a>
-<span class="sourceLineNo">377</span>            // Should not happen<a name="line.377"></a>
-<span class="sourceLineNo">378</span>            logger.log(Level.WARNING, e.getMessage(), e);<a name="line.378"></a>
-<span class="sourceLineNo">379</span>        }<a name="line.379"></a>
-<span class="sourceLineNo">380</span>    }<a name="line.380"></a>
-<span class="sourceLineNo">381</span>}<a name="line.381"></a>
+<span class="sourceLineNo">292</span>                console -&gt; console.view.prefix().toString())<a name="line.292"></a>
+<span class="sourceLineNo">293</span>                .orElse("&lt;unknown&gt;");<a name="line.293"></a>
+<span class="sourceLineNo">294</span>        }<a name="line.294"></a>
+<span class="sourceLineNo">295</span><a name="line.295"></a>
+<span class="sourceLineNo">296</span>        @Override<a name="line.296"></a>
+<span class="sourceLineNo">297</span>        public boolean isUseMinifiedResources() {<a name="line.297"></a>
+<span class="sourceLineNo">298</span>            return console().map(<a name="line.298"></a>
+<span class="sourceLineNo">299</span>                console -&gt; console.view.useMinifiedResources())<a name="line.299"></a>
+<span class="sourceLineNo">300</span>                .orElse(false);<a name="line.300"></a>
+<span class="sourceLineNo">301</span>        }<a name="line.301"></a>
+<span class="sourceLineNo">302</span><a name="line.302"></a>
+<span class="sourceLineNo">303</span>        @Override<a name="line.303"></a>
+<span class="sourceLineNo">304</span>        public void setUseMinifiedResources(boolean useMinifiedResources) {<a name="line.304"></a>
+<span class="sourceLineNo">305</span>            console().ifPresent(console -&gt; console.view.setUseMinifiedResources(<a name="line.305"></a>
+<span class="sourceLineNo">306</span>                useMinifiedResources));<a name="line.306"></a>
+<span class="sourceLineNo">307</span>        }<a name="line.307"></a>
+<span class="sourceLineNo">308</span><a name="line.308"></a>
+<span class="sourceLineNo">309</span>        @Override<a name="line.309"></a>
+<span class="sourceLineNo">310</span>        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")<a name="line.310"></a>
+<span class="sourceLineNo">311</span>        public SortedMap&lt;String, ConsoleSessionInfo&gt; getConsoleSessions() {<a name="line.311"></a>
+<span class="sourceLineNo">312</span>            SortedMap&lt;String, ConsoleSessionInfo&gt; result = new TreeMap&lt;&gt;();<a name="line.312"></a>
+<span class="sourceLineNo">313</span>            console().ifPresent(console -&gt; {<a name="line.313"></a>
+<span class="sourceLineNo">314</span>                for (ConsoleSession ps : ConsoleSession.byConsole(console)) {<a name="line.314"></a>
+<span class="sourceLineNo">315</span>                    result.put(Components.simpleObjectName(ps),<a name="line.315"></a>
+<span class="sourceLineNo">316</span>                        new ConsoleSessionInfo(ps));<a name="line.316"></a>
+<span class="sourceLineNo">317</span>                }<a name="line.317"></a>
+<span class="sourceLineNo">318</span>            });<a name="line.318"></a>
+<span class="sourceLineNo">319</span>            return result;<a name="line.319"></a>
+<span class="sourceLineNo">320</span>        }<a name="line.320"></a>
+<span class="sourceLineNo">321</span>    }<a name="line.321"></a>
+<span class="sourceLineNo">322</span><a name="line.322"></a>
+<span class="sourceLineNo">323</span>    /**<a name="line.323"></a>
+<span class="sourceLineNo">324</span>     * An MBean interface for getting information about all consoles.<a name="line.324"></a>
+<span class="sourceLineNo">325</span>     * <a name="line.325"></a>
+<span class="sourceLineNo">326</span>     * There is currently no summary information. However, the (periodic)<a name="line.326"></a>
+<span class="sourceLineNo">327</span>     * invocation of {@link WebConsoleSummaryMXBean#getConsoles()} ensures<a name="line.327"></a>
+<span class="sourceLineNo">328</span>     * that entries for removed {@link WebConsole}s are unregistered.<a name="line.328"></a>
+<span class="sourceLineNo">329</span>     */<a name="line.329"></a>
+<span class="sourceLineNo">330</span>    @SuppressWarnings("PMD.CommentRequired")<a name="line.330"></a>
+<span class="sourceLineNo">331</span>    public interface WebConsoleSummaryMXBean {<a name="line.331"></a>
+<span class="sourceLineNo">332</span><a name="line.332"></a>
+<span class="sourceLineNo">333</span>        Set&lt;ConsoleMXBean&gt; getConsoles();<a name="line.333"></a>
+<span class="sourceLineNo">334</span><a name="line.334"></a>
+<span class="sourceLineNo">335</span>    }<a name="line.335"></a>
+<span class="sourceLineNo">336</span><a name="line.336"></a>
+<span class="sourceLineNo">337</span>    /**<a name="line.337"></a>
+<span class="sourceLineNo">338</span>     * Provides an MBean view of the console.<a name="line.338"></a>
+<span class="sourceLineNo">339</span>     */<a name="line.339"></a>
+<span class="sourceLineNo">340</span>    @SuppressWarnings("PMD.CommentRequired")<a name="line.340"></a>
+<span class="sourceLineNo">341</span>    private static class MBeanView implements WebConsoleSummaryMXBean {<a name="line.341"></a>
+<span class="sourceLineNo">342</span><a name="line.342"></a>
+<span class="sourceLineNo">343</span>        private static Set&lt;WebConsoleInfo&gt; consoleInfos = new HashSet&lt;&gt;();<a name="line.343"></a>
+<span class="sourceLineNo">344</span><a name="line.344"></a>
+<span class="sourceLineNo">345</span>        public static void addConsole(WebConsole console) {<a name="line.345"></a>
+<span class="sourceLineNo">346</span>            synchronized (consoleInfos) {<a name="line.346"></a>
+<span class="sourceLineNo">347</span>                consoleInfos.add(new WebConsoleInfo(console));<a name="line.347"></a>
+<span class="sourceLineNo">348</span>            }<a name="line.348"></a>
+<span class="sourceLineNo">349</span>        }<a name="line.349"></a>
+<span class="sourceLineNo">350</span><a name="line.350"></a>
+<span class="sourceLineNo">351</span>        @Override<a name="line.351"></a>
+<span class="sourceLineNo">352</span>        public Set&lt;ConsoleMXBean&gt; getConsoles() {<a name="line.352"></a>
+<span class="sourceLineNo">353</span>            Set&lt;WebConsoleInfo&gt; expired = new HashSet&lt;&gt;();<a name="line.353"></a>
+<span class="sourceLineNo">354</span>            synchronized (consoleInfos) {<a name="line.354"></a>
+<span class="sourceLineNo">355</span>                for (WebConsoleInfo consoleInfo : consoleInfos) {<a name="line.355"></a>
+<span class="sourceLineNo">356</span>                    if (!consoleInfo.console().isPresent()) {<a name="line.356"></a>
+<span class="sourceLineNo">357</span>                        expired.add(consoleInfo);<a name="line.357"></a>
+<span class="sourceLineNo">358</span>                    }<a name="line.358"></a>
+<span class="sourceLineNo">359</span>                }<a name="line.359"></a>
+<span class="sourceLineNo">360</span>                consoleInfos.removeAll(expired);<a name="line.360"></a>
+<span class="sourceLineNo">361</span>            }<a name="line.361"></a>
+<span class="sourceLineNo">362</span>            @SuppressWarnings("unchecked")<a name="line.362"></a>
+<span class="sourceLineNo">363</span>            Set&lt;ConsoleMXBean&gt; result<a name="line.363"></a>
+<span class="sourceLineNo">364</span>                = (Set&lt;ConsoleMXBean&gt;) (Object) consoleInfos;<a name="line.364"></a>
+<span class="sourceLineNo">365</span>            return result;<a name="line.365"></a>
+<span class="sourceLineNo">366</span>        }<a name="line.366"></a>
+<span class="sourceLineNo">367</span>    }<a name="line.367"></a>
+<span class="sourceLineNo">368</span><a name="line.368"></a>
+<span class="sourceLineNo">369</span>    static {<a name="line.369"></a>
+<span class="sourceLineNo">370</span>        try {<a name="line.370"></a>
+<span class="sourceLineNo">371</span>            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();<a name="line.371"></a>
+<span class="sourceLineNo">372</span>            ObjectName mxbeanName<a name="line.372"></a>
+<span class="sourceLineNo">373</span>                = new ObjectName("org.jgrapes.webconsole:type="<a name="line.373"></a>
+<span class="sourceLineNo">374</span>                    + WebConsole.class.getSimpleName() + "s");<a name="line.374"></a>
+<span class="sourceLineNo">375</span>            mbs.registerMBean(new MBeanView(), mxbeanName);<a name="line.375"></a>
+<span class="sourceLineNo">376</span>        } catch (MalformedObjectNameException | InstanceAlreadyExistsException<a name="line.376"></a>
+<span class="sourceLineNo">377</span>                | MBeanRegistrationException | NotCompliantMBeanException e) {<a name="line.377"></a>
+<span class="sourceLineNo">378</span>            // Should not happen<a name="line.378"></a>
+<span class="sourceLineNo">379</span>            logger.log(Level.WARNING, e.getMessage(), e);<a name="line.379"></a>
+<span class="sourceLineNo">380</span>        }<a name="line.380"></a>
+<span class="sourceLineNo">381</span>    }<a name="line.381"></a>
+<span class="sourceLineNo">382</span>}<a name="line.382"></a>
 
 
 
