@@ -11,7 +11,7 @@ org.jgrapes.webconsole.provider.chartjs
 org.jgrapes.webconsole.provider.datatables
 org.jgrapes.webconsole.provider.fontawesome
 org.jgrapes.webconsole.provider.gridstack
-org.jgrapes.webconsole.provider.jgpvuecomponents
+org.jgrapes.webconsole.provider.jgwcvuecomponents
 org.jgrapes.webconsole.provider.jquery
 org.jgrapes.webconsole.provider.jqueryui
 org.jgrapes.webconsole.provider.jquitouchpunch
