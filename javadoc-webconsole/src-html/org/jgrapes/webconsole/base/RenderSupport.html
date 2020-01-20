@@ -98,22 +98,22 @@
 <span class="sourceLineNo">090</span>    }<a name="line.90"></a>
 <span class="sourceLineNo">091</span><a name="line.91"></a>
 <span class="sourceLineNo">092</span>    /**<a name="line.92"></a>
-<span class="sourceLineNo">093</span>     * Create a reference to a resource provided by a portlet<a name="line.93"></a>
+<span class="sourceLineNo">093</span>     * Create a reference to a resource provided by a web console component<a name="line.93"></a>
 <span class="sourceLineNo">094</span>     * of the given type. Requesting the resulting URI results<a name="line.94"></a>
 <span class="sourceLineNo">095</span>     * in a {@link ConletResourceRequest}.<a name="line.95"></a>
 <span class="sourceLineNo">096</span>     * <a name="line.96"></a>
-<span class="sourceLineNo">097</span>     * @param portletType the portlet type<a name="line.97"></a>
+<span class="sourceLineNo">097</span>     * @param conletType the web console component type<a name="line.97"></a>
 <span class="sourceLineNo">098</span>     * @param uri the URI made available as <a name="line.98"></a>
 <span class="sourceLineNo">099</span>     * {@link ConletResourceRequest#resourceUri()}<a name="line.99"></a>
 <span class="sourceLineNo">100</span>     * @return the resulting URI<a name="line.100"></a>
 <span class="sourceLineNo">101</span>     */<a name="line.101"></a>
-<span class="sourceLineNo">102</span>    URI conletResource(String portletType, URI uri);<a name="line.102"></a>
+<span class="sourceLineNo">102</span>    URI conletResource(String conletType, URI uri);<a name="line.102"></a>
 <span class="sourceLineNo">103</span><a name="line.103"></a>
 <span class="sourceLineNo">104</span>    /**<a name="line.104"></a>
 <span class="sourceLineNo">105</span>     * Convenience method that converts the path to an URI<a name="line.105"></a>
 <span class="sourceLineNo">106</span>     * before calling {@link #conletResource(String, URI)}.<a name="line.106"></a>
 <span class="sourceLineNo">107</span>     * <a name="line.107"></a>
-<span class="sourceLineNo">108</span>     * @param conletType the portlet type<a name="line.108"></a>
+<span class="sourceLineNo">108</span>     * @param conletType the web console component type<a name="line.108"></a>
 <span class="sourceLineNo">109</span>     * @param path the path <a name="line.109"></a>
 <span class="sourceLineNo">110</span>     * @return the resulting URI<a name="line.110"></a>
 <span class="sourceLineNo">111</span>     */<a name="line.111"></a>

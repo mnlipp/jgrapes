@@ -37,15 +37,15 @@
 <span class="sourceLineNo">029</span> * a {@link RenderConlet} event that has as payload the<a name="line.29"></a>
 <span class="sourceLineNo">030</span> * HTML that displays the web console component on the web console page.<a name="line.30"></a>
 <span class="sourceLineNo">031</span> * <a name="line.31"></a>
-<span class="sourceLineNo">032</span> * ![Event Sequence](RenderPortletRequestSeq.svg)<a name="line.32"></a>
+<span class="sourceLineNo">032</span> * ![Event Sequence](RenderConletRequestSeq.svg)<a name="line.32"></a>
 <span class="sourceLineNo">033</span> * <a name="line.33"></a>
 <span class="sourceLineNo">034</span> * The event's result must be set to `true` by the rendering <a name="line.34"></a>
 <span class="sourceLineNo">035</span> * web console component.<a name="line.35"></a>
 <span class="sourceLineNo">036</span> * <a name="line.36"></a>
-<span class="sourceLineNo">037</span> * @startuml RenderPortletRequestSeq.svg<a name="line.37"></a>
+<span class="sourceLineNo">037</span> * @startuml RenderConletRequestSeq.svg<a name="line.37"></a>
 <span class="sourceLineNo">038</span> * hide footbox<a name="line.38"></a>
 <span class="sourceLineNo">039</span> * <a name="line.39"></a>
-<span class="sourceLineNo">040</span> * Browser -&gt; WebConsole: "renderPortletRequest"<a name="line.40"></a>
+<span class="sourceLineNo">040</span> * Browser -&gt; WebConsole: "renderConletRequest"<a name="line.40"></a>
 <span class="sourceLineNo">041</span> * activate WebConsole<a name="line.41"></a>
 <span class="sourceLineNo">042</span> * WebConsole -&gt; Conlet: RenderConletRequest<a name="line.42"></a>
 <span class="sourceLineNo">043</span> * deactivate WebConsole<a name="line.43"></a>
@@ -53,7 +53,7 @@
 <span class="sourceLineNo">045</span> * Conlet -&gt; WebConsole: RenderConlet<a name="line.45"></a>
 <span class="sourceLineNo">046</span> * deactivate Conlet<a name="line.46"></a>
 <span class="sourceLineNo">047</span> * activate WebConsole<a name="line.47"></a>
-<span class="sourceLineNo">048</span> * WebConsole -&gt; Browser: "renderPortlet"<a name="line.48"></a>
+<span class="sourceLineNo">048</span> * WebConsole -&gt; Browser: "renderConlet"<a name="line.48"></a>
 <span class="sourceLineNo">049</span> * deactivate WebConsole<a name="line.49"></a>
 <span class="sourceLineNo">050</span> * <a name="line.50"></a>
 <span class="sourceLineNo">051</span> * @enduml<a name="line.51"></a>
