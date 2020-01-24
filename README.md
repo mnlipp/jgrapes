@@ -1,6 +1,9 @@
 JGrapes
 =======
 
+See the [project's home page](https://mnlipp.github.io/jgrapes/) for a
+detailed description of the framework.
+
 [![Build Status](https://travis-ci.org/mnlipp/jgrapes.svg?branch=master)](https://travis-ci.org/mnlipp/jgrapes) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/42ed1920969d4b878d7ce80c08141a85)](https://www.codacy.com/app/mnlipp/jgrapes?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mnlipp/jgrapes&amp;utm_campaign=Badge_Grade)
 
 | Package | Bintray |
@@ -10,14 +13,41 @@ JGrapes
 | io      | [ ![Download](https://api.bintray.com/packages/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.io/images/download.svg) ](https://bintray.com/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.io/_latestVersion)
 | http    | [ ![Download](https://api.bintray.com/packages/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.http/images/download.svg) ](https://bintray.com/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.http/_latestVersion)
 
-See the [project's home page](https://mnlipp.github.io/jgrapes/).
-
 This repository comprises the sources for jars that provide the basic
 packages (org.jgrapes.core, ...util, ...io etc.). The jars have augmented
 manifests that allow them to be used without wrapping as OSGi bundles, 
 but they do not depend in any way on the OSGi framework.
 
-JGrapes requires Java 8 SE. Binaries are currently made
+Short Overview
+--------------
+
+JGrapes is an event driven component framework written in Java. 
+It was inspired by the 
+[“circuits framework”](http://circuitsframework.com/) written for Python.
+
+This repository is used to maintain the library with 
+the interfaces and classes that provide the
+event handling features of the core framework.
+Some additional libraries built on top of the core which
+support asynchronous I/O and provide some more complex components 
+such as an HTTP server are also maintained in this repository.
+
+A web console that uses these basic libraries as a foundation
+is maintained as a separate 
+[JGrapes Web Console](https://github.com/mnlipp/jgrapes-webconsole)
+project.
+
+The JGrapes OSGi components (that depend on the OSGi framework and 
+provide JGrapes based OSGi services) can also be found in a
+[repository of their own](https://github.com/mnlipp/jgrapes-osgi).
+
+See the [project's home page](https://mnlipp.github.io/jgrapes/) for a
+detailed description of the framework.
+
+Running
+-------
+
+JGrapes requires Java 8 SE or newer. Binaries are currently made
 available at Bintray (and sync'd to Maven Central).
 
 ```gradle
@@ -46,13 +76,3 @@ encounter the (in)famous
 ["sync problem"](https://github.com/eclipse/buildship/issues/478),
 simply restart Eclipse.
 
-Additional JGrapes components
------------------------------
-
-A web console built on top of the basic libraries is maintained as a
-seperate [JGrapes Web Console](https://github.com/mnlipp/jgrapes-webconsole)
-project.
-
-The JGrapes OSGi components (that depend on the OSGi framework and 
-provide JGrapes based OSGi services) can also be found in a
-[repository of their own](https://github.com/mnlipp/jgrapes-osgi). 
