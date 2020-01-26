@@ -29,107 +29,105 @@
 <span class="sourceLineNo">021</span>import freemarker.core.ParseException;<a name="line.21"></a>
 <span class="sourceLineNo">022</span>import freemarker.template.MalformedTemplateNameException;<a name="line.22"></a>
 <span class="sourceLineNo">023</span>import freemarker.template.TemplateNotFoundException;<a name="line.23"></a>
-<span class="sourceLineNo">024</span><a name="line.24"></a>
-<span class="sourceLineNo">025</span>import java.io.IOException;<a name="line.25"></a>
-<span class="sourceLineNo">026</span>import java.util.Map;<a name="line.26"></a>
-<span class="sourceLineNo">027</span>import java.util.logging.Logger;<a name="line.27"></a>
-<span class="sourceLineNo">028</span><a name="line.28"></a>
-<span class="sourceLineNo">029</span>import org.jgrapes.core.Channel;<a name="line.29"></a>
-<span class="sourceLineNo">030</span>import org.jgrapes.core.Event;<a name="line.30"></a>
-<span class="sourceLineNo">031</span>import org.jgrapes.core.Manager;<a name="line.31"></a>
-<span class="sourceLineNo">032</span>import org.jgrapes.core.annotation.Handler;<a name="line.32"></a>
-<span class="sourceLineNo">033</span>import org.jgrapes.webconsole.base.ConsoleSession;<a name="line.33"></a>
-<span class="sourceLineNo">034</span>import org.jgrapes.webconsole.base.PageResourceProvider;<a name="line.34"></a>
-<span class="sourceLineNo">035</span>import org.jgrapes.webconsole.base.events.AddPageResources;<a name="line.35"></a>
-<span class="sourceLineNo">036</span>import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;<a name="line.36"></a>
-<span class="sourceLineNo">037</span>import org.jgrapes.webconsole.base.events.ConsoleReady;<a name="line.37"></a>
-<span class="sourceLineNo">038</span><a name="line.38"></a>
-<span class="sourceLineNo">039</span>/**<a name="line.39"></a>
-<span class="sourceLineNo">040</span> * Provider for the [Gridstack.js](http://gridstackjs.com/) library.<a name="line.40"></a>
-<span class="sourceLineNo">041</span> */<a name="line.41"></a>
-<span class="sourceLineNo">042</span>public class GridstackProvider extends PageResourceProvider {<a name="line.42"></a>
-<span class="sourceLineNo">043</span><a name="line.43"></a>
-<span class="sourceLineNo">044</span>    private static Logger LOG<a name="line.44"></a>
-<span class="sourceLineNo">045</span>        = Logger.getLogger(GridstackProvider.class.getName());<a name="line.45"></a>
-<span class="sourceLineNo">046</span><a name="line.46"></a>
-<span class="sourceLineNo">047</span>    public enum Configuration {<a name="line.47"></a>
-<span class="sourceLineNo">048</span>        CoreOnly, CoreWithJQueryUI, All<a name="line.48"></a>
-<span class="sourceLineNo">049</span>    }<a name="line.49"></a>
+<span class="sourceLineNo">024</span>import java.io.IOException;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import java.util.Map;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import java.util.logging.Logger;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import org.jgrapes.core.Channel;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.jgrapes.core.Event;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import org.jgrapes.core.Manager;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>import org.jgrapes.core.annotation.Handler;<a name="line.30"></a>
+<span class="sourceLineNo">031</span>import org.jgrapes.webconsole.base.ConsoleSession;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>import org.jgrapes.webconsole.base.PageResourceProvider;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import org.jgrapes.webconsole.base.events.AddPageResources;<a name="line.33"></a>
+<span class="sourceLineNo">034</span>import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>import org.jgrapes.webconsole.base.events.ConsoleReady;<a name="line.35"></a>
+<span class="sourceLineNo">036</span><a name="line.36"></a>
+<span class="sourceLineNo">037</span>/**<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * Provider for the [Gridstack.js](http://gridstackjs.com/) library.<a name="line.38"></a>
+<span class="sourceLineNo">039</span> */<a name="line.39"></a>
+<span class="sourceLineNo">040</span>public class GridstackProvider extends PageResourceProvider {<a name="line.40"></a>
+<span class="sourceLineNo">041</span><a name="line.41"></a>
+<span class="sourceLineNo">042</span>    private static Logger LOG<a name="line.42"></a>
+<span class="sourceLineNo">043</span>        = Logger.getLogger(GridstackProvider.class.getName());<a name="line.43"></a>
+<span class="sourceLineNo">044</span><a name="line.44"></a>
+<span class="sourceLineNo">045</span>    public enum Configuration {<a name="line.45"></a>
+<span class="sourceLineNo">046</span>        CoreOnly, CoreWithJQueryUI, All<a name="line.46"></a>
+<span class="sourceLineNo">047</span>    }<a name="line.47"></a>
+<span class="sourceLineNo">048</span><a name="line.48"></a>
+<span class="sourceLineNo">049</span>    private Configuration configuration = Configuration.All;<a name="line.49"></a>
 <span class="sourceLineNo">050</span><a name="line.50"></a>
-<span class="sourceLineNo">051</span>    private Configuration configuration = Configuration.All;<a name="line.51"></a>
-<span class="sourceLineNo">052</span><a name="line.52"></a>
-<span class="sourceLineNo">053</span>    /**<a name="line.53"></a>
-<span class="sourceLineNo">054</span>     * Creates a new component with its channel set to the given <a name="line.54"></a>
-<span class="sourceLineNo">055</span>     * channel.<a name="line.55"></a>
-<span class="sourceLineNo">056</span>     *<a name="line.56"></a>
-<span class="sourceLineNo">057</span>     * @param componentChannel the channel that the component's<a name="line.57"></a>
-<span class="sourceLineNo">058</span>     * handlers listen on by default and that <a name="line.58"></a>
-<span class="sourceLineNo">059</span>     * {@link Manager#fire(Event, Channel...)} sends the event to<a name="line.59"></a>
-<span class="sourceLineNo">060</span>     * @param properties the properties used to configure the component<a name="line.60"></a>
-<span class="sourceLineNo">061</span>     */<a name="line.61"></a>
-<span class="sourceLineNo">062</span>    public GridstackProvider(Channel componentChannel,<a name="line.62"></a>
-<span class="sourceLineNo">063</span>            Map&lt;Object, Object&gt; properties) {<a name="line.63"></a>
-<span class="sourceLineNo">064</span>        super(componentChannel);<a name="line.64"></a>
-<span class="sourceLineNo">065</span>        if (properties.containsKey("configuration")) {<a name="line.65"></a>
-<span class="sourceLineNo">066</span>            String config = (String) properties.get("configuration");<a name="line.66"></a>
-<span class="sourceLineNo">067</span>            try {<a name="line.67"></a>
-<span class="sourceLineNo">068</span>                configuration = Configuration.valueOf(config);<a name="line.68"></a>
-<span class="sourceLineNo">069</span>            } catch (IllegalArgumentException e) {<a name="line.69"></a>
-<span class="sourceLineNo">070</span>                LOG.severe("Illegal value for \"configuration\": " + config);<a name="line.70"></a>
-<span class="sourceLineNo">071</span>            }<a name="line.71"></a>
-<span class="sourceLineNo">072</span>        }<a name="line.72"></a>
-<span class="sourceLineNo">073</span>    }<a name="line.73"></a>
-<span class="sourceLineNo">074</span><a name="line.74"></a>
-<span class="sourceLineNo">075</span>    /**<a name="line.75"></a>
-<span class="sourceLineNo">076</span>     * On {@link ConsoleReady}, fire the appropriate {@link AddPageResources}.<a name="line.76"></a>
-<span class="sourceLineNo">077</span>     *<a name="line.77"></a>
-<span class="sourceLineNo">078</span>     * @param event the event<a name="line.78"></a>
-<span class="sourceLineNo">079</span>     * @param consoleSession the web console session<a name="line.79"></a>
-<span class="sourceLineNo">080</span>     * @throws TemplateNotFoundException the template not found exception<a name="line.80"></a>
-<span class="sourceLineNo">081</span>     * @throws MalformedTemplateNameException the malformed template name exception<a name="line.81"></a>
-<span class="sourceLineNo">082</span>     * @throws ParseException the parse exception<a name="line.82"></a>
-<span class="sourceLineNo">083</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.83"></a>
-<span class="sourceLineNo">084</span>     */<a name="line.84"></a>
-<span class="sourceLineNo">085</span>    @Handler(priority = 100)<a name="line.85"></a>
-<span class="sourceLineNo">086</span>    public void onConsoleReady(ConsoleReady event,<a name="line.86"></a>
-<span class="sourceLineNo">087</span>            ConsoleSession consoleSession)<a name="line.87"></a>
-<span class="sourceLineNo">088</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.88"></a>
-<span class="sourceLineNo">089</span>            ParseException, IOException {<a name="line.89"></a>
-<span class="sourceLineNo">090</span>        String minExt = event.renderSupport()<a name="line.90"></a>
-<span class="sourceLineNo">091</span>            .useMinifiedResources() ? ".min" : "";<a name="line.91"></a>
-<span class="sourceLineNo">092</span>        AddPageResources addRequest = new AddPageResources()<a name="line.92"></a>
-<span class="sourceLineNo">093</span>            .addCss(event.renderSupport().pageResource(<a name="line.93"></a>
-<span class="sourceLineNo">094</span>                "gridstack/gridstack" + minExt + ".css"));<a name="line.94"></a>
-<span class="sourceLineNo">095</span>        switch (configuration) {<a name="line.95"></a>
-<span class="sourceLineNo">096</span>        case CoreOnly:<a name="line.96"></a>
-<span class="sourceLineNo">097</span>            addRequest<a name="line.97"></a>
-<span class="sourceLineNo">098</span>                .addScriptResource(new ScriptResource()<a name="line.98"></a>
-<span class="sourceLineNo">099</span>                    .setRequires("jquery")<a name="line.99"></a>
-<span class="sourceLineNo">100</span>                    .setProvides("gridstack")<a name="line.100"></a>
-<span class="sourceLineNo">101</span>                    .setScriptUri(event.renderSupport().pageResource(<a name="line.101"></a>
-<span class="sourceLineNo">102</span>                        "gridstack/gridstack" + minExt + ".js")));<a name="line.102"></a>
-<span class="sourceLineNo">103</span>            break;<a name="line.103"></a>
-<span class="sourceLineNo">104</span>        case CoreWithJQueryUI:<a name="line.104"></a>
-<span class="sourceLineNo">105</span>            addRequest.addScriptResource(new ScriptResource()<a name="line.105"></a>
-<span class="sourceLineNo">106</span>                .setRequires("jquery", "jquery-ui")<a name="line.106"></a>
-<span class="sourceLineNo">107</span>                .setProvides("gridstack")<a name="line.107"></a>
-<span class="sourceLineNo">108</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.108"></a>
-<span class="sourceLineNo">109</span>                    "gridstack/gridstack" + minExt + ".js")));<a name="line.109"></a>
-<span class="sourceLineNo">110</span>            addRequest.addScriptResource(new ScriptResource()<a name="line.110"></a>
-<span class="sourceLineNo">111</span>                .setProvides("gridstack.jQueryUI")<a name="line.111"></a>
-<span class="sourceLineNo">112</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.112"></a>
-<span class="sourceLineNo">113</span>                    "gridstack/gridstack.jQueryUI" + minExt + ".js")));<a name="line.113"></a>
-<span class="sourceLineNo">114</span>            break;<a name="line.114"></a>
-<span class="sourceLineNo">115</span>        case All:<a name="line.115"></a>
-<span class="sourceLineNo">116</span>            addRequest.addScriptResource(new ScriptResource()<a name="line.116"></a>
-<span class="sourceLineNo">117</span>                .setRequires("jquery")<a name="line.117"></a>
-<span class="sourceLineNo">118</span>                .setProvides("gridstack", "gridstack.all")<a name="line.118"></a>
-<span class="sourceLineNo">119</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.119"></a>
-<span class="sourceLineNo">120</span>                    "gridstack/gridstack.all.js")));<a name="line.120"></a>
-<span class="sourceLineNo">121</span>        }<a name="line.121"></a>
-<span class="sourceLineNo">122</span>        consoleSession.respond(addRequest);<a name="line.122"></a>
-<span class="sourceLineNo">123</span>    }<a name="line.123"></a>
-<span class="sourceLineNo">124</span>}<a name="line.124"></a>
+<span class="sourceLineNo">051</span>    /**<a name="line.51"></a>
+<span class="sourceLineNo">052</span>     * Creates a new component with its channel set to the given <a name="line.52"></a>
+<span class="sourceLineNo">053</span>     * channel.<a name="line.53"></a>
+<span class="sourceLineNo">054</span>     *<a name="line.54"></a>
+<span class="sourceLineNo">055</span>     * @param componentChannel the channel that the component's<a name="line.55"></a>
+<span class="sourceLineNo">056</span>     * handlers listen on by default and that <a name="line.56"></a>
+<span class="sourceLineNo">057</span>     * {@link Manager#fire(Event, Channel...)} sends the event to<a name="line.57"></a>
+<span class="sourceLineNo">058</span>     * @param properties the properties used to configure the component<a name="line.58"></a>
+<span class="sourceLineNo">059</span>     */<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    public GridstackProvider(Channel componentChannel,<a name="line.60"></a>
+<span class="sourceLineNo">061</span>            Map&lt;Object, Object&gt; properties) {<a name="line.61"></a>
+<span class="sourceLineNo">062</span>        super(componentChannel);<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        if (properties.containsKey("configuration")) {<a name="line.63"></a>
+<span class="sourceLineNo">064</span>            String config = (String) properties.get("configuration");<a name="line.64"></a>
+<span class="sourceLineNo">065</span>            try {<a name="line.65"></a>
+<span class="sourceLineNo">066</span>                configuration = Configuration.valueOf(config);<a name="line.66"></a>
+<span class="sourceLineNo">067</span>            } catch (IllegalArgumentException e) {<a name="line.67"></a>
+<span class="sourceLineNo">068</span>                LOG.severe("Illegal value for \"configuration\": " + config);<a name="line.68"></a>
+<span class="sourceLineNo">069</span>            }<a name="line.69"></a>
+<span class="sourceLineNo">070</span>        }<a name="line.70"></a>
+<span class="sourceLineNo">071</span>    }<a name="line.71"></a>
+<span class="sourceLineNo">072</span><a name="line.72"></a>
+<span class="sourceLineNo">073</span>    /**<a name="line.73"></a>
+<span class="sourceLineNo">074</span>     * On {@link ConsoleReady}, fire the appropriate {@link AddPageResources}.<a name="line.74"></a>
+<span class="sourceLineNo">075</span>     *<a name="line.75"></a>
+<span class="sourceLineNo">076</span>     * @param event the event<a name="line.76"></a>
+<span class="sourceLineNo">077</span>     * @param consoleSession the web console session<a name="line.77"></a>
+<span class="sourceLineNo">078</span>     * @throws TemplateNotFoundException the template not found exception<a name="line.78"></a>
+<span class="sourceLineNo">079</span>     * @throws MalformedTemplateNameException the malformed template name exception<a name="line.79"></a>
+<span class="sourceLineNo">080</span>     * @throws ParseException the parse exception<a name="line.80"></a>
+<span class="sourceLineNo">081</span>     * @throws IOException Signals that an I/O exception has occurred.<a name="line.81"></a>
+<span class="sourceLineNo">082</span>     */<a name="line.82"></a>
+<span class="sourceLineNo">083</span>    @Handler(priority = 100)<a name="line.83"></a>
+<span class="sourceLineNo">084</span>    public void onConsoleReady(ConsoleReady event,<a name="line.84"></a>
+<span class="sourceLineNo">085</span>            ConsoleSession consoleSession)<a name="line.85"></a>
+<span class="sourceLineNo">086</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.86"></a>
+<span class="sourceLineNo">087</span>            ParseException, IOException {<a name="line.87"></a>
+<span class="sourceLineNo">088</span>        String minExt = event.renderSupport()<a name="line.88"></a>
+<span class="sourceLineNo">089</span>            .useMinifiedResources() ? ".min" : "";<a name="line.89"></a>
+<span class="sourceLineNo">090</span>        AddPageResources addRequest = new AddPageResources()<a name="line.90"></a>
+<span class="sourceLineNo">091</span>            .addCss(event.renderSupport().pageResource(<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                "gridstack/gridstack" + minExt + ".css"));<a name="line.92"></a>
+<span class="sourceLineNo">093</span>        switch (configuration) {<a name="line.93"></a>
+<span class="sourceLineNo">094</span>        case CoreOnly:<a name="line.94"></a>
+<span class="sourceLineNo">095</span>            addRequest<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                .addScriptResource(new ScriptResource()<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                    .setRequires("jquery")<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                    .setProvides("gridstack")<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                    .setScriptUri(event.renderSupport().pageResource(<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                        "gridstack/gridstack" + minExt + ".js")));<a name="line.100"></a>
+<span class="sourceLineNo">101</span>            break;<a name="line.101"></a>
+<span class="sourceLineNo">102</span>        case CoreWithJQueryUI:<a name="line.102"></a>
+<span class="sourceLineNo">103</span>            addRequest.addScriptResource(new ScriptResource()<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                .setRequires("jquery", "jquery-ui")<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                .setProvides("gridstack")<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                    "gridstack/gridstack" + minExt + ".js")));<a name="line.107"></a>
+<span class="sourceLineNo">108</span>            addRequest.addScriptResource(new ScriptResource()<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                .setProvides("gridstack.jQueryUI")<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                    "gridstack/gridstack.jQueryUI" + minExt + ".js")));<a name="line.111"></a>
+<span class="sourceLineNo">112</span>            break;<a name="line.112"></a>
+<span class="sourceLineNo">113</span>        case All:<a name="line.113"></a>
+<span class="sourceLineNo">114</span>            addRequest.addScriptResource(new ScriptResource()<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                .setRequires("jquery")<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                .setProvides("gridstack", "gridstack.all")<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                    "gridstack/gridstack.all.js")));<a name="line.118"></a>
+<span class="sourceLineNo">119</span>        }<a name="line.119"></a>
+<span class="sourceLineNo">120</span>        consoleSession.respond(addRequest);<a name="line.120"></a>
+<span class="sourceLineNo">121</span>    }<a name="line.121"></a>
+<span class="sourceLineNo">122</span>}<a name="line.122"></a>
 
 
 
