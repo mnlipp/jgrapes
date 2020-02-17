@@ -226,24 +226,24 @@
 <span class="sourceLineNo">218</span>            jsonState));<a name="line.218"></a>
 <span class="sourceLineNo">219</span><a name="line.219"></a>
 <span class="sourceLineNo">220</span>        // Send HTML<a name="line.220"></a>
-<span class="sourceLineNo">221</span>        renderConlet(event, consoleSession, model);<a name="line.221"></a>
-<span class="sourceLineNo">222</span>        return new ConletTrackingInfo(conletId).addModes(event.renderAs());<a name="line.222"></a>
+<span class="sourceLineNo">221</span>        return new ConletTrackingInfo(conletId)<a name="line.221"></a>
+<span class="sourceLineNo">222</span>            .addModes(renderConlet(event, consoleSession, model));<a name="line.222"></a>
 <span class="sourceLineNo">223</span>    }<a name="line.223"></a>
 <span class="sourceLineNo">224</span><a name="line.224"></a>
 <span class="sourceLineNo">225</span>    @Override<a name="line.225"></a>
 <span class="sourceLineNo">226</span>    protected Set&lt;RenderMode&gt; doRenderConlet(RenderConletRequest event,<a name="line.226"></a>
 <span class="sourceLineNo">227</span>            ConsoleSession consoleSession, String conletId,<a name="line.227"></a>
 <span class="sourceLineNo">228</span>            MarkdownDisplayModel model) throws Exception {<a name="line.228"></a>
-<span class="sourceLineNo">229</span>        renderConlet(event, consoleSession, model);<a name="line.229"></a>
-<span class="sourceLineNo">230</span>        return event.renderAs();<a name="line.230"></a>
-<span class="sourceLineNo">231</span>    }<a name="line.231"></a>
-<span class="sourceLineNo">232</span><a name="line.232"></a>
-<span class="sourceLineNo">233</span>    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.233"></a>
-<span class="sourceLineNo">234</span>    private void renderConlet(RenderConletRequestBase&lt;?&gt; event,<a name="line.234"></a>
-<span class="sourceLineNo">235</span>            ConsoleSession consoleSession, MarkdownDisplayModel model)<a name="line.235"></a>
-<span class="sourceLineNo">236</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.236"></a>
-<span class="sourceLineNo">237</span>            ParseException, IOException {<a name="line.237"></a>
-<span class="sourceLineNo">238</span>        Set&lt;RenderMode&gt; modes = renderModes(model);<a name="line.238"></a>
+<span class="sourceLineNo">229</span>        return renderConlet(event, consoleSession, model);<a name="line.229"></a>
+<span class="sourceLineNo">230</span>    }<a name="line.230"></a>
+<span class="sourceLineNo">231</span><a name="line.231"></a>
+<span class="sourceLineNo">232</span>    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")<a name="line.232"></a>
+<span class="sourceLineNo">233</span>    private Set&lt;RenderMode&gt; renderConlet(RenderConletRequestBase&lt;?&gt; event,<a name="line.233"></a>
+<span class="sourceLineNo">234</span>            ConsoleSession consoleSession, MarkdownDisplayModel model)<a name="line.234"></a>
+<span class="sourceLineNo">235</span>            throws TemplateNotFoundException, MalformedTemplateNameException,<a name="line.235"></a>
+<span class="sourceLineNo">236</span>            ParseException, IOException {<a name="line.236"></a>
+<span class="sourceLineNo">237</span>        Set&lt;RenderMode&gt; supported = renderModes(model);<a name="line.237"></a>
+<span class="sourceLineNo">238</span>        Set&lt;RenderMode&gt; renderedAs = new HashSet&lt;&gt;();<a name="line.238"></a>
 <span class="sourceLineNo">239</span>        if (event.renderAs().contains(RenderMode.Preview)) {<a name="line.239"></a>
 <span class="sourceLineNo">240</span>            Template tpl = freemarkerConfig()<a name="line.240"></a>
 <span class="sourceLineNo">241</span>                .getTemplate("MarkdownDisplay-preview.ftl.html");<a name="line.241"></a>
@@ -252,218 +252,221 @@
 <span class="sourceLineNo">244</span>                tpl, fmModel(event, consoleSession, model))<a name="line.244"></a>
 <span class="sourceLineNo">245</span>                    .setRenderAs(<a name="line.245"></a>
 <span class="sourceLineNo">246</span>                        RenderMode.Preview.addModifiers(event.renderAs()))<a name="line.246"></a>
-<span class="sourceLineNo">247</span>                    .setSupportedModes(modes));<a name="line.247"></a>
+<span class="sourceLineNo">247</span>                    .setSupportedModes(supported));<a name="line.247"></a>
 <span class="sourceLineNo">248</span>            updateView(consoleSession, model);<a name="line.248"></a>
-<span class="sourceLineNo">249</span>        }<a name="line.249"></a>
-<span class="sourceLineNo">250</span>        if (event.renderAs().contains(RenderMode.View)) {<a name="line.250"></a>
-<span class="sourceLineNo">251</span>            Template tpl = freemarkerConfig()<a name="line.251"></a>
-<span class="sourceLineNo">252</span>                .getTemplate("MarkdownDisplay-view.ftl.html");<a name="line.252"></a>
-<span class="sourceLineNo">253</span>            consoleSession.respond(new RenderConletFromTemplate(event,<a name="line.253"></a>
-<span class="sourceLineNo">254</span>                MarkdownDisplayConlet.class, model.getConletId(),<a name="line.254"></a>
-<span class="sourceLineNo">255</span>                tpl, fmModel(event, consoleSession, model))<a name="line.255"></a>
-<span class="sourceLineNo">256</span>                    .setRenderAs(RenderMode.View.addModifiers(event.renderAs()))<a name="line.256"></a>
-<span class="sourceLineNo">257</span>                    .setSupportedModes(modes));<a name="line.257"></a>
-<span class="sourceLineNo">258</span>            updateView(consoleSession, model);<a name="line.258"></a>
-<span class="sourceLineNo">259</span>        }<a name="line.259"></a>
-<span class="sourceLineNo">260</span>        if (event.renderAs().contains(RenderMode.Edit)) {<a name="line.260"></a>
-<span class="sourceLineNo">261</span>            Template tpl = freemarkerConfig()<a name="line.261"></a>
-<span class="sourceLineNo">262</span>                .getTemplate("MarkdownDisplay-edit.ftl.html");<a name="line.262"></a>
-<span class="sourceLineNo">263</span>            consoleSession.respond(new RenderConletFromTemplate(event,<a name="line.263"></a>
-<span class="sourceLineNo">264</span>                MarkdownDisplayConlet.class, model.getConletId(),<a name="line.264"></a>
-<span class="sourceLineNo">265</span>                tpl, fmModel(event, consoleSession, model))<a name="line.265"></a>
-<span class="sourceLineNo">266</span>                    .setRenderAs(RenderMode.Edit.addModifiers(event.renderAs()))<a name="line.266"></a>
-<span class="sourceLineNo">267</span>                    .setSupportedModes(modes));<a name="line.267"></a>
-<span class="sourceLineNo">268</span>        }<a name="line.268"></a>
-<span class="sourceLineNo">269</span>    }<a name="line.269"></a>
-<span class="sourceLineNo">270</span><a name="line.270"></a>
-<span class="sourceLineNo">271</span>    private Set&lt;RenderMode&gt; renderModes(MarkdownDisplayModel model) {<a name="line.271"></a>
-<span class="sourceLineNo">272</span>        Set&lt;RenderMode&gt; modes = new HashSet&lt;&gt;();<a name="line.272"></a>
-<span class="sourceLineNo">273</span>        modes.add(RenderMode.Preview);<a name="line.273"></a>
-<span class="sourceLineNo">274</span>        if (!model.isDeletable()) {<a name="line.274"></a>
-<span class="sourceLineNo">275</span>            modes.add(RenderMode.StickyPreview);<a name="line.275"></a>
-<span class="sourceLineNo">276</span>        }<a name="line.276"></a>
-<span class="sourceLineNo">277</span>        if (model.getViewContent() != null<a name="line.277"></a>
-<span class="sourceLineNo">278</span>            &amp;&amp; !model.getViewContent().isEmpty()) {<a name="line.278"></a>
-<span class="sourceLineNo">279</span>            modes.add(RenderMode.View);<a name="line.279"></a>
-<span class="sourceLineNo">280</span>        }<a name="line.280"></a>
-<span class="sourceLineNo">281</span>        if (model.getEditableBy() == null) {<a name="line.281"></a>
-<span class="sourceLineNo">282</span>            modes.add(RenderMode.Edit);<a name="line.282"></a>
+<span class="sourceLineNo">249</span>            renderedAs.add(RenderMode.Preview);<a name="line.249"></a>
+<span class="sourceLineNo">250</span>        }<a name="line.250"></a>
+<span class="sourceLineNo">251</span>        if (event.renderAs().contains(RenderMode.View)) {<a name="line.251"></a>
+<span class="sourceLineNo">252</span>            Template tpl = freemarkerConfig()<a name="line.252"></a>
+<span class="sourceLineNo">253</span>                .getTemplate("MarkdownDisplay-view.ftl.html");<a name="line.253"></a>
+<span class="sourceLineNo">254</span>            consoleSession.respond(new RenderConletFromTemplate(event,<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                MarkdownDisplayConlet.class, model.getConletId(),<a name="line.255"></a>
+<span class="sourceLineNo">256</span>                tpl, fmModel(event, consoleSession, model))<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                    .setRenderAs(RenderMode.View.addModifiers(event.renderAs()))<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                    .setSupportedModes(supported));<a name="line.258"></a>
+<span class="sourceLineNo">259</span>            updateView(consoleSession, model);<a name="line.259"></a>
+<span class="sourceLineNo">260</span>            renderedAs.add(RenderMode.Preview);<a name="line.260"></a>
+<span class="sourceLineNo">261</span>        }<a name="line.261"></a>
+<span class="sourceLineNo">262</span>        if (event.renderAs().contains(RenderMode.Edit)) {<a name="line.262"></a>
+<span class="sourceLineNo">263</span>            Template tpl = freemarkerConfig()<a name="line.263"></a>
+<span class="sourceLineNo">264</span>                .getTemplate("MarkdownDisplay-edit.ftl.html");<a name="line.264"></a>
+<span class="sourceLineNo">265</span>            consoleSession.respond(new RenderConletFromTemplate(event,<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                MarkdownDisplayConlet.class, model.getConletId(),<a name="line.266"></a>
+<span class="sourceLineNo">267</span>                tpl, fmModel(event, consoleSession, model))<a name="line.267"></a>
+<span class="sourceLineNo">268</span>                    .setRenderAs(RenderMode.Edit.addModifiers(event.renderAs()))<a name="line.268"></a>
+<span class="sourceLineNo">269</span>                    .setSupportedModes(supported));<a name="line.269"></a>
+<span class="sourceLineNo">270</span>        }<a name="line.270"></a>
+<span class="sourceLineNo">271</span>        return renderedAs;<a name="line.271"></a>
+<span class="sourceLineNo">272</span>    }<a name="line.272"></a>
+<span class="sourceLineNo">273</span><a name="line.273"></a>
+<span class="sourceLineNo">274</span>    private Set&lt;RenderMode&gt; renderModes(MarkdownDisplayModel model) {<a name="line.274"></a>
+<span class="sourceLineNo">275</span>        Set&lt;RenderMode&gt; modes = new HashSet&lt;&gt;();<a name="line.275"></a>
+<span class="sourceLineNo">276</span>        modes.add(RenderMode.Preview);<a name="line.276"></a>
+<span class="sourceLineNo">277</span>        if (!model.isDeletable()) {<a name="line.277"></a>
+<span class="sourceLineNo">278</span>            modes.add(RenderMode.StickyPreview);<a name="line.278"></a>
+<span class="sourceLineNo">279</span>        }<a name="line.279"></a>
+<span class="sourceLineNo">280</span>        if (model.getViewContent() != null<a name="line.280"></a>
+<span class="sourceLineNo">281</span>            &amp;&amp; !model.getViewContent().isEmpty()) {<a name="line.281"></a>
+<span class="sourceLineNo">282</span>            modes.add(RenderMode.View);<a name="line.282"></a>
 <span class="sourceLineNo">283</span>        }<a name="line.283"></a>
-<span class="sourceLineNo">284</span>        return modes;<a name="line.284"></a>
-<span class="sourceLineNo">285</span>    }<a name="line.285"></a>
-<span class="sourceLineNo">286</span><a name="line.286"></a>
-<span class="sourceLineNo">287</span>    private void updateView(IOSubchannel channel, MarkdownDisplayModel model) {<a name="line.287"></a>
-<span class="sourceLineNo">288</span>        channel.respond(new NotifyConletView(type(),<a name="line.288"></a>
-<span class="sourceLineNo">289</span>            model.getConletId(), "updateAll", model.getTitle(),<a name="line.289"></a>
-<span class="sourceLineNo">290</span>            model.getPreviewContent(), model.getViewContent(),<a name="line.290"></a>
-<span class="sourceLineNo">291</span>            renderModes(model)));<a name="line.291"></a>
-<span class="sourceLineNo">292</span>    }<a name="line.292"></a>
-<span class="sourceLineNo">293</span><a name="line.293"></a>
-<span class="sourceLineNo">294</span>    @Override<a name="line.294"></a>
-<span class="sourceLineNo">295</span>    protected void doConletDeleted(ConletDeleted event,<a name="line.295"></a>
-<span class="sourceLineNo">296</span>            ConsoleSession channel, String conletId,<a name="line.296"></a>
-<span class="sourceLineNo">297</span>            MarkdownDisplayModel retrievedState) throws Exception {<a name="line.297"></a>
-<span class="sourceLineNo">298</span>        if (event.renderModes().isEmpty()) {<a name="line.298"></a>
-<span class="sourceLineNo">299</span>            channel.respond(new KeyValueStoreUpdate().delete(<a name="line.299"></a>
-<span class="sourceLineNo">300</span>                storagePath(channel.browserSession()) + conletId));<a name="line.300"></a>
-<span class="sourceLineNo">301</span>        }<a name="line.301"></a>
-<span class="sourceLineNo">302</span>    }<a name="line.302"></a>
-<span class="sourceLineNo">303</span><a name="line.303"></a>
-<span class="sourceLineNo">304</span>    @Override<a name="line.304"></a>
-<span class="sourceLineNo">305</span>    protected void doNotifyConletModel(NotifyConletModel event,<a name="line.305"></a>
-<span class="sourceLineNo">306</span>            ConsoleSession consoleSession, MarkdownDisplayModel conletState)<a name="line.306"></a>
-<span class="sourceLineNo">307</span>            throws Exception {<a name="line.307"></a>
-<span class="sourceLineNo">308</span>        event.stop();<a name="line.308"></a>
-<span class="sourceLineNo">309</span>        @SuppressWarnings("PMD.UseConcurrentHashMap")<a name="line.309"></a>
-<span class="sourceLineNo">310</span>        Map&lt;String, String&gt; properties = new HashMap&lt;&gt;();<a name="line.310"></a>
-<span class="sourceLineNo">311</span>        if (event.params().get(0) != null) {<a name="line.311"></a>
-<span class="sourceLineNo">312</span>            properties.put(TITLE, event.params().asString(0));<a name="line.312"></a>
-<span class="sourceLineNo">313</span>        }<a name="line.313"></a>
-<span class="sourceLineNo">314</span>        if (event.params().get(1) != null) {<a name="line.314"></a>
-<span class="sourceLineNo">315</span>            properties.put(PREVIEW_SOURCE, event.params().asString(1));<a name="line.315"></a>
+<span class="sourceLineNo">284</span>        if (model.getEditableBy() == null) {<a name="line.284"></a>
+<span class="sourceLineNo">285</span>            modes.add(RenderMode.Edit);<a name="line.285"></a>
+<span class="sourceLineNo">286</span>        }<a name="line.286"></a>
+<span class="sourceLineNo">287</span>        return modes;<a name="line.287"></a>
+<span class="sourceLineNo">288</span>    }<a name="line.288"></a>
+<span class="sourceLineNo">289</span><a name="line.289"></a>
+<span class="sourceLineNo">290</span>    private void updateView(IOSubchannel channel, MarkdownDisplayModel model) {<a name="line.290"></a>
+<span class="sourceLineNo">291</span>        channel.respond(new NotifyConletView(type(),<a name="line.291"></a>
+<span class="sourceLineNo">292</span>            model.getConletId(), "updateAll", model.getTitle(),<a name="line.292"></a>
+<span class="sourceLineNo">293</span>            model.getPreviewContent(), model.getViewContent(),<a name="line.293"></a>
+<span class="sourceLineNo">294</span>            renderModes(model)));<a name="line.294"></a>
+<span class="sourceLineNo">295</span>    }<a name="line.295"></a>
+<span class="sourceLineNo">296</span><a name="line.296"></a>
+<span class="sourceLineNo">297</span>    @Override<a name="line.297"></a>
+<span class="sourceLineNo">298</span>    protected void doConletDeleted(ConletDeleted event,<a name="line.298"></a>
+<span class="sourceLineNo">299</span>            ConsoleSession channel, String conletId,<a name="line.299"></a>
+<span class="sourceLineNo">300</span>            MarkdownDisplayModel retrievedState) throws Exception {<a name="line.300"></a>
+<span class="sourceLineNo">301</span>        if (event.renderModes().isEmpty()) {<a name="line.301"></a>
+<span class="sourceLineNo">302</span>            channel.respond(new KeyValueStoreUpdate().delete(<a name="line.302"></a>
+<span class="sourceLineNo">303</span>                storagePath(channel.browserSession()) + conletId));<a name="line.303"></a>
+<span class="sourceLineNo">304</span>        }<a name="line.304"></a>
+<span class="sourceLineNo">305</span>    }<a name="line.305"></a>
+<span class="sourceLineNo">306</span><a name="line.306"></a>
+<span class="sourceLineNo">307</span>    @Override<a name="line.307"></a>
+<span class="sourceLineNo">308</span>    protected void doNotifyConletModel(NotifyConletModel event,<a name="line.308"></a>
+<span class="sourceLineNo">309</span>            ConsoleSession consoleSession, MarkdownDisplayModel conletState)<a name="line.309"></a>
+<span class="sourceLineNo">310</span>            throws Exception {<a name="line.310"></a>
+<span class="sourceLineNo">311</span>        event.stop();<a name="line.311"></a>
+<span class="sourceLineNo">312</span>        @SuppressWarnings("PMD.UseConcurrentHashMap")<a name="line.312"></a>
+<span class="sourceLineNo">313</span>        Map&lt;String, String&gt; properties = new HashMap&lt;&gt;();<a name="line.313"></a>
+<span class="sourceLineNo">314</span>        if (event.params().get(0) != null) {<a name="line.314"></a>
+<span class="sourceLineNo">315</span>            properties.put(TITLE, event.params().asString(0));<a name="line.315"></a>
 <span class="sourceLineNo">316</span>        }<a name="line.316"></a>
-<span class="sourceLineNo">317</span>        if (event.params().get(2) != null) {<a name="line.317"></a>
-<span class="sourceLineNo">318</span>            properties.put(VIEW_SOURCE, event.params().asString(2));<a name="line.318"></a>
+<span class="sourceLineNo">317</span>        if (event.params().get(1) != null) {<a name="line.317"></a>
+<span class="sourceLineNo">318</span>            properties.put(PREVIEW_SOURCE, event.params().asString(1));<a name="line.318"></a>
 <span class="sourceLineNo">319</span>        }<a name="line.319"></a>
-<span class="sourceLineNo">320</span>        fire(new UpdateConletModel(event.conletId(), properties),<a name="line.320"></a>
-<span class="sourceLineNo">321</span>            consoleSession);<a name="line.321"></a>
-<span class="sourceLineNo">322</span>    }<a name="line.322"></a>
-<span class="sourceLineNo">323</span><a name="line.323"></a>
-<span class="sourceLineNo">324</span>    /**<a name="line.324"></a>
-<span class="sourceLineNo">325</span>     * Stores the modified properties using a {@link KeyValueStoreUpdate}<a name="line.325"></a>
-<span class="sourceLineNo">326</span>     * event and updates the view with a {@link NotifyConletView}. <a name="line.326"></a>
-<span class="sourceLineNo">327</span>     *<a name="line.327"></a>
-<span class="sourceLineNo">328</span>     * @param event the event<a name="line.328"></a>
-<span class="sourceLineNo">329</span>     * @param consoleSession the console session<a name="line.329"></a>
-<span class="sourceLineNo">330</span>     */<a name="line.330"></a>
-<span class="sourceLineNo">331</span>    @SuppressWarnings("unchecked")<a name="line.331"></a>
-<span class="sourceLineNo">332</span>    @Handler<a name="line.332"></a>
-<span class="sourceLineNo">333</span>    public void onUpdateConletModel(UpdateConletModel event,<a name="line.333"></a>
-<span class="sourceLineNo">334</span>            ConsoleSession consoleSession) {<a name="line.334"></a>
-<span class="sourceLineNo">335</span>        stateFromSession(consoleSession.browserSession(), event.conletId())<a name="line.335"></a>
-<span class="sourceLineNo">336</span>            .ifPresent(model -&gt; {<a name="line.336"></a>
-<span class="sourceLineNo">337</span>                event.ifPresent(TITLE,<a name="line.337"></a>
-<span class="sourceLineNo">338</span>                    (key, value) -&gt; model.setTitle((String) value))<a name="line.338"></a>
-<span class="sourceLineNo">339</span>                    .ifPresent(PREVIEW_SOURCE,<a name="line.339"></a>
-<span class="sourceLineNo">340</span>                        (key, value) -&gt; model.setPreviewContent((String) value))<a name="line.340"></a>
-<span class="sourceLineNo">341</span>                    .ifPresent(VIEW_SOURCE,<a name="line.341"></a>
-<span class="sourceLineNo">342</span>                        (key, value) -&gt; model.setViewContent((String) value))<a name="line.342"></a>
-<span class="sourceLineNo">343</span>                    .ifPresent(DELETABLE,<a name="line.343"></a>
-<span class="sourceLineNo">344</span>                        (key, value) -&gt; model.setDeletable((Boolean) value))<a name="line.344"></a>
-<span class="sourceLineNo">345</span>                    .ifPresent(EDITABLE_BY,<a name="line.345"></a>
-<span class="sourceLineNo">346</span>                        (key, value) -&gt; {<a name="line.346"></a>
-<span class="sourceLineNo">347</span>                            model.setEditableBy((Set&lt;Principal&gt;) value);<a name="line.347"></a>
-<span class="sourceLineNo">348</span>                        });<a name="line.348"></a>
-<span class="sourceLineNo">349</span>                try {<a name="line.349"></a>
-<span class="sourceLineNo">350</span>                    String jsonState = JsonBeanEncoder.create()<a name="line.350"></a>
-<span class="sourceLineNo">351</span>                        .writeObject(model).toJson();<a name="line.351"></a>
-<span class="sourceLineNo">352</span>                    consoleSession.respond(new KeyValueStoreUpdate().update(<a name="line.352"></a>
-<span class="sourceLineNo">353</span>                        storagePath(consoleSession.browserSession())<a name="line.353"></a>
-<span class="sourceLineNo">354</span>                            + model.getConletId(),<a name="line.354"></a>
-<span class="sourceLineNo">355</span>                        jsonState));<a name="line.355"></a>
-<span class="sourceLineNo">356</span>                    updateView(consoleSession, model);<a name="line.356"></a>
-<span class="sourceLineNo">357</span>                } catch (IOException e) { // NOPMD<a name="line.357"></a>
-<span class="sourceLineNo">358</span>                    // Won't happen, uses internal writer<a name="line.358"></a>
-<span class="sourceLineNo">359</span>                }<a name="line.359"></a>
-<span class="sourceLineNo">360</span>            });<a name="line.360"></a>
-<span class="sourceLineNo">361</span>    }<a name="line.361"></a>
-<span class="sourceLineNo">362</span><a name="line.362"></a>
-<span class="sourceLineNo">363</span>    /**<a name="line.363"></a>
-<span class="sourceLineNo">364</span>     * The web console component's model.<a name="line.364"></a>
-<span class="sourceLineNo">365</span>     */<a name="line.365"></a>
-<span class="sourceLineNo">366</span>    @SuppressWarnings("serial")<a name="line.366"></a>
-<span class="sourceLineNo">367</span>    public static class MarkdownDisplayModel<a name="line.367"></a>
-<span class="sourceLineNo">368</span>            extends AbstractConlet.ConletBaseModel {<a name="line.368"></a>
-<span class="sourceLineNo">369</span><a name="line.369"></a>
-<span class="sourceLineNo">370</span>        private String title = "";<a name="line.370"></a>
-<span class="sourceLineNo">371</span>        private String previewContent = "";<a name="line.371"></a>
-<span class="sourceLineNo">372</span>        private String viewContent = "";<a name="line.372"></a>
-<span class="sourceLineNo">373</span>        private boolean deletable = true;<a name="line.373"></a>
-<span class="sourceLineNo">374</span>        private Set&lt;Principal&gt; editableBy;<a name="line.374"></a>
-<span class="sourceLineNo">375</span><a name="line.375"></a>
-<span class="sourceLineNo">376</span>        /**<a name="line.376"></a>
-<span class="sourceLineNo">377</span>         * Creates a new model with the given type and id.<a name="line.377"></a>
-<span class="sourceLineNo">378</span>         * <a name="line.378"></a>
-<span class="sourceLineNo">379</span>         * @param conletId the web console component id<a name="line.379"></a>
-<span class="sourceLineNo">380</span>         */<a name="line.380"></a>
-<span class="sourceLineNo">381</span>        @ConstructorProperties({ "conletId" })<a name="line.381"></a>
-<span class="sourceLineNo">382</span>        public MarkdownDisplayModel(String conletId) {<a name="line.382"></a>
-<span class="sourceLineNo">383</span>            super(conletId);<a name="line.383"></a>
-<span class="sourceLineNo">384</span>        }<a name="line.384"></a>
-<span class="sourceLineNo">385</span><a name="line.385"></a>
-<span class="sourceLineNo">386</span>        /**<a name="line.386"></a>
-<span class="sourceLineNo">387</span>         * @return the title<a name="line.387"></a>
-<span class="sourceLineNo">388</span>         */<a name="line.388"></a>
-<span class="sourceLineNo">389</span>        public String getTitle() {<a name="line.389"></a>
-<span class="sourceLineNo">390</span>            return title;<a name="line.390"></a>
-<span class="sourceLineNo">391</span>        }<a name="line.391"></a>
-<span class="sourceLineNo">392</span><a name="line.392"></a>
-<span class="sourceLineNo">393</span>        /**<a name="line.393"></a>
-<span class="sourceLineNo">394</span>         * @param title the title to set<a name="line.394"></a>
-<span class="sourceLineNo">395</span>         */<a name="line.395"></a>
-<span class="sourceLineNo">396</span>        public void setTitle(String title) {<a name="line.396"></a>
-<span class="sourceLineNo">397</span>            this.title = title;<a name="line.397"></a>
-<span class="sourceLineNo">398</span>        }<a name="line.398"></a>
-<span class="sourceLineNo">399</span><a name="line.399"></a>
-<span class="sourceLineNo">400</span>        /**<a name="line.400"></a>
-<span class="sourceLineNo">401</span>         * @return the previewContent<a name="line.401"></a>
-<span class="sourceLineNo">402</span>         */<a name="line.402"></a>
-<span class="sourceLineNo">403</span>        public String getPreviewContent() {<a name="line.403"></a>
-<span class="sourceLineNo">404</span>            return previewContent;<a name="line.404"></a>
-<span class="sourceLineNo">405</span>        }<a name="line.405"></a>
-<span class="sourceLineNo">406</span><a name="line.406"></a>
-<span class="sourceLineNo">407</span>        /**<a name="line.407"></a>
-<span class="sourceLineNo">408</span>         * @param previewContent the previewContent to set<a name="line.408"></a>
-<span class="sourceLineNo">409</span>         */<a name="line.409"></a>
-<span class="sourceLineNo">410</span>        public void setPreviewContent(String previewContent) {<a name="line.410"></a>
-<span class="sourceLineNo">411</span>            this.previewContent = previewContent;<a name="line.411"></a>
-<span class="sourceLineNo">412</span>        }<a name="line.412"></a>
-<span class="sourceLineNo">413</span><a name="line.413"></a>
-<span class="sourceLineNo">414</span>        /**<a name="line.414"></a>
-<span class="sourceLineNo">415</span>         * @return the viewContent<a name="line.415"></a>
-<span class="sourceLineNo">416</span>         */<a name="line.416"></a>
-<span class="sourceLineNo">417</span>        public String getViewContent() {<a name="line.417"></a>
-<span class="sourceLineNo">418</span>            return viewContent;<a name="line.418"></a>
-<span class="sourceLineNo">419</span>        }<a name="line.419"></a>
-<span class="sourceLineNo">420</span><a name="line.420"></a>
-<span class="sourceLineNo">421</span>        /**<a name="line.421"></a>
-<span class="sourceLineNo">422</span>         * @param viewContent the viewContent to set<a name="line.422"></a>
-<span class="sourceLineNo">423</span>         */<a name="line.423"></a>
-<span class="sourceLineNo">424</span>        public void setViewContent(String viewContent) {<a name="line.424"></a>
-<span class="sourceLineNo">425</span>            this.viewContent = viewContent;<a name="line.425"></a>
-<span class="sourceLineNo">426</span>        }<a name="line.426"></a>
-<span class="sourceLineNo">427</span><a name="line.427"></a>
-<span class="sourceLineNo">428</span>        /**<a name="line.428"></a>
-<span class="sourceLineNo">429</span>         * @return the deletable<a name="line.429"></a>
-<span class="sourceLineNo">430</span>         */<a name="line.430"></a>
-<span class="sourceLineNo">431</span>        public boolean isDeletable() {<a name="line.431"></a>
-<span class="sourceLineNo">432</span>            return deletable;<a name="line.432"></a>
-<span class="sourceLineNo">433</span>        }<a name="line.433"></a>
-<span class="sourceLineNo">434</span><a name="line.434"></a>
-<span class="sourceLineNo">435</span>        /**<a name="line.435"></a>
-<span class="sourceLineNo">436</span>         * @param deletable the deletable to set<a name="line.436"></a>
-<span class="sourceLineNo">437</span>         */<a name="line.437"></a>
-<span class="sourceLineNo">438</span>        public void setDeletable(boolean deletable) {<a name="line.438"></a>
-<span class="sourceLineNo">439</span>            this.deletable = deletable;<a name="line.439"></a>
-<span class="sourceLineNo">440</span>        }<a name="line.440"></a>
-<span class="sourceLineNo">441</span><a name="line.441"></a>
-<span class="sourceLineNo">442</span>        /**<a name="line.442"></a>
-<span class="sourceLineNo">443</span>         * @return the editableBy<a name="line.443"></a>
-<span class="sourceLineNo">444</span>         */<a name="line.444"></a>
-<span class="sourceLineNo">445</span>        public Set&lt;Principal&gt; getEditableBy() {<a name="line.445"></a>
-<span class="sourceLineNo">446</span>            return editableBy;<a name="line.446"></a>
-<span class="sourceLineNo">447</span>        }<a name="line.447"></a>
-<span class="sourceLineNo">448</span><a name="line.448"></a>
-<span class="sourceLineNo">449</span>        /**<a name="line.449"></a>
-<span class="sourceLineNo">450</span>         * @param editableBy the editableBy to set<a name="line.450"></a>
-<span class="sourceLineNo">451</span>         */<a name="line.451"></a>
-<span class="sourceLineNo">452</span>        public void setEditableBy(Set&lt;Principal&gt; editableBy) {<a name="line.452"></a>
-<span class="sourceLineNo">453</span>            this.editableBy = editableBy;<a name="line.453"></a>
-<span class="sourceLineNo">454</span>        }<a name="line.454"></a>
-<span class="sourceLineNo">455</span><a name="line.455"></a>
-<span class="sourceLineNo">456</span>    }<a name="line.456"></a>
-<span class="sourceLineNo">457</span><a name="line.457"></a>
-<span class="sourceLineNo">458</span>}<a name="line.458"></a>
+<span class="sourceLineNo">320</span>        if (event.params().get(2) != null) {<a name="line.320"></a>
+<span class="sourceLineNo">321</span>            properties.put(VIEW_SOURCE, event.params().asString(2));<a name="line.321"></a>
+<span class="sourceLineNo">322</span>        }<a name="line.322"></a>
+<span class="sourceLineNo">323</span>        fire(new UpdateConletModel(event.conletId(), properties),<a name="line.323"></a>
+<span class="sourceLineNo">324</span>            consoleSession);<a name="line.324"></a>
+<span class="sourceLineNo">325</span>    }<a name="line.325"></a>
+<span class="sourceLineNo">326</span><a name="line.326"></a>
+<span class="sourceLineNo">327</span>    /**<a name="line.327"></a>
+<span class="sourceLineNo">328</span>     * Stores the modified properties using a {@link KeyValueStoreUpdate}<a name="line.328"></a>
+<span class="sourceLineNo">329</span>     * event and updates the view with a {@link NotifyConletView}. <a name="line.329"></a>
+<span class="sourceLineNo">330</span>     *<a name="line.330"></a>
+<span class="sourceLineNo">331</span>     * @param event the event<a name="line.331"></a>
+<span class="sourceLineNo">332</span>     * @param consoleSession the console session<a name="line.332"></a>
+<span class="sourceLineNo">333</span>     */<a name="line.333"></a>
+<span class="sourceLineNo">334</span>    @SuppressWarnings("unchecked")<a name="line.334"></a>
+<span class="sourceLineNo">335</span>    @Handler<a name="line.335"></a>
+<span class="sourceLineNo">336</span>    public void onUpdateConletModel(UpdateConletModel event,<a name="line.336"></a>
+<span class="sourceLineNo">337</span>            ConsoleSession consoleSession) {<a name="line.337"></a>
+<span class="sourceLineNo">338</span>        stateFromSession(consoleSession.browserSession(), event.conletId())<a name="line.338"></a>
+<span class="sourceLineNo">339</span>            .ifPresent(model -&gt; {<a name="line.339"></a>
+<span class="sourceLineNo">340</span>                event.ifPresent(TITLE,<a name="line.340"></a>
+<span class="sourceLineNo">341</span>                    (key, value) -&gt; model.setTitle((String) value))<a name="line.341"></a>
+<span class="sourceLineNo">342</span>                    .ifPresent(PREVIEW_SOURCE,<a name="line.342"></a>
+<span class="sourceLineNo">343</span>                        (key, value) -&gt; model.setPreviewContent((String) value))<a name="line.343"></a>
+<span class="sourceLineNo">344</span>                    .ifPresent(VIEW_SOURCE,<a name="line.344"></a>
+<span class="sourceLineNo">345</span>                        (key, value) -&gt; model.setViewContent((String) value))<a name="line.345"></a>
+<span class="sourceLineNo">346</span>                    .ifPresent(DELETABLE,<a name="line.346"></a>
+<span class="sourceLineNo">347</span>                        (key, value) -&gt; model.setDeletable((Boolean) value))<a name="line.347"></a>
+<span class="sourceLineNo">348</span>                    .ifPresent(EDITABLE_BY,<a name="line.348"></a>
+<span class="sourceLineNo">349</span>                        (key, value) -&gt; {<a name="line.349"></a>
+<span class="sourceLineNo">350</span>                            model.setEditableBy((Set&lt;Principal&gt;) value);<a name="line.350"></a>
+<span class="sourceLineNo">351</span>                        });<a name="line.351"></a>
+<span class="sourceLineNo">352</span>                try {<a name="line.352"></a>
+<span class="sourceLineNo">353</span>                    String jsonState = JsonBeanEncoder.create()<a name="line.353"></a>
+<span class="sourceLineNo">354</span>                        .writeObject(model).toJson();<a name="line.354"></a>
+<span class="sourceLineNo">355</span>                    consoleSession.respond(new KeyValueStoreUpdate().update(<a name="line.355"></a>
+<span class="sourceLineNo">356</span>                        storagePath(consoleSession.browserSession())<a name="line.356"></a>
+<span class="sourceLineNo">357</span>                            + model.getConletId(),<a name="line.357"></a>
+<span class="sourceLineNo">358</span>                        jsonState));<a name="line.358"></a>
+<span class="sourceLineNo">359</span>                    updateView(consoleSession, model);<a name="line.359"></a>
+<span class="sourceLineNo">360</span>                } catch (IOException e) { // NOPMD<a name="line.360"></a>
+<span class="sourceLineNo">361</span>                    // Won't happen, uses internal writer<a name="line.361"></a>
+<span class="sourceLineNo">362</span>                }<a name="line.362"></a>
+<span class="sourceLineNo">363</span>            });<a name="line.363"></a>
+<span class="sourceLineNo">364</span>    }<a name="line.364"></a>
+<span class="sourceLineNo">365</span><a name="line.365"></a>
+<span class="sourceLineNo">366</span>    /**<a name="line.366"></a>
+<span class="sourceLineNo">367</span>     * The web console component's model.<a name="line.367"></a>
+<span class="sourceLineNo">368</span>     */<a name="line.368"></a>
+<span class="sourceLineNo">369</span>    @SuppressWarnings("serial")<a name="line.369"></a>
+<span class="sourceLineNo">370</span>    public static class MarkdownDisplayModel<a name="line.370"></a>
+<span class="sourceLineNo">371</span>            extends AbstractConlet.ConletBaseModel {<a name="line.371"></a>
+<span class="sourceLineNo">372</span><a name="line.372"></a>
+<span class="sourceLineNo">373</span>        private String title = "";<a name="line.373"></a>
+<span class="sourceLineNo">374</span>        private String previewContent = "";<a name="line.374"></a>
+<span class="sourceLineNo">375</span>        private String viewContent = "";<a name="line.375"></a>
+<span class="sourceLineNo">376</span>        private boolean deletable = true;<a name="line.376"></a>
+<span class="sourceLineNo">377</span>        private Set&lt;Principal&gt; editableBy;<a name="line.377"></a>
+<span class="sourceLineNo">378</span><a name="line.378"></a>
+<span class="sourceLineNo">379</span>        /**<a name="line.379"></a>
+<span class="sourceLineNo">380</span>         * Creates a new model with the given type and id.<a name="line.380"></a>
+<span class="sourceLineNo">381</span>         * <a name="line.381"></a>
+<span class="sourceLineNo">382</span>         * @param conletId the web console component id<a name="line.382"></a>
+<span class="sourceLineNo">383</span>         */<a name="line.383"></a>
+<span class="sourceLineNo">384</span>        @ConstructorProperties({ "conletId" })<a name="line.384"></a>
+<span class="sourceLineNo">385</span>        public MarkdownDisplayModel(String conletId) {<a name="line.385"></a>
+<span class="sourceLineNo">386</span>            super(conletId);<a name="line.386"></a>
+<span class="sourceLineNo">387</span>        }<a name="line.387"></a>
+<span class="sourceLineNo">388</span><a name="line.388"></a>
+<span class="sourceLineNo">389</span>        /**<a name="line.389"></a>
+<span class="sourceLineNo">390</span>         * @return the title<a name="line.390"></a>
+<span class="sourceLineNo">391</span>         */<a name="line.391"></a>
+<span class="sourceLineNo">392</span>        public String getTitle() {<a name="line.392"></a>
+<span class="sourceLineNo">393</span>            return title;<a name="line.393"></a>
+<span class="sourceLineNo">394</span>        }<a name="line.394"></a>
+<span class="sourceLineNo">395</span><a name="line.395"></a>
+<span class="sourceLineNo">396</span>        /**<a name="line.396"></a>
+<span class="sourceLineNo">397</span>         * @param title the title to set<a name="line.397"></a>
+<span class="sourceLineNo">398</span>         */<a name="line.398"></a>
+<span class="sourceLineNo">399</span>        public void setTitle(String title) {<a name="line.399"></a>
+<span class="sourceLineNo">400</span>            this.title = title;<a name="line.400"></a>
+<span class="sourceLineNo">401</span>        }<a name="line.401"></a>
+<span class="sourceLineNo">402</span><a name="line.402"></a>
+<span class="sourceLineNo">403</span>        /**<a name="line.403"></a>
+<span class="sourceLineNo">404</span>         * @return the previewContent<a name="line.404"></a>
+<span class="sourceLineNo">405</span>         */<a name="line.405"></a>
+<span class="sourceLineNo">406</span>        public String getPreviewContent() {<a name="line.406"></a>
+<span class="sourceLineNo">407</span>            return previewContent;<a name="line.407"></a>
+<span class="sourceLineNo">408</span>        }<a name="line.408"></a>
+<span class="sourceLineNo">409</span><a name="line.409"></a>
+<span class="sourceLineNo">410</span>        /**<a name="line.410"></a>
+<span class="sourceLineNo">411</span>         * @param previewContent the previewContent to set<a name="line.411"></a>
+<span class="sourceLineNo">412</span>         */<a name="line.412"></a>
+<span class="sourceLineNo">413</span>        public void setPreviewContent(String previewContent) {<a name="line.413"></a>
+<span class="sourceLineNo">414</span>            this.previewContent = previewContent;<a name="line.414"></a>
+<span class="sourceLineNo">415</span>        }<a name="line.415"></a>
+<span class="sourceLineNo">416</span><a name="line.416"></a>
+<span class="sourceLineNo">417</span>        /**<a name="line.417"></a>
+<span class="sourceLineNo">418</span>         * @return the viewContent<a name="line.418"></a>
+<span class="sourceLineNo">419</span>         */<a name="line.419"></a>
+<span class="sourceLineNo">420</span>        public String getViewContent() {<a name="line.420"></a>
+<span class="sourceLineNo">421</span>            return viewContent;<a name="line.421"></a>
+<span class="sourceLineNo">422</span>        }<a name="line.422"></a>
+<span class="sourceLineNo">423</span><a name="line.423"></a>
+<span class="sourceLineNo">424</span>        /**<a name="line.424"></a>
+<span class="sourceLineNo">425</span>         * @param viewContent the viewContent to set<a name="line.425"></a>
+<span class="sourceLineNo">426</span>         */<a name="line.426"></a>
+<span class="sourceLineNo">427</span>        public void setViewContent(String viewContent) {<a name="line.427"></a>
+<span class="sourceLineNo">428</span>            this.viewContent = viewContent;<a name="line.428"></a>
+<span class="sourceLineNo">429</span>        }<a name="line.429"></a>
+<span class="sourceLineNo">430</span><a name="line.430"></a>
+<span class="sourceLineNo">431</span>        /**<a name="line.431"></a>
+<span class="sourceLineNo">432</span>         * @return the deletable<a name="line.432"></a>
+<span class="sourceLineNo">433</span>         */<a name="line.433"></a>
+<span class="sourceLineNo">434</span>        public boolean isDeletable() {<a name="line.434"></a>
+<span class="sourceLineNo">435</span>            return deletable;<a name="line.435"></a>
+<span class="sourceLineNo">436</span>        }<a name="line.436"></a>
+<span class="sourceLineNo">437</span><a name="line.437"></a>
+<span class="sourceLineNo">438</span>        /**<a name="line.438"></a>
+<span class="sourceLineNo">439</span>         * @param deletable the deletable to set<a name="line.439"></a>
+<span class="sourceLineNo">440</span>         */<a name="line.440"></a>
+<span class="sourceLineNo">441</span>        public void setDeletable(boolean deletable) {<a name="line.441"></a>
+<span class="sourceLineNo">442</span>            this.deletable = deletable;<a name="line.442"></a>
+<span class="sourceLineNo">443</span>        }<a name="line.443"></a>
+<span class="sourceLineNo">444</span><a name="line.444"></a>
+<span class="sourceLineNo">445</span>        /**<a name="line.445"></a>
+<span class="sourceLineNo">446</span>         * @return the editableBy<a name="line.446"></a>
+<span class="sourceLineNo">447</span>         */<a name="line.447"></a>
+<span class="sourceLineNo">448</span>        public Set&lt;Principal&gt; getEditableBy() {<a name="line.448"></a>
+<span class="sourceLineNo">449</span>            return editableBy;<a name="line.449"></a>
+<span class="sourceLineNo">450</span>        }<a name="line.450"></a>
+<span class="sourceLineNo">451</span><a name="line.451"></a>
+<span class="sourceLineNo">452</span>        /**<a name="line.452"></a>
+<span class="sourceLineNo">453</span>         * @param editableBy the editableBy to set<a name="line.453"></a>
+<span class="sourceLineNo">454</span>         */<a name="line.454"></a>
+<span class="sourceLineNo">455</span>        public void setEditableBy(Set&lt;Principal&gt; editableBy) {<a name="line.455"></a>
+<span class="sourceLineNo">456</span>            this.editableBy = editableBy;<a name="line.456"></a>
+<span class="sourceLineNo">457</span>        }<a name="line.457"></a>
+<span class="sourceLineNo">458</span><a name="line.458"></a>
+<span class="sourceLineNo">459</span>    }<a name="line.459"></a>
+<span class="sourceLineNo">460</span><a name="line.460"></a>
+<span class="sourceLineNo">461</span>}<a name="line.461"></a>
 
 
 
