@@ -102,7 +102,7 @@
 <span class="sourceLineNo">094</span>        // Add SysInfoConlet resources to page<a name="line.94"></a>
 <span class="sourceLineNo">095</span>        consoleSession.respond(new AddConletType(type())<a name="line.95"></a>
 <span class="sourceLineNo">096</span>            .setDisplayNames(<a name="line.96"></a>
-<span class="sourceLineNo">097</span>                displayNames(consoleSession.supportedLocales(), "conletName"))<a name="line.97"></a>
+<span class="sourceLineNo">097</span>                localizations(consoleSession.supportedLocales(), "conletName"))<a name="line.97"></a>
 <span class="sourceLineNo">098</span>            .addScript(new ScriptResource()<a name="line.98"></a>
 <span class="sourceLineNo">099</span>                .setRequires("chart.js")<a name="line.99"></a>
 <span class="sourceLineNo">100</span>                .setScriptUri(event.renderSupport().conletResource(<a name="line.100"></a>
