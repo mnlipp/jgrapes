@@ -152,8 +152,8 @@
 <span class="sourceLineNo">144</span>            Template tpl<a name="line.144"></a>
 <span class="sourceLineNo">145</span>                = freemarkerConfig().getTemplate("SysInfo-preview.ftl.html");<a name="line.145"></a>
 <span class="sourceLineNo">146</span>            consoleSession.respond(new RenderConletFromTemplate(event,<a name="line.146"></a>
-<span class="sourceLineNo">147</span>                SysInfoConlet.class, conletModel.getConletId(),<a name="line.147"></a>
-<span class="sourceLineNo">148</span>                tpl, fmModel(event, consoleSession, conletModel))<a name="line.148"></a>
+<span class="sourceLineNo">147</span>                type(), conletModel.getConletId(), tpl,<a name="line.147"></a>
+<span class="sourceLineNo">148</span>                fmModel(event, consoleSession, conletModel))<a name="line.148"></a>
 <span class="sourceLineNo">149</span>                    .setRenderAs(<a name="line.149"></a>
 <span class="sourceLineNo">150</span>                        RenderMode.Preview.addModifiers(event.renderAs()))<a name="line.150"></a>
 <span class="sourceLineNo">151</span>                    .setSupportedModes(MODES));<a name="line.151"></a>
@@ -164,8 +164,8 @@
 <span class="sourceLineNo">156</span>            Template tpl<a name="line.156"></a>
 <span class="sourceLineNo">157</span>                = freemarkerConfig().getTemplate("SysInfo-view.ftl.html");<a name="line.157"></a>
 <span class="sourceLineNo">158</span>            consoleSession.respond(new RenderConletFromTemplate(event,<a name="line.158"></a>
-<span class="sourceLineNo">159</span>                SysInfoConlet.class, conletModel.getConletId(),<a name="line.159"></a>
-<span class="sourceLineNo">160</span>                tpl, fmModel(event, consoleSession, conletModel))<a name="line.160"></a>
+<span class="sourceLineNo">159</span>                type(), conletModel.getConletId(), tpl,<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                fmModel(event, consoleSession, conletModel))<a name="line.160"></a>
 <span class="sourceLineNo">161</span>                    .setRenderAs(RenderMode.View.addModifiers(event.renderAs()))<a name="line.161"></a>
 <span class="sourceLineNo">162</span>                    .setSupportedModes(MODES));<a name="line.162"></a>
 <span class="sourceLineNo">163</span>            renderedAs.add(RenderMode.Preview);<a name="line.163"></a>

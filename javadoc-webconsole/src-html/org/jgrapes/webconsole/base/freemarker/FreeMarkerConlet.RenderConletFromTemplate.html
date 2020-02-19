@@ -342,9 +342,9 @@
 <span class="sourceLineNo">334</span>         * @param dataModel the data model<a name="line.334"></a>
 <span class="sourceLineNo">335</span>         */<a name="line.335"></a>
 <span class="sourceLineNo">336</span>        public RenderConletFromTemplate(RenderConletRequestBase&lt;?&gt; request,<a name="line.336"></a>
-<span class="sourceLineNo">337</span>                Class&lt;?&gt; conletClass, String conletId, Template template,<a name="line.337"></a>
+<span class="sourceLineNo">337</span>                String conletType, String conletId, Template template,<a name="line.337"></a>
 <span class="sourceLineNo">338</span>                Object dataModel) {<a name="line.338"></a>
-<span class="sourceLineNo">339</span>            super(conletClass, conletId);<a name="line.339"></a>
+<span class="sourceLineNo">339</span>            super(conletType, conletId);<a name="line.339"></a>
 <span class="sourceLineNo">340</span>            // Start to prepare the content immediately and concurrently.<a name="line.340"></a>
 <span class="sourceLineNo">341</span>            content<a name="line.341"></a>
 <span class="sourceLineNo">342</span>                = request.processedBy().map(procBy -&gt; procBy.executorService())<a name="line.342"></a>

@@ -248,7 +248,7 @@
 <span class="sourceLineNo">240</span>            Template tpl = freemarkerConfig()<a name="line.240"></a>
 <span class="sourceLineNo">241</span>                .getTemplate("MarkdownDisplay-preview.ftl.html");<a name="line.241"></a>
 <span class="sourceLineNo">242</span>            consoleSession.respond(new RenderConletFromTemplate(event,<a name="line.242"></a>
-<span class="sourceLineNo">243</span>                MarkdownDisplayConlet.class, model.getConletId(),<a name="line.243"></a>
+<span class="sourceLineNo">243</span>                type(), model.getConletId(),<a name="line.243"></a>
 <span class="sourceLineNo">244</span>                tpl, fmModel(event, consoleSession, model))<a name="line.244"></a>
 <span class="sourceLineNo">245</span>                    .setRenderAs(<a name="line.245"></a>
 <span class="sourceLineNo">246</span>                        RenderMode.Preview.addModifiers(event.renderAs()))<a name="line.246"></a>
@@ -260,7 +260,7 @@
 <span class="sourceLineNo">252</span>            Template tpl = freemarkerConfig()<a name="line.252"></a>
 <span class="sourceLineNo">253</span>                .getTemplate("MarkdownDisplay-view.ftl.html");<a name="line.253"></a>
 <span class="sourceLineNo">254</span>            consoleSession.respond(new RenderConletFromTemplate(event,<a name="line.254"></a>
-<span class="sourceLineNo">255</span>                MarkdownDisplayConlet.class, model.getConletId(),<a name="line.255"></a>
+<span class="sourceLineNo">255</span>                type(), model.getConletId(),<a name="line.255"></a>
 <span class="sourceLineNo">256</span>                tpl, fmModel(event, consoleSession, model))<a name="line.256"></a>
 <span class="sourceLineNo">257</span>                    .setRenderAs(RenderMode.View.addModifiers(event.renderAs()))<a name="line.257"></a>
 <span class="sourceLineNo">258</span>                    .setSupportedModes(supported));<a name="line.258"></a>
@@ -271,7 +271,7 @@
 <span class="sourceLineNo">263</span>            Template tpl = freemarkerConfig()<a name="line.263"></a>
 <span class="sourceLineNo">264</span>                .getTemplate("MarkdownDisplay-edit.ftl.html");<a name="line.264"></a>
 <span class="sourceLineNo">265</span>            consoleSession.respond(new RenderConletFromTemplate(event,<a name="line.265"></a>
-<span class="sourceLineNo">266</span>                MarkdownDisplayConlet.class, model.getConletId(),<a name="line.266"></a>
+<span class="sourceLineNo">266</span>                type(), model.getConletId(),<a name="line.266"></a>
 <span class="sourceLineNo">267</span>                tpl, fmModel(event, consoleSession, model))<a name="line.267"></a>
 <span class="sourceLineNo">268</span>                    .setRenderAs(RenderMode.Edit.addModifiers(event.renderAs()))<a name="line.268"></a>
 <span class="sourceLineNo">269</span>                    .setSupportedModes(supported));<a name="line.269"></a>
