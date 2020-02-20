@@ -76,11 +76,12 @@
 <span class="sourceLineNo">068</span>            .useMinifiedResources() ? ".min" : "";<a name="line.68"></a>
 <span class="sourceLineNo">069</span>        consoleSession.respond(new AddPageResources()<a name="line.69"></a>
 <span class="sourceLineNo">070</span>            .addScriptResource(new ScriptResource()<a name="line.70"></a>
-<span class="sourceLineNo">071</span>                .setProvides(new String[] { "jquery-ui" })<a name="line.71"></a>
-<span class="sourceLineNo">072</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.72"></a>
-<span class="sourceLineNo">073</span>                    "jquery-ui/jquery-ui" + minExt + ".js"))));<a name="line.73"></a>
-<span class="sourceLineNo">074</span>    }<a name="line.74"></a>
-<span class="sourceLineNo">075</span>}<a name="line.75"></a>
+<span class="sourceLineNo">071</span>                .setRequires("jquery")<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                .setProvides(new String[] { "jquery-ui" })<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                .setScriptUri(event.renderSupport().pageResource(<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                    "jquery-ui/jquery-ui" + minExt + ".js"))));<a name="line.74"></a>
+<span class="sourceLineNo">075</span>    }<a name="line.75"></a>
+<span class="sourceLineNo">076</span>}<a name="line.76"></a>
 
 
 
