@@ -28,8 +28,8 @@ the framework's architectural description on the
 This provides an introduction to the concepts, the main classes and 
 links to the details.
 
-The JavaDoc for the web console components is available 
-<a href="javadoc-webconsole/index.html" target="_top">here</a>.
+A Web Console built on top of the JGrapes framework is described 
+on [a page of its own](WebConsole.html).
 
 All jars have the required information in `META-INF/MANIFEST.MF`
 to use them as (library) bundles in an OSGi environment, without 

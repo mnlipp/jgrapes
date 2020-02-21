@@ -114,6 +114,26 @@ header {
   -webkit-font-smoothing:subpixel-antialiased;
 }
 
+header li {
+    list-style-type: disc;
+}
+
+header ul {
+    padding-left: 1rem;
+}
+
+header ul > li {
+    margin-left: 1rem;
+}
+
+ul.no-bullets {
+    padding-left: 0;
+}
+
+ul.no-bullets > li {
+    list-style: none;
+}
+
 strong {
   color:#222;
   font-weight:500;
