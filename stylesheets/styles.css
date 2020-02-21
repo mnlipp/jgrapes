@@ -1,11 +1,8 @@
----
----
-
 body {
   background-color: #fff;
   padding:50px;
   font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  color:#2a2a2a;
+  color:#595959;
   font-weight:400;
 }
 
@@ -24,23 +21,26 @@ h1, h2, h3 {
 
 h1 {
   font-size:28px;
+  font-weight: 500;
 }
 
 h2 {
   color:#393939;
+  font-weight: 500;
 }
 
 h3, h4, h5, h6 {
   color:#494949;
+  font-weight: 500;
 }
 
 a {
-  color:#4a6782;
+  color:#39c;
   text-decoration:none;
 }
 
 a:hover {
-  color:#bb7a2a;
+  color:#069;
 }
 
 a small {
@@ -55,8 +55,8 @@ a:hover small {
 }
 
 .wrapper {
-  // width:860px;
-  width:100%;
+  /* width:860px; */
+  width: 100%;
   margin:0 auto;
 }
 
@@ -70,7 +70,6 @@ blockquote {
 code, pre {
   font-family:Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal, Consolas, Liberation Mono, DejaVu Sans Mono, Courier New, monospace;
   color:#333;
-  font-size:12px;
 }
 
 pre {
@@ -94,7 +93,7 @@ th, td {
 
 dt {
   color:#444;
-  font-weight:700;
+  font-weight:500;
 }
 
 th {
@@ -106,18 +105,18 @@ img {
 }
 
 header {
-  // width:270px;
+  /* width:270px; */
   width:calc(29% - 50px);
   height:calc(100% - 160px);
+  overflow: auto;
   float:left;
   position:fixed;
-  overflow:auto;
   -webkit-font-smoothing:subpixel-antialiased;
 }
 
 strong {
   color:#222;
-  font-weight:700;
+  font-weight:500;
 }
 
 section {
@@ -139,7 +138,7 @@ hr {
 }
 
 footer {
-  // width:270px;
+  /* width:270px; */
   width:calc(24% - 50px);
   height:40px;
   float:left;
@@ -151,17 +150,16 @@ footer {
 }
 
 .post-date {
-	float: right;
+    float: right;
 }
 
 .part-list-title {
-	margin-bottom:5px;
+    margin-bottom:5px;
 }
 
 .part-entry {
     margin-bottom:5px;
 }
-
 
 @media print, screen and (max-width: 960px) {
 
