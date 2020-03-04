@@ -4,7 +4,7 @@ title: JGrapes Web Console Introduction
 tocTitle: JGrapes Web Console
 ---
 
-## Overview
+# Overview
 
 The server side of the web console consists of several JGrapes components
 that drive a single page application (SPA) on the server. The design
@@ -15,11 +15,11 @@ different purposes.
 
 A JGrapes Web Console consists &mdash;from the user's point of view&mdash; 
 of a fixed frame with configurable content. The frame provides some 
-means to add content  (typically by using a dropdown menu) and to 
+means to add content (typically by using a dropdown menu) and to 
 configure global settings  such as the locale.
 
 The content of the frame is provided by web console display components 
-or "conlets" for short. These components typically provide a summary
+or "conlets" for short. These components typically support a summary
 or preview display that can be put on an overview panel in a dashboard
 style and a large view that is supposed to fill the complete frame.
 
@@ -31,17 +31,67 @@ The architecture of the server side is explained in detail in the
 The additional information provided here focuses on the SPA 
 in the browser and on how to build your own console and additional conlets.
 
-## SPA frame
+# SPA Frame
 
 The SPA frame is provided by a class derived from 
 [`ConsoleWeblet`](javadoc-webconsole/index.html?org/jgrapes/webconsole/base/ConsoleWeblet.html).
 If you like (or can live with) the [Freemarker](https://freemarker.apache.org/)
 template engine, you should use
 [`FreeMarkerConsoleWeblet`](javadoc-webconsole/index.html?org/jgrapes/webconsole/base/freemarker/FreeMarkerConsoleWeblet.html)
-as base class. Using the latter class, all you have to do is to [implement
+as base class. Using the latter class, all you have to do is [implement
 the constructor](javadoc-webconsole/src-html/org/jgrapes/webconsole/vuejs/VueJsConsoleWeblet.html#line.36)
 and provide the required 
 [templates](https://github.com/mnlipp/jgrapes-webconsole/tree/master/org.jgrapes.webconsole.vuejs/resources/org/jgrapes/webconsole/vuejs).
+
+The project currently includes three sample SPA providers:
+
+ * The [JQueryUiWeblet](http://127.0.0.1:4000/javadoc-webconsole/index.html?org/jgrapes/webconsole/jqueryui/JQueryUiWeblet.html)
+   provides the SPA frame using the [jQuerUi](https://jqueryui.com/) widgets
+   and styles. It is the earliest attempt to implement a JGrapes web console.
+   It has been deprecated due to its dependency on jQuerUi.
+   
+ * The [Bootstrap4Weblet](http://127.0.0.1:4000/javadoc-webconsole/index.html?org/jgrapes/webconsole/bootstrap4/Bootstrap4Weblet.html)
+   uses [Bootstrap 4](https://getbootstrap.com/) widgets and styles and
+   assumes that conlets comply to this environment. Historically, it is
+   the second attempt to implement a JGrapes web console and has been
+   deprecated as well, because it doesn't follow the principles outlined
+   below in the section "Styling Conlets".
+   
+ * The [VueJsConsoleWeblet](http://127.0.0.1:4000/javadoc-webconsole/index.html?org/jgrapes/webconsole/vuejs/VueJsConsoleWeblet.html)
+   implements the currently pursued approach for providing a JGrapes web 
+   console. It's a bit of a misnomer because while it makes use of
+   [Vue.js](https://vuejs.org/) as a library in order to generate the 
+   DOM for the SPA frame, it does in no way imply that Vue.js must or 
+   should be used by the conlets. It includes a stylesheet that follows the 
+   rules outlined in the section "Styling Conlets" below. 
+   This stylesheet can easily be replaced by some other stylesheet to 
+   get a completely different appearance. (Actually, it's possible
+   to derive a class from `VueJsConsoleWeblet` that only "overrides"
+   the style sheet.)
+   
+# Styling Conlets
+
+At least for simple conlets, it should be possible to combine them with
+differently styled consoles. This requirement implies that conlets are
+styled independent of a particular CSS framework.
+
+Traditionally, CSS frameworks are "invasive" in the sense that the 
+framework's presentation classes (and even worse, additional `div`s)
+spread all over your HTML. Only a few
+"[lightweight frameworks](https://github.com/troxler/awesome-css-frameworks#very-lightweight)"
+such as [Picnic](https://picnicss.com/) base their styling on the native
+HTML. Of course, even semantic HTML 5 doesn't provide enough context to 
+reliably style GUI widgets. If however, you add 
+[WAI-ARIA](https://www.w3.org/WAI/standards-guidelines/aria/) attributes
+to the markup (as you should anyway), it turns out that almost all styling
+can be based on the HTML without adding presentation classes.
+
+Using "ARIA augmented semantic HTML" is therefore the preferred approach for 
+authoring conlets. Combined with a web console's CSS stylesheet, that uses 
+rules based on this kind of content, this should lead to satisfactory
+results in typical cases.
+
+# Implementation Notes
 
 ## Dynamic modularity for the SPA
 
@@ -85,14 +135,5 @@ ordered insertion of the `script` nodes is handled by a class that
 obtains the required information from `ScriptResource` instances
 as described in 
 [`AddPageResources`](javadoc-webconsole/index.html?org/jgrapes/webconsole/base/events/AddPageResources.html).
-
-## Styling Conlets
-
-At least for simple conlets, it should be possible to combine them with
-differently styled consoles. This requirement implies that conlets are
-styled independent of a particular CSS framework.
-
-Traditionally, CSS frame works are "invasive" in the sense that the 
-framework's classes are spread all over your HTML.
 
 *To be continued*
