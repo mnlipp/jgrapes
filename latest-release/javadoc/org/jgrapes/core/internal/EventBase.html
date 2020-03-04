@@ -121,7 +121,7 @@ the event does not produce a result</dd>
 </dl>
 <hr>
 <br>
-<pre>public abstract class <a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.45">EventBase</a>&lt;T&gt;
+<pre>public abstract class <a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.44">EventBase</a>&lt;T&gt;
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>
 implements <a href="../../../../org/jgrapes/core/Eligible.html" title="interface in org.jgrapes.core">Eligible</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html?is-external=true" title="class or interface in java.util.concurrent">Future</a>&lt;T&gt;, <a href="../../../../org/jgrapes/core/Associator.html" title="interface in org.jgrapes.core">Associator</a></pre>
 <div class="block"><p>Provides the implementations of methods to class <a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core"><code>Event</code></a> that
@@ -306,7 +306,7 @@ is tracked.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>completionEvents</h4>
-<pre>protected&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Set.html?is-external=true" title="class or interface in java.util">Set</a>&lt;<a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt; <a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.62">completionEvents</a></pre>
+<pre>protected&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Set.html?is-external=true" title="class or interface in java.util">Set</a>&lt;<a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt; <a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.61">completionEvents</a></pre>
 <div class="block"><p>The events to be fired upon completion. Using this attribute
 provides a slightly faster access than invoking
 <a href="../../../../org/jgrapes/core/Event.html#completionEvents--"><code>Event.completionEvents()</code></a>, which wraps the result in
@@ -319,7 +319,7 @@ an unmodifiable set.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>completed</h4>
-<pre>protected&nbsp;boolean <a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.64">completed</a></pre>
+<pre>protected&nbsp;boolean <a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.63">completed</a></pre>
 <div class="block"><p>Set when the event has been completed.</p></div>
 </li>
 </ul>
@@ -337,7 +337,7 @@ an unmodifiable set.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>EventBase</h4>
-<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.45">EventBase</a>()</pre>
+<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.44">EventBase</a>()</pre>
 </li>
 </ul>
 </li>
@@ -354,7 +354,7 @@ an unmodifiable set.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>channels</h4>
-<pre>public abstract&nbsp;<a href="../../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>[]&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.74">channels</a>()</pre>
+<pre>public abstract&nbsp;<a href="../../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>[]&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.73">channels</a>()</pre>
 <div class="block"><p>See <a href="../../../../org/jgrapes/core/Event.html#channels--"><code>Event.channels()</code></a>.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -368,7 +368,7 @@ an unmodifiable set.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>handled</h4>
-<pre>protected abstract&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.79">handled</a>()</pre>
+<pre>protected abstract&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.78">handled</a>()</pre>
 <div class="block"><p>See <a href="../../../../org/jgrapes/core/Event.html#handled--"><code>Event.handled()</code></a>.</p></div>
 </li>
 </ul>
@@ -378,7 +378,7 @@ an unmodifiable set.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>isStopped</h4>
-<pre>public abstract&nbsp;boolean&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.84">isStopped</a>()</pre>
+<pre>public abstract&nbsp;boolean&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.83">isStopped</a>()</pre>
 <div class="block"><p>See <a href="../../../../org/jgrapes/core/Event.html#isStopped--"><code>Event.isStopped()</code></a>.</p></div>
 </li>
 </ul>
@@ -388,7 +388,7 @@ an unmodifiable set.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>currentResults</h4>
-<pre>protected abstract&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</a>&lt;<a href="../../../../org/jgrapes/core/internal/EventBase.html" title="type parameter in EventBase">T</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.89">currentResults</a>()</pre>
+<pre>protected abstract&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</a>&lt;<a href="../../../../org/jgrapes/core/internal/EventBase.html" title="type parameter in EventBase">T</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.88">currentResults</a>()</pre>
 <div class="block"><p>See <a href="../../../../org/jgrapes/core/Event.html#currentResults--"><code>Event.currentResults()</code></a>.</p></div>
 </li>
 </ul>
@@ -398,7 +398,7 @@ an unmodifiable set.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>setRequiresResult</h4>
-<pre>protected&nbsp;<a href="../../../../org/jgrapes/core/internal/EventBase.html" title="class in org.jgrapes.core.internal">EventBase</a>&lt;<a href="../../../../org/jgrapes/core/internal/EventBase.html" title="type parameter in EventBase">T</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.94">setRequiresResult</a>(boolean&nbsp;value)</pre>
+<pre>protected&nbsp;<a href="../../../../org/jgrapes/core/internal/EventBase.html" title="class in org.jgrapes.core.internal">EventBase</a>&lt;<a href="../../../../org/jgrapes/core/internal/EventBase.html" title="type parameter in EventBase">T</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.93">setRequiresResult</a>(boolean&nbsp;value)</pre>
 <div class="block"><p>See <a href="../../../../org/jgrapes/core/Event.html#setRequiresResult-boolean-"><code>Event.setRequiresResult(boolean)</code></a>.</p></div>
 </li>
 </ul>
@@ -408,7 +408,7 @@ an unmodifiable set.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>firstResultAssigned</h4>
-<pre>protected&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.111">firstResultAssigned</a>()</pre>
+<pre>protected&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.110">firstResultAssigned</a>()</pre>
 <div class="block"><p>See <a href="../../../../org/jgrapes/core/internal/EventBase.html#firstResultAssigned--"><code>firstResultAssigned()</code></a>.</p></div>
 </li>
 </ul>
@@ -418,7 +418,7 @@ an unmodifiable set.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>enqueued</h4>
-<pre>protected&nbsp;boolean&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.122">enqueued</a>()</pre>
+<pre>protected&nbsp;boolean&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.121">enqueued</a>()</pre>
 <div class="block"><p>Returns <code>true</code> if the event has been enqueued in a pipeline.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -432,7 +432,7 @@ an unmodifiable set.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>handlingError</h4>
-<pre>protected abstract&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.132">handlingError</a>(<a href="../../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;eventProcessor,
+<pre>protected abstract&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.131">handlingError</a>(<a href="../../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;eventProcessor,
                                       <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html?is-external=true" title="class or interface in java.lang">Throwable</a>&nbsp;throwable)</pre>
 <div class="block"><p>Invoked when an exception occurs while invoking a handler for an event.</p></div>
 <dl>
@@ -448,7 +448,7 @@ an unmodifiable set.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>processedBy</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;<a href="../../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.159">processedBy</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;<a href="../../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.158">processedBy</a>()</pre>
 </li>
 </ul>
 <a name="disableTracking--">
@@ -457,7 +457,7 @@ an unmodifiable set.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>disableTracking</h4>
-<pre>public&nbsp;<a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../../org/jgrapes/core/internal/EventBase.html" title="type parameter in EventBase">T</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.233">disableTracking</a>()</pre>
+<pre>public&nbsp;<a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../../org/jgrapes/core/internal/EventBase.html" title="type parameter in EventBase">T</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.232">disableTracking</a>()</pre>
 <div class="block"><p>Disables tracking for this event and all events generated
 when handling it.</p></div>
 </li>
@@ -468,11 +468,12 @@ when handling it.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>isTracked</h4>
-<pre>public&nbsp;boolean&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.244">isTracked</a>()</pre>
+<pre>public&nbsp;boolean&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventBase.html#line.243">isTracked</a>()</pre>
 <div class="block"><p>Whether the event (and all events generated when handling it)
 is tracked.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
+<dd><code>true</code> if event is tracked</dd>
 </dl>
 </li>
 </ul>
