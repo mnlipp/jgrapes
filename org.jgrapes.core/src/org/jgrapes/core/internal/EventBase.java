@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.jgrapes.core.Associator;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletionLock;
@@ -239,7 +238,7 @@ public abstract class EventBase<T>
      * Whether the event (and all events generated when handling it)
      * is tracked.
      * 
-     * @return
+     * @return `true` if event is tracked
      */
     public boolean isTracked() {
         return tracked;
