@@ -80,6 +80,10 @@ pre {
   overflow-x: auto;
 }
 
+a code {
+  color: inherit;
+}
+
 table {
   width:100%;
   border-collapse:collapse;
