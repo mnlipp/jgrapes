@@ -4,9 +4,9 @@ plugins {
 
 dependencies {
 
-    compile project(':org.jgrapes.http')
-    compile project(':org.jgrapes.util')
-	compile 'org.osgi:osgi.core:6.0.0'
+    implementation project(':org.jgrapes.http')
+    implementation project(':org.jgrapes.util')
+	compileOnly 'org.osgi:osgi.core:6.0.0'
 	
     osgiRuntime osgi('org.jdrupes.httpcodec:httpcodec:[1.0.4,)')
     osgiRuntime osgi('org.apache.aries.spifly:org.apache.aries.spifly.dynamic.bundle:1.0.8')

@@ -1,7 +1,7 @@
 dependencies {
 
-    compile project(':org.jgrapes.http')
-    compile 'org.freemarker:freemarker:[2.3.27-incubating,2.4)'
+    api project(':org.jgrapes.http')
+    api 'org.freemarker:freemarker:[2.3.27-incubating,2.4)'
     
     sourceSets {
         test {
