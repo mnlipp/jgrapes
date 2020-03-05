@@ -17,16 +17,31 @@ artifacts {
 	archives javadocJar
 }
 
+configurations {
+    javadocTaglets
+}
+
+dependencies {
+    javadocTaglets "org.jdrupes.taglets:plantuml-taglet:1.0.+"
+    // javadocTaglets "com.github.mnlipp:jdrupes-taglets:master-SNAPSHOT"
+}
+
 javadoc {
+    // Make sure that other projects' compileClasspaths are resolved
+    rootProject.subprojects
+        .findAll({project -> project.name.startsWith("org.jgrapes") &&
+            project.name != "org.jgrapes.core"})
+        .each{project -> dependsOn project.tasks.assemble}
+
     // Does not work on JitPack, no /usr/bin/dot
     enabled = JavaVersion.current().isJava8() && !isJitPackBuild
-
-	options.tagletPath = rootProject.configurations.javadocTaglets.files as List
+    
+	options.tagletPath = configurations.javadocTaglets.files as List
 	options.taglets = ["org.jdrupes.taglets.plantUml.Taglet"]
-	
-	classpath = files(rootProject.subprojects
-		.findAll({project -> project.name.startsWith("org.jgrapes")})
-		.collect {project -> project.sourceSets.main.compileClasspath})
+
+    classpath = files(rootProject.subprojects
+        .findAll({project -> project.name.startsWith("org.jgrapes")})
+        .collect {project -> project.sourceSets.main.compileClasspath})
 	source rootProject.subprojects
 		.findAll({project -> project.name.startsWith("org.jgrapes")})
 		.collect {project -> project.sourceSets.main.allJava }
@@ -42,5 +57,6 @@ javadoc {
 	options.links "https://docs.oracle.com/javase/8/docs/api/"
     options.links "https://mnlipp.github.io/jdrupes-httpcodec/javadoc/"
 	destinationDir = file("${rootProject.buildDir}/javadoc")
+
 }
 	

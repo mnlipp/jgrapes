@@ -14,7 +14,7 @@ buildscript {
 plugins {
 	id "maven-publish"
 	id "signing"
-	id "org.jdrupes.mdoclet" version "1.0.5"
+	id "org.jdrupes.mdoclet" version "1.0.9"
 	id "com.moowork.node" version "1.2.0"
     id 'org.ajoberstar.grgit' version '3.1.1'
     id 'org.ajoberstar.git-publish' version '2.1.1'
@@ -64,15 +64,6 @@ subprojects {
 
 // Don't know why this task exists in the first place...
 project.tasks.bintrayUpload.enabled = false
-
-configurations {
-    javadocTaglets
-}
-
-dependencies {
-    javadocTaglets "org.jdrupes.taglets:plantuml-taglet:1.0.+"
-    // javadocTaglets "com.github.mnlipp:jdrupes-taglets:master-SNAPSHOT"
-}
 
 gitPublish {
 	repoUri = 'https://github.com/mnlipp/jgrapes.git'
