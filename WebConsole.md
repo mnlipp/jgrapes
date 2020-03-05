@@ -27,7 +27,7 @@ Tabs or a menu in a side bar can be used to switch between
 the overview panel(s) and the large views of the different conlets. 
 
 The architecture of the server side is explained in detail in the
-[package description of the base component](http://127.0.0.1:4000/javadoc-webconsole/org/jgrapes/webconsole/base/package-summary.html#package.description).
+[package description of the base component](javadoc-webconsole/org/jgrapes/webconsole/base/package-summary.html#package.description).
 The additional information provided here focuses on the SPA 
 in the browser and on how to build your own console and additional conlets.
 
