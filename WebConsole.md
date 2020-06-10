@@ -71,7 +71,7 @@ The project currently includes three sample SPA providers:
    
 # Styling Conlets
 
-At least for simple conlets, it should be possible to combine them with
+At least for simple conlets, it should be possible to use them in
 differently styled consoles. This requirement implies that conlets are
 styled independent of a particular CSS framework.
 
@@ -80,15 +80,15 @@ framework's presentation classes (and even worse, additional `div`s)
 spread all over your HTML. Only a few
 "[lightweight frameworks](https://github.com/troxler/awesome-css-frameworks#very-lightweight)"
 such as [Picnic](https://picnicss.com/) base their styling on the native
-HTML. Of course, even semantic HTML 5 doesn't provide enough context to 
-reliably style GUI widgets. If however, you add 
+HTML. The problem is that even semantic HTML 5 doesn't provide enough 
+context to reliably style GUI widgets. If however, you add 
 [WAI-ARIA](https://www.w3.org/WAI/standards-guidelines/aria/) attributes
 to the markup (as you should anyway), it turns out that almost all styling
 can be based on the HTML without adding presentation classes.
 
 Using "ARIA augmented semantic HTML" is therefore the preferred approach for 
-authoring conlets. Combined with a web console's CSS stylesheet, that uses 
-rules based on this kind of content, this should lead to satisfactory
+authoring conlets. Combined with a web console's CSS stylesheet that uses 
+rules based on this kind of content this approach should lead to satisfactory
 results in typical cases.
 
 # Implementation Notes
