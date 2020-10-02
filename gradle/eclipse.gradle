@@ -15,7 +15,7 @@ eclipse {
         // 'org.eclipse.buildship.core.gradleprojectnature',
         natures 'org.eclipse.jdt.core.javanature', \
             'bndtools.core.bndnature', \
-            'net.sf.eclipsecs.core.CheckstyleNature'
+            'net.sf.eclipsecs.core.CheckstyleNature', \
             'org.eclipse.jdt.groovy.core.groovyNature'
     }
     jdt {
