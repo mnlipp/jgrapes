@@ -26,6 +26,11 @@ style and a large view that is supposed to fill the complete frame.
 Tabs or a menu in a side bar can be used to switch between
 the overview panel(s) and the large views of the different conlets. 
 
+The architecture of the web console could roughly be classified as a 
+micro service driven micro frontend (with run-time integration via 
+JavaScript), though it favors a common approach to styling for all 
+components, which is unusual for most micro frontend architectures.
+
 The architecture of the server side is explained in detail in the
 [package description of the base component](javadoc-webconsole/org/jgrapes/webconsole/base/package-summary.html#package.description).
 The additional information provided here focuses on the SPA 
