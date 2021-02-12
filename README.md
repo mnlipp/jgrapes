@@ -6,12 +6,12 @@ detailed description of the framework.
 
 [![Build Status](https://travis-ci.org/mnlipp/jgrapes.svg?branch=master)](https://travis-ci.org/mnlipp/jgrapes) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/42ed1920969d4b878d7ce80c08141a85)](https://www.codacy.com/app/mnlipp/jgrapes?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mnlipp/jgrapes&amp;utm_campaign=Badge_Grade)
 
-| Package | Bintray |
-| ------- | ------- |
-| core    | [ ![Download](https://api.bintray.com/packages/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.core/images/download.svg) ](https://bintray.com/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.core/_latestVersion)
-| util    | [ ![Download](https://api.bintray.com/packages/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.util/images/download.svg) ](https://bintray.com/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.util/_latestVersion)
-| io      | [ ![Download](https://api.bintray.com/packages/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.io/images/download.svg) ](https://bintray.com/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.io/_latestVersion)
-| http    | [ ![Download](https://api.bintray.com/packages/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.http/images/download.svg) ](https://bintray.com/mnlipp/jgrapes/org.jgrapes%3Aorg.jgrapes.http/_latestVersion)
+| Package | Download |
+| ------- | -------- |
+| core    | [![Download](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.core.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.core%22)
+| util    | [![Download](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.util.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.util%22)
+| io      | [![Download](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.io.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.io%22)
+| http    | [![Download](https://img.shields.io/maven-central/v/org.jgrapes/org.jgrapes.http.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22org.jgrapes.http%22)
 
 This repository comprises the sources for jars that provide the basic
 packages (org.jgrapes.core, ...util, ...io etc.). The jars have augmented
@@ -48,11 +48,11 @@ Running
 -------
 
 JGrapes requires Java 8 SE or newer. Binaries are currently made
-available at Bintray (and sync'd to Maven Central).
+available at Maven Central.
 
 ```gradle
 repositories {
-        jcenter()
+        mavenCentral()
 }
 
 dependencies {
