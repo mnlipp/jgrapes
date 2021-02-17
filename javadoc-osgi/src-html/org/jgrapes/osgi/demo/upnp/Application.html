@@ -31,10 +31,10 @@
 <span class="sourceLineNo">023</span>import java.net.URI;<a name="line.23"></a>
 <span class="sourceLineNo">024</span>import java.security.KeyStore;<a name="line.24"></a>
 <span class="sourceLineNo">025</span>import java.security.SecureRandom;<a name="line.25"></a>
-<span class="sourceLineNo">026</span><a name="line.26"></a>
-<span class="sourceLineNo">027</span>import javax.net.ssl.KeyManagerFactory;<a name="line.27"></a>
-<span class="sourceLineNo">028</span>import javax.net.ssl.SSLContext;<a name="line.28"></a>
-<span class="sourceLineNo">029</span><a name="line.29"></a>
+<span class="sourceLineNo">026</span>import java.util.Arrays;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import java.util.Collections;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import javax.net.ssl.KeyManagerFactory;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import javax.net.ssl.SSLContext;<a name="line.29"></a>
 <span class="sourceLineNo">030</span>import org.jgrapes.core.Channel;<a name="line.30"></a>
 <span class="sourceLineNo">031</span>import org.jgrapes.core.Component;<a name="line.31"></a>
 <span class="sourceLineNo">032</span>import org.jgrapes.core.Components;<a name="line.32"></a>
@@ -50,13 +50,13 @@
 <span class="sourceLineNo">042</span>import org.jgrapes.net.SslCodec;<a name="line.42"></a>
 <span class="sourceLineNo">043</span>import org.jgrapes.net.TcpServer;<a name="line.43"></a>
 <span class="sourceLineNo">044</span>import org.jgrapes.osgi.core.ComponentCollector;<a name="line.44"></a>
-<span class="sourceLineNo">045</span>import org.jgrapes.portal.base.KVStoreBasedPortalPolicy;<a name="line.45"></a>
-<span class="sourceLineNo">046</span>import org.jgrapes.portal.base.PageResourceProviderFactory;<a name="line.46"></a>
-<span class="sourceLineNo">047</span>import org.jgrapes.portal.base.Portal;<a name="line.47"></a>
-<span class="sourceLineNo">048</span>import org.jgrapes.portal.base.PortalLocalBackedKVStore;<a name="line.48"></a>
-<span class="sourceLineNo">049</span>import org.jgrapes.portal.base.PortalWeblet;<a name="line.49"></a>
-<span class="sourceLineNo">050</span>import org.jgrapes.portal.base.PortletComponentFactory;<a name="line.50"></a>
-<span class="sourceLineNo">051</span>import org.jgrapes.portal.bootstrap4.Bootstrap4Weblet;<a name="line.51"></a>
+<span class="sourceLineNo">045</span>import org.jgrapes.webconsole.base.BrowserLocalBackedKVStore;<a name="line.45"></a>
+<span class="sourceLineNo">046</span>import org.jgrapes.webconsole.base.ConletComponentFactory;<a name="line.46"></a>
+<span class="sourceLineNo">047</span>import org.jgrapes.webconsole.base.ConsoleWeblet;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>import org.jgrapes.webconsole.base.KVStoreBasedConsolePolicy;<a name="line.48"></a>
+<span class="sourceLineNo">049</span>import org.jgrapes.webconsole.base.PageResourceProviderFactory;<a name="line.49"></a>
+<span class="sourceLineNo">050</span>import org.jgrapes.webconsole.base.WebConsole;<a name="line.50"></a>
+<span class="sourceLineNo">051</span>import org.jgrapes.webconsole.vuejs.VueJsConsoleWeblet;<a name="line.51"></a>
 <span class="sourceLineNo">052</span>import org.osgi.framework.BundleActivator;<a name="line.52"></a>
 <span class="sourceLineNo">053</span>import org.osgi.framework.BundleContext;<a name="line.53"></a>
 <span class="sourceLineNo">054</span><a name="line.54"></a>
@@ -119,61 +119,70 @@
 <span class="sourceLineNo">111</span>        app.attach(new InMemorySessionManager(app.channel()));<a name="line.111"></a>
 <span class="sourceLineNo">112</span>        app.attach(new LanguageSelector(app.channel()));<a name="line.112"></a>
 <span class="sourceLineNo">113</span>        app.attach(new FileStorage(app.channel(), 65536));<a name="line.113"></a>
-<span class="sourceLineNo">114</span>        PortalWeblet portalWeblet<a name="line.114"></a>
-<span class="sourceLineNo">115</span>            = app.attach(new Bootstrap4Weblet(app.channel(), Channel.SELF,<a name="line.115"></a>
+<span class="sourceLineNo">114</span>        ConsoleWeblet consoleWeblet<a name="line.114"></a>
+<span class="sourceLineNo">115</span>            = app.attach(new VueJsConsoleWeblet(app.channel(), Channel.SELF,<a name="line.115"></a>
 <span class="sourceLineNo">116</span>                new URI("/portal/")))<a name="line.116"></a>
 <span class="sourceLineNo">117</span>                .prependClassTemplateLoader(getClass())<a name="line.117"></a>
-<span class="sourceLineNo">118</span>                .prependPortalResourceProvider(getClass())<a name="line.118"></a>
+<span class="sourceLineNo">118</span>                .prependConsoleResourceProvider(getClass())<a name="line.118"></a>
 <span class="sourceLineNo">119</span>                .prependResourceBundleProvider(getClass());<a name="line.119"></a>
-<span class="sourceLineNo">120</span>        Portal portal = portalWeblet.portal();<a name="line.120"></a>
-<span class="sourceLineNo">121</span>        portal.attach(new PortalLocalBackedKVStore(<a name="line.121"></a>
-<span class="sourceLineNo">122</span>            portal, portalWeblet.prefix().getPath()));<a name="line.122"></a>
-<span class="sourceLineNo">123</span>        portal.attach(new KVStoreBasedPortalPolicy(portal));<a name="line.123"></a>
-<span class="sourceLineNo">124</span>        portal.attach(new NewPortalSessionPolicy(portal));<a name="line.124"></a>
-<span class="sourceLineNo">125</span>        portal.attach(new ComponentCollector&lt;&gt;(<a name="line.125"></a>
-<span class="sourceLineNo">126</span>            portal, context, PageResourceProviderFactory.class));<a name="line.126"></a>
-<span class="sourceLineNo">127</span>        portal.attach(new ComponentCollector&lt;&gt;(<a name="line.127"></a>
-<span class="sourceLineNo">128</span>            portal, context, PortletComponentFactory.class));<a name="line.128"></a>
-<span class="sourceLineNo">129</span>        Components.start(app);<a name="line.129"></a>
-<span class="sourceLineNo">130</span><a name="line.130"></a>
-<span class="sourceLineNo">131</span>//              context().addServiceListener(new RootDeviceListener(),<a name="line.131"></a>
-<span class="sourceLineNo">132</span>//                "(&amp;" + "("+Constants.OBJECTCLASS <a name="line.132"></a>
-<span class="sourceLineNo">133</span>//                              + "=" + UPnPDevice.class.getName() + ")"<a name="line.133"></a>
-<span class="sourceLineNo">134</span>//                       + "("+UPnPDevice.UDN+"=*)" + ")");<a name="line.134"></a>
-<span class="sourceLineNo">135</span>//              <a name="line.135"></a>
-<span class="sourceLineNo">136</span>//              ServiceReference[] roots = null;<a name="line.136"></a>
-<span class="sourceLineNo">137</span>//              roots = context().getServiceReferences(<a name="line.137"></a>
-<span class="sourceLineNo">138</span>//                              UPnPDevice.class.getName(),<a name="line.138"></a>
-<span class="sourceLineNo">139</span>//                              "(&amp;" + "("+Constants.OBJECTCLASS <a name="line.139"></a>
-<span class="sourceLineNo">140</span>//                                              + "=" + UPnPDevice.class.getName() + ")"<a name="line.140"></a>
-<span class="sourceLineNo">141</span>//                                       + "("+UPnPDevice.UDN+"=*)" + ")");<a name="line.141"></a>
-<span class="sourceLineNo">142</span>//              roots = null;<a name="line.142"></a>
-<span class="sourceLineNo">143</span>    }<a name="line.143"></a>
-<span class="sourceLineNo">144</span><a name="line.144"></a>
-<span class="sourceLineNo">145</span>    /*<a name="line.145"></a>
-<span class="sourceLineNo">146</span>     * (non-Javadoc)<a name="line.146"></a>
-<span class="sourceLineNo">147</span>     * <a name="line.147"></a>
-<span class="sourceLineNo">148</span>     * @see<a name="line.148"></a>
-<span class="sourceLineNo">149</span>     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)<a name="line.149"></a>
-<span class="sourceLineNo">150</span>     */<a name="line.150"></a>
-<span class="sourceLineNo">151</span>    @Override<a name="line.151"></a>
-<span class="sourceLineNo">152</span>    public void stop(BundleContext context) throws Exception {<a name="line.152"></a>
-<span class="sourceLineNo">153</span>        app.fire(new Stop(), Channel.BROADCAST);<a name="line.153"></a>
-<span class="sourceLineNo">154</span>        Components.awaitExhaustion();<a name="line.154"></a>
-<span class="sourceLineNo">155</span>    }<a name="line.155"></a>
-<span class="sourceLineNo">156</span><a name="line.156"></a>
-<span class="sourceLineNo">157</span>    /**<a name="line.157"></a>
-<span class="sourceLineNo">158</span>     * The main method.<a name="line.158"></a>
-<span class="sourceLineNo">159</span>     *<a name="line.159"></a>
-<span class="sourceLineNo">160</span>     * @param args command line arguments<a name="line.160"></a>
-<span class="sourceLineNo">161</span>     * @throws Exception the exception<a name="line.161"></a>
-<span class="sourceLineNo">162</span>     */<a name="line.162"></a>
-<span class="sourceLineNo">163</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.163"></a>
-<span class="sourceLineNo">164</span>    public static void main(String[] args) throws Exception {<a name="line.164"></a>
-<span class="sourceLineNo">165</span>        new Application().start(null);<a name="line.165"></a>
-<span class="sourceLineNo">166</span>    }<a name="line.166"></a>
-<span class="sourceLineNo">167</span><a name="line.167"></a>
-<span class="sourceLineNo">168</span>}<a name="line.168"></a>
+<span class="sourceLineNo">120</span>        WebConsole console = consoleWeblet.console();<a name="line.120"></a>
+<span class="sourceLineNo">121</span>        console.attach(new BrowserLocalBackedKVStore(<a name="line.121"></a>
+<span class="sourceLineNo">122</span>            console, consoleWeblet.prefix().getPath()));<a name="line.122"></a>
+<span class="sourceLineNo">123</span>        console.attach(new KVStoreBasedConsolePolicy(console));<a name="line.123"></a>
+<span class="sourceLineNo">124</span>        console.attach(new NewConsoleSessionPolicy(console));<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        console.attach(new ComponentCollector&lt;&gt;(<a name="line.125"></a>
+<span class="sourceLineNo">126</span>            console, context, PageResourceProviderFactory.class,<a name="line.126"></a>
+<span class="sourceLineNo">127</span>            type -&gt; {<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                switch (type) {<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                case "org.jgrapes.webconsole.provider.gridstack.GridstackProvider":<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                    return Arrays.asList(<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                        Components.mapOf("configuration", "CoreWithJQueryUI"));<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                default:<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                    return Arrays.asList(Collections.emptyMap());<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                }<a name="line.134"></a>
+<span class="sourceLineNo">135</span>            }));<a name="line.135"></a>
+<span class="sourceLineNo">136</span>        console.attach(new ComponentCollector&lt;&gt;(<a name="line.136"></a>
+<span class="sourceLineNo">137</span>            console, context, ConletComponentFactory.class));<a name="line.137"></a>
+<span class="sourceLineNo">138</span>        Components.start(app);<a name="line.138"></a>
+<span class="sourceLineNo">139</span><a name="line.139"></a>
+<span class="sourceLineNo">140</span>//              context().addServiceListener(new RootDeviceListener(),<a name="line.140"></a>
+<span class="sourceLineNo">141</span>//                "(&amp;" + "("+Constants.OBJECTCLASS <a name="line.141"></a>
+<span class="sourceLineNo">142</span>//                              + "=" + UPnPDevice.class.getName() + ")"<a name="line.142"></a>
+<span class="sourceLineNo">143</span>//                       + "("+UPnPDevice.UDN+"=*)" + ")");<a name="line.143"></a>
+<span class="sourceLineNo">144</span>//              <a name="line.144"></a>
+<span class="sourceLineNo">145</span>//              ServiceReference[] roots = null;<a name="line.145"></a>
+<span class="sourceLineNo">146</span>//              roots = context().getServiceReferences(<a name="line.146"></a>
+<span class="sourceLineNo">147</span>//                              UPnPDevice.class.getName(),<a name="line.147"></a>
+<span class="sourceLineNo">148</span>//                              "(&amp;" + "("+Constants.OBJECTCLASS <a name="line.148"></a>
+<span class="sourceLineNo">149</span>//                                              + "=" + UPnPDevice.class.getName() + ")"<a name="line.149"></a>
+<span class="sourceLineNo">150</span>//                                       + "("+UPnPDevice.UDN+"=*)" + ")");<a name="line.150"></a>
+<span class="sourceLineNo">151</span>//              roots = null;<a name="line.151"></a>
+<span class="sourceLineNo">152</span>    }<a name="line.152"></a>
+<span class="sourceLineNo">153</span><a name="line.153"></a>
+<span class="sourceLineNo">154</span>    /*<a name="line.154"></a>
+<span class="sourceLineNo">155</span>     * (non-Javadoc)<a name="line.155"></a>
+<span class="sourceLineNo">156</span>     * <a name="line.156"></a>
+<span class="sourceLineNo">157</span>     * @see<a name="line.157"></a>
+<span class="sourceLineNo">158</span>     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)<a name="line.158"></a>
+<span class="sourceLineNo">159</span>     */<a name="line.159"></a>
+<span class="sourceLineNo">160</span>    @Override<a name="line.160"></a>
+<span class="sourceLineNo">161</span>    public void stop(BundleContext context) throws Exception {<a name="line.161"></a>
+<span class="sourceLineNo">162</span>        app.fire(new Stop(), Channel.BROADCAST);<a name="line.162"></a>
+<span class="sourceLineNo">163</span>        Components.awaitExhaustion();<a name="line.163"></a>
+<span class="sourceLineNo">164</span>    }<a name="line.164"></a>
+<span class="sourceLineNo">165</span><a name="line.165"></a>
+<span class="sourceLineNo">166</span>    /**<a name="line.166"></a>
+<span class="sourceLineNo">167</span>     * The main method.<a name="line.167"></a>
+<span class="sourceLineNo">168</span>     *<a name="line.168"></a>
+<span class="sourceLineNo">169</span>     * @param args command line arguments<a name="line.169"></a>
+<span class="sourceLineNo">170</span>     * @throws Exception the exception<a name="line.170"></a>
+<span class="sourceLineNo">171</span>     */<a name="line.171"></a>
+<span class="sourceLineNo">172</span>    @SuppressWarnings("PMD.SignatureDeclareThrowsException")<a name="line.172"></a>
+<span class="sourceLineNo">173</span>    public static void main(String[] args) throws Exception {<a name="line.173"></a>
+<span class="sourceLineNo">174</span>        new Application().start(null);<a name="line.174"></a>
+<span class="sourceLineNo">175</span>    }<a name="line.175"></a>
+<span class="sourceLineNo">176</span><a name="line.176"></a>
+<span class="sourceLineNo">177</span>}<a name="line.177"></a>
 
 
 
