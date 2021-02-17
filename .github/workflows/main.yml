@@ -1,0 +1,23 @@
+name: Java CI
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        java-version: [ '1.8', '11' ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install graphviz
+        run: sudo apt-get install graphviz
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Build with Gradle
+        run: ./gradlew stage
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
