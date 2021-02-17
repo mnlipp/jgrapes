@@ -22,7 +22,7 @@ plugins {
 }
 
 ext {
-	isTravisBuild = System.getenv().get("TRAVIS") == 'true'
+	isCiBuild = System.getenv().get("CI") == 'true'
     isJitPackBuild = System.getenv().get("JITPACK") == 'true'
 }
 
@@ -92,7 +92,7 @@ task stage {
     // Build everything first
     subprojects.tasks.each { tc -> dependsOn tc.findByName("build") }
 	
-    if (!isTravisBuild || JavaVersion.current().isJava8()) {
+    if (!isCiBuild || JavaVersion.current().isJava8()) {
     	// Publish JavaDoc
     	dependsOn gitPublishPush
     }	
