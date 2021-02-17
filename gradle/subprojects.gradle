@@ -16,7 +16,7 @@ if (project.file("bnd.bnd").exists()) {
 
     jar {
         manifest {
-            inputs.property("gitDecriptor", { grgit.describe() })
+            inputs.property("gitDescriptor", { grgit.describe() })
             
             attributes('Bundle-Version': bundleVersion)
             // Set Git revision information in the manifests of built bundles
@@ -24,7 +24,7 @@ if (project.file("bnd.bnd").exists()) {
         }
         doFirst {
             manifest {
-                attributes('Git-Descriptor': inputs.properties['gitDecriptor'])
+                attributes('Git-Descriptor': inputs.properties['gitDescriptor'])
             }
         }
     }
