@@ -132,7 +132,7 @@ to HTTP requests.</div>
 <tr class="altColor">
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/core/Component.html#Component-org.jgrapes.core.Channel-org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements-">Component</a></span>(<a href="../../../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;componentChannel,
          <a href="../../../../../org/jgrapes/core/annotation/HandlerDefinition.ChannelReplacements.html" title="class in org.jgrapes.core.annotation">HandlerDefinition.ChannelReplacements</a>&nbsp;channelReplacements)</code>
-<div class="block">Creates a new component base like <a href="../../../../../org/jgrapes/core/Component.html#Component-org.jgrapes.core.Channel-"><code>Component.Component(Channel)</code></a>
+<div class="block">Creates a new component base like <a href="../../../../../org/jgrapes/core/Component.html#Component-org.jgrapes.core.Channel-"><code>Component(Channel)</code></a>
 but with channel mappings for <a href="../../../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation"><code>Handler</code></a> annotations.</div>
 </td>
 </tr>
@@ -174,6 +174,12 @@ but with channel mappings for <a href="../../../../../org/jgrapes/core/annotatio
 <tbody>
 <tr class="altColor">
 <td class="colFirst"><code><a href="../../../../../org/jgrapes/core/HandlerScope.html" title="interface in org.jgrapes.core">HandlerScope</a></code></td>
+<td class="colLast"><span class="typeNameLabel">Handler.Evaluator.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/core/annotation/Handler.Evaluator.html#scope-org.jgrapes.core.ComponentType-java.lang.reflect.Method-org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements-">scope</a></span>(<a href="../../../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&nbsp;component,
+     <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Method.html?is-external=true" title="class or interface in java.lang.reflect">Method</a>&nbsp;method,
+     <a href="../../../../../org/jgrapes/core/annotation/HandlerDefinition.ChannelReplacements.html" title="class in org.jgrapes.core.annotation">HandlerDefinition.ChannelReplacements</a>&nbsp;channelReplacements)</code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code><a href="../../../../../org/jgrapes/core/HandlerScope.html" title="interface in org.jgrapes.core">HandlerScope</a></code></td>
 <td class="colLast"><span class="typeNameLabel">HandlerDefinition.Evaluator.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/core/annotation/HandlerDefinition.Evaluator.html#scope-org.jgrapes.core.ComponentType-java.lang.reflect.Method-org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements-">scope</a></span>(<a href="../../../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&nbsp;component,
      <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Method.html?is-external=true" title="class or interface in java.lang.reflect">Method</a>&nbsp;method,
      <a href="../../../../../org/jgrapes/core/annotation/HandlerDefinition.ChannelReplacements.html" title="class in org.jgrapes.core.annotation">HandlerDefinition.ChannelReplacements</a>&nbsp;channelReplacements)</code>
@@ -181,12 +187,6 @@ but with channel mappings for <a href="../../../../../org/jgrapes/core/annotatio
 by the handler that annotates the given method of the given
 comonent as a <a href="../../../../../org/jgrapes/core/HandlerScope.html" title="interface in org.jgrapes.core"><code>HandlerScope</code></a> object.</div>
 </td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code><a href="../../../../../org/jgrapes/core/HandlerScope.html" title="interface in org.jgrapes.core">HandlerScope</a></code></td>
-<td class="colLast"><span class="typeNameLabel">Handler.Evaluator.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/core/annotation/Handler.Evaluator.html#scope-org.jgrapes.core.ComponentType-java.lang.reflect.Method-org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements-">scope</a></span>(<a href="../../../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&nbsp;component,
-     <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Method.html?is-external=true" title="class or interface in java.lang.reflect">Method</a>&nbsp;method,
-     <a href="../../../../../org/jgrapes/core/annotation/HandlerDefinition.ChannelReplacements.html" title="class in org.jgrapes.core.annotation">HandlerDefinition.ChannelReplacements</a>&nbsp;channelReplacements)</code>&nbsp;</td>
 </tr>
 </tbody>
 </table>

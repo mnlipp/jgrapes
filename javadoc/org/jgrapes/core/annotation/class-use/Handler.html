@@ -402,14 +402,14 @@ of the network connection together with an <a href="https://docs.oracle.com/java
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">TcpServer.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpServer.html#onClose-org.jgrapes.io.events.Close-">onClose</a></span>(<a href="../../../../../org/jgrapes/io/events/Close.html" title="class in org.jgrapes.io.events">Close</a>&nbsp;event)</code>
-<div class="block">Shuts down the server or one of the connections to the server.</div>
+<td class="colLast"><span class="typeNameLabel">TcpConnector.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpConnector.html#onClose-org.jgrapes.io.events.Close-">onClose</a></span>(<a href="../../../../../org/jgrapes/io/events/Close.html" title="class in org.jgrapes.io.events">Close</a>&nbsp;event)</code>
+<div class="block">Shuts down the one of the connections.</div>
 </td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">TcpConnector.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpConnector.html#onClose-org.jgrapes.io.events.Close-">onClose</a></span>(<a href="../../../../../org/jgrapes/io/events/Close.html" title="class in org.jgrapes.io.events">Close</a>&nbsp;event)</code>
-<div class="block">Shuts down the one of the connections.</div>
+<td class="colLast"><span class="typeNameLabel">TcpServer.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpServer.html#onClose-org.jgrapes.io.events.Close-">onClose</a></span>(<a href="../../../../../org/jgrapes/io/events/Close.html" title="class in org.jgrapes.io.events">Close</a>&nbsp;event)</code>
+<div class="block">Shuts down the server or one of the connections to the server.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -466,14 +466,14 @@ by sending it downstream.</div>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">TcpConnector.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpConnector.html#onOpenConnection-org.jgrapes.io.events.OpenTcpConnection-">onOpenConnection</a></span>(<a href="../../../../../org/jgrapes/io/events/OpenTcpConnection.html" title="class in org.jgrapes.io.events">OpenTcpConnection</a>&nbsp;event)</code>
-<div class="block">Opens a connection to the end point specified in the event.</div>
+<td class="colLast"><span class="typeNameLabel">SslCodec.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/SslCodec.html#onOpenConnection-org.jgrapes.io.events.OpenTcpConnection-">onOpenConnection</a></span>(<a href="../../../../../org/jgrapes/io/events/OpenTcpConnection.html" title="class in org.jgrapes.io.events">OpenTcpConnection</a>&nbsp;event)</code>
+<div class="block">Forward the connection request to the encrypted network.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">SslCodec.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/SslCodec.html#onOpenConnection-org.jgrapes.io.events.OpenTcpConnection-">onOpenConnection</a></span>(<a href="../../../../../org/jgrapes/io/events/OpenTcpConnection.html" title="class in org.jgrapes.io.events">OpenTcpConnection</a>&nbsp;event)</code>
-<div class="block">Forward the connection request to the encrypted network.</div>
+<td class="colLast"><span class="typeNameLabel">TcpConnector.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpConnector.html#onOpenConnection-org.jgrapes.io.events.OpenTcpConnection-">onOpenConnection</a></span>(<a href="../../../../../org/jgrapes/io/events/OpenTcpConnection.html" title="class in org.jgrapes.io.events">OpenTcpConnection</a>&nbsp;event)</code>
+<div class="block">Opens a connection to the end point specified in the event.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -499,15 +499,15 @@ by sending it downstream.</div>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">TcpServer.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpServer.html#onRegistered-org.jgrapes.io.events.NioRegistration.Completed-">onRegistered</a></span>(<a href="../../../../../org/jgrapes/io/events/NioRegistration.Completed.html" title="class in org.jgrapes.io.events">NioRegistration.Completed</a>&nbsp;event)</code>
-<div class="block">Handles the successful channel registration.</div>
+<td class="colLast"><span class="typeNameLabel">TcpConnector.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpConnector.html#onRegistered-org.jgrapes.io.events.NioRegistration.Completed-">onRegistered</a></span>(<a href="../../../../../org/jgrapes/io/events/NioRegistration.Completed.html" title="class in org.jgrapes.io.events">NioRegistration.Completed</a>&nbsp;event)</code>
+<div class="block">Called when the new socket channel has successfully been registered
+with the nio dispatcher.</div>
 </td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">TcpConnector.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpConnector.html#onRegistered-org.jgrapes.io.events.NioRegistration.Completed-">onRegistered</a></span>(<a href="../../../../../org/jgrapes/io/events/NioRegistration.Completed.html" title="class in org.jgrapes.io.events">NioRegistration.Completed</a>&nbsp;event)</code>
-<div class="block">Called when the new socket channel has successfully been registered
-with the nio dispatcher.</div>
+<td class="colLast"><span class="typeNameLabel">TcpServer.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpServer.html#onRegistered-org.jgrapes.io.events.NioRegistration.Completed-">onRegistered</a></span>(<a href="../../../../../org/jgrapes/io/events/NioRegistration.Completed.html" title="class in org.jgrapes.io.events">NioRegistration.Completed</a>&nbsp;event)</code>
+<div class="block">Handles the successful channel registration.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -539,26 +539,26 @@ server as channel.</div>
 <tbody>
 <tr class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">PreferencesStore.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/util/PreferencesStore.html#onConfigurationUpdate-org.jgrapes.util.events.ConfigurationUpdate-">onConfigurationUpdate</a></span>(<a href="../../../../../org/jgrapes/util/events/ConfigurationUpdate.html" title="class in org.jgrapes.util.events">ConfigurationUpdate</a>&nbsp;event)</code>
+<td class="colLast"><span class="typeNameLabel">JsonConfigurationStore.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/util/JsonConfigurationStore.html#onConfigurationUpdate-org.jgrapes.util.events.ConfigurationUpdate-">onConfigurationUpdate</a></span>(<a href="../../../../../org/jgrapes/util/events/ConfigurationUpdate.html" title="class in org.jgrapes.util.events">ConfigurationUpdate</a>&nbsp;event)</code>
 <div class="block">Merges and saves configuration updates.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">JsonConfigurationStore.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/util/JsonConfigurationStore.html#onConfigurationUpdate-org.jgrapes.util.events.ConfigurationUpdate-">onConfigurationUpdate</a></span>(<a href="../../../../../org/jgrapes/util/events/ConfigurationUpdate.html" title="class in org.jgrapes.util.events">ConfigurationUpdate</a>&nbsp;event)</code>
+<td class="colLast"><span class="typeNameLabel">PreferencesStore.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/util/PreferencesStore.html#onConfigurationUpdate-org.jgrapes.util.events.ConfigurationUpdate-">onConfigurationUpdate</a></span>(<a href="../../../../../org/jgrapes/util/events/ConfigurationUpdate.html" title="class in org.jgrapes.util.events">ConfigurationUpdate</a>&nbsp;event)</code>
 <div class="block">Merges and saves configuration updates.</div>
 </td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">PreferencesStore.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/util/PreferencesStore.html#onStart-org.jgrapes.core.events.Start-">onStart</a></span>(<a href="../../../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events">Start</a>&nbsp;event)</code>
+<td class="colLast"><span class="typeNameLabel">JsonConfigurationStore.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/util/JsonConfigurationStore.html#onStart-org.jgrapes.core.events.Start-">onStart</a></span>(<a href="../../../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events">Start</a>&nbsp;event)</code>
 <div class="block">Intercepts the <a href="../../../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events"><code>Start</code></a> event and fires a
 <a href="../../../../../org/jgrapes/util/events/ConfigurationUpdate.html" title="class in org.jgrapes.util.events"><code>ConfigurationUpdate</code></a> event.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">JsonConfigurationStore.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/util/JsonConfigurationStore.html#onStart-org.jgrapes.core.events.Start-">onStart</a></span>(<a href="../../../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events">Start</a>&nbsp;event)</code>
+<td class="colLast"><span class="typeNameLabel">PreferencesStore.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/util/PreferencesStore.html#onStart-org.jgrapes.core.events.Start-">onStart</a></span>(<a href="../../../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events">Start</a>&nbsp;event)</code>
 <div class="block">Intercepts the <a href="../../../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events"><code>Start</code></a> event and fires a
 <a href="../../../../../org/jgrapes/util/events/ConfigurationUpdate.html" title="class in org.jgrapes.util.events"><code>ConfigurationUpdate</code></a> event.</div>
 </td>
