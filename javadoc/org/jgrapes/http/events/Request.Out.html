@@ -140,7 +140,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public static class <a href="../../../../src-html/org/jgrapes/http/events/Request.html#line.537">Request.Out</a>
+<pre>public static class <a href="../../../../src-html/org/jgrapes/http/events/Request.html#line.536">Request.Out</a>
 extends <a href="../../../../org/jgrapes/http/events/Request.html" title="class in org.jgrapes.http.events">Request</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Void.html?is-external=true" title="class or interface in java.lang">Void</a>&gt;</pre>
 <div class="block"><p>The base class for all outgoing HTTP requests. Outgoing
 request flow upstream and are served externally.</p>
@@ -346,7 +346,7 @@ i.e. a response has been sent or will sent.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>Out</h4>
-<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.548">Out</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;method,
+<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.547">Out</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;method,
            <a href="https://docs.oracle.com/javase/8/docs/api/java/net/URL.html?is-external=true" title="class or interface in java.net">URL</a>&nbsp;url)</pre>
 <div class="block"><p>Instantiates a new request.</p></div>
 <dl>
@@ -370,7 +370,7 @@ i.e. a response has been sent or will sent.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>setConnectedCallback</h4>
-<pre>public&nbsp;<a href="../../../../org/jgrapes/http/events/Request.Out.html" title="class in org.jgrapes.http.events">Request.Out</a>&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.570">setConnectedCallback</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/util/function/BiConsumer.html?is-external=true" title="class or interface in java.util.function">BiConsumer</a>&lt;<a href="../../../../org/jgrapes/http/events/Request.Out.html" title="class in org.jgrapes.http.events">Request.Out</a>,<a href="../../../../org/jgrapes/net/TcpChannel.html" title="interface in org.jgrapes.net">TcpChannel</a>&gt;&nbsp;connectedCallback)</pre>
+<pre>public&nbsp;<a href="../../../../org/jgrapes/http/events/Request.Out.html" title="class in org.jgrapes.http.events">Request.Out</a>&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.569">setConnectedCallback</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/util/function/BiConsumer.html?is-external=true" title="class or interface in java.util.function">BiConsumer</a>&lt;<a href="../../../../org/jgrapes/http/events/Request.Out.html" title="class in org.jgrapes.http.events">Request.Out</a>,<a href="../../../../org/jgrapes/net/TcpChannel.html" title="interface in org.jgrapes.net">TcpChannel</a>&gt;&nbsp;connectedCallback)</pre>
 <div class="block"><p>Sets a &ldquo;connected callback&rdquo;. When the <a href="../../../../org/jgrapes/http/events/Request.Out.html" title="class in org.jgrapes.http.events"><code>Request.Out</code></a> event is
 created, the network connection is not yet known. Some
 header fields&rsquo; values, however, need e.g. the port information
@@ -391,7 +391,7 @@ to send the request.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>connectedCallback</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/function/BiConsumer.html?is-external=true" title="class or interface in java.util.function">BiConsumer</a>&lt;<a href="../../../../org/jgrapes/http/events/Request.Out.html" title="class in org.jgrapes.http.events">Request.Out</a>,<a href="../../../../org/jgrapes/net/TcpChannel.html" title="interface in org.jgrapes.net">TcpChannel</a>&gt;&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.582">connectedCallback</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/function/BiConsumer.html?is-external=true" title="class or interface in java.util.function">BiConsumer</a>&lt;<a href="../../../../org/jgrapes/http/events/Request.Out.html" title="class in org.jgrapes.http.events">Request.Out</a>,<a href="../../../../org/jgrapes/net/TcpChannel.html" title="interface in org.jgrapes.net">TcpChannel</a>&gt;&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.581">connectedCallback</a>()</pre>
 <div class="block"><p>Returns the connected callback.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -405,7 +405,7 @@ to send the request.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>httpRequest</h4>
-<pre>public&nbsp;<a href="https://mnlipp.github.io/jdrupes-httpcodec/javadoc/org/jdrupes/httpcodec/protocols/http/HttpRequest.html?is-external=true" title="class or interface in org.jdrupes.httpcodec.protocols.http">HttpRequest</a>&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.591">httpRequest</a>()</pre>
+<pre>public&nbsp;<a href="https://mnlipp.github.io/jdrupes-httpcodec/javadoc/org/jdrupes/httpcodec/protocols/http/HttpRequest.html?is-external=true" title="class or interface in org.jdrupes.httpcodec.protocols.http">HttpRequest</a>&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.590">httpRequest</a>()</pre>
 <div class="block"><p>The HTTP request that will be sent by the event.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -419,7 +419,7 @@ to send the request.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>requestUri</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/net/URI.html?is-external=true" title="class or interface in java.net">URI</a>&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.600">requestUri</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/net/URI.html?is-external=true" title="class or interface in java.net">URI</a>&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.599">requestUri</a>()</pre>
 <div class="block"><p>Returns an absolute URI of the request.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -433,7 +433,7 @@ to send the request.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>toString</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.610">toString</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/http/events/Request.Out.html#line.609">toString</a>()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="../../../../org/jgrapes/core/Event.html#toString--">toString</a></code>&nbsp;in class&nbsp;<code><a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Void.html?is-external=true" title="class or interface in java.lang">Void</a>&gt;</code></dd>

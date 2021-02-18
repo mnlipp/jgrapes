@@ -122,7 +122,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public class <a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.53">StaticContentDispatcher</a>
+<pre>public class <a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.52">StaticContentDispatcher</a>
 extends <a href="../../../org/jgrapes/core/Component.html" title="class in org.jgrapes.core">Component</a></pre>
 <div class="block"><p>A dispatcher for requests for static content, usually files.</p></div>
 </li>
@@ -283,7 +283,7 @@ itself.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>StaticContentDispatcher</h4>
-<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.78">StaticContentDispatcher</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;componentChannel,
+<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.77">StaticContentDispatcher</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;componentChannel,
                                <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;resourcePattern,
                                <a href="https://docs.oracle.com/javase/8/docs/api/java/net/URI.html?is-external=true" title="class or interface in java.net">URI</a>&nbsp;contentRoot)</pre>
 <div class="block"><p>Creates new dispatcher that tries to fulfill requests matching
@@ -311,7 +311,7 @@ in order to be handled by this component
 <ul class="blockListLast">
 <li class="blockList">
 <h4>StaticContentDispatcher</h4>
-<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.104">StaticContentDispatcher</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;resourcePattern,
+<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.103">StaticContentDispatcher</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;resourcePattern,
                                <a href="https://docs.oracle.com/javase/8/docs/api/java/net/URI.html?is-external=true" title="class or interface in java.net">URI</a>&nbsp;contentRoot)</pre>
 <div class="block"><p>Creates a new component base with its channel set to
 itself.</p></div>
@@ -340,7 +340,7 @@ be handled by this component
 <ul class="blockList">
 <li class="blockList">
 <h4>maxAgeCalculator</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/http/ResponseCreationSupport.MaxAgeCalculator.html" title="interface in org.jgrapes.http">ResponseCreationSupport.MaxAgeCalculator</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.111">maxAgeCalculator</a>()</pre>
+<pre>public&nbsp;<a href="../../../org/jgrapes/http/ResponseCreationSupport.MaxAgeCalculator.html" title="interface in org.jgrapes.http">ResponseCreationSupport.MaxAgeCalculator</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.110">maxAgeCalculator</a>()</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the maxAgeCalculator</dd>
@@ -353,7 +353,7 @@ be handled by this component
 <ul class="blockList">
 <li class="blockList">
 <h4>setMaxAgeCalculator</h4>
-<pre>public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.123">setMaxAgeCalculator</a>(<a href="../../../org/jgrapes/http/ResponseCreationSupport.MaxAgeCalculator.html" title="interface in org.jgrapes.http">ResponseCreationSupport.MaxAgeCalculator</a>&nbsp;maxAgeCalculator)</pre>
+<pre>public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.122">setMaxAgeCalculator</a>(<a href="../../../org/jgrapes/http/ResponseCreationSupport.MaxAgeCalculator.html" title="interface in org.jgrapes.http">ResponseCreationSupport.MaxAgeCalculator</a>&nbsp;maxAgeCalculator)</pre>
 <div class="block"><p>Sets the <a href="../../../org/jgrapes/http/ResponseCreationSupport.MaxAgeCalculator.html" title="interface in org.jgrapes.http"><code>ResponseCreationSupport.MaxAgeCalculator</code></a> for generating the <code>Cache-Control</code>
 (<code>max-age</code>) header of the response. The default max age calculator
 used simply returns a max age of one year, since this component
@@ -371,7 +371,7 @@ is intended to serve static content.</p></div>
 <li class="blockList">
 <h4>onGet</h4>
 <pre><a href="../../../org/jgrapes/http/annotation/RequestHandler.html" title="annotation in org.jgrapes.http.annotation">@RequestHandler</a>(<a href="../../../org/jgrapes/http/annotation/RequestHandler.html#dynamic--">dynamic</a>=true)
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.136">onGet</a>(<a href="../../../org/jgrapes/http/events/Request.In.Get.html" title="class in org.jgrapes.http.events">Request.In.Get</a>&nbsp;event,
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/StaticContentDispatcher.html#line.135">onGet</a>(<a href="../../../org/jgrapes/http/events/Request.In.Get.html" title="class in org.jgrapes.http.events">Request.In.Get</a>&nbsp;event,
                                                 <a href="../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;channel)
                                          throws <a href="https://docs.oracle.com/javase/8/docs/api/java/text/ParseException.html?is-external=true" title="class or interface in java.text">ParseException</a>,
                                                 <a href="https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html?is-external=true" title="class or interface in java.io">IOException</a></pre>

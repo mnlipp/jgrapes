@@ -108,7 +108,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public interface <a href="../../../src-html/org/jgrapes/http/Session.html#line.55">Session</a>
+<pre>public interface <a href="../../../src-html/org/jgrapes/http/Session.html#line.54">Session</a>
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Map.html?is-external=true" title="class or interface in java.util">Map</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html?is-external=true" title="class or interface in java.io">Serializable</a>,<a href="https://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html?is-external=true" title="class or interface in java.io">Serializable</a>&gt;</pre>
 <div class="block"><p>Represents a browser session. Session objects are used to store
 data related to the browser session. Servers with a small number
@@ -229,7 +229,7 @@ set by <a href="../../../org/jgrapes/http/LanguageSelector.html" title="class in
 <ul class="blockList">
 <li class="blockList">
 <h4>id</h4>
-<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.63">id</a>()</pre>
+<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.62">id</a>()</pre>
 <div class="block"><p>Returns the session id.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -243,7 +243,7 @@ set by <a href="../../../org/jgrapes/http/LanguageSelector.html" title="class in
 <ul class="blockList">
 <li class="blockList">
 <h4>createdAt</h4>
-<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/time/Instant.html?is-external=true" title="class or interface in java.time">Instant</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.70">createdAt</a>()</pre>
+<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/time/Instant.html?is-external=true" title="class or interface in java.time">Instant</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.69">createdAt</a>()</pre>
 <div class="block"><p>Returns the creation time stamp.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -257,7 +257,7 @@ set by <a href="../../../org/jgrapes/http/LanguageSelector.html" title="class in
 <ul class="blockList">
 <li class="blockList">
 <h4>lastUsedAt</h4>
-<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/time/Instant.html?is-external=true" title="class or interface in java.time">Instant</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.77">lastUsedAt</a>()</pre>
+<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/time/Instant.html?is-external=true" title="class or interface in java.time">Instant</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.76">lastUsedAt</a>()</pre>
 <div class="block"><p>Returns the last used (referenced in request) time stamp.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -271,7 +271,7 @@ set by <a href="../../../org/jgrapes/http/LanguageSelector.html" title="class in
 <ul class="blockList">
 <li class="blockList">
 <h4>updateLastUsedAt</h4>
-<pre>void&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.82">updateLastUsedAt</a>()</pre>
+<pre>void&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.81">updateLastUsedAt</a>()</pre>
 <div class="block"><p>Updates the last used time stamp.</p></div>
 </li>
 </ul>
@@ -281,7 +281,7 @@ set by <a href="../../../org/jgrapes/http/LanguageSelector.html" title="class in
 <ul class="blockList">
 <li class="blockList">
 <h4>transientData</h4>
-<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/util/Map.html?is-external=true" title="class or interface in java.util">Map</a>&lt;?,?&gt;&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.92">transientData</a>()</pre>
+<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/util/Map.html?is-external=true" title="class or interface in java.util">Map</a>&lt;?,?&gt;&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.91">transientData</a>()</pre>
 <div class="block"><p>Return the storage area for transient data. Usually implemented
 by a <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ConcurrentHashMap.html?is-external=true" title="class or interface in java.util.concurrent"><code>ConcurrentHashMap</code></a>. Other implementations must
 at least provide the same support for concurrency as
@@ -298,7 +298,7 @@ at least provide the same support for concurrency as
 <ul class="blockListLast">
 <li class="blockList">
 <h4>locale</h4>
-<pre>default&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html?is-external=true" title="class or interface in java.util">Locale</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.100">locale</a>()</pre>
+<pre>default&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html?is-external=true" title="class or interface in java.util">Locale</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/Session.html#line.99">locale</a>()</pre>
 <div class="block"><p>Convenience method for retrieving the locale
 set by <a href="../../../org/jgrapes/http/LanguageSelector.html" title="class in org.jgrapes.http"><code>LanguageSelector</code></a> from the session.</p></div>
 <dl>

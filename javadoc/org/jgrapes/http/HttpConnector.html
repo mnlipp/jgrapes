@@ -122,7 +122,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public class <a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.77">HttpConnector</a>
+<pre>public class <a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.76">HttpConnector</a>
 extends <a href="../../../org/jgrapes/core/Component.html" title="class in org.jgrapes.core">Component</a></pre>
 <div class="block"><p>A converter component that receives and sends web application
 layer messages and byte buffers on associated network channels.</p></div>
@@ -318,7 +318,7 @@ on the application channel.</div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>HttpConnector</h4>
-<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.102">HttpConnector</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;appChannel,
+<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.101">HttpConnector</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;appChannel,
                      <a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;networkChannel)</pre>
 <div class="block"><p>Create a new connector that uses the <code>networkChannel</code> for network
 level I/O.</p></div>
@@ -343,7 +343,7 @@ level I/O.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>setApplicationBufferSize</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/http/HttpConnector.html" title="class in org.jgrapes.http">HttpConnector</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.116">setApplicationBufferSize</a>(int&nbsp;applicationBufferSize)</pre>
+<pre>public&nbsp;<a href="../../../org/jgrapes/http/HttpConnector.html" title="class in org.jgrapes.http">HttpConnector</a>&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.115">setApplicationBufferSize</a>(int&nbsp;applicationBufferSize)</pre>
 <div class="block"><p>Sets the size of the buffers used for <a href="../../../org/jgrapes/io/events/Input.html" title="class in org.jgrapes.io.events"><code>Input</code></a> events
 on the application channel. Defaults to the upstream buffer size
 minus 512 (estimate for added protocol overhead).</p></div>
@@ -361,7 +361,7 @@ minus 512 (estimate for added protocol overhead).</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>applicationBufferSize</h4>
-<pre>public&nbsp;int&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.126">applicationBufferSize</a>()</pre>
+<pre>public&nbsp;int&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.125">applicationBufferSize</a>()</pre>
 <div class="block"><p>Returns the size of the application side (receive) buffers.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -376,7 +376,7 @@ minus 512 (estimate for added protocol overhead).</p></div>
 <li class="blockList">
 <h4>onRequest</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.142">onRequest</a>(<a href="../../../org/jgrapes/http/events/Request.Out.html" title="class in org.jgrapes.http.events">Request.Out</a>&nbsp;event)
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.141">onRequest</a>(<a href="../../../org/jgrapes/http/events/Request.Out.html" title="class in org.jgrapes.http.events">Request.Out</a>&nbsp;event)
                         throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a>,
                                <a href="https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html?is-external=true" title="class or interface in java.io">IOException</a></pre>
 <div class="block"><p>Starts the processing of a request from the application layer.
@@ -400,7 +400,7 @@ request.</p></div>
 <li class="blockList">
 <h4>onOutput</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.156">onOutput</a>(<a href="../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;?&gt;&nbsp;event,
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.155">onOutput</a>(<a href="../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;?&gt;&nbsp;event,
                               org.jgrapes.http.HttpConnector.WebAppMsgChannel&nbsp;appChannel)
                        throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a></pre>
 <div class="block"><p>Handles output from the application. This may be the payload
@@ -421,7 +421,7 @@ of e.g. a POST or data to be transferes on a websocket connection.</p></div>
 <li class="blockList">
 <h4>onConnected</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>(<a href="../../../org/jgrapes/core/annotation/Handler.html#channels--">channels</a>=org.jgrapes.http.HttpConnector.NetworkChannel.class)
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.172">onConnected</a>(<a href="../../../org/jgrapes/net/events/Connected.html" title="class in org.jgrapes.net.events">Connected</a>&nbsp;event,
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.171">onConnected</a>(<a href="../../../org/jgrapes/net/events/Connected.html" title="class in org.jgrapes.net.events">Connected</a>&nbsp;event,
                                                                                                <a href="../../../org/jgrapes/net/TcpChannel.html" title="interface in org.jgrapes.net">TcpChannel</a>&nbsp;netConnChannel)
                                                                                         throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a>,
                                                                                                <a href="https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html?is-external=true" title="class or interface in java.io">IOException</a></pre>
@@ -444,7 +444,7 @@ frther processing of the initial request.</p></div>
 <li class="blockList">
 <h4>onIoError</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>(<a href="../../../org/jgrapes/core/annotation/Handler.html#channels--">channels</a>=org.jgrapes.http.HttpConnector.NetworkChannel.class)
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.196">onIoError</a>(<a href="../../../org/jgrapes/io/events/IOError.html" title="class in org.jgrapes.io.events">IOError</a>&nbsp;event)
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.195">onIoError</a>(<a href="../../../org/jgrapes/io/events/IOError.html" title="class in org.jgrapes.io.events">IOError</a>&nbsp;event)
                                                                                       throws <a href="https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html?is-external=true" title="class or interface in java.io">IOException</a></pre>
 <div class="block"><p>Handles I/O error events from the network layer.</p></div>
 <dl>
@@ -462,7 +462,7 @@ public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.
 <li class="blockList">
 <h4>onInput</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>(<a href="../../../org/jgrapes/core/annotation/Handler.html#channels--">channels</a>=org.jgrapes.http.HttpConnector.NetworkChannel.class)
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.240">onInput</a>(<a href="../../../org/jgrapes/io/events/Input.html" title="class in org.jgrapes.io.events">Input</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;event,
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.239">onInput</a>(<a href="../../../org/jgrapes/io/events/Input.html" title="class in org.jgrapes.io.events">Input</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;event,
                                                                                            <a href="../../../org/jgrapes/net/TcpChannel.html" title="interface in org.jgrapes.net">TcpChannel</a>&nbsp;netConnChannel)
                                                                                     throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a>,
                                                                                            <a href="https://mnlipp.github.io/jdrupes-httpcodec/javadoc/org/jdrupes/httpcodec/ProtocolException.html?is-external=true" title="class or interface in org.jdrupes.httpcodec">ProtocolException</a></pre>
@@ -484,7 +484,7 @@ public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.
 <li class="blockList">
 <h4>onClosed</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>(<a href="../../../org/jgrapes/core/annotation/Handler.html#channels--">channels</a>=org.jgrapes.http.HttpConnector.NetworkChannel.class)
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.256">onClosed</a>(<a href="../../../org/jgrapes/io/events/Closed.html" title="class in org.jgrapes.io.events">Closed</a>&nbsp;event,
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.255">onClosed</a>(<a href="../../../org/jgrapes/io/events/Closed.html" title="class in org.jgrapes.io.events">Closed</a>&nbsp;event,
                                                                                             <a href="../../../org/jgrapes/net/TcpChannel.html" title="interface in org.jgrapes.net">TcpChannel</a>&nbsp;netConnChannel)</pre>
 <div class="block"><p>Called when the network connection is closed.</p></div>
 <dl>
@@ -501,7 +501,7 @@ public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.
 <li class="blockList">
 <h4>onClose</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.271">onClose</a>(<a href="../../../org/jgrapes/io/events/Close.html" title="class in org.jgrapes.io.events">Close</a>&nbsp;event,
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/http/HttpConnector.html#line.270">onClose</a>(<a href="../../../org/jgrapes/io/events/Close.html" title="class in org.jgrapes.io.events">Close</a>&nbsp;event,
                              org.jgrapes.http.HttpConnector.WebAppMsgChannel&nbsp;appChannel)</pre>
 <div class="block"><p>Handles a close event from the application channel. Such an
 event may only be fired of the connection has been upgraded
