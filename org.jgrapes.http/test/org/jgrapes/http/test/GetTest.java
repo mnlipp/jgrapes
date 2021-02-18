@@ -30,7 +30,6 @@ import java.net.URLConnection;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.concurrent.ExecutionException;
-
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
@@ -46,9 +45,7 @@ import org.jgrapes.http.events.Request;
 import org.jgrapes.http.events.Response;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Output;
-
 import org.junit.AfterClass;
-
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;

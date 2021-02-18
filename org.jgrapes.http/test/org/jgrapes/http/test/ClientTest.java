@@ -27,7 +27,6 @@ import java.util.Base64;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
-
 import org.jdrupes.httpcodec.MessageHeader;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
@@ -57,7 +56,6 @@ import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.CharBufferWriter;
 import org.jgrapes.net.TcpConnector;
 import org.junit.AfterClass;
-
 import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;

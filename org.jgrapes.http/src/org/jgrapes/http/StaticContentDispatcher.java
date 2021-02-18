@@ -32,7 +32,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoField;
 import java.util.Arrays;
 import java.util.Optional;
-
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;

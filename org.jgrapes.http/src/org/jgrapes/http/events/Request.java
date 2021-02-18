@@ -24,7 +24,6 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;

@@ -22,7 +22,6 @@ import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
-
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.types.Converters;

@@ -39,7 +39,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.regex.Pattern;
-
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;

@@ -23,13 +23,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.concurrent.ExecutionException;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.http.events.Request;
 import org.junit.AfterClass;
-
 import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;

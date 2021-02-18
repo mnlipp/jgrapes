@@ -25,7 +25,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.http.events.Request;
 

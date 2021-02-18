@@ -22,14 +22,12 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
-
 import org.jgrapes.core.Component;
 import org.jgrapes.http.HttpServer;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.io.NioDispatcher;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Ready;
-
 import static org.junit.Assert.fail;
 
 /**

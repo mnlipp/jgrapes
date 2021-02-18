@@ -19,7 +19,6 @@
 package org.jgrapes.http.events;
 
 import java.net.URI;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 

@@ -19,7 +19,6 @@
 package org.jgrapes.http.events;
 
 import java.net.SocketAddress;
-
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.net.events.Connected;
 

@@ -19,7 +19,6 @@
 package org.jgrapes.http.events;
 
 import java.util.Optional;
-
 import org.jdrupes.httpcodec.protocols.websocket.WsCloseFrame;
 import org.jgrapes.core.Channel;
 
