@@ -13,6 +13,9 @@ different purposes.
 
 <img src="WebConsole-pic1.png" width="75%" alt="Web Console Demo">
 
+(A live [demo configuration](https://jgrapes-console-demo.herokuapp.com/)
+of the portal is available at [heroku](https://www.heroku.com/).)
+
 A JGrapes Web Console consists &mdash;from the user's point of view&mdash; 
 of a fixed frame with configurable content. The frame provides some 
 means to add content (typically by using a dropdown menu) and to 
