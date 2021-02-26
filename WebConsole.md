@@ -95,7 +95,9 @@ to the markup (as you should anyway), it turns out that almost all styling
 can be based on the HTML without adding presentation classes.
 
 Using "ARIA augmented semantic HTML" is therefore the preferred approach for 
-authoring conlets. Combined with a web console's CSS stylesheet that uses 
+authoring conlets. You can find more about this approach in the [overview
+of the project's Vue component library](./aashdoc/index.html).
+Combined with a web console's CSS stylesheet that uses 
 rules based on this kind of content this approach should lead to satisfactory
 results in typical cases.
 
