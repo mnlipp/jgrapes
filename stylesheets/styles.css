@@ -1,9 +1,8 @@
 body {
   background-color: #fff;
   padding:50px;
-  font: 16px/1.5 Verdana, Arial, Helvetica, sans-serif;
+  font: normal 16px/1.5 Verdana, Arial, Helvetica, sans-serif;
   color:#595959;
-  font-weight:400;
 }
 
 h1, h2, h3, h4, h5, h6 {
