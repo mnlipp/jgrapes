@@ -5,7 +5,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AaSH component library Home</title>
+  <title>AaSH component library Global</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -77,68 +77,277 @@
         <div class="core" id="main-content-wrapper">
             <div class="content">
                 <header class="page-title">
-                    <p></p>
-                    <h1>Home</h1>
+                    <p>Title</p>
+                    <h1>Global</h1>
                 </header>
                 
 
 
 
+
+<section>
+
+<header>
+    
+        <h2></h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+        
+
+
+<dl class="details">
+
     
 
-
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
+    
 
     
 
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <div class='vertical-section'>
+            <h1>Type Definitions</h1>
+            <div class="members">
+            
+                <div class="member">
+
+    <span class="method-parameter is-pulled-right">
+        <label>Type:</label>
+        
+<span class="param-type">object</span>
+
+
+    </span>
+
+<h4 class="name" id="Panel">
+    <a class="href-link" href="#Panel">#</a>
+    
+    <span class="code-name">
+        Panel
+    </span>
+    
+</h4>
 
 
 
-    <section>
-        <article><h1>Overview</h1>
-<p>This library provides easy to use vue components for generating
-unstyled &quot;ARIA augmented Semantic HTML&quot; (AaSH).</p>
-<h2>Motivation</h2>
-<p>I came up with the idea of &quot;ARIA augmented Semantic HTML&quot; at the
-end of 2019 while developing the
-<a href="https://mnlipp.github.io/jgrapes/WebConsole.html">JGrapes Web Console</a>,
-a micro service driven micro frontend (with run-time integration via
-JavaScript). Contrary to the ususal approaches of micro frontends,
-it favors a common, exchangeable styling for all components.</p>
-<p>This prevents the usage of the wide spread &quot;invasive&quot; CSS frameworks that
-spread their presentation classes all over the HTML. The alternative is
-to use the information provided by the (semantic) HTML for selecting
-the styles to be applied. The problem is that even semantic HTML 5 doesn’t
-provide enough context to reliably style GUI widgets. If however, you add
-<a href="https://www.w3.org/WAI/standards-guidelines/aria/">WAI-ARIA</a> attributes
-to the markup (as you should anyway), it turns out that almost all styling
-can be based on the HTML without adding presentation classes.
-(A rough outline of the idea can also be found on
-&quot;<a href="https://css-tricks.com/aria-in-css/">css-tricks.com</a>&quot;.)</p>
-<p>As it turns out, writing ARIA compliant HTML isn't as easy as you might think.
-W3C maintains a document about
-<a href="https://www.w3.org/TR/wai-aria-practices-1.1/">best practices</a> that also
-includes
-<a href="https://www.w3.org/TR/wai-aria-practices-1.1/examples/">some examples</a>.
-Looking at the examples, it is obvious that ARIA compliant UI elements
-must be generated from templates. This is where this library comes in.</p>
-<h2>Status</h2>
-<p>This project is currently maintained as a subproject of the
-JGrapes Web Console project. It is continued as need (for the web console)
-arises. In case there should be interest in using this independent of the
-web console development, it will become a top level project of its own.</p></article>
-    </section>
+
+<div class="description">
+    <p>The information about a panel managed by the tablist.</p>
+</div>
 
 
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+<div class="table-container">
+    <table class="props table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+            
+<tr class="deep-level-0">
+    
+        <td class="name"><code>id</code></td>
+    
+
+    <td class="type">
+    
+        
+<span class="param-type">string</span>
+
+
+    
+    </td>
+
+    
+
+    
+
+    <td class="description last"><p>The id of the panel's root node</p></td>
+</tr>
+
+        
+            
+<tr class="deep-level-0">
+    
+        <td class="name"><code>label</code></td>
+    
+
+    <td class="type">
+    
+        
+<span class="param-type">string</span>
+|
+
+<span class="param-type">function</span>
+
+
+    
+    </td>
+
+    
+
+    
+
+    <td class="description last"><p>The label to use for the panel</p></td>
+</tr>
+
+        
+            
+<tr class="deep-level-0">
+    
+        <td class="name"><code>removeCallback</code></td>
+    
+
+    <td class="type">
+    
+        
+<span class="param-type">function</span>
+
+
+    
+    </td>
+
+    
+
+    
+
+    <td class="description last"><p>A function to call when the panel is removed (optional)</p></td>
+</tr>
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="tablist_AashTablist.ts.html" class="button">View Source</a>
+            <span>
+                <a href="tablist_AashTablist.ts.html">tablist/AashTablist.ts</a>, <a href="tablist_AashTablist.ts.html#line179">line 179</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+</div>
+            
+            </div>
+        </div>
+    
+
+    
+</article>
+
+</section>
 
 
 
