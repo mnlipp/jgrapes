@@ -1,146 +1,167 @@
-<!doctype html>
-<html class="default no-js">
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Vue Components for AaSH (ARIA augmented Semantic HTML)</title>
-	<meta name="description" content="Documentation for Vue Components for AaSH (ARIA augmented Semantic HTML)">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="assets/css/main.css">
-	<script async src="assets/js/search.js" id="search-script"></script>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AaSH component library Home</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
 </head>
-<body>
-<header>
-	<div class="tsd-page-toolbar">
-		<div class="container">
-			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
-					<div class="field">
-						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
-						<input id="tsd-search-field" type="text" />
-					</div>
-					<ul class="results">
-						<li class="state loading">Preparing search index...</li>
-						<li class="state failure">The search index is not available</li>
-					</ul>
-					<a href="index.html" class="title">Vue Components for AaSH (ARIA augmented Semantic HTML)</a>
-				</div>
-				<div class="table-cell" id="tsd-widgets">
-					<div id="tsd-filter">
-						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
-						<div class="tsd-filter-group">
-							<div class="tsd-select" id="tsd-filter-visibility">
-								<span class="tsd-select-label">All</span>
-								<ul class="tsd-select-list">
-									<li data-value="public">Public</li>
-									<li data-value="protected">Public/Protected</li>
-									<li data-value="private" class="selected">All</li>
-								</ul>
-							</div>
-							<input type="checkbox" id="tsd-filter-inherited" checked />
-							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-							<input type="checkbox" id="tsd-filter-externals" checked />
-							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
-						</div>
-					</div>
-					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="tsd-page-title">
-		<div class="container">
-			<h1>Vue Components for AaSH (ARIA augmented Semantic HTML)</h1>
-		</div>
-	</div>
-</header>
-<div class="container container-main">
-	<div class="row">
-		<div class="col-8 col-content">
-			<div class="tsd-panel tsd-typography">
-				<a href="#overview" id="overview" style="color: inherit; text-decoration: none;">
-					<h1>Overview</h1>
-				</a>
-				<p>This library provides easy to use vue components for generating
-				unstyled &quot;ARIA augmented Semantic HTML&quot; (AaSH).</p>
-				<a href="#motivation" id="motivation" style="color: inherit; text-decoration: none;">
-					<h2>Motivation</h2>
-				</a>
-				<p>I came up with the idea of &quot;ARIA augmented Semantic HTML&quot; at the
-					end of 2019 while developing the
-					<a href="https://mnlipp.github.io/jgrapes/WebConsole.html">JGrapes Web Console</a>,
-					a micro service driven micro frontend (with run-time integration via
-					JavaScript). Contrary to the ususal approaches of micro frontends,
-				it favors a common, exchangeable styling for all components.</p>
-				<p>This prohibits the usage of the wide spread &quot;invasive&quot; CSS frameworks that
-					spread their presentation classes all over the HTML. The alternative is
-					to use the information provided by the (semantic) HTML for selecting
-					the styles to be applied. The problem is that even semantic HTML 5 doesn’t
-					provide enough context to reliably style GUI widgets. If however, you add
-					<a href="https://www.w3.org/WAI/standards-guidelines/aria/">WAI-ARIA</a> attributes
-					to the markup (as you should anyway), it turns out that almost all styling
-					can be based on the HTML without adding presentation classes.
-					(A rough outline of the idea can also be found on
-				&quot;<a href="https://css-tricks.com/aria-in-css/">css-tricks.com</a>&quot;.)</p>
-				<p>As it turns out, writing ARIA compliant HTML isn&#39;t as easy as you might think.
-					W3C maintains a document about
-					<a href="https://www.w3.org/TR/wai-aria-practices-1.1/">best practices</a> that also
-					includes
-					<a href="https://www.w3.org/TR/wai-aria-practices-1.1/examples/">some examples</a>.
-					Looking at the examples, it is obvious that ARIA compliant UI elements
-				must be generated from templates. This is where this library comes in.</p>
-				<a href="#status" id="status" style="color: inherit; text-decoration: none;">
-					<h2>Status</h2>
-				</a>
-				<p>This project is currently maintained as a subproject of the
-					JGrapes Web Console project. It is continued as need (for the web console)
-					arises. In case there should be interest in using this independent of the
-				web console development, it will become a top level project of its own.</p>
-			</div>
-		</div>
-		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
-			<nav class="tsd-navigation primary">
-				<ul>
-					<li class=" ">
-						<a href="modules.html">Exports</a>
-					</li>
-				</ul>
-			</nav>
-			<nav class="tsd-navigation secondary menu-sticky">
-				<ul class="before-current">
-					<li class=" tsd-kind-class">
-						<a href="classes/aashdropdownmenu.html" class="tsd-kind-icon">Aash<wbr>Dropdown<wbr>Menu</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/aashtablist.html" class="tsd-kind-icon">Aash<wbr>Tablist</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#panel" class="tsd-kind-icon">Panel</a>
-					</li>
-				</ul>
-			</nav>
-		</div>
-	</div>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+             
+                <a href="index.html">
+                    <h1 class="navbar-item">AaSH component library documentation</h1>
+                </a>
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                
+                
+                
+            </div>
+        </div>
+    </div>
 </div>
-<footer class="with-border-bottom">
-	<div class="container">
-		<h2>Legend</h2>
-		<div class="tsd-legend-group">
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-			</ul>
-		</div>
-	</div>
-</footer>
-<div class="container tsd-generator">
-	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
-</div>
-<div class="overlay"></div>
-<script src="assets/js/main.js"></script>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist.html">AashTablist</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist-AashTablist.html">AashTablist</a></li></ul><h3><a href="global.html">Global</a></h3></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p></p>
+                    <h1>Home</h1>
+                </header>
+                
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>Overview</h1>
+<p>This library provides easy to use vue components for generating
+unstyled &quot;ARIA augmented Semantic HTML&quot; (AaSH).</p>
+<h2>Motivation</h2>
+<p>I came up with the idea of &quot;ARIA augmented Semantic HTML&quot; at the
+end of 2019 while developing the
+<a href="https://mnlipp.github.io/jgrapes/WebConsole.html">JGrapes Web Console</a>,
+a micro service driven micro frontend (with run-time integration via
+JavaScript). Contrary to the ususal approaches of micro frontends,
+it favors a common, exchangeable styling for all components.</p>
+<p>This prevents the usage of the wide spread &quot;invasive&quot; CSS frameworks that
+spread their presentation classes all over the HTML. The alternative is
+to use the information provided by the (semantic) HTML for selecting
+the styles to be applied. The problem is that even semantic HTML 5 doesn’t
+provide enough context to reliably style GUI widgets. If however, you add
+<a href="https://www.w3.org/WAI/standards-guidelines/aria/">WAI-ARIA</a> attributes
+to the markup (as you should anyway), it turns out that almost all styling
+can be based on the HTML without adding presentation classes.
+(A rough outline of the idea can also be found on
+&quot;<a href="https://css-tricks.com/aria-in-css/">css-tricks.com</a>&quot;.)</p>
+<p>As it turns out, writing ARIA compliant HTML isn't as easy as you might think.
+W3C maintains a document about
+<a href="https://www.w3.org/TR/wai-aria-practices-1.1/">best practices</a> that also
+includes
+<a href="https://www.w3.org/TR/wai-aria-practices-1.1/examples/">some examples</a>.
+Looking at the examples, it is obvious that ARIA compliant UI elements
+must be generated from templates. This is where this library comes in.</p>
+<h2>Status</h2>
+<p>This project is currently maintained as a subproject of the
+JGrapes Web Console project. It is continued as need (for the web console)
+arises. In case there should be interest in using this independent of the
+web console development, it will become a top level project of its own.</p></article>
+    </section>
+
+
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
 </body>
 </html>

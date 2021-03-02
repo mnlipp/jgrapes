@@ -235,7 +235,7 @@ menu with all required ARIA attributes.</p></div>
   <td class="type">
   
       
-<span class="param-type">Array.&lt;Array></span>
+<span class="param-type">Array</span>
 
 
   
@@ -245,11 +245,13 @@ menu with all required ARIA attributes.</p></div>
 
   
 
-  <td class="description last"><p>The menu items as an array
-of arrays with two objects, the first being the label of the menu
+  <td class="description last"><p>The menu items as an array with elements
+of type <code>MenuItem</code>
+(<code>[ string | (() =&gt; string), any ]</code>). Each item consists
+of two elements, the first being the label of the menu
 item (a string) or a function that returns the label
-and the second being an argument to the <code>action</code> function that
-is invoked when the item has been chosen</p></td>
+and the second being an opaque value to forward information to the
+<code>action</code> function that is invoked when the item has been chosen</p></td>
 </tr>
 
   
@@ -273,7 +275,7 @@ is invoked when the item has been chosen</p></td>
   
 
   <td class="description last"><p>A function invoked with a label
-(of type string)as argument before the label is rendered</p></td>
+(of type string) as argument before the label is rendered</p></td>
 </tr>
 
   
@@ -297,7 +299,8 @@ is invoked when the item has been chosen</p></td>
   
 
   <td class="description last"><p>A function that is invoked when an item has
-been chosen</p></td>
+been chosen. The chosen item, i.e. the entry from the list of
+<code>items</code> is passed as an argument.</p></td>
 </tr>
 
   
@@ -347,7 +350,7 @@ been chosen</p></td>
         <p class="tag-source">
             <a href="dropdown-menu_AashDropdownMenu.ts.html" class="button">View Source</a>
             <span>
-                <a href="dropdown-menu_AashDropdownMenu.ts.html">dropdown-menu/AashDropdownMenu.ts</a>, <a href="dropdown-menu_AashDropdownMenu.ts.html#line25">line 25</a>
+                <a href="dropdown-menu_AashDropdownMenu.ts.html">dropdown-menu/AashDropdownMenu.ts</a>, <a href="dropdown-menu_AashDropdownMenu.ts.html#line28">line 28</a>
             </span>
         </p>
     
