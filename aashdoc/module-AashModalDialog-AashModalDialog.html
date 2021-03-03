@@ -5,7 +5,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AaSH component library AashTablist</title>
+  <title>AaSH component library AashModalDialog</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -77,8 +77,8 @@
         <div class="core" id="main-content-wrapper">
             <div class="content">
                 <header class="page-title">
-                    <p>Module</p>
-                    <h1>AashTablist</h1>
+                    <p>Class</p>
+                    <h1>AashModalDialog</h1>
                 </header>
                 
 
@@ -89,6 +89,10 @@
 
 <header>
     
+        <h2><span class="attribs"><span class="type-signature"></span></span>
+            <span class="ancestors"><a href="module-AashModalDialog.html">AashModalDialog</a>~</span>AashModalDialog<span class="signature">(props)</span><span class="type-signature"></span></h2>
+        
+            <div class="class-description"><p>Generates a ...</p></div>
         
     
 </header>
@@ -97,84 +101,42 @@
     <div class="container-overview">
     
         
+            <div class='vertical-section'>
+                <div class="members">
+                    <div class="member">
+                        <div class=name>
+                            <span class="tag">Constructor</span>
+                        </div>
+                        
 
+
+    
+    <h4 class="name" id="AashModalDialog">
+        <a class="href-link" href="#AashModalDialog">#</a>
         
-    
-    </div>
-    
-    
-
-    
-
-    
-        <h3 class="subsection-title">Classes</h3>
-
-        <dl>
-            <dt><a href="module-AashTablist-AashTablist.html">AashTablist</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-        <h3 class="subsection-title">Interfaces</h3>
-
-        <dl>
-            <dt><a href="module-AashTablist.AashApi.html">AashApi</a></dt>
-            <dd></dd>
-        
-            <dt><a href="module-AashTablist.AashApi.html">AashApi</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <div class='vertical-section'>
-            <h1>Type Definitions</h1>
-            <div class="members">
+        <span class="code-name">
             
-                <div class="member">
-
-    <span class="method-parameter is-pulled-right">
-        <label>Type:</label>
-        
-<span class="param-type">object</span>
-
-
-    </span>
-
-<h4 class="name" id=".Panel">
-    <a class="href-link" href="#.Panel">#</a>
+                new AashModalDialog<span class="signature">(props)</span><span class="type-signature"></span>
+            
+        </span>
+    </h4>
     
-    <span class="code-name">
-        Panel
-    </span>
+
     
-</h4>
-
-
-
-
-<div class="description">
-    <p>The information about a panel managed by the tablist.</p>
-</div>
+    
 
 
 
 
 
-    <h5 class="subsection-title">Properties:</h5>
 
+
+
+
+    <h5>Parameters:</h5>
     
 <div class="table-container">
-    <table class="props table">
+    <table class="params table">
         <thead>
         <tr>
             
@@ -183,8 +145,6 @@
 
             <th>Type</th>
 
-            
-            <th>Attributes</th>
             
 
             
@@ -195,101 +155,177 @@
 
         <tbody>
         
+
             
 <tr class="deep-level-0">
-    
-        <td class="name"><code>id</code></td>
-    
+  
+      <td class="name"><code>props</code></td>
+  
 
-    <td class="type">
+  <td class="type">
+  
+      
+<span class="param-type">Object</span>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>the properties</p></td>
+</tr>
+
+  
+  
     
-        
+<tr class="deep-level-1">
+  
+      <td class="name"><code>title</code></td>
+  
+
+  <td class="type">
+  
+      
 <span class="param-type">string</span>
 
 
-    
-    </td>
+  
+  </td>
 
-    
-        <td class="attributes">
-        
+  
 
-        
-        </td>
-    
+  
 
-    
-
-    <td class="description last"><p>The id of the panel's root node</p></td>
+  <td class="description last"><p>the dialog's title</p></td>
 </tr>
 
-        
-            
-<tr class="deep-level-0">
+  
     
-        <td class="name"><code>label</code></td>
-    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>showCancel</code></td>
+  
 
-    <td class="type">
+  <td class="type">
+  
+      
+<span class="param-type">boolean</span>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>wether to show a cancel button</p></td>
+</tr>
+
+  
     
-        
+<tr class="deep-level-1">
+  
+      <td class="name"><code>content</code></td>
+  
+
+  <td class="type">
+  
+      
 <span class="param-type">string</span>
-|
 
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>the dialog's content</p></td>
+</tr>
+
+  
+    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>contentClasses</code></td>
+  
+
+  <td class="type">
+  
+      
+<span class="param-type">Array.string</span>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>classes to apply to the content</p></td>
+</tr>
+
+  
+    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>closeLabel</code></td>
+  
+
+  <td class="type">
+  
+      
+<span class="param-type">string</span>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>the label for the close button</p></td>
+</tr>
+
+  
+    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>onClose</code></td>
+  
+
+  <td class="type">
+  
+      
 <span class="param-type">function</span>
 
 
-    
-    </td>
+  
+  </td>
 
-    
-        <td class="attributes">
-        
+  
 
-        
-        </td>
-    
+  
 
-    
-
-    <td class="description last"><p>The label to use for the panel</p></td>
+  <td class="description last"><p>the function to invoke on close</p></td>
 </tr>
 
-        
-            
-<tr class="deep-level-0">
-    
-        <td class="name"><code>removeCallback</code></td>
-    
+  
 
-    <td class="type">
-    
-        
-<span class="param-type">function</span>
-
-
-    
-    </td>
-
-    
-        <td class="attributes">
-        
-            &lt;optional><br>
-        
-
-        
-        </td>
-    
-
-    
-
-    <td class="description last"><p>A function to call when the panel is removed (optional)</p></td>
-</tr>
 
         
         </tbody>
     </table>
 </div>
+
+
 
 
 
@@ -326,9 +362,9 @@
 
     
         <p class="tag-source">
-            <a href="tablist_AashTablist.ts.html" class="button">View Source</a>
+            <a href="modal-dialog_AashModalDialog.ts.html" class="button">View Source</a>
             <span>
-                <a href="tablist_AashTablist.ts.html">tablist/AashTablist.ts</a>, <a href="tablist_AashTablist.ts.html#line198">line 198</a>
+                <a href="modal-dialog_AashModalDialog.ts.html">modal-dialog/AashModalDialog.ts</a>, <a href="modal-dialog_AashModalDialog.ts.html#line7">line 7</a>
             </span>
         </p>
     
@@ -338,10 +374,46 @@
 
 
 
-</div>
-            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </div>
+                </div>
             </div>
-        </div>
+        
+    
+    </div>
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
     
 
     
