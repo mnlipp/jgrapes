@@ -72,7 +72,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist.html">AashTablist</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist-AashTablist.html">AashTablist</a></li></ul><h3><a href="global.html">Global</a></h3></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist.html">AashTablist</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist-AashTablist.html">AashTablist</a></li></ul><h3>Interfaces</h3><ul><li><a href="module-AashTablist.AashApi.html">AashApi</a></li></ul></div>
                 
             </nav>
         </div>
@@ -99,8 +99,29 @@ type MenuItem = [ string | (() => string), any ];
 
 /**
  * @classdesc
- * A component that generates a dropdown 
- * menu with all required ARIA attributes.
+ * A component that generates a dropdown menu with all required ARIA 
+ * attributes.
+ * 
+ * The DOM is generated as shown in the 
+ * [WAI-ARIA Authoring Practices 1.1](https://www.w3.org/TR/wai-aria-practices-1.1/examples/menu-button/menu-button-actions.html)
+ *
+ * Example:
+ * ```html 
+ * &lt;div id="language-selector" class="aash-dropdown-menu">
+ *  &lt;button type="button" aria-haspopup="menu"
+ *   aria-controls="language-selector-menu" aria-expanded="true">
+ *   &lt;span>Language&lt;/span>
+ *  &lt;/button>
+ *  &lt;ul id="language-selector-menu" role="menu">
+ *   &lt;li role="none">
+ *    &lt;button type="button" role="menuitem">English&lt;/button>
+ *   &lt;/li>
+ *   &lt;li role="none">
+ *    &lt;button type="button" role="menuitem">German&lt;/button>
+ *   &lt;/li>
+ *  &lt;/ul>
+ * &lt;/div>
+ * ```
  * 
  * @class
  * @param {Object} props The properties

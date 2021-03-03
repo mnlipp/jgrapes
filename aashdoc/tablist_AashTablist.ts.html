@@ -72,7 +72,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist.html">AashTablist</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist-AashTablist.html">AashTablist</a></li></ul><h3><a href="global.html">Global</a></h3></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist.html">AashTablist</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist-AashTablist.html">AashTablist</a></li></ul><h3>Interfaces</h3><ul><li><a href="module-AashTablist.AashApi.html">AashApi</a></li></ul></div>
                 
             </nav>
         </div>
@@ -92,10 +92,11 @@
             <pre class="prettyprint source linenums"><code>/**
  * @module AashTablist
  */
-import { defineComponent, PropType, ref, computed } from 'vue'
+import { defineComponent, PropType, ref, computed, onMounted, watch } from 'vue'
 
 /**
  * The information about a panel managed by the tablist. 
+ * @memberOf module:AashTablist
  */
 export type Panel = {
   /** The id of the panel's root node */
@@ -103,8 +104,23 @@ export type Panel = {
   /** The label to use for the panel */
   label: string | Function;
   /** A function to call when the panel is removed (optional) */
-  removeCallback: () => {}
+  removeCallback?: () => {}
 };
+
+/**
+ * The interface provided by the component.
+ *
+ * * `addPanel(panel: Panel): void`: adds another panel.
+ * * `removePanel(panelId: string): void`: removes the panel with the given id.
+ * * `selectPanel(panelId: string): void`: activates the panel with the given id.
+ *
+ * @memberOf module:AashTablist
+ */
+export interface AashApi {
+  addPanel(panel: Panel): void;
+  removePanel(panelId: string): void;
+  selectPanel(panelId: string): void;
+}
 
 /**
  * @classdesc
@@ -115,15 +131,38 @@ export type Panel = {
  * associated tab panel. 
  * 
  * The tab panels controlled by the tab list are made known by objects of 
- * type {@link Panel}. Because the tab panels are referenced from the 
+ * type {@link module:AashTablist.Panel Panel}. Because the tab panels are 
+ * referenced from the 
  * tab elements, the tab panel elements need only
  * an `id` attribute and `role=tabpanel` `tabindex=0`.
  *
- * Once created, a component provides some externally invocable methods:
- * * *addPanel(panel: Panel)*: adds another panel.
- * * *removePanel(panelId: string)*: removes the panel with the given id.
- * * *selectPanel(panelId: string)*: activates the panel with the given id.
+ * Once created, a component provides the externally invocable methods
+ * defined by {@link module:AashTablist.API} through an object in 
+ * the property `__aashApi` of the mounted DOM element.
  *
+ * The DOM is generated as shown in the 
+ * [WAI-ARIA Authoring Practices 1.1](https://www.w3.org/TR/wai-aria-practices-1.1/examples/tabs/tabs-2/tabs.html)
+ *
+ * Example:
+ * ```html
+ * &lt;div>
+ *  &lt;div id="sampleTabs" class="aash-tablist" role="tablist">
+ *   &lt;span id="tab-1-tab" role="tab" aria-selected="true"
+ *    aria-controls="tab-1">
+ *    &lt;button type="button" tabindex="0">Tab 1&lt;/button>
+ *   &lt;/span>
+ *   &lt;span id="tab-2-tab" role="tab" aria-selected="false"
+ *    aria-controls="tab-2">
+ *     &lt;button type="button" tabindex="-1">Tab 2&lt;/button>
+ *   &lt;/span>
+ *  &lt;/div>
+ * &lt;/div>
+ * &lt;div id="tab-1" role="tabpanel" aria-labelledby="tab-1-tab">This
+ *  is panel One.&lt;/div>
+ * &lt;div id="tab-2" role="tabpanel" aria-labelledby="tab-2-tab" hidden="">
+ *  This is panel Two.&lt;/div>
+ * ```
+ * 
  * @class AashTablist
  * @param {Object} props the properties
  * @param {string} props.id the id for the enclosing `div`
@@ -134,17 +173,22 @@ export type Panel = {
 export default defineComponent({
     props: {
         id: { type: String, required: true },
-        initialPanels: Array as PropType&lt;Array&lt;Panel>>,
-        l10n: Function
+        initialPanels: { type: Array as PropType&lt;Array&lt;Panel>> },
+        l10n: { type: Function as PropType&lt;((key: string) => string)> }
     },
 
-    setup(props) {
+    setup(props, context) {
         const panels = ref(props.initialPanels || []); 
         const selected: any = ref(null);
         
+        const isVertical = computed(() => {
+            return context.attrs["aria-orientation"] !== undefined
+                &amp;&amp; context.attrs["aria-orientation"] === "vertical";
+        });
+        
         const addPanel = (panel: Panel) => {
             panels.value.push(panel);
-            _setupTabpanel(panel)
+            setupTabpanel(panel)
         };
 
         const removePanel = (panelId: string) => {
@@ -175,7 +219,7 @@ export default defineComponent({
             }
         };
 
-        const _label = (panel: Panel) => {
+        const label = (panel: Panel) => {
             if (typeof panel.label === 'function') {
                 return panel.label();
             }
@@ -185,7 +229,7 @@ export default defineComponent({
             return panel.label;
         };
 
-        const _setupTabpanel = (panel: Panel) => {
+        const setupTabpanel = (panel: Panel) => {
             let tabpanel: HTMLElement | null = document.querySelector(
                 "[id='" + panel.id + "']");
             if (tabpanel == null) {
@@ -201,7 +245,7 @@ export default defineComponent({
             }
         };
 
-        const _selectedPanel = function(): [Panel | null, number] {
+        const selectedPanel = function(): [Panel | null, number] {
             for (let i = 0; i &lt; panels.value.length; i++) {
                 let panel = panels.value[i];
                 if (panel.id === selected.value) {
@@ -211,16 +255,9 @@ export default defineComponent({
             return [null, -1];
         }
 
-        let id = props.id;
-
-        return { id, panels, selected, addPanel, removePanel, 
-            selectPanel, _selectedPanel, _setupTabpanel }; 
-    },
-
-    methods: {
-        _onKey(event: KeyboardEvent) {
+        const onKey = (event: KeyboardEvent) => {
             if (event.type === "keydown") {
-                if (this.isVertical 
+                if (isVertical.value 
                     &amp;&amp; ["ArrowUp", "ArrowDown"].includes(event.key)) {
                     event.preventDefault();
                 }
@@ -229,20 +266,19 @@ export default defineComponent({
             if (event.type !== "keyup") {
                 return;
             }
-            let [panel, panelIndex] = this._selectedPanel();
+            let [panel, panelIndex] = selectedPanel();
             if (!panel) {
                 return;
             }
-            let panels = this.panels;
             let handled = false;
-            if (this.isVertical ? event.key === "ArrowUp"
+            if (isVertical.value ? event.key === "ArrowUp"
                 : event.key === "ArrowLeft") {
-                this.selectPanel(panels[
-                        (panelIndex-1+panels.length)%panels.length].id);
+                selectPanel(panels.value[
+                        (panelIndex-1+panels.value.length)%panels.value.length].id);
                 handled = true;
-            } else if (this.isVertical ? event.key === "ArrowDown"
+            } else if (isVertical.value ? event.key === "ArrowDown"
                 : event.key === "ArrowRight") {
-                this.selectPanel(panels[(panelIndex+1)%panels.length].id);
+                selectPanel(panels.value[(panelIndex+1)%panels.value.length].id);
                 handled = true;
             } else if (event.key === "Delete") {
                 if (panel.removeCallback) {
@@ -250,44 +286,44 @@ export default defineComponent({
                     handled = true;
                 }
             } else if (event.key === "Home") {
-                this.selectPanel(panels[0].id);
+                selectPanel(panels.value[0].id);
                 handled = true;
             } else if (event.key === "End") {
-                this.selectPanel(panels[panels.length-1].id);
+                selectPanel(panels.value[panels.value.length-1].id);
                 handled = true;
             }
             if (handled) {
                 event.preventDefault();
                 let tab: HTMLElement | null = document.querySelector(
-                    "[id='" + this.selected.value + "-tab'] > button");
+                    "[id='" + selected.value + "-tab'] > button");
                 tab?.focus();
             }
         }
-    },
-    
-    computed: {
-        isVertical(): boolean {
-            return this.$attrs["aria-orientation"] !== undefined
-                &amp;&amp; this.$attrs["aria-orientation"] === "vertical";
-        }
-    },
-    
-    watch: {
-        panels(newValue) {
-            if (this.selected === null &amp;&amp; newValue.length > 0) {
-                this.selectPanel(this.panels[0].id);
+
+        const tablist = ref(null);
+
+        onMounted(() => {
+            let api: AashApi = { addPanel, removePanel, selectPanel };
+            if (tablist.value) {
+                (&lt;any>(tablist.value!)).__aashApi = api;
             }
-        }
-    },
+            if (panels.value.length > 0) {
+                selected.value = panels.value[0].id;
+            }
+            for (let panel of panels.value) {
+                setupTabpanel(panel);
+            }
+        });
+
+        watch(panels, (oldValue, newValue) => {
+            if (selected.value === null &amp;&amp; newValue.length > 0) {
+                selectPanel(panels.value[0].id);
+            }
+        });
     
-    mounted() {
-        if (this.panels.length > 0) {
-            this.selected = this.panels[0].id;
-        }
-        for (let panel of this.panels) {
-            this._setupTabpanel(panel);
-        }
+        return { panels, selected, label, tablist, onKey, selectPanel }; 
     }
+
 });
 </code></pre>
         </article>

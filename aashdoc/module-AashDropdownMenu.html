@@ -70,7 +70,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist.html">AashTablist</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist-AashTablist.html">AashTablist</a></li></ul><h3><a href="global.html">Global</a></h3></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist.html">AashTablist</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist-AashTablist.html">AashTablist</a></li></ul><h3>Interfaces</h3><ul><li><a href="module-AashTablist.AashApi.html">AashApi</a></li></ul></div>
                 
             </nav>
         </div>
@@ -91,8 +91,26 @@
     
         <h2><span class="attribs"><span class="type-signature"></span></span>module:AashDropdownMenu<span class="signature">(props)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description"><p>A component that generates a dropdown
-menu with all required ARIA attributes.</p></div>
+            <div class="class-description"><p>A component that generates a dropdown menu with all required ARIA
+attributes.</p>
+<p>The DOM is generated as shown in the
+<a href="https://www.w3.org/TR/wai-aria-practices-1.1/examples/menu-button/menu-button-actions.html">WAI-ARIA Authoring Practices 1.1</a></p>
+<p>Example:</p>
+<pre class="prettyprint source lang-html"><code>&lt;div id=&quot;language-selector&quot; class=&quot;aash-dropdown-menu&quot;>
+ &lt;button type=&quot;button&quot; aria-haspopup=&quot;menu&quot;
+  aria-controls=&quot;language-selector-menu&quot; aria-expanded=&quot;true&quot;>
+  &lt;span>Language&lt;/span>
+ &lt;/button>
+ &lt;ul id=&quot;language-selector-menu&quot; role=&quot;menu&quot;>
+  &lt;li role=&quot;none&quot;>
+   &lt;button type=&quot;button&quot; role=&quot;menuitem&quot;>English&lt;/button>
+  &lt;/li>
+  &lt;li role=&quot;none&quot;>
+   &lt;button type=&quot;button&quot; role=&quot;menuitem&quot;>German&lt;/button>
+  &lt;/li>
+ &lt;/ul>
+&lt;/div>
+</code></pre></div>
         
     
 </header>
@@ -350,7 +368,7 @@ been chosen. The chosen item, i.e. the entry from the list of
         <p class="tag-source">
             <a href="dropdown-menu_AashDropdownMenu.ts.html" class="button">View Source</a>
             <span>
-                <a href="dropdown-menu_AashDropdownMenu.ts.html">dropdown-menu/AashDropdownMenu.ts</a>, <a href="dropdown-menu_AashDropdownMenu.ts.html#line28">line 28</a>
+                <a href="dropdown-menu_AashDropdownMenu.ts.html">dropdown-menu/AashDropdownMenu.ts</a>, <a href="dropdown-menu_AashDropdownMenu.ts.html#line49">line 49</a>
             </span>
         </p>
     

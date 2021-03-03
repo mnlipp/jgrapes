@@ -70,7 +70,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist.html">AashTablist</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist-AashTablist.html">AashTablist</a></li></ul><h3><a href="global.html">Global</a></h3></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist.html">AashTablist</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashTablist-AashTablist.html">AashTablist</a></li></ul><h3>Interfaces</h3><ul><li><a href="module-AashTablist.AashApi.html">AashApi</a></li></ul></div>
                 
             </nav>
         </div>
@@ -98,15 +98,33 @@ and its child tab elements with all required ARIA attributes.
 All tab elements have an <code>aria-controls</code> attribute that references the
 associated tab panel.</p>
 <p>The tab panels controlled by the tab list are made known by objects of
-type <a href="global.html#Panel">Panel</a>. Because the tab panels are referenced from the
+type <a href="module-AashTablist.html#.Panel">Panel</a>. Because the tab panels are
+referenced from the
 tab elements, the tab panel elements need only
 an <code>id</code> attribute and <code>role=tabpanel</code> <code>tabindex=0</code>.</p>
-<p>Once created, a component provides some externally invocable methods:</p>
-<ul>
-<li><em>addPanel(panel: Panel)</em>: adds another panel.</li>
-<li><em>removePanel(panelId: string)</em>: removes the panel with the given id.</li>
-<li><em>selectPanel(panelId: string)</em>: activates the panel with the given id.</li>
-</ul></div>
+<p>Once created, a component provides the externally invocable methods
+defined by module:AashTablist.API through an object in
+the property <code>__aashApi</code> of the mounted DOM element.</p>
+<p>The DOM is generated as shown in the
+<a href="https://www.w3.org/TR/wai-aria-practices-1.1/examples/tabs/tabs-2/tabs.html">WAI-ARIA Authoring Practices 1.1</a></p>
+<p>Example:</p>
+<pre class="prettyprint source lang-html"><code>&lt;div>
+ &lt;div id=&quot;sampleTabs&quot; class=&quot;aash-tablist&quot; role=&quot;tablist&quot;>
+  &lt;span id=&quot;tab-1-tab&quot; role=&quot;tab&quot; aria-selected=&quot;true&quot;
+   aria-controls=&quot;tab-1&quot;>
+   &lt;button type=&quot;button&quot; tabindex=&quot;0&quot;>Tab 1&lt;/button>
+  &lt;/span>
+  &lt;span id=&quot;tab-2-tab&quot; role=&quot;tab&quot; aria-selected=&quot;false&quot;
+   aria-controls=&quot;tab-2&quot;>
+    &lt;button type=&quot;button&quot; tabindex=&quot;-1&quot;>Tab 2&lt;/button>
+  &lt;/span>
+ &lt;/div>
+&lt;/div>
+&lt;div id=&quot;tab-1&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;tab-1-tab&quot;>This
+ is panel One.&lt;/div>
+&lt;div id=&quot;tab-2&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;tab-2-tab&quot; hidden=&quot;&quot;>
+ This is panel Two.&lt;/div>
+</code></pre></div>
         
     
 </header>
@@ -226,7 +244,7 @@ an <code>id</code> attribute and <code>role=tabpanel</code> <code>tabindex=0</co
   <td class="type">
   
       
-<span class="param-type">Array.&lt;<a href="global.html#Panel">Panel</a>></span>
+<span class="param-type">Array.&lt;Panel></span>
 
 
   
