@@ -70,7 +70,7 @@
             
             <nav>
                 
-                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashModalDialog.html">AashModalDialog</a></li><li><a href="module-AashTablist.html">AashTablist</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashModalDialog-AashModalDialog.html">AashModalDialog</a></li><li><a href="module-AashTablist-AashTablist.html">AashTablist</a></li></ul><h3>Interfaces</h3><ul><li><a href="module-AashTablist.AashApi.html">AashApi</a></li></ul></div>
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashDisclosureButton.html">AashDisclosureButton</a></li><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashModalDialog.html">AashModalDialog</a></li><li><a href="module-AashPlugin.html">AashPlugin</a></li><li><a href="module-AashTablist.html">AashTablist</a></li><li><a href="module-AashUtil.html">AashUtil</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashDisclosureButton-AashDisclosureButton.html">AashDisclosureButton</a></li><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashModalDialog-AashModalDialog.html">AashModalDialog</a></li><li><a href="module-AashTablist-AashTablist.html">AashTablist</a></li></ul><h3>Interfaces</h3><ul><li><a href="module-AashModalDialog.Api.html">Api</a></li><li><a href="module-AashPlugin.Aash.html">Aash</a></li><li><a href="module-AashTablist.Api.html">Api</a></li></ul></div>
                 
             </nav>
         </div>
@@ -92,7 +92,30 @@
         <h2><span class="attribs"><span class="type-signature"></span></span>
             <span class="ancestors"><a href="module-AashModalDialog.html">AashModalDialog</a>~</span>AashModalDialog<span class="signature">(props)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description"><p>Generates a ...</p></div>
+            <div class="class-description"><p>Generates a modal dialog.</p>
+<p>Example:</p>
+<pre class="prettyprint source lang-html"><code>&lt;div class=&quot;aash-modal-dialog dialog__backdrop&quot; showcancel=&quot;true&quot;>
+  &lt;div id=&quot;sampleDialog&quot; role=&quot;dialog&quot;
+      aria-labelledby=&quot;sampleDialog-label&quot; aria-modal=&quot;true&quot;>
+    &lt;header id=&quot;sampleDialog-label&quot;>
+      &lt;p>Sample Dialog&lt;/p>
+      &lt;button type=&quot;button&quot; class=&quot;fa fa-times&quot;>&lt;/button>
+    &lt;/header>
+    &lt;section class=&quot;&quot;>
+      &lt;i>Sample dialog content&lt;/i>
+    &lt;/section>
+    &lt;footer>
+      &lt;button type=&quot;button&quot;>Okay&lt;/button>
+    &lt;/footer>
+  &lt;/div>
+&lt;/div>
+</code></pre>
+<p>Once created, the component provides the externally invocable methods
+defined by <a href="module-AashModalDialog.Api.html">module:AashModalDialog.Api</a> through an object in
+a property of the DOM element with <code>role=&quot;dialog&quot;</code> (see
+module:AashUtil.getApi). Note that this is not the mounted element
+but the mounted element's child. It is, however, the element with the
+provided <code>id</code>. Thus it makes more sense to use this element.</p></div>
         
     
 </header>
@@ -179,6 +202,29 @@
 </tr>
 
   
+  
+    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>is</code></td>
+  
+
+  <td class="type">
+  
+      
+<span class="param-type">string</span>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>the dialog's id</p></td>
+</tr>
+
   
     
 <tr class="deep-level-1">
@@ -362,9 +408,9 @@
 
     
         <p class="tag-source">
-            <a href="modal-dialog_AashModalDialog.ts.html" class="button">View Source</a>
+            <a href="components_modal-dialog_AashModalDialog.ts.html" class="button">View Source</a>
             <span>
-                <a href="modal-dialog_AashModalDialog.ts.html">modal-dialog/AashModalDialog.ts</a>, <a href="modal-dialog_AashModalDialog.ts.html#line7">line 7</a>
+                <a href="components_modal-dialog_AashModalDialog.ts.html">components/modal-dialog/AashModalDialog.ts</a>, <a href="components_modal-dialog_AashModalDialog.ts.html#line9">line 9</a>
             </span>
         </p>
     

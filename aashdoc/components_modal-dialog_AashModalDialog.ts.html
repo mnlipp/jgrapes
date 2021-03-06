@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,7 +7,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AaSH component library AashTablist</title>
+  <title>AaSH component library components/modal-dialog/AashModalDialog.ts</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -77,356 +79,145 @@
         <div class="core" id="main-content-wrapper">
             <div class="content">
                 <header class="page-title">
-                    <p>Module</p>
-                    <h1>AashTablist</h1>
+                    <p>Source</p>
+                    <h1>components/modal-dialog/AashModalDialog.ts</h1>
                 </header>
                 
 
 
 
-
-<section>
-
-<header>
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Provides a modal dialog. 
+ * @module AashModalDialog
+ */
+import { defineComponent, PropType, ref, computed, onMounted, watch } from 'vue'
+import { provideApi } from "../../AashUtil";
+
+/**
+ * The interface provided by the component.
+ *
+ * * `open(): void`: opens the dialog
+ * * `close(): void`: closes the dialog
+ * * `cancel(): void`: cancels the dialog
+ * * `isOpen(): boolean`: returns the state of the dialog
+ * * `updateTitle(title: string): void`: update the title
+ *
+ * @memberof module:AashModalDialog
+ */
+export interface Api {
+  open(): void;
+  close(): void;
+  cancel(): void;
+  isOpen(): boolean;
+  updateTitle(title: string): void;
+}
+
+let instanceCounter = 0;
+
+/**
+ * @classdesc
+ * Generates a modal dialog.
+ *
+ * Example:
+ * ```html
+ * &lt;div class="aash-modal-dialog dialog__backdrop" showcancel="true">
+ *   &lt;div id="sampleDialog" role="dialog"
+ *       aria-labelledby="sampleDialog-label" aria-modal="true">
+ *     &lt;header id="sampleDialog-label">
+ *       &lt;p>Sample Dialog&lt;/p>
+ *       &lt;button type="button" class="fa fa-times">&lt;/button>
+ *     &lt;/header>
+ *     &lt;section class="">
+ *       &lt;i>Sample dialog content&lt;/i>
+ *     &lt;/section>
+ *     &lt;footer>
+ *       &lt;button type="button">Okay&lt;/button>
+ *     &lt;/footer>
+ *   &lt;/div>
+ * &lt;/div>
+ * ```
+ * 
+ * Once created, the component provides the externally invocable methods
+ * defined by {@link module:AashModalDialog.Api} through an object in 
+ * a property of the DOM element with `role="dialog"` (see
+ * {@link module:AashUtil.getApi}). Note that this is not the mounted element
+ * but the mounted element's child. It is, however, the element with the
+ * provided `id`. Thus it makes more sense to use this element.
+ * 
+ * @class AashModalDialog
+ * @param {Object} props the properties
+ * @param {string} props.is the dialog's id
+ * @param {string} props.title the dialog's title
+ * @param {boolean} props.showCancel wether to show a cancel button
+ * @param {string} props.content the dialog's content
+ * @param {Array.string} props.contentClasses classes to apply to the content
+ * @param {string} props.closeLabel the label for the close button
+ * @param {Function} props.onClose the function to invoke on close
+ */
+export default defineComponent({
+    props: {
+        id: String,
+        title: String,
+        showCancel: {
+            type: Boolean,
+            default: true
+        },
+        content: String,
+        contentClasses: Array,
+        closeLabel: String,
+        onClose: Function as PropType&lt;(confirmed: boolean) => void>
+    },
+  
+    setup(props, context) {
+        const effectiveId = ref("");
+        const effectiveTitle = ref("");
+        const isOpen = ref(false);
+
+        if (props.id) {
+            effectiveId.value = props.id!;
+        } else {
+            effectiveId.value = "aash-modal-dialog-" + ++instanceCounter;
+        }
+        if (props.title) {
+            effectiveTitle.value = props.title!;
+        }
         
-            
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description"><p>Provides tablist element.</p></div>
-        
-
-        
-            
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-        <p class="tag-source">
-            <a href="components_tablist_AashTablist.ts.html" class="button">View Source</a>
-            <span>
-                <a href="components_tablist_AashTablist.ts.html">components/tablist/AashTablist.ts</a>, <a href="components_tablist_AashTablist.ts.html#line2">line 2</a>
-            </span>
-        </p>
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-    
-    </div>
-    
-    
-
-    
-
-    
-        <h3 class="subsection-title">Classes</h3>
-
-        <dl>
-            <dt><a href="module-AashTablist-AashTablist.html">AashTablist</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-        <h3 class="subsection-title">Interfaces</h3>
-
-        <dl>
-            <dt><a href="module-AashTablist.Api.html">Api</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <div class='vertical-section'>
-            <h1>Type Definitions</h1>
-            <div class="members">
-            
-                <div class="member">
-
-    <span class="method-parameter is-pulled-right">
-        <label>Type:</label>
-        
-<span class="param-type">object</span>
-
-
-    </span>
-
-<h4 class="name" id=".Panel">
-    <a class="href-link" href="#.Panel">#</a>
-    
-    <span class="code-name">
-        Panel
-    </span>
-    
-</h4>
-
-
-
-
-<div class="description">
-    <p>The information about a panel managed by the tablist.</p>
-</div>
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-<div class="table-container">
-    <table class="props table">
-        <thead>
-        <tr>
-            
-            <th>Name</th>
-            
-
-            <th>Type</th>
-
-            
-            <th>Attributes</th>
-            
-
-            
-
-            <th class="last">Description</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        
-            
-<tr class="deep-level-0">
-    
-        <td class="name"><code>id</code></td>
-    
-
-    <td class="type">
-    
-        
-<span class="param-type">string</span>
-
-
-    
-    </td>
-
-    
-        <td class="attributes">
-        
-
-        
-        </td>
-    
-
-    
-
-    <td class="description last"><p>The id of the panel's root node</p></td>
-</tr>
-
-        
-            
-<tr class="deep-level-0">
-    
-        <td class="name"><code>label</code></td>
-    
-
-    <td class="type">
-    
-        
-<span class="param-type">string</span>
-|
-
-<span class="param-type">function</span>
-
-
-    
-    </td>
-
-    
-        <td class="attributes">
-        
-
-        
-        </td>
-    
-
-    
-
-    <td class="description last"><p>The label to use for the panel</p></td>
-</tr>
-
-        
-            
-<tr class="deep-level-0">
-    
-        <td class="name"><code>removeCallback</code></td>
-    
-
-    <td class="type">
-    
-        
-<span class="param-type">function</span>
-
-
-    
-    </td>
-
-    
-        <td class="attributes">
-        
-            &lt;optional><br>
-        
-
-        
-        </td>
-    
-
-    
-
-    <td class="description last"><p>A function to call when the panel is removed (optional)</p></td>
-</tr>
-
-        
-        </tbody>
-    </table>
-</div>
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-        <p class="tag-source">
-            <a href="components_tablist_AashTablist.ts.html" class="button">View Source</a>
-            <span>
-                <a href="components_tablist_AashTablist.ts.html">components/tablist/AashTablist.ts</a>, <a href="components_tablist_AashTablist.ts.html#line199">line 199</a>
-            </span>
-        </p>
-    
-</dl>
-
-
-
-
-
-</div>
-            
-            </div>
-        </div>
-    
-
-    
-</article>
-
-</section>
+        const open = () => {
+            isOpen.value = true;
+        }
+
+        const cancel = () => {
+            if (props.onClose) {
+                props.onClose(false);
+            }
+            isOpen.value = false;
+        }
+  
+        const close = () => {
+            if (props.onClose) {
+                props.onClose(true);
+            }
+            isOpen.value = false;
+        }
+
+        const updateTitle = (title: string) => {
+            effectiveTitle.value = title;
+        }
+
+        const dialog = ref(null);
+
+        provideApi(dialog, { open, close, cancel, updateTitle,
+                isOpen: () => { return isOpen.value } });
+
+        return { effectiveId, effectiveTitle, isOpen, cancel, close, dialog };
+    }
+});
+</code></pre>
+        </article>
+    </section>
 
 
 

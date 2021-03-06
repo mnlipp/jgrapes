@@ -5,7 +5,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AaSH component library AashTablist</title>
+  <title>AaSH component library AashDisclosureButton</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -77,8 +77,8 @@
         <div class="core" id="main-content-wrapper">
             <div class="content">
                 <header class="page-title">
-                    <p>Module</p>
-                    <h1>AashTablist</h1>
+                    <p>Class</p>
+                    <h1>AashDisclosureButton</h1>
                 </header>
                 
 
@@ -89,8 +89,16 @@
 
 <header>
     
+        <h2><span class="attribs"><span class="type-signature"></span></span>
+            <span class="ancestors"><a href="module-AashDisclosureButton.html">AashDisclosureButton</a>~</span>AashDisclosureButton<span class="signature">(props)</span><span class="type-signature"></span></h2>
         
-            
+            <div class="class-description"><p>Generates an element (a <code>button</code> by default) that toggles the
+the visibility of another element when clicked.</p>
+<p>Example:</p>
+<pre class="prettyprint source lang-html"><code>&lt;button type=&quot;button&quot; data-aash-role=&quot;disclosure-button&quot;
+  aria-expanded=&quot;true&quot;
+  aria-controls=&quot;onlyShownWhenDisclosed&quot;>Disclose&lt;/button>
+</code></pre></div>
         
     
 </header>
@@ -99,161 +107,42 @@
     <div class="container-overview">
     
         
-            <div class="description"><p>Provides tablist element.</p></div>
-        
+            <div class='vertical-section'>
+                <div class="members">
+                    <div class="member">
+                        <div class=name>
+                            <span class="tag">Constructor</span>
+                        </div>
+                        
 
+
+    
+    <h4 class="name" id="AashDisclosureButton">
+        <a class="href-link" href="#AashDisclosureButton">#</a>
         
+        <span class="code-name">
             
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-        <p class="tag-source">
-            <a href="components_tablist_AashTablist.ts.html" class="button">View Source</a>
-            <span>
-                <a href="components_tablist_AashTablist.ts.html">components/tablist/AashTablist.ts</a>, <a href="components_tablist_AashTablist.ts.html#line2">line 2</a>
-            </span>
-        </p>
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-    
-    </div>
-    
-    
-
-    
-
-    
-        <h3 class="subsection-title">Classes</h3>
-
-        <dl>
-            <dt><a href="module-AashTablist-AashTablist.html">AashTablist</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-        <h3 class="subsection-title">Interfaces</h3>
-
-        <dl>
-            <dt><a href="module-AashTablist.Api.html">Api</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <div class='vertical-section'>
-            <h1>Type Definitions</h1>
-            <div class="members">
+                new AashDisclosureButton<span class="signature">(props)</span><span class="type-signature"></span>
             
-                <div class="member">
-
-    <span class="method-parameter is-pulled-right">
-        <label>Type:</label>
-        
-<span class="param-type">object</span>
-
-
-    </span>
-
-<h4 class="name" id=".Panel">
-    <a class="href-link" href="#.Panel">#</a>
+        </span>
+    </h4>
     
-    <span class="code-name">
-        Panel
-    </span>
+
     
-</h4>
-
-
-
-
-<div class="description">
-    <p>The information about a panel managed by the tablist.</p>
-</div>
+    
 
 
 
 
 
-    <h5 class="subsection-title">Properties:</h5>
 
+
+
+
+    <h5>Parameters:</h5>
     
 <div class="table-container">
-    <table class="props table">
+    <table class="params table">
         <thead>
         <tr>
             
@@ -262,8 +151,6 @@
 
             <th>Type</th>
 
-            
-            <th>Attributes</th>
             
 
             
@@ -274,101 +161,62 @@
 
         <tbody>
         
+
             
 <tr class="deep-level-0">
-    
-        <td class="name"><code>id</code></td>
-    
+  
+      <td class="name"><code>props</code></td>
+  
 
-    <td class="type">
+  <td class="type">
+  
+      
+<span class="param-type">Object</span>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>the properties</p></td>
+</tr>
+
+  
+  
     
-        
+<tr class="deep-level-1">
+  
+      <td class="name"><code>idRef</code></td>
+  
+
+  <td class="type">
+  
+      
 <span class="param-type">string</span>
 
 
-    
-    </td>
+  
+  </td>
 
-    
-        <td class="attributes">
-        
+  
 
-        
-        </td>
-    
+  
 
-    
-
-    <td class="description last"><p>The id of the panel's root node</p></td>
+  <td class="description last"><p>the id of the controlled element</p></td>
 </tr>
 
-        
-            
-<tr class="deep-level-0">
-    
-        <td class="name"><code>label</code></td>
-    
+  
 
-    <td class="type">
-    
-        
-<span class="param-type">string</span>
-|
-
-<span class="param-type">function</span>
-
-
-    
-    </td>
-
-    
-        <td class="attributes">
-        
-
-        
-        </td>
-    
-
-    
-
-    <td class="description last"><p>The label to use for the panel</p></td>
-</tr>
-
-        
-            
-<tr class="deep-level-0">
-    
-        <td class="name"><code>removeCallback</code></td>
-    
-
-    <td class="type">
-    
-        
-<span class="param-type">function</span>
-
-
-    
-    </td>
-
-    
-        <td class="attributes">
-        
-            &lt;optional><br>
-        
-
-        
-        </td>
-    
-
-    
-
-    <td class="description last"><p>A function to call when the panel is removed (optional)</p></td>
-</tr>
 
         
         </tbody>
     </table>
 </div>
+
+
 
 
 
@@ -405,9 +253,9 @@
 
     
         <p class="tag-source">
-            <a href="components_tablist_AashTablist.ts.html" class="button">View Source</a>
+            <a href="components_disclosure_AashDisclosureButton.ts.html" class="button">View Source</a>
             <span>
-                <a href="components_tablist_AashTablist.ts.html">components/tablist/AashTablist.ts</a>, <a href="components_tablist_AashTablist.ts.html#line199">line 199</a>
+                <a href="components_disclosure_AashDisclosureButton.ts.html">components/disclosure/AashDisclosureButton.ts</a>, <a href="components_disclosure_AashDisclosureButton.ts.html#line8">line 8</a>
             </span>
         </p>
     
@@ -417,10 +265,46 @@
 
 
 
-</div>
-            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </div>
+                </div>
             </div>
-        </div>
+        
+    
+    </div>
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
     
 
     

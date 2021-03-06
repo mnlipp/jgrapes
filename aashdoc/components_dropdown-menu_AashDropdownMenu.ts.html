@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,7 +7,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AaSH component library Home</title>
+  <title>AaSH component library components/dropdown-menu/AashDropdownMenu.ts</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -77,68 +79,136 @@
         <div class="core" id="main-content-wrapper">
             <div class="content">
                 <header class="page-title">
-                    <p></p>
-                    <h1>Home</h1>
+                    <p>Source</p>
+                    <h1>components/dropdown-menu/AashDropdownMenu.ts</h1>
                 </header>
                 
 
 
 
     
-
-
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
     <section>
-        <article><h1>Overview</h1>
-<p>This library provides easy to use vue components for generating
-unstyled &quot;ARIA augmented Semantic HTML&quot; (AaSH).</p>
-<h2>Motivation</h2>
-<p>I came up with the idea of &quot;ARIA augmented Semantic HTML&quot; at the
-end of 2019 while developing the
-<a href="https://mnlipp.github.io/jgrapes/WebConsole.html">JGrapes Web Console</a>,
-a micro service driven micro frontend (with run-time integration via
-JavaScript). Contrary to the ususal approaches of micro frontends,
-it favors a common, exchangeable styling for all components.</p>
-<p>This prevents the usage of the wide spread &quot;invasive&quot; CSS frameworks that
-spread their presentation classes all over the HTML. The alternative is
-to use the information provided by the (semantic) HTML for selecting
-the styles to be applied. The problem is that even semantic HTML 5 doesn’t
-provide enough context to reliably style GUI widgets. If however, you add
-<a href="https://www.w3.org/WAI/standards-guidelines/aria/">WAI-ARIA</a> attributes
-to the markup (as you should anyway), it turns out that almost all styling
-can be based on the HTML without adding presentation classes.
-(A rough outline of the idea can also be found on
-&quot;<a href="https://css-tricks.com/aria-in-css/">css-tricks.com</a>&quot;.)</p>
-<p>As it turns out, writing ARIA compliant HTML isn't as easy as you might think.
-W3C maintains a document about
-<a href="https://www.w3.org/TR/wai-aria-practices-1.1/">best practices</a> that also
-includes
-<a href="https://www.w3.org/TR/wai-aria-practices-1.1/examples/">some examples</a>.
-Looking at the examples, it is obvious that ARIA compliant UI elements
-must be generated from templates. This is where this library comes in.</p>
-<h2>Status</h2>
-<p>This project is currently maintained as a subproject of the
-JGrapes Web Console project. It is continued as need (for the web console)
-arises. In case there should be interest in using this independent of the
-web console development, it will become a top level project of its own.</p></article>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module AashDropdownMenu
+ */
+import { defineComponent, PropType, ref, computed,
+    onMounted, onBeforeUnmount } from 'vue'
+
+type MenuItem = [ string | (() => string), any ];
+
+/**
+ * @classdesc
+ * A component that generates a dropdown menu with all required ARIA 
+ * attributes.
+ * 
+ * The DOM is generated as shown in the 
+ * [WAI-ARIA Authoring Practices 1.1](https://www.w3.org/TR/wai-aria-practices-1.1/examples/menu-button/menu-button-actions.html)
+ *
+ * Example:
+ * ```html 
+ * &lt;div id="language-selector" class="aash-dropdown-menu">
+ *  &lt;button type="button" aria-haspopup="menu"
+ *   aria-controls="language-selector-menu" aria-expanded="true">
+ *   &lt;span>Language&lt;/span>
+ *  &lt;/button>
+ *  &lt;ul id="language-selector-menu" role="menu">
+ *   &lt;li role="none">
+ *    &lt;button type="button" role="menuitem">English&lt;/button>
+ *   &lt;/li>
+ *   &lt;li role="none">
+ *    &lt;button type="button" role="menuitem">German&lt;/button>
+ *   &lt;/li>
+ *  &lt;/ul>
+ * &lt;/div>
+ * ```
+ * 
+ * @class
+ * @param {Object} props The properties
+ * @param {string} props.id The id for the enclosing `div`
+ * @param {string} props.label The text of the `button` that opens the menu
+ * @param {Array} props.items The menu items as an array with elements
+ *      of type `MenuItem`
+ *      (`[ string | (() => string), any ]`). Each item consists 
+ *      of two elements, the first being the label of the menu
+ *      item (a string) or a function that returns the label 
+ *      and the second being an opaque value to forward information to the 
+ *      `action` function that is invoked when the item has been chosen
+ * @param {function} props.l10n A function invoked with a label 
+ *      (of type string) as argument before the label is rendered
+ * @param {function} props.action A function that is invoked when an item has
+ *      been chosen. The chosen item, i.e. the entry from the list of
+ *      `items` is passed as an argument.
+ */
+export default defineComponent({
+    props: {
+        id: { type: String, required: true },
+        label: { type: String, required: true },
+        items: { type: Array as PropType&lt;Array&lt;MenuItem>>, required: true },
+        l10n: Function as PropType&lt;(key: string) => string>,
+        action: Function as PropType&lt;(arg: MenuItem) => void>
+    },
+    
+    setup(props) {
+        let lastEvent: MouseEvent | null = null;
+        const expanded = ref(false);
+        // Any click event that is not the one handled by this component
+        // causes the menu to be closed.
+        const globalClickHandler = (event: MouseEvent) => {
+            if (lastEvent) {
+                if (event.target !== lastEvent.target) {
+                    expanded.value = false;
+                }
+            }
+            if (!expanded.value) {
+                document.removeEventListener("click", globalClickHandler);
+            }
+        };
+        
+        const toggle = (event: MouseEvent) => {
+            lastEvent = event;
+            expanded.value = !expanded.value;
+            if (expanded.value) {
+                document.addEventListener("click", globalClickHandler);
+            } else {
+                document.removeEventListener("click", globalClickHandler);
+            }
+        }
+
+        const translate = (raw: string | (() => string)) => {
+            if (typeof(raw) === "function") {
+                return raw();
+            }
+            if (props.l10n) {
+                return props.l10n(raw);
+            }
+            return raw;
+        }
+        
+        const sortedItems = computed(() => {
+            let result: Array&lt;[string, MenuItem]> = [];
+            for (let item of props.items) {
+                result.push([translate(item[0]), item]);
+            }
+            result.sort(function(a, b) {
+                return a[0].localeCompare(b[0]);
+            });
+            return result;
+        });
+
+        onBeforeUnmount(() => {
+            if (globalClickHandler) {
+                document.removeEventListener("click", globalClickHandler);
+            }
+        });
+    
+        return { lastEvent, globalClickHandler, expanded,
+            toggle, translate, sortedItems };        
+    }
+});
+</code></pre>
+        </article>
     </section>
-
-
 
 
 
