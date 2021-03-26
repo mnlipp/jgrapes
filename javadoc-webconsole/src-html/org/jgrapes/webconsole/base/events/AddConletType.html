@@ -1,229 +1,230 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="en">
+<!DOCTYPE HTML>
+<html lang="de">
 <head>
 <title>Source code</title>
 <link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
 </head>
 <body>
+<main role="main">
 <div class="sourceContainer">
-<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
-<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2017-2018 Michael N. Lipp<a name="line.3"></a>
-<span class="sourceLineNo">004</span> * <a name="line.4"></a>
-<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
-<span class="sourceLineNo">006</span> * under the terms of the GNU Affero General Public License as published by <a name="line.6"></a>
-<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
-<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
-<span class="sourceLineNo">009</span> * <a name="line.9"></a>
-<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
-<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
-<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License <a name="line.12"></a>
-<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
-<span class="sourceLineNo">014</span> * <a name="line.14"></a>
-<span class="sourceLineNo">015</span> * You should have received a copy of the GNU Affero General Public License along <a name="line.15"></a>
-<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
-<span class="sourceLineNo">017</span> */<a name="line.17"></a>
-<span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span>package org.jgrapes.webconsole.base.events;<a name="line.19"></a>
-<span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>import java.io.IOException;<a name="line.21"></a>
-<span class="sourceLineNo">022</span>import java.io.Writer;<a name="line.22"></a>
-<span class="sourceLineNo">023</span>import java.net.URI;<a name="line.23"></a>
-<span class="sourceLineNo">024</span>import java.util.ArrayList;<a name="line.24"></a>
-<span class="sourceLineNo">025</span>import java.util.Arrays;<a name="line.25"></a>
-<span class="sourceLineNo">026</span>import java.util.Collections;<a name="line.26"></a>
-<span class="sourceLineNo">027</span>import java.util.List;<a name="line.27"></a>
-<span class="sourceLineNo">028</span>import java.util.Locale;<a name="line.28"></a>
-<span class="sourceLineNo">029</span>import java.util.Map;<a name="line.29"></a>
-<span class="sourceLineNo">030</span>import java.util.stream.Collectors;<a name="line.30"></a>
-<span class="sourceLineNo">031</span>import org.jdrupes.json.JsonArray;<a name="line.31"></a>
-<span class="sourceLineNo">032</span>import org.jgrapes.webconsole.base.Conlet.RenderMode;<a name="line.32"></a>
-<span class="sourceLineNo">033</span>import org.jgrapes.webconsole.base.RenderSupport;<a name="line.33"></a>
-<span class="sourceLineNo">034</span>import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;<a name="line.34"></a>
-<span class="sourceLineNo">035</span><a name="line.35"></a>
-<span class="sourceLineNo">036</span>/**<a name="line.36"></a>
-<span class="sourceLineNo">037</span> * Adds a web console component type with its global resources <a name="line.37"></a>
-<span class="sourceLineNo">038</span> * (JavaScript and/or CSS) to the console page. Specifying global <a name="line.38"></a>
-<span class="sourceLineNo">039</span> * resources result in the respective<a name="line.39"></a>
-<span class="sourceLineNo">040</span> * `&lt;link .../&gt;` or `&lt;script ...&gt;&lt;/script&gt;` nodes<a name="line.40"></a>
-<span class="sourceLineNo">041</span> * being added to the page's `&lt;head&gt;` node.<a name="line.41"></a>
-<span class="sourceLineNo">042</span> * <a name="line.42"></a>
-<span class="sourceLineNo">043</span> * This in turn causes the browser to issue `GET` requests that<a name="line.43"></a>
-<span class="sourceLineNo">044</span> * (usually) refer to the web console component's resources. These requests are<a name="line.44"></a>
-<span class="sourceLineNo">045</span> * converted to {@link ConletResourceRequest}s by the web console and<a name="line.45"></a>
-<span class="sourceLineNo">046</span> * sent to the web console components, which must respond to the requests.<a name="line.46"></a>
-<span class="sourceLineNo">047</span> * <a name="line.47"></a>
-<span class="sourceLineNo">048</span> * The sequence of events is shown in the diagram.<a name="line.48"></a>
-<span class="sourceLineNo">049</span> * <a name="line.49"></a>
-<span class="sourceLineNo">050</span> * ![WebConsole Ready Event Sequence](AddConletTypeSeq.svg)<a name="line.50"></a>
-<span class="sourceLineNo">051</span> * <a name="line.51"></a>
-<span class="sourceLineNo">052</span> * See {@link ResourceRequest} for details about the processing<a name="line.52"></a>
-<span class="sourceLineNo">053</span> * of the {@link ConletResourceRequest}.<a name="line.53"></a>
-<span class="sourceLineNo">054</span> * <a name="line.54"></a>
-<span class="sourceLineNo">055</span> * A portelt's JavaScript may (and probably must) make use of<a name="line.55"></a>
-<span class="sourceLineNo">056</span> * the functions provided by the web console page. See the <a name="line.56"></a>
-<span class="sourceLineNo">057</span> * &lt;a href="../jsdoc/module-console-base-resource_jgconsole.html"&gt;JavaScript<a name="line.57"></a>
-<span class="sourceLineNo">058</span> * documentation of these functions&lt;/a&gt; for details.<a name="line.58"></a>
-<span class="sourceLineNo">059</span> * <a name="line.59"></a>
-<span class="sourceLineNo">060</span> * @startuml AddConletTypeSeq.svg<a name="line.60"></a>
-<span class="sourceLineNo">061</span> * hide footbox<a name="line.61"></a>
-<span class="sourceLineNo">062</span> * <a name="line.62"></a>
-<span class="sourceLineNo">063</span> * activate Browser<a name="line.63"></a>
-<span class="sourceLineNo">064</span> * Browser -&gt; WebConsole: "consoleReady"<a name="line.64"></a>
-<span class="sourceLineNo">065</span> * deactivate Browser<a name="line.65"></a>
-<span class="sourceLineNo">066</span> * activate WebConsole<a name="line.66"></a>
-<span class="sourceLineNo">067</span> * WebConsole -&gt; ConletX: ConsoleReady <a name="line.67"></a>
-<span class="sourceLineNo">068</span> * deactivate WebConsole<a name="line.68"></a>
-<span class="sourceLineNo">069</span> * activate ConletX<a name="line.69"></a>
-<span class="sourceLineNo">070</span> * ConletX -&gt; WebConsole: AddConletType <a name="line.70"></a>
-<span class="sourceLineNo">071</span> * deactivate ConletX<a name="line.71"></a>
-<span class="sourceLineNo">072</span> * activate WebConsole<a name="line.72"></a>
-<span class="sourceLineNo">073</span> * WebConsole -&gt; Browser: "addConletType"<a name="line.73"></a>
-<span class="sourceLineNo">074</span> * activate Browser<a name="line.74"></a>
-<span class="sourceLineNo">075</span> * deactivate WebConsole<a name="line.75"></a>
-<span class="sourceLineNo">076</span> * Browser -&gt; WebConsole: "GET &lt;conlet resource URI&gt;"<a name="line.76"></a>
-<span class="sourceLineNo">077</span> * activate WebConsole<a name="line.77"></a>
-<span class="sourceLineNo">078</span> * WebConsole -&gt; ConletX: ConletResourceRequest<a name="line.78"></a>
-<span class="sourceLineNo">079</span> * deactivate Browser<a name="line.79"></a>
-<span class="sourceLineNo">080</span> * activate ConletX<a name="line.80"></a>
-<span class="sourceLineNo">081</span> * deactivate ConletX<a name="line.81"></a>
-<span class="sourceLineNo">082</span> * <a name="line.82"></a>
-<span class="sourceLineNo">083</span> * @enduml<a name="line.83"></a>
-<span class="sourceLineNo">084</span> */<a name="line.84"></a>
-<span class="sourceLineNo">085</span>public class AddConletType extends ConsoleCommand {<a name="line.85"></a>
-<span class="sourceLineNo">086</span><a name="line.86"></a>
-<span class="sourceLineNo">087</span>    private final String conletType;<a name="line.87"></a>
-<span class="sourceLineNo">088</span>    private Map&lt;Locale, String&gt; displayNames = Collections.emptyMap();<a name="line.88"></a>
-<span class="sourceLineNo">089</span>    private final List&lt;URI&gt; cssUris = new ArrayList&lt;&gt;();<a name="line.89"></a>
-<span class="sourceLineNo">090</span>    private final List&lt;ScriptResource&gt; scriptResources = new ArrayList&lt;&gt;();<a name="line.90"></a>
-<span class="sourceLineNo">091</span>    private List&lt;RenderMode&gt; renderModes;<a name="line.91"></a>
-<span class="sourceLineNo">092</span><a name="line.92"></a>
-<span class="sourceLineNo">093</span>    /**<a name="line.93"></a>
-<span class="sourceLineNo">094</span>     * Create a new event for the given web console component type.<a name="line.94"></a>
-<span class="sourceLineNo">095</span>     * <a name="line.95"></a>
-<span class="sourceLineNo">096</span>     * @param conletType a unique id for the web console component type <a name="line.96"></a>
-<span class="sourceLineNo">097</span>     * (usually the class name)<a name="line.97"></a>
-<span class="sourceLineNo">098</span>     */<a name="line.98"></a>
-<span class="sourceLineNo">099</span>    public AddConletType(String conletType) {<a name="line.99"></a>
-<span class="sourceLineNo">100</span>        this.conletType = conletType;<a name="line.100"></a>
-<span class="sourceLineNo">101</span>    }<a name="line.101"></a>
-<span class="sourceLineNo">102</span><a name="line.102"></a>
-<span class="sourceLineNo">103</span>    /**<a name="line.103"></a>
-<span class="sourceLineNo">104</span>     * Return the web console component type.<a name="line.104"></a>
-<span class="sourceLineNo">105</span>     * <a name="line.105"></a>
-<span class="sourceLineNo">106</span>     * @return the web console component type<a name="line.106"></a>
-<span class="sourceLineNo">107</span>     */<a name="line.107"></a>
-<span class="sourceLineNo">108</span>    public String conletType() {<a name="line.108"></a>
-<span class="sourceLineNo">109</span>        return conletType;<a name="line.109"></a>
-<span class="sourceLineNo">110</span>    }<a name="line.110"></a>
-<span class="sourceLineNo">111</span><a name="line.111"></a>
-<span class="sourceLineNo">112</span>    /**<a name="line.112"></a>
-<span class="sourceLineNo">113</span>     * Sets the display names.<a name="line.113"></a>
-<span class="sourceLineNo">114</span>     * <a name="line.114"></a>
-<span class="sourceLineNo">115</span>     * @param displayNames the display names<a name="line.115"></a>
-<span class="sourceLineNo">116</span>     * @return the event for easy chaining<a name="line.116"></a>
-<span class="sourceLineNo">117</span>     */<a name="line.117"></a>
-<span class="sourceLineNo">118</span>    public AddConletType setDisplayNames(Map&lt;Locale, String&gt; displayNames) {<a name="line.118"></a>
-<span class="sourceLineNo">119</span>        this.displayNames = displayNames;<a name="line.119"></a>
-<span class="sourceLineNo">120</span>        return this;<a name="line.120"></a>
-<span class="sourceLineNo">121</span>    }<a name="line.121"></a>
-<span class="sourceLineNo">122</span><a name="line.122"></a>
-<span class="sourceLineNo">123</span>    /**<a name="line.123"></a>
-<span class="sourceLineNo">124</span>     * Return the display names.<a name="line.124"></a>
-<span class="sourceLineNo">125</span>     * <a name="line.125"></a>
-<span class="sourceLineNo">126</span>     * @return the displayNames<a name="line.126"></a>
-<span class="sourceLineNo">127</span>     */<a name="line.127"></a>
-<span class="sourceLineNo">128</span>    public Map&lt;Locale, String&gt; displayNames() {<a name="line.128"></a>
-<span class="sourceLineNo">129</span>        return displayNames;<a name="line.129"></a>
-<span class="sourceLineNo">130</span>    }<a name="line.130"></a>
-<span class="sourceLineNo">131</span><a name="line.131"></a>
-<span class="sourceLineNo">132</span>    /**<a name="line.132"></a>
-<span class="sourceLineNo">133</span>     * Add a render mode. The render mode determines how the web console <a name="line.133"></a>
-<span class="sourceLineNo">134</span>     * component is initially rendered (i.e. when added). Several modes may be<a name="line.134"></a>
-<span class="sourceLineNo">135</span>     * added in order of preference. The default mode (i.e. none <a name="line.135"></a>
-<span class="sourceLineNo">136</span>     * specified) is {@link RenderMode#Preview}.<a name="line.136"></a>
-<span class="sourceLineNo">137</span>     *<a name="line.137"></a>
-<span class="sourceLineNo">138</span>     * @param mode the mode<a name="line.138"></a>
-<span class="sourceLineNo">139</span>     * @return the event for easy chaining<a name="line.139"></a>
-<span class="sourceLineNo">140</span>     */<a name="line.140"></a>
-<span class="sourceLineNo">141</span>    public AddConletType addRenderMode(RenderMode mode) {<a name="line.141"></a>
-<span class="sourceLineNo">142</span>        if (renderModes == null) {<a name="line.142"></a>
-<span class="sourceLineNo">143</span>            renderModes = new ArrayList&lt;&gt;();<a name="line.143"></a>
-<span class="sourceLineNo">144</span>        }<a name="line.144"></a>
-<span class="sourceLineNo">145</span>        renderModes.add(mode);<a name="line.145"></a>
-<span class="sourceLineNo">146</span>        return this;<a name="line.146"></a>
-<span class="sourceLineNo">147</span>    }<a name="line.147"></a>
-<span class="sourceLineNo">148</span><a name="line.148"></a>
-<span class="sourceLineNo">149</span>    /**<a name="line.149"></a>
-<span class="sourceLineNo">150</span>     * Return the render modes.<a name="line.150"></a>
-<span class="sourceLineNo">151</span>     * <a name="line.151"></a>
-<span class="sourceLineNo">152</span>     * @return the result<a name="line.152"></a>
-<span class="sourceLineNo">153</span>     */<a name="line.153"></a>
-<span class="sourceLineNo">154</span>    public List&lt;RenderMode&gt; renderModes() {<a name="line.154"></a>
-<span class="sourceLineNo">155</span>        if (renderModes == null) {<a name="line.155"></a>
-<span class="sourceLineNo">156</span>            return Arrays.asList(RenderMode.Preview);<a name="line.156"></a>
-<span class="sourceLineNo">157</span>        }<a name="line.157"></a>
-<span class="sourceLineNo">158</span>        return renderModes;<a name="line.158"></a>
-<span class="sourceLineNo">159</span>    }<a name="line.159"></a>
-<span class="sourceLineNo">160</span><a name="line.160"></a>
-<span class="sourceLineNo">161</span>    /**<a name="line.161"></a>
-<span class="sourceLineNo">162</span>     * Add a script resource to be requested by the browser.<a name="line.162"></a>
-<span class="sourceLineNo">163</span>     * <a name="line.163"></a>
-<span class="sourceLineNo">164</span>     * @param scriptResource the script resource<a name="line.164"></a>
-<span class="sourceLineNo">165</span>     * @return the event for easy chaining<a name="line.165"></a>
-<span class="sourceLineNo">166</span>     */<a name="line.166"></a>
-<span class="sourceLineNo">167</span>    public AddConletType addScript(ScriptResource scriptResource) {<a name="line.167"></a>
-<span class="sourceLineNo">168</span>        scriptResources.add(scriptResource);<a name="line.168"></a>
-<span class="sourceLineNo">169</span>        return this;<a name="line.169"></a>
-<span class="sourceLineNo">170</span>    }<a name="line.170"></a>
-<span class="sourceLineNo">171</span><a name="line.171"></a>
-<span class="sourceLineNo">172</span>    /**<a name="line.172"></a>
-<span class="sourceLineNo">173</span>     * Add the URI of a CSS resource that is to be added to the<a name="line.173"></a>
-<span class="sourceLineNo">174</span>     * header section of the web console page.<a name="line.174"></a>
-<span class="sourceLineNo">175</span>     *<a name="line.175"></a>
-<span class="sourceLineNo">176</span>     * @param renderSupport the render support for mapping the `uri`<a name="line.176"></a>
-<span class="sourceLineNo">177</span>     * @param uri the URI<a name="line.177"></a>
-<span class="sourceLineNo">178</span>     * @return the event for easy chaining<a name="line.178"></a>
-<span class="sourceLineNo">179</span>     */<a name="line.179"></a>
-<span class="sourceLineNo">180</span>    public AddConletType addCss(RenderSupport renderSupport, URI uri) {<a name="line.180"></a>
-<span class="sourceLineNo">181</span>        cssUris.add(renderSupport.conletResource(conletType(), uri));<a name="line.181"></a>
-<span class="sourceLineNo">182</span>        return this;<a name="line.182"></a>
-<span class="sourceLineNo">183</span>    }<a name="line.183"></a>
-<span class="sourceLineNo">184</span><a name="line.184"></a>
-<span class="sourceLineNo">185</span>    /**<a name="line.185"></a>
-<span class="sourceLineNo">186</span>     * Return all script resources.<a name="line.186"></a>
-<span class="sourceLineNo">187</span>     * <a name="line.187"></a>
-<span class="sourceLineNo">188</span>     * @return the result<a name="line.188"></a>
-<span class="sourceLineNo">189</span>     */<a name="line.189"></a>
-<span class="sourceLineNo">190</span>    public ScriptResource[] scriptResources() {<a name="line.190"></a>
-<span class="sourceLineNo">191</span>        return scriptResources.toArray(new ScriptResource[0]);<a name="line.191"></a>
-<span class="sourceLineNo">192</span>    }<a name="line.192"></a>
-<span class="sourceLineNo">193</span><a name="line.193"></a>
-<span class="sourceLineNo">194</span>    /**<a name="line.194"></a>
-<span class="sourceLineNo">195</span>     * Return all CSS URIs.<a name="line.195"></a>
-<span class="sourceLineNo">196</span>     * <a name="line.196"></a>
-<span class="sourceLineNo">197</span>     * @return the result<a name="line.197"></a>
-<span class="sourceLineNo">198</span>     */<a name="line.198"></a>
-<span class="sourceLineNo">199</span>    public URI[] cssUris() {<a name="line.199"></a>
-<span class="sourceLineNo">200</span>        return cssUris.toArray(new URI[0]);<a name="line.200"></a>
-<span class="sourceLineNo">201</span>    }<a name="line.201"></a>
-<span class="sourceLineNo">202</span><a name="line.202"></a>
-<span class="sourceLineNo">203</span>    @Override<a name="line.203"></a>
-<span class="sourceLineNo">204</span>    public void toJson(Writer writer) throws IOException {<a name="line.204"></a>
-<span class="sourceLineNo">205</span>        JsonArray strArray = JsonArray.create();<a name="line.205"></a>
-<span class="sourceLineNo">206</span>        for (ScriptResource scriptResource : scriptResources()) {<a name="line.206"></a>
-<span class="sourceLineNo">207</span>            strArray.append(scriptResource.toJsonValue());<a name="line.207"></a>
-<span class="sourceLineNo">208</span>        }<a name="line.208"></a>
-<span class="sourceLineNo">209</span>        toJson(writer, "addConletType", conletType(),<a name="line.209"></a>
-<span class="sourceLineNo">210</span>            displayNames().entrySet().stream()<a name="line.210"></a>
-<span class="sourceLineNo">211</span>                .collect(Collectors.toMap(e -&gt; e.getKey().toLanguageTag(),<a name="line.211"></a>
-<span class="sourceLineNo">212</span>                    e -&gt; e.getValue())),<a name="line.212"></a>
-<span class="sourceLineNo">213</span>            Arrays.stream(cssUris()).map(<a name="line.213"></a>
-<span class="sourceLineNo">214</span>                uri -&gt; uri.toString()).toArray(String[]::new),<a name="line.214"></a>
-<span class="sourceLineNo">215</span>            strArray, renderModes().stream().map(RenderMode::name)<a name="line.215"></a>
-<span class="sourceLineNo">216</span>                .toArray(size -&gt; new String[size]));<a name="line.216"></a>
-<span class="sourceLineNo">217</span>    }<a name="line.217"></a>
-<span class="sourceLineNo">218</span>}<a name="line.218"></a>
+<pre><span class="sourceLineNo">001</span><a id="line.1">/*</a>
+<span class="sourceLineNo">002</span><a id="line.2"> * JGrapes Event Driven Framework</a>
+<span class="sourceLineNo">003</span><a id="line.3"> * Copyright (C) 2017-2018 Michael N. Lipp</a>
+<span class="sourceLineNo">004</span><a id="line.4"> * </a>
+<span class="sourceLineNo">005</span><a id="line.5"> * This program is free software; you can redistribute it and/or modify it </a>
+<span class="sourceLineNo">006</span><a id="line.6"> * under the terms of the GNU Affero General Public License as published by </a>
+<span class="sourceLineNo">007</span><a id="line.7"> * the Free Software Foundation; either version 3 of the License, or </a>
+<span class="sourceLineNo">008</span><a id="line.8"> * (at your option) any later version.</a>
+<span class="sourceLineNo">009</span><a id="line.9"> * </a>
+<span class="sourceLineNo">010</span><a id="line.10"> * This program is distributed in the hope that it will be useful, but </a>
+<span class="sourceLineNo">011</span><a id="line.11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</a>
+<span class="sourceLineNo">012</span><a id="line.12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License </a>
+<span class="sourceLineNo">013</span><a id="line.13"> * for more details.</a>
+<span class="sourceLineNo">014</span><a id="line.14"> * </a>
+<span class="sourceLineNo">015</span><a id="line.15"> * You should have received a copy of the GNU Affero General Public License along </a>
+<span class="sourceLineNo">016</span><a id="line.16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<span class="sourceLineNo">017</span><a id="line.17"> */</a>
+<span class="sourceLineNo">018</span><a id="line.18"></a>
+<span class="sourceLineNo">019</span><a id="line.19">package org.jgrapes.webconsole.base.events;</a>
+<span class="sourceLineNo">020</span><a id="line.20"></a>
+<span class="sourceLineNo">021</span><a id="line.21">import java.io.IOException;</a>
+<span class="sourceLineNo">022</span><a id="line.22">import java.io.Writer;</a>
+<span class="sourceLineNo">023</span><a id="line.23">import java.net.URI;</a>
+<span class="sourceLineNo">024</span><a id="line.24">import java.util.ArrayList;</a>
+<span class="sourceLineNo">025</span><a id="line.25">import java.util.Arrays;</a>
+<span class="sourceLineNo">026</span><a id="line.26">import java.util.Collections;</a>
+<span class="sourceLineNo">027</span><a id="line.27">import java.util.List;</a>
+<span class="sourceLineNo">028</span><a id="line.28">import java.util.Locale;</a>
+<span class="sourceLineNo">029</span><a id="line.29">import java.util.Map;</a>
+<span class="sourceLineNo">030</span><a id="line.30">import java.util.stream.Collectors;</a>
+<span class="sourceLineNo">031</span><a id="line.31">import org.jdrupes.json.JsonArray;</a>
+<span class="sourceLineNo">032</span><a id="line.32">import org.jgrapes.webconsole.base.Conlet.RenderMode;</a>
+<span class="sourceLineNo">033</span><a id="line.33">import org.jgrapes.webconsole.base.RenderSupport;</a>
+<span class="sourceLineNo">034</span><a id="line.34">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</a>
+<span class="sourceLineNo">035</span><a id="line.35"></a>
+<span class="sourceLineNo">036</span><a id="line.36">/**</a>
+<span class="sourceLineNo">037</span><a id="line.37"> * Adds a web console component type with its global resources </a>
+<span class="sourceLineNo">038</span><a id="line.38"> * (JavaScript and/or CSS) to the console page. Specifying global </a>
+<span class="sourceLineNo">039</span><a id="line.39"> * resources result in the respective</a>
+<span class="sourceLineNo">040</span><a id="line.40"> * `&lt;link .../&gt;` or `&lt;script ...&gt;&lt;/script&gt;` nodes</a>
+<span class="sourceLineNo">041</span><a id="line.41"> * being added to the page's `&lt;head&gt;` node.</a>
+<span class="sourceLineNo">042</span><a id="line.42"> * </a>
+<span class="sourceLineNo">043</span><a id="line.43"> * This in turn causes the browser to issue `GET` requests that</a>
+<span class="sourceLineNo">044</span><a id="line.44"> * (usually) refer to the web console component's resources. These requests are</a>
+<span class="sourceLineNo">045</span><a id="line.45"> * converted to {@link ConletResourceRequest}s by the web console and</a>
+<span class="sourceLineNo">046</span><a id="line.46"> * sent to the web console components, which must respond to the requests.</a>
+<span class="sourceLineNo">047</span><a id="line.47"> * </a>
+<span class="sourceLineNo">048</span><a id="line.48"> * The sequence of events is shown in the diagram.</a>
+<span class="sourceLineNo">049</span><a id="line.49"> * </a>
+<span class="sourceLineNo">050</span><a id="line.50"> * ![WebConsole Ready Event Sequence](AddConletTypeSeq.svg)</a>
+<span class="sourceLineNo">051</span><a id="line.51"> * </a>
+<span class="sourceLineNo">052</span><a id="line.52"> * See {@link ResourceRequest} for details about the processing</a>
+<span class="sourceLineNo">053</span><a id="line.53"> * of the {@link ConletResourceRequest}.</a>
+<span class="sourceLineNo">054</span><a id="line.54"> * </a>
+<span class="sourceLineNo">055</span><a id="line.55"> * A portelt's JavaScript may (and probably must) make use of</a>
+<span class="sourceLineNo">056</span><a id="line.56"> * the functions provided by the web console page. See the </a>
+<span class="sourceLineNo">057</span><a id="line.57"> * &lt;a href="../jsdoc/classes/console.html"&gt;JavaScript</a>
+<span class="sourceLineNo">058</span><a id="line.58"> * documentation of these functions&lt;/a&gt; for details.</a>
+<span class="sourceLineNo">059</span><a id="line.59"> * </a>
+<span class="sourceLineNo">060</span><a id="line.60"> * @startuml AddConletTypeSeq.svg</a>
+<span class="sourceLineNo">061</span><a id="line.61"> * hide footbox</a>
+<span class="sourceLineNo">062</span><a id="line.62"> * </a>
+<span class="sourceLineNo">063</span><a id="line.63"> * activate Browser</a>
+<span class="sourceLineNo">064</span><a id="line.64"> * Browser -&gt; WebConsole: "consoleReady"</a>
+<span class="sourceLineNo">065</span><a id="line.65"> * deactivate Browser</a>
+<span class="sourceLineNo">066</span><a id="line.66"> * activate WebConsole</a>
+<span class="sourceLineNo">067</span><a id="line.67"> * WebConsole -&gt; ConletX: ConsoleReady </a>
+<span class="sourceLineNo">068</span><a id="line.68"> * deactivate WebConsole</a>
+<span class="sourceLineNo">069</span><a id="line.69"> * activate ConletX</a>
+<span class="sourceLineNo">070</span><a id="line.70"> * ConletX -&gt; WebConsole: AddConletType </a>
+<span class="sourceLineNo">071</span><a id="line.71"> * deactivate ConletX</a>
+<span class="sourceLineNo">072</span><a id="line.72"> * activate WebConsole</a>
+<span class="sourceLineNo">073</span><a id="line.73"> * WebConsole -&gt; Browser: "addConletType"</a>
+<span class="sourceLineNo">074</span><a id="line.74"> * activate Browser</a>
+<span class="sourceLineNo">075</span><a id="line.75"> * deactivate WebConsole</a>
+<span class="sourceLineNo">076</span><a id="line.76"> * Browser -&gt; WebConsole: "GET &lt;conlet resource URI&gt;"</a>
+<span class="sourceLineNo">077</span><a id="line.77"> * activate WebConsole</a>
+<span class="sourceLineNo">078</span><a id="line.78"> * WebConsole -&gt; ConletX: ConletResourceRequest</a>
+<span class="sourceLineNo">079</span><a id="line.79"> * deactivate Browser</a>
+<span class="sourceLineNo">080</span><a id="line.80"> * activate ConletX</a>
+<span class="sourceLineNo">081</span><a id="line.81"> * deactivate ConletX</a>
+<span class="sourceLineNo">082</span><a id="line.82"> * </a>
+<span class="sourceLineNo">083</span><a id="line.83"> * @enduml</a>
+<span class="sourceLineNo">084</span><a id="line.84"> */</a>
+<span class="sourceLineNo">085</span><a id="line.85">public class AddConletType extends ConsoleCommand {</a>
+<span class="sourceLineNo">086</span><a id="line.86"></a>
+<span class="sourceLineNo">087</span><a id="line.87">    private final String conletType;</a>
+<span class="sourceLineNo">088</span><a id="line.88">    private Map&lt;Locale, String&gt; displayNames = Collections.emptyMap();</a>
+<span class="sourceLineNo">089</span><a id="line.89">    private final List&lt;URI&gt; cssUris = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">090</span><a id="line.90">    private final List&lt;ScriptResource&gt; scriptResources = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">091</span><a id="line.91">    private List&lt;RenderMode&gt; renderModes;</a>
+<span class="sourceLineNo">092</span><a id="line.92"></a>
+<span class="sourceLineNo">093</span><a id="line.93">    /**</a>
+<span class="sourceLineNo">094</span><a id="line.94">     * Create a new event for the given web console component type.</a>
+<span class="sourceLineNo">095</span><a id="line.95">     * </a>
+<span class="sourceLineNo">096</span><a id="line.96">     * @param conletType a unique id for the web console component type </a>
+<span class="sourceLineNo">097</span><a id="line.97">     * (usually the class name)</a>
+<span class="sourceLineNo">098</span><a id="line.98">     */</a>
+<span class="sourceLineNo">099</span><a id="line.99">    public AddConletType(String conletType) {</a>
+<span class="sourceLineNo">100</span><a id="line.100">        this.conletType = conletType;</a>
+<span class="sourceLineNo">101</span><a id="line.101">    }</a>
+<span class="sourceLineNo">102</span><a id="line.102"></a>
+<span class="sourceLineNo">103</span><a id="line.103">    /**</a>
+<span class="sourceLineNo">104</span><a id="line.104">     * Return the web console component type.</a>
+<span class="sourceLineNo">105</span><a id="line.105">     * </a>
+<span class="sourceLineNo">106</span><a id="line.106">     * @return the web console component type</a>
+<span class="sourceLineNo">107</span><a id="line.107">     */</a>
+<span class="sourceLineNo">108</span><a id="line.108">    public String conletType() {</a>
+<span class="sourceLineNo">109</span><a id="line.109">        return conletType;</a>
+<span class="sourceLineNo">110</span><a id="line.110">    }</a>
+<span class="sourceLineNo">111</span><a id="line.111"></a>
+<span class="sourceLineNo">112</span><a id="line.112">    /**</a>
+<span class="sourceLineNo">113</span><a id="line.113">     * Sets the display names.</a>
+<span class="sourceLineNo">114</span><a id="line.114">     * </a>
+<span class="sourceLineNo">115</span><a id="line.115">     * @param displayNames the display names</a>
+<span class="sourceLineNo">116</span><a id="line.116">     * @return the event for easy chaining</a>
+<span class="sourceLineNo">117</span><a id="line.117">     */</a>
+<span class="sourceLineNo">118</span><a id="line.118">    public AddConletType setDisplayNames(Map&lt;Locale, String&gt; displayNames) {</a>
+<span class="sourceLineNo">119</span><a id="line.119">        this.displayNames = displayNames;</a>
+<span class="sourceLineNo">120</span><a id="line.120">        return this;</a>
+<span class="sourceLineNo">121</span><a id="line.121">    }</a>
+<span class="sourceLineNo">122</span><a id="line.122"></a>
+<span class="sourceLineNo">123</span><a id="line.123">    /**</a>
+<span class="sourceLineNo">124</span><a id="line.124">     * Return the display names.</a>
+<span class="sourceLineNo">125</span><a id="line.125">     * </a>
+<span class="sourceLineNo">126</span><a id="line.126">     * @return the displayNames</a>
+<span class="sourceLineNo">127</span><a id="line.127">     */</a>
+<span class="sourceLineNo">128</span><a id="line.128">    public Map&lt;Locale, String&gt; displayNames() {</a>
+<span class="sourceLineNo">129</span><a id="line.129">        return displayNames;</a>
+<span class="sourceLineNo">130</span><a id="line.130">    }</a>
+<span class="sourceLineNo">131</span><a id="line.131"></a>
+<span class="sourceLineNo">132</span><a id="line.132">    /**</a>
+<span class="sourceLineNo">133</span><a id="line.133">     * Add a render mode. The render mode determines how the web console </a>
+<span class="sourceLineNo">134</span><a id="line.134">     * component is initially rendered (i.e. when added). Several modes may be</a>
+<span class="sourceLineNo">135</span><a id="line.135">     * added in order of preference. The default mode (i.e. none </a>
+<span class="sourceLineNo">136</span><a id="line.136">     * specified) is {@link RenderMode#Preview}.</a>
+<span class="sourceLineNo">137</span><a id="line.137">     *</a>
+<span class="sourceLineNo">138</span><a id="line.138">     * @param mode the mode</a>
+<span class="sourceLineNo">139</span><a id="line.139">     * @return the event for easy chaining</a>
+<span class="sourceLineNo">140</span><a id="line.140">     */</a>
+<span class="sourceLineNo">141</span><a id="line.141">    public AddConletType addRenderMode(RenderMode mode) {</a>
+<span class="sourceLineNo">142</span><a id="line.142">        if (renderModes == null) {</a>
+<span class="sourceLineNo">143</span><a id="line.143">            renderModes = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">144</span><a id="line.144">        }</a>
+<span class="sourceLineNo">145</span><a id="line.145">        renderModes.add(mode);</a>
+<span class="sourceLineNo">146</span><a id="line.146">        return this;</a>
+<span class="sourceLineNo">147</span><a id="line.147">    }</a>
+<span class="sourceLineNo">148</span><a id="line.148"></a>
+<span class="sourceLineNo">149</span><a id="line.149">    /**</a>
+<span class="sourceLineNo">150</span><a id="line.150">     * Return the render modes.</a>
+<span class="sourceLineNo">151</span><a id="line.151">     * </a>
+<span class="sourceLineNo">152</span><a id="line.152">     * @return the result</a>
+<span class="sourceLineNo">153</span><a id="line.153">     */</a>
+<span class="sourceLineNo">154</span><a id="line.154">    public List&lt;RenderMode&gt; renderModes() {</a>
+<span class="sourceLineNo">155</span><a id="line.155">        if (renderModes == null) {</a>
+<span class="sourceLineNo">156</span><a id="line.156">            return Arrays.asList(RenderMode.Preview);</a>
+<span class="sourceLineNo">157</span><a id="line.157">        }</a>
+<span class="sourceLineNo">158</span><a id="line.158">        return renderModes;</a>
+<span class="sourceLineNo">159</span><a id="line.159">    }</a>
+<span class="sourceLineNo">160</span><a id="line.160"></a>
+<span class="sourceLineNo">161</span><a id="line.161">    /**</a>
+<span class="sourceLineNo">162</span><a id="line.162">     * Add a script resource to be requested by the browser.</a>
+<span class="sourceLineNo">163</span><a id="line.163">     * </a>
+<span class="sourceLineNo">164</span><a id="line.164">     * @param scriptResource the script resource</a>
+<span class="sourceLineNo">165</span><a id="line.165">     * @return the event for easy chaining</a>
+<span class="sourceLineNo">166</span><a id="line.166">     */</a>
+<span class="sourceLineNo">167</span><a id="line.167">    public AddConletType addScript(ScriptResource scriptResource) {</a>
+<span class="sourceLineNo">168</span><a id="line.168">        scriptResources.add(scriptResource);</a>
+<span class="sourceLineNo">169</span><a id="line.169">        return this;</a>
+<span class="sourceLineNo">170</span><a id="line.170">    }</a>
+<span class="sourceLineNo">171</span><a id="line.171"></a>
+<span class="sourceLineNo">172</span><a id="line.172">    /**</a>
+<span class="sourceLineNo">173</span><a id="line.173">     * Add the URI of a CSS resource that is to be added to the</a>
+<span class="sourceLineNo">174</span><a id="line.174">     * header section of the web console page.</a>
+<span class="sourceLineNo">175</span><a id="line.175">     *</a>
+<span class="sourceLineNo">176</span><a id="line.176">     * @param renderSupport the render support for mapping the `uri`</a>
+<span class="sourceLineNo">177</span><a id="line.177">     * @param uri the URI</a>
+<span class="sourceLineNo">178</span><a id="line.178">     * @return the event for easy chaining</a>
+<span class="sourceLineNo">179</span><a id="line.179">     */</a>
+<span class="sourceLineNo">180</span><a id="line.180">    public AddConletType addCss(RenderSupport renderSupport, URI uri) {</a>
+<span class="sourceLineNo">181</span><a id="line.181">        cssUris.add(renderSupport.conletResource(conletType(), uri));</a>
+<span class="sourceLineNo">182</span><a id="line.182">        return this;</a>
+<span class="sourceLineNo">183</span><a id="line.183">    }</a>
+<span class="sourceLineNo">184</span><a id="line.184"></a>
+<span class="sourceLineNo">185</span><a id="line.185">    /**</a>
+<span class="sourceLineNo">186</span><a id="line.186">     * Return all script resources.</a>
+<span class="sourceLineNo">187</span><a id="line.187">     * </a>
+<span class="sourceLineNo">188</span><a id="line.188">     * @return the result</a>
+<span class="sourceLineNo">189</span><a id="line.189">     */</a>
+<span class="sourceLineNo">190</span><a id="line.190">    public ScriptResource[] scriptResources() {</a>
+<span class="sourceLineNo">191</span><a id="line.191">        return scriptResources.toArray(new ScriptResource[0]);</a>
+<span class="sourceLineNo">192</span><a id="line.192">    }</a>
+<span class="sourceLineNo">193</span><a id="line.193"></a>
+<span class="sourceLineNo">194</span><a id="line.194">    /**</a>
+<span class="sourceLineNo">195</span><a id="line.195">     * Return all CSS URIs.</a>
+<span class="sourceLineNo">196</span><a id="line.196">     * </a>
+<span class="sourceLineNo">197</span><a id="line.197">     * @return the result</a>
+<span class="sourceLineNo">198</span><a id="line.198">     */</a>
+<span class="sourceLineNo">199</span><a id="line.199">    public URI[] cssUris() {</a>
+<span class="sourceLineNo">200</span><a id="line.200">        return cssUris.toArray(new URI[0]);</a>
+<span class="sourceLineNo">201</span><a id="line.201">    }</a>
+<span class="sourceLineNo">202</span><a id="line.202"></a>
+<span class="sourceLineNo">203</span><a id="line.203">    @Override</a>
+<span class="sourceLineNo">204</span><a id="line.204">    public void toJson(Writer writer) throws IOException {</a>
+<span class="sourceLineNo">205</span><a id="line.205">        JsonArray strArray = JsonArray.create();</a>
+<span class="sourceLineNo">206</span><a id="line.206">        for (ScriptResource scriptResource : scriptResources()) {</a>
+<span class="sourceLineNo">207</span><a id="line.207">            strArray.append(scriptResource.toJsonValue());</a>
+<span class="sourceLineNo">208</span><a id="line.208">        }</a>
+<span class="sourceLineNo">209</span><a id="line.209">        toJson(writer, "addConletType", conletType(),</a>
+<span class="sourceLineNo">210</span><a id="line.210">            displayNames().entrySet().stream()</a>
+<span class="sourceLineNo">211</span><a id="line.211">                .collect(Collectors.toMap(e -&gt; e.getKey().toLanguageTag(),</a>
+<span class="sourceLineNo">212</span><a id="line.212">                    e -&gt; e.getValue())),</a>
+<span class="sourceLineNo">213</span><a id="line.213">            Arrays.stream(cssUris()).map(</a>
+<span class="sourceLineNo">214</span><a id="line.214">                uri -&gt; uri.toString()).toArray(String[]::new),</a>
+<span class="sourceLineNo">215</span><a id="line.215">            strArray, renderModes().stream().map(RenderMode::name)</a>
+<span class="sourceLineNo">216</span><a id="line.216">                .toArray(size -&gt; new String[size]));</a>
+<span class="sourceLineNo">217</span><a id="line.217">    }</a>
+<span class="sourceLineNo">218</span><a id="line.218">}</a>
 
 
 
@@ -286,5 +287,6 @@
 
 </pre>
 </div>
+</main>
 </body>
 </html>
