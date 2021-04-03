@@ -66,7 +66,7 @@
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-reference"><a href="modules.html#jgconsole" class="tsd-kind-icon">JGConsole</a></li>
 								<li class="tsd-kind-reference"><a href="modules.html#formatmemorysize" class="tsd-kind-icon">format<wbr>Memory<wbr>Size</a></li>
-								<li class="tsd-kind-reference"><a href="modules.html#nodefromstring" class="tsd-kind-icon">node<wbr>From<wbr>String</a></li>
+								<li class="tsd-kind-reference"><a href="modules.html#parsehtml" class="tsd-kind-icon">parse<wbr>Html</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -99,6 +99,12 @@
 								<li class="tsd-kind-variable"><a href="modules.html#theconsole" class="tsd-kind-icon">the<wbr>Console</a></li>
 							</ul>
 						</section>
+						<section class="tsd-index-section ">
+							<h3>Functions</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-function"><a href="modules.html#rootquery" class="tsd-kind-icon">root<wbr>Query</a></li>
+							</ul>
+						</section>
 					</div>
 				</section>
 			</section>
@@ -115,8 +121,8 @@
 					Renames and exports <a href="classes/default.html#__type">__type</a>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-reference">
-					<a name="nodefromstring" class="tsd-anchor"></a>
-					<h3>node<wbr>From<wbr>String</h3>
+					<a name="parsehtml" class="tsd-anchor"></a>
+					<h3>parse<wbr>Html</h3>
 					Renames and exports <a href="classes/default.html#__type-1">__type</a>
 				</section>
 			</section>
@@ -128,7 +134,7 @@
 					<div class="tsd-signature tsd-kind-icon">the<wbr>Console<span class="tsd-signature-symbol">:</span> <a href="classes/console.html" class="tsd-signature-type" data-tsd-kind="Class">Console</a><span class="tsd-signature-symbol"> = ...</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/mnlipp/jgrapes-webconsole/blob/8ec9450b/org.jgrapes.webconsole.base/resources/org/jgrapes/webconsole/base/JGConsole.ts#L34">JGConsole.ts:34</a></li>
+							<li>Defined in <a href="https://github.com/mnlipp/jgrapes-webconsole/blob/e2b0817d/org.jgrapes.webconsole.base/resources/org/jgrapes/webconsole/base/JGConsole.ts#L35">JGConsole.ts:35</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -136,6 +142,46 @@
 							<p>The singleton that provides the console instance.</p>
 						</div>
 					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Functions</h2>
+				<section class="tsd-panel tsd-member tsd-kind-function">
+					<a name="rootquery" class="tsd-anchor"></a>
+					<h3>root<wbr>Query</h3>
+					<ul class="tsd-signatures tsd-kind-function">
+						<li class="tsd-signature tsd-kind-icon">root<wbr>Query<span class="tsd-signature-symbol">(</span>root<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Element</span>, selector<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Node</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/mnlipp/jgrapes-webconsole/blob/e2b0817d/org.jgrapes.webconsole.base/resources/org/jgrapes/webconsole/base/Util.ts#L35">Util.ts:35</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Behaves like <code>querySelector</code> but includes the root element as candidate.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>root: <span class="tsd-signature-type">Element</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>the root element</p>
+									</div>
+								</li>
+								<li>
+									<h5>selector: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>the selector expression</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Node</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h4>
+						</li>
+					</ul>
 				</section>
 			</section>
 		</div>
@@ -156,7 +202,7 @@
 						<a href="modules.html#formatmemorysize" class="tsd-kind-icon">format<wbr>Memory<wbr>Size</a>
 					</li>
 					<li class=" tsd-kind-reference">
-						<a href="modules.html#nodefromstring" class="tsd-kind-icon">node<wbr>From<wbr>String</a>
+						<a href="modules.html#parsehtml" class="tsd-kind-icon">parse<wbr>Html</a>
 					</li>
 					<li class=" tsd-kind-enum">
 						<a href="enums/notificationtype.html" class="tsd-kind-icon">Notification<wbr>Type</a>
@@ -187,6 +233,9 @@
 					</li>
 					<li class=" tsd-kind-variable">
 						<a href="modules.html#theconsole" class="tsd-kind-icon">the<wbr>Console</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#rootquery" class="tsd-kind-icon">root<wbr>Query</a>
 					</li>
 				</ul>
 			</nav>
