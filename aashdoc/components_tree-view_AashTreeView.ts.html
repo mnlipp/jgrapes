@@ -331,9 +331,9 @@ class Controller {
  * @param {Object} props the properties
  * @param {string} props.id the id for the enclosing `div` (optional)
  * @param {TreeNode[]} props.roots the top level tree nodes
- * @param {ToggleVetoer} props.on_toggle an optional vetoer which is
+ * @param {ToggleVetoer} props.onToggle an optional vetoer which is
  *      invoked before a node is opened or closed
- * @param {Function} props.on_toggle a function ((path: string[]) => void)
+ * @param {Function} props.onFocus a function ((path: string[]) => void)
  *      that is invoked when a node receives the focus (by clicking or
  *      by using the navigation keys)
  */
@@ -341,13 +341,13 @@ export default defineComponent({
     props: {
         id: { type: String, required: false, default: null },
         roots: { type: Array as PropType&lt;TreeNode[]>, required: false, default: [] },
-        on_toggle: {
+        onToggle: {
             type: Function as PropType&lt;ToggleVetoer>,
             default: (path: string[], newStateOpen: boolean, event: Event) => {
                 return newStateOpen;
             }
         },
-        on_focus: {
+        onFocus: {
             type: Function as PropType&lt;(path: string[]) => void>,
             default: (path: string[]) => {}
         },
@@ -358,7 +358,7 @@ export default defineComponent({
     
     setup(props) {
         let ctrl = props._controller 
-            || new Controller(props.roots, props.on_toggle, props.on_focus);
+            || new Controller(props.roots, props.onToggle, props.onFocus);
 
         const nodes = computed(() => {
             return (props._path.length == 0 ? props.roots : props._nodes)!
