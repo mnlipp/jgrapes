@@ -5,7 +5,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AaSH component library AashUtil</title>
+  <title>AaSH component library Api</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -77,8 +77,8 @@
         <div class="core" id="main-content-wrapper">
             <div class="content">
                 <header class="page-title">
-                    <p>Module</p>
-                    <h1>AashUtil</h1>
+                    <p>Interface</p>
+                    <h1>Api</h1>
                 </header>
                 
 
@@ -89,8 +89,8 @@
 
 <header>
     
-        
-            
+        <h2>
+            <span class="ancestors"><a href="module-AashTreeView.html">AashTreeView</a>.</span>Api</h2>
         
     
 </header>
@@ -99,23 +99,13 @@
     <div class="container-overview">
     
         
-            <div class="description"><p>Provides some utility functions.</p></div>
+            <div class="description"><p>The interface provided by the component.</p>
+<ul>
+<li><code>setRoots(roots: TreeNode[]): void</code>: replaces the root tree nodes</li>
+</ul></div>
         
 
         
-            
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 <dl class="details">
@@ -151,33 +141,13 @@
 
     
         <p class="tag-source">
-            <a href="AashUtil.ts.html" class="button">View Source</a>
+            <a href="components_tree-view_AashTreeView.ts.html" class="button">View Source</a>
             <span>
-                <a href="AashUtil.ts.html">AashUtil.ts</a>, <a href="AashUtil.ts.html#line2">line 2</a>
+                <a href="components_tree-view_AashTreeView.ts.html">components/tree-view/AashTreeView.ts</a>, <a href="components_tree-view_AashTreeView.ts.html#line343">line 343</a>
             </span>
         </p>
     
 </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         
@@ -198,330 +168,6 @@
 
     
 
-    
-        <div class='vertical-section'>
-            <h1>Methods</h1>
-            <div class="members">
-            
-                <div class="member">
-
-
-    
-    <h4 class="name" id="~getApi">
-        <a class="href-link" href="#~getApi">#</a>
-        
-            
-                <span class='tag'>inner</span>
-            
-        
-        <span class="code-name">
-            
-                getApi<span class="signature">(dom)</span><span class="type-signature"></span>
-            
-        </span>
-    </h4>
-    
-
-    
-    
-    <div class="description">
-        <p>Retrieves a provided API from the given HTMLElement. The function is
-&quot;null-safe&quot;, i.e. if the argument is <code>null</code>, it returns <code>null</code>.</p>
-    </div>
-    
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-<div class="table-container">
-    <table class="params table">
-        <thead>
-        <tr>
-            
-            <th>Name</th>
-            
-
-            <th>Type</th>
-
-            
-
-            
-
-            <th class="last">Description</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        
-
-            
-<tr class="deep-level-0">
-  
-      <td class="name"><code>dom</code></td>
-  
-
-  <td class="type">
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>the element from the DOM tree with the api property set
-by provideApi.</p></td>
-</tr>
-
-
-        
-        </tbody>
-    </table>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-        <p class="tag-source">
-            <a href="AashUtil.ts.html" class="button">View Source</a>
-            <span>
-                <a href="AashUtil.ts.html">AashUtil.ts</a>, <a href="AashUtil.ts.html#line44">line 44</a>
-            </span>
-        </p>
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-            
-                <div class="member">
-
-
-    
-    <h4 class="name" id="~provideApi">
-        <a class="href-link" href="#~provideApi">#</a>
-        
-            
-                <span class='tag'>inner</span>
-            
-        
-        <span class="code-name">
-            
-                provideApi<span class="signature">(dom, api)</span><span class="type-signature"></span>
-            
-        </span>
-    </h4>
-    
-
-    
-    
-    <div class="description">
-        <p>Ensures (using <code>onMount</code> and <code>onBeforeUnmount</code>) that the given
-api is made available as property of the given HTMLElement.</p>
-    </div>
-    
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-<div class="table-container">
-    <table class="params table">
-        <thead>
-        <tr>
-            
-            <th>Name</th>
-            
-
-            <th>Type</th>
-
-            
-
-            
-
-            <th class="last">Description</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        
-
-            
-<tr class="deep-level-0">
-  
-      <td class="name"><code>dom</code></td>
-  
-
-  <td class="type">
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>the element from the DOM tree</p></td>
-</tr>
-
-
-        
-
-            
-<tr class="deep-level-0">
-  
-      <td class="name"><code>api</code></td>
-  
-
-  <td class="type">
-  
-  </td>
-
-  
-
-  
-
-  <td class="description last"><p>the API to make available</p></td>
-</tr>
-
-
-        
-        </tbody>
-    </table>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-        <p class="tag-source">
-            <a href="AashUtil.ts.html" class="button">View Source</a>
-            <span>
-                <a href="AashUtil.ts.html">AashUtil.ts</a>, <a href="AashUtil.ts.html#line14">line 14</a>
-            </span>
-        </p>
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-            
-            </div>
-        </div>
     
 
     
