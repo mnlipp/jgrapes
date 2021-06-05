@@ -149,17 +149,20 @@ class Controller {
     private _domRoot: HTMLElement | null = null;
     private _onToggle: ToggleVetoer;
     private _onFocus: (path: string[]) => void;
+    private _onSelected: (path: string[], event: Event) => void;
     private _expanded: Expanded = reactive({ children: null, expanded: false });
     private _focusHolder: string[] = reactive([]);
 
     constructor(roots: TreeNode[], onToggle: ToggleVetoer, 
-        onFocus: (path: string[]) => void) {
+        onFocus: (path: string[]) => void, 
+        onSelected: (path: string[], event: Event) => void) {
         this._roots = reactive(roots);
         if (roots.length > 0) {
             this._focusHolder.push(roots[0].segment);
         }
         this._onToggle = onToggle;
         this._onFocus = onFocus;
+        this._onSelected = onSelected;
     }
 
     setDomRoot(root: HTMLElement) {
@@ -305,6 +308,10 @@ class Controller {
         
     }
 
+    onSelected(path: string[], event: Event) {
+        this._onSelected(path, event);
+    }
+
     hasFocus(path: string[]) {
         if (this._focusHolder.length != path.length) {
             return false;
@@ -318,6 +325,18 @@ class Controller {
     }
     
     setFocus(path: string[]) {
+        if (this._focusHolder.length === path.length) {
+            let foundDiff = false;
+            for (let seg = 0; seg &lt; path.length; seg++) {
+                if (this._focusHolder[seg] !== path[seg]) {
+                    foundDiff = true;
+                    break;
+                }
+            }
+            if (!foundDiff) {
+                return;
+            }
+        }
         this._focusHolder.length = 0;
         this._focusHolder.push(...path);
         this._onFocus(path);
@@ -352,6 +371,10 @@ class Controller {
  * @param {Function} props.onFocus a function ((path: string[]) => void)
  *      that is invoked when a node receives the focus (by clicking or
  *      by using the navigation keys)
+ * @param {Function} props.onSelected a function 
+ *      ((path: string[], event: Event) => void)
+ *      that is invoked when a leaf is selected (by clicking on it or
+ *      pressing space or enter while it has focus)
  */
 export default defineComponent({
     props: {
@@ -359,13 +382,17 @@ export default defineComponent({
         roots: { type: Array as PropType&lt;TreeNode[]>, required: false, default: [] },
         onToggle: {
             type: Function as PropType&lt;ToggleVetoer>,
-            default: (path: string[], newStateOpen: boolean, event: Event) => {
+            default: (_path: string[], newStateOpen: boolean, _event: Event) => {
                 return newStateOpen;
             }
         },
         onFocus: {
             type: Function as PropType&lt;(path: string[]) => void>,
-            default: (path: string[]) => {}
+            default: (_path: string[]) => {}
+        },
+        onSelected: {
+            type: Function as PropType&lt;(path: string[], event: Event) => void>,
+            default: (_path: string[], _event: Event) => {}
         },
         _controller: { type: Controller, required: false },
         _path: { type: Array as PropType&lt;string[]>, required: false, default: [] },
@@ -374,7 +401,8 @@ export default defineComponent({
     
     setup(props) {
         let ctrl = props._controller 
-            || new Controller(props.roots, props.onToggle, props.onFocus);
+            || new Controller(props.roots, props.onToggle, props.onFocus,
+                props.onSelected);
 
         const nodes = computed(() => {
             return (props._path.length == 0 ? ctrl.roots : props._nodes)!
@@ -416,7 +444,21 @@ export default defineComponent({
             ctrl.updateDomFocus();
         }
 
+        const onClick = (event: Event) => {
+            let path = ctrl.collectPath(&lt;HTMLElement>event.target);
+            ctrl.setFocus(path);
+            if (ctrl.isExpandable(path)) {
+                ctrl.toggleExpanded(path, event);
+            } else {
+                ctrl.onSelected(path, event);
+            }
+        }
+
         const onKey = (event: KeyboardEvent) => {
+            if (event.key == "Enter" || event.key === " ") {
+                onClick(event);
+                return;
+            }
             let path = ctrl.collectPath(&lt;HTMLElement>event.target);
             if (event.key === "ArrowRight") {
                 if (ctrl.isExpandable(path)) {
@@ -494,7 +536,7 @@ export default defineComponent({
         });
         
         return { domRoot, ctrl, nodes, isExpandable, isExpanded, ariaExpanded,
-            hasFocus, label, toggleExpanded, onKey };
+            hasFocus, label, toggleExpanded, onClick, onKey };
     }
 });
 </code></pre>
