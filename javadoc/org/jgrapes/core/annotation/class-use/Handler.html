@@ -226,17 +226,17 @@ and causes subsequent data to be handled as <a href="../../../../../org/jgrapes/
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">SessionManager.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/http/SessionManager.html#onProtocolSwitchAccepted-org.jgrapes.http.events.ProtocolSwitchAccepted-org.jgrapes.io.IOSubchannel-">onProtocolSwitchAccepted</a></span>(<a href="../../../../../org/jgrapes/http/events/ProtocolSwitchAccepted.html" title="class in org.jgrapes.http.events">ProtocolSwitchAccepted</a>&nbsp;event,
-                        <a href="../../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;channel)</code>
-<div class="block">Associates the channel with the session from the upgrade request.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>void</code></td>
 <td class="colLast"><span class="typeNameLabel">LanguageSelector.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/http/LanguageSelector.html#onProtocolSwitchAccepted-org.jgrapes.http.events.ProtocolSwitchAccepted-org.jgrapes.io.IOSubchannel-">onProtocolSwitchAccepted</a></span>(<a href="../../../../../org/jgrapes/http/events/ProtocolSwitchAccepted.html" title="class in org.jgrapes.http.events">ProtocolSwitchAccepted</a>&nbsp;event,
                         <a href="../../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;channel)</code>
 <div class="block">Handles a procotol switch by associating the language selection
 with the channel.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><span class="typeNameLabel">SessionManager.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/http/SessionManager.html#onProtocolSwitchAccepted-org.jgrapes.http.events.ProtocolSwitchAccepted-org.jgrapes.io.IOSubchannel-">onProtocolSwitchAccepted</a></span>(<a href="../../../../../org/jgrapes/http/events/ProtocolSwitchAccepted.html" title="class in org.jgrapes.http.events">ProtocolSwitchAccepted</a>&nbsp;event,
+                        <a href="../../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;channel)</code>
+<div class="block">Associates the channel with the session from the upgrade request.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -341,27 +341,27 @@ a channel exists.</div>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>void</code></td>
+<td class="colLast"><span class="typeNameLabel">NioDispatcher.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/io/NioDispatcher.html#onStart-org.jgrapes.core.events.Start-">onStart</a></span>(<a href="../../../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events">Start</a>&nbsp;event)</code>
+<div class="block">Starts this dispatcher.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>void</code></td>
 <td class="colLast"><span class="typeNameLabel">InputStreamMonitor.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/io/InputStreamMonitor.html#onStart-org.jgrapes.core.events.Start-">onStart</a></span>(<a href="../../../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events">Start</a>&nbsp;event)</code>
 <div class="block">Starts a thread that continuously reads available
 data from the input stream.</div>
 </td>
 </tr>
-<tr class="rowColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">NioDispatcher.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/io/NioDispatcher.html#onStart-org.jgrapes.core.events.Start-">onStart</a></span>(<a href="../../../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events">Start</a>&nbsp;event)</code>
-<div class="block">Starts this dispatcher.</div>
-</td>
-</tr>
 <tr class="altColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">InputStreamMonitor.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/io/InputStreamMonitor.html#onStop-org.jgrapes.core.events.Stop-">onStop</a></span>(<a href="../../../../../org/jgrapes/core/events/Stop.html" title="class in org.jgrapes.core.events">Stop</a>&nbsp;event)</code>
-<div class="block">Stops the thread that reads data from the input stream.</div>
-</td>
-</tr>
-<tr class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><span class="typeNameLabel">NioDispatcher.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/io/NioDispatcher.html#onStop-org.jgrapes.core.events.Stop-">onStop</a></span>(<a href="../../../../../org/jgrapes/core/events/Stop.html" title="class in org.jgrapes.core.events">Stop</a>&nbsp;event)</code>
 <div class="block">Stops the thread that is associated with this dispatcher.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><span class="typeNameLabel">InputStreamMonitor.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/io/InputStreamMonitor.html#onStop-org.jgrapes.core.events.Stop-">onStop</a></span>(<a href="../../../../../org/jgrapes/core/events/Stop.html" title="class in org.jgrapes.core.events">Stop</a>&nbsp;event)</code>
+<div class="block">Stops the thread that reads data from the input stream.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -466,14 +466,14 @@ by sending it downstream.</div>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">TcpConnector.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpConnector.html#onOpenConnection-org.jgrapes.io.events.OpenTcpConnection-">onOpenConnection</a></span>(<a href="../../../../../org/jgrapes/io/events/OpenTcpConnection.html" title="class in org.jgrapes.io.events">OpenTcpConnection</a>&nbsp;event)</code>
-<div class="block">Opens a connection to the end point specified in the event.</div>
+<td class="colLast"><span class="typeNameLabel">SslCodec.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/SslCodec.html#onOpenConnection-org.jgrapes.io.events.OpenTcpConnection-">onOpenConnection</a></span>(<a href="../../../../../org/jgrapes/io/events/OpenTcpConnection.html" title="class in org.jgrapes.io.events">OpenTcpConnection</a>&nbsp;event)</code>
+<div class="block">Forward the connection request to the encrypted network.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><span class="typeNameLabel">SslCodec.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/SslCodec.html#onOpenConnection-org.jgrapes.io.events.OpenTcpConnection-">onOpenConnection</a></span>(<a href="../../../../../org/jgrapes/io/events/OpenTcpConnection.html" title="class in org.jgrapes.io.events">OpenTcpConnection</a>&nbsp;event)</code>
-<div class="block">Forward the connection request to the encrypted network.</div>
+<td class="colLast"><span class="typeNameLabel">TcpConnector.</span><code><span class="memberNameLink"><a href="../../../../../org/jgrapes/net/TcpConnector.html#onOpenConnection-org.jgrapes.io.events.OpenTcpConnection-">onOpenConnection</a></span>(<a href="../../../../../org/jgrapes/io/events/OpenTcpConnection.html" title="class in org.jgrapes.io.events">OpenTcpConnection</a>&nbsp;event)</code>
+<div class="block">Opens a connection to the end point specified in the event.</div>
 </td>
 </tr>
 <tr class="altColor">
