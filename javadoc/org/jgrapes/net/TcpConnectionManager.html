@@ -126,7 +126,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public abstract class <a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.56">TcpConnectionManager</a>
+<pre>public abstract class <a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.55">TcpConnectionManager</a>
 extends <a href="../../../org/jgrapes/core/Component.html" title="class in org.jgrapes.core">Component</a></pre>
 <div class="block"><p>Provides a base class for the <a href="../../../org/jgrapes/net/TcpServer.html" title="class in org.jgrapes.net"><code>TcpServer</code></a> and the <a href="../../../org/jgrapes/net/TcpConnector.html" title="class in org.jgrapes.net"><code>TcpConnector</code></a>.</p></div>
 </li>
@@ -331,7 +331,7 @@ else return the object name provided by
 <ul class="blockListLast">
 <li class="blockList">
 <h4>channels</h4>
-<pre>protected final&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Set.html?is-external=true" title="class or interface in java.util">Set</a>&lt;<a href="../../../org/jgrapes/net/TcpConnectionManager.TcpChannelImpl.html" title="class in org.jgrapes.net">TcpConnectionManager.TcpChannelImpl</a>&gt; <a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.59">channels</a></pre>
+<pre>protected final&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Set.html?is-external=true" title="class or interface in java.util">Set</a>&lt;<a href="../../../org/jgrapes/net/TcpConnectionManager.TcpChannelImpl.html" title="class in org.jgrapes.net">TcpConnectionManager.TcpChannelImpl</a>&gt; <a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.58">channels</a></pre>
 </li>
 </ul>
 </li>
@@ -348,7 +348,7 @@ else return the object name provided by
 <ul class="blockListLast">
 <li class="blockList">
 <h4>TcpConnectionManager</h4>
-<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.67">TcpConnectionManager</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;componentChannel)</pre>
+<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.66">TcpConnectionManager</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;componentChannel)</pre>
 <div class="block"><p>Creates a new server using the given channel.</p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -370,7 +370,7 @@ else return the object name provided by
 <ul class="blockList">
 <li class="blockList">
 <h4>setBufferSize</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/net/TcpConnectionManager.html" title="class in org.jgrapes.net">TcpConnectionManager</a>&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.78">setBufferSize</a>(int&nbsp;bufferSize)</pre>
+<pre>public&nbsp;<a href="../../../org/jgrapes/net/TcpConnectionManager.html" title="class in org.jgrapes.net">TcpConnectionManager</a>&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.77">setBufferSize</a>(int&nbsp;bufferSize)</pre>
 <div class="block"><p>Sets the buffer size for the send an receive buffers.
 If no size is set, the system defaults will be used.</p></div>
 <dl>
@@ -387,7 +387,7 @@ If no size is set, the system defaults will be used.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>bufferSize</h4>
-<pre>public&nbsp;int&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.88">bufferSize</a>()</pre>
+<pre>public&nbsp;int&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.87">bufferSize</a>()</pre>
 <div class="block"><p>Return the configured buffer size.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -401,7 +401,7 @@ If no size is set, the system defaults will be used.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>setExecutorService</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/net/TcpConnectionManager.html" title="class in org.jgrapes.net">TcpConnectionManager</a>&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.103">setExecutorService</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;executorService)</pre>
+<pre>public&nbsp;<a href="../../../org/jgrapes/net/TcpConnectionManager.html" title="class in org.jgrapes.net">TcpConnectionManager</a>&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.102">setExecutorService</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;executorService)</pre>
 <div class="block"><p>Sets an executor service to be used by the event pipelines
 that process the data from the network. Setting this
 to an executor service with a limited number of threads
@@ -422,7 +422,7 @@ allows to control the maximum load from the network.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>executorService</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.113">executorService</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.112">executorService</a>()</pre>
 <div class="block"><p>Returns the executor service.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -437,7 +437,7 @@ allows to control the maximum load from the network.</p></div>
 <li class="blockList">
 <h4>onOutput</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.131">onOutput</a>(<a href="../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;event,
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.130">onOutput</a>(<a href="../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;event,
                               <a href="../../../org/jgrapes/net/TcpConnectionManager.TcpChannelImpl.html" title="class in org.jgrapes.net">TcpConnectionManager.TcpChannelImpl</a>&nbsp;channel)
                        throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a></pre>
 <div class="block"><p>Writes the data passed in the event.</p>
@@ -461,7 +461,7 @@ reevaluated.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>removeChannel</h4>
-<pre>protected&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.144">removeChannel</a>(<a href="../../../org/jgrapes/net/TcpConnectionManager.TcpChannelImpl.html" title="class in org.jgrapes.net">TcpConnectionManager.TcpChannelImpl</a>&nbsp;channel)</pre>
+<pre>protected&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.143">removeChannel</a>(<a href="../../../org/jgrapes/net/TcpConnectionManager.TcpChannelImpl.html" title="class in org.jgrapes.net">TcpConnectionManager.TcpChannelImpl</a>&nbsp;channel)</pre>
 <div class="block"><p>Removes the channel from the set of registered channels.</p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -477,7 +477,7 @@ reevaluated.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>toString</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.156">toString</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/net/TcpConnectionManager.html#line.155">toString</a>()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../org/jgrapes/core/internal/ComponentVertex.html#toString--">ComponentVertex</a></code></span></div>
 <div class="block"><p>If a name has been set for this component
 (see <a href="../../../org/jgrapes/core/Manager.html#setName-java.lang.String-"><code>Manager.setName(String)</code></a>), return the name,

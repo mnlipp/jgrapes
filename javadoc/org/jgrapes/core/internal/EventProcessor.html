@@ -112,7 +112,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public class <a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.31">EventProcessor</a>
+<pre>public class <a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.30">EventProcessor</a>
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>
 implements <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html?is-external=true" title="class or interface in java.lang">Runnable</a></pre>
 <div class="block"><p>This class provides the default implementation of an <a href="../../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core"><code>EventPipeline</code></a>.</p></div>
@@ -234,7 +234,7 @@ implements <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable
 <ul class="blockList">
 <li class="blockList">
 <h4>newEventsParent</h4>
-<pre>protected static final&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/ThreadLocal.html?is-external=true" title="class or interface in java.lang">ThreadLocal</a>&lt;<a href="../../../../org/jgrapes/core/internal/EventBase.html" title="class in org.jgrapes.core.internal">EventBase</a>&lt;?&gt;&gt; <a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.34">newEventsParent</a></pre>
+<pre>protected static final&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/ThreadLocal.html?is-external=true" title="class or interface in java.lang">ThreadLocal</a>&lt;<a href="../../../../org/jgrapes/core/internal/EventBase.html" title="class in org.jgrapes.core.internal">EventBase</a>&lt;?&gt;&gt; <a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.33">newEventsParent</a></pre>
 </li>
 </ul>
 <a name="queue">
@@ -243,7 +243,7 @@ implements <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable
 <ul class="blockListLast">
 <li class="blockList">
 <h4>queue</h4>
-<pre>protected final&nbsp;org.jgrapes.core.internal.EventQueue <a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.40">queue</a></pre>
+<pre>protected final&nbsp;org.jgrapes.core.internal.EventQueue <a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.39">queue</a></pre>
 </li>
 </ul>
 </li>
@@ -260,7 +260,7 @@ implements <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable
 <ul class="blockList">
 <li class="blockList">
 <h4>tree</h4>
-<pre>protected&nbsp;org.jgrapes.core.internal.ComponentTree&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.64">tree</a>()</pre>
+<pre>protected&nbsp;org.jgrapes.core.internal.ComponentTree&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.63">tree</a>()</pre>
 <div class="block"><p>Gets the component tree.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -276,7 +276,7 @@ implements <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable
 <ul class="blockList">
 <li class="blockList">
 <h4>add</h4>
-<pre>public&nbsp;&lt;T extends <a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt;&nbsp;T&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.84">add</a>(T&nbsp;event,
+<pre>public&nbsp;&lt;T extends <a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt;&nbsp;T&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.83">add</a>(T&nbsp;event,
                                   <a href="../../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>...&nbsp;channels)</pre>
 <div class="block">Add an event to be sent to components listening for such events on
  the given channels to the end of the queue without any checking.</div>
@@ -297,7 +297,7 @@ implements <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable
 <ul class="blockList">
 <li class="blockList">
 <h4>merge</h4>
-<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.117">merge</a>(org.jgrapes.core.internal.InternalEventPipeline&nbsp;other)</pre>
+<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.116">merge</a>(org.jgrapes.core.internal.InternalEventPipeline&nbsp;other)</pre>
 <div class="block">Merge the events from the other event pipeline into this one.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -311,7 +311,7 @@ implements <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable
 <ul class="blockList">
 <li class="blockList">
 <h4>run</h4>
-<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.126">run</a>()</pre>
+<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.125">run</a>()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html?is-external=true#run--" title="class or interface in java.lang">run</a></code>&nbsp;in interface&nbsp;<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html?is-external=true" title="class or interface in java.lang">Runnable</a></code></dd>
@@ -324,7 +324,7 @@ implements <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable
 <ul class="blockList">
 <li class="blockList">
 <h4>executorService</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.165">executorService</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.164">executorService</a>()</pre>
 <div class="block">Returns the executor service used by this event pipeline to
  obtain its thread.</div>
 <dl>
@@ -339,7 +339,7 @@ implements <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable
 <ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.175">toString</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/EventProcessor.html#line.174">toString</a>()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#toString--" title="class or interface in java.lang">toString</a></code>&nbsp;in class&nbsp;<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a></code></dd>
@@ -352,7 +352,7 @@ implements <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable
 <ul class="blockListLast">
 <li class="blockList">
 <h4>idScope</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;?&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/InternalEventPipeline.html#line.61">idScope</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;?&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/InternalEventPipeline.html#line.60">idScope</a>()</pre>
 <div class="block">All pipelines use the same id scope to make them uniquely identifiable
  by their number.</div>
 <dl>

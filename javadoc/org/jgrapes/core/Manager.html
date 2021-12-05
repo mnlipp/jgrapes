@@ -108,7 +108,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public interface <a href="../../../src-html/org/jgrapes/core/Manager.html#line.43">Manager</a>
+<pre>public interface <a href="../../../src-html/org/jgrapes/core/Manager.html#line.42">Manager</a>
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Iterable.html?is-external=true" title="class or interface in java.lang">Iterable</a>&lt;<a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&gt;</pre>
 <div class="block"><p>The interface that provides the methods for manipulating the
 component and the component&rsquo;s hierarchy and for firing events.
@@ -297,7 +297,7 @@ tree that starts with this component.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>setName</h4>
-<pre><a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.51">setName</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;name)</pre>
+<pre><a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.50">setName</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;name)</pre>
 <div class="block"><p>Sets the (optional) name of the component.</p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -313,7 +313,7 @@ tree that starts with this component.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>name</h4>
-<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.56">name</a>()</pre>
+<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.55">name</a>()</pre>
 <div class="block"><p>Returns the (optional) name of the component.</p></div>
 </li>
 </ul>
@@ -323,7 +323,7 @@ tree that starts with this component.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>componentPath</h4>
-<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.65">componentPath</a>()</pre>
+<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.64">componentPath</a>()</pre>
 <div class="block"><p>Returns the path of the component. The path is the concatenation
 of a slash (&lsquo;/&rsquo;) and the component&rsquo;s name for all components
 from the root component to this component. If a component
@@ -337,7 +337,7 @@ doesn&rsquo;t have a name set, the simple name of its class
 <ul class="blockList">
 <li class="blockList">
 <h4>detach</h4>
-<pre><a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.82">detach</a>()</pre>
+<pre><a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.81">detach</a>()</pre>
 <div class="block"><p>Detaches the component managed by this manager (with its children,
 if any) from the component tree that it currently belongs to.</p>
 <P>
@@ -364,7 +364,7 @@ event</dd>
 <ul class="blockList">
 <li class="blockList">
 <h4>attach</h4>
-<pre>&lt;T extends <a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&gt;&nbsp;T&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.101">attach</a>(T&nbsp;child)</pre>
+<pre>&lt;T extends <a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&gt;&nbsp;T&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.100">attach</a>(T&nbsp;child)</pre>
 <div class="block"><p>Attaches the given component node (or complete tree) as a child
 to the component managed by this manager. The node or tree may not
 have been started.</p>
@@ -391,7 +391,7 @@ of attaching the nodes to the existing tree one by one.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>children</h4>
-<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</a>&lt;<a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.109">children</a>()</pre>
+<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</a>&lt;<a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.108">children</a>()</pre>
 <div class="block"><p>Returns the child components of the component managed by
 this manager as unmodifiable list.</p></div>
 <dl>
@@ -406,7 +406,7 @@ this manager as unmodifiable list.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>parent</h4>
-<pre><a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.117">parent</a>()</pre>
+<pre><a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.116">parent</a>()</pre>
 <div class="block"><p>Returns the parent of the component managed by this manager.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -421,7 +421,7 @@ component is not registered with another component</dd>
 <ul class="blockList">
 <li class="blockList">
 <h4>root</h4>
-<pre><a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.125">root</a>()</pre>
+<pre><a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.124">root</a>()</pre>
 <div class="block"><p>Returns the root of the tree the component
 managed by this manager belongs to.</p></div>
 <dl>
@@ -436,7 +436,7 @@ managed by this manager belongs to.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>channel</h4>
-<pre><a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.134">channel</a>()</pre>
+<pre><a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.133">channel</a>()</pre>
 <div class="block"><p>Returns the channel of the component managed by this manager.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -452,7 +452,7 @@ handlers listen on by default and that
 <ul class="blockList">
 <li class="blockList">
 <h4>fire</h4>
-<pre>&lt;T&gt;&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;T&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.154">fire</a>(<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;T&gt;&nbsp;event,
+<pre>&lt;T&gt;&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;T&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.153">fire</a>(<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;T&gt;&nbsp;event,
                   <a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>...&nbsp;channels)</pre>
 <div class="block"><p>Fires the given event on the given channel. If no channels are
 specified as parameters, the event is fired on the event&rsquo;s
@@ -482,7 +482,7 @@ is created for handling the event (and any events triggered by it).</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>addHandler</h4>
-<pre>void&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.171">addHandler</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Method.html?is-external=true" title="class or interface in java.lang.reflect">Method</a>&nbsp;method,
+<pre>void&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.170">addHandler</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Method.html?is-external=true" title="class or interface in java.lang.reflect">Method</a>&nbsp;method,
                 <a href="../../../org/jgrapes/core/HandlerScope.html" title="interface in org.jgrapes.core">HandlerScope</a>&nbsp;scope,
                 int&nbsp;priority)</pre>
 <div class="block"><p>Adds a handler for the given method with the given scope
@@ -507,7 +507,7 @@ call this method.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>activeEventPipeline</h4>
-<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.179">activeEventPipeline</a>()</pre>
+<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.178">activeEventPipeline</a>()</pre>
 <div class="block"><p>Returns the pipeline used when firing an event.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -523,7 +523,7 @@ call this method.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>newEventPipeline</h4>
-<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.187">newEventPipeline</a>()</pre>
+<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.186">newEventPipeline</a>()</pre>
 <div class="block"><p>Return a new <a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core"><code>EventPipeline</code></a> that processes the added events
 using a thread from a thread pool.</p></div>
 <dl>
@@ -538,7 +538,7 @@ using a thread from a thread pool.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>newEventPipeline</h4>
-<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.196">newEventPipeline</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;executorService)</pre>
+<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.195">newEventPipeline</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;executorService)</pre>
 <div class="block"><p>Return a new <a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core"><code>EventPipeline</code></a> that processes the added events
 using threads from the given executor service.</p></div>
 <dl>
@@ -555,7 +555,7 @@ using threads from the given executor service.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>newSyncEventPipeline</h4>
-<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.209">newSyncEventPipeline</a>()</pre>
+<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.208">newSyncEventPipeline</a>()</pre>
 <div class="block"><p>Return a new <a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core"><code>EventPipeline</code></a> that processes an added event
 (and all events caused by it) before returning from the
 <a href="../../../org/jgrapes/core/EventPipeline.html#fire-T-org.jgrapes.core.Channel...-"><code>EventPipeline.fire(T, org.jgrapes.core.Channel...)</code></a> method.</p>
@@ -575,7 +575,7 @@ is being processed.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>registerAsGenerator</h4>
-<pre>void&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.214">registerAsGenerator</a>()</pre>
+<pre>void&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.213">registerAsGenerator</a>()</pre>
 <div class="block"><p>Register the managed component as a running generator.</p></div>
 </li>
 </ul>
@@ -585,7 +585,7 @@ is being processed.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>unregisterAsGenerator</h4>
-<pre>void&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.219">unregisterAsGenerator</a>()</pre>
+<pre>void&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.218">unregisterAsGenerator</a>()</pre>
 <div class="block"><p>Unregister the managed component as a running generator.</p></div>
 </li>
 </ul>
@@ -595,7 +595,7 @@ is being processed.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>iterator</h4>
-<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/util/Iterator.html?is-external=true" title="class or interface in java.util">Iterator</a>&lt;<a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.228">iterator</a>()</pre>
+<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/util/Iterator.html?is-external=true" title="class or interface in java.util">Iterator</a>&lt;<a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.227">iterator</a>()</pre>
 <div class="block"><p>Returns an iterator that visits the components of the
 component subtree that has this node as root.</p></div>
 <dl>
@@ -612,7 +612,7 @@ component subtree that has this node as root.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>stream</h4>
-<pre>default&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html?is-external=true" title="class or interface in java.util.stream">Stream</a>&lt;<a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.237">stream</a>()</pre>
+<pre>default&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html?is-external=true" title="class or interface in java.util.stream">Stream</a>&lt;<a href="../../../org/jgrapes/core/ComponentType.html" title="interface in org.jgrapes.core">ComponentType</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Manager.html#line.236">stream</a>()</pre>
 <div class="block"><p>Returns the components visited when traversing the
 tree that starts with this component.</p></div>
 <dl>

@@ -126,7 +126,7 @@ event does not produce a result</dd>
 </dl>
 <hr>
 <br>
-<pre>public class <a href="../../../src-html/org/jgrapes/core/Event.html#line.54">Event</a>&lt;T&gt;
+<pre>public class <a href="../../../src-html/org/jgrapes/core/Event.html#line.53">Event</a>&lt;T&gt;
 extends <a href="../../../org/jgrapes/core/internal/EventBase.html" title="class in org.jgrapes.core.internal">EventBase</a>&lt;T&gt;</pre>
 <div class="block"><p>This class is the base class for all events.</p>
 <p>By default (i.e. as implemented by this class), the event&rsquo;s kind is
@@ -412,7 +412,7 @@ that the event should not be processed further.</div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>Event</h4>
-<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.74">Event</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>...&nbsp;channels)</pre>
+<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.73">Event</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>...&nbsp;channels)</pre>
 <div class="block"><p>Creates a new event. Passing channels is equivalent to first
 creating the event and then calling <a href="../../../org/jgrapes/core/Event.html#setChannels-org.jgrapes.core.Channel...-"><code>setChannels(Channel...)</code></a>
 with the given channels.</p></div>
@@ -436,7 +436,7 @@ with the given channels.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>defaultCriterion</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.87">defaultCriterion</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.86">defaultCriterion</a>()</pre>
 <div class="block"><p>Returns the class of this event as representation of its kind.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -452,7 +452,7 @@ with the given channels.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>isEligibleFor</h4>
-<pre>public&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.98">isEligibleFor</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;criterion)</pre>
+<pre>public&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.97">isEligibleFor</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;criterion)</pre>
 <div class="block"><p>Returns <code>true</code> if the <code>criterion</code>
 is of the same class or a base class of this event&rsquo;s class.</p></div>
 <dl>
@@ -471,7 +471,7 @@ is of the same class or a base class of this event&rsquo;s class.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>processedBy</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;<a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.110">processedBy</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;<a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.109">processedBy</a>()</pre>
 <div class="block"><p>Return the event pipeline that currently processes the event
 (if any).</p></div>
 <dl>
@@ -488,7 +488,7 @@ is of the same class or a base class of this event&rsquo;s class.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>handlingError</h4>
-<pre>protected&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.122">handlingError</a>(<a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;eventProcessor,
+<pre>protected&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.121">handlingError</a>(<a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;eventProcessor,
                              <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html?is-external=true" title="class or interface in java.lang">Throwable</a>&nbsp;throwable)</pre>
 <div class="block"><p>Implements the default behavior for handling events thrown
 by a handler. Fires a <a href="../../../org/jgrapes/core/events/HandlingError.html" title="class in org.jgrapes.core.events"><code>handling error</code></a> event
@@ -510,7 +510,7 @@ for this event and the given throwable.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>setChannels</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.139">setChannels</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>...&nbsp;channels)</pre>
+<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.138">setChannels</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>...&nbsp;channels)</pre>
 <div class="block"><p>Sets the channels that the event is fired on if no channels
 are specified explicitly when firing the event
 (see <a href="../../../org/jgrapes/core/Manager.html#fire-org.jgrapes.core.Event-org.jgrapes.core.Channel...-"><code>Manager.fire(Event, Channel...)</code></a>).</p></div>
@@ -531,7 +531,7 @@ this event has been fired</dd>
 <ul class="blockList">
 <li class="blockList">
 <h4>channels</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>[]&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.159">channels</a>()</pre>
+<pre>public&nbsp;<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>[]&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.158">channels</a>()</pre>
 <div class="block"><p>Returns the channels associated with the event. Before an
 event has been fired, this returns the channels set with
 <a href="../../../org/jgrapes/core/Event.html#setChannels-org.jgrapes.core.Channel...-"><code>setChannels(Channel[])</code></a>. After an event has been
@@ -552,7 +552,7 @@ effectively been fired on
 <ul class="blockList">
 <li class="blockList">
 <h4>channels</h4>
-<pre>public&nbsp;&lt;C&gt;&nbsp;C[]&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.173">channels</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;C&gt;&nbsp;type)</pre>
+<pre>public&nbsp;&lt;C&gt;&nbsp;C[]&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.172">channels</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;C&gt;&nbsp;type)</pre>
 <div class="block"><p>Returns the subset of channels that are assignable to the given type.</p></div>
 <dl>
 <dt><span class="paramLabel">Type Parameters:</span></dt>
@@ -572,7 +572,7 @@ effectively been fired on
 <ul class="blockList">
 <li class="blockList">
 <h4>forChannels</h4>
-<pre>public&nbsp;&lt;E extends <a href="../../../org/jgrapes/core/internal/EventBase.html" title="class in org.jgrapes.core.internal">EventBase</a>&lt;?&gt;,C extends <a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&gt;&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.188">forChannels</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;C&gt;&nbsp;type,
+<pre>public&nbsp;&lt;E extends <a href="../../../org/jgrapes/core/internal/EventBase.html" title="class in org.jgrapes.core.internal">EventBase</a>&lt;?&gt;,C extends <a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&gt;&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.187">forChannels</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;C&gt;&nbsp;type,
                                                                    <a href="https://docs.oracle.com/javase/8/docs/api/java/util/function/BiConsumer.html?is-external=true" title="class or interface in java.util.function">BiConsumer</a>&lt;E,C&gt;&nbsp;handler)</pre>
 <div class="block"><p>Execute the given handler for all channels of the given type.</p></div>
 <dl>
@@ -591,7 +591,7 @@ effectively been fired on
 <ul class="blockList">
 <li class="blockList">
 <h4>completionEvents</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Set.html?is-external=true" title="class or interface in java.util">Set</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.201">completionEvents</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Set.html?is-external=true" title="class or interface in java.util">Set</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.200">completionEvents</a>()</pre>
 <div class="block"><p>Returns the events to be thrown when this event has completed
 (see <a href="../../../org/jgrapes/core/Event.html#isDone--"><code>isDone()</code></a>).</p></div>
 <dl>
@@ -606,7 +606,7 @@ effectively been fired on
 <ul class="blockList">
 <li class="blockList">
 <h4>addCompletionEvent</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.222">addCompletionEvent</a>(<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&nbsp;completionEvent)</pre>
+<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.221">addCompletionEvent</a>(<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&nbsp;completionEvent)</pre>
 <div class="block"><p>Adds the given event to the events to be thrown when this event
 has completed (see <a href="../../../org/jgrapes/core/Event.html#isDone--"><code>isDone()</code></a>). Such an event is called
 a &ldquo;completion event&rdquo;.</p>
@@ -630,7 +630,7 @@ as the event that has been completed.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>setRequiresResult</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.236">setRequiresResult</a>(boolean&nbsp;value)</pre>
+<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.235">setRequiresResult</a>(boolean&nbsp;value)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../org/jgrapes/core/internal/EventBase.html#setRequiresResult-boolean-">EventBase</a></code></span></div>
 <div class="block"><p>See <a href="../../../org/jgrapes/core/Event.html#setRequiresResult-boolean-"><code>setRequiresResult(boolean)</code></a>.</p></div>
 <dl>
@@ -645,7 +645,7 @@ as the event that has been completed.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>isDone</h4>
-<pre>public&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.253">isDone</a>()</pre>
+<pre>public&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.252">isDone</a>()</pre>
 <div class="block"><p>Check if this event has completed. An event is completed
 if</p>
 <ul>
@@ -668,7 +668,7 @@ been stopped or cancelled),</li>
 <ul class="blockList">
 <li class="blockList">
 <h4>handled</h4>
-<pre>protected&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.264">handled</a>()</pre>
+<pre>protected&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.263">handled</a>()</pre>
 <div class="block"><p>Invoked after all handlers for the event have been executed.
 May be overridden by derived classes to cause some immediate effect
 (instead of e.g. waiting for the completion event). The default
@@ -686,7 +686,7 @@ handler thread and must not block.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>stop</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.275">stop</a>()</pre>
+<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.274">stop</a>()</pre>
 <div class="block"><p>Can be called during the execution of an event handler to indicate
 that the event should not be processed further. All remaining
 handlers for this event will be skipped.</p></div>
@@ -702,7 +702,7 @@ handlers for this event will be skipped.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>isStopped</h4>
-<pre>public&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.285">isStopped</a>()</pre>
+<pre>public&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.284">isStopped</a>()</pre>
 <div class="block"><p>Returns <code>true</code> if <a href="../../../org/jgrapes/core/Event.html#stop--"><code>stop()</code></a> has been called.</p></div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
@@ -718,7 +718,7 @@ handlers for this event will be skipped.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>cancel</h4>
-<pre>public&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.298">cancel</a>(boolean&nbsp;mayInterruptIfRunning)</pre>
+<pre>public&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.297">cancel</a>(boolean&nbsp;mayInterruptIfRunning)</pre>
 <div class="block"><p>Prevents the invocation of further handlers (like <a href="../../../org/jgrapes/core/Event.html#stop--"><code>stop()</code></a>
 and (in addition) the invocation of any added completed events.</p></div>
 <dl>
@@ -737,7 +737,7 @@ and (in addition) the invocation of any added completed events.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>isCancelled</h4>
-<pre>public&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.308">isCancelled</a>()</pre>
+<pre>public&nbsp;boolean&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.307">isCancelled</a>()</pre>
 </li>
 </ul>
 <a name="setResult-java.lang.Object-">
@@ -748,7 +748,7 @@ and (in addition) the invocation of any added completed events.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>setResult</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.320">setResult</a>(<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&nbsp;result)</pre>
+<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.319">setResult</a>(<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&nbsp;result)</pre>
 <div class="block"><p>Sets the result of handling this event. If this method is invoked
 more then once, the various results are collected in a list. This
 can happen if the event is handled by several components.</p></div>
@@ -766,7 +766,7 @@ can happen if the event is handled by several components.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>currentResults</h4>
-<pre>protected&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.341">currentResults</a>()</pre>
+<pre>protected&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.340">currentResults</a>()</pre>
 <div class="block"><p>Allows access to the intermediate result before the
 completion of the event.</p></div>
 <dl>
@@ -783,7 +783,7 @@ completion of the event.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>tieTo</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.358">tieTo</a>(<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;other)</pre>
+<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.357">tieTo</a>(<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;other)</pre>
 <div class="block"><p>Tie the result of this event to the result of the other event.
 Changes of either event&rsquo;s results will subsequently be applied
 to both events.</p>
@@ -805,7 +805,7 @@ handling like:
 <ul class="blockList">
 <li class="blockList">
 <h4>get</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.375">get</a>()
+<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.374">get</a>()
       throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a></pre>
 <div class="block"><p>Waits for the event to be completed (see <a href="../../../org/jgrapes/core/Event.html#isDone--"><code>isDone()</code></a>)
 and returns the first (or only) result.</p></div>
@@ -823,7 +823,7 @@ and returns the first (or only) result.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>get</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.397">get</a>(long&nbsp;timeout,
+<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.396">get</a>(long&nbsp;timeout,
              <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeUnit.html?is-external=true" title="class or interface in java.util.concurrent">TimeUnit</a>&nbsp;unit)
       throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a>,
              <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeoutException.html?is-external=true" title="class or interface in java.util.concurrent">TimeoutException</a></pre>
@@ -847,7 +847,7 @@ timeout has expired and returns the first (or only) result.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>results</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.423">results</a>()
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.422">results</a>()
                 throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a></pre>
 <div class="block"><p>Waits for the event to be completed (see <a href="../../../org/jgrapes/core/Event.html#isDone--"><code>isDone()</code></a>)
 and returns the list of results (which may be empty if the
@@ -868,7 +868,7 @@ event&rsquo;s result type is <a href="https://docs.oracle.com/javase/8/docs/api/
 <ul class="blockList">
 <li class="blockList">
 <h4>results</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.444">results</a>(long&nbsp;timeout,
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.443">results</a>(long&nbsp;timeout,
                        <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeUnit.html?is-external=true" title="class or interface in java.util.concurrent">TimeUnit</a>&nbsp;unit)
                 throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a>,
                        <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeoutException.html?is-external=true" title="class or interface in java.util.concurrent">TimeoutException</a></pre>
@@ -893,7 +893,7 @@ if the event&rsquo;s result type is <a href="https://docs.oracle.com/javase/8/do
 <ul class="blockList">
 <li class="blockList">
 <h4>setAssociated</h4>
-<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.462">setAssociated</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;by,
+<pre>public&nbsp;<a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="../../../org/jgrapes/core/Event.html" title="type parameter in Event">T</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.461">setAssociated</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;by,
                               <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;with)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../org/jgrapes/core/Associator.html#setAssociated-java.lang.Object-java.lang.Object-">Associator</a></code></span></div>
 <div class="block"><p>Establishes a &ldquo;named&rdquo; association to an associated object. Note that
@@ -915,7 +915,7 @@ parameter <code>name</code>, it does not necessarily have to be a string.</p>
 <ul class="blockList">
 <li class="blockList">
 <h4>associated</h4>
-<pre>public&nbsp;&lt;V&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;V&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.476">associated</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;by,
+<pre>public&nbsp;&lt;V&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;V&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.475">associated</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;by,
                                   <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;V&gt;&nbsp;type)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../org/jgrapes/core/Associator.html#associated-java.lang.Object-java.lang.Class-">Associator</a></code></span></div>
 <div class="block"><p>Retrieves the associated object following the association
@@ -939,7 +939,7 @@ associated by any &ldquo;name&rdquo; types.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>toString</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.491">toString</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/Event.html#line.490">toString</a>()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#toString--" title="class or interface in java.lang">toString</a></code>&nbsp;in class&nbsp;<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a></code></dd>

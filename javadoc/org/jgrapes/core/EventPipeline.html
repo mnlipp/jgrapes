@@ -104,7 +104,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public interface <a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.36">EventPipeline</a>
+<pre>public interface <a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.35">EventPipeline</a>
 extends <a href="../../../org/jgrapes/core/Components.IdInfoProvider.html" title="interface in org.jgrapes.core">Components.IdInfoProvider</a></pre>
 <div class="block"><p>An interface that describes a queue of events that are sent to the components
 of the associated tree. Any events fired by the components while handling
@@ -225,7 +225,7 @@ a name for the event debug log.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>fire</h4>
-<pre>&lt;T extends <a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt;&nbsp;T&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.52">fire</a>(T&nbsp;event,
+<pre>&lt;T extends <a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt;&nbsp;T&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.51">fire</a>(T&nbsp;event,
                             <a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>...&nbsp;channels)</pre>
 <div class="block"><p>Add an event to be sent to components listening for such events on
 the given channels to the end of the queue. If no channels are
@@ -251,7 +251,7 @@ component&rsquo;s manager use the component&rsquo;s channel as fall back.</p></d
 <ul class="blockList">
 <li class="blockList">
 <h4>restrictEventSource</h4>
-<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.75">restrictEventSource</a>(<a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;sourcePipeline)</pre>
+<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.74">restrictEventSource</a>(<a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;sourcePipeline)</pre>
 <div class="block"><p>Allow only the given source pipeline to fire events on this
 pipeline.</p>
 <p>This feature can be used to ensure the proper usage of event
@@ -280,7 +280,7 @@ revoke the restriction</dd>
 <ul class="blockList">
 <li class="blockList">
 <h4>overrideRestriction</h4>
-<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.96">overrideRestriction</a>()</pre>
+<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.95">overrideRestriction</a>()</pre>
 <div class="block"><p>Overrides any restriction set by
 <a href="../../../org/jgrapes/core/EventPipeline.html#restrictEventSource-org.jgrapes.core.EventPipeline-"><code>restrictEventSource(EventPipeline)</code></a> for the next
 <a href="../../../org/jgrapes/core/EventPipeline.html#fire-T-org.jgrapes.core.Channel...-"><code>fire(Event, Channel...)</code></a> invocation from the calling thread.</p>
@@ -306,7 +306,7 @@ applies to the response pipeline.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>submit</h4>
-<pre>&lt;V&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html?is-external=true" title="class or interface in java.util.concurrent">Future</a>&lt;V&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.116">submit</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;name,
+<pre>&lt;V&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html?is-external=true" title="class or interface in java.util.concurrent">Future</a>&lt;V&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.115">submit</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;name,
                      <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Callable.html?is-external=true" title="class or interface in java.util.concurrent">Callable</a>&lt;V&gt;&nbsp;action)</pre>
 <div class="block"><p>Adds an action to be executed to the event pipeline.
 Execution of the action is synchronized with the events
@@ -335,7 +335,7 @@ components or could trigger some action.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>submit</h4>
-<pre>default&nbsp;&lt;V&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html?is-external=true" title="class or interface in java.util.concurrent">Future</a>&lt;V&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.124">submit</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Callable.html?is-external=true" title="class or interface in java.util.concurrent">Callable</a>&lt;V&gt;&nbsp;action)</pre>
+<pre>default&nbsp;&lt;V&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html?is-external=true" title="class or interface in java.util.concurrent">Future</a>&lt;V&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.123">submit</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Callable.html?is-external=true" title="class or interface in java.util.concurrent">Callable</a>&lt;V&gt;&nbsp;action)</pre>
 <div class="block"><p>Like <a href="../../../org/jgrapes/core/EventPipeline.html#submit-java.lang.String-java.util.concurrent.Callable-"><code>submit(String, Callable)</code></a> but without specifying a
 name for the event debug log.</p></div>
 <dl>
@@ -350,7 +350,7 @@ name for the event debug log.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>submit</h4>
-<pre>void&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.144">submit</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;name,
+<pre>void&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.143">submit</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;name,
             <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html?is-external=true" title="class or interface in java.lang">Runnable</a>&nbsp;action)</pre>
 <div class="block"><p>Adds an action to be executed to the event pipeline.
 Execution of the action is synchronized with the events
@@ -375,7 +375,7 @@ components or could trigger some action.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>submit</h4>
-<pre>default&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.152">submit</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html?is-external=true" title="class or interface in java.lang">Runnable</a>&nbsp;action)</pre>
+<pre>default&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.151">submit</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html?is-external=true" title="class or interface in java.lang">Runnable</a>&nbsp;action)</pre>
 <div class="block"><p>Like <a href="../../../org/jgrapes/core/EventPipeline.html#submit-java.lang.String-java.util.concurrent.Callable-"><code>submit(String, Callable)</code></a> but without specifiying
 a name for the event debug log.</p></div>
 <dl>
@@ -390,7 +390,7 @@ a name for the event debug log.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>idScope</h4>
-<pre>default&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;?&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.161">idScope</a>()</pre>
+<pre>default&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;?&gt;&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.160">idScope</a>()</pre>
 <div class="block"><p>All pipelines use the same id scope to make them uniquely identifiable
 by their number.</p></div>
 <dl>
@@ -407,7 +407,7 @@ by their number.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>executorService</h4>
-<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.174">executorService</a>()</pre>
+<pre><a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;<a href="../../../src-html/org/jgrapes/core/EventPipeline.html#line.173">executorService</a>()</pre>
 <div class="block"><p>Returns the executor service used by this event pipeline to
 obtain its thread. If a component needs to create a thread for its
 own use, it should obtain it from the component&rsquo;s event pipeline&rsquo;s

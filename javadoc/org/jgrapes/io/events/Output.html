@@ -127,7 +127,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public class <a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.32">Output</a>&lt;T extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;
+<pre>public class <a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.31">Output</a>&lt;T extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;
 extends <a href="../../../../org/jgrapes/io/events/IOEvent.html" title="class in org.jgrapes.io.events">IOEvent</a>&lt;T&gt;</pre>
 <div class="block"><p>This event signals that a new chunk of internally generated data is to be
 forwarded to some destination. This type of
@@ -270,7 +270,7 @@ event is commonly used for data flowing out of the application.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>Output</h4>
-<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.60">Output</a>(<a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;<a href="../../../../org/jgrapes/io/events/Output.html" title="type parameter in Output">T</a>&gt;&nbsp;event)</pre>
+<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.59">Output</a>(<a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;<a href="../../../../org/jgrapes/io/events/Output.html" title="type parameter in Output">T</a>&gt;&nbsp;event)</pre>
 <div class="block"><p>Create a new event from an existing event. This constructor
 is useful if the data is to be forwarded to another channel
 by a new event.</p>
@@ -296,7 +296,7 @@ incremented).</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>fromSource</h4>
-<pre>public static&nbsp;&lt;B extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;&nbsp;<a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;B&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.72">fromSource</a>(<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;B&gt;&nbsp;buffer,
+<pre>public static&nbsp;&lt;B extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;&nbsp;<a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;B&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.71">fromSource</a>(<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;B&gt;&nbsp;buffer,
                                                       boolean&nbsp;endOfRecord)</pre>
 <div class="block"><p>Create a new event with the given buffer. The buffer must
 have been prepared for invoking <code>get</code>-methods.</p></div>
@@ -313,7 +313,7 @@ have been prepared for invoking <code>get</code>-methods.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>fromSink</h4>
-<pre>public static&nbsp;&lt;B extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;&nbsp;<a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;B&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.85">fromSink</a>(<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;B&gt;&nbsp;buffer,
+<pre>public static&nbsp;&lt;B extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;&nbsp;<a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;B&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.84">fromSink</a>(<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;B&gt;&nbsp;buffer,
                                                     boolean&nbsp;endOfRecord)</pre>
 <div class="block"><p>Create a new event with the given buffer. Creating the event
 flips the buffer, which is assumed to have been used for
@@ -331,7 +331,7 @@ collecting data up to now.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>from</h4>
-<pre>public static&nbsp;<a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/CharBuffer.html?is-external=true" title="class or interface in java.nio">CharBuffer</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.99">from</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;data,
+<pre>public static&nbsp;<a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/CharBuffer.html?is-external=true" title="class or interface in java.nio">CharBuffer</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.98">from</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;data,
                                       boolean&nbsp;endOfRecord)</pre>
 <div class="block"><p>Convenience method that creates a
 <code>Output&lt;CharBuffer&gt;</code> event from a <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang"><code>String</code></a>.</p></div>
@@ -350,7 +350,7 @@ collecting data up to now.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>from</h4>
-<pre>public static&nbsp;<a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.113">from</a>(byte[]&nbsp;data,
+<pre>public static&nbsp;<a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Output.html#line.112">from</a>(byte[]&nbsp;data,
                                       boolean&nbsp;endOfRecord)</pre>
 <div class="block"><p>Convenience method that creates a
 <code>Output&lt;ByteBuffer&gt;</code> event from a <code>byte[]</code>.</p></div>

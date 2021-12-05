@@ -112,7 +112,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public interface <a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.55">IOSubchannel</a>
+<pre>public interface <a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.54">IOSubchannel</a>
 extends <a href="../../../org/jgrapes/core/Subchannel.html" title="interface in org.jgrapes.core">Subchannel</a></pre>
 <div class="block"><p>Represents a subchannel for grouping input and output events related
 to an I/O resource such as an opened file or a network connection.</p>
@@ -275,7 +275,7 @@ the initiator of this connection.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>responsePipeline</h4>
-<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.65">responsePipeline</a>()</pre>
+<pre><a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;<a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.64">responsePipeline</a>()</pre>
 <div class="block"><p>Gets the <a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core"><code>EventPipeline</code></a> that can be used for events going back to
 the initiator of this connection. Consistently using this event pipeline
 for response events ensures that the events are written in proper
@@ -292,7 +292,7 @@ sequence.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>byteBufferPool</h4>
-<pre><a href="../../../org/jgrapes/io/util/ManagedBufferPool.html" title="class in org.jgrapes.io.util">ManagedBufferPool</a>&lt;<a href="../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;,<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.73">byteBufferPool</a>()</pre>
+<pre><a href="../../../org/jgrapes/io/util/ManagedBufferPool.html" title="class in org.jgrapes.io.util">ManagedBufferPool</a>&lt;<a href="../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;,<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.72">byteBufferPool</a>()</pre>
 <div class="block"><p>Get the subchannel&rsquo;s byte buffer pool.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -306,7 +306,7 @@ sequence.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>charBufferPool</h4>
-<pre><a href="../../../org/jgrapes/io/util/ManagedBufferPool.html" title="class in org.jgrapes.io.util">ManagedBufferPool</a>&lt;<a href="../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/CharBuffer.html?is-external=true" title="class or interface in java.nio">CharBuffer</a>&gt;,<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/CharBuffer.html?is-external=true" title="class or interface in java.nio">CharBuffer</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.81">charBufferPool</a>()</pre>
+<pre><a href="../../../org/jgrapes/io/util/ManagedBufferPool.html" title="class in org.jgrapes.io.util">ManagedBufferPool</a>&lt;<a href="../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/CharBuffer.html?is-external=true" title="class or interface in java.nio">CharBuffer</a>&gt;,<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/CharBuffer.html?is-external=true" title="class or interface in java.nio">CharBuffer</a>&gt;&nbsp;<a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.80">charBufferPool</a>()</pre>
 <div class="block"><p>Get the subchannel&rsquo;s char buffer pool.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -322,7 +322,7 @@ sequence.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>respond</h4>
-<pre>default&nbsp;&lt;T extends <a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt;&nbsp;T&nbsp;<a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.93">respond</a>(T&nbsp;event)</pre>
+<pre>default&nbsp;&lt;T extends <a href="../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt;&nbsp;T&nbsp;<a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.92">respond</a>(T&nbsp;event)</pre>
 <div class="block"><p>Fires the given event on this subchannel using the subchannel&rsquo;s response
 pipeline. Effectively, <code>fire(someEvent)</code> is a shortcut for
 <code>getResponsePipeline.add(someEvent, this)</code>.</p></div>
@@ -342,7 +342,7 @@ pipeline. Effectively, <code>fire(someEvent)</code> is a shortcut for
 <ul class="blockListLast">
 <li class="blockList">
 <h4>create</h4>
-<pre>static&nbsp;<a href="../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;<a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.105">create</a>(<a href="../../../org/jgrapes/core/Component.html" title="class in org.jgrapes.core">Component</a>&nbsp;component,
+<pre>static&nbsp;<a href="../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;<a href="../../../src-html/org/jgrapes/io/IOSubchannel.html#line.104">create</a>(<a href="../../../org/jgrapes/core/Component.html" title="class in org.jgrapes.core">Component</a>&nbsp;component,
                            <a href="../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;responsePipeline)</pre>
 <div class="block"><p>Creates a new subchannel of the given component&rsquo;s channel with the
 given event pipeline and a buffer pool with two buffers sized 4096.</p></div>

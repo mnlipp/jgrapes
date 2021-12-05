@@ -122,7 +122,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public class <a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.60">FileStorage</a>
+<pre>public class <a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.59">FileStorage</a>
 extends <a href="../../../org/jgrapes/core/Component.html" title="class in org.jgrapes.core">Component</a></pre>
 <div class="block"><p>A component that reads from or writes to a file.</p></div>
 </li>
@@ -319,7 +319,7 @@ else return the object name provided by
 <ul class="blockList">
 <li class="blockList">
 <h4>FileStorage</h4>
-<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.78">FileStorage</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;channel,
+<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.77">FileStorage</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;channel,
                    int&nbsp;bufferSize)</pre>
 <div class="block"><p>Create a new instance using the given size for the read buffers.</p></div>
 <dl>
@@ -336,7 +336,7 @@ events and receiving <a href="../../../org/jgrapes/io/events/Input.html" title="
 <ul class="blockListLast">
 <li class="blockList">
 <h4>FileStorage</h4>
-<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.89">FileStorage</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;channel)</pre>
+<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.88">FileStorage</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;channel)</pre>
 <div class="block"><p>Create a new instance using the default buffer size of 8192.</p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -360,7 +360,7 @@ events and receiving <a href="../../../org/jgrapes/io/events/Input.html" title="
 <li class="blockList">
 <h4>onStreamFile</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.106">onStreamFile</a>(<a href="../../../org/jgrapes/io/events/StreamFile.html" title="class in org.jgrapes.io.events">StreamFile</a>&nbsp;event)
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.105">onStreamFile</a>(<a href="../../../org/jgrapes/io/events/StreamFile.html" title="class in org.jgrapes.io.events">StreamFile</a>&nbsp;event)
                            throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a></pre>
 <div class="block"><p>Opens a file for reading using the properties of the event and streams
 its content as a sequence of <a href="../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events"><code>Output</code></a> events with the
@@ -382,7 +382,7 @@ processor from the event&rsquo;s I/O subchannel.</p></div>
 <li class="blockList">
 <h4>onSaveInput</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.305">onSaveInput</a>(<a href="../../../org/jgrapes/io/events/SaveInput.html" title="class in org.jgrapes.io.events">SaveInput</a>&nbsp;event)
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.304">onSaveInput</a>(<a href="../../../org/jgrapes/io/events/SaveInput.html" title="class in org.jgrapes.io.events">SaveInput</a>&nbsp;event)
                           throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a></pre>
 <div class="block"><p>Opens a file for writing using the properties of the event. All data from
 subsequent <a href="../../../org/jgrapes/io/events/Input.html" title="class in org.jgrapes.io.events"><code>Input</code></a> events is written to the file.
@@ -402,7 +402,7 @@ The end of record flag is ignored.</p></div>
 <li class="blockList">
 <h4>onInput</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.328">onInput</a>(<a href="../../../org/jgrapes/io/events/Input.html" title="class in org.jgrapes.io.events">Input</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;event,
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.327">onInput</a>(<a href="../../../org/jgrapes/io/events/Input.html" title="class in org.jgrapes.io.events">Input</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;event,
                              <a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;channel)</pre>
 <div class="block"><p>Handle input by writing it to the file, if a channel exists.</p></div>
 <dl>
@@ -419,7 +419,7 @@ public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html
 <li class="blockList">
 <h4>onSaveOutput</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.345">onSaveOutput</a>(<a href="../../../org/jgrapes/io/events/SaveOutput.html" title="class in org.jgrapes.io.events">SaveOutput</a>&nbsp;event)
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.344">onSaveOutput</a>(<a href="../../../org/jgrapes/io/events/SaveOutput.html" title="class in org.jgrapes.io.events">SaveOutput</a>&nbsp;event)
                            throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a></pre>
 <div class="block"><p>Opens a file for writing using the properties of the event. All data from
 subsequent <a href="../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events"><code>Output</code></a> events is written to the file.
@@ -439,7 +439,7 @@ The end of record flag is ignored.</p></div>
 <li class="blockList">
 <h4>onOutput</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.369">onOutput</a>(<a href="../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;event,
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.368">onOutput</a>(<a href="../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events">Output</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio">ByteBuffer</a>&gt;&nbsp;event,
                               <a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;channel)</pre>
 <div class="block"><p>Handle <a href="../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events"><code>Output</code></a> events by writing them to the file, if
 a channel exists.</p></div>
@@ -457,7 +457,7 @@ a channel exists.</p></div>
 <li class="blockList">
 <h4>onClose</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.384">onClose</a>(<a href="../../../org/jgrapes/io/events/Close.html" title="class in org.jgrapes.io.events">Close</a>&nbsp;event,
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.383">onClose</a>(<a href="../../../org/jgrapes/io/events/Close.html" title="class in org.jgrapes.io.events">Close</a>&nbsp;event,
                              <a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;channel)
                       throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a></pre>
 <div class="block"><p>Handle close by closing the file associated with the channel.</p></div>
@@ -477,7 +477,7 @@ public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html
 <li class="blockList">
 <h4>onStop</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>(<a href="../../../org/jgrapes/core/annotation/Handler.html#priority--">priority</a>=-1000)
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.403">onStop</a>(<a href="../../../org/jgrapes/core/events/Stop.html" title="class in org.jgrapes.core.events">Stop</a>&nbsp;event)
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.402">onStop</a>(<a href="../../../org/jgrapes/core/events/Stop.html" title="class in org.jgrapes.core.events">Stop</a>&nbsp;event)
                                      throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a></pre>
 <div class="block"><p>Handle stop by closing all files.</p></div>
 <dl>
@@ -494,7 +494,7 @@ public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html
 <ul class="blockListLast">
 <li class="blockList">
 <h4>toString</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.622">toString</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../src-html/org/jgrapes/io/FileStorage.html#line.621">toString</a>()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../org/jgrapes/core/internal/ComponentVertex.html#toString--">ComponentVertex</a></code></span></div>
 <div class="block"><p>If a name has been set for this component
 (see <a href="../../../org/jgrapes/core/Manager.html#setName-java.lang.String-"><code>Manager.setName(String)</code></a>), return the name,

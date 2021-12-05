@@ -130,7 +130,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public abstract class <a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.43">IOEvent</a>&lt;T extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;
+<pre>public abstract class <a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.42">IOEvent</a>&lt;T extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;
 extends <a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Void.html?is-external=true" title="class or interface in java.lang">Void</a>&gt;</pre>
 <div class="block"><p>Events of this type signal that a new chunk of data is available
 for processing. From a consumer&rsquo;s point of view, the data is
@@ -282,7 +282,7 @@ as <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-ex
 <ul class="blockListLast">
 <li class="blockList">
 <h4>IOEvent</h4>
-<pre>protected&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.54">IOEvent</a>(<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;<a href="../../../../org/jgrapes/io/events/IOEvent.html" title="type parameter in IOEvent">T</a>&gt;&nbsp;buffer,
+<pre>protected&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.53">IOEvent</a>(<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;<a href="../../../../org/jgrapes/io/events/IOEvent.html" title="type parameter in IOEvent">T</a>&gt;&nbsp;buffer,
                   boolean&nbsp;endOfRecord)</pre>
 <div class="block"><p>Instantiates a new IO event.</p></div>
 <dl>
@@ -306,7 +306,7 @@ as <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-ex
 <ul class="blockList">
 <li class="blockList">
 <h4>buffer</h4>
-<pre>public&nbsp;<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;<a href="../../../../org/jgrapes/io/events/IOEvent.html" title="type parameter in IOEvent">T</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.64">buffer</a>()</pre>
+<pre>public&nbsp;<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;<a href="../../../../org/jgrapes/io/events/IOEvent.html" title="type parameter in IOEvent">T</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.63">buffer</a>()</pre>
 <div class="block"><p>Get the managed buffer with the data from this event.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -320,7 +320,7 @@ as <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-ex
 <ul class="blockList">
 <li class="blockList">
 <h4>data</h4>
-<pre>public&nbsp;<a href="../../../../org/jgrapes/io/events/IOEvent.html" title="type parameter in IOEvent">T</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.75">data</a>()</pre>
+<pre>public&nbsp;<a href="../../../../org/jgrapes/io/events/IOEvent.html" title="type parameter in IOEvent">T</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.74">data</a>()</pre>
 <div class="block"><p>Return the data associated with this event
 as <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio"><code>Buffer</code></a>. This is short for
 <code>buffer().backingBuffer()</code>.</p></div>
@@ -336,7 +336,7 @@ as <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-ex
 <ul class="blockList">
 <li class="blockList">
 <h4>isEndOfRecord</h4>
-<pre>public&nbsp;boolean&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.86">isEndOfRecord</a>()</pre>
+<pre>public&nbsp;boolean&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.85">isEndOfRecord</a>()</pre>
 <div class="block"><p>Return the end of record flag passed to the constructor.
 The precise interpretation of a record depends on the data
 handled.</p></div>
@@ -352,7 +352,7 @@ handled.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>handled</h4>
-<pre>protected&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.96">handled</a>()</pre>
+<pre>protected&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.95">handled</a>()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../org/jgrapes/core/Event.html#handled--">Event</a></code></span></div>
 <div class="block"><p>Invoked after all handlers for the event have been executed.
 May be overridden by derived classes to cause some immediate effect
@@ -371,7 +371,7 @@ handler thread and must not block.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.107">toString</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.106">toString</a>()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="../../../../org/jgrapes/core/Event.html#toString--">toString</a></code>&nbsp;in class&nbsp;<code><a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Void.html?is-external=true" title="class or interface in java.lang">Void</a>&gt;</code></dd>
@@ -384,7 +384,7 @@ handler thread and must not block.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>hasRemaining</h4>
-<pre>public final&nbsp;boolean&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.128">hasRemaining</a>()</pre>
+<pre>public final&nbsp;boolean&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.127">hasRemaining</a>()</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the result</dd>
@@ -399,7 +399,7 @@ handler thread and must not block.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>remaining</h4>
-<pre>public final&nbsp;int&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.136">remaining</a>()</pre>
+<pre>public final&nbsp;int&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/IOEvent.html#line.135">remaining</a>()</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the result</dd>

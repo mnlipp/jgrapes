@@ -122,7 +122,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public class <a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.56">LinkedIOSubchannel</a>
+<pre>public class <a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.55">LinkedIOSubchannel</a>
 extends <a href="../../../../org/jgrapes/io/IOSubchannel.DefaultIOSubchannel.html" title="class in org.jgrapes.io">IOSubchannel.DefaultIOSubchannel</a></pre>
 <div class="block"><p>Provides an I/O subchannel that is linked to another I/O subchannel. A
 typical use case for this class is a protocol converter.</p>
@@ -367,7 +367,7 @@ is linked to.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>LinkedIOSubchannel</h4>
-<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.78">LinkedIOSubchannel</a>(<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;hub,
+<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.77">LinkedIOSubchannel</a>(<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;hub,
                           <a href="../../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;mainChannel,
                           <a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;upstreamChannel,
                           <a href="../../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;responsePipeline)</pre>
@@ -394,7 +394,7 @@ even if no further references exist.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>LinkedIOSubchannel</h4>
-<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.101">LinkedIOSubchannel</a>(<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;hub,
+<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.100">LinkedIOSubchannel</a>(<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;hub,
                           <a href="../../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;mainChannel,
                           <a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;upstreamChannel,
                           <a href="../../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;responsePipeline,
@@ -432,7 +432,7 @@ maintained, else it may be garbage collected.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>unlink</h4>
-<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.119">unlink</a>(<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;hub)</pre>
+<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.118">unlink</a>(<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;hub)</pre>
 <div class="block"><p>Removes the association between the upstream channel and this
 channel. Should only be called if this channel is no longer used.</p></div>
 <dl>
@@ -447,7 +447,7 @@ channel. Should only be called if this channel is no longer used.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>hub</h4>
-<pre>public&nbsp;<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.128">hub</a>()</pre>
+<pre>public&nbsp;<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.127">hub</a>()</pre>
 <div class="block"><p>Returns the component that manages this channel.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -461,7 +461,7 @@ channel. Should only be called if this channel is no longer used.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>upstreamChannel</h4>
-<pre>public&nbsp;<a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.137">upstreamChannel</a>()</pre>
+<pre>public&nbsp;<a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.136">upstreamChannel</a>()</pre>
 <div class="block"><p>Returns the upstream channel.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -475,7 +475,7 @@ channel. Should only be called if this channel is no longer used.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>associated</h4>
-<pre>public&nbsp;&lt;V&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;V&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.152">associated</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;by,
+<pre>public&nbsp;&lt;V&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;V&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.151">associated</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;by,
                                   <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;V&gt;&nbsp;type)</pre>
 <div class="block"><p>Delegates the invocation to the upstream channel
 if no associated data is found for this channel.</p></div>
@@ -500,7 +500,7 @@ if no associated data is found for this channel.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>upstreamToString</h4>
-<pre>public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.181">upstreamToString</a>(<a href="../../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;upstream)</pre>
+<pre>public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.180">upstreamToString</a>(<a href="../../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;upstream)</pre>
 <div class="block"><p>The <a href="../../../../org/jgrapes/io/util/LinkedIOSubchannel.html#toString--"><code>toString()</code></a> method of <a href="../../../../org/jgrapes/io/util/LinkedIOSubchannel.html" title="class in org.jgrapes.io.util"><code>LinkedIOSubchannel</code></a>s
 shows the channel together with the upstream channel that it
 is linked to. If there are several levels of upstream links,
@@ -527,7 +527,7 @@ consistent.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.210">toString</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.209">toString</a>()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="../../../../org/jgrapes/core/Subchannel.DefaultSubchannel.html#toString--">toString</a></code>&nbsp;in class&nbsp;<code><a href="../../../../org/jgrapes/core/Subchannel.DefaultSubchannel.html" title="class in org.jgrapes.core">Subchannel.DefaultSubchannel</a></code></dd>
@@ -540,7 +540,7 @@ consistent.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>downstreamChannel</h4>
-<pre>public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;? extends <a href="../../../../org/jgrapes/io/util/LinkedIOSubchannel.html" title="class in org.jgrapes.io.util">LinkedIOSubchannel</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.230">downstreamChannel</a>(<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;hub,
+<pre>public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;? extends <a href="../../../../org/jgrapes/io/util/LinkedIOSubchannel.html" title="class in org.jgrapes.io.util">LinkedIOSubchannel</a>&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.229">downstreamChannel</a>(<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;hub,
                                                                        <a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;upstreamChannel)</pre>
 <div class="block"><p>Returns the linked downstream channel that has been created for the
 given component and (upstream) subchannel. If more than one linked
@@ -562,7 +562,7 @@ given component and (upstream) subchannel if it exists</dd>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>downstreamChannel</h4>
-<pre>public static&nbsp;&lt;T extends <a href="../../../../org/jgrapes/io/util/LinkedIOSubchannel.html" title="class in org.jgrapes.io.util">LinkedIOSubchannel</a>&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;T&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.247">downstreamChannel</a>(<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;hub,
+<pre>public static&nbsp;&lt;T extends <a href="../../../../org/jgrapes/io/util/LinkedIOSubchannel.html" title="class in org.jgrapes.io.util">LinkedIOSubchannel</a>&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html?is-external=true" title="class or interface in java.util">Optional</a>&lt;T&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/LinkedIOSubchannel.html#line.246">downstreamChannel</a>(<a href="../../../../org/jgrapes/core/Manager.html" title="interface in org.jgrapes.core">Manager</a>&nbsp;hub,
                                                                            <a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;upstreamChannel,
                                                                            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;T&gt;&nbsp;clazz)</pre>
 <div class="block"><p>Like <a href="../../../../org/jgrapes/io/util/LinkedIOSubchannel.html#downstreamChannel-org.jgrapes.core.Manager-org.jgrapes.io.IOSubchannel-"><code>downstreamChannel(Manager, IOSubchannel)</code></a>, but

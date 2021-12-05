@@ -112,7 +112,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public class <a href="../../../../src-html/org/jgrapes/io/util/InputStreamPipeline.html#line.38">InputStreamPipeline</a>
+<pre>public class <a href="../../../../src-html/org/jgrapes/io/util/InputStreamPipeline.html#line.37">InputStreamPipeline</a>
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>
 implements <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html?is-external=true" title="class or interface in java.lang">Runnable</a></pre>
 <div class="block"><p>Forwards the content of an input stream as a sequence of <a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events"><code>Output</code></a>
@@ -202,7 +202,7 @@ as events on the given channel, using the given event pipeline.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>InputStreamPipeline</h4>
-<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/InputStreamPipeline.html#line.55">InputStreamPipeline</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html?is-external=true" title="class or interface in java.io">InputStream</a>&nbsp;in,
+<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/InputStreamPipeline.html#line.54">InputStreamPipeline</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html?is-external=true" title="class or interface in java.io">InputStream</a>&nbsp;in,
                            <a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;channel,
                            <a href="../../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;eventPipeline)</pre>
 <div class="block"><p>Creates a new pipeline that sends the data from the given input stream
@@ -221,7 +221,7 @@ as events on the given channel, using the given event pipeline.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>InputStreamPipeline</h4>
-<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/InputStreamPipeline.html#line.70">InputStreamPipeline</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html?is-external=true" title="class or interface in java.io">InputStream</a>&nbsp;in,
+<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/InputStreamPipeline.html#line.69">InputStreamPipeline</a>(<a href="https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html?is-external=true" title="class or interface in java.io">InputStream</a>&nbsp;in,
                            <a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;channel)</pre>
 <div class="block"><p>Creates a new pipeline that sends the data from the given input stream
 as events on the given channel, using the channel&rsquo;s response pipeline.</p></div>
@@ -246,7 +246,7 @@ as events on the given channel, using the channel&rsquo;s response pipeline.</p>
 <ul class="blockList">
 <li class="blockList">
 <h4>suppressClose</h4>
-<pre>public&nbsp;<a href="../../../../org/jgrapes/io/util/InputStreamPipeline.html" title="class in org.jgrapes.io.util">InputStreamPipeline</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/InputStreamPipeline.html#line.79">suppressClose</a>()</pre>
+<pre>public&nbsp;<a href="../../../../org/jgrapes/io/util/InputStreamPipeline.html" title="class in org.jgrapes.io.util">InputStreamPipeline</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/InputStreamPipeline.html#line.78">suppressClose</a>()</pre>
 <div class="block"><p>Suppresses the sending of a close event when the stream is closed.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -260,7 +260,7 @@ as events on the given channel, using the channel&rsquo;s response pipeline.</p>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>run</h4>
-<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/InputStreamPipeline.html#line.85">run</a>()</pre>
+<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/InputStreamPipeline.html#line.84">run</a>()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html?is-external=true#run--" title="class or interface in java.lang">run</a></code>&nbsp;in interface&nbsp;<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html?is-external=true" title="class or interface in java.lang">Runnable</a></code></dd>

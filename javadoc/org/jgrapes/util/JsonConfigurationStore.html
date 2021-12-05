@@ -122,7 +122,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public class <a href="../../../src-html/org/jgrapes/util/JsonConfigurationStore.html#line.73">JsonConfigurationStore</a>
+<pre>public class <a href="../../../src-html/org/jgrapes/util/JsonConfigurationStore.html#line.72">JsonConfigurationStore</a>
 extends <a href="../../../org/jgrapes/core/Component.html" title="class in org.jgrapes.core">Component</a></pre>
 <div class="block"><p>This component provides a store for an application&rsquo;s configuration
 backed by a JSON file. The JSON object described by this file
@@ -300,7 +300,7 @@ channel and the given file.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>JsonConfigurationStore</h4>
-<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/util/JsonConfigurationStore.html#line.86">JsonConfigurationStore</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;componentChannel,
+<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/util/JsonConfigurationStore.html#line.85">JsonConfigurationStore</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;componentChannel,
                               <a href="https://docs.oracle.com/javase/8/docs/api/java/io/File.html?is-external=true" title="class or interface in java.io">File</a>&nbsp;file)
                        throws <a href="https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html?is-external=true" title="class or interface in java.io">IOException</a></pre>
 <div class="block"><p>Creates a new component with its channel set to the given
@@ -321,7 +321,7 @@ channel and the given file.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>JsonConfigurationStore</h4>
-<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/util/JsonConfigurationStore.html#line.100">JsonConfigurationStore</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;componentChannel,
+<pre>public&nbsp;<a href="../../../src-html/org/jgrapes/util/JsonConfigurationStore.html#line.99">JsonConfigurationStore</a>(<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>&nbsp;componentChannel,
                               <a href="https://docs.oracle.com/javase/8/docs/api/java/io/File.html?is-external=true" title="class or interface in java.io">File</a>&nbsp;file,
                               boolean&nbsp;update)
                        throws <a href="https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html?is-external=true" title="class or interface in java.io">IOException</a></pre>
@@ -353,7 +353,7 @@ channel and the given file.</p></div>
 <h4>onStart</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>(<a href="../../../org/jgrapes/core/annotation/Handler.html#priority--">priority</a>=999999,
          <a href="../../../org/jgrapes/core/annotation/Handler.html#channels--">channels</a>=<a href="../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel.class</a>)
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/util/JsonConfigurationStore.html#line.131">onStart</a>(<a href="../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events">Start</a>&nbsp;event)
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/util/JsonConfigurationStore.html#line.130">onStart</a>(<a href="../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events">Start</a>&nbsp;event)
                                                                         throws <a href="https://docs.oracle.com/javase/8/docs/api/java/util/prefs/BackingStoreException.html?is-external=true" title="class or interface in java.util.prefs">BackingStoreException</a>,
                                                                                <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/InterruptedException.html?is-external=true" title="class or interface in java.lang">InterruptedException</a></pre>
 <div class="block"><p>Intercepts the <a href="../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events"><code>Start</code></a> event and fires a
@@ -374,7 +374,7 @@ public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/util/JsonConfigurat
 <li class="blockList">
 <h4>onConfigurationUpdate</h4>
 <pre><a href="../../../org/jgrapes/core/annotation/Handler.html" title="annotation in org.jgrapes.core.annotation">@Handler</a>(<a href="../../../org/jgrapes/core/annotation/Handler.html#dynamic--">dynamic</a>=true)
-public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/util/JsonConfigurationStore.html#line.162">onConfigurationUpdate</a>(<a href="../../../org/jgrapes/util/events/ConfigurationUpdate.html" title="class in org.jgrapes.util.events">ConfigurationUpdate</a>&nbsp;event)
+public&nbsp;void&nbsp;<a href="../../../src-html/org/jgrapes/util/JsonConfigurationStore.html#line.161">onConfigurationUpdate</a>(<a href="../../../org/jgrapes/util/events/ConfigurationUpdate.html" title="class in org.jgrapes.util.events">ConfigurationUpdate</a>&nbsp;event)
                                                   throws <a href="https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html?is-external=true" title="class or interface in java.io">IOException</a></pre>
 <div class="block"><p>Merges and saves configuration updates.</p></div>
 <dl>

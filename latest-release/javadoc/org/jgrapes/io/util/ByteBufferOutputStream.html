@@ -117,7 +117,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public class <a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.37">ByteBufferOutputStream</a>
+<pre>public class <a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.36">ByteBufferOutputStream</a>
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/io/OutputStream.html?is-external=true" title="class or interface in java.io">OutputStream</a></pre>
 <div class="block"><p>An <a href="https://docs.oracle.com/javase/8/docs/api/java/io/OutputStream.html?is-external=true" title="class or interface in java.io"><code>OutputStream</code></a> that is backed by <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio"><code>ByteBuffer</code></a>s obtained from a
 queue. When a byte buffer is full, a <a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events"><code>Output</code></a> event (default) is
@@ -248,7 +248,7 @@ flushed or closed.</div>
 <ul class="blockList">
 <li class="blockList">
 <h4>ByteBufferOutputStream</h4>
-<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.57">ByteBufferOutputStream</a>(<a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;channel,
+<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.56">ByteBufferOutputStream</a>(<a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;channel,
                               <a href="../../../../org/jgrapes/core/EventPipeline.html" title="interface in org.jgrapes.core">EventPipeline</a>&nbsp;eventPipeline)</pre>
 <div class="block"><p>Creates a new instance that uses <a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events"><code>Output</code></a> events to dispatch
 buffers on the given channel, using the given event pipeline.</p></div>
@@ -265,7 +265,7 @@ buffers on the given channel, using the given event pipeline.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>ByteBufferOutputStream</h4>
-<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.70">ByteBufferOutputStream</a>(<a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;channel)</pre>
+<pre>public&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.69">ByteBufferOutputStream</a>(<a href="../../../../org/jgrapes/io/IOSubchannel.html" title="interface in org.jgrapes.io">IOSubchannel</a>&nbsp;channel)</pre>
 <div class="block"><p>Creates a new instance that uses <a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events"><code>Output</code></a> events to dispatch
 buffers on the given channel, using the channel&rsquo;s response pipeline.</p></div>
 <dl>
@@ -288,7 +288,7 @@ buffers on the given channel, using the channel&rsquo;s response pipeline.</p></
 <ul class="blockList">
 <li class="blockList">
 <h4>sendInputEvents</h4>
-<pre>public&nbsp;<a href="../../../../org/jgrapes/io/util/ByteBufferOutputStream.html" title="class in org.jgrapes.io.util">ByteBufferOutputStream</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.80">sendInputEvents</a>()</pre>
+<pre>public&nbsp;<a href="../../../../org/jgrapes/io/util/ByteBufferOutputStream.html" title="class in org.jgrapes.io.util">ByteBufferOutputStream</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.79">sendInputEvents</a>()</pre>
 <div class="block"><p>Causes the data to be fired as <a href="../../../../org/jgrapes/io/events/Input.html" title="class in org.jgrapes.io.events"><code>Input</code></a> events rather
 than the usual <a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events"><code>Output</code></a> events.</p></div>
 <dl>
@@ -303,7 +303,7 @@ than the usual <a href="../../../../org/jgrapes/io/events/Output.html" title="cl
 <ul class="blockList">
 <li class="blockList">
 <h4>suppressClose</h4>
-<pre>public&nbsp;<a href="../../../../org/jgrapes/io/util/ByteBufferOutputStream.html" title="class in org.jgrapes.io.util">ByteBufferOutputStream</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.90">suppressClose</a>()</pre>
+<pre>public&nbsp;<a href="../../../../org/jgrapes/io/util/ByteBufferOutputStream.html" title="class in org.jgrapes.io.util">ByteBufferOutputStream</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.89">suppressClose</a>()</pre>
 <div class="block"><p>Suppresses sending of a close event when the stream is closed.</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -317,7 +317,7 @@ than the usual <a href="../../../../org/jgrapes/io/events/Output.html" title="cl
 <ul class="blockList">
 <li class="blockList">
 <h4>suppressEndOfRecord</h4>
-<pre>public&nbsp;<a href="../../../../org/jgrapes/io/util/ByteBufferOutputStream.html" title="class in org.jgrapes.io.util">ByteBufferOutputStream</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.102">suppressEndOfRecord</a>()</pre>
+<pre>public&nbsp;<a href="../../../../org/jgrapes/io/util/ByteBufferOutputStream.html" title="class in org.jgrapes.io.util">ByteBufferOutputStream</a>&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.101">suppressEndOfRecord</a>()</pre>
 <div class="block"><p>Suppresses setting the end of record flag when the stream is
 flushed or closed.</p></div>
 <dl>
@@ -334,7 +334,7 @@ flushed or closed.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>write</h4>
-<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.124">write</a>(int&nbsp;data)
+<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.123">write</a>(int&nbsp;data)
            throws <a href="https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html?is-external=true" title="class or interface in java.io">IOException</a></pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
@@ -350,7 +350,7 @@ flushed or closed.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>write</h4>
-<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.138">write</a>(byte[]&nbsp;data,
+<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.137">write</a>(byte[]&nbsp;data,
                   int&nbsp;offset,
                   int&nbsp;length)
            throws <a href="https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html?is-external=true" title="class or interface in java.io">IOException</a></pre>
@@ -368,7 +368,7 @@ flushed or closed.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>flush</h4>
-<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.197">flush</a>()
+<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.196">flush</a>()
            throws <a href="https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html?is-external=true" title="class or interface in java.io">IOException</a></pre>
 <div class="block"><p>Creates and fires a <a href="../../../../org/jgrapes/io/events/Output.html" title="class in org.jgrapes.io.events"><code>Output</code></a> event with the buffer being filled
 if it contains any data.</p>
@@ -393,7 +393,7 @@ be disabled with <a href="../../../../org/jgrapes/io/util/ByteBufferOutputStream
 <ul class="blockListLast">
 <li class="blockList">
 <h4>close</h4>
-<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.208">close</a>()
+<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/io/util/ByteBufferOutputStream.html#line.207">close</a>()
            throws <a href="https://docs.oracle.com/javase/8/docs/api/java/io/IOException.html?is-external=true" title="class or interface in java.io">IOException</a></pre>
 <div class="block"><p>Flushes any remaining data with the end of record flag set
 (unless <a href="../../../../org/jgrapes/io/util/ByteBufferOutputStream.html#suppressEndOfRecord--"><code>suppressEndOfRecord()</code></a> has been called)

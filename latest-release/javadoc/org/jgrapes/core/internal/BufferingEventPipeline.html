@@ -108,7 +108,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <a href="../../../../src-html/org/jgrapes/core/internal/BufferingEventPipeline.html#line.32">BufferingEventPipeline</a>
+<pre>public class <a href="../../../../src-html/org/jgrapes/core/internal/BufferingEventPipeline.html#line.31">BufferingEventPipeline</a>
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a></pre>
 <div class="block"><p>The buffering event pipeline is used before a tree has been started.
 It simply buffers all events until a <a href="../../../../org/jgrapes/core/events/Start.html" title="class in org.jgrapes.core.events"><code>Start</code></a> event is added.</p></div>
@@ -197,7 +197,7 @@ It simply buffers all events until a <a href="../../../../org/jgrapes/core/event
 <ul class="blockList">
 <li class="blockList">
 <h4>merge</h4>
-<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/BufferingEventPipeline.html#line.52">merge</a>(org.jgrapes.core.internal.InternalEventPipeline&nbsp;other)</pre>
+<pre>public&nbsp;void&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/BufferingEventPipeline.html#line.51">merge</a>(org.jgrapes.core.internal.InternalEventPipeline&nbsp;other)</pre>
 <div class="block">Merge the events from the other event pipeline into this one.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -213,7 +213,7 @@ It simply buffers all events until a <a href="../../../../org/jgrapes/core/event
 <ul class="blockList">
 <li class="blockList">
 <h4>add</h4>
-<pre>public&nbsp;&lt;T extends <a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt;&nbsp;T&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/BufferingEventPipeline.html#line.63">add</a>(T&nbsp;event,
+<pre>public&nbsp;&lt;T extends <a href="../../../../org/jgrapes/core/Event.html" title="class in org.jgrapes.core">Event</a>&lt;?&gt;&gt;&nbsp;T&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/BufferingEventPipeline.html#line.62">add</a>(T&nbsp;event,
                                   <a href="../../../../org/jgrapes/core/Channel.html" title="interface in org.jgrapes.core">Channel</a>...&nbsp;channels)</pre>
 <div class="block">Add an event to be sent to components listening for such events on
  the given channels to the end of the queue without any checking.</div>
@@ -234,7 +234,7 @@ It simply buffers all events until a <a href="../../../../org/jgrapes/core/event
 <ul class="blockList">
 <li class="blockList">
 <h4>executorService</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/BufferingEventPipeline.html#line.103">executorService</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html?is-external=true" title="class or interface in java.util.concurrent">ExecutorService</a>&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/BufferingEventPipeline.html#line.102">executorService</a>()</pre>
 <div class="block">Returns the executor service used by this event pipeline to
  obtain its thread.</div>
 <dl>
@@ -249,7 +249,7 @@ It simply buffers all events until a <a href="../../../../org/jgrapes/core/event
 <ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/BufferingEventPipeline.html#line.113">toString</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/BufferingEventPipeline.html#line.112">toString</a>()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#toString--" title="class or interface in java.lang">toString</a></code>&nbsp;in class&nbsp;<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a></code></dd>
@@ -262,7 +262,7 @@ It simply buffers all events until a <a href="../../../../org/jgrapes/core/event
 <ul class="blockListLast">
 <li class="blockList">
 <h4>idScope</h4>
-<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;?&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/InternalEventPipeline.html#line.61">idScope</a>()</pre>
+<pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang">Class</a>&lt;?&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/core/internal/InternalEventPipeline.html#line.60">idScope</a>()</pre>
 <div class="block">All pipelines use the same id scope to make them uniquely identifiable
  by their number.</div>
 <dl>

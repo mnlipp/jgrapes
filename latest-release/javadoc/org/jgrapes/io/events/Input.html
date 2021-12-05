@@ -131,7 +131,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public final class <a href="../../../../src-html/org/jgrapes/io/events/Input.html#line.32">Input</a>&lt;T extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;
+<pre>public final class <a href="../../../../src-html/org/jgrapes/io/events/Input.html#line.31">Input</a>&lt;T extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;
 extends <a href="../../../../org/jgrapes/io/events/IOEvent.html" title="class in org.jgrapes.io.events">IOEvent</a>&lt;T&gt;</pre>
 <div class="block"><p>This event signals that a new chunk of data has successfully been obtained
 from some source. This type of event is commonly
@@ -239,7 +239,7 @@ used for data flowing into the application.</p></div>
 <ul class="blockList">
 <li class="blockList">
 <h4>fromSource</h4>
-<pre>public static&nbsp;&lt;B extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;&nbsp;<a href="../../../../org/jgrapes/io/events/Input.html" title="class in org.jgrapes.io.events">Input</a>&lt;B&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Input.html#line.45">fromSource</a>(<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;B&gt;&nbsp;buffer,
+<pre>public static&nbsp;&lt;B extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;&nbsp;<a href="../../../../org/jgrapes/io/events/Input.html" title="class in org.jgrapes.io.events">Input</a>&lt;B&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Input.html#line.44">fromSource</a>(<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;B&gt;&nbsp;buffer,
                                                      boolean&nbsp;endOfRecord)</pre>
 <div class="block"><p>Create a new event with the given buffer. The buffer must
 have been prepared for invoking <code>get</code>-methods.</p></div>
@@ -256,7 +256,7 @@ have been prepared for invoking <code>get</code>-methods.</p></div>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>fromSink</h4>
-<pre>public static&nbsp;&lt;B extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;&nbsp;<a href="../../../../org/jgrapes/io/events/Input.html" title="class in org.jgrapes.io.events">Input</a>&lt;B&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Input.html#line.58">fromSink</a>(<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;B&gt;&nbsp;buffer,
+<pre>public static&nbsp;&lt;B extends <a href="https://docs.oracle.com/javase/8/docs/api/java/nio/Buffer.html?is-external=true" title="class or interface in java.nio">Buffer</a>&gt;&nbsp;<a href="../../../../org/jgrapes/io/events/Input.html" title="class in org.jgrapes.io.events">Input</a>&lt;B&gt;&nbsp;<a href="../../../../src-html/org/jgrapes/io/events/Input.html#line.57">fromSink</a>(<a href="../../../../org/jgrapes/io/util/ManagedBuffer.html" title="class in org.jgrapes.io.util">ManagedBuffer</a>&lt;B&gt;&nbsp;buffer,
                                                    boolean&nbsp;endOfRecord)</pre>
 <div class="block"><p>Create a new event with the given buffer. Creating the event
 flips the buffer, which is assumed to have been used for
