@@ -20,13 +20,10 @@ package org.jgrapes.core.test.basic;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.jgrapes.core.ClassChannel;
 import org.jgrapes.core.Components;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
 /**
@@ -34,59 +31,62 @@ import org.junit.Test;
  */
 public class ComponentsTest {
 
-	public static class DerivedChannel extends ClassChannel {
-	}
-	
-	public static class DerivedDerivedChannel extends DerivedChannel {
-	}
-	
-	@Test
-	public void testChannels() {
-		ClassChannel derived = new DerivedChannel();
-		ClassChannel derivedDerived = new DerivedDerivedChannel();
-		
-		assertTrue(derivedDerived.isEligibleFor(DerivedChannel.class));
-		assertTrue(!derived.isEligibleFor(DerivedDerivedChannel.class));
-		assertTrue(derived.isEligibleFor(ClassChannel.BROADCAST.defaultCriterion()));
-		assertTrue(derivedDerived.isEligibleFor(ClassChannel.BROADCAST.defaultCriterion()));
-		assertTrue(ClassChannel.BROADCAST.isEligibleFor(DerivedChannel.class));
-		assertTrue(ClassChannel.BROADCAST.isEligibleFor(DerivedDerivedChannel.class));
-	}
+    public static class DerivedChannel extends ClassChannel {
+    }
 
-	@Test
-	public void testMapOf() {
-		Map<String,Integer> map = Components.mapOf(
-				"Value1", 1,
-				"Value2", 2,
-				"Value3", 3,
-				"Value4", 4,
-				"Value5", 5,
-				"Value6", 6,
-				"Value7", 7,
-				"Value8", 8,
-				"Value9", 9,
-				"Value10", 10);
-		assertEquals(1, map.get("Value1").intValue());
-		assertEquals(2, map.get("Value2").intValue());
-		assertEquals(3, map.get("Value3").intValue());
-		assertEquals(4, map.get("Value4").intValue());
-		assertEquals(5, map.get("Value5").intValue());
-		assertEquals(6, map.get("Value6").intValue());
-		assertEquals(7, map.get("Value7").intValue());
-		assertEquals(8, map.get("Value8").intValue());
-		assertEquals(9, map.get("Value9").intValue());
-		assertEquals(10, map.get("Value10").intValue());
-	}
-	
-	@Test
-	public void testMapPut() {
-		Map<String, Integer> map 
-			= Components.put(Components.put(Components.put(new HashMap<>(),
-					"Value1", 1),
-					"Value2", 2),
-					"Value3", 3);
-		assertEquals(1, map.get("Value1").intValue());
-		assertEquals(2, map.get("Value2").intValue());
-		assertEquals(3, map.get("Value3").intValue());
-	}
+    public static class DerivedDerivedChannel extends DerivedChannel {
+    }
+
+    @Test
+    public void testChannels() {
+        ClassChannel derived = new DerivedChannel();
+        ClassChannel derivedDerived = new DerivedDerivedChannel();
+
+        assertTrue(derivedDerived.isEligibleFor(DerivedChannel.class));
+        assertTrue(!derived.isEligibleFor(DerivedDerivedChannel.class));
+        assertTrue(
+            derived.isEligibleFor(ClassChannel.BROADCAST.defaultCriterion()));
+        assertTrue(derivedDerived
+            .isEligibleFor(ClassChannel.BROADCAST.defaultCriterion()));
+        assertTrue(ClassChannel.BROADCAST.isEligibleFor(DerivedChannel.class));
+        assertTrue(
+            ClassChannel.BROADCAST.isEligibleFor(DerivedDerivedChannel.class));
+    }
+
+    @Test
+    public void testMapOf() {
+        Map<String, Integer> map = Components.mapOf(
+            "Value1", 1,
+            "Value2", 2,
+            "Value3", 3,
+            "Value4", 4,
+            "Value5", 5,
+            "Value6", 6,
+            "Value7", 7,
+            "Value8", 8,
+            "Value9", 9,
+            "Value10", 10);
+        assertEquals(1, map.get("Value1").intValue());
+        assertEquals(2, map.get("Value2").intValue());
+        assertEquals(3, map.get("Value3").intValue());
+        assertEquals(4, map.get("Value4").intValue());
+        assertEquals(5, map.get("Value5").intValue());
+        assertEquals(6, map.get("Value6").intValue());
+        assertEquals(7, map.get("Value7").intValue());
+        assertEquals(8, map.get("Value8").intValue());
+        assertEquals(9, map.get("Value9").intValue());
+        assertEquals(10, map.get("Value10").intValue());
+    }
+
+    @Test
+    public void testMapPut() {
+        Map<String, Integer> map
+            = Components.put(Components.put(Components.put(new HashMap<>(),
+                "Value1", 1),
+                "Value2", 2),
+                "Value3", 3);
+        assertEquals(1, map.get("Value1").intValue());
+        assertEquals(2, map.get("Value2").intValue());
+        assertEquals(3, map.get("Value3").intValue());
+    }
 }

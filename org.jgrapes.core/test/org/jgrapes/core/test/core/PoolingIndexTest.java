@@ -1,9 +1,7 @@
 package org.jgrapes.core.test.core;
 
 import org.jgrapes.core.Components.PoolingIndex;
-
 import static org.junit.Assert.*;
-
 import org.junit.Test;
 
 public class PoolingIndexTest {

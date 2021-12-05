@@ -21,12 +21,10 @@ package org.jgrapes.core.test.basic;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
-
 import org.jgrapes.core.Component;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Manager;
-
 import static org.junit.Assert.*;
 import org.junit.Test;
 

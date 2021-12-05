@@ -20,7 +20,6 @@ package org.jgrapes.core.internal;
 
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedDeque;
-
 import org.jgrapes.core.Channel;
 
 /**

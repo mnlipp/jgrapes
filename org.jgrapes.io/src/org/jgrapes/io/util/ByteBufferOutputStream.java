@@ -21,7 +21,6 @@ package org.jgrapes.io.util;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;

@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
-
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.annotation.HandlerDefinition;
 import org.jgrapes.core.annotation.HandlerDefinition.Evaluator;

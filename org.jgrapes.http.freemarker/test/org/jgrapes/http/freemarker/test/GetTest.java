@@ -26,7 +26,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
 import java.util.concurrent.ExecutionException;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.events.Stop;
@@ -34,11 +33,8 @@ import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.http.freemarker.FreeMarkerRequestHandler;
 import org.jgrapes.io.IOSubchannel;
-
 import org.junit.After;
-
 import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
 

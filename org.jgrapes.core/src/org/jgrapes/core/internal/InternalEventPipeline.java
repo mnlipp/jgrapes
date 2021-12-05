@@ -19,7 +19,6 @@
 package org.jgrapes.core.internal;
 
 import java.util.concurrent.ExecutorService;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components.IdInfoProvider;
 import org.jgrapes.core.Event;

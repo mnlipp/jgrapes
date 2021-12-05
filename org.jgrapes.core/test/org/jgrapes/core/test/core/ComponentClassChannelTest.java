@@ -26,7 +26,6 @@ import org.jgrapes.core.Manager;
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
-
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -35,27 +34,27 @@ import org.junit.Test;
  */
 public class ComponentClassChannelTest {
 
-	public static class MyChannel extends ClassChannel {
-	}
-	
-	public static class ComponentWithClassChannel implements ComponentType {
+    public static class MyChannel extends ClassChannel {
+    }
 
-		@ComponentManager(channel=MyChannel.class)
-		private Manager manager;
-		
-		public int count = 0;
-		
-		@Handler(events=Start.class)
-		public void onStarted(Event<?> event) {
-			count += 1;
-		}
-	}
+    public static class ComponentWithClassChannel implements ComponentType {
 
-	@Test
-	public void testClassChannel() throws InterruptedException {
-		ComponentWithClassChannel app = new ComponentWithClassChannel();
-		Components.manager(app).fire(new Start(), new MyChannel()).get();
-		assertEquals(1, app.count);
-	}
-	
+        @ComponentManager(channel = MyChannel.class)
+        private Manager manager;
+
+        public int count = 0;
+
+        @Handler(events = Start.class)
+        public void onStarted(Event<?> event) {
+            count += 1;
+        }
+    }
+
+    @Test
+    public void testClassChannel() throws InterruptedException {
+        ComponentWithClassChannel app = new ComponentWithClassChannel();
+        Components.manager(app).fire(new Start(), new MyChannel()).get();
+        assertEquals(1, app.count);
+    }
+
 }

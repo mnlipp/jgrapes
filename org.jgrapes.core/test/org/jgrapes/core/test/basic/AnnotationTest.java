@@ -22,49 +22,47 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
-
 import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class AnnotationTest {
 
-	@Test
-	public void testAnnotations() {
-		Object obj = new TestComponent1();
-		Map<String, Annotation> found = new HashMap<String, Annotation>();
-		for (Method m: obj.getClass().getMethods()) {
-			Annotation anno = m.getAnnotation(Handler.class);
-			if (anno != null) {
-				found.put(m.getName(), anno);
-			}
-		}
-		assertEquals(found.size(), 3);
-		assertTrue(found.containsKey("handler1"));
-		assertTrue(found.containsKey("handler2"));
-		assertTrue(found.containsKey("handler3"));
-		assertTrue(((Handler)found.get("handler1"))
-				   .events()[0].equals(Start.class));
-		assertTrue(((Handler)found.get("handler2"))
-				   .namedChannels()[0].equals("test"));
-		assertTrue(((Handler)found.get("handler3"))
-				   .namedChannels()[0].equals("test"));
-		assertTrue(((Handler)found.get("handler3"))
-				   .namedChannels()[1].equals("other"));
-	}
+    @Test
+    public void testAnnotations() {
+        Object obj = new TestComponent1();
+        Map<String, Annotation> found = new HashMap<String, Annotation>();
+        for (Method m : obj.getClass().getMethods()) {
+            Annotation anno = m.getAnnotation(Handler.class);
+            if (anno != null) {
+                found.put(m.getName(), anno);
+            }
+        }
+        assertEquals(found.size(), 3);
+        assertTrue(found.containsKey("handler1"));
+        assertTrue(found.containsKey("handler2"));
+        assertTrue(found.containsKey("handler3"));
+        assertTrue(((Handler) found.get("handler1"))
+            .events()[0].equals(Start.class));
+        assertTrue(((Handler) found.get("handler2"))
+            .namedChannels()[0].equals("test"));
+        assertTrue(((Handler) found.get("handler3"))
+            .namedChannels()[0].equals("test"));
+        assertTrue(((Handler) found.get("handler3"))
+            .namedChannels()[1].equals("other"));
+    }
 
-	private class BadMethod extends Component {
+    private class BadMethod extends Component {
 
-		@Handler
-		public void onEvent(int param) {
-		}
-	}
-	
-	@Test(expected=IllegalArgumentException.class)
-	public void testBadMethod() {
-		new BadMethod();
-	}
+        @Handler
+        public void onEvent(int param) {
+        }
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadMethod() {
+        new BadMethod();
+    }
 }

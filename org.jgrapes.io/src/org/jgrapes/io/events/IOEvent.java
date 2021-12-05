@@ -20,7 +20,6 @@ package org.jgrapes.io.events;
 
 import java.nio.Buffer;
 import java.util.Optional;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;

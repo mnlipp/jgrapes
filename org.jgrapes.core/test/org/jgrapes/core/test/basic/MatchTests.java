@@ -19,7 +19,6 @@
 package org.jgrapes.core.test.basic;
 
 import org.jgrapes.core.ClassChannel;
-
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
@@ -28,23 +27,26 @@ import org.junit.Test;
  */
 public class MatchTests {
 
-	public static class DerivedChannel extends ClassChannel {
-	}
-	
-	public static class DerivedDerivedChannel extends DerivedChannel {
-	}
-	
-	@Test
-	public void testChannels() {
-		ClassChannel derived = new DerivedChannel();
-		ClassChannel derivedDerived = new DerivedDerivedChannel();
-		
-		assertTrue(derivedDerived.isEligibleFor(DerivedChannel.class));
-		assertTrue(!derived.isEligibleFor(DerivedDerivedChannel.class));
-		assertTrue(derived.isEligibleFor(ClassChannel.BROADCAST.defaultCriterion()));
-		assertTrue(derivedDerived.isEligibleFor(ClassChannel.BROADCAST.defaultCriterion()));
-		assertTrue(ClassChannel.BROADCAST.isEligibleFor(DerivedChannel.class));
-		assertTrue(ClassChannel.BROADCAST.isEligibleFor(DerivedDerivedChannel.class));
-	}
+    public static class DerivedChannel extends ClassChannel {
+    }
+
+    public static class DerivedDerivedChannel extends DerivedChannel {
+    }
+
+    @Test
+    public void testChannels() {
+        ClassChannel derived = new DerivedChannel();
+        ClassChannel derivedDerived = new DerivedDerivedChannel();
+
+        assertTrue(derivedDerived.isEligibleFor(DerivedChannel.class));
+        assertTrue(!derived.isEligibleFor(DerivedDerivedChannel.class));
+        assertTrue(
+            derived.isEligibleFor(ClassChannel.BROADCAST.defaultCriterion()));
+        assertTrue(derivedDerived
+            .isEligibleFor(ClassChannel.BROADCAST.defaultCriterion()));
+        assertTrue(ClassChannel.BROADCAST.isEligibleFor(DerivedChannel.class));
+        assertTrue(
+            ClassChannel.BROADCAST.isEligibleFor(DerivedDerivedChannel.class));
+    }
 
 }

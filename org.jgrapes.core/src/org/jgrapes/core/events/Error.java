@@ -19,7 +19,6 @@
 package org.jgrapes.core.events;
 
 import java.lang.reflect.InvocationTargetException;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;

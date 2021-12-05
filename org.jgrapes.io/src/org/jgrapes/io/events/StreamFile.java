@@ -21,7 +21,6 @@ package org.jgrapes.io.events;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.util.Arrays;
-
 import org.jgrapes.core.Event;
 
 /**

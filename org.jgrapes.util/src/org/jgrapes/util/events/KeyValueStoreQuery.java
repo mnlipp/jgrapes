@@ -19,48 +19,46 @@
 package org.jgrapes.util.events;
 
 import java.util.Map;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Event;
 
 /**
  * A query event for a key/value store.
  */
-public class KeyValueStoreQuery extends Event<Map<String,String>> {
+public class KeyValueStoreQuery extends Event<Map<String, String>> {
 
-	private String key;
+    private String key;
 
-	/**
-	 * Creates a new event that queries using the given key. The
-	 * result of the event is a map with the retrieved entries.
-	 * 
-	 * @param key the key
-	 */
-	public KeyValueStoreQuery(String key) {
-		this.key = key;
-	}
+    /**
+     * Creates a new event that queries using the given key. The
+     * result of the event is a map with the retrieved entries.
+     * 
+     * @param key the key
+     */
+    public KeyValueStoreQuery(String key) {
+        this.key = key;
+    }
 
-	/**
-	 * Convenience constructor for creating a new event with
-	 * a completion event of type {@link KeyValueStoreData}
-	 * that is fired on the given channel.
-	 *
-	 * @param key the key
-	 * @param channel the channel
-	 */
-	public KeyValueStoreQuery(String key, Channel channel) {
-		this(key);
-		new KeyValueStoreData(this, channel);
-	}
+    /**
+     * Convenience constructor for creating a new event with
+     * a completion event of type {@link KeyValueStoreData}
+     * that is fired on the given channel.
+     *
+     * @param key the key
+     * @param channel the channel
+     */
+    public KeyValueStoreQuery(String key, Channel channel) {
+        this(key);
+        new KeyValueStoreData(this, channel);
+    }
 
-	/**
-	 * Returns the key used for the query.
-	 * 
-	 * @return the key
-	 */
-	public String query() {
-		return key;
-	}
-	
-	
+    /**
+     * Returns the key used for the query.
+     * 
+     * @return the key
+     */
+    public String query() {
+        return key;
+    }
+
 }

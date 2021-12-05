@@ -20,7 +20,6 @@ package org.jgrapes.core.internal;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentType;
 import org.jgrapes.core.Manager;

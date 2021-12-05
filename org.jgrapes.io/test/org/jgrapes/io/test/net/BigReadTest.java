@@ -26,7 +26,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -39,7 +38,6 @@ import org.jgrapes.io.util.ByteBufferOutputStream;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
-
 import static org.junit.Assert.*;
 import org.junit.Test;
 

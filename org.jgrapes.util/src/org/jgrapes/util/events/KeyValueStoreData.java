@@ -19,7 +19,6 @@
 package org.jgrapes.util.events;
 
 import java.util.Map;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletionEvent;
 
@@ -32,26 +31,26 @@ import org.jgrapes.core.CompletionEvent;
  */
 public class KeyValueStoreData extends CompletionEvent<KeyValueStoreQuery> {
 
-	/**
-	 * @param monitoredEvent
-	 * @param channels
-	 */
-	public KeyValueStoreData(KeyValueStoreQuery monitoredEvent,
-	        Channel... channels) {
-		super(monitoredEvent, channels);
-	}
+    /**
+     * @param monitoredEvent
+     * @param channels
+     */
+    public KeyValueStoreData(KeyValueStoreQuery monitoredEvent,
+            Channel... channels) {
+        super(monitoredEvent, channels);
+    }
 
-	/**
-	 * A shortcut to get the result of the completed query event.
-	 * 
-	 * @return the data
-	 */
-	public Map<String,String> data() {
-		try {
-			return event().get();
-		} catch (InterruptedException e) {
-			// Can only happen if invoked before completion
-			throw new IllegalStateException(e);
-		}
-	}
+    /**
+     * A shortcut to get the result of the completed query event.
+     * 
+     * @return the data
+     */
+    public Map<String, String> data() {
+        try {
+            return event().get();
+        } catch (InterruptedException e) {
+            // Can only happen if invoked before completion
+            throw new IllegalStateException(e);
+        }
+    }
 }

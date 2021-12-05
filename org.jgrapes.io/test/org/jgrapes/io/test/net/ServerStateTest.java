@@ -29,7 +29,6 @@ import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.test.WaitForTests;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Ready;
-
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;

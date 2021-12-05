@@ -36,7 +36,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
-
 import org.jgrapes.core.annotation.ComponentManager;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;

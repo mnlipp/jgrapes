@@ -25,52 +25,50 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.util.PreferencesStore;
 import org.jgrapes.util.events.InitialPreferences;
-
 import static org.junit.Assert.*;
-
 import org.junit.Test;
 
 public class AttachTest {
 
-	public static class TestComponent extends Component {
-		
-		public int initCount = 0;
-		
-		public TestComponent() {
-		}
+    public static class TestComponent extends Component {
 
-		public TestComponent(Channel componentChannel) {
-			super(componentChannel);
-		}
+        public int initCount = 0;
 
-		@Handler
-		public void onInitialPreferences(InitialPreferences event) {
-			initCount += 1;
-		}
-	}
-	
-	@Test
-	public void testAttachedPrefs() throws InterruptedException {
-		
-		TestComponent tc1 = new TestComponent();
-		final TestComponent tc11 = tc1.attach(new TestComponent(tc1));
-		tc1.attach(new TestComponent(tc1));
-		
-		TestComponent tc2 = new TestComponent(tc1);
-		tc2.attach(new TestComponent(tc1));
-		tc2.attach(new TestComponent(tc1));
+        public TestComponent() {
+        }
 
-		tc1.attach(new PreferencesStore(tc1, AttachTest.class));
-		
-		Components.start(tc1);
-		tc11.attach(tc2);
-		Components.awaitExhaustion(1000);
-		
-		for (ComponentType c: tc1) {
-			if (c instanceof TestComponent) {
-				assertEquals(1, ((TestComponent)c).initCount);
-			}
-		}
-	}
+        public TestComponent(Channel componentChannel) {
+            super(componentChannel);
+        }
+
+        @Handler
+        public void onInitialPreferences(InitialPreferences event) {
+            initCount += 1;
+        }
+    }
+
+    @Test
+    public void testAttachedPrefs() throws InterruptedException {
+
+        TestComponent tc1 = new TestComponent();
+        final TestComponent tc11 = tc1.attach(new TestComponent(tc1));
+        tc1.attach(new TestComponent(tc1));
+
+        TestComponent tc2 = new TestComponent(tc1);
+        tc2.attach(new TestComponent(tc1));
+        tc2.attach(new TestComponent(tc1));
+
+        tc1.attach(new PreferencesStore(tc1, AttachTest.class));
+
+        Components.start(tc1);
+        tc11.attach(tc2);
+        Components.awaitExhaustion(1000);
+
+        for (ComponentType c : tc1) {
+            if (c instanceof TestComponent) {
+                assertEquals(1, ((TestComponent) c).initCount);
+            }
+        }
+    }
 
 }

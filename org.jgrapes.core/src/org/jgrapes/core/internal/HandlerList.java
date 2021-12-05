@@ -19,7 +19,6 @@
 package org.jgrapes.core.internal;
 
 import java.util.ArrayList;
-
 import org.jgrapes.core.EventPipeline;
 
 /**

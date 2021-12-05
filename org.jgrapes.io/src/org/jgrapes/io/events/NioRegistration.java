@@ -19,7 +19,6 @@
 package org.jgrapes.io.events;
 
 import java.nio.channels.SelectableChannel;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.CompletionEvent;
 import org.jgrapes.core.Event;

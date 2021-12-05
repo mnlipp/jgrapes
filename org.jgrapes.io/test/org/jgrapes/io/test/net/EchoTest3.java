@@ -38,10 +38,8 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -65,7 +63,6 @@ import org.jgrapes.net.TcpConnector;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Connected;
 import org.jgrapes.net.events.Ready;
-
 import static org.junit.Assert.*;
 import org.junit.Test;
 

@@ -19,7 +19,6 @@
 package org.jgrapes.core.internal;
 
 import java.util.Arrays;
-
 import org.jgrapes.core.Channel;
 
 /**

@@ -21,9 +21,7 @@ package org.jgrapes.net.events;
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
-
 import javax.net.ssl.SNIServerName;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
 import org.jgrapes.io.events.Opened;

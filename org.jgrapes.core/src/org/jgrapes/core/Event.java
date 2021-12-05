@@ -32,7 +32,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
-
 import org.jgrapes.core.events.HandlingError;
 import org.jgrapes.core.internal.EventBase;
 import org.jgrapes.core.internal.EventProcessor;

@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 
@@ -40,75 +39,75 @@ import org.jgrapes.core.Manager;
  */
 public class ConfigurationUpdate extends Event<Void> {
 
-	@SuppressWarnings("PMD.UseConcurrentHashMap")
-	private final Map<String,Map<String,String>> paths = new HashMap<>();
+    @SuppressWarnings("PMD.UseConcurrentHashMap")
+    private final Map<String, Map<String, String>> paths = new HashMap<>();
 
-	/**
-	 * Add new (updated) configuration value to the event.
-	 * 
-	 * @param path the value's path
-	 * @param key the key of the value
-	 * @param value the value
-	 * @return the event for easy chaining
-	 */
-	public ConfigurationUpdate add(String path, String key, String value) {
-		if (path == null || !path.startsWith("/")) {
-			throw new IllegalArgumentException("Path must start with \"/\".");
-		}
-		@SuppressWarnings("PMD.UseConcurrentHashMap")
-		Map<String,String> scoped = paths
-				.computeIfAbsent(path, newKey -> new HashMap<String,String>());
-		scoped.put(key, value);
-		return this;
-	}
+    /**
+     * Add new (updated) configuration value to the event.
+     * 
+     * @param path the value's path
+     * @param key the key of the value
+     * @param value the value
+     * @return the event for easy chaining
+     */
+    public ConfigurationUpdate add(String path, String key, String value) {
+        if (path == null || !path.startsWith("/")) {
+            throw new IllegalArgumentException("Path must start with \"/\".");
+        }
+        @SuppressWarnings("PMD.UseConcurrentHashMap")
+        Map<String, String> scoped = paths
+            .computeIfAbsent(path, newKey -> new HashMap<String, String>());
+        scoped.put(key, value);
+        return this;
+    }
 
-	/**
-	 * Remove a path from the configuration.
-	 * 
-	 * @param path the path to be removed
-	 * @return the event for easy chaining
-	 */
-	public ConfigurationUpdate removePath(String path) {
-		if (path == null || !path.startsWith("/")) {
-			throw new IllegalArgumentException("Path must start with \"/\".");
-		}
-		paths.put(path, null);
-		return this;
-	}
-	
-	/**
-	 * Return all paths affected by this event.
-	 * 
-	 * @return the paths
-	 */
-	public Set<String> paths() {
-		return Collections.unmodifiableSet(paths.keySet());
-	}
-	
-	/**
-	 * Return the values for a given path if they exists.
-	 * 
-	 * @param path the path
-	 * @return the updated values or `null` if the path has been
-	 * removed (implies the removal of all values for that path).
-	 */
-	public Optional<Map<String,String>> values(String path) {
-		Map<String,String> result = paths.get(path);
-		if (result == null) {
-			return Optional.empty();
-		}
-		return Optional.of(Collections.unmodifiableMap(result));
-	}
+    /**
+     * Remove a path from the configuration.
+     * 
+     * @param path the path to be removed
+     * @return the event for easy chaining
+     */
+    public ConfigurationUpdate removePath(String path) {
+        if (path == null || !path.startsWith("/")) {
+            throw new IllegalArgumentException("Path must start with \"/\".");
+        }
+        paths.put(path, null);
+        return this;
+    }
 
-	/**
-	 * Return the value with the given path and key if it exists.
-	 * 
-	 * @param path the path
-	 * @param key the key
-	 * @return the value
-	 */
-	public Optional<String> value(String path, String key) {
-		return Optional.ofNullable(paths.get(path))
-				.flatMap(map -> Optional.ofNullable(map.get(key)));
-	}
+    /**
+     * Return all paths affected by this event.
+     * 
+     * @return the paths
+     */
+    public Set<String> paths() {
+        return Collections.unmodifiableSet(paths.keySet());
+    }
+
+    /**
+     * Return the values for a given path if they exists.
+     * 
+     * @param path the path
+     * @return the updated values or `null` if the path has been
+     * removed (implies the removal of all values for that path).
+     */
+    public Optional<Map<String, String>> values(String path) {
+        Map<String, String> result = paths.get(path);
+        if (result == null) {
+            return Optional.empty();
+        }
+        return Optional.of(Collections.unmodifiableMap(result));
+    }
+
+    /**
+     * Return the value with the given path and key if it exists.
+     * 
+     * @param path the path
+     * @param key the key
+     * @return the value
+     */
+    public Optional<String> value(String path, String key) {
+        return Optional.ofNullable(paths.get(path))
+            .flatMap(map -> Optional.ofNullable(map.get(key)));
+    }
 }

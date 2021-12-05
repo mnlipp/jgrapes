@@ -29,7 +29,6 @@ import org.jgrapes.core.NamedEvent;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
 import org.jgrapes.core.events.Start;
-
 import static org.junit.Assert.*;
 import org.junit.Test;
 

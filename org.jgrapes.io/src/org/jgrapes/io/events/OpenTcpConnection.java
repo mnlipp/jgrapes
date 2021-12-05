@@ -20,7 +20,6 @@ package org.jgrapes.io.events;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-
 import org.jgrapes.core.Event;
 
 /**

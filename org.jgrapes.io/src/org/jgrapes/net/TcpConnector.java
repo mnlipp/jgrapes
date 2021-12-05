@@ -21,7 +21,6 @@ package org.jgrapes.net;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.channels.SocketChannel;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;

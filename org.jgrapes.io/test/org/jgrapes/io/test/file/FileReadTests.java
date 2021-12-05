@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutionException;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -38,7 +37,6 @@ import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Opened;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.StreamFile;
-
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -46,81 +44,83 @@ import org.junit.Test;
  */
 public class FileReadTests {
 
-	public static class Consumer extends Component {
-		
-		public long collected = 0;
-		public StringBuilder collectedText = new StringBuilder();
-		
-		public Consumer() {
-			super(Channel.SELF);
-		}
-		
-		@Handler
-		public void onOutput(Output<ByteBuffer> event) 
-				throws UnsupportedEncodingException {
-			int length = event.data().limit();
-			collected += length;
-			byte[] bytes = new byte[length];
-			event.buffer().backingBuffer().get(bytes);
-			collectedText.append(new String(bytes, "ascii"));
-		}
-		
-	}
+    public static class Consumer extends Component {
 
-	public static class StateChecker extends Component {
-		
-		public enum State { NEW, OPENED, READING, CLOSING, CLOSED }
-		
-		public State state = State.NEW;
+        public long collected = 0;
+        public StringBuilder collectedText = new StringBuilder();
 
-		public StateChecker() {
-			super(Channel.BROADCAST);
-		}
-		
-		@Handler
-		public void opened(Opened event) {
-			assertTrue(state == State.NEW);
-			state = State.OPENED;
-		}
-		
-		@Handler
-		public void reading(Output<ByteBuffer> event) {
-			assertTrue(state == State.OPENED || state == State.READING );
-			if (event.isEndOfRecord()) {
-				state = State.CLOSING;
-			} else {
-				state = State.READING;
-			}
-		}
+        public Consumer() {
+            super(Channel.SELF);
+        }
 
-		@Handler
-		public void closed(Closed event) {
-			assertTrue(state == State.CLOSING);
-			state = State.CLOSED;
-		}
-	}
-	
-	@Test
-	public void testRead() 
-		throws URISyntaxException, InterruptedException, ExecutionException, 
-		UnsupportedEncodingException, IOException {
-		Consumer consumer = new Consumer();
-		Path filePath = Paths.get(getClass().getResource("test.txt").toURI());
-		final long fileSize = filePath.toFile().length();
-		FileStorage app = new FileStorage(consumer, 512);
-		app.attach(consumer);
-		StateChecker sc = new StateChecker();
-		app.attach(sc);
-		Components.start(app);
-		app.fire(new StreamFile(filePath, StandardOpenOption.READ),
-		        IOSubchannel.create(consumer, consumer.newEventPipeline())).get();
-		Components.awaitExhaustion();
-		assertEquals(fileSize, consumer.collected);
-		String content = new String(Files.readAllBytes(
-				Paths.get(getClass().getResource("test.txt").toURI())), "ascii");
-		assertEquals(content,  consumer.collectedText.toString());
-		assertEquals(StateChecker.State.CLOSED, sc.state);
-		Components.checkAssertions();
-	}
-	
+        @Handler
+        public void onOutput(Output<ByteBuffer> event)
+                throws UnsupportedEncodingException {
+            int length = event.data().limit();
+            collected += length;
+            byte[] bytes = new byte[length];
+            event.buffer().backingBuffer().get(bytes);
+            collectedText.append(new String(bytes, "ascii"));
+        }
+
+    }
+
+    public static class StateChecker extends Component {
+
+        public enum State {
+            NEW, OPENED, READING, CLOSING, CLOSED
+        }
+
+        public State state = State.NEW;
+
+        public StateChecker() {
+            super(Channel.BROADCAST);
+        }
+
+        @Handler
+        public void opened(Opened event) {
+            assertTrue(state == State.NEW);
+            state = State.OPENED;
+        }
+
+        @Handler
+        public void reading(Output<ByteBuffer> event) {
+            assertTrue(state == State.OPENED || state == State.READING);
+            if (event.isEndOfRecord()) {
+                state = State.CLOSING;
+            } else {
+                state = State.READING;
+            }
+        }
+
+        @Handler
+        public void closed(Closed event) {
+            assertTrue(state == State.CLOSING);
+            state = State.CLOSED;
+        }
+    }
+
+    @Test
+    public void testRead()
+            throws URISyntaxException, InterruptedException, ExecutionException,
+            UnsupportedEncodingException, IOException {
+        Consumer consumer = new Consumer();
+        Path filePath = Paths.get(getClass().getResource("test.txt").toURI());
+        final long fileSize = filePath.toFile().length();
+        FileStorage app = new FileStorage(consumer, 512);
+        app.attach(consumer);
+        StateChecker sc = new StateChecker();
+        app.attach(sc);
+        Components.start(app);
+        app.fire(new StreamFile(filePath, StandardOpenOption.READ),
+            IOSubchannel.create(consumer, consumer.newEventPipeline())).get();
+        Components.awaitExhaustion();
+        assertEquals(fileSize, consumer.collected);
+        String content = new String(Files.readAllBytes(
+            Paths.get(getClass().getResource("test.txt").toURI())), "ascii");
+        assertEquals(content, consumer.collectedText.toString());
+        assertEquals(StateChecker.State.CLOSED, sc.state);
+        Components.checkAssertions();
+    }
+
 }

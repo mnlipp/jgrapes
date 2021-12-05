@@ -19,7 +19,6 @@
 package org.jgrapes.core.internal;
 
 import java.time.Instant;
-
 import org.jgrapes.core.Components;
 
 /**

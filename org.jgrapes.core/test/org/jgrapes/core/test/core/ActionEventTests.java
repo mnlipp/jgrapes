@@ -21,31 +21,29 @@ package org.jgrapes.core.test.core;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-
 import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class ActionEventTests {
 
-	public static class App extends Component {
-	}
-	
-	@Test
-	public void testComplete() throws InterruptedException, ExecutionException {
-		App app = new App();
-		Components.start(app);
-		Future<Integer> result = app.activeEventPipeline().submit(
-				new Callable<Integer>() {
-			@Override
-			public Integer call() throws Exception {
-				return 42;
-			}
-		});
-		assertEquals(42, result.get().intValue());
-		Components.awaitExhaustion();
-	}
+    public static class App extends Component {
+    }
+
+    @Test
+    public void testComplete() throws InterruptedException, ExecutionException {
+        App app = new App();
+        Components.start(app);
+        Future<Integer> result = app.activeEventPipeline().submit(
+            new Callable<Integer>() {
+                @Override
+                public Integer call() throws Exception {
+                    return 42;
+                }
+            });
+        assertEquals(42, result.get().intValue());
+        Components.awaitExhaustion();
+    }
 
 }

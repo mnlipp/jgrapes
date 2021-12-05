@@ -26,7 +26,6 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Attached;
 import org.jgrapes.core.events.Detached;
-
 import static org.junit.Assert.*;
 import org.junit.Test;
 

@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Close;

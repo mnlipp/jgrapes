@@ -19,7 +19,6 @@
 package org.jgrapes.io.events;
 
 import java.nio.Buffer;
-
 import org.jgrapes.io.util.ManagedBuffer;
 
 /**

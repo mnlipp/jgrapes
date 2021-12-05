@@ -19,7 +19,6 @@
 package org.jgrapes.net;
 
 import java.net.SocketAddress;
-
 import org.jgrapes.io.IOSubchannel;
 
 /**

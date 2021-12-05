@@ -19,7 +19,6 @@
 package org.jgrapes.io.util;
 
 import java.util.Optional;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.Manager;

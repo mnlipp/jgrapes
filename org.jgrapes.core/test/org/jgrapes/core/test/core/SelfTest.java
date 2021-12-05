@@ -24,7 +24,6 @@ import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
-
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -33,29 +32,28 @@ import org.junit.Test;
  */
 public class SelfTest {
 
-	public static class TestComponent extends Component {
+    public static class TestComponent extends Component {
 
-		public int count = 0;
+        public int count = 0;
 
-		/**
-		 * @param componentChannel
-		 */
-		public TestComponent() {
-			super(new NamedChannel("test"));
-		}
+        /**
+         * @param componentChannel
+         */
+        public TestComponent() {
+            super(new NamedChannel("test"));
+        }
 
+        @Handler(channels = Self.class)
+        public void onStarted(Start event) {
+            count += 1;
+        }
+    }
 
-		@Handler(channels=Self.class)
-		public void onStarted(Start event) {
-			count += 1;
-		}
-	}
-	
-	@Test
-	public void testStarted() throws InterruptedException {
-		TestComponent app = new TestComponent();
-		Components.manager(app).newSyncEventPipeline().fire(new Start(), app);
-		assertEquals(1, app.count);
-	}
+    @Test
+    public void testStarted() throws InterruptedException {
+        TestComponent app = new TestComponent();
+        Components.manager(app).newSyncEventPipeline().fire(new Start(), app);
+        assertEquals(1, app.count);
+    }
 
 }

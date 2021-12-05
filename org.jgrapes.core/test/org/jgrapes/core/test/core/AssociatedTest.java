@@ -24,9 +24,7 @@ import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
-
 import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
 /**
@@ -34,26 +32,26 @@ import org.junit.Test;
  */
 public class AssociatedTest {
 
-	public static class TestComponent extends Component {
+    public static class TestComponent extends Component {
 
-		public String result;
-		
-		@Handler(events=Start.class)
-		public void onStart(Event<?> evt) {
-			evt.setAssociated(this, new String("Hello!"));
-		}
-		
-		@Handler(events=Started.class)
-		public void onStarted(Started evt) {
-			result = evt.event().associated(this, String.class).get();
-		}
-	}
-	
-	@Test
-	public void testComplete() throws InterruptedException {
-		TestComponent app = new TestComponent();
-		Components.manager(app).newSyncEventPipeline().fire(new Start());
-		assertTrue(app.result.equals("Hello!"));
-	}
+        public String result;
+
+        @Handler(events = Start.class)
+        public void onStart(Event<?> evt) {
+            evt.setAssociated(this, new String("Hello!"));
+        }
+
+        @Handler(events = Started.class)
+        public void onStarted(Started evt) {
+            result = evt.event().associated(this, String.class).get();
+        }
+    }
+
+    @Test
+    public void testComplete() throws InterruptedException {
+        TestComponent app = new TestComponent();
+        Components.manager(app).newSyncEventPipeline().fire(new Start());
+        assertTrue(app.result.equals("Hello!"));
+    }
 
 }

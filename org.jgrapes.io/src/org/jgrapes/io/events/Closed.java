@@ -20,7 +20,6 @@ package org.jgrapes.io.events;
 
 import java.io.IOException;
 import java.util.Optional;
-
 import org.jgrapes.core.Event;
 
 /**

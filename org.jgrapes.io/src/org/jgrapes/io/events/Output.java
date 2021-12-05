@@ -21,7 +21,6 @@ package org.jgrapes.io.events;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-
 import org.jgrapes.io.util.ManagedBuffer;
 
 /**
