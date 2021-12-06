@@ -204,7 +204,7 @@ public class ServerTest {
 
         int threadCount = 1000;
         if (Boolean.parseBoolean(
-            System.getenv().getOrDefault("GITHUB_ACTIONS", "false"))) {
+            System.getenv().getOrDefault("CI", "false"))) {
             threadCount = 100;
         }
 
