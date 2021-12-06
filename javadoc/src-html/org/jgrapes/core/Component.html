@@ -1,164 +1,165 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html lang="en">
 <head>
 <title>Source code</title>
 <link rel="stylesheet" type="text/css" href="../../../../stylesheet.css" title="Style">
 </head>
 <body>
+<main role="main">
 <div class="sourceContainer">
-<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
-<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2016-2018 Michael N. Lipp<a name="line.3"></a>
-<span class="sourceLineNo">004</span> * <a name="line.4"></a>
-<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
-<span class="sourceLineNo">006</span> * under the terms of the GNU Affero General Public License as published by <a name="line.6"></a>
-<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
-<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
-<span class="sourceLineNo">009</span> * <a name="line.9"></a>
-<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
-<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
-<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License <a name="line.12"></a>
-<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
-<span class="sourceLineNo">014</span> * <a name="line.14"></a>
-<span class="sourceLineNo">015</span> * You should have received a copy of the GNU Affero General Public License along <a name="line.15"></a>
-<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
-<span class="sourceLineNo">017</span> */<a name="line.17"></a>
-<span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span>package org.jgrapes.core;<a name="line.19"></a>
-<span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>import org.jgrapes.core.annotation.Handler;<a name="line.21"></a>
-<span class="sourceLineNo">022</span>import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;<a name="line.22"></a>
-<span class="sourceLineNo">023</span>import org.jgrapes.core.internal.ComponentVertex;<a name="line.23"></a>
-<span class="sourceLineNo">024</span><a name="line.24"></a>
-<span class="sourceLineNo">025</span>/**<a name="line.25"></a>
-<span class="sourceLineNo">026</span> * This class can be used as base class for implementing a component. <a name="line.26"></a>
-<span class="sourceLineNo">027</span> * &lt;P&gt;<a name="line.27"></a>
-<span class="sourceLineNo">028</span> * This class implements the {@link Manager} interface. Contrary <a name="line.28"></a>
-<span class="sourceLineNo">029</span> * to classes that only implement {@link ComponentType}, derived <a name="line.29"></a>
-<span class="sourceLineNo">030</span> * classes therefore don't need a manager attribute to get access to the <a name="line.30"></a>
-<span class="sourceLineNo">031</span> * component management methods provided by this interface.<a name="line.31"></a>
-<span class="sourceLineNo">032</span> * &lt;P&gt;<a name="line.32"></a>
-<span class="sourceLineNo">033</span> * This class also implements the {@code Channel} interface in such a way<a name="line.33"></a>
-<span class="sourceLineNo">034</span> * that each instance of this class can be used as an independent<a name="line.34"></a>
-<span class="sourceLineNo">035</span> * channel. Note that events that have a component as one of their<a name="line.35"></a>
-<span class="sourceLineNo">036</span> * channels are always handled by the component, independent of<a name="line.36"></a>
-<span class="sourceLineNo">037</span> * channels explicitly specified by the handler. <a name="line.37"></a>
-<span class="sourceLineNo">038</span> * <a name="line.38"></a>
-<span class="sourceLineNo">039</span> * @see Handler<a name="line.39"></a>
-<span class="sourceLineNo">040</span> * @see ComponentType<a name="line.40"></a>
-<span class="sourceLineNo">041</span> */<a name="line.41"></a>
-<span class="sourceLineNo">042</span>public abstract class Component extends ComponentVertex<a name="line.42"></a>
-<span class="sourceLineNo">043</span>        implements ComponentType, Channel {<a name="line.43"></a>
-<span class="sourceLineNo">044</span><a name="line.44"></a>
-<span class="sourceLineNo">045</span>    private Channel componentChannel;<a name="line.45"></a>
-<span class="sourceLineNo">046</span><a name="line.46"></a>
-<span class="sourceLineNo">047</span>    /**<a name="line.47"></a>
-<span class="sourceLineNo">048</span>     * Creates a new component base with its channel set to<a name="line.48"></a>
-<span class="sourceLineNo">049</span>     * itself.<a name="line.49"></a>
-<span class="sourceLineNo">050</span>     */<a name="line.50"></a>
-<span class="sourceLineNo">051</span>    public Component() {<a name="line.51"></a>
-<span class="sourceLineNo">052</span>        super();<a name="line.52"></a>
-<span class="sourceLineNo">053</span>        componentChannel = this;<a name="line.53"></a>
-<span class="sourceLineNo">054</span>        initComponentsHandlers(null);<a name="line.54"></a>
-<span class="sourceLineNo">055</span>    }<a name="line.55"></a>
-<span class="sourceLineNo">056</span><a name="line.56"></a>
-<span class="sourceLineNo">057</span>    /**<a name="line.57"></a>
-<span class="sourceLineNo">058</span>     * Creates a new component base with its channel set to the given <a name="line.58"></a>
-<span class="sourceLineNo">059</span>     * channel. As a special case {@link Channel#SELF} can be<a name="line.59"></a>
-<span class="sourceLineNo">060</span>     * passed to the constructor to make the component use itself<a name="line.60"></a>
-<span class="sourceLineNo">061</span>     * as channel. The special value is necessary as you <a name="line.61"></a>
-<span class="sourceLineNo">062</span>     * obviously cannot pass an object to be constructed to its <a name="line.62"></a>
-<span class="sourceLineNo">063</span>     * constructor.<a name="line.63"></a>
-<span class="sourceLineNo">064</span>     *<a name="line.64"></a>
-<span class="sourceLineNo">065</span>     * @param componentChannel the channel that the component's<a name="line.65"></a>
-<span class="sourceLineNo">066</span>     * handlers listen on by default and that <a name="line.66"></a>
-<span class="sourceLineNo">067</span>     * {@link Manager#fire(Event, Channel...)} sends the event to<a name="line.67"></a>
-<span class="sourceLineNo">068</span>     */<a name="line.68"></a>
-<span class="sourceLineNo">069</span>    public Component(Channel componentChannel) {<a name="line.69"></a>
-<span class="sourceLineNo">070</span>        super();<a name="line.70"></a>
-<span class="sourceLineNo">071</span>        if (componentChannel == SELF) {<a name="line.71"></a>
-<span class="sourceLineNo">072</span>            this.componentChannel = this;<a name="line.72"></a>
-<span class="sourceLineNo">073</span>        } else {<a name="line.73"></a>
-<span class="sourceLineNo">074</span>            this.componentChannel = componentChannel;<a name="line.74"></a>
-<span class="sourceLineNo">075</span>        }<a name="line.75"></a>
-<span class="sourceLineNo">076</span>        initComponentsHandlers(null);<a name="line.76"></a>
-<span class="sourceLineNo">077</span>    }<a name="line.77"></a>
-<span class="sourceLineNo">078</span><a name="line.78"></a>
-<span class="sourceLineNo">079</span>    /**<a name="line.79"></a>
-<span class="sourceLineNo">080</span>     * Creates a new component base like {@link #Component(Channel)}<a name="line.80"></a>
-<span class="sourceLineNo">081</span>     * but with channel mappings for {@link Handler} annotations.<a name="line.81"></a>
-<span class="sourceLineNo">082</span>     *<a name="line.82"></a>
-<span class="sourceLineNo">083</span>     * @param componentChannel the channel that the component's<a name="line.83"></a>
-<span class="sourceLineNo">084</span>     * handlers listen on by default and that <a name="line.84"></a>
-<span class="sourceLineNo">085</span>     * {@link Manager#fire(Event, Channel...)} sends the event to<a name="line.85"></a>
-<span class="sourceLineNo">086</span>     * @param channelReplacements the channel replacements to apply<a name="line.86"></a>
-<span class="sourceLineNo">087</span>     * to the `channels` elements of the {@link Handler} annotations<a name="line.87"></a>
-<span class="sourceLineNo">088</span>     */<a name="line.88"></a>
-<span class="sourceLineNo">089</span>    public Component(<a name="line.89"></a>
-<span class="sourceLineNo">090</span>            Channel componentChannel, ChannelReplacements channelReplacements) {<a name="line.90"></a>
-<span class="sourceLineNo">091</span>        super();<a name="line.91"></a>
-<span class="sourceLineNo">092</span>        if (componentChannel == SELF) {<a name="line.92"></a>
-<span class="sourceLineNo">093</span>            this.componentChannel = this;<a name="line.93"></a>
-<span class="sourceLineNo">094</span>        } else {<a name="line.94"></a>
-<span class="sourceLineNo">095</span>            this.componentChannel = componentChannel;<a name="line.95"></a>
-<span class="sourceLineNo">096</span>        }<a name="line.96"></a>
-<span class="sourceLineNo">097</span>        initComponentsHandlers(channelReplacements);<a name="line.97"></a>
-<span class="sourceLineNo">098</span>    }<a name="line.98"></a>
-<span class="sourceLineNo">099</span><a name="line.99"></a>
-<span class="sourceLineNo">100</span>    /*<a name="line.100"></a>
-<span class="sourceLineNo">101</span>     * (non-Javadoc)<a name="line.101"></a>
-<span class="sourceLineNo">102</span>     * <a name="line.102"></a>
-<span class="sourceLineNo">103</span>     * @see org.jgrapes.core.internal.ComponentVertex#setName(java.lang.String)<a name="line.103"></a>
-<span class="sourceLineNo">104</span>     */<a name="line.104"></a>
-<span class="sourceLineNo">105</span>    @Override<a name="line.105"></a>
-<span class="sourceLineNo">106</span>    public Component setName(String name) {<a name="line.106"></a>
-<span class="sourceLineNo">107</span>        super.setName(name);<a name="line.107"></a>
-<span class="sourceLineNo">108</span>        return this;<a name="line.108"></a>
-<span class="sourceLineNo">109</span>    }<a name="line.109"></a>
-<span class="sourceLineNo">110</span><a name="line.110"></a>
-<span class="sourceLineNo">111</span>    /*<a name="line.111"></a>
-<span class="sourceLineNo">112</span>     * (non-Javadoc)<a name="line.112"></a>
-<span class="sourceLineNo">113</span>     * <a name="line.113"></a>
-<span class="sourceLineNo">114</span>     * @see org.jgrapes.core.internal.ComponentVertex#getComponent()<a name="line.114"></a>
-<span class="sourceLineNo">115</span>     */<a name="line.115"></a>
-<span class="sourceLineNo">116</span>    @Override<a name="line.116"></a>
-<span class="sourceLineNo">117</span>    protected Component component() {<a name="line.117"></a>
-<span class="sourceLineNo">118</span>        return this;<a name="line.118"></a>
-<span class="sourceLineNo">119</span>    }<a name="line.119"></a>
-<span class="sourceLineNo">120</span><a name="line.120"></a>
-<span class="sourceLineNo">121</span>    /**<a name="line.121"></a>
-<span class="sourceLineNo">122</span>     * Returns the channel associated with the component.<a name="line.122"></a>
-<span class="sourceLineNo">123</span>     * <a name="line.123"></a>
-<span class="sourceLineNo">124</span>     * @return the channel as assigned by the constructor.<a name="line.124"></a>
-<span class="sourceLineNo">125</span>     * <a name="line.125"></a>
-<span class="sourceLineNo">126</span>     * @see org.jgrapes.core.Manager#channel()<a name="line.126"></a>
-<span class="sourceLineNo">127</span>     */<a name="line.127"></a>
-<span class="sourceLineNo">128</span>    @Override<a name="line.128"></a>
-<span class="sourceLineNo">129</span>    public Channel channel() {<a name="line.129"></a>
-<span class="sourceLineNo">130</span>        return componentChannel;<a name="line.130"></a>
-<span class="sourceLineNo">131</span>    }<a name="line.131"></a>
-<span class="sourceLineNo">132</span><a name="line.132"></a>
-<span class="sourceLineNo">133</span>    /**<a name="line.133"></a>
-<span class="sourceLineNo">134</span>     * Return the object itself as value.<a name="line.134"></a>
-<span class="sourceLineNo">135</span>     */<a name="line.135"></a>
-<span class="sourceLineNo">136</span>    @Override<a name="line.136"></a>
-<span class="sourceLineNo">137</span>    public Object defaultCriterion() {<a name="line.137"></a>
-<span class="sourceLineNo">138</span>        return this;<a name="line.138"></a>
-<span class="sourceLineNo">139</span>    }<a name="line.139"></a>
-<span class="sourceLineNo">140</span><a name="line.140"></a>
-<span class="sourceLineNo">141</span>    /**<a name="line.141"></a>
-<span class="sourceLineNo">142</span>     * Matches the object itself (using identity comparison) or the<a name="line.142"></a>
-<span class="sourceLineNo">143</span>     * {@link Channel} class.<a name="line.143"></a>
-<span class="sourceLineNo">144</span>     * <a name="line.144"></a>
-<span class="sourceLineNo">145</span>     * @see Channel#isEligibleFor(Object)<a name="line.145"></a>
-<span class="sourceLineNo">146</span>     */<a name="line.146"></a>
-<span class="sourceLineNo">147</span>    @Override<a name="line.147"></a>
-<span class="sourceLineNo">148</span>    public boolean isEligibleFor(Object value) {<a name="line.148"></a>
-<span class="sourceLineNo">149</span>        return value.equals(Channel.class)<a name="line.149"></a>
-<span class="sourceLineNo">150</span>            || value == defaultCriterion();<a name="line.150"></a>
-<span class="sourceLineNo">151</span>    }<a name="line.151"></a>
-<span class="sourceLineNo">152</span><a name="line.152"></a>
-<span class="sourceLineNo">153</span>}<a name="line.153"></a>
+<pre><span class="sourceLineNo">001</span><a id="line.1">/*</a>
+<span class="sourceLineNo">002</span><a id="line.2"> * JGrapes Event Driven Framework</a>
+<span class="sourceLineNo">003</span><a id="line.3"> * Copyright (C) 2016-2018 Michael N. Lipp</a>
+<span class="sourceLineNo">004</span><a id="line.4"> * </a>
+<span class="sourceLineNo">005</span><a id="line.5"> * This program is free software; you can redistribute it and/or modify it </a>
+<span class="sourceLineNo">006</span><a id="line.6"> * under the terms of the GNU Affero General Public License as published by </a>
+<span class="sourceLineNo">007</span><a id="line.7"> * the Free Software Foundation; either version 3 of the License, or </a>
+<span class="sourceLineNo">008</span><a id="line.8"> * (at your option) any later version.</a>
+<span class="sourceLineNo">009</span><a id="line.9"> * </a>
+<span class="sourceLineNo">010</span><a id="line.10"> * This program is distributed in the hope that it will be useful, but </a>
+<span class="sourceLineNo">011</span><a id="line.11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</a>
+<span class="sourceLineNo">012</span><a id="line.12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License </a>
+<span class="sourceLineNo">013</span><a id="line.13"> * for more details.</a>
+<span class="sourceLineNo">014</span><a id="line.14"> * </a>
+<span class="sourceLineNo">015</span><a id="line.15"> * You should have received a copy of the GNU Affero General Public License along </a>
+<span class="sourceLineNo">016</span><a id="line.16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<span class="sourceLineNo">017</span><a id="line.17"> */</a>
+<span class="sourceLineNo">018</span><a id="line.18"></a>
+<span class="sourceLineNo">019</span><a id="line.19">package org.jgrapes.core;</a>
+<span class="sourceLineNo">020</span><a id="line.20"></a>
+<span class="sourceLineNo">021</span><a id="line.21">import org.jgrapes.core.annotation.Handler;</a>
+<span class="sourceLineNo">022</span><a id="line.22">import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;</a>
+<span class="sourceLineNo">023</span><a id="line.23">import org.jgrapes.core.internal.ComponentVertex;</a>
+<span class="sourceLineNo">024</span><a id="line.24"></a>
+<span class="sourceLineNo">025</span><a id="line.25">/**</a>
+<span class="sourceLineNo">026</span><a id="line.26"> * This class can be used as base class for implementing a component. </a>
+<span class="sourceLineNo">027</span><a id="line.27"> * &lt;P&gt;</a>
+<span class="sourceLineNo">028</span><a id="line.28"> * This class implements the {@link Manager} interface. Contrary </a>
+<span class="sourceLineNo">029</span><a id="line.29"> * to classes that only implement {@link ComponentType}, derived </a>
+<span class="sourceLineNo">030</span><a id="line.30"> * classes therefore don't need a manager attribute to get access to the </a>
+<span class="sourceLineNo">031</span><a id="line.31"> * component management methods provided by this interface.</a>
+<span class="sourceLineNo">032</span><a id="line.32"> * &lt;P&gt;</a>
+<span class="sourceLineNo">033</span><a id="line.33"> * This class also implements the {@code Channel} interface in such a way</a>
+<span class="sourceLineNo">034</span><a id="line.34"> * that each instance of this class can be used as an independent</a>
+<span class="sourceLineNo">035</span><a id="line.35"> * channel. Note that events that have a component as one of their</a>
+<span class="sourceLineNo">036</span><a id="line.36"> * channels are always handled by the component, independent of</a>
+<span class="sourceLineNo">037</span><a id="line.37"> * channels explicitly specified by the handler. </a>
+<span class="sourceLineNo">038</span><a id="line.38"> * </a>
+<span class="sourceLineNo">039</span><a id="line.39"> * @see Handler</a>
+<span class="sourceLineNo">040</span><a id="line.40"> * @see ComponentType</a>
+<span class="sourceLineNo">041</span><a id="line.41"> */</a>
+<span class="sourceLineNo">042</span><a id="line.42">public abstract class Component extends ComponentVertex</a>
+<span class="sourceLineNo">043</span><a id="line.43">        implements ComponentType, Channel {</a>
+<span class="sourceLineNo">044</span><a id="line.44"></a>
+<span class="sourceLineNo">045</span><a id="line.45">    private Channel componentChannel;</a>
+<span class="sourceLineNo">046</span><a id="line.46"></a>
+<span class="sourceLineNo">047</span><a id="line.47">    /**</a>
+<span class="sourceLineNo">048</span><a id="line.48">     * Creates a new component base with its channel set to</a>
+<span class="sourceLineNo">049</span><a id="line.49">     * itself.</a>
+<span class="sourceLineNo">050</span><a id="line.50">     */</a>
+<span class="sourceLineNo">051</span><a id="line.51">    public Component() {</a>
+<span class="sourceLineNo">052</span><a id="line.52">        super();</a>
+<span class="sourceLineNo">053</span><a id="line.53">        componentChannel = this;</a>
+<span class="sourceLineNo">054</span><a id="line.54">        initComponentsHandlers(null);</a>
+<span class="sourceLineNo">055</span><a id="line.55">    }</a>
+<span class="sourceLineNo">056</span><a id="line.56"></a>
+<span class="sourceLineNo">057</span><a id="line.57">    /**</a>
+<span class="sourceLineNo">058</span><a id="line.58">     * Creates a new component base with its channel set to the given </a>
+<span class="sourceLineNo">059</span><a id="line.59">     * channel. As a special case {@link Channel#SELF} can be</a>
+<span class="sourceLineNo">060</span><a id="line.60">     * passed to the constructor to make the component use itself</a>
+<span class="sourceLineNo">061</span><a id="line.61">     * as channel. The special value is necessary as you </a>
+<span class="sourceLineNo">062</span><a id="line.62">     * obviously cannot pass an object to be constructed to its </a>
+<span class="sourceLineNo">063</span><a id="line.63">     * constructor.</a>
+<span class="sourceLineNo">064</span><a id="line.64">     *</a>
+<span class="sourceLineNo">065</span><a id="line.65">     * @param componentChannel the channel that the component's</a>
+<span class="sourceLineNo">066</span><a id="line.66">     * handlers listen on by default and that </a>
+<span class="sourceLineNo">067</span><a id="line.67">     * {@link Manager#fire(Event, Channel...)} sends the event to</a>
+<span class="sourceLineNo">068</span><a id="line.68">     */</a>
+<span class="sourceLineNo">069</span><a id="line.69">    public Component(Channel componentChannel) {</a>
+<span class="sourceLineNo">070</span><a id="line.70">        super();</a>
+<span class="sourceLineNo">071</span><a id="line.71">        if (componentChannel == SELF) {</a>
+<span class="sourceLineNo">072</span><a id="line.72">            this.componentChannel = this;</a>
+<span class="sourceLineNo">073</span><a id="line.73">        } else {</a>
+<span class="sourceLineNo">074</span><a id="line.74">            this.componentChannel = componentChannel;</a>
+<span class="sourceLineNo">075</span><a id="line.75">        }</a>
+<span class="sourceLineNo">076</span><a id="line.76">        initComponentsHandlers(null);</a>
+<span class="sourceLineNo">077</span><a id="line.77">    }</a>
+<span class="sourceLineNo">078</span><a id="line.78"></a>
+<span class="sourceLineNo">079</span><a id="line.79">    /**</a>
+<span class="sourceLineNo">080</span><a id="line.80">     * Creates a new component base like {@link #Component(Channel)}</a>
+<span class="sourceLineNo">081</span><a id="line.81">     * but with channel mappings for {@link Handler} annotations.</a>
+<span class="sourceLineNo">082</span><a id="line.82">     *</a>
+<span class="sourceLineNo">083</span><a id="line.83">     * @param componentChannel the channel that the component's</a>
+<span class="sourceLineNo">084</span><a id="line.84">     * handlers listen on by default and that </a>
+<span class="sourceLineNo">085</span><a id="line.85">     * {@link Manager#fire(Event, Channel...)} sends the event to</a>
+<span class="sourceLineNo">086</span><a id="line.86">     * @param channelReplacements the channel replacements to apply</a>
+<span class="sourceLineNo">087</span><a id="line.87">     * to the `channels` elements of the {@link Handler} annotations</a>
+<span class="sourceLineNo">088</span><a id="line.88">     */</a>
+<span class="sourceLineNo">089</span><a id="line.89">    public Component(</a>
+<span class="sourceLineNo">090</span><a id="line.90">            Channel componentChannel, ChannelReplacements channelReplacements) {</a>
+<span class="sourceLineNo">091</span><a id="line.91">        super();</a>
+<span class="sourceLineNo">092</span><a id="line.92">        if (componentChannel == SELF) {</a>
+<span class="sourceLineNo">093</span><a id="line.93">            this.componentChannel = this;</a>
+<span class="sourceLineNo">094</span><a id="line.94">        } else {</a>
+<span class="sourceLineNo">095</span><a id="line.95">            this.componentChannel = componentChannel;</a>
+<span class="sourceLineNo">096</span><a id="line.96">        }</a>
+<span class="sourceLineNo">097</span><a id="line.97">        initComponentsHandlers(channelReplacements);</a>
+<span class="sourceLineNo">098</span><a id="line.98">    }</a>
+<span class="sourceLineNo">099</span><a id="line.99"></a>
+<span class="sourceLineNo">100</span><a id="line.100">    /*</a>
+<span class="sourceLineNo">101</span><a id="line.101">     * (non-Javadoc)</a>
+<span class="sourceLineNo">102</span><a id="line.102">     * </a>
+<span class="sourceLineNo">103</span><a id="line.103">     * @see org.jgrapes.core.internal.ComponentVertex#setName(java.lang.String)</a>
+<span class="sourceLineNo">104</span><a id="line.104">     */</a>
+<span class="sourceLineNo">105</span><a id="line.105">    @Override</a>
+<span class="sourceLineNo">106</span><a id="line.106">    public Component setName(String name) {</a>
+<span class="sourceLineNo">107</span><a id="line.107">        super.setName(name);</a>
+<span class="sourceLineNo">108</span><a id="line.108">        return this;</a>
+<span class="sourceLineNo">109</span><a id="line.109">    }</a>
+<span class="sourceLineNo">110</span><a id="line.110"></a>
+<span class="sourceLineNo">111</span><a id="line.111">    /*</a>
+<span class="sourceLineNo">112</span><a id="line.112">     * (non-Javadoc)</a>
+<span class="sourceLineNo">113</span><a id="line.113">     * </a>
+<span class="sourceLineNo">114</span><a id="line.114">     * @see org.jgrapes.core.internal.ComponentVertex#getComponent()</a>
+<span class="sourceLineNo">115</span><a id="line.115">     */</a>
+<span class="sourceLineNo">116</span><a id="line.116">    @Override</a>
+<span class="sourceLineNo">117</span><a id="line.117">    protected Component component() {</a>
+<span class="sourceLineNo">118</span><a id="line.118">        return this;</a>
+<span class="sourceLineNo">119</span><a id="line.119">    }</a>
+<span class="sourceLineNo">120</span><a id="line.120"></a>
+<span class="sourceLineNo">121</span><a id="line.121">    /**</a>
+<span class="sourceLineNo">122</span><a id="line.122">     * Returns the channel associated with the component.</a>
+<span class="sourceLineNo">123</span><a id="line.123">     * </a>
+<span class="sourceLineNo">124</span><a id="line.124">     * @return the channel as assigned by the constructor.</a>
+<span class="sourceLineNo">125</span><a id="line.125">     * </a>
+<span class="sourceLineNo">126</span><a id="line.126">     * @see org.jgrapes.core.Manager#channel()</a>
+<span class="sourceLineNo">127</span><a id="line.127">     */</a>
+<span class="sourceLineNo">128</span><a id="line.128">    @Override</a>
+<span class="sourceLineNo">129</span><a id="line.129">    public Channel channel() {</a>
+<span class="sourceLineNo">130</span><a id="line.130">        return componentChannel;</a>
+<span class="sourceLineNo">131</span><a id="line.131">    }</a>
+<span class="sourceLineNo">132</span><a id="line.132"></a>
+<span class="sourceLineNo">133</span><a id="line.133">    /**</a>
+<span class="sourceLineNo">134</span><a id="line.134">     * Return the object itself as value.</a>
+<span class="sourceLineNo">135</span><a id="line.135">     */</a>
+<span class="sourceLineNo">136</span><a id="line.136">    @Override</a>
+<span class="sourceLineNo">137</span><a id="line.137">    public Object defaultCriterion() {</a>
+<span class="sourceLineNo">138</span><a id="line.138">        return this;</a>
+<span class="sourceLineNo">139</span><a id="line.139">    }</a>
+<span class="sourceLineNo">140</span><a id="line.140"></a>
+<span class="sourceLineNo">141</span><a id="line.141">    /**</a>
+<span class="sourceLineNo">142</span><a id="line.142">     * Matches the object itself (using identity comparison) or the</a>
+<span class="sourceLineNo">143</span><a id="line.143">     * {@link Channel} class.</a>
+<span class="sourceLineNo">144</span><a id="line.144">     * </a>
+<span class="sourceLineNo">145</span><a id="line.145">     * @see Channel#isEligibleFor(Object)</a>
+<span class="sourceLineNo">146</span><a id="line.146">     */</a>
+<span class="sourceLineNo">147</span><a id="line.147">    @Override</a>
+<span class="sourceLineNo">148</span><a id="line.148">    public boolean isEligibleFor(Object value) {</a>
+<span class="sourceLineNo">149</span><a id="line.149">        return value.equals(Channel.class)</a>
+<span class="sourceLineNo">150</span><a id="line.150">            || value == defaultCriterion();</a>
+<span class="sourceLineNo">151</span><a id="line.151">    }</a>
+<span class="sourceLineNo">152</span><a id="line.152"></a>
+<span class="sourceLineNo">153</span><a id="line.153">}</a>
 
 
 
@@ -221,5 +222,6 @@
 
 </pre>
 </div>
+</main>
 </body>
 </html>

@@ -1,90 +1,91 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html lang="en">
 <head>
 <title>Source code</title>
 <link rel="stylesheet" type="text/css" href="../../../../stylesheet.css" title="Style">
 </head>
 <body>
+<main role="main">
 <div class="sourceContainer">
-<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
-<span class="sourceLineNo">002</span> * JGrapes Event Driven Framework<a name="line.2"></a>
-<span class="sourceLineNo">003</span> * Copyright (C) 2017-2018 Michael N. Lipp<a name="line.3"></a>
-<span class="sourceLineNo">004</span> * <a name="line.4"></a>
-<span class="sourceLineNo">005</span> * This program is free software; you can redistribute it and/or modify it <a name="line.5"></a>
-<span class="sourceLineNo">006</span> * under the terms of the GNU Affero General Public License as published by <a name="line.6"></a>
-<span class="sourceLineNo">007</span> * the Free Software Foundation; either version 3 of the License, or <a name="line.7"></a>
-<span class="sourceLineNo">008</span> * (at your option) any later version.<a name="line.8"></a>
-<span class="sourceLineNo">009</span> * <a name="line.9"></a>
-<span class="sourceLineNo">010</span> * This program is distributed in the hope that it will be useful, but <a name="line.10"></a>
-<span class="sourceLineNo">011</span> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY<a name="line.11"></a>
-<span class="sourceLineNo">012</span> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License <a name="line.12"></a>
-<span class="sourceLineNo">013</span> * for more details.<a name="line.13"></a>
-<span class="sourceLineNo">014</span> * <a name="line.14"></a>
-<span class="sourceLineNo">015</span> * You should have received a copy of the GNU Affero General Public License along <a name="line.15"></a>
-<span class="sourceLineNo">016</span> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.<a name="line.16"></a>
-<span class="sourceLineNo">017</span> */<a name="line.17"></a>
-<span class="sourceLineNo">018</span><a name="line.18"></a>
-<span class="sourceLineNo">019</span>package org.jgrapes.core;<a name="line.19"></a>
-<span class="sourceLineNo">020</span><a name="line.20"></a>
-<span class="sourceLineNo">021</span>import java.util.Arrays;<a name="line.21"></a>
-<span class="sourceLineNo">022</span>import java.util.Collections;<a name="line.22"></a>
-<span class="sourceLineNo">023</span>import java.util.List;<a name="line.23"></a>
-<span class="sourceLineNo">024</span>import java.util.Map;<a name="line.24"></a>
-<span class="sourceLineNo">025</span>import java.util.ServiceLoader;<a name="line.25"></a>
-<span class="sourceLineNo">026</span>import java.util.function.Function;<a name="line.26"></a>
-<span class="sourceLineNo">027</span><a name="line.27"></a>
-<span class="sourceLineNo">028</span>/**<a name="line.28"></a>
-<span class="sourceLineNo">029</span> * A component that collects all component factory services of <a name="line.29"></a>
-<span class="sourceLineNo">030</span> * a given type and creates an instance of each.<a name="line.30"></a>
-<span class="sourceLineNo">031</span> * <a name="line.31"></a>
-<span class="sourceLineNo">032</span> * @param &lt;F&gt; the component factory type<a name="line.32"></a>
-<span class="sourceLineNo">033</span> */<a name="line.33"></a>
-<span class="sourceLineNo">034</span>public class ComponentCollector&lt;F extends ComponentFactory&gt;<a name="line.34"></a>
-<span class="sourceLineNo">035</span>        extends Component {<a name="line.35"></a>
-<span class="sourceLineNo">036</span><a name="line.36"></a>
-<span class="sourceLineNo">037</span>    private static final List&lt;Map&lt;Object, Object&gt;&gt; SINGLE_DEFAULT<a name="line.37"></a>
-<span class="sourceLineNo">038</span>        = Arrays.asList(Collections.emptyMap());<a name="line.38"></a>
-<span class="sourceLineNo">039</span><a name="line.39"></a>
-<span class="sourceLineNo">040</span>    /**<a name="line.40"></a>
-<span class="sourceLineNo">041</span>     * Creates a new collector that collects the factories of the given <a name="line.41"></a>
-<span class="sourceLineNo">042</span>     * type and uses each to create an instance with this component's<a name="line.42"></a>
-<span class="sourceLineNo">043</span>     * channel. Before the instance is created, the `matcher` <a name="line.43"></a>
-<span class="sourceLineNo">044</span>     * function is invoked with the name of the class of the component<a name="line.44"></a>
-<span class="sourceLineNo">045</span>     * to be created as argument. The list of maps returned is<a name="line.45"></a>
-<span class="sourceLineNo">046</span>     * used to create components, passing each element in the list<a name="line.46"></a>
-<span class="sourceLineNo">047</span>     * as parameter to {@link ComponentFactory#create(Channel, Map)}<a name="line.47"></a>
-<span class="sourceLineNo">048</span>     * <a name="line.48"></a>
-<span class="sourceLineNo">049</span>     * @param factoryClass the factory class<a name="line.49"></a>
-<span class="sourceLineNo">050</span>     * @param componentChannel this component's channel<a name="line.50"></a>
-<span class="sourceLineNo">051</span>     * @param matcher the matcher function<a name="line.51"></a>
-<span class="sourceLineNo">052</span>     */<a name="line.52"></a>
-<span class="sourceLineNo">053</span>    public ComponentCollector(<a name="line.53"></a>
-<span class="sourceLineNo">054</span>            Class&lt;F&gt; factoryClass, Channel componentChannel,<a name="line.54"></a>
-<span class="sourceLineNo">055</span>            Function&lt;String, List&lt;Map&lt;Object, Object&gt;&gt;&gt; matcher) {<a name="line.55"></a>
-<span class="sourceLineNo">056</span>        super(componentChannel);<a name="line.56"></a>
-<span class="sourceLineNo">057</span>        ServiceLoader&lt;F&gt; serviceLoader = ServiceLoader.load(factoryClass);<a name="line.57"></a>
-<span class="sourceLineNo">058</span>        for (F factory : serviceLoader) {<a name="line.58"></a>
-<span class="sourceLineNo">059</span>            List&lt;Map&lt;Object, Object&gt;&gt; configs = matcher.apply(<a name="line.59"></a>
-<span class="sourceLineNo">060</span>                factory.componentType().getName());<a name="line.60"></a>
-<span class="sourceLineNo">061</span>            for (Map&lt;Object, Object&gt; config : configs) {<a name="line.61"></a>
-<span class="sourceLineNo">062</span>                factory.create(channel(), config).ifPresent(<a name="line.62"></a>
-<span class="sourceLineNo">063</span>                    component -&gt; attach(component));<a name="line.63"></a>
-<span class="sourceLineNo">064</span>            }<a name="line.64"></a>
-<span class="sourceLineNo">065</span>        }<a name="line.65"></a>
-<span class="sourceLineNo">066</span>    }<a name="line.66"></a>
-<span class="sourceLineNo">067</span><a name="line.67"></a>
-<span class="sourceLineNo">068</span>    /**<a name="line.68"></a>
-<span class="sourceLineNo">069</span>     * Utility constructor that uses each factory to create a single<a name="line.69"></a>
-<span class="sourceLineNo">070</span>     * instance, using an empty map as properties.<a name="line.70"></a>
-<span class="sourceLineNo">071</span>     * <a name="line.71"></a>
-<span class="sourceLineNo">072</span>     * @param factoryClass the factory class<a name="line.72"></a>
-<span class="sourceLineNo">073</span>     * @param componentChannel this component's channel<a name="line.73"></a>
-<span class="sourceLineNo">074</span>     */<a name="line.74"></a>
-<span class="sourceLineNo">075</span>    public ComponentCollector(<a name="line.75"></a>
-<span class="sourceLineNo">076</span>            Class&lt;F&gt; factoryClass, Channel componentChannel) {<a name="line.76"></a>
-<span class="sourceLineNo">077</span>        this(factoryClass, componentChannel, type -&gt; SINGLE_DEFAULT);<a name="line.77"></a>
-<span class="sourceLineNo">078</span>    }<a name="line.78"></a>
-<span class="sourceLineNo">079</span>}<a name="line.79"></a>
+<pre><span class="sourceLineNo">001</span><a id="line.1">/*</a>
+<span class="sourceLineNo">002</span><a id="line.2"> * JGrapes Event Driven Framework</a>
+<span class="sourceLineNo">003</span><a id="line.3"> * Copyright (C) 2017-2018 Michael N. Lipp</a>
+<span class="sourceLineNo">004</span><a id="line.4"> * </a>
+<span class="sourceLineNo">005</span><a id="line.5"> * This program is free software; you can redistribute it and/or modify it </a>
+<span class="sourceLineNo">006</span><a id="line.6"> * under the terms of the GNU Affero General Public License as published by </a>
+<span class="sourceLineNo">007</span><a id="line.7"> * the Free Software Foundation; either version 3 of the License, or </a>
+<span class="sourceLineNo">008</span><a id="line.8"> * (at your option) any later version.</a>
+<span class="sourceLineNo">009</span><a id="line.9"> * </a>
+<span class="sourceLineNo">010</span><a id="line.10"> * This program is distributed in the hope that it will be useful, but </a>
+<span class="sourceLineNo">011</span><a id="line.11"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</a>
+<span class="sourceLineNo">012</span><a id="line.12"> * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License </a>
+<span class="sourceLineNo">013</span><a id="line.13"> * for more details.</a>
+<span class="sourceLineNo">014</span><a id="line.14"> * </a>
+<span class="sourceLineNo">015</span><a id="line.15"> * You should have received a copy of the GNU Affero General Public License along </a>
+<span class="sourceLineNo">016</span><a id="line.16"> * with this program; if not, see &lt;http://www.gnu.org/licenses/&gt;.</a>
+<span class="sourceLineNo">017</span><a id="line.17"> */</a>
+<span class="sourceLineNo">018</span><a id="line.18"></a>
+<span class="sourceLineNo">019</span><a id="line.19">package org.jgrapes.core;</a>
+<span class="sourceLineNo">020</span><a id="line.20"></a>
+<span class="sourceLineNo">021</span><a id="line.21">import java.util.Arrays;</a>
+<span class="sourceLineNo">022</span><a id="line.22">import java.util.Collections;</a>
+<span class="sourceLineNo">023</span><a id="line.23">import java.util.List;</a>
+<span class="sourceLineNo">024</span><a id="line.24">import java.util.Map;</a>
+<span class="sourceLineNo">025</span><a id="line.25">import java.util.ServiceLoader;</a>
+<span class="sourceLineNo">026</span><a id="line.26">import java.util.function.Function;</a>
+<span class="sourceLineNo">027</span><a id="line.27"></a>
+<span class="sourceLineNo">028</span><a id="line.28">/**</a>
+<span class="sourceLineNo">029</span><a id="line.29"> * A component that collects all component factory services of </a>
+<span class="sourceLineNo">030</span><a id="line.30"> * a given type and creates an instance of each.</a>
+<span class="sourceLineNo">031</span><a id="line.31"> * </a>
+<span class="sourceLineNo">032</span><a id="line.32"> * @param &lt;F&gt; the component factory type</a>
+<span class="sourceLineNo">033</span><a id="line.33"> */</a>
+<span class="sourceLineNo">034</span><a id="line.34">public class ComponentCollector&lt;F extends ComponentFactory&gt;</a>
+<span class="sourceLineNo">035</span><a id="line.35">        extends Component {</a>
+<span class="sourceLineNo">036</span><a id="line.36"></a>
+<span class="sourceLineNo">037</span><a id="line.37">    private static final List&lt;Map&lt;Object, Object&gt;&gt; SINGLE_DEFAULT</a>
+<span class="sourceLineNo">038</span><a id="line.38">        = Arrays.asList(Collections.emptyMap());</a>
+<span class="sourceLineNo">039</span><a id="line.39"></a>
+<span class="sourceLineNo">040</span><a id="line.40">    /**</a>
+<span class="sourceLineNo">041</span><a id="line.41">     * Creates a new collector that collects the factories of the given </a>
+<span class="sourceLineNo">042</span><a id="line.42">     * type and uses each to create an instance with this component's</a>
+<span class="sourceLineNo">043</span><a id="line.43">     * channel. Before the instance is created, the `matcher` </a>
+<span class="sourceLineNo">044</span><a id="line.44">     * function is invoked with the name of the class of the component</a>
+<span class="sourceLineNo">045</span><a id="line.45">     * to be created as argument. The list of maps returned is</a>
+<span class="sourceLineNo">046</span><a id="line.46">     * used to create components, passing each element in the list</a>
+<span class="sourceLineNo">047</span><a id="line.47">     * as parameter to {@link ComponentFactory#create(Channel, Map)}</a>
+<span class="sourceLineNo">048</span><a id="line.48">     * </a>
+<span class="sourceLineNo">049</span><a id="line.49">     * @param factoryClass the factory class</a>
+<span class="sourceLineNo">050</span><a id="line.50">     * @param componentChannel this component's channel</a>
+<span class="sourceLineNo">051</span><a id="line.51">     * @param matcher the matcher function</a>
+<span class="sourceLineNo">052</span><a id="line.52">     */</a>
+<span class="sourceLineNo">053</span><a id="line.53">    public ComponentCollector(</a>
+<span class="sourceLineNo">054</span><a id="line.54">            Class&lt;F&gt; factoryClass, Channel componentChannel,</a>
+<span class="sourceLineNo">055</span><a id="line.55">            Function&lt;String, List&lt;Map&lt;Object, Object&gt;&gt;&gt; matcher) {</a>
+<span class="sourceLineNo">056</span><a id="line.56">        super(componentChannel);</a>
+<span class="sourceLineNo">057</span><a id="line.57">        ServiceLoader&lt;F&gt; serviceLoader = ServiceLoader.load(factoryClass);</a>
+<span class="sourceLineNo">058</span><a id="line.58">        for (F factory : serviceLoader) {</a>
+<span class="sourceLineNo">059</span><a id="line.59">            List&lt;Map&lt;Object, Object&gt;&gt; configs = matcher.apply(</a>
+<span class="sourceLineNo">060</span><a id="line.60">                factory.componentType().getName());</a>
+<span class="sourceLineNo">061</span><a id="line.61">            for (Map&lt;Object, Object&gt; config : configs) {</a>
+<span class="sourceLineNo">062</span><a id="line.62">                factory.create(channel(), config).ifPresent(</a>
+<span class="sourceLineNo">063</span><a id="line.63">                    component -&gt; attach(component));</a>
+<span class="sourceLineNo">064</span><a id="line.64">            }</a>
+<span class="sourceLineNo">065</span><a id="line.65">        }</a>
+<span class="sourceLineNo">066</span><a id="line.66">    }</a>
+<span class="sourceLineNo">067</span><a id="line.67"></a>
+<span class="sourceLineNo">068</span><a id="line.68">    /**</a>
+<span class="sourceLineNo">069</span><a id="line.69">     * Utility constructor that uses each factory to create a single</a>
+<span class="sourceLineNo">070</span><a id="line.70">     * instance, using an empty map as properties.</a>
+<span class="sourceLineNo">071</span><a id="line.71">     * </a>
+<span class="sourceLineNo">072</span><a id="line.72">     * @param factoryClass the factory class</a>
+<span class="sourceLineNo">073</span><a id="line.73">     * @param componentChannel this component's channel</a>
+<span class="sourceLineNo">074</span><a id="line.74">     */</a>
+<span class="sourceLineNo">075</span><a id="line.75">    public ComponentCollector(</a>
+<span class="sourceLineNo">076</span><a id="line.76">            Class&lt;F&gt; factoryClass, Channel componentChannel) {</a>
+<span class="sourceLineNo">077</span><a id="line.77">        this(factoryClass, componentChannel, type -&gt; SINGLE_DEFAULT);</a>
+<span class="sourceLineNo">078</span><a id="line.78">    }</a>
+<span class="sourceLineNo">079</span><a id="line.79">}</a>
 
 
 
@@ -147,5 +148,6 @@
 
 </pre>
 </div>
+</main>
 </body>
 </html>
