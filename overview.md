@@ -7,7 +7,7 @@ JGrapes is an event driven component framework. It consists of
 several packages that built on each other. Each package is available
 as a jar file.
 
-<object type="image/svg+xml" data="org/jgrapes/core/package-hierarchy.svg">Package hierarchy</object>
+<div><object type="image/svg+xml" data="org/jgrapes/core/package-hierarchy.svg">Package hierarchy</object></div>
 
 `org.jgrapes.core`
 : This package provides the basic mechanisms for defining
