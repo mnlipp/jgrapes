@@ -99,4 +99,10 @@ task stage {
 
 apply plugin: 'eclipse'
 
+eclipse {
+    jdt {
+        javaRuntimeName = "JavaSE-11"
+    }
+}
+
 tasks.eclipse.dependsOn(cleanEclipse)
