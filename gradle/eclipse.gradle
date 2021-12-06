@@ -20,9 +20,7 @@ eclipse {
     }
     jdt {
         if (project.name.startsWith("org.jgrapes.")) {
-            sourceCompatibility = 1.8
-            targetCompatibility = 1.8
-            javaRuntimeName = "JavaSE-1.8"
+            javaRuntimeName = "JavaSE-11"
         }
         file {
             withProperties { properties ->

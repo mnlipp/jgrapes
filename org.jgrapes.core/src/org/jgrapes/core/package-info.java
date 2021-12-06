@@ -273,6 +273,30 @@
  * end note
  * 
  * @enduml
+ * 
+ * @startuml package-hierarchy.svg
+ * skinparam svgLinkTarget _parent
+ * 
+ * package org.jgrapes {
+ *     package org.jgrapes.core [[org/jgrapes/core/package-summary.html#package.description]] {
+ *     }
+ * 
+ *     package org.jgrapes.util [[org/jgrapes/util/package-summary.html#package.description]] {
+ *     }
+ * 
+ *     package org.jgrapes.io [[org/jgrapes/io/package-summary.html#package.description]] {
+ *     }
+ * 
+ *     package org.jgrapes.http [[org/jgrapes/http/package-summary.html#package.description]] {
+ *     }
+ * }
+ * 
+ * org.jgrapes.core <.right. org.jgrapes.util
+ * org.jgrapes.core <.. org.jgrapes.io
+ * org.jgrapes.util <.. org.jgrapes.io
+ * org.jgrapes.io <.right. org.jgrapes.http
+ * 
+ * @enduml
  */
 @org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.core;

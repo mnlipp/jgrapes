@@ -10,7 +10,6 @@ Export-Package: \
 	org.jgrapes.util.events
 
 -sources: true
--runee: JavaSE-1.8
 
 -dsannotations: 
 

@@ -4,13 +4,17 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 apply plugin: 'signing'
 apply plugin: 'maven-publish'
-apply plugin: 'org.jdrupes.mdoclet'
-    
+
 if (project.file("bnd.bnd").exists()) {
 
     apply plugin: 'java-library'
     apply plugin: 'biz.aQute.bnd.builder'
         
+    java {
+        sourceCompatibility = 11
+        targetCompatibility = 11
+    }
+
     // Provide the Bundle-Version (shared by all libraries)
     ext.bundleVersion = "${-> releaseVersion + (isSnapshot ? '.-\${tstamp}-SNAPSHOT' : '.ga')}"
 
@@ -34,11 +38,11 @@ if (project.file("bnd.bnd").exists()) {
     }
 
 }
-    
+
 dependencies {
     compileOnly 'org.osgi:org.osgi.annotation:6.0.0'
     testImplementation 'junit:junit:4.12', 'net.jodah:concurrentunit:0.4.2'
-    testImplementation "org.codehaus.groovy:groovy-all:3.0.5"
+    testImplementation "org.codehaus.groovy:groovy-all:3.0.9"
     testImplementation "org.spockframework:spock-core:2.0-M5-groovy-3.0"
 }
 
@@ -79,12 +83,6 @@ test {
 
 if (project.name.startsWith("org.jgrapes.")) {
     apply from: "${project.rootDir}/gradle/publishing.gradle"
-    
-    tasks.compileJava {
-        if (!JavaVersion.current().isJava8()) {
-            options.compilerArgs.addAll(['--release', '8'])
-        }
-    }
 }
 
 apply from: "${project.rootDir}/gradle/eclipse.gradle"
