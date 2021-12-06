@@ -11,8 +11,8 @@ if (project.file("bnd.bnd").exists()) {
     apply plugin: 'biz.aQute.bnd.builder'
         
     java {
-        sourceCompatibility = 11
-        targetCompatibility = 11
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     // Provide the Bundle-Version (shared by all libraries)

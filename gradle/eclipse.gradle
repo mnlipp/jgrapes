@@ -1,4 +1,6 @@
 apply plugin: 'eclipse'
+
+var gradleProject = project
     
 eclipse {
     classpath {
@@ -19,6 +21,11 @@ eclipse {
             'org.eclipse.jdt.groovy.core.groovyNature'
     }
     jdt {
+        if (plugins.hasPlugin('biz.aQute.bnd.builder')) {
+            println "Setting " + gradleProject.java.sourceCompatibility
+            sourceCompatibility = gradleProject.java.sourceCompatibility
+            targetCompatibility = gradleProject.java.targetCompatibility
+        }
         if (project.name.startsWith("org.jgrapes.")) {
             javaRuntimeName = "JavaSE-11"
         }
