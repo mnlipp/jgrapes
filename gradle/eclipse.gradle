@@ -22,7 +22,6 @@ eclipse {
     }
     jdt {
         if (plugins.hasPlugin('biz.aQute.bnd.builder')) {
-            println "Setting " + gradleProject.java.sourceCompatibility
             sourceCompatibility = gradleProject.java.sourceCompatibility
             targetCompatibility = gradleProject.java.targetCompatibility
         }
