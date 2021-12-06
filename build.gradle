@@ -85,16 +85,16 @@ gitPublish {
 tasks.gitPublishCopy.dependsOn(":org.jgrapes.core:javadoc")
 
 task stage {
-	description = 'To be executed by travis, build and update JavaDoc.'
+	description = 'To be executed by CI, build and update JavaDoc.'
 	group = 'build'
 
     // Build everything first
     subprojects.tasks.each { tc -> dependsOn tc.findByName("build") }
 	
-    if (!isCiBuild || JavaVersion.current().isJava8()) {
+    if (!isCiBuild || JavaVersion.current().isJava11()) {
     	// Publish JavaDoc
     	dependsOn gitPublishPush
-    }	
+    }
 }
 
 apply plugin: 'eclipse'
