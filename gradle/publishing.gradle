@@ -74,39 +74,6 @@ configurePublishing {
     }
 }
 
-apply plugin: 'com.jfrog.bintray'
-
-bintray {
-    user = project.properties['bintrayUser'] ?: "nouser"
-    key = project.properties['bintrayApiKey'] ?: "nokey"
-    publications = ['maven']
-    publish = true
-    pkg {
-        repo = "jgrapes"
-        name = "org.jgrapes:" + project.name
-        licenses = ['AGPL-V3']
-        vcsUrl = 'https://github.com/mnlipp/jgrapes.git'
-        githubRepo = 'mnlipp/jgrapes'
-        githubReleaseNotesFile = 'README.md'
-        version {
-             gpg {
-                 sign = true
-             }
-             mavenCentralSync {
-                sync = true
-                user = project.properties['sonatypeTokenKey'] ?: "nokey"
-                password = project.properties['sonatypeTokenSecret'] ?: "nosecret"
-                close = '1'
-            }
-        }
-    }
-}
-
-afterEvaluate {
-    bintray.pkg.version.name = project.version
-    bintrayUpload.dependsOn "build"
-}
-
 task releaseTag {
     doLast {
         String name = project.name.startsWith(project.group + ".") ?
@@ -119,13 +86,6 @@ task releaseTag {
 }
 
 build.mustRunAfter "releaseTag"
-
-task releaseToBintray {
-    group = "publishing"
-    
-    dependsOn "releaseTag"
-    dependsOn "bintrayUpload"
-}
 
 afterEvaluate {
     if(!project.name.startsWith("org.jgrapes")) {
