@@ -74,6 +74,13 @@ configurePublishing {
     }
 }
 
+jar {
+    into("META-INF/maven/$project.group/$project.name") {
+        from generatePomFileForMavenPublication
+        rename ".*", "pom.xml"
+    }
+}
+
 task releaseTag {
     doLast {
         String name = project.name.startsWith(project.group + ".") ?
