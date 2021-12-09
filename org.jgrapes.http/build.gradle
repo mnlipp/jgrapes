@@ -1,9 +1,7 @@
 dependencies {
-
     api project(':org.jgrapes.io')
 	// BndPomRepository (3.5.0) cannot handle ranges without upper limit 
     api 'org.jdrupes.httpcodec:httpcodec:[2.0.3,3)'
-    
 }
 
 test {

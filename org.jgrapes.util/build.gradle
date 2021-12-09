@@ -1,7 +1,5 @@
 dependencies {
-	
 	api project(':org.jgrapes.core')
 	api 'org.jdrupes.json:json:[2.0.0,2.1.0)'
-	
 }
 	

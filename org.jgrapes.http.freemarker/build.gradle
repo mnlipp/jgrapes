@@ -1,8 +1,6 @@
 dependencies {
-
     api project(':org.jgrapes.http')
-    api 'org.freemarker:freemarker:[2.3.27-incubating,2.4)'
-    
+    api 'org.freemarker:freemarker:[2.3.27-incubating,2.4)'    
 }
 
 test {
