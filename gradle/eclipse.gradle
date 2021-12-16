@@ -1,41 +1,46 @@
 apply plugin: 'eclipse'
-
-var gradleProject = project
     
 eclipse {
-    classpath {
-        // 'org.eclipse.buildship.core.gradleclasspathcontainer',
-        // containers 'aQute.bnd.classpath.container'
-        downloadJavadoc = true
-        downloadSources = true
-    }
+
     project {
-        buildCommand 'org.eclipse.jdt.core.javabuilder'
-        // buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
-        // buildCommand 'bndtools.core.bndbuilder'
-        buildCommand 'net.sf.eclipsecs.core.CheckstyleBuilder'
-        // 'org.eclipse.buildship.core.gradleprojectnature',
-        natures 'org.eclipse.jdt.core.javanature', \
-            'bndtools.core.bndnature', \
-            'net.sf.eclipsecs.core.CheckstyleNature', \
-            'org.eclipse.jdt.groovy.core.groovyNature'
-    }
-    jdt {
-        if (plugins.hasPlugin('biz.aQute.bnd.builder')) {
-            sourceCompatibility = gradleProject.java.sourceCompatibility
-            targetCompatibility = gradleProject.java.targetCompatibility
-        }
-        if (project.name.startsWith("org.jgrapes.")) {
-            javaRuntimeName = "JavaSE-11"
-        }
         file {
-            withProperties { properties ->
-                def formatterPrefs = new Properties()
-                rootProject.file("gradle/org.eclipse.jdt.core.formatter.prefs")
-                    .withInputStream { formatterPrefs.load(it) }
-                properties.putAll(formatterPrefs)
+            // closure executed after .project content is loaded from existing file
+            // and before gradle build information is merged
+            beforeMerged { project ->
+                project.natures.clear()
+                project.buildCommands.clear()
+            }
+            
+            project.natures += 'org.eclipse.buildship.core.gradleprojectnature'
+            project.buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
+            
+            if (project.name.startsWith('org.jgrapes.')) {
+                project.buildCommand 'org.eclipse.jdt.core.javabuilder'
+                project.buildCommand 'net.sf.eclipsecs.core.CheckstyleBuilder'
+                project.natures += 'net.sf.eclipsecs.core.CheckstyleNature'
+            }
+        }
+    }
+    
+    if (plugins.hasPlugin('biz.aQute.bnd.builder')) {
+        classpath {
+            downloadJavadoc = true
+            downloadSources = true
+        }
+    
+        jdt {
+            javaRuntimeName = "JavaSE-11"
+            file {
+                withProperties { properties ->
+                    def formatterPrefs = new Properties()
+                    rootProject.file("gradle/org.eclipse.jdt.core.formatter.prefs")
+                        .withInputStream { formatterPrefs.load(it) }
+                    properties.putAll(formatterPrefs)
+                }
             }
         }
     }
 }
+
 tasks.eclipse.dependsOn(cleanEclipse)
+

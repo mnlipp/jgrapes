@@ -1,14 +1,14 @@
+dependencies {
+    api project(':org.jgrapes.core')
+	api project(':org.jgrapes.util')
+}
+
 sourceSets {
     test {
         resources {
             srcDir 'test'
         }
     }
-}
-
-dependencies {
-    api project(':org.jgrapes.core')
-	api project(':org.jgrapes.util')
 }
 
 test {

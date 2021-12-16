@@ -6,37 +6,21 @@ dependencies {
 
     implementation project(':org.jgrapes.http')
     implementation project(':org.jgrapes.util')
-	compileOnly 'org.osgi:osgi.core:6.0.0'
+	implementation 'org.osgi:osgi.core:6.0.0'
 	
-    osgiRuntime osgi('org.jdrupes.httpcodec:httpcodec:[1.0.4,)')
-    osgiRuntime osgi('org.apache.aries.spifly:org.apache.aries.spifly.dynamic.bundle:1.0.8')
-    osgiRuntime osgi('org.apache.aries:org.apache.aries.util:1.1.3')
-    osgiRuntime osgi('org.ow2.asm:asm-all:5.0.4')
-    
+    runtimeOnly 'org.apache.felix:org.apache.felix.framework:6.0.5'
+    runtimeOnly ('org.apache.aries.spifly:org.apache.aries.spifly.dynamic.bundle:1.3.4') {
+        transitive = true }
+    runtimeOnly (project(':examples')) {
+        transitive = true }
 }
 
+// For unknwown reasons required to prevent deadlock
 jar {
-//    into ('demo-resources') {
-//        from 'demo-resources'
-//    } 
+    dependsOn ':org.jgrapes.core:generatePomFileForMavenPublication'
+    dependsOn ':org.jgrapes.util:generatePomFileForMavenPublication'
+    dependsOn ':org.jgrapes.io:generatePomFileForMavenPublication'
 }
-
-task copyResources(type: Copy) {
-    from('.') {
-        include 'demo-resources'
-        include 'jul-debug.properties'
-    }
-    into "${project.buildDir}/${project.runOsgi.outDir}"
-}
-
-runOsgi {
-    bundles += project.rootProject.allprojects.toList()
-    javaArgs = '-Djava.util.logging.config.file=jul-debug.properties'
-    // ' -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1044'
-}
-
-tasks.runOsgi.dependsOn tasks.copyResources
-
 
 task runGreeter(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
@@ -54,3 +38,29 @@ task runEchoServer(type: JavaExec) {
     main = 'org.jgrapes.examples.io.tcpecho.EchoServer'
     standardInput = System.in
 }
+
+import aQute.bnd.gradle.Bndrun
+
+task deb {
+    doFirst {
+        println "Classpath ${project.sourceSets.main.runtimeClasspath.files}"
+    }
+}
+
+task runOSGiDemo(type: Bndrun) {
+    group = 'verification'
+    workingDirectory = project.file('.')
+    bndrun = file("examples.bndrun")
+    bundles = project.sourceSets.main.runtimeClasspath
+}
+
+eclipse {
+    project {
+       natures += 'bndtools.core.bndnature'
+    }
+    jdt {
+        javaRuntimeName = "JavaSE-11"
+    }
+}
+
+tasks.eclipse.dependsOn(cleanEclipse)

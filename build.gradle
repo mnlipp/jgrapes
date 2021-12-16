@@ -31,6 +31,16 @@ if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
 }
 
 allprojects {
+    repositories {
+        mavenCentral()
+        // Sometimes, synchronization with central is too slow
+        maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
+        // Snapshots
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        // Experimental, not sure if this is the way tpo go...
+        maven { url 'https://jitpack.io' }
+    }
+    
     group = 'org.jgrapes'
     
     ext.releaseVersion = "1.2.0"
@@ -39,21 +49,7 @@ allprojects {
     // Default values, can be overridden in subproject
     version = "${-> releaseVersion + (isSnapshot ? '-SNAPSHOT' : '') }"
     
-    repositories {
-        jcenter()
-        mavenCentral()
-        // Sometimes, synchronization with central is too slow
-        maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
-        // Snapshots
-        if (isSnapshot) {
-            maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        }
-        // Experimental, not sure if this is the way tpo go...
-        maven { url 'https://jitpack.io' }
-    }
-	
-	// Makes Eclipse-groovy handle *.gradle file properly
-	apply plugin:'groovy'
+    apply from: "${project.rootDir}/gradle/eclipse.gradle"
 }
 
 subprojects {
@@ -93,12 +89,3 @@ task stage {
     }
 }
 
-apply plugin: 'eclipse'
-
-eclipse {
-    jdt {
-        javaRuntimeName = "JavaSE-11"
-    }
-}
-
-tasks.eclipse.dependsOn(cleanEclipse)

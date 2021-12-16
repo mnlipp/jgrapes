@@ -2,22 +2,22 @@
 sourceSets {
     main {
         java {
-            srcDir 'src'
+            srcDirs = ['src']
         }
         resources {
-            srcDir 'resources'
+            srcDirs = ['resources']
         }
     }
 
     test {
         java {
-            srcDir 'test'
+            srcDirs = ['test']
         }
         groovy {
-            srcDir 'test'
+            srcDirs = ['test']
         }
         resources {
-            srcDir 'test-resources'
+            srcDirs = ['test-resources']
         }
     }
 }

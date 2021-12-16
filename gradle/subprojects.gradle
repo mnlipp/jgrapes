@@ -5,10 +5,17 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 apply plugin: 'signing'
 apply plugin: 'maven-publish'
 
-if (project.file("bnd.bnd").exists()) {
+if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
 
     apply plugin: 'java-library'
     apply plugin: 'biz.aQute.bnd.builder'
+    apply plugin: 'groovy'
+    apply from: "${project.rootDir}/gradle/layout.gradle"
+
+    if (project.name != "examples") {
+        apply from: "${project.rootDir}/gradle/baseline.gradle"
+        apply from: "${project.rootDir}/gradle/publishing.gradle"
+    }
         
     java {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -19,70 +26,59 @@ if (project.file("bnd.bnd").exists()) {
     ext.bundleVersion = "${-> releaseVersion + (isSnapshot ? '.-\${tstamp}-SNAPSHOT' : '.ga')}"
 
     jar {
-        manifest {
-            inputs.property("gitDescriptor", { grgit.describe() })
-            
-            attributes('Bundle-Version': bundleVersion)
-            // Set Git revision information in the manifests of built bundles
-            attributes('Git-SHA': grgit.head().id)
-        }
         doFirst {
             manifest {
                 attributes('Git-Descriptor': inputs.properties['gitDescriptor'])
             }
         }
+        manifest {
+            inputs.property("gitDescriptor", { grgit.describe() })
+            
+            // Set Git revision information in the manifests of built bundles
+            attributes([
+                "Git-Descriptor": grgit.describe(always: true),
+                "Git-SHA": grgit.head().id
+            ])
+        }
     }
 
-    if (project.name != "examples") {
-        apply from: "${project.rootDir}/gradle/baseline.gradle"
-    }
-
-}
-
-dependencies {
-    compileOnly 'org.osgi:org.osgi.annotation:6.0.0'
-    testImplementation 'junit:junit:4.12', 'net.jodah:concurrentunit:0.4.2'
-    testImplementation "org.codehaus.groovy:groovy-all:3.0.9"
-    testImplementation "org.spockframework:spock-core:2.0-M5-groovy-3.0"
-}
-
-apply from: "${project.rootDir}/gradle/layout.gradle"
-
-test {
-//    if (!rootProject.isCiBuild) {
-//        jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=18888'
-//    }
-        
-    testLogging {
-        events TestLogEvent.FAILED,
-               TestLogEvent.SKIPPED,
-               TestLogEvent.PASSED,
-               TestLogEvent.STANDARD_ERROR,
-               TestLogEvent.STANDARD_OUT
-               
-        exceptionFormat TestExceptionFormat.FULL
-
-        showStandardStreams = true
-        showExceptions = true
-        showStackTraces = true
-        showCauses = true
-    }
-        
-    if (isCiBuild) {
-        maxParallelForks = 2
-        maxHeapSize = '768m'
-    } else {
-        maxHeapSize = '2048m'
+    dependencies {
+        compileOnly 'org.osgi:org.osgi.annotation:6.0.0'
+        testImplementation 'junit:junit:4.12', 'net.jodah:concurrentunit:0.4.2'
+        testImplementation "org.codehaus.groovy:groovy-all:3.0.9"
+        testImplementation "org.spockframework:spock-core:2.0-M5-groovy-3.0"
     }
     
-    // https://bugs.openjdk.java.net/browse/JDK-8213202
-    if (JavaVersion.current().isJava11()) {
-        jvmArgs '-Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2'
+    test {
+    //    if (!rootProject.isCiBuild) {
+    //        jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=18888'
+    //    }
+            
+        testLogging {
+            events TestLogEvent.FAILED,
+                   TestLogEvent.SKIPPED,
+                   TestLogEvent.PASSED,
+                   TestLogEvent.STANDARD_ERROR,
+                   TestLogEvent.STANDARD_OUT
+                   
+            exceptionFormat TestExceptionFormat.FULL
+    
+            showStandardStreams = true
+            showExceptions = true
+            showStackTraces = true
+            showCauses = true
+        }
+            
+        if (isCiBuild) {
+            maxParallelForks = 2
+            maxHeapSize = '768m'
+        } else {
+            maxHeapSize = '2048m'
+        }
+        
+        // https://bugs.openjdk.java.net/browse/JDK-8213202
+        if (JavaVersion.current().isJava11()) {
+            jvmArgs '-Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2'
+        }
     }
 }
-
-if (project.name.startsWith("org.jgrapes.")) {
-    apply from: "${project.rootDir}/gradle/publishing.gradle"
-}
-
-apply from: "${project.rootDir}/gradle/eclipse.gradle"
