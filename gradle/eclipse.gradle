@@ -16,8 +16,10 @@ eclipse {
             
             if (project.name.startsWith('org.jgrapes.')) {
                 project.buildCommand 'org.eclipse.jdt.core.javabuilder'
-                project.buildCommand 'net.sf.eclipsecs.core.CheckstyleBuilder'
                 project.natures += 'net.sf.eclipsecs.core.CheckstyleNature'
+                project.buildCommand 'net.sf.eclipsecs.core.CheckstyleBuilder'
+                project.natures += 'ch.acanda.eclipse.pmd.builder.PMDNature'
+                project.buildCommand 'ch.acanda.eclipse.pmd.builder.PMDBuilder'
             }
         }
     }
