@@ -154,37 +154,38 @@
 <span class="sourceLineNo">145</span><a id="line.145">    public void run() {</a>
 <span class="sourceLineNo">146</span><a id="line.146">        while (true) {</a>
 <span class="sourceLineNo">147</span><a id="line.147">            JsonBeanDecoder jsonDecoder = JsonBeanDecoder.create(jsonSource);</a>
-<span class="sourceLineNo">148</span><a id="line.148">            JsonRpc rpc = null;</a>
-<span class="sourceLineNo">149</span><a id="line.149">            try {</a>
-<span class="sourceLineNo">150</span><a id="line.150">                rpc = jsonDecoder.readObject(DefaultJsonRpc.class);</a>
-<span class="sourceLineNo">151</span><a id="line.151">            } catch (JsonDecodeException e) {</a>
-<span class="sourceLineNo">152</span><a id="line.152">                break;</a>
-<span class="sourceLineNo">153</span><a id="line.153">            }</a>
-<span class="sourceLineNo">154</span><a id="line.154">            if (rpc == null) {</a>
-<span class="sourceLineNo">155</span><a id="line.155">                break;</a>
-<span class="sourceLineNo">156</span><a id="line.156">            }</a>
-<span class="sourceLineNo">157</span><a id="line.157">            // Fully decoded JSON available.</a>
-<span class="sourceLineNo">158</span><a id="line.158">            ConsoleSession consoleSession = channelRef.get();</a>
-<span class="sourceLineNo">159</span><a id="line.159">            EventPipeline eventPipeline = pipelineRef.get();</a>
-<span class="sourceLineNo">160</span><a id="line.160">            if (eventPipeline == null || consoleSession == null) {</a>
-<span class="sourceLineNo">161</span><a id="line.161">                break;</a>
-<span class="sourceLineNo">162</span><a id="line.162">            }</a>
-<span class="sourceLineNo">163</span><a id="line.163">            // WebConsole session established, check for special disconnect</a>
-<span class="sourceLineNo">164</span><a id="line.164">            if ("disconnect".equals(rpc.method())</a>
-<span class="sourceLineNo">165</span><a id="line.165">                &amp;&amp; consoleSession.consoleSessionId().equals(</a>
-<span class="sourceLineNo">166</span><a id="line.166">                    rpc.params().asString(0))) {</a>
-<span class="sourceLineNo">167</span><a id="line.167">                consoleSession.discard();</a>
-<span class="sourceLineNo">168</span><a id="line.168">                return;</a>
-<span class="sourceLineNo">169</span><a id="line.169">            }</a>
-<span class="sourceLineNo">170</span><a id="line.170">            // Ordinary message from web console (view) to server.</a>
-<span class="sourceLineNo">171</span><a id="line.171">            consoleSession.refresh();</a>
-<span class="sourceLineNo">172</span><a id="line.172">            if ("keepAlive".equals(rpc.method())) {</a>
-<span class="sourceLineNo">173</span><a id="line.173">                continue;</a>
-<span class="sourceLineNo">174</span><a id="line.174">            }</a>
-<span class="sourceLineNo">175</span><a id="line.175">            eventPipeline.fire(new JsonInput(rpc), consoleSession);</a>
-<span class="sourceLineNo">176</span><a id="line.176">        }</a>
-<span class="sourceLineNo">177</span><a id="line.177">    }</a>
-<span class="sourceLineNo">178</span><a id="line.178">}</a>
+<span class="sourceLineNo">148</span><a id="line.148">            @SuppressWarnings("PMD.UnusedAssignment")</a>
+<span class="sourceLineNo">149</span><a id="line.149">            JsonRpc rpc = null;</a>
+<span class="sourceLineNo">150</span><a id="line.150">            try {</a>
+<span class="sourceLineNo">151</span><a id="line.151">                rpc = jsonDecoder.readObject(DefaultJsonRpc.class);</a>
+<span class="sourceLineNo">152</span><a id="line.152">            } catch (JsonDecodeException e) {</a>
+<span class="sourceLineNo">153</span><a id="line.153">                break;</a>
+<span class="sourceLineNo">154</span><a id="line.154">            }</a>
+<span class="sourceLineNo">155</span><a id="line.155">            if (rpc == null) {</a>
+<span class="sourceLineNo">156</span><a id="line.156">                break;</a>
+<span class="sourceLineNo">157</span><a id="line.157">            }</a>
+<span class="sourceLineNo">158</span><a id="line.158">            // Fully decoded JSON available.</a>
+<span class="sourceLineNo">159</span><a id="line.159">            ConsoleSession consoleSession = channelRef.get();</a>
+<span class="sourceLineNo">160</span><a id="line.160">            EventPipeline eventPipeline = pipelineRef.get();</a>
+<span class="sourceLineNo">161</span><a id="line.161">            if (eventPipeline == null || consoleSession == null) {</a>
+<span class="sourceLineNo">162</span><a id="line.162">                break;</a>
+<span class="sourceLineNo">163</span><a id="line.163">            }</a>
+<span class="sourceLineNo">164</span><a id="line.164">            // WebConsole session established, check for special disconnect</a>
+<span class="sourceLineNo">165</span><a id="line.165">            if ("disconnect".equals(rpc.method())</a>
+<span class="sourceLineNo">166</span><a id="line.166">                &amp;&amp; consoleSession.consoleSessionId().equals(</a>
+<span class="sourceLineNo">167</span><a id="line.167">                    rpc.params().asString(0))) {</a>
+<span class="sourceLineNo">168</span><a id="line.168">                consoleSession.discard();</a>
+<span class="sourceLineNo">169</span><a id="line.169">                return;</a>
+<span class="sourceLineNo">170</span><a id="line.170">            }</a>
+<span class="sourceLineNo">171</span><a id="line.171">            // Ordinary message from web console (view) to server.</a>
+<span class="sourceLineNo">172</span><a id="line.172">            consoleSession.refresh();</a>
+<span class="sourceLineNo">173</span><a id="line.173">            if ("keepAlive".equals(rpc.method())) {</a>
+<span class="sourceLineNo">174</span><a id="line.174">                continue;</a>
+<span class="sourceLineNo">175</span><a id="line.175">            }</a>
+<span class="sourceLineNo">176</span><a id="line.176">            eventPipeline.fire(new JsonInput(rpc), consoleSession);</a>
+<span class="sourceLineNo">177</span><a id="line.177">        }</a>
+<span class="sourceLineNo">178</span><a id="line.178">    }</a>
+<span class="sourceLineNo">179</span><a id="line.179">}</a>
 
 
 

@@ -74,299 +74,301 @@
 <span class="sourceLineNo">065</span><a id="line.65">public abstract class FreeMarkerConlet&lt;S extends Serializable&gt;</a>
 <span class="sourceLineNo">066</span><a id="line.66">        extends AbstractConlet&lt;S&gt; {</a>
 <span class="sourceLineNo">067</span><a id="line.67"></a>
-<span class="sourceLineNo">068</span><a id="line.68">    @SuppressWarnings("PMD.VariableNamingConventions")</a>
-<span class="sourceLineNo">069</span><a id="line.69">    private static final Pattern templatePattern</a>
-<span class="sourceLineNo">070</span><a id="line.70">        = Pattern.compile(".*\\.ftl\\.[a-z]+$");</a>
-<span class="sourceLineNo">071</span><a id="line.71"></a>
-<span class="sourceLineNo">072</span><a id="line.72">    private Configuration fmConfig;</a>
-<span class="sourceLineNo">073</span><a id="line.73">    private Map&lt;String, Object&gt; fmModel;</a>
-<span class="sourceLineNo">074</span><a id="line.74"></a>
-<span class="sourceLineNo">075</span><a id="line.75">    /**</a>
-<span class="sourceLineNo">076</span><a id="line.76">     * Creates a new component that listens for new events</a>
-<span class="sourceLineNo">077</span><a id="line.77">     * on the given channel.</a>
-<span class="sourceLineNo">078</span><a id="line.78">     * </a>
-<span class="sourceLineNo">079</span><a id="line.79">     * @param componentChannel</a>
-<span class="sourceLineNo">080</span><a id="line.80">     */</a>
-<span class="sourceLineNo">081</span><a id="line.81">    public FreeMarkerConlet(Channel componentChannel) {</a>
-<span class="sourceLineNo">082</span><a id="line.82">        super(componentChannel);</a>
-<span class="sourceLineNo">083</span><a id="line.83">    }</a>
-<span class="sourceLineNo">084</span><a id="line.84"></a>
-<span class="sourceLineNo">085</span><a id="line.85">    /**</a>
-<span class="sourceLineNo">086</span><a id="line.86">     * Like {@link #FreeMarkerConlet(Channel)}, but supports</a>
-<span class="sourceLineNo">087</span><a id="line.87">     * the specification of channel replacements.</a>
-<span class="sourceLineNo">088</span><a id="line.88">     * </a>
-<span class="sourceLineNo">089</span><a id="line.89">     * @param componentChannel</a>
-<span class="sourceLineNo">090</span><a id="line.90">     * @param channelReplacements the channel replacements (see</a>
-<span class="sourceLineNo">091</span><a id="line.91">     * {@link Component})</a>
-<span class="sourceLineNo">092</span><a id="line.92">     */</a>
-<span class="sourceLineNo">093</span><a id="line.93">    public FreeMarkerConlet(Channel componentChannel,</a>
-<span class="sourceLineNo">094</span><a id="line.94">            ChannelReplacements channelReplacements) {</a>
-<span class="sourceLineNo">095</span><a id="line.95">        super(componentChannel, channelReplacements);</a>
-<span class="sourceLineNo">096</span><a id="line.96">    }</a>
-<span class="sourceLineNo">097</span><a id="line.97"></a>
-<span class="sourceLineNo">098</span><a id="line.98">    /**</a>
-<span class="sourceLineNo">099</span><a id="line.99">     * Create the base freemarker configuration.</a>
-<span class="sourceLineNo">100</span><a id="line.100">     *</a>
-<span class="sourceLineNo">101</span><a id="line.101">     * @return the configuration</a>
-<span class="sourceLineNo">102</span><a id="line.102">     */</a>
-<span class="sourceLineNo">103</span><a id="line.103">    protected Configuration freemarkerConfig() {</a>
-<span class="sourceLineNo">104</span><a id="line.104">        if (fmConfig == null) {</a>
-<span class="sourceLineNo">105</span><a id="line.105">            fmConfig = new Configuration(Configuration.VERSION_2_3_26);</a>
-<span class="sourceLineNo">106</span><a id="line.106">            fmConfig.setClassLoaderForTemplateLoading(</a>
-<span class="sourceLineNo">107</span><a id="line.107">                getClass().getClassLoader(), getClass().getPackage()</a>
-<span class="sourceLineNo">108</span><a id="line.108">                    .getName().replace('.', '/'));</a>
-<span class="sourceLineNo">109</span><a id="line.109">            fmConfig.setDefaultEncoding("utf-8");</a>
-<span class="sourceLineNo">110</span><a id="line.110">            fmConfig.setTemplateExceptionHandler(</a>
-<span class="sourceLineNo">111</span><a id="line.111">                TemplateExceptionHandler.RETHROW_HANDLER);</a>
-<span class="sourceLineNo">112</span><a id="line.112">            fmConfig.setLogTemplateExceptions(false);</a>
-<span class="sourceLineNo">113</span><a id="line.113">        }</a>
-<span class="sourceLineNo">114</span><a id="line.114">        return fmConfig;</a>
-<span class="sourceLineNo">115</span><a id="line.115">    }</a>
-<span class="sourceLineNo">116</span><a id="line.116"></a>
-<span class="sourceLineNo">117</span><a id="line.117">    /**</a>
-<span class="sourceLineNo">118</span><a id="line.118">     * Creates the request independent part of the freemarker model. The</a>
-<span class="sourceLineNo">119</span><a id="line.119">     * result is cached as unmodifiable map as it can safely be assumed</a>
-<span class="sourceLineNo">120</span><a id="line.120">     * that the render support does not change for a given web console.</a>
-<span class="sourceLineNo">121</span><a id="line.121">     * </a>
-<span class="sourceLineNo">122</span><a id="line.122">     * This model provides:</a>
-<span class="sourceLineNo">123</span><a id="line.123">     *  * The function `conletResource` that makes </a>
-<span class="sourceLineNo">124</span><a id="line.124">     *    {@link RenderSupport#conletResource(String, java.net.URI)}</a>
-<span class="sourceLineNo">125</span><a id="line.125">     *    available in the template. The first argument is set to the name</a>
-<span class="sourceLineNo">126</span><a id="line.126">     *    of the web console component, only the second must be supplied </a>
-<span class="sourceLineNo">127</span><a id="line.127">     *    when the function is invoked in a template.</a>
-<span class="sourceLineNo">128</span><a id="line.128">     * </a>
-<span class="sourceLineNo">129</span><a id="line.129">     * @param renderSupport the render support from the web console</a>
-<span class="sourceLineNo">130</span><a id="line.130">     * @return the result</a>
-<span class="sourceLineNo">131</span><a id="line.131">     */</a>
-<span class="sourceLineNo">132</span><a id="line.132">    protected Map&lt;String, Object&gt; fmTypeModel(</a>
-<span class="sourceLineNo">133</span><a id="line.133">            RenderSupport renderSupport) {</a>
-<span class="sourceLineNo">134</span><a id="line.134">        if (fmModel == null) {</a>
-<span class="sourceLineNo">135</span><a id="line.135">            fmModel = new HashMap&lt;&gt;();</a>
-<span class="sourceLineNo">136</span><a id="line.136">            fmModel.put("conletResource", new TemplateMethodModelEx() {</a>
-<span class="sourceLineNo">137</span><a id="line.137">                @Override</a>
-<span class="sourceLineNo">138</span><a id="line.138">                public Object exec(@SuppressWarnings("rawtypes") List arguments)</a>
-<span class="sourceLineNo">139</span><a id="line.139">                        throws TemplateModelException {</a>
-<span class="sourceLineNo">140</span><a id="line.140">                    @SuppressWarnings("unchecked")</a>
-<span class="sourceLineNo">141</span><a id="line.141">                    List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</a>
-<span class="sourceLineNo">142</span><a id="line.142">                    if (!(args.get(0) instanceof SimpleScalar)) {</a>
-<span class="sourceLineNo">143</span><a id="line.143">                        throw new TemplateModelException("Not a string.");</a>
-<span class="sourceLineNo">144</span><a id="line.144">                    }</a>
-<span class="sourceLineNo">145</span><a id="line.145">                    return renderSupport.conletResource(</a>
-<span class="sourceLineNo">146</span><a id="line.146">                        FreeMarkerConlet.this.getClass().getName(),</a>
-<span class="sourceLineNo">147</span><a id="line.147">                        ((SimpleScalar) args.get(0)).getAsString())</a>
-<span class="sourceLineNo">148</span><a id="line.148">                        .getRawPath();</a>
-<span class="sourceLineNo">149</span><a id="line.149">                }</a>
-<span class="sourceLineNo">150</span><a id="line.150">            });</a>
-<span class="sourceLineNo">151</span><a id="line.151">            fmModel = Collections.unmodifiableMap(fmModel);</a>
-<span class="sourceLineNo">152</span><a id="line.152">        }</a>
-<span class="sourceLineNo">153</span><a id="line.153">        return fmModel;</a>
-<span class="sourceLineNo">154</span><a id="line.154">    }</a>
-<span class="sourceLineNo">155</span><a id="line.155"></a>
-<span class="sourceLineNo">156</span><a id="line.156">    /**</a>
-<span class="sourceLineNo">157</span><a id="line.157">     * Build a freemarker model holding the information associated </a>
-<span class="sourceLineNo">158</span><a id="line.158">     * with the session.</a>
-<span class="sourceLineNo">159</span><a id="line.159">     * </a>
-<span class="sourceLineNo">160</span><a id="line.160">     * This model provides:</a>
-<span class="sourceLineNo">161</span><a id="line.161">     *  * The `locale` (of type {@link Locale}).</a>
-<span class="sourceLineNo">162</span><a id="line.162">     *  * The `resourceBundle` (of type {@link ResourceBundle}).</a>
-<span class="sourceLineNo">163</span><a id="line.163">     *  * A function `_` that looks up the given key in the web console </a>
-<span class="sourceLineNo">164</span><a id="line.164">     *    component's resource bundle.</a>
-<span class="sourceLineNo">165</span><a id="line.165">     *  * A function `supportedLanguages` that returns a {@link Map}</a>
-<span class="sourceLineNo">166</span><a id="line.166">     *    with language identifiers as keys and {@link LanguageInfo}</a>
-<span class="sourceLineNo">167</span><a id="line.167">     *    instances as values (derived from </a>
-<span class="sourceLineNo">168</span><a id="line.168">     *    {@link AbstractConlet#supportedLocales()}).</a>
-<span class="sourceLineNo">169</span><a id="line.169">     *    </a>
-<span class="sourceLineNo">170</span><a id="line.170">     * @param session the session</a>
-<span class="sourceLineNo">171</span><a id="line.171">     * @return the model</a>
-<span class="sourceLineNo">172</span><a id="line.172">     */</a>
-<span class="sourceLineNo">173</span><a id="line.173">    protected Map&lt;String, Object&gt; fmSessionModel(Session session) {</a>
-<span class="sourceLineNo">174</span><a id="line.174">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
-<span class="sourceLineNo">175</span><a id="line.175">        final Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</a>
-<span class="sourceLineNo">176</span><a id="line.176">        Locale locale = session.locale();</a>
-<span class="sourceLineNo">177</span><a id="line.177">        model.put("locale", locale);</a>
-<span class="sourceLineNo">178</span><a id="line.178">        final ResourceBundle resourceBundle = resourceBundle(locale);</a>
-<span class="sourceLineNo">179</span><a id="line.179">        model.put("resourceBundle", resourceBundle);</a>
-<span class="sourceLineNo">180</span><a id="line.180">        model.put("_", new TemplateMethodModelEx() {</a>
-<span class="sourceLineNo">181</span><a id="line.181">            @Override</a>
-<span class="sourceLineNo">182</span><a id="line.182">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</a>
-<span class="sourceLineNo">183</span><a id="line.183">                    throws TemplateModelException {</a>
-<span class="sourceLineNo">184</span><a id="line.184">                @SuppressWarnings("unchecked")</a>
-<span class="sourceLineNo">185</span><a id="line.185">                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</a>
-<span class="sourceLineNo">186</span><a id="line.186">                if (!(args.get(0) instanceof SimpleScalar)) {</a>
-<span class="sourceLineNo">187</span><a id="line.187">                    throw new TemplateModelException("Not a string.");</a>
-<span class="sourceLineNo">188</span><a id="line.188">                }</a>
-<span class="sourceLineNo">189</span><a id="line.189">                String key = ((SimpleScalar) args.get(0)).getAsString();</a>
-<span class="sourceLineNo">190</span><a id="line.190">                try {</a>
-<span class="sourceLineNo">191</span><a id="line.191">                    return resourceBundle.getString(key);</a>
-<span class="sourceLineNo">192</span><a id="line.192">                } catch (MissingResourceException e) { // NOPMD</a>
-<span class="sourceLineNo">193</span><a id="line.193">                    // no luck</a>
-<span class="sourceLineNo">194</span><a id="line.194">                }</a>
-<span class="sourceLineNo">195</span><a id="line.195">                return key;</a>
-<span class="sourceLineNo">196</span><a id="line.196">            }</a>
-<span class="sourceLineNo">197</span><a id="line.197">        });</a>
-<span class="sourceLineNo">198</span><a id="line.198">        // Add supported languages</a>
-<span class="sourceLineNo">199</span><a id="line.199">        model.put("supportedLanguages", new TemplateMethodModelEx() {</a>
-<span class="sourceLineNo">200</span><a id="line.200">            Object cachedResult;</a>
-<span class="sourceLineNo">201</span><a id="line.201"></a>
-<span class="sourceLineNo">202</span><a id="line.202">            @Override</a>
-<span class="sourceLineNo">203</span><a id="line.203">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</a>
-<span class="sourceLineNo">204</span><a id="line.204">                    throws TemplateModelException {</a>
-<span class="sourceLineNo">205</span><a id="line.205">                if (cachedResult == null) {</a>
-<span class="sourceLineNo">206</span><a id="line.206">                    cachedResult = supportedLocales().entrySet().stream().map(</a>
-<span class="sourceLineNo">207</span><a id="line.207">                        entry -&gt; new LanguageInfo(entry.getKey(),</a>
-<span class="sourceLineNo">208</span><a id="line.208">                            entry.getValue()))</a>
-<span class="sourceLineNo">209</span><a id="line.209">                        .toArray(size -&gt; new LanguageInfo[size]);</a>
-<span class="sourceLineNo">210</span><a id="line.210">                }</a>
-<span class="sourceLineNo">211</span><a id="line.211">                return cachedResult;</a>
-<span class="sourceLineNo">212</span><a id="line.212">            }</a>
-<span class="sourceLineNo">213</span><a id="line.213">        });</a>
-<span class="sourceLineNo">214</span><a id="line.214">        return model;</a>
-<span class="sourceLineNo">215</span><a id="line.215">    }</a>
-<span class="sourceLineNo">216</span><a id="line.216"></a>
-<span class="sourceLineNo">217</span><a id="line.217">    /**</a>
-<span class="sourceLineNo">218</span><a id="line.218">     * Build a freemarker model for the current request.</a>
-<span class="sourceLineNo">219</span><a id="line.219">     * </a>
-<span class="sourceLineNo">220</span><a id="line.220">     * This model provides:</a>
-<span class="sourceLineNo">221</span><a id="line.221">     *  * The `event` property (of type {@link RenderConletRequest}).</a>
-<span class="sourceLineNo">222</span><a id="line.222">     *  * The `conlet` property (of type {@link ConletBaseModel}).</a>
-<span class="sourceLineNo">223</span><a id="line.223">     *  * The function `_Id(String base)` that creates a unique</a>
-<span class="sourceLineNo">224</span><a id="line.224">     *    id for an HTML element by appending the web console component </a>
-<span class="sourceLineNo">225</span><a id="line.225">     *    id to the provided base.</a>
-<span class="sourceLineNo">226</span><a id="line.226">     *    </a>
-<span class="sourceLineNo">227</span><a id="line.227">     * @param event the event</a>
-<span class="sourceLineNo">228</span><a id="line.228">     * @param channel the channel</a>
-<span class="sourceLineNo">229</span><a id="line.229">     * @param conletModel the web console component model</a>
-<span class="sourceLineNo">230</span><a id="line.230">     * @return the model</a>
-<span class="sourceLineNo">231</span><a id="line.231">     */</a>
-<span class="sourceLineNo">232</span><a id="line.232">    protected Map&lt;String, Object&gt; fmConletModel(</a>
-<span class="sourceLineNo">233</span><a id="line.233">            RenderConletRequestBase&lt;?&gt; event,</a>
-<span class="sourceLineNo">234</span><a id="line.234">            IOSubchannel channel, ConletBaseModel conletModel) {</a>
-<span class="sourceLineNo">235</span><a id="line.235">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
-<span class="sourceLineNo">236</span><a id="line.236">        final Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</a>
-<span class="sourceLineNo">237</span><a id="line.237">        model.put("event", event);</a>
-<span class="sourceLineNo">238</span><a id="line.238">        model.put("conlet", conletModel);</a>
-<span class="sourceLineNo">239</span><a id="line.239">        model.put("_id", new TemplateMethodModelEx() {</a>
-<span class="sourceLineNo">240</span><a id="line.240">            @Override</a>
-<span class="sourceLineNo">241</span><a id="line.241">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</a>
-<span class="sourceLineNo">242</span><a id="line.242">                    throws TemplateModelException {</a>
-<span class="sourceLineNo">243</span><a id="line.243">                @SuppressWarnings("unchecked")</a>
-<span class="sourceLineNo">244</span><a id="line.244">                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</a>
-<span class="sourceLineNo">245</span><a id="line.245">                if (!(args.get(0) instanceof SimpleScalar)) {</a>
-<span class="sourceLineNo">246</span><a id="line.246">                    throw new TemplateModelException("Not a string.");</a>
-<span class="sourceLineNo">247</span><a id="line.247">                }</a>
-<span class="sourceLineNo">248</span><a id="line.248">                return ((SimpleScalar) args.get(0)).getAsString()</a>
-<span class="sourceLineNo">249</span><a id="line.249">                    + "-" + conletModel.getConletId();</a>
-<span class="sourceLineNo">250</span><a id="line.250">            }</a>
-<span class="sourceLineNo">251</span><a id="line.251">        });</a>
-<span class="sourceLineNo">252</span><a id="line.252">        return model;</a>
-<span class="sourceLineNo">253</span><a id="line.253">    }</a>
-<span class="sourceLineNo">254</span><a id="line.254"></a>
-<span class="sourceLineNo">255</span><a id="line.255">    /**</a>
-<span class="sourceLineNo">256</span><a id="line.256">     * Build a freemarker model that combines {@link #fmTypeModel},</a>
-<span class="sourceLineNo">257</span><a id="line.257">     * {@link #fmSessionModel} and {@link #fmConletModel}.</a>
-<span class="sourceLineNo">258</span><a id="line.258">     * </a>
-<span class="sourceLineNo">259</span><a id="line.259">     * @param event the event</a>
-<span class="sourceLineNo">260</span><a id="line.260">     * @param channel the channel</a>
-<span class="sourceLineNo">261</span><a id="line.261">     * @param conletModel the web console component model</a>
-<span class="sourceLineNo">262</span><a id="line.262">     * @return the model</a>
-<span class="sourceLineNo">263</span><a id="line.263">     */</a>
-<span class="sourceLineNo">264</span><a id="line.264">    protected Map&lt;String, Object&gt; fmModel(RenderConletRequestBase&lt;?&gt; event,</a>
-<span class="sourceLineNo">265</span><a id="line.265">            ConsoleSession channel, ConletBaseModel conletModel) {</a>
-<span class="sourceLineNo">266</span><a id="line.266">        final Map&lt;String, Object&gt; model</a>
-<span class="sourceLineNo">267</span><a id="line.267">            = fmSessionModel(channel.browserSession());</a>
-<span class="sourceLineNo">268</span><a id="line.268">        model.put("locale", channel.locale());</a>
-<span class="sourceLineNo">269</span><a id="line.269">        model.putAll(fmTypeModel(event.renderSupport()));</a>
-<span class="sourceLineNo">270</span><a id="line.270">        model.putAll(fmConletModel(event, channel, conletModel));</a>
-<span class="sourceLineNo">271</span><a id="line.271">        return model;</a>
-<span class="sourceLineNo">272</span><a id="line.272">    }</a>
-<span class="sourceLineNo">273</span><a id="line.273"></a>
-<span class="sourceLineNo">274</span><a id="line.274">    /**</a>
-<span class="sourceLineNo">275</span><a id="line.275">     * Checks if the path of the requested resource ends with</a>
-<span class="sourceLineNo">276</span><a id="line.276">     * `*.ftl.*`. If so, processes the template with the</a>
-<span class="sourceLineNo">277</span><a id="line.277">     * {@link #fmTypeModel(RenderSupport)} and </a>
-<span class="sourceLineNo">278</span><a id="line.278">     * {@link #fmSessionModel(Session)} and</a>
-<span class="sourceLineNo">279</span><a id="line.279">     * sends the result. Else, invoke the super class' method. </a>
-<span class="sourceLineNo">280</span><a id="line.280">     * </a>
-<span class="sourceLineNo">281</span><a id="line.281">     * @param event the event. The result will be set to</a>
-<span class="sourceLineNo">282</span><a id="line.282">     * `true` on success</a>
-<span class="sourceLineNo">283</span><a id="line.283">     * @param channel the channel</a>
-<span class="sourceLineNo">284</span><a id="line.284">     */</a>
-<span class="sourceLineNo">285</span><a id="line.285">    @Override</a>
-<span class="sourceLineNo">286</span><a id="line.286">    protected void doGetResource(ConletResourceRequest event,</a>
-<span class="sourceLineNo">287</span><a id="line.287">            IOSubchannel channel) {</a>
-<span class="sourceLineNo">288</span><a id="line.288">        if (!templatePattern.matcher(event.resourceUri().getPath()).matches()) {</a>
-<span class="sourceLineNo">289</span><a id="line.289">            super.doGetResource(event, channel);</a>
-<span class="sourceLineNo">290</span><a id="line.290">            return;</a>
-<span class="sourceLineNo">291</span><a id="line.291">        }</a>
-<span class="sourceLineNo">292</span><a id="line.292">        try {</a>
-<span class="sourceLineNo">293</span><a id="line.293">            // Prepare template</a>
-<span class="sourceLineNo">294</span><a id="line.294">            final Template tpl = freemarkerConfig().getTemplate(</a>
-<span class="sourceLineNo">295</span><a id="line.295">                event.resourceUri().getPath());</a>
-<span class="sourceLineNo">296</span><a id="line.296">            Map&lt;String, Object&gt; model = fmSessionModel(event.session());</a>
-<span class="sourceLineNo">297</span><a id="line.297">            model.putAll(fmTypeModel(event.renderSupport()));</a>
-<span class="sourceLineNo">298</span><a id="line.298"></a>
-<span class="sourceLineNo">299</span><a id="line.299">            // Everything successfully prepared</a>
-<span class="sourceLineNo">300</span><a id="line.300">            event.setResult(new ResourceByGenerator(event,</a>
-<span class="sourceLineNo">301</span><a id="line.301">                new ResourceByGenerator.Generator() {</a>
-<span class="sourceLineNo">302</span><a id="line.302">                    @Override</a>
-<span class="sourceLineNo">303</span><a id="line.303">                    public void write(OutputStream stream) throws IOException {</a>
-<span class="sourceLineNo">304</span><a id="line.304">                        try {</a>
-<span class="sourceLineNo">305</span><a id="line.305">                            tpl.process(model, new OutputStreamWriter(</a>
-<span class="sourceLineNo">306</span><a id="line.306">                                stream, "utf-8"));</a>
-<span class="sourceLineNo">307</span><a id="line.307">                        } catch (TemplateException e) {</a>
-<span class="sourceLineNo">308</span><a id="line.308">                            throw new IOException(e);</a>
-<span class="sourceLineNo">309</span><a id="line.309">                        }</a>
-<span class="sourceLineNo">310</span><a id="line.310">                    }</a>
-<span class="sourceLineNo">311</span><a id="line.311">                },</a>
-<span class="sourceLineNo">312</span><a id="line.312">                HttpResponse.contentType(event.resourceUri()),</a>
-<span class="sourceLineNo">313</span><a id="line.313">                Instant.now(), 0));</a>
-<span class="sourceLineNo">314</span><a id="line.314">            event.stop();</a>
-<span class="sourceLineNo">315</span><a id="line.315">        } catch (IOException e) { // NOPMD</a>
-<span class="sourceLineNo">316</span><a id="line.316">            throw new IllegalArgumentException(e);</a>
-<span class="sourceLineNo">317</span><a id="line.317">        }</a>
-<span class="sourceLineNo">318</span><a id="line.318">    }</a>
-<span class="sourceLineNo">319</span><a id="line.319"></a>
-<span class="sourceLineNo">320</span><a id="line.320">    /**</a>
-<span class="sourceLineNo">321</span><a id="line.321">     * Specifies how to render web console component content using a template.</a>
-<span class="sourceLineNo">322</span><a id="line.322">     */</a>
-<span class="sourceLineNo">323</span><a id="line.323">    public static class RenderConletFromTemplate extends RenderConlet {</a>
-<span class="sourceLineNo">324</span><a id="line.324"></a>
-<span class="sourceLineNo">325</span><a id="line.325">        private final Future&lt;String&gt; content;</a>
+<span class="sourceLineNo">068</span><a id="line.68">    @SuppressWarnings({ "PMD.VariableNamingConventions",</a>
+<span class="sourceLineNo">069</span><a id="line.69">        "PMD.FieldNamingConventions" })</a>
+<span class="sourceLineNo">070</span><a id="line.70">    private static final Pattern templatePattern</a>
+<span class="sourceLineNo">071</span><a id="line.71">        = Pattern.compile(".*\\.ftl\\.[a-z]+$");</a>
+<span class="sourceLineNo">072</span><a id="line.72"></a>
+<span class="sourceLineNo">073</span><a id="line.73">    private Configuration fmConfig;</a>
+<span class="sourceLineNo">074</span><a id="line.74">    private Map&lt;String, Object&gt; fmModel;</a>
+<span class="sourceLineNo">075</span><a id="line.75"></a>
+<span class="sourceLineNo">076</span><a id="line.76">    /**</a>
+<span class="sourceLineNo">077</span><a id="line.77">     * Creates a new component that listens for new events</a>
+<span class="sourceLineNo">078</span><a id="line.78">     * on the given channel.</a>
+<span class="sourceLineNo">079</span><a id="line.79">     * </a>
+<span class="sourceLineNo">080</span><a id="line.80">     * @param componentChannel</a>
+<span class="sourceLineNo">081</span><a id="line.81">     */</a>
+<span class="sourceLineNo">082</span><a id="line.82">    public FreeMarkerConlet(Channel componentChannel) {</a>
+<span class="sourceLineNo">083</span><a id="line.83">        super(componentChannel);</a>
+<span class="sourceLineNo">084</span><a id="line.84">    }</a>
+<span class="sourceLineNo">085</span><a id="line.85"></a>
+<span class="sourceLineNo">086</span><a id="line.86">    /**</a>
+<span class="sourceLineNo">087</span><a id="line.87">     * Like {@link #FreeMarkerConlet(Channel)}, but supports</a>
+<span class="sourceLineNo">088</span><a id="line.88">     * the specification of channel replacements.</a>
+<span class="sourceLineNo">089</span><a id="line.89">     * </a>
+<span class="sourceLineNo">090</span><a id="line.90">     * @param componentChannel</a>
+<span class="sourceLineNo">091</span><a id="line.91">     * @param channelReplacements the channel replacements (see</a>
+<span class="sourceLineNo">092</span><a id="line.92">     * {@link Component})</a>
+<span class="sourceLineNo">093</span><a id="line.93">     */</a>
+<span class="sourceLineNo">094</span><a id="line.94">    public FreeMarkerConlet(Channel componentChannel,</a>
+<span class="sourceLineNo">095</span><a id="line.95">            ChannelReplacements channelReplacements) {</a>
+<span class="sourceLineNo">096</span><a id="line.96">        super(componentChannel, channelReplacements);</a>
+<span class="sourceLineNo">097</span><a id="line.97">    }</a>
+<span class="sourceLineNo">098</span><a id="line.98"></a>
+<span class="sourceLineNo">099</span><a id="line.99">    /**</a>
+<span class="sourceLineNo">100</span><a id="line.100">     * Create the base freemarker configuration.</a>
+<span class="sourceLineNo">101</span><a id="line.101">     *</a>
+<span class="sourceLineNo">102</span><a id="line.102">     * @return the configuration</a>
+<span class="sourceLineNo">103</span><a id="line.103">     */</a>
+<span class="sourceLineNo">104</span><a id="line.104">    protected Configuration freemarkerConfig() {</a>
+<span class="sourceLineNo">105</span><a id="line.105">        if (fmConfig == null) {</a>
+<span class="sourceLineNo">106</span><a id="line.106">            fmConfig = new Configuration(Configuration.VERSION_2_3_26);</a>
+<span class="sourceLineNo">107</span><a id="line.107">            fmConfig.setClassLoaderForTemplateLoading(</a>
+<span class="sourceLineNo">108</span><a id="line.108">                getClass().getClassLoader(), getClass().getPackage()</a>
+<span class="sourceLineNo">109</span><a id="line.109">                    .getName().replace('.', '/'));</a>
+<span class="sourceLineNo">110</span><a id="line.110">            fmConfig.setDefaultEncoding("utf-8");</a>
+<span class="sourceLineNo">111</span><a id="line.111">            fmConfig.setTemplateExceptionHandler(</a>
+<span class="sourceLineNo">112</span><a id="line.112">                TemplateExceptionHandler.RETHROW_HANDLER);</a>
+<span class="sourceLineNo">113</span><a id="line.113">            fmConfig.setLogTemplateExceptions(false);</a>
+<span class="sourceLineNo">114</span><a id="line.114">        }</a>
+<span class="sourceLineNo">115</span><a id="line.115">        return fmConfig;</a>
+<span class="sourceLineNo">116</span><a id="line.116">    }</a>
+<span class="sourceLineNo">117</span><a id="line.117"></a>
+<span class="sourceLineNo">118</span><a id="line.118">    /**</a>
+<span class="sourceLineNo">119</span><a id="line.119">     * Creates the request independent part of the freemarker model. The</a>
+<span class="sourceLineNo">120</span><a id="line.120">     * result is cached as unmodifiable map as it can safely be assumed</a>
+<span class="sourceLineNo">121</span><a id="line.121">     * that the render support does not change for a given web console.</a>
+<span class="sourceLineNo">122</span><a id="line.122">     * </a>
+<span class="sourceLineNo">123</span><a id="line.123">     * This model provides:</a>
+<span class="sourceLineNo">124</span><a id="line.124">     *  * The function `conletResource` that makes </a>
+<span class="sourceLineNo">125</span><a id="line.125">     *    {@link RenderSupport#conletResource(String, java.net.URI)}</a>
+<span class="sourceLineNo">126</span><a id="line.126">     *    available in the template. The first argument is set to the name</a>
+<span class="sourceLineNo">127</span><a id="line.127">     *    of the web console component, only the second must be supplied </a>
+<span class="sourceLineNo">128</span><a id="line.128">     *    when the function is invoked in a template.</a>
+<span class="sourceLineNo">129</span><a id="line.129">     * </a>
+<span class="sourceLineNo">130</span><a id="line.130">     * @param renderSupport the render support from the web console</a>
+<span class="sourceLineNo">131</span><a id="line.131">     * @return the result</a>
+<span class="sourceLineNo">132</span><a id="line.132">     */</a>
+<span class="sourceLineNo">133</span><a id="line.133">    protected Map&lt;String, Object&gt; fmTypeModel(</a>
+<span class="sourceLineNo">134</span><a id="line.134">            RenderSupport renderSupport) {</a>
+<span class="sourceLineNo">135</span><a id="line.135">        if (fmModel == null) {</a>
+<span class="sourceLineNo">136</span><a id="line.136">            fmModel = new HashMap&lt;&gt;();</a>
+<span class="sourceLineNo">137</span><a id="line.137">            fmModel.put("conletResource", new TemplateMethodModelEx() {</a>
+<span class="sourceLineNo">138</span><a id="line.138">                @Override</a>
+<span class="sourceLineNo">139</span><a id="line.139">                @SuppressWarnings("PMD.AvoidDuplicateLiterals")</a>
+<span class="sourceLineNo">140</span><a id="line.140">                public Object exec(@SuppressWarnings("rawtypes") List arguments)</a>
+<span class="sourceLineNo">141</span><a id="line.141">                        throws TemplateModelException {</a>
+<span class="sourceLineNo">142</span><a id="line.142">                    @SuppressWarnings("unchecked")</a>
+<span class="sourceLineNo">143</span><a id="line.143">                    List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</a>
+<span class="sourceLineNo">144</span><a id="line.144">                    if (!(args.get(0) instanceof SimpleScalar)) {</a>
+<span class="sourceLineNo">145</span><a id="line.145">                        throw new TemplateModelException("Not a string.");</a>
+<span class="sourceLineNo">146</span><a id="line.146">                    }</a>
+<span class="sourceLineNo">147</span><a id="line.147">                    return renderSupport.conletResource(</a>
+<span class="sourceLineNo">148</span><a id="line.148">                        FreeMarkerConlet.this.getClass().getName(),</a>
+<span class="sourceLineNo">149</span><a id="line.149">                        ((SimpleScalar) args.get(0)).getAsString())</a>
+<span class="sourceLineNo">150</span><a id="line.150">                        .getRawPath();</a>
+<span class="sourceLineNo">151</span><a id="line.151">                }</a>
+<span class="sourceLineNo">152</span><a id="line.152">            });</a>
+<span class="sourceLineNo">153</span><a id="line.153">            fmModel = Collections.unmodifiableMap(fmModel);</a>
+<span class="sourceLineNo">154</span><a id="line.154">        }</a>
+<span class="sourceLineNo">155</span><a id="line.155">        return fmModel;</a>
+<span class="sourceLineNo">156</span><a id="line.156">    }</a>
+<span class="sourceLineNo">157</span><a id="line.157"></a>
+<span class="sourceLineNo">158</span><a id="line.158">    /**</a>
+<span class="sourceLineNo">159</span><a id="line.159">     * Build a freemarker model holding the information associated </a>
+<span class="sourceLineNo">160</span><a id="line.160">     * with the session.</a>
+<span class="sourceLineNo">161</span><a id="line.161">     * </a>
+<span class="sourceLineNo">162</span><a id="line.162">     * This model provides:</a>
+<span class="sourceLineNo">163</span><a id="line.163">     *  * The `locale` (of type {@link Locale}).</a>
+<span class="sourceLineNo">164</span><a id="line.164">     *  * The `resourceBundle` (of type {@link ResourceBundle}).</a>
+<span class="sourceLineNo">165</span><a id="line.165">     *  * A function `_` that looks up the given key in the web console </a>
+<span class="sourceLineNo">166</span><a id="line.166">     *    component's resource bundle.</a>
+<span class="sourceLineNo">167</span><a id="line.167">     *  * A function `supportedLanguages` that returns a {@link Map}</a>
+<span class="sourceLineNo">168</span><a id="line.168">     *    with language identifiers as keys and {@link LanguageInfo}</a>
+<span class="sourceLineNo">169</span><a id="line.169">     *    instances as values (derived from </a>
+<span class="sourceLineNo">170</span><a id="line.170">     *    {@link AbstractConlet#supportedLocales()}).</a>
+<span class="sourceLineNo">171</span><a id="line.171">     *    </a>
+<span class="sourceLineNo">172</span><a id="line.172">     * @param session the session</a>
+<span class="sourceLineNo">173</span><a id="line.173">     * @return the model</a>
+<span class="sourceLineNo">174</span><a id="line.174">     */</a>
+<span class="sourceLineNo">175</span><a id="line.175">    protected Map&lt;String, Object&gt; fmSessionModel(Session session) {</a>
+<span class="sourceLineNo">176</span><a id="line.176">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
+<span class="sourceLineNo">177</span><a id="line.177">        final Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</a>
+<span class="sourceLineNo">178</span><a id="line.178">        Locale locale = session.locale();</a>
+<span class="sourceLineNo">179</span><a id="line.179">        model.put("locale", locale);</a>
+<span class="sourceLineNo">180</span><a id="line.180">        final ResourceBundle resourceBundle = resourceBundle(locale);</a>
+<span class="sourceLineNo">181</span><a id="line.181">        model.put("resourceBundle", resourceBundle);</a>
+<span class="sourceLineNo">182</span><a id="line.182">        model.put("_", new TemplateMethodModelEx() {</a>
+<span class="sourceLineNo">183</span><a id="line.183">            @Override</a>
+<span class="sourceLineNo">184</span><a id="line.184">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</a>
+<span class="sourceLineNo">185</span><a id="line.185">                    throws TemplateModelException {</a>
+<span class="sourceLineNo">186</span><a id="line.186">                @SuppressWarnings("unchecked")</a>
+<span class="sourceLineNo">187</span><a id="line.187">                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</a>
+<span class="sourceLineNo">188</span><a id="line.188">                if (!(args.get(0) instanceof SimpleScalar)) {</a>
+<span class="sourceLineNo">189</span><a id="line.189">                    throw new TemplateModelException("Not a string.");</a>
+<span class="sourceLineNo">190</span><a id="line.190">                }</a>
+<span class="sourceLineNo">191</span><a id="line.191">                String key = ((SimpleScalar) args.get(0)).getAsString();</a>
+<span class="sourceLineNo">192</span><a id="line.192">                try {</a>
+<span class="sourceLineNo">193</span><a id="line.193">                    return resourceBundle.getString(key);</a>
+<span class="sourceLineNo">194</span><a id="line.194">                } catch (MissingResourceException e) { // NOPMD</a>
+<span class="sourceLineNo">195</span><a id="line.195">                    // no luck</a>
+<span class="sourceLineNo">196</span><a id="line.196">                }</a>
+<span class="sourceLineNo">197</span><a id="line.197">                return key;</a>
+<span class="sourceLineNo">198</span><a id="line.198">            }</a>
+<span class="sourceLineNo">199</span><a id="line.199">        });</a>
+<span class="sourceLineNo">200</span><a id="line.200">        // Add supported languages</a>
+<span class="sourceLineNo">201</span><a id="line.201">        model.put("supportedLanguages", new TemplateMethodModelEx() {</a>
+<span class="sourceLineNo">202</span><a id="line.202">            private Object cachedResult;</a>
+<span class="sourceLineNo">203</span><a id="line.203"></a>
+<span class="sourceLineNo">204</span><a id="line.204">            @Override</a>
+<span class="sourceLineNo">205</span><a id="line.205">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</a>
+<span class="sourceLineNo">206</span><a id="line.206">                    throws TemplateModelException {</a>
+<span class="sourceLineNo">207</span><a id="line.207">                if (cachedResult == null) {</a>
+<span class="sourceLineNo">208</span><a id="line.208">                    cachedResult = supportedLocales().entrySet().stream().map(</a>
+<span class="sourceLineNo">209</span><a id="line.209">                        entry -&gt; new LanguageInfo(entry.getKey(),</a>
+<span class="sourceLineNo">210</span><a id="line.210">                            entry.getValue()))</a>
+<span class="sourceLineNo">211</span><a id="line.211">                        .toArray(size -&gt; new LanguageInfo[size]);</a>
+<span class="sourceLineNo">212</span><a id="line.212">                }</a>
+<span class="sourceLineNo">213</span><a id="line.213">                return cachedResult;</a>
+<span class="sourceLineNo">214</span><a id="line.214">            }</a>
+<span class="sourceLineNo">215</span><a id="line.215">        });</a>
+<span class="sourceLineNo">216</span><a id="line.216">        return model;</a>
+<span class="sourceLineNo">217</span><a id="line.217">    }</a>
+<span class="sourceLineNo">218</span><a id="line.218"></a>
+<span class="sourceLineNo">219</span><a id="line.219">    /**</a>
+<span class="sourceLineNo">220</span><a id="line.220">     * Build a freemarker model for the current request.</a>
+<span class="sourceLineNo">221</span><a id="line.221">     * </a>
+<span class="sourceLineNo">222</span><a id="line.222">     * This model provides:</a>
+<span class="sourceLineNo">223</span><a id="line.223">     *  * The `event` property (of type {@link RenderConletRequest}).</a>
+<span class="sourceLineNo">224</span><a id="line.224">     *  * The `conlet` property (of type {@link ConletBaseModel}).</a>
+<span class="sourceLineNo">225</span><a id="line.225">     *  * The function `_Id(String base)` that creates a unique</a>
+<span class="sourceLineNo">226</span><a id="line.226">     *    id for an HTML element by appending the web console component </a>
+<span class="sourceLineNo">227</span><a id="line.227">     *    id to the provided base.</a>
+<span class="sourceLineNo">228</span><a id="line.228">     *    </a>
+<span class="sourceLineNo">229</span><a id="line.229">     * @param event the event</a>
+<span class="sourceLineNo">230</span><a id="line.230">     * @param channel the channel</a>
+<span class="sourceLineNo">231</span><a id="line.231">     * @param conletModel the web console component model</a>
+<span class="sourceLineNo">232</span><a id="line.232">     * @return the model</a>
+<span class="sourceLineNo">233</span><a id="line.233">     */</a>
+<span class="sourceLineNo">234</span><a id="line.234">    protected Map&lt;String, Object&gt; fmConletModel(</a>
+<span class="sourceLineNo">235</span><a id="line.235">            RenderConletRequestBase&lt;?&gt; event,</a>
+<span class="sourceLineNo">236</span><a id="line.236">            IOSubchannel channel, ConletBaseModel conletModel) {</a>
+<span class="sourceLineNo">237</span><a id="line.237">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
+<span class="sourceLineNo">238</span><a id="line.238">        final Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();</a>
+<span class="sourceLineNo">239</span><a id="line.239">        model.put("event", event);</a>
+<span class="sourceLineNo">240</span><a id="line.240">        model.put("conlet", conletModel);</a>
+<span class="sourceLineNo">241</span><a id="line.241">        model.put("_id", new TemplateMethodModelEx() {</a>
+<span class="sourceLineNo">242</span><a id="line.242">            @Override</a>
+<span class="sourceLineNo">243</span><a id="line.243">            public Object exec(@SuppressWarnings("rawtypes") List arguments)</a>
+<span class="sourceLineNo">244</span><a id="line.244">                    throws TemplateModelException {</a>
+<span class="sourceLineNo">245</span><a id="line.245">                @SuppressWarnings("unchecked")</a>
+<span class="sourceLineNo">246</span><a id="line.246">                List&lt;TemplateModel&gt; args = (List&lt;TemplateModel&gt;) arguments;</a>
+<span class="sourceLineNo">247</span><a id="line.247">                if (!(args.get(0) instanceof SimpleScalar)) {</a>
+<span class="sourceLineNo">248</span><a id="line.248">                    throw new TemplateModelException("Not a string.");</a>
+<span class="sourceLineNo">249</span><a id="line.249">                }</a>
+<span class="sourceLineNo">250</span><a id="line.250">                return ((SimpleScalar) args.get(0)).getAsString()</a>
+<span class="sourceLineNo">251</span><a id="line.251">                    + "-" + conletModel.getConletId();</a>
+<span class="sourceLineNo">252</span><a id="line.252">            }</a>
+<span class="sourceLineNo">253</span><a id="line.253">        });</a>
+<span class="sourceLineNo">254</span><a id="line.254">        return model;</a>
+<span class="sourceLineNo">255</span><a id="line.255">    }</a>
+<span class="sourceLineNo">256</span><a id="line.256"></a>
+<span class="sourceLineNo">257</span><a id="line.257">    /**</a>
+<span class="sourceLineNo">258</span><a id="line.258">     * Build a freemarker model that combines {@link #fmTypeModel},</a>
+<span class="sourceLineNo">259</span><a id="line.259">     * {@link #fmSessionModel} and {@link #fmConletModel}.</a>
+<span class="sourceLineNo">260</span><a id="line.260">     * </a>
+<span class="sourceLineNo">261</span><a id="line.261">     * @param event the event</a>
+<span class="sourceLineNo">262</span><a id="line.262">     * @param channel the channel</a>
+<span class="sourceLineNo">263</span><a id="line.263">     * @param conletModel the web console component model</a>
+<span class="sourceLineNo">264</span><a id="line.264">     * @return the model</a>
+<span class="sourceLineNo">265</span><a id="line.265">     */</a>
+<span class="sourceLineNo">266</span><a id="line.266">    protected Map&lt;String, Object&gt; fmModel(RenderConletRequestBase&lt;?&gt; event,</a>
+<span class="sourceLineNo">267</span><a id="line.267">            ConsoleSession channel, ConletBaseModel conletModel) {</a>
+<span class="sourceLineNo">268</span><a id="line.268">        final Map&lt;String, Object&gt; model</a>
+<span class="sourceLineNo">269</span><a id="line.269">            = fmSessionModel(channel.browserSession());</a>
+<span class="sourceLineNo">270</span><a id="line.270">        model.put("locale", channel.locale());</a>
+<span class="sourceLineNo">271</span><a id="line.271">        model.putAll(fmTypeModel(event.renderSupport()));</a>
+<span class="sourceLineNo">272</span><a id="line.272">        model.putAll(fmConletModel(event, channel, conletModel));</a>
+<span class="sourceLineNo">273</span><a id="line.273">        return model;</a>
+<span class="sourceLineNo">274</span><a id="line.274">    }</a>
+<span class="sourceLineNo">275</span><a id="line.275"></a>
+<span class="sourceLineNo">276</span><a id="line.276">    /**</a>
+<span class="sourceLineNo">277</span><a id="line.277">     * Checks if the path of the requested resource ends with</a>
+<span class="sourceLineNo">278</span><a id="line.278">     * `*.ftl.*`. If so, processes the template with the</a>
+<span class="sourceLineNo">279</span><a id="line.279">     * {@link #fmTypeModel(RenderSupport)} and </a>
+<span class="sourceLineNo">280</span><a id="line.280">     * {@link #fmSessionModel(Session)} and</a>
+<span class="sourceLineNo">281</span><a id="line.281">     * sends the result. Else, invoke the super class' method. </a>
+<span class="sourceLineNo">282</span><a id="line.282">     * </a>
+<span class="sourceLineNo">283</span><a id="line.283">     * @param event the event. The result will be set to</a>
+<span class="sourceLineNo">284</span><a id="line.284">     * `true` on success</a>
+<span class="sourceLineNo">285</span><a id="line.285">     * @param channel the channel</a>
+<span class="sourceLineNo">286</span><a id="line.286">     */</a>
+<span class="sourceLineNo">287</span><a id="line.287">    @Override</a>
+<span class="sourceLineNo">288</span><a id="line.288">    protected void doGetResource(ConletResourceRequest event,</a>
+<span class="sourceLineNo">289</span><a id="line.289">            IOSubchannel channel) {</a>
+<span class="sourceLineNo">290</span><a id="line.290">        if (!templatePattern.matcher(event.resourceUri().getPath()).matches()) {</a>
+<span class="sourceLineNo">291</span><a id="line.291">            super.doGetResource(event, channel);</a>
+<span class="sourceLineNo">292</span><a id="line.292">            return;</a>
+<span class="sourceLineNo">293</span><a id="line.293">        }</a>
+<span class="sourceLineNo">294</span><a id="line.294">        try {</a>
+<span class="sourceLineNo">295</span><a id="line.295">            // Prepare template</a>
+<span class="sourceLineNo">296</span><a id="line.296">            final Template tpl = freemarkerConfig().getTemplate(</a>
+<span class="sourceLineNo">297</span><a id="line.297">                event.resourceUri().getPath());</a>
+<span class="sourceLineNo">298</span><a id="line.298">            Map&lt;String, Object&gt; model = fmSessionModel(event.session());</a>
+<span class="sourceLineNo">299</span><a id="line.299">            model.putAll(fmTypeModel(event.renderSupport()));</a>
+<span class="sourceLineNo">300</span><a id="line.300"></a>
+<span class="sourceLineNo">301</span><a id="line.301">            // Everything successfully prepared</a>
+<span class="sourceLineNo">302</span><a id="line.302">            event.setResult(new ResourceByGenerator(event,</a>
+<span class="sourceLineNo">303</span><a id="line.303">                new ResourceByGenerator.Generator() {</a>
+<span class="sourceLineNo">304</span><a id="line.304">                    @Override</a>
+<span class="sourceLineNo">305</span><a id="line.305">                    public void write(OutputStream stream) throws IOException {</a>
+<span class="sourceLineNo">306</span><a id="line.306">                        try {</a>
+<span class="sourceLineNo">307</span><a id="line.307">                            tpl.process(model, new OutputStreamWriter(</a>
+<span class="sourceLineNo">308</span><a id="line.308">                                stream, "utf-8"));</a>
+<span class="sourceLineNo">309</span><a id="line.309">                        } catch (TemplateException e) {</a>
+<span class="sourceLineNo">310</span><a id="line.310">                            throw new IOException(e);</a>
+<span class="sourceLineNo">311</span><a id="line.311">                        }</a>
+<span class="sourceLineNo">312</span><a id="line.312">                    }</a>
+<span class="sourceLineNo">313</span><a id="line.313">                },</a>
+<span class="sourceLineNo">314</span><a id="line.314">                HttpResponse.contentType(event.resourceUri()),</a>
+<span class="sourceLineNo">315</span><a id="line.315">                Instant.now(), 0));</a>
+<span class="sourceLineNo">316</span><a id="line.316">            event.stop();</a>
+<span class="sourceLineNo">317</span><a id="line.317">        } catch (IOException e) { // NOPMD</a>
+<span class="sourceLineNo">318</span><a id="line.318">            throw new IllegalArgumentException(e);</a>
+<span class="sourceLineNo">319</span><a id="line.319">        }</a>
+<span class="sourceLineNo">320</span><a id="line.320">    }</a>
+<span class="sourceLineNo">321</span><a id="line.321"></a>
+<span class="sourceLineNo">322</span><a id="line.322">    /**</a>
+<span class="sourceLineNo">323</span><a id="line.323">     * Specifies how to render web console component content using a template.</a>
+<span class="sourceLineNo">324</span><a id="line.324">     */</a>
+<span class="sourceLineNo">325</span><a id="line.325">    public static class RenderConletFromTemplate extends RenderConlet {</a>
 <span class="sourceLineNo">326</span><a id="line.326"></a>
-<span class="sourceLineNo">327</span><a id="line.327">        /**</a>
-<span class="sourceLineNo">328</span><a id="line.328">         * Instantiates a new event.</a>
-<span class="sourceLineNo">329</span><a id="line.329">         *</a>
-<span class="sourceLineNo">330</span><a id="line.330">         * @param request the request</a>
-<span class="sourceLineNo">331</span><a id="line.331">         * @param conletType the conlet type</a>
-<span class="sourceLineNo">332</span><a id="line.332">         * @param conletId the web console component id</a>
-<span class="sourceLineNo">333</span><a id="line.333">         * @param template the template</a>
-<span class="sourceLineNo">334</span><a id="line.334">         * @param dataModel the data model</a>
-<span class="sourceLineNo">335</span><a id="line.335">         */</a>
-<span class="sourceLineNo">336</span><a id="line.336">        public RenderConletFromTemplate(RenderConletRequestBase&lt;?&gt; request,</a>
-<span class="sourceLineNo">337</span><a id="line.337">                String conletType, String conletId, Template template,</a>
-<span class="sourceLineNo">338</span><a id="line.338">                Object dataModel) {</a>
-<span class="sourceLineNo">339</span><a id="line.339">            super(conletType, conletId);</a>
-<span class="sourceLineNo">340</span><a id="line.340">            // Start to prepare the content immediately and concurrently.</a>
-<span class="sourceLineNo">341</span><a id="line.341">            content</a>
-<span class="sourceLineNo">342</span><a id="line.342">                = request.processedBy().map(procBy -&gt; procBy.executorService())</a>
-<span class="sourceLineNo">343</span><a id="line.343">                    .orElse(Components.defaultExecutorService()).submit(() -&gt; {</a>
-<span class="sourceLineNo">344</span><a id="line.344">                        StringWriter out = new StringWriter();</a>
-<span class="sourceLineNo">345</span><a id="line.345">                        try {</a>
-<span class="sourceLineNo">346</span><a id="line.346">                            template.process(dataModel, out);</a>
-<span class="sourceLineNo">347</span><a id="line.347">                        } catch (TemplateException | IOException e) {</a>
-<span class="sourceLineNo">348</span><a id="line.348">                            throw new IllegalArgumentException(e);</a>
-<span class="sourceLineNo">349</span><a id="line.349">                        }</a>
-<span class="sourceLineNo">350</span><a id="line.350">                        return out.toString();</a>
-<span class="sourceLineNo">351</span><a id="line.351"></a>
-<span class="sourceLineNo">352</span><a id="line.352">                    });</a>
-<span class="sourceLineNo">353</span><a id="line.353">        }</a>
-<span class="sourceLineNo">354</span><a id="line.354"></a>
-<span class="sourceLineNo">355</span><a id="line.355">        @Override</a>
-<span class="sourceLineNo">356</span><a id="line.356">        public Future&lt;String&gt; content() {</a>
-<span class="sourceLineNo">357</span><a id="line.357">            return content;</a>
-<span class="sourceLineNo">358</span><a id="line.358">        }</a>
-<span class="sourceLineNo">359</span><a id="line.359">    }</a>
-<span class="sourceLineNo">360</span><a id="line.360">}</a>
+<span class="sourceLineNo">327</span><a id="line.327">        private final Future&lt;String&gt; content;</a>
+<span class="sourceLineNo">328</span><a id="line.328"></a>
+<span class="sourceLineNo">329</span><a id="line.329">        /**</a>
+<span class="sourceLineNo">330</span><a id="line.330">         * Instantiates a new event.</a>
+<span class="sourceLineNo">331</span><a id="line.331">         *</a>
+<span class="sourceLineNo">332</span><a id="line.332">         * @param request the request</a>
+<span class="sourceLineNo">333</span><a id="line.333">         * @param conletType the conlet type</a>
+<span class="sourceLineNo">334</span><a id="line.334">         * @param conletId the web console component id</a>
+<span class="sourceLineNo">335</span><a id="line.335">         * @param template the template</a>
+<span class="sourceLineNo">336</span><a id="line.336">         * @param dataModel the data model</a>
+<span class="sourceLineNo">337</span><a id="line.337">         */</a>
+<span class="sourceLineNo">338</span><a id="line.338">        public RenderConletFromTemplate(RenderConletRequestBase&lt;?&gt; request,</a>
+<span class="sourceLineNo">339</span><a id="line.339">                String conletType, String conletId, Template template,</a>
+<span class="sourceLineNo">340</span><a id="line.340">                Object dataModel) {</a>
+<span class="sourceLineNo">341</span><a id="line.341">            super(conletType, conletId);</a>
+<span class="sourceLineNo">342</span><a id="line.342">            // Start to prepare the content immediately and concurrently.</a>
+<span class="sourceLineNo">343</span><a id="line.343">            content</a>
+<span class="sourceLineNo">344</span><a id="line.344">                = request.processedBy().map(procBy -&gt; procBy.executorService())</a>
+<span class="sourceLineNo">345</span><a id="line.345">                    .orElse(Components.defaultExecutorService()).submit(() -&gt; {</a>
+<span class="sourceLineNo">346</span><a id="line.346">                        StringWriter out = new StringWriter();</a>
+<span class="sourceLineNo">347</span><a id="line.347">                        try {</a>
+<span class="sourceLineNo">348</span><a id="line.348">                            template.process(dataModel, out);</a>
+<span class="sourceLineNo">349</span><a id="line.349">                        } catch (TemplateException | IOException e) {</a>
+<span class="sourceLineNo">350</span><a id="line.350">                            throw new IllegalArgumentException(e);</a>
+<span class="sourceLineNo">351</span><a id="line.351">                        }</a>
+<span class="sourceLineNo">352</span><a id="line.352">                        return out.toString();</a>
+<span class="sourceLineNo">353</span><a id="line.353"></a>
+<span class="sourceLineNo">354</span><a id="line.354">                    });</a>
+<span class="sourceLineNo">355</span><a id="line.355">        }</a>
+<span class="sourceLineNo">356</span><a id="line.356"></a>
+<span class="sourceLineNo">357</span><a id="line.357">        @Override</a>
+<span class="sourceLineNo">358</span><a id="line.358">        public Future&lt;String&gt; content() {</a>
+<span class="sourceLineNo">359</span><a id="line.359">            return content;</a>
+<span class="sourceLineNo">360</span><a id="line.360">        }</a>
+<span class="sourceLineNo">361</span><a id="line.361">    }</a>
+<span class="sourceLineNo">362</span><a id="line.362">}</a>
 
 
 

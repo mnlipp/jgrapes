@@ -83,7 +83,7 @@
 <span class="sourceLineNo">074</span><a id="line.74">     */</a>
 <span class="sourceLineNo">075</span><a id="line.75">    @Override</a>
 <span class="sourceLineNo">076</span><a id="line.76">    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</a>
-<span class="sourceLineNo">077</span><a id="line.77">        "PMD.AvoidInstantiatingObjectsInLoops" })</a>
+<span class="sourceLineNo">077</span><a id="line.77">        "PMD.AvoidInstantiatingObjectsInLoops", "PMD.CognitiveComplexity" })</a>
 <span class="sourceLineNo">078</span><a id="line.78">    public ResourceBundle newBundle(String baseName, Locale locale,</a>
 <span class="sourceLineNo">079</span><a id="line.79">            String format, ClassLoader loader, boolean reload)</a>
 <span class="sourceLineNo">080</span><a id="line.80">            throws IllegalAccessException, InstantiationException, IOException {</a>
@@ -94,33 +94,34 @@
 <span class="sourceLineNo">085</span><a id="line.85">        Properties props = new Properties();</a>
 <span class="sourceLineNo">086</span><a id="line.86">        while (iter.hasPrevious()) {</a>
 <span class="sourceLineNo">087</span><a id="line.87">            Class&lt;?&gt; cls = iter.previous();</a>
-<span class="sourceLineNo">088</span><a id="line.88">            InputStream inStream = null;</a>
-<span class="sourceLineNo">089</span><a id="line.89">            if (reload) {</a>
-<span class="sourceLineNo">090</span><a id="line.90">                URL url = cls.getResource(resourceName);</a>
-<span class="sourceLineNo">091</span><a id="line.91">                if (url != null) {</a>
-<span class="sourceLineNo">092</span><a id="line.92">                    URLConnection connection = url.openConnection();</a>
-<span class="sourceLineNo">093</span><a id="line.93">                    if (connection != null) {</a>
-<span class="sourceLineNo">094</span><a id="line.94">                        // Disable caches to get fresh data for</a>
-<span class="sourceLineNo">095</span><a id="line.95">                        // reloading.</a>
-<span class="sourceLineNo">096</span><a id="line.96">                        connection.setUseCaches(false);</a>
-<span class="sourceLineNo">097</span><a id="line.97">                        inStream = connection.getInputStream();</a>
-<span class="sourceLineNo">098</span><a id="line.98">                    }</a>
-<span class="sourceLineNo">099</span><a id="line.99">                }</a>
-<span class="sourceLineNo">100</span><a id="line.100">            } else {</a>
-<span class="sourceLineNo">101</span><a id="line.101">                inStream = cls.getResourceAsStream(resourceName);</a>
-<span class="sourceLineNo">102</span><a id="line.102">            }</a>
-<span class="sourceLineNo">103</span><a id="line.103">            if (inStream == null) {</a>
-<span class="sourceLineNo">104</span><a id="line.104">                continue;</a>
-<span class="sourceLineNo">105</span><a id="line.105">            }</a>
-<span class="sourceLineNo">106</span><a id="line.106">            props.load(inStream);</a>
-<span class="sourceLineNo">107</span><a id="line.107">            inStream.close();</a>
-<span class="sourceLineNo">108</span><a id="line.108">            if (bundle == null) {</a>
-<span class="sourceLineNo">109</span><a id="line.109">                bundle = new ConsoleResourceBundle(props);</a>
-<span class="sourceLineNo">110</span><a id="line.110">            }</a>
-<span class="sourceLineNo">111</span><a id="line.111">        }</a>
-<span class="sourceLineNo">112</span><a id="line.112">        return bundle;</a>
-<span class="sourceLineNo">113</span><a id="line.113">    }</a>
-<span class="sourceLineNo">114</span><a id="line.114">}</a>
+<span class="sourceLineNo">088</span><a id="line.88">            @SuppressWarnings("PMD.CloseResource")</a>
+<span class="sourceLineNo">089</span><a id="line.89">            InputStream inStream = null;</a>
+<span class="sourceLineNo">090</span><a id="line.90">            if (reload) {</a>
+<span class="sourceLineNo">091</span><a id="line.91">                URL url = cls.getResource(resourceName);</a>
+<span class="sourceLineNo">092</span><a id="line.92">                if (url != null) {</a>
+<span class="sourceLineNo">093</span><a id="line.93">                    URLConnection connection = url.openConnection();</a>
+<span class="sourceLineNo">094</span><a id="line.94">                    if (connection != null) {</a>
+<span class="sourceLineNo">095</span><a id="line.95">                        // Disable caches to get fresh data for</a>
+<span class="sourceLineNo">096</span><a id="line.96">                        // reloading.</a>
+<span class="sourceLineNo">097</span><a id="line.97">                        connection.setUseCaches(false);</a>
+<span class="sourceLineNo">098</span><a id="line.98">                        inStream = connection.getInputStream();</a>
+<span class="sourceLineNo">099</span><a id="line.99">                    }</a>
+<span class="sourceLineNo">100</span><a id="line.100">                }</a>
+<span class="sourceLineNo">101</span><a id="line.101">            } else {</a>
+<span class="sourceLineNo">102</span><a id="line.102">                inStream = cls.getResourceAsStream(resourceName);</a>
+<span class="sourceLineNo">103</span><a id="line.103">            }</a>
+<span class="sourceLineNo">104</span><a id="line.104">            if (inStream == null) {</a>
+<span class="sourceLineNo">105</span><a id="line.105">                continue;</a>
+<span class="sourceLineNo">106</span><a id="line.106">            }</a>
+<span class="sourceLineNo">107</span><a id="line.107">            props.load(inStream);</a>
+<span class="sourceLineNo">108</span><a id="line.108">            inStream.close();</a>
+<span class="sourceLineNo">109</span><a id="line.109">            if (bundle == null) {</a>
+<span class="sourceLineNo">110</span><a id="line.110">                bundle = new ConsoleResourceBundle(props);</a>
+<span class="sourceLineNo">111</span><a id="line.111">            }</a>
+<span class="sourceLineNo">112</span><a id="line.112">        }</a>
+<span class="sourceLineNo">113</span><a id="line.113">        return bundle;</a>
+<span class="sourceLineNo">114</span><a id="line.114">    }</a>
+<span class="sourceLineNo">115</span><a id="line.115">}</a>
 
 
 

@@ -120,290 +120,299 @@
 <span class="sourceLineNo">111</span><a id="line.111"> * ConsoleSession "*" -up-&gt; "1" Session: browser session</a>
 <span class="sourceLineNo">112</span><a id="line.112"> * @enduml</a>
 <span class="sourceLineNo">113</span><a id="line.113"> */</a>
-<span class="sourceLineNo">114</span><a id="line.114">public final class ConsoleSession extends DefaultIOSubchannel {</a>
-<span class="sourceLineNo">115</span><a id="line.115"></a>
-<span class="sourceLineNo">116</span><a id="line.116">    private static Map&lt;String, WeakReference&lt;ConsoleSession&gt;&gt; consoleSessions</a>
-<span class="sourceLineNo">117</span><a id="line.117">        = new ConcurrentHashMap&lt;&gt;();</a>
-<span class="sourceLineNo">118</span><a id="line.118">    private static ReferenceQueue&lt;ConsoleSession&gt; unusedSessions</a>
-<span class="sourceLineNo">119</span><a id="line.119">        = new ReferenceQueue&lt;&gt;();</a>
-<span class="sourceLineNo">120</span><a id="line.120"></a>
-<span class="sourceLineNo">121</span><a id="line.121">    private String consoleSessionId;</a>
-<span class="sourceLineNo">122</span><a id="line.122">    private final WebConsole console;</a>
-<span class="sourceLineNo">123</span><a id="line.123">    private final Set&lt;Locale&gt; supportedLocales;</a>
-<span class="sourceLineNo">124</span><a id="line.124">    private Locale locale;</a>
-<span class="sourceLineNo">125</span><a id="line.125">    private long timeout;</a>
-<span class="sourceLineNo">126</span><a id="line.126">    private final Timer timeoutTimer;</a>
-<span class="sourceLineNo">127</span><a id="line.127">    private boolean active = true;</a>
-<span class="sourceLineNo">128</span><a id="line.128">    private boolean connected = true;</a>
-<span class="sourceLineNo">129</span><a id="line.129">    private Session browserSession;</a>
-<span class="sourceLineNo">130</span><a id="line.130">    private IOSubchannel upstreamChannel;</a>
-<span class="sourceLineNo">131</span><a id="line.131"></a>
-<span class="sourceLineNo">132</span><a id="line.132">    private static class SessionReference</a>
-<span class="sourceLineNo">133</span><a id="line.133">            extends WeakReference&lt;ConsoleSession&gt; {</a>
-<span class="sourceLineNo">134</span><a id="line.134"></a>
-<span class="sourceLineNo">135</span><a id="line.135">        private String id;</a>
-<span class="sourceLineNo">136</span><a id="line.136"></a>
-<span class="sourceLineNo">137</span><a id="line.137">        public SessionReference(ConsoleSession referent) {</a>
-<span class="sourceLineNo">138</span><a id="line.138">            super(referent, unusedSessions);</a>
-<span class="sourceLineNo">139</span><a id="line.139">            id = referent.consoleSessionId();</a>
-<span class="sourceLineNo">140</span><a id="line.140">        }</a>
-<span class="sourceLineNo">141</span><a id="line.141">    }</a>
-<span class="sourceLineNo">142</span><a id="line.142"></a>
-<span class="sourceLineNo">143</span><a id="line.143">    private static void cleanUnused() {</a>
-<span class="sourceLineNo">144</span><a id="line.144">        while (true) {</a>
-<span class="sourceLineNo">145</span><a id="line.145">            SessionReference unused = (SessionReference) unusedSessions.poll();</a>
-<span class="sourceLineNo">146</span><a id="line.146">            if (unused == null) {</a>
-<span class="sourceLineNo">147</span><a id="line.147">                break;</a>
-<span class="sourceLineNo">148</span><a id="line.148">            }</a>
-<span class="sourceLineNo">149</span><a id="line.149">            consoleSessions.remove(unused.id);</a>
-<span class="sourceLineNo">150</span><a id="line.150">        }</a>
-<span class="sourceLineNo">151</span><a id="line.151">    }</a>
-<span class="sourceLineNo">152</span><a id="line.152"></a>
-<span class="sourceLineNo">153</span><a id="line.153">    /**</a>
-<span class="sourceLineNo">154</span><a id="line.154">     * Lookup the console session (the channel)</a>
-<span class="sourceLineNo">155</span><a id="line.155">     * for the given console session id.</a>
-<span class="sourceLineNo">156</span><a id="line.156">     * </a>
-<span class="sourceLineNo">157</span><a id="line.157">     * @param consoleSessionId the console session id</a>
-<span class="sourceLineNo">158</span><a id="line.158">     * @return the channel</a>
-<span class="sourceLineNo">159</span><a id="line.159">     */</a>
-<span class="sourceLineNo">160</span><a id="line.160">    /* default */ static Optional&lt;ConsoleSession&gt;</a>
-<span class="sourceLineNo">161</span><a id="line.161">            lookup(String consoleSessionId) {</a>
-<span class="sourceLineNo">162</span><a id="line.162">        cleanUnused();</a>
-<span class="sourceLineNo">163</span><a id="line.163">        return Optional.ofNullable(consoleSessions.get(consoleSessionId))</a>
-<span class="sourceLineNo">164</span><a id="line.164">            .flatMap(ref -&gt; Optional.ofNullable(ref.get()));</a>
-<span class="sourceLineNo">165</span><a id="line.165">    }</a>
-<span class="sourceLineNo">166</span><a id="line.166"></a>
-<span class="sourceLineNo">167</span><a id="line.167">    /**</a>
-<span class="sourceLineNo">168</span><a id="line.168">     * Return all sessions that belong to the given console as a new</a>
-<span class="sourceLineNo">169</span><a id="line.169">     * unmodifiable set.</a>
-<span class="sourceLineNo">170</span><a id="line.170">     *</a>
-<span class="sourceLineNo">171</span><a id="line.171">     * @param console the console</a>
-<span class="sourceLineNo">172</span><a id="line.172">     * @return the sets the</a>
-<span class="sourceLineNo">173</span><a id="line.173">     */</a>
-<span class="sourceLineNo">174</span><a id="line.174">    public static Set&lt;ConsoleSession&gt; byConsole(WebConsole console) {</a>
-<span class="sourceLineNo">175</span><a id="line.175">        cleanUnused();</a>
-<span class="sourceLineNo">176</span><a id="line.176">        Set&lt;ConsoleSession&gt; result = new HashSet&lt;&gt;();</a>
-<span class="sourceLineNo">177</span><a id="line.177">        for (WeakReference&lt;ConsoleSession&gt; psr : consoleSessions.values()) {</a>
-<span class="sourceLineNo">178</span><a id="line.178">            ConsoleSession psess = psr.get();</a>
-<span class="sourceLineNo">179</span><a id="line.179">            if (psess.console.equals(console)) {</a>
-<span class="sourceLineNo">180</span><a id="line.180">                result.add(psess);</a>
-<span class="sourceLineNo">181</span><a id="line.181">            }</a>
-<span class="sourceLineNo">182</span><a id="line.182">        }</a>
-<span class="sourceLineNo">183</span><a id="line.183">        return Collections.unmodifiableSet(result);</a>
-<span class="sourceLineNo">184</span><a id="line.184">    }</a>
-<span class="sourceLineNo">185</span><a id="line.185"></a>
-<span class="sourceLineNo">186</span><a id="line.186">    /**</a>
-<span class="sourceLineNo">187</span><a id="line.187">     * Lookup (and create if not found) the console browserSession channel</a>
-<span class="sourceLineNo">188</span><a id="line.188">     * for the given console browserSession id.</a>
-<span class="sourceLineNo">189</span><a id="line.189">     *</a>
-<span class="sourceLineNo">190</span><a id="line.190">     * @param consoleSessionId the browserSession id</a>
-<span class="sourceLineNo">191</span><a id="line.191">     * @param console the console that this session belongs to</a>
-<span class="sourceLineNo">192</span><a id="line.192">     * class' constructor if a new channel is created, usually </a>
-<span class="sourceLineNo">193</span><a id="line.193">     * the console</a>
-<span class="sourceLineNo">194</span><a id="line.194">     * @param supportedLocales the locales supported by the console</a>
-<span class="sourceLineNo">195</span><a id="line.195">     * @param timeout the console session timeout in milli seconds</a>
-<span class="sourceLineNo">196</span><a id="line.196">     * @return the channel</a>
-<span class="sourceLineNo">197</span><a id="line.197">     */</a>
-<span class="sourceLineNo">198</span><a id="line.198">    /* default */ static ConsoleSession lookupOrCreate(</a>
-<span class="sourceLineNo">199</span><a id="line.199">            String consoleSessionId, WebConsole console,</a>
-<span class="sourceLineNo">200</span><a id="line.200">            Set&lt;Locale&gt; supportedLocales, long timeout) {</a>
-<span class="sourceLineNo">201</span><a id="line.201">        cleanUnused();</a>
-<span class="sourceLineNo">202</span><a id="line.202">        return consoleSessions.computeIfAbsent(consoleSessionId,</a>
-<span class="sourceLineNo">203</span><a id="line.203">            psi -&gt; new SessionReference(new ConsoleSession(</a>
-<span class="sourceLineNo">204</span><a id="line.204">                console, supportedLocales, consoleSessionId, timeout)))</a>
-<span class="sourceLineNo">205</span><a id="line.205">            .get();</a>
-<span class="sourceLineNo">206</span><a id="line.206">    }</a>
-<span class="sourceLineNo">207</span><a id="line.207"></a>
-<span class="sourceLineNo">208</span><a id="line.208">    /**</a>
-<span class="sourceLineNo">209</span><a id="line.209">     * Replace the id of the console session with the new id.</a>
-<span class="sourceLineNo">210</span><a id="line.210">     *</a>
-<span class="sourceLineNo">211</span><a id="line.211">     * @param newConsoleSessionId the new console session id</a>
-<span class="sourceLineNo">212</span><a id="line.212">     * @return the console session</a>
-<span class="sourceLineNo">213</span><a id="line.213">     */</a>
-<span class="sourceLineNo">214</span><a id="line.214">    /* default */ ConsoleSession replaceId(String newConsoleSessionId) {</a>
-<span class="sourceLineNo">215</span><a id="line.215">        consoleSessions.remove(consoleSessionId);</a>
-<span class="sourceLineNo">216</span><a id="line.216">        consoleSessionId = newConsoleSessionId;</a>
-<span class="sourceLineNo">217</span><a id="line.217">        consoleSessions.put(consoleSessionId, new SessionReference(</a>
-<span class="sourceLineNo">218</span><a id="line.218">            this));</a>
-<span class="sourceLineNo">219</span><a id="line.219">        connected = true;</a>
-<span class="sourceLineNo">220</span><a id="line.220">        return this;</a>
-<span class="sourceLineNo">221</span><a id="line.221">    }</a>
-<span class="sourceLineNo">222</span><a id="line.222"></a>
-<span class="sourceLineNo">223</span><a id="line.223">    private ConsoleSession(WebConsole console, Set&lt;Locale&gt; supportedLocales,</a>
-<span class="sourceLineNo">224</span><a id="line.224">            String consoleSessionId, long timeout) {</a>
-<span class="sourceLineNo">225</span><a id="line.225">        super(console.channel(), console.newEventPipeline());</a>
-<span class="sourceLineNo">226</span><a id="line.226">        this.console = console;</a>
-<span class="sourceLineNo">227</span><a id="line.227">        this.supportedLocales = supportedLocales;</a>
-<span class="sourceLineNo">228</span><a id="line.228">        this.consoleSessionId = consoleSessionId;</a>
-<span class="sourceLineNo">229</span><a id="line.229">        this.timeout = timeout;</a>
-<span class="sourceLineNo">230</span><a id="line.230">        timeoutTimer = Components.schedule(</a>
-<span class="sourceLineNo">231</span><a id="line.231">            tmr -&gt; discard(), Duration.ofMillis(timeout));</a>
-<span class="sourceLineNo">232</span><a id="line.232">    }</a>
-<span class="sourceLineNo">233</span><a id="line.233"></a>
-<span class="sourceLineNo">234</span><a id="line.234">    /**</a>
-<span class="sourceLineNo">235</span><a id="line.235">     * Changes the timeout for this {@link ConsoleSession} to the</a>
-<span class="sourceLineNo">236</span><a id="line.236">     * given value.</a>
-<span class="sourceLineNo">237</span><a id="line.237">     * </a>
-<span class="sourceLineNo">238</span><a id="line.238">     * @param timeout the timeout in milli seconds</a>
-<span class="sourceLineNo">239</span><a id="line.239">     * @return the console session for easy chaining</a>
-<span class="sourceLineNo">240</span><a id="line.240">     */</a>
-<span class="sourceLineNo">241</span><a id="line.241">    public ConsoleSession setTimeout(long timeout) {</a>
-<span class="sourceLineNo">242</span><a id="line.242">        this.timeout = timeout;</a>
-<span class="sourceLineNo">243</span><a id="line.243">        timeoutTimer.reschedule(Duration.ofMillis(timeout));</a>
-<span class="sourceLineNo">244</span><a id="line.244">        return this;</a>
-<span class="sourceLineNo">245</span><a id="line.245">    }</a>
-<span class="sourceLineNo">246</span><a id="line.246"></a>
-<span class="sourceLineNo">247</span><a id="line.247">    /**</a>
-<span class="sourceLineNo">248</span><a id="line.248">     * Returns the time when this session will expire.</a>
-<span class="sourceLineNo">249</span><a id="line.249">     *</a>
-<span class="sourceLineNo">250</span><a id="line.250">     * @return the instant</a>
-<span class="sourceLineNo">251</span><a id="line.251">     */</a>
-<span class="sourceLineNo">252</span><a id="line.252">    public Instant expiresAt() {</a>
-<span class="sourceLineNo">253</span><a id="line.253">        return timeoutTimer.scheduledFor();</a>
+<span class="sourceLineNo">114</span><a id="line.114">@SuppressWarnings("PMD.LinguisticNaming")</a>
+<span class="sourceLineNo">115</span><a id="line.115">public final class ConsoleSession extends DefaultIOSubchannel {</a>
+<span class="sourceLineNo">116</span><a id="line.116"></a>
+<span class="sourceLineNo">117</span><a id="line.117">    private static Map&lt;String, WeakReference&lt;ConsoleSession&gt;&gt; consoleSessions</a>
+<span class="sourceLineNo">118</span><a id="line.118">        = new ConcurrentHashMap&lt;&gt;();</a>
+<span class="sourceLineNo">119</span><a id="line.119">    private static ReferenceQueue&lt;ConsoleSession&gt; unusedSessions</a>
+<span class="sourceLineNo">120</span><a id="line.120">        = new ReferenceQueue&lt;&gt;();</a>
+<span class="sourceLineNo">121</span><a id="line.121"></a>
+<span class="sourceLineNo">122</span><a id="line.122">    private String consoleSessionId;</a>
+<span class="sourceLineNo">123</span><a id="line.123">    private final WebConsole console;</a>
+<span class="sourceLineNo">124</span><a id="line.124">    private final Set&lt;Locale&gt; supportedLocales;</a>
+<span class="sourceLineNo">125</span><a id="line.125">    private Locale locale;</a>
+<span class="sourceLineNo">126</span><a id="line.126">    private long timeout;</a>
+<span class="sourceLineNo">127</span><a id="line.127">    private final Timer timeoutTimer;</a>
+<span class="sourceLineNo">128</span><a id="line.128">    private boolean active = true;</a>
+<span class="sourceLineNo">129</span><a id="line.129">    private boolean connected = true;</a>
+<span class="sourceLineNo">130</span><a id="line.130">    private Session browserSession;</a>
+<span class="sourceLineNo">131</span><a id="line.131">    private IOSubchannel upstreamChannel;</a>
+<span class="sourceLineNo">132</span><a id="line.132"></a>
+<span class="sourceLineNo">133</span><a id="line.133">    /**</a>
+<span class="sourceLineNo">134</span><a id="line.134">     * Weak refrence to session.</a>
+<span class="sourceLineNo">135</span><a id="line.135">     */</a>
+<span class="sourceLineNo">136</span><a id="line.136">    private static class SessionReference</a>
+<span class="sourceLineNo">137</span><a id="line.137">            extends WeakReference&lt;ConsoleSession&gt; {</a>
+<span class="sourceLineNo">138</span><a id="line.138"></a>
+<span class="sourceLineNo">139</span><a id="line.139">        private final String id;</a>
+<span class="sourceLineNo">140</span><a id="line.140"></a>
+<span class="sourceLineNo">141</span><a id="line.141">        /**</a>
+<span class="sourceLineNo">142</span><a id="line.142">         * Instantiates a new session reference.</a>
+<span class="sourceLineNo">143</span><a id="line.143">         *</a>
+<span class="sourceLineNo">144</span><a id="line.144">         * @param referent the referent</a>
+<span class="sourceLineNo">145</span><a id="line.145">         */</a>
+<span class="sourceLineNo">146</span><a id="line.146">        public SessionReference(ConsoleSession referent) {</a>
+<span class="sourceLineNo">147</span><a id="line.147">            super(referent, unusedSessions);</a>
+<span class="sourceLineNo">148</span><a id="line.148">            id = referent.consoleSessionId();</a>
+<span class="sourceLineNo">149</span><a id="line.149">        }</a>
+<span class="sourceLineNo">150</span><a id="line.150">    }</a>
+<span class="sourceLineNo">151</span><a id="line.151"></a>
+<span class="sourceLineNo">152</span><a id="line.152">    private static void cleanUnused() {</a>
+<span class="sourceLineNo">153</span><a id="line.153">        while (true) {</a>
+<span class="sourceLineNo">154</span><a id="line.154">            SessionReference unused = (SessionReference) unusedSessions.poll();</a>
+<span class="sourceLineNo">155</span><a id="line.155">            if (unused == null) {</a>
+<span class="sourceLineNo">156</span><a id="line.156">                break;</a>
+<span class="sourceLineNo">157</span><a id="line.157">            }</a>
+<span class="sourceLineNo">158</span><a id="line.158">            consoleSessions.remove(unused.id);</a>
+<span class="sourceLineNo">159</span><a id="line.159">        }</a>
+<span class="sourceLineNo">160</span><a id="line.160">    }</a>
+<span class="sourceLineNo">161</span><a id="line.161"></a>
+<span class="sourceLineNo">162</span><a id="line.162">    /**</a>
+<span class="sourceLineNo">163</span><a id="line.163">     * Lookup the console session (the channel)</a>
+<span class="sourceLineNo">164</span><a id="line.164">     * for the given console session id.</a>
+<span class="sourceLineNo">165</span><a id="line.165">     * </a>
+<span class="sourceLineNo">166</span><a id="line.166">     * @param consoleSessionId the console session id</a>
+<span class="sourceLineNo">167</span><a id="line.167">     * @return the channel</a>
+<span class="sourceLineNo">168</span><a id="line.168">     */</a>
+<span class="sourceLineNo">169</span><a id="line.169">    /* default */ static Optional&lt;ConsoleSession&gt;</a>
+<span class="sourceLineNo">170</span><a id="line.170">            lookup(String consoleSessionId) {</a>
+<span class="sourceLineNo">171</span><a id="line.171">        cleanUnused();</a>
+<span class="sourceLineNo">172</span><a id="line.172">        return Optional.ofNullable(consoleSessions.get(consoleSessionId))</a>
+<span class="sourceLineNo">173</span><a id="line.173">            .flatMap(ref -&gt; Optional.ofNullable(ref.get()));</a>
+<span class="sourceLineNo">174</span><a id="line.174">    }</a>
+<span class="sourceLineNo">175</span><a id="line.175"></a>
+<span class="sourceLineNo">176</span><a id="line.176">    /**</a>
+<span class="sourceLineNo">177</span><a id="line.177">     * Return all sessions that belong to the given console as a new</a>
+<span class="sourceLineNo">178</span><a id="line.178">     * unmodifiable set.</a>
+<span class="sourceLineNo">179</span><a id="line.179">     *</a>
+<span class="sourceLineNo">180</span><a id="line.180">     * @param console the console</a>
+<span class="sourceLineNo">181</span><a id="line.181">     * @return the sets the</a>
+<span class="sourceLineNo">182</span><a id="line.182">     */</a>
+<span class="sourceLineNo">183</span><a id="line.183">    public static Set&lt;ConsoleSession&gt; byConsole(WebConsole console) {</a>
+<span class="sourceLineNo">184</span><a id="line.184">        cleanUnused();</a>
+<span class="sourceLineNo">185</span><a id="line.185">        Set&lt;ConsoleSession&gt; result = new HashSet&lt;&gt;();</a>
+<span class="sourceLineNo">186</span><a id="line.186">        for (WeakReference&lt;ConsoleSession&gt; psr : consoleSessions.values()) {</a>
+<span class="sourceLineNo">187</span><a id="line.187">            ConsoleSession psess = psr.get();</a>
+<span class="sourceLineNo">188</span><a id="line.188">            if (psess.console.equals(console)) {</a>
+<span class="sourceLineNo">189</span><a id="line.189">                result.add(psess);</a>
+<span class="sourceLineNo">190</span><a id="line.190">            }</a>
+<span class="sourceLineNo">191</span><a id="line.191">        }</a>
+<span class="sourceLineNo">192</span><a id="line.192">        return Collections.unmodifiableSet(result);</a>
+<span class="sourceLineNo">193</span><a id="line.193">    }</a>
+<span class="sourceLineNo">194</span><a id="line.194"></a>
+<span class="sourceLineNo">195</span><a id="line.195">    /**</a>
+<span class="sourceLineNo">196</span><a id="line.196">     * Lookup (and create if not found) the console browserSession channel</a>
+<span class="sourceLineNo">197</span><a id="line.197">     * for the given console browserSession id.</a>
+<span class="sourceLineNo">198</span><a id="line.198">     *</a>
+<span class="sourceLineNo">199</span><a id="line.199">     * @param consoleSessionId the browserSession id</a>
+<span class="sourceLineNo">200</span><a id="line.200">     * @param console the console that this session belongs to</a>
+<span class="sourceLineNo">201</span><a id="line.201">     * class' constructor if a new channel is created, usually </a>
+<span class="sourceLineNo">202</span><a id="line.202">     * the console</a>
+<span class="sourceLineNo">203</span><a id="line.203">     * @param supportedLocales the locales supported by the console</a>
+<span class="sourceLineNo">204</span><a id="line.204">     * @param timeout the console session timeout in milli seconds</a>
+<span class="sourceLineNo">205</span><a id="line.205">     * @return the channel</a>
+<span class="sourceLineNo">206</span><a id="line.206">     */</a>
+<span class="sourceLineNo">207</span><a id="line.207">    /* default */ static ConsoleSession lookupOrCreate(</a>
+<span class="sourceLineNo">208</span><a id="line.208">            String consoleSessionId, WebConsole console,</a>
+<span class="sourceLineNo">209</span><a id="line.209">            Set&lt;Locale&gt; supportedLocales, long timeout) {</a>
+<span class="sourceLineNo">210</span><a id="line.210">        cleanUnused();</a>
+<span class="sourceLineNo">211</span><a id="line.211">        return consoleSessions.computeIfAbsent(consoleSessionId,</a>
+<span class="sourceLineNo">212</span><a id="line.212">            psi -&gt; new SessionReference(new ConsoleSession(</a>
+<span class="sourceLineNo">213</span><a id="line.213">                console, supportedLocales, consoleSessionId, timeout)))</a>
+<span class="sourceLineNo">214</span><a id="line.214">            .get();</a>
+<span class="sourceLineNo">215</span><a id="line.215">    }</a>
+<span class="sourceLineNo">216</span><a id="line.216"></a>
+<span class="sourceLineNo">217</span><a id="line.217">    /**</a>
+<span class="sourceLineNo">218</span><a id="line.218">     * Replace the id of the console session with the new id.</a>
+<span class="sourceLineNo">219</span><a id="line.219">     *</a>
+<span class="sourceLineNo">220</span><a id="line.220">     * @param newConsoleSessionId the new console session id</a>
+<span class="sourceLineNo">221</span><a id="line.221">     * @return the console session</a>
+<span class="sourceLineNo">222</span><a id="line.222">     */</a>
+<span class="sourceLineNo">223</span><a id="line.223">    /* default */ ConsoleSession replaceId(String newConsoleSessionId) {</a>
+<span class="sourceLineNo">224</span><a id="line.224">        consoleSessions.remove(consoleSessionId);</a>
+<span class="sourceLineNo">225</span><a id="line.225">        consoleSessionId = newConsoleSessionId;</a>
+<span class="sourceLineNo">226</span><a id="line.226">        consoleSessions.put(consoleSessionId, new SessionReference(</a>
+<span class="sourceLineNo">227</span><a id="line.227">            this));</a>
+<span class="sourceLineNo">228</span><a id="line.228">        connected = true;</a>
+<span class="sourceLineNo">229</span><a id="line.229">        return this;</a>
+<span class="sourceLineNo">230</span><a id="line.230">    }</a>
+<span class="sourceLineNo">231</span><a id="line.231"></a>
+<span class="sourceLineNo">232</span><a id="line.232">    private ConsoleSession(WebConsole console, Set&lt;Locale&gt; supportedLocales,</a>
+<span class="sourceLineNo">233</span><a id="line.233">            String consoleSessionId, long timeout) {</a>
+<span class="sourceLineNo">234</span><a id="line.234">        super(console.channel(), console.newEventPipeline());</a>
+<span class="sourceLineNo">235</span><a id="line.235">        this.console = console;</a>
+<span class="sourceLineNo">236</span><a id="line.236">        this.supportedLocales = supportedLocales;</a>
+<span class="sourceLineNo">237</span><a id="line.237">        this.consoleSessionId = consoleSessionId;</a>
+<span class="sourceLineNo">238</span><a id="line.238">        this.timeout = timeout;</a>
+<span class="sourceLineNo">239</span><a id="line.239">        timeoutTimer = Components.schedule(</a>
+<span class="sourceLineNo">240</span><a id="line.240">            tmr -&gt; discard(), Duration.ofMillis(timeout));</a>
+<span class="sourceLineNo">241</span><a id="line.241">    }</a>
+<span class="sourceLineNo">242</span><a id="line.242"></a>
+<span class="sourceLineNo">243</span><a id="line.243">    /**</a>
+<span class="sourceLineNo">244</span><a id="line.244">     * Changes the timeout for this {@link ConsoleSession} to the</a>
+<span class="sourceLineNo">245</span><a id="line.245">     * given value.</a>
+<span class="sourceLineNo">246</span><a id="line.246">     * </a>
+<span class="sourceLineNo">247</span><a id="line.247">     * @param timeout the timeout in milli seconds</a>
+<span class="sourceLineNo">248</span><a id="line.248">     * @return the console session for easy chaining</a>
+<span class="sourceLineNo">249</span><a id="line.249">     */</a>
+<span class="sourceLineNo">250</span><a id="line.250">    public ConsoleSession setTimeout(long timeout) {</a>
+<span class="sourceLineNo">251</span><a id="line.251">        this.timeout = timeout;</a>
+<span class="sourceLineNo">252</span><a id="line.252">        timeoutTimer.reschedule(Duration.ofMillis(timeout));</a>
+<span class="sourceLineNo">253</span><a id="line.253">        return this;</a>
 <span class="sourceLineNo">254</span><a id="line.254">    }</a>
 <span class="sourceLineNo">255</span><a id="line.255"></a>
 <span class="sourceLineNo">256</span><a id="line.256">    /**</a>
-<span class="sourceLineNo">257</span><a id="line.257">     * Resets the {@link ConsoleSession}'s timeout.</a>
-<span class="sourceLineNo">258</span><a id="line.258">     */</a>
-<span class="sourceLineNo">259</span><a id="line.259">    public void refresh() {</a>
-<span class="sourceLineNo">260</span><a id="line.260">        timeoutTimer.reschedule(Duration.ofMillis(timeout));</a>
-<span class="sourceLineNo">261</span><a id="line.261">    }</a>
-<span class="sourceLineNo">262</span><a id="line.262"></a>
-<span class="sourceLineNo">263</span><a id="line.263">    /**</a>
-<span class="sourceLineNo">264</span><a id="line.264">     * Discards this session.</a>
-<span class="sourceLineNo">265</span><a id="line.265">     */</a>
-<span class="sourceLineNo">266</span><a id="line.266">    public void discard() {</a>
-<span class="sourceLineNo">267</span><a id="line.267">        consoleSessions.remove(consoleSessionId);</a>
-<span class="sourceLineNo">268</span><a id="line.268">        connected = false;</a>
-<span class="sourceLineNo">269</span><a id="line.269">        active = false;</a>
-<span class="sourceLineNo">270</span><a id="line.270">        console.newEventPipeline().fire(new Closed(), this);</a>
-<span class="sourceLineNo">271</span><a id="line.271">    }</a>
-<span class="sourceLineNo">272</span><a id="line.272"></a>
-<span class="sourceLineNo">273</span><a id="line.273">    /**</a>
-<span class="sourceLineNo">274</span><a id="line.274">     * Checks if the console session has become stale (inactive).</a>
-<span class="sourceLineNo">275</span><a id="line.275">     *</a>
-<span class="sourceLineNo">276</span><a id="line.276">     * @return true, if is stale</a>
-<span class="sourceLineNo">277</span><a id="line.277">     */</a>
-<span class="sourceLineNo">278</span><a id="line.278">    public boolean isStale() {</a>
-<span class="sourceLineNo">279</span><a id="line.279">        return !active;</a>
+<span class="sourceLineNo">257</span><a id="line.257">     * Returns the time when this session will expire.</a>
+<span class="sourceLineNo">258</span><a id="line.258">     *</a>
+<span class="sourceLineNo">259</span><a id="line.259">     * @return the instant</a>
+<span class="sourceLineNo">260</span><a id="line.260">     */</a>
+<span class="sourceLineNo">261</span><a id="line.261">    public Instant expiresAt() {</a>
+<span class="sourceLineNo">262</span><a id="line.262">        return timeoutTimer.scheduledFor();</a>
+<span class="sourceLineNo">263</span><a id="line.263">    }</a>
+<span class="sourceLineNo">264</span><a id="line.264"></a>
+<span class="sourceLineNo">265</span><a id="line.265">    /**</a>
+<span class="sourceLineNo">266</span><a id="line.266">     * Resets the {@link ConsoleSession}'s timeout.</a>
+<span class="sourceLineNo">267</span><a id="line.267">     */</a>
+<span class="sourceLineNo">268</span><a id="line.268">    public void refresh() {</a>
+<span class="sourceLineNo">269</span><a id="line.269">        timeoutTimer.reschedule(Duration.ofMillis(timeout));</a>
+<span class="sourceLineNo">270</span><a id="line.270">    }</a>
+<span class="sourceLineNo">271</span><a id="line.271"></a>
+<span class="sourceLineNo">272</span><a id="line.272">    /**</a>
+<span class="sourceLineNo">273</span><a id="line.273">     * Discards this session.</a>
+<span class="sourceLineNo">274</span><a id="line.274">     */</a>
+<span class="sourceLineNo">275</span><a id="line.275">    public void discard() {</a>
+<span class="sourceLineNo">276</span><a id="line.276">        consoleSessions.remove(consoleSessionId);</a>
+<span class="sourceLineNo">277</span><a id="line.277">        connected = false;</a>
+<span class="sourceLineNo">278</span><a id="line.278">        active = false;</a>
+<span class="sourceLineNo">279</span><a id="line.279">        console.newEventPipeline().fire(new Closed(), this);</a>
 <span class="sourceLineNo">280</span><a id="line.280">    }</a>
 <span class="sourceLineNo">281</span><a id="line.281"></a>
-<span class="sourceLineNo">282</span><a id="line.282">    /* default */ void disconnected() {</a>
-<span class="sourceLineNo">283</span><a id="line.283">        connected = false;</a>
-<span class="sourceLineNo">284</span><a id="line.284">    }</a>
-<span class="sourceLineNo">285</span><a id="line.285"></a>
-<span class="sourceLineNo">286</span><a id="line.286">    /**</a>
-<span class="sourceLineNo">287</span><a id="line.287">     * Checks if a network connection with the browser exists.</a>
-<span class="sourceLineNo">288</span><a id="line.288">     *</a>
-<span class="sourceLineNo">289</span><a id="line.289">     * @return true, if is connected</a>
-<span class="sourceLineNo">290</span><a id="line.290">     */</a>
-<span class="sourceLineNo">291</span><a id="line.291">    public boolean isConnected() {</a>
-<span class="sourceLineNo">292</span><a id="line.292">        return connected;</a>
+<span class="sourceLineNo">282</span><a id="line.282">    /**</a>
+<span class="sourceLineNo">283</span><a id="line.283">     * Checks if the console session has become stale (inactive).</a>
+<span class="sourceLineNo">284</span><a id="line.284">     *</a>
+<span class="sourceLineNo">285</span><a id="line.285">     * @return true, if is stale</a>
+<span class="sourceLineNo">286</span><a id="line.286">     */</a>
+<span class="sourceLineNo">287</span><a id="line.287">    public boolean isStale() {</a>
+<span class="sourceLineNo">288</span><a id="line.288">        return !active;</a>
+<span class="sourceLineNo">289</span><a id="line.289">    }</a>
+<span class="sourceLineNo">290</span><a id="line.290"></a>
+<span class="sourceLineNo">291</span><a id="line.291">    /* default */ void disconnected() {</a>
+<span class="sourceLineNo">292</span><a id="line.292">        connected = false;</a>
 <span class="sourceLineNo">293</span><a id="line.293">    }</a>
 <span class="sourceLineNo">294</span><a id="line.294"></a>
 <span class="sourceLineNo">295</span><a id="line.295">    /**</a>
-<span class="sourceLineNo">296</span><a id="line.296">     * Sets or updates the upstream channel. This method should only</a>
-<span class="sourceLineNo">297</span><a id="line.297">     * be invoked by the creator of the {@link ConsoleSession}, by default</a>
-<span class="sourceLineNo">298</span><a id="line.298">     * the {@link ConsoleWeblet}.</a>
-<span class="sourceLineNo">299</span><a id="line.299">     * </a>
-<span class="sourceLineNo">300</span><a id="line.300">     * @param upstreamChannel the upstream channel (WebSocket connection)</a>
-<span class="sourceLineNo">301</span><a id="line.301">     * @return the console session for easy chaining</a>
-<span class="sourceLineNo">302</span><a id="line.302">     */</a>
-<span class="sourceLineNo">303</span><a id="line.303">    public ConsoleSession setUpstreamChannel(IOSubchannel upstreamChannel) {</a>
-<span class="sourceLineNo">304</span><a id="line.304">        if (upstreamChannel == null) {</a>
-<span class="sourceLineNo">305</span><a id="line.305">            throw new IllegalArgumentException();</a>
-<span class="sourceLineNo">306</span><a id="line.306">        }</a>
-<span class="sourceLineNo">307</span><a id="line.307">        this.upstreamChannel = upstreamChannel;</a>
-<span class="sourceLineNo">308</span><a id="line.308">        return this;</a>
-<span class="sourceLineNo">309</span><a id="line.309">    }</a>
-<span class="sourceLineNo">310</span><a id="line.310"></a>
-<span class="sourceLineNo">311</span><a id="line.311">    /**</a>
-<span class="sourceLineNo">312</span><a id="line.312">     * Sets or updates associated browser session. This method should only</a>
-<span class="sourceLineNo">313</span><a id="line.313">     * be invoked by the creator of the {@link ConsoleSession}, by default</a>
-<span class="sourceLineNo">314</span><a id="line.314">     * the {@link ConsoleWeblet}.</a>
-<span class="sourceLineNo">315</span><a id="line.315">     * </a>
-<span class="sourceLineNo">316</span><a id="line.316">     * @param browserSession the browser session</a>
-<span class="sourceLineNo">317</span><a id="line.317">     * @return the console session for easy chaining</a>
-<span class="sourceLineNo">318</span><a id="line.318">     */</a>
-<span class="sourceLineNo">319</span><a id="line.319">    public ConsoleSession setSession(Session browserSession) {</a>
-<span class="sourceLineNo">320</span><a id="line.320">        this.browserSession = browserSession;</a>
-<span class="sourceLineNo">321</span><a id="line.321">        if (locale == null) {</a>
-<span class="sourceLineNo">322</span><a id="line.322">            locale = browserSession.locale();</a>
-<span class="sourceLineNo">323</span><a id="line.323">        }</a>
-<span class="sourceLineNo">324</span><a id="line.324">        return this;</a>
-<span class="sourceLineNo">325</span><a id="line.325">    }</a>
-<span class="sourceLineNo">326</span><a id="line.326"></a>
-<span class="sourceLineNo">327</span><a id="line.327">    /**</a>
-<span class="sourceLineNo">328</span><a id="line.328">     * @return the upstream channel</a>
-<span class="sourceLineNo">329</span><a id="line.329">     */</a>
-<span class="sourceLineNo">330</span><a id="line.330">    public IOSubchannel upstreamChannel() {</a>
-<span class="sourceLineNo">331</span><a id="line.331">        return upstreamChannel;</a>
-<span class="sourceLineNo">332</span><a id="line.332">    }</a>
-<span class="sourceLineNo">333</span><a id="line.333"></a>
-<span class="sourceLineNo">334</span><a id="line.334">    /**</a>
-<span class="sourceLineNo">335</span><a id="line.335">     * The console session id is used in the communication between the</a>
-<span class="sourceLineNo">336</span><a id="line.336">     * browser and the server. It is not guaranteed to remain the same</a>
-<span class="sourceLineNo">337</span><a id="line.337">     * over time, even if the console session is maintained. To prevent</a>
-<span class="sourceLineNo">338</span><a id="line.338">     * wrong usage, its visibility is therefore set to package. </a>
-<span class="sourceLineNo">339</span><a id="line.339">     * </a>
-<span class="sourceLineNo">340</span><a id="line.340">     * @return the consoleSessionId</a>
-<span class="sourceLineNo">341</span><a id="line.341">     */</a>
-<span class="sourceLineNo">342</span><a id="line.342">    /* default */ String consoleSessionId() {</a>
-<span class="sourceLineNo">343</span><a id="line.343">        return consoleSessionId;</a>
-<span class="sourceLineNo">344</span><a id="line.344">    }</a>
-<span class="sourceLineNo">345</span><a id="line.345"></a>
-<span class="sourceLineNo">346</span><a id="line.346">    /**</a>
-<span class="sourceLineNo">347</span><a id="line.347">     * @return the browserSession</a>
-<span class="sourceLineNo">348</span><a id="line.348">     */</a>
-<span class="sourceLineNo">349</span><a id="line.349">    public Session browserSession() {</a>
-<span class="sourceLineNo">350</span><a id="line.350">        return browserSession;</a>
-<span class="sourceLineNo">351</span><a id="line.351">    }</a>
-<span class="sourceLineNo">352</span><a id="line.352"></a>
-<span class="sourceLineNo">353</span><a id="line.353">    /**</a>
-<span class="sourceLineNo">354</span><a id="line.354">     * Returns the supported locales.</a>
-<span class="sourceLineNo">355</span><a id="line.355">     *</a>
-<span class="sourceLineNo">356</span><a id="line.356">     * @return the set of locales supported by the console</a>
+<span class="sourceLineNo">296</span><a id="line.296">     * Checks if a network connection with the browser exists.</a>
+<span class="sourceLineNo">297</span><a id="line.297">     *</a>
+<span class="sourceLineNo">298</span><a id="line.298">     * @return true, if is connected</a>
+<span class="sourceLineNo">299</span><a id="line.299">     */</a>
+<span class="sourceLineNo">300</span><a id="line.300">    public boolean isConnected() {</a>
+<span class="sourceLineNo">301</span><a id="line.301">        return connected;</a>
+<span class="sourceLineNo">302</span><a id="line.302">    }</a>
+<span class="sourceLineNo">303</span><a id="line.303"></a>
+<span class="sourceLineNo">304</span><a id="line.304">    /**</a>
+<span class="sourceLineNo">305</span><a id="line.305">     * Sets or updates the upstream channel. This method should only</a>
+<span class="sourceLineNo">306</span><a id="line.306">     * be invoked by the creator of the {@link ConsoleSession}, by default</a>
+<span class="sourceLineNo">307</span><a id="line.307">     * the {@link ConsoleWeblet}.</a>
+<span class="sourceLineNo">308</span><a id="line.308">     * </a>
+<span class="sourceLineNo">309</span><a id="line.309">     * @param upstreamChannel the upstream channel (WebSocket connection)</a>
+<span class="sourceLineNo">310</span><a id="line.310">     * @return the console session for easy chaining</a>
+<span class="sourceLineNo">311</span><a id="line.311">     */</a>
+<span class="sourceLineNo">312</span><a id="line.312">    public ConsoleSession setUpstreamChannel(IOSubchannel upstreamChannel) {</a>
+<span class="sourceLineNo">313</span><a id="line.313">        if (upstreamChannel == null) {</a>
+<span class="sourceLineNo">314</span><a id="line.314">            throw new IllegalArgumentException();</a>
+<span class="sourceLineNo">315</span><a id="line.315">        }</a>
+<span class="sourceLineNo">316</span><a id="line.316">        this.upstreamChannel = upstreamChannel;</a>
+<span class="sourceLineNo">317</span><a id="line.317">        return this;</a>
+<span class="sourceLineNo">318</span><a id="line.318">    }</a>
+<span class="sourceLineNo">319</span><a id="line.319"></a>
+<span class="sourceLineNo">320</span><a id="line.320">    /**</a>
+<span class="sourceLineNo">321</span><a id="line.321">     * Sets or updates associated browser session. This method should only</a>
+<span class="sourceLineNo">322</span><a id="line.322">     * be invoked by the creator of the {@link ConsoleSession}, by default</a>
+<span class="sourceLineNo">323</span><a id="line.323">     * the {@link ConsoleWeblet}.</a>
+<span class="sourceLineNo">324</span><a id="line.324">     * </a>
+<span class="sourceLineNo">325</span><a id="line.325">     * @param browserSession the browser session</a>
+<span class="sourceLineNo">326</span><a id="line.326">     * @return the console session for easy chaining</a>
+<span class="sourceLineNo">327</span><a id="line.327">     */</a>
+<span class="sourceLineNo">328</span><a id="line.328">    public ConsoleSession setSession(Session browserSession) {</a>
+<span class="sourceLineNo">329</span><a id="line.329">        this.browserSession = browserSession;</a>
+<span class="sourceLineNo">330</span><a id="line.330">        if (locale == null) {</a>
+<span class="sourceLineNo">331</span><a id="line.331">            locale = browserSession.locale();</a>
+<span class="sourceLineNo">332</span><a id="line.332">        }</a>
+<span class="sourceLineNo">333</span><a id="line.333">        return this;</a>
+<span class="sourceLineNo">334</span><a id="line.334">    }</a>
+<span class="sourceLineNo">335</span><a id="line.335"></a>
+<span class="sourceLineNo">336</span><a id="line.336">    /**</a>
+<span class="sourceLineNo">337</span><a id="line.337">     * @return the upstream channel</a>
+<span class="sourceLineNo">338</span><a id="line.338">     */</a>
+<span class="sourceLineNo">339</span><a id="line.339">    public IOSubchannel upstreamChannel() {</a>
+<span class="sourceLineNo">340</span><a id="line.340">        return upstreamChannel;</a>
+<span class="sourceLineNo">341</span><a id="line.341">    }</a>
+<span class="sourceLineNo">342</span><a id="line.342"></a>
+<span class="sourceLineNo">343</span><a id="line.343">    /**</a>
+<span class="sourceLineNo">344</span><a id="line.344">     * The console session id is used in the communication between the</a>
+<span class="sourceLineNo">345</span><a id="line.345">     * browser and the server. It is not guaranteed to remain the same</a>
+<span class="sourceLineNo">346</span><a id="line.346">     * over time, even if the console session is maintained. To prevent</a>
+<span class="sourceLineNo">347</span><a id="line.347">     * wrong usage, its visibility is therefore set to package. </a>
+<span class="sourceLineNo">348</span><a id="line.348">     * </a>
+<span class="sourceLineNo">349</span><a id="line.349">     * @return the consoleSessionId</a>
+<span class="sourceLineNo">350</span><a id="line.350">     */</a>
+<span class="sourceLineNo">351</span><a id="line.351">    /* default */ String consoleSessionId() {</a>
+<span class="sourceLineNo">352</span><a id="line.352">        return consoleSessionId;</a>
+<span class="sourceLineNo">353</span><a id="line.353">    }</a>
+<span class="sourceLineNo">354</span><a id="line.354"></a>
+<span class="sourceLineNo">355</span><a id="line.355">    /**</a>
+<span class="sourceLineNo">356</span><a id="line.356">     * @return the browserSession</a>
 <span class="sourceLineNo">357</span><a id="line.357">     */</a>
-<span class="sourceLineNo">358</span><a id="line.358">    public Set&lt;Locale&gt; supportedLocales() {</a>
-<span class="sourceLineNo">359</span><a id="line.359">        return supportedLocales;</a>
+<span class="sourceLineNo">358</span><a id="line.358">    public Session browserSession() {</a>
+<span class="sourceLineNo">359</span><a id="line.359">        return browserSession;</a>
 <span class="sourceLineNo">360</span><a id="line.360">    }</a>
 <span class="sourceLineNo">361</span><a id="line.361"></a>
 <span class="sourceLineNo">362</span><a id="line.362">    /**</a>
-<span class="sourceLineNo">363</span><a id="line.363">     * Return the console session's locale. The locale is initialized</a>
-<span class="sourceLineNo">364</span><a id="line.364">     * from the browser session's locale.</a>
-<span class="sourceLineNo">365</span><a id="line.365">     * </a>
-<span class="sourceLineNo">366</span><a id="line.366">     * @return the locale</a>
-<span class="sourceLineNo">367</span><a id="line.367">     */</a>
-<span class="sourceLineNo">368</span><a id="line.368">    public Locale locale() {</a>
-<span class="sourceLineNo">369</span><a id="line.369">        return locale == null ? Locale.getDefault() : locale;</a>
-<span class="sourceLineNo">370</span><a id="line.370">    }</a>
-<span class="sourceLineNo">371</span><a id="line.371"></a>
-<span class="sourceLineNo">372</span><a id="line.372">    /**</a>
-<span class="sourceLineNo">373</span><a id="line.373">     * Sets the locale for this console session.</a>
-<span class="sourceLineNo">374</span><a id="line.374">     *</a>
-<span class="sourceLineNo">375</span><a id="line.375">     * @param locale the locale</a>
-<span class="sourceLineNo">376</span><a id="line.376">     * @return the console session</a>
-<span class="sourceLineNo">377</span><a id="line.377">     */</a>
-<span class="sourceLineNo">378</span><a id="line.378">    public ConsoleSession setLocale(Locale locale) {</a>
-<span class="sourceLineNo">379</span><a id="line.379">        this.locale = locale;</a>
-<span class="sourceLineNo">380</span><a id="line.380">        return this;</a>
-<span class="sourceLineNo">381</span><a id="line.381">    }</a>
-<span class="sourceLineNo">382</span><a id="line.382"></a>
-<span class="sourceLineNo">383</span><a id="line.383">    /*</a>
-<span class="sourceLineNo">384</span><a id="line.384">     * (non-Javadoc)</a>
-<span class="sourceLineNo">385</span><a id="line.385">     * </a>
-<span class="sourceLineNo">386</span><a id="line.386">     * @see java.lang.Object#toString()</a>
-<span class="sourceLineNo">387</span><a id="line.387">     */</a>
-<span class="sourceLineNo">388</span><a id="line.388">    @Override</a>
-<span class="sourceLineNo">389</span><a id="line.389">    public String toString() {</a>
-<span class="sourceLineNo">390</span><a id="line.390">        StringBuilder builder = new StringBuilder();</a>
-<span class="sourceLineNo">391</span><a id="line.391">        builder.append(Subchannel.toString(this));</a>
-<span class="sourceLineNo">392</span><a id="line.392">        Optional.ofNullable(upstreamChannel).ifPresent(upstr -&gt; builder.append(</a>
-<span class="sourceLineNo">393</span><a id="line.393">            LinkedIOSubchannel.upstreamToString(upstr)));</a>
-<span class="sourceLineNo">394</span><a id="line.394">        return builder.toString();</a>
-<span class="sourceLineNo">395</span><a id="line.395">    }</a>
-<span class="sourceLineNo">396</span><a id="line.396"></a>
-<span class="sourceLineNo">397</span><a id="line.397">}</a>
+<span class="sourceLineNo">363</span><a id="line.363">     * Returns the supported locales.</a>
+<span class="sourceLineNo">364</span><a id="line.364">     *</a>
+<span class="sourceLineNo">365</span><a id="line.365">     * @return the set of locales supported by the console</a>
+<span class="sourceLineNo">366</span><a id="line.366">     */</a>
+<span class="sourceLineNo">367</span><a id="line.367">    public Set&lt;Locale&gt; supportedLocales() {</a>
+<span class="sourceLineNo">368</span><a id="line.368">        return supportedLocales;</a>
+<span class="sourceLineNo">369</span><a id="line.369">    }</a>
+<span class="sourceLineNo">370</span><a id="line.370"></a>
+<span class="sourceLineNo">371</span><a id="line.371">    /**</a>
+<span class="sourceLineNo">372</span><a id="line.372">     * Return the console session's locale. The locale is initialized</a>
+<span class="sourceLineNo">373</span><a id="line.373">     * from the browser session's locale.</a>
+<span class="sourceLineNo">374</span><a id="line.374">     * </a>
+<span class="sourceLineNo">375</span><a id="line.375">     * @return the locale</a>
+<span class="sourceLineNo">376</span><a id="line.376">     */</a>
+<span class="sourceLineNo">377</span><a id="line.377">    public Locale locale() {</a>
+<span class="sourceLineNo">378</span><a id="line.378">        return locale == null ? Locale.getDefault() : locale;</a>
+<span class="sourceLineNo">379</span><a id="line.379">    }</a>
+<span class="sourceLineNo">380</span><a id="line.380"></a>
+<span class="sourceLineNo">381</span><a id="line.381">    /**</a>
+<span class="sourceLineNo">382</span><a id="line.382">     * Sets the locale for this console session.</a>
+<span class="sourceLineNo">383</span><a id="line.383">     *</a>
+<span class="sourceLineNo">384</span><a id="line.384">     * @param locale the locale</a>
+<span class="sourceLineNo">385</span><a id="line.385">     * @return the console session</a>
+<span class="sourceLineNo">386</span><a id="line.386">     */</a>
+<span class="sourceLineNo">387</span><a id="line.387">    public ConsoleSession setLocale(Locale locale) {</a>
+<span class="sourceLineNo">388</span><a id="line.388">        this.locale = locale;</a>
+<span class="sourceLineNo">389</span><a id="line.389">        return this;</a>
+<span class="sourceLineNo">390</span><a id="line.390">    }</a>
+<span class="sourceLineNo">391</span><a id="line.391"></a>
+<span class="sourceLineNo">392</span><a id="line.392">    /*</a>
+<span class="sourceLineNo">393</span><a id="line.393">     * (non-Javadoc)</a>
+<span class="sourceLineNo">394</span><a id="line.394">     * </a>
+<span class="sourceLineNo">395</span><a id="line.395">     * @see java.lang.Object#toString()</a>
+<span class="sourceLineNo">396</span><a id="line.396">     */</a>
+<span class="sourceLineNo">397</span><a id="line.397">    @Override</a>
+<span class="sourceLineNo">398</span><a id="line.398">    public String toString() {</a>
+<span class="sourceLineNo">399</span><a id="line.399">        StringBuilder builder = new StringBuilder();</a>
+<span class="sourceLineNo">400</span><a id="line.400">        builder.append(Subchannel.toString(this));</a>
+<span class="sourceLineNo">401</span><a id="line.401">        Optional.ofNullable(upstreamChannel).ifPresent(upstr -&gt; builder.append(</a>
+<span class="sourceLineNo">402</span><a id="line.402">            LinkedIOSubchannel.upstreamToString(upstr)));</a>
+<span class="sourceLineNo">403</span><a id="line.403">        return builder.toString();</a>
+<span class="sourceLineNo">404</span><a id="line.404">    }</a>
+<span class="sourceLineNo">405</span><a id="line.405"></a>
+<span class="sourceLineNo">406</span><a id="line.406">}</a>
 
 
 
