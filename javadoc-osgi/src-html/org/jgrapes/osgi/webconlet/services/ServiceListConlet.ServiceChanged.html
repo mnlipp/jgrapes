@@ -200,138 +200,141 @@
 <span class="sourceLineNo">191</span><a id="line.191">    }</a>
 <span class="sourceLineNo">192</span><a id="line.192"></a>
 <span class="sourceLineNo">193</span><a id="line.193">    @SuppressWarnings({ "PMD.NcssCount", "PMD.ConfusingTernary",</a>
-<span class="sourceLineNo">194</span><a id="line.194">        "PMD.NPathComplexity", "PMD.AssignmentInOperand" })</a>
-<span class="sourceLineNo">195</span><a id="line.195">    private Map&lt;String, Object&gt;</a>
-<span class="sourceLineNo">196</span><a id="line.196">            createServiceInfo(ServiceReference&lt;?&gt; serviceRef, Locale locale) {</a>
-<span class="sourceLineNo">197</span><a id="line.197">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
-<span class="sourceLineNo">198</span><a id="line.198">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</a>
-<span class="sourceLineNo">199</span><a id="line.199">        result.put("id", serviceRef.getProperty(Constants.SERVICE_ID));</a>
-<span class="sourceLineNo">200</span><a id="line.200">        String[] interfaces</a>
-<span class="sourceLineNo">201</span><a id="line.201">            = (String[]) serviceRef.getProperty(Constants.OBJECTCLASS);</a>
-<span class="sourceLineNo">202</span><a id="line.202">        result.put("type", String.join(", ", interfaces));</a>
-<span class="sourceLineNo">203</span><a id="line.203">        Long bundleId</a>
-<span class="sourceLineNo">204</span><a id="line.204">            = (Long) serviceRef.getProperty(Constants.SERVICE_BUNDLEID);</a>
-<span class="sourceLineNo">205</span><a id="line.205">        result.put("bundleId", bundleId.toString());</a>
-<span class="sourceLineNo">206</span><a id="line.206">        Bundle bundle = context.getBundle(bundleId);</a>
-<span class="sourceLineNo">207</span><a id="line.207">        if (bundle == null) {</a>
-<span class="sourceLineNo">208</span><a id="line.208">            result.put("bundleName", "");</a>
-<span class="sourceLineNo">209</span><a id="line.209">        } else {</a>
-<span class="sourceLineNo">210</span><a id="line.210">            result.put("bundleName", Optional</a>
-<span class="sourceLineNo">211</span><a id="line.211">                .ofNullable(bundle.getHeaders(locale.toString())</a>
-<span class="sourceLineNo">212</span><a id="line.212">                    .get("Bundle-Name"))</a>
-<span class="sourceLineNo">213</span><a id="line.213">                .orElse(bundle.getSymbolicName()));</a>
-<span class="sourceLineNo">214</span><a id="line.214">        }</a>
-<span class="sourceLineNo">215</span><a id="line.215">        String scope;</a>
-<span class="sourceLineNo">216</span><a id="line.216">        switch ((String) serviceRef.getProperty(Constants.SERVICE_SCOPE)) {</a>
-<span class="sourceLineNo">217</span><a id="line.217">        case Constants.SCOPE_BUNDLE:</a>
-<span class="sourceLineNo">218</span><a id="line.218">            scope = "serviceScopeBundle";</a>
-<span class="sourceLineNo">219</span><a id="line.219">            break;</a>
-<span class="sourceLineNo">220</span><a id="line.220">        case Constants.SCOPE_PROTOTYPE:</a>
-<span class="sourceLineNo">221</span><a id="line.221">            scope = "serviceScopePrototype";</a>
-<span class="sourceLineNo">222</span><a id="line.222">            break;</a>
-<span class="sourceLineNo">223</span><a id="line.223">        case Constants.SCOPE_SINGLETON:</a>
-<span class="sourceLineNo">224</span><a id="line.224">            scope = "serviceScopeSingleton";</a>
-<span class="sourceLineNo">225</span><a id="line.225">            break;</a>
-<span class="sourceLineNo">226</span><a id="line.226">        default:</a>
-<span class="sourceLineNo">227</span><a id="line.227">            scope = "";</a>
-<span class="sourceLineNo">228</span><a id="line.228">            break;</a>
-<span class="sourceLineNo">229</span><a id="line.229">        }</a>
-<span class="sourceLineNo">230</span><a id="line.230">        result.put("scope", scope);</a>
-<span class="sourceLineNo">231</span><a id="line.231">        Integer ranking</a>
-<span class="sourceLineNo">232</span><a id="line.232">            = (Integer) serviceRef.getProperty(Constants.SERVICE_RANKING);</a>
-<span class="sourceLineNo">233</span><a id="line.233">        result.put("ranking", ranking == null ? "" : ranking.toString());</a>
-<span class="sourceLineNo">234</span><a id="line.234">        String componentName</a>
-<span class="sourceLineNo">235</span><a id="line.235">            = (String) serviceRef.getProperty("component.name");</a>
-<span class="sourceLineNo">236</span><a id="line.236">        ComponentDescriptionDTO dto;</a>
-<span class="sourceLineNo">237</span><a id="line.237">        if (componentName != null &amp;&amp; bundle != null</a>
-<span class="sourceLineNo">238</span><a id="line.238">            &amp;&amp; (dto = scr.getComponentDescriptionDTO(bundle,</a>
-<span class="sourceLineNo">239</span><a id="line.239">                componentName)) != null) {</a>
-<span class="sourceLineNo">240</span><a id="line.240">            result.put("dsScope", "serviceScope"</a>
-<span class="sourceLineNo">241</span><a id="line.241">                + dto.scope.substring(0, 1).toUpperCase(Locale.US)</a>
-<span class="sourceLineNo">242</span><a id="line.242">                + dto.scope.substring(1));</a>
-<span class="sourceLineNo">243</span><a id="line.243">            result.put("implementationClass", dto.implementationClass);</a>
-<span class="sourceLineNo">244</span><a id="line.244">        } else {</a>
-<span class="sourceLineNo">245</span><a id="line.245">            Object service = context.getService(serviceRef);</a>
-<span class="sourceLineNo">246</span><a id="line.246">            if (service != null) {</a>
-<span class="sourceLineNo">247</span><a id="line.247">                result.put("implementationClass", service.getClass().getName());</a>
-<span class="sourceLineNo">248</span><a id="line.248">                context.ungetService(serviceRef);</a>
-<span class="sourceLineNo">249</span><a id="line.249">            } else {</a>
-<span class="sourceLineNo">250</span><a id="line.250">                result.put("implementationClass", "");</a>
-<span class="sourceLineNo">251</span><a id="line.251">            }</a>
-<span class="sourceLineNo">252</span><a id="line.252">        }</a>
-<span class="sourceLineNo">253</span><a id="line.253">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
-<span class="sourceLineNo">254</span><a id="line.254">        Map&lt;String, Object&gt; properties = new HashMap&lt;&gt;();</a>
-<span class="sourceLineNo">255</span><a id="line.255">        for (String property : serviceRef.getPropertyKeys()) {</a>
-<span class="sourceLineNo">256</span><a id="line.256">            properties.put(property, serviceRef.getProperty(property));</a>
-<span class="sourceLineNo">257</span><a id="line.257">        }</a>
-<span class="sourceLineNo">258</span><a id="line.258">        result.put("properties", properties);</a>
-<span class="sourceLineNo">259</span><a id="line.259">        if (serviceRef.getUsingBundles() != null) {</a>
-<span class="sourceLineNo">260</span><a id="line.260">            List&lt;String&gt; using = new ArrayList&lt;&gt;();</a>
-<span class="sourceLineNo">261</span><a id="line.261">            for (Bundle bdl : serviceRef.getUsingBundles()) {</a>
-<span class="sourceLineNo">262</span><a id="line.262">                using</a>
-<span class="sourceLineNo">263</span><a id="line.263">                    .add(</a>
-<span class="sourceLineNo">264</span><a id="line.264">                        bdl.getSymbolicName() + " (" + bdl.getBundleId() + ")");</a>
-<span class="sourceLineNo">265</span><a id="line.265">            }</a>
-<span class="sourceLineNo">266</span><a id="line.266">            result.put("usingBundles", using);</a>
-<span class="sourceLineNo">267</span><a id="line.267">        }</a>
-<span class="sourceLineNo">268</span><a id="line.268">        return result;</a>
-<span class="sourceLineNo">269</span><a id="line.269">    }</a>
-<span class="sourceLineNo">270</span><a id="line.270"></a>
-<span class="sourceLineNo">271</span><a id="line.271">    /**</a>
-<span class="sourceLineNo">272</span><a id="line.272">     * Translates the OSGi {@link ServiceEvent} to a JGrapes event and fires it</a>
-<span class="sourceLineNo">273</span><a id="line.273">     * on all known console session channels.</a>
-<span class="sourceLineNo">274</span><a id="line.274">     *</a>
-<span class="sourceLineNo">275</span><a id="line.275">     * @param event the event</a>
-<span class="sourceLineNo">276</span><a id="line.276">     */</a>
-<span class="sourceLineNo">277</span><a id="line.277">    @Override</a>
-<span class="sourceLineNo">278</span><a id="line.278">    public void serviceChanged(ServiceEvent event) {</a>
-<span class="sourceLineNo">279</span><a id="line.279">        fire(new ServiceChanged(event), trackedSessions());</a>
-<span class="sourceLineNo">280</span><a id="line.280">    }</a>
-<span class="sourceLineNo">281</span><a id="line.281"></a>
-<span class="sourceLineNo">282</span><a id="line.282">    /**</a>
-<span class="sourceLineNo">283</span><a id="line.283">     * Handles a {@link ServiceChanged} event by updating the information in the</a>
-<span class="sourceLineNo">284</span><a id="line.284">     * console sessions.</a>
-<span class="sourceLineNo">285</span><a id="line.285">     *</a>
-<span class="sourceLineNo">286</span><a id="line.286">     * @param event the event</a>
-<span class="sourceLineNo">287</span><a id="line.287">     */</a>
-<span class="sourceLineNo">288</span><a id="line.288">    @Handler</a>
-<span class="sourceLineNo">289</span><a id="line.289">    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</a>
-<span class="sourceLineNo">290</span><a id="line.290">        "PMD.DataflowAnomalyAnalysis" })</a>
-<span class="sourceLineNo">291</span><a id="line.291">    public void onServiceChanged(ServiceChanged event,</a>
-<span class="sourceLineNo">292</span><a id="line.292">            ConsoleSession consoleSession) {</a>
-<span class="sourceLineNo">293</span><a id="line.293">        Map&lt;String, Object&gt; info = createServiceInfo(</a>
-<span class="sourceLineNo">294</span><a id="line.294">            event.serviceEvent().getServiceReference(),</a>
-<span class="sourceLineNo">295</span><a id="line.295">            consoleSession.locale());</a>
-<span class="sourceLineNo">296</span><a id="line.296">        if (event.serviceEvent().getType() == ServiceEvent.UNREGISTERING) {</a>
-<span class="sourceLineNo">297</span><a id="line.297">            info.put("updateType", "unregistering");</a>
-<span class="sourceLineNo">298</span><a id="line.298">        }</a>
-<span class="sourceLineNo">299</span><a id="line.299">        for (String conletId : conletIds(consoleSession)) {</a>
-<span class="sourceLineNo">300</span><a id="line.300">            consoleSession.respond(new NotifyConletView(</a>
-<span class="sourceLineNo">301</span><a id="line.301">                type(), conletId, "serviceUpdates",</a>
-<span class="sourceLineNo">302</span><a id="line.302">                (Object) new Object[] { info }, "*", false));</a>
-<span class="sourceLineNo">303</span><a id="line.303">        }</a>
-<span class="sourceLineNo">304</span><a id="line.304">    }</a>
-<span class="sourceLineNo">305</span><a id="line.305"></a>
-<span class="sourceLineNo">306</span><a id="line.306">    /**</a>
-<span class="sourceLineNo">307</span><a id="line.307">     * Wraps an OSGi {@link ServiceEvent}.</a>
-<span class="sourceLineNo">308</span><a id="line.308">     */</a>
-<span class="sourceLineNo">309</span><a id="line.309">    public static class ServiceChanged extends Event&lt;Void&gt; {</a>
-<span class="sourceLineNo">310</span><a id="line.310">        private final ServiceEvent serviceEvent;</a>
-<span class="sourceLineNo">311</span><a id="line.311"></a>
-<span class="sourceLineNo">312</span><a id="line.312">        /**</a>
-<span class="sourceLineNo">313</span><a id="line.313">         * Instantiates a new event.</a>
-<span class="sourceLineNo">314</span><a id="line.314">         *</a>
-<span class="sourceLineNo">315</span><a id="line.315">         * @param serviceEvent the service event</a>
-<span class="sourceLineNo">316</span><a id="line.316">         */</a>
-<span class="sourceLineNo">317</span><a id="line.317">        public ServiceChanged(ServiceEvent serviceEvent) {</a>
-<span class="sourceLineNo">318</span><a id="line.318">            this.serviceEvent = serviceEvent;</a>
-<span class="sourceLineNo">319</span><a id="line.319">        }</a>
-<span class="sourceLineNo">320</span><a id="line.320"></a>
-<span class="sourceLineNo">321</span><a id="line.321">        public ServiceEvent serviceEvent() {</a>
-<span class="sourceLineNo">322</span><a id="line.322">            return serviceEvent;</a>
-<span class="sourceLineNo">323</span><a id="line.323">        }</a>
-<span class="sourceLineNo">324</span><a id="line.324">    }</a>
-<span class="sourceLineNo">325</span><a id="line.325">}</a>
+<span class="sourceLineNo">194</span><a id="line.194">        "PMD.NPathComplexity", "PMD.AssignmentInOperand",</a>
+<span class="sourceLineNo">195</span><a id="line.195">        "PMD.CognitiveComplexity" })</a>
+<span class="sourceLineNo">196</span><a id="line.196">    private Map&lt;String, Object&gt;</a>
+<span class="sourceLineNo">197</span><a id="line.197">            createServiceInfo(ServiceReference&lt;?&gt; serviceRef, Locale locale) {</a>
+<span class="sourceLineNo">198</span><a id="line.198">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
+<span class="sourceLineNo">199</span><a id="line.199">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</a>
+<span class="sourceLineNo">200</span><a id="line.200">        result.put("id", serviceRef.getProperty(Constants.SERVICE_ID));</a>
+<span class="sourceLineNo">201</span><a id="line.201">        String[] interfaces</a>
+<span class="sourceLineNo">202</span><a id="line.202">            = (String[]) serviceRef.getProperty(Constants.OBJECTCLASS);</a>
+<span class="sourceLineNo">203</span><a id="line.203">        result.put("type", String.join(", ", interfaces));</a>
+<span class="sourceLineNo">204</span><a id="line.204">        Long bundleId</a>
+<span class="sourceLineNo">205</span><a id="line.205">            = (Long) serviceRef.getProperty(Constants.SERVICE_BUNDLEID);</a>
+<span class="sourceLineNo">206</span><a id="line.206">        result.put("bundleId", bundleId.toString());</a>
+<span class="sourceLineNo">207</span><a id="line.207">        Bundle bundle = context.getBundle(bundleId);</a>
+<span class="sourceLineNo">208</span><a id="line.208">        if (bundle == null) {</a>
+<span class="sourceLineNo">209</span><a id="line.209">            result.put("bundleName", "");</a>
+<span class="sourceLineNo">210</span><a id="line.210">        } else {</a>
+<span class="sourceLineNo">211</span><a id="line.211">            result.put("bundleName", Optional</a>
+<span class="sourceLineNo">212</span><a id="line.212">                .ofNullable(bundle.getHeaders(locale.toString())</a>
+<span class="sourceLineNo">213</span><a id="line.213">                    .get("Bundle-Name"))</a>
+<span class="sourceLineNo">214</span><a id="line.214">                .orElse(bundle.getSymbolicName()));</a>
+<span class="sourceLineNo">215</span><a id="line.215">        }</a>
+<span class="sourceLineNo">216</span><a id="line.216">        String scope;</a>
+<span class="sourceLineNo">217</span><a id="line.217">        switch ((String) serviceRef.getProperty(Constants.SERVICE_SCOPE)) {</a>
+<span class="sourceLineNo">218</span><a id="line.218">        case Constants.SCOPE_BUNDLE:</a>
+<span class="sourceLineNo">219</span><a id="line.219">            scope = "serviceScopeBundle";</a>
+<span class="sourceLineNo">220</span><a id="line.220">            break;</a>
+<span class="sourceLineNo">221</span><a id="line.221">        case Constants.SCOPE_PROTOTYPE:</a>
+<span class="sourceLineNo">222</span><a id="line.222">            scope = "serviceScopePrototype";</a>
+<span class="sourceLineNo">223</span><a id="line.223">            break;</a>
+<span class="sourceLineNo">224</span><a id="line.224">        case Constants.SCOPE_SINGLETON:</a>
+<span class="sourceLineNo">225</span><a id="line.225">            scope = "serviceScopeSingleton";</a>
+<span class="sourceLineNo">226</span><a id="line.226">            break;</a>
+<span class="sourceLineNo">227</span><a id="line.227">        default:</a>
+<span class="sourceLineNo">228</span><a id="line.228">            scope = "";</a>
+<span class="sourceLineNo">229</span><a id="line.229">            break;</a>
+<span class="sourceLineNo">230</span><a id="line.230">        }</a>
+<span class="sourceLineNo">231</span><a id="line.231">        result.put("scope", scope);</a>
+<span class="sourceLineNo">232</span><a id="line.232">        Integer ranking</a>
+<span class="sourceLineNo">233</span><a id="line.233">            = (Integer) serviceRef.getProperty(Constants.SERVICE_RANKING);</a>
+<span class="sourceLineNo">234</span><a id="line.234">        result.put("ranking", ranking == null ? "" : ranking.toString());</a>
+<span class="sourceLineNo">235</span><a id="line.235">        String componentName</a>
+<span class="sourceLineNo">236</span><a id="line.236">            = (String) serviceRef.getProperty("component.name");</a>
+<span class="sourceLineNo">237</span><a id="line.237">        ComponentDescriptionDTO dto;</a>
+<span class="sourceLineNo">238</span><a id="line.238">        if (componentName != null &amp;&amp; bundle != null</a>
+<span class="sourceLineNo">239</span><a id="line.239">            &amp;&amp; (dto = scr.getComponentDescriptionDTO(bundle,</a>
+<span class="sourceLineNo">240</span><a id="line.240">                componentName)) != null) {</a>
+<span class="sourceLineNo">241</span><a id="line.241">            if (dto.scope != null) {</a>
+<span class="sourceLineNo">242</span><a id="line.242">                result.put("dsScope", "serviceScope"</a>
+<span class="sourceLineNo">243</span><a id="line.243">                    + dto.scope.substring(0, 1).toUpperCase(Locale.US)</a>
+<span class="sourceLineNo">244</span><a id="line.244">                    + dto.scope.substring(1));</a>
+<span class="sourceLineNo">245</span><a id="line.245">            }</a>
+<span class="sourceLineNo">246</span><a id="line.246">            result.put("implementationClass", dto.implementationClass);</a>
+<span class="sourceLineNo">247</span><a id="line.247">        } else {</a>
+<span class="sourceLineNo">248</span><a id="line.248">            Object service = context.getService(serviceRef);</a>
+<span class="sourceLineNo">249</span><a id="line.249">            if (service != null) {</a>
+<span class="sourceLineNo">250</span><a id="line.250">                result.put("implementationClass", service.getClass().getName());</a>
+<span class="sourceLineNo">251</span><a id="line.251">                context.ungetService(serviceRef);</a>
+<span class="sourceLineNo">252</span><a id="line.252">            } else {</a>
+<span class="sourceLineNo">253</span><a id="line.253">                result.put("implementationClass", "");</a>
+<span class="sourceLineNo">254</span><a id="line.254">            }</a>
+<span class="sourceLineNo">255</span><a id="line.255">        }</a>
+<span class="sourceLineNo">256</span><a id="line.256">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
+<span class="sourceLineNo">257</span><a id="line.257">        Map&lt;String, Object&gt; properties = new HashMap&lt;&gt;();</a>
+<span class="sourceLineNo">258</span><a id="line.258">        for (String property : serviceRef.getPropertyKeys()) {</a>
+<span class="sourceLineNo">259</span><a id="line.259">            properties.put(property, serviceRef.getProperty(property));</a>
+<span class="sourceLineNo">260</span><a id="line.260">        }</a>
+<span class="sourceLineNo">261</span><a id="line.261">        result.put("properties", properties);</a>
+<span class="sourceLineNo">262</span><a id="line.262">        if (serviceRef.getUsingBundles() != null) {</a>
+<span class="sourceLineNo">263</span><a id="line.263">            List&lt;String&gt; using = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">264</span><a id="line.264">            for (Bundle bdl : serviceRef.getUsingBundles()) {</a>
+<span class="sourceLineNo">265</span><a id="line.265">                using</a>
+<span class="sourceLineNo">266</span><a id="line.266">                    .add(</a>
+<span class="sourceLineNo">267</span><a id="line.267">                        bdl.getSymbolicName() + " (" + bdl.getBundleId() + ")");</a>
+<span class="sourceLineNo">268</span><a id="line.268">            }</a>
+<span class="sourceLineNo">269</span><a id="line.269">            result.put("usingBundles", using);</a>
+<span class="sourceLineNo">270</span><a id="line.270">        }</a>
+<span class="sourceLineNo">271</span><a id="line.271">        return result;</a>
+<span class="sourceLineNo">272</span><a id="line.272">    }</a>
+<span class="sourceLineNo">273</span><a id="line.273"></a>
+<span class="sourceLineNo">274</span><a id="line.274">    /**</a>
+<span class="sourceLineNo">275</span><a id="line.275">     * Translates the OSGi {@link ServiceEvent} to a JGrapes event and fires it</a>
+<span class="sourceLineNo">276</span><a id="line.276">     * on all known console session channels.</a>
+<span class="sourceLineNo">277</span><a id="line.277">     *</a>
+<span class="sourceLineNo">278</span><a id="line.278">     * @param event the event</a>
+<span class="sourceLineNo">279</span><a id="line.279">     */</a>
+<span class="sourceLineNo">280</span><a id="line.280">    @Override</a>
+<span class="sourceLineNo">281</span><a id="line.281">    public void serviceChanged(ServiceEvent event) {</a>
+<span class="sourceLineNo">282</span><a id="line.282">        fire(new ServiceChanged(event), trackedSessions());</a>
+<span class="sourceLineNo">283</span><a id="line.283">    }</a>
+<span class="sourceLineNo">284</span><a id="line.284"></a>
+<span class="sourceLineNo">285</span><a id="line.285">    /**</a>
+<span class="sourceLineNo">286</span><a id="line.286">     * Handles a {@link ServiceChanged} event by updating the information in the</a>
+<span class="sourceLineNo">287</span><a id="line.287">     * console sessions.</a>
+<span class="sourceLineNo">288</span><a id="line.288">     *</a>
+<span class="sourceLineNo">289</span><a id="line.289">     * @param event the event</a>
+<span class="sourceLineNo">290</span><a id="line.290">     */</a>
+<span class="sourceLineNo">291</span><a id="line.291">    @Handler</a>
+<span class="sourceLineNo">292</span><a id="line.292">    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</a>
+<span class="sourceLineNo">293</span><a id="line.293">        "PMD.DataflowAnomalyAnalysis" })</a>
+<span class="sourceLineNo">294</span><a id="line.294">    public void onServiceChanged(ServiceChanged event,</a>
+<span class="sourceLineNo">295</span><a id="line.295">            ConsoleSession consoleSession) {</a>
+<span class="sourceLineNo">296</span><a id="line.296">        Map&lt;String, Object&gt; info = createServiceInfo(</a>
+<span class="sourceLineNo">297</span><a id="line.297">            event.serviceEvent().getServiceReference(),</a>
+<span class="sourceLineNo">298</span><a id="line.298">            consoleSession.locale());</a>
+<span class="sourceLineNo">299</span><a id="line.299">        if (event.serviceEvent().getType() == ServiceEvent.UNREGISTERING) {</a>
+<span class="sourceLineNo">300</span><a id="line.300">            info.put("updateType", "unregistering");</a>
+<span class="sourceLineNo">301</span><a id="line.301">        }</a>
+<span class="sourceLineNo">302</span><a id="line.302">        for (String conletId : conletIds(consoleSession)) {</a>
+<span class="sourceLineNo">303</span><a id="line.303">            consoleSession.respond(new NotifyConletView(</a>
+<span class="sourceLineNo">304</span><a id="line.304">                type(), conletId, "serviceUpdates",</a>
+<span class="sourceLineNo">305</span><a id="line.305">                (Object) new Object[] { info }, "*", false));</a>
+<span class="sourceLineNo">306</span><a id="line.306">        }</a>
+<span class="sourceLineNo">307</span><a id="line.307">    }</a>
+<span class="sourceLineNo">308</span><a id="line.308"></a>
+<span class="sourceLineNo">309</span><a id="line.309">    /**</a>
+<span class="sourceLineNo">310</span><a id="line.310">     * Wraps an OSGi {@link ServiceEvent}.</a>
+<span class="sourceLineNo">311</span><a id="line.311">     */</a>
+<span class="sourceLineNo">312</span><a id="line.312">    public static class ServiceChanged extends Event&lt;Void&gt; {</a>
+<span class="sourceLineNo">313</span><a id="line.313">        private final ServiceEvent serviceEvent;</a>
+<span class="sourceLineNo">314</span><a id="line.314"></a>
+<span class="sourceLineNo">315</span><a id="line.315">        /**</a>
+<span class="sourceLineNo">316</span><a id="line.316">         * Instantiates a new event.</a>
+<span class="sourceLineNo">317</span><a id="line.317">         *</a>
+<span class="sourceLineNo">318</span><a id="line.318">         * @param serviceEvent the service event</a>
+<span class="sourceLineNo">319</span><a id="line.319">         */</a>
+<span class="sourceLineNo">320</span><a id="line.320">        public ServiceChanged(ServiceEvent serviceEvent) {</a>
+<span class="sourceLineNo">321</span><a id="line.321">            this.serviceEvent = serviceEvent;</a>
+<span class="sourceLineNo">322</span><a id="line.322">        }</a>
+<span class="sourceLineNo">323</span><a id="line.323"></a>
+<span class="sourceLineNo">324</span><a id="line.324">        public ServiceEvent serviceEvent() {</a>
+<span class="sourceLineNo">325</span><a id="line.325">            return serviceEvent;</a>
+<span class="sourceLineNo">326</span><a id="line.326">        }</a>
+<span class="sourceLineNo">327</span><a id="line.327">    }</a>
+<span class="sourceLineNo">328</span><a id="line.328">}</a>
 
 
 
