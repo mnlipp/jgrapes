@@ -83,7 +83,7 @@ task stage {
     // Build everything first
     subprojects.tasks.each { tc -> dependsOn tc.findByName("build") }
 	
-    if (!isCiBuild || JavaVersion.current().isJava15()) {
+    if (!isCiBuild || JavaVersion.current() == JavaVersion.VERSION_15) {
     	// Publish JavaDoc
     	dependsOn gitPublishPush
     }
