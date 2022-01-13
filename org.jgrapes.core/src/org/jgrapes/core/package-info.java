@@ -278,16 +278,16 @@
  * skinparam svgLinkTarget _parent
  * 
  * package org.jgrapes {
- *     package org.jgrapes.core [[org/jgrapes/core/package-summary.html#package.description]] {
+ *     package org.jgrapes.core [[../core/package-summary.html]] {
  *     }
  * 
- *     package org.jgrapes.util [[org/jgrapes/util/package-summary.html#package.description]] {
+ *     package org.jgrapes.util [[../util/package-summary.html]] {
  *     }
  * 
- *     package org.jgrapes.io [[org/jgrapes/io/package-summary.html#package.description]] {
+ *     package org.jgrapes.io [[../io/package-summary.html]] {
  *     }
  * 
- *     package org.jgrapes.http [[org/jgrapes/http/package-summary.html#package.description]] {
+ *     package org.jgrapes.http [[../http/package-summary.html]] {
  *     }
  * }
  * 
