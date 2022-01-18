@@ -28,7 +28,7 @@ import java.util.function.Function;
 /**
  * A component that collects all component factory services of 
  * a given type and uses each to create one or more components
- * that are attached to the component collector instance.
+ * that are then attached to the component collector instance.
  * 
  * Effectively, the component collector leverages the 
  * mechanism provided by the service loader to determine
