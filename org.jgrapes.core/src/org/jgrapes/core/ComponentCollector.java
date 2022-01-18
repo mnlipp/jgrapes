@@ -27,7 +27,13 @@ import java.util.function.Function;
 
 /**
  * A component that collects all component factory services of 
- * a given type and creates an instance of each.
+ * a given type and uses each to create one or more components
+ * that are attached to the component collector instance.
+ * 
+ * Effectively, the component collector leverages the 
+ * mechanism provided by the service loader to determine
+ * the component tree that is built eventually at 
+ * "link time".
  * 
  * @param <F> the component factory type
  */
@@ -39,12 +45,14 @@ public class ComponentCollector<F extends ComponentFactory>
 
     /**
      * Creates a new collector that collects the factories of the given 
-     * type and uses each to create an instance with this component's
-     * channel. Before the instance is created, the `matcher` 
-     * function is invoked with the name of the class of the component
+     * type and uses each to create one or more instances with this 
+     * component's (the component collector's) channel. 
+     * 
+     * Before instances are created, the `matcher` function is 
+     * invoked with the name of the class of the component
      * to be created as argument. The list of maps returned is
      * used to create components, passing each element in the list
-     * as parameter to {@link ComponentFactory#create(Channel, Map)}
+     * as parameter to {@link ComponentFactory#create(Channel, Map)}.
      * 
      * @param factoryClass the factory class
      * @param componentChannel this component's channel
