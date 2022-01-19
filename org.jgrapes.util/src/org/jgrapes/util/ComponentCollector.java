@@ -16,7 +16,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.jgrapes.core;
+package org.jgrapes.util;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.function.Function;
+import org.jgrapes.core.Channel;
+import org.jgrapes.core.Component;
+import org.jgrapes.core.ComponentFactory;
 
 /**
  * A component that collects all component factory services of 
@@ -35,12 +38,8 @@ import java.util.function.Function;
  * the component tree that is built eventually at 
  * "link time".
  * 
- * @deprecated This class has been moved to 
- * {@link org.jgrapes.util.ComponentCollector}.
- * 
  * @param <F> the component factory type
  */
-@Deprecated(since = "1.3")
 public class ComponentCollector<F extends ComponentFactory>
         extends Component {
 
