@@ -73,8 +73,8 @@
 <span class="source-line-no">061</span><span id="line.61">    @Override</span>
 <span class="source-line-no">062</span><span id="line.62">    public &lt;T extends Event&lt;?&gt;&gt; T add(T event, Channel... channels) {</span>
 <span class="source-line-no">063</span><span id="line.63">        synchronized (this) {</span>
-<span class="source-line-no">064</span><span id="line.64">            // If thread1 adds the start event and thread2 gets here before we</span>
-<span class="source-line-no">065</span><span id="line.65">            // have changed the event processor for the tree, forward the</span>
+<span class="source-line-no">064</span><span id="line.64">            // If thread1 adds the start event and thread2 gets here before</span>
+<span class="source-line-no">065</span><span id="line.65">            // thread1 has changed the event processor for the tree, send the</span>
 <span class="source-line-no">066</span><span id="line.66">            // event to the event processor that should already have been used.</span>
 <span class="source-line-no">067</span><span id="line.67">            if (activePipeline != null) {</span>
 <span class="source-line-no">068</span><span id="line.68">                activePipeline.add(event, channels);</span>
