@@ -39,6 +39,7 @@ import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.util.events.ConfigurationUpdate;
+import org.jgrapes.util.events.InitialConfiguration;
 import org.jgrapes.util.events.InitialPreferences;
 
 /**
@@ -106,6 +107,7 @@ public class JsonConfigurationStore extends Component {
         this.file = file;
         if (!file.exists()) {
             cache = new HashMap<>();
+            return;
         }
         try (Reader in = new InputStreamReader(
             Files.newInputStream(file.toPath()), "utf-8")) {
@@ -126,10 +128,10 @@ public class JsonConfigurationStore extends Component {
      * @throws BackingStoreException the backing store exception
      * @throws InterruptedException the interrupted exception
      */
-    @Handler(priority = 999999, channels = Channel.class)
+    @Handler(priority = 999_999, channels = Channel.class)
     public void onStart(Start event)
             throws BackingStoreException, InterruptedException {
-        ConfigurationUpdate updEvt = new ConfigurationUpdate();
+        ConfigurationUpdate updEvt = new InitialConfiguration();
         addPrefs(updEvt, "/", cache);
         newEventPipeline().fire(updEvt, event.channels()).get();
     }
