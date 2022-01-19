@@ -65,6 +65,17 @@ public class JsonConfigTests {
         }
     }
 
+    public class Child extends Component {
+
+        public int value = 0;
+
+        @Handler
+        public void onConfigurationUpdate(ConfigurationUpdate event) {
+            event.value("/", "answer")
+                .ifPresent(it -> value = Integer.parseInt(it));
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     public void testInit() throws InterruptedException,
@@ -85,6 +96,13 @@ public class JsonConfigTests {
         assertEquals(42, app.value);
         assertEquals(24, app.subValue);
 
+        // Does attached child get (initial) configuration?
+        Child child = new Child();
+        app.attach(child);
+        Components.awaitExhaustion();
+        assertEquals(42, child.value);
+
+        // Check storage update
         app.fire(new UpdateTrigger(), app);
         Components.awaitExhaustion();
         Map<String, Object> root;
