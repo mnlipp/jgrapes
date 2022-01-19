@@ -61,8 +61,8 @@ public class BufferingEventPipeline implements InternalEventPipeline {
     @Override
     public <T extends Event<?>> T add(T event, Channel... channels) {
         synchronized (this) {
-            // If thread1 adds the start event and thread2 gets here before we
-            // have changed the event processor for the tree, forward the
+            // If thread1 adds the start event and thread2 gets here before
+            // thread1 has changed the event processor for the tree, send the
             // event to the event processor that should already have been used.
             if (activePipeline != null) {
                 activePipeline.add(event, channels);
