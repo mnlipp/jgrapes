@@ -140,7 +140,7 @@
 <span class="source-line-no">128</span><span id="line.128">            Class&lt;? extends Request.In&gt;... fallbacks) {</span>
 <span class="source-line-no">129</span><span id="line.129">        super(appChannel, ChannelReplacements.create()</span>
 <span class="source-line-no">130</span><span id="line.130">            .add(NetworkChannel.class, networkChannel));</span>
-<span class="source-line-no">131</span><span id="line.131">        networkChannelPassBack = new WeakReference&lt;Channel&gt;(networkChannel);</span>
+<span class="source-line-no">131</span><span id="line.131">        networkChannelPassBack = new WeakReference&lt;&gt;(networkChannel);</span>
 <span class="source-line-no">132</span><span id="line.132">        this.providedFallbacks = Arrays.asList(fallbacks);</span>
 <span class="source-line-no">133</span><span id="line.133">    }</span>
 <span class="source-line-no">134</span><span id="line.134"></span>
@@ -503,300 +503,304 @@
 <span class="source-line-no">491</span><span id="line.491">         */</span>
 <span class="source-line-no">492</span><span id="line.492">        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
 <span class="source-line-no">493</span><span id="line.493">            "PMD.AvoidInstantiatingObjectsInLoops",</span>
-<span class="source-line-no">494</span><span id="line.494">            "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements" })</span>
-<span class="source-line-no">495</span><span id="line.495">        public void handleNetInput(Input&lt;ByteBuffer&gt; event)</span>
-<span class="source-line-no">496</span><span id="line.496">                throws ProtocolException, InterruptedException {</span>
-<span class="source-line-no">497</span><span id="line.497">            // Send the data from the event through the decoder.</span>
-<span class="source-line-no">498</span><span id="line.498">            ByteBuffer inData = event.data();</span>
-<span class="source-line-no">499</span><span id="line.499">            // Don't unnecessary allocate a buffer, may be header only message</span>
-<span class="source-line-no">500</span><span id="line.500">            ManagedBuffer&lt;?&gt; bodyData = null;</span>
-<span class="source-line-no">501</span><span id="line.501">            boolean wasOverflow = false;</span>
-<span class="source-line-no">502</span><span id="line.502">            while (inData.hasRemaining()) {</span>
-<span class="source-line-no">503</span><span id="line.503">                if (wasOverflow) {</span>
-<span class="source-line-no">504</span><span id="line.504">                    // Message has (more) body</span>
-<span class="source-line-no">505</span><span id="line.505">                    bodyData = currentPool.acquire();</span>
-<span class="source-line-no">506</span><span id="line.506">                }</span>
-<span class="source-line-no">507</span><span id="line.507">                Decoder.Result&lt;?&gt; result = engine.decode(inData,</span>
-<span class="source-line-no">508</span><span id="line.508">                    bodyData == null ? null : bodyData.backingBuffer(),</span>
-<span class="source-line-no">509</span><span id="line.509">                    event.isEndOfRecord());</span>
-<span class="source-line-no">510</span><span id="line.510">                if (result.response().isPresent()) {</span>
-<span class="source-line-no">511</span><span id="line.511">                    // Feedback required, send it</span>
-<span class="source-line-no">512</span><span id="line.512">                    responsePipeline().overrideRestriction().fire(</span>
-<span class="source-line-no">513</span><span id="line.513">                        new Response(result.response().get()), this);</span>
-<span class="source-line-no">514</span><span id="line.514">                    if (result.isResponseOnly()) {</span>
-<span class="source-line-no">515</span><span id="line.515">                        maybeCloseConnection(result);</span>
-<span class="source-line-no">516</span><span id="line.516">                        continue;</span>
-<span class="source-line-no">517</span><span id="line.517">                    }</span>
-<span class="source-line-no">518</span><span id="line.518">                }</span>
-<span class="source-line-no">519</span><span id="line.519">                if (result.isHeaderCompleted()) {</span>
-<span class="source-line-no">520</span><span id="line.520">                    if (!handleRequestHeader(engine.currentRequest().get())) {</span>
-<span class="source-line-no">521</span><span id="line.521">                        maybeCloseConnection(result);</span>
-<span class="source-line-no">522</span><span id="line.522">                        break;</span>
-<span class="source-line-no">523</span><span id="line.523">                    }</span>
-<span class="source-line-no">524</span><span id="line.524">                }</span>
-<span class="source-line-no">525</span><span id="line.525">                if (bodyData != null) {</span>
-<span class="source-line-no">526</span><span id="line.526">                    if (bodyData.position() &gt; 0) {</span>
-<span class="source-line-no">527</span><span id="line.527">                        downPipeline.fire(Input.fromSink(</span>
-<span class="source-line-no">528</span><span id="line.528">                            bodyData, !result.isOverflow()</span>
-<span class="source-line-no">529</span><span id="line.529">                                &amp;&amp; !result.isUnderflow()),</span>
-<span class="source-line-no">530</span><span id="line.530">                            this);</span>
-<span class="source-line-no">531</span><span id="line.531">                    } else {</span>
-<span class="source-line-no">532</span><span id="line.532">                        bodyData.unlockBuffer();</span>
-<span class="source-line-no">533</span><span id="line.533">                    }</span>
-<span class="source-line-no">534</span><span id="line.534">                    bodyData = null;</span>
-<span class="source-line-no">535</span><span id="line.535">                }</span>
-<span class="source-line-no">536</span><span id="line.536">                maybeCloseConnection(result);</span>
-<span class="source-line-no">537</span><span id="line.537">                wasOverflow = result.isOverflow();</span>
-<span class="source-line-no">538</span><span id="line.538">            }</span>
-<span class="source-line-no">539</span><span id="line.539">        }</span>
-<span class="source-line-no">540</span><span id="line.540"></span>
-<span class="source-line-no">541</span><span id="line.541">        private void maybeCloseConnection(Decoder.Result&lt;?&gt; result) {</span>
-<span class="source-line-no">542</span><span id="line.542">            if (result.closeConnection()) {</span>
-<span class="source-line-no">543</span><span id="line.543">                respond(new Close());</span>
-<span class="source-line-no">544</span><span id="line.544">            }</span>
-<span class="source-line-no">545</span><span id="line.545">        }</span>
-<span class="source-line-no">546</span><span id="line.546"></span>
-<span class="source-line-no">547</span><span id="line.547">        @SuppressWarnings("PMD.CollapsibleIfStatements")</span>
-<span class="source-line-no">548</span><span id="line.548">        private boolean handleRequestHeader(MessageHeader request) {</span>
-<span class="source-line-no">549</span><span id="line.549">            if (request instanceof HttpRequest) {</span>
-<span class="source-line-no">550</span><span id="line.550">                HttpRequest httpRequest = (HttpRequest) request;</span>
-<span class="source-line-no">551</span><span id="line.551">                if (httpRequest.hasPayload()) {</span>
-<span class="source-line-no">552</span><span id="line.552">                    if (httpRequest.findValue(</span>
-<span class="source-line-no">553</span><span id="line.553">                        HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)</span>
-<span class="source-line-no">554</span><span id="line.554">                        .map(type -&gt; type.value().topLevelType()</span>
-<span class="source-line-no">555</span><span id="line.555">                            .equalsIgnoreCase("text"))</span>
-<span class="source-line-no">556</span><span id="line.556">                        .orElse(false)) {</span>
-<span class="source-line-no">557</span><span id="line.557">                        currentPool = charBufferPool;</span>
-<span class="source-line-no">558</span><span id="line.558">                    } else {</span>
-<span class="source-line-no">559</span><span id="line.559">                        currentPool = byteBufferPool;</span>
-<span class="source-line-no">560</span><span id="line.560">                    }</span>
-<span class="source-line-no">561</span><span id="line.561">                }</span>
-<span class="source-line-no">562</span><span id="line.562">                if (secure) {</span>
-<span class="source-line-no">563</span><span id="line.563">                    if (!snis.contains(httpRequest.host())) {</span>
-<span class="source-line-no">564</span><span id="line.564">                        if (acceptNoSni &amp;&amp; snis.isEmpty()) {</span>
-<span class="source-line-no">565</span><span id="line.565">                            convertHostToNumerical(httpRequest);</span>
-<span class="source-line-no">566</span><span id="line.566">                        } else {</span>
-<span class="source-line-no">567</span><span id="line.567">                            ResponseCreationSupport.sendResponse(httpRequest,</span>
-<span class="source-line-no">568</span><span id="line.568">                                this, 421, "Misdirected Request");</span>
-<span class="source-line-no">569</span><span id="line.569">                            return false;</span>
-<span class="source-line-no">570</span><span id="line.570">                        }</span>
-<span class="source-line-no">571</span><span id="line.571">                    }</span>
-<span class="source-line-no">572</span><span id="line.572">                }</span>
-<span class="source-line-no">573</span><span id="line.573">                downPipeline.fire(Request.In.fromHttpRequest(httpRequest,</span>
-<span class="source-line-no">574</span><span id="line.574">                    secure, matchLevels), this);</span>
-<span class="source-line-no">575</span><span id="line.575">            } else if (request instanceof WsMessageHeader) {</span>
-<span class="source-line-no">576</span><span id="line.576">                WsMessageHeader wsMessage = (WsMessageHeader) request;</span>
-<span class="source-line-no">577</span><span id="line.577">                if (wsMessage.hasPayload()) {</span>
-<span class="source-line-no">578</span><span id="line.578">                    if (wsMessage.isTextMode()) {</span>
-<span class="source-line-no">579</span><span id="line.579">                        currentPool = charBufferPool;</span>
-<span class="source-line-no">580</span><span id="line.580">                    } else {</span>
-<span class="source-line-no">581</span><span id="line.581">                        currentPool = byteBufferPool;</span>
-<span class="source-line-no">582</span><span id="line.582">                    }</span>
-<span class="source-line-no">583</span><span id="line.583">                }</span>
-<span class="source-line-no">584</span><span id="line.584">            } else if (request instanceof WsCloseFrame) {</span>
-<span class="source-line-no">585</span><span id="line.585">                downPipeline.fire(</span>
-<span class="source-line-no">586</span><span id="line.586">                    new WebSocketClose((WsCloseFrame) request, this));</span>
-<span class="source-line-no">587</span><span id="line.587">            }</span>
-<span class="source-line-no">588</span><span id="line.588">            return true;</span>
-<span class="source-line-no">589</span><span id="line.589">        }</span>
-<span class="source-line-no">590</span><span id="line.590"></span>
-<span class="source-line-no">591</span><span id="line.591">        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">592</span><span id="line.592">            "PMD.UseStringBufferForStringAppends" })</span>
-<span class="source-line-no">593</span><span id="line.593">        private void convertHostToNumerical(HttpRequest request) {</span>
-<span class="source-line-no">594</span><span id="line.594">            int port = request.port();</span>
-<span class="source-line-no">595</span><span id="line.595">            String host;</span>
-<span class="source-line-no">596</span><span id="line.596">            try {</span>
-<span class="source-line-no">597</span><span id="line.597">                InetAddress addr = InetAddress.getByName(</span>
-<span class="source-line-no">598</span><span id="line.598">                    request.host());</span>
-<span class="source-line-no">599</span><span id="line.599">                host = addr.getHostAddress();</span>
-<span class="source-line-no">600</span><span id="line.600">                if (!(addr instanceof Inet4Address)) {</span>
-<span class="source-line-no">601</span><span id="line.601">                    host = "[" + host + "]";</span>
-<span class="source-line-no">602</span><span id="line.602">                }</span>
-<span class="source-line-no">603</span><span id="line.603">            } catch (UnknownHostException e) {</span>
-<span class="source-line-no">604</span><span id="line.604">                host = InetAddress.getLoopbackAddress().getHostAddress();</span>
-<span class="source-line-no">605</span><span id="line.605">            }</span>
-<span class="source-line-no">606</span><span id="line.606">            request.setHostAndPort(host, port);</span>
-<span class="source-line-no">607</span><span id="line.607">        }</span>
-<span class="source-line-no">608</span><span id="line.608"></span>
-<span class="source-line-no">609</span><span id="line.609">        /**</span>
-<span class="source-line-no">610</span><span id="line.610">         * Handle a response event from the application layer.</span>
-<span class="source-line-no">611</span><span id="line.611">         *</span>
-<span class="source-line-no">612</span><span id="line.612">         * @param event the event</span>
-<span class="source-line-no">613</span><span id="line.613">         * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">614</span><span id="line.614">         */</span>
-<span class="source-line-no">615</span><span id="line.615">        @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</span>
-<span class="source-line-no">616</span><span id="line.616">            "PMD.AvoidBranchingStatementAsLastInLoop" })</span>
-<span class="source-line-no">617</span><span id="line.617">        public void handleResponse(Response event) throws InterruptedException {</span>
-<span class="source-line-no">618</span><span id="line.618">            if (!engine.encoding()</span>
-<span class="source-line-no">619</span><span id="line.619">                .isAssignableFrom(event.response().getClass())) {</span>
-<span class="source-line-no">620</span><span id="line.620">                return;</span>
-<span class="source-line-no">621</span><span id="line.621">            }</span>
-<span class="source-line-no">622</span><span id="line.622">            final MessageHeader response = event.response();</span>
-<span class="source-line-no">623</span><span id="line.623">            // Start sending the response</span>
-<span class="source-line-no">624</span><span id="line.624">            @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">625</span><span id="line.625">            ServerEngine&lt;?, MessageHeader&gt; msgEngine</span>
-<span class="source-line-no">626</span><span id="line.626">                = (ServerEngine&lt;?, MessageHeader&gt;) engine;</span>
-<span class="source-line-no">627</span><span id="line.627">            msgEngine.encode(response);</span>
-<span class="source-line-no">628</span><span id="line.628">            if (pendingUpgraded != null) {</span>
-<span class="source-line-no">629</span><span id="line.629">                if (response instanceof HttpResponse</span>
-<span class="source-line-no">630</span><span id="line.630">                    &amp;&amp; ((HttpResponse) response).statusCode() % 100 == 1) {</span>
-<span class="source-line-no">631</span><span id="line.631">                    downPipeline.fire(pendingUpgraded, this);</span>
-<span class="source-line-no">632</span><span id="line.632">                }</span>
-<span class="source-line-no">633</span><span id="line.633">                pendingUpgraded = null;</span>
-<span class="source-line-no">634</span><span id="line.634">            }</span>
-<span class="source-line-no">635</span><span id="line.635">            boolean hasBody = response.hasPayload();</span>
-<span class="source-line-no">636</span><span id="line.636">            while (true) {</span>
-<span class="source-line-no">637</span><span id="line.637">                outBuffer = upstreamChannel().byteBufferPool().acquire();</span>
-<span class="source-line-no">638</span><span id="line.638">                final ManagedBuffer&lt;ByteBuffer&gt; buffer = outBuffer;</span>
-<span class="source-line-no">639</span><span id="line.639">                Codec.Result result = engine.encode(</span>
-<span class="source-line-no">640</span><span id="line.640">                    Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);</span>
-<span class="source-line-no">641</span><span id="line.641">                if (result.isOverflow()) {</span>
-<span class="source-line-no">642</span><span id="line.642">                    upstreamChannel().respond(Output.fromSink(buffer, false));</span>
-<span class="source-line-no">643</span><span id="line.643">                    continue;</span>
-<span class="source-line-no">644</span><span id="line.644">                }</span>
-<span class="source-line-no">645</span><span id="line.645">                if (hasBody) {</span>
-<span class="source-line-no">646</span><span id="line.646">                    // Keep buffer with incomplete response to be further</span>
-<span class="source-line-no">647</span><span id="line.647">                    // filled by subsequent Output events</span>
-<span class="source-line-no">648</span><span id="line.648">                    break;</span>
-<span class="source-line-no">649</span><span id="line.649">                }</span>
-<span class="source-line-no">650</span><span id="line.650">                // Response is complete</span>
-<span class="source-line-no">651</span><span id="line.651">                if (buffer.position() &gt; 0) {</span>
-<span class="source-line-no">652</span><span id="line.652">                    upstreamChannel().respond(Output.fromSink(buffer, true));</span>
-<span class="source-line-no">653</span><span id="line.653">                } else {</span>
-<span class="source-line-no">654</span><span id="line.654">                    buffer.unlockBuffer();</span>
-<span class="source-line-no">655</span><span id="line.655">                }</span>
-<span class="source-line-no">656</span><span id="line.656">                outBuffer = null;</span>
-<span class="source-line-no">657</span><span id="line.657">                if (result.closeConnection()) {</span>
-<span class="source-line-no">658</span><span id="line.658">                    upstreamChannel().respond(new Close());</span>
-<span class="source-line-no">659</span><span id="line.659">                }</span>
-<span class="source-line-no">660</span><span id="line.660">                break;</span>
-<span class="source-line-no">661</span><span id="line.661">            }</span>
-<span class="source-line-no">662</span><span id="line.662"></span>
-<span class="source-line-no">663</span><span id="line.663">        }</span>
-<span class="source-line-no">664</span><span id="line.664"></span>
-<span class="source-line-no">665</span><span id="line.665">        /**</span>
-<span class="source-line-no">666</span><span id="line.666">         * Handle a {@link ProtocolSwitchAccepted} event from the </span>
-<span class="source-line-no">667</span><span id="line.667">         * application layer.</span>
-<span class="source-line-no">668</span><span id="line.668">         *</span>
-<span class="source-line-no">669</span><span id="line.669">         * @param event the event</span>
-<span class="source-line-no">670</span><span id="line.670">         * @param appChannel the app channel</span>
-<span class="source-line-no">671</span><span id="line.671">         */</span>
-<span class="source-line-no">672</span><span id="line.672">        public void handleProtocolSwitchAccepted(</span>
-<span class="source-line-no">673</span><span id="line.673">                ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {</span>
-<span class="source-line-no">674</span><span id="line.674">            appChannel.setAssociated(URI.class,</span>
-<span class="source-line-no">675</span><span id="line.675">                event.requestEvent().requestUri());</span>
-<span class="source-line-no">676</span><span id="line.676">            final HttpResponse response = event.requestEvent()</span>
-<span class="source-line-no">677</span><span id="line.677">                .httpRequest().response().get()</span>
-<span class="source-line-no">678</span><span id="line.678">                .setStatus(HttpStatus.SWITCHING_PROTOCOLS)</span>
-<span class="source-line-no">679</span><span id="line.679">                .setField(HttpField.UPGRADE,</span>
-<span class="source-line-no">680</span><span id="line.680">                    new StringList(event.protocol()));</span>
-<span class="source-line-no">681</span><span id="line.681">            // We send the Upgraded event only after the response has</span>
-<span class="source-line-no">682</span><span id="line.682">            // successfully been encoded (and thus checked).</span>
-<span class="source-line-no">683</span><span id="line.683">            pendingUpgraded = new Upgraded(event.resourceName(),</span>
-<span class="source-line-no">684</span><span id="line.684">                event.protocol());</span>
-<span class="source-line-no">685</span><span id="line.685">            respond(new Response(response));</span>
-<span class="source-line-no">686</span><span id="line.686">        }</span>
-<span class="source-line-no">687</span><span id="line.687"></span>
-<span class="source-line-no">688</span><span id="line.688">        /**</span>
-<span class="source-line-no">689</span><span id="line.689">         * Handle output from the application layer.</span>
-<span class="source-line-no">690</span><span id="line.690">         *</span>
-<span class="source-line-no">691</span><span id="line.691">         * @param event the event</span>
-<span class="source-line-no">692</span><span id="line.692">         * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">693</span><span id="line.693">         */</span>
-<span class="source-line-no">694</span><span id="line.694">        @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",</span>
-<span class="source-line-no">695</span><span id="line.695">            "PMD.NPathComplexity", "PMD.AvoidInstantiatingObjectsInLoops" })</span>
-<span class="source-line-no">696</span><span id="line.696">        public void handleAppOutput(Output&lt;?&gt; event)</span>
-<span class="source-line-no">697</span><span id="line.697">                throws InterruptedException {</span>
-<span class="source-line-no">698</span><span id="line.698">            Buffer eventData = event.data();</span>
-<span class="source-line-no">699</span><span id="line.699">            Buffer input;</span>
-<span class="source-line-no">700</span><span id="line.700">            if (eventData instanceof ByteBuffer) {</span>
-<span class="source-line-no">701</span><span id="line.701">                input = ((ByteBuffer) eventData).duplicate();</span>
-<span class="source-line-no">702</span><span id="line.702">            } else if (eventData instanceof CharBuffer) {</span>
-<span class="source-line-no">703</span><span id="line.703">                input = ((CharBuffer) eventData).duplicate();</span>
-<span class="source-line-no">704</span><span id="line.704">            } else {</span>
-<span class="source-line-no">705</span><span id="line.705">                return;</span>
-<span class="source-line-no">706</span><span id="line.706">            }</span>
-<span class="source-line-no">707</span><span id="line.707">            if (engine.switchedTo().equals(Optional.of("websocket"))</span>
-<span class="source-line-no">708</span><span id="line.708">                &amp;&amp; currentWsMessage == null) {</span>
-<span class="source-line-no">709</span><span id="line.709">                // When switched to WebSockets, we only have Input and Output</span>
-<span class="source-line-no">710</span><span id="line.710">                // events. Add header automatically.</span>
-<span class="source-line-no">711</span><span id="line.711">                @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">712</span><span id="line.712">                ServerEngine&lt;?, MessageHeader&gt; wsEngine</span>
-<span class="source-line-no">713</span><span id="line.713">                    = (ServerEngine&lt;?, MessageHeader&gt;) engine;</span>
-<span class="source-line-no">714</span><span id="line.714">                currentWsMessage = new WsMessageHeader(</span>
-<span class="source-line-no">715</span><span id="line.715">                    event.buffer().backingBuffer() instanceof CharBuffer,</span>
-<span class="source-line-no">716</span><span id="line.716">                    true);</span>
-<span class="source-line-no">717</span><span id="line.717">                wsEngine.encode(currentWsMessage);</span>
-<span class="source-line-no">718</span><span id="line.718">            }</span>
-<span class="source-line-no">719</span><span id="line.719">            while (input.hasRemaining() || event.isEndOfRecord()) {</span>
-<span class="source-line-no">720</span><span id="line.720">                if (outBuffer == null) {</span>
-<span class="source-line-no">721</span><span id="line.721">                    outBuffer = upstreamChannel().byteBufferPool().acquire();</span>
-<span class="source-line-no">722</span><span id="line.722">                }</span>
-<span class="source-line-no">723</span><span id="line.723">                Codec.Result result = engine.encode(input,</span>
-<span class="source-line-no">724</span><span id="line.724">                    outBuffer.backingBuffer(), event.isEndOfRecord());</span>
-<span class="source-line-no">725</span><span id="line.725">                if (result.isOverflow()) {</span>
-<span class="source-line-no">726</span><span id="line.726">                    upstreamChannel()</span>
-<span class="source-line-no">727</span><span id="line.727">                        .respond(Output.fromSink(outBuffer, false));</span>
-<span class="source-line-no">728</span><span id="line.728">                    outBuffer = upstreamChannel().byteBufferPool().acquire();</span>
-<span class="source-line-no">729</span><span id="line.729">                    continue;</span>
-<span class="source-line-no">730</span><span id="line.730">                }</span>
-<span class="source-line-no">731</span><span id="line.731">                if (event.isEndOfRecord() || result.closeConnection()) {</span>
-<span class="source-line-no">732</span><span id="line.732">                    if (outBuffer.position() &gt; 0) {</span>
-<span class="source-line-no">733</span><span id="line.733">                        upstreamChannel()</span>
-<span class="source-line-no">734</span><span id="line.734">                            .respond(Output.fromSink(outBuffer, true));</span>
-<span class="source-line-no">735</span><span id="line.735">                    } else {</span>
-<span class="source-line-no">736</span><span id="line.736">                        outBuffer.unlockBuffer();</span>
-<span class="source-line-no">737</span><span id="line.737">                    }</span>
-<span class="source-line-no">738</span><span id="line.738">                    outBuffer = null;</span>
-<span class="source-line-no">739</span><span id="line.739">                    if (result.closeConnection()) {</span>
-<span class="source-line-no">740</span><span id="line.740">                        upstreamChannel().respond(new Close());</span>
+<span class="source-line-no">494</span><span id="line.494">            "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements",</span>
+<span class="source-line-no">495</span><span id="line.495">            "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">496</span><span id="line.496">        public void handleNetInput(Input&lt;ByteBuffer&gt; event)</span>
+<span class="source-line-no">497</span><span id="line.497">                throws ProtocolException, InterruptedException {</span>
+<span class="source-line-no">498</span><span id="line.498">            // Send the data from the event through the decoder.</span>
+<span class="source-line-no">499</span><span id="line.499">            ByteBuffer inData = event.data();</span>
+<span class="source-line-no">500</span><span id="line.500">            // Don't unnecessary allocate a buffer, may be header only message</span>
+<span class="source-line-no">501</span><span id="line.501">            ManagedBuffer&lt;?&gt; bodyData = null;</span>
+<span class="source-line-no">502</span><span id="line.502">            boolean wasOverflow = false;</span>
+<span class="source-line-no">503</span><span id="line.503">            while (inData.hasRemaining()) {</span>
+<span class="source-line-no">504</span><span id="line.504">                if (wasOverflow) {</span>
+<span class="source-line-no">505</span><span id="line.505">                    // Message has (more) body</span>
+<span class="source-line-no">506</span><span id="line.506">                    bodyData = currentPool.acquire();</span>
+<span class="source-line-no">507</span><span id="line.507">                }</span>
+<span class="source-line-no">508</span><span id="line.508">                Decoder.Result&lt;?&gt; result = engine.decode(inData,</span>
+<span class="source-line-no">509</span><span id="line.509">                    bodyData == null ? null : bodyData.backingBuffer(),</span>
+<span class="source-line-no">510</span><span id="line.510">                    event.isEndOfRecord());</span>
+<span class="source-line-no">511</span><span id="line.511">                if (result.response().isPresent()) {</span>
+<span class="source-line-no">512</span><span id="line.512">                    // Feedback required, send it</span>
+<span class="source-line-no">513</span><span id="line.513">                    responsePipeline().overrideRestriction().fire(</span>
+<span class="source-line-no">514</span><span id="line.514">                        new Response(result.response().get()), this);</span>
+<span class="source-line-no">515</span><span id="line.515">                    if (result.isResponseOnly()) {</span>
+<span class="source-line-no">516</span><span id="line.516">                        maybeCloseConnection(result);</span>
+<span class="source-line-no">517</span><span id="line.517">                        continue;</span>
+<span class="source-line-no">518</span><span id="line.518">                    }</span>
+<span class="source-line-no">519</span><span id="line.519">                }</span>
+<span class="source-line-no">520</span><span id="line.520">                if (result.isHeaderCompleted()) {</span>
+<span class="source-line-no">521</span><span id="line.521">                    if (!handleRequestHeader(engine.currentRequest().get())) {</span>
+<span class="source-line-no">522</span><span id="line.522">                        maybeCloseConnection(result);</span>
+<span class="source-line-no">523</span><span id="line.523">                        break;</span>
+<span class="source-line-no">524</span><span id="line.524">                    }</span>
+<span class="source-line-no">525</span><span id="line.525">                }</span>
+<span class="source-line-no">526</span><span id="line.526">                if (bodyData != null) {</span>
+<span class="source-line-no">527</span><span id="line.527">                    if (bodyData.position() &gt; 0) {</span>
+<span class="source-line-no">528</span><span id="line.528">                        downPipeline.fire(Input.fromSink(</span>
+<span class="source-line-no">529</span><span id="line.529">                            bodyData, !result.isOverflow()</span>
+<span class="source-line-no">530</span><span id="line.530">                                &amp;&amp; !result.isUnderflow()),</span>
+<span class="source-line-no">531</span><span id="line.531">                            this);</span>
+<span class="source-line-no">532</span><span id="line.532">                    } else {</span>
+<span class="source-line-no">533</span><span id="line.533">                        bodyData.unlockBuffer();</span>
+<span class="source-line-no">534</span><span id="line.534">                    }</span>
+<span class="source-line-no">535</span><span id="line.535">                    bodyData = null;</span>
+<span class="source-line-no">536</span><span id="line.536">                }</span>
+<span class="source-line-no">537</span><span id="line.537">                maybeCloseConnection(result);</span>
+<span class="source-line-no">538</span><span id="line.538">                wasOverflow = result.isOverflow();</span>
+<span class="source-line-no">539</span><span id="line.539">            }</span>
+<span class="source-line-no">540</span><span id="line.540">        }</span>
+<span class="source-line-no">541</span><span id="line.541"></span>
+<span class="source-line-no">542</span><span id="line.542">        private void maybeCloseConnection(Decoder.Result&lt;?&gt; result) {</span>
+<span class="source-line-no">543</span><span id="line.543">            if (result.closeConnection()) {</span>
+<span class="source-line-no">544</span><span id="line.544">                respond(new Close());</span>
+<span class="source-line-no">545</span><span id="line.545">            }</span>
+<span class="source-line-no">546</span><span id="line.546">        }</span>
+<span class="source-line-no">547</span><span id="line.547"></span>
+<span class="source-line-no">548</span><span id="line.548">        @SuppressWarnings({ "PMD.CollapsibleIfStatements",</span>
+<span class="source-line-no">549</span><span id="line.549">            "PMD.CognitiveComplexity" })</span>
+<span class="source-line-no">550</span><span id="line.550">        private boolean handleRequestHeader(MessageHeader request) {</span>
+<span class="source-line-no">551</span><span id="line.551">            if (request instanceof HttpRequest) {</span>
+<span class="source-line-no">552</span><span id="line.552">                HttpRequest httpRequest = (HttpRequest) request;</span>
+<span class="source-line-no">553</span><span id="line.553">                if (httpRequest.hasPayload()) {</span>
+<span class="source-line-no">554</span><span id="line.554">                    if (httpRequest.findValue(</span>
+<span class="source-line-no">555</span><span id="line.555">                        HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)</span>
+<span class="source-line-no">556</span><span id="line.556">                        .map(type -&gt; "text"</span>
+<span class="source-line-no">557</span><span id="line.557">                            .equalsIgnoreCase(type.value().topLevelType()))</span>
+<span class="source-line-no">558</span><span id="line.558">                        .orElse(false)) {</span>
+<span class="source-line-no">559</span><span id="line.559">                        currentPool = charBufferPool;</span>
+<span class="source-line-no">560</span><span id="line.560">                    } else {</span>
+<span class="source-line-no">561</span><span id="line.561">                        currentPool = byteBufferPool;</span>
+<span class="source-line-no">562</span><span id="line.562">                    }</span>
+<span class="source-line-no">563</span><span id="line.563">                }</span>
+<span class="source-line-no">564</span><span id="line.564">                if (secure) {</span>
+<span class="source-line-no">565</span><span id="line.565">                    if (!snis.contains(httpRequest.host())) {</span>
+<span class="source-line-no">566</span><span id="line.566">                        if (acceptNoSni &amp;&amp; snis.isEmpty()) {</span>
+<span class="source-line-no">567</span><span id="line.567">                            convertHostToNumerical(httpRequest);</span>
+<span class="source-line-no">568</span><span id="line.568">                        } else {</span>
+<span class="source-line-no">569</span><span id="line.569">                            ResponseCreationSupport.sendResponse(httpRequest,</span>
+<span class="source-line-no">570</span><span id="line.570">                                this, 421, "Misdirected Request");</span>
+<span class="source-line-no">571</span><span id="line.571">                            return false;</span>
+<span class="source-line-no">572</span><span id="line.572">                        }</span>
+<span class="source-line-no">573</span><span id="line.573">                    }</span>
+<span class="source-line-no">574</span><span id="line.574">                }</span>
+<span class="source-line-no">575</span><span id="line.575">                downPipeline.fire(Request.In.fromHttpRequest(httpRequest,</span>
+<span class="source-line-no">576</span><span id="line.576">                    secure, matchLevels), this);</span>
+<span class="source-line-no">577</span><span id="line.577">            } else if (request instanceof WsMessageHeader) {</span>
+<span class="source-line-no">578</span><span id="line.578">                WsMessageHeader wsMessage = (WsMessageHeader) request;</span>
+<span class="source-line-no">579</span><span id="line.579">                if (wsMessage.hasPayload()) {</span>
+<span class="source-line-no">580</span><span id="line.580">                    if (wsMessage.isTextMode()) {</span>
+<span class="source-line-no">581</span><span id="line.581">                        currentPool = charBufferPool;</span>
+<span class="source-line-no">582</span><span id="line.582">                    } else {</span>
+<span class="source-line-no">583</span><span id="line.583">                        currentPool = byteBufferPool;</span>
+<span class="source-line-no">584</span><span id="line.584">                    }</span>
+<span class="source-line-no">585</span><span id="line.585">                }</span>
+<span class="source-line-no">586</span><span id="line.586">            } else if (request instanceof WsCloseFrame) {</span>
+<span class="source-line-no">587</span><span id="line.587">                downPipeline.fire(</span>
+<span class="source-line-no">588</span><span id="line.588">                    new WebSocketClose((WsCloseFrame) request, this));</span>
+<span class="source-line-no">589</span><span id="line.589">            }</span>
+<span class="source-line-no">590</span><span id="line.590">            return true;</span>
+<span class="source-line-no">591</span><span id="line.591">        }</span>
+<span class="source-line-no">592</span><span id="line.592"></span>
+<span class="source-line-no">593</span><span id="line.593">        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">594</span><span id="line.594">            "PMD.UseStringBufferForStringAppends" })</span>
+<span class="source-line-no">595</span><span id="line.595">        private void convertHostToNumerical(HttpRequest request) {</span>
+<span class="source-line-no">596</span><span id="line.596">            int port = request.port();</span>
+<span class="source-line-no">597</span><span id="line.597">            String host;</span>
+<span class="source-line-no">598</span><span id="line.598">            try {</span>
+<span class="source-line-no">599</span><span id="line.599">                InetAddress addr = InetAddress.getByName(</span>
+<span class="source-line-no">600</span><span id="line.600">                    request.host());</span>
+<span class="source-line-no">601</span><span id="line.601">                host = addr.getHostAddress();</span>
+<span class="source-line-no">602</span><span id="line.602">                if (!(addr instanceof Inet4Address)) {</span>
+<span class="source-line-no">603</span><span id="line.603">                    host = "[" + host + "]";</span>
+<span class="source-line-no">604</span><span id="line.604">                }</span>
+<span class="source-line-no">605</span><span id="line.605">            } catch (UnknownHostException e) {</span>
+<span class="source-line-no">606</span><span id="line.606">                host = InetAddress.getLoopbackAddress().getHostAddress();</span>
+<span class="source-line-no">607</span><span id="line.607">            }</span>
+<span class="source-line-no">608</span><span id="line.608">            request.setHostAndPort(host, port);</span>
+<span class="source-line-no">609</span><span id="line.609">        }</span>
+<span class="source-line-no">610</span><span id="line.610"></span>
+<span class="source-line-no">611</span><span id="line.611">        /**</span>
+<span class="source-line-no">612</span><span id="line.612">         * Handle a response event from the application layer.</span>
+<span class="source-line-no">613</span><span id="line.613">         *</span>
+<span class="source-line-no">614</span><span id="line.614">         * @param event the event</span>
+<span class="source-line-no">615</span><span id="line.615">         * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">616</span><span id="line.616">         */</span>
+<span class="source-line-no">617</span><span id="line.617">        @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</span>
+<span class="source-line-no">618</span><span id="line.618">            "PMD.AvoidBranchingStatementAsLastInLoop",</span>
+<span class="source-line-no">619</span><span id="line.619">            "PMD.CognitiveComplexity" })</span>
+<span class="source-line-no">620</span><span id="line.620">        public void handleResponse(Response event) throws InterruptedException {</span>
+<span class="source-line-no">621</span><span id="line.621">            if (!engine.encoding()</span>
+<span class="source-line-no">622</span><span id="line.622">                .isAssignableFrom(event.response().getClass())) {</span>
+<span class="source-line-no">623</span><span id="line.623">                return;</span>
+<span class="source-line-no">624</span><span id="line.624">            }</span>
+<span class="source-line-no">625</span><span id="line.625">            final MessageHeader response = event.response();</span>
+<span class="source-line-no">626</span><span id="line.626">            // Start sending the response</span>
+<span class="source-line-no">627</span><span id="line.627">            @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">628</span><span id="line.628">            ServerEngine&lt;?, MessageHeader&gt; msgEngine</span>
+<span class="source-line-no">629</span><span id="line.629">                = (ServerEngine&lt;?, MessageHeader&gt;) engine;</span>
+<span class="source-line-no">630</span><span id="line.630">            msgEngine.encode(response);</span>
+<span class="source-line-no">631</span><span id="line.631">            if (pendingUpgraded != null) {</span>
+<span class="source-line-no">632</span><span id="line.632">                if (response instanceof HttpResponse</span>
+<span class="source-line-no">633</span><span id="line.633">                    &amp;&amp; ((HttpResponse) response).statusCode() % 100 == 1) {</span>
+<span class="source-line-no">634</span><span id="line.634">                    downPipeline.fire(pendingUpgraded, this);</span>
+<span class="source-line-no">635</span><span id="line.635">                }</span>
+<span class="source-line-no">636</span><span id="line.636">                pendingUpgraded = null;</span>
+<span class="source-line-no">637</span><span id="line.637">            }</span>
+<span class="source-line-no">638</span><span id="line.638">            boolean hasBody = response.hasPayload();</span>
+<span class="source-line-no">639</span><span id="line.639">            while (true) {</span>
+<span class="source-line-no">640</span><span id="line.640">                outBuffer = upstreamChannel().byteBufferPool().acquire();</span>
+<span class="source-line-no">641</span><span id="line.641">                final ManagedBuffer&lt;ByteBuffer&gt; buffer = outBuffer;</span>
+<span class="source-line-no">642</span><span id="line.642">                Codec.Result result = engine.encode(</span>
+<span class="source-line-no">643</span><span id="line.643">                    Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);</span>
+<span class="source-line-no">644</span><span id="line.644">                if (result.isOverflow()) {</span>
+<span class="source-line-no">645</span><span id="line.645">                    upstreamChannel().respond(Output.fromSink(buffer, false));</span>
+<span class="source-line-no">646</span><span id="line.646">                    continue;</span>
+<span class="source-line-no">647</span><span id="line.647">                }</span>
+<span class="source-line-no">648</span><span id="line.648">                if (hasBody) {</span>
+<span class="source-line-no">649</span><span id="line.649">                    // Keep buffer with incomplete response to be further</span>
+<span class="source-line-no">650</span><span id="line.650">                    // filled by subsequent Output events</span>
+<span class="source-line-no">651</span><span id="line.651">                    break;</span>
+<span class="source-line-no">652</span><span id="line.652">                }</span>
+<span class="source-line-no">653</span><span id="line.653">                // Response is complete</span>
+<span class="source-line-no">654</span><span id="line.654">                if (buffer.position() &gt; 0) {</span>
+<span class="source-line-no">655</span><span id="line.655">                    upstreamChannel().respond(Output.fromSink(buffer, true));</span>
+<span class="source-line-no">656</span><span id="line.656">                } else {</span>
+<span class="source-line-no">657</span><span id="line.657">                    buffer.unlockBuffer();</span>
+<span class="source-line-no">658</span><span id="line.658">                }</span>
+<span class="source-line-no">659</span><span id="line.659">                outBuffer = null;</span>
+<span class="source-line-no">660</span><span id="line.660">                if (result.closeConnection()) {</span>
+<span class="source-line-no">661</span><span id="line.661">                    upstreamChannel().respond(new Close());</span>
+<span class="source-line-no">662</span><span id="line.662">                }</span>
+<span class="source-line-no">663</span><span id="line.663">                break;</span>
+<span class="source-line-no">664</span><span id="line.664">            }</span>
+<span class="source-line-no">665</span><span id="line.665"></span>
+<span class="source-line-no">666</span><span id="line.666">        }</span>
+<span class="source-line-no">667</span><span id="line.667"></span>
+<span class="source-line-no">668</span><span id="line.668">        /**</span>
+<span class="source-line-no">669</span><span id="line.669">         * Handle a {@link ProtocolSwitchAccepted} event from the </span>
+<span class="source-line-no">670</span><span id="line.670">         * application layer.</span>
+<span class="source-line-no">671</span><span id="line.671">         *</span>
+<span class="source-line-no">672</span><span id="line.672">         * @param event the event</span>
+<span class="source-line-no">673</span><span id="line.673">         * @param appChannel the app channel</span>
+<span class="source-line-no">674</span><span id="line.674">         */</span>
+<span class="source-line-no">675</span><span id="line.675">        public void handleProtocolSwitchAccepted(</span>
+<span class="source-line-no">676</span><span id="line.676">                ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {</span>
+<span class="source-line-no">677</span><span id="line.677">            appChannel.setAssociated(URI.class,</span>
+<span class="source-line-no">678</span><span id="line.678">                event.requestEvent().requestUri());</span>
+<span class="source-line-no">679</span><span id="line.679">            final HttpResponse response = event.requestEvent()</span>
+<span class="source-line-no">680</span><span id="line.680">                .httpRequest().response().get()</span>
+<span class="source-line-no">681</span><span id="line.681">                .setStatus(HttpStatus.SWITCHING_PROTOCOLS)</span>
+<span class="source-line-no">682</span><span id="line.682">                .setField(HttpField.UPGRADE,</span>
+<span class="source-line-no">683</span><span id="line.683">                    new StringList(event.protocol()));</span>
+<span class="source-line-no">684</span><span id="line.684">            // We send the Upgraded event only after the response has</span>
+<span class="source-line-no">685</span><span id="line.685">            // successfully been encoded (and thus checked).</span>
+<span class="source-line-no">686</span><span id="line.686">            pendingUpgraded = new Upgraded(event.resourceName(),</span>
+<span class="source-line-no">687</span><span id="line.687">                event.protocol());</span>
+<span class="source-line-no">688</span><span id="line.688">            respond(new Response(response));</span>
+<span class="source-line-no">689</span><span id="line.689">        }</span>
+<span class="source-line-no">690</span><span id="line.690"></span>
+<span class="source-line-no">691</span><span id="line.691">        /**</span>
+<span class="source-line-no">692</span><span id="line.692">         * Handle output from the application layer.</span>
+<span class="source-line-no">693</span><span id="line.693">         *</span>
+<span class="source-line-no">694</span><span id="line.694">         * @param event the event</span>
+<span class="source-line-no">695</span><span id="line.695">         * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">696</span><span id="line.696">         */</span>
+<span class="source-line-no">697</span><span id="line.697">        @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",</span>
+<span class="source-line-no">698</span><span id="line.698">            "PMD.NPathComplexity", "PMD.AvoidInstantiatingObjectsInLoops",</span>
+<span class="source-line-no">699</span><span id="line.699">            "PMD.CognitiveComplexity" })</span>
+<span class="source-line-no">700</span><span id="line.700">        public void handleAppOutput(Output&lt;?&gt; event)</span>
+<span class="source-line-no">701</span><span id="line.701">                throws InterruptedException {</span>
+<span class="source-line-no">702</span><span id="line.702">            Buffer eventData = event.data();</span>
+<span class="source-line-no">703</span><span id="line.703">            Buffer input;</span>
+<span class="source-line-no">704</span><span id="line.704">            if (eventData instanceof ByteBuffer) {</span>
+<span class="source-line-no">705</span><span id="line.705">                input = ((ByteBuffer) eventData).duplicate();</span>
+<span class="source-line-no">706</span><span id="line.706">            } else if (eventData instanceof CharBuffer) {</span>
+<span class="source-line-no">707</span><span id="line.707">                input = ((CharBuffer) eventData).duplicate();</span>
+<span class="source-line-no">708</span><span id="line.708">            } else {</span>
+<span class="source-line-no">709</span><span id="line.709">                return;</span>
+<span class="source-line-no">710</span><span id="line.710">            }</span>
+<span class="source-line-no">711</span><span id="line.711">            if (engine.switchedTo().equals(Optional.of("websocket"))</span>
+<span class="source-line-no">712</span><span id="line.712">                &amp;&amp; currentWsMessage == null) {</span>
+<span class="source-line-no">713</span><span id="line.713">                // When switched to WebSockets, we only have Input and Output</span>
+<span class="source-line-no">714</span><span id="line.714">                // events. Add header automatically.</span>
+<span class="source-line-no">715</span><span id="line.715">                @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">716</span><span id="line.716">                ServerEngine&lt;?, MessageHeader&gt; wsEngine</span>
+<span class="source-line-no">717</span><span id="line.717">                    = (ServerEngine&lt;?, MessageHeader&gt;) engine;</span>
+<span class="source-line-no">718</span><span id="line.718">                currentWsMessage = new WsMessageHeader(</span>
+<span class="source-line-no">719</span><span id="line.719">                    event.buffer().backingBuffer() instanceof CharBuffer,</span>
+<span class="source-line-no">720</span><span id="line.720">                    true);</span>
+<span class="source-line-no">721</span><span id="line.721">                wsEngine.encode(currentWsMessage);</span>
+<span class="source-line-no">722</span><span id="line.722">            }</span>
+<span class="source-line-no">723</span><span id="line.723">            while (input.hasRemaining() || event.isEndOfRecord()) {</span>
+<span class="source-line-no">724</span><span id="line.724">                if (outBuffer == null) {</span>
+<span class="source-line-no">725</span><span id="line.725">                    outBuffer = upstreamChannel().byteBufferPool().acquire();</span>
+<span class="source-line-no">726</span><span id="line.726">                }</span>
+<span class="source-line-no">727</span><span id="line.727">                Codec.Result result = engine.encode(input,</span>
+<span class="source-line-no">728</span><span id="line.728">                    outBuffer.backingBuffer(), event.isEndOfRecord());</span>
+<span class="source-line-no">729</span><span id="line.729">                if (result.isOverflow()) {</span>
+<span class="source-line-no">730</span><span id="line.730">                    upstreamChannel()</span>
+<span class="source-line-no">731</span><span id="line.731">                        .respond(Output.fromSink(outBuffer, false));</span>
+<span class="source-line-no">732</span><span id="line.732">                    outBuffer = upstreamChannel().byteBufferPool().acquire();</span>
+<span class="source-line-no">733</span><span id="line.733">                    continue;</span>
+<span class="source-line-no">734</span><span id="line.734">                }</span>
+<span class="source-line-no">735</span><span id="line.735">                if (event.isEndOfRecord() || result.closeConnection()) {</span>
+<span class="source-line-no">736</span><span id="line.736">                    if (outBuffer.position() &gt; 0) {</span>
+<span class="source-line-no">737</span><span id="line.737">                        upstreamChannel()</span>
+<span class="source-line-no">738</span><span id="line.738">                            .respond(Output.fromSink(outBuffer, true));</span>
+<span class="source-line-no">739</span><span id="line.739">                    } else {</span>
+<span class="source-line-no">740</span><span id="line.740">                        outBuffer.unlockBuffer();</span>
 <span class="source-line-no">741</span><span id="line.741">                    }</span>
-<span class="source-line-no">742</span><span id="line.742">                    break;</span>
-<span class="source-line-no">743</span><span id="line.743">                }</span>
-<span class="source-line-no">744</span><span id="line.744">            }</span>
-<span class="source-line-no">745</span><span id="line.745">            if (engine.switchedTo().equals(Optional.of("websocket"))</span>
-<span class="source-line-no">746</span><span id="line.746">                &amp;&amp; event.isEndOfRecord()) {</span>
-<span class="source-line-no">747</span><span id="line.747">                currentWsMessage = null;</span>
+<span class="source-line-no">742</span><span id="line.742">                    outBuffer = null;</span>
+<span class="source-line-no">743</span><span id="line.743">                    if (result.closeConnection()) {</span>
+<span class="source-line-no">744</span><span id="line.744">                        upstreamChannel().respond(new Close());</span>
+<span class="source-line-no">745</span><span id="line.745">                    }</span>
+<span class="source-line-no">746</span><span id="line.746">                    break;</span>
+<span class="source-line-no">747</span><span id="line.747">                }</span>
 <span class="source-line-no">748</span><span id="line.748">            }</span>
-<span class="source-line-no">749</span><span id="line.749">        }</span>
-<span class="source-line-no">750</span><span id="line.750"></span>
-<span class="source-line-no">751</span><span id="line.751">        /**</span>
-<span class="source-line-no">752</span><span id="line.752">         * Handle a {@link Close} event from the application layer.</span>
-<span class="source-line-no">753</span><span id="line.753">         *</span>
-<span class="source-line-no">754</span><span id="line.754">         * @param event the event</span>
-<span class="source-line-no">755</span><span id="line.755">         * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">756</span><span id="line.756">         */</span>
-<span class="source-line-no">757</span><span id="line.757">        public void handleClose(Close event) throws InterruptedException {</span>
-<span class="source-line-no">758</span><span id="line.758">            if (engine.switchedTo().equals(Optional.of("websocket"))) {</span>
-<span class="source-line-no">759</span><span id="line.759">                fire(new Response(new WsCloseFrame(null, null)), this);</span>
-<span class="source-line-no">760</span><span id="line.760">                return;</span>
-<span class="source-line-no">761</span><span id="line.761">            }</span>
-<span class="source-line-no">762</span><span id="line.762">            upstreamChannel().respond(new Close());</span>
-<span class="source-line-no">763</span><span id="line.763">        }</span>
-<span class="source-line-no">764</span><span id="line.764"></span>
-<span class="source-line-no">765</span><span id="line.765">        /**</span>
-<span class="source-line-no">766</span><span id="line.766">         * Handle a {@link Closed} event from the network by forwarding</span>
-<span class="source-line-no">767</span><span id="line.767">         * it to the application layer.</span>
-<span class="source-line-no">768</span><span id="line.768">         *</span>
-<span class="source-line-no">769</span><span id="line.769">         * @param event the event</span>
-<span class="source-line-no">770</span><span id="line.770">         */</span>
-<span class="source-line-no">771</span><span id="line.771">        public void handleClosed(Closed event) {</span>
-<span class="source-line-no">772</span><span id="line.772">            downPipeline.fire(new Closed(), this);</span>
-<span class="source-line-no">773</span><span id="line.773">        }</span>
-<span class="source-line-no">774</span><span id="line.774"></span>
-<span class="source-line-no">775</span><span id="line.775">        /**</span>
-<span class="source-line-no">776</span><span id="line.776">         * Handle a {@link Purge} event by forwarding it to the</span>
-<span class="source-line-no">777</span><span id="line.777">         * application layer.</span>
-<span class="source-line-no">778</span><span id="line.778">         *</span>
-<span class="source-line-no">779</span><span id="line.779">         * @param event the event</span>
-<span class="source-line-no">780</span><span id="line.780">         */</span>
-<span class="source-line-no">781</span><span id="line.781">        public void handlePurge(Purge event) {</span>
-<span class="source-line-no">782</span><span id="line.782">            downPipeline.fire(new Purge(), this);</span>
-<span class="source-line-no">783</span><span id="line.783">        }</span>
-<span class="source-line-no">784</span><span id="line.784"></span>
-<span class="source-line-no">785</span><span id="line.785">    }</span>
-<span class="source-line-no">786</span><span id="line.786"></span>
-<span class="source-line-no">787</span><span id="line.787">}</span>
+<span class="source-line-no">749</span><span id="line.749">            if (engine.switchedTo().equals(Optional.of("websocket"))</span>
+<span class="source-line-no">750</span><span id="line.750">                &amp;&amp; event.isEndOfRecord()) {</span>
+<span class="source-line-no">751</span><span id="line.751">                currentWsMessage = null;</span>
+<span class="source-line-no">752</span><span id="line.752">            }</span>
+<span class="source-line-no">753</span><span id="line.753">        }</span>
+<span class="source-line-no">754</span><span id="line.754"></span>
+<span class="source-line-no">755</span><span id="line.755">        /**</span>
+<span class="source-line-no">756</span><span id="line.756">         * Handle a {@link Close} event from the application layer.</span>
+<span class="source-line-no">757</span><span id="line.757">         *</span>
+<span class="source-line-no">758</span><span id="line.758">         * @param event the event</span>
+<span class="source-line-no">759</span><span id="line.759">         * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">760</span><span id="line.760">         */</span>
+<span class="source-line-no">761</span><span id="line.761">        public void handleClose(Close event) throws InterruptedException {</span>
+<span class="source-line-no">762</span><span id="line.762">            if (engine.switchedTo().equals(Optional.of("websocket"))) {</span>
+<span class="source-line-no">763</span><span id="line.763">                fire(new Response(new WsCloseFrame(null, null)), this);</span>
+<span class="source-line-no">764</span><span id="line.764">                return;</span>
+<span class="source-line-no">765</span><span id="line.765">            }</span>
+<span class="source-line-no">766</span><span id="line.766">            upstreamChannel().respond(new Close());</span>
+<span class="source-line-no">767</span><span id="line.767">        }</span>
+<span class="source-line-no">768</span><span id="line.768"></span>
+<span class="source-line-no">769</span><span id="line.769">        /**</span>
+<span class="source-line-no">770</span><span id="line.770">         * Handle a {@link Closed} event from the network by forwarding</span>
+<span class="source-line-no">771</span><span id="line.771">         * it to the application layer.</span>
+<span class="source-line-no">772</span><span id="line.772">         *</span>
+<span class="source-line-no">773</span><span id="line.773">         * @param event the event</span>
+<span class="source-line-no">774</span><span id="line.774">         */</span>
+<span class="source-line-no">775</span><span id="line.775">        public void handleClosed(Closed event) {</span>
+<span class="source-line-no">776</span><span id="line.776">            downPipeline.fire(new Closed(), this);</span>
+<span class="source-line-no">777</span><span id="line.777">        }</span>
+<span class="source-line-no">778</span><span id="line.778"></span>
+<span class="source-line-no">779</span><span id="line.779">        /**</span>
+<span class="source-line-no">780</span><span id="line.780">         * Handle a {@link Purge} event by forwarding it to the</span>
+<span class="source-line-no">781</span><span id="line.781">         * application layer.</span>
+<span class="source-line-no">782</span><span id="line.782">         *</span>
+<span class="source-line-no">783</span><span id="line.783">         * @param event the event</span>
+<span class="source-line-no">784</span><span id="line.784">         */</span>
+<span class="source-line-no">785</span><span id="line.785">        public void handlePurge(Purge event) {</span>
+<span class="source-line-no">786</span><span id="line.786">            downPipeline.fire(new Purge(), this);</span>
+<span class="source-line-no">787</span><span id="line.787">        }</span>
+<span class="source-line-no">788</span><span id="line.788"></span>
+<span class="source-line-no">789</span><span id="line.789">    }</span>
+<span class="source-line-no">790</span><span id="line.790"></span>
+<span class="source-line-no">791</span><span id="line.791">}</span>
 
 
 
