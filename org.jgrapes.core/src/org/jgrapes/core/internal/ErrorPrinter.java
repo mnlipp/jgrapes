@@ -33,7 +33,8 @@ public class ErrorPrinter implements ComponentType {
      */
     @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
         "PMD.AvoidCatchingGenericException",
-        "PMD.UseStringBufferForStringAppends", "PMD.SystemPrintln" })
+        "PMD.UseStringBufferForStringAppends", "PMD.SystemPrintln",
+        "PMD.AvoidPrintStackTrace" })
     public void printError(Error event) {
         String msg = "Unhandled " + event;
         System.err.println(msg);
