@@ -39,8 +39,30 @@ import java.util.ServiceLoader;
  * kind of components required and allows an invocation
  * of {@link ServiceLoader#load(Class)} that returns a "filtered"
  * set of factories.
+ * 
+ * @since 1.3
  */
 public interface ComponentFactory {
+
+    /**
+     * Assigns standard properties from the given properties to the
+     * component.
+     * 
+     * Currently, the only standard property of a component is its name.
+     *
+     * @param component the component
+     * @param properties the properties
+     * @return the optional
+     */
+    static Optional<ComponentType> setStandardProperties(
+            Optional<ComponentType> component, Map<?, ?> properties) {
+        return component.map(c -> {
+            if (properties.containsKey("name")) {
+                Components.manager(c).setName((String) properties.get("name"));
+            }
+            return c;
+        });
+    }
 
     /**
      * Returns the type of the components created by this factory.
@@ -86,5 +108,5 @@ public interface ComponentFactory {
      * @return the component
      */
     Optional<ComponentType> create(
-            Channel componentChannel, Map<Object, Object> properties);
+            Channel componentChannel, Map<?, ?> properties);
 }
