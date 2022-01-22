@@ -59,6 +59,7 @@ import org.jgrapes.util.events.InitialPreferences;
  * the component also listens for {@link ConfigurationUpdate} events
  * on its channel and updates the preferences store (may be suppressed).
  */
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class PreferencesStore extends Component {
 
     private Preferences preferences;
@@ -110,7 +111,7 @@ public class PreferencesStore extends Component {
      * @throws InterruptedException the interrupted exception
      */
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    @Handler(priority = 999999, channels = Channel.class)
+    @Handler(priority = 999_999, channels = Channel.class)
     public void onStart(Start event)
             throws BackingStoreException, InterruptedException {
         InitialPreferences updEvt
@@ -141,6 +142,7 @@ public class PreferencesStore extends Component {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     @Handler(dynamic = true)
+    @SuppressWarnings("PMD.AvoidReassigningLoopVariables")
     public void onConfigurationUpdate(ConfigurationUpdate event)
             throws BackingStoreException {
         if (event instanceof InitialPreferences) {
