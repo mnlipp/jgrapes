@@ -84,6 +84,7 @@ public class TcpConnector extends TcpConnectionManager {
     @Handler
     public void onOpenConnection(OpenTcpConnection event) {
         try {
+            @SuppressWarnings("PMD.CloseResource")
             SocketChannel socketChannel = SocketChannel.open(event.address());
             channels.add(new TcpChannelImpl(socketChannel));
         } catch (ConnectException e) {

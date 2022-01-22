@@ -173,6 +173,7 @@ public abstract class TcpConnectionManager extends Component {
     /**
      * The internal representation of a connection. 
      */
+    @SuppressWarnings("PMD.GodClass")
     protected class TcpChannelImpl
             extends DefaultIOSubchannel implements NioHandler, TcpChannel {
 
@@ -446,11 +447,11 @@ public abstract class TcpConnectionManager extends Component {
          * @throws InterruptedException 
          */
         @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-            "PMD.EmptyCatchBlock",
-            "PMD.AvoidBranchingStatementAsLastInLoop" })
+            "PMD.EmptyCatchBlock", "PMD.AvoidBranchingStatementAsLastInLoop",
+            "PMD.CognitiveComplexity" })
         private void handleWriteOp() throws InterruptedException {
             while (true) {
-                ManagedBuffer<ByteBuffer>.ByteBufferView head = null;
+                ManagedBuffer<ByteBuffer>.ByteBufferView head;
                 synchronized (pendingWrites) {
                     if (pendingWrites.isEmpty()) {
                         // Nothing left to write, stop getting ops

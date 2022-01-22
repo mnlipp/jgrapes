@@ -140,7 +140,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
 
         @Override
         @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
-            "PMD.DataflowAnomalyAnalysis" })
+            "PMD.DataflowAnomalyAnalysis", "PMD.CognitiveComplexity" })
         public void run() {
             if (connLimiter == null) {
                 return;
@@ -418,6 +418,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
                 return;
             }
             try {
+                @SuppressWarnings("PMD.CloseResource")
                 SocketChannel socketChannel = serverSocketChannel.accept();
                 if (socketChannel == null) {
                     // "False alarm"

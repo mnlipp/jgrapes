@@ -127,7 +127,7 @@ public class SslCodec extends Component {
                 final TrustManager[] trustAllCerts = {
                     new X509TrustManager() {
                         public X509Certificate[] getAcceptedIssuers() {
-                            return null;
+                            return new X509Certificate[0];
                         }
 
                         public void checkClientTrusted(
@@ -440,7 +440,7 @@ public class SslCodec extends Component {
 
         @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
             "PMD.AvoidInstantiatingObjectsInLoops", "PMD.ExcessiveMethodLength",
-            "PMD.NPathComplexity" })
+            "PMD.NPathComplexity", "PMD.CognitiveComplexity" })
         private SSLEngineResult processInput(ByteBuffer input)
                 throws SSLException, InterruptedException, ExecutionException {
             SSLEngineResult unwrapResult;
@@ -558,9 +558,9 @@ public class SslCodec extends Component {
             processOutput(output, event.isEndOfRecord());
         }
 
-        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-            "PMD.CyclomaticComplexity", "PMD.NcssCount",
-            "PMD.NPathComplexity" })
+        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis", "PMD.NcssCount",
+            "PMD.CyclomaticComplexity", "PMD.NPathComplexity",
+            "PMD.CognitiveComplexity" })
         private void processOutput(ByteBuffer output, boolean eor)
                 throws InterruptedException, SSLException, ExecutionException {
             ManagedBuffer<ByteBuffer> wrapped = acquireUpstreamBuffer();
@@ -655,6 +655,7 @@ public class SslCodec extends Component {
          * @throws SSLException the SSL exception
          * @throws InterruptedException the interrupted exception
          */
+        @SuppressWarnings("PMD.GuardLogStatement")
         public void upstreamHalfClosed()
                 throws SSLException, InterruptedException {
             if (sslEngine.isInboundDone()) {
