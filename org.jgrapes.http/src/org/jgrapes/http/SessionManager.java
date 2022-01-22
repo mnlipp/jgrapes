@@ -148,7 +148,7 @@ public abstract class SessionManager extends Component {
             if (patternBase.endsWith("/")) {
                 patternBase = path.substring(0, path.length() - 1);
             }
-            pattern = path + "," + path + "/**";
+            pattern = patternBase + "|," + patternBase + "/**";
         }
         return pattern;
     }
