@@ -76,7 +76,7 @@ public final class ComponentProxy extends ComponentVertex {
             }
             return Channel.BROADCAST;
         }
-        if (!cma.namedChannel().equals("")) {
+        if (!cma.namedChannel().isEmpty()) {
             return new NamedChannel(cma.namedChannel());
         }
         return Channel.SELF;
@@ -117,14 +117,15 @@ public final class ComponentProxy extends ComponentVertex {
      * @param componentChannel the component's channel
      * @return the node representing the component in the tree
      */
-    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis" })
+    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+        "PMD.AvoidAccessibilityAlteration", "PMD.ConfusingTernary" })
     /* default */ static ComponentVertex getComponentProxy(
             ComponentType component, Channel componentChannel) {
-        ComponentProxy componentProxy = null;
+        ComponentProxy componentProxy;
         try {
             Field field = getManagerField(component.getClass());
             synchronized (component) {
-                if (!field.isAccessible()) { // NOPMD, handle problem first
+                if (!field.canAccess(component)) {
                     field.setAccessible(true);
                     componentProxy = (ComponentProxy) field.get(component);
                     if (componentProxy == null) {
