@@ -84,6 +84,7 @@ public class Components {
      * 
      * @param defaultExecutorService the executor service to set
      */
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public static void setDefaultExecutorService(
             ExecutorService defaultExecutorService) {
         // If the timer executor service is set to the default
