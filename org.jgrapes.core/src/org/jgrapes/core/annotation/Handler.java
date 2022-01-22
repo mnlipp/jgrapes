@@ -340,7 +340,8 @@ public @interface Handler {
         }
 
         @SuppressWarnings({ "PMD.CyclomaticComplexity",
-            "PMD.AvoidBranchingStatementAsLastInLoop" })
+            "PMD.AvoidBranchingStatementAsLastInLoop",
+            "PMD.CognitiveComplexity" })
         private static void addInternal(ComponentType component, String method,
                 Object eventValue, Object channelValue, Integer priority) {
             try {
@@ -405,8 +406,8 @@ public @interface Handler {
              */
             @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
                 "PMD.NPathComplexity", "PMD.UseVarargs",
-                "PMD.AvoidDeeplyNestedIfStmts",
-                "PMD.CollapsibleIfStatements" })
+                "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements",
+                "PMD.CognitiveComplexity" })
             public Scope(ComponentType component, Method method,
                     Handler annotation,
                     Map<Class<? extends Channel>, Object> channelReplacements,
@@ -426,7 +427,7 @@ public @interface Handler {
                     }
                     // Get all named events from the annotation and add to event
                     // keys.
-                    if (!annotation.namedEvents()[0].equals("")) {
+                    if (!annotation.namedEvents()[0].isEmpty()) {
                         eventCriteria.addAll(
                             Arrays.asList(annotation.namedEvents()));
                     }
@@ -472,7 +473,7 @@ public @interface Handler {
                     }
                     // Get named channels from annotation and add to channel
                     // keys.
-                    if (!annotation.namedChannels()[0].equals("")) {
+                    if (!annotation.namedChannels()[0].isEmpty()) {
                         channelCriteria.addAll(
                             Arrays.asList(annotation.namedChannels()));
                     }
@@ -491,6 +492,7 @@ public @interface Handler {
             }
 
             @Override
+            @SuppressWarnings("PMD.CognitiveComplexity")
             public boolean includes(Eligible event, Eligible[] channels) {
                 for (Object eventValue : eventCriteria) {
                     if (event.isEligibleFor(eventValue)) {
