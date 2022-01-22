@@ -137,6 +137,7 @@ public class NioDispatcher extends Component implements Runnable {
     @Handler
     public void onNioRegistration(NioRegistration event)
             throws IOException {
+        @SuppressWarnings("PMD.CloseResource")
         SelectableChannel channel = event.ioChannel();
         channel.configureBlocking(false);
         SelectionKey key;

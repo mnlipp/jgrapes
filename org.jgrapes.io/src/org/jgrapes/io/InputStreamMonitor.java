@@ -181,6 +181,7 @@ public class InputStreamMonitor extends Component implements Runnable {
                 registerAsGenerator();
                 registered = true;
             }
+            @SuppressWarnings("PMD.CloseResource")
             ReadableByteChannel inChannel = Channels.newChannel(input);
             while (!Thread.currentThread().isInterrupted()) {
                 ManagedBuffer<ByteBuffer> buffer = buffers.acquire();

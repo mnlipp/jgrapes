@@ -679,6 +679,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
                 Map<String, Integer> dupsNext = new HashMap<>();
                 for (ManagedBufferPool<?, ?> mbp : pools) {
                     String key = mbp.name();
+                    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
                     PoolInfo infos = new PoolInfo(
                         mbp.createdBufs.get(), mbp.queue.size(),
                         mbp.preservedBufs, mbp.maximumBufs,

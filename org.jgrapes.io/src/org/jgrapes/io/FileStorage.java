@@ -234,6 +234,7 @@ public class FileStorage extends Component {
                 () -> {
                     return ByteBuffer.allocateDirect(bufferSize);
                 }, 2);
+            @SuppressWarnings("PMD.CloseResource")
             final SeekableByteChannel ioChannel
                 = Files.newByteChannel(event.path(), event.options());
             activeEventPipeline().executorService().submit(new Runnable() {
