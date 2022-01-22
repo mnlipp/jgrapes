@@ -50,6 +50,7 @@ import org.jgrapes.core.internal.EventProcessor;
  *            the result type of the event. Use {@link Void} if handling the
  *            event does not produce a result
  */
+@SuppressWarnings("PMD.GodClass")
 public class Event<T> extends EventBase<T> {
 
     /** The channels that this event is to be fired on if no
