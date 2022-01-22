@@ -137,6 +137,7 @@ class VerboseHandlerReference extends HandlerReference {
         return invocation;
     }
 
+    @SuppressWarnings("PMD.GuardLogStatement")
     private void reportResult(EventBase<?> event, long invocation) {
         if (!handlerTracking.isLoggable(Level.FINEST) || !event.isTrackable()) {
             return;
