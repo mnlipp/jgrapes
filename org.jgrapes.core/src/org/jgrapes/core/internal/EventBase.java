@@ -163,6 +163,7 @@ public abstract class EventBase<T>
     /**
      * @param pipeline
      */
+    @SuppressWarnings("PMD.CognitiveComplexity")
     /* default */ void decrementOpen() {
         if (openCount.decrementAndGet() == 0 && !completed) {
             synchronized (this) {
@@ -244,6 +245,7 @@ public abstract class EventBase<T>
         return tracked;
     }
 
+    @SuppressWarnings("PMD.UselessParentheses")
     /* default */ boolean isTrackable() {
         return generatedBy == null ? tracked
             : (tracked && generatedBy.isTrackable());
