@@ -105,7 +105,8 @@ public class ResourcePattern {
      * @param pattern the pattern to be used for matching
      * @throws ParseException if an invalid pattern is specified
      */
-    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
+        "PMD.CognitiveComplexity" })
     public ResourcePattern(String pattern) throws ParseException {
         this.pattern = pattern;
         Matcher rpm = resourcePattern.matcher(pattern);
@@ -193,7 +194,8 @@ public class ResourcePattern {
      * of prefix segments (which may be 0)
      */
     @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NPathComplexity",
-        "PMD.CollapsibleIfStatements", "PMD.DataflowAnomalyAnalysis" })
+        "PMD.CollapsibleIfStatements", "PMD.DataflowAnomalyAnalysis",
+        "PMD.AvoidDuplicateLiterals" })
     public int matches(URI resource) {
         return matches(resource, Integer.MAX_VALUE);
     }
@@ -208,7 +210,8 @@ public class ResourcePattern {
      * of prefix segments (which may be 0)
      */
     @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NPathComplexity",
-        "PMD.CollapsibleIfStatements", "PMD.DataflowAnomalyAnalysis" })
+        "PMD.CollapsibleIfStatements", "PMD.DataflowAnomalyAnalysis",
+        "PMD.CognitiveComplexity" })
     public int matches(URI resource, int pathSegs) {
         if (protocol != null && !protocol.equals("*")) {
             if (resource.getScheme() == null) {
@@ -320,7 +323,7 @@ public class ResourcePattern {
                 return true;
             }
             String reqElement = reqElements[reqIdx++];
-            if (!matchElement.equals("*") && !matchElement.equals(reqElement)) {
+            if (!"*".equals(matchElement) && !matchElement.equals(reqElement)) {
                 // If not equal (or wildcard) we have no match.
                 return false;
             }

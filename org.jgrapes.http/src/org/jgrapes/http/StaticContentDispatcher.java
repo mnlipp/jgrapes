@@ -150,7 +150,7 @@ public class StaticContentDispatcher extends Component {
             IOSubchannel channel, int prefixSegs)
             throws IOException, ParseException {
         // Final wrapper for usage in closure
-        final Path[] assembly = new Path[] { contentDirectory };
+        final Path[] assembly = { contentDirectory };
         Arrays.stream(event.requestUri().getPath().split("/"))
             .skip(prefixSegs + 1)
             .forEach(seg -> assembly[0] = assembly[0].resolve(seg));

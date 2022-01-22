@@ -411,7 +411,8 @@ public class HttpConnector extends Component {
                 this);
         }
 
-        @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+            "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals" })
         private void sendMessageUpstream(MessageHeader message,
                 TcpChannel netConnChannel) {
             // Now send request as if it came from downstream (to
@@ -422,7 +423,8 @@ public class HttpConnector extends Component {
 
                     @SuppressWarnings({ "PMD.CommentRequired",
                         "PMD.AvoidBranchingStatementAsLastInLoop",
-                        "PMD.AvoidDuplicateLiterals" })
+                        "PMD.AvoidDuplicateLiterals",
+                        "PMD.AvoidInstantiatingObjectsInLoops" })
                     public Void call() throws InterruptedException {
                         @SuppressWarnings("unchecked")
                         ClientEngine<MessageHeader, MessageHeader> untypedEngine
@@ -467,7 +469,7 @@ public class HttpConnector extends Component {
 
         @SuppressWarnings({ "PMD.CommentRequired", "PMD.CyclomaticComplexity",
             "PMD.NPathComplexity", "PMD.AvoidInstantiatingObjectsInLoops",
-            "PMD.AvoidDuplicateLiterals" })
+            "PMD.AvoidDuplicateLiterals", "PMD.CognitiveComplexity" })
         public void handleAppOutput(Output<?> event)
                 throws InterruptedException {
             Buffer eventData = event.data();
@@ -523,7 +525,7 @@ public class HttpConnector extends Component {
         }
 
         @SuppressWarnings({ "PMD.CommentRequired",
-            "PMD.DataflowAnomalyAnalysis" })
+            "PMD.DataflowAnomalyAnalysis", "PMD.CognitiveComplexity" })
         public void handleNetInput(Input<ByteBuffer> event,
                 TcpChannel netConnChannel)
                 throws InterruptedException, ProtocolException {
@@ -572,14 +574,15 @@ public class HttpConnector extends Component {
             }
         }
 
+        @SuppressWarnings("PMD.CognitiveComplexity")
         private boolean handleResponseHeader(MessageHeader response) {
             if (response instanceof HttpResponse) {
                 HttpResponse httpResponse = (HttpResponse) response;
                 if (httpResponse.hasPayload()) {
                     if (httpResponse.findValue(
                         HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)
-                        .map(type -> type.value().topLevelType()
-                            .equalsIgnoreCase("text"))
+                        .map(type -> "text"
+                            .equalsIgnoreCase(type.value().topLevelType()))
                         .orElse(false)) {
                         currentPool = charBufferPool;
                     } else {

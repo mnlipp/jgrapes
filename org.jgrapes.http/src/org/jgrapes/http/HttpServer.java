@@ -128,7 +128,7 @@ public class HttpServer extends Component {
             Class<? extends Request.In>... fallbacks) {
         super(appChannel, ChannelReplacements.create()
             .add(NetworkChannel.class, networkChannel));
-        networkChannelPassBack = new WeakReference<Channel>(networkChannel);
+        networkChannelPassBack = new WeakReference<>(networkChannel);
         this.providedFallbacks = Arrays.asList(fallbacks);
     }
 
@@ -491,7 +491,8 @@ public class HttpServer extends Component {
          */
         @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
             "PMD.AvoidInstantiatingObjectsInLoops",
-            "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements" })
+            "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements",
+            "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals" })
         public void handleNetInput(Input<ByteBuffer> event)
                 throws ProtocolException, InterruptedException {
             // Send the data from the event through the decoder.
@@ -544,15 +545,16 @@ public class HttpServer extends Component {
             }
         }
 
-        @SuppressWarnings("PMD.CollapsibleIfStatements")
+        @SuppressWarnings({ "PMD.CollapsibleIfStatements",
+            "PMD.CognitiveComplexity" })
         private boolean handleRequestHeader(MessageHeader request) {
             if (request instanceof HttpRequest) {
                 HttpRequest httpRequest = (HttpRequest) request;
                 if (httpRequest.hasPayload()) {
                     if (httpRequest.findValue(
                         HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)
-                        .map(type -> type.value().topLevelType()
-                            .equalsIgnoreCase("text"))
+                        .map(type -> "text"
+                            .equalsIgnoreCase(type.value().topLevelType()))
                         .orElse(false)) {
                         currentPool = charBufferPool;
                     } else {
@@ -613,7 +615,8 @@ public class HttpServer extends Component {
          * @throws InterruptedException the interrupted exception
          */
         @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
-            "PMD.AvoidBranchingStatementAsLastInLoop" })
+            "PMD.AvoidBranchingStatementAsLastInLoop",
+            "PMD.CognitiveComplexity" })
         public void handleResponse(Response event) throws InterruptedException {
             if (!engine.encoding()
                 .isAssignableFrom(event.response().getClass())) {
@@ -692,7 +695,8 @@ public class HttpServer extends Component {
          * @throws InterruptedException the interrupted exception
          */
         @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
-            "PMD.NPathComplexity", "PMD.AvoidInstantiatingObjectsInLoops" })
+            "PMD.NPathComplexity", "PMD.AvoidInstantiatingObjectsInLoops",
+            "PMD.CognitiveComplexity" })
         public void handleAppOutput(Output<?> event)
                 throws InterruptedException {
             Buffer eventData = event.data();

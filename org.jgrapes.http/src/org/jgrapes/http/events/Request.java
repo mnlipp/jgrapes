@@ -60,7 +60,7 @@ public class Request<R> extends MessageReceived<R> {
 
         @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
         private final HttpRequest request;
-        private int matchLevels;
+        private final int matchLevels;
         private MatchValue matchValue;
         private URI matchUri;
         private URI uri;

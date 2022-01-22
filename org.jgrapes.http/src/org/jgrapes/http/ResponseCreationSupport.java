@@ -56,7 +56,8 @@ import org.jgrapes.io.util.InputStreamPipeline;
 /**
  * Provides methods that support the creation of a {@link Response} events.
  */
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+    "PMD.AbstractClassWithoutAbstractMethod" })
 public abstract class ResponseCreationSupport {
 
     /** A default implementation for the max-age calculator. */
@@ -133,6 +134,7 @@ public abstract class ResponseCreationSupport {
         URL resourceUrl = resolver.apply(path);
         ResourceInfo info;
         URLConnection resConn;
+        @SuppressWarnings("PMD.CloseResource")
         InputStream resIn;
         try {
             if (resourceUrl == null) {
@@ -307,6 +309,7 @@ public abstract class ResponseCreationSupport {
      * @throws IllegalArgumentException if the string violates 
      * RFC 2396
      */
+    @SuppressWarnings("PMD.AvoidUncheckedExceptionsInSignatures")
     public static URI uriFromPath(String path) throws IllegalArgumentException {
         try {
             return new URI(null, null, path, null);
@@ -324,6 +327,7 @@ public abstract class ResponseCreationSupport {
      * @return the uri
      * @throws IllegalArgumentException if the url violates RFC 2396
      */
+    @SuppressWarnings("PMD.AvoidUncheckedExceptionsInSignatures")
     public static URI uriFromUrl(URL url) throws IllegalArgumentException {
         try {
             return url.toURI();
