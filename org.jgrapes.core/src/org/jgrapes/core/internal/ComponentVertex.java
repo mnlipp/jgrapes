@@ -51,7 +51,7 @@ import org.jgrapes.core.events.Start;
  * used. 
  */
 @SuppressWarnings({ "PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis",
-    "PMD.AvoidDuplicateLiterals" })
+    "PMD.AvoidDuplicateLiterals", "PMD.GodClass" })
 public abstract class ComponentVertex implements Manager, Channel {
 
     /** The component's (optional) name. */
@@ -255,7 +255,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      */
     @Override
     @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",
-        "PMD.NPathComplexity" })
+        "PMD.NPathComplexity", "PMD.CognitiveComplexity" })
     public <T extends ComponentType> T attach(T child) {
         synchronized (this) {
             ComponentVertex childNode = componentVertex(child, null);
