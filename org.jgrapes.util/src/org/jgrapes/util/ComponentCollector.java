@@ -34,9 +34,8 @@ import org.jgrapes.core.ComponentFactory;
  * that are then attached to the component collector instance.
  * 
  * Effectively, the component collector leverages the 
- * mechanism provided by the service loader to determine
- * the component tree that is built eventually at 
- * "link time".
+ * mechanism provided by the service loader to configure
+ * the component subtree rooted at the collector at "link time".
  * 
  * @param <F> the component factory type
  */
