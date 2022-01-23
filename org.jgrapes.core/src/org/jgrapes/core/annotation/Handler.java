@@ -114,6 +114,12 @@ import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;
  * annotation that is replaced by a channel that is only known
  * at runtime.
  * 
+ * If a method with a handler annotation is overwritten in a
+ * derived class, the annotation is overwritten as well. The
+ * annotated method of the base class is no longer invoked as
+ * handler and the method of the derived class is only invoked
+ * as hanler if it defines its own handler annotation.
+ * 
  * @see Component#channel()
  */
 @Documented
