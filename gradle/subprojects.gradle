@@ -40,6 +40,9 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
                 "Git-SHA": grgit.head().id
             ])
         }
+        bundle {
+            bnd("-diffignore": "Git-Descriptor, Git-SHA")
+        }
     }
 
     dependencies {
