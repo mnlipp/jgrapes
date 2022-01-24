@@ -114,7 +114,7 @@ public abstract class Component extends ComponentVertex
      * @see org.jgrapes.core.internal.ComponentVertex#getComponent()
      */
     @Override
-    protected Component component() {
+    public Component component() {
         return this;
     }
 

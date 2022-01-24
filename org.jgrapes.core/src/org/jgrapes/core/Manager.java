@@ -100,6 +100,13 @@ public interface Manager extends Iterable<ComponentType> {
     <T extends ComponentType> T attach(T child);
 
     /**
+     * Returns the component managed by this manager.
+     * 
+     * @return the component
+     */
+    ComponentType component();
+
+    /**
      * Returns the child components of the component managed by 
      * this manager as unmodifiable list.
      * 

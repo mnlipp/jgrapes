@@ -172,7 +172,7 @@ public abstract class ComponentVertex implements Manager, Channel {
      * 
      * @return the component
      */
-    protected abstract ComponentType component();
+    public abstract ComponentType component();
 
     /*
      * (non-Javadoc)
