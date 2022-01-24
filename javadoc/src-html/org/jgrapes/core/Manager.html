@@ -112,147 +112,154 @@
 <span class="source-line-no">100</span><span id="line.100">    &lt;T extends ComponentType&gt; T attach(T child);</span>
 <span class="source-line-no">101</span><span id="line.101"></span>
 <span class="source-line-no">102</span><span id="line.102">    /**</span>
-<span class="source-line-no">103</span><span id="line.103">     * Returns the child components of the component managed by </span>
-<span class="source-line-no">104</span><span id="line.104">     * this manager as unmodifiable list.</span>
-<span class="source-line-no">105</span><span id="line.105">     * </span>
-<span class="source-line-no">106</span><span id="line.106">     * @return the child components</span>
-<span class="source-line-no">107</span><span id="line.107">     */</span>
-<span class="source-line-no">108</span><span id="line.108">    List&lt;ComponentType&gt; children();</span>
-<span class="source-line-no">109</span><span id="line.109"></span>
-<span class="source-line-no">110</span><span id="line.110">    /**</span>
-<span class="source-line-no">111</span><span id="line.111">     * Returns the parent of the component managed by this manager.</span>
+<span class="source-line-no">103</span><span id="line.103">     * Returns the component managed by this manager.</span>
+<span class="source-line-no">104</span><span id="line.104">     * </span>
+<span class="source-line-no">105</span><span id="line.105">     * @return the component</span>
+<span class="source-line-no">106</span><span id="line.106">     */</span>
+<span class="source-line-no">107</span><span id="line.107">    ComponentType component();</span>
+<span class="source-line-no">108</span><span id="line.108"></span>
+<span class="source-line-no">109</span><span id="line.109">    /**</span>
+<span class="source-line-no">110</span><span id="line.110">     * Returns the child components of the component managed by </span>
+<span class="source-line-no">111</span><span id="line.111">     * this manager as unmodifiable list.</span>
 <span class="source-line-no">112</span><span id="line.112">     * </span>
-<span class="source-line-no">113</span><span id="line.113">     * @return the parent component or &lt;code&gt;null&lt;/code&gt; if the</span>
-<span class="source-line-no">114</span><span id="line.114">     * component is not registered with another component</span>
-<span class="source-line-no">115</span><span id="line.115">     */</span>
-<span class="source-line-no">116</span><span id="line.116">    ComponentType parent();</span>
-<span class="source-line-no">117</span><span id="line.117"></span>
-<span class="source-line-no">118</span><span id="line.118">    /**</span>
-<span class="source-line-no">119</span><span id="line.119">     * Returns the root of the tree the component </span>
-<span class="source-line-no">120</span><span id="line.120">     * managed by this manager belongs to.</span>
-<span class="source-line-no">121</span><span id="line.121">     * </span>
-<span class="source-line-no">122</span><span id="line.122">     * @return the root</span>
-<span class="source-line-no">123</span><span id="line.123">     */</span>
-<span class="source-line-no">124</span><span id="line.124">    ComponentType root();</span>
-<span class="source-line-no">125</span><span id="line.125"></span>
-<span class="source-line-no">126</span><span id="line.126">    /**</span>
-<span class="source-line-no">127</span><span id="line.127">     * Returns the channel of the component managed by this manager.</span>
+<span class="source-line-no">113</span><span id="line.113">     * @return the child components</span>
+<span class="source-line-no">114</span><span id="line.114">     */</span>
+<span class="source-line-no">115</span><span id="line.115">    List&lt;ComponentType&gt; children();</span>
+<span class="source-line-no">116</span><span id="line.116"></span>
+<span class="source-line-no">117</span><span id="line.117">    /**</span>
+<span class="source-line-no">118</span><span id="line.118">     * Returns the parent of the component managed by this manager.</span>
+<span class="source-line-no">119</span><span id="line.119">     * </span>
+<span class="source-line-no">120</span><span id="line.120">     * @return the parent component or &lt;code&gt;null&lt;/code&gt; if the</span>
+<span class="source-line-no">121</span><span id="line.121">     * component is not registered with another component</span>
+<span class="source-line-no">122</span><span id="line.122">     */</span>
+<span class="source-line-no">123</span><span id="line.123">    ComponentType parent();</span>
+<span class="source-line-no">124</span><span id="line.124"></span>
+<span class="source-line-no">125</span><span id="line.125">    /**</span>
+<span class="source-line-no">126</span><span id="line.126">     * Returns the root of the tree the component </span>
+<span class="source-line-no">127</span><span id="line.127">     * managed by this manager belongs to.</span>
 <span class="source-line-no">128</span><span id="line.128">     * </span>
-<span class="source-line-no">129</span><span id="line.129">     * @return the channel that the component's </span>
-<span class="source-line-no">130</span><span id="line.130">     * handlers listen on by default and that </span>
-<span class="source-line-no">131</span><span id="line.131">     * {@link Manager#fire(Event, Channel...)} sends the event to </span>
-<span class="source-line-no">132</span><span id="line.132">     */</span>
-<span class="source-line-no">133</span><span id="line.133">    Channel channel();</span>
-<span class="source-line-no">134</span><span id="line.134"></span>
-<span class="source-line-no">135</span><span id="line.135">    /**</span>
-<span class="source-line-no">136</span><span id="line.136">     * Fires the given event on the given channel. If no channels are</span>
-<span class="source-line-no">137</span><span id="line.137">     * specified as parameters, the event is fired on the event's </span>
-<span class="source-line-no">138</span><span id="line.138">     * channel (see {@link Event#channels()}). If the event doesn't</span>
-<span class="source-line-no">139</span><span id="line.139">     * specify channels either, the event is fired on the </span>
-<span class="source-line-no">140</span><span id="line.140">     * channel of the component managed by this manager </span>
-<span class="source-line-no">141</span><span id="line.141">     * (see {@link #channel()}).</span>
-<span class="source-line-no">142</span><span id="line.142">     * &lt;P&gt;</span>
-<span class="source-line-no">143</span><span id="line.143">     * If an event is fired inside an event handler, it is added to the</span>
-<span class="source-line-no">144</span><span id="line.144">     * {@link EventPipeline} that has invoked the handler. If an event is fired</span>
-<span class="source-line-no">145</span><span id="line.145">     * by some other thread (not associated with a pipeline), a new pipeline</span>
-<span class="source-line-no">146</span><span id="line.146">     * is created for handling the event (and any events triggered by it). </span>
-<span class="source-line-no">147</span><span id="line.147">     * </span>
-<span class="source-line-no">148</span><span id="line.148">     * @param &lt;T&gt; the result type of the event</span>
-<span class="source-line-no">149</span><span id="line.149">     * @param event the event to fire</span>
-<span class="source-line-no">150</span><span id="line.150">     * @param channels the channels to fire the event on</span>
-<span class="source-line-no">151</span><span id="line.151">     * @return the event (for easy chaining)</span>
-<span class="source-line-no">152</span><span id="line.152">     */</span>
-<span class="source-line-no">153</span><span id="line.153">    &lt;T&gt; Event&lt;T&gt; fire(Event&lt;T&gt; event, Channel... channels);</span>
-<span class="source-line-no">154</span><span id="line.154"></span>
-<span class="source-line-no">155</span><span id="line.155">    /**</span>
-<span class="source-line-no">156</span><span id="line.156">     * Adds a handler for the given method with the given scope</span>
-<span class="source-line-no">157</span><span id="line.157">     * and priority.</span>
-<span class="source-line-no">158</span><span id="line.158">     * </span>
-<span class="source-line-no">159</span><span id="line.159">     * This method is usually not invoked directly. Rather, a {@link</span>
-<span class="source-line-no">160</span><span id="line.160">     * org.jgrapes.core.annotation.HandlerDefinition.Evaluator} provides</span>
-<span class="source-line-no">161</span><span id="line.161">     * `add(...)` methods that evaluate the required `method` and</span>
-<span class="source-line-no">162</span><span id="line.162">     * `scope` arguments from easier to provide arguments and then</span>
-<span class="source-line-no">163</span><span id="line.163">     * call this method.</span>
-<span class="source-line-no">164</span><span id="line.164">     * </span>
-<span class="source-line-no">165</span><span id="line.165">     * @param method the method to invoke </span>
-<span class="source-line-no">166</span><span id="line.166">     * @param scope the handler scope to be used for matching events</span>
-<span class="source-line-no">167</span><span id="line.167">     * @param priority the priority of the handler</span>
-<span class="source-line-no">168</span><span id="line.168">     * @see org.jgrapes.core.annotation.Handler.Evaluator#add </span>
-<span class="source-line-no">169</span><span id="line.169">     */</span>
-<span class="source-line-no">170</span><span id="line.170">    void addHandler(Method method, HandlerScope scope, int priority);</span>
-<span class="source-line-no">171</span><span id="line.171"></span>
-<span class="source-line-no">172</span><span id="line.172">    /**</span>
-<span class="source-line-no">173</span><span id="line.173">     * Returns the pipeline used when firing an event.</span>
-<span class="source-line-no">174</span><span id="line.174">     * </span>
-<span class="source-line-no">175</span><span id="line.175">     * @return the event pipeline</span>
-<span class="source-line-no">176</span><span id="line.176">     * @see #fire(Event, Channel...) </span>
-<span class="source-line-no">177</span><span id="line.177">     */</span>
-<span class="source-line-no">178</span><span id="line.178">    EventPipeline activeEventPipeline();</span>
-<span class="source-line-no">179</span><span id="line.179"></span>
-<span class="source-line-no">180</span><span id="line.180">    /**</span>
-<span class="source-line-no">181</span><span id="line.181">     * Return a new {@link EventPipeline} that processes the added events</span>
-<span class="source-line-no">182</span><span id="line.182">     * using a thread from a thread pool.</span>
-<span class="source-line-no">183</span><span id="line.183">     * </span>
-<span class="source-line-no">184</span><span id="line.184">     * @return the pipeline</span>
-<span class="source-line-no">185</span><span id="line.185">     */</span>
-<span class="source-line-no">186</span><span id="line.186">    EventPipeline newEventPipeline();</span>
-<span class="source-line-no">187</span><span id="line.187"></span>
-<span class="source-line-no">188</span><span id="line.188">    /**</span>
-<span class="source-line-no">189</span><span id="line.189">     * Return a new {@link EventPipeline} that processes the added events</span>
-<span class="source-line-no">190</span><span id="line.190">     * using threads from the given executor service.</span>
-<span class="source-line-no">191</span><span id="line.191">     * </span>
-<span class="source-line-no">192</span><span id="line.192">     * @param executorService the executor service</span>
-<span class="source-line-no">193</span><span id="line.193">     * @return the pipeline</span>
-<span class="source-line-no">194</span><span id="line.194">     */</span>
-<span class="source-line-no">195</span><span id="line.195">    EventPipeline newEventPipeline(ExecutorService executorService);</span>
-<span class="source-line-no">196</span><span id="line.196"></span>
-<span class="source-line-no">197</span><span id="line.197">    /**</span>
-<span class="source-line-no">198</span><span id="line.198">     * Return a new {@link EventPipeline} that processes an added event</span>
-<span class="source-line-no">199</span><span id="line.199">     * (and all events caused by it) before returning from the</span>
-<span class="source-line-no">200</span><span id="line.200">     * {@link EventPipeline#fire} method.</span>
-<span class="source-line-no">201</span><span id="line.201">     * &lt;P&gt;</span>
-<span class="source-line-no">202</span><span id="line.202">     * The returned event pipeline is not thread-safe, i.e. no other thread</span>
-<span class="source-line-no">203</span><span id="line.203">     * may call &lt;code&gt;add&lt;/code&gt; while an invocation of &lt;code&gt;add&lt;/code&gt;</span>
-<span class="source-line-no">204</span><span id="line.204">     * is being processed.</span>
-<span class="source-line-no">205</span><span id="line.205">     * </span>
-<span class="source-line-no">206</span><span id="line.206">     * @return the pipeline</span>
-<span class="source-line-no">207</span><span id="line.207">     */</span>
-<span class="source-line-no">208</span><span id="line.208">    EventPipeline newSyncEventPipeline();</span>
-<span class="source-line-no">209</span><span id="line.209"></span>
-<span class="source-line-no">210</span><span id="line.210">    /**</span>
-<span class="source-line-no">211</span><span id="line.211">     * Register the managed component as a running generator. </span>
-<span class="source-line-no">212</span><span id="line.212">     */</span>
-<span class="source-line-no">213</span><span id="line.213">    void registerAsGenerator();</span>
-<span class="source-line-no">214</span><span id="line.214"></span>
-<span class="source-line-no">215</span><span id="line.215">    /**</span>
-<span class="source-line-no">216</span><span id="line.216">     * Unregister the managed component as a running generator.</span>
-<span class="source-line-no">217</span><span id="line.217">     */</span>
-<span class="source-line-no">218</span><span id="line.218">    void unregisterAsGenerator();</span>
-<span class="source-line-no">219</span><span id="line.219"></span>
-<span class="source-line-no">220</span><span id="line.220">    /**</span>
-<span class="source-line-no">221</span><span id="line.221">     * Returns an iterator that visits the components of the</span>
-<span class="source-line-no">222</span><span id="line.222">     * component subtree that has this node as root.</span>
-<span class="source-line-no">223</span><span id="line.223">     * </span>
-<span class="source-line-no">224</span><span id="line.224">     * @return the iterator</span>
-<span class="source-line-no">225</span><span id="line.225">     */</span>
-<span class="source-line-no">226</span><span id="line.226">    @Override</span>
-<span class="source-line-no">227</span><span id="line.227">    Iterator&lt;ComponentType&gt; iterator();</span>
-<span class="source-line-no">228</span><span id="line.228"></span>
-<span class="source-line-no">229</span><span id="line.229">    /**</span>
-<span class="source-line-no">230</span><span id="line.230">     * Returns the components visited when traversing the</span>
-<span class="source-line-no">231</span><span id="line.231">     * tree that starts with this component.</span>
-<span class="source-line-no">232</span><span id="line.232">     * </span>
-<span class="source-line-no">233</span><span id="line.233">     * @return the stream</span>
-<span class="source-line-no">234</span><span id="line.234">     */</span>
-<span class="source-line-no">235</span><span id="line.235">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">236</span><span id="line.236">    default Stream&lt;ComponentType&gt; stream() {</span>
-<span class="source-line-no">237</span><span id="line.237">        Stream.Builder&lt;ComponentType&gt; res = Stream.builder();</span>
-<span class="source-line-no">238</span><span id="line.238">        for (ComponentType c : this) {</span>
-<span class="source-line-no">239</span><span id="line.239">            res.accept(c);</span>
-<span class="source-line-no">240</span><span id="line.240">        }</span>
-<span class="source-line-no">241</span><span id="line.241">        return res.build();</span>
-<span class="source-line-no">242</span><span id="line.242">    }</span>
-<span class="source-line-no">243</span><span id="line.243">}</span>
+<span class="source-line-no">129</span><span id="line.129">     * @return the root</span>
+<span class="source-line-no">130</span><span id="line.130">     */</span>
+<span class="source-line-no">131</span><span id="line.131">    ComponentType root();</span>
+<span class="source-line-no">132</span><span id="line.132"></span>
+<span class="source-line-no">133</span><span id="line.133">    /**</span>
+<span class="source-line-no">134</span><span id="line.134">     * Returns the channel of the component managed by this manager.</span>
+<span class="source-line-no">135</span><span id="line.135">     * </span>
+<span class="source-line-no">136</span><span id="line.136">     * @return the channel that the component's </span>
+<span class="source-line-no">137</span><span id="line.137">     * handlers listen on by default and that </span>
+<span class="source-line-no">138</span><span id="line.138">     * {@link Manager#fire(Event, Channel...)} sends the event to </span>
+<span class="source-line-no">139</span><span id="line.139">     */</span>
+<span class="source-line-no">140</span><span id="line.140">    Channel channel();</span>
+<span class="source-line-no">141</span><span id="line.141"></span>
+<span class="source-line-no">142</span><span id="line.142">    /**</span>
+<span class="source-line-no">143</span><span id="line.143">     * Fires the given event on the given channel. If no channels are</span>
+<span class="source-line-no">144</span><span id="line.144">     * specified as parameters, the event is fired on the event's </span>
+<span class="source-line-no">145</span><span id="line.145">     * channel (see {@link Event#channels()}). If the event doesn't</span>
+<span class="source-line-no">146</span><span id="line.146">     * specify channels either, the event is fired on the </span>
+<span class="source-line-no">147</span><span id="line.147">     * channel of the component managed by this manager </span>
+<span class="source-line-no">148</span><span id="line.148">     * (see {@link #channel()}).</span>
+<span class="source-line-no">149</span><span id="line.149">     * &lt;P&gt;</span>
+<span class="source-line-no">150</span><span id="line.150">     * If an event is fired inside an event handler, it is added to the</span>
+<span class="source-line-no">151</span><span id="line.151">     * {@link EventPipeline} that has invoked the handler. If an event is fired</span>
+<span class="source-line-no">152</span><span id="line.152">     * by some other thread (not associated with a pipeline), a new pipeline</span>
+<span class="source-line-no">153</span><span id="line.153">     * is created for handling the event (and any events triggered by it). </span>
+<span class="source-line-no">154</span><span id="line.154">     * </span>
+<span class="source-line-no">155</span><span id="line.155">     * @param &lt;T&gt; the result type of the event</span>
+<span class="source-line-no">156</span><span id="line.156">     * @param event the event to fire</span>
+<span class="source-line-no">157</span><span id="line.157">     * @param channels the channels to fire the event on</span>
+<span class="source-line-no">158</span><span id="line.158">     * @return the event (for easy chaining)</span>
+<span class="source-line-no">159</span><span id="line.159">     */</span>
+<span class="source-line-no">160</span><span id="line.160">    &lt;T&gt; Event&lt;T&gt; fire(Event&lt;T&gt; event, Channel... channels);</span>
+<span class="source-line-no">161</span><span id="line.161"></span>
+<span class="source-line-no">162</span><span id="line.162">    /**</span>
+<span class="source-line-no">163</span><span id="line.163">     * Adds a handler for the given method with the given scope</span>
+<span class="source-line-no">164</span><span id="line.164">     * and priority.</span>
+<span class="source-line-no">165</span><span id="line.165">     * </span>
+<span class="source-line-no">166</span><span id="line.166">     * This method is usually not invoked directly. Rather, a {@link</span>
+<span class="source-line-no">167</span><span id="line.167">     * org.jgrapes.core.annotation.HandlerDefinition.Evaluator} provides</span>
+<span class="source-line-no">168</span><span id="line.168">     * `add(...)` methods that evaluate the required `method` and</span>
+<span class="source-line-no">169</span><span id="line.169">     * `scope` arguments from easier to provide arguments and then</span>
+<span class="source-line-no">170</span><span id="line.170">     * call this method.</span>
+<span class="source-line-no">171</span><span id="line.171">     * </span>
+<span class="source-line-no">172</span><span id="line.172">     * @param method the method to invoke </span>
+<span class="source-line-no">173</span><span id="line.173">     * @param scope the handler scope to be used for matching events</span>
+<span class="source-line-no">174</span><span id="line.174">     * @param priority the priority of the handler</span>
+<span class="source-line-no">175</span><span id="line.175">     * @see org.jgrapes.core.annotation.Handler.Evaluator#add </span>
+<span class="source-line-no">176</span><span id="line.176">     */</span>
+<span class="source-line-no">177</span><span id="line.177">    void addHandler(Method method, HandlerScope scope, int priority);</span>
+<span class="source-line-no">178</span><span id="line.178"></span>
+<span class="source-line-no">179</span><span id="line.179">    /**</span>
+<span class="source-line-no">180</span><span id="line.180">     * Returns the pipeline used when firing an event.</span>
+<span class="source-line-no">181</span><span id="line.181">     * </span>
+<span class="source-line-no">182</span><span id="line.182">     * @return the event pipeline</span>
+<span class="source-line-no">183</span><span id="line.183">     * @see #fire(Event, Channel...) </span>
+<span class="source-line-no">184</span><span id="line.184">     */</span>
+<span class="source-line-no">185</span><span id="line.185">    EventPipeline activeEventPipeline();</span>
+<span class="source-line-no">186</span><span id="line.186"></span>
+<span class="source-line-no">187</span><span id="line.187">    /**</span>
+<span class="source-line-no">188</span><span id="line.188">     * Return a new {@link EventPipeline} that processes the added events</span>
+<span class="source-line-no">189</span><span id="line.189">     * using a thread from a thread pool.</span>
+<span class="source-line-no">190</span><span id="line.190">     * </span>
+<span class="source-line-no">191</span><span id="line.191">     * @return the pipeline</span>
+<span class="source-line-no">192</span><span id="line.192">     */</span>
+<span class="source-line-no">193</span><span id="line.193">    EventPipeline newEventPipeline();</span>
+<span class="source-line-no">194</span><span id="line.194"></span>
+<span class="source-line-no">195</span><span id="line.195">    /**</span>
+<span class="source-line-no">196</span><span id="line.196">     * Return a new {@link EventPipeline} that processes the added events</span>
+<span class="source-line-no">197</span><span id="line.197">     * using threads from the given executor service.</span>
+<span class="source-line-no">198</span><span id="line.198">     * </span>
+<span class="source-line-no">199</span><span id="line.199">     * @param executorService the executor service</span>
+<span class="source-line-no">200</span><span id="line.200">     * @return the pipeline</span>
+<span class="source-line-no">201</span><span id="line.201">     */</span>
+<span class="source-line-no">202</span><span id="line.202">    EventPipeline newEventPipeline(ExecutorService executorService);</span>
+<span class="source-line-no">203</span><span id="line.203"></span>
+<span class="source-line-no">204</span><span id="line.204">    /**</span>
+<span class="source-line-no">205</span><span id="line.205">     * Return a new {@link EventPipeline} that processes an added event</span>
+<span class="source-line-no">206</span><span id="line.206">     * (and all events caused by it) before returning from the</span>
+<span class="source-line-no">207</span><span id="line.207">     * {@link EventPipeline#fire} method.</span>
+<span class="source-line-no">208</span><span id="line.208">     * &lt;P&gt;</span>
+<span class="source-line-no">209</span><span id="line.209">     * The returned event pipeline is not thread-safe, i.e. no other thread</span>
+<span class="source-line-no">210</span><span id="line.210">     * may call &lt;code&gt;add&lt;/code&gt; while an invocation of &lt;code&gt;add&lt;/code&gt;</span>
+<span class="source-line-no">211</span><span id="line.211">     * is being processed.</span>
+<span class="source-line-no">212</span><span id="line.212">     * </span>
+<span class="source-line-no">213</span><span id="line.213">     * @return the pipeline</span>
+<span class="source-line-no">214</span><span id="line.214">     */</span>
+<span class="source-line-no">215</span><span id="line.215">    EventPipeline newSyncEventPipeline();</span>
+<span class="source-line-no">216</span><span id="line.216"></span>
+<span class="source-line-no">217</span><span id="line.217">    /**</span>
+<span class="source-line-no">218</span><span id="line.218">     * Register the managed component as a running generator. </span>
+<span class="source-line-no">219</span><span id="line.219">     */</span>
+<span class="source-line-no">220</span><span id="line.220">    void registerAsGenerator();</span>
+<span class="source-line-no">221</span><span id="line.221"></span>
+<span class="source-line-no">222</span><span id="line.222">    /**</span>
+<span class="source-line-no">223</span><span id="line.223">     * Unregister the managed component as a running generator.</span>
+<span class="source-line-no">224</span><span id="line.224">     */</span>
+<span class="source-line-no">225</span><span id="line.225">    void unregisterAsGenerator();</span>
+<span class="source-line-no">226</span><span id="line.226"></span>
+<span class="source-line-no">227</span><span id="line.227">    /**</span>
+<span class="source-line-no">228</span><span id="line.228">     * Returns an iterator that visits the components of the</span>
+<span class="source-line-no">229</span><span id="line.229">     * component subtree that has this node as root.</span>
+<span class="source-line-no">230</span><span id="line.230">     * </span>
+<span class="source-line-no">231</span><span id="line.231">     * @return the iterator</span>
+<span class="source-line-no">232</span><span id="line.232">     */</span>
+<span class="source-line-no">233</span><span id="line.233">    @Override</span>
+<span class="source-line-no">234</span><span id="line.234">    Iterator&lt;ComponentType&gt; iterator();</span>
+<span class="source-line-no">235</span><span id="line.235"></span>
+<span class="source-line-no">236</span><span id="line.236">    /**</span>
+<span class="source-line-no">237</span><span id="line.237">     * Returns the components visited when traversing the</span>
+<span class="source-line-no">238</span><span id="line.238">     * tree that starts with this component.</span>
+<span class="source-line-no">239</span><span id="line.239">     * </span>
+<span class="source-line-no">240</span><span id="line.240">     * @return the stream</span>
+<span class="source-line-no">241</span><span id="line.241">     */</span>
+<span class="source-line-no">242</span><span id="line.242">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">243</span><span id="line.243">    default Stream&lt;ComponentType&gt; stream() {</span>
+<span class="source-line-no">244</span><span id="line.244">        Stream.Builder&lt;ComponentType&gt; res = Stream.builder();</span>
+<span class="source-line-no">245</span><span id="line.245">        for (ComponentType c : this) {</span>
+<span class="source-line-no">246</span><span id="line.246">            res.accept(c);</span>
+<span class="source-line-no">247</span><span id="line.247">        }</span>
+<span class="source-line-no">248</span><span id="line.248">        return res.build();</span>
+<span class="source-line-no">249</span><span id="line.249">    }</span>
+<span class="source-line-no">250</span><span id="line.250">}</span>
 
 
 
