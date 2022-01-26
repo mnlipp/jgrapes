@@ -50,6 +50,7 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * 
  * @since 1.3
  */
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class ComponentProvider extends Component {
 
     private String componentsEntry = "components";
@@ -161,11 +162,12 @@ public class ComponentProvider extends Component {
      * @param evt the event
      * @return the collection
      */
+    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     protected Collection<Map<String, String>>
             componentConfigurations(ConfigurationUpdate evt) {
         return providerConfiguration(evt)
             .map(conf -> conf.get(componentsEntry))
-            .filter(Collection.class::isInstance).map(c -> ((Collection<?>) c))
+            .filter(Collection.class::isInstance).map(c -> (Collection<?>) c)
             .orElse(Collections.emptyList()).stream()
             .filter(Map.class::isInstance).map(c -> (Map<?, ?>) c)
             .filter(c -> c.keySet().containsAll(Set.of("componentType", "name"))
@@ -190,6 +192,7 @@ public class ComponentProvider extends Component {
         synchronize(componentConfigurations(evt));
     }
 
+    @SuppressWarnings("PMD.AvoidSynchronizedAtMethodLevel")
     private synchronized void
             synchronize(Collection<Map<String, String>> requested) {
         // Calculate starters for to be added/to be removed
@@ -209,9 +212,10 @@ public class ComponentProvider extends Component {
         for (var childIter = toBeRemoved.iterator();
                 childIter.hasNext();) {
             var child = childIter.next();
+            @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
             var childComp = child.component().getClass().getName();
             var childName = child.name();
-            for (var<Map> confIter = toBeAdded.iterator();
+            for (var confIter = toBeAdded.iterator();
                     confIter.hasNext();) {
                 var config = confIter.next();
                 var confComp = config.get("componentType");
