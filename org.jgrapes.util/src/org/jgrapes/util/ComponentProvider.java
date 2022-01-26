@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -55,10 +56,8 @@ public class ComponentProvider extends Component {
 
     private String componentsEntry = "components";
     private Map<String, ComponentFactory> factoryByType;
-    private Collection<Map<String, String>> currentConfig
-        = Collections.emptyList();
-    private Collection<Map<String, String>> pinnedConfigurations
-        = Collections.emptyList();
+    private List<Map<?, ?>> currentConfig = Collections.emptyList();
+    private List<Map<?, ?>> pinnedConfigurations = Collections.emptyList();
 
     /**
      * Creates a new component with its channel set to this object. 
@@ -116,11 +115,8 @@ public class ComponentProvider extends Component {
      * @param pinnedConfigurations the configurations to be pinned
      * @return the component provider for easy chaining
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public ComponentProvider
-            setPinned(Collection<Map<String, ?>> pinnedConfigurations) {
-        this.pinnedConfigurations = (Collection<
-                Map<String, String>>) (Collection) pinnedConfigurations;
+    public ComponentProvider setPinned(List<Map<?, ?>> pinnedConfigurations) {
+        this.pinnedConfigurations = pinnedConfigurations;
         synchronize(currentConfig);
         return this;
     }
@@ -155,16 +151,15 @@ public class ComponentProvider extends Component {
      * about the components to be provided.
      * 
      * The method must ensure that the result is a collection
-     * of maps, where each map has at least two entries with
-     * keys "componentType" and "name", each with an associated
+     * of maps, where each map has at least entries with
+     * keys "componentType" and "name", each associated with a
      * value of type {@link String}.
      * 
      * @param evt the event
      * @return the collection
      */
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-    protected Collection<Map<String, String>>
-            componentConfigurations(ConfigurationUpdate evt) {
+    protected List<Map<?, ?>> componentConfigurations(ConfigurationUpdate evt) {
         return providerConfiguration(evt)
             .map(conf -> conf.get(componentsEntry))
             .filter(Collection.class::isInstance).map(c -> (Collection<?>) c)
@@ -193,8 +188,7 @@ public class ComponentProvider extends Component {
     }
 
     @SuppressWarnings("PMD.AvoidSynchronizedAtMethodLevel")
-    private synchronized void
-            synchronize(Collection<Map<String, String>> requested) {
+    private synchronized void synchronize(List<Map<?, ?>> requested) {
         // Calculate starters for to be added/to be removed
         var toBeAdded = new LinkedList<>(requested);
         toBeAdded.addAll(pinnedConfigurations);
