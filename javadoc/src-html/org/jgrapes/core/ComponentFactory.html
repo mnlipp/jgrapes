@@ -66,62 +66,61 @@
 <span class="source-line-no">054</span><span id="line.54">     * @param properties the properties</span>
 <span class="source-line-no">055</span><span id="line.55">     * @return the optional</span>
 <span class="source-line-no">056</span><span id="line.56">     */</span>
-<span class="source-line-no">057</span><span id="line.57">    static Optional&lt;ComponentType&gt; setStandardProperties(</span>
-<span class="source-line-no">058</span><span id="line.58">            Optional&lt;ComponentType&gt; component, Map&lt;?, ?&gt; properties) {</span>
-<span class="source-line-no">059</span><span id="line.59">        return component.map(c -&gt; {</span>
-<span class="source-line-no">060</span><span id="line.60">            if (properties.containsKey("name")) {</span>
-<span class="source-line-no">061</span><span id="line.61">                Components.manager(c).setName((String) properties.get("name"));</span>
-<span class="source-line-no">062</span><span id="line.62">            }</span>
-<span class="source-line-no">063</span><span id="line.63">            return c;</span>
-<span class="source-line-no">064</span><span id="line.64">        });</span>
-<span class="source-line-no">065</span><span id="line.65">    }</span>
-<span class="source-line-no">066</span><span id="line.66"></span>
-<span class="source-line-no">067</span><span id="line.67">    /**</span>
-<span class="source-line-no">068</span><span id="line.68">     * Returns the type of the components created by this factory.</span>
-<span class="source-line-no">069</span><span id="line.69">     * </span>
-<span class="source-line-no">070</span><span id="line.70">     * @return the component type</span>
-<span class="source-line-no">071</span><span id="line.71">     */</span>
-<span class="source-line-no">072</span><span id="line.72">    Class&lt;? extends ComponentType&gt; componentType();</span>
-<span class="source-line-no">073</span><span id="line.73"></span>
-<span class="source-line-no">074</span><span id="line.74">    /**</span>
-<span class="source-line-no">075</span><span id="line.75">     * Creates a new component with its channel set to</span>
-<span class="source-line-no">076</span><span id="line.76">     * itself.</span>
-<span class="source-line-no">077</span><span id="line.77">     * </span>
-<span class="source-line-no">078</span><span id="line.78">     * @return the component</span>
-<span class="source-line-no">079</span><span id="line.79">     */</span>
-<span class="source-line-no">080</span><span id="line.80">    default ComponentType create() {</span>
-<span class="source-line-no">081</span><span id="line.81">        return create(Channel.SELF);</span>
-<span class="source-line-no">082</span><span id="line.82">    }</span>
-<span class="source-line-no">083</span><span id="line.83"></span>
-<span class="source-line-no">084</span><span id="line.84">    /**</span>
-<span class="source-line-no">085</span><span id="line.85">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">086</span><span id="line.86">     * channel.</span>
-<span class="source-line-no">087</span><span id="line.87">     * </span>
-<span class="source-line-no">088</span><span id="line.88">     * @param componentChannel the channel that the component's </span>
-<span class="source-line-no">089</span><span id="line.89">     * handlers listen on by default and that </span>
-<span class="source-line-no">090</span><span id="line.90">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
-<span class="source-line-no">091</span><span id="line.91">     * @return the component</span>
-<span class="source-line-no">092</span><span id="line.92">     */</span>
-<span class="source-line-no">093</span><span id="line.93">    default ComponentType create(Channel componentChannel) {</span>
-<span class="source-line-no">094</span><span id="line.94">        return create(componentChannel, Collections.emptyMap()).get();</span>
-<span class="source-line-no">095</span><span id="line.95">    }</span>
-<span class="source-line-no">096</span><span id="line.96"></span>
-<span class="source-line-no">097</span><span id="line.97">    /**</span>
-<span class="source-line-no">098</span><span id="line.98">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">099</span><span id="line.99">     * channel using the given additional properties. If the requested</span>
-<span class="source-line-no">100</span><span id="line.100">     * properties or combination of properties cannot be provided by</span>
-<span class="source-line-no">101</span><span id="line.101">     * the component, the factory may return an empty {@link Optional}. </span>
-<span class="source-line-no">102</span><span id="line.102">     * </span>
-<span class="source-line-no">103</span><span id="line.103">     * @param componentChannel the channel that the component's </span>
-<span class="source-line-no">104</span><span id="line.104">     * handlers listen on by default and that </span>
-<span class="source-line-no">105</span><span id="line.105">     * {@link Manager#fire(Event, Channel...)} sends the event to </span>
-<span class="source-line-no">106</span><span id="line.106">     * @param properties additional properties for the creation of the</span>
-<span class="source-line-no">107</span><span id="line.107">     * component</span>
-<span class="source-line-no">108</span><span id="line.108">     * @return the component</span>
-<span class="source-line-no">109</span><span id="line.109">     */</span>
-<span class="source-line-no">110</span><span id="line.110">    Optional&lt;ComponentType&gt; create(</span>
-<span class="source-line-no">111</span><span id="line.111">            Channel componentChannel, Map&lt;?, ?&gt; properties);</span>
-<span class="source-line-no">112</span><span id="line.112">}</span>
+<span class="source-line-no">057</span><span id="line.57">    static ComponentType setStandardProperties(</span>
+<span class="source-line-no">058</span><span id="line.58">            ComponentType component, Map&lt;?, ?&gt; properties) {</span>
+<span class="source-line-no">059</span><span id="line.59">        if (properties.containsKey("name")) {</span>
+<span class="source-line-no">060</span><span id="line.60">            Components.manager(component)</span>
+<span class="source-line-no">061</span><span id="line.61">                .setName((String) properties.get("name"));</span>
+<span class="source-line-no">062</span><span id="line.62">        }</span>
+<span class="source-line-no">063</span><span id="line.63">        return component;</span>
+<span class="source-line-no">064</span><span id="line.64">    }</span>
+<span class="source-line-no">065</span><span id="line.65"></span>
+<span class="source-line-no">066</span><span id="line.66">    /**</span>
+<span class="source-line-no">067</span><span id="line.67">     * Returns the type of the components created by this factory.</span>
+<span class="source-line-no">068</span><span id="line.68">     * </span>
+<span class="source-line-no">069</span><span id="line.69">     * @return the component type</span>
+<span class="source-line-no">070</span><span id="line.70">     */</span>
+<span class="source-line-no">071</span><span id="line.71">    Class&lt;? extends ComponentType&gt; componentType();</span>
+<span class="source-line-no">072</span><span id="line.72"></span>
+<span class="source-line-no">073</span><span id="line.73">    /**</span>
+<span class="source-line-no">074</span><span id="line.74">     * Creates a new component with its channel set to</span>
+<span class="source-line-no">075</span><span id="line.75">     * itself.</span>
+<span class="source-line-no">076</span><span id="line.76">     * </span>
+<span class="source-line-no">077</span><span id="line.77">     * @return the component</span>
+<span class="source-line-no">078</span><span id="line.78">     */</span>
+<span class="source-line-no">079</span><span id="line.79">    default ComponentType create() {</span>
+<span class="source-line-no">080</span><span id="line.80">        return create(Channel.SELF);</span>
+<span class="source-line-no">081</span><span id="line.81">    }</span>
+<span class="source-line-no">082</span><span id="line.82"></span>
+<span class="source-line-no">083</span><span id="line.83">    /**</span>
+<span class="source-line-no">084</span><span id="line.84">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">085</span><span id="line.85">     * channel.</span>
+<span class="source-line-no">086</span><span id="line.86">     * </span>
+<span class="source-line-no">087</span><span id="line.87">     * @param componentChannel the channel that the component's </span>
+<span class="source-line-no">088</span><span id="line.88">     * handlers listen on by default and that </span>
+<span class="source-line-no">089</span><span id="line.89">     * {@link Manager#fire(Event, Channel...)} sends the event to</span>
+<span class="source-line-no">090</span><span id="line.90">     * @return the component</span>
+<span class="source-line-no">091</span><span id="line.91">     */</span>
+<span class="source-line-no">092</span><span id="line.92">    default ComponentType create(Channel componentChannel) {</span>
+<span class="source-line-no">093</span><span id="line.93">        return create(componentChannel, Collections.emptyMap()).get();</span>
+<span class="source-line-no">094</span><span id="line.94">    }</span>
+<span class="source-line-no">095</span><span id="line.95"></span>
+<span class="source-line-no">096</span><span id="line.96">    /**</span>
+<span class="source-line-no">097</span><span id="line.97">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">098</span><span id="line.98">     * channel using the given additional properties. If the requested</span>
+<span class="source-line-no">099</span><span id="line.99">     * properties or combination of properties cannot be provided by</span>
+<span class="source-line-no">100</span><span id="line.100">     * the component, the factory may return an empty {@link Optional}. </span>
+<span class="source-line-no">101</span><span id="line.101">     * </span>
+<span class="source-line-no">102</span><span id="line.102">     * @param componentChannel the channel that the component's </span>
+<span class="source-line-no">103</span><span id="line.103">     * handlers listen on by default and that </span>
+<span class="source-line-no">104</span><span id="line.104">     * {@link Manager#fire(Event, Channel...)} sends the event to </span>
+<span class="source-line-no">105</span><span id="line.105">     * @param properties additional properties for the creation of the</span>
+<span class="source-line-no">106</span><span id="line.106">     * component</span>
+<span class="source-line-no">107</span><span id="line.107">     * @return the component</span>
+<span class="source-line-no">108</span><span id="line.108">     */</span>
+<span class="source-line-no">109</span><span id="line.109">    Optional&lt;ComponentType&gt; create(</span>
+<span class="source-line-no">110</span><span id="line.110">            Channel componentChannel, Map&lt;?, ?&gt; properties);</span>
+<span class="source-line-no">111</span><span id="line.111">}</span>
 
 
 
