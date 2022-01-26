@@ -54,14 +54,13 @@ public interface ComponentFactory {
      * @param properties the properties
      * @return the optional
      */
-    static Optional<ComponentType> setStandardProperties(
-            Optional<ComponentType> component, Map<?, ?> properties) {
-        return component.map(c -> {
-            if (properties.containsKey("name")) {
-                Components.manager(c).setName((String) properties.get("name"));
-            }
-            return c;
-        });
+    static ComponentType setStandardProperties(
+            ComponentType component, Map<?, ?> properties) {
+        if (properties.containsKey("name")) {
+            Components.manager(component)
+                .setName((String) properties.get("name"));
+        }
+        return component;
     }
 
     /**

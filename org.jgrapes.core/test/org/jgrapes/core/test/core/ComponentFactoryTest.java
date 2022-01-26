@@ -1,7 +1,6 @@
 package org.jgrapes.core.test.core;
 
 import java.util.Map;
-import java.util.Optional;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.ComponentFactory;
 import org.jgrapes.core.Components;
@@ -18,9 +17,7 @@ public class ComponentFactoryTest {
     public void testProps() {
         var props = Map.of("name", "TestComponent");
         Manager comp = Components.manager(ComponentFactory
-            .setStandardProperties(Optional.of(new MyComponent()),
-                props)
-            .get());
+            .setStandardProperties(new MyComponent(), props));
         assertEquals("TestComponent", comp.name());
     }
 
