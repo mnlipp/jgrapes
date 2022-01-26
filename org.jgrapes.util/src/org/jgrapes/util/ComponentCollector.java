@@ -18,14 +18,15 @@
 
 package org.jgrapes.util;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 import org.jgrapes.core.Channel;
-import org.jgrapes.core.Component;
 import org.jgrapes.core.ComponentFactory;
 
 /**
@@ -40,10 +41,7 @@ import org.jgrapes.core.ComponentFactory;
  * @param <F> the component factory type
  */
 public class ComponentCollector<F extends ComponentFactory>
-        extends Component {
-
-    private static final List<Map<Object, Object>> SINGLE_DEFAULT
-        = Arrays.asList(Collections.emptyMap());
+        extends ComponentProvider {
 
     /**
      * Creates a new collector that collects the factories of the given 
@@ -60,19 +58,27 @@ public class ComponentCollector<F extends ComponentFactory>
      * @param componentChannel this component's channel
      * @param matcher the matcher function
      */
-    public ComponentCollector(
-            Class<F> factoryClass, Channel componentChannel,
+    public ComponentCollector(Class<F> factoryClass, Channel componentChannel,
             Function<String, List<Map<Object, Object>>> matcher) {
         super(componentChannel);
         ServiceLoader<F> serviceLoader = ServiceLoader.load(factoryClass);
-        for (F factory : serviceLoader) {
-            List<Map<Object, Object>> configs = matcher.apply(
-                factory.componentType().getName());
-            for (Map<Object, Object> config : configs) {
-                factory.create(channel(), config).ifPresent(
-                    component -> attach(component));
-            }
-        }
+
+        // Get all factories
+        IntFunction<F[]> createFactoryArray = size -> {
+            @SuppressWarnings("unchecked")
+            var res = (F[]) Array.newInstance(factoryClass, size);
+            return res;
+        };
+        var factories = serviceLoader.stream().map(p -> p.get())
+            .toArray(createFactoryArray);
+        setFactories(factories);
+
+        // Obtain a configuration for each factory
+        List<Map<?, ?>> configs = Arrays.stream(factories)
+            .map(factory -> matcher.apply(factory.componentType().getName())
+                .stream())
+            .flatMap(Function.identity()).collect(Collectors.toList());
+        setPinned(configs);
     }
 
     /**
@@ -82,8 +88,8 @@ public class ComponentCollector<F extends ComponentFactory>
      * @param factoryClass the factory class
      * @param componentChannel this component's channel
      */
-    public ComponentCollector(
-            Class<F> factoryClass, Channel componentChannel) {
-        this(factoryClass, componentChannel, type -> SINGLE_DEFAULT);
+    public ComponentCollector(Class<F> factoryClass, Channel componentChannel) {
+        this(factoryClass, componentChannel, type -> List.of(
+            Map.of("componentType", type)));
     }
 }
