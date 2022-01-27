@@ -216,7 +216,7 @@
 <span class="source-line-no">204</span><span id="line.204">            throws ParseException {</span>
 <span class="source-line-no">205</span><span id="line.205">        final HttpRequest request = event.httpRequest();</span>
 <span class="source-line-no">206</span><span id="line.206">        prefixPattern.pathRemainder(request.requestUri()).ifPresent(path -&gt; {</span>
-<span class="source-line-no">207</span><span id="line.207">            boolean success = false;</span>
+<span class="source-line-no">207</span><span id="line.207">            boolean success;</span>
 <span class="source-line-no">208</span><span id="line.208">            if (TEMPLATE_PATTERN.matcher(path).matches()) {</span>
 <span class="source-line-no">209</span><span id="line.209">                success = sendProcessedTemplate(event, channel, path);</span>
 <span class="source-line-no">210</span><span id="line.210">            } else {</span>
