@@ -26,7 +26,7 @@ import org.jgrapes.core.EventPipeline;
 
 /**
  * A base class for events that perform an action instead of being
- * handled. Use to synchronize some action with th eother events on
+ * handled. Use to synchronize some action with the other events on
  * an {@link EventPipeline}.
  */
 public abstract class ActionEvent<T> extends Event<T> {
