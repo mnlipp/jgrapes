@@ -204,7 +204,7 @@ public class FreeMarkerRequestHandler extends Component {
             throws ParseException {
         final HttpRequest request = event.httpRequest();
         prefixPattern.pathRemainder(request.requestUri()).ifPresent(path -> {
-            boolean success = false;
+            boolean success;
             if (TEMPLATE_PATTERN.matcher(path).matches()) {
                 success = sendProcessedTemplate(event, channel, path);
             } else {
