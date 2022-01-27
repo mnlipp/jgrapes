@@ -586,6 +586,7 @@ public class Components {
      * 
      * @return an empty map
      */
+    @Deprecated
     public static <K, V> Map<K, V> mapOf() {
         return new HashMap<>();
     }
@@ -595,6 +596,7 @@ public class Components {
      * 
      * @return an immutable map filled with the given values
      */
+    @Deprecated
     @SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })
     public static <K, V> Map<K, V> mapOf(K k1, V v1) {
         @SuppressWarnings("PMD.UseConcurrentHashMap")
@@ -608,6 +610,7 @@ public class Components {
      * 
      * @return an immutable map filled with the given values
      */
+    @Deprecated
     @SuppressWarnings("PMD.ShortVariable")
     public static <K, V> Map<K, V> mapOf(K k1, V v1, K k2, V v2) {
         @SuppressWarnings("PMD.UseConcurrentHashMap")
@@ -622,6 +625,7 @@ public class Components {
      * 
      * @return an immutable map filled with the given values
      */
+    @Deprecated
     @SuppressWarnings("PMD.ShortVariable")
     public static <K, V> Map<K, V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3) {
         @SuppressWarnings("PMD.UseConcurrentHashMap")
@@ -637,6 +641,7 @@ public class Components {
      * 
      * @return an immutable map filled with the given values
      */
+    @Deprecated
     @SuppressWarnings("PMD.ShortVariable")
     public static <K, V> Map<K, V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
             K k4, V v4) {
@@ -654,6 +659,7 @@ public class Components {
      * 
      * @return an immutable map filled with the given values
      */
+    @Deprecated
     @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable",
         "PMD.AvoidDuplicateLiterals" })
     public static <K, V> Map<K, V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
@@ -673,6 +679,7 @@ public class Components {
      * 
      * @return an immutable map filled with the given values
      */
+    @Deprecated
     @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })
     public static <K, V> Map<K, V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
             K k4, V v4, K k5, V v5, K k6, V v6) {
@@ -692,6 +699,7 @@ public class Components {
      * 
      * @return an immutable map filled with the given values
      */
+    @Deprecated
     @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })
     public static <K, V> Map<K, V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
             K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7) {
@@ -712,6 +720,7 @@ public class Components {
      * 
      * @return an immutable map filled with the given values
      */
+    @Deprecated
     @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })
     public static <K, V> Map<K, V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
             K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8) {
@@ -733,6 +742,7 @@ public class Components {
      * 
      * @return an immutable map filled with the given values
      */
+    @Deprecated
     @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })
     public static <K, V> Map<K, V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
             K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
@@ -756,6 +766,7 @@ public class Components {
      * 
      * @return an immutable map filled with the given values
      */
+    @Deprecated
     @SuppressWarnings({ "PMD.ExcessiveParameterList", "PMD.ShortVariable" })
     public static <K, V> Map<K, V> mapOf(K k1, V v1, K k2, V v2, K k3, V v3,
             K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,

@@ -54,6 +54,7 @@ public class ComponentsTest {
     }
 
     @Test
+    @Deprecated
     public void testMapOf() {
         Map<String, Integer> map = Components.mapOf(
             "Value1", 1,
