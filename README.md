@@ -47,7 +47,7 @@ detailed description of the framework.
 Running
 -------
 
-JGrapes requires Java 8 SE or newer. Binaries are currently made
+JGrapes requires Java 11 SE or newer. Binaries are currently made
 available at Maven Central.
 
 ```gradle
