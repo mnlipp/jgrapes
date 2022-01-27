@@ -34,7 +34,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import org.jgrapes.core.events.HandlingError;
 import org.jgrapes.core.internal.EventBase;
-import org.jgrapes.core.internal.EventProcessor;
 
 /**
  * This class is the base class for all events.
@@ -204,21 +203,9 @@ public class Event<T> extends EventBase<T> {
     }
 
     /**
-     * Adds the given event to the events to be thrown when this event 
-     * has completed (see {@link #isDone()}). Such an event is called 
-     * a "completion event".
-     * 
-     * Completion events are considered to be caused by the event that 
-     * caused the completed event. If an event *e1* caused an event
-     * *e2* which has a completion event *e2c*, *e1* is only put in 
-     * state completed when *e2c* has been handled.
-     * 
-     * Completion events are handled by the same {@link EventProcessor}
-     * as the event that has been completed.
-     * 
-     * @param completionEvent the completion event to add
-     * @return the object for easy chaining
+     * {@inheritDoc}
      */
+    @Override
     public Event<T> addCompletionEvent(Event<?> completionEvent) {
         if (completionEvents == null) {
             completionEvents = new HashSet<>();

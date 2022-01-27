@@ -25,8 +25,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import org.jgrapes.core.Associator;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.CompletionEvent;
 import org.jgrapes.core.CompletionLock;
 import org.jgrapes.core.Eligible;
 import org.jgrapes.core.Event;
@@ -249,5 +251,46 @@ public abstract class EventBase<T>
     /* default */ boolean isTrackable() {
         return generatedBy == null ? tracked
             : (tracked && generatedBy.isTrackable());
+    }
+
+    /**
+     * Adds the given event to the events to be thrown when this event 
+     * has completed (see {@link #isDone()}). Such an event is called 
+     * a "completion event".
+     * 
+     * Completion events are considered to be caused by the event that 
+     * caused the completed event. If an event *e1* caused an event
+     * *e2* which has a completion event *e2c*, *e1* is only put in 
+     * state completed when *e2c* has been handled.
+     * 
+     * Completion events are handled by the same {@link EventProcessor}
+     * as the event that has been completed.
+     * 
+     * @param completionEvent the completion event to add
+     * @return the object for easy chaining
+     * @see #onCompletion(Event, Consumer)
+     */
+    public abstract Event<T> addCompletionEvent(Event<?> completionEvent);
+
+    /**
+     * Invokes the consumer when the event is completed. This is
+     * a shortcut for registering a {@link CompletionEvent} and
+     * providing a handler for the completion event that invokes 
+     * the consumer.
+     *
+     * @param <T> the result type of the event
+     * @param <E> the type of the event
+     * @param event the event
+     * @param consumer the consumer
+     */
+    public static <T, E extends Event<T>> void onCompletion(E event,
+            Consumer<E> consumer) {
+        event.addCompletionEvent(new ActionEvent<Event<T>>(
+            event.getClass().getSimpleName() + "CompletionAction") {
+            @Override
+            public void execute() throws Exception {
+                consumer.accept(event);
+            }
+        });
     }
 }

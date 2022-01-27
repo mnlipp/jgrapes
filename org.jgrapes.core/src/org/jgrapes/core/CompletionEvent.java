@@ -18,10 +18,14 @@
 
 package org.jgrapes.core;
 
+import org.jgrapes.core.internal.EventBase;
+
 /**
  * A base class for completion events that use the completed event
  * as their result type. Use {@link #event()} to access
  * the completed event while handling the completion event. 
+ * 
+ * @see EventBase#onCompletion(Event, java.util.function.Consumer)
  */
 public abstract class CompletionEvent<T extends Event<?>>
         extends Event<T> {
