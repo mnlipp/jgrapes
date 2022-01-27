@@ -42,9 +42,11 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * Provides child components dynamically using {@link ComponentFactory}s.
  * 
  * An instance is configured with a collection of {@link ComponentFactory}s
- * and component configurations. For each configuration where the
- * referenced factory exists, a component is created and attached to
- * this component provider as child.
+ * (see {@link #setFactories(ComponentFactory...)}) and component 
+ * configurations (see {@link #setPinned(List)} and 
+ * {@link #onConfigurationUpdate(ConfigurationUpdate)}). For each 
+ * configuration where the referenced factory exists, a component is 
+ * created and attached to this component provider as child.
  * 
  * The component configurations can be updated by
  * {@link ConfigurationUpdate} events.
@@ -122,9 +124,10 @@ public class ComponentProvider extends Component {
     }
 
     /**
-     * Selects configuration information from the event. The default
-     * implementation uses the component's path for obtaining the
-     * configuration information. called by 
+     * Selects configuration information targeted at this component
+     * from the event. The default implementation invokes 
+     * {@link ConfigurationUpdate#structured(String)} with this
+     * component's path to obtain the information. Called by 
      * {@link #componentConfigurations(ConfigurationUpdate)}.
      *
      * @param evt the event
