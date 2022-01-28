@@ -21,6 +21,7 @@ package org.jgrapes.util;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -63,8 +64,9 @@ public class ComponentProvider extends Component {
 
     private String componentsEntry = "components";
     private Map<String, ComponentFactory> factoryByType;
-    private List<Map<?, ?>> currentConfig = Collections.emptyList();
-    private List<Map<?, ?>> pinnedConfigurations = Collections.emptyList();
+    private List<Map<Object, Object>> currentConfig = Collections.emptyList();
+    private List<Map<Object, Object>> pinnedConfigurations
+        = Collections.emptyList();
 
     /**
      * Creates a new component with its channel set to this object. 
@@ -120,17 +122,40 @@ public class ComponentProvider extends Component {
     }
 
     /**
-     * Sets the pinned configurations. These configurations are
-     * in effect independent of any information passed by
+     * Gets the factories.
+     *
+     * @return the factories
+     */
+    public Collection<ComponentFactory> getFactories() {
+        return Collections.unmodifiableCollection(factoryByType.values());
+    }
+
+    /**
+     * Sets the pinned configurations. Components provided due to
+     * these configurations exist independent of any information passed by
      * {@link ConfigurationUpdate} events.
      *
      * @param pinnedConfigurations the configurations to be pinned
      * @return the component provider for easy chaining
      */
+    @SuppressWarnings("unchecked")
     public ComponentProvider setPinned(List<Map<?, ?>> pinnedConfigurations) {
-        this.pinnedConfigurations = pinnedConfigurations;
+        this.pinnedConfigurations
+            = Collections.unmodifiableList(pinnedConfigurations.stream()
+                .map(c -> Collections
+                    .unmodifiableMap(new HashMap<>((Map<Object, Object>) c)))
+                .collect(Collectors.toList()));
         synchronize(currentConfig);
         return this;
+    }
+
+    /**
+     * Gets the pinned configurations.
+     *
+     * @return the pinned configurations
+     */
+    public List<Map<Object, Object>> getPinned() {
+        return pinnedConfigurations;
     }
 
     /**
@@ -171,7 +196,8 @@ public class ComponentProvider extends Component {
      * @return the collection
      */
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-    protected List<Map<?, ?>> componentConfigurations(ConfigurationUpdate evt) {
+    protected List<Map<Object, Object>>
+            componentConfigurations(ConfigurationUpdate evt) {
         if (componentsEntry == null) {
             // Shortcut, avoids call to provider configuration.
             return Collections.emptyList();
@@ -187,7 +213,7 @@ public class ComponentProvider extends Component {
                 && String.class.isInstance(c.get(COMPONENT_NAME)))
             .map(c -> {
                 @SuppressWarnings("unchecked") // Checked for relevant entries
-                var casted = (Map<String, String>) c;
+                var casted = (Map<Object, Object>) c;
                 return casted;
             })
             .collect(Collectors.toList());
@@ -205,7 +231,7 @@ public class ComponentProvider extends Component {
     }
 
     @SuppressWarnings("PMD.AvoidSynchronizedAtMethodLevel")
-    private synchronized void synchronize(List<Map<?, ?>> requested) {
+    private synchronized void synchronize(List<Map<Object, Object>> requested) {
         // Calculate starters for to be added/to be removed
         var toBeAdded = new LinkedList<>(requested);
         toBeAdded.addAll(pinnedConfigurations);
