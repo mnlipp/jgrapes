@@ -30,6 +30,7 @@ import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.ComponentFactory;
+import org.jgrapes.util.events.ConfigurationUpdate;
 
 /**
  * A component that collects all component factory services of 
@@ -39,6 +40,14 @@ import org.jgrapes.core.ComponentFactory;
  * Effectively, the component collector leverages the 
  * mechanism provided by the service loader to configure
  * the component subtree rooted at the collector at "link time".
+ * 
+ * This class uses {@link ComponentProvider#setFactories(ComponentFactory...)} 
+ * and {@link ComponentProvider#setPinned(List)} for its implementation.
+ * As it inherits from {@link ComponentProvider}, it automatically
+ * supports the provisioning of additional components through
+ * {@link ConfigurationUpdate} events. If this is not desired, invoke
+ * {@link ComponentProvider#setComponentsEntry(String)} with `null` as
+ * argument. 
  * 
  * @param <F> the component factory type
  */

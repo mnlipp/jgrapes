@@ -87,8 +87,13 @@ public class ComponentProvider extends Component {
 
     /**
      * Sets the name of the entry in a {@link ConfigurationUpdate} event,
-     * that hold s the information about the components to be provided.
-     * Defaults to "components".
+     * that holds the information about the components to be provided.
+     * Defaults to "components". 
+     * 
+     * If set to `null`, handling {@link ConfigurationUpdate} events 
+     * is effectively disabled (unless 
+     * {@link #componentConfigurations(ConfigurationUpdate)}
+     * is overridden by a method that ignores the setting).
      *
      * @param name the name of the entry
      * @return the component provider for easy chaining
@@ -138,7 +143,6 @@ public class ComponentProvider extends Component {
      * @param evt the event
      * @return the configuration information as provided by
      * {@link ConfigurationUpdate#structured(String)} if it exists
-     * 
      */
     protected Optional<Map<String, ?>>
             providerConfiguration(ConfigurationUpdate evt) {
@@ -168,6 +172,10 @@ public class ComponentProvider extends Component {
      */
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     protected List<Map<?, ?>> componentConfigurations(ConfigurationUpdate evt) {
+        if (componentsEntry == null) {
+            // Shortcut, avoids call to provider configuration.
+            return Collections.emptyList();
+        }
         return providerConfiguration(evt)
             .map(conf -> conf.get(componentsEntry))
             .filter(Collection.class::isInstance).map(c -> (Collection<?>) c)
