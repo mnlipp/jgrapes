@@ -99,167 +99,175 @@
 <span class="source-line-no">087</span><span id="line.87"></span>
 <span class="source-line-no">088</span><span id="line.88">    /**</span>
 <span class="source-line-no">089</span><span id="line.89">     * Sets the name of the entry in a {@link ConfigurationUpdate} event,</span>
-<span class="source-line-no">090</span><span id="line.90">     * that hold s the information about the components to be provided.</span>
-<span class="source-line-no">091</span><span id="line.91">     * Defaults to "components".</span>
-<span class="source-line-no">092</span><span id="line.92">     *</span>
-<span class="source-line-no">093</span><span id="line.93">     * @param name the name of the entry</span>
-<span class="source-line-no">094</span><span id="line.94">     * @return the component provider for easy chaining</span>
-<span class="source-line-no">095</span><span id="line.95">     */</span>
-<span class="source-line-no">096</span><span id="line.96">    public ComponentProvider setComponentsEntry(String name) {</span>
-<span class="source-line-no">097</span><span id="line.97">        this.componentsEntry = name;</span>
-<span class="source-line-no">098</span><span id="line.98">        return this;</span>
-<span class="source-line-no">099</span><span id="line.99">    }</span>
-<span class="source-line-no">100</span><span id="line.100"></span>
-<span class="source-line-no">101</span><span id="line.101">    /**</span>
-<span class="source-line-no">102</span><span id="line.102">     * Sets the factories that this provider knows about. Only</span>
-<span class="source-line-no">103</span><span id="line.103">     * configurations with a component type that matches one</span>
-<span class="source-line-no">104</span><span id="line.104">     * of the factories are handled by this provider.</span>
-<span class="source-line-no">105</span><span id="line.105">     *</span>
-<span class="source-line-no">106</span><span id="line.106">     * @param factories the factories</span>
-<span class="source-line-no">107</span><span id="line.107">     * @return the component provider for easy chaining</span>
-<span class="source-line-no">108</span><span id="line.108">     */</span>
-<span class="source-line-no">109</span><span id="line.109">    public ComponentProvider setFactories(ComponentFactory... factories) {</span>
-<span class="source-line-no">110</span><span id="line.110">        factoryByType = Arrays.stream(factories).collect(Collectors</span>
-<span class="source-line-no">111</span><span id="line.111">            .toMap(f -&gt; f.componentType().getName(), Function.identity(),</span>
-<span class="source-line-no">112</span><span id="line.112">                (a, b) -&gt; b));</span>
-<span class="source-line-no">113</span><span id="line.113">        synchronize(currentConfig);</span>
-<span class="source-line-no">114</span><span id="line.114">        return this;</span>
-<span class="source-line-no">115</span><span id="line.115">    }</span>
-<span class="source-line-no">116</span><span id="line.116"></span>
-<span class="source-line-no">117</span><span id="line.117">    /**</span>
-<span class="source-line-no">118</span><span id="line.118">     * Sets the pinned configurations. These configurations are</span>
-<span class="source-line-no">119</span><span id="line.119">     * in effect independent of any information passed by</span>
-<span class="source-line-no">120</span><span id="line.120">     * {@link ConfigurationUpdate} events.</span>
-<span class="source-line-no">121</span><span id="line.121">     *</span>
-<span class="source-line-no">122</span><span id="line.122">     * @param pinnedConfigurations the configurations to be pinned</span>
-<span class="source-line-no">123</span><span id="line.123">     * @return the component provider for easy chaining</span>
-<span class="source-line-no">124</span><span id="line.124">     */</span>
-<span class="source-line-no">125</span><span id="line.125">    public ComponentProvider setPinned(List&lt;Map&lt;?, ?&gt;&gt; pinnedConfigurations) {</span>
-<span class="source-line-no">126</span><span id="line.126">        this.pinnedConfigurations = pinnedConfigurations;</span>
-<span class="source-line-no">127</span><span id="line.127">        synchronize(currentConfig);</span>
-<span class="source-line-no">128</span><span id="line.128">        return this;</span>
-<span class="source-line-no">129</span><span id="line.129">    }</span>
-<span class="source-line-no">130</span><span id="line.130"></span>
-<span class="source-line-no">131</span><span id="line.131">    /**</span>
-<span class="source-line-no">132</span><span id="line.132">     * Selects configuration information targeted at this component</span>
-<span class="source-line-no">133</span><span id="line.133">     * from the event. The default implementation invokes </span>
-<span class="source-line-no">134</span><span id="line.134">     * {@link ConfigurationUpdate#structured(String)} with this</span>
-<span class="source-line-no">135</span><span id="line.135">     * component's path to obtain the information. Called by </span>
-<span class="source-line-no">136</span><span id="line.136">     * {@link #componentConfigurations(ConfigurationUpdate)}.</span>
-<span class="source-line-no">137</span><span id="line.137">     *</span>
-<span class="source-line-no">138</span><span id="line.138">     * @param evt the event</span>
-<span class="source-line-no">139</span><span id="line.139">     * @return the configuration information as provided by</span>
-<span class="source-line-no">140</span><span id="line.140">     * {@link ConfigurationUpdate#structured(String)} if it exists</span>
-<span class="source-line-no">141</span><span id="line.141">     * </span>
-<span class="source-line-no">142</span><span id="line.142">     */</span>
-<span class="source-line-no">143</span><span id="line.143">    protected Optional&lt;Map&lt;String, ?&gt;&gt;</span>
-<span class="source-line-no">144</span><span id="line.144">            providerConfiguration(ConfigurationUpdate evt) {</span>
-<span class="source-line-no">145</span><span id="line.145">        return evt.structured(componentPath());</span>
-<span class="source-line-no">146</span><span id="line.146">    }</span>
-<span class="source-line-no">147</span><span id="line.147"></span>
-<span class="source-line-no">148</span><span id="line.148">    /**</span>
-<span class="source-line-no">149</span><span id="line.149">     * Returns the configurations for the components to be provided.</span>
-<span class="source-line-no">150</span><span id="line.150">     * Overriding this method enables derived classes to fully </span>
-<span class="source-line-no">151</span><span id="line.151">     * control how this information is retrieved from the</span>
-<span class="source-line-no">152</span><span id="line.152">     * {@link ConfigurationUpdate} event.</span>
-<span class="source-line-no">153</span><span id="line.153">     * </span>
-<span class="source-line-no">154</span><span id="line.154">     * This implementation of the method calls </span>
-<span class="source-line-no">155</span><span id="line.155">     * {@link #componentConfigurations(ConfigurationUpdate)} to obtain</span>
-<span class="source-line-no">156</span><span id="line.156">     * all configuration information targeted at this component.</span>
-<span class="source-line-no">157</span><span id="line.157">     * It then uses the configured entry </span>
-<span class="source-line-no">158</span><span id="line.158">     * (see {@link #setComponentsEntry(String)}) to retrieve the information</span>
-<span class="source-line-no">159</span><span id="line.159">     * about the components to be provided.</span>
-<span class="source-line-no">160</span><span id="line.160">     * </span>
-<span class="source-line-no">161</span><span id="line.161">     * The method must ensure that the result is a collection</span>
-<span class="source-line-no">162</span><span id="line.162">     * of maps, where each map has at least entries with</span>
-<span class="source-line-no">163</span><span id="line.163">     * keys "componentType" and "name", each associated with a</span>
-<span class="source-line-no">164</span><span id="line.164">     * value of type {@link String}.</span>
-<span class="source-line-no">165</span><span id="line.165">     * </span>
-<span class="source-line-no">166</span><span id="line.166">     * @param evt the event</span>
-<span class="source-line-no">167</span><span id="line.167">     * @return the collection</span>
-<span class="source-line-no">168</span><span id="line.168">     */</span>
-<span class="source-line-no">169</span><span id="line.169">    @SuppressWarnings("PMD.AvoidDuplicateLiterals")</span>
-<span class="source-line-no">170</span><span id="line.170">    protected List&lt;Map&lt;?, ?&gt;&gt; componentConfigurations(ConfigurationUpdate evt) {</span>
-<span class="source-line-no">171</span><span id="line.171">        return providerConfiguration(evt)</span>
-<span class="source-line-no">172</span><span id="line.172">            .map(conf -&gt; conf.get(componentsEntry))</span>
-<span class="source-line-no">173</span><span id="line.173">            .filter(Collection.class::isInstance).map(c -&gt; (Collection&lt;?&gt;) c)</span>
-<span class="source-line-no">174</span><span id="line.174">            .orElse(Collections.emptyList()).stream()</span>
-<span class="source-line-no">175</span><span id="line.175">            .filter(Map.class::isInstance).map(c -&gt; (Map&lt;?, ?&gt;) c)</span>
-<span class="source-line-no">176</span><span id="line.176">            .filter(c -&gt; c.keySet()</span>
-<span class="source-line-no">177</span><span id="line.177">                .containsAll(Set.of(COMPONENT_TYPE, COMPONENT_NAME))</span>
-<span class="source-line-no">178</span><span id="line.178">                &amp;&amp; String.class.isInstance(c.get(COMPONENT_TYPE))</span>
-<span class="source-line-no">179</span><span id="line.179">                &amp;&amp; String.class.isInstance(c.get(COMPONENT_NAME)))</span>
-<span class="source-line-no">180</span><span id="line.180">            .map(c -&gt; {</span>
-<span class="source-line-no">181</span><span id="line.181">                @SuppressWarnings("unchecked") // Checked for relevant entries</span>
-<span class="source-line-no">182</span><span id="line.182">                var casted = (Map&lt;String, String&gt;) c;</span>
-<span class="source-line-no">183</span><span id="line.183">                return casted;</span>
-<span class="source-line-no">184</span><span id="line.184">            })</span>
-<span class="source-line-no">185</span><span id="line.185">            .collect(Collectors.toList());</span>
-<span class="source-line-no">186</span><span id="line.186">    }</span>
-<span class="source-line-no">187</span><span id="line.187"></span>
-<span class="source-line-no">188</span><span id="line.188">    /**</span>
-<span class="source-line-no">189</span><span id="line.189">     * Uses the information from the event to configure the</span>
-<span class="source-line-no">190</span><span id="line.190">     * provided components.</span>
-<span class="source-line-no">191</span><span id="line.191">     * </span>
-<span class="source-line-no">192</span><span id="line.192">     * @param evt the event</span>
-<span class="source-line-no">193</span><span id="line.193">     */</span>
-<span class="source-line-no">194</span><span id="line.194">    @Handler</span>
-<span class="source-line-no">195</span><span id="line.195">    public void onConfigurationUpdate(ConfigurationUpdate evt) {</span>
-<span class="source-line-no">196</span><span id="line.196">        synchronize(componentConfigurations(evt));</span>
-<span class="source-line-no">197</span><span id="line.197">    }</span>
-<span class="source-line-no">198</span><span id="line.198"></span>
-<span class="source-line-no">199</span><span id="line.199">    @SuppressWarnings("PMD.AvoidSynchronizedAtMethodLevel")</span>
-<span class="source-line-no">200</span><span id="line.200">    private synchronized void synchronize(List&lt;Map&lt;?, ?&gt;&gt; requested) {</span>
-<span class="source-line-no">201</span><span id="line.201">        // Calculate starters for to be added/to be removed</span>
-<span class="source-line-no">202</span><span id="line.202">        var toBeAdded = new LinkedList&lt;&gt;(requested);</span>
-<span class="source-line-no">203</span><span id="line.203">        toBeAdded.addAll(pinnedConfigurations);</span>
-<span class="source-line-no">204</span><span id="line.204">        var toBeRemoved = children().stream()</span>
-<span class="source-line-no">205</span><span id="line.205">            .map(c -&gt; Components.manager(c))</span>
-<span class="source-line-no">206</span><span id="line.206">            .collect(Collectors.toCollection(LinkedList::new));</span>
-<span class="source-line-no">207</span><span id="line.207"></span>
-<span class="source-line-no">208</span><span id="line.208">        // Don't attempt to add something that we have no factory for.</span>
-<span class="source-line-no">209</span><span id="line.209">        toBeAdded = toBeAdded.stream()</span>
-<span class="source-line-no">210</span><span id="line.210">            .filter(c -&gt; factoryByType.containsKey(c.get(COMPONENT_TYPE)))</span>
-<span class="source-line-no">211</span><span id="line.211">            .collect(Collectors.toCollection(LinkedList::new));</span>
-<span class="source-line-no">212</span><span id="line.212"></span>
-<span class="source-line-no">213</span><span id="line.213">        // Remove the intersection of "to be added" and "to be removed" from</span>
-<span class="source-line-no">214</span><span id="line.214">        // both, thus leaving what their names say.</span>
-<span class="source-line-no">215</span><span id="line.215">        for (var childIter = toBeRemoved.iterator();</span>
-<span class="source-line-no">216</span><span id="line.216">                childIter.hasNext();) {</span>
-<span class="source-line-no">217</span><span id="line.217">            var child = childIter.next();</span>
-<span class="source-line-no">218</span><span id="line.218">            @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">219</span><span id="line.219">            var childComp = child.component().getClass().getName();</span>
-<span class="source-line-no">220</span><span id="line.220">            var childName = child.name();</span>
-<span class="source-line-no">221</span><span id="line.221">            for (var confIter = toBeAdded.iterator();</span>
-<span class="source-line-no">222</span><span id="line.222">                    confIter.hasNext();) {</span>
-<span class="source-line-no">223</span><span id="line.223">                var config = confIter.next();</span>
-<span class="source-line-no">224</span><span id="line.224">                var confComp = config.get(COMPONENT_TYPE);</span>
-<span class="source-line-no">225</span><span id="line.225">                var confName = config.get(COMPONENT_NAME);</span>
-<span class="source-line-no">226</span><span id="line.226">                if (confComp.equals(childComp)</span>
-<span class="source-line-no">227</span><span id="line.227">                    &amp;&amp; Objects.equals(childName, confName)) {</span>
-<span class="source-line-no">228</span><span id="line.228">                    confIter.remove();</span>
-<span class="source-line-no">229</span><span id="line.229">                    childIter.remove();</span>
-<span class="source-line-no">230</span><span id="line.230">                }</span>
-<span class="source-line-no">231</span><span id="line.231">            }</span>
-<span class="source-line-no">232</span><span id="line.232">        }</span>
-<span class="source-line-no">233</span><span id="line.233"></span>
-<span class="source-line-no">234</span><span id="line.234">        // Update children</span>
-<span class="source-line-no">235</span><span id="line.235">        for (var child : toBeRemoved) {</span>
-<span class="source-line-no">236</span><span id="line.236">            child.detach();</span>
-<span class="source-line-no">237</span><span id="line.237">        }</span>
-<span class="source-line-no">238</span><span id="line.238">        toBeAdded.stream().map(config -&gt; {</span>
-<span class="source-line-no">239</span><span id="line.239">            return factoryByType.get(config.get(COMPONENT_TYPE))</span>
-<span class="source-line-no">240</span><span id="line.240">                .create(channel(), config).map(</span>
-<span class="source-line-no">241</span><span id="line.241">                    c -&gt; ComponentFactory.setStandardProperties(c, config))</span>
-<span class="source-line-no">242</span><span id="line.242">                .stream();</span>
-<span class="source-line-no">243</span><span id="line.243">        }).flatMap(Function.identity())</span>
-<span class="source-line-no">244</span><span id="line.244">            .forEach(component -&gt; attach(component));</span>
-<span class="source-line-no">245</span><span id="line.245"></span>
-<span class="source-line-no">246</span><span id="line.246">        // Save configuration as current</span>
-<span class="source-line-no">247</span><span id="line.247">        currentConfig = requested;</span>
-<span class="source-line-no">248</span><span id="line.248">    }</span>
-<span class="source-line-no">249</span><span id="line.249"></span>
-<span class="source-line-no">250</span><span id="line.250">}</span>
+<span class="source-line-no">090</span><span id="line.90">     * that holds the information about the components to be provided.</span>
+<span class="source-line-no">091</span><span id="line.91">     * Defaults to "components". </span>
+<span class="source-line-no">092</span><span id="line.92">     * </span>
+<span class="source-line-no">093</span><span id="line.93">     * If set to `null`, handling {@link ConfigurationUpdate} events </span>
+<span class="source-line-no">094</span><span id="line.94">     * is effectively disabled (unless </span>
+<span class="source-line-no">095</span><span id="line.95">     * {@link #componentConfigurations(ConfigurationUpdate)}</span>
+<span class="source-line-no">096</span><span id="line.96">     * is overridden by a method that ignores the setting).</span>
+<span class="source-line-no">097</span><span id="line.97">     *</span>
+<span class="source-line-no">098</span><span id="line.98">     * @param name the name of the entry</span>
+<span class="source-line-no">099</span><span id="line.99">     * @return the component provider for easy chaining</span>
+<span class="source-line-no">100</span><span id="line.100">     */</span>
+<span class="source-line-no">101</span><span id="line.101">    public ComponentProvider setComponentsEntry(String name) {</span>
+<span class="source-line-no">102</span><span id="line.102">        this.componentsEntry = name;</span>
+<span class="source-line-no">103</span><span id="line.103">        return this;</span>
+<span class="source-line-no">104</span><span id="line.104">    }</span>
+<span class="source-line-no">105</span><span id="line.105"></span>
+<span class="source-line-no">106</span><span id="line.106">    /**</span>
+<span class="source-line-no">107</span><span id="line.107">     * Sets the factories that this provider knows about. Only</span>
+<span class="source-line-no">108</span><span id="line.108">     * configurations with a component type that matches one</span>
+<span class="source-line-no">109</span><span id="line.109">     * of the factories are handled by this provider.</span>
+<span class="source-line-no">110</span><span id="line.110">     *</span>
+<span class="source-line-no">111</span><span id="line.111">     * @param factories the factories</span>
+<span class="source-line-no">112</span><span id="line.112">     * @return the component provider for easy chaining</span>
+<span class="source-line-no">113</span><span id="line.113">     */</span>
+<span class="source-line-no">114</span><span id="line.114">    public ComponentProvider setFactories(ComponentFactory... factories) {</span>
+<span class="source-line-no">115</span><span id="line.115">        factoryByType = Arrays.stream(factories).collect(Collectors</span>
+<span class="source-line-no">116</span><span id="line.116">            .toMap(f -&gt; f.componentType().getName(), Function.identity(),</span>
+<span class="source-line-no">117</span><span id="line.117">                (a, b) -&gt; b));</span>
+<span class="source-line-no">118</span><span id="line.118">        synchronize(currentConfig);</span>
+<span class="source-line-no">119</span><span id="line.119">        return this;</span>
+<span class="source-line-no">120</span><span id="line.120">    }</span>
+<span class="source-line-no">121</span><span id="line.121"></span>
+<span class="source-line-no">122</span><span id="line.122">    /**</span>
+<span class="source-line-no">123</span><span id="line.123">     * Sets the pinned configurations. These configurations are</span>
+<span class="source-line-no">124</span><span id="line.124">     * in effect independent of any information passed by</span>
+<span class="source-line-no">125</span><span id="line.125">     * {@link ConfigurationUpdate} events.</span>
+<span class="source-line-no">126</span><span id="line.126">     *</span>
+<span class="source-line-no">127</span><span id="line.127">     * @param pinnedConfigurations the configurations to be pinned</span>
+<span class="source-line-no">128</span><span id="line.128">     * @return the component provider for easy chaining</span>
+<span class="source-line-no">129</span><span id="line.129">     */</span>
+<span class="source-line-no">130</span><span id="line.130">    public ComponentProvider setPinned(List&lt;Map&lt;?, ?&gt;&gt; pinnedConfigurations) {</span>
+<span class="source-line-no">131</span><span id="line.131">        this.pinnedConfigurations = pinnedConfigurations;</span>
+<span class="source-line-no">132</span><span id="line.132">        synchronize(currentConfig);</span>
+<span class="source-line-no">133</span><span id="line.133">        return this;</span>
+<span class="source-line-no">134</span><span id="line.134">    }</span>
+<span class="source-line-no">135</span><span id="line.135"></span>
+<span class="source-line-no">136</span><span id="line.136">    /**</span>
+<span class="source-line-no">137</span><span id="line.137">     * Selects configuration information targeted at this component</span>
+<span class="source-line-no">138</span><span id="line.138">     * from the event. The default implementation invokes </span>
+<span class="source-line-no">139</span><span id="line.139">     * {@link ConfigurationUpdate#structured(String)} with this</span>
+<span class="source-line-no">140</span><span id="line.140">     * component's path to obtain the information. Called by </span>
+<span class="source-line-no">141</span><span id="line.141">     * {@link #componentConfigurations(ConfigurationUpdate)}.</span>
+<span class="source-line-no">142</span><span id="line.142">     *</span>
+<span class="source-line-no">143</span><span id="line.143">     * @param evt the event</span>
+<span class="source-line-no">144</span><span id="line.144">     * @return the configuration information as provided by</span>
+<span class="source-line-no">145</span><span id="line.145">     * {@link ConfigurationUpdate#structured(String)} if it exists</span>
+<span class="source-line-no">146</span><span id="line.146">     */</span>
+<span class="source-line-no">147</span><span id="line.147">    protected Optional&lt;Map&lt;String, ?&gt;&gt;</span>
+<span class="source-line-no">148</span><span id="line.148">            providerConfiguration(ConfigurationUpdate evt) {</span>
+<span class="source-line-no">149</span><span id="line.149">        return evt.structured(componentPath());</span>
+<span class="source-line-no">150</span><span id="line.150">    }</span>
+<span class="source-line-no">151</span><span id="line.151"></span>
+<span class="source-line-no">152</span><span id="line.152">    /**</span>
+<span class="source-line-no">153</span><span id="line.153">     * Returns the configurations for the components to be provided.</span>
+<span class="source-line-no">154</span><span id="line.154">     * Overriding this method enables derived classes to fully </span>
+<span class="source-line-no">155</span><span id="line.155">     * control how this information is retrieved from the</span>
+<span class="source-line-no">156</span><span id="line.156">     * {@link ConfigurationUpdate} event.</span>
+<span class="source-line-no">157</span><span id="line.157">     * </span>
+<span class="source-line-no">158</span><span id="line.158">     * This implementation of the method calls </span>
+<span class="source-line-no">159</span><span id="line.159">     * {@link #componentConfigurations(ConfigurationUpdate)} to obtain</span>
+<span class="source-line-no">160</span><span id="line.160">     * all configuration information targeted at this component.</span>
+<span class="source-line-no">161</span><span id="line.161">     * It then uses the configured entry </span>
+<span class="source-line-no">162</span><span id="line.162">     * (see {@link #setComponentsEntry(String)}) to retrieve the information</span>
+<span class="source-line-no">163</span><span id="line.163">     * about the components to be provided.</span>
+<span class="source-line-no">164</span><span id="line.164">     * </span>
+<span class="source-line-no">165</span><span id="line.165">     * The method must ensure that the result is a collection</span>
+<span class="source-line-no">166</span><span id="line.166">     * of maps, where each map has at least entries with</span>
+<span class="source-line-no">167</span><span id="line.167">     * keys "componentType" and "name", each associated with a</span>
+<span class="source-line-no">168</span><span id="line.168">     * value of type {@link String}.</span>
+<span class="source-line-no">169</span><span id="line.169">     * </span>
+<span class="source-line-no">170</span><span id="line.170">     * @param evt the event</span>
+<span class="source-line-no">171</span><span id="line.171">     * @return the collection</span>
+<span class="source-line-no">172</span><span id="line.172">     */</span>
+<span class="source-line-no">173</span><span id="line.173">    @SuppressWarnings("PMD.AvoidDuplicateLiterals")</span>
+<span class="source-line-no">174</span><span id="line.174">    protected List&lt;Map&lt;?, ?&gt;&gt; componentConfigurations(ConfigurationUpdate evt) {</span>
+<span class="source-line-no">175</span><span id="line.175">        if (componentsEntry == null) {</span>
+<span class="source-line-no">176</span><span id="line.176">            // Shortcut, avoids call to provider configuration.</span>
+<span class="source-line-no">177</span><span id="line.177">            return Collections.emptyList();</span>
+<span class="source-line-no">178</span><span id="line.178">        }</span>
+<span class="source-line-no">179</span><span id="line.179">        return providerConfiguration(evt)</span>
+<span class="source-line-no">180</span><span id="line.180">            .map(conf -&gt; conf.get(componentsEntry))</span>
+<span class="source-line-no">181</span><span id="line.181">            .filter(Collection.class::isInstance).map(c -&gt; (Collection&lt;?&gt;) c)</span>
+<span class="source-line-no">182</span><span id="line.182">            .orElse(Collections.emptyList()).stream()</span>
+<span class="source-line-no">183</span><span id="line.183">            .filter(Map.class::isInstance).map(c -&gt; (Map&lt;?, ?&gt;) c)</span>
+<span class="source-line-no">184</span><span id="line.184">            .filter(c -&gt; c.keySet()</span>
+<span class="source-line-no">185</span><span id="line.185">                .containsAll(Set.of(COMPONENT_TYPE, COMPONENT_NAME))</span>
+<span class="source-line-no">186</span><span id="line.186">                &amp;&amp; String.class.isInstance(c.get(COMPONENT_TYPE))</span>
+<span class="source-line-no">187</span><span id="line.187">                &amp;&amp; String.class.isInstance(c.get(COMPONENT_NAME)))</span>
+<span class="source-line-no">188</span><span id="line.188">            .map(c -&gt; {</span>
+<span class="source-line-no">189</span><span id="line.189">                @SuppressWarnings("unchecked") // Checked for relevant entries</span>
+<span class="source-line-no">190</span><span id="line.190">                var casted = (Map&lt;String, String&gt;) c;</span>
+<span class="source-line-no">191</span><span id="line.191">                return casted;</span>
+<span class="source-line-no">192</span><span id="line.192">            })</span>
+<span class="source-line-no">193</span><span id="line.193">            .collect(Collectors.toList());</span>
+<span class="source-line-no">194</span><span id="line.194">    }</span>
+<span class="source-line-no">195</span><span id="line.195"></span>
+<span class="source-line-no">196</span><span id="line.196">    /**</span>
+<span class="source-line-no">197</span><span id="line.197">     * Uses the information from the event to configure the</span>
+<span class="source-line-no">198</span><span id="line.198">     * provided components.</span>
+<span class="source-line-no">199</span><span id="line.199">     * </span>
+<span class="source-line-no">200</span><span id="line.200">     * @param evt the event</span>
+<span class="source-line-no">201</span><span id="line.201">     */</span>
+<span class="source-line-no">202</span><span id="line.202">    @Handler</span>
+<span class="source-line-no">203</span><span id="line.203">    public void onConfigurationUpdate(ConfigurationUpdate evt) {</span>
+<span class="source-line-no">204</span><span id="line.204">        synchronize(componentConfigurations(evt));</span>
+<span class="source-line-no">205</span><span id="line.205">    }</span>
+<span class="source-line-no">206</span><span id="line.206"></span>
+<span class="source-line-no">207</span><span id="line.207">    @SuppressWarnings("PMD.AvoidSynchronizedAtMethodLevel")</span>
+<span class="source-line-no">208</span><span id="line.208">    private synchronized void synchronize(List&lt;Map&lt;?, ?&gt;&gt; requested) {</span>
+<span class="source-line-no">209</span><span id="line.209">        // Calculate starters for to be added/to be removed</span>
+<span class="source-line-no">210</span><span id="line.210">        var toBeAdded = new LinkedList&lt;&gt;(requested);</span>
+<span class="source-line-no">211</span><span id="line.211">        toBeAdded.addAll(pinnedConfigurations);</span>
+<span class="source-line-no">212</span><span id="line.212">        var toBeRemoved = children().stream()</span>
+<span class="source-line-no">213</span><span id="line.213">            .map(c -&gt; Components.manager(c))</span>
+<span class="source-line-no">214</span><span id="line.214">            .collect(Collectors.toCollection(LinkedList::new));</span>
+<span class="source-line-no">215</span><span id="line.215"></span>
+<span class="source-line-no">216</span><span id="line.216">        // Don't attempt to add something that we have no factory for.</span>
+<span class="source-line-no">217</span><span id="line.217">        toBeAdded = toBeAdded.stream()</span>
+<span class="source-line-no">218</span><span id="line.218">            .filter(c -&gt; factoryByType.containsKey(c.get(COMPONENT_TYPE)))</span>
+<span class="source-line-no">219</span><span id="line.219">            .collect(Collectors.toCollection(LinkedList::new));</span>
+<span class="source-line-no">220</span><span id="line.220"></span>
+<span class="source-line-no">221</span><span id="line.221">        // Remove the intersection of "to be added" and "to be removed" from</span>
+<span class="source-line-no">222</span><span id="line.222">        // both, thus leaving what their names say.</span>
+<span class="source-line-no">223</span><span id="line.223">        for (var childIter = toBeRemoved.iterator();</span>
+<span class="source-line-no">224</span><span id="line.224">                childIter.hasNext();) {</span>
+<span class="source-line-no">225</span><span id="line.225">            var child = childIter.next();</span>
+<span class="source-line-no">226</span><span id="line.226">            @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">227</span><span id="line.227">            var childComp = child.component().getClass().getName();</span>
+<span class="source-line-no">228</span><span id="line.228">            var childName = child.name();</span>
+<span class="source-line-no">229</span><span id="line.229">            for (var confIter = toBeAdded.iterator();</span>
+<span class="source-line-no">230</span><span id="line.230">                    confIter.hasNext();) {</span>
+<span class="source-line-no">231</span><span id="line.231">                var config = confIter.next();</span>
+<span class="source-line-no">232</span><span id="line.232">                var confComp = config.get(COMPONENT_TYPE);</span>
+<span class="source-line-no">233</span><span id="line.233">                var confName = config.get(COMPONENT_NAME);</span>
+<span class="source-line-no">234</span><span id="line.234">                if (confComp.equals(childComp)</span>
+<span class="source-line-no">235</span><span id="line.235">                    &amp;&amp; Objects.equals(childName, confName)) {</span>
+<span class="source-line-no">236</span><span id="line.236">                    confIter.remove();</span>
+<span class="source-line-no">237</span><span id="line.237">                    childIter.remove();</span>
+<span class="source-line-no">238</span><span id="line.238">                }</span>
+<span class="source-line-no">239</span><span id="line.239">            }</span>
+<span class="source-line-no">240</span><span id="line.240">        }</span>
+<span class="source-line-no">241</span><span id="line.241"></span>
+<span class="source-line-no">242</span><span id="line.242">        // Update children</span>
+<span class="source-line-no">243</span><span id="line.243">        for (var child : toBeRemoved) {</span>
+<span class="source-line-no">244</span><span id="line.244">            child.detach();</span>
+<span class="source-line-no">245</span><span id="line.245">        }</span>
+<span class="source-line-no">246</span><span id="line.246">        toBeAdded.stream().map(config -&gt; {</span>
+<span class="source-line-no">247</span><span id="line.247">            return factoryByType.get(config.get(COMPONENT_TYPE))</span>
+<span class="source-line-no">248</span><span id="line.248">                .create(channel(), config).map(</span>
+<span class="source-line-no">249</span><span id="line.249">                    c -&gt; ComponentFactory.setStandardProperties(c, config))</span>
+<span class="source-line-no">250</span><span id="line.250">                .stream();</span>
+<span class="source-line-no">251</span><span id="line.251">        }).flatMap(Function.identity())</span>
+<span class="source-line-no">252</span><span id="line.252">            .forEach(component -&gt; attach(component));</span>
+<span class="source-line-no">253</span><span id="line.253"></span>
+<span class="source-line-no">254</span><span id="line.254">        // Save configuration as current</span>
+<span class="source-line-no">255</span><span id="line.255">        currentConfig = requested;</span>
+<span class="source-line-no">256</span><span id="line.256">    }</span>
+<span class="source-line-no">257</span><span id="line.257"></span>
+<span class="source-line-no">258</span><span id="line.258">}</span>
 
 
 
