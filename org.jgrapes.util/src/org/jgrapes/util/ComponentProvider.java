@@ -63,7 +63,8 @@ public class ComponentProvider extends Component {
     public static final String COMPONENT_NAME = "name";
 
     private String componentsEntry = "components";
-    private Map<String, ComponentFactory> factoryByType;
+    private Map<String, ComponentFactory> factoryByType
+        = Collections.emptyMap();
     private List<Map<Object, Object>> currentConfig = Collections.emptyList();
     private List<Map<Object, Object>> pinnedConfigurations
         = Collections.emptyList();
