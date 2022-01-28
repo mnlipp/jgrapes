@@ -1,6 +1,6 @@
 Bundle-Name: JGrapes Utility Components
 Bundle-SymbolicName: org.jgrapes.util
-Bundle-Copyright: Michael N. Lipp (c) 2016, 2018
+Bundle-Copyright: Michael N. Lipp (c) 2016, 2022
 Bundle-License: http://www.gnu.org/licenses/agpl-3.0.txt
 
 api_version = 1.1.0.${tstamp}
