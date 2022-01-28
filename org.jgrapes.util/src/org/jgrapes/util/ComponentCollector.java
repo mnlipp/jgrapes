@@ -20,6 +20,8 @@ package org.jgrapes.util;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -43,6 +45,9 @@ import org.jgrapes.core.ComponentFactory;
 public class ComponentCollector<F extends ComponentFactory>
         extends ComponentProvider {
 
+    private static final List<Map<Object, Object>> SINGLE_DEFAULT
+        = List.of(Collections.emptyMap());
+
     /**
      * Creates a new collector that collects the factories of the given 
      * type and uses each to create one or more instances with this 
@@ -56,10 +61,10 @@ public class ComponentCollector<F extends ComponentFactory>
      * 
      * @param factoryClass the factory class
      * @param componentChannel this component's channel
-     * @param matcher the matcher function
+     * @param configurator the configurator function
      */
     public ComponentCollector(Class<F> factoryClass, Channel componentChannel,
-            Function<String, List<Map<Object, Object>>> matcher) {
+            Function<String, List<Map<Object, Object>>> configurator) {
         super(componentChannel);
         ServiceLoader<F> serviceLoader = ServiceLoader.load(factoryClass);
 
@@ -75,8 +80,18 @@ public class ComponentCollector<F extends ComponentFactory>
 
         // Obtain a configuration for each factory
         List<Map<?, ?>> configs = Arrays.stream(factories)
-            .map(factory -> matcher.apply(factory.componentType().getName())
-                .stream())
+            .map(factory -> configurator
+                .apply(factory.componentType().getName()).stream().map(c -> {
+                    if (c.containsKey(COMPONENT_TYPE)) {
+                        return c;
+                    }
+                    // The map may be immutable, copy.
+                    @SuppressWarnings("PMD.UseConcurrentHashMap")
+                    Map<Object, Object> newMap = new HashMap<>(c);
+                    newMap.put(COMPONENT_TYPE,
+                        factory.componentType().getName());
+                    return newMap;
+                }))
             .flatMap(Function.identity()).collect(Collectors.toList());
         setPinned(configs);
     }
@@ -89,7 +104,6 @@ public class ComponentCollector<F extends ComponentFactory>
      * @param componentChannel this component's channel
      */
     public ComponentCollector(Class<F> factoryClass, Channel componentChannel) {
-        this(factoryClass, componentChannel, type -> List.of(
-            Map.of("componentType", type)));
+        this(factoryClass, componentChannel, type -> SINGLE_DEFAULT);
     }
 }
