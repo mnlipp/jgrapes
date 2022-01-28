@@ -56,6 +56,11 @@ import org.jgrapes.util.events.ConfigurationUpdate;
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class ComponentProvider extends Component {
 
+    /** The entry name for the component's type. */
+    public static final String COMPONENT_TYPE = "componentType";
+    /** The entry name for the component's name. */
+    public static final String COMPONENT_NAME = "name";
+
     private String componentsEntry = "components";
     private Map<String, ComponentFactory> factoryByType;
     private List<Map<?, ?>> currentConfig = Collections.emptyList();
@@ -168,9 +173,10 @@ public class ComponentProvider extends Component {
             .filter(Collection.class::isInstance).map(c -> (Collection<?>) c)
             .orElse(Collections.emptyList()).stream()
             .filter(Map.class::isInstance).map(c -> (Map<?, ?>) c)
-            .filter(c -> c.keySet().containsAll(Set.of("componentType", "name"))
-                && String.class.isInstance(c.get("componentType"))
-                && String.class.isInstance(c.get("name")))
+            .filter(c -> c.keySet()
+                .containsAll(Set.of(COMPONENT_TYPE, COMPONENT_NAME))
+                && String.class.isInstance(c.get(COMPONENT_TYPE))
+                && String.class.isInstance(c.get(COMPONENT_NAME)))
             .map(c -> {
                 @SuppressWarnings("unchecked") // Checked for relevant entries
                 var casted = (Map<String, String>) c;
@@ -201,7 +207,7 @@ public class ComponentProvider extends Component {
 
         // Don't attempt to add something that we have no factory for.
         toBeAdded = toBeAdded.stream()
-            .filter(c -> factoryByType.containsKey(c.get("componentType")))
+            .filter(c -> factoryByType.containsKey(c.get(COMPONENT_TYPE)))
             .collect(Collectors.toCollection(LinkedList::new));
 
         // Remove the intersection of "to be added" and "to be removed" from
@@ -215,8 +221,8 @@ public class ComponentProvider extends Component {
             for (var confIter = toBeAdded.iterator();
                     confIter.hasNext();) {
                 var config = confIter.next();
-                var confComp = config.get("componentType");
-                var confName = config.get("name");
+                var confComp = config.get(COMPONENT_TYPE);
+                var confName = config.get(COMPONENT_NAME);
                 if (confComp.equals(childComp)
                     && Objects.equals(childName, confName)) {
                     confIter.remove();
@@ -230,7 +236,7 @@ public class ComponentProvider extends Component {
             child.detach();
         }
         toBeAdded.stream().map(config -> {
-            return factoryByType.get(config.get("componentType"))
+            return factoryByType.get(config.get(COMPONENT_TYPE))
                 .create(channel(), config).map(
                     c -> ComponentFactory.setStandardProperties(c, config))
                 .stream();
