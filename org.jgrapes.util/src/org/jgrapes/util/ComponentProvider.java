@@ -126,7 +126,7 @@ public class ComponentProvider extends Component {
      *
      * @return the factories
      */
-    public Collection<ComponentFactory> getFactories() {
+    public Collection<ComponentFactory> factories() {
         return Collections.unmodifiableCollection(factoryByType.values());
     }
 
@@ -154,7 +154,7 @@ public class ComponentProvider extends Component {
      *
      * @return the pinned configurations
      */
-    public List<Map<Object, Object>> getPinned() {
+    public List<Map<Object, Object>> pinned() {
         return pinnedConfigurations;
     }
 
