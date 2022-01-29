@@ -115,20 +115,21 @@ public class ComponentProvider extends Component {
      * @return the component provider for easy chaining
      */
     public ComponentProvider setFactories(ComponentFactory... factories) {
-        factoryByType = Arrays.stream(factories).collect(Collectors
-            .toMap(f -> f.componentType().getName(), Function.identity(),
-                (a, b) -> b));
+        factoryByType = Collections.unmodifiableMap(Arrays.stream(factories)
+            .collect(Collectors
+                .toMap(f -> f.componentType().getName(), Function.identity(),
+                    (a, b) -> b)));
         synchronize(currentConfig);
         return this;
     }
 
     /**
-     * Gets the factories.
+     * Gets the factories as a map, indexed by component type.
      *
      * @return the factories
      */
-    public Collection<ComponentFactory> factories() {
-        return Collections.unmodifiableCollection(factoryByType.values());
+    public Map<String, ComponentFactory> factories() {
+        return factoryByType;
     }
 
     /**
