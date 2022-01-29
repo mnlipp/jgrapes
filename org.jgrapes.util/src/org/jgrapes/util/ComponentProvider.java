@@ -234,55 +234,55 @@ public class ComponentProvider extends Component {
         synchronize(componentConfigurations(evt));
     }
 
-    @SuppressWarnings("PMD.AvoidSynchronizedAtMethodLevel")
-    private synchronized void synchronize(List<Map<Object, Object>> requested) {
-        // Calculate starters for to be added/to be removed
-        var toBeAdded = new LinkedList<>(requested);
-        toBeAdded.addAll(pinnedConfigurations);
-        var toBeRemoved = children().stream()
-            .map(c -> Components.manager(c))
-            .collect(Collectors.toCollection(LinkedList::new));
+    private void synchronize(List<Map<Object, Object>> requested) {
+        synchronized (this) {
+            // Calculate starters for to be added/to be removed
+            var toBeAdded = new LinkedList<>(requested);
+            toBeAdded.addAll(pinnedConfigurations);
+            var toBeRemoved = children().stream()
+                .map(c -> Components.manager(c))
+                .collect(Collectors.toCollection(LinkedList::new));
 
-        // Don't attempt to add something that we have no factory for.
-        toBeAdded = toBeAdded.stream()
-            .filter(c -> factoryByType.containsKey(c.get(COMPONENT_TYPE)))
-            .collect(Collectors.toCollection(LinkedList::new));
+            // Don't attempt to add something that we have no factory for.
+            toBeAdded = toBeAdded.stream()
+                .filter(c -> factoryByType.containsKey(c.get(COMPONENT_TYPE)))
+                .collect(Collectors.toCollection(LinkedList::new));
 
-        // Remove the intersection of "to be added" and "to be removed" from
-        // both, thus leaving what their names say.
-        for (var childIter = toBeRemoved.iterator();
-                childIter.hasNext();) {
-            var child = childIter.next();
-            @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-            var childComp = child.component().getClass().getName();
-            var childName = child.name();
-            for (var confIter = toBeAdded.iterator();
-                    confIter.hasNext();) {
-                var config = confIter.next();
-                var confComp = config.get(COMPONENT_TYPE);
-                var confName = config.get(COMPONENT_NAME);
-                if (confComp.equals(childComp)
-                    && Objects.equals(childName, confName)) {
-                    confIter.remove();
-                    childIter.remove();
+            // Remove the intersection of "to be added" and "to be removed"
+            // from both, thus leaving what their names say.
+            for (var childIter = toBeRemoved.iterator(); childIter.hasNext();) {
+                var child = childIter.next();
+                @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+                var childComp = child.component().getClass().getName();
+                var childName = child.name();
+                for (var confIter = toBeAdded.iterator();
+                        confIter.hasNext();) {
+                    var config = confIter.next();
+                    var confComp = config.get(COMPONENT_TYPE);
+                    var confName = config.get(COMPONENT_NAME);
+                    if (confComp.equals(childComp)
+                        && Objects.equals(childName, confName)) {
+                        confIter.remove();
+                        childIter.remove();
+                    }
                 }
             }
-        }
 
-        // Update children
-        for (var child : toBeRemoved) {
-            child.detach();
-        }
-        toBeAdded.stream().map(config -> {
-            return factoryByType.get(config.get(COMPONENT_TYPE))
-                .create(channel(), config).map(
-                    c -> ComponentFactory.setStandardProperties(c, config))
-                .stream();
-        }).flatMap(Function.identity())
-            .forEach(component -> attach(component));
+            // Update children
+            for (var child : toBeRemoved) {
+                child.detach();
+            }
+            toBeAdded.stream().map(config -> {
+                return factoryByType.get(config.get(COMPONENT_TYPE))
+                    .create(channel(), config).map(
+                        c -> ComponentFactory.setStandardProperties(c, config))
+                    .stream();
+            }).flatMap(Function.identity())
+                .forEach(component -> attach(component));
 
-        // Save configuration as current
-        currentConfig = requested;
+            // Save configuration as current
+            currentConfig = requested;
+        }
     }
 
 }
