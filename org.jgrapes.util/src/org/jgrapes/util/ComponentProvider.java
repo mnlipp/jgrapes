@@ -46,7 +46,7 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * (see {@link #setFactories(ComponentFactory...)}) and component 
  * configurations (see {@link #setPinned(List)} and 
  * {@link #onConfigurationUpdate(ConfigurationUpdate)}). For each 
- * configuration where the referenced factory exists, a component is 
+ * configuration that references a known factory, a component is 
  * created and attached to this component provider as child.
  * 
  * The component configurations can be updated by
@@ -89,7 +89,9 @@ public class ComponentProvider extends Component {
     }
 
     /**
-     * Sets the name of the entry in a {@link ConfigurationUpdate} event,
+     * Sets the name of the entry in this component's configuration
+     * information (as returned by 
+     * {@link #providerConfiguration(ConfigurationUpdate)})
      * that holds the information about the components to be provided.
      * Defaults to "components". 
      * 
