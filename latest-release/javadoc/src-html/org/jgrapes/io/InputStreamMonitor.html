@@ -193,31 +193,32 @@
 <span class="source-line-no">181</span><span id="line.181">                registerAsGenerator();</span>
 <span class="source-line-no">182</span><span id="line.182">                registered = true;</span>
 <span class="source-line-no">183</span><span id="line.183">            }</span>
-<span class="source-line-no">184</span><span id="line.184">            ReadableByteChannel inChannel = Channels.newChannel(input);</span>
-<span class="source-line-no">185</span><span id="line.185">            while (!Thread.currentThread().isInterrupted()) {</span>
-<span class="source-line-no">186</span><span id="line.186">                ManagedBuffer&lt;ByteBuffer&gt; buffer = buffers.acquire();</span>
-<span class="source-line-no">187</span><span id="line.187">                int read = buffer.fillFromChannel(inChannel);</span>
-<span class="source-line-no">188</span><span id="line.188">                boolean eof = read == -1;</span>
-<span class="source-line-no">189</span><span id="line.189">                fire(Input.fromSink(buffer, eof), dataChannel);</span>
-<span class="source-line-no">190</span><span id="line.190">                if (eof) {</span>
-<span class="source-line-no">191</span><span id="line.191">                    break;</span>
-<span class="source-line-no">192</span><span id="line.192">                }</span>
-<span class="source-line-no">193</span><span id="line.193">            }</span>
-<span class="source-line-no">194</span><span id="line.194">        } catch (InterruptedException e) {</span>
-<span class="source-line-no">195</span><span id="line.195">            // Some called stop(), so what?</span>
-<span class="source-line-no">196</span><span id="line.196">        } catch (IOException e) {</span>
-<span class="source-line-no">197</span><span id="line.197">            fire(new IOError(null, e), channel());</span>
-<span class="source-line-no">198</span><span id="line.198">        } finally {</span>
-<span class="source-line-no">199</span><span id="line.199">            synchronized (this) {</span>
-<span class="source-line-no">200</span><span id="line.200">                if (registered) {</span>
-<span class="source-line-no">201</span><span id="line.201">                    unregisterAsGenerator();</span>
-<span class="source-line-no">202</span><span id="line.202">                    registered = false;</span>
-<span class="source-line-no">203</span><span id="line.203">                }</span>
-<span class="source-line-no">204</span><span id="line.204">            }</span>
-<span class="source-line-no">205</span><span id="line.205">        }</span>
-<span class="source-line-no">206</span><span id="line.206">    }</span>
-<span class="source-line-no">207</span><span id="line.207"></span>
-<span class="source-line-no">208</span><span id="line.208">}</span>
+<span class="source-line-no">184</span><span id="line.184">            @SuppressWarnings("PMD.CloseResource")</span>
+<span class="source-line-no">185</span><span id="line.185">            ReadableByteChannel inChannel = Channels.newChannel(input);</span>
+<span class="source-line-no">186</span><span id="line.186">            while (!Thread.currentThread().isInterrupted()) {</span>
+<span class="source-line-no">187</span><span id="line.187">                ManagedBuffer&lt;ByteBuffer&gt; buffer = buffers.acquire();</span>
+<span class="source-line-no">188</span><span id="line.188">                int read = buffer.fillFromChannel(inChannel);</span>
+<span class="source-line-no">189</span><span id="line.189">                boolean eof = read == -1;</span>
+<span class="source-line-no">190</span><span id="line.190">                fire(Input.fromSink(buffer, eof), dataChannel);</span>
+<span class="source-line-no">191</span><span id="line.191">                if (eof) {</span>
+<span class="source-line-no">192</span><span id="line.192">                    break;</span>
+<span class="source-line-no">193</span><span id="line.193">                }</span>
+<span class="source-line-no">194</span><span id="line.194">            }</span>
+<span class="source-line-no">195</span><span id="line.195">        } catch (InterruptedException e) {</span>
+<span class="source-line-no">196</span><span id="line.196">            // Some called stop(), so what?</span>
+<span class="source-line-no">197</span><span id="line.197">        } catch (IOException e) {</span>
+<span class="source-line-no">198</span><span id="line.198">            fire(new IOError(null, e), channel());</span>
+<span class="source-line-no">199</span><span id="line.199">        } finally {</span>
+<span class="source-line-no">200</span><span id="line.200">            synchronized (this) {</span>
+<span class="source-line-no">201</span><span id="line.201">                if (registered) {</span>
+<span class="source-line-no">202</span><span id="line.202">                    unregisterAsGenerator();</span>
+<span class="source-line-no">203</span><span id="line.203">                    registered = false;</span>
+<span class="source-line-no">204</span><span id="line.204">                }</span>
+<span class="source-line-no">205</span><span id="line.205">            }</span>
+<span class="source-line-no">206</span><span id="line.206">        }</span>
+<span class="source-line-no">207</span><span id="line.207">    }</span>
+<span class="source-line-no">208</span><span id="line.208"></span>
+<span class="source-line-no">209</span><span id="line.209">}</span>
 
 
 

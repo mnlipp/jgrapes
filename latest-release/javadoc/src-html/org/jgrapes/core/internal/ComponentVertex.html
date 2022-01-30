@@ -63,7 +63,7 @@
 <span class="source-line-no">051</span><span id="line.51"> * used. </span>
 <span class="source-line-no">052</span><span id="line.52"> */</span>
 <span class="source-line-no">053</span><span id="line.53">@SuppressWarnings({ "PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">054</span><span id="line.54">    "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">054</span><span id="line.54">    "PMD.AvoidDuplicateLiterals", "PMD.GodClass" })</span>
 <span class="source-line-no">055</span><span id="line.55">public abstract class ComponentVertex implements Manager, Channel {</span>
 <span class="source-line-no">056</span><span id="line.56"></span>
 <span class="source-line-no">057</span><span id="line.57">    /** The component's (optional) name. */</span>
@@ -184,7 +184,7 @@
 <span class="source-line-no">172</span><span id="line.172">     * </span>
 <span class="source-line-no">173</span><span id="line.173">     * @return the component</span>
 <span class="source-line-no">174</span><span id="line.174">     */</span>
-<span class="source-line-no">175</span><span id="line.175">    protected abstract ComponentType component();</span>
+<span class="source-line-no">175</span><span id="line.175">    public abstract ComponentType component();</span>
 <span class="source-line-no">176</span><span id="line.176"></span>
 <span class="source-line-no">177</span><span id="line.177">    /*</span>
 <span class="source-line-no">178</span><span id="line.178">     * (non-Javadoc)</span>
@@ -267,7 +267,7 @@
 <span class="source-line-no">255</span><span id="line.255">     */</span>
 <span class="source-line-no">256</span><span id="line.256">    @Override</span>
 <span class="source-line-no">257</span><span id="line.257">    @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",</span>
-<span class="source-line-no">258</span><span id="line.258">        "PMD.NPathComplexity" })</span>
+<span class="source-line-no">258</span><span id="line.258">        "PMD.NPathComplexity", "PMD.CognitiveComplexity" })</span>
 <span class="source-line-no">259</span><span id="line.259">    public &lt;T extends ComponentType&gt; T attach(T child) {</span>
 <span class="source-line-no">260</span><span id="line.260">        synchronized (this) {</span>
 <span class="source-line-no">261</span><span id="line.261">            ComponentVertex childNode = componentVertex(child, null);</span>

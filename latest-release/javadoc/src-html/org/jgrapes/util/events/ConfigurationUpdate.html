@@ -12,7 +12,7 @@
 <div class="source-container">
 <pre><span class="source-line-no">001</span><span id="line.1">/*</span>
 <span class="source-line-no">002</span><span id="line.2"> * JGrapes Event Driven Framework</span>
-<span class="source-line-no">003</span><span id="line.3"> * Copyright (C) 2017-2018 Michael N. Lipp</span>
+<span class="source-line-no">003</span><span id="line.3"> * Copyright (C) 2017-2022 Michael N. Lipp</span>
 <span class="source-line-no">004</span><span id="line.4"> * </span>
 <span class="source-line-no">005</span><span id="line.5"> * This program is free software; you can redistribute it and/or modify it </span>
 <span class="source-line-no">006</span><span id="line.6"> * under the terms of the GNU Affero General Public License as published by </span>
@@ -30,99 +30,309 @@
 <span class="source-line-no">018</span><span id="line.18"></span>
 <span class="source-line-no">019</span><span id="line.19">package org.jgrapes.util.events;</span>
 <span class="source-line-no">020</span><span id="line.20"></span>
-<span class="source-line-no">021</span><span id="line.21">import java.util.Collections;</span>
-<span class="source-line-no">022</span><span id="line.22">import java.util.HashMap;</span>
-<span class="source-line-no">023</span><span id="line.23">import java.util.Map;</span>
-<span class="source-line-no">024</span><span id="line.24">import java.util.Optional;</span>
-<span class="source-line-no">025</span><span id="line.25">import java.util.Set;</span>
-<span class="source-line-no">026</span><span id="line.26">import org.jgrapes.core.Event;</span>
-<span class="source-line-no">027</span><span id="line.27">import org.jgrapes.core.Manager;</span>
-<span class="source-line-no">028</span><span id="line.28"></span>
-<span class="source-line-no">029</span><span id="line.29">/**</span>
-<span class="source-line-no">030</span><span id="line.30"> * An event to indicate that configuration information has been</span>
-<span class="source-line-no">031</span><span id="line.31"> * updated.</span>
-<span class="source-line-no">032</span><span id="line.32"> * </span>
-<span class="source-line-no">033</span><span id="line.33"> * Configurability based on this type of event can optionally be </span>
-<span class="source-line-no">034</span><span id="line.34"> * supported by components. If supported, a component implements a </span>
-<span class="source-line-no">035</span><span id="line.35"> * handler that checks whether the paths of this event include the </span>
-<span class="source-line-no">036</span><span id="line.36"> * component's path in the application's component tree (see </span>
-<span class="source-line-no">037</span><span id="line.37"> * {@link Manager#componentPath()}). If so, the component adapts itself to the </span>
-<span class="source-line-no">038</span><span id="line.38"> * information propagated.</span>
-<span class="source-line-no">039</span><span id="line.39"> */</span>
-<span class="source-line-no">040</span><span id="line.40">public class ConfigurationUpdate extends Event&lt;Void&gt; {</span>
-<span class="source-line-no">041</span><span id="line.41"></span>
-<span class="source-line-no">042</span><span id="line.42">    @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">043</span><span id="line.43">    private final Map&lt;String, Map&lt;String, String&gt;&gt; paths = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">044</span><span id="line.44"></span>
-<span class="source-line-no">045</span><span id="line.45">    /**</span>
-<span class="source-line-no">046</span><span id="line.46">     * Add new (updated) configuration value to the event.</span>
-<span class="source-line-no">047</span><span id="line.47">     * </span>
-<span class="source-line-no">048</span><span id="line.48">     * @param path the value's path</span>
-<span class="source-line-no">049</span><span id="line.49">     * @param key the key of the value</span>
-<span class="source-line-no">050</span><span id="line.50">     * @param value the value</span>
-<span class="source-line-no">051</span><span id="line.51">     * @return the event for easy chaining</span>
-<span class="source-line-no">052</span><span id="line.52">     */</span>
-<span class="source-line-no">053</span><span id="line.53">    public ConfigurationUpdate add(String path, String key, String value) {</span>
-<span class="source-line-no">054</span><span id="line.54">        if (path == null || !path.startsWith("/")) {</span>
-<span class="source-line-no">055</span><span id="line.55">            throw new IllegalArgumentException("Path must start with \"/\".");</span>
-<span class="source-line-no">056</span><span id="line.56">        }</span>
-<span class="source-line-no">057</span><span id="line.57">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">058</span><span id="line.58">        Map&lt;String, String&gt; scoped = paths</span>
-<span class="source-line-no">059</span><span id="line.59">            .computeIfAbsent(path, newKey -&gt; new HashMap&lt;String, String&gt;());</span>
-<span class="source-line-no">060</span><span id="line.60">        scoped.put(key, value);</span>
-<span class="source-line-no">061</span><span id="line.61">        return this;</span>
-<span class="source-line-no">062</span><span id="line.62">    }</span>
-<span class="source-line-no">063</span><span id="line.63"></span>
-<span class="source-line-no">064</span><span id="line.64">    /**</span>
-<span class="source-line-no">065</span><span id="line.65">     * Remove a path from the configuration.</span>
-<span class="source-line-no">066</span><span id="line.66">     * </span>
-<span class="source-line-no">067</span><span id="line.67">     * @param path the path to be removed</span>
-<span class="source-line-no">068</span><span id="line.68">     * @return the event for easy chaining</span>
-<span class="source-line-no">069</span><span id="line.69">     */</span>
-<span class="source-line-no">070</span><span id="line.70">    public ConfigurationUpdate removePath(String path) {</span>
-<span class="source-line-no">071</span><span id="line.71">        if (path == null || !path.startsWith("/")) {</span>
-<span class="source-line-no">072</span><span id="line.72">            throw new IllegalArgumentException("Path must start with \"/\".");</span>
-<span class="source-line-no">073</span><span id="line.73">        }</span>
-<span class="source-line-no">074</span><span id="line.74">        paths.put(path, null);</span>
-<span class="source-line-no">075</span><span id="line.75">        return this;</span>
-<span class="source-line-no">076</span><span id="line.76">    }</span>
-<span class="source-line-no">077</span><span id="line.77"></span>
-<span class="source-line-no">078</span><span id="line.78">    /**</span>
-<span class="source-line-no">079</span><span id="line.79">     * Return all paths affected by this event.</span>
-<span class="source-line-no">080</span><span id="line.80">     * </span>
-<span class="source-line-no">081</span><span id="line.81">     * @return the paths</span>
-<span class="source-line-no">082</span><span id="line.82">     */</span>
-<span class="source-line-no">083</span><span id="line.83">    public Set&lt;String&gt; paths() {</span>
-<span class="source-line-no">084</span><span id="line.84">        return Collections.unmodifiableSet(paths.keySet());</span>
-<span class="source-line-no">085</span><span id="line.85">    }</span>
-<span class="source-line-no">086</span><span id="line.86"></span>
-<span class="source-line-no">087</span><span id="line.87">    /**</span>
-<span class="source-line-no">088</span><span id="line.88">     * Return the values for a given path if they exists.</span>
-<span class="source-line-no">089</span><span id="line.89">     * </span>
-<span class="source-line-no">090</span><span id="line.90">     * @param path the path</span>
-<span class="source-line-no">091</span><span id="line.91">     * @return the updated values or `null` if the path has been</span>
-<span class="source-line-no">092</span><span id="line.92">     * removed (implies the removal of all values for that path).</span>
-<span class="source-line-no">093</span><span id="line.93">     */</span>
-<span class="source-line-no">094</span><span id="line.94">    public Optional&lt;Map&lt;String, String&gt;&gt; values(String path) {</span>
-<span class="source-line-no">095</span><span id="line.95">        Map&lt;String, String&gt; result = paths.get(path);</span>
-<span class="source-line-no">096</span><span id="line.96">        if (result == null) {</span>
-<span class="source-line-no">097</span><span id="line.97">            return Optional.empty();</span>
-<span class="source-line-no">098</span><span id="line.98">        }</span>
-<span class="source-line-no">099</span><span id="line.99">        return Optional.of(Collections.unmodifiableMap(result));</span>
-<span class="source-line-no">100</span><span id="line.100">    }</span>
-<span class="source-line-no">101</span><span id="line.101"></span>
-<span class="source-line-no">102</span><span id="line.102">    /**</span>
-<span class="source-line-no">103</span><span id="line.103">     * Return the value with the given path and key if it exists.</span>
-<span class="source-line-no">104</span><span id="line.104">     * </span>
-<span class="source-line-no">105</span><span id="line.105">     * @param path the path</span>
-<span class="source-line-no">106</span><span id="line.106">     * @param key the key</span>
-<span class="source-line-no">107</span><span id="line.107">     * @return the value</span>
-<span class="source-line-no">108</span><span id="line.108">     */</span>
-<span class="source-line-no">109</span><span id="line.109">    public Optional&lt;String&gt; value(String path, String key) {</span>
-<span class="source-line-no">110</span><span id="line.110">        return Optional.ofNullable(paths.get(path))</span>
-<span class="source-line-no">111</span><span id="line.111">            .flatMap(map -&gt; Optional.ofNullable(map.get(key)));</span>
-<span class="source-line-no">112</span><span id="line.112">    }</span>
-<span class="source-line-no">113</span><span id="line.113">}</span>
+<span class="source-line-no">021</span><span id="line.21">import java.util.ArrayList;</span>
+<span class="source-line-no">022</span><span id="line.22">import java.util.Collection;</span>
+<span class="source-line-no">023</span><span id="line.23">import java.util.Collections;</span>
+<span class="source-line-no">024</span><span id="line.24">import java.util.HashMap;</span>
+<span class="source-line-no">025</span><span id="line.25">import java.util.HashSet;</span>
+<span class="source-line-no">026</span><span id="line.26">import java.util.List;</span>
+<span class="source-line-no">027</span><span id="line.27">import java.util.Map;</span>
+<span class="source-line-no">028</span><span id="line.28">import java.util.Optional;</span>
+<span class="source-line-no">029</span><span id="line.29">import java.util.Set;</span>
+<span class="source-line-no">030</span><span id="line.30">import java.util.StringTokenizer;</span>
+<span class="source-line-no">031</span><span id="line.31">import java.util.TreeMap;</span>
+<span class="source-line-no">032</span><span id="line.32">import java.util.regex.Pattern;</span>
+<span class="source-line-no">033</span><span id="line.33">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">034</span><span id="line.34">import org.jgrapes.core.Manager;</span>
+<span class="source-line-no">035</span><span id="line.35"></span>
+<span class="source-line-no">036</span><span id="line.36">/**</span>
+<span class="source-line-no">037</span><span id="line.37"> * An event to indicate that configuration information has been</span>
+<span class="source-line-no">038</span><span id="line.38"> * updated.</span>
+<span class="source-line-no">039</span><span id="line.39"> * </span>
+<span class="source-line-no">040</span><span id="line.40"> * Configuration information provided by this event is organized</span>
+<span class="source-line-no">041</span><span id="line.41"> * by paths and provided as key/value pairs. The path information</span>
+<span class="source-line-no">042</span><span id="line.42"> * should be used by components to select the information important</span>
+<span class="source-line-no">043</span><span id="line.43"> * to them. Often, a component simply matches the path from the event</span>
+<span class="source-line-no">044</span><span id="line.44"> * with its own path in the component hierarchy </span>
+<span class="source-line-no">045</span><span id="line.45"> * (see {@link Manager#componentPath()}). But paths can also be used</span>
+<span class="source-line-no">046</span><span id="line.46"> * to structure information in a way that is completely independent of</span>
+<span class="source-line-no">047</span><span id="line.47"> * the implementation's structure as the filtering is completely up</span>
+<span class="source-line-no">048</span><span id="line.48"> * to the component.</span>
+<span class="source-line-no">049</span><span id="line.49"> * </span>
+<span class="source-line-no">050</span><span id="line.50"> * Configuration information should be kept simple. Sometimes, however,</span>
+<span class="source-line-no">051</span><span id="line.51"> * it is unavoidable to structure the information associated</span>
+<span class="source-line-no">052</span><span id="line.52"> * with a (logical) key. This should be done by reflecting the structure</span>
+<span class="source-line-no">053</span><span id="line.53"> * in the names of the keys. Names "key.0", "key.1", "key.2"</span>
+<span class="source-line-no">054</span><span id="line.54"> * can be used to express that the value associated with "key" is </span>
+<span class="source-line-no">055</span><span id="line.55"> * actually a list of values. "key.a", "key.b", "key.c" can be used</span>
+<span class="source-line-no">056</span><span id="line.56"> * to associate "key" with a map from "a", "b", "c" to some values.</span>
+<span class="source-line-no">057</span><span id="line.57"> * To support this kind of structuring by keys, the method </span>
+<span class="source-line-no">058</span><span id="line.58"> * {@link #set(String, Map)} can be used to associate a path with</span>
+<span class="source-line-no">059</span><span id="line.59"> * structured information, consisting of (nested) {@link Map}s and </span>
+<span class="source-line-no">060</span><span id="line.60"> * {@link Collection}s. The leaf nodes in this structures are used</span>
+<span class="source-line-no">061</span><span id="line.61"> * as values after applying {@link Object#toString()} to them.</span>
+<span class="source-line-no">062</span><span id="line.62"> * Method {@link #structured(String)} can be used to retrieve information</span>
+<span class="source-line-no">063</span><span id="line.63"> * as structured value, no matter if the information was initially provided</span>
+<span class="source-line-no">064</span><span id="line.64"> * by {@link #set(String, Map)} or by several invocations of</span>
+<span class="source-line-no">065</span><span id="line.65"> * {@link #add(String, String, String)}.</span>
+<span class="source-line-no">066</span><span id="line.66"> * </span>
+<span class="source-line-no">067</span><span id="line.67"> */</span>
+<span class="source-line-no">068</span><span id="line.68">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">069</span><span id="line.69">public class ConfigurationUpdate extends Event&lt;Void&gt; {</span>
+<span class="source-line-no">070</span><span id="line.70"></span>
+<span class="source-line-no">071</span><span id="line.71">    public static final Pattern NUMBER = Pattern.compile("^\\d+$");</span>
+<span class="source-line-no">072</span><span id="line.72"></span>
+<span class="source-line-no">073</span><span id="line.73">    @SuppressWarnings({ "PMD.UseConcurrentHashMap",</span>
+<span class="source-line-no">074</span><span id="line.74">        "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">075</span><span id="line.75">    private final Map&lt;String, Map&lt;String, String&gt;&gt; flatValues = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">076</span><span id="line.76">    @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">077</span><span id="line.77">    private final Map&lt;String, Map&lt;String, ?&gt;&gt; structuredValues</span>
+<span class="source-line-no">078</span><span id="line.78">        = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">079</span><span id="line.79"></span>
+<span class="source-line-no">080</span><span id="line.80">    /**</span>
+<span class="source-line-no">081</span><span id="line.81">     * Each value in the map passed as argument represents properties</span>
+<span class="source-line-no">082</span><span id="line.82">     * as a map of keys and (possibly) structured values (value, </span>
+<span class="source-line-no">083</span><span id="line.83">     * collection or map). Each such map of properties is converted</span>
+<span class="source-line-no">084</span><span id="line.84">     * to a (possibly larger) map of properties where the structural</span>
+<span class="source-line-no">085</span><span id="line.85">     * information has been added to the keys.</span>
+<span class="source-line-no">086</span><span id="line.86">     *</span>
+<span class="source-line-no">087</span><span id="line.87">     * @param structured the map with structured properties</span>
+<span class="source-line-no">088</span><span id="line.88">     * @return the map with flattened properties</span>
+<span class="source-line-no">089</span><span id="line.89">     */</span>
+<span class="source-line-no">090</span><span id="line.90">    private static Map&lt;String, String&gt; flatten(Map&lt;String, ?&gt; structured) {</span>
+<span class="source-line-no">091</span><span id="line.91">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">092</span><span id="line.92">        Map&lt;String, String&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">093</span><span id="line.93">        flattenObject(result, null, structured);</span>
+<span class="source-line-no">094</span><span id="line.94">        return result;</span>
+<span class="source-line-no">095</span><span id="line.95">    }</span>
+<span class="source-line-no">096</span><span id="line.96"></span>
+<span class="source-line-no">097</span><span id="line.97">    @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">098</span><span id="line.98">    private static void flattenObject(Map&lt;String, String&gt; result,</span>
+<span class="source-line-no">099</span><span id="line.99">            String prefix, Object value) {</span>
+<span class="source-line-no">100</span><span id="line.100">        if (value == null) {</span>
+<span class="source-line-no">101</span><span id="line.101">            result.put(prefix, null);</span>
+<span class="source-line-no">102</span><span id="line.102">            return;</span>
+<span class="source-line-no">103</span><span id="line.103">        }</span>
+<span class="source-line-no">104</span><span id="line.104">        if (value instanceof Map) {</span>
+<span class="source-line-no">105</span><span id="line.105">            for (var entry : ((Map&lt;String, ?&gt;) value).entrySet()) {</span>
+<span class="source-line-no">106</span><span id="line.106">                flattenObject(result,</span>
+<span class="source-line-no">107</span><span id="line.107">                    Optional.ofNullable(prefix).map(p -&gt; p + ".").orElse("")</span>
+<span class="source-line-no">108</span><span id="line.108">                        + entry.getKey(),</span>
+<span class="source-line-no">109</span><span id="line.109">                    entry.getValue());</span>
+<span class="source-line-no">110</span><span id="line.110">            }</span>
+<span class="source-line-no">111</span><span id="line.111">            return;</span>
+<span class="source-line-no">112</span><span id="line.112">        }</span>
+<span class="source-line-no">113</span><span id="line.113">        if (value instanceof Collection) {</span>
+<span class="source-line-no">114</span><span id="line.114">            int count = 0;</span>
+<span class="source-line-no">115</span><span id="line.115">            for (var item : (Collection&lt;?&gt;) value) {</span>
+<span class="source-line-no">116</span><span id="line.116">                flattenObject(result, prefix + "." + count++, item);</span>
+<span class="source-line-no">117</span><span id="line.117">            }</span>
+<span class="source-line-no">118</span><span id="line.118">            return;</span>
+<span class="source-line-no">119</span><span id="line.119">        }</span>
+<span class="source-line-no">120</span><span id="line.120">        result.put(prefix, value.toString());</span>
+<span class="source-line-no">121</span><span id="line.121">    }</span>
+<span class="source-line-no">122</span><span id="line.122"></span>
+<span class="source-line-no">123</span><span id="line.123">    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops" })</span>
+<span class="source-line-no">124</span><span id="line.124">    private static Map&lt;String, ?&gt;</span>
+<span class="source-line-no">125</span><span id="line.125">            structure(Map&lt;String, String&gt; flatProperties) {</span>
+<span class="source-line-no">126</span><span id="line.126">        if (flatProperties == null) {</span>
+<span class="source-line-no">127</span><span id="line.127">            return null;</span>
+<span class="source-line-no">128</span><span id="line.128">        }</span>
+<span class="source-line-no">129</span><span id="line.129">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">130</span><span id="line.130">        Map&lt;Object, Object&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">131</span><span id="line.131">        for (var entry : flatProperties.entrySet()) {</span>
+<span class="source-line-no">132</span><span id="line.132">            Map&lt;Object, Object&gt; target = result;</span>
+<span class="source-line-no">133</span><span id="line.133">            // Original key (optionally) consists of dot separated parts</span>
+<span class="source-line-no">134</span><span id="line.134">            StringTokenizer parts = new StringTokenizer(entry.getKey(), ".");</span>
+<span class="source-line-no">135</span><span id="line.135">            while (true) {</span>
+<span class="source-line-no">136</span><span id="line.136">                var part = parts.nextToken();</span>
+<span class="source-line-no">137</span><span id="line.137">                Object key = NUMBER.matcher(part).find()</span>
+<span class="source-line-no">138</span><span id="line.138">                    ? Integer.parseInt(part)</span>
+<span class="source-line-no">139</span><span id="line.139">                    : part;</span>
+<span class="source-line-no">140</span><span id="line.140">                if (!parts.hasMoreTokens()) {</span>
+<span class="source-line-no">141</span><span id="line.141">                    // Last part (of key), store value</span>
+<span class="source-line-no">142</span><span id="line.142">                    target.put(key, entry.getValue());</span>
+<span class="source-line-no">143</span><span id="line.143">                    break;</span>
+<span class="source-line-no">144</span><span id="line.144">                }</span>
+<span class="source-line-no">145</span><span id="line.145">                @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">146</span><span id="line.146">                var newTarget = (Map&lt;Object, Object&gt;) target</span>
+<span class="source-line-no">147</span><span id="line.147">                    .computeIfAbsent(part, k -&gt; new TreeMap&lt;Object, Object&gt;());</span>
+<span class="source-line-no">148</span><span id="line.148">                target = newTarget;</span>
+<span class="source-line-no">149</span><span id="line.149">            }</span>
+<span class="source-line-no">150</span><span id="line.150">        }</span>
+<span class="source-line-no">151</span><span id="line.151"></span>
+<span class="source-line-no">152</span><span id="line.152">        // Now convert all maps that have only Integer keys to lists</span>
+<span class="source-line-no">153</span><span id="line.153">        for (var entry : result.entrySet()) {</span>
+<span class="source-line-no">154</span><span id="line.154">            entry.setValue(maybeConvert(entry.getValue()));</span>
+<span class="source-line-no">155</span><span id="line.155">        }</span>
+<span class="source-line-no">156</span><span id="line.156"></span>
+<span class="source-line-no">157</span><span id="line.157">        // Return result</span>
+<span class="source-line-no">158</span><span id="line.158">        @SuppressWarnings({ "unchecked", "rawtypes" })</span>
+<span class="source-line-no">159</span><span id="line.159">        Map&lt;String, ?&gt; res = (Map&lt;String, ?&gt;) (Map) result;</span>
+<span class="source-line-no">160</span><span id="line.160">        return res;</span>
+<span class="source-line-no">161</span><span id="line.161">    }</span>
+<span class="source-line-no">162</span><span id="line.162"></span>
+<span class="source-line-no">163</span><span id="line.163">    @SuppressWarnings({ "unchecked", "PMD.ConfusingTernary" })</span>
+<span class="source-line-no">164</span><span id="line.164">    private static Object maybeConvert(Object value) {</span>
+<span class="source-line-no">165</span><span id="line.165">        if (!(value instanceof Map)) {</span>
+<span class="source-line-no">166</span><span id="line.166">            return value;</span>
+<span class="source-line-no">167</span><span id="line.167">        }</span>
+<span class="source-line-no">168</span><span id="line.168">        List&lt;Object&gt; converted = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">169</span><span id="line.169">        for (var entry : ((Map&lt;Object, Object&gt;) value).entrySet()) {</span>
+<span class="source-line-no">170</span><span id="line.170">            entry.setValue(maybeConvert(entry.getValue()));</span>
+<span class="source-line-no">171</span><span id="line.171">            if (converted != null &amp;&amp; entry.getKey() instanceof Integer) {</span>
+<span class="source-line-no">172</span><span id="line.172">                converted.add(entry.getValue());</span>
+<span class="source-line-no">173</span><span id="line.173">                continue;</span>
+<span class="source-line-no">174</span><span id="line.174">            }</span>
+<span class="source-line-no">175</span><span id="line.175">            converted = null;</span>
+<span class="source-line-no">176</span><span id="line.176">        }</span>
+<span class="source-line-no">177</span><span id="line.177">        return converted != null ? converted : value;</span>
+<span class="source-line-no">178</span><span id="line.178">    }</span>
+<span class="source-line-no">179</span><span id="line.179"></span>
+<span class="source-line-no">180</span><span id="line.180">    /**</span>
+<span class="source-line-no">181</span><span id="line.181">     * Set new (updated) structured configuration values for the event.</span>
+<span class="source-line-no">182</span><span id="line.182">     * Any information associated with the path before the invocation</span>
+<span class="source-line-no">183</span><span id="line.183">     * of this method is replaced.  </span>
+<span class="source-line-no">184</span><span id="line.184">     * </span>
+<span class="source-line-no">185</span><span id="line.185">     * @param path the value's path</span>
+<span class="source-line-no">186</span><span id="line.186">     * @return the event for easy chaining</span>
+<span class="source-line-no">187</span><span id="line.187">     */</span>
+<span class="source-line-no">188</span><span id="line.188">    public ConfigurationUpdate set(String path, Map&lt;String, ?&gt; values) {</span>
+<span class="source-line-no">189</span><span id="line.189">        if (path == null || !path.startsWith("/")) {</span>
+<span class="source-line-no">190</span><span id="line.190">            throw new IllegalArgumentException("Path must start with \"/\".");</span>
+<span class="source-line-no">191</span><span id="line.191">        }</span>
+<span class="source-line-no">192</span><span id="line.192">        synchronized (this) {</span>
+<span class="source-line-no">193</span><span id="line.193">            flatValues.remove(path);</span>
+<span class="source-line-no">194</span><span id="line.194">            structuredValues.put(path, values);</span>
+<span class="source-line-no">195</span><span id="line.195">        }</span>
+<span class="source-line-no">196</span><span id="line.196">        return this;</span>
+<span class="source-line-no">197</span><span id="line.197">    }</span>
+<span class="source-line-no">198</span><span id="line.198"></span>
+<span class="source-line-no">199</span><span id="line.199">    /**</span>
+<span class="source-line-no">200</span><span id="line.200">     * Return the structured properties for a given path if they exists.</span>
+<span class="source-line-no">201</span><span id="line.201">     * </span>
+<span class="source-line-no">202</span><span id="line.202">     * @param path the path</span>
+<span class="source-line-no">203</span><span id="line.203">     * @return the updated values or `null` if the path has been</span>
+<span class="source-line-no">204</span><span id="line.204">     * removed (implies the removal of all values for that path).</span>
+<span class="source-line-no">205</span><span id="line.205">     */</span>
+<span class="source-line-no">206</span><span id="line.206">    public Optional&lt;Map&lt;String, ?&gt;&gt; structured(String path) {</span>
+<span class="source-line-no">207</span><span id="line.207">        synchronized (this) {</span>
+<span class="source-line-no">208</span><span id="line.208">            Map&lt;String, ?&gt; result;</span>
+<span class="source-line-no">209</span><span id="line.209">            if (!structuredValues.containsKey(path)</span>
+<span class="source-line-no">210</span><span id="line.210">                &amp;&amp; flatValues.containsKey(path)) {</span>
+<span class="source-line-no">211</span><span id="line.211">                // Synchronize to structured and return</span>
+<span class="source-line-no">212</span><span id="line.212">                result = structure(flatValues.get(path));</span>
+<span class="source-line-no">213</span><span id="line.213">                structuredValues.put(path, result);</span>
+<span class="source-line-no">214</span><span id="line.214">            } else {</span>
+<span class="source-line-no">215</span><span id="line.215">                result = structuredValues.get(path);</span>
+<span class="source-line-no">216</span><span id="line.216">            }</span>
+<span class="source-line-no">217</span><span id="line.217">            if (result == null) {</span>
+<span class="source-line-no">218</span><span id="line.218">                return Optional.empty();</span>
+<span class="source-line-no">219</span><span id="line.219">            }</span>
+<span class="source-line-no">220</span><span id="line.220">            return Optional.of(Collections.unmodifiableMap(result));</span>
+<span class="source-line-no">221</span><span id="line.221">        }</span>
+<span class="source-line-no">222</span><span id="line.222">    }</span>
+<span class="source-line-no">223</span><span id="line.223"></span>
+<span class="source-line-no">224</span><span id="line.224">    /**</span>
+<span class="source-line-no">225</span><span id="line.225">     * Add a new (or updated) configuration value to the event.</span>
+<span class="source-line-no">226</span><span id="line.226">     * </span>
+<span class="source-line-no">227</span><span id="line.227">     * @param path the value's path</span>
+<span class="source-line-no">228</span><span id="line.228">     * @param key the key of the value</span>
+<span class="source-line-no">229</span><span id="line.229">     * @param value the value</span>
+<span class="source-line-no">230</span><span id="line.230">     * @return the event for easy chaining</span>
+<span class="source-line-no">231</span><span id="line.231">     */</span>
+<span class="source-line-no">232</span><span id="line.232">    public ConfigurationUpdate add(String path, String key, String value) {</span>
+<span class="source-line-no">233</span><span id="line.233">        if (path == null || !path.startsWith("/")) {</span>
+<span class="source-line-no">234</span><span id="line.234">            throw new IllegalArgumentException("Path must start with \"/\".");</span>
+<span class="source-line-no">235</span><span id="line.235">        }</span>
+<span class="source-line-no">236</span><span id="line.236">        synchronized (this) {</span>
+<span class="source-line-no">237</span><span id="line.237">            if (!flatValues.containsKey(path)</span>
+<span class="source-line-no">238</span><span id="line.238">                &amp;&amp; structuredValues.containsKey(path)) {</span>
+<span class="source-line-no">239</span><span id="line.239">                // Flattened version becomes current, invalidate structured</span>
+<span class="source-line-no">240</span><span id="line.240">                flatValues.put(path, flatten(structuredValues.get(path)));</span>
+<span class="source-line-no">241</span><span id="line.241">            }</span>
+<span class="source-line-no">242</span><span id="line.242">            structuredValues.remove(path);</span>
+<span class="source-line-no">243</span><span id="line.243">            @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">244</span><span id="line.244">            Map&lt;String, String&gt; scoped = flatValues</span>
+<span class="source-line-no">245</span><span id="line.245">                .computeIfAbsent(path, newKey -&gt; new HashMap&lt;String, String&gt;());</span>
+<span class="source-line-no">246</span><span id="line.246">            scoped.put(key, value);</span>
+<span class="source-line-no">247</span><span id="line.247">        }</span>
+<span class="source-line-no">248</span><span id="line.248">        return this;</span>
+<span class="source-line-no">249</span><span id="line.249">    }</span>
+<span class="source-line-no">250</span><span id="line.250"></span>
+<span class="source-line-no">251</span><span id="line.251">    /**</span>
+<span class="source-line-no">252</span><span id="line.252">     * Signal to handlers that a path has been removed from the </span>
+<span class="source-line-no">253</span><span id="line.253">     * configuration.</span>
+<span class="source-line-no">254</span><span id="line.254">     * </span>
+<span class="source-line-no">255</span><span id="line.255">     * @param path the path that has been removed</span>
+<span class="source-line-no">256</span><span id="line.256">     * @return the event for easy chaining</span>
+<span class="source-line-no">257</span><span id="line.257">     */</span>
+<span class="source-line-no">258</span><span id="line.258">    public ConfigurationUpdate removePath(String path) {</span>
+<span class="source-line-no">259</span><span id="line.259">        if (path == null || !path.startsWith("/")) {</span>
+<span class="source-line-no">260</span><span id="line.260">            throw new IllegalArgumentException("Path must start with \"/\".");</span>
+<span class="source-line-no">261</span><span id="line.261">        }</span>
+<span class="source-line-no">262</span><span id="line.262">        synchronized (this) {</span>
+<span class="source-line-no">263</span><span id="line.263">            flatValues.put(path, null);</span>
+<span class="source-line-no">264</span><span id="line.264">            structuredValues.remove(path);</span>
+<span class="source-line-no">265</span><span id="line.265">        }</span>
+<span class="source-line-no">266</span><span id="line.266">        return this;</span>
+<span class="source-line-no">267</span><span id="line.267">    }</span>
+<span class="source-line-no">268</span><span id="line.268"></span>
+<span class="source-line-no">269</span><span id="line.269">    /**</span>
+<span class="source-line-no">270</span><span id="line.270">     * Return all paths affected by this event.</span>
+<span class="source-line-no">271</span><span id="line.271">     * </span>
+<span class="source-line-no">272</span><span id="line.272">     * @return the paths</span>
+<span class="source-line-no">273</span><span id="line.273">     */</span>
+<span class="source-line-no">274</span><span id="line.274">    @SuppressWarnings("PMD.ConfusingTernary")</span>
+<span class="source-line-no">275</span><span id="line.275">    public Set&lt;String&gt; paths() {</span>
+<span class="source-line-no">276</span><span id="line.276">        synchronized (this) {</span>
+<span class="source-line-no">277</span><span id="line.277">            Set&lt;String&gt; result = new HashSet&lt;&gt;(flatValues.keySet());</span>
+<span class="source-line-no">278</span><span id="line.278">            result.addAll(structuredValues.keySet());</span>
+<span class="source-line-no">279</span><span id="line.279">            return result;</span>
+<span class="source-line-no">280</span><span id="line.280">        }</span>
+<span class="source-line-no">281</span><span id="line.281">    }</span>
+<span class="source-line-no">282</span><span id="line.282"></span>
+<span class="source-line-no">283</span><span id="line.283">    /**</span>
+<span class="source-line-no">284</span><span id="line.284">     * Return the properties for a given path if they exists.</span>
+<span class="source-line-no">285</span><span id="line.285">     * </span>
+<span class="source-line-no">286</span><span id="line.286">     * @param path the path</span>
+<span class="source-line-no">287</span><span id="line.287">     * @return the updated values or `null` if the path has been</span>
+<span class="source-line-no">288</span><span id="line.288">     * removed (implies the removal of all values for that path).</span>
+<span class="source-line-no">289</span><span id="line.289">     */</span>
+<span class="source-line-no">290</span><span id="line.290">    public Optional&lt;Map&lt;String, String&gt;&gt; values(String path) {</span>
+<span class="source-line-no">291</span><span id="line.291">        synchronized (this) {</span>
+<span class="source-line-no">292</span><span id="line.292">            Map&lt;String, String&gt; result;</span>
+<span class="source-line-no">293</span><span id="line.293">            if (!flatValues.containsKey(path)</span>
+<span class="source-line-no">294</span><span id="line.294">                &amp;&amp; structuredValues.containsKey(path)) {</span>
+<span class="source-line-no">295</span><span id="line.295">                // Synchronize to flatValues and return</span>
+<span class="source-line-no">296</span><span id="line.296">                result = flatten(structuredValues.get(path));</span>
+<span class="source-line-no">297</span><span id="line.297">                flatValues.put(path, result);</span>
+<span class="source-line-no">298</span><span id="line.298">            } else {</span>
+<span class="source-line-no">299</span><span id="line.299">                result = flatValues.get(path);</span>
+<span class="source-line-no">300</span><span id="line.300">            }</span>
+<span class="source-line-no">301</span><span id="line.301">            if (result == null) {</span>
+<span class="source-line-no">302</span><span id="line.302">                return Optional.empty();</span>
+<span class="source-line-no">303</span><span id="line.303">            }</span>
+<span class="source-line-no">304</span><span id="line.304">            return Optional.of(Collections.unmodifiableMap(result));</span>
+<span class="source-line-no">305</span><span id="line.305">        }</span>
+<span class="source-line-no">306</span><span id="line.306">    }</span>
+<span class="source-line-no">307</span><span id="line.307"></span>
+<span class="source-line-no">308</span><span id="line.308">    /**</span>
+<span class="source-line-no">309</span><span id="line.309">     * Return the value with the given path and key if it exists.</span>
+<span class="source-line-no">310</span><span id="line.310">     * </span>
+<span class="source-line-no">311</span><span id="line.311">     * @param path the path</span>
+<span class="source-line-no">312</span><span id="line.312">     * @param key the key</span>
+<span class="source-line-no">313</span><span id="line.313">     * @return the value</span>
+<span class="source-line-no">314</span><span id="line.314">     */</span>
+<span class="source-line-no">315</span><span id="line.315">    public Optional&lt;String&gt; value(String path, String key) {</span>
+<span class="source-line-no">316</span><span id="line.316">        if (!flatValues.containsKey(path)</span>
+<span class="source-line-no">317</span><span id="line.317">            &amp;&amp; structuredValues.containsKey(path)) {</span>
+<span class="source-line-no">318</span><span id="line.318">            flatValues.put(path, flatten(structuredValues.get(path)));</span>
+<span class="source-line-no">319</span><span id="line.319">        }</span>
+<span class="source-line-no">320</span><span id="line.320">        return Optional.ofNullable(flatValues.get(path))</span>
+<span class="source-line-no">321</span><span id="line.321">            .flatMap(map -&gt; Optional.ofNullable(map.get(key)));</span>
+<span class="source-line-no">322</span><span id="line.322">    }</span>
+<span class="source-line-no">323</span><span id="line.323">}</span>
 
 
 

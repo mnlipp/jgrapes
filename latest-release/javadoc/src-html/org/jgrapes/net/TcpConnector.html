@@ -96,60 +96,61 @@
 <span class="source-line-no">084</span><span id="line.84">    @Handler</span>
 <span class="source-line-no">085</span><span id="line.85">    public void onOpenConnection(OpenTcpConnection event) {</span>
 <span class="source-line-no">086</span><span id="line.86">        try {</span>
-<span class="source-line-no">087</span><span id="line.87">            SocketChannel socketChannel = SocketChannel.open(event.address());</span>
-<span class="source-line-no">088</span><span id="line.88">            channels.add(new TcpChannelImpl(socketChannel));</span>
-<span class="source-line-no">089</span><span id="line.89">        } catch (ConnectException e) {</span>
-<span class="source-line-no">090</span><span id="line.90">            fire(new ConnectError(event, "Connection refused.", e));</span>
-<span class="source-line-no">091</span><span id="line.91">        } catch (IOException e) {</span>
-<span class="source-line-no">092</span><span id="line.92">            fire(new ConnectError(event, "Failed to open TCP connection.", e));</span>
-<span class="source-line-no">093</span><span id="line.93">        }</span>
-<span class="source-line-no">094</span><span id="line.94">    }</span>
-<span class="source-line-no">095</span><span id="line.95"></span>
-<span class="source-line-no">096</span><span id="line.96">    /**</span>
-<span class="source-line-no">097</span><span id="line.97">     * Called when the new socket channel has successfully been registered</span>
-<span class="source-line-no">098</span><span id="line.98">     * with the nio dispatcher.</span>
-<span class="source-line-no">099</span><span id="line.99">     *</span>
-<span class="source-line-no">100</span><span id="line.100">     * @param event the event</span>
-<span class="source-line-no">101</span><span id="line.101">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">102</span><span id="line.102">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">103</span><span id="line.103">     */</span>
-<span class="source-line-no">104</span><span id="line.104">    @Handler(channels = Self.class)</span>
-<span class="source-line-no">105</span><span id="line.105">    public void onRegistered(NioRegistration.Completed event)</span>
-<span class="source-line-no">106</span><span id="line.106">            throws InterruptedException, IOException {</span>
-<span class="source-line-no">107</span><span id="line.107">        NioHandler handler = event.event().handler();</span>
-<span class="source-line-no">108</span><span id="line.108">        if (!(handler instanceof TcpChannelImpl)) {</span>
-<span class="source-line-no">109</span><span id="line.109">            return;</span>
-<span class="source-line-no">110</span><span id="line.110">        }</span>
-<span class="source-line-no">111</span><span id="line.111">        if (event.event().get() == null) {</span>
-<span class="source-line-no">112</span><span id="line.112">            fire(new Error(event, "Registration failed, no NioDispatcher?",</span>
-<span class="source-line-no">113</span><span id="line.113">                new Throwable()));</span>
-<span class="source-line-no">114</span><span id="line.114">            return;</span>
-<span class="source-line-no">115</span><span id="line.115">        }</span>
-<span class="source-line-no">116</span><span id="line.116">        TcpChannelImpl channel = (TcpChannelImpl) handler;</span>
-<span class="source-line-no">117</span><span id="line.117">        channel.registrationComplete(event.event());</span>
-<span class="source-line-no">118</span><span id="line.118">        channel.downPipeline()</span>
-<span class="source-line-no">119</span><span id="line.119">            .fire(new Connected(channel.nioChannel().getLocalAddress(),</span>
-<span class="source-line-no">120</span><span id="line.120">                channel.nioChannel().getRemoteAddress()), channel);</span>
-<span class="source-line-no">121</span><span id="line.121">    }</span>
-<span class="source-line-no">122</span><span id="line.122"></span>
-<span class="source-line-no">123</span><span id="line.123">    /**</span>
-<span class="source-line-no">124</span><span id="line.124">     * Shuts down the one of the connections.</span>
-<span class="source-line-no">125</span><span id="line.125">     *</span>
-<span class="source-line-no">126</span><span id="line.126">     * @param event the event</span>
-<span class="source-line-no">127</span><span id="line.127">     * @throws IOException if an I/O exception occurred</span>
-<span class="source-line-no">128</span><span id="line.128">     * @throws InterruptedException if the execution was interrupted</span>
-<span class="source-line-no">129</span><span id="line.129">     */</span>
-<span class="source-line-no">130</span><span id="line.130">    @Handler</span>
-<span class="source-line-no">131</span><span id="line.131">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">132</span><span id="line.132">    public void onClose(Close event) throws IOException, InterruptedException {</span>
-<span class="source-line-no">133</span><span id="line.133">        for (Channel channel : event.channels()) {</span>
-<span class="source-line-no">134</span><span id="line.134">            if (channel instanceof TcpChannelImpl</span>
-<span class="source-line-no">135</span><span id="line.135">                &amp;&amp; channels.contains(channel)) {</span>
-<span class="source-line-no">136</span><span id="line.136">                ((TcpChannelImpl) channel).close();</span>
-<span class="source-line-no">137</span><span id="line.137">            }</span>
-<span class="source-line-no">138</span><span id="line.138">        }</span>
-<span class="source-line-no">139</span><span id="line.139">    }</span>
-<span class="source-line-no">140</span><span id="line.140">}</span>
+<span class="source-line-no">087</span><span id="line.87">            @SuppressWarnings("PMD.CloseResource")</span>
+<span class="source-line-no">088</span><span id="line.88">            SocketChannel socketChannel = SocketChannel.open(event.address());</span>
+<span class="source-line-no">089</span><span id="line.89">            channels.add(new TcpChannelImpl(socketChannel));</span>
+<span class="source-line-no">090</span><span id="line.90">        } catch (ConnectException e) {</span>
+<span class="source-line-no">091</span><span id="line.91">            fire(new ConnectError(event, "Connection refused.", e));</span>
+<span class="source-line-no">092</span><span id="line.92">        } catch (IOException e) {</span>
+<span class="source-line-no">093</span><span id="line.93">            fire(new ConnectError(event, "Failed to open TCP connection.", e));</span>
+<span class="source-line-no">094</span><span id="line.94">        }</span>
+<span class="source-line-no">095</span><span id="line.95">    }</span>
+<span class="source-line-no">096</span><span id="line.96"></span>
+<span class="source-line-no">097</span><span id="line.97">    /**</span>
+<span class="source-line-no">098</span><span id="line.98">     * Called when the new socket channel has successfully been registered</span>
+<span class="source-line-no">099</span><span id="line.99">     * with the nio dispatcher.</span>
+<span class="source-line-no">100</span><span id="line.100">     *</span>
+<span class="source-line-no">101</span><span id="line.101">     * @param event the event</span>
+<span class="source-line-no">102</span><span id="line.102">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">103</span><span id="line.103">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">104</span><span id="line.104">     */</span>
+<span class="source-line-no">105</span><span id="line.105">    @Handler(channels = Self.class)</span>
+<span class="source-line-no">106</span><span id="line.106">    public void onRegistered(NioRegistration.Completed event)</span>
+<span class="source-line-no">107</span><span id="line.107">            throws InterruptedException, IOException {</span>
+<span class="source-line-no">108</span><span id="line.108">        NioHandler handler = event.event().handler();</span>
+<span class="source-line-no">109</span><span id="line.109">        if (!(handler instanceof TcpChannelImpl)) {</span>
+<span class="source-line-no">110</span><span id="line.110">            return;</span>
+<span class="source-line-no">111</span><span id="line.111">        }</span>
+<span class="source-line-no">112</span><span id="line.112">        if (event.event().get() == null) {</span>
+<span class="source-line-no">113</span><span id="line.113">            fire(new Error(event, "Registration failed, no NioDispatcher?",</span>
+<span class="source-line-no">114</span><span id="line.114">                new Throwable()));</span>
+<span class="source-line-no">115</span><span id="line.115">            return;</span>
+<span class="source-line-no">116</span><span id="line.116">        }</span>
+<span class="source-line-no">117</span><span id="line.117">        TcpChannelImpl channel = (TcpChannelImpl) handler;</span>
+<span class="source-line-no">118</span><span id="line.118">        channel.registrationComplete(event.event());</span>
+<span class="source-line-no">119</span><span id="line.119">        channel.downPipeline()</span>
+<span class="source-line-no">120</span><span id="line.120">            .fire(new Connected(channel.nioChannel().getLocalAddress(),</span>
+<span class="source-line-no">121</span><span id="line.121">                channel.nioChannel().getRemoteAddress()), channel);</span>
+<span class="source-line-no">122</span><span id="line.122">    }</span>
+<span class="source-line-no">123</span><span id="line.123"></span>
+<span class="source-line-no">124</span><span id="line.124">    /**</span>
+<span class="source-line-no">125</span><span id="line.125">     * Shuts down the one of the connections.</span>
+<span class="source-line-no">126</span><span id="line.126">     *</span>
+<span class="source-line-no">127</span><span id="line.127">     * @param event the event</span>
+<span class="source-line-no">128</span><span id="line.128">     * @throws IOException if an I/O exception occurred</span>
+<span class="source-line-no">129</span><span id="line.129">     * @throws InterruptedException if the execution was interrupted</span>
+<span class="source-line-no">130</span><span id="line.130">     */</span>
+<span class="source-line-no">131</span><span id="line.131">    @Handler</span>
+<span class="source-line-no">132</span><span id="line.132">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">133</span><span id="line.133">    public void onClose(Close event) throws IOException, InterruptedException {</span>
+<span class="source-line-no">134</span><span id="line.134">        for (Channel channel : event.channels()) {</span>
+<span class="source-line-no">135</span><span id="line.135">            if (channel instanceof TcpChannelImpl</span>
+<span class="source-line-no">136</span><span id="line.136">                &amp;&amp; channels.contains(channel)) {</span>
+<span class="source-line-no">137</span><span id="line.137">                ((TcpChannelImpl) channel).close();</span>
+<span class="source-line-no">138</span><span id="line.138">            }</span>
+<span class="source-line-no">139</span><span id="line.139">        }</span>
+<span class="source-line-no">140</span><span id="line.140">    }</span>
+<span class="source-line-no">141</span><span id="line.141">}</span>
 
 
 

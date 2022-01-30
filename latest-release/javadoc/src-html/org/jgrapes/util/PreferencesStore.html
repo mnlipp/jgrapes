@@ -71,107 +71,109 @@
 <span class="source-line-no">059</span><span id="line.59"> * the component also listens for {@link ConfigurationUpdate} events</span>
 <span class="source-line-no">060</span><span id="line.60"> * on its channel and updates the preferences store (may be suppressed).</span>
 <span class="source-line-no">061</span><span id="line.61"> */</span>
-<span class="source-line-no">062</span><span id="line.62">public class PreferencesStore extends Component {</span>
-<span class="source-line-no">063</span><span id="line.63"></span>
-<span class="source-line-no">064</span><span id="line.64">    private Preferences preferences;</span>
-<span class="source-line-no">065</span><span id="line.65"></span>
-<span class="source-line-no">066</span><span id="line.66">    /**</span>
-<span class="source-line-no">067</span><span id="line.67">     * Creates a new component with its channel set to the given </span>
-<span class="source-line-no">068</span><span id="line.68">     * channel and a base path derived from the given class.</span>
-<span class="source-line-no">069</span><span id="line.69">     * </span>
-<span class="source-line-no">070</span><span id="line.70">     * @param componentChannel the channel </span>
-<span class="source-line-no">071</span><span id="line.71">     * @param appClass the application class; the base path</span>
-<span class="source-line-no">072</span><span id="line.72">     * is formed by replacing each dot in the class's package's full </span>
-<span class="source-line-no">073</span><span id="line.73">     * name with a slash, prepending a slash, and appending </span>
-<span class="source-line-no">074</span><span id="line.74">     * "`/PreferencesStore`".</span>
-<span class="source-line-no">075</span><span id="line.75">     */</span>
-<span class="source-line-no">076</span><span id="line.76">    public PreferencesStore(Channel componentChannel, Class&lt;?&gt; appClass) {</span>
-<span class="source-line-no">077</span><span id="line.77">        this(componentChannel, appClass, true);</span>
-<span class="source-line-no">078</span><span id="line.78">    }</span>
-<span class="source-line-no">079</span><span id="line.79"></span>
-<span class="source-line-no">080</span><span id="line.80">    /**</span>
-<span class="source-line-no">081</span><span id="line.81">     * Allows the creation of a "read-only" store.</span>
-<span class="source-line-no">082</span><span id="line.82">     * </span>
-<span class="source-line-no">083</span><span id="line.83">     * @param componentChannel the channel </span>
-<span class="source-line-no">084</span><span id="line.84">     * @param appClass the application class; the base path</span>
-<span class="source-line-no">085</span><span id="line.85">     * is formed by replacing each dot in the class's package's full </span>
-<span class="source-line-no">086</span><span id="line.86">     * name with a slash, prepending a slash, and appending </span>
-<span class="source-line-no">087</span><span id="line.87">     * "`/PreferencesStore`".</span>
-<span class="source-line-no">088</span><span id="line.88">     * @param update whether to update the store when </span>
-<span class="source-line-no">089</span><span id="line.89">     * {@link ConfigurationUpdate} events are received</span>
-<span class="source-line-no">090</span><span id="line.90">     * </span>
-<span class="source-line-no">091</span><span id="line.91">     * @see #PreferencesStore(Channel, Class)</span>
-<span class="source-line-no">092</span><span id="line.92">     */</span>
-<span class="source-line-no">093</span><span id="line.93">    public PreferencesStore(</span>
-<span class="source-line-no">094</span><span id="line.94">            Channel componentChannel, Class&lt;?&gt; appClass, boolean update) {</span>
-<span class="source-line-no">095</span><span id="line.95">        super(componentChannel);</span>
-<span class="source-line-no">096</span><span id="line.96">        if (update) {</span>
-<span class="source-line-no">097</span><span id="line.97">            Handler.Evaluator.add(this, "onConfigurationUpdate",</span>
-<span class="source-line-no">098</span><span id="line.98">                channel().defaultCriterion());</span>
-<span class="source-line-no">099</span><span id="line.99">        }</span>
-<span class="source-line-no">100</span><span id="line.100">        preferences = Preferences.userNodeForPackage(appClass)</span>
-<span class="source-line-no">101</span><span id="line.101">            .node("PreferencesStore");</span>
-<span class="source-line-no">102</span><span id="line.102">    }</span>
-<span class="source-line-no">103</span><span id="line.103"></span>
-<span class="source-line-no">104</span><span id="line.104">    /**</span>
-<span class="source-line-no">105</span><span id="line.105">     * Intercepts the {@link Start} event and fires a</span>
-<span class="source-line-no">106</span><span id="line.106">     * {@link ConfigurationUpdate} event.</span>
-<span class="source-line-no">107</span><span id="line.107">     *</span>
-<span class="source-line-no">108</span><span id="line.108">     * @param event the event</span>
-<span class="source-line-no">109</span><span id="line.109">     * @throws BackingStoreException the backing store exception</span>
-<span class="source-line-no">110</span><span id="line.110">     * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">111</span><span id="line.111">     */</span>
-<span class="source-line-no">112</span><span id="line.112">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">113</span><span id="line.113">    @Handler(priority = 999999, channels = Channel.class)</span>
-<span class="source-line-no">114</span><span id="line.114">    public void onStart(Start event)</span>
-<span class="source-line-no">115</span><span id="line.115">            throws BackingStoreException, InterruptedException {</span>
-<span class="source-line-no">116</span><span id="line.116">        InitialPreferences updEvt</span>
-<span class="source-line-no">117</span><span id="line.117">            = new InitialPreferences(preferences.parent().absolutePath());</span>
-<span class="source-line-no">118</span><span id="line.118">        addPrefs(updEvt, preferences.absolutePath(), preferences);</span>
-<span class="source-line-no">119</span><span id="line.119">        newEventPipeline().fire(updEvt, event.channels()).get();</span>
-<span class="source-line-no">120</span><span id="line.120">    }</span>
-<span class="source-line-no">121</span><span id="line.121"></span>
-<span class="source-line-no">122</span><span id="line.122">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">123</span><span id="line.123">    private void addPrefs(</span>
-<span class="source-line-no">124</span><span id="line.124">            InitialPreferences updEvt, String rootPath, Preferences node)</span>
-<span class="source-line-no">125</span><span id="line.125">            throws BackingStoreException {</span>
-<span class="source-line-no">126</span><span id="line.126">        String nodePath = node.absolutePath();</span>
-<span class="source-line-no">127</span><span id="line.127">        String relPath = "/" + nodePath.substring(Math.min(</span>
-<span class="source-line-no">128</span><span id="line.128">            rootPath.length() + 1, nodePath.length()));</span>
-<span class="source-line-no">129</span><span id="line.129">        for (String key : node.keys()) {</span>
-<span class="source-line-no">130</span><span id="line.130">            updEvt.add(relPath, key, node.get(key, null));</span>
-<span class="source-line-no">131</span><span id="line.131">        }</span>
-<span class="source-line-no">132</span><span id="line.132">        for (String child : node.childrenNames()) {</span>
-<span class="source-line-no">133</span><span id="line.133">            addPrefs(updEvt, rootPath, node.node(child));</span>
-<span class="source-line-no">134</span><span id="line.134">        }</span>
-<span class="source-line-no">135</span><span id="line.135">    }</span>
-<span class="source-line-no">136</span><span id="line.136"></span>
-<span class="source-line-no">137</span><span id="line.137">    /**</span>
-<span class="source-line-no">138</span><span id="line.138">     * Merges and saves configuration updates.</span>
-<span class="source-line-no">139</span><span id="line.139">     *</span>
-<span class="source-line-no">140</span><span id="line.140">     * @param event the event</span>
-<span class="source-line-no">141</span><span id="line.141">     * @throws IOException Signals that an I/O exception has occurred.</span>
-<span class="source-line-no">142</span><span id="line.142">     */</span>
-<span class="source-line-no">143</span><span id="line.143">    @Handler(dynamic = true)</span>
-<span class="source-line-no">144</span><span id="line.144">    public void onConfigurationUpdate(ConfigurationUpdate event)</span>
-<span class="source-line-no">145</span><span id="line.145">            throws BackingStoreException {</span>
-<span class="source-line-no">146</span><span id="line.146">        if (event instanceof InitialPreferences) {</span>
-<span class="source-line-no">147</span><span id="line.147">            return;</span>
-<span class="source-line-no">148</span><span id="line.148">        }</span>
-<span class="source-line-no">149</span><span id="line.149">        for (String path : event.paths()) {</span>
-<span class="source-line-no">150</span><span id="line.150">            Optional&lt;Map&lt;String, String&gt;&gt; prefs = event.values(path);</span>
-<span class="source-line-no">151</span><span id="line.151">            path = path.substring(1); // Remove leading slash</span>
-<span class="source-line-no">152</span><span id="line.152">            if (!prefs.isPresent()) {</span>
-<span class="source-line-no">153</span><span id="line.153">                preferences.node(path).removeNode();</span>
-<span class="source-line-no">154</span><span id="line.154">                continue;</span>
-<span class="source-line-no">155</span><span id="line.155">            }</span>
-<span class="source-line-no">156</span><span id="line.156">            for (Map.Entry&lt;String, String&gt; e : prefs.get().entrySet()) {</span>
-<span class="source-line-no">157</span><span id="line.157">                preferences.node(path).put(e.getKey(), e.getValue());</span>
-<span class="source-line-no">158</span><span id="line.158">            }</span>
-<span class="source-line-no">159</span><span id="line.159">        }</span>
-<span class="source-line-no">160</span><span id="line.160">        preferences.flush();</span>
-<span class="source-line-no">161</span><span id="line.161">    }</span>
-<span class="source-line-no">162</span><span id="line.162">}</span>
+<span class="source-line-no">062</span><span id="line.62">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">063</span><span id="line.63">public class PreferencesStore extends Component {</span>
+<span class="source-line-no">064</span><span id="line.64"></span>
+<span class="source-line-no">065</span><span id="line.65">    private Preferences preferences;</span>
+<span class="source-line-no">066</span><span id="line.66"></span>
+<span class="source-line-no">067</span><span id="line.67">    /**</span>
+<span class="source-line-no">068</span><span id="line.68">     * Creates a new component with its channel set to the given </span>
+<span class="source-line-no">069</span><span id="line.69">     * channel and a base path derived from the given class.</span>
+<span class="source-line-no">070</span><span id="line.70">     * </span>
+<span class="source-line-no">071</span><span id="line.71">     * @param componentChannel the channel </span>
+<span class="source-line-no">072</span><span id="line.72">     * @param appClass the application class; the base path</span>
+<span class="source-line-no">073</span><span id="line.73">     * is formed by replacing each dot in the class's package's full </span>
+<span class="source-line-no">074</span><span id="line.74">     * name with a slash, prepending a slash, and appending </span>
+<span class="source-line-no">075</span><span id="line.75">     * "`/PreferencesStore`".</span>
+<span class="source-line-no">076</span><span id="line.76">     */</span>
+<span class="source-line-no">077</span><span id="line.77">    public PreferencesStore(Channel componentChannel, Class&lt;?&gt; appClass) {</span>
+<span class="source-line-no">078</span><span id="line.78">        this(componentChannel, appClass, true);</span>
+<span class="source-line-no">079</span><span id="line.79">    }</span>
+<span class="source-line-no">080</span><span id="line.80"></span>
+<span class="source-line-no">081</span><span id="line.81">    /**</span>
+<span class="source-line-no">082</span><span id="line.82">     * Allows the creation of a "read-only" store.</span>
+<span class="source-line-no">083</span><span id="line.83">     * </span>
+<span class="source-line-no">084</span><span id="line.84">     * @param componentChannel the channel </span>
+<span class="source-line-no">085</span><span id="line.85">     * @param appClass the application class; the base path</span>
+<span class="source-line-no">086</span><span id="line.86">     * is formed by replacing each dot in the class's package's full </span>
+<span class="source-line-no">087</span><span id="line.87">     * name with a slash, prepending a slash, and appending </span>
+<span class="source-line-no">088</span><span id="line.88">     * "`/PreferencesStore`".</span>
+<span class="source-line-no">089</span><span id="line.89">     * @param update whether to update the store when </span>
+<span class="source-line-no">090</span><span id="line.90">     * {@link ConfigurationUpdate} events are received</span>
+<span class="source-line-no">091</span><span id="line.91">     * </span>
+<span class="source-line-no">092</span><span id="line.92">     * @see #PreferencesStore(Channel, Class)</span>
+<span class="source-line-no">093</span><span id="line.93">     */</span>
+<span class="source-line-no">094</span><span id="line.94">    public PreferencesStore(</span>
+<span class="source-line-no">095</span><span id="line.95">            Channel componentChannel, Class&lt;?&gt; appClass, boolean update) {</span>
+<span class="source-line-no">096</span><span id="line.96">        super(componentChannel);</span>
+<span class="source-line-no">097</span><span id="line.97">        if (update) {</span>
+<span class="source-line-no">098</span><span id="line.98">            Handler.Evaluator.add(this, "onConfigurationUpdate",</span>
+<span class="source-line-no">099</span><span id="line.99">                channel().defaultCriterion());</span>
+<span class="source-line-no">100</span><span id="line.100">        }</span>
+<span class="source-line-no">101</span><span id="line.101">        preferences = Preferences.userNodeForPackage(appClass)</span>
+<span class="source-line-no">102</span><span id="line.102">            .node("PreferencesStore");</span>
+<span class="source-line-no">103</span><span id="line.103">    }</span>
+<span class="source-line-no">104</span><span id="line.104"></span>
+<span class="source-line-no">105</span><span id="line.105">    /**</span>
+<span class="source-line-no">106</span><span id="line.106">     * Intercepts the {@link Start} event and fires a</span>
+<span class="source-line-no">107</span><span id="line.107">     * {@link ConfigurationUpdate} event.</span>
+<span class="source-line-no">108</span><span id="line.108">     *</span>
+<span class="source-line-no">109</span><span id="line.109">     * @param event the event</span>
+<span class="source-line-no">110</span><span id="line.110">     * @throws BackingStoreException the backing store exception</span>
+<span class="source-line-no">111</span><span id="line.111">     * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">112</span><span id="line.112">     */</span>
+<span class="source-line-no">113</span><span id="line.113">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">114</span><span id="line.114">    @Handler(priority = 999_999, channels = Channel.class)</span>
+<span class="source-line-no">115</span><span id="line.115">    public void onStart(Start event)</span>
+<span class="source-line-no">116</span><span id="line.116">            throws BackingStoreException, InterruptedException {</span>
+<span class="source-line-no">117</span><span id="line.117">        InitialPreferences updEvt</span>
+<span class="source-line-no">118</span><span id="line.118">            = new InitialPreferences(preferences.parent().absolutePath());</span>
+<span class="source-line-no">119</span><span id="line.119">        addPrefs(updEvt, preferences.absolutePath(), preferences);</span>
+<span class="source-line-no">120</span><span id="line.120">        newEventPipeline().fire(updEvt, event.channels()).get();</span>
+<span class="source-line-no">121</span><span id="line.121">    }</span>
+<span class="source-line-no">122</span><span id="line.122"></span>
+<span class="source-line-no">123</span><span id="line.123">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">124</span><span id="line.124">    private void addPrefs(</span>
+<span class="source-line-no">125</span><span id="line.125">            InitialPreferences updEvt, String rootPath, Preferences node)</span>
+<span class="source-line-no">126</span><span id="line.126">            throws BackingStoreException {</span>
+<span class="source-line-no">127</span><span id="line.127">        String nodePath = node.absolutePath();</span>
+<span class="source-line-no">128</span><span id="line.128">        String relPath = "/" + nodePath.substring(Math.min(</span>
+<span class="source-line-no">129</span><span id="line.129">            rootPath.length() + 1, nodePath.length()));</span>
+<span class="source-line-no">130</span><span id="line.130">        for (String key : node.keys()) {</span>
+<span class="source-line-no">131</span><span id="line.131">            updEvt.add(relPath, key, node.get(key, null));</span>
+<span class="source-line-no">132</span><span id="line.132">        }</span>
+<span class="source-line-no">133</span><span id="line.133">        for (String child : node.childrenNames()) {</span>
+<span class="source-line-no">134</span><span id="line.134">            addPrefs(updEvt, rootPath, node.node(child));</span>
+<span class="source-line-no">135</span><span id="line.135">        }</span>
+<span class="source-line-no">136</span><span id="line.136">    }</span>
+<span class="source-line-no">137</span><span id="line.137"></span>
+<span class="source-line-no">138</span><span id="line.138">    /**</span>
+<span class="source-line-no">139</span><span id="line.139">     * Merges and saves configuration updates.</span>
+<span class="source-line-no">140</span><span id="line.140">     *</span>
+<span class="source-line-no">141</span><span id="line.141">     * @param event the event</span>
+<span class="source-line-no">142</span><span id="line.142">     * @throws IOException Signals that an I/O exception has occurred.</span>
+<span class="source-line-no">143</span><span id="line.143">     */</span>
+<span class="source-line-no">144</span><span id="line.144">    @Handler(dynamic = true)</span>
+<span class="source-line-no">145</span><span id="line.145">    @SuppressWarnings("PMD.AvoidReassigningLoopVariables")</span>
+<span class="source-line-no">146</span><span id="line.146">    public void onConfigurationUpdate(ConfigurationUpdate event)</span>
+<span class="source-line-no">147</span><span id="line.147">            throws BackingStoreException {</span>
+<span class="source-line-no">148</span><span id="line.148">        if (event instanceof InitialPreferences) {</span>
+<span class="source-line-no">149</span><span id="line.149">            return;</span>
+<span class="source-line-no">150</span><span id="line.150">        }</span>
+<span class="source-line-no">151</span><span id="line.151">        for (String path : event.paths()) {</span>
+<span class="source-line-no">152</span><span id="line.152">            Optional&lt;Map&lt;String, String&gt;&gt; prefs = event.values(path);</span>
+<span class="source-line-no">153</span><span id="line.153">            path = path.substring(1); // Remove leading slash</span>
+<span class="source-line-no">154</span><span id="line.154">            if (!prefs.isPresent()) {</span>
+<span class="source-line-no">155</span><span id="line.155">                preferences.node(path).removeNode();</span>
+<span class="source-line-no">156</span><span id="line.156">                continue;</span>
+<span class="source-line-no">157</span><span id="line.157">            }</span>
+<span class="source-line-no">158</span><span id="line.158">            for (Map.Entry&lt;String, String&gt; e : prefs.get().entrySet()) {</span>
+<span class="source-line-no">159</span><span id="line.159">                preferences.node(path).put(e.getKey(), e.getValue());</span>
+<span class="source-line-no">160</span><span id="line.160">            }</span>
+<span class="source-line-no">161</span><span id="line.161">        }</span>
+<span class="source-line-no">162</span><span id="line.162">        preferences.flush();</span>
+<span class="source-line-no">163</span><span id="line.163">    }</span>
+<span class="source-line-no">164</span><span id="line.164">}</span>
 
 
 

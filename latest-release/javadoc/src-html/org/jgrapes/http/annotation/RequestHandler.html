@@ -236,7 +236,7 @@
 <span class="source-line-no">224</span><span id="line.224">             */</span>
 <span class="source-line-no">225</span><span id="line.225">            @SuppressWarnings({ "PMD.CyclomaticComplexity",</span>
 <span class="source-line-no">226</span><span id="line.226">                "PMD.NPathComplexity", "PMD.AvoidDeeplyNestedIfStmts",</span>
-<span class="source-line-no">227</span><span id="line.227">                "PMD.CollapsibleIfStatements",</span>
+<span class="source-line-no">227</span><span id="line.227">                "PMD.CollapsibleIfStatements", "PMD.CognitiveComplexity",</span>
 <span class="source-line-no">228</span><span id="line.228">                "PMD.AvoidInstantiatingObjectsInLoops" })</span>
 <span class="source-line-no">229</span><span id="line.229">            public Scope(ComponentType component,</span>
 <span class="source-line-no">230</span><span id="line.230">                    Method method, RequestHandler annotation,</span>
@@ -297,7 +297,7 @@
 <span class="source-line-no">285</span><span id="line.285"></span>
 <span class="source-line-no">286</span><span id="line.286">                try {</span>
 <span class="source-line-no">287</span><span id="line.287">                    // Get all paths from the annotation.</span>
-<span class="source-line-no">288</span><span id="line.288">                    if (!annotation.patterns()[0].equals("")) {</span>
+<span class="source-line-no">288</span><span id="line.288">                    if (!annotation.patterns()[0].isEmpty()) {</span>
 <span class="source-line-no">289</span><span id="line.289">                        for (String p : annotation.patterns()) {</span>
 <span class="source-line-no">290</span><span id="line.290">                            handledPatterns.add(new ResourcePattern(p));</span>
 <span class="source-line-no">291</span><span id="line.291">                        }</span>
@@ -314,7 +314,7 @@
 <span class="source-line-no">302</span><span id="line.302"></span>
 <span class="source-line-no">303</span><span id="line.303">            @Override</span>
 <span class="source-line-no">304</span><span id="line.304">            @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">305</span><span id="line.305">                "PMD.NPathComplexity" })</span>
+<span class="source-line-no">305</span><span id="line.305">                "PMD.NPathComplexity", "PMD.CognitiveComplexity" })</span>
 <span class="source-line-no">306</span><span id="line.306">            public boolean includes(Eligible event, Eligible[] channels) {</span>
 <span class="source-line-no">307</span><span id="line.307">                boolean match = false;</span>
 <span class="source-line-no">308</span><span id="line.308">                for (Object eventType : handledEventTypes) {</span>

@@ -149,44 +149,45 @@
 <span class="source-line-no">137</span><span id="line.137">    @Handler</span>
 <span class="source-line-no">138</span><span id="line.138">    public void onNioRegistration(NioRegistration event)</span>
 <span class="source-line-no">139</span><span id="line.139">            throws IOException {</span>
-<span class="source-line-no">140</span><span id="line.140">        SelectableChannel channel = event.ioChannel();</span>
-<span class="source-line-no">141</span><span id="line.141">        channel.configureBlocking(false);</span>
-<span class="source-line-no">142</span><span id="line.142">        SelectionKey key;</span>
-<span class="source-line-no">143</span><span id="line.143">        synchronized (selectorGate) {</span>
-<span class="source-line-no">144</span><span id="line.144">            selector.wakeup(); // make sure selector isn't blocking</span>
-<span class="source-line-no">145</span><span id="line.145">            key = channel.register(</span>
-<span class="source-line-no">146</span><span id="line.146">                selector, event.ops(), event.handler());</span>
-<span class="source-line-no">147</span><span id="line.147">        }</span>
-<span class="source-line-no">148</span><span id="line.148">        event.setResult(new Registration(key));</span>
-<span class="source-line-no">149</span><span id="line.149">    }</span>
-<span class="source-line-no">150</span><span id="line.150"></span>
-<span class="source-line-no">151</span><span id="line.151">    /**</span>
-<span class="source-line-no">152</span><span id="line.152">     * Represents a NIO registration.</span>
-<span class="source-line-no">153</span><span id="line.153">     */</span>
-<span class="source-line-no">154</span><span id="line.154">    public class Registration extends NioRegistration.Registration {</span>
-<span class="source-line-no">155</span><span id="line.155"></span>
-<span class="source-line-no">156</span><span id="line.156">        private final SelectionKey key;</span>
-<span class="source-line-no">157</span><span id="line.157"></span>
-<span class="source-line-no">158</span><span id="line.158">        /**</span>
-<span class="source-line-no">159</span><span id="line.159">         * Instantiates a new registration.</span>
-<span class="source-line-no">160</span><span id="line.160">         *</span>
-<span class="source-line-no">161</span><span id="line.161">         * @param key the key</span>
-<span class="source-line-no">162</span><span id="line.162">         */</span>
-<span class="source-line-no">163</span><span id="line.163">        public Registration(SelectionKey key) {</span>
-<span class="source-line-no">164</span><span id="line.164">            super();</span>
-<span class="source-line-no">165</span><span id="line.165">            this.key = key;</span>
-<span class="source-line-no">166</span><span id="line.166">        }</span>
-<span class="source-line-no">167</span><span id="line.167"></span>
-<span class="source-line-no">168</span><span id="line.168">        @Override</span>
-<span class="source-line-no">169</span><span id="line.169">        public void updateInterested(int ops) {</span>
-<span class="source-line-no">170</span><span id="line.170">            synchronized (selectorGate) {</span>
-<span class="source-line-no">171</span><span id="line.171">                selector.wakeup(); // make sure selector isn't blocking</span>
-<span class="source-line-no">172</span><span id="line.172">                key.interestOps(ops);</span>
-<span class="source-line-no">173</span><span id="line.173">            }</span>
-<span class="source-line-no">174</span><span id="line.174">        }</span>
-<span class="source-line-no">175</span><span id="line.175">    }</span>
-<span class="source-line-no">176</span><span id="line.176"></span>
-<span class="source-line-no">177</span><span id="line.177">}</span>
+<span class="source-line-no">140</span><span id="line.140">        @SuppressWarnings("PMD.CloseResource")</span>
+<span class="source-line-no">141</span><span id="line.141">        SelectableChannel channel = event.ioChannel();</span>
+<span class="source-line-no">142</span><span id="line.142">        channel.configureBlocking(false);</span>
+<span class="source-line-no">143</span><span id="line.143">        SelectionKey key;</span>
+<span class="source-line-no">144</span><span id="line.144">        synchronized (selectorGate) {</span>
+<span class="source-line-no">145</span><span id="line.145">            selector.wakeup(); // make sure selector isn't blocking</span>
+<span class="source-line-no">146</span><span id="line.146">            key = channel.register(</span>
+<span class="source-line-no">147</span><span id="line.147">                selector, event.ops(), event.handler());</span>
+<span class="source-line-no">148</span><span id="line.148">        }</span>
+<span class="source-line-no">149</span><span id="line.149">        event.setResult(new Registration(key));</span>
+<span class="source-line-no">150</span><span id="line.150">    }</span>
+<span class="source-line-no">151</span><span id="line.151"></span>
+<span class="source-line-no">152</span><span id="line.152">    /**</span>
+<span class="source-line-no">153</span><span id="line.153">     * Represents a NIO registration.</span>
+<span class="source-line-no">154</span><span id="line.154">     */</span>
+<span class="source-line-no">155</span><span id="line.155">    public class Registration extends NioRegistration.Registration {</span>
+<span class="source-line-no">156</span><span id="line.156"></span>
+<span class="source-line-no">157</span><span id="line.157">        private final SelectionKey key;</span>
+<span class="source-line-no">158</span><span id="line.158"></span>
+<span class="source-line-no">159</span><span id="line.159">        /**</span>
+<span class="source-line-no">160</span><span id="line.160">         * Instantiates a new registration.</span>
+<span class="source-line-no">161</span><span id="line.161">         *</span>
+<span class="source-line-no">162</span><span id="line.162">         * @param key the key</span>
+<span class="source-line-no">163</span><span id="line.163">         */</span>
+<span class="source-line-no">164</span><span id="line.164">        public Registration(SelectionKey key) {</span>
+<span class="source-line-no">165</span><span id="line.165">            super();</span>
+<span class="source-line-no">166</span><span id="line.166">            this.key = key;</span>
+<span class="source-line-no">167</span><span id="line.167">        }</span>
+<span class="source-line-no">168</span><span id="line.168"></span>
+<span class="source-line-no">169</span><span id="line.169">        @Override</span>
+<span class="source-line-no">170</span><span id="line.170">        public void updateInterested(int ops) {</span>
+<span class="source-line-no">171</span><span id="line.171">            synchronized (selectorGate) {</span>
+<span class="source-line-no">172</span><span id="line.172">                selector.wakeup(); // make sure selector isn't blocking</span>
+<span class="source-line-no">173</span><span id="line.173">                key.interestOps(ops);</span>
+<span class="source-line-no">174</span><span id="line.174">            }</span>
+<span class="source-line-no">175</span><span id="line.175">        }</span>
+<span class="source-line-no">176</span><span id="line.176">    }</span>
+<span class="source-line-no">177</span><span id="line.177"></span>
+<span class="source-line-no">178</span><span id="line.178">}</span>
 
 
 

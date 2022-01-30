@@ -160,7 +160,7 @@
 <span class="source-line-no">148</span><span id="line.148">            if (patternBase.endsWith("/")) {</span>
 <span class="source-line-no">149</span><span id="line.149">                patternBase = path.substring(0, path.length() - 1);</span>
 <span class="source-line-no">150</span><span id="line.150">            }</span>
-<span class="source-line-no">151</span><span id="line.151">            pattern = path + "," + path + "/**";</span>
+<span class="source-line-no">151</span><span id="line.151">            pattern = patternBase + "|," + patternBase + "/**";</span>
 <span class="source-line-no">152</span><span id="line.152">        }</span>
 <span class="source-line-no">153</span><span id="line.153">        return pattern;</span>
 <span class="source-line-no">154</span><span id="line.154">    }</span>
