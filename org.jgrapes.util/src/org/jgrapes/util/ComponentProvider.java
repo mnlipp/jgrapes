@@ -45,12 +45,10 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * An instance is configured with a collection of {@link ComponentFactory}s
  * (see {@link #setFactories(ComponentFactory...)}) and component 
  * configurations (see {@link #setPinned(List)} and 
- * {@link #onConfigurationUpdate(ConfigurationUpdate)}). For each 
- * configuration that references a known factory, a component is 
- * created and attached to this component provider as child.
+ * {@link #onConfigurationUpdate(ConfigurationUpdate)}). 
  * 
- * The component configurations can be updated by
- * {@link ConfigurationUpdate} events.
+ * For each configuration that references a known factory, a component is 
+ * created and attached to this component provider as child.
  * 
  * @since 1.3
  */
@@ -179,14 +177,15 @@ public class ComponentProvider extends Component {
     }
 
     /**
-     * Returns the configurations for the components to be provided.
+     * Retrieves the configurations for components to be provided
+     * from an entry in a {@link ConfigurationUpdate} event.
      * Overriding this method enables derived classes to fully 
      * control how this information is retrieved from the
      * {@link ConfigurationUpdate} event.
      * 
      * This implementation of the method calls 
-     * {@link #componentConfigurations(ConfigurationUpdate)} to obtain
-     * all configuration information targeted at this component.
+     * {@link #providerConfiguration(ConfigurationUpdate)} to obtain
+     * all configuration information targeted at this component provider.
      * It then uses the configured entry 
      * (see {@link #setComponentsEntry(String)}) to retrieve the information
      * about the components to be provided.
@@ -227,6 +226,7 @@ public class ComponentProvider extends Component {
      * Uses the information from the event to configure the
      * provided components.
      * 
+     * @see #componentConfigurations(ConfigurationUpdate)
      * @param evt the event
      */
     @Handler
