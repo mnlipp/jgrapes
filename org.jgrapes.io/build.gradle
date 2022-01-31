@@ -11,6 +11,8 @@ sourceSets {
     }
 }
 
+releaseVersion = "1.3.2"
+
 jar {
     dependsOn ":org.jgrapes.core:generatePomFileForMavenPublication"
 }
