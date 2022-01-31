@@ -23,7 +23,8 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
     }
 
     // Provide the Bundle-Version (shared by all libraries)
-    ext.bundleVersion = "${-> releaseVersion + (isSnapshot ? '.-\${tstamp}-SNAPSHOT' : '.ga')}"
+    ext.bundleVersion = "${-> releaseVersion +
+        (isSnapshot ? '.-\${tstamp}-SNAPSHOT' : '.ga')}"
 
     jar {
         doFirst {
@@ -37,7 +38,8 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
             // Set Git revision information in the manifests of built bundles
             attributes([
                 "Git-Descriptor": grgit.describe(always: true),
-                "Git-SHA": grgit.head().id
+                "Git-SHA": grgit.head().id,
+                "Bundle-Version": bundleVersion
             ])
         }
         bundle {
