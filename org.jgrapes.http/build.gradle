@@ -4,6 +4,10 @@ dependencies {
     api 'org.jdrupes.httpcodec:httpcodec:[2.0.3,3)'
 }
 
+jar {
+    dependsOn ":org.jgrapes.core:generatePomFileForMavenPublication"
+}
+
 test {
 	// set a system property for the test JVM(s)
 //	systemProperty 'java.util.logging.config.file', 'jul-debug.properties'

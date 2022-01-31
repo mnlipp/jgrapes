@@ -3,6 +3,10 @@ dependencies {
     api 'org.freemarker:freemarker:[2.3.27-incubating,2.4)'    
 }
 
+jar {
+    dependsOn ":org.jgrapes.http:generatePomFileForMavenPublication"
+}
+
 test {
 	// set a system property for the test JVM(s)
 //	systemProperty 'java.util.logging.config.file', 'jul-debug.properties'

@@ -4,3 +4,8 @@ dependencies {
 	testRuntimeOnly project.files('test-resources')
 }
 	
+jar {
+    dependsOn ":org.jgrapes.core:generatePomFileForMavenPublication"
+}
+
+	
