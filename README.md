@@ -4,7 +4,7 @@ JGrapes
 See the [project's home page](https://mnlipp.github.io/jgrapes/) for a
 detailed description of the framework.
 
-[![Build Status](https://github.com/mnlipp/jgrapes/workflows/Java%20CI/badge.svg)](https://github.com/mnlipp/jgrapes/actions) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/42ed1920969d4b878d7ce80c08141a85)](https://www.codacy.com/app/mnlipp/jgrapes?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mnlipp/jgrapes&amp;utm_campaign=Badge_Grade)
+[![Build Status](https://github.com/mnlipp/jgrapes/workflows/Java%20CI/badge.svg)](https://github.com/mnlipp/jgrapes/actions) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/917a465504c444bd8adcb46eb000aaa9)](https://www.codacy.com/gh/mnlipp/jgrapes/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mnlipp/jgrapes&amp;utm_campaign=Badge_Grade)
 
 | Package | Download |
 | ------- | -------- |
