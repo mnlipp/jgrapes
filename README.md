@@ -75,4 +75,3 @@ import the project as "Gradle / Existing Gradle Project". Should you
 encounter the (in)famous 
 ["sync problem"](https://github.com/eclipse/buildship/issues/478),
 simply restart Eclipse.
-
