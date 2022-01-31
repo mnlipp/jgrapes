@@ -1,5 +1,6 @@
 ---
 exclude_paths:
+  - 'buildSrc/**'
   - '*/test/**'
   - '*/test-resources/**'
   
