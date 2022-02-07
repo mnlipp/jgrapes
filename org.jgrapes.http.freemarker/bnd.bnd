@@ -8,7 +8,7 @@ api_version = 1.0.0.${tstamp}
 -sources: true
 
 Export-Package: \
-	org.jgrapes.http.freemarker
+	org.jgrapes.http.freemarker;version="${api_version}"
 	
 -dsannotations: 
 

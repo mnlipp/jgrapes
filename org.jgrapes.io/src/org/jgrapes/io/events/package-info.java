@@ -18,5 +18,4 @@
 /**
  * Provides the events used by the I/O related components.
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.io.events;

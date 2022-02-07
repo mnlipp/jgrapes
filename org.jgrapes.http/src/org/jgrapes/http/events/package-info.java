@@ -18,5 +18,4 @@
 /**
  * Provides the events handled by the server components.
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.http.events;

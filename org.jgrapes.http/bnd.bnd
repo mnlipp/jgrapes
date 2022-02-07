@@ -11,9 +11,9 @@ Require-Bundle: org.jdrupes.httpcodec; bundle-version="[2.0.3,3)"
 -sources: true
 
 Export-Package: \
-	org.jgrapes.http,\
-	org.jgrapes.http.annotation,\
-	org.jgrapes.http.events
+	org.jgrapes.http;version="${api_version}",\
+	org.jgrapes.http.annotation;version="${api_version}",\
+	org.jgrapes.http.events;version="${api_version}"
 	
 -dsannotations: 
 

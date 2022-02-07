@@ -19,5 +19,4 @@
  * Provides components for building a HTTP server based on the
  * core and IO components.
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.http;

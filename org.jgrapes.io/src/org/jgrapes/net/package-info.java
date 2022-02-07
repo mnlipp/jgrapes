@@ -19,5 +19,4 @@
 /**
  * Networking related I/O classes.
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.net;

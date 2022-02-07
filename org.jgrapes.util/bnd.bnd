@@ -6,8 +6,8 @@ Bundle-License: http://www.gnu.org/licenses/agpl-3.0.txt
 api_version = 1.1.0.${tstamp}
 
 Export-Package: \
-	org.jgrapes.util,\
-	org.jgrapes.util.events
+	org.jgrapes.util;version="${api_version}",\
+	org.jgrapes.util.events;version="${api_version}"
 
 -sources: true
 

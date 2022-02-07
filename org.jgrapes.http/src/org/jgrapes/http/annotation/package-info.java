@@ -19,5 +19,4 @@
  * Adds a special annotation for methods that handle
  * HTTP request events.
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.http.annotation;

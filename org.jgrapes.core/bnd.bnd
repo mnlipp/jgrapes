@@ -3,13 +3,13 @@ Bundle-SymbolicName: org.jgrapes.core
 Bundle-Copyright: Michael N. Lipp (c) 2016, 2022
 Bundle-License: http://www.gnu.org/licenses/agpl-3.0.txt
 
-api_version = 1.3.0.${tstamp}
+api_version = 1.4.0.${tstamp}
 
 Export-Package: \
-	org.jgrapes.core,\
-	org.jgrapes.core.annotation,\
-	org.jgrapes.core.events,\
-	org.jgrapes.core.internal
+	org.jgrapes.core;version="${api_version}",\
+	org.jgrapes.core.annotation;version="${api_version}",\
+	org.jgrapes.core.events;version="${api_version}",\
+	org.jgrapes.core.internal;version="${api_version}"
 
 -sources: true
 

@@ -8,11 +8,11 @@ api_version = 1.1.0.${tstamp}
 -sources: true
 
 Export-Package: \
-	org.jgrapes.io,\
-	org.jgrapes.io.events,\
-	org.jgrapes.io.util,\
-	org.jgrapes.net,\
-	org.jgrapes.net.events
+	org.jgrapes.io;version="${api_version}",\
+	org.jgrapes.io.events;version="${api_version}",\
+	org.jgrapes.io.util;version="${api_version}",\
+	org.jgrapes.net;version="${api_version}",\
+	org.jgrapes.net.events;version="${api_version}"
 
 -dsannotations: 
 

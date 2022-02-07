@@ -19,5 +19,4 @@
 /**
  * Utility classes, mainly for adapted buffers to specific needs.
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.io.util;

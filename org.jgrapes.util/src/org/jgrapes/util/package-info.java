@@ -20,5 +20,4 @@
  * Utility components that are too small to deserve
  * individual libraries/projects.
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.util;

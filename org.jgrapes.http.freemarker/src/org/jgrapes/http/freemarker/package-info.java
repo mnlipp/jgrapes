@@ -20,5 +20,4 @@
  * Provides a base component for generating template based responses 
  * to HTTP requests.
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.http.freemarker;

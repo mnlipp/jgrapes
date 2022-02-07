@@ -18,5 +18,4 @@
 /**
  * Annotations used by the library.
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.core.annotation;

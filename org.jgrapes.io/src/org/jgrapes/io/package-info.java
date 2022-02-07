@@ -37,5 +37,4 @@
  * produce data in parallel (unless you set the pool size to 1, of course).
  *
  */
-@org.osgi.annotation.versioning.Version("${api_version}")
 package org.jgrapes.io;
