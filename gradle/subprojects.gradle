@@ -2,8 +2,7 @@ import java.util.regex.Pattern
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
-apply plugin: 'signing'
-apply plugin: 'maven-publish'
+apply plugin: 'org.ajoberstar.grgit'
 
 if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
 
