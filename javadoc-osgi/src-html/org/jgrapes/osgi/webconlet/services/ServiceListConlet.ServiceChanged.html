@@ -32,309 +32,270 @@
 <span class="sourceLineNo">023</span><a id="line.23">import freemarker.template.Template;</a>
 <span class="sourceLineNo">024</span><a id="line.24">import freemarker.template.TemplateNotFoundException;</a>
 <span class="sourceLineNo">025</span><a id="line.25">import java.io.IOException;</a>
-<span class="sourceLineNo">026</span><a id="line.26">import java.util.ArrayList;</a>
-<span class="sourceLineNo">027</span><a id="line.27">import java.util.Arrays;</a>
-<span class="sourceLineNo">028</span><a id="line.28">import java.util.HashMap;</a>
-<span class="sourceLineNo">029</span><a id="line.29">import java.util.HashSet;</a>
-<span class="sourceLineNo">030</span><a id="line.30">import java.util.List;</a>
-<span class="sourceLineNo">031</span><a id="line.31">import java.util.Locale;</a>
-<span class="sourceLineNo">032</span><a id="line.32">import java.util.Map;</a>
-<span class="sourceLineNo">033</span><a id="line.33">import java.util.Optional;</a>
-<span class="sourceLineNo">034</span><a id="line.34">import java.util.Set;</a>
-<span class="sourceLineNo">035</span><a id="line.35">import java.util.stream.Collectors;</a>
-<span class="sourceLineNo">036</span><a id="line.36">import org.jgrapes.core.Channel;</a>
-<span class="sourceLineNo">037</span><a id="line.37">import org.jgrapes.core.Event;</a>
-<span class="sourceLineNo">038</span><a id="line.38">import org.jgrapes.core.Manager;</a>
-<span class="sourceLineNo">039</span><a id="line.39">import org.jgrapes.core.annotation.Handler;</a>
-<span class="sourceLineNo">040</span><a id="line.40">import org.jgrapes.http.Session;</a>
-<span class="sourceLineNo">041</span><a id="line.41">import org.jgrapes.webconsole.base.AbstractConlet;</a>
-<span class="sourceLineNo">042</span><a id="line.42">import org.jgrapes.webconsole.base.Conlet.RenderMode;</a>
-<span class="sourceLineNo">043</span><a id="line.43">import org.jgrapes.webconsole.base.ConsoleSession;</a>
-<span class="sourceLineNo">044</span><a id="line.44">import org.jgrapes.webconsole.base.WebConsoleUtils;</a>
-<span class="sourceLineNo">045</span><a id="line.45">import org.jgrapes.webconsole.base.events.AddConletRequest;</a>
-<span class="sourceLineNo">046</span><a id="line.46">import org.jgrapes.webconsole.base.events.AddConletType;</a>
-<span class="sourceLineNo">047</span><a id="line.47">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</a>
-<span class="sourceLineNo">048</span><a id="line.48">import org.jgrapes.webconsole.base.events.ConsoleReady;</a>
-<span class="sourceLineNo">049</span><a id="line.49">import org.jgrapes.webconsole.base.events.NotifyConletView;</a>
-<span class="sourceLineNo">050</span><a id="line.50">import org.jgrapes.webconsole.base.events.RenderConletRequest;</a>
-<span class="sourceLineNo">051</span><a id="line.51">import org.jgrapes.webconsole.base.events.RenderConletRequestBase;</a>
-<span class="sourceLineNo">052</span><a id="line.52">import org.jgrapes.webconsole.base.freemarker.FreeMarkerConlet;</a>
-<span class="sourceLineNo">053</span><a id="line.53">import org.osgi.framework.Bundle;</a>
-<span class="sourceLineNo">054</span><a id="line.54">import org.osgi.framework.BundleContext;</a>
-<span class="sourceLineNo">055</span><a id="line.55">import org.osgi.framework.Constants;</a>
-<span class="sourceLineNo">056</span><a id="line.56">import org.osgi.framework.InvalidSyntaxException;</a>
-<span class="sourceLineNo">057</span><a id="line.57">import org.osgi.framework.ServiceEvent;</a>
-<span class="sourceLineNo">058</span><a id="line.58">import org.osgi.framework.ServiceListener;</a>
-<span class="sourceLineNo">059</span><a id="line.59">import org.osgi.framework.ServiceReference;</a>
-<span class="sourceLineNo">060</span><a id="line.60">import org.osgi.service.component.runtime.ServiceComponentRuntime;</a>
-<span class="sourceLineNo">061</span><a id="line.61">import org.osgi.service.component.runtime.dto.ComponentDescriptionDTO;</a>
-<span class="sourceLineNo">062</span><a id="line.62"></a>
-<span class="sourceLineNo">063</span><a id="line.63">/**</a>
-<span class="sourceLineNo">064</span><a id="line.64"> * A conlet for inspecting the services in an OSGi runtime.</a>
-<span class="sourceLineNo">065</span><a id="line.65"> */</a>
-<span class="sourceLineNo">066</span><a id="line.66">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</a>
-<span class="sourceLineNo">067</span><a id="line.67">public class ServiceListConlet</a>
-<span class="sourceLineNo">068</span><a id="line.68">        extends FreeMarkerConlet&lt;AbstractConlet.ConletBaseModel&gt;</a>
-<span class="sourceLineNo">069</span><a id="line.69">        implements ServiceListener {</a>
+<span class="sourceLineNo">026</span><a id="line.26">import java.io.Serializable;</a>
+<span class="sourceLineNo">027</span><a id="line.27">import java.util.ArrayList;</a>
+<span class="sourceLineNo">028</span><a id="line.28">import java.util.Arrays;</a>
+<span class="sourceLineNo">029</span><a id="line.29">import java.util.HashMap;</a>
+<span class="sourceLineNo">030</span><a id="line.30">import java.util.HashSet;</a>
+<span class="sourceLineNo">031</span><a id="line.31">import java.util.List;</a>
+<span class="sourceLineNo">032</span><a id="line.32">import java.util.Locale;</a>
+<span class="sourceLineNo">033</span><a id="line.33">import java.util.Map;</a>
+<span class="sourceLineNo">034</span><a id="line.34">import java.util.Optional;</a>
+<span class="sourceLineNo">035</span><a id="line.35">import java.util.Set;</a>
+<span class="sourceLineNo">036</span><a id="line.36">import java.util.stream.Collectors;</a>
+<span class="sourceLineNo">037</span><a id="line.37">import org.jgrapes.core.Channel;</a>
+<span class="sourceLineNo">038</span><a id="line.38">import org.jgrapes.core.Event;</a>
+<span class="sourceLineNo">039</span><a id="line.39">import org.jgrapes.core.Manager;</a>
+<span class="sourceLineNo">040</span><a id="line.40">import org.jgrapes.core.annotation.Handler;</a>
+<span class="sourceLineNo">041</span><a id="line.41">import org.jgrapes.webconsole.base.Conlet.RenderMode;</a>
+<span class="sourceLineNo">042</span><a id="line.42">import org.jgrapes.webconsole.base.ConsoleSession;</a>
+<span class="sourceLineNo">043</span><a id="line.43">import org.jgrapes.webconsole.base.WebConsoleUtils;</a>
+<span class="sourceLineNo">044</span><a id="line.44">import org.jgrapes.webconsole.base.events.AddConletType;</a>
+<span class="sourceLineNo">045</span><a id="line.45">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</a>
+<span class="sourceLineNo">046</span><a id="line.46">import org.jgrapes.webconsole.base.events.ConsoleReady;</a>
+<span class="sourceLineNo">047</span><a id="line.47">import org.jgrapes.webconsole.base.events.NotifyConletView;</a>
+<span class="sourceLineNo">048</span><a id="line.48">import org.jgrapes.webconsole.base.events.RenderConletRequestBase;</a>
+<span class="sourceLineNo">049</span><a id="line.49">import org.jgrapes.webconsole.base.freemarker.FreeMarkerConlet;</a>
+<span class="sourceLineNo">050</span><a id="line.50">import org.osgi.framework.Bundle;</a>
+<span class="sourceLineNo">051</span><a id="line.51">import org.osgi.framework.BundleContext;</a>
+<span class="sourceLineNo">052</span><a id="line.52">import org.osgi.framework.Constants;</a>
+<span class="sourceLineNo">053</span><a id="line.53">import org.osgi.framework.ServiceEvent;</a>
+<span class="sourceLineNo">054</span><a id="line.54">import org.osgi.framework.ServiceListener;</a>
+<span class="sourceLineNo">055</span><a id="line.55">import org.osgi.framework.ServiceReference;</a>
+<span class="sourceLineNo">056</span><a id="line.56">import org.osgi.service.component.runtime.ServiceComponentRuntime;</a>
+<span class="sourceLineNo">057</span><a id="line.57">import org.osgi.service.component.runtime.dto.ComponentDescriptionDTO;</a>
+<span class="sourceLineNo">058</span><a id="line.58"></a>
+<span class="sourceLineNo">059</span><a id="line.59">/**</a>
+<span class="sourceLineNo">060</span><a id="line.60"> * A conlet for inspecting the services in an OSGi runtime.</a>
+<span class="sourceLineNo">061</span><a id="line.61"> */</a>
+<span class="sourceLineNo">062</span><a id="line.62">@SuppressWarnings("PMD.DataflowAnomalyAnalysis")</a>
+<span class="sourceLineNo">063</span><a id="line.63">public class ServiceListConlet</a>
+<span class="sourceLineNo">064</span><a id="line.64">        extends FreeMarkerConlet&lt;Serializable&gt; implements ServiceListener {</a>
+<span class="sourceLineNo">065</span><a id="line.65"></a>
+<span class="sourceLineNo">066</span><a id="line.66">    private final ServiceComponentRuntime scr;</a>
+<span class="sourceLineNo">067</span><a id="line.67">    private static final Set&lt;RenderMode&gt; MODES = RenderMode.asSet(</a>
+<span class="sourceLineNo">068</span><a id="line.68">        RenderMode.Preview, RenderMode.View);</a>
+<span class="sourceLineNo">069</span><a id="line.69">    private final BundleContext context;</a>
 <span class="sourceLineNo">070</span><a id="line.70"></a>
-<span class="sourceLineNo">071</span><a id="line.71">    private final ServiceComponentRuntime scr;</a>
-<span class="sourceLineNo">072</span><a id="line.72">    private static final Set&lt;RenderMode&gt; MODES = RenderMode.asSet(</a>
-<span class="sourceLineNo">073</span><a id="line.73">        RenderMode.Preview, RenderMode.View);</a>
-<span class="sourceLineNo">074</span><a id="line.74">    private final BundleContext context;</a>
-<span class="sourceLineNo">075</span><a id="line.75"></a>
-<span class="sourceLineNo">076</span><a id="line.76">    /**</a>
-<span class="sourceLineNo">077</span><a id="line.77">     * Creates a new component with its channel set to the given channel.</a>
-<span class="sourceLineNo">078</span><a id="line.78">     * </a>
-<span class="sourceLineNo">079</span><a id="line.79">     * @param componentChannel the channel that the component's handlers listen</a>
-<span class="sourceLineNo">080</span><a id="line.80">     *            on by default and that {@link Manager#fire(Event, Channel...)}</a>
-<span class="sourceLineNo">081</span><a id="line.81">     *            sends the event to</a>
-<span class="sourceLineNo">082</span><a id="line.82">     */</a>
-<span class="sourceLineNo">083</span><a id="line.83">    public ServiceListConlet(Channel componentChannel, BundleContext context,</a>
-<span class="sourceLineNo">084</span><a id="line.84">            ServiceComponentRuntime scr) {</a>
-<span class="sourceLineNo">085</span><a id="line.85">        super(componentChannel);</a>
-<span class="sourceLineNo">086</span><a id="line.86">        this.context = context;</a>
-<span class="sourceLineNo">087</span><a id="line.87">        this.scr = scr;</a>
-<span class="sourceLineNo">088</span><a id="line.88">        context.addServiceListener(this);</a>
-<span class="sourceLineNo">089</span><a id="line.89">    }</a>
-<span class="sourceLineNo">090</span><a id="line.90"></a>
-<span class="sourceLineNo">091</span><a id="line.91">    /**</a>
-<span class="sourceLineNo">092</span><a id="line.92">     * On {@link ConsoleReady}, fire the {@link AddConletType}.</a>
-<span class="sourceLineNo">093</span><a id="line.93">     *</a>
-<span class="sourceLineNo">094</span><a id="line.94">     * @param event the event</a>
-<span class="sourceLineNo">095</span><a id="line.95">     * @param channel the channel</a>
-<span class="sourceLineNo">096</span><a id="line.96">     * @throws TemplateNotFoundException the template not found exception</a>
-<span class="sourceLineNo">097</span><a id="line.97">     * @throws MalformedTemplateNameException the malformed template name</a>
-<span class="sourceLineNo">098</span><a id="line.98">     *             exception</a>
-<span class="sourceLineNo">099</span><a id="line.99">     * @throws ParseException the parse exception</a>
-<span class="sourceLineNo">100</span><a id="line.100">     * @throws IOException Signals that an I/O exception has occurred.</a>
-<span class="sourceLineNo">101</span><a id="line.101">     */</a>
-<span class="sourceLineNo">102</span><a id="line.102">    @Handler</a>
-<span class="sourceLineNo">103</span><a id="line.103">    public void onConsoleReady(ConsoleReady event, ConsoleSession channel)</a>
-<span class="sourceLineNo">104</span><a id="line.104">            throws TemplateNotFoundException, MalformedTemplateNameException,</a>
-<span class="sourceLineNo">105</span><a id="line.105">            ParseException, IOException {</a>
-<span class="sourceLineNo">106</span><a id="line.106">        // Add conlet resources to page</a>
-<span class="sourceLineNo">107</span><a id="line.107">        channel.respond(new AddConletType(type())</a>
-<span class="sourceLineNo">108</span><a id="line.108">            .setDisplayNames(</a>
-<span class="sourceLineNo">109</span><a id="line.109">                localizations(channel.supportedLocales(), "conletName"))</a>
-<span class="sourceLineNo">110</span><a id="line.110">            .addScript(new ScriptResource()</a>
-<span class="sourceLineNo">111</span><a id="line.111">                .setScriptUri(event.renderSupport().conletResource(</a>
-<span class="sourceLineNo">112</span><a id="line.112">                    type(), "Services-functions.ftl.js"))</a>
-<span class="sourceLineNo">113</span><a id="line.113">                .setScriptType("module"))</a>
-<span class="sourceLineNo">114</span><a id="line.114">            .addCss(event.renderSupport(),</a>
-<span class="sourceLineNo">115</span><a id="line.115">                WebConsoleUtils.uriFromPath("Services-style.css")));</a>
-<span class="sourceLineNo">116</span><a id="line.116">    }</a>
-<span class="sourceLineNo">117</span><a id="line.117"></a>
-<span class="sourceLineNo">118</span><a id="line.118">    @Override</a>
-<span class="sourceLineNo">119</span><a id="line.119">    protected String generateConletId() {</a>
-<span class="sourceLineNo">120</span><a id="line.120">        return type() + "-" + super.generateConletId();</a>
-<span class="sourceLineNo">121</span><a id="line.121">    }</a>
-<span class="sourceLineNo">122</span><a id="line.122"></a>
-<span class="sourceLineNo">123</span><a id="line.123">    @Override</a>
-<span class="sourceLineNo">124</span><a id="line.124">    protected Optional&lt;ConletBaseModel&gt; stateFromSession(</a>
-<span class="sourceLineNo">125</span><a id="line.125">            Session session, String conletId) {</a>
-<span class="sourceLineNo">126</span><a id="line.126">        if (conletId.startsWith(type() + "-")) {</a>
-<span class="sourceLineNo">127</span><a id="line.127">            return Optional.of(new ConletBaseModel(conletId));</a>
-<span class="sourceLineNo">128</span><a id="line.128">        }</a>
-<span class="sourceLineNo">129</span><a id="line.129">        return Optional.empty();</a>
-<span class="sourceLineNo">130</span><a id="line.130">    }</a>
-<span class="sourceLineNo">131</span><a id="line.131"></a>
-<span class="sourceLineNo">132</span><a id="line.132">    @Override</a>
-<span class="sourceLineNo">133</span><a id="line.133">    protected ConletTrackingInfo doAddConlet(AddConletRequest event,</a>
-<span class="sourceLineNo">134</span><a id="line.134">            ConsoleSession channel)</a>
-<span class="sourceLineNo">135</span><a id="line.135">            throws Exception {</a>
-<span class="sourceLineNo">136</span><a id="line.136">        ConletBaseModel conletModel</a>
-<span class="sourceLineNo">137</span><a id="line.137">            = new ConletBaseModel(generateConletId());</a>
-<span class="sourceLineNo">138</span><a id="line.138">        return new ConletTrackingInfo(conletModel.getConletId())</a>
-<span class="sourceLineNo">139</span><a id="line.139">            .addModes(renderConlet(event, channel, conletModel));</a>
-<span class="sourceLineNo">140</span><a id="line.140">    }</a>
-<span class="sourceLineNo">141</span><a id="line.141"></a>
-<span class="sourceLineNo">142</span><a id="line.142">    @Override</a>
-<span class="sourceLineNo">143</span><a id="line.143">    protected Set&lt;RenderMode&gt; doRenderConlet(RenderConletRequest event,</a>
-<span class="sourceLineNo">144</span><a id="line.144">            ConsoleSession channel, String conletId,</a>
-<span class="sourceLineNo">145</span><a id="line.145">            ConletBaseModel conletModel) throws Exception {</a>
-<span class="sourceLineNo">146</span><a id="line.146">        return renderConlet(event, channel, conletModel);</a>
-<span class="sourceLineNo">147</span><a id="line.147">    }</a>
-<span class="sourceLineNo">148</span><a id="line.148"></a>
-<span class="sourceLineNo">149</span><a id="line.149">    private Set&lt;RenderMode&gt; renderConlet(RenderConletRequestBase&lt;?&gt; event,</a>
-<span class="sourceLineNo">150</span><a id="line.150">            ConsoleSession channel, ConletBaseModel conletModel)</a>
-<span class="sourceLineNo">151</span><a id="line.151">            throws TemplateNotFoundException,</a>
-<span class="sourceLineNo">152</span><a id="line.152">            MalformedTemplateNameException, ParseException, IOException,</a>
-<span class="sourceLineNo">153</span><a id="line.153">            InvalidSyntaxException {</a>
-<span class="sourceLineNo">154</span><a id="line.154">        Set&lt;RenderMode&gt; renderedAs = new HashSet&lt;&gt;();</a>
-<span class="sourceLineNo">155</span><a id="line.155">        if (event.renderAs().contains(RenderMode.Preview)) {</a>
-<span class="sourceLineNo">156</span><a id="line.156">            Template tpl</a>
-<span class="sourceLineNo">157</span><a id="line.157">                = freemarkerConfig().getTemplate("Services-preview.ftl.html");</a>
-<span class="sourceLineNo">158</span><a id="line.158">            channel.respond(new RenderConletFromTemplate(event,</a>
-<span class="sourceLineNo">159</span><a id="line.159">                type(), conletModel.getConletId(),</a>
-<span class="sourceLineNo">160</span><a id="line.160">                tpl, fmModel(event, channel, conletModel))</a>
-<span class="sourceLineNo">161</span><a id="line.161">                    .setRenderAs(</a>
-<span class="sourceLineNo">162</span><a id="line.162">                        RenderMode.Preview.addModifiers(event.renderAs()))</a>
-<span class="sourceLineNo">163</span><a id="line.163">                    .setSupportedModes(MODES));</a>
-<span class="sourceLineNo">164</span><a id="line.164">            List&lt;Map&lt;String, Object&gt;&gt; serviceInfos = Arrays.stream(</a>
-<span class="sourceLineNo">165</span><a id="line.165">                context.getAllServiceReferences(null, null))</a>
-<span class="sourceLineNo">166</span><a id="line.166">                .map(svc -&gt; createServiceInfo(svc, channel.locale()))</a>
-<span class="sourceLineNo">167</span><a id="line.167">                .collect(Collectors.toList());</a>
-<span class="sourceLineNo">168</span><a id="line.168">            channel.respond(new NotifyConletView(type(),</a>
-<span class="sourceLineNo">169</span><a id="line.169">                conletModel.getConletId(), "serviceUpdates", serviceInfos,</a>
-<span class="sourceLineNo">170</span><a id="line.170">                "preview", true));</a>
-<span class="sourceLineNo">171</span><a id="line.171">            renderedAs.add(RenderMode.Preview);</a>
-<span class="sourceLineNo">172</span><a id="line.172">        }</a>
-<span class="sourceLineNo">173</span><a id="line.173">        if (event.renderAs().contains(RenderMode.View)) {</a>
-<span class="sourceLineNo">174</span><a id="line.174">            Template tpl</a>
-<span class="sourceLineNo">175</span><a id="line.175">                = freemarkerConfig().getTemplate("Services-view.ftl.html");</a>
-<span class="sourceLineNo">176</span><a id="line.176">            channel.respond(new RenderConletFromTemplate(event,</a>
-<span class="sourceLineNo">177</span><a id="line.177">                type(), conletModel.getConletId(),</a>
-<span class="sourceLineNo">178</span><a id="line.178">                tpl, fmModel(event, channel, conletModel))</a>
-<span class="sourceLineNo">179</span><a id="line.179">                    .setRenderAs(</a>
-<span class="sourceLineNo">180</span><a id="line.180">                        RenderMode.View.addModifiers(event.renderAs())));</a>
-<span class="sourceLineNo">181</span><a id="line.181">            List&lt;Map&lt;String, Object&gt;&gt; serviceInfos = Arrays.stream(</a>
-<span class="sourceLineNo">182</span><a id="line.182">                context.getAllServiceReferences(null, null))</a>
-<span class="sourceLineNo">183</span><a id="line.183">                .map(svc -&gt; createServiceInfo(svc, channel.locale()))</a>
-<span class="sourceLineNo">184</span><a id="line.184">                .collect(Collectors.toList());</a>
-<span class="sourceLineNo">185</span><a id="line.185">            channel.respond(new NotifyConletView(type(),</a>
-<span class="sourceLineNo">186</span><a id="line.186">                conletModel.getConletId(), "serviceUpdates", serviceInfos,</a>
-<span class="sourceLineNo">187</span><a id="line.187">                "view", true));</a>
-<span class="sourceLineNo">188</span><a id="line.188">            renderedAs.add(RenderMode.View);</a>
-<span class="sourceLineNo">189</span><a id="line.189">        }</a>
-<span class="sourceLineNo">190</span><a id="line.190">        return renderedAs;</a>
-<span class="sourceLineNo">191</span><a id="line.191">    }</a>
-<span class="sourceLineNo">192</span><a id="line.192"></a>
-<span class="sourceLineNo">193</span><a id="line.193">    @SuppressWarnings({ "PMD.NcssCount", "PMD.ConfusingTernary",</a>
-<span class="sourceLineNo">194</span><a id="line.194">        "PMD.NPathComplexity", "PMD.AssignmentInOperand",</a>
-<span class="sourceLineNo">195</span><a id="line.195">        "PMD.CognitiveComplexity" })</a>
-<span class="sourceLineNo">196</span><a id="line.196">    private Map&lt;String, Object&gt;</a>
-<span class="sourceLineNo">197</span><a id="line.197">            createServiceInfo(ServiceReference&lt;?&gt; serviceRef, Locale locale) {</a>
-<span class="sourceLineNo">198</span><a id="line.198">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
-<span class="sourceLineNo">199</span><a id="line.199">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</a>
-<span class="sourceLineNo">200</span><a id="line.200">        result.put("id", serviceRef.getProperty(Constants.SERVICE_ID));</a>
-<span class="sourceLineNo">201</span><a id="line.201">        String[] interfaces</a>
-<span class="sourceLineNo">202</span><a id="line.202">            = (String[]) serviceRef.getProperty(Constants.OBJECTCLASS);</a>
-<span class="sourceLineNo">203</span><a id="line.203">        result.put("type", String.join(", ", interfaces));</a>
-<span class="sourceLineNo">204</span><a id="line.204">        Long bundleId</a>
-<span class="sourceLineNo">205</span><a id="line.205">            = (Long) serviceRef.getProperty(Constants.SERVICE_BUNDLEID);</a>
-<span class="sourceLineNo">206</span><a id="line.206">        result.put("bundleId", bundleId.toString());</a>
-<span class="sourceLineNo">207</span><a id="line.207">        Bundle bundle = context.getBundle(bundleId);</a>
-<span class="sourceLineNo">208</span><a id="line.208">        if (bundle == null) {</a>
-<span class="sourceLineNo">209</span><a id="line.209">            result.put("bundleName", "");</a>
-<span class="sourceLineNo">210</span><a id="line.210">        } else {</a>
-<span class="sourceLineNo">211</span><a id="line.211">            result.put("bundleName", Optional</a>
-<span class="sourceLineNo">212</span><a id="line.212">                .ofNullable(bundle.getHeaders(locale.toString())</a>
-<span class="sourceLineNo">213</span><a id="line.213">                    .get("Bundle-Name"))</a>
-<span class="sourceLineNo">214</span><a id="line.214">                .orElse(bundle.getSymbolicName()));</a>
-<span class="sourceLineNo">215</span><a id="line.215">        }</a>
-<span class="sourceLineNo">216</span><a id="line.216">        String scope;</a>
-<span class="sourceLineNo">217</span><a id="line.217">        switch ((String) serviceRef.getProperty(Constants.SERVICE_SCOPE)) {</a>
-<span class="sourceLineNo">218</span><a id="line.218">        case Constants.SCOPE_BUNDLE:</a>
-<span class="sourceLineNo">219</span><a id="line.219">            scope = "serviceScopeBundle";</a>
-<span class="sourceLineNo">220</span><a id="line.220">            break;</a>
-<span class="sourceLineNo">221</span><a id="line.221">        case Constants.SCOPE_PROTOTYPE:</a>
-<span class="sourceLineNo">222</span><a id="line.222">            scope = "serviceScopePrototype";</a>
-<span class="sourceLineNo">223</span><a id="line.223">            break;</a>
-<span class="sourceLineNo">224</span><a id="line.224">        case Constants.SCOPE_SINGLETON:</a>
-<span class="sourceLineNo">225</span><a id="line.225">            scope = "serviceScopeSingleton";</a>
-<span class="sourceLineNo">226</span><a id="line.226">            break;</a>
-<span class="sourceLineNo">227</span><a id="line.227">        default:</a>
-<span class="sourceLineNo">228</span><a id="line.228">            scope = "";</a>
-<span class="sourceLineNo">229</span><a id="line.229">            break;</a>
-<span class="sourceLineNo">230</span><a id="line.230">        }</a>
-<span class="sourceLineNo">231</span><a id="line.231">        result.put("scope", scope);</a>
-<span class="sourceLineNo">232</span><a id="line.232">        Integer ranking</a>
-<span class="sourceLineNo">233</span><a id="line.233">            = (Integer) serviceRef.getProperty(Constants.SERVICE_RANKING);</a>
-<span class="sourceLineNo">234</span><a id="line.234">        result.put("ranking", ranking == null ? "" : ranking.toString());</a>
-<span class="sourceLineNo">235</span><a id="line.235">        String componentName</a>
-<span class="sourceLineNo">236</span><a id="line.236">            = (String) serviceRef.getProperty("component.name");</a>
-<span class="sourceLineNo">237</span><a id="line.237">        ComponentDescriptionDTO dto;</a>
-<span class="sourceLineNo">238</span><a id="line.238">        if (componentName != null &amp;&amp; bundle != null</a>
-<span class="sourceLineNo">239</span><a id="line.239">            &amp;&amp; (dto = scr.getComponentDescriptionDTO(bundle,</a>
-<span class="sourceLineNo">240</span><a id="line.240">                componentName)) != null) {</a>
-<span class="sourceLineNo">241</span><a id="line.241">            if (dto.scope != null) {</a>
-<span class="sourceLineNo">242</span><a id="line.242">                result.put("dsScope", "serviceScope"</a>
-<span class="sourceLineNo">243</span><a id="line.243">                    + dto.scope.substring(0, 1).toUpperCase(Locale.US)</a>
-<span class="sourceLineNo">244</span><a id="line.244">                    + dto.scope.substring(1));</a>
-<span class="sourceLineNo">245</span><a id="line.245">            }</a>
-<span class="sourceLineNo">246</span><a id="line.246">            result.put("implementationClass", dto.implementationClass);</a>
-<span class="sourceLineNo">247</span><a id="line.247">        } else {</a>
-<span class="sourceLineNo">248</span><a id="line.248">            Object service = context.getService(serviceRef);</a>
-<span class="sourceLineNo">249</span><a id="line.249">            if (service != null) {</a>
-<span class="sourceLineNo">250</span><a id="line.250">                result.put("implementationClass", service.getClass().getName());</a>
-<span class="sourceLineNo">251</span><a id="line.251">                context.ungetService(serviceRef);</a>
-<span class="sourceLineNo">252</span><a id="line.252">            } else {</a>
-<span class="sourceLineNo">253</span><a id="line.253">                result.put("implementationClass", "");</a>
-<span class="sourceLineNo">254</span><a id="line.254">            }</a>
-<span class="sourceLineNo">255</span><a id="line.255">        }</a>
-<span class="sourceLineNo">256</span><a id="line.256">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
-<span class="sourceLineNo">257</span><a id="line.257">        Map&lt;String, Object&gt; properties = new HashMap&lt;&gt;();</a>
-<span class="sourceLineNo">258</span><a id="line.258">        for (String property : serviceRef.getPropertyKeys()) {</a>
-<span class="sourceLineNo">259</span><a id="line.259">            properties.put(property, serviceRef.getProperty(property));</a>
-<span class="sourceLineNo">260</span><a id="line.260">        }</a>
-<span class="sourceLineNo">261</span><a id="line.261">        result.put("properties", properties);</a>
-<span class="sourceLineNo">262</span><a id="line.262">        if (serviceRef.getUsingBundles() != null) {</a>
-<span class="sourceLineNo">263</span><a id="line.263">            List&lt;String&gt; using = new ArrayList&lt;&gt;();</a>
-<span class="sourceLineNo">264</span><a id="line.264">            for (Bundle bdl : serviceRef.getUsingBundles()) {</a>
-<span class="sourceLineNo">265</span><a id="line.265">                using</a>
-<span class="sourceLineNo">266</span><a id="line.266">                    .add(</a>
-<span class="sourceLineNo">267</span><a id="line.267">                        bdl.getSymbolicName() + " (" + bdl.getBundleId() + ")");</a>
-<span class="sourceLineNo">268</span><a id="line.268">            }</a>
-<span class="sourceLineNo">269</span><a id="line.269">            result.put("usingBundles", using);</a>
-<span class="sourceLineNo">270</span><a id="line.270">        }</a>
-<span class="sourceLineNo">271</span><a id="line.271">        return result;</a>
-<span class="sourceLineNo">272</span><a id="line.272">    }</a>
-<span class="sourceLineNo">273</span><a id="line.273"></a>
-<span class="sourceLineNo">274</span><a id="line.274">    /**</a>
-<span class="sourceLineNo">275</span><a id="line.275">     * Translates the OSGi {@link ServiceEvent} to a JGrapes event and fires it</a>
-<span class="sourceLineNo">276</span><a id="line.276">     * on all known console session channels.</a>
-<span class="sourceLineNo">277</span><a id="line.277">     *</a>
-<span class="sourceLineNo">278</span><a id="line.278">     * @param event the event</a>
-<span class="sourceLineNo">279</span><a id="line.279">     */</a>
-<span class="sourceLineNo">280</span><a id="line.280">    @Override</a>
-<span class="sourceLineNo">281</span><a id="line.281">    public void serviceChanged(ServiceEvent event) {</a>
-<span class="sourceLineNo">282</span><a id="line.282">        fire(new ServiceChanged(event), trackedSessions());</a>
-<span class="sourceLineNo">283</span><a id="line.283">    }</a>
+<span class="sourceLineNo">071</span><a id="line.71">    /**</a>
+<span class="sourceLineNo">072</span><a id="line.72">     * Creates a new component with its channel set to the given channel.</a>
+<span class="sourceLineNo">073</span><a id="line.73">     * </a>
+<span class="sourceLineNo">074</span><a id="line.74">     * @param componentChannel the channel that the component's handlers listen</a>
+<span class="sourceLineNo">075</span><a id="line.75">     *            on by default and that {@link Manager#fire(Event, Channel...)}</a>
+<span class="sourceLineNo">076</span><a id="line.76">     *            sends the event to</a>
+<span class="sourceLineNo">077</span><a id="line.77">     */</a>
+<span class="sourceLineNo">078</span><a id="line.78">    public ServiceListConlet(Channel componentChannel, BundleContext context,</a>
+<span class="sourceLineNo">079</span><a id="line.79">            ServiceComponentRuntime scr) {</a>
+<span class="sourceLineNo">080</span><a id="line.80">        super(componentChannel);</a>
+<span class="sourceLineNo">081</span><a id="line.81">        this.context = context;</a>
+<span class="sourceLineNo">082</span><a id="line.82">        this.scr = scr;</a>
+<span class="sourceLineNo">083</span><a id="line.83">        context.addServiceListener(this);</a>
+<span class="sourceLineNo">084</span><a id="line.84">    }</a>
+<span class="sourceLineNo">085</span><a id="line.85"></a>
+<span class="sourceLineNo">086</span><a id="line.86">    /**</a>
+<span class="sourceLineNo">087</span><a id="line.87">     * On {@link ConsoleReady}, fire the {@link AddConletType}.</a>
+<span class="sourceLineNo">088</span><a id="line.88">     *</a>
+<span class="sourceLineNo">089</span><a id="line.89">     * @param event the event</a>
+<span class="sourceLineNo">090</span><a id="line.90">     * @param channel the channel</a>
+<span class="sourceLineNo">091</span><a id="line.91">     * @throws TemplateNotFoundException the template not found exception</a>
+<span class="sourceLineNo">092</span><a id="line.92">     * @throws MalformedTemplateNameException the malformed template name</a>
+<span class="sourceLineNo">093</span><a id="line.93">     *             exception</a>
+<span class="sourceLineNo">094</span><a id="line.94">     * @throws ParseException the parse exception</a>
+<span class="sourceLineNo">095</span><a id="line.95">     * @throws IOException Signals that an I/O exception has occurred.</a>
+<span class="sourceLineNo">096</span><a id="line.96">     */</a>
+<span class="sourceLineNo">097</span><a id="line.97">    @Handler</a>
+<span class="sourceLineNo">098</span><a id="line.98">    public void onConsoleReady(ConsoleReady event, ConsoleSession channel)</a>
+<span class="sourceLineNo">099</span><a id="line.99">            throws TemplateNotFoundException, MalformedTemplateNameException,</a>
+<span class="sourceLineNo">100</span><a id="line.100">            ParseException, IOException {</a>
+<span class="sourceLineNo">101</span><a id="line.101">        // Add conlet resources to page</a>
+<span class="sourceLineNo">102</span><a id="line.102">        channel.respond(new AddConletType(type())</a>
+<span class="sourceLineNo">103</span><a id="line.103">            .setDisplayNames(</a>
+<span class="sourceLineNo">104</span><a id="line.104">                localizations(channel.supportedLocales(), "conletName"))</a>
+<span class="sourceLineNo">105</span><a id="line.105">            .addScript(new ScriptResource()</a>
+<span class="sourceLineNo">106</span><a id="line.106">                .setScriptUri(event.renderSupport().conletResource(</a>
+<span class="sourceLineNo">107</span><a id="line.107">                    type(), "Services-functions.ftl.js"))</a>
+<span class="sourceLineNo">108</span><a id="line.108">                .setScriptType("module"))</a>
+<span class="sourceLineNo">109</span><a id="line.109">            .addCss(event.renderSupport(),</a>
+<span class="sourceLineNo">110</span><a id="line.110">                WebConsoleUtils.uriFromPath("Services-style.css")));</a>
+<span class="sourceLineNo">111</span><a id="line.111">    }</a>
+<span class="sourceLineNo">112</span><a id="line.112"></a>
+<span class="sourceLineNo">113</span><a id="line.113">    @Override</a>
+<span class="sourceLineNo">114</span><a id="line.114">    protected Set&lt;RenderMode&gt; doRenderConlet(RenderConletRequestBase&lt;?&gt; event,</a>
+<span class="sourceLineNo">115</span><a id="line.115">            ConsoleSession channel, String conletId, Serializable conletState)</a>
+<span class="sourceLineNo">116</span><a id="line.116">            throws Exception {</a>
+<span class="sourceLineNo">117</span><a id="line.117">        Set&lt;RenderMode&gt; renderedAs = new HashSet&lt;&gt;();</a>
+<span class="sourceLineNo">118</span><a id="line.118">        if (event.renderAs().contains(RenderMode.Preview)) {</a>
+<span class="sourceLineNo">119</span><a id="line.119">            Template tpl</a>
+<span class="sourceLineNo">120</span><a id="line.120">                = freemarkerConfig().getTemplate("Services-preview.ftl.html");</a>
+<span class="sourceLineNo">121</span><a id="line.121">            channel.respond(new RenderConletFromTemplate(event,</a>
+<span class="sourceLineNo">122</span><a id="line.122">                type(), conletId, tpl,</a>
+<span class="sourceLineNo">123</span><a id="line.123">                fmModel(event, channel, conletId, conletState))</a>
+<span class="sourceLineNo">124</span><a id="line.124">                    .setRenderAs(</a>
+<span class="sourceLineNo">125</span><a id="line.125">                        RenderMode.Preview.addModifiers(event.renderAs()))</a>
+<span class="sourceLineNo">126</span><a id="line.126">                    .setSupportedModes(MODES));</a>
+<span class="sourceLineNo">127</span><a id="line.127">            List&lt;Map&lt;String, Object&gt;&gt; serviceInfos = Arrays.stream(</a>
+<span class="sourceLineNo">128</span><a id="line.128">                context.getAllServiceReferences(null, null))</a>
+<span class="sourceLineNo">129</span><a id="line.129">                .map(svc -&gt; createServiceInfo(svc, channel.locale()))</a>
+<span class="sourceLineNo">130</span><a id="line.130">                .collect(Collectors.toList());</a>
+<span class="sourceLineNo">131</span><a id="line.131">            channel.respond(new NotifyConletView(type(),</a>
+<span class="sourceLineNo">132</span><a id="line.132">                conletId, "serviceUpdates", serviceInfos, "preview", true));</a>
+<span class="sourceLineNo">133</span><a id="line.133">            renderedAs.add(RenderMode.Preview);</a>
+<span class="sourceLineNo">134</span><a id="line.134">        }</a>
+<span class="sourceLineNo">135</span><a id="line.135">        if (event.renderAs().contains(RenderMode.View)) {</a>
+<span class="sourceLineNo">136</span><a id="line.136">            Template tpl</a>
+<span class="sourceLineNo">137</span><a id="line.137">                = freemarkerConfig().getTemplate("Services-view.ftl.html");</a>
+<span class="sourceLineNo">138</span><a id="line.138">            channel.respond(new RenderConletFromTemplate(event,</a>
+<span class="sourceLineNo">139</span><a id="line.139">                type(), conletId, tpl,</a>
+<span class="sourceLineNo">140</span><a id="line.140">                fmModel(event, channel, conletId, conletState))</a>
+<span class="sourceLineNo">141</span><a id="line.141">                    .setRenderAs(</a>
+<span class="sourceLineNo">142</span><a id="line.142">                        RenderMode.View.addModifiers(event.renderAs())));</a>
+<span class="sourceLineNo">143</span><a id="line.143">            List&lt;Map&lt;String, Object&gt;&gt; serviceInfos = Arrays.stream(</a>
+<span class="sourceLineNo">144</span><a id="line.144">                context.getAllServiceReferences(null, null))</a>
+<span class="sourceLineNo">145</span><a id="line.145">                .map(svc -&gt; createServiceInfo(svc, channel.locale()))</a>
+<span class="sourceLineNo">146</span><a id="line.146">                .collect(Collectors.toList());</a>
+<span class="sourceLineNo">147</span><a id="line.147">            channel.respond(new NotifyConletView(type(),</a>
+<span class="sourceLineNo">148</span><a id="line.148">                conletId, "serviceUpdates", serviceInfos, "view", true));</a>
+<span class="sourceLineNo">149</span><a id="line.149">            renderedAs.add(RenderMode.View);</a>
+<span class="sourceLineNo">150</span><a id="line.150">        }</a>
+<span class="sourceLineNo">151</span><a id="line.151">        return renderedAs;</a>
+<span class="sourceLineNo">152</span><a id="line.152">    }</a>
+<span class="sourceLineNo">153</span><a id="line.153"></a>
+<span class="sourceLineNo">154</span><a id="line.154">    @SuppressWarnings({ "PMD.NcssCount", "PMD.ConfusingTernary",</a>
+<span class="sourceLineNo">155</span><a id="line.155">        "PMD.NPathComplexity", "PMD.AssignmentInOperand",</a>
+<span class="sourceLineNo">156</span><a id="line.156">        "PMD.CognitiveComplexity" })</a>
+<span class="sourceLineNo">157</span><a id="line.157">    private Map&lt;String, Object&gt;</a>
+<span class="sourceLineNo">158</span><a id="line.158">            createServiceInfo(ServiceReference&lt;?&gt; serviceRef, Locale locale) {</a>
+<span class="sourceLineNo">159</span><a id="line.159">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
+<span class="sourceLineNo">160</span><a id="line.160">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</a>
+<span class="sourceLineNo">161</span><a id="line.161">        result.put("id", serviceRef.getProperty(Constants.SERVICE_ID));</a>
+<span class="sourceLineNo">162</span><a id="line.162">        String[] interfaces</a>
+<span class="sourceLineNo">163</span><a id="line.163">            = (String[]) serviceRef.getProperty(Constants.OBJECTCLASS);</a>
+<span class="sourceLineNo">164</span><a id="line.164">        result.put("type", String.join(", ", interfaces));</a>
+<span class="sourceLineNo">165</span><a id="line.165">        Long bundleId</a>
+<span class="sourceLineNo">166</span><a id="line.166">            = (Long) serviceRef.getProperty(Constants.SERVICE_BUNDLEID);</a>
+<span class="sourceLineNo">167</span><a id="line.167">        result.put("bundleId", bundleId.toString());</a>
+<span class="sourceLineNo">168</span><a id="line.168">        Bundle bundle = context.getBundle(bundleId);</a>
+<span class="sourceLineNo">169</span><a id="line.169">        if (bundle == null) {</a>
+<span class="sourceLineNo">170</span><a id="line.170">            result.put("bundleName", "");</a>
+<span class="sourceLineNo">171</span><a id="line.171">        } else {</a>
+<span class="sourceLineNo">172</span><a id="line.172">            result.put("bundleName", Optional</a>
+<span class="sourceLineNo">173</span><a id="line.173">                .ofNullable(bundle.getHeaders(locale.toString())</a>
+<span class="sourceLineNo">174</span><a id="line.174">                    .get("Bundle-Name"))</a>
+<span class="sourceLineNo">175</span><a id="line.175">                .orElse(bundle.getSymbolicName()));</a>
+<span class="sourceLineNo">176</span><a id="line.176">        }</a>
+<span class="sourceLineNo">177</span><a id="line.177">        String scope;</a>
+<span class="sourceLineNo">178</span><a id="line.178">        switch ((String) serviceRef.getProperty(Constants.SERVICE_SCOPE)) {</a>
+<span class="sourceLineNo">179</span><a id="line.179">        case Constants.SCOPE_BUNDLE:</a>
+<span class="sourceLineNo">180</span><a id="line.180">            scope = "serviceScopeBundle";</a>
+<span class="sourceLineNo">181</span><a id="line.181">            break;</a>
+<span class="sourceLineNo">182</span><a id="line.182">        case Constants.SCOPE_PROTOTYPE:</a>
+<span class="sourceLineNo">183</span><a id="line.183">            scope = "serviceScopePrototype";</a>
+<span class="sourceLineNo">184</span><a id="line.184">            break;</a>
+<span class="sourceLineNo">185</span><a id="line.185">        case Constants.SCOPE_SINGLETON:</a>
+<span class="sourceLineNo">186</span><a id="line.186">            scope = "serviceScopeSingleton";</a>
+<span class="sourceLineNo">187</span><a id="line.187">            break;</a>
+<span class="sourceLineNo">188</span><a id="line.188">        default:</a>
+<span class="sourceLineNo">189</span><a id="line.189">            scope = "";</a>
+<span class="sourceLineNo">190</span><a id="line.190">            break;</a>
+<span class="sourceLineNo">191</span><a id="line.191">        }</a>
+<span class="sourceLineNo">192</span><a id="line.192">        result.put("scope", scope);</a>
+<span class="sourceLineNo">193</span><a id="line.193">        Integer ranking</a>
+<span class="sourceLineNo">194</span><a id="line.194">            = (Integer) serviceRef.getProperty(Constants.SERVICE_RANKING);</a>
+<span class="sourceLineNo">195</span><a id="line.195">        result.put("ranking", ranking == null ? "" : ranking.toString());</a>
+<span class="sourceLineNo">196</span><a id="line.196">        String componentName</a>
+<span class="sourceLineNo">197</span><a id="line.197">            = (String) serviceRef.getProperty("component.name");</a>
+<span class="sourceLineNo">198</span><a id="line.198">        ComponentDescriptionDTO dto;</a>
+<span class="sourceLineNo">199</span><a id="line.199">        if (componentName != null &amp;&amp; bundle != null</a>
+<span class="sourceLineNo">200</span><a id="line.200">            &amp;&amp; (dto = scr.getComponentDescriptionDTO(bundle,</a>
+<span class="sourceLineNo">201</span><a id="line.201">                componentName)) != null) {</a>
+<span class="sourceLineNo">202</span><a id="line.202">            if (dto.scope != null) {</a>
+<span class="sourceLineNo">203</span><a id="line.203">                result.put("dsScope", "serviceScope"</a>
+<span class="sourceLineNo">204</span><a id="line.204">                    + dto.scope.substring(0, 1).toUpperCase(Locale.US)</a>
+<span class="sourceLineNo">205</span><a id="line.205">                    + dto.scope.substring(1));</a>
+<span class="sourceLineNo">206</span><a id="line.206">            }</a>
+<span class="sourceLineNo">207</span><a id="line.207">            result.put("implementationClass", dto.implementationClass);</a>
+<span class="sourceLineNo">208</span><a id="line.208">        } else {</a>
+<span class="sourceLineNo">209</span><a id="line.209">            Object service = context.getService(serviceRef);</a>
+<span class="sourceLineNo">210</span><a id="line.210">            if (service != null) {</a>
+<span class="sourceLineNo">211</span><a id="line.211">                result.put("implementationClass", service.getClass().getName());</a>
+<span class="sourceLineNo">212</span><a id="line.212">                context.ungetService(serviceRef);</a>
+<span class="sourceLineNo">213</span><a id="line.213">            } else {</a>
+<span class="sourceLineNo">214</span><a id="line.214">                result.put("implementationClass", "");</a>
+<span class="sourceLineNo">215</span><a id="line.215">            }</a>
+<span class="sourceLineNo">216</span><a id="line.216">        }</a>
+<span class="sourceLineNo">217</span><a id="line.217">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
+<span class="sourceLineNo">218</span><a id="line.218">        Map&lt;String, Object&gt; properties = new HashMap&lt;&gt;();</a>
+<span class="sourceLineNo">219</span><a id="line.219">        for (String property : serviceRef.getPropertyKeys()) {</a>
+<span class="sourceLineNo">220</span><a id="line.220">            properties.put(property, serviceRef.getProperty(property));</a>
+<span class="sourceLineNo">221</span><a id="line.221">        }</a>
+<span class="sourceLineNo">222</span><a id="line.222">        result.put("properties", properties);</a>
+<span class="sourceLineNo">223</span><a id="line.223">        if (serviceRef.getUsingBundles() != null) {</a>
+<span class="sourceLineNo">224</span><a id="line.224">            List&lt;String&gt; using = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">225</span><a id="line.225">            for (Bundle bdl : serviceRef.getUsingBundles()) {</a>
+<span class="sourceLineNo">226</span><a id="line.226">                using</a>
+<span class="sourceLineNo">227</span><a id="line.227">                    .add(</a>
+<span class="sourceLineNo">228</span><a id="line.228">                        bdl.getSymbolicName() + " (" + bdl.getBundleId() + ")");</a>
+<span class="sourceLineNo">229</span><a id="line.229">            }</a>
+<span class="sourceLineNo">230</span><a id="line.230">            result.put("usingBundles", using);</a>
+<span class="sourceLineNo">231</span><a id="line.231">        }</a>
+<span class="sourceLineNo">232</span><a id="line.232">        return result;</a>
+<span class="sourceLineNo">233</span><a id="line.233">    }</a>
+<span class="sourceLineNo">234</span><a id="line.234"></a>
+<span class="sourceLineNo">235</span><a id="line.235">    /**</a>
+<span class="sourceLineNo">236</span><a id="line.236">     * Translates the OSGi {@link ServiceEvent} to a JGrapes event and fires it</a>
+<span class="sourceLineNo">237</span><a id="line.237">     * on all known console session channels.</a>
+<span class="sourceLineNo">238</span><a id="line.238">     *</a>
+<span class="sourceLineNo">239</span><a id="line.239">     * @param event the event</a>
+<span class="sourceLineNo">240</span><a id="line.240">     */</a>
+<span class="sourceLineNo">241</span><a id="line.241">    @Override</a>
+<span class="sourceLineNo">242</span><a id="line.242">    public void serviceChanged(ServiceEvent event) {</a>
+<span class="sourceLineNo">243</span><a id="line.243">        fire(new ServiceChanged(event), trackedSessions());</a>
+<span class="sourceLineNo">244</span><a id="line.244">    }</a>
+<span class="sourceLineNo">245</span><a id="line.245"></a>
+<span class="sourceLineNo">246</span><a id="line.246">    /**</a>
+<span class="sourceLineNo">247</span><a id="line.247">     * Handles a {@link ServiceChanged} event by updating the information in the</a>
+<span class="sourceLineNo">248</span><a id="line.248">     * console sessions.</a>
+<span class="sourceLineNo">249</span><a id="line.249">     *</a>
+<span class="sourceLineNo">250</span><a id="line.250">     * @param event the event</a>
+<span class="sourceLineNo">251</span><a id="line.251">     */</a>
+<span class="sourceLineNo">252</span><a id="line.252">    @Handler</a>
+<span class="sourceLineNo">253</span><a id="line.253">    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</a>
+<span class="sourceLineNo">254</span><a id="line.254">        "PMD.DataflowAnomalyAnalysis" })</a>
+<span class="sourceLineNo">255</span><a id="line.255">    public void onServiceChanged(ServiceChanged event,</a>
+<span class="sourceLineNo">256</span><a id="line.256">            ConsoleSession consoleSession) {</a>
+<span class="sourceLineNo">257</span><a id="line.257">        Map&lt;String, Object&gt; info = createServiceInfo(</a>
+<span class="sourceLineNo">258</span><a id="line.258">            event.serviceEvent().getServiceReference(),</a>
+<span class="sourceLineNo">259</span><a id="line.259">            consoleSession.locale());</a>
+<span class="sourceLineNo">260</span><a id="line.260">        if (event.serviceEvent().getType() == ServiceEvent.UNREGISTERING) {</a>
+<span class="sourceLineNo">261</span><a id="line.261">            info.put("updateType", "unregistering");</a>
+<span class="sourceLineNo">262</span><a id="line.262">        }</a>
+<span class="sourceLineNo">263</span><a id="line.263">        for (String conletId : conletIds(consoleSession)) {</a>
+<span class="sourceLineNo">264</span><a id="line.264">            consoleSession.respond(new NotifyConletView(</a>
+<span class="sourceLineNo">265</span><a id="line.265">                type(), conletId, "serviceUpdates",</a>
+<span class="sourceLineNo">266</span><a id="line.266">                (Object) new Object[] { info }, "*", false));</a>
+<span class="sourceLineNo">267</span><a id="line.267">        }</a>
+<span class="sourceLineNo">268</span><a id="line.268">    }</a>
+<span class="sourceLineNo">269</span><a id="line.269"></a>
+<span class="sourceLineNo">270</span><a id="line.270">    /**</a>
+<span class="sourceLineNo">271</span><a id="line.271">     * Wraps an OSGi {@link ServiceEvent}.</a>
+<span class="sourceLineNo">272</span><a id="line.272">     */</a>
+<span class="sourceLineNo">273</span><a id="line.273">    public static class ServiceChanged extends Event&lt;Void&gt; {</a>
+<span class="sourceLineNo">274</span><a id="line.274">        private final ServiceEvent serviceEvent;</a>
+<span class="sourceLineNo">275</span><a id="line.275"></a>
+<span class="sourceLineNo">276</span><a id="line.276">        /**</a>
+<span class="sourceLineNo">277</span><a id="line.277">         * Instantiates a new event.</a>
+<span class="sourceLineNo">278</span><a id="line.278">         *</a>
+<span class="sourceLineNo">279</span><a id="line.279">         * @param serviceEvent the service event</a>
+<span class="sourceLineNo">280</span><a id="line.280">         */</a>
+<span class="sourceLineNo">281</span><a id="line.281">        public ServiceChanged(ServiceEvent serviceEvent) {</a>
+<span class="sourceLineNo">282</span><a id="line.282">            this.serviceEvent = serviceEvent;</a>
+<span class="sourceLineNo">283</span><a id="line.283">        }</a>
 <span class="sourceLineNo">284</span><a id="line.284"></a>
-<span class="sourceLineNo">285</span><a id="line.285">    /**</a>
-<span class="sourceLineNo">286</span><a id="line.286">     * Handles a {@link ServiceChanged} event by updating the information in the</a>
-<span class="sourceLineNo">287</span><a id="line.287">     * console sessions.</a>
-<span class="sourceLineNo">288</span><a id="line.288">     *</a>
-<span class="sourceLineNo">289</span><a id="line.289">     * @param event the event</a>
-<span class="sourceLineNo">290</span><a id="line.290">     */</a>
-<span class="sourceLineNo">291</span><a id="line.291">    @Handler</a>
-<span class="sourceLineNo">292</span><a id="line.292">    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</a>
-<span class="sourceLineNo">293</span><a id="line.293">        "PMD.DataflowAnomalyAnalysis" })</a>
-<span class="sourceLineNo">294</span><a id="line.294">    public void onServiceChanged(ServiceChanged event,</a>
-<span class="sourceLineNo">295</span><a id="line.295">            ConsoleSession consoleSession) {</a>
-<span class="sourceLineNo">296</span><a id="line.296">        Map&lt;String, Object&gt; info = createServiceInfo(</a>
-<span class="sourceLineNo">297</span><a id="line.297">            event.serviceEvent().getServiceReference(),</a>
-<span class="sourceLineNo">298</span><a id="line.298">            consoleSession.locale());</a>
-<span class="sourceLineNo">299</span><a id="line.299">        if (event.serviceEvent().getType() == ServiceEvent.UNREGISTERING) {</a>
-<span class="sourceLineNo">300</span><a id="line.300">            info.put("updateType", "unregistering");</a>
-<span class="sourceLineNo">301</span><a id="line.301">        }</a>
-<span class="sourceLineNo">302</span><a id="line.302">        for (String conletId : conletIds(consoleSession)) {</a>
-<span class="sourceLineNo">303</span><a id="line.303">            consoleSession.respond(new NotifyConletView(</a>
-<span class="sourceLineNo">304</span><a id="line.304">                type(), conletId, "serviceUpdates",</a>
-<span class="sourceLineNo">305</span><a id="line.305">                (Object) new Object[] { info }, "*", false));</a>
-<span class="sourceLineNo">306</span><a id="line.306">        }</a>
-<span class="sourceLineNo">307</span><a id="line.307">    }</a>
-<span class="sourceLineNo">308</span><a id="line.308"></a>
-<span class="sourceLineNo">309</span><a id="line.309">    /**</a>
-<span class="sourceLineNo">310</span><a id="line.310">     * Wraps an OSGi {@link ServiceEvent}.</a>
-<span class="sourceLineNo">311</span><a id="line.311">     */</a>
-<span class="sourceLineNo">312</span><a id="line.312">    public static class ServiceChanged extends Event&lt;Void&gt; {</a>
-<span class="sourceLineNo">313</span><a id="line.313">        private final ServiceEvent serviceEvent;</a>
-<span class="sourceLineNo">314</span><a id="line.314"></a>
-<span class="sourceLineNo">315</span><a id="line.315">        /**</a>
-<span class="sourceLineNo">316</span><a id="line.316">         * Instantiates a new event.</a>
-<span class="sourceLineNo">317</span><a id="line.317">         *</a>
-<span class="sourceLineNo">318</span><a id="line.318">         * @param serviceEvent the service event</a>
-<span class="sourceLineNo">319</span><a id="line.319">         */</a>
-<span class="sourceLineNo">320</span><a id="line.320">        public ServiceChanged(ServiceEvent serviceEvent) {</a>
-<span class="sourceLineNo">321</span><a id="line.321">            this.serviceEvent = serviceEvent;</a>
-<span class="sourceLineNo">322</span><a id="line.322">        }</a>
-<span class="sourceLineNo">323</span><a id="line.323"></a>
-<span class="sourceLineNo">324</span><a id="line.324">        public ServiceEvent serviceEvent() {</a>
-<span class="sourceLineNo">325</span><a id="line.325">            return serviceEvent;</a>
-<span class="sourceLineNo">326</span><a id="line.326">        }</a>
-<span class="sourceLineNo">327</span><a id="line.327">    }</a>
-<span class="sourceLineNo">328</span><a id="line.328">}</a>
+<span class="sourceLineNo">285</span><a id="line.285">        public ServiceEvent serviceEvent() {</a>
+<span class="sourceLineNo">286</span><a id="line.286">            return serviceEvent;</a>
+<span class="sourceLineNo">287</span><a id="line.287">        }</a>
+<span class="sourceLineNo">288</span><a id="line.288">    }</a>
+<span class="sourceLineNo">289</span><a id="line.289">}</a>
 
 
 
