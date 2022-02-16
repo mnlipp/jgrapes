@@ -85,6 +85,7 @@ jar {
 }
 
 task releaseTag {
+    dependsOn clean
     doLast {
         String name = project.name.startsWith(project.group + ".") ?
             project.name.substring(project.group.length() + 1) : project.name
