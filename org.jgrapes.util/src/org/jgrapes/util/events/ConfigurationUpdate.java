@@ -120,7 +120,8 @@ public class ConfigurationUpdate extends Event<Void> {
         result.put(prefix, value.toString());
     }
 
-    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops" })
+    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",
+        "PMD.ReturnEmptyCollectionRatherThanNull" })
     private static Map<String, ?>
             structure(Map<String, String> flatProperties) {
         if (flatProperties == null) {
