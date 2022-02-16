@@ -13,6 +13,10 @@ Export-Package: \
 
 -dsannotations: 
 
+Require-Capability: \
+    osgi.extender; filter:="(osgi.extender=osgi.serviceloader.processor)"; \
+        resolution:=optional
+
 -fixupmessages: \
     "Found source folder 'resources' that is not on bnd's source path 'src'", \
     "Found source folder 'test-resources' that is not on bnd's source path 'src'", \
