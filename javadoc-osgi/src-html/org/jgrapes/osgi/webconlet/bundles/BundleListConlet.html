@@ -145,231 +145,228 @@
 <span class="sourceLineNo">136</span><a id="line.136">            Template tpl</a>
 <span class="sourceLineNo">137</span><a id="line.137">                = freemarkerConfig().getTemplate("Bundles-preview.ftl.html");</a>
 <span class="sourceLineNo">138</span><a id="line.138">            channel.respond(new RenderConletFromTemplate(event, type(),</a>
-<span class="sourceLineNo">139</span><a id="line.139">                conletModel.getConletId(),</a>
-<span class="sourceLineNo">140</span><a id="line.140">                tpl, fmModel(event, channel, conletId, conletModel))</a>
-<span class="sourceLineNo">141</span><a id="line.141">                    .setRenderAs(</a>
-<span class="sourceLineNo">142</span><a id="line.142">                        RenderMode.Preview.addModifiers(event.renderAs()))</a>
-<span class="sourceLineNo">143</span><a id="line.143">                    .setSupportedModes(MODES));</a>
-<span class="sourceLineNo">144</span><a id="line.144">            List&lt;Map&lt;String, Object&gt;&gt; bundleInfos</a>
-<span class="sourceLineNo">145</span><a id="line.145">                = Arrays.stream(context.getBundles())</a>
-<span class="sourceLineNo">146</span><a id="line.146">                    .map(bndl -&gt; createBundleInfo(bndl, channel.locale()))</a>
-<span class="sourceLineNo">147</span><a id="line.147">                    .collect(Collectors.toList());</a>
-<span class="sourceLineNo">148</span><a id="line.148">            channel.respond(new NotifyConletView(type(),</a>
-<span class="sourceLineNo">149</span><a id="line.149">                conletModel.getConletId(), "bundleUpdates", bundleInfos,</a>
-<span class="sourceLineNo">150</span><a id="line.150">                "preview", true));</a>
-<span class="sourceLineNo">151</span><a id="line.151">            renderedAs.add(RenderMode.Preview);</a>
-<span class="sourceLineNo">152</span><a id="line.152">        }</a>
-<span class="sourceLineNo">153</span><a id="line.153">        if (event.renderAs().contains(RenderMode.View)) {</a>
-<span class="sourceLineNo">154</span><a id="line.154">            Template tpl</a>
-<span class="sourceLineNo">155</span><a id="line.155">                = freemarkerConfig().getTemplate("Bundles-view.ftl.html");</a>
-<span class="sourceLineNo">156</span><a id="line.156">            channel.respond(new RenderConletFromTemplate(event,</a>
-<span class="sourceLineNo">157</span><a id="line.157">                type(), conletModel.getConletId(), tpl,</a>
-<span class="sourceLineNo">158</span><a id="line.158">                fmModel(event, channel, conletId, conletModel))</a>
-<span class="sourceLineNo">159</span><a id="line.159">                    .setRenderAs(</a>
-<span class="sourceLineNo">160</span><a id="line.160">                        RenderMode.View.addModifiers(event.renderAs())));</a>
-<span class="sourceLineNo">161</span><a id="line.161">            List&lt;Map&lt;String, Object&gt;&gt; bundleInfos</a>
-<span class="sourceLineNo">162</span><a id="line.162">                = Arrays.stream(context.getBundles())</a>
-<span class="sourceLineNo">163</span><a id="line.163">                    .map(bndl -&gt; createBundleInfo(bndl, channel.locale()))</a>
-<span class="sourceLineNo">164</span><a id="line.164">                    .collect(Collectors.toList());</a>
-<span class="sourceLineNo">165</span><a id="line.165">            channel.respond(new NotifyConletView(type(),</a>
-<span class="sourceLineNo">166</span><a id="line.166">                conletModel.getConletId(), "bundleUpdates", bundleInfos,</a>
-<span class="sourceLineNo">167</span><a id="line.167">                "view", true));</a>
-<span class="sourceLineNo">168</span><a id="line.168">            renderedAs.add(RenderMode.View);</a>
-<span class="sourceLineNo">169</span><a id="line.169">        }</a>
-<span class="sourceLineNo">170</span><a id="line.170">        return renderedAs;</a>
-<span class="sourceLineNo">171</span><a id="line.171">    }</a>
-<span class="sourceLineNo">172</span><a id="line.172"></a>
-<span class="sourceLineNo">173</span><a id="line.173">    private Map&lt;String, Object&gt; createBundleInfo(Bundle bundle, Locale locale) {</a>
-<span class="sourceLineNo">174</span><a id="line.174">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
-<span class="sourceLineNo">175</span><a id="line.175">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</a>
-<span class="sourceLineNo">176</span><a id="line.176">        result.put("id", bundle.getBundleId());</a>
-<span class="sourceLineNo">177</span><a id="line.177">        result.put("name",</a>
-<span class="sourceLineNo">178</span><a id="line.178">            Optional.ofNullable(bundle.getHeaders(locale.toString())</a>
-<span class="sourceLineNo">179</span><a id="line.179">                .get("Bundle-Name")).orElse(bundle.getSymbolicName()));</a>
-<span class="sourceLineNo">180</span><a id="line.180">        result.put("symbolicName", bundle.getSymbolicName());</a>
-<span class="sourceLineNo">181</span><a id="line.181">        result.put("version", bundle.getVersion().toString());</a>
-<span class="sourceLineNo">182</span><a id="line.182">        result.put("category",</a>
-<span class="sourceLineNo">183</span><a id="line.183">            Optional.ofNullable(bundle.getHeaders(locale.toString())</a>
-<span class="sourceLineNo">184</span><a id="line.184">                .get("Bundle-Category")).orElse(""));</a>
-<span class="sourceLineNo">185</span><a id="line.185">        result.put("state", "bundleState_" + bundle.getState());</a>
-<span class="sourceLineNo">186</span><a id="line.186">        result.put("startable", false);</a>
-<span class="sourceLineNo">187</span><a id="line.187">        result.put("stoppable", false);</a>
-<span class="sourceLineNo">188</span><a id="line.188">        if ((bundle.getState()</a>
-<span class="sourceLineNo">189</span><a id="line.189">            &amp; (Bundle.RESOLVED | Bundle.INSTALLED | Bundle.ACTIVE)) != 0) {</a>
-<span class="sourceLineNo">190</span><a id="line.190">            boolean isFragment = (bundle.adapt(BundleRevision.class).getTypes()</a>
-<span class="sourceLineNo">191</span><a id="line.191">                &amp; BundleRevision.TYPE_FRAGMENT) != 0;</a>
-<span class="sourceLineNo">192</span><a id="line.192">            result.put("startable", !isFragment</a>
-<span class="sourceLineNo">193</span><a id="line.193">                &amp;&amp; (bundle.getState() == Bundle.INSTALLED</a>
-<span class="sourceLineNo">194</span><a id="line.194">                    || bundle.getState() == Bundle.RESOLVED));</a>
-<span class="sourceLineNo">195</span><a id="line.195">            result.put("stoppable",</a>
-<span class="sourceLineNo">196</span><a id="line.196">                !isFragment &amp;&amp; bundle.getState() == Bundle.ACTIVE);</a>
-<span class="sourceLineNo">197</span><a id="line.197">        }</a>
-<span class="sourceLineNo">198</span><a id="line.198">        result.put("uninstallable", (bundle.getState()</a>
-<span class="sourceLineNo">199</span><a id="line.199">            &amp; (Bundle.INSTALLED | Bundle.RESOLVED | Bundle.ACTIVE)) != 0);</a>
-<span class="sourceLineNo">200</span><a id="line.200">        result.put("uninstalled", bundle.getState() == Bundle.UNINSTALLED);</a>
-<span class="sourceLineNo">201</span><a id="line.201">        return result;</a>
-<span class="sourceLineNo">202</span><a id="line.202">    }</a>
-<span class="sourceLineNo">203</span><a id="line.203"></a>
-<span class="sourceLineNo">204</span><a id="line.204">    @Override</a>
-<span class="sourceLineNo">205</span><a id="line.205">    protected void doUpdateConletState(NotifyConletModel event,</a>
-<span class="sourceLineNo">206</span><a id="line.206">            ConsoleSession channel, BundleListModel conletState)</a>
-<span class="sourceLineNo">207</span><a id="line.207">            throws Exception {</a>
-<span class="sourceLineNo">208</span><a id="line.208">        event.stop();</a>
-<span class="sourceLineNo">209</span><a id="line.209">        Bundle bundle = context.getBundle(event.params().asInt(0));</a>
-<span class="sourceLineNo">210</span><a id="line.210">        if (bundle == null) {</a>
-<span class="sourceLineNo">211</span><a id="line.211">            return;</a>
-<span class="sourceLineNo">212</span><a id="line.212">        }</a>
-<span class="sourceLineNo">213</span><a id="line.213">        try {</a>
-<span class="sourceLineNo">214</span><a id="line.214">            switch (event.method()) {</a>
-<span class="sourceLineNo">215</span><a id="line.215">            case "stop":</a>
-<span class="sourceLineNo">216</span><a id="line.216">                bundle.stop();</a>
+<span class="sourceLineNo">139</span><a id="line.139">                conletId, tpl, fmModel(event, channel, conletId, conletModel))</a>
+<span class="sourceLineNo">140</span><a id="line.140">                    .setRenderAs(</a>
+<span class="sourceLineNo">141</span><a id="line.141">                        RenderMode.Preview.addModifiers(event.renderAs()))</a>
+<span class="sourceLineNo">142</span><a id="line.142">                    .setSupportedModes(MODES));</a>
+<span class="sourceLineNo">143</span><a id="line.143">            List&lt;Map&lt;String, Object&gt;&gt; bundleInfos</a>
+<span class="sourceLineNo">144</span><a id="line.144">                = Arrays.stream(context.getBundles())</a>
+<span class="sourceLineNo">145</span><a id="line.145">                    .map(bndl -&gt; createBundleInfo(bndl, channel.locale()))</a>
+<span class="sourceLineNo">146</span><a id="line.146">                    .collect(Collectors.toList());</a>
+<span class="sourceLineNo">147</span><a id="line.147">            channel.respond(new NotifyConletView(type(),</a>
+<span class="sourceLineNo">148</span><a id="line.148">                conletId, "bundleUpdates", bundleInfos, "preview", true));</a>
+<span class="sourceLineNo">149</span><a id="line.149">            renderedAs.add(RenderMode.Preview);</a>
+<span class="sourceLineNo">150</span><a id="line.150">        }</a>
+<span class="sourceLineNo">151</span><a id="line.151">        if (event.renderAs().contains(RenderMode.View)) {</a>
+<span class="sourceLineNo">152</span><a id="line.152">            Template tpl</a>
+<span class="sourceLineNo">153</span><a id="line.153">                = freemarkerConfig().getTemplate("Bundles-view.ftl.html");</a>
+<span class="sourceLineNo">154</span><a id="line.154">            channel.respond(new RenderConletFromTemplate(event,</a>
+<span class="sourceLineNo">155</span><a id="line.155">                type(), conletId, tpl,</a>
+<span class="sourceLineNo">156</span><a id="line.156">                fmModel(event, channel, conletId, conletModel))</a>
+<span class="sourceLineNo">157</span><a id="line.157">                    .setRenderAs(</a>
+<span class="sourceLineNo">158</span><a id="line.158">                        RenderMode.View.addModifiers(event.renderAs())));</a>
+<span class="sourceLineNo">159</span><a id="line.159">            List&lt;Map&lt;String, Object&gt;&gt; bundleInfos</a>
+<span class="sourceLineNo">160</span><a id="line.160">                = Arrays.stream(context.getBundles())</a>
+<span class="sourceLineNo">161</span><a id="line.161">                    .map(bndl -&gt; createBundleInfo(bndl, channel.locale()))</a>
+<span class="sourceLineNo">162</span><a id="line.162">                    .collect(Collectors.toList());</a>
+<span class="sourceLineNo">163</span><a id="line.163">            channel.respond(new NotifyConletView(type(),</a>
+<span class="sourceLineNo">164</span><a id="line.164">                conletId, "bundleUpdates", bundleInfos, "view", true));</a>
+<span class="sourceLineNo">165</span><a id="line.165">            renderedAs.add(RenderMode.View);</a>
+<span class="sourceLineNo">166</span><a id="line.166">        }</a>
+<span class="sourceLineNo">167</span><a id="line.167">        return renderedAs;</a>
+<span class="sourceLineNo">168</span><a id="line.168">    }</a>
+<span class="sourceLineNo">169</span><a id="line.169"></a>
+<span class="sourceLineNo">170</span><a id="line.170">    private Map&lt;String, Object&gt; createBundleInfo(Bundle bundle, Locale locale) {</a>
+<span class="sourceLineNo">171</span><a id="line.171">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
+<span class="sourceLineNo">172</span><a id="line.172">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</a>
+<span class="sourceLineNo">173</span><a id="line.173">        result.put("id", bundle.getBundleId());</a>
+<span class="sourceLineNo">174</span><a id="line.174">        result.put("name",</a>
+<span class="sourceLineNo">175</span><a id="line.175">            Optional.ofNullable(bundle.getHeaders(locale.toString())</a>
+<span class="sourceLineNo">176</span><a id="line.176">                .get("Bundle-Name")).orElse(bundle.getSymbolicName()));</a>
+<span class="sourceLineNo">177</span><a id="line.177">        result.put("symbolicName", bundle.getSymbolicName());</a>
+<span class="sourceLineNo">178</span><a id="line.178">        result.put("version", bundle.getVersion().toString());</a>
+<span class="sourceLineNo">179</span><a id="line.179">        result.put("category",</a>
+<span class="sourceLineNo">180</span><a id="line.180">            Optional.ofNullable(bundle.getHeaders(locale.toString())</a>
+<span class="sourceLineNo">181</span><a id="line.181">                .get("Bundle-Category")).orElse(""));</a>
+<span class="sourceLineNo">182</span><a id="line.182">        result.put("state", "bundleState_" + bundle.getState());</a>
+<span class="sourceLineNo">183</span><a id="line.183">        result.put("startable", false);</a>
+<span class="sourceLineNo">184</span><a id="line.184">        result.put("stoppable", false);</a>
+<span class="sourceLineNo">185</span><a id="line.185">        if ((bundle.getState()</a>
+<span class="sourceLineNo">186</span><a id="line.186">            &amp; (Bundle.RESOLVED | Bundle.INSTALLED | Bundle.ACTIVE)) != 0) {</a>
+<span class="sourceLineNo">187</span><a id="line.187">            boolean isFragment = (bundle.adapt(BundleRevision.class).getTypes()</a>
+<span class="sourceLineNo">188</span><a id="line.188">                &amp; BundleRevision.TYPE_FRAGMENT) != 0;</a>
+<span class="sourceLineNo">189</span><a id="line.189">            result.put("startable", !isFragment</a>
+<span class="sourceLineNo">190</span><a id="line.190">                &amp;&amp; (bundle.getState() == Bundle.INSTALLED</a>
+<span class="sourceLineNo">191</span><a id="line.191">                    || bundle.getState() == Bundle.RESOLVED));</a>
+<span class="sourceLineNo">192</span><a id="line.192">            result.put("stoppable",</a>
+<span class="sourceLineNo">193</span><a id="line.193">                !isFragment &amp;&amp; bundle.getState() == Bundle.ACTIVE);</a>
+<span class="sourceLineNo">194</span><a id="line.194">        }</a>
+<span class="sourceLineNo">195</span><a id="line.195">        result.put("uninstallable", (bundle.getState()</a>
+<span class="sourceLineNo">196</span><a id="line.196">            &amp; (Bundle.INSTALLED | Bundle.RESOLVED | Bundle.ACTIVE)) != 0);</a>
+<span class="sourceLineNo">197</span><a id="line.197">        result.put("uninstalled", bundle.getState() == Bundle.UNINSTALLED);</a>
+<span class="sourceLineNo">198</span><a id="line.198">        return result;</a>
+<span class="sourceLineNo">199</span><a id="line.199">    }</a>
+<span class="sourceLineNo">200</span><a id="line.200"></a>
+<span class="sourceLineNo">201</span><a id="line.201">    @Override</a>
+<span class="sourceLineNo">202</span><a id="line.202">    protected void doUpdateConletState(NotifyConletModel event,</a>
+<span class="sourceLineNo">203</span><a id="line.203">            ConsoleSession channel, BundleListModel conletState)</a>
+<span class="sourceLineNo">204</span><a id="line.204">            throws Exception {</a>
+<span class="sourceLineNo">205</span><a id="line.205">        event.stop();</a>
+<span class="sourceLineNo">206</span><a id="line.206">        Bundle bundle = context.getBundle(event.params().asInt(0));</a>
+<span class="sourceLineNo">207</span><a id="line.207">        if (bundle == null) {</a>
+<span class="sourceLineNo">208</span><a id="line.208">            return;</a>
+<span class="sourceLineNo">209</span><a id="line.209">        }</a>
+<span class="sourceLineNo">210</span><a id="line.210">        try {</a>
+<span class="sourceLineNo">211</span><a id="line.211">            switch (event.method()) {</a>
+<span class="sourceLineNo">212</span><a id="line.212">            case "stop":</a>
+<span class="sourceLineNo">213</span><a id="line.213">                bundle.stop();</a>
+<span class="sourceLineNo">214</span><a id="line.214">                break;</a>
+<span class="sourceLineNo">215</span><a id="line.215">            case "start":</a>
+<span class="sourceLineNo">216</span><a id="line.216">                bundle.start();</a>
 <span class="sourceLineNo">217</span><a id="line.217">                break;</a>
-<span class="sourceLineNo">218</span><a id="line.218">            case "start":</a>
-<span class="sourceLineNo">219</span><a id="line.219">                bundle.start();</a>
-<span class="sourceLineNo">220</span><a id="line.220">                break;</a>
-<span class="sourceLineNo">221</span><a id="line.221">            case "refresh":</a>
+<span class="sourceLineNo">218</span><a id="line.218">            case "refresh":</a>
+<span class="sourceLineNo">219</span><a id="line.219">                break;</a>
+<span class="sourceLineNo">220</span><a id="line.220">            case "update":</a>
+<span class="sourceLineNo">221</span><a id="line.221">                bundle.update();</a>
 <span class="sourceLineNo">222</span><a id="line.222">                break;</a>
-<span class="sourceLineNo">223</span><a id="line.223">            case "update":</a>
-<span class="sourceLineNo">224</span><a id="line.224">                bundle.update();</a>
+<span class="sourceLineNo">223</span><a id="line.223">            case "uninstall":</a>
+<span class="sourceLineNo">224</span><a id="line.224">                bundle.uninstall();</a>
 <span class="sourceLineNo">225</span><a id="line.225">                break;</a>
-<span class="sourceLineNo">226</span><a id="line.226">            case "uninstall":</a>
-<span class="sourceLineNo">227</span><a id="line.227">                bundle.uninstall();</a>
+<span class="sourceLineNo">226</span><a id="line.226">            case "sendDetails":</a>
+<span class="sourceLineNo">227</span><a id="line.227">                sendBundleDetails(event.conletId(), channel, bundle);</a>
 <span class="sourceLineNo">228</span><a id="line.228">                break;</a>
-<span class="sourceLineNo">229</span><a id="line.229">            case "sendDetails":</a>
-<span class="sourceLineNo">230</span><a id="line.230">                sendBundleDetails(event.conletId(), channel, bundle);</a>
-<span class="sourceLineNo">231</span><a id="line.231">                break;</a>
-<span class="sourceLineNo">232</span><a id="line.232">            default:// ignore</a>
-<span class="sourceLineNo">233</span><a id="line.233">                break;</a>
-<span class="sourceLineNo">234</span><a id="line.234">            }</a>
-<span class="sourceLineNo">235</span><a id="line.235">        } catch (BundleException e) {</a>
-<span class="sourceLineNo">236</span><a id="line.236">            // ignore</a>
-<span class="sourceLineNo">237</span><a id="line.237">            LOG.log(Level.WARNING, "Cannot update bundle state", e);</a>
-<span class="sourceLineNo">238</span><a id="line.238">        }</a>
-<span class="sourceLineNo">239</span><a id="line.239">    }</a>
-<span class="sourceLineNo">240</span><a id="line.240"></a>
-<span class="sourceLineNo">241</span><a id="line.241">    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</a>
-<span class="sourceLineNo">242</span><a id="line.242">    private void sendBundleDetails(String conletId, ConsoleSession channel,</a>
-<span class="sourceLineNo">243</span><a id="line.243">            Bundle bundle) {</a>
-<span class="sourceLineNo">244</span><a id="line.244">        Locale locale = channel.locale();</a>
-<span class="sourceLineNo">245</span><a id="line.245">        List&lt;Object&gt; data = new ArrayList&lt;&gt;();</a>
-<span class="sourceLineNo">246</span><a id="line.246">        data.add(</a>
-<span class="sourceLineNo">247</span><a id="line.247">            new Object[] { "bundleSymbolicName", bundle.getSymbolicName() });</a>
-<span class="sourceLineNo">248</span><a id="line.248">        data.add(</a>
-<span class="sourceLineNo">249</span><a id="line.249">            new Object[] { "bundleVersion", bundle.getVersion().toString() });</a>
-<span class="sourceLineNo">250</span><a id="line.250">        data.add(new Object[] { "bundleLocation",</a>
-<span class="sourceLineNo">251</span><a id="line.251">            bundle.getLocation().replace(".", ".&amp;#x200b;") });</a>
-<span class="sourceLineNo">252</span><a id="line.252">        data.add(new Object[] { "bundleLastModification",</a>
-<span class="sourceLineNo">253</span><a id="line.253">            Instant.ofEpochMilli(bundle.getLastModified()).toString(),</a>
-<span class="sourceLineNo">254</span><a id="line.254">            "dateTime" });</a>
-<span class="sourceLineNo">255</span><a id="line.255">        data.add(new Object[] { "bundleStartLevel",</a>
-<span class="sourceLineNo">256</span><a id="line.256">            bundle.adapt(BundleStartLevel.class).getStartLevel() });</a>
-<span class="sourceLineNo">257</span><a id="line.257">        Dictionary&lt;String, String&gt; dict = bundle.getHeaders(locale.toString());</a>
-<span class="sourceLineNo">258</span><a id="line.258">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
-<span class="sourceLineNo">259</span><a id="line.259">        Map&lt;String, String&gt; headers = new TreeMap&lt;&gt;();</a>
-<span class="sourceLineNo">260</span><a id="line.260">        for (Enumeration&lt;String&gt; e = dict.keys(); e.hasMoreElements();) {</a>
-<span class="sourceLineNo">261</span><a id="line.261">            String key = e.nextElement();</a>
-<span class="sourceLineNo">262</span><a id="line.262">            headers.put(key, dict.get(key));</a>
-<span class="sourceLineNo">263</span><a id="line.263">        }</a>
-<span class="sourceLineNo">264</span><a id="line.264">        List&lt;Object&gt; headerList = new ArrayList&lt;&gt;();</a>
-<span class="sourceLineNo">265</span><a id="line.265">        for (Map.Entry&lt;String, String&gt; e : headers.entrySet()) {</a>
-<span class="sourceLineNo">266</span><a id="line.266">            headerList.add(new Object[] { e.getKey(),</a>
-<span class="sourceLineNo">267</span><a id="line.267">                e.getKey().contains("Package")</a>
-<span class="sourceLineNo">268</span><a id="line.268">                    ? e.getValue().replace(".", ".&amp;#x200b;")</a>
-<span class="sourceLineNo">269</span><a id="line.269">                    : e.getValue() });</a>
-<span class="sourceLineNo">270</span><a id="line.270">        }</a>
-<span class="sourceLineNo">271</span><a id="line.271">        data.add(new Object[] { "manifestHeaders", headerList, "table" });</a>
-<span class="sourceLineNo">272</span><a id="line.272">        channel.respond(new NotifyConletView(type(),</a>
-<span class="sourceLineNo">273</span><a id="line.273">            conletId, "bundleDetails", bundle.getBundleId(), data));</a>
-<span class="sourceLineNo">274</span><a id="line.274">    }</a>
-<span class="sourceLineNo">275</span><a id="line.275"></a>
-<span class="sourceLineNo">276</span><a id="line.276">    /**</a>
-<span class="sourceLineNo">277</span><a id="line.277">     * Translates the OSGi {@link BundleEvent} to a JGrapes event and fires it</a>
-<span class="sourceLineNo">278</span><a id="line.278">     * on all known console session channels.</a>
-<span class="sourceLineNo">279</span><a id="line.279">     *</a>
-<span class="sourceLineNo">280</span><a id="line.280">     * @param event the event</a>
-<span class="sourceLineNo">281</span><a id="line.281">     */</a>
-<span class="sourceLineNo">282</span><a id="line.282">    @Override</a>
-<span class="sourceLineNo">283</span><a id="line.283">    public void bundleChanged(BundleEvent event) {</a>
-<span class="sourceLineNo">284</span><a id="line.284">        fire(new BundleChanged(event), trackedSessions());</a>
-<span class="sourceLineNo">285</span><a id="line.285">    }</a>
-<span class="sourceLineNo">286</span><a id="line.286"></a>
-<span class="sourceLineNo">287</span><a id="line.287">    /**</a>
-<span class="sourceLineNo">288</span><a id="line.288">     * Handles a {@link BundleChanged} event by updating the information in the</a>
-<span class="sourceLineNo">289</span><a id="line.289">     * console sessions.</a>
-<span class="sourceLineNo">290</span><a id="line.290">     *</a>
-<span class="sourceLineNo">291</span><a id="line.291">     * @param event the event</a>
-<span class="sourceLineNo">292</span><a id="line.292">     */</a>
-<span class="sourceLineNo">293</span><a id="line.293">    @Handler</a>
-<span class="sourceLineNo">294</span><a id="line.294">    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</a>
-<span class="sourceLineNo">295</span><a id="line.295">    public void onBundleChanged(BundleChanged event,</a>
-<span class="sourceLineNo">296</span><a id="line.296">            ConsoleSession consoleSession) {</a>
-<span class="sourceLineNo">297</span><a id="line.297">        for (String conletId : conletIds(consoleSession)) {</a>
-<span class="sourceLineNo">298</span><a id="line.298">            consoleSession.respond(new NotifyConletView(type(), conletId,</a>
-<span class="sourceLineNo">299</span><a id="line.299">                "bundleUpdates",</a>
-<span class="sourceLineNo">300</span><a id="line.300">                (Object) new Object[] { createBundleInfo(</a>
-<span class="sourceLineNo">301</span><a id="line.301">                    event.bundleEvent().getBundle(), consoleSession.locale()) },</a>
-<span class="sourceLineNo">302</span><a id="line.302">                "*", false));</a>
-<span class="sourceLineNo">303</span><a id="line.303">        }</a>
-<span class="sourceLineNo">304</span><a id="line.304">    }</a>
-<span class="sourceLineNo">305</span><a id="line.305"></a>
-<span class="sourceLineNo">306</span><a id="line.306">    @Override</a>
-<span class="sourceLineNo">307</span><a id="line.307">    protected boolean doSetLocale(SetLocale event, ConsoleSession channel,</a>
-<span class="sourceLineNo">308</span><a id="line.308">            String conletId) throws Exception {</a>
-<span class="sourceLineNo">309</span><a id="line.309">        return true;</a>
-<span class="sourceLineNo">310</span><a id="line.310">    }</a>
-<span class="sourceLineNo">311</span><a id="line.311"></a>
-<span class="sourceLineNo">312</span><a id="line.312">    /**</a>
-<span class="sourceLineNo">313</span><a id="line.313">     * Wraps an OSGi {@link BundleEvent}.</a>
-<span class="sourceLineNo">314</span><a id="line.314">     */</a>
-<span class="sourceLineNo">315</span><a id="line.315">    public static class BundleChanged extends Event&lt;Void&gt; {</a>
-<span class="sourceLineNo">316</span><a id="line.316">        private final BundleEvent bundleEvent;</a>
-<span class="sourceLineNo">317</span><a id="line.317"></a>
-<span class="sourceLineNo">318</span><a id="line.318">        /**</a>
-<span class="sourceLineNo">319</span><a id="line.319">         * Instantiates a new event.</a>
-<span class="sourceLineNo">320</span><a id="line.320">         *</a>
-<span class="sourceLineNo">321</span><a id="line.321">         * @param bundleEvent the OSGi bundle event</a>
-<span class="sourceLineNo">322</span><a id="line.322">         */</a>
-<span class="sourceLineNo">323</span><a id="line.323">        public BundleChanged(BundleEvent bundleEvent) {</a>
-<span class="sourceLineNo">324</span><a id="line.324">            this.bundleEvent = bundleEvent;</a>
-<span class="sourceLineNo">325</span><a id="line.325">        }</a>
-<span class="sourceLineNo">326</span><a id="line.326"></a>
-<span class="sourceLineNo">327</span><a id="line.327">        /**</a>
-<span class="sourceLineNo">328</span><a id="line.328">         * Return the OSGi bundle event.</a>
-<span class="sourceLineNo">329</span><a id="line.329">         *</a>
-<span class="sourceLineNo">330</span><a id="line.330">         * @return the bundle event</a>
-<span class="sourceLineNo">331</span><a id="line.331">         */</a>
-<span class="sourceLineNo">332</span><a id="line.332">        public BundleEvent bundleEvent() {</a>
-<span class="sourceLineNo">333</span><a id="line.333">            return bundleEvent;</a>
-<span class="sourceLineNo">334</span><a id="line.334">        }</a>
-<span class="sourceLineNo">335</span><a id="line.335"></a>
-<span class="sourceLineNo">336</span><a id="line.336">    }</a>
-<span class="sourceLineNo">337</span><a id="line.337"></a>
-<span class="sourceLineNo">338</span><a id="line.338">    /**</a>
-<span class="sourceLineNo">339</span><a id="line.339">     * The bundle's model.</a>
-<span class="sourceLineNo">340</span><a id="line.340">     */</a>
-<span class="sourceLineNo">341</span><a id="line.341">    @SuppressWarnings("serial")</a>
-<span class="sourceLineNo">342</span><a id="line.342">    public class BundleListModel extends ConletBaseModel {</a>
-<span class="sourceLineNo">343</span><a id="line.343"></a>
-<span class="sourceLineNo">344</span><a id="line.344">        /**</a>
-<span class="sourceLineNo">345</span><a id="line.345">         * Instantiates a new bundle list model.</a>
-<span class="sourceLineNo">346</span><a id="line.346">         *</a>
-<span class="sourceLineNo">347</span><a id="line.347">         * @param conletId the web console component id</a>
-<span class="sourceLineNo">348</span><a id="line.348">         */</a>
-<span class="sourceLineNo">349</span><a id="line.349">        public BundleListModel(String conletId) {</a>
-<span class="sourceLineNo">350</span><a id="line.350">            super(conletId);</a>
-<span class="sourceLineNo">351</span><a id="line.351">        }</a>
-<span class="sourceLineNo">352</span><a id="line.352"></a>
-<span class="sourceLineNo">353</span><a id="line.353">        /**</a>
-<span class="sourceLineNo">354</span><a id="line.354">         * Return the bundles.</a>
-<span class="sourceLineNo">355</span><a id="line.355">         *</a>
-<span class="sourceLineNo">356</span><a id="line.356">         * @return the bundle[]</a>
-<span class="sourceLineNo">357</span><a id="line.357">         */</a>
-<span class="sourceLineNo">358</span><a id="line.358">        public Bundle[] bundles() {</a>
-<span class="sourceLineNo">359</span><a id="line.359">            return context.getBundles();</a>
-<span class="sourceLineNo">360</span><a id="line.360">        }</a>
-<span class="sourceLineNo">361</span><a id="line.361"></a>
-<span class="sourceLineNo">362</span><a id="line.362">    }</a>
-<span class="sourceLineNo">363</span><a id="line.363">}</a>
+<span class="sourceLineNo">229</span><a id="line.229">            default:// ignore</a>
+<span class="sourceLineNo">230</span><a id="line.230">                break;</a>
+<span class="sourceLineNo">231</span><a id="line.231">            }</a>
+<span class="sourceLineNo">232</span><a id="line.232">        } catch (BundleException e) {</a>
+<span class="sourceLineNo">233</span><a id="line.233">            // ignore</a>
+<span class="sourceLineNo">234</span><a id="line.234">            LOG.log(Level.WARNING, "Cannot update bundle state", e);</a>
+<span class="sourceLineNo">235</span><a id="line.235">        }</a>
+<span class="sourceLineNo">236</span><a id="line.236">    }</a>
+<span class="sourceLineNo">237</span><a id="line.237"></a>
+<span class="sourceLineNo">238</span><a id="line.238">    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</a>
+<span class="sourceLineNo">239</span><a id="line.239">    private void sendBundleDetails(String conletId, ConsoleSession channel,</a>
+<span class="sourceLineNo">240</span><a id="line.240">            Bundle bundle) {</a>
+<span class="sourceLineNo">241</span><a id="line.241">        Locale locale = channel.locale();</a>
+<span class="sourceLineNo">242</span><a id="line.242">        List&lt;Object&gt; data = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">243</span><a id="line.243">        data.add(</a>
+<span class="sourceLineNo">244</span><a id="line.244">            new Object[] { "bundleSymbolicName", bundle.getSymbolicName() });</a>
+<span class="sourceLineNo">245</span><a id="line.245">        data.add(</a>
+<span class="sourceLineNo">246</span><a id="line.246">            new Object[] { "bundleVersion", bundle.getVersion().toString() });</a>
+<span class="sourceLineNo">247</span><a id="line.247">        data.add(new Object[] { "bundleLocation",</a>
+<span class="sourceLineNo">248</span><a id="line.248">            bundle.getLocation().replace(".", ".&amp;#x200b;") });</a>
+<span class="sourceLineNo">249</span><a id="line.249">        data.add(new Object[] { "bundleLastModification",</a>
+<span class="sourceLineNo">250</span><a id="line.250">            Instant.ofEpochMilli(bundle.getLastModified()).toString(),</a>
+<span class="sourceLineNo">251</span><a id="line.251">            "dateTime" });</a>
+<span class="sourceLineNo">252</span><a id="line.252">        data.add(new Object[] { "bundleStartLevel",</a>
+<span class="sourceLineNo">253</span><a id="line.253">            bundle.adapt(BundleStartLevel.class).getStartLevel() });</a>
+<span class="sourceLineNo">254</span><a id="line.254">        Dictionary&lt;String, String&gt; dict = bundle.getHeaders(locale.toString());</a>
+<span class="sourceLineNo">255</span><a id="line.255">        @SuppressWarnings("PMD.UseConcurrentHashMap")</a>
+<span class="sourceLineNo">256</span><a id="line.256">        Map&lt;String, String&gt; headers = new TreeMap&lt;&gt;();</a>
+<span class="sourceLineNo">257</span><a id="line.257">        for (Enumeration&lt;String&gt; e = dict.keys(); e.hasMoreElements();) {</a>
+<span class="sourceLineNo">258</span><a id="line.258">            String key = e.nextElement();</a>
+<span class="sourceLineNo">259</span><a id="line.259">            headers.put(key, dict.get(key));</a>
+<span class="sourceLineNo">260</span><a id="line.260">        }</a>
+<span class="sourceLineNo">261</span><a id="line.261">        List&lt;Object&gt; headerList = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">262</span><a id="line.262">        for (Map.Entry&lt;String, String&gt; e : headers.entrySet()) {</a>
+<span class="sourceLineNo">263</span><a id="line.263">            headerList.add(new Object[] { e.getKey(),</a>
+<span class="sourceLineNo">264</span><a id="line.264">                e.getKey().contains("Package")</a>
+<span class="sourceLineNo">265</span><a id="line.265">                    ? e.getValue().replace(".", ".&amp;#x200b;")</a>
+<span class="sourceLineNo">266</span><a id="line.266">                    : e.getValue() });</a>
+<span class="sourceLineNo">267</span><a id="line.267">        }</a>
+<span class="sourceLineNo">268</span><a id="line.268">        data.add(new Object[] { "manifestHeaders", headerList, "table" });</a>
+<span class="sourceLineNo">269</span><a id="line.269">        channel.respond(new NotifyConletView(type(),</a>
+<span class="sourceLineNo">270</span><a id="line.270">            conletId, "bundleDetails", bundle.getBundleId(), data));</a>
+<span class="sourceLineNo">271</span><a id="line.271">    }</a>
+<span class="sourceLineNo">272</span><a id="line.272"></a>
+<span class="sourceLineNo">273</span><a id="line.273">    /**</a>
+<span class="sourceLineNo">274</span><a id="line.274">     * Translates the OSGi {@link BundleEvent} to a JGrapes event and fires it</a>
+<span class="sourceLineNo">275</span><a id="line.275">     * on all known console session channels.</a>
+<span class="sourceLineNo">276</span><a id="line.276">     *</a>
+<span class="sourceLineNo">277</span><a id="line.277">     * @param event the event</a>
+<span class="sourceLineNo">278</span><a id="line.278">     */</a>
+<span class="sourceLineNo">279</span><a id="line.279">    @Override</a>
+<span class="sourceLineNo">280</span><a id="line.280">    public void bundleChanged(BundleEvent event) {</a>
+<span class="sourceLineNo">281</span><a id="line.281">        fire(new BundleChanged(event), trackedSessions());</a>
+<span class="sourceLineNo">282</span><a id="line.282">    }</a>
+<span class="sourceLineNo">283</span><a id="line.283"></a>
+<span class="sourceLineNo">284</span><a id="line.284">    /**</a>
+<span class="sourceLineNo">285</span><a id="line.285">     * Handles a {@link BundleChanged} event by updating the information in the</a>
+<span class="sourceLineNo">286</span><a id="line.286">     * console sessions.</a>
+<span class="sourceLineNo">287</span><a id="line.287">     *</a>
+<span class="sourceLineNo">288</span><a id="line.288">     * @param event the event</a>
+<span class="sourceLineNo">289</span><a id="line.289">     */</a>
+<span class="sourceLineNo">290</span><a id="line.290">    @Handler</a>
+<span class="sourceLineNo">291</span><a id="line.291">    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</a>
+<span class="sourceLineNo">292</span><a id="line.292">    public void onBundleChanged(BundleChanged event,</a>
+<span class="sourceLineNo">293</span><a id="line.293">            ConsoleSession consoleSession) {</a>
+<span class="sourceLineNo">294</span><a id="line.294">        for (String conletId : conletIds(consoleSession)) {</a>
+<span class="sourceLineNo">295</span><a id="line.295">            consoleSession.respond(new NotifyConletView(type(), conletId,</a>
+<span class="sourceLineNo">296</span><a id="line.296">                "bundleUpdates",</a>
+<span class="sourceLineNo">297</span><a id="line.297">                (Object) new Object[] { createBundleInfo(</a>
+<span class="sourceLineNo">298</span><a id="line.298">                    event.bundleEvent().getBundle(), consoleSession.locale()) },</a>
+<span class="sourceLineNo">299</span><a id="line.299">                "*", false));</a>
+<span class="sourceLineNo">300</span><a id="line.300">        }</a>
+<span class="sourceLineNo">301</span><a id="line.301">    }</a>
+<span class="sourceLineNo">302</span><a id="line.302"></a>
+<span class="sourceLineNo">303</span><a id="line.303">    @Override</a>
+<span class="sourceLineNo">304</span><a id="line.304">    protected boolean doSetLocale(SetLocale event, ConsoleSession channel,</a>
+<span class="sourceLineNo">305</span><a id="line.305">            String conletId) throws Exception {</a>
+<span class="sourceLineNo">306</span><a id="line.306">        return true;</a>
+<span class="sourceLineNo">307</span><a id="line.307">    }</a>
+<span class="sourceLineNo">308</span><a id="line.308"></a>
+<span class="sourceLineNo">309</span><a id="line.309">    /**</a>
+<span class="sourceLineNo">310</span><a id="line.310">     * Wraps an OSGi {@link BundleEvent}.</a>
+<span class="sourceLineNo">311</span><a id="line.311">     */</a>
+<span class="sourceLineNo">312</span><a id="line.312">    public static class BundleChanged extends Event&lt;Void&gt; {</a>
+<span class="sourceLineNo">313</span><a id="line.313">        private final BundleEvent bundleEvent;</a>
+<span class="sourceLineNo">314</span><a id="line.314"></a>
+<span class="sourceLineNo">315</span><a id="line.315">        /**</a>
+<span class="sourceLineNo">316</span><a id="line.316">         * Instantiates a new event.</a>
+<span class="sourceLineNo">317</span><a id="line.317">         *</a>
+<span class="sourceLineNo">318</span><a id="line.318">         * @param bundleEvent the OSGi bundle event</a>
+<span class="sourceLineNo">319</span><a id="line.319">         */</a>
+<span class="sourceLineNo">320</span><a id="line.320">        public BundleChanged(BundleEvent bundleEvent) {</a>
+<span class="sourceLineNo">321</span><a id="line.321">            this.bundleEvent = bundleEvent;</a>
+<span class="sourceLineNo">322</span><a id="line.322">        }</a>
+<span class="sourceLineNo">323</span><a id="line.323"></a>
+<span class="sourceLineNo">324</span><a id="line.324">        /**</a>
+<span class="sourceLineNo">325</span><a id="line.325">         * Return the OSGi bundle event.</a>
+<span class="sourceLineNo">326</span><a id="line.326">         *</a>
+<span class="sourceLineNo">327</span><a id="line.327">         * @return the bundle event</a>
+<span class="sourceLineNo">328</span><a id="line.328">         */</a>
+<span class="sourceLineNo">329</span><a id="line.329">        public BundleEvent bundleEvent() {</a>
+<span class="sourceLineNo">330</span><a id="line.330">            return bundleEvent;</a>
+<span class="sourceLineNo">331</span><a id="line.331">        }</a>
+<span class="sourceLineNo">332</span><a id="line.332"></a>
+<span class="sourceLineNo">333</span><a id="line.333">    }</a>
+<span class="sourceLineNo">334</span><a id="line.334"></a>
+<span class="sourceLineNo">335</span><a id="line.335">    /**</a>
+<span class="sourceLineNo">336</span><a id="line.336">     * The bundle's model.</a>
+<span class="sourceLineNo">337</span><a id="line.337">     */</a>
+<span class="sourceLineNo">338</span><a id="line.338">    @SuppressWarnings("serial")</a>
+<span class="sourceLineNo">339</span><a id="line.339">    public class BundleListModel extends ConletBaseModel {</a>
+<span class="sourceLineNo">340</span><a id="line.340"></a>
+<span class="sourceLineNo">341</span><a id="line.341">        /**</a>
+<span class="sourceLineNo">342</span><a id="line.342">         * Instantiates a new bundle list model.</a>
+<span class="sourceLineNo">343</span><a id="line.343">         *</a>
+<span class="sourceLineNo">344</span><a id="line.344">         * @param conletId the web console component id</a>
+<span class="sourceLineNo">345</span><a id="line.345">         */</a>
+<span class="sourceLineNo">346</span><a id="line.346">        public BundleListModel(String conletId) {</a>
+<span class="sourceLineNo">347</span><a id="line.347">            super(conletId);</a>
+<span class="sourceLineNo">348</span><a id="line.348">        }</a>
+<span class="sourceLineNo">349</span><a id="line.349"></a>
+<span class="sourceLineNo">350</span><a id="line.350">        /**</a>
+<span class="sourceLineNo">351</span><a id="line.351">         * Return the bundles.</a>
+<span class="sourceLineNo">352</span><a id="line.352">         *</a>
+<span class="sourceLineNo">353</span><a id="line.353">         * @return the bundle[]</a>
+<span class="sourceLineNo">354</span><a id="line.354">         */</a>
+<span class="sourceLineNo">355</span><a id="line.355">        public Bundle[] bundles() {</a>
+<span class="sourceLineNo">356</span><a id="line.356">            return context.getBundles();</a>
+<span class="sourceLineNo">357</span><a id="line.357">        }</a>
+<span class="sourceLineNo">358</span><a id="line.358"></a>
+<span class="sourceLineNo">359</span><a id="line.359">    }</a>
+<span class="sourceLineNo">360</span><a id="line.360">}</a>
 
 
 
