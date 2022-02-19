@@ -1,3 +1,6 @@
+org.jgrapes.webconlet.examples.formtest
+org.jgrapes.webconlet.examples.helloworld
+org.jgrapes.webconlet.examples.styletest
 org.jgrapes.webconlet.jmxbrowser
 org.jgrapes.webconlet.markdowndisplay
 org.jgrapes.webconlet.sysinfo
@@ -7,6 +10,7 @@ org.jgrapes.webconsole.base.freemarker
 org.jgrapes.webconsole.bootstrap4
 org.jgrapes.webconsole.jqueryui
 org.jgrapes.webconsole.jqueryui.events
+org.jgrapes.webconsole.jqueryui.themes
 org.jgrapes.webconsole.jqueryui.themes.base
 org.jgrapes.webconsole.provider.browserrequire
 org.jgrapes.webconsole.provider.chartjs
