@@ -27,8 +27,8 @@ configurations {
 }
 
 dependencies {
-    markdownDoclet "org.jdrupes.mdoclet:doclet:2.0.0"
-    javadocTaglets "org.jdrupes.taglets:plantuml-taglet:2.0.0"
+    markdownDoclet "org.jdrupes.mdoclet:doclet:2.1.0"
+    javadocTaglets "org.jdrupes.taglets:plantuml-taglet:2.0.1"
 }
 
 task java11doc(type: JavaExec) {
