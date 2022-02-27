@@ -101,7 +101,7 @@
 <span class="source-line-no">089</span><span id="line.89">            ParseException, IOException {</span>
 <span class="source-line-no">090</span><span id="line.90">        // Add SysInfoConlet resources to page</span>
 <span class="source-line-no">091</span><span id="line.91">        consoleSession.respond(new AddConletType(type())</span>
-<span class="source-line-no">092</span><span id="line.92">            .setDisplayNames(</span>
+<span class="source-line-no">092</span><span id="line.92">            .addRenderMode(RenderMode.Preview).setDisplayNames(</span>
 <span class="source-line-no">093</span><span id="line.93">                localizations(consoleSession.supportedLocales(), "conletName"))</span>
 <span class="source-line-no">094</span><span id="line.94">            .addScript(new ScriptResource()</span>
 <span class="source-line-no">095</span><span id="line.95">                .setRequires("chart.js")</span>

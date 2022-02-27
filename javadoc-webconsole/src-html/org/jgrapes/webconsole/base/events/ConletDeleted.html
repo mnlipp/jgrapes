@@ -30,67 +30,108 @@
 <span class="source-line-no">018</span><span id="line.18"></span>
 <span class="source-line-no">019</span><span id="line.19">package org.jgrapes.webconsole.base.events;</span>
 <span class="source-line-no">020</span><span id="line.20"></span>
-<span class="source-line-no">021</span><span id="line.21">import java.util.Set;</span>
-<span class="source-line-no">022</span><span id="line.22">import org.jgrapes.core.Event;</span>
-<span class="source-line-no">023</span><span id="line.23">import org.jgrapes.webconsole.base.Conlet.RenderMode;</span>
-<span class="source-line-no">024</span><span id="line.24">import org.jgrapes.webconsole.base.RenderSupport;</span>
-<span class="source-line-no">025</span><span id="line.25"></span>
-<span class="source-line-no">026</span><span id="line.26">/**</span>
-<span class="source-line-no">027</span><span id="line.27"> * A notification that a conlet view was deleted in the browser.</span>
-<span class="source-line-no">028</span><span id="line.28"> */</span>
-<span class="source-line-no">029</span><span id="line.29">public class ConletDeleted extends Event&lt;Void&gt; {</span>
-<span class="source-line-no">030</span><span id="line.30"></span>
-<span class="source-line-no">031</span><span id="line.31">    private final RenderSupport renderSupport;</span>
-<span class="source-line-no">032</span><span id="line.32">    private final String conletId;</span>
-<span class="source-line-no">033</span><span id="line.33">    private final Set&lt;RenderMode&gt; renderModes;</span>
-<span class="source-line-no">034</span><span id="line.34"></span>
-<span class="source-line-no">035</span><span id="line.35">    /**</span>
-<span class="source-line-no">036</span><span id="line.36">     * Creates a new event.</span>
-<span class="source-line-no">037</span><span id="line.37">     *</span>
-<span class="source-line-no">038</span><span id="line.38">     * @param renderSupport the render support from the web console in case</span>
-<span class="source-line-no">039</span><span id="line.39">     * the response requires it</span>
-<span class="source-line-no">040</span><span id="line.40">     * @param conletId the web console component model that the notification is</span>
-<span class="source-line-no">041</span><span id="line.41">     * directed at</span>
-<span class="source-line-no">042</span><span id="line.42">     * @param renderModes the kind of views that have been deleted. If</span>
-<span class="source-line-no">043</span><span id="line.43">     * empty, the last view has been deleted, i.e. the conlet is no longer</span>
-<span class="source-line-no">044</span><span id="line.44">     * used in the broweser.</span>
-<span class="source-line-no">045</span><span id="line.45">     */</span>
-<span class="source-line-no">046</span><span id="line.46">    public ConletDeleted(RenderSupport renderSupport,</span>
-<span class="source-line-no">047</span><span id="line.47">            String conletId, Set&lt;RenderMode&gt; renderModes) {</span>
-<span class="source-line-no">048</span><span id="line.48">        this.renderSupport = renderSupport;</span>
-<span class="source-line-no">049</span><span id="line.49">        this.conletId = conletId;</span>
-<span class="source-line-no">050</span><span id="line.50">        this.renderModes = renderModes;</span>
-<span class="source-line-no">051</span><span id="line.51">    }</span>
-<span class="source-line-no">052</span><span id="line.52"></span>
-<span class="source-line-no">053</span><span id="line.53">    /**</span>
-<span class="source-line-no">054</span><span id="line.54">     * Returns the render support.</span>
-<span class="source-line-no">055</span><span id="line.55">     * </span>
-<span class="source-line-no">056</span><span id="line.56">     * @return the render support</span>
-<span class="source-line-no">057</span><span id="line.57">     */</span>
-<span class="source-line-no">058</span><span id="line.58">    public RenderSupport renderSupport() {</span>
-<span class="source-line-no">059</span><span id="line.59">        return renderSupport;</span>
-<span class="source-line-no">060</span><span id="line.60">    }</span>
-<span class="source-line-no">061</span><span id="line.61"></span>
-<span class="source-line-no">062</span><span id="line.62">    /**</span>
-<span class="source-line-no">063</span><span id="line.63">     * Returns the web console component id.</span>
-<span class="source-line-no">064</span><span id="line.64">     * </span>
-<span class="source-line-no">065</span><span id="line.65">     * @return the web console component id</span>
-<span class="source-line-no">066</span><span id="line.66">     */</span>
-<span class="source-line-no">067</span><span id="line.67">    public String conletId() {</span>
-<span class="source-line-no">068</span><span id="line.68">        return conletId;</span>
-<span class="source-line-no">069</span><span id="line.69">    }</span>
-<span class="source-line-no">070</span><span id="line.70"></span>
-<span class="source-line-no">071</span><span id="line.71">    /**</span>
-<span class="source-line-no">072</span><span id="line.72">     * Returns the render modes that have been deleted. An empty</span>
-<span class="source-line-no">073</span><span id="line.73">     * set indicates that all views have been deleted, i.e.</span>
-<span class="source-line-no">074</span><span id="line.74">     * the conlet is no longer used in the browser.</span>
-<span class="source-line-no">075</span><span id="line.75">     *</span>
-<span class="source-line-no">076</span><span id="line.76">     * @return the render modes</span>
-<span class="source-line-no">077</span><span id="line.77">     */</span>
-<span class="source-line-no">078</span><span id="line.78">    public Set&lt;RenderMode&gt; renderModes() {</span>
-<span class="source-line-no">079</span><span id="line.79">        return renderModes;</span>
-<span class="source-line-no">080</span><span id="line.80">    }</span>
-<span class="source-line-no">081</span><span id="line.81">}</span>
+<span class="source-line-no">021</span><span id="line.21">import java.util.HashMap;</span>
+<span class="source-line-no">022</span><span id="line.22">import java.util.Map;</span>
+<span class="source-line-no">023</span><span id="line.23">import java.util.Set;</span>
+<span class="source-line-no">024</span><span id="line.24">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">025</span><span id="line.25">import org.jgrapes.webconsole.base.Conlet.RenderMode;</span>
+<span class="source-line-no">026</span><span id="line.26">import org.jgrapes.webconsole.base.RenderSupport;</span>
+<span class="source-line-no">027</span><span id="line.27"></span>
+<span class="source-line-no">028</span><span id="line.28">/**</span>
+<span class="source-line-no">029</span><span id="line.29"> * A notification that a conlet view was deleted in the browser.</span>
+<span class="source-line-no">030</span><span id="line.30"> */</span>
+<span class="source-line-no">031</span><span id="line.31">@SuppressWarnings("PMD.DataClass")</span>
+<span class="source-line-no">032</span><span id="line.32">public class ConletDeleted extends Event&lt;Void&gt; {</span>
+<span class="source-line-no">033</span><span id="line.33"></span>
+<span class="source-line-no">034</span><span id="line.34">    private final RenderSupport renderSupport;</span>
+<span class="source-line-no">035</span><span id="line.35">    private final String conletId;</span>
+<span class="source-line-no">036</span><span id="line.36">    private final Set&lt;RenderMode&gt; renderModes;</span>
+<span class="source-line-no">037</span><span id="line.37">    private Map&lt;? extends Object, ? extends Object&gt; properties;</span>
+<span class="source-line-no">038</span><span id="line.38"></span>
+<span class="source-line-no">039</span><span id="line.39">    /**</span>
+<span class="source-line-no">040</span><span id="line.40">     * Creates a new event.</span>
+<span class="source-line-no">041</span><span id="line.41">     *</span>
+<span class="source-line-no">042</span><span id="line.42">     * @param renderSupport the render support from the web console in case</span>
+<span class="source-line-no">043</span><span id="line.43">     * the response requires it</span>
+<span class="source-line-no">044</span><span id="line.44">     * @param conletId the web console component model that the notification is</span>
+<span class="source-line-no">045</span><span id="line.45">     * directed at</span>
+<span class="source-line-no">046</span><span id="line.46">     * @param renderModes the kind of views that have been deleted. If</span>
+<span class="source-line-no">047</span><span id="line.47">     * empty, the last view has been deleted, i.e. the conlet is no longer</span>
+<span class="source-line-no">048</span><span id="line.48">     * used in the browser.</span>
+<span class="source-line-no">049</span><span id="line.49">     */</span>
+<span class="source-line-no">050</span><span id="line.50">    public ConletDeleted(RenderSupport renderSupport,</span>
+<span class="source-line-no">051</span><span id="line.51">            String conletId, Set&lt;RenderMode&gt; renderModes) {</span>
+<span class="source-line-no">052</span><span id="line.52">        this.renderSupport = renderSupport;</span>
+<span class="source-line-no">053</span><span id="line.53">        this.conletId = conletId;</span>
+<span class="source-line-no">054</span><span id="line.54">        this.renderModes = renderModes;</span>
+<span class="source-line-no">055</span><span id="line.55">        this.properties = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">056</span><span id="line.56">    }</span>
+<span class="source-line-no">057</span><span id="line.57"></span>
+<span class="source-line-no">058</span><span id="line.58">    /**</span>
+<span class="source-line-no">059</span><span id="line.59">     * Creates a new event.</span>
+<span class="source-line-no">060</span><span id="line.60">     *</span>
+<span class="source-line-no">061</span><span id="line.61">     * @param renderSupport the render support from the web console in case</span>
+<span class="source-line-no">062</span><span id="line.62">     * the response requires it</span>
+<span class="source-line-no">063</span><span id="line.63">     * @param conletId the web console component model that the notification is</span>
+<span class="source-line-no">064</span><span id="line.64">     * directed at</span>
+<span class="source-line-no">065</span><span id="line.65">     * @param renderModes the kind of views that have been deleted. If</span>
+<span class="source-line-no">066</span><span id="line.66">     * empty, the last view has been deleted, i.e. the conlet is no longer</span>
+<span class="source-line-no">067</span><span id="line.67">     * used in the browser.</span>
+<span class="source-line-no">068</span><span id="line.68">     * @param properties optional values for properties of the </span>
+<span class="source-line-no">069</span><span id="line.69">     * web console component instance</span>
+<span class="source-line-no">070</span><span id="line.70">     */</span>
+<span class="source-line-no">071</span><span id="line.71">    public ConletDeleted(RenderSupport renderSupport,</span>
+<span class="source-line-no">072</span><span id="line.72">            String conletId, Set&lt;RenderMode&gt; renderModes,</span>
+<span class="source-line-no">073</span><span id="line.73">            Map&lt;? extends Object, ? extends Object&gt; properties) {</span>
+<span class="source-line-no">074</span><span id="line.74">        this.renderSupport = renderSupport;</span>
+<span class="source-line-no">075</span><span id="line.75">        this.conletId = conletId;</span>
+<span class="source-line-no">076</span><span id="line.76">        this.renderModes = renderModes;</span>
+<span class="source-line-no">077</span><span id="line.77">        this.properties = new HashMap&lt;&gt;(properties);</span>
+<span class="source-line-no">078</span><span id="line.78">    }</span>
+<span class="source-line-no">079</span><span id="line.79"></span>
+<span class="source-line-no">080</span><span id="line.80">    /**</span>
+<span class="source-line-no">081</span><span id="line.81">     * Returns the render support.</span>
+<span class="source-line-no">082</span><span id="line.82">     * </span>
+<span class="source-line-no">083</span><span id="line.83">     * @return the render support</span>
+<span class="source-line-no">084</span><span id="line.84">     */</span>
+<span class="source-line-no">085</span><span id="line.85">    public RenderSupport renderSupport() {</span>
+<span class="source-line-no">086</span><span id="line.86">        return renderSupport;</span>
+<span class="source-line-no">087</span><span id="line.87">    }</span>
+<span class="source-line-no">088</span><span id="line.88"></span>
+<span class="source-line-no">089</span><span id="line.89">    /**</span>
+<span class="source-line-no">090</span><span id="line.90">     * Returns the web console component id.</span>
+<span class="source-line-no">091</span><span id="line.91">     * </span>
+<span class="source-line-no">092</span><span id="line.92">     * @return the web console component id</span>
+<span class="source-line-no">093</span><span id="line.93">     */</span>
+<span class="source-line-no">094</span><span id="line.94">    public String conletId() {</span>
+<span class="source-line-no">095</span><span id="line.95">        return conletId;</span>
+<span class="source-line-no">096</span><span id="line.96">    }</span>
+<span class="source-line-no">097</span><span id="line.97"></span>
+<span class="source-line-no">098</span><span id="line.98">    /**</span>
+<span class="source-line-no">099</span><span id="line.99">     * Returns the render modes that have been deleted. An empty</span>
+<span class="source-line-no">100</span><span id="line.100">     * set indicates that all views have been deleted, i.e.</span>
+<span class="source-line-no">101</span><span id="line.101">     * the conlet is no longer used in the browser.</span>
+<span class="source-line-no">102</span><span id="line.102">     *</span>
+<span class="source-line-no">103</span><span id="line.103">     * @return the render modes</span>
+<span class="source-line-no">104</span><span id="line.104">     */</span>
+<span class="source-line-no">105</span><span id="line.105">    public Set&lt;RenderMode&gt; renderModes() {</span>
+<span class="source-line-no">106</span><span id="line.106">        return renderModes;</span>
+<span class="source-line-no">107</span><span id="line.107">    }</span>
+<span class="source-line-no">108</span><span id="line.108"></span>
+<span class="source-line-no">109</span><span id="line.109">    /**</span>
+<span class="source-line-no">110</span><span id="line.110">     * Returns the properties. Every event returns a mutable map,</span>
+<span class="source-line-no">111</span><span id="line.111">     * thus allowing event handlers to modify the map even if</span>
+<span class="source-line-no">112</span><span id="line.112">     * none was passed to the constructor.</span>
+<span class="source-line-no">113</span><span id="line.113">     */</span>
+<span class="source-line-no">114</span><span id="line.114">    public Map&lt;Object, Object&gt; properties() {</span>
+<span class="source-line-no">115</span><span id="line.115">        if (properties == null) {</span>
+<span class="source-line-no">116</span><span id="line.116">            properties = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">117</span><span id="line.117">        }</span>
+<span class="source-line-no">118</span><span id="line.118">        @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">119</span><span id="line.119">        Map&lt;Object, Object&gt; props = (Map&lt;Object, Object&gt;) properties;</span>
+<span class="source-line-no">120</span><span id="line.120">        return props;</span>
+<span class="source-line-no">121</span><span id="line.121">    }</span>
+<span class="source-line-no">122</span><span id="line.122">}</span>
 
 
 

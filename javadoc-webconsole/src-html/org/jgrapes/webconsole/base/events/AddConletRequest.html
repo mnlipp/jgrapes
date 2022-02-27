@@ -87,76 +87,74 @@
 <span class="source-line-no">075</span><span id="line.75">            Set&lt;RenderMode&gt; renderModes) {</span>
 <span class="source-line-no">076</span><span id="line.76">        super(renderSupport, renderModes);</span>
 <span class="source-line-no">077</span><span id="line.77">        this.conletType = conletType;</span>
-<span class="source-line-no">078</span><span id="line.78">    }</span>
-<span class="source-line-no">079</span><span id="line.79"></span>
-<span class="source-line-no">080</span><span id="line.80">    /**</span>
-<span class="source-line-no">081</span><span id="line.81">     * Creates a new event.</span>
-<span class="source-line-no">082</span><span id="line.82">     *</span>
-<span class="source-line-no">083</span><span id="line.83">     * @param renderSupport the render support</span>
-<span class="source-line-no">084</span><span id="line.84">     * @param conletType the type of the web console component</span>
-<span class="source-line-no">085</span><span id="line.85">     * @param renderModes the render modes</span>
-<span class="source-line-no">086</span><span id="line.86">     * @param properties optional values for properties of the </span>
-<span class="source-line-no">087</span><span id="line.87">     * web console component instance</span>
-<span class="source-line-no">088</span><span id="line.88">     */</span>
-<span class="source-line-no">089</span><span id="line.89">    public AddConletRequest(RenderSupport renderSupport, String conletType,</span>
-<span class="source-line-no">090</span><span id="line.90">            Set&lt;RenderMode&gt; renderModes, Map&lt;?, ?&gt; properties) {</span>
-<span class="source-line-no">091</span><span id="line.91">        super(renderSupport, renderModes);</span>
-<span class="source-line-no">092</span><span id="line.92">        this.conletType = conletType;</span>
-<span class="source-line-no">093</span><span id="line.93">        @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">094</span><span id="line.94">        Map&lt;Object, Object&gt; props = (Map&lt;Object, Object&gt;) properties;</span>
-<span class="source-line-no">095</span><span id="line.95">        this.properties = props;</span>
-<span class="source-line-no">096</span><span id="line.96">    }</span>
-<span class="source-line-no">097</span><span id="line.97"></span>
-<span class="source-line-no">098</span><span id="line.98">    /**</span>
-<span class="source-line-no">099</span><span id="line.99">     * Returns the web console component type</span>
-<span class="source-line-no">100</span><span id="line.100">     * </span>
-<span class="source-line-no">101</span><span id="line.101">     * @return the web console component type</span>
-<span class="source-line-no">102</span><span id="line.102">     */</span>
-<span class="source-line-no">103</span><span id="line.103">    public String conletType() {</span>
-<span class="source-line-no">104</span><span id="line.104">        return conletType;</span>
-<span class="source-line-no">105</span><span id="line.105">    }</span>
-<span class="source-line-no">106</span><span id="line.106"></span>
-<span class="source-line-no">107</span><span id="line.107">    /**</span>
-<span class="source-line-no">108</span><span id="line.108">     * Returns the properties. Every event returns a mutable map,</span>
-<span class="source-line-no">109</span><span id="line.109">     * thus allowing event handlers to modify the map even if</span>
-<span class="source-line-no">110</span><span id="line.110">     * none was passed to the constructor.</span>
-<span class="source-line-no">111</span><span id="line.111">     */</span>
-<span class="source-line-no">112</span><span id="line.112">    public Map&lt;Object, Object&gt; properties() {</span>
-<span class="source-line-no">113</span><span id="line.113">        if (properties == null) {</span>
-<span class="source-line-no">114</span><span id="line.114">            properties = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">115</span><span id="line.115">        }</span>
-<span class="source-line-no">116</span><span id="line.116">        @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">117</span><span id="line.117">        Map&lt;Object, Object&gt; props = (Map&lt;Object, Object&gt;) properties;</span>
-<span class="source-line-no">118</span><span id="line.118">        return props;</span>
-<span class="source-line-no">119</span><span id="line.119">    }</span>
-<span class="source-line-no">120</span><span id="line.120"></span>
-<span class="source-line-no">121</span><span id="line.121">    /**</span>
-<span class="source-line-no">122</span><span id="line.122">     * Convenience method for adding properties one-by-one.</span>
-<span class="source-line-no">123</span><span id="line.123">     * </span>
-<span class="source-line-no">124</span><span id="line.124">     * @param key the property key</span>
-<span class="source-line-no">125</span><span id="line.125">     * @param value the property value</span>
-<span class="source-line-no">126</span><span id="line.126">     * @return the event for easy chaining</span>
-<span class="source-line-no">127</span><span id="line.127">     */</span>
-<span class="source-line-no">128</span><span id="line.128">    public AddConletRequest addProperty(Object key, Object value) {</span>
-<span class="source-line-no">129</span><span id="line.129">        properties().put(key, value);</span>
-<span class="source-line-no">130</span><span id="line.130">        return this;</span>
-<span class="source-line-no">131</span><span id="line.131">    }</span>
-<span class="source-line-no">132</span><span id="line.132"></span>
-<span class="source-line-no">133</span><span id="line.133">    /**</span>
-<span class="source-line-no">134</span><span id="line.134">     * Convenience method that performs the given action if a property</span>
-<span class="source-line-no">135</span><span id="line.135">     * with the given key exists.</span>
-<span class="source-line-no">136</span><span id="line.136">     * </span>
-<span class="source-line-no">137</span><span id="line.137">     * @param key the property key</span>
-<span class="source-line-no">138</span><span id="line.138">     * @param action the action to perform</span>
-<span class="source-line-no">139</span><span id="line.139">     */</span>
-<span class="source-line-no">140</span><span id="line.140">    public AddConletRequest ifPresent(</span>
-<span class="source-line-no">141</span><span id="line.141">            Object key, BiConsumer&lt;Object, Object&gt; action) {</span>
-<span class="source-line-no">142</span><span id="line.142">        if (properties().containsKey(key)) {</span>
-<span class="source-line-no">143</span><span id="line.143">            action.accept(key, properties().get(key));</span>
-<span class="source-line-no">144</span><span id="line.144">        }</span>
-<span class="source-line-no">145</span><span id="line.145">        return this;</span>
-<span class="source-line-no">146</span><span id="line.146">    }</span>
-<span class="source-line-no">147</span><span id="line.147">}</span>
+<span class="source-line-no">078</span><span id="line.78">        this.properties = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">079</span><span id="line.79">    }</span>
+<span class="source-line-no">080</span><span id="line.80"></span>
+<span class="source-line-no">081</span><span id="line.81">    /**</span>
+<span class="source-line-no">082</span><span id="line.82">     * Creates a new event.</span>
+<span class="source-line-no">083</span><span id="line.83">     *</span>
+<span class="source-line-no">084</span><span id="line.84">     * @param renderSupport the render support</span>
+<span class="source-line-no">085</span><span id="line.85">     * @param conletType the type of the web console component</span>
+<span class="source-line-no">086</span><span id="line.86">     * @param renderModes the render modes</span>
+<span class="source-line-no">087</span><span id="line.87">     * @param properties optional values for properties of the </span>
+<span class="source-line-no">088</span><span id="line.88">     * web console component instance</span>
+<span class="source-line-no">089</span><span id="line.89">     */</span>
+<span class="source-line-no">090</span><span id="line.90">    public AddConletRequest(RenderSupport renderSupport, String conletType,</span>
+<span class="source-line-no">091</span><span id="line.91">            Set&lt;RenderMode&gt; renderModes, Map&lt;?, ?&gt; properties) {</span>
+<span class="source-line-no">092</span><span id="line.92">        this(renderSupport, conletType, renderModes);</span>
+<span class="source-line-no">093</span><span id="line.93">        this.properties = new HashMap&lt;&gt;(properties);</span>
+<span class="source-line-no">094</span><span id="line.94">    }</span>
+<span class="source-line-no">095</span><span id="line.95"></span>
+<span class="source-line-no">096</span><span id="line.96">    /**</span>
+<span class="source-line-no">097</span><span id="line.97">     * Returns the web console component type</span>
+<span class="source-line-no">098</span><span id="line.98">     * </span>
+<span class="source-line-no">099</span><span id="line.99">     * @return the web console component type</span>
+<span class="source-line-no">100</span><span id="line.100">     */</span>
+<span class="source-line-no">101</span><span id="line.101">    public String conletType() {</span>
+<span class="source-line-no">102</span><span id="line.102">        return conletType;</span>
+<span class="source-line-no">103</span><span id="line.103">    }</span>
+<span class="source-line-no">104</span><span id="line.104"></span>
+<span class="source-line-no">105</span><span id="line.105">    /**</span>
+<span class="source-line-no">106</span><span id="line.106">     * Returns the properties. Every event returns a mutable map,</span>
+<span class="source-line-no">107</span><span id="line.107">     * thus allowing event handlers to modify the map even if</span>
+<span class="source-line-no">108</span><span id="line.108">     * none was passed to the constructor.</span>
+<span class="source-line-no">109</span><span id="line.109">     */</span>
+<span class="source-line-no">110</span><span id="line.110">    public Map&lt;Object, Object&gt; properties() {</span>
+<span class="source-line-no">111</span><span id="line.111">        if (properties == null) {</span>
+<span class="source-line-no">112</span><span id="line.112">            properties = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">113</span><span id="line.113">        }</span>
+<span class="source-line-no">114</span><span id="line.114">        @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">115</span><span id="line.115">        Map&lt;Object, Object&gt; props = (Map&lt;Object, Object&gt;) properties;</span>
+<span class="source-line-no">116</span><span id="line.116">        return props;</span>
+<span class="source-line-no">117</span><span id="line.117">    }</span>
+<span class="source-line-no">118</span><span id="line.118"></span>
+<span class="source-line-no">119</span><span id="line.119">    /**</span>
+<span class="source-line-no">120</span><span id="line.120">     * Convenience method for adding properties one-by-one.</span>
+<span class="source-line-no">121</span><span id="line.121">     * </span>
+<span class="source-line-no">122</span><span id="line.122">     * @param key the property key</span>
+<span class="source-line-no">123</span><span id="line.123">     * @param value the property value</span>
+<span class="source-line-no">124</span><span id="line.124">     * @return the event for easy chaining</span>
+<span class="source-line-no">125</span><span id="line.125">     */</span>
+<span class="source-line-no">126</span><span id="line.126">    public AddConletRequest addProperty(Object key, Object value) {</span>
+<span class="source-line-no">127</span><span id="line.127">        properties().put(key, value);</span>
+<span class="source-line-no">128</span><span id="line.128">        return this;</span>
+<span class="source-line-no">129</span><span id="line.129">    }</span>
+<span class="source-line-no">130</span><span id="line.130"></span>
+<span class="source-line-no">131</span><span id="line.131">    /**</span>
+<span class="source-line-no">132</span><span id="line.132">     * Convenience method that performs the given action if a property</span>
+<span class="source-line-no">133</span><span id="line.133">     * with the given key exists.</span>
+<span class="source-line-no">134</span><span id="line.134">     * </span>
+<span class="source-line-no">135</span><span id="line.135">     * @param key the property key</span>
+<span class="source-line-no">136</span><span id="line.136">     * @param action the action to perform</span>
+<span class="source-line-no">137</span><span id="line.137">     */</span>
+<span class="source-line-no">138</span><span id="line.138">    public AddConletRequest ifPresent(</span>
+<span class="source-line-no">139</span><span id="line.139">            Object key, BiConsumer&lt;Object, Object&gt; action) {</span>
+<span class="source-line-no">140</span><span id="line.140">        if (properties().containsKey(key)) {</span>
+<span class="source-line-no">141</span><span id="line.141">            action.accept(key, properties().get(key));</span>
+<span class="source-line-no">142</span><span id="line.142">        }</span>
+<span class="source-line-no">143</span><span id="line.143">        return this;</span>
+<span class="source-line-no">144</span><span id="line.144">    }</span>
+<span class="source-line-no">145</span><span id="line.145">}</span>
 
 
 

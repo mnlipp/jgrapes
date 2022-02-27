@@ -89,42 +89,41 @@
 <span class="source-line-no">077</span><span id="line.77">            ParseException, IOException {</span>
 <span class="source-line-no">078</span><span id="line.78">        // Add HelloWorldConlet resources to page</span>
 <span class="source-line-no">079</span><span id="line.79">        consoleSession.respond(new AddConletType(type())</span>
-<span class="source-line-no">080</span><span id="line.80">            .setDisplayNames(</span>
+<span class="source-line-no">080</span><span id="line.80">            .addRenderMode(RenderMode.View).setDisplayNames(</span>
 <span class="source-line-no">081</span><span id="line.81">                localizations(consoleSession.supportedLocales(), "conletName"))</span>
-<span class="source-line-no">082</span><span id="line.82">            .addRenderMode(RenderMode.View)</span>
-<span class="source-line-no">083</span><span id="line.83">            .addScript(new ScriptResource()</span>
-<span class="source-line-no">084</span><span id="line.84">                .setScriptType("module").setScriptUri(</span>
-<span class="source-line-no">085</span><span id="line.85">                    event.renderSupport().conletResource(type(),</span>
-<span class="source-line-no">086</span><span id="line.86">                        "StyleTest-functions.ftl.js")))</span>
-<span class="source-line-no">087</span><span id="line.87">            .addCss(event.renderSupport(), WebConsoleUtils.uriFromPath(</span>
-<span class="source-line-no">088</span><span id="line.88">                "StyleTest-style.css")));</span>
-<span class="source-line-no">089</span><span id="line.89">    }</span>
-<span class="source-line-no">090</span><span id="line.90"></span>
-<span class="source-line-no">091</span><span id="line.91">    @Override</span>
-<span class="source-line-no">092</span><span id="line.92">    protected Set&lt;RenderMode&gt; doRenderConlet(RenderConletRequestBase&lt;?&gt; event,</span>
-<span class="source-line-no">093</span><span id="line.93">            ConsoleSession channel, String conletId,</span>
-<span class="source-line-no">094</span><span id="line.94">            Serializable conletState) throws Exception {</span>
-<span class="source-line-no">095</span><span id="line.95">        Set&lt;RenderMode&gt; renderedAs = new HashSet&lt;&gt;();</span>
-<span class="source-line-no">096</span><span id="line.96">        if (event.renderAs().contains(RenderMode.View)) {</span>
-<span class="source-line-no">097</span><span id="line.97">            Template tpl</span>
-<span class="source-line-no">098</span><span id="line.98">                = freemarkerConfig().getTemplate("StyleTest-view.ftl.html");</span>
-<span class="source-line-no">099</span><span id="line.99">            channel.respond(new RenderConletFromTemplate(event,</span>
-<span class="source-line-no">100</span><span id="line.100">                type(), conletId, tpl,</span>
-<span class="source-line-no">101</span><span id="line.101">                fmModel(event, channel, conletId, conletState))</span>
-<span class="source-line-no">102</span><span id="line.102">                    .setRenderAs(RenderMode.View.addModifiers(event.renderAs()))</span>
-<span class="source-line-no">103</span><span id="line.103">                    .setSupportedModes(MODES));</span>
-<span class="source-line-no">104</span><span id="line.104">            renderedAs.add(RenderMode.View);</span>
-<span class="source-line-no">105</span><span id="line.105">        }</span>
-<span class="source-line-no">106</span><span id="line.106">        return renderedAs;</span>
-<span class="source-line-no">107</span><span id="line.107">    }</span>
-<span class="source-line-no">108</span><span id="line.108"></span>
-<span class="source-line-no">109</span><span id="line.109">    @Override</span>
-<span class="source-line-no">110</span><span id="line.110">    protected boolean doSetLocale(SetLocale event, ConsoleSession channel,</span>
-<span class="source-line-no">111</span><span id="line.111">            String conletId) throws Exception {</span>
-<span class="source-line-no">112</span><span id="line.112">        return true;</span>
-<span class="source-line-no">113</span><span id="line.113">    }</span>
-<span class="source-line-no">114</span><span id="line.114"></span>
-<span class="source-line-no">115</span><span id="line.115">}</span>
+<span class="source-line-no">082</span><span id="line.82">            .addScript(new ScriptResource()</span>
+<span class="source-line-no">083</span><span id="line.83">                .setScriptType("module").setScriptUri(</span>
+<span class="source-line-no">084</span><span id="line.84">                    event.renderSupport().conletResource(type(),</span>
+<span class="source-line-no">085</span><span id="line.85">                        "StyleTest-functions.ftl.js")))</span>
+<span class="source-line-no">086</span><span id="line.86">            .addCss(event.renderSupport(), WebConsoleUtils.uriFromPath(</span>
+<span class="source-line-no">087</span><span id="line.87">                "StyleTest-style.css")));</span>
+<span class="source-line-no">088</span><span id="line.88">    }</span>
+<span class="source-line-no">089</span><span id="line.89"></span>
+<span class="source-line-no">090</span><span id="line.90">    @Override</span>
+<span class="source-line-no">091</span><span id="line.91">    protected Set&lt;RenderMode&gt; doRenderConlet(RenderConletRequestBase&lt;?&gt; event,</span>
+<span class="source-line-no">092</span><span id="line.92">            ConsoleSession channel, String conletId,</span>
+<span class="source-line-no">093</span><span id="line.93">            Serializable conletState) throws Exception {</span>
+<span class="source-line-no">094</span><span id="line.94">        Set&lt;RenderMode&gt; renderedAs = new HashSet&lt;&gt;();</span>
+<span class="source-line-no">095</span><span id="line.95">        if (event.renderAs().contains(RenderMode.View)) {</span>
+<span class="source-line-no">096</span><span id="line.96">            Template tpl</span>
+<span class="source-line-no">097</span><span id="line.97">                = freemarkerConfig().getTemplate("StyleTest-view.ftl.html");</span>
+<span class="source-line-no">098</span><span id="line.98">            channel.respond(new RenderConletFromTemplate(event,</span>
+<span class="source-line-no">099</span><span id="line.99">                type(), conletId, tpl,</span>
+<span class="source-line-no">100</span><span id="line.100">                fmModel(event, channel, conletId, conletState))</span>
+<span class="source-line-no">101</span><span id="line.101">                    .setRenderAs(RenderMode.View.addModifiers(event.renderAs()))</span>
+<span class="source-line-no">102</span><span id="line.102">                    .setSupportedModes(MODES));</span>
+<span class="source-line-no">103</span><span id="line.103">            renderedAs.add(RenderMode.View);</span>
+<span class="source-line-no">104</span><span id="line.104">        }</span>
+<span class="source-line-no">105</span><span id="line.105">        return renderedAs;</span>
+<span class="source-line-no">106</span><span id="line.106">    }</span>
+<span class="source-line-no">107</span><span id="line.107"></span>
+<span class="source-line-no">108</span><span id="line.108">    @Override</span>
+<span class="source-line-no">109</span><span id="line.109">    protected boolean doSetLocale(SetLocale event, ConsoleSession channel,</span>
+<span class="source-line-no">110</span><span id="line.110">            String conletId) throws Exception {</span>
+<span class="source-line-no">111</span><span id="line.111">        return true;</span>
+<span class="source-line-no">112</span><span id="line.112">    }</span>
+<span class="source-line-no">113</span><span id="line.113"></span>
+<span class="source-line-no">114</span><span id="line.114">}</span>
 
 
 
