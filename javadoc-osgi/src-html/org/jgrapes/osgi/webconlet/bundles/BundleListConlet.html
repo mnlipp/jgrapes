@@ -119,7 +119,7 @@
 <span class="sourceLineNo">110</span><a id="line.110">            ParseException, IOException {</a>
 <span class="sourceLineNo">111</span><a id="line.111">        // Add conlet resources to page</a>
 <span class="sourceLineNo">112</span><a id="line.112">        channel.respond(new AddConletType(type())</a>
-<span class="sourceLineNo">113</span><a id="line.113">            .setDisplayNames(</a>
+<span class="sourceLineNo">113</span><a id="line.113">            .addRenderMode(RenderMode.Preview).setDisplayNames(</a>
 <span class="sourceLineNo">114</span><a id="line.114">                localizations(channel.supportedLocales(), "conletName"))</a>
 <span class="sourceLineNo">115</span><a id="line.115">            .addScript(new ScriptResource()</a>
 <span class="sourceLineNo">116</span><a id="line.116">                .setScriptUri(event.renderSupport().conletResource(</a>

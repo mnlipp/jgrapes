@@ -123,7 +123,7 @@
 <span class="sourceLineNo">114</span><a id="line.114">            .getResourceAsStream("device-tree-template.html"));</a>
 <span class="sourceLineNo">115</span><a id="line.115">        // Add conlet resources to page</a>
 <span class="sourceLineNo">116</span><a id="line.116">        channel.respond(new AddConletType(type())</a>
-<span class="sourceLineNo">117</span><a id="line.117">            .setDisplayNames(</a>
+<span class="sourceLineNo">117</span><a id="line.117">            .addRenderMode(RenderMode.Preview).setDisplayNames(</a>
 <span class="sourceLineNo">118</span><a id="line.118">                localizations(channel.supportedLocales(), "conletName"))</a>
 <span class="sourceLineNo">119</span><a id="line.119">            .addScript(new ScriptResource()</a>
 <span class="sourceLineNo">120</span><a id="line.120">                .setScriptUri(event.renderSupport().conletResource(</a>
