@@ -51,21 +51,21 @@
 <span class="source-line-no">039</span><span id="line.39">import java.util.Map;</span>
 <span class="source-line-no">040</span><span id="line.40">import java.util.MissingResourceException;</span>
 <span class="source-line-no">041</span><span id="line.41">import java.util.ResourceBundle;</span>
-<span class="source-line-no">042</span><span id="line.42">import java.util.concurrent.Future;</span>
-<span class="source-line-no">043</span><span id="line.43">import java.util.regex.Pattern;</span>
-<span class="source-line-no">044</span><span id="line.44">import org.jdrupes.httpcodec.protocols.http.HttpResponse;</span>
-<span class="source-line-no">045</span><span id="line.45">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">046</span><span id="line.46">import org.jgrapes.core.Component;</span>
-<span class="source-line-no">047</span><span id="line.47">import org.jgrapes.core.Components;</span>
-<span class="source-line-no">048</span><span id="line.48">import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;</span>
-<span class="source-line-no">049</span><span id="line.49">import org.jgrapes.http.Session;</span>
-<span class="source-line-no">050</span><span id="line.50">import org.jgrapes.io.IOSubchannel;</span>
-<span class="source-line-no">051</span><span id="line.51">import org.jgrapes.webconsole.base.AbstractConlet;</span>
-<span class="source-line-no">052</span><span id="line.52">import org.jgrapes.webconsole.base.ConsoleSession;</span>
-<span class="source-line-no">053</span><span id="line.53">import org.jgrapes.webconsole.base.RenderSupport;</span>
-<span class="source-line-no">054</span><span id="line.54">import org.jgrapes.webconsole.base.ResourceByGenerator;</span>
-<span class="source-line-no">055</span><span id="line.55">import org.jgrapes.webconsole.base.events.ConletResourceRequest;</span>
-<span class="source-line-no">056</span><span id="line.56">import org.jgrapes.webconsole.base.events.RenderConlet;</span>
+<span class="source-line-no">042</span><span id="line.42">import java.util.concurrent.ExecutorService;</span>
+<span class="source-line-no">043</span><span id="line.43">import java.util.concurrent.Future;</span>
+<span class="source-line-no">044</span><span id="line.44">import java.util.regex.Pattern;</span>
+<span class="source-line-no">045</span><span id="line.45">import org.jdrupes.httpcodec.protocols.http.HttpResponse;</span>
+<span class="source-line-no">046</span><span id="line.46">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">047</span><span id="line.47">import org.jgrapes.core.Component;</span>
+<span class="source-line-no">048</span><span id="line.48">import org.jgrapes.core.Components;</span>
+<span class="source-line-no">049</span><span id="line.49">import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;</span>
+<span class="source-line-no">050</span><span id="line.50">import org.jgrapes.http.Session;</span>
+<span class="source-line-no">051</span><span id="line.51">import org.jgrapes.io.IOSubchannel;</span>
+<span class="source-line-no">052</span><span id="line.52">import org.jgrapes.webconsole.base.AbstractConlet;</span>
+<span class="source-line-no">053</span><span id="line.53">import org.jgrapes.webconsole.base.ConsoleSession;</span>
+<span class="source-line-no">054</span><span id="line.54">import org.jgrapes.webconsole.base.RenderSupport;</span>
+<span class="source-line-no">055</span><span id="line.55">import org.jgrapes.webconsole.base.ResourceByGenerator;</span>
+<span class="source-line-no">056</span><span id="line.56">import org.jgrapes.webconsole.base.events.ConletResourceRequest;</span>
 <span class="source-line-no">057</span><span id="line.57">import org.jgrapes.webconsole.base.events.RenderConletRequest;</span>
 <span class="source-line-no">058</span><span id="line.58">import org.jgrapes.webconsole.base.events.RenderConletRequestBase;</span>
 <span class="source-line-no">059</span><span id="line.59">import org.jgrapes.webconsole.base.freemarker.FreeMarkerConsoleWeblet.LanguageInfo;</span>
@@ -337,46 +337,32 @@
 <span class="source-line-no">325</span><span id="line.325">    }</span>
 <span class="source-line-no">326</span><span id="line.326"></span>
 <span class="source-line-no">327</span><span id="line.327">    /**</span>
-<span class="source-line-no">328</span><span id="line.328">     * Specifies how to render web console component content using a template.</span>
-<span class="source-line-no">329</span><span id="line.329">     */</span>
-<span class="source-line-no">330</span><span id="line.330">    public static class RenderConletFromTemplate extends RenderConlet {</span>
-<span class="source-line-no">331</span><span id="line.331"></span>
-<span class="source-line-no">332</span><span id="line.332">        private final Future&lt;String&gt; content;</span>
-<span class="source-line-no">333</span><span id="line.333"></span>
-<span class="source-line-no">334</span><span id="line.334">        /**</span>
-<span class="source-line-no">335</span><span id="line.335">         * Instantiates a new event.</span>
-<span class="source-line-no">336</span><span id="line.336">         *</span>
-<span class="source-line-no">337</span><span id="line.337">         * @param request the request</span>
-<span class="source-line-no">338</span><span id="line.338">         * @param conletType the conlet type</span>
-<span class="source-line-no">339</span><span id="line.339">         * @param conletId the web console component id</span>
-<span class="source-line-no">340</span><span id="line.340">         * @param template the template</span>
-<span class="source-line-no">341</span><span id="line.341">         * @param dataModel the data model</span>
-<span class="source-line-no">342</span><span id="line.342">         */</span>
-<span class="source-line-no">343</span><span id="line.343">        public RenderConletFromTemplate(RenderConletRequestBase&lt;?&gt; request,</span>
-<span class="source-line-no">344</span><span id="line.344">                String conletType, String conletId, Template template,</span>
-<span class="source-line-no">345</span><span id="line.345">                Object dataModel) {</span>
-<span class="source-line-no">346</span><span id="line.346">            super(conletType, conletId);</span>
-<span class="source-line-no">347</span><span id="line.347">            // Start to prepare the content immediately and concurrently.</span>
-<span class="source-line-no">348</span><span id="line.348">            content</span>
-<span class="source-line-no">349</span><span id="line.349">                = request.processedBy().map(procBy -&gt; procBy.executorService())</span>
-<span class="source-line-no">350</span><span id="line.350">                    .orElse(Components.defaultExecutorService()).submit(() -&gt; {</span>
-<span class="source-line-no">351</span><span id="line.351">                        StringWriter out = new StringWriter();</span>
-<span class="source-line-no">352</span><span id="line.352">                        try {</span>
-<span class="source-line-no">353</span><span id="line.353">                            template.process(dataModel, out);</span>
-<span class="source-line-no">354</span><span id="line.354">                        } catch (TemplateException | IOException e) {</span>
-<span class="source-line-no">355</span><span id="line.355">                            throw new IllegalArgumentException(e);</span>
-<span class="source-line-no">356</span><span id="line.356">                        }</span>
-<span class="source-line-no">357</span><span id="line.357">                        return out.toString();</span>
-<span class="source-line-no">358</span><span id="line.358"></span>
-<span class="source-line-no">359</span><span id="line.359">                    });</span>
-<span class="source-line-no">360</span><span id="line.360">        }</span>
-<span class="source-line-no">361</span><span id="line.361"></span>
-<span class="source-line-no">362</span><span id="line.362">        @Override</span>
-<span class="source-line-no">363</span><span id="line.363">        public Future&lt;String&gt; content() {</span>
-<span class="source-line-no">364</span><span id="line.364">            return content;</span>
-<span class="source-line-no">365</span><span id="line.365">        }</span>
-<span class="source-line-no">366</span><span id="line.366">    }</span>
-<span class="source-line-no">367</span><span id="line.367">}</span>
+<span class="source-line-no">328</span><span id="line.328">     * Returns a future string providing the result</span>
+<span class="source-line-no">329</span><span id="line.329">     * from processing the given template with the given data. </span>
+<span class="source-line-no">330</span><span id="line.330">     *</span>
+<span class="source-line-no">331</span><span id="line.331">     * @param request the request, used to obtain the</span>
+<span class="source-line-no">332</span><span id="line.332">     * {@link ExecutorService} service related with the request being</span>
+<span class="source-line-no">333</span><span id="line.333">     * processed</span>
+<span class="source-line-no">334</span><span id="line.334">     * @param template the template</span>
+<span class="source-line-no">335</span><span id="line.335">     * @param dataModel the data model</span>
+<span class="source-line-no">336</span><span id="line.336">     * @return the future</span>
+<span class="source-line-no">337</span><span id="line.337">     */</span>
+<span class="source-line-no">338</span><span id="line.338">    public Future&lt;String&gt; processTemplate(</span>
+<span class="source-line-no">339</span><span id="line.339">            RenderConletRequestBase&lt;?&gt; request, Template template,</span>
+<span class="source-line-no">340</span><span id="line.340">            Object dataModel) {</span>
+<span class="source-line-no">341</span><span id="line.341">        return request.processedBy().map(procBy -&gt; procBy.executorService())</span>
+<span class="source-line-no">342</span><span id="line.342">            .orElse(Components.defaultExecutorService()).submit(() -&gt; {</span>
+<span class="source-line-no">343</span><span id="line.343">                StringWriter out = new StringWriter();</span>
+<span class="source-line-no">344</span><span id="line.344">                try {</span>
+<span class="source-line-no">345</span><span id="line.345">                    template.process(dataModel, out);</span>
+<span class="source-line-no">346</span><span id="line.346">                } catch (TemplateException | IOException e) {</span>
+<span class="source-line-no">347</span><span id="line.347">                    throw new IllegalArgumentException(e);</span>
+<span class="source-line-no">348</span><span id="line.348">                }</span>
+<span class="source-line-no">349</span><span id="line.349">                return out.toString();</span>
+<span class="source-line-no">350</span><span id="line.350"></span>
+<span class="source-line-no">351</span><span id="line.351">            });</span>
+<span class="source-line-no">352</span><span id="line.352">    }</span>
+<span class="source-line-no">353</span><span id="line.353">}</span>
 
 
 

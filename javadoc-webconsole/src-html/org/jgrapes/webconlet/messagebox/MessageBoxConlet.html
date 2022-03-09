@@ -45,8 +45,8 @@
 <span class="source-line-no">033</span><span id="line.33">import org.jgrapes.webconsole.base.Conlet.RenderMode;</span>
 <span class="source-line-no">034</span><span id="line.34">import org.jgrapes.webconsole.base.ConsoleSession;</span>
 <span class="source-line-no">035</span><span id="line.35">import org.jgrapes.webconsole.base.events.AddConletType;</span>
-<span class="source-line-no">036</span><span id="line.36">import org.jgrapes.webconsole.base.events.ConletDeleted;</span>
-<span class="source-line-no">037</span><span id="line.37">import org.jgrapes.webconsole.base.events.ConsoleReady;</span>
+<span class="source-line-no">036</span><span id="line.36">import org.jgrapes.webconsole.base.events.ConsoleReady;</span>
+<span class="source-line-no">037</span><span id="line.37">import org.jgrapes.webconsole.base.events.RenderConlet;</span>
 <span class="source-line-no">038</span><span id="line.38">import org.jgrapes.webconsole.base.events.RenderConletRequestBase;</span>
 <span class="source-line-no">039</span><span id="line.39">import org.jgrapes.webconsole.base.freemarker.FreeMarkerConlet;</span>
 <span class="source-line-no">040</span><span id="line.40"></span>
@@ -98,11 +98,11 @@
 <span class="source-line-no">086</span><span id="line.86">        if (event.renderAs().contains(RenderMode.Component)) {</span>
 <span class="source-line-no">087</span><span id="line.87">            Template tpl</span>
 <span class="source-line-no">088</span><span id="line.88">                = freemarkerConfig().getTemplate("MessageBox.ftl.html");</span>
-<span class="source-line-no">089</span><span id="line.89">            channel.respond(new RenderConletFromTemplate(event,</span>
-<span class="source-line-no">090</span><span id="line.90">                type(), conletId, tpl,</span>
-<span class="source-line-no">091</span><span id="line.91">                fmModel(event, channel, conletId, conletState))</span>
-<span class="source-line-no">092</span><span id="line.92">                    .setRenderAs(RenderMode.Component)</span>
-<span class="source-line-no">093</span><span id="line.93">                    .setSupportedModes(MODES));</span>
+<span class="source-line-no">089</span><span id="line.89">            channel.respond(new RenderConlet(type(), conletId,</span>
+<span class="source-line-no">090</span><span id="line.90">                processTemplate(event, tpl,</span>
+<span class="source-line-no">091</span><span id="line.91">                    fmModel(event, channel, conletId, conletState)))</span>
+<span class="source-line-no">092</span><span id="line.92">                        .setRenderAs(RenderMode.Component)</span>
+<span class="source-line-no">093</span><span id="line.93">                        .setSupportedModes(MODES));</span>
 <span class="source-line-no">094</span><span id="line.94">            renderedAs.add(RenderMode.Component);</span>
 <span class="source-line-no">095</span><span id="line.95">        }</span>
 <span class="source-line-no">096</span><span id="line.96">        return renderedAs;</span>
