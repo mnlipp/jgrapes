@@ -42,10 +42,10 @@ in the browser and on how to build your own console and additional conlets.
 # SPA Frame
 
 The SPA frame is provided by a class derived from 
-[`ConsoleWeblet`](javadoc-webconsole/index.html?org/jgrapes/webconsole/base/ConsoleWeblet.html).
+[`ConsoleWeblet`](javadoc-webconsole/org/jgrapes/webconsole/base/ConsoleWeblet.html).
 If you like (or can live with) the [Freemarker](https://freemarker.apache.org/)
 template engine, you should use
-[`FreeMarkerConsoleWeblet`](javadoc-webconsole/index.html?org/jgrapes/webconsole/base/freemarker/FreeMarkerConsoleWeblet.html)
+[`FreeMarkerConsoleWeblet`](javadoc-webconsole/org/jgrapes/webconsole/base/freemarker/FreeMarkerConsoleWeblet.html)
 as base class. Using the latter class, all you have to do is [implement
 the constructor](javadoc-webconsole/src-html/org/jgrapes/webconsole/vuejs/VueJsConsoleWeblet.html#line.36)
 and provide the required 
@@ -53,19 +53,19 @@ and provide the required
 
 The project currently includes three sample SPA providers:
 
- * The [JQueryUiWeblet](http://127.0.0.1:4000/javadoc-webconsole/index.html?org/jgrapes/webconsole/jqueryui/JQueryUiWeblet.html)
+ * The [JQueryUiWeblet](javadoc-webconsole/org/jgrapes/webconsole/jqueryui/JQueryUiWeblet.html)
    provides the SPA frame using the [jQuerUi](https://jqueryui.com/) widgets
    and styles. It is the earliest attempt to implement a JGrapes web console.
    It has been deprecated due to its dependency on jQuerUi.
    
- * The [Bootstrap4Weblet](http://127.0.0.1:4000/javadoc-webconsole/index.html?org/jgrapes/webconsole/bootstrap4/Bootstrap4Weblet.html)
+ * The [Bootstrap4Weblet](javadoc-webconsole/org/jgrapes/webconsole/bootstrap4/Bootstrap4Weblet.html)
    uses [Bootstrap 4](https://getbootstrap.com/) widgets and styles and
    assumes that conlets comply to this environment. Historically, it is
    the second attempt to implement a JGrapes web console and has been
    deprecated as well, because it doesn't follow the principles outlined
    below in the section "Styling Conlets".
    
- * The [VueJsConsoleWeblet](http://127.0.0.1:4000/javadoc-webconsole/index.html?org/jgrapes/webconsole/vuejs/VueJsConsoleWeblet.html)
+ * The [VueJsConsoleWeblet](javadoc-webconsole/org/jgrapes/webconsole/vuejs/VueJsConsoleWeblet.html)
    implements the currently pursued approach for providing a JGrapes web 
    console. It's a bit of a misnomer because while it makes use of
    [Vue.js](https://vuejs.org/) as a library in order to generate the 
@@ -128,7 +128,7 @@ visible change of the pages' appearance after its initial display.
 
 Adding `link` nodes in the SPA is triggered on the server side by
 firing 
-[`AddPageResources`](javadoc-webconsole/index.html?org/jgrapes/webconsole/base/events/AddPageResources.html)
+[`AddPageResources`](javadoc-webconsole/org/jgrapes/webconsole/base/events/AddPageResources.html)
 events.
 
 ### Dynamically adding JavaScript
@@ -144,6 +144,6 @@ In the JGrapes web console, the necessary dependency tracking and
 ordered insertion of the `script` nodes is handled by a class that
 obtains the required information from `ScriptResource` instances
 as described in 
-[`AddPageResources`](javadoc-webconsole/index.html?org/jgrapes/webconsole/base/events/AddPageResources.html).
+[`AddPageResources`](javadoc-webconsole/org/jgrapes/webconsole/base/events/AddPageResources.html).
 
 *To be continued*
