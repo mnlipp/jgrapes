@@ -12,7 +12,7 @@ It includes support for asynchronous I/O and provides some complex
 components such as an HTTP server and a web console. It was inspired by the 
 ["circuits framework"](http://circuitsframework.com/) written for Python.
 
-JGrapes makes full use of the Java 8 SE environment. The core 
+JGrapes makes full use of the Java 11 SE environment. The core 
 framework has no dependencies on additional libraries. The 
 component libraries extending the core have as few dependencies 
 as possible.
