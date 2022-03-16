@@ -23,6 +23,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -572,8 +573,14 @@ public class HttpServer extends Component {
                         }
                     }
                 }
-                downPipeline.fire(Request.In.fromHttpRequest(httpRequest,
-                    secure, matchLevels), this);
+                try {
+                    downPipeline.fire(Request.In.fromHttpRequest(httpRequest,
+                        secure, matchLevels), this);
+                } catch (URISyntaxException e) {
+                    ResponseCreationSupport.sendResponse(httpRequest, this, 400,
+                        "Bad Request");
+                    return false;
+                }
             } else if (request instanceof WsMessageHeader) {
                 WsMessageHeader wsMessage = (WsMessageHeader) request;
                 if (wsMessage.hasPayload()) {

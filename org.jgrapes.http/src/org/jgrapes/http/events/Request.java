@@ -61,8 +61,8 @@ public class Request<R> extends MessageReceived<R> {
         @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
         private final HttpRequest request;
         private final int matchLevels;
-        private MatchValue matchValue;
-        private URI matchUri;
+        private final MatchValue matchValue;
+        private final URI matchUri;
         private URI uri;
 
         /**
@@ -74,41 +74,39 @@ public class Request<R> extends MessageReceived<R> {
          * @param matchLevels the number of elements from the request path
          * to use in the match value (see {@link #matchValue})
          * @param channels the channels associated with this event
+         * @throws URISyntaxException 
          */
         @SuppressWarnings("PMD.UselessParentheses")
         public In(String protocol, HttpRequest request,
-                int matchLevels, Channel... channels) {
+                int matchLevels, Channel... channels)
+                throws URISyntaxException {
             super(channels);
             new Completed(this);
             this.request = request;
             this.matchLevels = matchLevels;
-            try {
-                URI headerInfo = new URI(protocol, null,
-                    request.host(), request.port(), null, null, null);
-                setRequestUri(headerInfo.resolve(request.requestUri()));
-                Iterator<String> segs = PathSpliterator.stream(
-                    requestUri().getPath()).skip(1).iterator();
-                StringBuilder pattern = new StringBuilder(20);
-                for (int i = 0; i < matchLevels && segs.hasNext(); i++) {
-                    pattern.append('/').append(segs.next());
-                }
-                if (segs.hasNext()) {
-                    pattern.append("/…");
-                }
-                String matchPath = pattern.toString();
-                URI uri = requestUri();
-                matchUri = new URI(uri.getScheme(), null, uri.getHost(),
-                    uri.getPort(), uri.getPath(), null, null);
-                matchValue = new MatchValue(getClass(),
-                    (uri.getScheme() == null ? ""
-                        : (uri.getScheme() + "://"))
-                        + (uri.getHost() == null ? ""
-                            : (uri.getHost() + (uri.getPort() == -1 ? ""
-                                : (":" + uri.getPort()))))
-                        + matchPath);
-            } catch (URISyntaxException e) {
-                throw new IllegalArgumentException(e);
+            URI headerInfo = new URI(protocol, null,
+                request.host(), request.port(), null, null, null);
+            setRequestUri(headerInfo.resolve(request.requestUri()));
+            Iterator<String> segs = PathSpliterator.stream(
+                requestUri().getPath()).skip(1).iterator();
+            StringBuilder pattern = new StringBuilder(20);
+            for (int i = 0; i < matchLevels && segs.hasNext(); i++) {
+                pattern.append('/').append(segs.next());
             }
+            if (segs.hasNext()) {
+                pattern.append("/…");
+            }
+            String matchPath = pattern.toString();
+            URI uri = requestUri();
+            matchUri = new URI(uri.getScheme(), null, uri.getHost(),
+                uri.getPort(), uri.getPath(), null, null);
+            matchValue = new MatchValue(getClass(),
+                (uri.getScheme() == null ? ""
+                    : (uri.getScheme() + "://"))
+                    + (uri.getHost() == null ? ""
+                        : (uri.getHost() + (uri.getPort() == -1 ? ""
+                            : (":" + uri.getPort()))))
+                    + matchPath);
         }
 
         /**
@@ -119,10 +117,12 @@ public class Request<R> extends MessageReceived<R> {
          * @param secure whether the request was received over a secure channel
          * @param matchLevels the match levels
          * @return the request event
+         * @throws URISyntaxException 
          */
         @SuppressWarnings("PMD.AvoidDuplicateLiterals")
         public static In fromHttpRequest(
-                HttpRequest request, boolean secure, int matchLevels) {
+                HttpRequest request, boolean secure, int matchLevels)
+                throws URISyntaxException {
             switch (request.method()) {
             case "OPTIONS":
                 return new Options(request, secure, matchLevels);
@@ -352,9 +352,10 @@ public class Request<R> extends MessageReceived<R> {
              * to use in the match value
              * @param channels the channels on which the event is to be 
              * fired (optional)
+             * @throws URISyntaxException 
              */
-            public Connect(HttpRequest request, boolean secure,
-                    int matchLevels, Channel... channels) {
+            public Connect(HttpRequest request, boolean secure, int matchLevels,
+                    Channel... channels) throws URISyntaxException {
                 super(secure ? "https" : "http", request, matchLevels,
                     channels);
             }
@@ -376,9 +377,10 @@ public class Request<R> extends MessageReceived<R> {
             * to use in the match value
             * @param channels the channels on which the event is to be 
             * fired (optional)
+             * @throws URISyntaxException 
             */
-            public Delete(HttpRequest request, boolean secure,
-                    int matchLevels, Channel... channels) {
+            public Delete(HttpRequest request, boolean secure, int matchLevels,
+                    Channel... channels) throws URISyntaxException {
                 super(secure ? "https" : "http", request, matchLevels,
                     channels);
             }
@@ -400,9 +402,10 @@ public class Request<R> extends MessageReceived<R> {
              * to use in the match value
              * @param channels the channels on which the event is to be 
              * fired (optional)
+             * @throws URISyntaxException 
              */
-            public Get(HttpRequest request, boolean secure,
-                    int matchLevels, Channel... channels) {
+            public Get(HttpRequest request, boolean secure, int matchLevels,
+                    Channel... channels) throws URISyntaxException {
                 super(secure ? "https" : "http", request, matchLevels,
                     channels);
             }
@@ -423,9 +426,10 @@ public class Request<R> extends MessageReceived<R> {
              * to use in the match value
              * @param channels the channels on which the event is to be 
              * fired (optional)
+             * @throws URISyntaxException 
              */
-            public Head(HttpRequest request, boolean secure,
-                    int matchLevels, Channel... channels) {
+            public Head(HttpRequest request, boolean secure, int matchLevels,
+                    Channel... channels) throws URISyntaxException {
                 super(secure ? "https" : "http", request, matchLevels,
                     channels);
             }
@@ -446,9 +450,10 @@ public class Request<R> extends MessageReceived<R> {
              * to use in the match value
              * @param channels the channels on which the event is to be 
              * fired (optional)
+             * @throws URISyntaxException 
              */
-            public Options(HttpRequest request, boolean secure,
-                    int matchLevels, Channel... channels) {
+            public Options(HttpRequest request, boolean secure, int matchLevels,
+                    Channel... channels) throws URISyntaxException {
                 super(secure ? "https" : "http", request, matchLevels,
                     channels);
             }
@@ -469,9 +474,10 @@ public class Request<R> extends MessageReceived<R> {
              * to use in the match value
              * @param channels the channels on which the event is to be 
              * fired (optional)
+             * @throws URISyntaxException 
              */
-            public Post(HttpRequest request, boolean secure,
-                    int matchLevels, Channel... channels) {
+            public Post(HttpRequest request, boolean secure, int matchLevels,
+                    Channel... channels) throws URISyntaxException {
                 super(secure ? "https" : "http", request, matchLevels,
                     channels);
             }
@@ -493,9 +499,10 @@ public class Request<R> extends MessageReceived<R> {
              * to use in the match value
              * @param channels the channels on which the event is to be 
              * fired (optional)
+             * @throws URISyntaxException 
              */
-            public Put(HttpRequest request, boolean secure,
-                    int matchLevels, Channel... channels) {
+            public Put(HttpRequest request, boolean secure, int matchLevels,
+                    Channel... channels) throws URISyntaxException {
                 super(secure ? "https" : "http", request, matchLevels,
                     channels);
             }
@@ -516,9 +523,10 @@ public class Request<R> extends MessageReceived<R> {
              * to use in the match value
              * @param channels the channels on which the event is to be 
              * fired (optional)
+             * @throws URISyntaxException 
              */
-            public Trace(HttpRequest request, boolean secure,
-                    int matchLevels, Channel... channels) {
+            public Trace(HttpRequest request, boolean secure, int matchLevels,
+                    Channel... channels) throws URISyntaxException {
                 super(secure ? "https" : "http", request, matchLevels,
                     channels);
             }
