@@ -22,8 +22,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
+import java.util.Stack;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jgrapes.core.Channel;
@@ -62,7 +65,7 @@ public class Request<R> extends MessageReceived<R> {
         private final HttpRequest request;
         private final int matchLevels;
         private final MatchValue matchValue;
-        private final URI matchUri;
+        private final URI resourceUri;
         private URI uri;
 
         /**
@@ -76,7 +79,8 @@ public class Request<R> extends MessageReceived<R> {
          * @param channels the channels associated with this event
          * @throws URISyntaxException 
          */
-        @SuppressWarnings("PMD.UselessParentheses")
+        @SuppressWarnings({ "PMD.UselessParentheses",
+            "PMD.ConstructorCallsOverridableMethod" })
         public In(String protocol, HttpRequest request,
                 int matchLevels, Channel... channels)
                 throws URISyntaxException {
@@ -84,29 +88,97 @@ public class Request<R> extends MessageReceived<R> {
             new Completed(this);
             this.request = request;
             this.matchLevels = matchLevels;
-            URI headerInfo = new URI(protocol, null,
-                request.host(), request.port(), null, null, null);
-            setRequestUri(headerInfo.resolve(request.requestUri()));
-            Iterator<String> segs = PathSpliterator.stream(
-                requestUri().getPath()).skip(1).iterator();
-            StringBuilder pattern = new StringBuilder(20);
-            for (int i = 0; i < matchLevels && segs.hasNext(); i++) {
-                pattern.append('/').append(segs.next());
+
+            // Do any required processing of the original request URI
+            URI requestUri = buildRequestUri(protocol, request);
+            // Clean the request URI's path, keeping the segments for matchValue
+            List<String> segs = pathToSegs(requestUri);
+            requestUri = new URI(requestUri.getScheme(), null,
+                requestUri.getHost(), requestUri.getPort(),
+                "/" + segs.stream().collect(Collectors.joining("/")),
+                requestUri.getQuery(), requestUri.getFragment());
+            setRequestUri(requestUri);
+
+            // The URI for matching omits fragment and query
+            resourceUri = new URI(requestUri.getScheme(), null,
+                requestUri.getHost(), requestUri.getPort(),
+                requestUri.getPath(), null, null);
+            @SuppressWarnings("PMD.InefficientStringBuffering")
+            StringBuilder matchPath = new StringBuilder("/" + segs.stream()
+                .limit(matchLevels).collect(Collectors.joining("/")));
+            if (segs.size() > matchLevels) {
+                if (!matchPath.toString().endsWith("/")) {
+                    matchPath.append('/');
+                }
+                matchPath.append('…');
             }
-            if (segs.hasNext()) {
-                pattern.append("/…");
-            }
-            String matchPath = pattern.toString();
-            URI uri = requestUri();
-            matchUri = new URI(uri.getScheme(), null, uri.getHost(),
-                uri.getPort(), uri.getPath(), null, null);
             matchValue = new MatchValue(getClass(),
-                (uri.getScheme() == null ? ""
-                    : (uri.getScheme() + "://"))
-                    + (uri.getHost() == null ? ""
-                        : (uri.getHost() + (uri.getPort() == -1 ? ""
-                            : (":" + uri.getPort()))))
+                (requestUri.getScheme() == null ? ""
+                    : (requestUri.getScheme() + "://"))
+                    + (requestUri.getHost() == null ? ""
+                        : (requestUri.getHost()
+                            + (requestUri.getPort() == -1 ? ""
+                                : (":" + requestUri.getPort()))))
                     + matchPath);
+        }
+
+        private List<String> pathToSegs(URI requestUri)
+                throws URISyntaxException {
+            Iterator<String> origSegs = PathSpliterator.stream(
+                requestUri.getPath()).iterator();
+            // Path must be absolute
+            if (!origSegs.hasNext() || !origSegs.next().isEmpty()) {
+                throw new URISyntaxException(requestUri().getPath(),
+                    "Must be absolute");
+            }
+            // Remove dot segments
+            Stack<String> segs = new Stack<>();
+            while (origSegs.hasNext()) {
+                String seg = origSegs.next();
+                if (".".equals(seg)) {
+                    continue;
+                }
+                if ("..".equals(seg)) {
+                    if (!segs.isEmpty()) {
+                        segs.pop();
+                    }
+                    continue;
+                }
+                if (!segs.isEmpty() && segs.peek().isEmpty()) {
+                    segs.pop();
+                }
+                segs.push(seg);
+            }
+            return segs;
+        }
+
+        /**
+         * Builds the URI that represents this request. The default
+         * implementation checks that request URI in the HTTP request
+         * is directed at this server as specified in the "Host"-header
+         * and adds the protocol, host and port if not specified 
+         * in the request URI. 
+         *
+         * @param protocol the protocol
+         * @param request the request
+         * @return the URI
+         * @throws URISyntaxException if the request is not acceptable
+         */
+        protected URI buildRequestUri(String protocol, HttpRequest request)
+                throws URISyntaxException {
+            URI serverUri = new URI(protocol, null,
+                request.host(), request.port(), "/", null, null);
+            URI origRequest = request.requestUri();
+            URI result = serverUri.resolve(new URI(null, null, null, -1,
+                origRequest.getPath(), origRequest.getQuery(),
+                origRequest.getFragment()));
+            if (!result.getScheme().equals(protocol)
+                || !result.getHost().equals(request.host())
+                || result.getPort() != request.port()) {
+                throw new URISyntaxException(origRequest.toString(),
+                    "Scheme, host or port not allowed");
+            }
+            return result;
         }
 
         /**
@@ -205,7 +277,7 @@ public class Request<R> extends MessageReceived<R> {
                 return false;
             }
             if (mval.resource instanceof ResourcePattern) {
-                return ((ResourcePattern) mval.resource).matches(matchUri,
+                return ((ResourcePattern) mval.resource).matches(resourceUri,
                     matchLevels) >= 0;
             }
             return mval.resource.equals(matchValue.resource);
@@ -360,6 +432,20 @@ public class Request<R> extends MessageReceived<R> {
                     channels);
             }
 
+            /**
+             * Builds the URI that represents this request. This
+             * implementation simply returns the URI from the
+             * HTTP request. 
+             *
+             * @param protocol the protocol
+             * @param request the request
+             * @return the uri
+             * @throws URISyntaxException the URI syntax exception
+             */
+            protected URI buildRequestUri(String protocol, HttpRequest request)
+                    throws URISyntaxException {
+                return request.requestUri();
+            }
         }
 
         /**
