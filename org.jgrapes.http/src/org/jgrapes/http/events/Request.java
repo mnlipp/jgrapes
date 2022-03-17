@@ -294,7 +294,8 @@ public class Request<R> extends MessageReceived<R> {
             StringBuilder builder = new StringBuilder();
             builder.append(Components.objectName(this))
                 .append(" [\"");
-            String path = request.requestUri().getPath();
+            String path = Optional.ofNullable(request.requestUri().getPath())
+                .orElse("");
             if (path.length() > 15) {
                 builder.append("...")
                     .append(path.substring(path.length() - 12));
