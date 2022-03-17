@@ -35,772 +35,779 @@
 <span class="source-line-no">023</span><span id="line.23">import java.net.InetAddress;</span>
 <span class="source-line-no">024</span><span id="line.24">import java.net.InetSocketAddress;</span>
 <span class="source-line-no">025</span><span id="line.25">import java.net.URI;</span>
-<span class="source-line-no">026</span><span id="line.26">import java.net.UnknownHostException;</span>
-<span class="source-line-no">027</span><span id="line.27">import java.nio.Buffer;</span>
-<span class="source-line-no">028</span><span id="line.28">import java.nio.ByteBuffer;</span>
-<span class="source-line-no">029</span><span id="line.29">import java.nio.CharBuffer;</span>
-<span class="source-line-no">030</span><span id="line.30">import java.util.ArrayList;</span>
-<span class="source-line-no">031</span><span id="line.31">import java.util.Arrays;</span>
-<span class="source-line-no">032</span><span id="line.32">import java.util.Collections;</span>
-<span class="source-line-no">033</span><span id="line.33">import java.util.List;</span>
-<span class="source-line-no">034</span><span id="line.34">import java.util.Optional;</span>
-<span class="source-line-no">035</span><span id="line.35">import javax.net.ssl.SNIHostName;</span>
-<span class="source-line-no">036</span><span id="line.36">import javax.net.ssl.SNIServerName;</span>
-<span class="source-line-no">037</span><span id="line.37">import org.jdrupes.httpcodec.Codec;</span>
-<span class="source-line-no">038</span><span id="line.38">import org.jdrupes.httpcodec.Decoder;</span>
-<span class="source-line-no">039</span><span id="line.39">import org.jdrupes.httpcodec.MessageHeader;</span>
-<span class="source-line-no">040</span><span id="line.40">import org.jdrupes.httpcodec.ProtocolException;</span>
-<span class="source-line-no">041</span><span id="line.41">import org.jdrupes.httpcodec.ServerEngine;</span>
-<span class="source-line-no">042</span><span id="line.42">import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;</span>
-<span class="source-line-no">043</span><span id="line.43">import org.jdrupes.httpcodec.protocols.http.HttpField;</span>
-<span class="source-line-no">044</span><span id="line.44">import org.jdrupes.httpcodec.protocols.http.HttpRequest;</span>
-<span class="source-line-no">045</span><span id="line.45">import org.jdrupes.httpcodec.protocols.http.HttpResponse;</span>
-<span class="source-line-no">046</span><span id="line.46">import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;</span>
-<span class="source-line-no">047</span><span id="line.47">import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;</span>
-<span class="source-line-no">048</span><span id="line.48">import org.jdrupes.httpcodec.protocols.websocket.WsCloseFrame;</span>
-<span class="source-line-no">049</span><span id="line.49">import org.jdrupes.httpcodec.protocols.websocket.WsMessageHeader;</span>
-<span class="source-line-no">050</span><span id="line.50">import org.jdrupes.httpcodec.types.Converters;</span>
-<span class="source-line-no">051</span><span id="line.51">import org.jdrupes.httpcodec.types.StringList;</span>
-<span class="source-line-no">052</span><span id="line.52">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">053</span><span id="line.53">import org.jgrapes.core.ClassChannel;</span>
-<span class="source-line-no">054</span><span id="line.54">import org.jgrapes.core.Component;</span>
-<span class="source-line-no">055</span><span id="line.55">import org.jgrapes.core.Components;</span>
-<span class="source-line-no">056</span><span id="line.56">import org.jgrapes.core.EventPipeline;</span>
-<span class="source-line-no">057</span><span id="line.57">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">058</span><span id="line.58">import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;</span>
-<span class="source-line-no">059</span><span id="line.59">import org.jgrapes.core.internal.EventProcessor;</span>
-<span class="source-line-no">060</span><span id="line.60">import org.jgrapes.http.events.ProtocolSwitchAccepted;</span>
-<span class="source-line-no">061</span><span id="line.61">import org.jgrapes.http.events.Request;</span>
-<span class="source-line-no">062</span><span id="line.62">import org.jgrapes.http.events.Response;</span>
-<span class="source-line-no">063</span><span id="line.63">import org.jgrapes.http.events.Upgraded;</span>
-<span class="source-line-no">064</span><span id="line.64">import org.jgrapes.http.events.WebSocketClose;</span>
-<span class="source-line-no">065</span><span id="line.65">import org.jgrapes.io.IOSubchannel;</span>
-<span class="source-line-no">066</span><span id="line.66">import org.jgrapes.io.events.Close;</span>
-<span class="source-line-no">067</span><span id="line.67">import org.jgrapes.io.events.Closed;</span>
-<span class="source-line-no">068</span><span id="line.68">import org.jgrapes.io.events.Input;</span>
-<span class="source-line-no">069</span><span id="line.69">import org.jgrapes.io.events.Output;</span>
-<span class="source-line-no">070</span><span id="line.70">import org.jgrapes.io.events.Purge;</span>
-<span class="source-line-no">071</span><span id="line.71">import org.jgrapes.io.util.LinkedIOSubchannel;</span>
-<span class="source-line-no">072</span><span id="line.72">import org.jgrapes.io.util.ManagedBuffer;</span>
-<span class="source-line-no">073</span><span id="line.73">import org.jgrapes.io.util.ManagedBufferPool;</span>
-<span class="source-line-no">074</span><span id="line.74">import org.jgrapes.net.TcpServer;</span>
-<span class="source-line-no">075</span><span id="line.75">import org.jgrapes.net.events.Accepted;</span>
-<span class="source-line-no">076</span><span id="line.76"></span>
-<span class="source-line-no">077</span><span id="line.77">/**</span>
-<span class="source-line-no">078</span><span id="line.78"> * A converter component that receives and sends byte buffers on a </span>
-<span class="source-line-no">079</span><span id="line.79"> * network channel and web application layer messages on</span>
-<span class="source-line-no">080</span><span id="line.80"> * {@link IOSubchannel}s of its channel. </span>
-<span class="source-line-no">081</span><span id="line.81"> * </span>
-<span class="source-line-no">082</span><span id="line.82"> * Each {@link IOSubchannel} represents a connection established by </span>
-<span class="source-line-no">083</span><span id="line.83"> * the browser. The {@link HttpServer} fires {@link Request} events </span>
-<span class="source-line-no">084</span><span id="line.84"> * (and {@link Input} events, if there is associated data) on the </span>
-<span class="source-line-no">085</span><span id="line.85"> * subchannels. Web application components (short "weblets") handle </span>
-<span class="source-line-no">086</span><span id="line.86"> * these events and use </span>
-<span class="source-line-no">087</span><span id="line.87"> * {@link LinkedIOSubchannel#respond(org.jgrapes.core.Event)}</span>
-<span class="source-line-no">088</span><span id="line.88"> * to send {@link Response} events and, if applicable, {@link Output}</span>
-<span class="source-line-no">089</span><span id="line.89"> * events with data belonging to the response.</span>
-<span class="source-line-no">090</span><span id="line.90"> * </span>
-<span class="source-line-no">091</span><span id="line.91"> * Events must be fired by weblets while handling the {@link Request}</span>
-<span class="source-line-no">092</span><span id="line.92"> * or {@link Input} events only (to be precise: while handling events </span>
-<span class="source-line-no">093</span><span id="line.93"> * processed by the associated {@link EventProcessor}) to ensure</span>
-<span class="source-line-no">094</span><span id="line.94"> * that responses and their associated data do not interleave. </span>
-<span class="source-line-no">095</span><span id="line.95"> */</span>
-<span class="source-line-no">096</span><span id="line.96">@SuppressWarnings("PMD.ExcessiveImports")</span>
-<span class="source-line-no">097</span><span id="line.97">public class HttpServer extends Component {</span>
-<span class="source-line-no">098</span><span id="line.98"></span>
-<span class="source-line-no">099</span><span id="line.99">    private WeakReference&lt;Channel&gt; networkChannelPassBack;</span>
-<span class="source-line-no">100</span><span id="line.100">    private List&lt;Class&lt;? extends Request.In&gt;&gt; providedFallbacks;</span>
-<span class="source-line-no">101</span><span id="line.101">    private int matchLevels = 1;</span>
-<span class="source-line-no">102</span><span id="line.102">    private boolean acceptNoSni;</span>
-<span class="source-line-no">103</span><span id="line.103">    private int applicationBufferSize = -1;</span>
-<span class="source-line-no">104</span><span id="line.104"></span>
-<span class="source-line-no">105</span><span id="line.105">    /**</span>
-<span class="source-line-no">106</span><span id="line.106">     * Denotes the network channel in handler annotations.</span>
-<span class="source-line-no">107</span><span id="line.107">     */</span>
-<span class="source-line-no">108</span><span id="line.108">    private static class NetworkChannel extends ClassChannel {</span>
-<span class="source-line-no">109</span><span id="line.109">    }</span>
-<span class="source-line-no">110</span><span id="line.110"></span>
-<span class="source-line-no">111</span><span id="line.111">    /**</span>
-<span class="source-line-no">112</span><span id="line.112">     * Create a new server that uses the {@code networkChannel} for network</span>
-<span class="source-line-no">113</span><span id="line.113">     * level I/O.</span>
-<span class="source-line-no">114</span><span id="line.114">     * &lt;P&gt;</span>
-<span class="source-line-no">115</span><span id="line.115">     * As a convenience the server can provide fall back handlers for the</span>
-<span class="source-line-no">116</span><span id="line.116">     * specified types of requests. The fall back handler simply returns 404 (</span>
-<span class="source-line-no">117</span><span id="line.117">     * "Not found").</span>
-<span class="source-line-no">118</span><span id="line.118">     * </span>
-<span class="source-line-no">119</span><span id="line.119">     * @param appChannel</span>
-<span class="source-line-no">120</span><span id="line.120">     *            this component's channel</span>
-<span class="source-line-no">121</span><span id="line.121">     * @param networkChannel</span>
-<span class="source-line-no">122</span><span id="line.122">     *            the channel for network level I/O</span>
-<span class="source-line-no">123</span><span id="line.123">     * @param fallbacks</span>
-<span class="source-line-no">124</span><span id="line.124">     *            the requests for which a fall back handler is provided</span>
-<span class="source-line-no">125</span><span id="line.125">     */</span>
-<span class="source-line-no">126</span><span id="line.126">    @SafeVarargs</span>
-<span class="source-line-no">127</span><span id="line.127">    public HttpServer(Channel appChannel, Channel networkChannel,</span>
-<span class="source-line-no">128</span><span id="line.128">            Class&lt;? extends Request.In&gt;... fallbacks) {</span>
-<span class="source-line-no">129</span><span id="line.129">        super(appChannel, ChannelReplacements.create()</span>
-<span class="source-line-no">130</span><span id="line.130">            .add(NetworkChannel.class, networkChannel));</span>
-<span class="source-line-no">131</span><span id="line.131">        networkChannelPassBack = new WeakReference&lt;&gt;(networkChannel);</span>
-<span class="source-line-no">132</span><span id="line.132">        this.providedFallbacks = Arrays.asList(fallbacks);</span>
-<span class="source-line-no">133</span><span id="line.133">    }</span>
-<span class="source-line-no">134</span><span id="line.134"></span>
-<span class="source-line-no">135</span><span id="line.135">    /**</span>
-<span class="source-line-no">136</span><span id="line.136">     * Create a new server that creates its own {@link TcpServer} with the given</span>
-<span class="source-line-no">137</span><span id="line.137">     * address and uses it for network level I/O.</span>
-<span class="source-line-no">138</span><span id="line.138">     * </span>
-<span class="source-line-no">139</span><span id="line.139">     * @param appChannel</span>
-<span class="source-line-no">140</span><span id="line.140">     *            this component's channel</span>
-<span class="source-line-no">141</span><span id="line.141">     * @param serverAddress the address to listen on</span>
-<span class="source-line-no">142</span><span id="line.142">     * @param fallbacks fall backs</span>
-<span class="source-line-no">143</span><span id="line.143">     */</span>
-<span class="source-line-no">144</span><span id="line.144">    @SafeVarargs</span>
-<span class="source-line-no">145</span><span id="line.145">    public HttpServer(Channel appChannel, InetSocketAddress serverAddress,</span>
-<span class="source-line-no">146</span><span id="line.146">            Class&lt;? extends Request.In&gt;... fallbacks) {</span>
-<span class="source-line-no">147</span><span id="line.147">        this(appChannel, new TcpServer().setServerAddress(serverAddress),</span>
-<span class="source-line-no">148</span><span id="line.148">            fallbacks);</span>
-<span class="source-line-no">149</span><span id="line.149">        attach((TcpServer) networkChannelPassBack.get());</span>
-<span class="source-line-no">150</span><span id="line.150">    }</span>
-<span class="source-line-no">151</span><span id="line.151"></span>
-<span class="source-line-no">152</span><span id="line.152">    /**</span>
-<span class="source-line-no">153</span><span id="line.153">     * @return the matchLevels</span>
-<span class="source-line-no">154</span><span id="line.154">     */</span>
-<span class="source-line-no">155</span><span id="line.155">    public int matchLevels() {</span>
-<span class="source-line-no">156</span><span id="line.156">        return matchLevels;</span>
-<span class="source-line-no">157</span><span id="line.157">    }</span>
-<span class="source-line-no">158</span><span id="line.158"></span>
-<span class="source-line-no">159</span><span id="line.159">    /**</span>
-<span class="source-line-no">160</span><span id="line.160">     * Sets the number of elements from the request path used in the match value</span>
-<span class="source-line-no">161</span><span id="line.161">     * of the generated events (see {@link Request#defaultCriterion()}), defaults</span>
-<span class="source-line-no">162</span><span id="line.162">     * to 1.</span>
-<span class="source-line-no">163</span><span id="line.163">     * </span>
-<span class="source-line-no">164</span><span id="line.164">     * @param matchLevels the matchLevels to set</span>
-<span class="source-line-no">165</span><span id="line.165">     * @return the http server for easy chaining</span>
-<span class="source-line-no">166</span><span id="line.166">     */</span>
-<span class="source-line-no">167</span><span id="line.167">    public HttpServer setMatchLevels(int matchLevels) {</span>
-<span class="source-line-no">168</span><span id="line.168">        this.matchLevels = matchLevels;</span>
-<span class="source-line-no">169</span><span id="line.169">        return this;</span>
-<span class="source-line-no">170</span><span id="line.170">    }</span>
-<span class="source-line-no">171</span><span id="line.171"></span>
-<span class="source-line-no">172</span><span id="line.172">    /**</span>
-<span class="source-line-no">173</span><span id="line.173">     * Sets the size of the buffers used for {@link Output} events</span>
-<span class="source-line-no">174</span><span id="line.174">     * on the application channel. Defaults to the upstream buffer size</span>
-<span class="source-line-no">175</span><span id="line.175">     * minus 512 (estimate for added protocol overhead).</span>
-<span class="source-line-no">176</span><span id="line.176">     * </span>
-<span class="source-line-no">177</span><span id="line.177">     * @param applicationBufferSize the size to set</span>
-<span class="source-line-no">178</span><span id="line.178">     * @return the http server for easy chaining</span>
-<span class="source-line-no">179</span><span id="line.179">     */</span>
-<span class="source-line-no">180</span><span id="line.180">    public HttpServer setApplicationBufferSize(int applicationBufferSize) {</span>
-<span class="source-line-no">181</span><span id="line.181">        this.applicationBufferSize = applicationBufferSize;</span>
-<span class="source-line-no">182</span><span id="line.182">        return this;</span>
-<span class="source-line-no">183</span><span id="line.183">    }</span>
-<span class="source-line-no">184</span><span id="line.184"></span>
-<span class="source-line-no">185</span><span id="line.185">    /**</span>
-<span class="source-line-no">186</span><span id="line.186">     * Returns the size of the application side (receive) buffers.</span>
-<span class="source-line-no">187</span><span id="line.187">     * </span>
-<span class="source-line-no">188</span><span id="line.188">     * @return the value or -1 if not set</span>
-<span class="source-line-no">189</span><span id="line.189">     */</span>
-<span class="source-line-no">190</span><span id="line.190">    public int applicationBufferSize() {</span>
-<span class="source-line-no">191</span><span id="line.191">        return applicationBufferSize;</span>
-<span class="source-line-no">192</span><span id="line.192">    }</span>
-<span class="source-line-no">193</span><span id="line.193"></span>
-<span class="source-line-no">194</span><span id="line.194">    /**</span>
-<span class="source-line-no">195</span><span id="line.195">     * Determines if request from secure (TLS) connections without</span>
-<span class="source-line-no">196</span><span id="line.196">     * SNI are accepted.</span>
-<span class="source-line-no">197</span><span id="line.197">     *  </span>
-<span class="source-line-no">198</span><span id="line.198">     * Secure (TLS) requests usually transfer the name of the server that</span>
-<span class="source-line-no">199</span><span id="line.199">     * they want to connect to during handshake. The HTTP server checks</span>
-<span class="source-line-no">200</span><span id="line.200">     * that the `Host` header field of decoded requests matches the</span>
-<span class="source-line-no">201</span><span id="line.201">     * name used to establish the connection. If, however, the connection</span>
-<span class="source-line-no">202</span><span id="line.202">     * is made using the IP-address, the client does not have a host name.</span>
-<span class="source-line-no">203</span><span id="line.203">     * If such connections are to be accepted, this flag, which</span>
-<span class="source-line-no">204</span><span id="line.204">     * defaults to `false`, must be set.</span>
-<span class="source-line-no">205</span><span id="line.205">     * </span>
-<span class="source-line-no">206</span><span id="line.206">     * Note that in request accepted without SNI, the `Host` header field</span>
-<span class="source-line-no">207</span><span id="line.207">     * will be modified to contain the IP-address of the indicated host</span>
-<span class="source-line-no">208</span><span id="line.208">     * to prevent accidental matching with virtual host names.  </span>
-<span class="source-line-no">209</span><span id="line.209">     * </span>
-<span class="source-line-no">210</span><span id="line.210">     * @param acceptNoSni the value to set</span>
-<span class="source-line-no">211</span><span id="line.211">     * @return the http server for easy chaining</span>
-<span class="source-line-no">212</span><span id="line.212">     */</span>
-<span class="source-line-no">213</span><span id="line.213">    public HttpServer setAcceptNoSni(boolean acceptNoSni) {</span>
-<span class="source-line-no">214</span><span id="line.214">        this.acceptNoSni = acceptNoSni;</span>
-<span class="source-line-no">215</span><span id="line.215">        return this;</span>
-<span class="source-line-no">216</span><span id="line.216">    }</span>
-<span class="source-line-no">217</span><span id="line.217"></span>
-<span class="source-line-no">218</span><span id="line.218">    /**</span>
-<span class="source-line-no">219</span><span id="line.219">     * Returns if secure (TLS) requests without SNI are allowed.</span>
-<span class="source-line-no">220</span><span id="line.220">     * </span>
-<span class="source-line-no">221</span><span id="line.221">     * @return the result</span>
-<span class="source-line-no">222</span><span id="line.222">     */</span>
-<span class="source-line-no">223</span><span id="line.223">    public boolean acceptNoSni() {</span>
-<span class="source-line-no">224</span><span id="line.224">        return acceptNoSni;</span>
-<span class="source-line-no">225</span><span id="line.225">    }</span>
-<span class="source-line-no">226</span><span id="line.226"></span>
-<span class="source-line-no">227</span><span id="line.227">    /**</span>
-<span class="source-line-no">228</span><span id="line.228">     * Creates a new downstream connection as {@link LinkedIOSubchannel} </span>
-<span class="source-line-no">229</span><span id="line.229">     * of the network connection, a {@link HttpRequestDecoder} and a</span>
-<span class="source-line-no">230</span><span id="line.230">     * {@link HttpResponseEncoder}.</span>
-<span class="source-line-no">231</span><span id="line.231">     * </span>
-<span class="source-line-no">232</span><span id="line.232">     * @param event</span>
-<span class="source-line-no">233</span><span id="line.233">     *            the accepted event</span>
-<span class="source-line-no">234</span><span id="line.234">     */</span>
-<span class="source-line-no">235</span><span id="line.235">    @Handler(channels = NetworkChannel.class)</span>
-<span class="source-line-no">236</span><span id="line.236">    public void onAccepted(Accepted event, IOSubchannel netChannel) {</span>
-<span class="source-line-no">237</span><span id="line.237">        new WebAppMsgChannel(event, netChannel);</span>
-<span class="source-line-no">238</span><span id="line.238">    }</span>
-<span class="source-line-no">239</span><span id="line.239"></span>
-<span class="source-line-no">240</span><span id="line.240">    /**</span>
-<span class="source-line-no">241</span><span id="line.241">     * Handles data from the client (from upstream). The data is send through </span>
-<span class="source-line-no">242</span><span id="line.242">     * the {@link HttpRequestDecoder} and events are sent downstream according</span>
-<span class="source-line-no">243</span><span id="line.243">     * to the decoding results.</span>
-<span class="source-line-no">244</span><span id="line.244">     * </span>
-<span class="source-line-no">245</span><span id="line.245">     * @param event the event</span>
-<span class="source-line-no">246</span><span id="line.246">     * @throws ProtocolException if a protocol exception occurs</span>
-<span class="source-line-no">247</span><span id="line.247">     * @throws InterruptedException </span>
-<span class="source-line-no">248</span><span id="line.248">     */</span>
-<span class="source-line-no">249</span><span id="line.249">    @Handler(channels = NetworkChannel.class)</span>
-<span class="source-line-no">250</span><span id="line.250">    public void onInput(</span>
-<span class="source-line-no">251</span><span id="line.251">            Input&lt;ByteBuffer&gt; event, IOSubchannel netChannel)</span>
-<span class="source-line-no">252</span><span id="line.252">            throws ProtocolException, InterruptedException {</span>
-<span class="source-line-no">253</span><span id="line.253">        @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">254</span><span id="line.254">        final Optional&lt;WebAppMsgChannel&gt; appChannel</span>
-<span class="source-line-no">255</span><span id="line.255">            = (Optional&lt;WebAppMsgChannel&gt;) LinkedIOSubchannel</span>
-<span class="source-line-no">256</span><span id="line.256">                .downstreamChannel(this, netChannel);</span>
-<span class="source-line-no">257</span><span id="line.257">        if (appChannel.isPresent()) {</span>
-<span class="source-line-no">258</span><span id="line.258">            appChannel.get().handleNetInput(event);</span>
-<span class="source-line-no">259</span><span id="line.259">        }</span>
-<span class="source-line-no">260</span><span id="line.260">    }</span>
-<span class="source-line-no">261</span><span id="line.261"></span>
-<span class="source-line-no">262</span><span id="line.262">    /**</span>
-<span class="source-line-no">263</span><span id="line.263">     * Forwards a {@link Closed} event to the application channel. </span>
-<span class="source-line-no">264</span><span id="line.264">     *</span>
-<span class="source-line-no">265</span><span id="line.265">     * @param event the event</span>
-<span class="source-line-no">266</span><span id="line.266">     * @param netChannel the net channel</span>
-<span class="source-line-no">267</span><span id="line.267">     */</span>
-<span class="source-line-no">268</span><span id="line.268">    @Handler(channels = NetworkChannel.class)</span>
-<span class="source-line-no">269</span><span id="line.269">    public void onClosed(Closed event, IOSubchannel netChannel) {</span>
-<span class="source-line-no">270</span><span id="line.270">        LinkedIOSubchannel.downstreamChannel(this, netChannel,</span>
-<span class="source-line-no">271</span><span id="line.271">            WebAppMsgChannel.class).ifPresent(appChannel -&gt; {</span>
-<span class="source-line-no">272</span><span id="line.272">                appChannel.handleClosed(event);</span>
-<span class="source-line-no">273</span><span id="line.273">            });</span>
-<span class="source-line-no">274</span><span id="line.274">    }</span>
-<span class="source-line-no">275</span><span id="line.275"></span>
-<span class="source-line-no">276</span><span id="line.276">    /**</span>
-<span class="source-line-no">277</span><span id="line.277">     * Forwards a {@link Purge} event to the application channel.</span>
-<span class="source-line-no">278</span><span id="line.278">     *</span>
-<span class="source-line-no">279</span><span id="line.279">     * @param event the event</span>
-<span class="source-line-no">280</span><span id="line.280">     * @param netChannel the net channel</span>
-<span class="source-line-no">281</span><span id="line.281">     */</span>
-<span class="source-line-no">282</span><span id="line.282">    @Handler(channels = NetworkChannel.class)</span>
-<span class="source-line-no">283</span><span id="line.283">    public void onPurge(Purge event, IOSubchannel netChannel) {</span>
-<span class="source-line-no">284</span><span id="line.284">        LinkedIOSubchannel.downstreamChannel(this, netChannel,</span>
-<span class="source-line-no">285</span><span id="line.285">            WebAppMsgChannel.class).ifPresent(appChannel -&gt; {</span>
-<span class="source-line-no">286</span><span id="line.286">                appChannel.handlePurge(event);</span>
-<span class="source-line-no">287</span><span id="line.287">            });</span>
-<span class="source-line-no">288</span><span id="line.288">    }</span>
-<span class="source-line-no">289</span><span id="line.289"></span>
-<span class="source-line-no">290</span><span id="line.290">    /**</span>
-<span class="source-line-no">291</span><span id="line.291">     * Handles a response event from downstream by sending it through an</span>
-<span class="source-line-no">292</span><span id="line.292">     * {@link HttpResponseEncoder} that generates the data (encoded information)</span>
-<span class="source-line-no">293</span><span id="line.293">     * and sends it upstream with {@link Output} events. Depending on whether </span>
-<span class="source-line-no">294</span><span id="line.294">     * the response has a body, subsequent {@link Output} events can</span>
-<span class="source-line-no">295</span><span id="line.295">     * follow.</span>
-<span class="source-line-no">296</span><span id="line.296">     * </span>
-<span class="source-line-no">297</span><span id="line.297">     * @param event</span>
-<span class="source-line-no">298</span><span id="line.298">     *            the response event</span>
-<span class="source-line-no">299</span><span id="line.299">     * @throws InterruptedException if the execution was interrupted</span>
-<span class="source-line-no">300</span><span id="line.300">     */</span>
-<span class="source-line-no">301</span><span id="line.301">    @Handler</span>
-<span class="source-line-no">302</span><span id="line.302">    public void onResponse(Response event, WebAppMsgChannel appChannel)</span>
-<span class="source-line-no">303</span><span id="line.303">            throws InterruptedException {</span>
-<span class="source-line-no">304</span><span id="line.304">        appChannel.handleResponse(event);</span>
-<span class="source-line-no">305</span><span id="line.305">    }</span>
-<span class="source-line-no">306</span><span id="line.306"></span>
-<span class="source-line-no">307</span><span id="line.307">    /**</span>
-<span class="source-line-no">308</span><span id="line.308">     * Receives the message body of a response. A {@link Response} event that</span>
-<span class="source-line-no">309</span><span id="line.309">     * has a message body can be followed by one or more {@link Output} events</span>
-<span class="source-line-no">310</span><span id="line.310">     * from downstream that contain the data. An {@code Output} event</span>
-<span class="source-line-no">311</span><span id="line.311">     * with the end of record flag set signals the end of the message body.</span>
-<span class="source-line-no">312</span><span id="line.312">     * </span>
-<span class="source-line-no">313</span><span id="line.313">     * @param event</span>
-<span class="source-line-no">314</span><span id="line.314">     *            the event with the data</span>
-<span class="source-line-no">315</span><span id="line.315">     * @throws InterruptedException if the execution was interrupted</span>
-<span class="source-line-no">316</span><span id="line.316">     */</span>
-<span class="source-line-no">317</span><span id="line.317">    @Handler</span>
-<span class="source-line-no">318</span><span id="line.318">    public void onOutput(Output&lt;?&gt; event, WebAppMsgChannel appChannel)</span>
-<span class="source-line-no">319</span><span id="line.319">            throws InterruptedException {</span>
-<span class="source-line-no">320</span><span id="line.320">        appChannel.handleAppOutput(event);</span>
-<span class="source-line-no">321</span><span id="line.321">    }</span>
-<span class="source-line-no">322</span><span id="line.322"></span>
-<span class="source-line-no">323</span><span id="line.323">    /**</span>
-<span class="source-line-no">324</span><span id="line.324">     * Handles a close event from downstream by closing the upstream</span>
-<span class="source-line-no">325</span><span id="line.325">     * connections.</span>
-<span class="source-line-no">326</span><span id="line.326">     * </span>
-<span class="source-line-no">327</span><span id="line.327">     * @param event</span>
-<span class="source-line-no">328</span><span id="line.328">     *            the close event</span>
-<span class="source-line-no">329</span><span id="line.329">     * @throws InterruptedException if the execution was interrupted</span>
-<span class="source-line-no">330</span><span id="line.330">     */</span>
-<span class="source-line-no">331</span><span id="line.331">    @Handler</span>
-<span class="source-line-no">332</span><span id="line.332">    public void onClose(Close event, WebAppMsgChannel appChannel)</span>
-<span class="source-line-no">333</span><span id="line.333">            throws InterruptedException {</span>
-<span class="source-line-no">334</span><span id="line.334">        appChannel.handleClose(event);</span>
-<span class="source-line-no">335</span><span id="line.335">    }</span>
-<span class="source-line-no">336</span><span id="line.336"></span>
-<span class="source-line-no">337</span><span id="line.337">    /**</span>
-<span class="source-line-no">338</span><span id="line.338">     * Checks whether the request has been handled (value of {@link Request}</span>
-<span class="source-line-no">339</span><span id="line.339">     * event set to `true`) or the status code in the prepared response</span>
-<span class="source-line-no">340</span><span id="line.340">     * is no longer "Not Implemented". If not, but a fall back has been set, </span>
-<span class="source-line-no">341</span><span id="line.341">     * send a "Not Found" response. If this isn't the case either, send </span>
-<span class="source-line-no">342</span><span id="line.342">     * the default response ("Not implemented") to the client.</span>
-<span class="source-line-no">343</span><span id="line.343">     * </span>
-<span class="source-line-no">344</span><span id="line.344">     * @param event</span>
-<span class="source-line-no">345</span><span id="line.345">     *            the request completed event</span>
-<span class="source-line-no">346</span><span id="line.346">     * @param appChannel the application channel </span>
-<span class="source-line-no">347</span><span id="line.347">     * @throws InterruptedException if the execution was interrupted</span>
-<span class="source-line-no">348</span><span id="line.348">     */</span>
-<span class="source-line-no">349</span><span id="line.349">    @Handler</span>
-<span class="source-line-no">350</span><span id="line.350">    public void onRequestCompleted(</span>
-<span class="source-line-no">351</span><span id="line.351">            Request.In.Completed event, IOSubchannel appChannel)</span>
-<span class="source-line-no">352</span><span id="line.352">            throws InterruptedException {</span>
-<span class="source-line-no">353</span><span id="line.353">        final Request.In requestEvent = event.event();</span>
-<span class="source-line-no">354</span><span id="line.354">        // A check that also works with null.</span>
-<span class="source-line-no">355</span><span id="line.355">        if (Boolean.TRUE.equals(requestEvent.get())</span>
-<span class="source-line-no">356</span><span id="line.356">            || requestEvent.httpRequest().response().map(</span>
-<span class="source-line-no">357</span><span id="line.357">                response -&gt; response.statusCode() != HttpStatus.NOT_IMPLEMENTED</span>
-<span class="source-line-no">358</span><span id="line.358">                    .statusCode())</span>
-<span class="source-line-no">359</span><span id="line.359">                .orElse(false)) {</span>
-<span class="source-line-no">360</span><span id="line.360">            // Some other component has taken care</span>
-<span class="source-line-no">361</span><span id="line.361">            return;</span>
-<span class="source-line-no">362</span><span id="line.362">        }</span>
-<span class="source-line-no">363</span><span id="line.363"></span>
-<span class="source-line-no">364</span><span id="line.364">        // Check if "Not Found" should be sent</span>
-<span class="source-line-no">365</span><span id="line.365">        if (providedFallbacks != null</span>
-<span class="source-line-no">366</span><span id="line.366">            &amp;&amp; providedFallbacks.contains(requestEvent.getClass())) {</span>
-<span class="source-line-no">367</span><span id="line.367">            ResponseCreationSupport.sendResponse(</span>
-<span class="source-line-no">368</span><span id="line.368">                requestEvent.httpRequest(), appChannel, HttpStatus.NOT_FOUND);</span>
-<span class="source-line-no">369</span><span id="line.369">            return;</span>
-<span class="source-line-no">370</span><span id="line.370">        }</span>
-<span class="source-line-no">371</span><span id="line.371"></span>
-<span class="source-line-no">372</span><span id="line.372">        // Last resort</span>
-<span class="source-line-no">373</span><span id="line.373">        ResponseCreationSupport.sendResponse(requestEvent.httpRequest(),</span>
-<span class="source-line-no">374</span><span id="line.374">            appChannel, HttpStatus.NOT_IMPLEMENTED);</span>
-<span class="source-line-no">375</span><span id="line.375">    }</span>
-<span class="source-line-no">376</span><span id="line.376"></span>
-<span class="source-line-no">377</span><span id="line.377">    /**</span>
-<span class="source-line-no">378</span><span id="line.378">     * Provides a fallback handler for an OPTIONS request with asterisk. Simply</span>
-<span class="source-line-no">379</span><span id="line.379">     * responds with "OK".</span>
-<span class="source-line-no">380</span><span id="line.380">     * </span>
-<span class="source-line-no">381</span><span id="line.381">     * @param event the event</span>
-<span class="source-line-no">382</span><span id="line.382">     * @param appChannel the application channel</span>
-<span class="source-line-no">383</span><span id="line.383">     */</span>
-<span class="source-line-no">384</span><span id="line.384">    @Handler(priority = Integer.MIN_VALUE)</span>
-<span class="source-line-no">385</span><span id="line.385">    public void onOptions(Request.In.Options event, IOSubchannel appChannel) {</span>
-<span class="source-line-no">386</span><span id="line.386">        if (event.requestUri() == HttpRequest.ASTERISK_REQUEST) {</span>
-<span class="source-line-no">387</span><span id="line.387">            HttpResponse response = event.httpRequest().response().get();</span>
-<span class="source-line-no">388</span><span id="line.388">            response.setStatus(HttpStatus.OK);</span>
-<span class="source-line-no">389</span><span id="line.389">            appChannel.respond(new Response(response));</span>
-<span class="source-line-no">390</span><span id="line.390">            event.setResult(true);</span>
-<span class="source-line-no">391</span><span id="line.391">            event.stop();</span>
-<span class="source-line-no">392</span><span id="line.392">        }</span>
-<span class="source-line-no">393</span><span id="line.393">    }</span>
-<span class="source-line-no">394</span><span id="line.394"></span>
-<span class="source-line-no">395</span><span id="line.395">    /**</span>
-<span class="source-line-no">396</span><span id="line.396">     * Send the response indicating that the protocol switch was accepted</span>
-<span class="source-line-no">397</span><span id="line.397">     * and causes subsequent data to be handled as {@link Input} and</span>
-<span class="source-line-no">398</span><span id="line.398">     * {@link Output} events on the channel.</span>
-<span class="source-line-no">399</span><span id="line.399">     * </span>
-<span class="source-line-no">400</span><span id="line.400">     * As a convenience, the channel is associates with the URI that</span>
-<span class="source-line-no">401</span><span id="line.401">     * was used to request the protocol switch using {@link URI} as key.</span>
-<span class="source-line-no">402</span><span id="line.402">     * </span>
-<span class="source-line-no">403</span><span id="line.403">     * @param event the event</span>
-<span class="source-line-no">404</span><span id="line.404">     * @param appChannel the channel</span>
-<span class="source-line-no">405</span><span id="line.405">     */</span>
-<span class="source-line-no">406</span><span id="line.406">    @Handler</span>
-<span class="source-line-no">407</span><span id="line.407">    public void onProtocolSwitchAccepted(</span>
-<span class="source-line-no">408</span><span id="line.408">            ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {</span>
-<span class="source-line-no">409</span><span id="line.409">        appChannel.handleProtocolSwitchAccepted(event, appChannel);</span>
-<span class="source-line-no">410</span><span id="line.410">    }</span>
-<span class="source-line-no">411</span><span id="line.411"></span>
-<span class="source-line-no">412</span><span id="line.412">    /**</span>
-<span class="source-line-no">413</span><span id="line.413">     * An application layer channel.</span>
-<span class="source-line-no">414</span><span id="line.414">     */</span>
-<span class="source-line-no">415</span><span id="line.415">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">416</span><span id="line.416">    private class WebAppMsgChannel extends LinkedIOSubchannel {</span>
-<span class="source-line-no">417</span><span id="line.417">        // Starts as ServerEngine&lt;HttpRequest,HttpResponse&gt; but may change</span>
-<span class="source-line-no">418</span><span id="line.418">        private final ServerEngine&lt;?, ?&gt; engine;</span>
-<span class="source-line-no">419</span><span id="line.419">        private ManagedBuffer&lt;ByteBuffer&gt; outBuffer;</span>
-<span class="source-line-no">420</span><span id="line.420">        private final boolean secure;</span>
-<span class="source-line-no">421</span><span id="line.421">        private List&lt;String&gt; snis = Collections.emptyList();</span>
-<span class="source-line-no">422</span><span id="line.422">        private final ManagedBufferPool&lt;ManagedBuffer&lt;ByteBuffer&gt;,</span>
-<span class="source-line-no">423</span><span id="line.423">                ByteBuffer&gt; byteBufferPool;</span>
-<span class="source-line-no">424</span><span id="line.424">        private final ManagedBufferPool&lt;ManagedBuffer&lt;CharBuffer&gt;,</span>
-<span class="source-line-no">425</span><span id="line.425">                CharBuffer&gt; charBufferPool;</span>
-<span class="source-line-no">426</span><span id="line.426">        private ManagedBufferPool&lt;?, ?&gt; currentPool;</span>
-<span class="source-line-no">427</span><span id="line.427">        private final EventPipeline downPipeline;</span>
-<span class="source-line-no">428</span><span id="line.428">        private Upgraded pendingUpgraded;</span>
-<span class="source-line-no">429</span><span id="line.429">        private WsMessageHeader currentWsMessage;</span>
-<span class="source-line-no">430</span><span id="line.430"></span>
-<span class="source-line-no">431</span><span id="line.431">        /**</span>
-<span class="source-line-no">432</span><span id="line.432">         * Instantiates a new channel.</span>
-<span class="source-line-no">433</span><span id="line.433">         *</span>
-<span class="source-line-no">434</span><span id="line.434">         * @param event the event</span>
-<span class="source-line-no">435</span><span id="line.435">         * @param netChannel the net channel</span>
-<span class="source-line-no">436</span><span id="line.436">         */</span>
-<span class="source-line-no">437</span><span id="line.437">        @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")</span>
-<span class="source-line-no">438</span><span id="line.438">        public WebAppMsgChannel(Accepted event, IOSubchannel netChannel) {</span>
-<span class="source-line-no">439</span><span id="line.439">            super(HttpServer.this, channel(), netChannel, newEventPipeline());</span>
-<span class="source-line-no">440</span><span id="line.440">            engine = new ServerEngine&lt;&gt;(</span>
-<span class="source-line-no">441</span><span id="line.441">                new HttpRequestDecoder(), new HttpResponseEncoder());</span>
-<span class="source-line-no">442</span><span id="line.442">            secure = event.isSecure();</span>
-<span class="source-line-no">443</span><span id="line.443">            if (secure) {</span>
-<span class="source-line-no">444</span><span id="line.444">                snis = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">445</span><span id="line.445">                for (SNIServerName sni : event.requestedServerNames()) {</span>
-<span class="source-line-no">446</span><span id="line.446">                    if (sni instanceof SNIHostName) {</span>
-<span class="source-line-no">447</span><span id="line.447">                        snis.add(((SNIHostName) sni).getAsciiName());</span>
-<span class="source-line-no">448</span><span id="line.448">                    }</span>
-<span class="source-line-no">449</span><span id="line.449">                }</span>
-<span class="source-line-no">450</span><span id="line.450">            }</span>
-<span class="source-line-no">451</span><span id="line.451"></span>
-<span class="source-line-no">452</span><span id="line.452">            // Calculate "good" application buffer size</span>
-<span class="source-line-no">453</span><span id="line.453">            int bufferSize = applicationBufferSize;</span>
-<span class="source-line-no">454</span><span id="line.454">            if (bufferSize &lt;= 0) {</span>
-<span class="source-line-no">455</span><span id="line.455">                bufferSize = netChannel.byteBufferPool().bufferSize() - 512;</span>
-<span class="source-line-no">456</span><span id="line.456">                if (bufferSize &lt; 4096) {</span>
-<span class="source-line-no">457</span><span id="line.457">                    bufferSize = 4096;</span>
-<span class="source-line-no">458</span><span id="line.458">                }</span>
-<span class="source-line-no">459</span><span id="line.459">            }</span>
-<span class="source-line-no">460</span><span id="line.460"></span>
-<span class="source-line-no">461</span><span id="line.461">            String channelName = Components.objectName(HttpServer.this)</span>
-<span class="source-line-no">462</span><span id="line.462">                + "." + Components.objectName(this);</span>
-<span class="source-line-no">463</span><span id="line.463">            byteBufferPool().setName(channelName + ".upstream.byteBuffers");</span>
-<span class="source-line-no">464</span><span id="line.464">            charBufferPool().setName(channelName + ".upstream.charBuffers");</span>
-<span class="source-line-no">465</span><span id="line.465">            // Allocate downstream buffer pools. Note that decoding WebSocket</span>
-<span class="source-line-no">466</span><span id="line.466">            // network packets may result in several WS frames that are each</span>
-<span class="source-line-no">467</span><span id="line.467">            // delivered in independent events. Therefore provide some</span>
-<span class="source-line-no">468</span><span id="line.468">            // additional buffers.</span>
-<span class="source-line-no">469</span><span id="line.469">            final int bufSize = bufferSize;</span>
-<span class="source-line-no">470</span><span id="line.470">            byteBufferPool = new ManagedBufferPool&lt;&gt;(ManagedBuffer::new,</span>
-<span class="source-line-no">471</span><span id="line.471">                () -&gt; {</span>
-<span class="source-line-no">472</span><span id="line.472">                    return ByteBuffer.allocate(bufSize);</span>
-<span class="source-line-no">473</span><span id="line.473">                }, 2, 100)</span>
-<span class="source-line-no">474</span><span id="line.474">                    .setName(channelName + ".downstream.byteBuffers");</span>
-<span class="source-line-no">475</span><span id="line.475">            charBufferPool = new ManagedBufferPool&lt;&gt;(ManagedBuffer::new,</span>
-<span class="source-line-no">476</span><span id="line.476">                () -&gt; {</span>
-<span class="source-line-no">477</span><span id="line.477">                    return CharBuffer.allocate(bufSize);</span>
-<span class="source-line-no">478</span><span id="line.478">                }, 2, 100)</span>
-<span class="source-line-no">479</span><span id="line.479">                    .setName(channelName + ".downstream.charBuffers");</span>
-<span class="source-line-no">480</span><span id="line.480"></span>
-<span class="source-line-no">481</span><span id="line.481">            // Downstream pipeline</span>
-<span class="source-line-no">482</span><span id="line.482">            downPipeline = newEventPipeline();</span>
-<span class="source-line-no">483</span><span id="line.483">        }</span>
-<span class="source-line-no">484</span><span id="line.484"></span>
-<span class="source-line-no">485</span><span id="line.485">        /**</span>
-<span class="source-line-no">486</span><span id="line.486">         * Handle {@link Input} events from the network.</span>
-<span class="source-line-no">487</span><span id="line.487">         *</span>
-<span class="source-line-no">488</span><span id="line.488">         * @param event the event</span>
-<span class="source-line-no">489</span><span id="line.489">         * @throws ProtocolException the protocol exception</span>
-<span class="source-line-no">490</span><span id="line.490">         * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">491</span><span id="line.491">         */</span>
-<span class="source-line-no">492</span><span id="line.492">        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">493</span><span id="line.493">            "PMD.AvoidInstantiatingObjectsInLoops",</span>
-<span class="source-line-no">494</span><span id="line.494">            "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements",</span>
-<span class="source-line-no">495</span><span id="line.495">            "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals" })</span>
-<span class="source-line-no">496</span><span id="line.496">        public void handleNetInput(Input&lt;ByteBuffer&gt; event)</span>
-<span class="source-line-no">497</span><span id="line.497">                throws ProtocolException, InterruptedException {</span>
-<span class="source-line-no">498</span><span id="line.498">            // Send the data from the event through the decoder.</span>
-<span class="source-line-no">499</span><span id="line.499">            ByteBuffer inData = event.data();</span>
-<span class="source-line-no">500</span><span id="line.500">            // Don't unnecessary allocate a buffer, may be header only message</span>
-<span class="source-line-no">501</span><span id="line.501">            ManagedBuffer&lt;?&gt; bodyData = null;</span>
-<span class="source-line-no">502</span><span id="line.502">            boolean wasOverflow = false;</span>
-<span class="source-line-no">503</span><span id="line.503">            while (inData.hasRemaining()) {</span>
-<span class="source-line-no">504</span><span id="line.504">                if (wasOverflow) {</span>
-<span class="source-line-no">505</span><span id="line.505">                    // Message has (more) body</span>
-<span class="source-line-no">506</span><span id="line.506">                    bodyData = currentPool.acquire();</span>
-<span class="source-line-no">507</span><span id="line.507">                }</span>
-<span class="source-line-no">508</span><span id="line.508">                Decoder.Result&lt;?&gt; result = engine.decode(inData,</span>
-<span class="source-line-no">509</span><span id="line.509">                    bodyData == null ? null : bodyData.backingBuffer(),</span>
-<span class="source-line-no">510</span><span id="line.510">                    event.isEndOfRecord());</span>
-<span class="source-line-no">511</span><span id="line.511">                if (result.response().isPresent()) {</span>
-<span class="source-line-no">512</span><span id="line.512">                    // Feedback required, send it</span>
-<span class="source-line-no">513</span><span id="line.513">                    responsePipeline().overrideRestriction().fire(</span>
-<span class="source-line-no">514</span><span id="line.514">                        new Response(result.response().get()), this);</span>
-<span class="source-line-no">515</span><span id="line.515">                    if (result.isResponseOnly()) {</span>
-<span class="source-line-no">516</span><span id="line.516">                        maybeCloseConnection(result);</span>
-<span class="source-line-no">517</span><span id="line.517">                        continue;</span>
-<span class="source-line-no">518</span><span id="line.518">                    }</span>
-<span class="source-line-no">519</span><span id="line.519">                }</span>
-<span class="source-line-no">520</span><span id="line.520">                if (result.isHeaderCompleted()) {</span>
-<span class="source-line-no">521</span><span id="line.521">                    if (!handleRequestHeader(engine.currentRequest().get())) {</span>
-<span class="source-line-no">522</span><span id="line.522">                        maybeCloseConnection(result);</span>
-<span class="source-line-no">523</span><span id="line.523">                        break;</span>
-<span class="source-line-no">524</span><span id="line.524">                    }</span>
-<span class="source-line-no">525</span><span id="line.525">                }</span>
-<span class="source-line-no">526</span><span id="line.526">                if (bodyData != null) {</span>
-<span class="source-line-no">527</span><span id="line.527">                    if (bodyData.position() &gt; 0) {</span>
-<span class="source-line-no">528</span><span id="line.528">                        downPipeline.fire(Input.fromSink(</span>
-<span class="source-line-no">529</span><span id="line.529">                            bodyData, !result.isOverflow()</span>
-<span class="source-line-no">530</span><span id="line.530">                                &amp;&amp; !result.isUnderflow()),</span>
-<span class="source-line-no">531</span><span id="line.531">                            this);</span>
-<span class="source-line-no">532</span><span id="line.532">                    } else {</span>
-<span class="source-line-no">533</span><span id="line.533">                        bodyData.unlockBuffer();</span>
-<span class="source-line-no">534</span><span id="line.534">                    }</span>
-<span class="source-line-no">535</span><span id="line.535">                    bodyData = null;</span>
-<span class="source-line-no">536</span><span id="line.536">                }</span>
-<span class="source-line-no">537</span><span id="line.537">                maybeCloseConnection(result);</span>
-<span class="source-line-no">538</span><span id="line.538">                wasOverflow = result.isOverflow();</span>
-<span class="source-line-no">539</span><span id="line.539">            }</span>
-<span class="source-line-no">540</span><span id="line.540">        }</span>
-<span class="source-line-no">541</span><span id="line.541"></span>
-<span class="source-line-no">542</span><span id="line.542">        private void maybeCloseConnection(Decoder.Result&lt;?&gt; result) {</span>
-<span class="source-line-no">543</span><span id="line.543">            if (result.closeConnection()) {</span>
-<span class="source-line-no">544</span><span id="line.544">                respond(new Close());</span>
-<span class="source-line-no">545</span><span id="line.545">            }</span>
-<span class="source-line-no">546</span><span id="line.546">        }</span>
-<span class="source-line-no">547</span><span id="line.547"></span>
-<span class="source-line-no">548</span><span id="line.548">        @SuppressWarnings({ "PMD.CollapsibleIfStatements",</span>
-<span class="source-line-no">549</span><span id="line.549">            "PMD.CognitiveComplexity" })</span>
-<span class="source-line-no">550</span><span id="line.550">        private boolean handleRequestHeader(MessageHeader request) {</span>
-<span class="source-line-no">551</span><span id="line.551">            if (request instanceof HttpRequest) {</span>
-<span class="source-line-no">552</span><span id="line.552">                HttpRequest httpRequest = (HttpRequest) request;</span>
-<span class="source-line-no">553</span><span id="line.553">                if (httpRequest.hasPayload()) {</span>
-<span class="source-line-no">554</span><span id="line.554">                    if (httpRequest.findValue(</span>
-<span class="source-line-no">555</span><span id="line.555">                        HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)</span>
-<span class="source-line-no">556</span><span id="line.556">                        .map(type -&gt; "text"</span>
-<span class="source-line-no">557</span><span id="line.557">                            .equalsIgnoreCase(type.value().topLevelType()))</span>
-<span class="source-line-no">558</span><span id="line.558">                        .orElse(false)) {</span>
-<span class="source-line-no">559</span><span id="line.559">                        currentPool = charBufferPool;</span>
-<span class="source-line-no">560</span><span id="line.560">                    } else {</span>
-<span class="source-line-no">561</span><span id="line.561">                        currentPool = byteBufferPool;</span>
-<span class="source-line-no">562</span><span id="line.562">                    }</span>
-<span class="source-line-no">563</span><span id="line.563">                }</span>
-<span class="source-line-no">564</span><span id="line.564">                if (secure) {</span>
-<span class="source-line-no">565</span><span id="line.565">                    if (!snis.contains(httpRequest.host())) {</span>
-<span class="source-line-no">566</span><span id="line.566">                        if (acceptNoSni &amp;&amp; snis.isEmpty()) {</span>
-<span class="source-line-no">567</span><span id="line.567">                            convertHostToNumerical(httpRequest);</span>
-<span class="source-line-no">568</span><span id="line.568">                        } else {</span>
-<span class="source-line-no">569</span><span id="line.569">                            ResponseCreationSupport.sendResponse(httpRequest,</span>
-<span class="source-line-no">570</span><span id="line.570">                                this, 421, "Misdirected Request");</span>
-<span class="source-line-no">571</span><span id="line.571">                            return false;</span>
-<span class="source-line-no">572</span><span id="line.572">                        }</span>
-<span class="source-line-no">573</span><span id="line.573">                    }</span>
-<span class="source-line-no">574</span><span id="line.574">                }</span>
-<span class="source-line-no">575</span><span id="line.575">                downPipeline.fire(Request.In.fromHttpRequest(httpRequest,</span>
-<span class="source-line-no">576</span><span id="line.576">                    secure, matchLevels), this);</span>
-<span class="source-line-no">577</span><span id="line.577">            } else if (request instanceof WsMessageHeader) {</span>
-<span class="source-line-no">578</span><span id="line.578">                WsMessageHeader wsMessage = (WsMessageHeader) request;</span>
-<span class="source-line-no">579</span><span id="line.579">                if (wsMessage.hasPayload()) {</span>
-<span class="source-line-no">580</span><span id="line.580">                    if (wsMessage.isTextMode()) {</span>
-<span class="source-line-no">581</span><span id="line.581">                        currentPool = charBufferPool;</span>
-<span class="source-line-no">582</span><span id="line.582">                    } else {</span>
-<span class="source-line-no">583</span><span id="line.583">                        currentPool = byteBufferPool;</span>
-<span class="source-line-no">584</span><span id="line.584">                    }</span>
-<span class="source-line-no">585</span><span id="line.585">                }</span>
-<span class="source-line-no">586</span><span id="line.586">            } else if (request instanceof WsCloseFrame) {</span>
-<span class="source-line-no">587</span><span id="line.587">                downPipeline.fire(</span>
-<span class="source-line-no">588</span><span id="line.588">                    new WebSocketClose((WsCloseFrame) request, this));</span>
-<span class="source-line-no">589</span><span id="line.589">            }</span>
-<span class="source-line-no">590</span><span id="line.590">            return true;</span>
-<span class="source-line-no">591</span><span id="line.591">        }</span>
-<span class="source-line-no">592</span><span id="line.592"></span>
-<span class="source-line-no">593</span><span id="line.593">        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">594</span><span id="line.594">            "PMD.UseStringBufferForStringAppends" })</span>
-<span class="source-line-no">595</span><span id="line.595">        private void convertHostToNumerical(HttpRequest request) {</span>
-<span class="source-line-no">596</span><span id="line.596">            int port = request.port();</span>
-<span class="source-line-no">597</span><span id="line.597">            String host;</span>
-<span class="source-line-no">598</span><span id="line.598">            try {</span>
-<span class="source-line-no">599</span><span id="line.599">                InetAddress addr = InetAddress.getByName(</span>
-<span class="source-line-no">600</span><span id="line.600">                    request.host());</span>
-<span class="source-line-no">601</span><span id="line.601">                host = addr.getHostAddress();</span>
-<span class="source-line-no">602</span><span id="line.602">                if (!(addr instanceof Inet4Address)) {</span>
-<span class="source-line-no">603</span><span id="line.603">                    host = "[" + host + "]";</span>
-<span class="source-line-no">604</span><span id="line.604">                }</span>
-<span class="source-line-no">605</span><span id="line.605">            } catch (UnknownHostException e) {</span>
-<span class="source-line-no">606</span><span id="line.606">                host = InetAddress.getLoopbackAddress().getHostAddress();</span>
-<span class="source-line-no">607</span><span id="line.607">            }</span>
-<span class="source-line-no">608</span><span id="line.608">            request.setHostAndPort(host, port);</span>
-<span class="source-line-no">609</span><span id="line.609">        }</span>
-<span class="source-line-no">610</span><span id="line.610"></span>
-<span class="source-line-no">611</span><span id="line.611">        /**</span>
-<span class="source-line-no">612</span><span id="line.612">         * Handle a response event from the application layer.</span>
-<span class="source-line-no">613</span><span id="line.613">         *</span>
-<span class="source-line-no">614</span><span id="line.614">         * @param event the event</span>
-<span class="source-line-no">615</span><span id="line.615">         * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">616</span><span id="line.616">         */</span>
-<span class="source-line-no">617</span><span id="line.617">        @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</span>
-<span class="source-line-no">618</span><span id="line.618">            "PMD.AvoidBranchingStatementAsLastInLoop",</span>
-<span class="source-line-no">619</span><span id="line.619">            "PMD.CognitiveComplexity" })</span>
-<span class="source-line-no">620</span><span id="line.620">        public void handleResponse(Response event) throws InterruptedException {</span>
-<span class="source-line-no">621</span><span id="line.621">            if (!engine.encoding()</span>
-<span class="source-line-no">622</span><span id="line.622">                .isAssignableFrom(event.response().getClass())) {</span>
-<span class="source-line-no">623</span><span id="line.623">                return;</span>
-<span class="source-line-no">624</span><span id="line.624">            }</span>
-<span class="source-line-no">625</span><span id="line.625">            final MessageHeader response = event.response();</span>
-<span class="source-line-no">626</span><span id="line.626">            // Start sending the response</span>
-<span class="source-line-no">627</span><span id="line.627">            @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">628</span><span id="line.628">            ServerEngine&lt;?, MessageHeader&gt; msgEngine</span>
-<span class="source-line-no">629</span><span id="line.629">                = (ServerEngine&lt;?, MessageHeader&gt;) engine;</span>
-<span class="source-line-no">630</span><span id="line.630">            msgEngine.encode(response);</span>
-<span class="source-line-no">631</span><span id="line.631">            if (pendingUpgraded != null) {</span>
-<span class="source-line-no">632</span><span id="line.632">                if (response instanceof HttpResponse</span>
-<span class="source-line-no">633</span><span id="line.633">                    &amp;&amp; ((HttpResponse) response).statusCode() % 100 == 1) {</span>
-<span class="source-line-no">634</span><span id="line.634">                    downPipeline.fire(pendingUpgraded, this);</span>
-<span class="source-line-no">635</span><span id="line.635">                }</span>
-<span class="source-line-no">636</span><span id="line.636">                pendingUpgraded = null;</span>
-<span class="source-line-no">637</span><span id="line.637">            }</span>
-<span class="source-line-no">638</span><span id="line.638">            boolean hasBody = response.hasPayload();</span>
-<span class="source-line-no">639</span><span id="line.639">            while (true) {</span>
-<span class="source-line-no">640</span><span id="line.640">                outBuffer = upstreamChannel().byteBufferPool().acquire();</span>
-<span class="source-line-no">641</span><span id="line.641">                final ManagedBuffer&lt;ByteBuffer&gt; buffer = outBuffer;</span>
-<span class="source-line-no">642</span><span id="line.642">                Codec.Result result = engine.encode(</span>
-<span class="source-line-no">643</span><span id="line.643">                    Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);</span>
-<span class="source-line-no">644</span><span id="line.644">                if (result.isOverflow()) {</span>
-<span class="source-line-no">645</span><span id="line.645">                    upstreamChannel().respond(Output.fromSink(buffer, false));</span>
-<span class="source-line-no">646</span><span id="line.646">                    continue;</span>
-<span class="source-line-no">647</span><span id="line.647">                }</span>
-<span class="source-line-no">648</span><span id="line.648">                if (hasBody) {</span>
-<span class="source-line-no">649</span><span id="line.649">                    // Keep buffer with incomplete response to be further</span>
-<span class="source-line-no">650</span><span id="line.650">                    // filled by subsequent Output events</span>
-<span class="source-line-no">651</span><span id="line.651">                    break;</span>
-<span class="source-line-no">652</span><span id="line.652">                }</span>
-<span class="source-line-no">653</span><span id="line.653">                // Response is complete</span>
-<span class="source-line-no">654</span><span id="line.654">                if (buffer.position() &gt; 0) {</span>
-<span class="source-line-no">655</span><span id="line.655">                    upstreamChannel().respond(Output.fromSink(buffer, true));</span>
-<span class="source-line-no">656</span><span id="line.656">                } else {</span>
-<span class="source-line-no">657</span><span id="line.657">                    buffer.unlockBuffer();</span>
-<span class="source-line-no">658</span><span id="line.658">                }</span>
-<span class="source-line-no">659</span><span id="line.659">                outBuffer = null;</span>
-<span class="source-line-no">660</span><span id="line.660">                if (result.closeConnection()) {</span>
-<span class="source-line-no">661</span><span id="line.661">                    upstreamChannel().respond(new Close());</span>
-<span class="source-line-no">662</span><span id="line.662">                }</span>
-<span class="source-line-no">663</span><span id="line.663">                break;</span>
-<span class="source-line-no">664</span><span id="line.664">            }</span>
-<span class="source-line-no">665</span><span id="line.665"></span>
-<span class="source-line-no">666</span><span id="line.666">        }</span>
-<span class="source-line-no">667</span><span id="line.667"></span>
-<span class="source-line-no">668</span><span id="line.668">        /**</span>
-<span class="source-line-no">669</span><span id="line.669">         * Handle a {@link ProtocolSwitchAccepted} event from the </span>
-<span class="source-line-no">670</span><span id="line.670">         * application layer.</span>
-<span class="source-line-no">671</span><span id="line.671">         *</span>
-<span class="source-line-no">672</span><span id="line.672">         * @param event the event</span>
-<span class="source-line-no">673</span><span id="line.673">         * @param appChannel the app channel</span>
-<span class="source-line-no">674</span><span id="line.674">         */</span>
-<span class="source-line-no">675</span><span id="line.675">        public void handleProtocolSwitchAccepted(</span>
-<span class="source-line-no">676</span><span id="line.676">                ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {</span>
-<span class="source-line-no">677</span><span id="line.677">            appChannel.setAssociated(URI.class,</span>
-<span class="source-line-no">678</span><span id="line.678">                event.requestEvent().requestUri());</span>
-<span class="source-line-no">679</span><span id="line.679">            final HttpResponse response = event.requestEvent()</span>
-<span class="source-line-no">680</span><span id="line.680">                .httpRequest().response().get()</span>
-<span class="source-line-no">681</span><span id="line.681">                .setStatus(HttpStatus.SWITCHING_PROTOCOLS)</span>
-<span class="source-line-no">682</span><span id="line.682">                .setField(HttpField.UPGRADE,</span>
-<span class="source-line-no">683</span><span id="line.683">                    new StringList(event.protocol()));</span>
-<span class="source-line-no">684</span><span id="line.684">            // We send the Upgraded event only after the response has</span>
-<span class="source-line-no">685</span><span id="line.685">            // successfully been encoded (and thus checked).</span>
-<span class="source-line-no">686</span><span id="line.686">            pendingUpgraded = new Upgraded(event.resourceName(),</span>
-<span class="source-line-no">687</span><span id="line.687">                event.protocol());</span>
-<span class="source-line-no">688</span><span id="line.688">            respond(new Response(response));</span>
-<span class="source-line-no">689</span><span id="line.689">        }</span>
-<span class="source-line-no">690</span><span id="line.690"></span>
-<span class="source-line-no">691</span><span id="line.691">        /**</span>
-<span class="source-line-no">692</span><span id="line.692">         * Handle output from the application layer.</span>
-<span class="source-line-no">693</span><span id="line.693">         *</span>
-<span class="source-line-no">694</span><span id="line.694">         * @param event the event</span>
-<span class="source-line-no">695</span><span id="line.695">         * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">696</span><span id="line.696">         */</span>
-<span class="source-line-no">697</span><span id="line.697">        @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",</span>
-<span class="source-line-no">698</span><span id="line.698">            "PMD.NPathComplexity", "PMD.AvoidInstantiatingObjectsInLoops",</span>
-<span class="source-line-no">699</span><span id="line.699">            "PMD.CognitiveComplexity" })</span>
-<span class="source-line-no">700</span><span id="line.700">        public void handleAppOutput(Output&lt;?&gt; event)</span>
-<span class="source-line-no">701</span><span id="line.701">                throws InterruptedException {</span>
-<span class="source-line-no">702</span><span id="line.702">            Buffer eventData = event.data();</span>
-<span class="source-line-no">703</span><span id="line.703">            Buffer input;</span>
-<span class="source-line-no">704</span><span id="line.704">            if (eventData instanceof ByteBuffer) {</span>
-<span class="source-line-no">705</span><span id="line.705">                input = ((ByteBuffer) eventData).duplicate();</span>
-<span class="source-line-no">706</span><span id="line.706">            } else if (eventData instanceof CharBuffer) {</span>
-<span class="source-line-no">707</span><span id="line.707">                input = ((CharBuffer) eventData).duplicate();</span>
-<span class="source-line-no">708</span><span id="line.708">            } else {</span>
-<span class="source-line-no">709</span><span id="line.709">                return;</span>
-<span class="source-line-no">710</span><span id="line.710">            }</span>
-<span class="source-line-no">711</span><span id="line.711">            if (engine.switchedTo().equals(Optional.of("websocket"))</span>
-<span class="source-line-no">712</span><span id="line.712">                &amp;&amp; currentWsMessage == null) {</span>
-<span class="source-line-no">713</span><span id="line.713">                // When switched to WebSockets, we only have Input and Output</span>
-<span class="source-line-no">714</span><span id="line.714">                // events. Add header automatically.</span>
-<span class="source-line-no">715</span><span id="line.715">                @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">716</span><span id="line.716">                ServerEngine&lt;?, MessageHeader&gt; wsEngine</span>
-<span class="source-line-no">717</span><span id="line.717">                    = (ServerEngine&lt;?, MessageHeader&gt;) engine;</span>
-<span class="source-line-no">718</span><span id="line.718">                currentWsMessage = new WsMessageHeader(</span>
-<span class="source-line-no">719</span><span id="line.719">                    event.buffer().backingBuffer() instanceof CharBuffer,</span>
-<span class="source-line-no">720</span><span id="line.720">                    true);</span>
-<span class="source-line-no">721</span><span id="line.721">                wsEngine.encode(currentWsMessage);</span>
-<span class="source-line-no">722</span><span id="line.722">            }</span>
-<span class="source-line-no">723</span><span id="line.723">            while (input.hasRemaining() || event.isEndOfRecord()) {</span>
-<span class="source-line-no">724</span><span id="line.724">                if (outBuffer == null) {</span>
-<span class="source-line-no">725</span><span id="line.725">                    outBuffer = upstreamChannel().byteBufferPool().acquire();</span>
-<span class="source-line-no">726</span><span id="line.726">                }</span>
-<span class="source-line-no">727</span><span id="line.727">                Codec.Result result = engine.encode(input,</span>
-<span class="source-line-no">728</span><span id="line.728">                    outBuffer.backingBuffer(), event.isEndOfRecord());</span>
-<span class="source-line-no">729</span><span id="line.729">                if (result.isOverflow()) {</span>
-<span class="source-line-no">730</span><span id="line.730">                    upstreamChannel()</span>
-<span class="source-line-no">731</span><span id="line.731">                        .respond(Output.fromSink(outBuffer, false));</span>
+<span class="source-line-no">026</span><span id="line.26">import java.net.URISyntaxException;</span>
+<span class="source-line-no">027</span><span id="line.27">import java.net.UnknownHostException;</span>
+<span class="source-line-no">028</span><span id="line.28">import java.nio.Buffer;</span>
+<span class="source-line-no">029</span><span id="line.29">import java.nio.ByteBuffer;</span>
+<span class="source-line-no">030</span><span id="line.30">import java.nio.CharBuffer;</span>
+<span class="source-line-no">031</span><span id="line.31">import java.util.ArrayList;</span>
+<span class="source-line-no">032</span><span id="line.32">import java.util.Arrays;</span>
+<span class="source-line-no">033</span><span id="line.33">import java.util.Collections;</span>
+<span class="source-line-no">034</span><span id="line.34">import java.util.List;</span>
+<span class="source-line-no">035</span><span id="line.35">import java.util.Optional;</span>
+<span class="source-line-no">036</span><span id="line.36">import javax.net.ssl.SNIHostName;</span>
+<span class="source-line-no">037</span><span id="line.37">import javax.net.ssl.SNIServerName;</span>
+<span class="source-line-no">038</span><span id="line.38">import org.jdrupes.httpcodec.Codec;</span>
+<span class="source-line-no">039</span><span id="line.39">import org.jdrupes.httpcodec.Decoder;</span>
+<span class="source-line-no">040</span><span id="line.40">import org.jdrupes.httpcodec.MessageHeader;</span>
+<span class="source-line-no">041</span><span id="line.41">import org.jdrupes.httpcodec.ProtocolException;</span>
+<span class="source-line-no">042</span><span id="line.42">import org.jdrupes.httpcodec.ServerEngine;</span>
+<span class="source-line-no">043</span><span id="line.43">import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;</span>
+<span class="source-line-no">044</span><span id="line.44">import org.jdrupes.httpcodec.protocols.http.HttpField;</span>
+<span class="source-line-no">045</span><span id="line.45">import org.jdrupes.httpcodec.protocols.http.HttpRequest;</span>
+<span class="source-line-no">046</span><span id="line.46">import org.jdrupes.httpcodec.protocols.http.HttpResponse;</span>
+<span class="source-line-no">047</span><span id="line.47">import org.jdrupes.httpcodec.protocols.http.server.HttpRequestDecoder;</span>
+<span class="source-line-no">048</span><span id="line.48">import org.jdrupes.httpcodec.protocols.http.server.HttpResponseEncoder;</span>
+<span class="source-line-no">049</span><span id="line.49">import org.jdrupes.httpcodec.protocols.websocket.WsCloseFrame;</span>
+<span class="source-line-no">050</span><span id="line.50">import org.jdrupes.httpcodec.protocols.websocket.WsMessageHeader;</span>
+<span class="source-line-no">051</span><span id="line.51">import org.jdrupes.httpcodec.types.Converters;</span>
+<span class="source-line-no">052</span><span id="line.52">import org.jdrupes.httpcodec.types.StringList;</span>
+<span class="source-line-no">053</span><span id="line.53">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">054</span><span id="line.54">import org.jgrapes.core.ClassChannel;</span>
+<span class="source-line-no">055</span><span id="line.55">import org.jgrapes.core.Component;</span>
+<span class="source-line-no">056</span><span id="line.56">import org.jgrapes.core.Components;</span>
+<span class="source-line-no">057</span><span id="line.57">import org.jgrapes.core.EventPipeline;</span>
+<span class="source-line-no">058</span><span id="line.58">import org.jgrapes.core.annotation.Handler;</span>
+<span class="source-line-no">059</span><span id="line.59">import org.jgrapes.core.annotation.HandlerDefinition.ChannelReplacements;</span>
+<span class="source-line-no">060</span><span id="line.60">import org.jgrapes.core.internal.EventProcessor;</span>
+<span class="source-line-no">061</span><span id="line.61">import org.jgrapes.http.events.ProtocolSwitchAccepted;</span>
+<span class="source-line-no">062</span><span id="line.62">import org.jgrapes.http.events.Request;</span>
+<span class="source-line-no">063</span><span id="line.63">import org.jgrapes.http.events.Response;</span>
+<span class="source-line-no">064</span><span id="line.64">import org.jgrapes.http.events.Upgraded;</span>
+<span class="source-line-no">065</span><span id="line.65">import org.jgrapes.http.events.WebSocketClose;</span>
+<span class="source-line-no">066</span><span id="line.66">import org.jgrapes.io.IOSubchannel;</span>
+<span class="source-line-no">067</span><span id="line.67">import org.jgrapes.io.events.Close;</span>
+<span class="source-line-no">068</span><span id="line.68">import org.jgrapes.io.events.Closed;</span>
+<span class="source-line-no">069</span><span id="line.69">import org.jgrapes.io.events.Input;</span>
+<span class="source-line-no">070</span><span id="line.70">import org.jgrapes.io.events.Output;</span>
+<span class="source-line-no">071</span><span id="line.71">import org.jgrapes.io.events.Purge;</span>
+<span class="source-line-no">072</span><span id="line.72">import org.jgrapes.io.util.LinkedIOSubchannel;</span>
+<span class="source-line-no">073</span><span id="line.73">import org.jgrapes.io.util.ManagedBuffer;</span>
+<span class="source-line-no">074</span><span id="line.74">import org.jgrapes.io.util.ManagedBufferPool;</span>
+<span class="source-line-no">075</span><span id="line.75">import org.jgrapes.net.TcpServer;</span>
+<span class="source-line-no">076</span><span id="line.76">import org.jgrapes.net.events.Accepted;</span>
+<span class="source-line-no">077</span><span id="line.77"></span>
+<span class="source-line-no">078</span><span id="line.78">/**</span>
+<span class="source-line-no">079</span><span id="line.79"> * A converter component that receives and sends byte buffers on a </span>
+<span class="source-line-no">080</span><span id="line.80"> * network channel and web application layer messages on</span>
+<span class="source-line-no">081</span><span id="line.81"> * {@link IOSubchannel}s of its channel. </span>
+<span class="source-line-no">082</span><span id="line.82"> * </span>
+<span class="source-line-no">083</span><span id="line.83"> * Each {@link IOSubchannel} represents a connection established by </span>
+<span class="source-line-no">084</span><span id="line.84"> * the browser. The {@link HttpServer} fires {@link Request} events </span>
+<span class="source-line-no">085</span><span id="line.85"> * (and {@link Input} events, if there is associated data) on the </span>
+<span class="source-line-no">086</span><span id="line.86"> * subchannels. Web application components (short "weblets") handle </span>
+<span class="source-line-no">087</span><span id="line.87"> * these events and use </span>
+<span class="source-line-no">088</span><span id="line.88"> * {@link LinkedIOSubchannel#respond(org.jgrapes.core.Event)}</span>
+<span class="source-line-no">089</span><span id="line.89"> * to send {@link Response} events and, if applicable, {@link Output}</span>
+<span class="source-line-no">090</span><span id="line.90"> * events with data belonging to the response.</span>
+<span class="source-line-no">091</span><span id="line.91"> * </span>
+<span class="source-line-no">092</span><span id="line.92"> * Events must be fired by weblets while handling the {@link Request}</span>
+<span class="source-line-no">093</span><span id="line.93"> * or {@link Input} events only (to be precise: while handling events </span>
+<span class="source-line-no">094</span><span id="line.94"> * processed by the associated {@link EventProcessor}) to ensure</span>
+<span class="source-line-no">095</span><span id="line.95"> * that responses and their associated data do not interleave. </span>
+<span class="source-line-no">096</span><span id="line.96"> */</span>
+<span class="source-line-no">097</span><span id="line.97">@SuppressWarnings("PMD.ExcessiveImports")</span>
+<span class="source-line-no">098</span><span id="line.98">public class HttpServer extends Component {</span>
+<span class="source-line-no">099</span><span id="line.99"></span>
+<span class="source-line-no">100</span><span id="line.100">    private WeakReference&lt;Channel&gt; networkChannelPassBack;</span>
+<span class="source-line-no">101</span><span id="line.101">    private List&lt;Class&lt;? extends Request.In&gt;&gt; providedFallbacks;</span>
+<span class="source-line-no">102</span><span id="line.102">    private int matchLevels = 1;</span>
+<span class="source-line-no">103</span><span id="line.103">    private boolean acceptNoSni;</span>
+<span class="source-line-no">104</span><span id="line.104">    private int applicationBufferSize = -1;</span>
+<span class="source-line-no">105</span><span id="line.105"></span>
+<span class="source-line-no">106</span><span id="line.106">    /**</span>
+<span class="source-line-no">107</span><span id="line.107">     * Denotes the network channel in handler annotations.</span>
+<span class="source-line-no">108</span><span id="line.108">     */</span>
+<span class="source-line-no">109</span><span id="line.109">    private static class NetworkChannel extends ClassChannel {</span>
+<span class="source-line-no">110</span><span id="line.110">    }</span>
+<span class="source-line-no">111</span><span id="line.111"></span>
+<span class="source-line-no">112</span><span id="line.112">    /**</span>
+<span class="source-line-no">113</span><span id="line.113">     * Create a new server that uses the {@code networkChannel} for network</span>
+<span class="source-line-no">114</span><span id="line.114">     * level I/O.</span>
+<span class="source-line-no">115</span><span id="line.115">     * &lt;P&gt;</span>
+<span class="source-line-no">116</span><span id="line.116">     * As a convenience the server can provide fall back handlers for the</span>
+<span class="source-line-no">117</span><span id="line.117">     * specified types of requests. The fall back handler simply returns 404 (</span>
+<span class="source-line-no">118</span><span id="line.118">     * "Not found").</span>
+<span class="source-line-no">119</span><span id="line.119">     * </span>
+<span class="source-line-no">120</span><span id="line.120">     * @param appChannel</span>
+<span class="source-line-no">121</span><span id="line.121">     *            this component's channel</span>
+<span class="source-line-no">122</span><span id="line.122">     * @param networkChannel</span>
+<span class="source-line-no">123</span><span id="line.123">     *            the channel for network level I/O</span>
+<span class="source-line-no">124</span><span id="line.124">     * @param fallbacks</span>
+<span class="source-line-no">125</span><span id="line.125">     *            the requests for which a fall back handler is provided</span>
+<span class="source-line-no">126</span><span id="line.126">     */</span>
+<span class="source-line-no">127</span><span id="line.127">    @SafeVarargs</span>
+<span class="source-line-no">128</span><span id="line.128">    public HttpServer(Channel appChannel, Channel networkChannel,</span>
+<span class="source-line-no">129</span><span id="line.129">            Class&lt;? extends Request.In&gt;... fallbacks) {</span>
+<span class="source-line-no">130</span><span id="line.130">        super(appChannel, ChannelReplacements.create()</span>
+<span class="source-line-no">131</span><span id="line.131">            .add(NetworkChannel.class, networkChannel));</span>
+<span class="source-line-no">132</span><span id="line.132">        networkChannelPassBack = new WeakReference&lt;&gt;(networkChannel);</span>
+<span class="source-line-no">133</span><span id="line.133">        this.providedFallbacks = Arrays.asList(fallbacks);</span>
+<span class="source-line-no">134</span><span id="line.134">    }</span>
+<span class="source-line-no">135</span><span id="line.135"></span>
+<span class="source-line-no">136</span><span id="line.136">    /**</span>
+<span class="source-line-no">137</span><span id="line.137">     * Create a new server that creates its own {@link TcpServer} with the given</span>
+<span class="source-line-no">138</span><span id="line.138">     * address and uses it for network level I/O.</span>
+<span class="source-line-no">139</span><span id="line.139">     * </span>
+<span class="source-line-no">140</span><span id="line.140">     * @param appChannel</span>
+<span class="source-line-no">141</span><span id="line.141">     *            this component's channel</span>
+<span class="source-line-no">142</span><span id="line.142">     * @param serverAddress the address to listen on</span>
+<span class="source-line-no">143</span><span id="line.143">     * @param fallbacks fall backs</span>
+<span class="source-line-no">144</span><span id="line.144">     */</span>
+<span class="source-line-no">145</span><span id="line.145">    @SafeVarargs</span>
+<span class="source-line-no">146</span><span id="line.146">    public HttpServer(Channel appChannel, InetSocketAddress serverAddress,</span>
+<span class="source-line-no">147</span><span id="line.147">            Class&lt;? extends Request.In&gt;... fallbacks) {</span>
+<span class="source-line-no">148</span><span id="line.148">        this(appChannel, new TcpServer().setServerAddress(serverAddress),</span>
+<span class="source-line-no">149</span><span id="line.149">            fallbacks);</span>
+<span class="source-line-no">150</span><span id="line.150">        attach((TcpServer) networkChannelPassBack.get());</span>
+<span class="source-line-no">151</span><span id="line.151">    }</span>
+<span class="source-line-no">152</span><span id="line.152"></span>
+<span class="source-line-no">153</span><span id="line.153">    /**</span>
+<span class="source-line-no">154</span><span id="line.154">     * @return the matchLevels</span>
+<span class="source-line-no">155</span><span id="line.155">     */</span>
+<span class="source-line-no">156</span><span id="line.156">    public int matchLevels() {</span>
+<span class="source-line-no">157</span><span id="line.157">        return matchLevels;</span>
+<span class="source-line-no">158</span><span id="line.158">    }</span>
+<span class="source-line-no">159</span><span id="line.159"></span>
+<span class="source-line-no">160</span><span id="line.160">    /**</span>
+<span class="source-line-no">161</span><span id="line.161">     * Sets the number of elements from the request path used in the match value</span>
+<span class="source-line-no">162</span><span id="line.162">     * of the generated events (see {@link Request#defaultCriterion()}), defaults</span>
+<span class="source-line-no">163</span><span id="line.163">     * to 1.</span>
+<span class="source-line-no">164</span><span id="line.164">     * </span>
+<span class="source-line-no">165</span><span id="line.165">     * @param matchLevels the matchLevels to set</span>
+<span class="source-line-no">166</span><span id="line.166">     * @return the http server for easy chaining</span>
+<span class="source-line-no">167</span><span id="line.167">     */</span>
+<span class="source-line-no">168</span><span id="line.168">    public HttpServer setMatchLevels(int matchLevels) {</span>
+<span class="source-line-no">169</span><span id="line.169">        this.matchLevels = matchLevels;</span>
+<span class="source-line-no">170</span><span id="line.170">        return this;</span>
+<span class="source-line-no">171</span><span id="line.171">    }</span>
+<span class="source-line-no">172</span><span id="line.172"></span>
+<span class="source-line-no">173</span><span id="line.173">    /**</span>
+<span class="source-line-no">174</span><span id="line.174">     * Sets the size of the buffers used for {@link Output} events</span>
+<span class="source-line-no">175</span><span id="line.175">     * on the application channel. Defaults to the upstream buffer size</span>
+<span class="source-line-no">176</span><span id="line.176">     * minus 512 (estimate for added protocol overhead).</span>
+<span class="source-line-no">177</span><span id="line.177">     * </span>
+<span class="source-line-no">178</span><span id="line.178">     * @param applicationBufferSize the size to set</span>
+<span class="source-line-no">179</span><span id="line.179">     * @return the http server for easy chaining</span>
+<span class="source-line-no">180</span><span id="line.180">     */</span>
+<span class="source-line-no">181</span><span id="line.181">    public HttpServer setApplicationBufferSize(int applicationBufferSize) {</span>
+<span class="source-line-no">182</span><span id="line.182">        this.applicationBufferSize = applicationBufferSize;</span>
+<span class="source-line-no">183</span><span id="line.183">        return this;</span>
+<span class="source-line-no">184</span><span id="line.184">    }</span>
+<span class="source-line-no">185</span><span id="line.185"></span>
+<span class="source-line-no">186</span><span id="line.186">    /**</span>
+<span class="source-line-no">187</span><span id="line.187">     * Returns the size of the application side (receive) buffers.</span>
+<span class="source-line-no">188</span><span id="line.188">     * </span>
+<span class="source-line-no">189</span><span id="line.189">     * @return the value or -1 if not set</span>
+<span class="source-line-no">190</span><span id="line.190">     */</span>
+<span class="source-line-no">191</span><span id="line.191">    public int applicationBufferSize() {</span>
+<span class="source-line-no">192</span><span id="line.192">        return applicationBufferSize;</span>
+<span class="source-line-no">193</span><span id="line.193">    }</span>
+<span class="source-line-no">194</span><span id="line.194"></span>
+<span class="source-line-no">195</span><span id="line.195">    /**</span>
+<span class="source-line-no">196</span><span id="line.196">     * Determines if request from secure (TLS) connections without</span>
+<span class="source-line-no">197</span><span id="line.197">     * SNI are accepted.</span>
+<span class="source-line-no">198</span><span id="line.198">     *  </span>
+<span class="source-line-no">199</span><span id="line.199">     * Secure (TLS) requests usually transfer the name of the server that</span>
+<span class="source-line-no">200</span><span id="line.200">     * they want to connect to during handshake. The HTTP server checks</span>
+<span class="source-line-no">201</span><span id="line.201">     * that the `Host` header field of decoded requests matches the</span>
+<span class="source-line-no">202</span><span id="line.202">     * name used to establish the connection. If, however, the connection</span>
+<span class="source-line-no">203</span><span id="line.203">     * is made using the IP-address, the client does not have a host name.</span>
+<span class="source-line-no">204</span><span id="line.204">     * If such connections are to be accepted, this flag, which</span>
+<span class="source-line-no">205</span><span id="line.205">     * defaults to `false`, must be set.</span>
+<span class="source-line-no">206</span><span id="line.206">     * </span>
+<span class="source-line-no">207</span><span id="line.207">     * Note that in request accepted without SNI, the `Host` header field</span>
+<span class="source-line-no">208</span><span id="line.208">     * will be modified to contain the IP-address of the indicated host</span>
+<span class="source-line-no">209</span><span id="line.209">     * to prevent accidental matching with virtual host names.  </span>
+<span class="source-line-no">210</span><span id="line.210">     * </span>
+<span class="source-line-no">211</span><span id="line.211">     * @param acceptNoSni the value to set</span>
+<span class="source-line-no">212</span><span id="line.212">     * @return the http server for easy chaining</span>
+<span class="source-line-no">213</span><span id="line.213">     */</span>
+<span class="source-line-no">214</span><span id="line.214">    public HttpServer setAcceptNoSni(boolean acceptNoSni) {</span>
+<span class="source-line-no">215</span><span id="line.215">        this.acceptNoSni = acceptNoSni;</span>
+<span class="source-line-no">216</span><span id="line.216">        return this;</span>
+<span class="source-line-no">217</span><span id="line.217">    }</span>
+<span class="source-line-no">218</span><span id="line.218"></span>
+<span class="source-line-no">219</span><span id="line.219">    /**</span>
+<span class="source-line-no">220</span><span id="line.220">     * Returns if secure (TLS) requests without SNI are allowed.</span>
+<span class="source-line-no">221</span><span id="line.221">     * </span>
+<span class="source-line-no">222</span><span id="line.222">     * @return the result</span>
+<span class="source-line-no">223</span><span id="line.223">     */</span>
+<span class="source-line-no">224</span><span id="line.224">    public boolean acceptNoSni() {</span>
+<span class="source-line-no">225</span><span id="line.225">        return acceptNoSni;</span>
+<span class="source-line-no">226</span><span id="line.226">    }</span>
+<span class="source-line-no">227</span><span id="line.227"></span>
+<span class="source-line-no">228</span><span id="line.228">    /**</span>
+<span class="source-line-no">229</span><span id="line.229">     * Creates a new downstream connection as {@link LinkedIOSubchannel} </span>
+<span class="source-line-no">230</span><span id="line.230">     * of the network connection, a {@link HttpRequestDecoder} and a</span>
+<span class="source-line-no">231</span><span id="line.231">     * {@link HttpResponseEncoder}.</span>
+<span class="source-line-no">232</span><span id="line.232">     * </span>
+<span class="source-line-no">233</span><span id="line.233">     * @param event</span>
+<span class="source-line-no">234</span><span id="line.234">     *            the accepted event</span>
+<span class="source-line-no">235</span><span id="line.235">     */</span>
+<span class="source-line-no">236</span><span id="line.236">    @Handler(channels = NetworkChannel.class)</span>
+<span class="source-line-no">237</span><span id="line.237">    public void onAccepted(Accepted event, IOSubchannel netChannel) {</span>
+<span class="source-line-no">238</span><span id="line.238">        new WebAppMsgChannel(event, netChannel);</span>
+<span class="source-line-no">239</span><span id="line.239">    }</span>
+<span class="source-line-no">240</span><span id="line.240"></span>
+<span class="source-line-no">241</span><span id="line.241">    /**</span>
+<span class="source-line-no">242</span><span id="line.242">     * Handles data from the client (from upstream). The data is send through </span>
+<span class="source-line-no">243</span><span id="line.243">     * the {@link HttpRequestDecoder} and events are sent downstream according</span>
+<span class="source-line-no">244</span><span id="line.244">     * to the decoding results.</span>
+<span class="source-line-no">245</span><span id="line.245">     * </span>
+<span class="source-line-no">246</span><span id="line.246">     * @param event the event</span>
+<span class="source-line-no">247</span><span id="line.247">     * @throws ProtocolException if a protocol exception occurs</span>
+<span class="source-line-no">248</span><span id="line.248">     * @throws InterruptedException </span>
+<span class="source-line-no">249</span><span id="line.249">     */</span>
+<span class="source-line-no">250</span><span id="line.250">    @Handler(channels = NetworkChannel.class)</span>
+<span class="source-line-no">251</span><span id="line.251">    public void onInput(</span>
+<span class="source-line-no">252</span><span id="line.252">            Input&lt;ByteBuffer&gt; event, IOSubchannel netChannel)</span>
+<span class="source-line-no">253</span><span id="line.253">            throws ProtocolException, InterruptedException {</span>
+<span class="source-line-no">254</span><span id="line.254">        @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">255</span><span id="line.255">        final Optional&lt;WebAppMsgChannel&gt; appChannel</span>
+<span class="source-line-no">256</span><span id="line.256">            = (Optional&lt;WebAppMsgChannel&gt;) LinkedIOSubchannel</span>
+<span class="source-line-no">257</span><span id="line.257">                .downstreamChannel(this, netChannel);</span>
+<span class="source-line-no">258</span><span id="line.258">        if (appChannel.isPresent()) {</span>
+<span class="source-line-no">259</span><span id="line.259">            appChannel.get().handleNetInput(event);</span>
+<span class="source-line-no">260</span><span id="line.260">        }</span>
+<span class="source-line-no">261</span><span id="line.261">    }</span>
+<span class="source-line-no">262</span><span id="line.262"></span>
+<span class="source-line-no">263</span><span id="line.263">    /**</span>
+<span class="source-line-no">264</span><span id="line.264">     * Forwards a {@link Closed} event to the application channel. </span>
+<span class="source-line-no">265</span><span id="line.265">     *</span>
+<span class="source-line-no">266</span><span id="line.266">     * @param event the event</span>
+<span class="source-line-no">267</span><span id="line.267">     * @param netChannel the net channel</span>
+<span class="source-line-no">268</span><span id="line.268">     */</span>
+<span class="source-line-no">269</span><span id="line.269">    @Handler(channels = NetworkChannel.class)</span>
+<span class="source-line-no">270</span><span id="line.270">    public void onClosed(Closed event, IOSubchannel netChannel) {</span>
+<span class="source-line-no">271</span><span id="line.271">        LinkedIOSubchannel.downstreamChannel(this, netChannel,</span>
+<span class="source-line-no">272</span><span id="line.272">            WebAppMsgChannel.class).ifPresent(appChannel -&gt; {</span>
+<span class="source-line-no">273</span><span id="line.273">                appChannel.handleClosed(event);</span>
+<span class="source-line-no">274</span><span id="line.274">            });</span>
+<span class="source-line-no">275</span><span id="line.275">    }</span>
+<span class="source-line-no">276</span><span id="line.276"></span>
+<span class="source-line-no">277</span><span id="line.277">    /**</span>
+<span class="source-line-no">278</span><span id="line.278">     * Forwards a {@link Purge} event to the application channel.</span>
+<span class="source-line-no">279</span><span id="line.279">     *</span>
+<span class="source-line-no">280</span><span id="line.280">     * @param event the event</span>
+<span class="source-line-no">281</span><span id="line.281">     * @param netChannel the net channel</span>
+<span class="source-line-no">282</span><span id="line.282">     */</span>
+<span class="source-line-no">283</span><span id="line.283">    @Handler(channels = NetworkChannel.class)</span>
+<span class="source-line-no">284</span><span id="line.284">    public void onPurge(Purge event, IOSubchannel netChannel) {</span>
+<span class="source-line-no">285</span><span id="line.285">        LinkedIOSubchannel.downstreamChannel(this, netChannel,</span>
+<span class="source-line-no">286</span><span id="line.286">            WebAppMsgChannel.class).ifPresent(appChannel -&gt; {</span>
+<span class="source-line-no">287</span><span id="line.287">                appChannel.handlePurge(event);</span>
+<span class="source-line-no">288</span><span id="line.288">            });</span>
+<span class="source-line-no">289</span><span id="line.289">    }</span>
+<span class="source-line-no">290</span><span id="line.290"></span>
+<span class="source-line-no">291</span><span id="line.291">    /**</span>
+<span class="source-line-no">292</span><span id="line.292">     * Handles a response event from downstream by sending it through an</span>
+<span class="source-line-no">293</span><span id="line.293">     * {@link HttpResponseEncoder} that generates the data (encoded information)</span>
+<span class="source-line-no">294</span><span id="line.294">     * and sends it upstream with {@link Output} events. Depending on whether </span>
+<span class="source-line-no">295</span><span id="line.295">     * the response has a body, subsequent {@link Output} events can</span>
+<span class="source-line-no">296</span><span id="line.296">     * follow.</span>
+<span class="source-line-no">297</span><span id="line.297">     * </span>
+<span class="source-line-no">298</span><span id="line.298">     * @param event</span>
+<span class="source-line-no">299</span><span id="line.299">     *            the response event</span>
+<span class="source-line-no">300</span><span id="line.300">     * @throws InterruptedException if the execution was interrupted</span>
+<span class="source-line-no">301</span><span id="line.301">     */</span>
+<span class="source-line-no">302</span><span id="line.302">    @Handler</span>
+<span class="source-line-no">303</span><span id="line.303">    public void onResponse(Response event, WebAppMsgChannel appChannel)</span>
+<span class="source-line-no">304</span><span id="line.304">            throws InterruptedException {</span>
+<span class="source-line-no">305</span><span id="line.305">        appChannel.handleResponse(event);</span>
+<span class="source-line-no">306</span><span id="line.306">    }</span>
+<span class="source-line-no">307</span><span id="line.307"></span>
+<span class="source-line-no">308</span><span id="line.308">    /**</span>
+<span class="source-line-no">309</span><span id="line.309">     * Receives the message body of a response. A {@link Response} event that</span>
+<span class="source-line-no">310</span><span id="line.310">     * has a message body can be followed by one or more {@link Output} events</span>
+<span class="source-line-no">311</span><span id="line.311">     * from downstream that contain the data. An {@code Output} event</span>
+<span class="source-line-no">312</span><span id="line.312">     * with the end of record flag set signals the end of the message body.</span>
+<span class="source-line-no">313</span><span id="line.313">     * </span>
+<span class="source-line-no">314</span><span id="line.314">     * @param event</span>
+<span class="source-line-no">315</span><span id="line.315">     *            the event with the data</span>
+<span class="source-line-no">316</span><span id="line.316">     * @throws InterruptedException if the execution was interrupted</span>
+<span class="source-line-no">317</span><span id="line.317">     */</span>
+<span class="source-line-no">318</span><span id="line.318">    @Handler</span>
+<span class="source-line-no">319</span><span id="line.319">    public void onOutput(Output&lt;?&gt; event, WebAppMsgChannel appChannel)</span>
+<span class="source-line-no">320</span><span id="line.320">            throws InterruptedException {</span>
+<span class="source-line-no">321</span><span id="line.321">        appChannel.handleAppOutput(event);</span>
+<span class="source-line-no">322</span><span id="line.322">    }</span>
+<span class="source-line-no">323</span><span id="line.323"></span>
+<span class="source-line-no">324</span><span id="line.324">    /**</span>
+<span class="source-line-no">325</span><span id="line.325">     * Handles a close event from downstream by closing the upstream</span>
+<span class="source-line-no">326</span><span id="line.326">     * connections.</span>
+<span class="source-line-no">327</span><span id="line.327">     * </span>
+<span class="source-line-no">328</span><span id="line.328">     * @param event</span>
+<span class="source-line-no">329</span><span id="line.329">     *            the close event</span>
+<span class="source-line-no">330</span><span id="line.330">     * @throws InterruptedException if the execution was interrupted</span>
+<span class="source-line-no">331</span><span id="line.331">     */</span>
+<span class="source-line-no">332</span><span id="line.332">    @Handler</span>
+<span class="source-line-no">333</span><span id="line.333">    public void onClose(Close event, WebAppMsgChannel appChannel)</span>
+<span class="source-line-no">334</span><span id="line.334">            throws InterruptedException {</span>
+<span class="source-line-no">335</span><span id="line.335">        appChannel.handleClose(event);</span>
+<span class="source-line-no">336</span><span id="line.336">    }</span>
+<span class="source-line-no">337</span><span id="line.337"></span>
+<span class="source-line-no">338</span><span id="line.338">    /**</span>
+<span class="source-line-no">339</span><span id="line.339">     * Checks whether the request has been handled (value of {@link Request}</span>
+<span class="source-line-no">340</span><span id="line.340">     * event set to `true`) or the status code in the prepared response</span>
+<span class="source-line-no">341</span><span id="line.341">     * is no longer "Not Implemented". If not, but a fall back has been set, </span>
+<span class="source-line-no">342</span><span id="line.342">     * send a "Not Found" response. If this isn't the case either, send </span>
+<span class="source-line-no">343</span><span id="line.343">     * the default response ("Not implemented") to the client.</span>
+<span class="source-line-no">344</span><span id="line.344">     * </span>
+<span class="source-line-no">345</span><span id="line.345">     * @param event</span>
+<span class="source-line-no">346</span><span id="line.346">     *            the request completed event</span>
+<span class="source-line-no">347</span><span id="line.347">     * @param appChannel the application channel </span>
+<span class="source-line-no">348</span><span id="line.348">     * @throws InterruptedException if the execution was interrupted</span>
+<span class="source-line-no">349</span><span id="line.349">     */</span>
+<span class="source-line-no">350</span><span id="line.350">    @Handler</span>
+<span class="source-line-no">351</span><span id="line.351">    public void onRequestCompleted(</span>
+<span class="source-line-no">352</span><span id="line.352">            Request.In.Completed event, IOSubchannel appChannel)</span>
+<span class="source-line-no">353</span><span id="line.353">            throws InterruptedException {</span>
+<span class="source-line-no">354</span><span id="line.354">        final Request.In requestEvent = event.event();</span>
+<span class="source-line-no">355</span><span id="line.355">        // A check that also works with null.</span>
+<span class="source-line-no">356</span><span id="line.356">        if (Boolean.TRUE.equals(requestEvent.get())</span>
+<span class="source-line-no">357</span><span id="line.357">            || requestEvent.httpRequest().response().map(</span>
+<span class="source-line-no">358</span><span id="line.358">                response -&gt; response.statusCode() != HttpStatus.NOT_IMPLEMENTED</span>
+<span class="source-line-no">359</span><span id="line.359">                    .statusCode())</span>
+<span class="source-line-no">360</span><span id="line.360">                .orElse(false)) {</span>
+<span class="source-line-no">361</span><span id="line.361">            // Some other component has taken care</span>
+<span class="source-line-no">362</span><span id="line.362">            return;</span>
+<span class="source-line-no">363</span><span id="line.363">        }</span>
+<span class="source-line-no">364</span><span id="line.364"></span>
+<span class="source-line-no">365</span><span id="line.365">        // Check if "Not Found" should be sent</span>
+<span class="source-line-no">366</span><span id="line.366">        if (providedFallbacks != null</span>
+<span class="source-line-no">367</span><span id="line.367">            &amp;&amp; providedFallbacks.contains(requestEvent.getClass())) {</span>
+<span class="source-line-no">368</span><span id="line.368">            ResponseCreationSupport.sendResponse(</span>
+<span class="source-line-no">369</span><span id="line.369">                requestEvent.httpRequest(), appChannel, HttpStatus.NOT_FOUND);</span>
+<span class="source-line-no">370</span><span id="line.370">            return;</span>
+<span class="source-line-no">371</span><span id="line.371">        }</span>
+<span class="source-line-no">372</span><span id="line.372"></span>
+<span class="source-line-no">373</span><span id="line.373">        // Last resort</span>
+<span class="source-line-no">374</span><span id="line.374">        ResponseCreationSupport.sendResponse(requestEvent.httpRequest(),</span>
+<span class="source-line-no">375</span><span id="line.375">            appChannel, HttpStatus.NOT_IMPLEMENTED);</span>
+<span class="source-line-no">376</span><span id="line.376">    }</span>
+<span class="source-line-no">377</span><span id="line.377"></span>
+<span class="source-line-no">378</span><span id="line.378">    /**</span>
+<span class="source-line-no">379</span><span id="line.379">     * Provides a fallback handler for an OPTIONS request with asterisk. Simply</span>
+<span class="source-line-no">380</span><span id="line.380">     * responds with "OK".</span>
+<span class="source-line-no">381</span><span id="line.381">     * </span>
+<span class="source-line-no">382</span><span id="line.382">     * @param event the event</span>
+<span class="source-line-no">383</span><span id="line.383">     * @param appChannel the application channel</span>
+<span class="source-line-no">384</span><span id="line.384">     */</span>
+<span class="source-line-no">385</span><span id="line.385">    @Handler(priority = Integer.MIN_VALUE)</span>
+<span class="source-line-no">386</span><span id="line.386">    public void onOptions(Request.In.Options event, IOSubchannel appChannel) {</span>
+<span class="source-line-no">387</span><span id="line.387">        if (event.requestUri() == HttpRequest.ASTERISK_REQUEST) {</span>
+<span class="source-line-no">388</span><span id="line.388">            HttpResponse response = event.httpRequest().response().get();</span>
+<span class="source-line-no">389</span><span id="line.389">            response.setStatus(HttpStatus.OK);</span>
+<span class="source-line-no">390</span><span id="line.390">            appChannel.respond(new Response(response));</span>
+<span class="source-line-no">391</span><span id="line.391">            event.setResult(true);</span>
+<span class="source-line-no">392</span><span id="line.392">            event.stop();</span>
+<span class="source-line-no">393</span><span id="line.393">        }</span>
+<span class="source-line-no">394</span><span id="line.394">    }</span>
+<span class="source-line-no">395</span><span id="line.395"></span>
+<span class="source-line-no">396</span><span id="line.396">    /**</span>
+<span class="source-line-no">397</span><span id="line.397">     * Send the response indicating that the protocol switch was accepted</span>
+<span class="source-line-no">398</span><span id="line.398">     * and causes subsequent data to be handled as {@link Input} and</span>
+<span class="source-line-no">399</span><span id="line.399">     * {@link Output} events on the channel.</span>
+<span class="source-line-no">400</span><span id="line.400">     * </span>
+<span class="source-line-no">401</span><span id="line.401">     * As a convenience, the channel is associates with the URI that</span>
+<span class="source-line-no">402</span><span id="line.402">     * was used to request the protocol switch using {@link URI} as key.</span>
+<span class="source-line-no">403</span><span id="line.403">     * </span>
+<span class="source-line-no">404</span><span id="line.404">     * @param event the event</span>
+<span class="source-line-no">405</span><span id="line.405">     * @param appChannel the channel</span>
+<span class="source-line-no">406</span><span id="line.406">     */</span>
+<span class="source-line-no">407</span><span id="line.407">    @Handler</span>
+<span class="source-line-no">408</span><span id="line.408">    public void onProtocolSwitchAccepted(</span>
+<span class="source-line-no">409</span><span id="line.409">            ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {</span>
+<span class="source-line-no">410</span><span id="line.410">        appChannel.handleProtocolSwitchAccepted(event, appChannel);</span>
+<span class="source-line-no">411</span><span id="line.411">    }</span>
+<span class="source-line-no">412</span><span id="line.412"></span>
+<span class="source-line-no">413</span><span id="line.413">    /**</span>
+<span class="source-line-no">414</span><span id="line.414">     * An application layer channel.</span>
+<span class="source-line-no">415</span><span id="line.415">     */</span>
+<span class="source-line-no">416</span><span id="line.416">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">417</span><span id="line.417">    private class WebAppMsgChannel extends LinkedIOSubchannel {</span>
+<span class="source-line-no">418</span><span id="line.418">        // Starts as ServerEngine&lt;HttpRequest,HttpResponse&gt; but may change</span>
+<span class="source-line-no">419</span><span id="line.419">        private final ServerEngine&lt;?, ?&gt; engine;</span>
+<span class="source-line-no">420</span><span id="line.420">        private ManagedBuffer&lt;ByteBuffer&gt; outBuffer;</span>
+<span class="source-line-no">421</span><span id="line.421">        private final boolean secure;</span>
+<span class="source-line-no">422</span><span id="line.422">        private List&lt;String&gt; snis = Collections.emptyList();</span>
+<span class="source-line-no">423</span><span id="line.423">        private final ManagedBufferPool&lt;ManagedBuffer&lt;ByteBuffer&gt;,</span>
+<span class="source-line-no">424</span><span id="line.424">                ByteBuffer&gt; byteBufferPool;</span>
+<span class="source-line-no">425</span><span id="line.425">        private final ManagedBufferPool&lt;ManagedBuffer&lt;CharBuffer&gt;,</span>
+<span class="source-line-no">426</span><span id="line.426">                CharBuffer&gt; charBufferPool;</span>
+<span class="source-line-no">427</span><span id="line.427">        private ManagedBufferPool&lt;?, ?&gt; currentPool;</span>
+<span class="source-line-no">428</span><span id="line.428">        private final EventPipeline downPipeline;</span>
+<span class="source-line-no">429</span><span id="line.429">        private Upgraded pendingUpgraded;</span>
+<span class="source-line-no">430</span><span id="line.430">        private WsMessageHeader currentWsMessage;</span>
+<span class="source-line-no">431</span><span id="line.431"></span>
+<span class="source-line-no">432</span><span id="line.432">        /**</span>
+<span class="source-line-no">433</span><span id="line.433">         * Instantiates a new channel.</span>
+<span class="source-line-no">434</span><span id="line.434">         *</span>
+<span class="source-line-no">435</span><span id="line.435">         * @param event the event</span>
+<span class="source-line-no">436</span><span id="line.436">         * @param netChannel the net channel</span>
+<span class="source-line-no">437</span><span id="line.437">         */</span>
+<span class="source-line-no">438</span><span id="line.438">        @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")</span>
+<span class="source-line-no">439</span><span id="line.439">        public WebAppMsgChannel(Accepted event, IOSubchannel netChannel) {</span>
+<span class="source-line-no">440</span><span id="line.440">            super(HttpServer.this, channel(), netChannel, newEventPipeline());</span>
+<span class="source-line-no">441</span><span id="line.441">            engine = new ServerEngine&lt;&gt;(</span>
+<span class="source-line-no">442</span><span id="line.442">                new HttpRequestDecoder(), new HttpResponseEncoder());</span>
+<span class="source-line-no">443</span><span id="line.443">            secure = event.isSecure();</span>
+<span class="source-line-no">444</span><span id="line.444">            if (secure) {</span>
+<span class="source-line-no">445</span><span id="line.445">                snis = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">446</span><span id="line.446">                for (SNIServerName sni : event.requestedServerNames()) {</span>
+<span class="source-line-no">447</span><span id="line.447">                    if (sni instanceof SNIHostName) {</span>
+<span class="source-line-no">448</span><span id="line.448">                        snis.add(((SNIHostName) sni).getAsciiName());</span>
+<span class="source-line-no">449</span><span id="line.449">                    }</span>
+<span class="source-line-no">450</span><span id="line.450">                }</span>
+<span class="source-line-no">451</span><span id="line.451">            }</span>
+<span class="source-line-no">452</span><span id="line.452"></span>
+<span class="source-line-no">453</span><span id="line.453">            // Calculate "good" application buffer size</span>
+<span class="source-line-no">454</span><span id="line.454">            int bufferSize = applicationBufferSize;</span>
+<span class="source-line-no">455</span><span id="line.455">            if (bufferSize &lt;= 0) {</span>
+<span class="source-line-no">456</span><span id="line.456">                bufferSize = netChannel.byteBufferPool().bufferSize() - 512;</span>
+<span class="source-line-no">457</span><span id="line.457">                if (bufferSize &lt; 4096) {</span>
+<span class="source-line-no">458</span><span id="line.458">                    bufferSize = 4096;</span>
+<span class="source-line-no">459</span><span id="line.459">                }</span>
+<span class="source-line-no">460</span><span id="line.460">            }</span>
+<span class="source-line-no">461</span><span id="line.461"></span>
+<span class="source-line-no">462</span><span id="line.462">            String channelName = Components.objectName(HttpServer.this)</span>
+<span class="source-line-no">463</span><span id="line.463">                + "." + Components.objectName(this);</span>
+<span class="source-line-no">464</span><span id="line.464">            byteBufferPool().setName(channelName + ".upstream.byteBuffers");</span>
+<span class="source-line-no">465</span><span id="line.465">            charBufferPool().setName(channelName + ".upstream.charBuffers");</span>
+<span class="source-line-no">466</span><span id="line.466">            // Allocate downstream buffer pools. Note that decoding WebSocket</span>
+<span class="source-line-no">467</span><span id="line.467">            // network packets may result in several WS frames that are each</span>
+<span class="source-line-no">468</span><span id="line.468">            // delivered in independent events. Therefore provide some</span>
+<span class="source-line-no">469</span><span id="line.469">            // additional buffers.</span>
+<span class="source-line-no">470</span><span id="line.470">            final int bufSize = bufferSize;</span>
+<span class="source-line-no">471</span><span id="line.471">            byteBufferPool = new ManagedBufferPool&lt;&gt;(ManagedBuffer::new,</span>
+<span class="source-line-no">472</span><span id="line.472">                () -&gt; {</span>
+<span class="source-line-no">473</span><span id="line.473">                    return ByteBuffer.allocate(bufSize);</span>
+<span class="source-line-no">474</span><span id="line.474">                }, 2, 100)</span>
+<span class="source-line-no">475</span><span id="line.475">                    .setName(channelName + ".downstream.byteBuffers");</span>
+<span class="source-line-no">476</span><span id="line.476">            charBufferPool = new ManagedBufferPool&lt;&gt;(ManagedBuffer::new,</span>
+<span class="source-line-no">477</span><span id="line.477">                () -&gt; {</span>
+<span class="source-line-no">478</span><span id="line.478">                    return CharBuffer.allocate(bufSize);</span>
+<span class="source-line-no">479</span><span id="line.479">                }, 2, 100)</span>
+<span class="source-line-no">480</span><span id="line.480">                    .setName(channelName + ".downstream.charBuffers");</span>
+<span class="source-line-no">481</span><span id="line.481"></span>
+<span class="source-line-no">482</span><span id="line.482">            // Downstream pipeline</span>
+<span class="source-line-no">483</span><span id="line.483">            downPipeline = newEventPipeline();</span>
+<span class="source-line-no">484</span><span id="line.484">        }</span>
+<span class="source-line-no">485</span><span id="line.485"></span>
+<span class="source-line-no">486</span><span id="line.486">        /**</span>
+<span class="source-line-no">487</span><span id="line.487">         * Handle {@link Input} events from the network.</span>
+<span class="source-line-no">488</span><span id="line.488">         *</span>
+<span class="source-line-no">489</span><span id="line.489">         * @param event the event</span>
+<span class="source-line-no">490</span><span id="line.490">         * @throws ProtocolException the protocol exception</span>
+<span class="source-line-no">491</span><span id="line.491">         * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">492</span><span id="line.492">         */</span>
+<span class="source-line-no">493</span><span id="line.493">        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">494</span><span id="line.494">            "PMD.AvoidInstantiatingObjectsInLoops",</span>
+<span class="source-line-no">495</span><span id="line.495">            "PMD.AvoidDeeplyNestedIfStmts", "PMD.CollapsibleIfStatements",</span>
+<span class="source-line-no">496</span><span id="line.496">            "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals" })</span>
+<span class="source-line-no">497</span><span id="line.497">        public void handleNetInput(Input&lt;ByteBuffer&gt; event)</span>
+<span class="source-line-no">498</span><span id="line.498">                throws ProtocolException, InterruptedException {</span>
+<span class="source-line-no">499</span><span id="line.499">            // Send the data from the event through the decoder.</span>
+<span class="source-line-no">500</span><span id="line.500">            ByteBuffer inData = event.data();</span>
+<span class="source-line-no">501</span><span id="line.501">            // Don't unnecessary allocate a buffer, may be header only message</span>
+<span class="source-line-no">502</span><span id="line.502">            ManagedBuffer&lt;?&gt; bodyData = null;</span>
+<span class="source-line-no">503</span><span id="line.503">            boolean wasOverflow = false;</span>
+<span class="source-line-no">504</span><span id="line.504">            while (inData.hasRemaining()) {</span>
+<span class="source-line-no">505</span><span id="line.505">                if (wasOverflow) {</span>
+<span class="source-line-no">506</span><span id="line.506">                    // Message has (more) body</span>
+<span class="source-line-no">507</span><span id="line.507">                    bodyData = currentPool.acquire();</span>
+<span class="source-line-no">508</span><span id="line.508">                }</span>
+<span class="source-line-no">509</span><span id="line.509">                Decoder.Result&lt;?&gt; result = engine.decode(inData,</span>
+<span class="source-line-no">510</span><span id="line.510">                    bodyData == null ? null : bodyData.backingBuffer(),</span>
+<span class="source-line-no">511</span><span id="line.511">                    event.isEndOfRecord());</span>
+<span class="source-line-no">512</span><span id="line.512">                if (result.response().isPresent()) {</span>
+<span class="source-line-no">513</span><span id="line.513">                    // Feedback required, send it</span>
+<span class="source-line-no">514</span><span id="line.514">                    responsePipeline().overrideRestriction().fire(</span>
+<span class="source-line-no">515</span><span id="line.515">                        new Response(result.response().get()), this);</span>
+<span class="source-line-no">516</span><span id="line.516">                    if (result.isResponseOnly()) {</span>
+<span class="source-line-no">517</span><span id="line.517">                        maybeCloseConnection(result);</span>
+<span class="source-line-no">518</span><span id="line.518">                        continue;</span>
+<span class="source-line-no">519</span><span id="line.519">                    }</span>
+<span class="source-line-no">520</span><span id="line.520">                }</span>
+<span class="source-line-no">521</span><span id="line.521">                if (result.isHeaderCompleted()) {</span>
+<span class="source-line-no">522</span><span id="line.522">                    if (!handleRequestHeader(engine.currentRequest().get())) {</span>
+<span class="source-line-no">523</span><span id="line.523">                        maybeCloseConnection(result);</span>
+<span class="source-line-no">524</span><span id="line.524">                        break;</span>
+<span class="source-line-no">525</span><span id="line.525">                    }</span>
+<span class="source-line-no">526</span><span id="line.526">                }</span>
+<span class="source-line-no">527</span><span id="line.527">                if (bodyData != null) {</span>
+<span class="source-line-no">528</span><span id="line.528">                    if (bodyData.position() &gt; 0) {</span>
+<span class="source-line-no">529</span><span id="line.529">                        downPipeline.fire(Input.fromSink(</span>
+<span class="source-line-no">530</span><span id="line.530">                            bodyData, !result.isOverflow()</span>
+<span class="source-line-no">531</span><span id="line.531">                                &amp;&amp; !result.isUnderflow()),</span>
+<span class="source-line-no">532</span><span id="line.532">                            this);</span>
+<span class="source-line-no">533</span><span id="line.533">                    } else {</span>
+<span class="source-line-no">534</span><span id="line.534">                        bodyData.unlockBuffer();</span>
+<span class="source-line-no">535</span><span id="line.535">                    }</span>
+<span class="source-line-no">536</span><span id="line.536">                    bodyData = null;</span>
+<span class="source-line-no">537</span><span id="line.537">                }</span>
+<span class="source-line-no">538</span><span id="line.538">                maybeCloseConnection(result);</span>
+<span class="source-line-no">539</span><span id="line.539">                wasOverflow = result.isOverflow();</span>
+<span class="source-line-no">540</span><span id="line.540">            }</span>
+<span class="source-line-no">541</span><span id="line.541">        }</span>
+<span class="source-line-no">542</span><span id="line.542"></span>
+<span class="source-line-no">543</span><span id="line.543">        private void maybeCloseConnection(Decoder.Result&lt;?&gt; result) {</span>
+<span class="source-line-no">544</span><span id="line.544">            if (result.closeConnection()) {</span>
+<span class="source-line-no">545</span><span id="line.545">                respond(new Close());</span>
+<span class="source-line-no">546</span><span id="line.546">            }</span>
+<span class="source-line-no">547</span><span id="line.547">        }</span>
+<span class="source-line-no">548</span><span id="line.548"></span>
+<span class="source-line-no">549</span><span id="line.549">        @SuppressWarnings({ "PMD.CollapsibleIfStatements",</span>
+<span class="source-line-no">550</span><span id="line.550">            "PMD.CognitiveComplexity" })</span>
+<span class="source-line-no">551</span><span id="line.551">        private boolean handleRequestHeader(MessageHeader request) {</span>
+<span class="source-line-no">552</span><span id="line.552">            if (request instanceof HttpRequest) {</span>
+<span class="source-line-no">553</span><span id="line.553">                HttpRequest httpRequest = (HttpRequest) request;</span>
+<span class="source-line-no">554</span><span id="line.554">                if (httpRequest.hasPayload()) {</span>
+<span class="source-line-no">555</span><span id="line.555">                    if (httpRequest.findValue(</span>
+<span class="source-line-no">556</span><span id="line.556">                        HttpField.CONTENT_TYPE, Converters.MEDIA_TYPE)</span>
+<span class="source-line-no">557</span><span id="line.557">                        .map(type -&gt; "text"</span>
+<span class="source-line-no">558</span><span id="line.558">                            .equalsIgnoreCase(type.value().topLevelType()))</span>
+<span class="source-line-no">559</span><span id="line.559">                        .orElse(false)) {</span>
+<span class="source-line-no">560</span><span id="line.560">                        currentPool = charBufferPool;</span>
+<span class="source-line-no">561</span><span id="line.561">                    } else {</span>
+<span class="source-line-no">562</span><span id="line.562">                        currentPool = byteBufferPool;</span>
+<span class="source-line-no">563</span><span id="line.563">                    }</span>
+<span class="source-line-no">564</span><span id="line.564">                }</span>
+<span class="source-line-no">565</span><span id="line.565">                if (secure) {</span>
+<span class="source-line-no">566</span><span id="line.566">                    if (!snis.contains(httpRequest.host())) {</span>
+<span class="source-line-no">567</span><span id="line.567">                        if (acceptNoSni &amp;&amp; snis.isEmpty()) {</span>
+<span class="source-line-no">568</span><span id="line.568">                            convertHostToNumerical(httpRequest);</span>
+<span class="source-line-no">569</span><span id="line.569">                        } else {</span>
+<span class="source-line-no">570</span><span id="line.570">                            ResponseCreationSupport.sendResponse(httpRequest,</span>
+<span class="source-line-no">571</span><span id="line.571">                                this, 421, "Misdirected Request");</span>
+<span class="source-line-no">572</span><span id="line.572">                            return false;</span>
+<span class="source-line-no">573</span><span id="line.573">                        }</span>
+<span class="source-line-no">574</span><span id="line.574">                    }</span>
+<span class="source-line-no">575</span><span id="line.575">                }</span>
+<span class="source-line-no">576</span><span id="line.576">                try {</span>
+<span class="source-line-no">577</span><span id="line.577">                    downPipeline.fire(Request.In.fromHttpRequest(httpRequest,</span>
+<span class="source-line-no">578</span><span id="line.578">                        secure, matchLevels), this);</span>
+<span class="source-line-no">579</span><span id="line.579">                } catch (URISyntaxException e) {</span>
+<span class="source-line-no">580</span><span id="line.580">                    ResponseCreationSupport.sendResponse(httpRequest, this, 400,</span>
+<span class="source-line-no">581</span><span id="line.581">                        "Bad Request");</span>
+<span class="source-line-no">582</span><span id="line.582">                    return false;</span>
+<span class="source-line-no">583</span><span id="line.583">                }</span>
+<span class="source-line-no">584</span><span id="line.584">            } else if (request instanceof WsMessageHeader) {</span>
+<span class="source-line-no">585</span><span id="line.585">                WsMessageHeader wsMessage = (WsMessageHeader) request;</span>
+<span class="source-line-no">586</span><span id="line.586">                if (wsMessage.hasPayload()) {</span>
+<span class="source-line-no">587</span><span id="line.587">                    if (wsMessage.isTextMode()) {</span>
+<span class="source-line-no">588</span><span id="line.588">                        currentPool = charBufferPool;</span>
+<span class="source-line-no">589</span><span id="line.589">                    } else {</span>
+<span class="source-line-no">590</span><span id="line.590">                        currentPool = byteBufferPool;</span>
+<span class="source-line-no">591</span><span id="line.591">                    }</span>
+<span class="source-line-no">592</span><span id="line.592">                }</span>
+<span class="source-line-no">593</span><span id="line.593">            } else if (request instanceof WsCloseFrame) {</span>
+<span class="source-line-no">594</span><span id="line.594">                downPipeline.fire(</span>
+<span class="source-line-no">595</span><span id="line.595">                    new WebSocketClose((WsCloseFrame) request, this));</span>
+<span class="source-line-no">596</span><span id="line.596">            }</span>
+<span class="source-line-no">597</span><span id="line.597">            return true;</span>
+<span class="source-line-no">598</span><span id="line.598">        }</span>
+<span class="source-line-no">599</span><span id="line.599"></span>
+<span class="source-line-no">600</span><span id="line.600">        @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">601</span><span id="line.601">            "PMD.UseStringBufferForStringAppends" })</span>
+<span class="source-line-no">602</span><span id="line.602">        private void convertHostToNumerical(HttpRequest request) {</span>
+<span class="source-line-no">603</span><span id="line.603">            int port = request.port();</span>
+<span class="source-line-no">604</span><span id="line.604">            String host;</span>
+<span class="source-line-no">605</span><span id="line.605">            try {</span>
+<span class="source-line-no">606</span><span id="line.606">                InetAddress addr = InetAddress.getByName(</span>
+<span class="source-line-no">607</span><span id="line.607">                    request.host());</span>
+<span class="source-line-no">608</span><span id="line.608">                host = addr.getHostAddress();</span>
+<span class="source-line-no">609</span><span id="line.609">                if (!(addr instanceof Inet4Address)) {</span>
+<span class="source-line-no">610</span><span id="line.610">                    host = "[" + host + "]";</span>
+<span class="source-line-no">611</span><span id="line.611">                }</span>
+<span class="source-line-no">612</span><span id="line.612">            } catch (UnknownHostException e) {</span>
+<span class="source-line-no">613</span><span id="line.613">                host = InetAddress.getLoopbackAddress().getHostAddress();</span>
+<span class="source-line-no">614</span><span id="line.614">            }</span>
+<span class="source-line-no">615</span><span id="line.615">            request.setHostAndPort(host, port);</span>
+<span class="source-line-no">616</span><span id="line.616">        }</span>
+<span class="source-line-no">617</span><span id="line.617"></span>
+<span class="source-line-no">618</span><span id="line.618">        /**</span>
+<span class="source-line-no">619</span><span id="line.619">         * Handle a response event from the application layer.</span>
+<span class="source-line-no">620</span><span id="line.620">         *</span>
+<span class="source-line-no">621</span><span id="line.621">         * @param event the event</span>
+<span class="source-line-no">622</span><span id="line.622">         * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">623</span><span id="line.623">         */</span>
+<span class="source-line-no">624</span><span id="line.624">        @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</span>
+<span class="source-line-no">625</span><span id="line.625">            "PMD.AvoidBranchingStatementAsLastInLoop",</span>
+<span class="source-line-no">626</span><span id="line.626">            "PMD.CognitiveComplexity" })</span>
+<span class="source-line-no">627</span><span id="line.627">        public void handleResponse(Response event) throws InterruptedException {</span>
+<span class="source-line-no">628</span><span id="line.628">            if (!engine.encoding()</span>
+<span class="source-line-no">629</span><span id="line.629">                .isAssignableFrom(event.response().getClass())) {</span>
+<span class="source-line-no">630</span><span id="line.630">                return;</span>
+<span class="source-line-no">631</span><span id="line.631">            }</span>
+<span class="source-line-no">632</span><span id="line.632">            final MessageHeader response = event.response();</span>
+<span class="source-line-no">633</span><span id="line.633">            // Start sending the response</span>
+<span class="source-line-no">634</span><span id="line.634">            @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">635</span><span id="line.635">            ServerEngine&lt;?, MessageHeader&gt; msgEngine</span>
+<span class="source-line-no">636</span><span id="line.636">                = (ServerEngine&lt;?, MessageHeader&gt;) engine;</span>
+<span class="source-line-no">637</span><span id="line.637">            msgEngine.encode(response);</span>
+<span class="source-line-no">638</span><span id="line.638">            if (pendingUpgraded != null) {</span>
+<span class="source-line-no">639</span><span id="line.639">                if (response instanceof HttpResponse</span>
+<span class="source-line-no">640</span><span id="line.640">                    &amp;&amp; ((HttpResponse) response).statusCode() % 100 == 1) {</span>
+<span class="source-line-no">641</span><span id="line.641">                    downPipeline.fire(pendingUpgraded, this);</span>
+<span class="source-line-no">642</span><span id="line.642">                }</span>
+<span class="source-line-no">643</span><span id="line.643">                pendingUpgraded = null;</span>
+<span class="source-line-no">644</span><span id="line.644">            }</span>
+<span class="source-line-no">645</span><span id="line.645">            boolean hasBody = response.hasPayload();</span>
+<span class="source-line-no">646</span><span id="line.646">            while (true) {</span>
+<span class="source-line-no">647</span><span id="line.647">                outBuffer = upstreamChannel().byteBufferPool().acquire();</span>
+<span class="source-line-no">648</span><span id="line.648">                final ManagedBuffer&lt;ByteBuffer&gt; buffer = outBuffer;</span>
+<span class="source-line-no">649</span><span id="line.649">                Codec.Result result = engine.encode(</span>
+<span class="source-line-no">650</span><span id="line.650">                    Codec.EMPTY_IN, buffer.backingBuffer(), !hasBody);</span>
+<span class="source-line-no">651</span><span id="line.651">                if (result.isOverflow()) {</span>
+<span class="source-line-no">652</span><span id="line.652">                    upstreamChannel().respond(Output.fromSink(buffer, false));</span>
+<span class="source-line-no">653</span><span id="line.653">                    continue;</span>
+<span class="source-line-no">654</span><span id="line.654">                }</span>
+<span class="source-line-no">655</span><span id="line.655">                if (hasBody) {</span>
+<span class="source-line-no">656</span><span id="line.656">                    // Keep buffer with incomplete response to be further</span>
+<span class="source-line-no">657</span><span id="line.657">                    // filled by subsequent Output events</span>
+<span class="source-line-no">658</span><span id="line.658">                    break;</span>
+<span class="source-line-no">659</span><span id="line.659">                }</span>
+<span class="source-line-no">660</span><span id="line.660">                // Response is complete</span>
+<span class="source-line-no">661</span><span id="line.661">                if (buffer.position() &gt; 0) {</span>
+<span class="source-line-no">662</span><span id="line.662">                    upstreamChannel().respond(Output.fromSink(buffer, true));</span>
+<span class="source-line-no">663</span><span id="line.663">                } else {</span>
+<span class="source-line-no">664</span><span id="line.664">                    buffer.unlockBuffer();</span>
+<span class="source-line-no">665</span><span id="line.665">                }</span>
+<span class="source-line-no">666</span><span id="line.666">                outBuffer = null;</span>
+<span class="source-line-no">667</span><span id="line.667">                if (result.closeConnection()) {</span>
+<span class="source-line-no">668</span><span id="line.668">                    upstreamChannel().respond(new Close());</span>
+<span class="source-line-no">669</span><span id="line.669">                }</span>
+<span class="source-line-no">670</span><span id="line.670">                break;</span>
+<span class="source-line-no">671</span><span id="line.671">            }</span>
+<span class="source-line-no">672</span><span id="line.672"></span>
+<span class="source-line-no">673</span><span id="line.673">        }</span>
+<span class="source-line-no">674</span><span id="line.674"></span>
+<span class="source-line-no">675</span><span id="line.675">        /**</span>
+<span class="source-line-no">676</span><span id="line.676">         * Handle a {@link ProtocolSwitchAccepted} event from the </span>
+<span class="source-line-no">677</span><span id="line.677">         * application layer.</span>
+<span class="source-line-no">678</span><span id="line.678">         *</span>
+<span class="source-line-no">679</span><span id="line.679">         * @param event the event</span>
+<span class="source-line-no">680</span><span id="line.680">         * @param appChannel the app channel</span>
+<span class="source-line-no">681</span><span id="line.681">         */</span>
+<span class="source-line-no">682</span><span id="line.682">        public void handleProtocolSwitchAccepted(</span>
+<span class="source-line-no">683</span><span id="line.683">                ProtocolSwitchAccepted event, WebAppMsgChannel appChannel) {</span>
+<span class="source-line-no">684</span><span id="line.684">            appChannel.setAssociated(URI.class,</span>
+<span class="source-line-no">685</span><span id="line.685">                event.requestEvent().requestUri());</span>
+<span class="source-line-no">686</span><span id="line.686">            final HttpResponse response = event.requestEvent()</span>
+<span class="source-line-no">687</span><span id="line.687">                .httpRequest().response().get()</span>
+<span class="source-line-no">688</span><span id="line.688">                .setStatus(HttpStatus.SWITCHING_PROTOCOLS)</span>
+<span class="source-line-no">689</span><span id="line.689">                .setField(HttpField.UPGRADE,</span>
+<span class="source-line-no">690</span><span id="line.690">                    new StringList(event.protocol()));</span>
+<span class="source-line-no">691</span><span id="line.691">            // We send the Upgraded event only after the response has</span>
+<span class="source-line-no">692</span><span id="line.692">            // successfully been encoded (and thus checked).</span>
+<span class="source-line-no">693</span><span id="line.693">            pendingUpgraded = new Upgraded(event.resourceName(),</span>
+<span class="source-line-no">694</span><span id="line.694">                event.protocol());</span>
+<span class="source-line-no">695</span><span id="line.695">            respond(new Response(response));</span>
+<span class="source-line-no">696</span><span id="line.696">        }</span>
+<span class="source-line-no">697</span><span id="line.697"></span>
+<span class="source-line-no">698</span><span id="line.698">        /**</span>
+<span class="source-line-no">699</span><span id="line.699">         * Handle output from the application layer.</span>
+<span class="source-line-no">700</span><span id="line.700">         *</span>
+<span class="source-line-no">701</span><span id="line.701">         * @param event the event</span>
+<span class="source-line-no">702</span><span id="line.702">         * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">703</span><span id="line.703">         */</span>
+<span class="source-line-no">704</span><span id="line.704">        @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.NcssCount",</span>
+<span class="source-line-no">705</span><span id="line.705">            "PMD.NPathComplexity", "PMD.AvoidInstantiatingObjectsInLoops",</span>
+<span class="source-line-no">706</span><span id="line.706">            "PMD.CognitiveComplexity" })</span>
+<span class="source-line-no">707</span><span id="line.707">        public void handleAppOutput(Output&lt;?&gt; event)</span>
+<span class="source-line-no">708</span><span id="line.708">                throws InterruptedException {</span>
+<span class="source-line-no">709</span><span id="line.709">            Buffer eventData = event.data();</span>
+<span class="source-line-no">710</span><span id="line.710">            Buffer input;</span>
+<span class="source-line-no">711</span><span id="line.711">            if (eventData instanceof ByteBuffer) {</span>
+<span class="source-line-no">712</span><span id="line.712">                input = ((ByteBuffer) eventData).duplicate();</span>
+<span class="source-line-no">713</span><span id="line.713">            } else if (eventData instanceof CharBuffer) {</span>
+<span class="source-line-no">714</span><span id="line.714">                input = ((CharBuffer) eventData).duplicate();</span>
+<span class="source-line-no">715</span><span id="line.715">            } else {</span>
+<span class="source-line-no">716</span><span id="line.716">                return;</span>
+<span class="source-line-no">717</span><span id="line.717">            }</span>
+<span class="source-line-no">718</span><span id="line.718">            if (engine.switchedTo().equals(Optional.of("websocket"))</span>
+<span class="source-line-no">719</span><span id="line.719">                &amp;&amp; currentWsMessage == null) {</span>
+<span class="source-line-no">720</span><span id="line.720">                // When switched to WebSockets, we only have Input and Output</span>
+<span class="source-line-no">721</span><span id="line.721">                // events. Add header automatically.</span>
+<span class="source-line-no">722</span><span id="line.722">                @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">723</span><span id="line.723">                ServerEngine&lt;?, MessageHeader&gt; wsEngine</span>
+<span class="source-line-no">724</span><span id="line.724">                    = (ServerEngine&lt;?, MessageHeader&gt;) engine;</span>
+<span class="source-line-no">725</span><span id="line.725">                currentWsMessage = new WsMessageHeader(</span>
+<span class="source-line-no">726</span><span id="line.726">                    event.buffer().backingBuffer() instanceof CharBuffer,</span>
+<span class="source-line-no">727</span><span id="line.727">                    true);</span>
+<span class="source-line-no">728</span><span id="line.728">                wsEngine.encode(currentWsMessage);</span>
+<span class="source-line-no">729</span><span id="line.729">            }</span>
+<span class="source-line-no">730</span><span id="line.730">            while (input.hasRemaining() || event.isEndOfRecord()) {</span>
+<span class="source-line-no">731</span><span id="line.731">                if (outBuffer == null) {</span>
 <span class="source-line-no">732</span><span id="line.732">                    outBuffer = upstreamChannel().byteBufferPool().acquire();</span>
-<span class="source-line-no">733</span><span id="line.733">                    continue;</span>
-<span class="source-line-no">734</span><span id="line.734">                }</span>
-<span class="source-line-no">735</span><span id="line.735">                if (event.isEndOfRecord() || result.closeConnection()) {</span>
-<span class="source-line-no">736</span><span id="line.736">                    if (outBuffer.position() &gt; 0) {</span>
-<span class="source-line-no">737</span><span id="line.737">                        upstreamChannel()</span>
-<span class="source-line-no">738</span><span id="line.738">                            .respond(Output.fromSink(outBuffer, true));</span>
-<span class="source-line-no">739</span><span id="line.739">                    } else {</span>
-<span class="source-line-no">740</span><span id="line.740">                        outBuffer.unlockBuffer();</span>
-<span class="source-line-no">741</span><span id="line.741">                    }</span>
-<span class="source-line-no">742</span><span id="line.742">                    outBuffer = null;</span>
-<span class="source-line-no">743</span><span id="line.743">                    if (result.closeConnection()) {</span>
-<span class="source-line-no">744</span><span id="line.744">                        upstreamChannel().respond(new Close());</span>
-<span class="source-line-no">745</span><span id="line.745">                    }</span>
-<span class="source-line-no">746</span><span id="line.746">                    break;</span>
-<span class="source-line-no">747</span><span id="line.747">                }</span>
-<span class="source-line-no">748</span><span id="line.748">            }</span>
-<span class="source-line-no">749</span><span id="line.749">            if (engine.switchedTo().equals(Optional.of("websocket"))</span>
-<span class="source-line-no">750</span><span id="line.750">                &amp;&amp; event.isEndOfRecord()) {</span>
-<span class="source-line-no">751</span><span id="line.751">                currentWsMessage = null;</span>
-<span class="source-line-no">752</span><span id="line.752">            }</span>
-<span class="source-line-no">753</span><span id="line.753">        }</span>
-<span class="source-line-no">754</span><span id="line.754"></span>
-<span class="source-line-no">755</span><span id="line.755">        /**</span>
-<span class="source-line-no">756</span><span id="line.756">         * Handle a {@link Close} event from the application layer.</span>
-<span class="source-line-no">757</span><span id="line.757">         *</span>
-<span class="source-line-no">758</span><span id="line.758">         * @param event the event</span>
-<span class="source-line-no">759</span><span id="line.759">         * @throws InterruptedException the interrupted exception</span>
-<span class="source-line-no">760</span><span id="line.760">         */</span>
-<span class="source-line-no">761</span><span id="line.761">        public void handleClose(Close event) throws InterruptedException {</span>
-<span class="source-line-no">762</span><span id="line.762">            if (engine.switchedTo().equals(Optional.of("websocket"))) {</span>
-<span class="source-line-no">763</span><span id="line.763">                fire(new Response(new WsCloseFrame(null, null)), this);</span>
-<span class="source-line-no">764</span><span id="line.764">                return;</span>
-<span class="source-line-no">765</span><span id="line.765">            }</span>
-<span class="source-line-no">766</span><span id="line.766">            upstreamChannel().respond(new Close());</span>
-<span class="source-line-no">767</span><span id="line.767">        }</span>
-<span class="source-line-no">768</span><span id="line.768"></span>
-<span class="source-line-no">769</span><span id="line.769">        /**</span>
-<span class="source-line-no">770</span><span id="line.770">         * Handle a {@link Closed} event from the network by forwarding</span>
-<span class="source-line-no">771</span><span id="line.771">         * it to the application layer.</span>
-<span class="source-line-no">772</span><span id="line.772">         *</span>
-<span class="source-line-no">773</span><span id="line.773">         * @param event the event</span>
-<span class="source-line-no">774</span><span id="line.774">         */</span>
-<span class="source-line-no">775</span><span id="line.775">        public void handleClosed(Closed event) {</span>
-<span class="source-line-no">776</span><span id="line.776">            downPipeline.fire(new Closed(), this);</span>
-<span class="source-line-no">777</span><span id="line.777">        }</span>
-<span class="source-line-no">778</span><span id="line.778"></span>
-<span class="source-line-no">779</span><span id="line.779">        /**</span>
-<span class="source-line-no">780</span><span id="line.780">         * Handle a {@link Purge} event by forwarding it to the</span>
-<span class="source-line-no">781</span><span id="line.781">         * application layer.</span>
-<span class="source-line-no">782</span><span id="line.782">         *</span>
-<span class="source-line-no">783</span><span id="line.783">         * @param event the event</span>
-<span class="source-line-no">784</span><span id="line.784">         */</span>
-<span class="source-line-no">785</span><span id="line.785">        public void handlePurge(Purge event) {</span>
-<span class="source-line-no">786</span><span id="line.786">            downPipeline.fire(new Purge(), this);</span>
-<span class="source-line-no">787</span><span id="line.787">        }</span>
-<span class="source-line-no">788</span><span id="line.788"></span>
-<span class="source-line-no">789</span><span id="line.789">    }</span>
-<span class="source-line-no">790</span><span id="line.790"></span>
-<span class="source-line-no">791</span><span id="line.791">}</span>
+<span class="source-line-no">733</span><span id="line.733">                }</span>
+<span class="source-line-no">734</span><span id="line.734">                Codec.Result result = engine.encode(input,</span>
+<span class="source-line-no">735</span><span id="line.735">                    outBuffer.backingBuffer(), event.isEndOfRecord());</span>
+<span class="source-line-no">736</span><span id="line.736">                if (result.isOverflow()) {</span>
+<span class="source-line-no">737</span><span id="line.737">                    upstreamChannel()</span>
+<span class="source-line-no">738</span><span id="line.738">                        .respond(Output.fromSink(outBuffer, false));</span>
+<span class="source-line-no">739</span><span id="line.739">                    outBuffer = upstreamChannel().byteBufferPool().acquire();</span>
+<span class="source-line-no">740</span><span id="line.740">                    continue;</span>
+<span class="source-line-no">741</span><span id="line.741">                }</span>
+<span class="source-line-no">742</span><span id="line.742">                if (event.isEndOfRecord() || result.closeConnection()) {</span>
+<span class="source-line-no">743</span><span id="line.743">                    if (outBuffer.position() &gt; 0) {</span>
+<span class="source-line-no">744</span><span id="line.744">                        upstreamChannel()</span>
+<span class="source-line-no">745</span><span id="line.745">                            .respond(Output.fromSink(outBuffer, true));</span>
+<span class="source-line-no">746</span><span id="line.746">                    } else {</span>
+<span class="source-line-no">747</span><span id="line.747">                        outBuffer.unlockBuffer();</span>
+<span class="source-line-no">748</span><span id="line.748">                    }</span>
+<span class="source-line-no">749</span><span id="line.749">                    outBuffer = null;</span>
+<span class="source-line-no">750</span><span id="line.750">                    if (result.closeConnection()) {</span>
+<span class="source-line-no">751</span><span id="line.751">                        upstreamChannel().respond(new Close());</span>
+<span class="source-line-no">752</span><span id="line.752">                    }</span>
+<span class="source-line-no">753</span><span id="line.753">                    break;</span>
+<span class="source-line-no">754</span><span id="line.754">                }</span>
+<span class="source-line-no">755</span><span id="line.755">            }</span>
+<span class="source-line-no">756</span><span id="line.756">            if (engine.switchedTo().equals(Optional.of("websocket"))</span>
+<span class="source-line-no">757</span><span id="line.757">                &amp;&amp; event.isEndOfRecord()) {</span>
+<span class="source-line-no">758</span><span id="line.758">                currentWsMessage = null;</span>
+<span class="source-line-no">759</span><span id="line.759">            }</span>
+<span class="source-line-no">760</span><span id="line.760">        }</span>
+<span class="source-line-no">761</span><span id="line.761"></span>
+<span class="source-line-no">762</span><span id="line.762">        /**</span>
+<span class="source-line-no">763</span><span id="line.763">         * Handle a {@link Close} event from the application layer.</span>
+<span class="source-line-no">764</span><span id="line.764">         *</span>
+<span class="source-line-no">765</span><span id="line.765">         * @param event the event</span>
+<span class="source-line-no">766</span><span id="line.766">         * @throws InterruptedException the interrupted exception</span>
+<span class="source-line-no">767</span><span id="line.767">         */</span>
+<span class="source-line-no">768</span><span id="line.768">        public void handleClose(Close event) throws InterruptedException {</span>
+<span class="source-line-no">769</span><span id="line.769">            if (engine.switchedTo().equals(Optional.of("websocket"))) {</span>
+<span class="source-line-no">770</span><span id="line.770">                fire(new Response(new WsCloseFrame(null, null)), this);</span>
+<span class="source-line-no">771</span><span id="line.771">                return;</span>
+<span class="source-line-no">772</span><span id="line.772">            }</span>
+<span class="source-line-no">773</span><span id="line.773">            upstreamChannel().respond(new Close());</span>
+<span class="source-line-no">774</span><span id="line.774">        }</span>
+<span class="source-line-no">775</span><span id="line.775"></span>
+<span class="source-line-no">776</span><span id="line.776">        /**</span>
+<span class="source-line-no">777</span><span id="line.777">         * Handle a {@link Closed} event from the network by forwarding</span>
+<span class="source-line-no">778</span><span id="line.778">         * it to the application layer.</span>
+<span class="source-line-no">779</span><span id="line.779">         *</span>
+<span class="source-line-no">780</span><span id="line.780">         * @param event the event</span>
+<span class="source-line-no">781</span><span id="line.781">         */</span>
+<span class="source-line-no">782</span><span id="line.782">        public void handleClosed(Closed event) {</span>
+<span class="source-line-no">783</span><span id="line.783">            downPipeline.fire(new Closed(), this);</span>
+<span class="source-line-no">784</span><span id="line.784">        }</span>
+<span class="source-line-no">785</span><span id="line.785"></span>
+<span class="source-line-no">786</span><span id="line.786">        /**</span>
+<span class="source-line-no">787</span><span id="line.787">         * Handle a {@link Purge} event by forwarding it to the</span>
+<span class="source-line-no">788</span><span id="line.788">         * application layer.</span>
+<span class="source-line-no">789</span><span id="line.789">         *</span>
+<span class="source-line-no">790</span><span id="line.790">         * @param event the event</span>
+<span class="source-line-no">791</span><span id="line.791">         */</span>
+<span class="source-line-no">792</span><span id="line.792">        public void handlePurge(Purge event) {</span>
+<span class="source-line-no">793</span><span id="line.793">            downPipeline.fire(new Purge(), this);</span>
+<span class="source-line-no">794</span><span id="line.794">        }</span>
+<span class="source-line-no">795</span><span id="line.795"></span>
+<span class="source-line-no">796</span><span id="line.796">    }</span>
+<span class="source-line-no">797</span><span id="line.797"></span>
+<span class="source-line-no">798</span><span id="line.798">}</span>
 
 
 
