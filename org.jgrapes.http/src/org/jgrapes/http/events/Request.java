@@ -93,13 +93,14 @@ public class Request<R> extends MessageReceived<R> {
             URI requestUri = effectiveRequestUri(protocol, request);
             // Clean the request URI's path, keeping the segments for matchValue
             List<String> segs = pathToSegs(requestUri);
-            requestUri = new URI(requestUri.getScheme(), null,
-                requestUri.getHost(), requestUri.getPort(),
+            requestUri = new URI(requestUri.getScheme(),
+                requestUri.getUserInfo(), requestUri.getHost(),
+                requestUri.getPort(),
                 "/" + segs.stream().collect(Collectors.joining("/")),
-                requestUri.getQuery(), requestUri.getFragment());
+                requestUri.getQuery(), null);
             setRequestUri(requestUri);
 
-            // The URI for matching omits fragment and query
+            // The URI for handler selection ignores user info and query
             resourceUri = new URI(requestUri.getScheme(), null,
                 requestUri.getHost(), requestUri.getPort(),
                 requestUri.getPath(), null, null);
