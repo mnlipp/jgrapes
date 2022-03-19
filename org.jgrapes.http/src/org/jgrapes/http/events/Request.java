@@ -90,7 +90,7 @@ public class Request<R> extends MessageReceived<R> {
             this.matchLevels = matchLevels;
 
             // Do any required processing of the original request URI
-            URI requestUri = buildRequestUri(protocol, request);
+            URI requestUri = effectiveRequestUri(protocol, request);
             // Clean the request URI's path, keeping the segments for matchValue
             List<String> segs = pathToSegs(requestUri);
             requestUri = new URI(requestUri.getScheme(), null,
@@ -164,14 +164,13 @@ public class Request<R> extends MessageReceived<R> {
          * @return the URI
          * @throws URISyntaxException if the request is not acceptable
          */
-        protected URI buildRequestUri(String protocol, HttpRequest request)
+        protected URI effectiveRequestUri(String protocol, HttpRequest request)
                 throws URISyntaxException {
             URI serverUri = new URI(protocol, null,
                 request.host(), request.port(), "/", null, null);
             URI origRequest = request.requestUri();
             URI result = serverUri.resolve(new URI(null, null, null, -1,
-                origRequest.getPath(), origRequest.getQuery(),
-                origRequest.getFragment()));
+                origRequest.getPath(), origRequest.getQuery(), null));
             if (!result.getScheme().equals(protocol)
                 || !result.getHost().equals(request.host())
                 || result.getPort() != request.port()) {
@@ -435,17 +434,20 @@ public class Request<R> extends MessageReceived<R> {
 
             /**
              * Builds the URI that represents this request. This
-             * implementation simply returns the URI from the
-             * HTTP request. 
+             * implementation returns the request URI without
+             * path and query component. 
              *
              * @param protocol the protocol
              * @param request the request
              * @return the uri
              * @throws URISyntaxException the URI syntax exception
+             * @see "[RFC 7230, Section 5.5](https://datatracker.ietf.org/doc/html/rfc7230#section-5.5)"
              */
-            protected URI buildRequestUri(String protocol, HttpRequest request)
-                    throws URISyntaxException {
-                return request.requestUri();
+            protected URI effectiveRequestUri(String protocol,
+                    HttpRequest request) throws URISyntaxException {
+                URI req = request.requestUri();
+                return new URI(req.getScheme(), req.getUserInfo(),
+                    req.getHost(), req.getPort(), null, null, null);
             }
         }
 
