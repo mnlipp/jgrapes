@@ -27,13 +27,13 @@ configurations {
 }
 
 dependencies {
-    markdownDoclet "org.jdrupes.mdoclet:doclet:2.1.0"
+    markdownDoclet "org.jdrupes.mdoclet:doclet:3.0.0"
     javadocTaglets "org.jdrupes.taglets:plantuml-taglet:2.0.1"
 }
 
 task java11doc(type: JavaExec) {
     // Does not work on JitPack, no /usr/bin/dot
-    enabled = !isJitPackBuild
+    enabled = JavaVersion.current() == JavaVersion.VERSION_17 && !isJitPackBuild
 
     // Make sure that other projects' compileClasspaths are resolved
     rootProject.subprojects
@@ -55,7 +55,8 @@ task java11doc(type: JavaExec) {
     var destinationDir = file("${rootProject.buildDir}/javadoc")
     outputs.dir(destinationDir)
     
-    jvmArgs = ['--add-exports=jdk.javadoc/jdk.javadoc.internal.tool=ALL-UNNAMED']
+    jvmArgs = ['--add-exports=jdk.javadoc/jdk.javadoc.internal.tool=ALL-UNNAMED',
+               '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED']
     main = 'jdk.javadoc.internal.tool.Main'
     args = ['-doctitle', "JGrapes ${project.version}",
         '-use',
@@ -63,6 +64,7 @@ task java11doc(type: JavaExec) {
         '-link', 'https://docs.oracle.com/en/java/javase/11/docs/api/',
         '-link', 'https://mnlipp.github.io/jdrupes-httpcodec/javadoc/',
         '--add-exports', 'jdk.javadoc/jdk.javadoc.internal.tool=ALL-UNNAMED',
+        '--add-exports', 'jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
         '-doclet', 'org.jdrupes.mdoclet.MDoclet',
         '-docletpath', configurations.markdownDoclet.files.asType(List).join(":"),
         '--disable-auto-highlight',
