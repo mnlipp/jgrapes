@@ -1,8 +1,0 @@
-org.jgrapes.osgi.core
-org.jgrapes.osgi.demo.console
-org.jgrapes.osgi.demo.httpserver
-org.jgrapes.osgi.demo.upnp
-org.jgrapes.osgi.webconlet.bundles
-org.jgrapes.osgi.webconlet.logviewer
-org.jgrapes.osgi.webconlet.services
-org.jgrapes.osgi.webconlet.upnpbrowser
