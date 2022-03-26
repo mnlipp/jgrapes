@@ -91,7 +91,7 @@
         <article>
             <pre class="prettyprint source linenums"><code>/**
  * Provides the components from the library and a global context 
- * `$aash` of type {@link Aash}
+ * `$aash` that implements the interface `Aash`. 
  *
  * @module AashPlugin
  */
@@ -118,12 +118,21 @@ export { provideApi, getApi,
 };
 
 let disclosureRegistry = new Map();
+let idCounter = 0;
+    
 
 /**
  * The context provided by the Aash library as global context `$aash`.
  * @memberOf module:AashPlugin
  */
 interface Aash {
+    /**
+     * Generates a unique id.
+     * @function
+     * @returns the id
+     */
+    generateId(): string;
+    
     /**
      * Returns the `Vuew.Ref` the represents the state of the disclosure
      * with the given `id`.
@@ -149,6 +158,11 @@ interface Aash {
 }
 
 let aash: Aash = {
+    
+    generateId() {
+        return "aash-id-" + ++idCounter;
+    },
+    
     disclosureData(id) {
         if (disclosureRegistry.has(id)) {
             return disclosureRegistry.get(id);
