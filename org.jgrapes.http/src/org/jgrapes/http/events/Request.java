@@ -129,14 +129,18 @@ public class Request<R> extends MessageReceived<R> {
                 throws URISyntaxException {
             Iterator<String> origSegs = PathSpliterator.stream(
                 requestUri.getPath()).iterator();
-            // Path must be absolute
+            // Path must not be empty and must be absolute
             if (!origSegs.hasNext() || !origSegs.next().isEmpty()) {
                 throw new URISyntaxException(
                     requestUri().getPath(), "Must be absolute");
             }
-            // Remove dot segments
+            // Remove dot segments and check for "...//..."
             Stack<String> segs = new Stack<>();
             while (origSegs.hasNext()) {
+                if (!segs.isEmpty() && segs.peek().isEmpty()) {
+                    // Empty segment followed by more means "//"
+                    segs.clear();
+                }
                 String seg = origSegs.next();
                 if (".".equals(seg)) {
                     continue;
@@ -146,9 +150,6 @@ public class Request<R> extends MessageReceived<R> {
                         segs.pop();
                     }
                     continue;
-                }
-                if (!segs.isEmpty() && segs.peek().isEmpty()) {
-                    segs.pop();
                 }
                 segs.push(seg);
             }
