@@ -89,8 +89,10 @@ public class Request<R> extends MessageReceived<R> {
             this.request = request;
             this.matchLevels = matchLevels;
 
-            // Do any required processing of the original request URI
+            // Do any required request specific processing of the original
+            // request URI
             URI requestUri = effectiveRequestUri(protocol, request);
+
             // Clean the request URI's path, keeping the segments for matchValue
             List<String> segs = pathToSegs(requestUri);
             requestUri = new URI(requestUri.getScheme(),
@@ -129,8 +131,8 @@ public class Request<R> extends MessageReceived<R> {
                 requestUri.getPath()).iterator();
             // Path must be absolute
             if (!origSegs.hasNext() || !origSegs.next().isEmpty()) {
-                throw new URISyntaxException(requestUri().getPath(),
-                    "Must be absolute");
+                throw new URISyntaxException(
+                    requestUri().getPath(), "Must be absolute");
             }
             // Remove dot segments
             Stack<String> segs = new Stack<>();
