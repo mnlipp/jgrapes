@@ -118,6 +118,7 @@ export default defineComponent({
         const headerType = inject('headerType');
         const buttonType = inject('buttonType');
         const panelType = inject('panelType');
+        const panelClass = inject('panelClass');
         const theTitle = props.title;
 
         const ctrl: Controller = inject('controller')!;
@@ -155,7 +156,7 @@ export default defineComponent({
             }
         }
         
-        return { sectionId, headerType, buttonType, panelType, 
+        return { sectionId, headerType, buttonType, panelType, panelClass,
             theTitle, ctrl, isExpanded, index, onClick, onKey };
     }
 });

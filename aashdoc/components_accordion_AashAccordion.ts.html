@@ -232,19 +232,23 @@ export class Controller {
  * defaults to "button"
  * @param {string} props.panelType the element type for the panels,
  * defaults to "div"
+ * @param {string} props.panelClass the class attribute for the panels,
+ * defaults to `null`
  */
 export default defineComponent({
     props: {
         singleExpansion: { type: Boolean, default: true },
         headerType: { type: String, default: "div" },
         buttonType: { type: String, default: "button" },
-        panelType: { type: String, default: "div" }
+        panelType: { type: String, default: "div" },
+        panelClass: { type: String, default: null }
     },
     
     setup(props) {
         provide('headerType', props.headerType);
         provide('buttonType', props.buttonType);
         provide('panelType', props.panelType);
+        provide('panelClass', props.panelClass);
         
         let controller = reactive(new Controller(props.singleExpansion));
         provide('controller', controller);
