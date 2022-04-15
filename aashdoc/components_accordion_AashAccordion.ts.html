@@ -111,12 +111,14 @@ export interface Api {
 }
 
 export class Controller {
+    private _alwaysExpanded = false;
     private _singleExpansion = true;
     private _domRoot: HTMLElement | null = null;
     private _sections: string[] = [];
     private _expanded = new Set();
     
-    constructor(singleExpansion: boolean) {
+    constructor(alwaysExpanded: boolean, singleExpansion: boolean) {
+        this._alwaysExpanded = alwaysExpanded;
         this._singleExpansion = singleExpansion;
     }
 
@@ -126,6 +128,9 @@ export class Controller {
     
     addSection(id: string): number {
         this._sections.push(id);
+        if (this._alwaysExpanded &amp;&amp; this._expanded.size == 0) {
+            this._expanded.add(0);
+        }
         return this._sections.length - 1;
     }
     
@@ -142,6 +147,9 @@ export class Controller {
     
     toggleExpanded(index: number) {
         if (this._expanded.has(index)) {
+            if (this._alwaysExpanded &amp;&amp; this._expanded.size == 1) {
+                return;
+            }
             this._expanded.delete(index);
             return;
         }
@@ -224,6 +232,8 @@ export class Controller {
  * 
  * @class AashAccordionComponent
  * @param {Object} props the properties
+ * @param {Boolean} props.alwaysExpanded make sure that at least,
+ * one panel is always expanded, defaults to `false`
  * @param {Boolean} props.singleExpansion whether only one section
  * may be expanded at a given point in time, defaults to `true`
  * @param {string} props.headerType the element type for the headers,
@@ -237,6 +247,7 @@ export class Controller {
  */
 export default defineComponent({
     props: {
+        alwaysExpanded: { type: Boolean, default: false },
         singleExpansion: { type: Boolean, default: true },
         headerType: { type: String, default: "div" },
         buttonType: { type: String, default: "button" },
@@ -250,7 +261,8 @@ export default defineComponent({
         provide('panelType', props.panelType);
         provide('panelClass', props.panelClass);
         
-        let controller = reactive(new Controller(props.singleExpansion));
+        let controller = reactive(new Controller(
+            props.alwaysExpanded, props.singleExpansion));
         provide('controller', controller);
         
         const domRoot = ref(null);
