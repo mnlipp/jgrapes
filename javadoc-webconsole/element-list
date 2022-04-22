@@ -23,6 +23,7 @@ org.jgrapes.webconsole.provider.jquery
 org.jgrapes.webconsole.provider.jqueryui
 org.jgrapes.webconsole.provider.jquitouchpunch
 org.jgrapes.webconsole.provider.lodash
+org.jgrapes.webconsole.provider.luxon
 org.jgrapes.webconsole.provider.markdownit
 org.jgrapes.webconsole.provider.moment
 org.jgrapes.webconsole.provider.vue
