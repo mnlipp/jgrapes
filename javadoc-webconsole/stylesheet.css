@@ -589,7 +589,8 @@ h1.hidden {
     font-family: "DejaVu Sans", sans;
     font-weight:bold;
 }
-.sub-title, .inheritance, .all-packages-table-tab1.col-first {
+.sub-title, .inheritance, .all-packages-table-tab1.col-first,
+    .summary-table .col-first {
     font-family: "DejaVu Sans", sans;
 }
 .deprecation-comment, .help-footnote, .preview-comment {
