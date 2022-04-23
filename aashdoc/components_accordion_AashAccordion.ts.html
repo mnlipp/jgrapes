@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AaSH component library components/accordion/AashAccordion.ts</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+             
+                <a href="index.html">
+                    <h1 class="navbar-item">AaSH component library documentation</h1>
+                </a>
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    Documentation
+                </a>
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashAccordion.html">AashAccordion</a></li><li><a href="module-AashAccordionSection.html">AashAccordionSection</a></li><li><a href="module-AashDisclosureButton.html">AashDisclosureButton</a></li><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashModalDialog.html">AashModalDialog</a></li><li><a href="module-AashPlugin.html">AashPlugin</a></li><li><a href="module-AashTablist.html">AashTablist</a></li><li><a href="module-AashTreeView.html">AashTreeView</a></li><li><a href="module-AashUtil.html">AashUtil</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashAccordionSection-AashAccordionSectionComponent.html">AashAccordionSectionComponent</a></li><li><a href="module-AashAccordion-AashAccordionComponent.html">AashAccordionComponent</a></li><li><a href="module-AashDisclosureButton-AashDisclosureButtonComponent.html">AashDisclosureButtonComponent</a></li><li><a href="module-AashDropdownMenu-AashDropdownMenuComponent.html">AashDropdownMenuComponent</a></li><li><a href="module-AashModalDialog-AashModalDialog.html">AashModalDialog</a></li><li><a href="module-AashTablist-AashTablistComponent.html">AashTablistComponent</a></li><li><a href="module-AashTreeView-AashTreeViewComponent.html">AashTreeViewComponent</a></li></ul><h3>Interfaces</h3><ul><li><a href="module-AashAccordion.Api.html">Api</a></li><li><a href="module-AashModalDialog.Api.html">Api</a></li><li><a href="module-AashPlugin.Aash.html">Aash</a></li><li><a href="module-AashTablist.Api.html">Api</a></li><li><a href="module-AashTreeView.Api.html">Api</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>components/accordion/AashAccordion.ts</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Provides an element that controls the visibility of 
+ * vertically stacked sections.
+ *
+ * @module AashAccordion
+ */
+import { defineComponent, getCurrentInstance, onUnmounted, provide, reactive, 
+    ref, nextTick, onMounted } from 'vue'
+import { provideApi } from "../../AashUtil";
+
+/**
+ * The interface provided by the component.
+ *
+ * * `expand(index: number): void`: ensures that the section is expanded 
+ *
+ * @memberof module:AashAccordion
+ */
+export interface Api {
+  expand(index: number): void;
+}
+
+export class Controller {
+    private _alwaysExpanded = false;
+    private _singleExpansion = true;
+    private _domRoot: HTMLElement | null = null;
+    private _sections: string[] = [];
+    private _expanded = new Set();
+    
+    constructor(alwaysExpanded: boolean, singleExpansion: boolean) {
+        this._alwaysExpanded = alwaysExpanded;
+        this._singleExpansion = singleExpansion;
+    }
+
+    setDomRoot(root: HTMLElement) {
+        this._domRoot = root;
+    }
+    
+    addSection(id: string): number {
+        this._sections.push(id);
+        if (this._alwaysExpanded &amp;&amp; this._expanded.size == 0) {
+            this._expanded.add(0);
+        }
+        return this._sections.length - 1;
+    }
+    
+    isExpanded(index: number): boolean {
+        return this._expanded.has(index);
+    }
+    
+    expand(index: number) {
+        if (this._expanded.has(index)) {
+            return;
+        }
+        this.toggleExpanded(index);
+    }
+    
+    toggleExpanded(index: number) {
+        if (this._expanded.has(index)) {
+            if (this._alwaysExpanded &amp;&amp; this._expanded.size == 1) {
+                return;
+            }
+            this._expanded.delete(index);
+            return;
+        }
+        if (this._singleExpansion) {
+            this._expanded.clear();
+        }
+        this._expanded.add(index);
+    }
+    
+    selectNext(index: number) {
+        if (index >= this._sections.length) {
+            return;
+        }
+        this._updateDomFocus(index + 1);
+    }
+    
+    selectPrev(index: number) {
+        if (index == 0) {
+            return;
+        }
+        this._updateDomFocus(index - 1);
+    }
+    
+    selectFirst() {
+        this._updateDomFocus(0);
+    }
+    
+    selectLast() {
+        this._updateDomFocus(this._sections.length - 1);
+    }
+    
+    private _updateDomFocus(index: number) {
+        nextTick (() => {
+            let cur = this._domRoot?.querySelector(
+                "#" + this._sections[index] + "-control");
+            (&lt;HTMLElement>cur)?.focus();
+        });
+    }
+}
+
+/**
+ * @classdesc
+ * Generates an accordion.
+ * 
+ * Sections are added using `aash-accordion-section`.
+ *
+ * Example source:
+ * ```html
+ * &lt;aash-accordion>
+ *   &lt;aash-accordion-section :title="'Header 1'">
+ *     Panel 1
+ *   &lt;/aash-accordion-section>
+ *   &lt;aash-accordion-section>
+ *     &lt;template #title>Header 2&lt;/template>
+ *       Panel 2
+ *   &lt;/aash-accordion-section>
+ * &lt;/aash-accordion>
+ * ```
+ *
+ * Resulting HTML:
+ * ```html
+ * &lt;div data-aash-role="accordion">
+ *   &lt;div role="header">
+ *     &lt;button id="aash-id-6-control" aria-controls="aash-id-6-panel" 
+ *       aria-expanded="true">&lt;span>Header 1&lt;/span>&lt;/button>
+ *   &lt;/div>
+ *   &lt;div id="aash-id-6-panel" role="region" aria-labelledby="aash-id-6-control">
+ *     Panel 1 
+ *   &lt;/div>
+ *   &lt;div role="header">
+ *     &lt;button id="aash-id-7-control" aria-controls="aash-id-7-panel" 
+ *       aria-expanded="false">Header 2&lt;/button>
+ *   &lt;/div>
+ *   &lt;div id="aash-id-7-panel" role="region" aria-labelledby="aash-id-7-control"
+ *     hidden="">
+ *     Panel 2
+ *   &lt;/div>
+ * &lt;/div>
+ * ```
+ * 
+ * @class AashAccordionComponent
+ * @param {Object} props the properties
+ * @param {Boolean} props.alwaysExpanded make sure that at least,
+ * one panel is always expanded, defaults to `false`
+ * @param {Boolean} props.singleExpansion whether only one section
+ * may be expanded at a given point in time, defaults to `true`
+ * @param {string} props.headerType the element type for the headers,
+ * defaults to "div"
+ * @param {string} props.buttonType the element type for the buttons,
+ * defaults to "button"
+ * @param {string} props.panelType the element type for the panels,
+ * defaults to "div"
+ * @param {string} props.panelClass the class attribute for the panels,
+ * defaults to `null`
+ */
+export default defineComponent({
+    props: {
+        alwaysExpanded: { type: Boolean, default: false },
+        singleExpansion: { type: Boolean, default: true },
+        headerType: { type: String, default: "div" },
+        buttonType: { type: String, default: "button" },
+        panelType: { type: String, default: "div" },
+        panelClass: { type: String, default: null }
+    },
+    
+    setup(props) {
+        provide('headerType', props.headerType);
+        provide('buttonType', props.buttonType);
+        provide('panelType', props.panelType);
+        provide('panelClass', props.panelClass);
+        
+        let controller = reactive(new Controller(
+            props.alwaysExpanded, props.singleExpansion));
+        provide('controller', controller);
+        
+        const domRoot = ref(null);
+
+        onMounted(() => {
+            controller.setDomRoot(domRoot.value!);
+        });
+
+        provideApi(domRoot, {
+            expand: (index: number) => {
+                controller.expand(index);
+            }
+        });
+        
+        return { domRoot };
+    }
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.10</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+
+</body>
+</html>

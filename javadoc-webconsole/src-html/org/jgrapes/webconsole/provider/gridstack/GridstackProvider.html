@@ -96,8 +96,8 @@
 <span class="source-line-no">083</span><span id="line-83">    public GridstackProvider(Channel componentChannel, Map&lt;?, ?&gt; properties) {</span>
 <span class="source-line-no">084</span><span id="line-84">        super(componentChannel);</span>
 <span class="source-line-no">085</span><span id="line-85">        requireTouchPunch</span>
-<span class="source-line-no">086</span><span id="line-86">            = Optional.ofNullable((boolean) properties.get("requireTouchPunch"))</span>
-<span class="source-line-no">087</span><span id="line-87">                .orElse(false);</span>
+<span class="source-line-no">086</span><span id="line-86">            = Optional.ofNullable((Boolean) properties.get("requireTouchPunch"))</span>
+<span class="source-line-no">087</span><span id="line-87">                .orElse(Boolean.FALSE);</span>
 <span class="source-line-no">088</span><span id="line-88">        if (properties.containsKey("configuration")) {</span>
 <span class="source-line-no">089</span><span id="line-89">            String config = (String) properties.get("configuration");</span>
 <span class="source-line-no">090</span><span id="line-90">            try {</span>

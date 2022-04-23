@@ -78,7 +78,7 @@
 <span class="source-line-no">065</span><span id="line-65">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
 <span class="source-line-no">066</span><span id="line-66">            ParseException, IOException {</span>
 <span class="source-line-no">067</span><span id="line-67">        consoleSession.respond(new AddPageResources()</span>
-<span class="source-line-no">068</span><span id="line-68">            .addScriptResource(new ScriptResource()</span>
+<span class="source-line-no">068</span><span id="line-68">            .addScriptResource(new ScriptResource().setScriptType("module")</span>
 <span class="source-line-no">069</span><span id="line-69">                .setProvides(new String[] { "jgwc-vue-components" })));</span>
 <span class="source-line-no">070</span><span id="line-70">    }</span>
 <span class="source-line-no">071</span><span id="line-71">}</span>

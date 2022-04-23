@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AaSH component library AashAccordionComponent</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+             
+                <a href="index.html">
+                    <h1 class="navbar-item">AaSH component library documentation</h1>
+                </a>
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    Documentation
+                </a>
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-AashAccordion.html">AashAccordion</a></li><li><a href="module-AashAccordionSection.html">AashAccordionSection</a></li><li><a href="module-AashDisclosureButton.html">AashDisclosureButton</a></li><li><a href="module-AashDropdownMenu.html">AashDropdownMenu</a></li><li><a href="module-AashModalDialog.html">AashModalDialog</a></li><li><a href="module-AashPlugin.html">AashPlugin</a></li><li><a href="module-AashTablist.html">AashTablist</a></li><li><a href="module-AashTreeView.html">AashTreeView</a></li><li><a href="module-AashUtil.html">AashUtil</a></li></ul><h3>Classes</h3><ul><li><a href="module-AashAccordionSection-AashAccordionSectionComponent.html">AashAccordionSectionComponent</a></li><li><a href="module-AashAccordion-AashAccordionComponent.html">AashAccordionComponent</a></li><li><a href="module-AashDisclosureButton-AashDisclosureButtonComponent.html">AashDisclosureButtonComponent</a></li><li><a href="module-AashDropdownMenu-AashDropdownMenuComponent.html">AashDropdownMenuComponent</a></li><li><a href="module-AashModalDialog-AashModalDialog.html">AashModalDialog</a></li><li><a href="module-AashTablist-AashTablistComponent.html">AashTablistComponent</a></li><li><a href="module-AashTreeView-AashTreeViewComponent.html">AashTreeViewComponent</a></li></ul><h3>Interfaces</h3><ul><li><a href="module-AashAccordion.Api.html">Api</a></li><li><a href="module-AashModalDialog.Api.html">Api</a></li><li><a href="module-AashPlugin.Aash.html">Aash</a></li><li><a href="module-AashTablist.Api.html">Api</a></li><li><a href="module-AashTreeView.Api.html">Api</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Class</p>
+                    <h1>AashAccordionComponent</h1>
+                </header>
+                
+
+
+
+
+<section>
+
+<header>
+    
+        <h2><span class="attribs"><span class="type-signature"></span></span>
+            <span class="ancestors"><a href="module-AashAccordion.html">AashAccordion</a>~</span>AashAccordionComponent<span class="signature">(props)</span><span class="type-signature"></span></h2>
+        
+            <div class="class-description"><p>Generates an accordion.</p>
+<p>Sections are added using <code>aash-accordion-section</code>.</p>
+<p>Example source:</p>
+<pre class="prettyprint source lang-html"><code>&lt;aash-accordion>
+  &lt;aash-accordion-section :title=&quot;'Header 1'&quot;>
+    Panel 1
+  &lt;/aash-accordion-section>
+  &lt;aash-accordion-section>
+    &lt;template #title>Header 2&lt;/template>
+      Panel 2
+  &lt;/aash-accordion-section>
+&lt;/aash-accordion>
+</code></pre>
+<p>Resulting HTML:</p>
+<pre class="prettyprint source lang-html"><code>&lt;div data-aash-role=&quot;accordion&quot;>
+  &lt;div role=&quot;header&quot;>
+    &lt;button id=&quot;aash-id-6-control&quot; aria-controls=&quot;aash-id-6-panel&quot;
+      aria-expanded=&quot;true&quot;>&lt;span>Header 1&lt;/span>&lt;/button>
+  &lt;/div>
+  &lt;div id=&quot;aash-id-6-panel&quot; role=&quot;region&quot; aria-labelledby=&quot;aash-id-6-control&quot;>
+    Panel 1
+  &lt;/div>
+  &lt;div role=&quot;header&quot;>
+    &lt;button id=&quot;aash-id-7-control&quot; aria-controls=&quot;aash-id-7-panel&quot;
+      aria-expanded=&quot;false&quot;>Header 2&lt;/button>
+  &lt;/div>
+  &lt;div id=&quot;aash-id-7-panel&quot; role=&quot;region&quot; aria-labelledby=&quot;aash-id-7-control&quot;
+    hidden=&quot;&quot;>
+    Panel 2
+  &lt;/div>
+&lt;/div>
+</code></pre></div>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class='vertical-section'>
+                <div class="members">
+                    <div class="member">
+                        <div class=name>
+                            <span class="tag">Constructor</span>
+                        </div>
+                        
+
+
+    
+    <h4 class="name" id="AashAccordionComponent">
+        <a class="href-link" href="#AashAccordionComponent">#</a>
+        
+        <span class="code-name">
+            
+                new AashAccordionComponent<span class="signature">(props)</span><span class="type-signature"></span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+<div class="table-container">
+    <table class="params table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>props</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">Object</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>the properties</p></td>
+</tr>
+
+  
+  
+    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>alwaysExpanded</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">Boolean</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>make sure that at least,
+one panel is always expanded, defaults to <code>false</code></p></td>
+</tr>
+
+  
+    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>singleExpansion</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">Boolean</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>whether only one section
+may be expanded at a given point in time, defaults to <code>true</code></p></td>
+</tr>
+
+  
+    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>headerType</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>the element type for the headers,
+defaults to &quot;div&quot;</p></td>
+</tr>
+
+  
+    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>buttonType</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>the element type for the buttons,
+defaults to &quot;button&quot;</p></td>
+</tr>
+
+  
+    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>panelType</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>the element type for the panels,
+defaults to &quot;div&quot;</p></td>
+</tr>
+
+  
+    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>panelClass</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>the class attribute for the panels,
+defaults to <code>null</code></p></td>
+</tr>
+
+  
+
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="components_accordion_AashAccordion.ts.html" class="button">View Source</a>
+            <span>
+                <a href="components_accordion_AashAccordion.ts.html">components/accordion/AashAccordion.ts</a>, <a href="components_accordion_AashAccordion.ts.html#line77">line 77</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </div>
+                </div>
+            </div>
+        
+    
+    </div>
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.10</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+
+</body>
+</html>
