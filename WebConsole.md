@@ -4,8 +4,6 @@ title: JGrapes Web Console Introduction
 tocTitle: JGrapes Web Console
 ---
 
-# Overview
-
 A JGrapes Web Console is a single page application (SPA) provided by
 several components from the JGrapes framework. The design
 is highly modular and allows the adaption of the web console to 
