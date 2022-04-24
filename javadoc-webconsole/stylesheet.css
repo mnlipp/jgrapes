@@ -402,6 +402,7 @@ ul.see-list-long li:not(:last-child):after {
     padding-left:1px;
     margin:0;
     white-space:pre;
+    font-family: 'DejaVu Sans';
 }
 .caption a:link, .caption a:visited {
     color:#1f389c;
@@ -449,6 +450,9 @@ div.table-tabs > button.table-tab {
     display: grid;
     grid-template-columns: minmax(10%, max-content) minmax(15%, max-content) minmax(15%, auto);
 }
+#method-summary-table .three-column-summary {
+    grid-template-columns: minmax(10%, 20%) minmax(15%, max-content) minmax(15%, auto);
+} 
 .four-column-summary {
     display: grid;
     grid-template-columns: minmax(10%, max-content) minmax(10%, max-content) minmax(10%, max-content) minmax(10%, auto);
@@ -486,6 +490,7 @@ div.table-tabs > button.table-tab {
 }
 .table-header {
     background:#dee3e9;
+    font-family: 'DejaVu Sans';
     font-weight: bold;
 }
 /*
@@ -503,6 +508,7 @@ div.table-tabs > button.table-tab {
 .col-last {
     white-space:normal;
 }
+/*
 .col-first a:link, .col-first a:visited,
 .col-second a:link, .col-second a:visited,
 .col-first a:link, .col-first a:visited,
@@ -514,6 +520,7 @@ div.table-tabs > button.table-tab {
 .all-packages-container a:link, .all-packages-container a:visited {
     font-weight:bold;
 }
+*/
 .table-sub-heading-color {
     background-color:#EEEEFF;
 }
