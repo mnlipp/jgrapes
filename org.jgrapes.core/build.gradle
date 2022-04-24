@@ -31,9 +31,20 @@ dependencies {
     javadocTaglets "org.jdrupes.taglets:plantuml-taglet:2.0.1"
 }
 
+var docDestinationDir = file("${rootProject.buildDir}/javadoc")
+
+task javadocResources(type: Copy) {
+    into file(docDestinationDir)
+    from ("${rootProject.rootDir}/misc") {
+        include '*.woff2'
+    }
+}
+
 task java11doc(type: JavaExec) {
     // Does not work on JitPack, no /usr/bin/dot
     enabled = JavaVersion.current() == JavaVersion.VERSION_17 && !isJitPackBuild
+
+    dependsOn javadocResources
 
     // Make sure that other projects' compileClasspaths are resolved
     rootProject.subprojects
@@ -42,6 +53,7 @@ task java11doc(type: JavaExec) {
         .each{project -> dependsOn project.tasks.assemble}
     
     inputs.file rootProject.file('overview.md')
+    inputs.file "${rootProject.rootDir}/misc/stylesheet.css"
     
     classpath = files(rootProject.subprojects
         .findAll({project -> project.name.startsWith("org.jgrapes")})
@@ -52,8 +64,7 @@ task java11doc(type: JavaExec) {
         .flatten().findAll(dir -> dir.exists())
     sourceDirs.each { inputs.dir(it) }
     
-    var destinationDir = file("${rootProject.buildDir}/javadoc")
-    outputs.dir(destinationDir)
+    outputs.dir(docDestinationDir)
     
     jvmArgs = ['--add-exports=jdk.javadoc/jdk.javadoc.internal.tool=ALL-UNNAMED',
                '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED']
@@ -73,12 +84,13 @@ task java11doc(type: JavaExec) {
         '-taglet', 'org.jdrupes.taglets.plantUml.StartUml',
         '-taglet', 'org.jdrupes.taglets.plantUml.EndUml',
         '-overview', "${rootProject.file('overview.md')}",
-        '-d', destinationDir,
+        '-d', docDestinationDir,
         '-sourcepath', sourceDirs.join(':'),
         '-subpackages', 'org.jgrapes',
         '-bottom', rootProject.file("misc/javadoc.bottom.txt").text,
         '--allow-script-in-comments',
         '-Xdoclint:-html',
+        '--main-stylesheet', "${rootProject.rootDir}/misc/stylesheet.css",
         '--add-exports=jdk.javadoc/jdk.javadoc.internal.doclets.formats.html=ALL-UNNAMED'
         ]
     
