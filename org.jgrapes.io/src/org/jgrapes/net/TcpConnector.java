@@ -37,8 +37,6 @@ import org.jgrapes.net.events.Connected;
  */
 public class TcpConnector extends TcpConnectionManager {
 
-    private int bufferSize = 1536;
-
     /**
      * Create a new instance using the given channel.
      * 
@@ -63,17 +61,8 @@ public class TcpConnector extends TcpConnectionManager {
      * @return the TCP connector for easy chaining
      */
     public TcpConnector setBufferSize(int size) {
-        this.bufferSize = size;
+        super.setBufferSize(size);
         return this;
-    }
-
-    /**
-     * Return the configured buffer size.
-     *
-     * @return the bufferSize
-     */
-    public int bufferSize() {
-        return bufferSize;
     }
 
     /**
