@@ -350,7 +350,7 @@
 <span class="source-line-no">337</span><span id="line-337">     */</span>
 <span class="source-line-no">338</span><span id="line-338">    private static class BufferProperties {</span>
 <span class="source-line-no">339</span><span id="line-339"></span>
-<span class="source-line-no">340</span><span id="line-340">        private StackTraceElement[] createdBy;</span>
+<span class="source-line-no">340</span><span id="line-340">        private final StackTraceElement[] createdBy;</span>
 <span class="source-line-no">341</span><span id="line-341"></span>
 <span class="source-line-no">342</span><span id="line-342">        /**</span>
 <span class="source-line-no">343</span><span id="line-343">         * Instantiates new buffer properties.</span>
@@ -358,520 +358,522 @@
 <span class="source-line-no">345</span><span id="line-345">        public BufferProperties() {</span>
 <span class="source-line-no">346</span><span id="line-346">            if (logger.isLoggable(Level.FINE)) {</span>
 <span class="source-line-no">347</span><span id="line-347">                createdBy = Thread.currentThread().getStackTrace();</span>
-<span class="source-line-no">348</span><span id="line-348">            }</span>
-<span class="source-line-no">349</span><span id="line-349">        }</span>
-<span class="source-line-no">350</span><span id="line-350"></span>
-<span class="source-line-no">351</span><span id="line-351">        /**</span>
-<span class="source-line-no">352</span><span id="line-352">         * Returns where the buffer was created.</span>
-<span class="source-line-no">353</span><span id="line-353">         *</span>
-<span class="source-line-no">354</span><span id="line-354">         * @return the stack trace element[]</span>
-<span class="source-line-no">355</span><span id="line-355">         */</span>
-<span class="source-line-no">356</span><span id="line-356">        @SuppressWarnings("PMD.MethodReturnsInternalArray")</span>
-<span class="source-line-no">357</span><span id="line-357">        public StackTraceElement[] createdBy() {</span>
-<span class="source-line-no">358</span><span id="line-358">            return createdBy;</span>
-<span class="source-line-no">359</span><span id="line-359">        }</span>
-<span class="source-line-no">360</span><span id="line-360">    }</span>
-<span class="source-line-no">361</span><span id="line-361"></span>
-<span class="source-line-no">362</span><span id="line-362">    /**</span>
-<span class="source-line-no">363</span><span id="line-363">     * This is basically a WeakHashMap. We cannot use WeakHashMap</span>
-<span class="source-line-no">364</span><span id="line-364">     * because there is no "hook" into the collection of orphaned</span>
-<span class="source-line-no">365</span><span id="line-365">     * references, which is what we want here.</span>
-<span class="source-line-no">366</span><span id="line-366">     */</span>
-<span class="source-line-no">367</span><span id="line-367">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">368</span><span id="line-368">    private class BufferMonitor {</span>
-<span class="source-line-no">369</span><span id="line-369"></span>
-<span class="source-line-no">370</span><span id="line-370">        private Entry&lt;W&gt;[] data;</span>
-<span class="source-line-no">371</span><span id="line-371">        private int indexMask;</span>
-<span class="source-line-no">372</span><span id="line-372">        private final ReferenceQueue&lt;W&gt; orphanedEntries</span>
-<span class="source-line-no">373</span><span id="line-373">            = new ReferenceQueue&lt;&gt;();</span>
-<span class="source-line-no">374</span><span id="line-374"></span>
-<span class="source-line-no">375</span><span id="line-375">        /**</span>
-<span class="source-line-no">376</span><span id="line-376">         * An Entry.</span>
-<span class="source-line-no">377</span><span id="line-377">         *</span>
-<span class="source-line-no">378</span><span id="line-378">         * @param &lt;B&gt; the generic type</span>
-<span class="source-line-no">379</span><span id="line-379">         */</span>
-<span class="source-line-no">380</span><span id="line-380">        private class Entry&lt;B extends ManagedBuffer&lt;?&gt;&gt; extends WeakReference&lt;B&gt;</span>
-<span class="source-line-no">381</span><span id="line-381">                implements Map.Entry&lt;B, BufferProperties&gt; {</span>
-<span class="source-line-no">382</span><span id="line-382">            /* default */ final int index;</span>
-<span class="source-line-no">383</span><span id="line-383">            /* default */ BufferProperties props;</span>
-<span class="source-line-no">384</span><span id="line-384">            /* default */ Entry&lt;B&gt; next;</span>
-<span class="source-line-no">385</span><span id="line-385"></span>
-<span class="source-line-no">386</span><span id="line-386">            /**</span>
-<span class="source-line-no">387</span><span id="line-387">             * Instantiates a new entry.</span>
-<span class="source-line-no">388</span><span id="line-388">             *</span>
-<span class="source-line-no">389</span><span id="line-389">             * @param buffer the buffer</span>
-<span class="source-line-no">390</span><span id="line-390">             * @param props the props</span>
-<span class="source-line-no">391</span><span id="line-391">             * @param queue the queue</span>
-<span class="source-line-no">392</span><span id="line-392">             * @param index the index</span>
-<span class="source-line-no">393</span><span id="line-393">             * @param next the next</span>
-<span class="source-line-no">394</span><span id="line-394">             */</span>
-<span class="source-line-no">395</span><span id="line-395">            /* default */ Entry(B buffer, BufferProperties props,</span>
-<span class="source-line-no">396</span><span id="line-396">                    ReferenceQueue&lt;B&gt; queue, int index, Entry&lt;B&gt; next) {</span>
-<span class="source-line-no">397</span><span id="line-397">                super(buffer, queue);</span>
-<span class="source-line-no">398</span><span id="line-398">                this.index = index;</span>
-<span class="source-line-no">399</span><span id="line-399">                this.props = props;</span>
-<span class="source-line-no">400</span><span id="line-400">                this.next = next;</span>
-<span class="source-line-no">401</span><span id="line-401">            }</span>
-<span class="source-line-no">402</span><span id="line-402"></span>
-<span class="source-line-no">403</span><span id="line-403">            @Override</span>
-<span class="source-line-no">404</span><span id="line-404">            public B getKey() {</span>
-<span class="source-line-no">405</span><span id="line-405">                return get();</span>
-<span class="source-line-no">406</span><span id="line-406">            }</span>
-<span class="source-line-no">407</span><span id="line-407"></span>
-<span class="source-line-no">408</span><span id="line-408">            @Override</span>
-<span class="source-line-no">409</span><span id="line-409">            public BufferProperties getValue() {</span>
-<span class="source-line-no">410</span><span id="line-410">                return props;</span>
-<span class="source-line-no">411</span><span id="line-411">            }</span>
-<span class="source-line-no">412</span><span id="line-412"></span>
-<span class="source-line-no">413</span><span id="line-413">            @Override</span>
-<span class="source-line-no">414</span><span id="line-414">            public BufferProperties setValue(BufferProperties props) {</span>
-<span class="source-line-no">415</span><span id="line-415">                return this.props = props;</span>
-<span class="source-line-no">416</span><span id="line-416">            }</span>
-<span class="source-line-no">417</span><span id="line-417">        }</span>
-<span class="source-line-no">418</span><span id="line-418"></span>
-<span class="source-line-no">419</span><span id="line-419">        /**</span>
-<span class="source-line-no">420</span><span id="line-420">         * @param data</span>
-<span class="source-line-no">421</span><span id="line-421">         */</span>
-<span class="source-line-no">422</span><span id="line-422">        @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">423</span><span id="line-423">        public BufferMonitor(int maxBuffers) {</span>
-<span class="source-line-no">424</span><span id="line-424">            int lists = 1;</span>
-<span class="source-line-no">425</span><span id="line-425">            while (lists &lt; maxBuffers) {</span>
-<span class="source-line-no">426</span><span id="line-426">                lists &lt;&lt;= 1;</span>
-<span class="source-line-no">427</span><span id="line-427">                indexMask = (indexMask &lt;&lt; 1) + 1;</span>
-<span class="source-line-no">428</span><span id="line-428">            }</span>
-<span class="source-line-no">429</span><span id="line-429">            data = new Entry[lists];</span>
-<span class="source-line-no">430</span><span id="line-430">        }</span>
-<span class="source-line-no">431</span><span id="line-431"></span>
-<span class="source-line-no">432</span><span id="line-432">        /**</span>
-<span class="source-line-no">433</span><span id="line-433">         * Put an entry in the map.</span>
-<span class="source-line-no">434</span><span id="line-434">         *</span>
-<span class="source-line-no">435</span><span id="line-435">         * @param buffer the buffer</span>
-<span class="source-line-no">436</span><span id="line-436">         * @param properties the properties</span>
-<span class="source-line-no">437</span><span id="line-437">         * @return the buffer properties</span>
-<span class="source-line-no">438</span><span id="line-438">         */</span>
-<span class="source-line-no">439</span><span id="line-439">        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
-<span class="source-line-no">440</span><span id="line-440">        public BufferProperties put(W buffer, BufferProperties properties) {</span>
-<span class="source-line-no">441</span><span id="line-441">            check();</span>
-<span class="source-line-no">442</span><span id="line-442">            int index = buffer.hashCode() &amp; indexMask;</span>
-<span class="source-line-no">443</span><span id="line-443">            synchronized (data) {</span>
-<span class="source-line-no">444</span><span id="line-444">                Entry&lt;W&gt; entry = data[index];</span>
-<span class="source-line-no">445</span><span id="line-445">                Entry&lt;W&gt; prev = null;</span>
-<span class="source-line-no">446</span><span id="line-446">                while (true) {</span>
-<span class="source-line-no">447</span><span id="line-447">                    if (entry == null) {</span>
-<span class="source-line-no">448</span><span id="line-448">                        // Not found, create new.</span>
-<span class="source-line-no">449</span><span id="line-449">                        entry = new Entry&lt;&gt;(buffer, properties,</span>
-<span class="source-line-no">450</span><span id="line-450">                            orphanedEntries, index, null);</span>
-<span class="source-line-no">451</span><span id="line-451">                        if (prev == null) {</span>
-<span class="source-line-no">452</span><span id="line-452">                            data[index] = entry; // Is first.</span>
-<span class="source-line-no">453</span><span id="line-453">                        } else {</span>
-<span class="source-line-no">454</span><span id="line-454">                            prev.next = entry; // Is next (last).</span>
-<span class="source-line-no">455</span><span id="line-455">                        }</span>
-<span class="source-line-no">456</span><span id="line-456">                        return properties;</span>
-<span class="source-line-no">457</span><span id="line-457">                    }</span>
-<span class="source-line-no">458</span><span id="line-458">                    if (entry.getKey() == buffer) {</span>
-<span class="source-line-no">459</span><span id="line-459">                        // Found, update.</span>
-<span class="source-line-no">460</span><span id="line-460">                        BufferProperties old = entry.getValue();</span>
-<span class="source-line-no">461</span><span id="line-461">                        entry.setValue(properties);</span>
-<span class="source-line-no">462</span><span id="line-462">                        return old;</span>
-<span class="source-line-no">463</span><span id="line-463">                    }</span>
-<span class="source-line-no">464</span><span id="line-464">                    prev = entry;</span>
-<span class="source-line-no">465</span><span id="line-465">                    entry = entry.next;</span>
-<span class="source-line-no">466</span><span id="line-466">                }</span>
-<span class="source-line-no">467</span><span id="line-467">            }</span>
-<span class="source-line-no">468</span><span id="line-468">        }</span>
-<span class="source-line-no">469</span><span id="line-469"></span>
-<span class="source-line-no">470</span><span id="line-470">        /**</span>
-<span class="source-line-no">471</span><span id="line-471">         * Returns the properties for the given buffer.</span>
-<span class="source-line-no">472</span><span id="line-472">         *</span>
-<span class="source-line-no">473</span><span id="line-473">         * @param buffer the buffer</span>
-<span class="source-line-no">474</span><span id="line-474">         * @return the buffer properties</span>
-<span class="source-line-no">475</span><span id="line-475">         */</span>
-<span class="source-line-no">476</span><span id="line-476">        @SuppressWarnings("unused")</span>
-<span class="source-line-no">477</span><span id="line-477">        public BufferProperties get(ManagedBuffer&lt;?&gt; buffer) {</span>
-<span class="source-line-no">478</span><span id="line-478">            check();</span>
-<span class="source-line-no">479</span><span id="line-479">            int index = buffer.hashCode() &amp; indexMask;</span>
-<span class="source-line-no">480</span><span id="line-480">            synchronized (data) {</span>
-<span class="source-line-no">481</span><span id="line-481">                Entry&lt;W&gt; entry = data[index];</span>
-<span class="source-line-no">482</span><span id="line-482">                while (entry != null) {</span>
-<span class="source-line-no">483</span><span id="line-483">                    if (entry.getKey() == buffer) {</span>
-<span class="source-line-no">484</span><span id="line-484">                        return entry.getValue();</span>
-<span class="source-line-no">485</span><span id="line-485">                    }</span>
-<span class="source-line-no">486</span><span id="line-486">                    entry = entry.next;</span>
-<span class="source-line-no">487</span><span id="line-487">                }</span>
-<span class="source-line-no">488</span><span id="line-488">                return null;</span>
-<span class="source-line-no">489</span><span id="line-489">            }</span>
-<span class="source-line-no">490</span><span id="line-490">        }</span>
-<span class="source-line-no">491</span><span id="line-491"></span>
-<span class="source-line-no">492</span><span id="line-492">        /**</span>
-<span class="source-line-no">493</span><span id="line-493">         * Removes the given buffer.</span>
-<span class="source-line-no">494</span><span id="line-494">         *</span>
-<span class="source-line-no">495</span><span id="line-495">         * @param buffer the buffer</span>
-<span class="source-line-no">496</span><span id="line-496">         * @return the buffer properties</span>
-<span class="source-line-no">497</span><span id="line-497">         */</span>
-<span class="source-line-no">498</span><span id="line-498">        public BufferProperties remove(ManagedBuffer&lt;?&gt; buffer) {</span>
-<span class="source-line-no">499</span><span id="line-499">            check();</span>
-<span class="source-line-no">500</span><span id="line-500">            int index = buffer.hashCode() &amp; indexMask;</span>
-<span class="source-line-no">501</span><span id="line-501">            synchronized (data) {</span>
-<span class="source-line-no">502</span><span id="line-502">                Entry&lt;W&gt; entry = data[index];</span>
-<span class="source-line-no">503</span><span id="line-503">                Entry&lt;W&gt; prev = null;</span>
-<span class="source-line-no">504</span><span id="line-504">                while (entry != null) {</span>
-<span class="source-line-no">505</span><span id="line-505">                    if (entry.getKey() == buffer) {</span>
-<span class="source-line-no">506</span><span id="line-506">                        if (prev == null) {</span>
-<span class="source-line-no">507</span><span id="line-507">                            data[index] = entry.next; // Was first.</span>
-<span class="source-line-no">508</span><span id="line-508">                        } else {</span>
-<span class="source-line-no">509</span><span id="line-509">                            prev.next = entry.next;</span>
-<span class="source-line-no">510</span><span id="line-510">                        }</span>
-<span class="source-line-no">511</span><span id="line-511">                        return entry.getValue();</span>
-<span class="source-line-no">512</span><span id="line-512">                    }</span>
-<span class="source-line-no">513</span><span id="line-513">                    prev = entry;</span>
-<span class="source-line-no">514</span><span id="line-514">                    entry = entry.next;</span>
-<span class="source-line-no">515</span><span id="line-515">                }</span>
-<span class="source-line-no">516</span><span id="line-516">                return null;</span>
-<span class="source-line-no">517</span><span id="line-517">            }</span>
-<span class="source-line-no">518</span><span id="line-518">        }</span>
-<span class="source-line-no">519</span><span id="line-519"></span>
-<span class="source-line-no">520</span><span id="line-520">        @SuppressWarnings("PMD.CompareObjectsWithEquals")</span>
-<span class="source-line-no">521</span><span id="line-521">        private BufferProperties remove(Entry&lt;W&gt; toBeRemoved) {</span>
-<span class="source-line-no">522</span><span id="line-522">            synchronized (data) {</span>
-<span class="source-line-no">523</span><span id="line-523">                Entry&lt;W&gt; entry = data[toBeRemoved.index];</span>
-<span class="source-line-no">524</span><span id="line-524">                Entry&lt;W&gt; prev = null;</span>
-<span class="source-line-no">525</span><span id="line-525">                while (entry != null) {</span>
-<span class="source-line-no">526</span><span id="line-526">                    if (entry == toBeRemoved) {</span>
-<span class="source-line-no">527</span><span id="line-527">                        if (prev == null) {</span>
-<span class="source-line-no">528</span><span id="line-528">                            data[toBeRemoved.index] = entry.next; // Was first.</span>
-<span class="source-line-no">529</span><span id="line-529">                        } else {</span>
-<span class="source-line-no">530</span><span id="line-530">                            prev.next = entry.next;</span>
-<span class="source-line-no">531</span><span id="line-531">                        }</span>
-<span class="source-line-no">532</span><span id="line-532">                        return entry.getValue();</span>
-<span class="source-line-no">533</span><span id="line-533">                    }</span>
-<span class="source-line-no">534</span><span id="line-534">                    prev = entry;</span>
-<span class="source-line-no">535</span><span id="line-535">                    entry = entry.next;</span>
-<span class="source-line-no">536</span><span id="line-536">                }</span>
-<span class="source-line-no">537</span><span id="line-537">                return null;</span>
-<span class="source-line-no">538</span><span id="line-538">            }</span>
-<span class="source-line-no">539</span><span id="line-539">        }</span>
-<span class="source-line-no">540</span><span id="line-540"></span>
-<span class="source-line-no">541</span><span id="line-541">        private void check() {</span>
-<span class="source-line-no">542</span><span id="line-542">            while (true) {</span>
-<span class="source-line-no">543</span><span id="line-543">                @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">544</span><span id="line-544">                Entry&lt;W&gt; entry = (Entry&lt;W&gt;) orphanedEntries.poll();</span>
-<span class="source-line-no">545</span><span id="line-545">                if (entry == null) {</span>
-<span class="source-line-no">546</span><span id="line-546">                    return;</span>
-<span class="source-line-no">547</span><span id="line-547">                }</span>
-<span class="source-line-no">548</span><span id="line-548">                // Managed buffer has not been properly recollected, fix.</span>
-<span class="source-line-no">549</span><span id="line-549">                BufferProperties props = remove(entry);</span>
-<span class="source-line-no">550</span><span id="line-550">                if (props == null) {</span>
-<span class="source-line-no">551</span><span id="line-551">                    return;</span>
-<span class="source-line-no">552</span><span id="line-552">                }</span>
-<span class="source-line-no">553</span><span id="line-553">                createdBufs.decrementAndGet();</span>
-<span class="source-line-no">554</span><span id="line-554">                // Create warning</span>
-<span class="source-line-no">555</span><span id="line-555">                if (logger.isLoggable(Level.WARNING)) {</span>
-<span class="source-line-no">556</span><span id="line-556">                    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
-<span class="source-line-no">557</span><span id="line-557">                    final StringBuilder msg = new StringBuilder(</span>
-<span class="source-line-no">558</span><span id="line-558">                        "Orphaned buffer from pool ");</span>
-<span class="source-line-no">559</span><span id="line-559">                    msg.append(name());</span>
-<span class="source-line-no">560</span><span id="line-560">                    StackTraceElement[] trace = props.createdBy();</span>
-<span class="source-line-no">561</span><span id="line-561">                    if (trace != null) {</span>
-<span class="source-line-no">562</span><span id="line-562">                        msg.append(", created");</span>
-<span class="source-line-no">563</span><span id="line-563">                        for (StackTraceElement e : trace) {</span>
-<span class="source-line-no">564</span><span id="line-564">                            msg.append(System.lineSeparator());</span>
-<span class="source-line-no">565</span><span id="line-565">                            msg.append("\tat ");</span>
-<span class="source-line-no">566</span><span id="line-566">                            msg.append(e.toString());</span>
-<span class="source-line-no">567</span><span id="line-567">                        }</span>
-<span class="source-line-no">568</span><span id="line-568">                    }</span>
-<span class="source-line-no">569</span><span id="line-569">                    logger.warning(msg.toString());</span>
-<span class="source-line-no">570</span><span id="line-570">                }</span>
-<span class="source-line-no">571</span><span id="line-571">            }</span>
-<span class="source-line-no">572</span><span id="line-572">        }</span>
-<span class="source-line-no">573</span><span id="line-573">    }</span>
-<span class="source-line-no">574</span><span id="line-574"></span>
-<span class="source-line-no">575</span><span id="line-575">    /**</span>
-<span class="source-line-no">576</span><span id="line-576">     * An MBean interface for getting information about the managed</span>
-<span class="source-line-no">577</span><span id="line-577">     * buffer pools. Note that created buffer pools are tracked using</span>
-<span class="source-line-no">578</span><span id="line-578">     * weak references. Therefore, the MBean may report more pools than</span>
-<span class="source-line-no">579</span><span id="line-579">     * are really in use. </span>
-<span class="source-line-no">580</span><span id="line-580">     */</span>
-<span class="source-line-no">581</span><span id="line-581">    public interface ManagedBufferPoolMXBean {</span>
-<span class="source-line-no">582</span><span id="line-582"></span>
-<span class="source-line-no">583</span><span id="line-583">        /**</span>
-<span class="source-line-no">584</span><span id="line-584">         * Information about a single managed pool.</span>
-<span class="source-line-no">585</span><span id="line-585">         */</span>
-<span class="source-line-no">586</span><span id="line-586">        @SuppressWarnings("PMD.DataClass")</span>
-<span class="source-line-no">587</span><span id="line-587">        class PoolInfo {</span>
-<span class="source-line-no">588</span><span id="line-588">            private final int created;</span>
-<span class="source-line-no">589</span><span id="line-589">            private final int pooled;</span>
-<span class="source-line-no">590</span><span id="line-590">            private final int preserved;</span>
-<span class="source-line-no">591</span><span id="line-591">            private final int maximum;</span>
-<span class="source-line-no">592</span><span id="line-592">            private final int bufferSize;</span>
-<span class="source-line-no">593</span><span id="line-593"></span>
-<span class="source-line-no">594</span><span id="line-594">            /**</span>
-<span class="source-line-no">595</span><span id="line-595">             * Instantiates a new pool info.</span>
-<span class="source-line-no">596</span><span id="line-596">             *</span>
-<span class="source-line-no">597</span><span id="line-597">             * @param created the created</span>
-<span class="source-line-no">598</span><span id="line-598">             * @param pooled the pooled</span>
-<span class="source-line-no">599</span><span id="line-599">             * @param preserved the preserved</span>
-<span class="source-line-no">600</span><span id="line-600">             * @param maximum the maximum</span>
-<span class="source-line-no">601</span><span id="line-601">             * @param bufferSize the buffer size</span>
-<span class="source-line-no">602</span><span id="line-602">             */</span>
-<span class="source-line-no">603</span><span id="line-603">            @ConstructorProperties({ "created", "pooled",</span>
-<span class="source-line-no">604</span><span id="line-604">                "preserved", "maximum", "bufferSize" })</span>
-<span class="source-line-no">605</span><span id="line-605">            public PoolInfo(int created, int pooled,</span>
-<span class="source-line-no">606</span><span id="line-606">                    int preserved, int maximum, int bufferSize) {</span>
-<span class="source-line-no">607</span><span id="line-607">                this.created = created;</span>
-<span class="source-line-no">608</span><span id="line-608">                this.pooled = pooled;</span>
-<span class="source-line-no">609</span><span id="line-609">                this.preserved = preserved;</span>
-<span class="source-line-no">610</span><span id="line-610">                this.maximum = maximum;</span>
-<span class="source-line-no">611</span><span id="line-611">                this.bufferSize = bufferSize;</span>
-<span class="source-line-no">612</span><span id="line-612">            }</span>
-<span class="source-line-no">613</span><span id="line-613"></span>
-<span class="source-line-no">614</span><span id="line-614">            /**</span>
-<span class="source-line-no">615</span><span id="line-615">             * The number of buffers created by this pool.</span>
-<span class="source-line-no">616</span><span id="line-616">             * </span>
-<span class="source-line-no">617</span><span id="line-617">             * @return the value</span>
-<span class="source-line-no">618</span><span id="line-618">             */</span>
-<span class="source-line-no">619</span><span id="line-619">            public int getCreated() {</span>
-<span class="source-line-no">620</span><span id="line-620">                return created;</span>
-<span class="source-line-no">621</span><span id="line-621">            }</span>
-<span class="source-line-no">622</span><span id="line-622"></span>
-<span class="source-line-no">623</span><span id="line-623">            /**</span>
-<span class="source-line-no">624</span><span id="line-624">             * The number of buffers pooled (ready to be acquired).</span>
-<span class="source-line-no">625</span><span id="line-625">             * </span>
-<span class="source-line-no">626</span><span id="line-626">             * @return the value</span>
-<span class="source-line-no">627</span><span id="line-627">             */</span>
-<span class="source-line-no">628</span><span id="line-628">            public int getPooled() {</span>
-<span class="source-line-no">629</span><span id="line-629">                return pooled;</span>
-<span class="source-line-no">630</span><span id="line-630">            }</span>
-<span class="source-line-no">631</span><span id="line-631"></span>
-<span class="source-line-no">632</span><span id="line-632">            /**</span>
-<span class="source-line-no">633</span><span id="line-633">             * The number of buffers preserved.</span>
-<span class="source-line-no">634</span><span id="line-634">             * </span>
-<span class="source-line-no">635</span><span id="line-635">             * @return the value</span>
-<span class="source-line-no">636</span><span id="line-636">             */</span>
-<span class="source-line-no">637</span><span id="line-637">            public int getPreserved() {</span>
-<span class="source-line-no">638</span><span id="line-638">                return preserved;</span>
-<span class="source-line-no">639</span><span id="line-639">            }</span>
-<span class="source-line-no">640</span><span id="line-640"></span>
-<span class="source-line-no">641</span><span id="line-641">            /**</span>
-<span class="source-line-no">642</span><span id="line-642">             * The maximum number of buffers created by this pool.</span>
-<span class="source-line-no">643</span><span id="line-643">             * </span>
-<span class="source-line-no">644</span><span id="line-644">             * @return the value</span>
-<span class="source-line-no">645</span><span id="line-645">             */</span>
-<span class="source-line-no">646</span><span id="line-646">            public int getMaximum() {</span>
-<span class="source-line-no">647</span><span id="line-647">                return maximum;</span>
-<span class="source-line-no">648</span><span id="line-648">            }</span>
-<span class="source-line-no">649</span><span id="line-649"></span>
-<span class="source-line-no">650</span><span id="line-650">            /**</span>
-<span class="source-line-no">651</span><span id="line-651">             * The size of the buffers in items.</span>
-<span class="source-line-no">652</span><span id="line-652">             * </span>
-<span class="source-line-no">653</span><span id="line-653">             * @return the buffer size</span>
-<span class="source-line-no">654</span><span id="line-654">             */</span>
-<span class="source-line-no">655</span><span id="line-655">            public int getBufferSize() {</span>
-<span class="source-line-no">656</span><span id="line-656">                return bufferSize;</span>
-<span class="source-line-no">657</span><span id="line-657">            }</span>
-<span class="source-line-no">658</span><span id="line-658">        }</span>
-<span class="source-line-no">659</span><span id="line-659"></span>
-<span class="source-line-no">660</span><span id="line-660">        /**</span>
-<span class="source-line-no">661</span><span id="line-661">         * Three views on the existing pool.</span>
-<span class="source-line-no">662</span><span id="line-662">         */</span>
-<span class="source-line-no">663</span><span id="line-663">        class PoolInfos {</span>
-<span class="source-line-no">664</span><span id="line-664">            private final SortedMap&lt;String, PoolInfo&gt; allPools;</span>
-<span class="source-line-no">665</span><span id="line-665">            private final SortedMap&lt;String, PoolInfo&gt; nonEmptyPools;</span>
-<span class="source-line-no">666</span><span id="line-666">            private final SortedMap&lt;String, PoolInfo&gt; usedPools;</span>
-<span class="source-line-no">667</span><span id="line-667"></span>
-<span class="source-line-no">668</span><span id="line-668">            /**</span>
-<span class="source-line-no">669</span><span id="line-669">             * Instantiates a new pool infos.</span>
-<span class="source-line-no">670</span><span id="line-670">             *</span>
-<span class="source-line-no">671</span><span id="line-671">             * @param pools the pools</span>
-<span class="source-line-no">672</span><span id="line-672">             */</span>
-<span class="source-line-no">673</span><span id="line-673">            public PoolInfos(Set&lt;ManagedBufferPool&lt;?, ?&gt;&gt; pools) {</span>
-<span class="source-line-no">674</span><span id="line-674">                allPools = new TreeMap&lt;&gt;();</span>
-<span class="source-line-no">675</span><span id="line-675">                nonEmptyPools = new TreeMap&lt;&gt;();</span>
-<span class="source-line-no">676</span><span id="line-676">                usedPools = new TreeMap&lt;&gt;();</span>
-<span class="source-line-no">677</span><span id="line-677"></span>
-<span class="source-line-no">678</span><span id="line-678">                @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">679</span><span id="line-679">                Map&lt;String, Integer&gt; dupsNext = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">680</span><span id="line-680">                for (ManagedBufferPool&lt;?, ?&gt; mbp : pools) {</span>
-<span class="source-line-no">681</span><span id="line-681">                    String key = mbp.name();</span>
-<span class="source-line-no">682</span><span id="line-682">                    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
-<span class="source-line-no">683</span><span id="line-683">                    PoolInfo infos = new PoolInfo(</span>
-<span class="source-line-no">684</span><span id="line-684">                        mbp.createdBufs.get(), mbp.queue.size(),</span>
-<span class="source-line-no">685</span><span id="line-685">                        mbp.preservedBufs, mbp.maximumBufs,</span>
-<span class="source-line-no">686</span><span id="line-686">                        mbp.bufferSize());</span>
-<span class="source-line-no">687</span><span id="line-687">                    if (allPools.containsKey(key)</span>
-<span class="source-line-no">688</span><span id="line-688">                        || dupsNext.containsKey(key)) {</span>
-<span class="source-line-no">689</span><span id="line-689">                        if (allPools.containsKey(key)) {</span>
-<span class="source-line-no">690</span><span id="line-690">                            // Found first duplicate, rename</span>
-<span class="source-line-no">691</span><span id="line-691">                            allPools.put(key + "#1", allPools.get(key));</span>
-<span class="source-line-no">692</span><span id="line-692">                            allPools.remove(key);</span>
-<span class="source-line-no">693</span><span id="line-693">                            dupsNext.put(key, 2);</span>
-<span class="source-line-no">694</span><span id="line-694">                        }</span>
-<span class="source-line-no">695</span><span id="line-695">                        allPools.put(key + "#"</span>
-<span class="source-line-no">696</span><span id="line-696">                            + (dupsNext.put(key, dupsNext.get(key) + 1)),</span>
-<span class="source-line-no">697</span><span id="line-697">                            infos);</span>
-<span class="source-line-no">698</span><span id="line-698">                    } else {</span>
-<span class="source-line-no">699</span><span id="line-699">                        allPools.put(key, infos);</span>
-<span class="source-line-no">700</span><span id="line-700">                    }</span>
-<span class="source-line-no">701</span><span id="line-701">                }</span>
-<span class="source-line-no">702</span><span id="line-702">                for (Map.Entry&lt;String, PoolInfo&gt; e : allPools.entrySet()) {</span>
-<span class="source-line-no">703</span><span id="line-703">                    PoolInfo infos = e.getValue();</span>
-<span class="source-line-no">704</span><span id="line-704">                    if (infos.getPooled() &gt; 0) {</span>
-<span class="source-line-no">705</span><span id="line-705">                        nonEmptyPools.put(e.getKey(), infos);</span>
-<span class="source-line-no">706</span><span id="line-706">                    }</span>
-<span class="source-line-no">707</span><span id="line-707">                    if (infos.getCreated() &gt; 0) {</span>
-<span class="source-line-no">708</span><span id="line-708">                        usedPools.put(e.getKey(), infos);</span>
-<span class="source-line-no">709</span><span id="line-709">                    }</span>
-<span class="source-line-no">710</span><span id="line-710">                }</span>
-<span class="source-line-no">711</span><span id="line-711">            }</span>
-<span class="source-line-no">712</span><span id="line-712"></span>
-<span class="source-line-no">713</span><span id="line-713">            /**</span>
-<span class="source-line-no">714</span><span id="line-714">             * All pools.</span>
-<span class="source-line-no">715</span><span id="line-715">             *</span>
-<span class="source-line-no">716</span><span id="line-716">             * @return the all pools</span>
-<span class="source-line-no">717</span><span id="line-717">             */</span>
-<span class="source-line-no">718</span><span id="line-718">            public SortedMap&lt;String, PoolInfo&gt; getAllPools() {</span>
-<span class="source-line-no">719</span><span id="line-719">                return allPools;</span>
-<span class="source-line-no">720</span><span id="line-720">            }</span>
-<span class="source-line-no">721</span><span id="line-721"></span>
-<span class="source-line-no">722</span><span id="line-722">            /**</span>
-<span class="source-line-no">723</span><span id="line-723">             * Pools that have at least managed buffer enqueued</span>
-<span class="source-line-no">724</span><span id="line-724">             * (ready to be acquired).</span>
-<span class="source-line-no">725</span><span id="line-725">             *</span>
-<span class="source-line-no">726</span><span id="line-726">             * @return the non empty pools</span>
-<span class="source-line-no">727</span><span id="line-727">             */</span>
-<span class="source-line-no">728</span><span id="line-728">            public SortedMap&lt;String, PoolInfo&gt; getNonEmptyPools() {</span>
-<span class="source-line-no">729</span><span id="line-729">                return nonEmptyPools;</span>
-<span class="source-line-no">730</span><span id="line-730">            }</span>
-<span class="source-line-no">731</span><span id="line-731"></span>
-<span class="source-line-no">732</span><span id="line-732">            /**</span>
-<span class="source-line-no">733</span><span id="line-733">             * Pools that have at least one associated buffer</span>
-<span class="source-line-no">734</span><span id="line-734">             * (in pool or in use).</span>
-<span class="source-line-no">735</span><span id="line-735">             *</span>
-<span class="source-line-no">736</span><span id="line-736">             * @return the used pools</span>
-<span class="source-line-no">737</span><span id="line-737">             */</span>
-<span class="source-line-no">738</span><span id="line-738">            public SortedMap&lt;String, PoolInfo&gt; getUsedPools() {</span>
-<span class="source-line-no">739</span><span id="line-739">                return usedPools;</span>
-<span class="source-line-no">740</span><span id="line-740">            }</span>
-<span class="source-line-no">741</span><span id="line-741">        }</span>
-<span class="source-line-no">742</span><span id="line-742"></span>
-<span class="source-line-no">743</span><span id="line-743">        /**</span>
-<span class="source-line-no">744</span><span id="line-744">         * Set the default drain delay.</span>
-<span class="source-line-no">745</span><span id="line-745">         * </span>
-<span class="source-line-no">746</span><span id="line-746">         * @param millis the drain delay in milli seconds</span>
-<span class="source-line-no">747</span><span id="line-747">         */</span>
-<span class="source-line-no">748</span><span id="line-748">        void setDefaultDrainDelay(long millis);</span>
-<span class="source-line-no">749</span><span id="line-749"></span>
-<span class="source-line-no">750</span><span id="line-750">        /**</span>
-<span class="source-line-no">751</span><span id="line-751">         * Returns the drain delay in milli seconds.</span>
-<span class="source-line-no">752</span><span id="line-752">         * </span>
-<span class="source-line-no">753</span><span id="line-753">         * @return the value</span>
-<span class="source-line-no">754</span><span id="line-754">         */</span>
-<span class="source-line-no">755</span><span id="line-755">        long getDefaultDrainDelay();</span>
-<span class="source-line-no">756</span><span id="line-756"></span>
-<span class="source-line-no">757</span><span id="line-757">        /**</span>
-<span class="source-line-no">758</span><span id="line-758">         * Set the acquire warning limit.</span>
-<span class="source-line-no">759</span><span id="line-759">         * </span>
-<span class="source-line-no">760</span><span id="line-760">         * @param millis the limit</span>
-<span class="source-line-no">761</span><span id="line-761">         */</span>
-<span class="source-line-no">762</span><span id="line-762">        void setAcquireWarningLimit(long millis);</span>
-<span class="source-line-no">763</span><span id="line-763"></span>
-<span class="source-line-no">764</span><span id="line-764">        /**</span>
-<span class="source-line-no">765</span><span id="line-765">         * Returns the acquire warning limit.</span>
-<span class="source-line-no">766</span><span id="line-766">         * </span>
-<span class="source-line-no">767</span><span id="line-767">         * @return the value</span>
-<span class="source-line-no">768</span><span id="line-768">         */</span>
-<span class="source-line-no">769</span><span id="line-769">        long getAcquireWarningLimit();</span>
-<span class="source-line-no">770</span><span id="line-770"></span>
-<span class="source-line-no">771</span><span id="line-771">        /**</span>
-<span class="source-line-no">772</span><span id="line-772">         * Informations about the pools.</span>
-<span class="source-line-no">773</span><span id="line-773">         * </span>
-<span class="source-line-no">774</span><span id="line-774">         * @return the map</span>
-<span class="source-line-no">775</span><span id="line-775">         */</span>
-<span class="source-line-no">776</span><span id="line-776">        PoolInfos getPoolInfos();</span>
-<span class="source-line-no">777</span><span id="line-777"></span>
-<span class="source-line-no">778</span><span id="line-778">        /**</span>
-<span class="source-line-no">779</span><span id="line-779">         * Summary information about the pooled buffers.</span>
-<span class="source-line-no">780</span><span id="line-780">         * </span>
-<span class="source-line-no">781</span><span id="line-781">         * @return the values</span>
-<span class="source-line-no">782</span><span id="line-782">         */</span>
-<span class="source-line-no">783</span><span id="line-783">        IntSummaryStatistics getPooledPerPoolStatistics();</span>
-<span class="source-line-no">784</span><span id="line-784"></span>
-<span class="source-line-no">785</span><span id="line-785">        /**</span>
-<span class="source-line-no">786</span><span id="line-786">         * Summary information about the created buffers.</span>
-<span class="source-line-no">787</span><span id="line-787">         * </span>
-<span class="source-line-no">788</span><span id="line-788">         * @return the values</span>
-<span class="source-line-no">789</span><span id="line-789">         */</span>
-<span class="source-line-no">790</span><span id="line-790">        IntSummaryStatistics getCreatedPerPoolStatistics();</span>
-<span class="source-line-no">791</span><span id="line-791">    }</span>
-<span class="source-line-no">792</span><span id="line-792"></span>
-<span class="source-line-no">793</span><span id="line-793">    /**</span>
-<span class="source-line-no">794</span><span id="line-794">     * The MBean view</span>
-<span class="source-line-no">795</span><span id="line-795">     */</span>
-<span class="source-line-no">796</span><span id="line-796">    private static class MBeanView implements ManagedBufferPoolMXBean {</span>
-<span class="source-line-no">797</span><span id="line-797"></span>
-<span class="source-line-no">798</span><span id="line-798">        private static Set&lt;ManagedBufferPool&lt;?, ?&gt;&gt; allPools</span>
-<span class="source-line-no">799</span><span id="line-799">            = Collections.synchronizedSet(</span>
-<span class="source-line-no">800</span><span id="line-800">                Collections.newSetFromMap(</span>
-<span class="source-line-no">801</span><span id="line-801">                    new WeakHashMap&lt;ManagedBufferPool&lt;?, ?&gt;, Boolean&gt;()));</span>
-<span class="source-line-no">802</span><span id="line-802"></span>
-<span class="source-line-no">803</span><span id="line-803">        /**</span>
-<span class="source-line-no">804</span><span id="line-804">         * Adds the pool.</span>
-<span class="source-line-no">805</span><span id="line-805">         *</span>
-<span class="source-line-no">806</span><span id="line-806">         * @param pool the pool</span>
-<span class="source-line-no">807</span><span id="line-807">         */</span>
-<span class="source-line-no">808</span><span id="line-808">        public static void addPool(ManagedBufferPool&lt;?, ?&gt; pool) {</span>
-<span class="source-line-no">809</span><span id="line-809">            allPools.add(pool);</span>
-<span class="source-line-no">810</span><span id="line-810">        }</span>
-<span class="source-line-no">811</span><span id="line-811"></span>
-<span class="source-line-no">812</span><span id="line-812">        @Override</span>
-<span class="source-line-no">813</span><span id="line-813">        public void setDefaultDrainDelay(long millis) {</span>
-<span class="source-line-no">814</span><span id="line-814">            ManagedBufferPool.setDefaultDrainDelay(millis);</span>
-<span class="source-line-no">815</span><span id="line-815">        }</span>
-<span class="source-line-no">816</span><span id="line-816"></span>
-<span class="source-line-no">817</span><span id="line-817">        @Override</span>
-<span class="source-line-no">818</span><span id="line-818">        public long getDefaultDrainDelay() {</span>
-<span class="source-line-no">819</span><span id="line-819">            return ManagedBufferPool.defaultDrainDelay();</span>
-<span class="source-line-no">820</span><span id="line-820">        }</span>
-<span class="source-line-no">821</span><span id="line-821"></span>
-<span class="source-line-no">822</span><span id="line-822">        @Override</span>
-<span class="source-line-no">823</span><span id="line-823">        public void setAcquireWarningLimit(long millis) {</span>
-<span class="source-line-no">824</span><span id="line-824">            ManagedBufferPool.acquireWarningLimit = millis;</span>
-<span class="source-line-no">825</span><span id="line-825">        }</span>
-<span class="source-line-no">826</span><span id="line-826"></span>
-<span class="source-line-no">827</span><span id="line-827">        @Override</span>
-<span class="source-line-no">828</span><span id="line-828">        public long getAcquireWarningLimit() {</span>
-<span class="source-line-no">829</span><span id="line-829">            return ManagedBufferPool.acquireWarningLimit;</span>
-<span class="source-line-no">830</span><span id="line-830">        }</span>
-<span class="source-line-no">831</span><span id="line-831"></span>
-<span class="source-line-no">832</span><span id="line-832">        @Override</span>
-<span class="source-line-no">833</span><span id="line-833">        public PoolInfos getPoolInfos() {</span>
-<span class="source-line-no">834</span><span id="line-834">            return new PoolInfos(allPools);</span>
-<span class="source-line-no">835</span><span id="line-835">        }</span>
-<span class="source-line-no">836</span><span id="line-836"></span>
-<span class="source-line-no">837</span><span id="line-837">        @Override</span>
-<span class="source-line-no">838</span><span id="line-838">        public IntSummaryStatistics getPooledPerPoolStatistics() {</span>
-<span class="source-line-no">839</span><span id="line-839">            return allPools.stream().collect(</span>
-<span class="source-line-no">840</span><span id="line-840">                Collectors.summarizingInt(mbp -&gt; mbp.queue.size()));</span>
-<span class="source-line-no">841</span><span id="line-841">        }</span>
-<span class="source-line-no">842</span><span id="line-842"></span>
-<span class="source-line-no">843</span><span id="line-843">        @Override</span>
-<span class="source-line-no">844</span><span id="line-844">        public IntSummaryStatistics getCreatedPerPoolStatistics() {</span>
-<span class="source-line-no">845</span><span id="line-845">            return allPools.stream().collect(</span>
-<span class="source-line-no">846</span><span id="line-846">                Collectors.summarizingInt(mbp -&gt; mbp.createdBufs.get()));</span>
-<span class="source-line-no">847</span><span id="line-847">        }</span>
-<span class="source-line-no">848</span><span id="line-848">    }</span>
-<span class="source-line-no">849</span><span id="line-849"></span>
-<span class="source-line-no">850</span><span id="line-850">    static {</span>
-<span class="source-line-no">851</span><span id="line-851">        try {</span>
-<span class="source-line-no">852</span><span id="line-852">            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();</span>
-<span class="source-line-no">853</span><span id="line-853">            ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="</span>
-<span class="source-line-no">854</span><span id="line-854">                + ManagedBufferPool.class.getSimpleName() + "s");</span>
-<span class="source-line-no">855</span><span id="line-855">            mbs.registerMBean(new MBeanView(), mxbeanName);</span>
-<span class="source-line-no">856</span><span id="line-856">        } catch (MalformedObjectNameException | InstanceAlreadyExistsException</span>
-<span class="source-line-no">857</span><span id="line-857">                | MBeanRegistrationException | NotCompliantMBeanException e) {</span>
-<span class="source-line-no">858</span><span id="line-858">            // Does not happen</span>
-<span class="source-line-no">859</span><span id="line-859">        }</span>
-<span class="source-line-no">860</span><span id="line-860">    }</span>
-<span class="source-line-no">861</span><span id="line-861">}</span>
+<span class="source-line-no">348</span><span id="line-348">            } else {</span>
+<span class="source-line-no">349</span><span id="line-349">                createdBy = new StackTraceElement[0];</span>
+<span class="source-line-no">350</span><span id="line-350">            }</span>
+<span class="source-line-no">351</span><span id="line-351">        }</span>
+<span class="source-line-no">352</span><span id="line-352"></span>
+<span class="source-line-no">353</span><span id="line-353">        /**</span>
+<span class="source-line-no">354</span><span id="line-354">         * Returns where the buffer was created.</span>
+<span class="source-line-no">355</span><span id="line-355">         *</span>
+<span class="source-line-no">356</span><span id="line-356">         * @return the stack trace element[]</span>
+<span class="source-line-no">357</span><span id="line-357">         */</span>
+<span class="source-line-no">358</span><span id="line-358">        @SuppressWarnings("PMD.MethodReturnsInternalArray")</span>
+<span class="source-line-no">359</span><span id="line-359">        public StackTraceElement[] createdBy() {</span>
+<span class="source-line-no">360</span><span id="line-360">            return createdBy;</span>
+<span class="source-line-no">361</span><span id="line-361">        }</span>
+<span class="source-line-no">362</span><span id="line-362">    }</span>
+<span class="source-line-no">363</span><span id="line-363"></span>
+<span class="source-line-no">364</span><span id="line-364">    /**</span>
+<span class="source-line-no">365</span><span id="line-365">     * This is basically a WeakHashMap. We cannot use WeakHashMap</span>
+<span class="source-line-no">366</span><span id="line-366">     * because there is no "hook" into the collection of orphaned</span>
+<span class="source-line-no">367</span><span id="line-367">     * references, which is what we want here.</span>
+<span class="source-line-no">368</span><span id="line-368">     */</span>
+<span class="source-line-no">369</span><span id="line-369">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
+<span class="source-line-no">370</span><span id="line-370">    private class BufferMonitor {</span>
+<span class="source-line-no">371</span><span id="line-371"></span>
+<span class="source-line-no">372</span><span id="line-372">        private Entry&lt;W&gt;[] data;</span>
+<span class="source-line-no">373</span><span id="line-373">        private int indexMask;</span>
+<span class="source-line-no">374</span><span id="line-374">        private final ReferenceQueue&lt;W&gt; orphanedEntries</span>
+<span class="source-line-no">375</span><span id="line-375">            = new ReferenceQueue&lt;&gt;();</span>
+<span class="source-line-no">376</span><span id="line-376"></span>
+<span class="source-line-no">377</span><span id="line-377">        /**</span>
+<span class="source-line-no">378</span><span id="line-378">         * An Entry.</span>
+<span class="source-line-no">379</span><span id="line-379">         *</span>
+<span class="source-line-no">380</span><span id="line-380">         * @param &lt;B&gt; the generic type</span>
+<span class="source-line-no">381</span><span id="line-381">         */</span>
+<span class="source-line-no">382</span><span id="line-382">        private class Entry&lt;B extends ManagedBuffer&lt;?&gt;&gt; extends WeakReference&lt;B&gt;</span>
+<span class="source-line-no">383</span><span id="line-383">                implements Map.Entry&lt;B, BufferProperties&gt; {</span>
+<span class="source-line-no">384</span><span id="line-384">            /* default */ final int index;</span>
+<span class="source-line-no">385</span><span id="line-385">            /* default */ BufferProperties props;</span>
+<span class="source-line-no">386</span><span id="line-386">            /* default */ Entry&lt;B&gt; next;</span>
+<span class="source-line-no">387</span><span id="line-387"></span>
+<span class="source-line-no">388</span><span id="line-388">            /**</span>
+<span class="source-line-no">389</span><span id="line-389">             * Instantiates a new entry.</span>
+<span class="source-line-no">390</span><span id="line-390">             *</span>
+<span class="source-line-no">391</span><span id="line-391">             * @param buffer the buffer</span>
+<span class="source-line-no">392</span><span id="line-392">             * @param props the props</span>
+<span class="source-line-no">393</span><span id="line-393">             * @param queue the queue</span>
+<span class="source-line-no">394</span><span id="line-394">             * @param index the index</span>
+<span class="source-line-no">395</span><span id="line-395">             * @param next the next</span>
+<span class="source-line-no">396</span><span id="line-396">             */</span>
+<span class="source-line-no">397</span><span id="line-397">            /* default */ Entry(B buffer, BufferProperties props,</span>
+<span class="source-line-no">398</span><span id="line-398">                    ReferenceQueue&lt;B&gt; queue, int index, Entry&lt;B&gt; next) {</span>
+<span class="source-line-no">399</span><span id="line-399">                super(buffer, queue);</span>
+<span class="source-line-no">400</span><span id="line-400">                this.index = index;</span>
+<span class="source-line-no">401</span><span id="line-401">                this.props = props;</span>
+<span class="source-line-no">402</span><span id="line-402">                this.next = next;</span>
+<span class="source-line-no">403</span><span id="line-403">            }</span>
+<span class="source-line-no">404</span><span id="line-404"></span>
+<span class="source-line-no">405</span><span id="line-405">            @Override</span>
+<span class="source-line-no">406</span><span id="line-406">            public B getKey() {</span>
+<span class="source-line-no">407</span><span id="line-407">                return get();</span>
+<span class="source-line-no">408</span><span id="line-408">            }</span>
+<span class="source-line-no">409</span><span id="line-409"></span>
+<span class="source-line-no">410</span><span id="line-410">            @Override</span>
+<span class="source-line-no">411</span><span id="line-411">            public BufferProperties getValue() {</span>
+<span class="source-line-no">412</span><span id="line-412">                return props;</span>
+<span class="source-line-no">413</span><span id="line-413">            }</span>
+<span class="source-line-no">414</span><span id="line-414"></span>
+<span class="source-line-no">415</span><span id="line-415">            @Override</span>
+<span class="source-line-no">416</span><span id="line-416">            public BufferProperties setValue(BufferProperties props) {</span>
+<span class="source-line-no">417</span><span id="line-417">                return this.props = props;</span>
+<span class="source-line-no">418</span><span id="line-418">            }</span>
+<span class="source-line-no">419</span><span id="line-419">        }</span>
+<span class="source-line-no">420</span><span id="line-420"></span>
+<span class="source-line-no">421</span><span id="line-421">        /**</span>
+<span class="source-line-no">422</span><span id="line-422">         * @param data</span>
+<span class="source-line-no">423</span><span id="line-423">         */</span>
+<span class="source-line-no">424</span><span id="line-424">        @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">425</span><span id="line-425">        public BufferMonitor(int maxBuffers) {</span>
+<span class="source-line-no">426</span><span id="line-426">            int lists = 1;</span>
+<span class="source-line-no">427</span><span id="line-427">            while (lists &lt; maxBuffers) {</span>
+<span class="source-line-no">428</span><span id="line-428">                lists &lt;&lt;= 1;</span>
+<span class="source-line-no">429</span><span id="line-429">                indexMask = (indexMask &lt;&lt; 1) + 1;</span>
+<span class="source-line-no">430</span><span id="line-430">            }</span>
+<span class="source-line-no">431</span><span id="line-431">            data = new Entry[lists];</span>
+<span class="source-line-no">432</span><span id="line-432">        }</span>
+<span class="source-line-no">433</span><span id="line-433"></span>
+<span class="source-line-no">434</span><span id="line-434">        /**</span>
+<span class="source-line-no">435</span><span id="line-435">         * Put an entry in the map.</span>
+<span class="source-line-no">436</span><span id="line-436">         *</span>
+<span class="source-line-no">437</span><span id="line-437">         * @param buffer the buffer</span>
+<span class="source-line-no">438</span><span id="line-438">         * @param properties the properties</span>
+<span class="source-line-no">439</span><span id="line-439">         * @return the buffer properties</span>
+<span class="source-line-no">440</span><span id="line-440">         */</span>
+<span class="source-line-no">441</span><span id="line-441">        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
+<span class="source-line-no">442</span><span id="line-442">        public BufferProperties put(W buffer, BufferProperties properties) {</span>
+<span class="source-line-no">443</span><span id="line-443">            check();</span>
+<span class="source-line-no">444</span><span id="line-444">            int index = buffer.hashCode() &amp; indexMask;</span>
+<span class="source-line-no">445</span><span id="line-445">            synchronized (data) {</span>
+<span class="source-line-no">446</span><span id="line-446">                Entry&lt;W&gt; entry = data[index];</span>
+<span class="source-line-no">447</span><span id="line-447">                Entry&lt;W&gt; prev = null;</span>
+<span class="source-line-no">448</span><span id="line-448">                while (true) {</span>
+<span class="source-line-no">449</span><span id="line-449">                    if (entry == null) {</span>
+<span class="source-line-no">450</span><span id="line-450">                        // Not found, create new.</span>
+<span class="source-line-no">451</span><span id="line-451">                        entry = new Entry&lt;&gt;(buffer, properties,</span>
+<span class="source-line-no">452</span><span id="line-452">                            orphanedEntries, index, null);</span>
+<span class="source-line-no">453</span><span id="line-453">                        if (prev == null) {</span>
+<span class="source-line-no">454</span><span id="line-454">                            data[index] = entry; // Is first.</span>
+<span class="source-line-no">455</span><span id="line-455">                        } else {</span>
+<span class="source-line-no">456</span><span id="line-456">                            prev.next = entry; // Is next (last).</span>
+<span class="source-line-no">457</span><span id="line-457">                        }</span>
+<span class="source-line-no">458</span><span id="line-458">                        return properties;</span>
+<span class="source-line-no">459</span><span id="line-459">                    }</span>
+<span class="source-line-no">460</span><span id="line-460">                    if (entry.getKey() == buffer) {</span>
+<span class="source-line-no">461</span><span id="line-461">                        // Found, update.</span>
+<span class="source-line-no">462</span><span id="line-462">                        BufferProperties old = entry.getValue();</span>
+<span class="source-line-no">463</span><span id="line-463">                        entry.setValue(properties);</span>
+<span class="source-line-no">464</span><span id="line-464">                        return old;</span>
+<span class="source-line-no">465</span><span id="line-465">                    }</span>
+<span class="source-line-no">466</span><span id="line-466">                    prev = entry;</span>
+<span class="source-line-no">467</span><span id="line-467">                    entry = entry.next;</span>
+<span class="source-line-no">468</span><span id="line-468">                }</span>
+<span class="source-line-no">469</span><span id="line-469">            }</span>
+<span class="source-line-no">470</span><span id="line-470">        }</span>
+<span class="source-line-no">471</span><span id="line-471"></span>
+<span class="source-line-no">472</span><span id="line-472">        /**</span>
+<span class="source-line-no">473</span><span id="line-473">         * Returns the properties for the given buffer.</span>
+<span class="source-line-no">474</span><span id="line-474">         *</span>
+<span class="source-line-no">475</span><span id="line-475">         * @param buffer the buffer</span>
+<span class="source-line-no">476</span><span id="line-476">         * @return the buffer properties</span>
+<span class="source-line-no">477</span><span id="line-477">         */</span>
+<span class="source-line-no">478</span><span id="line-478">        @SuppressWarnings("unused")</span>
+<span class="source-line-no">479</span><span id="line-479">        public BufferProperties get(ManagedBuffer&lt;?&gt; buffer) {</span>
+<span class="source-line-no">480</span><span id="line-480">            check();</span>
+<span class="source-line-no">481</span><span id="line-481">            int index = buffer.hashCode() &amp; indexMask;</span>
+<span class="source-line-no">482</span><span id="line-482">            synchronized (data) {</span>
+<span class="source-line-no">483</span><span id="line-483">                Entry&lt;W&gt; entry = data[index];</span>
+<span class="source-line-no">484</span><span id="line-484">                while (entry != null) {</span>
+<span class="source-line-no">485</span><span id="line-485">                    if (entry.getKey() == buffer) {</span>
+<span class="source-line-no">486</span><span id="line-486">                        return entry.getValue();</span>
+<span class="source-line-no">487</span><span id="line-487">                    }</span>
+<span class="source-line-no">488</span><span id="line-488">                    entry = entry.next;</span>
+<span class="source-line-no">489</span><span id="line-489">                }</span>
+<span class="source-line-no">490</span><span id="line-490">                return null;</span>
+<span class="source-line-no">491</span><span id="line-491">            }</span>
+<span class="source-line-no">492</span><span id="line-492">        }</span>
+<span class="source-line-no">493</span><span id="line-493"></span>
+<span class="source-line-no">494</span><span id="line-494">        /**</span>
+<span class="source-line-no">495</span><span id="line-495">         * Removes the given buffer.</span>
+<span class="source-line-no">496</span><span id="line-496">         *</span>
+<span class="source-line-no">497</span><span id="line-497">         * @param buffer the buffer</span>
+<span class="source-line-no">498</span><span id="line-498">         * @return the buffer properties</span>
+<span class="source-line-no">499</span><span id="line-499">         */</span>
+<span class="source-line-no">500</span><span id="line-500">        public BufferProperties remove(ManagedBuffer&lt;?&gt; buffer) {</span>
+<span class="source-line-no">501</span><span id="line-501">            check();</span>
+<span class="source-line-no">502</span><span id="line-502">            int index = buffer.hashCode() &amp; indexMask;</span>
+<span class="source-line-no">503</span><span id="line-503">            synchronized (data) {</span>
+<span class="source-line-no">504</span><span id="line-504">                Entry&lt;W&gt; entry = data[index];</span>
+<span class="source-line-no">505</span><span id="line-505">                Entry&lt;W&gt; prev = null;</span>
+<span class="source-line-no">506</span><span id="line-506">                while (entry != null) {</span>
+<span class="source-line-no">507</span><span id="line-507">                    if (entry.getKey() == buffer) {</span>
+<span class="source-line-no">508</span><span id="line-508">                        if (prev == null) {</span>
+<span class="source-line-no">509</span><span id="line-509">                            data[index] = entry.next; // Was first.</span>
+<span class="source-line-no">510</span><span id="line-510">                        } else {</span>
+<span class="source-line-no">511</span><span id="line-511">                            prev.next = entry.next;</span>
+<span class="source-line-no">512</span><span id="line-512">                        }</span>
+<span class="source-line-no">513</span><span id="line-513">                        return entry.getValue();</span>
+<span class="source-line-no">514</span><span id="line-514">                    }</span>
+<span class="source-line-no">515</span><span id="line-515">                    prev = entry;</span>
+<span class="source-line-no">516</span><span id="line-516">                    entry = entry.next;</span>
+<span class="source-line-no">517</span><span id="line-517">                }</span>
+<span class="source-line-no">518</span><span id="line-518">                return null;</span>
+<span class="source-line-no">519</span><span id="line-519">            }</span>
+<span class="source-line-no">520</span><span id="line-520">        }</span>
+<span class="source-line-no">521</span><span id="line-521"></span>
+<span class="source-line-no">522</span><span id="line-522">        @SuppressWarnings("PMD.CompareObjectsWithEquals")</span>
+<span class="source-line-no">523</span><span id="line-523">        private BufferProperties remove(Entry&lt;W&gt; toBeRemoved) {</span>
+<span class="source-line-no">524</span><span id="line-524">            synchronized (data) {</span>
+<span class="source-line-no">525</span><span id="line-525">                Entry&lt;W&gt; entry = data[toBeRemoved.index];</span>
+<span class="source-line-no">526</span><span id="line-526">                Entry&lt;W&gt; prev = null;</span>
+<span class="source-line-no">527</span><span id="line-527">                while (entry != null) {</span>
+<span class="source-line-no">528</span><span id="line-528">                    if (entry == toBeRemoved) {</span>
+<span class="source-line-no">529</span><span id="line-529">                        if (prev == null) {</span>
+<span class="source-line-no">530</span><span id="line-530">                            data[toBeRemoved.index] = entry.next; // Was first.</span>
+<span class="source-line-no">531</span><span id="line-531">                        } else {</span>
+<span class="source-line-no">532</span><span id="line-532">                            prev.next = entry.next;</span>
+<span class="source-line-no">533</span><span id="line-533">                        }</span>
+<span class="source-line-no">534</span><span id="line-534">                        return entry.getValue();</span>
+<span class="source-line-no">535</span><span id="line-535">                    }</span>
+<span class="source-line-no">536</span><span id="line-536">                    prev = entry;</span>
+<span class="source-line-no">537</span><span id="line-537">                    entry = entry.next;</span>
+<span class="source-line-no">538</span><span id="line-538">                }</span>
+<span class="source-line-no">539</span><span id="line-539">                return null;</span>
+<span class="source-line-no">540</span><span id="line-540">            }</span>
+<span class="source-line-no">541</span><span id="line-541">        }</span>
+<span class="source-line-no">542</span><span id="line-542"></span>
+<span class="source-line-no">543</span><span id="line-543">        private void check() {</span>
+<span class="source-line-no">544</span><span id="line-544">            while (true) {</span>
+<span class="source-line-no">545</span><span id="line-545">                @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">546</span><span id="line-546">                Entry&lt;W&gt; entry = (Entry&lt;W&gt;) orphanedEntries.poll();</span>
+<span class="source-line-no">547</span><span id="line-547">                if (entry == null) {</span>
+<span class="source-line-no">548</span><span id="line-548">                    return;</span>
+<span class="source-line-no">549</span><span id="line-549">                }</span>
+<span class="source-line-no">550</span><span id="line-550">                // Managed buffer has not been properly recollected, fix.</span>
+<span class="source-line-no">551</span><span id="line-551">                BufferProperties props = remove(entry);</span>
+<span class="source-line-no">552</span><span id="line-552">                if (props == null) {</span>
+<span class="source-line-no">553</span><span id="line-553">                    return;</span>
+<span class="source-line-no">554</span><span id="line-554">                }</span>
+<span class="source-line-no">555</span><span id="line-555">                createdBufs.decrementAndGet();</span>
+<span class="source-line-no">556</span><span id="line-556">                // Create warning</span>
+<span class="source-line-no">557</span><span id="line-557">                if (logger.isLoggable(Level.WARNING)) {</span>
+<span class="source-line-no">558</span><span id="line-558">                    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
+<span class="source-line-no">559</span><span id="line-559">                    final StringBuilder msg = new StringBuilder(</span>
+<span class="source-line-no">560</span><span id="line-560">                        "Orphaned buffer from pool ");</span>
+<span class="source-line-no">561</span><span id="line-561">                    msg.append(name());</span>
+<span class="source-line-no">562</span><span id="line-562">                    StackTraceElement[] trace = props.createdBy();</span>
+<span class="source-line-no">563</span><span id="line-563">                    if (trace != null) {</span>
+<span class="source-line-no">564</span><span id="line-564">                        msg.append(", created");</span>
+<span class="source-line-no">565</span><span id="line-565">                        for (StackTraceElement e : trace) {</span>
+<span class="source-line-no">566</span><span id="line-566">                            msg.append(System.lineSeparator());</span>
+<span class="source-line-no">567</span><span id="line-567">                            msg.append("\tat ");</span>
+<span class="source-line-no">568</span><span id="line-568">                            msg.append(e.toString());</span>
+<span class="source-line-no">569</span><span id="line-569">                        }</span>
+<span class="source-line-no">570</span><span id="line-570">                    }</span>
+<span class="source-line-no">571</span><span id="line-571">                    logger.warning(msg.toString());</span>
+<span class="source-line-no">572</span><span id="line-572">                }</span>
+<span class="source-line-no">573</span><span id="line-573">            }</span>
+<span class="source-line-no">574</span><span id="line-574">        }</span>
+<span class="source-line-no">575</span><span id="line-575">    }</span>
+<span class="source-line-no">576</span><span id="line-576"></span>
+<span class="source-line-no">577</span><span id="line-577">    /**</span>
+<span class="source-line-no">578</span><span id="line-578">     * An MBean interface for getting information about the managed</span>
+<span class="source-line-no">579</span><span id="line-579">     * buffer pools. Note that created buffer pools are tracked using</span>
+<span class="source-line-no">580</span><span id="line-580">     * weak references. Therefore, the MBean may report more pools than</span>
+<span class="source-line-no">581</span><span id="line-581">     * are really in use. </span>
+<span class="source-line-no">582</span><span id="line-582">     */</span>
+<span class="source-line-no">583</span><span id="line-583">    public interface ManagedBufferPoolMXBean {</span>
+<span class="source-line-no">584</span><span id="line-584"></span>
+<span class="source-line-no">585</span><span id="line-585">        /**</span>
+<span class="source-line-no">586</span><span id="line-586">         * Information about a single managed pool.</span>
+<span class="source-line-no">587</span><span id="line-587">         */</span>
+<span class="source-line-no">588</span><span id="line-588">        @SuppressWarnings("PMD.DataClass")</span>
+<span class="source-line-no">589</span><span id="line-589">        class PoolInfo {</span>
+<span class="source-line-no">590</span><span id="line-590">            private final int created;</span>
+<span class="source-line-no">591</span><span id="line-591">            private final int pooled;</span>
+<span class="source-line-no">592</span><span id="line-592">            private final int preserved;</span>
+<span class="source-line-no">593</span><span id="line-593">            private final int maximum;</span>
+<span class="source-line-no">594</span><span id="line-594">            private final int bufferSize;</span>
+<span class="source-line-no">595</span><span id="line-595"></span>
+<span class="source-line-no">596</span><span id="line-596">            /**</span>
+<span class="source-line-no">597</span><span id="line-597">             * Instantiates a new pool info.</span>
+<span class="source-line-no">598</span><span id="line-598">             *</span>
+<span class="source-line-no">599</span><span id="line-599">             * @param created the created</span>
+<span class="source-line-no">600</span><span id="line-600">             * @param pooled the pooled</span>
+<span class="source-line-no">601</span><span id="line-601">             * @param preserved the preserved</span>
+<span class="source-line-no">602</span><span id="line-602">             * @param maximum the maximum</span>
+<span class="source-line-no">603</span><span id="line-603">             * @param bufferSize the buffer size</span>
+<span class="source-line-no">604</span><span id="line-604">             */</span>
+<span class="source-line-no">605</span><span id="line-605">            @ConstructorProperties({ "created", "pooled",</span>
+<span class="source-line-no">606</span><span id="line-606">                "preserved", "maximum", "bufferSize" })</span>
+<span class="source-line-no">607</span><span id="line-607">            public PoolInfo(int created, int pooled,</span>
+<span class="source-line-no">608</span><span id="line-608">                    int preserved, int maximum, int bufferSize) {</span>
+<span class="source-line-no">609</span><span id="line-609">                this.created = created;</span>
+<span class="source-line-no">610</span><span id="line-610">                this.pooled = pooled;</span>
+<span class="source-line-no">611</span><span id="line-611">                this.preserved = preserved;</span>
+<span class="source-line-no">612</span><span id="line-612">                this.maximum = maximum;</span>
+<span class="source-line-no">613</span><span id="line-613">                this.bufferSize = bufferSize;</span>
+<span class="source-line-no">614</span><span id="line-614">            }</span>
+<span class="source-line-no">615</span><span id="line-615"></span>
+<span class="source-line-no">616</span><span id="line-616">            /**</span>
+<span class="source-line-no">617</span><span id="line-617">             * The number of buffers created by this pool.</span>
+<span class="source-line-no">618</span><span id="line-618">             * </span>
+<span class="source-line-no">619</span><span id="line-619">             * @return the value</span>
+<span class="source-line-no">620</span><span id="line-620">             */</span>
+<span class="source-line-no">621</span><span id="line-621">            public int getCreated() {</span>
+<span class="source-line-no">622</span><span id="line-622">                return created;</span>
+<span class="source-line-no">623</span><span id="line-623">            }</span>
+<span class="source-line-no">624</span><span id="line-624"></span>
+<span class="source-line-no">625</span><span id="line-625">            /**</span>
+<span class="source-line-no">626</span><span id="line-626">             * The number of buffers pooled (ready to be acquired).</span>
+<span class="source-line-no">627</span><span id="line-627">             * </span>
+<span class="source-line-no">628</span><span id="line-628">             * @return the value</span>
+<span class="source-line-no">629</span><span id="line-629">             */</span>
+<span class="source-line-no">630</span><span id="line-630">            public int getPooled() {</span>
+<span class="source-line-no">631</span><span id="line-631">                return pooled;</span>
+<span class="source-line-no">632</span><span id="line-632">            }</span>
+<span class="source-line-no">633</span><span id="line-633"></span>
+<span class="source-line-no">634</span><span id="line-634">            /**</span>
+<span class="source-line-no">635</span><span id="line-635">             * The number of buffers preserved.</span>
+<span class="source-line-no">636</span><span id="line-636">             * </span>
+<span class="source-line-no">637</span><span id="line-637">             * @return the value</span>
+<span class="source-line-no">638</span><span id="line-638">             */</span>
+<span class="source-line-no">639</span><span id="line-639">            public int getPreserved() {</span>
+<span class="source-line-no">640</span><span id="line-640">                return preserved;</span>
+<span class="source-line-no">641</span><span id="line-641">            }</span>
+<span class="source-line-no">642</span><span id="line-642"></span>
+<span class="source-line-no">643</span><span id="line-643">            /**</span>
+<span class="source-line-no">644</span><span id="line-644">             * The maximum number of buffers created by this pool.</span>
+<span class="source-line-no">645</span><span id="line-645">             * </span>
+<span class="source-line-no">646</span><span id="line-646">             * @return the value</span>
+<span class="source-line-no">647</span><span id="line-647">             */</span>
+<span class="source-line-no">648</span><span id="line-648">            public int getMaximum() {</span>
+<span class="source-line-no">649</span><span id="line-649">                return maximum;</span>
+<span class="source-line-no">650</span><span id="line-650">            }</span>
+<span class="source-line-no">651</span><span id="line-651"></span>
+<span class="source-line-no">652</span><span id="line-652">            /**</span>
+<span class="source-line-no">653</span><span id="line-653">             * The size of the buffers in items.</span>
+<span class="source-line-no">654</span><span id="line-654">             * </span>
+<span class="source-line-no">655</span><span id="line-655">             * @return the buffer size</span>
+<span class="source-line-no">656</span><span id="line-656">             */</span>
+<span class="source-line-no">657</span><span id="line-657">            public int getBufferSize() {</span>
+<span class="source-line-no">658</span><span id="line-658">                return bufferSize;</span>
+<span class="source-line-no">659</span><span id="line-659">            }</span>
+<span class="source-line-no">660</span><span id="line-660">        }</span>
+<span class="source-line-no">661</span><span id="line-661"></span>
+<span class="source-line-no">662</span><span id="line-662">        /**</span>
+<span class="source-line-no">663</span><span id="line-663">         * Three views on the existing pool.</span>
+<span class="source-line-no">664</span><span id="line-664">         */</span>
+<span class="source-line-no">665</span><span id="line-665">        class PoolInfos {</span>
+<span class="source-line-no">666</span><span id="line-666">            private final SortedMap&lt;String, PoolInfo&gt; allPools;</span>
+<span class="source-line-no">667</span><span id="line-667">            private final SortedMap&lt;String, PoolInfo&gt; nonEmptyPools;</span>
+<span class="source-line-no">668</span><span id="line-668">            private final SortedMap&lt;String, PoolInfo&gt; usedPools;</span>
+<span class="source-line-no">669</span><span id="line-669"></span>
+<span class="source-line-no">670</span><span id="line-670">            /**</span>
+<span class="source-line-no">671</span><span id="line-671">             * Instantiates a new pool infos.</span>
+<span class="source-line-no">672</span><span id="line-672">             *</span>
+<span class="source-line-no">673</span><span id="line-673">             * @param pools the pools</span>
+<span class="source-line-no">674</span><span id="line-674">             */</span>
+<span class="source-line-no">675</span><span id="line-675">            public PoolInfos(Set&lt;ManagedBufferPool&lt;?, ?&gt;&gt; pools) {</span>
+<span class="source-line-no">676</span><span id="line-676">                allPools = new TreeMap&lt;&gt;();</span>
+<span class="source-line-no">677</span><span id="line-677">                nonEmptyPools = new TreeMap&lt;&gt;();</span>
+<span class="source-line-no">678</span><span id="line-678">                usedPools = new TreeMap&lt;&gt;();</span>
+<span class="source-line-no">679</span><span id="line-679"></span>
+<span class="source-line-no">680</span><span id="line-680">                @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">681</span><span id="line-681">                Map&lt;String, Integer&gt; dupsNext = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">682</span><span id="line-682">                for (ManagedBufferPool&lt;?, ?&gt; mbp : pools) {</span>
+<span class="source-line-no">683</span><span id="line-683">                    String key = mbp.name();</span>
+<span class="source-line-no">684</span><span id="line-684">                    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
+<span class="source-line-no">685</span><span id="line-685">                    PoolInfo infos = new PoolInfo(</span>
+<span class="source-line-no">686</span><span id="line-686">                        mbp.createdBufs.get(), mbp.queue.size(),</span>
+<span class="source-line-no">687</span><span id="line-687">                        mbp.preservedBufs, mbp.maximumBufs,</span>
+<span class="source-line-no">688</span><span id="line-688">                        mbp.bufferSize());</span>
+<span class="source-line-no">689</span><span id="line-689">                    if (allPools.containsKey(key)</span>
+<span class="source-line-no">690</span><span id="line-690">                        || dupsNext.containsKey(key)) {</span>
+<span class="source-line-no">691</span><span id="line-691">                        if (allPools.containsKey(key)) {</span>
+<span class="source-line-no">692</span><span id="line-692">                            // Found first duplicate, rename</span>
+<span class="source-line-no">693</span><span id="line-693">                            allPools.put(key + "#1", allPools.get(key));</span>
+<span class="source-line-no">694</span><span id="line-694">                            allPools.remove(key);</span>
+<span class="source-line-no">695</span><span id="line-695">                            dupsNext.put(key, 2);</span>
+<span class="source-line-no">696</span><span id="line-696">                        }</span>
+<span class="source-line-no">697</span><span id="line-697">                        allPools.put(key + "#"</span>
+<span class="source-line-no">698</span><span id="line-698">                            + (dupsNext.put(key, dupsNext.get(key) + 1)),</span>
+<span class="source-line-no">699</span><span id="line-699">                            infos);</span>
+<span class="source-line-no">700</span><span id="line-700">                    } else {</span>
+<span class="source-line-no">701</span><span id="line-701">                        allPools.put(key, infos);</span>
+<span class="source-line-no">702</span><span id="line-702">                    }</span>
+<span class="source-line-no">703</span><span id="line-703">                }</span>
+<span class="source-line-no">704</span><span id="line-704">                for (Map.Entry&lt;String, PoolInfo&gt; e : allPools.entrySet()) {</span>
+<span class="source-line-no">705</span><span id="line-705">                    PoolInfo infos = e.getValue();</span>
+<span class="source-line-no">706</span><span id="line-706">                    if (infos.getPooled() &gt; 0) {</span>
+<span class="source-line-no">707</span><span id="line-707">                        nonEmptyPools.put(e.getKey(), infos);</span>
+<span class="source-line-no">708</span><span id="line-708">                    }</span>
+<span class="source-line-no">709</span><span id="line-709">                    if (infos.getCreated() &gt; 0) {</span>
+<span class="source-line-no">710</span><span id="line-710">                        usedPools.put(e.getKey(), infos);</span>
+<span class="source-line-no">711</span><span id="line-711">                    }</span>
+<span class="source-line-no">712</span><span id="line-712">                }</span>
+<span class="source-line-no">713</span><span id="line-713">            }</span>
+<span class="source-line-no">714</span><span id="line-714"></span>
+<span class="source-line-no">715</span><span id="line-715">            /**</span>
+<span class="source-line-no">716</span><span id="line-716">             * All pools.</span>
+<span class="source-line-no">717</span><span id="line-717">             *</span>
+<span class="source-line-no">718</span><span id="line-718">             * @return the all pools</span>
+<span class="source-line-no">719</span><span id="line-719">             */</span>
+<span class="source-line-no">720</span><span id="line-720">            public SortedMap&lt;String, PoolInfo&gt; getAllPools() {</span>
+<span class="source-line-no">721</span><span id="line-721">                return allPools;</span>
+<span class="source-line-no">722</span><span id="line-722">            }</span>
+<span class="source-line-no">723</span><span id="line-723"></span>
+<span class="source-line-no">724</span><span id="line-724">            /**</span>
+<span class="source-line-no">725</span><span id="line-725">             * Pools that have at least managed buffer enqueued</span>
+<span class="source-line-no">726</span><span id="line-726">             * (ready to be acquired).</span>
+<span class="source-line-no">727</span><span id="line-727">             *</span>
+<span class="source-line-no">728</span><span id="line-728">             * @return the non empty pools</span>
+<span class="source-line-no">729</span><span id="line-729">             */</span>
+<span class="source-line-no">730</span><span id="line-730">            public SortedMap&lt;String, PoolInfo&gt; getNonEmptyPools() {</span>
+<span class="source-line-no">731</span><span id="line-731">                return nonEmptyPools;</span>
+<span class="source-line-no">732</span><span id="line-732">            }</span>
+<span class="source-line-no">733</span><span id="line-733"></span>
+<span class="source-line-no">734</span><span id="line-734">            /**</span>
+<span class="source-line-no">735</span><span id="line-735">             * Pools that have at least one associated buffer</span>
+<span class="source-line-no">736</span><span id="line-736">             * (in pool or in use).</span>
+<span class="source-line-no">737</span><span id="line-737">             *</span>
+<span class="source-line-no">738</span><span id="line-738">             * @return the used pools</span>
+<span class="source-line-no">739</span><span id="line-739">             */</span>
+<span class="source-line-no">740</span><span id="line-740">            public SortedMap&lt;String, PoolInfo&gt; getUsedPools() {</span>
+<span class="source-line-no">741</span><span id="line-741">                return usedPools;</span>
+<span class="source-line-no">742</span><span id="line-742">            }</span>
+<span class="source-line-no">743</span><span id="line-743">        }</span>
+<span class="source-line-no">744</span><span id="line-744"></span>
+<span class="source-line-no">745</span><span id="line-745">        /**</span>
+<span class="source-line-no">746</span><span id="line-746">         * Set the default drain delay.</span>
+<span class="source-line-no">747</span><span id="line-747">         * </span>
+<span class="source-line-no">748</span><span id="line-748">         * @param millis the drain delay in milli seconds</span>
+<span class="source-line-no">749</span><span id="line-749">         */</span>
+<span class="source-line-no">750</span><span id="line-750">        void setDefaultDrainDelay(long millis);</span>
+<span class="source-line-no">751</span><span id="line-751"></span>
+<span class="source-line-no">752</span><span id="line-752">        /**</span>
+<span class="source-line-no">753</span><span id="line-753">         * Returns the drain delay in milli seconds.</span>
+<span class="source-line-no">754</span><span id="line-754">         * </span>
+<span class="source-line-no">755</span><span id="line-755">         * @return the value</span>
+<span class="source-line-no">756</span><span id="line-756">         */</span>
+<span class="source-line-no">757</span><span id="line-757">        long getDefaultDrainDelay();</span>
+<span class="source-line-no">758</span><span id="line-758"></span>
+<span class="source-line-no">759</span><span id="line-759">        /**</span>
+<span class="source-line-no">760</span><span id="line-760">         * Set the acquire warning limit.</span>
+<span class="source-line-no">761</span><span id="line-761">         * </span>
+<span class="source-line-no">762</span><span id="line-762">         * @param millis the limit</span>
+<span class="source-line-no">763</span><span id="line-763">         */</span>
+<span class="source-line-no">764</span><span id="line-764">        void setAcquireWarningLimit(long millis);</span>
+<span class="source-line-no">765</span><span id="line-765"></span>
+<span class="source-line-no">766</span><span id="line-766">        /**</span>
+<span class="source-line-no">767</span><span id="line-767">         * Returns the acquire warning limit.</span>
+<span class="source-line-no">768</span><span id="line-768">         * </span>
+<span class="source-line-no">769</span><span id="line-769">         * @return the value</span>
+<span class="source-line-no">770</span><span id="line-770">         */</span>
+<span class="source-line-no">771</span><span id="line-771">        long getAcquireWarningLimit();</span>
+<span class="source-line-no">772</span><span id="line-772"></span>
+<span class="source-line-no">773</span><span id="line-773">        /**</span>
+<span class="source-line-no">774</span><span id="line-774">         * Informations about the pools.</span>
+<span class="source-line-no">775</span><span id="line-775">         * </span>
+<span class="source-line-no">776</span><span id="line-776">         * @return the map</span>
+<span class="source-line-no">777</span><span id="line-777">         */</span>
+<span class="source-line-no">778</span><span id="line-778">        PoolInfos getPoolInfos();</span>
+<span class="source-line-no">779</span><span id="line-779"></span>
+<span class="source-line-no">780</span><span id="line-780">        /**</span>
+<span class="source-line-no">781</span><span id="line-781">         * Summary information about the pooled buffers.</span>
+<span class="source-line-no">782</span><span id="line-782">         * </span>
+<span class="source-line-no">783</span><span id="line-783">         * @return the values</span>
+<span class="source-line-no">784</span><span id="line-784">         */</span>
+<span class="source-line-no">785</span><span id="line-785">        IntSummaryStatistics getPooledPerPoolStatistics();</span>
+<span class="source-line-no">786</span><span id="line-786"></span>
+<span class="source-line-no">787</span><span id="line-787">        /**</span>
+<span class="source-line-no">788</span><span id="line-788">         * Summary information about the created buffers.</span>
+<span class="source-line-no">789</span><span id="line-789">         * </span>
+<span class="source-line-no">790</span><span id="line-790">         * @return the values</span>
+<span class="source-line-no">791</span><span id="line-791">         */</span>
+<span class="source-line-no">792</span><span id="line-792">        IntSummaryStatistics getCreatedPerPoolStatistics();</span>
+<span class="source-line-no">793</span><span id="line-793">    }</span>
+<span class="source-line-no">794</span><span id="line-794"></span>
+<span class="source-line-no">795</span><span id="line-795">    /**</span>
+<span class="source-line-no">796</span><span id="line-796">     * The MBean view</span>
+<span class="source-line-no">797</span><span id="line-797">     */</span>
+<span class="source-line-no">798</span><span id="line-798">    private static class MBeanView implements ManagedBufferPoolMXBean {</span>
+<span class="source-line-no">799</span><span id="line-799"></span>
+<span class="source-line-no">800</span><span id="line-800">        private static Set&lt;ManagedBufferPool&lt;?, ?&gt;&gt; allPools</span>
+<span class="source-line-no">801</span><span id="line-801">            = Collections.synchronizedSet(</span>
+<span class="source-line-no">802</span><span id="line-802">                Collections.newSetFromMap(</span>
+<span class="source-line-no">803</span><span id="line-803">                    new WeakHashMap&lt;ManagedBufferPool&lt;?, ?&gt;, Boolean&gt;()));</span>
+<span class="source-line-no">804</span><span id="line-804"></span>
+<span class="source-line-no">805</span><span id="line-805">        /**</span>
+<span class="source-line-no">806</span><span id="line-806">         * Adds the pool.</span>
+<span class="source-line-no">807</span><span id="line-807">         *</span>
+<span class="source-line-no">808</span><span id="line-808">         * @param pool the pool</span>
+<span class="source-line-no">809</span><span id="line-809">         */</span>
+<span class="source-line-no">810</span><span id="line-810">        public static void addPool(ManagedBufferPool&lt;?, ?&gt; pool) {</span>
+<span class="source-line-no">811</span><span id="line-811">            allPools.add(pool);</span>
+<span class="source-line-no">812</span><span id="line-812">        }</span>
+<span class="source-line-no">813</span><span id="line-813"></span>
+<span class="source-line-no">814</span><span id="line-814">        @Override</span>
+<span class="source-line-no">815</span><span id="line-815">        public void setDefaultDrainDelay(long millis) {</span>
+<span class="source-line-no">816</span><span id="line-816">            ManagedBufferPool.setDefaultDrainDelay(millis);</span>
+<span class="source-line-no">817</span><span id="line-817">        }</span>
+<span class="source-line-no">818</span><span id="line-818"></span>
+<span class="source-line-no">819</span><span id="line-819">        @Override</span>
+<span class="source-line-no">820</span><span id="line-820">        public long getDefaultDrainDelay() {</span>
+<span class="source-line-no">821</span><span id="line-821">            return ManagedBufferPool.defaultDrainDelay();</span>
+<span class="source-line-no">822</span><span id="line-822">        }</span>
+<span class="source-line-no">823</span><span id="line-823"></span>
+<span class="source-line-no">824</span><span id="line-824">        @Override</span>
+<span class="source-line-no">825</span><span id="line-825">        public void setAcquireWarningLimit(long millis) {</span>
+<span class="source-line-no">826</span><span id="line-826">            ManagedBufferPool.acquireWarningLimit = millis;</span>
+<span class="source-line-no">827</span><span id="line-827">        }</span>
+<span class="source-line-no">828</span><span id="line-828"></span>
+<span class="source-line-no">829</span><span id="line-829">        @Override</span>
+<span class="source-line-no">830</span><span id="line-830">        public long getAcquireWarningLimit() {</span>
+<span class="source-line-no">831</span><span id="line-831">            return ManagedBufferPool.acquireWarningLimit;</span>
+<span class="source-line-no">832</span><span id="line-832">        }</span>
+<span class="source-line-no">833</span><span id="line-833"></span>
+<span class="source-line-no">834</span><span id="line-834">        @Override</span>
+<span class="source-line-no">835</span><span id="line-835">        public PoolInfos getPoolInfos() {</span>
+<span class="source-line-no">836</span><span id="line-836">            return new PoolInfos(allPools);</span>
+<span class="source-line-no">837</span><span id="line-837">        }</span>
+<span class="source-line-no">838</span><span id="line-838"></span>
+<span class="source-line-no">839</span><span id="line-839">        @Override</span>
+<span class="source-line-no">840</span><span id="line-840">        public IntSummaryStatistics getPooledPerPoolStatistics() {</span>
+<span class="source-line-no">841</span><span id="line-841">            return allPools.stream().collect(</span>
+<span class="source-line-no">842</span><span id="line-842">                Collectors.summarizingInt(mbp -&gt; mbp.queue.size()));</span>
+<span class="source-line-no">843</span><span id="line-843">        }</span>
+<span class="source-line-no">844</span><span id="line-844"></span>
+<span class="source-line-no">845</span><span id="line-845">        @Override</span>
+<span class="source-line-no">846</span><span id="line-846">        public IntSummaryStatistics getCreatedPerPoolStatistics() {</span>
+<span class="source-line-no">847</span><span id="line-847">            return allPools.stream().collect(</span>
+<span class="source-line-no">848</span><span id="line-848">                Collectors.summarizingInt(mbp -&gt; mbp.createdBufs.get()));</span>
+<span class="source-line-no">849</span><span id="line-849">        }</span>
+<span class="source-line-no">850</span><span id="line-850">    }</span>
+<span class="source-line-no">851</span><span id="line-851"></span>
+<span class="source-line-no">852</span><span id="line-852">    static {</span>
+<span class="source-line-no">853</span><span id="line-853">        try {</span>
+<span class="source-line-no">854</span><span id="line-854">            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();</span>
+<span class="source-line-no">855</span><span id="line-855">            ObjectName mxbeanName = new ObjectName("org.jgrapes.io:type="</span>
+<span class="source-line-no">856</span><span id="line-856">                + ManagedBufferPool.class.getSimpleName() + "s");</span>
+<span class="source-line-no">857</span><span id="line-857">            mbs.registerMBean(new MBeanView(), mxbeanName);</span>
+<span class="source-line-no">858</span><span id="line-858">        } catch (MalformedObjectNameException | InstanceAlreadyExistsException</span>
+<span class="source-line-no">859</span><span id="line-859">                | MBeanRegistrationException | NotCompliantMBeanException e) {</span>
+<span class="source-line-no">860</span><span id="line-860">            // Does not happen</span>
+<span class="source-line-no">861</span><span id="line-861">        }</span>
+<span class="source-line-no">862</span><span id="line-862">    }</span>
+<span class="source-line-no">863</span><span id="line-863">}</span>
 
 
 
