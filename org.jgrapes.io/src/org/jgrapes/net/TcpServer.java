@@ -230,6 +230,12 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
         return this;
     }
 
+    @Override
+    public TcpServer setBufferSize(int size) {
+        super.setBufferSize(size);
+        return this;
+    }
+
     /**
      * The component can be configured with events that include
      * a path (see @link {@link ConfigurationUpdate#paths()})

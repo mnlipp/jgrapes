@@ -54,7 +54,7 @@ import org.jgrapes.io.util.ManagedBufferPool;
     "PMD.ExcessiveClassLength" })
 public abstract class TcpConnectionManager extends Component {
 
-    private int bufferSize;
+    private int bufferSize = 32_768;
     protected final Set<TcpChannelImpl> channels = new HashSet<>();
     private ExecutorService executorService;
 
@@ -69,7 +69,7 @@ public abstract class TcpConnectionManager extends Component {
 
     /**
      * Sets the buffer size for the send an receive buffers.
-     * If no size is set, the system defaults will be used.
+     * If no size is set, a default value of 32768 will be used.
      * 
      * @param bufferSize the size to use for the send and receive buffers
      * @return the TCP connection manager for easy chaining
@@ -212,7 +212,7 @@ public abstract class TcpConnectionManager extends Component {
                     + "." + Components.objectName(this);
 
             // Prepare write buffers
-            int writeBufferSize = bufferSize == 0 ? 1500 * 4 : bufferSize;
+            int writeBufferSize = bufferSize < 1500 ? 1500 : bufferSize;
             setByteBufferPool(new ManagedBufferPool<>(ManagedBuffer::new,
                 () -> {
                     return ByteBuffer.allocate(writeBufferSize);
@@ -220,7 +220,7 @@ public abstract class TcpConnectionManager extends Component {
                     .setName(channelName + ".upstream.buffers"));
 
             // Prepare read buffers
-            int readBufferSize = bufferSize == 0 ? 1500 * 4 : bufferSize;
+            int readBufferSize = bufferSize < 1500 ? 1500 : bufferSize;
             readBuffers = new ManagedBufferPool<>(ManagedBuffer::new,
                 () -> {
                     return ByteBuffer.allocate(readBufferSize);
