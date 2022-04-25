@@ -337,7 +337,7 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
      */
     private static class BufferProperties {
 
-        private StackTraceElement[] createdBy;
+        private final StackTraceElement[] createdBy;
 
         /**
          * Instantiates new buffer properties.
@@ -345,6 +345,8 @@ public class ManagedBufferPool<W extends ManagedBuffer<T>, T extends Buffer>
         public BufferProperties() {
             if (logger.isLoggable(Level.FINE)) {
                 createdBy = Thread.currentThread().getStackTrace();
+            } else {
+                createdBy = new StackTraceElement[0];
             }
         }
 

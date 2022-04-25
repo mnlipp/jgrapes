@@ -180,7 +180,7 @@ public abstract class TcpConnectionManager extends Component {
         private final SocketChannel nioChannel;
         private final SocketAddress localAddress;
         private final SocketAddress remoteAddress;
-        private EventPipeline downPipeline;
+        private final EventPipeline downPipeline;
         private final ManagedBufferPool<ManagedBuffer<ByteBuffer>,
                 ByteBuffer> readBuffers;
         private Registration registration;
@@ -212,9 +212,7 @@ public abstract class TcpConnectionManager extends Component {
                     + "." + Components.objectName(this);
 
             // Prepare write buffers
-            int writeBufferSize = bufferSize == 0
-                ? nioChannel.socket().getSendBufferSize()
-                : bufferSize;
+            int writeBufferSize = bufferSize == 0 ? 1500 * 4 : bufferSize;
             setByteBufferPool(new ManagedBufferPool<>(ManagedBuffer::new,
                 () -> {
                     return ByteBuffer.allocate(writeBufferSize);
@@ -222,9 +220,7 @@ public abstract class TcpConnectionManager extends Component {
                     .setName(channelName + ".upstream.buffers"));
 
             // Prepare read buffers
-            int readBufferSize = bufferSize == 0
-                ? nioChannel.socket().getReceiveBufferSize()
-                : bufferSize;
+            int readBufferSize = bufferSize == 0 ? 1500 * 4 : bufferSize;
             readBuffers = new ManagedBufferPool<>(ManagedBuffer::new,
                 () -> {
                     return ByteBuffer.allocate(readBufferSize);
