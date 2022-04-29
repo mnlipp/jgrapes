@@ -99,7 +99,14 @@
     <div class="container-overview">
     
         
-            <div class="description"><p>Provides a section of an accordion.</p></div>
+            <div class="description"><p>Provides a section of an accordion.</p>
+<p>To support a sliding animation, the component fixates the style's
+<code>height</code> value before expanding or collapsing the section and sets
+it to zero while the section is collapsed. The value of <code>height</code>
+is unset when the section is expanded, thus allowing it to ajdust
+to the size of its content.</p>
+<p>During the transition, the attribute <code>data-transitioning</code> is set
+on the section.</p></div>
         
 
         
