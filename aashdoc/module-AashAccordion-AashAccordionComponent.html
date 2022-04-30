@@ -95,7 +95,7 @@
             <div class="class-description"><p>Generates an accordion.</p>
 <p>Sections are added using <code>aash-accordion-section</code>.</p>
 <p>Example source:</p>
-<pre class="prettyprint source lang-html"><code>&lt;aash-accordion>
+<pre class="prettyprint source lang-html"><code>&lt;aash-accordion :always-expanded=&quot;true&quot;>
   &lt;aash-accordion-section :title=&quot;'Header 1'&quot;>
     Panel 1
   &lt;/aash-accordion-section>
@@ -105,22 +105,36 @@
   &lt;/aash-accordion-section>
 &lt;/aash-accordion>
 </code></pre>
-<p>Resulting HTML:</p>
+<p>The resulting DOM follows the example shown in the
+<a href="https://www.w3.org/TR/wai-aria-practices-1.1/examples/accordion/accordion.html">WAI-ARIA Authoring Practices 1.1</a>.
+Notable differences are a <code>div</code> surrounding the pairs of headers and panels
+and an additional div between the panel and its content.</p>
+<p>The former simplifies styling of a section independant of its expanded state
+with e.g. a shadow.</p>
+<p>The latter is required for animating accordions. Details can be found in
+the documentation od <code>AashAccordionSection</code>.</p>
 <pre class="prettyprint source lang-html"><code>&lt;div data-aash-role=&quot;accordion&quot;>
-  &lt;div role=&quot;header&quot;>
-    &lt;button id=&quot;aash-id-6-control&quot; aria-controls=&quot;aash-id-6-panel&quot;
-      aria-expanded=&quot;true&quot;>&lt;span>Header 1&lt;/span>&lt;/button>
+  &lt;div>
+    &lt;div role=&quot;header&quot;>
+      &lt;button id=&quot;aash-id-6-control&quot; tabindex=&quot;0&quot;
+        aria-controls=&quot;aash-id-6-panel&quot; aria-expanded=&quot;true&quot;>
+        &lt;span>Header 1&lt;/span>
+      &lt;/button>
+    &lt;/div>
+    &lt;div id=&quot;aash-id-6-panel&quot; role=&quot;region&quot; class=&quot;&quot;
+      aria-labelledby=&quot;aash-id-6-control&quot;>
+      &lt;div> Panel 1 &lt;/div>
+    &lt;/div>
   &lt;/div>
-  &lt;div id=&quot;aash-id-6-panel&quot; role=&quot;region&quot; aria-labelledby=&quot;aash-id-6-control&quot;>
-    Panel 1
-  &lt;/div>
-  &lt;div role=&quot;header&quot;>
-    &lt;button id=&quot;aash-id-7-control&quot; aria-controls=&quot;aash-id-7-panel&quot;
-      aria-expanded=&quot;false&quot;>Header 2&lt;/button>
-  &lt;/div>
-  &lt;div id=&quot;aash-id-7-panel&quot; role=&quot;region&quot; aria-labelledby=&quot;aash-id-7-control&quot;
-    hidden=&quot;&quot;>
-    Panel 2
+  &lt;div>
+    &lt;div role=&quot;header&quot;>
+      &lt;button id=&quot;aash-id-7-control&quot; tabindex=&quot;0&quot;
+        aria-controls=&quot;aash-id-7-panel&quot; aria-expanded=&quot;false&quot;>Header 2&lt;/button>
+    &lt;/div>
+    &lt;div id=&quot;aash-id-7-panel&quot; role=&quot;region&quot; class=&quot;&quot;
+      aria-labelledby=&quot;aash-id-7-control&quot; hidden=&quot;&quot;>
+      &lt;div> Panel 2 &lt;/div>
+    &lt;/div>
   &lt;/div>
 &lt;/div>
 </code></pre></div>

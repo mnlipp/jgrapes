@@ -92,15 +92,6 @@
             <pre class="prettyprint source linenums"><code>/**
  * Provides a section of an accordion.
  *
- * To support a sliding animation, the component fixates the style's 
- * `height` value before expanding or collapsing the section and sets
- * it to zero while the section is collapsed. The value of `height` 
- * is unset when the section is expanded, thus allowing it to ajdust 
- * to the size of its content. 
- *
- * During the transition, the attribute `data-transitioning` is set
- * on the section.
- *
  * @module AashAccordionSection
  */
 import { defineComponent, getCurrentInstance, onUnmounted, inject, computed,
@@ -111,6 +102,29 @@ import { Controller } from "./AashAccordion";
  * @classdesc
  * Generates the header and region of an accordion section.
  * 
+ * The component supports a sliding animation by setting the `height`
+ * attribute of the region on two occasions if a transition for 
+ * `height` is defined for the region. 
+ *
+ * When the region is to be expanded, the component calculates the
+ * (expected) height of the region and sets its style's `height` to that
+ * value. When the transition has ended, the explicit `height` value is
+ * removed again, thus allowing the section to adjust to the size of its 
+ * content if that content changes.
+ *
+ * When the region is to be collapsed, the component calculates the
+ * current height of the region and assigns the result to the
+ * style's `height` for one animation frame. Together with a CSS rule
+ * that requests `height: 0` if the region is hidden, this triggers
+ * a transition from the calculated height to 0.
+ *
+ * During either transition, the attribute `data-transitioning` is set
+ * on the region.
+ *
+ * Note that adding padding to the section breaks the transition. Therefore,
+ * an extra `div` is generated as child of the section that contains the
+ * slot content. Use this `div` to add any padding.
+ *
  * @class AashAccordionSectionComponent
  * @param {Object} props the properties
  * @param {string} props.title the title, defaults to the empty string
@@ -140,15 +154,15 @@ export default defineComponent({
         
         const panel: Ref&lt;HTMLElement | null> = ref(null);
  
-        enum TransitioningState { Idle, FixateHeight, 
-            ZeroHeight, ZeroHeightReached }
+        enum TransitioningState { Expanded, FixateHeight, 
+            Collapsing, Collapsed }
         
         const transitioningState = ref(ctrl.isExpanded(index) 
-            ? TransitioningState.Idle : TransitioningState.ZeroHeightReached);
+            ? TransitioningState.Expanded : TransitioningState.Collapsed);
         
         const isTransitioning = computed(() => {
-            return transitioningState.value !== TransitioningState.Idle
-                &amp;&amp; transitioningState.value !== TransitioningState.ZeroHeightReached;
+            return transitioningState.value !== TransitioningState.Expanded
+                &amp;&amp; transitioningState.value !== TransitioningState.Collapsed;
         });
         
         watch (() => ctrl.isExpanded(index), () => {
@@ -156,38 +170,48 @@ export default defineComponent({
                 return null;
             }
             let style = window.getComputedStyle(panel.value);
-            if (style.transition === "" &amp;&amp; style.animation === ""
-                &amp;&amp; style.animationName ==="") {
+            if (!style.transitionProperty.split(",")
+                    .map((s) => s.trim()).includes("height")) {
                 return null;
             }
             
             if (ctrl.isExpanded(index)) {
-                // Start expanding
-                transitioningState.value = TransitioningState.FixateHeight;
-                let handler = function (this: HTMLElement, e: Event) {
+                // Prepare for transition and start expanding
+                let handler = function (this: HTMLElement, e: TransitionEvent) {
+                    if (e.propertyName !== "height"
+                        || e.propertyName !== "height") {
+                        return;
+                    }
                     panel.value!.removeEventListener("transitionend", handler);
+                    // Make sure that we still want to achieve this
                     if (ctrl.isExpanded(index)) {
-                        // Make sure that we still want to achieve this
-                        transitioningState.value = TransitioningState.Idle;
+                        transitioningState.value = TransitioningState.Expanded;
                     }
                 };
                 panel.value.addEventListener("transitionend", handler); 
-            } else {
-                // Start hiding
                 transitioningState.value = TransitioningState.FixateHeight;
-                window.requestAnimationFrame (() => {
+            } else {
+                // Prepare for transition and start hiding
+                window.requestAnimationFrame(() => {
+                    // It takes two frames for our explicit height to become
+                    // effective. 
                     window.requestAnimationFrame(() => {
-                        transitioningState.value = TransitioningState.ZeroHeight;
-                        let handler = function (this: HTMLElement, e: Event) {
+                        let handler = function (this: HTMLElement, e: TransitionEvent) {
+                            if (e.target !== panel.value
+                                || e.propertyName !== "height") {
+                                return;
+                            }
                             panel.value!.removeEventListener("transitionend", handler);
+                            // Make sure that we still want to achieve this
                             if (!ctrl.isExpanded(index)) {
-                                // Make sure that we still want to achieve this
-                                transitioningState.value = TransitioningState.ZeroHeightReached;
+                                transitioningState.value = TransitioningState.Collapsed;
                             }
                         };
                         panel.value!.addEventListener("transitionend", handler); 
+                        transitioningState.value = TransitioningState.Collapsing;
                     });
                 });
+                transitioningState.value = TransitioningState.FixateHeight;
             }
         });
         
@@ -197,9 +221,10 @@ export default defineComponent({
         
         const height = computed(() => {
             if (transitioningState.value == TransitioningState.FixateHeight) {
+                let result: string | null = null;
                 let style = window.getComputedStyle(panel.value!);
                 if (style.display !== "none") {
-                    return panel.value!.scrollHeight + "px";
+                    result = panel.value!.scrollHeight + "px";
                 } else {
                     let position = panel.value!.style.position;
                     let visibility = panel.value!.style.visibility;
@@ -207,16 +232,12 @@ export default defineComponent({
                     panel.value!.style.visibility = "hidden";
                     panel.value!.style.position = "absolute";
                     panel.value!.style.display = "block";
-                    let result = panel.value!.scrollHeight + "px";
+                    result = panel.value!.scrollHeight + "px";
                     panel.value!.style.display = display;
                     panel.value!.style.position = position;
                     panel.value!.style.visibility = visibility;
-                    return result;
                 }
-            }
-            if (transitioningState.value === TransitioningState.ZeroHeight
-                || transitioningState.value === TransitioningState.ZeroHeightReached) {
-                return "0";
+                return result;
             }
             return null;
         });

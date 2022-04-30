@@ -92,7 +92,25 @@
         <h2><span class="attribs"><span class="type-signature"></span></span>
             <span class="ancestors"><a href="module-AashAccordionSection.html">AashAccordionSection</a>~</span>AashAccordionSectionComponent<span class="signature">(props)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description"><p>Generates the header and region of an accordion section.</p></div>
+            <div class="class-description"><p>Generates the header and region of an accordion section.</p>
+<p>The component supports a sliding animation by setting the <code>height</code>
+attribute of the region on two occasions if a transition for
+<code>height</code> is defined for the region.</p>
+<p>When the region is to be expanded, the component calculates the
+(expected) height of the region and sets its style's <code>height</code> to that
+value. When the transition has ended, the explicit <code>height</code> value is
+removed again, thus allowing the section to adjust to the size of its
+content if that content changes.</p>
+<p>When the region is to be collapsed, the component calculates the
+current height of the region and assigns the result to the
+style's <code>height</code> for one animation frame. Together with a CSS rule
+that requests <code>height: 0</code> if the region is hidden, this triggers
+a transition from the calculated height to 0.</p>
+<p>During either transition, the attribute <code>data-transitioning</code> is set
+on the region.</p>
+<p>Note that adding padding to the section breaks the transition. Therefore,
+an extra <code>div</code> is generated as child of the section that contains the
+slot content. Use this <code>div</code> to add any padding.</p></div>
         
     
 </header>
@@ -249,7 +267,7 @@
         <p class="tag-source">
             <a href="components_accordion_AashAccordionSection.ts.html" class="button">View Source</a>
             <span>
-                <a href="components_accordion_AashAccordionSection.ts.html">components/accordion/AashAccordionSection.ts</a>, <a href="components_accordion_AashAccordionSection.ts.html#line17">line 17</a>
+                <a href="components_accordion_AashAccordionSection.ts.html">components/accordion/AashAccordionSection.ts</a>, <a href="components_accordion_AashAccordionSection.ts.html#line8">line 8</a>
             </span>
         </p>
     
