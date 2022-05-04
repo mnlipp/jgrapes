@@ -12,17 +12,22 @@ buildscript {
     }
 }
 
-apply plugin: 'org.ajoberstar.git-publish'
+plugins {
+    id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            username = project.properties['sonatypeUsername'] ?: "nouser"
+            password = project.properties['sonatypePassword'] ?: "nopass"
+        }
+    }
+}
 
 ext {
 	isCiBuild = System.getenv().get("CI") == 'true'
     isJitPackBuild = System.getenv().get("JITPACK") == 'true'
-}
-
-// Prepare github authentication for plugins
-if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
-	System.setProperty('org.ajoberstar.grgit.auth.username',
-		System.getenv("GH_TOKEN") ?: project.properties['github.token'] ?: "nouser")
 }
 
 allprojects {
@@ -49,6 +54,14 @@ allprojects {
 
 subprojects {
     apply from: "${project.rootDir}/gradle/subprojects.gradle"
+}
+
+apply plugin: 'org.ajoberstar.git-publish'
+
+// Prepare github authentication for plugins
+if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
+    System.setProperty('org.ajoberstar.grgit.auth.username',
+        System.getenv("GH_TOKEN") ?: project.properties['github.token'] ?: "nouser")
 }
 
 gitPublish {
