@@ -159,7 +159,7 @@ public class HttpConnector extends Component {
 
     /**
      * Called when the network connection is established. Triggers the
-     * frther processing of the initial request.
+     * further processing of the initial request.
      *
      * @param event the event
      * @param netConnChannel the network layer channel
