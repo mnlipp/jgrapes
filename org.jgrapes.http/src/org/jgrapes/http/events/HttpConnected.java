@@ -20,28 +20,33 @@ package org.jgrapes.http.events;
 
 import java.net.SocketAddress;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
-import org.jgrapes.net.events.Connected;
+import org.jgrapes.io.events.Opened;
 
 /**
- * Signals that a TCP connection for a {@link HttpRequest} has been
+ * Signals that a HTTP connection for a {@link HttpRequest} has been
  * established. The event is delivered on the subchannel that has been
  * created for handling the request.
  */
-public class HttpConnected extends Connected {
+public class HttpConnected extends Opened {
 
     private final Request.Out request;
+    private final SocketAddress localAddress;
+    private final SocketAddress remoteAddress;
 
     /**
      * Instantiates a new event.
      *
      * @param request the request
+     * @param netEvent the net event the network layer event that
+     * caused the connection to be established
      * @param localAddress the local address
      * @param remoteAddress the remote address
      */
-    public HttpConnected(Request.Out request, SocketAddress localAddress,
-            SocketAddress remoteAddress) {
-        super(localAddress, remoteAddress);
+    public HttpConnected(Request.Out request,
+            SocketAddress localAddress, SocketAddress remoteAddress) {
         this.request = request;
+        this.localAddress = localAddress;
+        this.remoteAddress = remoteAddress;
     }
 
     /**
@@ -54,4 +59,17 @@ public class HttpConnected extends Connected {
         return request;
     }
 
+    /**
+     * @return the localAddress
+     */
+    public SocketAddress localAddress() {
+        return localAddress;
+    }
+
+    /**
+     * @return the remoteAddress
+     */
+    public SocketAddress remoteAddress() {
+        return remoteAddress;
+    }
 }
