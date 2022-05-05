@@ -69,7 +69,7 @@ public class TcpConnector extends TcpConnectionManager {
         try {
             @SuppressWarnings("PMD.CloseResource")
             SocketChannel socketChannel = SocketChannel.open(event.address());
-            channels.add(new TcpChannelImpl(socketChannel));
+            channels.add(new TcpChannelImpl(event, socketChannel));
         } catch (ConnectException e) {
             fire(new ConnectError(event, "Connection refused.", e));
         } catch (IOException e) {
@@ -100,7 +100,8 @@ public class TcpConnector extends TcpConnectionManager {
         TcpChannelImpl channel = (TcpChannelImpl) handler;
         channel.registrationComplete(event.event());
         channel.downPipeline()
-            .fire(new Connected(channel.nioChannel().getLocalAddress(),
+            .fire(new Connected(channel.openEvent().orElse(null),
+                channel.nioChannel().getLocalAddress(),
                 channel.nioChannel().getRemoteAddress()), channel);
     }
 

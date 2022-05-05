@@ -433,7 +433,7 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
                     }
                     return;
                 }
-                channels.add(new TcpChannelImpl(socketChannel));
+                channels.add(new TcpChannelImpl(null, socketChannel));
             } catch (IOException e) {
                 fire(new IOError(null, e));
             }

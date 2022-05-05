@@ -25,6 +25,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -42,6 +43,7 @@ import org.jgrapes.io.events.HalfClosed;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.NioRegistration.Registration;
+import org.jgrapes.io.events.OpenTcpConnection;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
@@ -173,10 +175,14 @@ public abstract class TcpConnectionManager extends Component {
     /**
      * The internal representation of a connection. 
      */
+    /**
+     * 
+     */
     @SuppressWarnings("PMD.GodClass")
     protected class TcpChannelImpl
             extends DefaultIOSubchannel implements NioHandler, TcpChannel {
 
+        private final OpenTcpConnection openEvent;
         private final SocketChannel nioChannel;
         private final SocketAddress localAddress;
         private final SocketAddress remoteAddress;
@@ -196,8 +202,10 @@ public abstract class TcpConnectionManager extends Component {
          * @param nioChannel the channel
          * @throws IOException if an I/O error occured
          */
-        public TcpChannelImpl(SocketChannel nioChannel) throws IOException {
+        public TcpChannelImpl(OpenTcpConnection openEvent,
+                SocketChannel nioChannel) throws IOException {
             super(channel(), newEventPipeline());
+            this.openEvent = openEvent;
             this.nioChannel = nioChannel;
             // Copy, because they are only available while channel is open.
             localAddress = nioChannel.getLocalAddress();
@@ -233,6 +241,18 @@ public abstract class TcpConnectionManager extends Component {
                 new NioRegistration(this, nioChannel, 0,
                     TcpConnectionManager.this),
                 Channel.BROADCAST);
+        }
+
+        /**
+         * Returns the event that caused this connection to be opened.
+         * 
+         * May be `null` if the channel was created in response to a
+         * client connecting to the server.
+         * 
+         * @return the event
+         */
+        public Optional<OpenTcpConnection> openEvent() {
+            return Optional.ofNullable(openEvent);
         }
 
         /**

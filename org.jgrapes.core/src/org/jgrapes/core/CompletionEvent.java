@@ -21,11 +21,16 @@ package org.jgrapes.core;
 import org.jgrapes.core.internal.EventBase;
 
 /**
- * A base class for completion events that use the completed event
- * as their result type. Use {@link #event()} to access
- * the completed event while handling the completion event. 
+ * A base class for events that signal the completion of some other
+ * (monitored) event and provide this other event as their result. 
+ * Events of this type are automatically fired when the framework
+ * detects that the monitored event has completed.  
+ * 
+ * Use {@link #event()} to conveniently access the monitored event 
+ * while handling the completion event. 
  * 
  * @see EventBase#onCompletion(Event, java.util.function.Consumer)
+ * @see EventBase#addCompletionEvent(Event)
  */
 public abstract class CompletionEvent<T extends Event<?>>
         extends Event<T> {

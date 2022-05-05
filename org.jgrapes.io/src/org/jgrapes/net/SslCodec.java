@@ -364,9 +364,8 @@ public class SslCodec extends Component {
             sslEngine.setUseClientMode(true);
 
             // Forward downstream
-            downPipeline.fire(
-                new Connected(event.localAddress(), event.remoteAddress()),
-                this);
+            downPipeline.fire(new Connected(event.openEvent().orElse(null),
+                event.localAddress(), event.remoteAddress()), this);
         }
 
         private void init() {
