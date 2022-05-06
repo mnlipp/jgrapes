@@ -148,7 +148,7 @@
  * is invoked by the framework once for each channel that the event
  * was fired on. If the type of the second parameter is a subtype
  * of {@link org.jgrapes.core.Channel}, it is invoked only if the
- * paramter is assignable from the actual channel.
+ * parameter is assignable from the actual channel.
  * 
  * 
  * Event Processors
