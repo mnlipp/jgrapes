@@ -36,8 +36,6 @@ public class HttpConnected extends Opened<Request.Out> {
      * Instantiates a new event.
      *
      * @param request the request
-     * @param netEvent the net event the network layer event that
-     * caused the connection to be established
      * @param localAddress the local address
      * @param remoteAddress the remote address
      */
