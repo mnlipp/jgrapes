@@ -277,13 +277,17 @@ public abstract class EventBase<T>
      * a shortcut for registering a {@link CompletionEvent} and
      * providing a handler for the completion event that invokes 
      * the consumer.
+     * 
+     * The static form is required because otherwise the compiler cannot
+     * infer the type of the consumer's argument.
      *
      * @param <T> the result type of the event
      * @param <E> the type of the event
      * @param event the event
      * @param consumer the consumer
+     * @return the event
      */
-    public static <T, E extends Event<T>> void onCompletion(E event,
+    public static <T, E extends Event<T>> E onCompletion(E event,
             Consumer<E> consumer) {
         event.addCompletionEvent(new ActionEvent<Event<T>>(
             event.getClass().getSimpleName() + "CompletionAction") {
@@ -292,5 +296,6 @@ public abstract class EventBase<T>
                 consumer.accept(event);
             }
         });
+        return event;
     }
 }
