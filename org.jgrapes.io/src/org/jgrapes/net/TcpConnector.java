@@ -30,6 +30,7 @@ import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.ConnectError;
 import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.OpenTcpConnection;
+import org.jgrapes.net.events.ClientConnected;
 import org.jgrapes.net.events.Connected;
 
 /**
@@ -99,10 +100,16 @@ public class TcpConnector extends TcpConnectionManager {
         }
         TcpChannelImpl channel = (TcpChannelImpl) handler;
         channel.registrationComplete(event.event());
-        channel.downPipeline()
-            .fire(new Connected(channel.openEvent().orElse(null),
-                channel.nioChannel().getLocalAddress(),
-                channel.nioChannel().getRemoteAddress()), channel);
+        if (channel.openEvent().isPresent()) {
+            channel.downPipeline()
+                .fire(new ClientConnected(channel.openEvent().get(),
+                    channel.nioChannel().getLocalAddress(),
+                    channel.nioChannel().getRemoteAddress()), channel);
+        } else {
+            channel.downPipeline()
+                .fire(new Connected(channel.nioChannel().getLocalAddress(),
+                    channel.nioChannel().getRemoteAddress()), channel);
+        }
     }
 
     /**

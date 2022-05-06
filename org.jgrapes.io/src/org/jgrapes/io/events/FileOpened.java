@@ -25,20 +25,44 @@ import java.util.Arrays;
 /**
  *
  */
-public class FileOpened extends Opened {
+public class FileOpened extends Opened<OpenFile> {
 
     private final Path path;
     private final OpenOption[] options;
 
     /**
-     * Instantiates a new event.
+     * Instantiates a new event, using the values for path and
+     * options from the opening event. 
      *
+     * @param event the event that caused opening the file
+     */
+    public FileOpened(OpenFile event) {
+        setResult(event);
+        this.path = event.path();
+        this.options = event.options();
+    }
+
+    /**
+     * Instantiates a new event, overriding the values using the
+     * given values for path and options.
+     *
+     * @param event the event that caused opening the file
      * @param path the path
      * @param options the options
      */
-    public FileOpened(Path path, OpenOption... options) {
+    public FileOpened(OpenFile event, Path path, OpenOption... options) {
+        setResult(event);
         this.path = path;
         this.options = Arrays.copyOf(options, options.length);
+    }
+
+    /**
+     * Returns the event that caused the file to be opened.
+     * 
+     * @return the event
+     */
+    public OpenFile openEvent() {
+        return currentResults().get(0);
     }
 
     /**

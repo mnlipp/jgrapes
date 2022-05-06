@@ -24,10 +24,10 @@ import org.jgrapes.core.Components;
 import org.jgrapes.io.events.Opened;
 
 /**
- * This event signals that a new connection has been made by a client.
+ * This event signals that a new connection has been established.
  */
 @SuppressWarnings("PMD.DataClass")
-public class Connected extends Opened {
+public class Connected<T> extends Opened<T> {
 
     private final SocketAddress localAddress;
     private final SocketAddress remoteAddress;

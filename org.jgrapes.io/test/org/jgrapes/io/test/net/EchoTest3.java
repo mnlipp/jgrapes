@@ -61,7 +61,7 @@ import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.net.SslCodec;
 import org.jgrapes.net.TcpConnector;
 import org.jgrapes.net.TcpServer;
-import org.jgrapes.net.events.Connected;
+import org.jgrapes.net.events.ClientConnected;
 import org.jgrapes.net.events.Ready;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -104,6 +104,7 @@ public class EchoTest3 {
         private InetSocketAddress serverAddr;
         private ByteArrayOutputStream responseBuffer;
         private boolean handlingErrorSeen;
+        public boolean infoPropagated;
 
         /**
          * @param serverAddr
@@ -114,12 +115,14 @@ public class EchoTest3 {
 
         @Handler
         public void onStarted(Started event) throws InterruptedException {
-            fire(new OpenTcpConnection(serverAddr));
+            fire(new OpenTcpConnection(serverAddr).setAssociated("test", true));
         }
 
         @Handler
-        public void onConnected(Connected event, IOSubchannel channel)
+        public void onConnected(ClientConnected event, IOSubchannel channel)
                 throws InterruptedException, IOException {
+            infoPropagated
+                = event.openEvent().associated("test", Boolean.class).get();
             channel.setAssociated(EchoTest3.class, this);
             new Thread(() -> {
                 try (Writer out = new OutputStreamWriter(
@@ -224,6 +227,7 @@ public class EchoTest3 {
                 clntApp.defaultCriterion());
         Components.start(clntApp);
         done.get();
+        assertTrue(clntApp.infoPropagated);
 
         // Stop
         Components.manager(clntApp).fire(new Stop(), Channel.BROADCAST);

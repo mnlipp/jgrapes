@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2022 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -20,14 +20,16 @@ package org.jgrapes.io.events;
 
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import org.jgrapes.io.FileStorage;
+import java.util.Arrays;
+import org.jgrapes.core.Event;
 
 /**
- * Causes the {@link FileStorage} component to write the data from all
- * {@link Input} events on the channel that this event is fired on to a file
- * until an event with the end of record flag set is sent on the channel.
+ * A base class for events that cause a file to be opened.
  */
-public class SaveInput extends OpenFile {
+public class OpenFile extends Event<Void> {
+
+    private final Path path;
+    private final OpenOption[] options;
 
     /**
      * Creates a new instance.
@@ -35,7 +37,26 @@ public class SaveInput extends OpenFile {
      * @param path the file's path
      * @param options open options
      */
-    public SaveInput(Path path, OpenOption... options) {
-        super(path, options);
+    public OpenFile(Path path, OpenOption... options) {
+        this.path = path;
+        this.options = Arrays.copyOf(options, options.length);
+    }
+
+    /**
+     * Return's the event's path. 
+     * 
+     * @return the path
+     */
+    public Path path() {
+        return path;
+    }
+
+    /**
+     * Returns the event's options.
+     * 
+     * @return the options
+     */
+    public OpenOption[] options() {
+        return Arrays.copyOf(options, options.length);
     }
 }

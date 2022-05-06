@@ -20,18 +20,13 @@ package org.jgrapes.io.events;
 
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.util.Arrays;
-import org.jgrapes.core.Event;
 
 /**
  * Causes the content of a file to be streamed as a sequence of {@link Output}
  * events (terminated by an event with the end of record flag set) on the 
  * channel that this event is fired on.
  */
-public class StreamFile extends Event<Void> {
-
-    private final Path path;
-    private final OpenOption[] options;
+public class StreamFile extends OpenFile {
 
     /**
      * Creates a new instance.
@@ -40,26 +35,7 @@ public class StreamFile extends Event<Void> {
      * @param options open options
      */
     public StreamFile(Path path, OpenOption... options) {
-        this.path = path;
-        this.options = Arrays.copyOf(options, options.length);
-    }
-
-    /**
-     * Returns the event's path.
-     * 
-     * @return the path
-     */
-    public Path path() {
-        return path;
-    }
-
-    /**
-     * Returns the event's options.
-     * 
-     * @return the options
-     */
-    public OpenOption[] options() {
-        return Arrays.copyOf(options, options.length);
+        super(path, options);
     }
 
 }

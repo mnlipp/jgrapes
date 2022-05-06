@@ -168,7 +168,7 @@ public class HttpConnector extends Component {
      */
     @Handler(channels = NetworkChannel.class)
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public void onConnected(Connected event, TcpChannel netConnChannel)
+    public void onConnected(Connected<?> event, TcpChannel netConnChannel)
             throws InterruptedException, IOException {
         // Check if an app channel has been waiting for such a connection
         WebAppMsgChannel[] appChannel = { null };

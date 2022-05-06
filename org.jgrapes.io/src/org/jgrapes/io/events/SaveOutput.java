@@ -20,8 +20,6 @@ package org.jgrapes.io.events;
 
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.util.Arrays;
-import org.jgrapes.core.Event;
 import org.jgrapes.io.FileStorage;
 
 /**
@@ -29,10 +27,7 @@ import org.jgrapes.io.FileStorage;
  * {@link Output} events on the channel that this event is fired on to a file
  * until an event with the end of record flag set is sent on the channel.
  */
-public class SaveOutput extends Event<Void> {
-
-    private final Path path;
-    private final OpenOption[] options;
+public class SaveOutput extends OpenFile {
 
     /**
      * Creates a new instance.
@@ -41,26 +36,6 @@ public class SaveOutput extends Event<Void> {
      * @param options open options
      */
     public SaveOutput(Path path, OpenOption... options) {
-        this.path = path;
-        this.options = Arrays.copyOf(options, options.length);
+        super(path, options);
     }
-
-    /**
-     * Return's the event's path. 
-     * 
-     * @return the path
-     */
-    public Path path() {
-        return path;
-    }
-
-    /**
-     * Returns the event's options.
-     * 
-     * @return the options
-     */
-    public OpenOption[] options() {
-        return Arrays.copyOf(options, options.length);
-    }
-
 }

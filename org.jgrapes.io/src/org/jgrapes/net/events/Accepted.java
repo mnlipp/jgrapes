@@ -30,7 +30,7 @@ import org.jgrapes.io.events.Opened;
  * This event signals that a new connection has been made by a client.
  */
 @SuppressWarnings("PMD.DataClass")
-public class Accepted extends Opened {
+public class Accepted extends Opened<Void> {
 
     private final SocketAddress localAddress;
     private final SocketAddress remoteAddress;

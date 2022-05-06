@@ -27,9 +27,8 @@ import org.jgrapes.io.events.Opened;
  * established. The event is delivered on the subchannel that has been
  * created for handling the request.
  */
-public class HttpConnected extends Opened {
+public class HttpConnected extends Opened<Request.Out> {
 
-    private final Request.Out request;
     private final SocketAddress localAddress;
     private final SocketAddress remoteAddress;
 
@@ -44,7 +43,7 @@ public class HttpConnected extends Opened {
      */
     public HttpConnected(Request.Out request,
             SocketAddress localAddress, SocketAddress remoteAddress) {
-        this.request = request;
+        setResult(request);
         this.localAddress = localAddress;
         this.remoteAddress = remoteAddress;
     }
@@ -56,7 +55,7 @@ public class HttpConnected extends Opened {
      * @return the request
      */
     public Request.Out request() {
-        return request;
+        return currentResults().get(0);
     }
 
     /**

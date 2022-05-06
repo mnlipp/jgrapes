@@ -61,6 +61,7 @@ import org.jgrapes.io.util.LinkedIOSubchannel;
 import org.jgrapes.io.util.ManagedBuffer;
 import org.jgrapes.io.util.ManagedBufferPool;
 import org.jgrapes.net.events.Accepted;
+import org.jgrapes.net.events.ClientConnected;
 import org.jgrapes.net.events.Connected;
 
 /**
@@ -168,7 +169,8 @@ public class SslCodec extends Component {
      */
     @Handler
     public void onOpenConnection(OpenTcpConnection event) {
-        fire(new OpenTcpConnection(event.address()), encryptedChannel);
+        fire(new OpenTcpConnection(event.address())
+            .setAssociated(SslCodec.class, event), encryptedChannel);
     }
 
     /**
@@ -179,7 +181,7 @@ public class SslCodec extends Component {
      *            the accepted event
      */
     @Handler(channels = EncryptedChannel.class)
-    public void onConnected(Connected event, IOSubchannel encryptedChannel) {
+    public void onConnected(Connected<?> event, IOSubchannel encryptedChannel) {
         new PlainChannel(event, encryptedChannel);
     }
 
@@ -350,12 +352,12 @@ public class SslCodec extends Component {
         }
 
         /**
-         * Instantiates a new plain channel from an initiated connection.
+         * Instantiates a new plain channel from an established connection.
          *
          * @param event the event
          * @param upstreamChannel the upstream channel
          */
-        public PlainChannel(Connected event, IOSubchannel upstreamChannel) {
+        public PlainChannel(Connected<?> event, IOSubchannel upstreamChannel) {
             super(SslCodec.this, channel(), upstreamChannel,
                 newEventPipeline());
             localAddress = event.localAddress();
@@ -364,8 +366,16 @@ public class SslCodec extends Component {
             sslEngine.setUseClientMode(true);
 
             // Forward downstream
-            downPipeline.fire(new Connected(event.openEvent().orElse(null),
-                event.localAddress(), event.remoteAddress()), this);
+            if (event instanceof ClientConnected) {
+                downPipeline.fire(new ClientConnected(
+                    ((ClientConnected) event).openEvent().associated(
+                        SslCodec.class, OpenTcpConnection.class).get(),
+                    event.localAddress(), event.remoteAddress()), this);
+
+            } else {
+                downPipeline.fire(new Connected<Void>(
+                    event.localAddress(), event.remoteAddress()), this);
+            }
         }
 
         private void init() {

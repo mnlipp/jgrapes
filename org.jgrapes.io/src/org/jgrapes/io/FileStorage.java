@@ -152,7 +152,7 @@ public class FileStorage extends Component {
                 return;
             }
             registerAsGenerator();
-            channel.respond(new FileOpened(event.path(), event.options()));
+            channel.respond(new FileOpened(event));
             // Reading from file
             ioBuffers = new ManagedBufferPool<>(ManagedBuffer::new,
                 () -> {
@@ -461,7 +461,7 @@ public class FileStorage extends Component {
                 throws InterruptedException {
             this(event, event.path(), event.options(), channel);
             inputWriters.put(channel, this);
-            channel.respond(new FileOpened(path, event.options()));
+            channel.respond(new FileOpened(event));
         }
 
         /**
@@ -475,7 +475,7 @@ public class FileStorage extends Component {
                 throws InterruptedException {
             this(event, event.path(), event.options(), channel);
             outputWriters.put(channel, this);
-            channel.respond(new FileOpened(path, event.options()));
+            channel.respond(new FileOpened(event));
         }
 
         private Writer(Event<?> event, Path path, OpenOption[] options,

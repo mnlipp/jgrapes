@@ -27,7 +27,7 @@ import org.jgrapes.io.events.Opened;
  * Signals that a server has bound to a socket address and
  * is ready to accept connections.
  */
-public class Ready extends Opened {
+public class Ready extends Opened<Void> {
 
     private final SocketAddress listenAddress;
 
