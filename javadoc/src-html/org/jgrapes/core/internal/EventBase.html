@@ -290,23 +290,28 @@
 <span class="source-line-no">277</span><span id="line-277">     * a shortcut for registering a {@link CompletionEvent} and</span>
 <span class="source-line-no">278</span><span id="line-278">     * providing a handler for the completion event that invokes </span>
 <span class="source-line-no">279</span><span id="line-279">     * the consumer.</span>
-<span class="source-line-no">280</span><span id="line-280">     *</span>
-<span class="source-line-no">281</span><span id="line-281">     * @param &lt;T&gt; the result type of the event</span>
-<span class="source-line-no">282</span><span id="line-282">     * @param &lt;E&gt; the type of the event</span>
-<span class="source-line-no">283</span><span id="line-283">     * @param event the event</span>
-<span class="source-line-no">284</span><span id="line-284">     * @param consumer the consumer</span>
-<span class="source-line-no">285</span><span id="line-285">     */</span>
-<span class="source-line-no">286</span><span id="line-286">    public static &lt;T, E extends Event&lt;T&gt;&gt; void onCompletion(E event,</span>
-<span class="source-line-no">287</span><span id="line-287">            Consumer&lt;E&gt; consumer) {</span>
-<span class="source-line-no">288</span><span id="line-288">        event.addCompletionEvent(new ActionEvent&lt;Event&lt;T&gt;&gt;(</span>
-<span class="source-line-no">289</span><span id="line-289">            event.getClass().getSimpleName() + "CompletionAction") {</span>
-<span class="source-line-no">290</span><span id="line-290">            @Override</span>
-<span class="source-line-no">291</span><span id="line-291">            public void execute() throws Exception {</span>
-<span class="source-line-no">292</span><span id="line-292">                consumer.accept(event);</span>
-<span class="source-line-no">293</span><span id="line-293">            }</span>
-<span class="source-line-no">294</span><span id="line-294">        });</span>
-<span class="source-line-no">295</span><span id="line-295">    }</span>
-<span class="source-line-no">296</span><span id="line-296">}</span>
+<span class="source-line-no">280</span><span id="line-280">     * </span>
+<span class="source-line-no">281</span><span id="line-281">     * The static form is required because otherwise the compiler cannot</span>
+<span class="source-line-no">282</span><span id="line-282">     * infer the type of the consumer's argument.</span>
+<span class="source-line-no">283</span><span id="line-283">     *</span>
+<span class="source-line-no">284</span><span id="line-284">     * @param &lt;T&gt; the result type of the event</span>
+<span class="source-line-no">285</span><span id="line-285">     * @param &lt;E&gt; the type of the event</span>
+<span class="source-line-no">286</span><span id="line-286">     * @param event the event</span>
+<span class="source-line-no">287</span><span id="line-287">     * @param consumer the consumer</span>
+<span class="source-line-no">288</span><span id="line-288">     * @return the event</span>
+<span class="source-line-no">289</span><span id="line-289">     */</span>
+<span class="source-line-no">290</span><span id="line-290">    public static &lt;T, E extends Event&lt;T&gt;&gt; E onCompletion(E event,</span>
+<span class="source-line-no">291</span><span id="line-291">            Consumer&lt;E&gt; consumer) {</span>
+<span class="source-line-no">292</span><span id="line-292">        event.addCompletionEvent(new ActionEvent&lt;Event&lt;T&gt;&gt;(</span>
+<span class="source-line-no">293</span><span id="line-293">            event.getClass().getSimpleName() + "CompletionAction") {</span>
+<span class="source-line-no">294</span><span id="line-294">            @Override</span>
+<span class="source-line-no">295</span><span id="line-295">            public void execute() throws Exception {</span>
+<span class="source-line-no">296</span><span id="line-296">                consumer.accept(event);</span>
+<span class="source-line-no">297</span><span id="line-297">            }</span>
+<span class="source-line-no">298</span><span id="line-298">        });</span>
+<span class="source-line-no">299</span><span id="line-299">        return event;</span>
+<span class="source-line-no">300</span><span id="line-300">    }</span>
+<span class="source-line-no">301</span><span id="line-301">}</span>
 
 
 

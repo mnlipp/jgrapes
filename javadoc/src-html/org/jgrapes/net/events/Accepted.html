@@ -43,7 +43,7 @@
 <span class="source-line-no">030</span><span id="line-30"> * This event signals that a new connection has been made by a client.</span>
 <span class="source-line-no">031</span><span id="line-31"> */</span>
 <span class="source-line-no">032</span><span id="line-32">@SuppressWarnings("PMD.DataClass")</span>
-<span class="source-line-no">033</span><span id="line-33">public class Accepted extends Opened {</span>
+<span class="source-line-no">033</span><span id="line-33">public class Accepted extends Opened&lt;Void&gt; {</span>
 <span class="source-line-no">034</span><span id="line-34"></span>
 <span class="source-line-no">035</span><span id="line-35">    private final SocketAddress localAddress;</span>
 <span class="source-line-no">036</span><span id="line-36">    private final SocketAddress remoteAddress;</span>
