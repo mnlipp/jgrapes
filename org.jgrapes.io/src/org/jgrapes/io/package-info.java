@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2016-2018 Michael N. Lipp
+ * Copyright (C) 2016-2022 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -18,6 +18,19 @@
 
 /**
  * I/O related components built on top of the core package.
+ * 
+ * I/O Subchannels
+ * ---------------
+ * 
+ * An important concept introduced by this package are subchannels.
+ * They allow the {@link org.jgrapes.io.events.Input}
+ * and {@link org.jgrapes.io.events.Output} events from several
+ * sources or to several destinations to be transferred on a single
+ * event {@link org.jgrapes.core.Channel}. Details can be found in the
+ * {@link org.jgrapes.io.IOSubchannel description of the interface}.
+ * 
+ * Using Buffers
+ * -------------
  * 
  * JGrapes manages buffers in pools. The framework therefore
  * defines the {@link org.jgrapes.io.util.ManagedBuffer}

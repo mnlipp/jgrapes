@@ -35,6 +35,7 @@ import org.jgrapes.io.FileStorage;
 import org.jgrapes.io.IOSubchannel;
 import org.jgrapes.io.events.Closed;
 import org.jgrapes.io.events.Opened;
+import org.jgrapes.io.events.Opening;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.StreamFile;
 import static org.junit.Assert.*;
@@ -68,7 +69,7 @@ public class FileReadTests {
     public static class StateChecker extends Component {
 
         public enum State {
-            NEW, OPENED, READING, CLOSING, CLOSED
+            NEW, OPENING, OPENED, READING, CLOSING, CLOSED
         }
 
         public State state = State.NEW;
@@ -78,8 +79,14 @@ public class FileReadTests {
         }
 
         @Handler
-        public void opened(Opened event) {
+        public void opening(Opening<?> event) {
             assertTrue(state == State.NEW);
+            state = State.OPENING;
+        }
+
+        @Handler
+        public void opened(Opened<?> event) {
+            assertTrue(state == State.OPENING);
             state = State.OPENED;
         }
 

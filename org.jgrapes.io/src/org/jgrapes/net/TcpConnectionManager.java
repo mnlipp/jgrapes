@@ -295,14 +295,12 @@ public abstract class TcpConnectionManager extends Component {
 
         /**
          * Invoked when registration has completed.
-         * 
-         * @param event the completed event
-         * @throws InterruptedException if the execution was interrupted
-         * @throws IOException if an I/O error occurred
+         *
+         * @param registration the registration (result from the
+         * {@link NioRegistration} event)
          */
-        public void registrationComplete(NioRegistration event)
-                throws InterruptedException, IOException {
-            registration = event.get();
+        public void registrationComplete(Registration registration) {
+            this.registration = registration;
             selectionKeys |= SelectionKey.OP_READ;
             registration.updateInterested(selectionKeys);
         }

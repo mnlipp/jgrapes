@@ -96,7 +96,7 @@ public class EchoTest2 {
         }
 
         @Handler
-        public void onConnected(Connected event, IOSubchannel channel)
+        public void onConnected(Connected<?> event, IOSubchannel channel)
                 throws InterruptedException {
             channel.setAssociated(EchoTest2.class, true);
             ManagedBuffer<ByteBuffer> buf = channel.byteBufferPool().acquire();

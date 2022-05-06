@@ -74,7 +74,7 @@ public class FileOutputWriteTests {
         }
 
         @Handler
-        public void opened(Opened event) {
+        public void opened(Opened<?> event) {
             assertTrue(state == State.NEW);
             state = State.OPENED;
         }

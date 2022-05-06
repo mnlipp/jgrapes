@@ -77,7 +77,7 @@ public class FileInputWriteTests {
         }
 
         @Handler(priority = +1) // Must be called before the producer's method
-        public void opened(Opened event) {
+        public void opened(Opened<?> event) {
             assertTrue(state == State.NEW);
             state = State.OPENED;
         }

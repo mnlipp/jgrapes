@@ -44,6 +44,7 @@ import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.Manager;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.Subchannel;
@@ -58,6 +59,7 @@ import org.jgrapes.io.events.IOError;
 import org.jgrapes.io.events.Input;
 import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.NioRegistration.Registration;
+import org.jgrapes.io.events.Opening;
 import org.jgrapes.io.events.Output;
 import org.jgrapes.io.events.Purge;
 import org.jgrapes.io.util.AvailabilityListener;
@@ -401,11 +403,16 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
         }
         if (handler instanceof TcpChannelImpl) {
             TcpChannelImpl channel = (TcpChannelImpl) handler;
-            channel.downPipeline()
-                .fire(new Accepted(channel.nioChannel().getLocalAddress(),
-                    channel.nioChannel().getRemoteAddress(), false,
-                    Collections.emptyList()), channel);
-            channel.registrationComplete(event.event());
+            var accepted = new Accepted(channel.nioChannel().getLocalAddress(),
+                channel.nioChannel().getRemoteAddress(), false,
+                Collections.emptyList());
+            var registration = event.event().get();
+            // (1) Opening, (2) Accepted, (3) process input
+            channel.downPipeline().fire(Event.onCompletion(new Opening<Void>(),
+                e -> {
+                    channel.downPipeline().fire(accepted, channel);
+                    channel.registrationComplete(registration);
+                }), channel);
         }
     }
 

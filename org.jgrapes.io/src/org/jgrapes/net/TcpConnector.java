@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.channels.SocketChannel;
 import org.jgrapes.core.Channel;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Error;
@@ -30,6 +31,7 @@ import org.jgrapes.io.events.Close;
 import org.jgrapes.io.events.ConnectError;
 import org.jgrapes.io.events.NioRegistration;
 import org.jgrapes.io.events.OpenTcpConnection;
+import org.jgrapes.io.events.Opening;
 import org.jgrapes.net.events.ClientConnected;
 import org.jgrapes.net.events.Connected;
 
@@ -99,17 +101,23 @@ public class TcpConnector extends TcpConnectionManager {
             return;
         }
         TcpChannelImpl channel = (TcpChannelImpl) handler;
-        channel.registrationComplete(event.event());
+        Connected<?> connected;
         if (channel.openEvent().isPresent()) {
-            channel.downPipeline()
-                .fire(new ClientConnected(channel.openEvent().get(),
-                    channel.nioChannel().getLocalAddress(),
-                    channel.nioChannel().getRemoteAddress()), channel);
+            connected = new ClientConnected(channel.openEvent().get(),
+                channel.nioChannel().getLocalAddress(),
+                channel.nioChannel().getRemoteAddress());
         } else {
-            channel.downPipeline()
-                .fire(new Connected(channel.nioChannel().getLocalAddress(),
-                    channel.nioChannel().getRemoteAddress()), channel);
+            connected
+                = new Connected<>(channel.nioChannel().getLocalAddress(),
+                    channel.nioChannel().getRemoteAddress());
         }
+        var registration = event.event().get();
+        // (1) Opening, (2) Connected, (3) start processing input
+        channel.downPipeline()
+            .fire(Event.onCompletion(new Opening<Void>(), e -> {
+                channel.downPipeline().fire(connected, channel);
+                channel.registrationComplete(registration);
+            }), channel);
     }
 
     /**
