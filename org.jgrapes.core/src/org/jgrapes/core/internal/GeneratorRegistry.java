@@ -28,6 +28,7 @@ import org.jgrapes.core.ComponentType;
  * A registry for generators. Used to track generators and determine
  * whether the application has stopped.
  */
+@SuppressWarnings("PMD.ClassWithOnlyPrivateConstructorsShouldBeFinal")
 public class GeneratorRegistry {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
@@ -37,6 +38,7 @@ public class GeneratorRegistry {
 
     private long running;
     private Thread keepAlive;
+    @SuppressWarnings("PMD.ImmutableField")
     private Map<Object, Object> generators;
 
     /**

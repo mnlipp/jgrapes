@@ -42,7 +42,7 @@ import org.jgrapes.core.internal.ComponentVertex;
 public abstract class Component extends ComponentVertex
         implements ComponentType, Channel {
 
-    private Channel componentChannel;
+    private final Channel componentChannel;
 
     /**
      * Creates a new component base with its channel set to
