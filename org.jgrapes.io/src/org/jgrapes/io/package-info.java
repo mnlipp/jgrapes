@@ -22,20 +22,56 @@
  * I/O Subchannels
  * ---------------
  * 
- * An important concept introduced by this package are subchannels.
- * They allow the {@link org.jgrapes.io.events.Input}
- * and {@link org.jgrapes.io.events.Output} events from several
- * sources or to several destinations to be transferred on a single
- * event {@link org.jgrapes.core.Channel}. Details can be found in the
- * {@link org.jgrapes.io.IOSubchannel description of the interface}.
+ * A central concept introduced by this package are 
+ * {@link org.jgrapes.io.IOSubchannel}s. They allow the 
+ * {@link org.jgrapes.io.events.Input} and 
+ * {@link org.jgrapes.io.events.Output} events from different connections
+ * to be transferred on the same {@link org.jgrapes.core.Channel}. 
+ * Details can be found in the description of the interface.
+ * 
+ * Connection Provider Components
+ * ------------------------------
+ * 
+ * Connection provider components actively create a connection to some
+ * other process or wait for other processes to create a connection that
+ * is used to exchange information. Such components must (directly or 
+ * indirectly) register as generator
+ * (see {@link org.jgrapes.core.internal.ComponentVertex#registerAsGenerator})
+ * while connections are active or the components are waiting for incoming 
+ * connections to prevent premature termination of the framework.
+ * 
+ * When a new connection is established, these components usually create 
+ * a {@link org.jgrapes.io.IOSubchannel} that represents the
+ * connection with the other process. On this sub channel, the connection 
+ * provider components should send events according to the following 
+ * convention:
+ * 
+ *  * An {@link org.jgrapes.io.events.Opening} event to inform other
+ *    interested components about the new I/O subchannel. A component's 
+ *    handler might e.g. send a {@link org.jgrapes.io.events.SaveInput}
+ *    event to log all input on this channel. Only after the completion
+ *    of `Opening` event should the next event be sent on the I/O 
+ *    subchannel.
+ *    
+ *  * An {@link org.jgrapes.io.events.Opened} event (or some derived class
+ *    with more information about the type of connection that has been
+ *    opened).
+ *    
+ *  * {@link org.jgrapes.io.events.Input} events as data from the client
+ *    arrives.
+ *    
+ *  * Finally a {@link org.jgrapes.io.events.Close} event that indicates
+ *    that the connection has terminated.
  * 
  * Using Buffers
  * -------------
  * 
- * JGrapes manages buffers in pools. The framework therefore
- * defines the {@link org.jgrapes.io.util.ManagedBuffer}
+ * The data associated with {@link org.jgrapes.io.events.Input} and
+ * {@link org.jgrapes.io.events.Output} events is stored in NIO buffers.
+ * JGrapes manages these buffers in pools. To support this, JGrapes
+ * defines the class {@link org.jgrapes.io.util.ManagedBuffer}
  * that wraps a NIO buffer, adding the information required for 
- * managing the buffer. 
+ * managing it. 
  * 
  * Pooling is not done to avoid garbage collection, but for 
  * shaping streams of data. Imagine a pipeline where stage A produces
