@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import org.jgrapes.core.Event;
 
-// TODO: Auto-generated Javadoc
 /**
  * An event that triggers updates or deletions in a key/value store.
  */
