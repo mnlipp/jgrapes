@@ -40,7 +40,7 @@
 <span class="source-line-no">027</span><span id="line-27"> * Signals that a server has bound to a socket address and</span>
 <span class="source-line-no">028</span><span id="line-28"> * is ready to accept connections.</span>
 <span class="source-line-no">029</span><span id="line-29"> */</span>
-<span class="source-line-no">030</span><span id="line-30">public class Ready extends Opened {</span>
+<span class="source-line-no">030</span><span id="line-30">public class Ready extends Opened&lt;Void&gt; {</span>
 <span class="source-line-no">031</span><span id="line-31"></span>
 <span class="source-line-no">032</span><span id="line-32">    private final SocketAddress listenAddress;</span>
 <span class="source-line-no">033</span><span id="line-33"></span>

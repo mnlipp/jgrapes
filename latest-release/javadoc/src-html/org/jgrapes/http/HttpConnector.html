@@ -172,7 +172,7 @@
 <span class="source-line-no">159</span><span id="line-159"></span>
 <span class="source-line-no">160</span><span id="line-160">    /**</span>
 <span class="source-line-no">161</span><span id="line-161">     * Called when the network connection is established. Triggers the</span>
-<span class="source-line-no">162</span><span id="line-162">     * frther processing of the initial request.</span>
+<span class="source-line-no">162</span><span id="line-162">     * further processing of the initial request.</span>
 <span class="source-line-no">163</span><span id="line-163">     *</span>
 <span class="source-line-no">164</span><span id="line-164">     * @param event the event</span>
 <span class="source-line-no">165</span><span id="line-165">     * @param netConnChannel the network layer channel</span>
@@ -181,7 +181,7 @@
 <span class="source-line-no">168</span><span id="line-168">     */</span>
 <span class="source-line-no">169</span><span id="line-169">    @Handler(channels = NetworkChannel.class)</span>
 <span class="source-line-no">170</span><span id="line-170">    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")</span>
-<span class="source-line-no">171</span><span id="line-171">    public void onConnected(Connected event, TcpChannel netConnChannel)</span>
+<span class="source-line-no">171</span><span id="line-171">    public void onConnected(Connected&lt;?&gt; event, TcpChannel netConnChannel)</span>
 <span class="source-line-no">172</span><span id="line-172">            throws InterruptedException, IOException {</span>
 <span class="source-line-no">173</span><span id="line-173">        // Check if an app channel has been waiting for such a connection</span>
 <span class="source-line-no">174</span><span id="line-174">        WebAppMsgChannel[] appChannel = { null };</span>
