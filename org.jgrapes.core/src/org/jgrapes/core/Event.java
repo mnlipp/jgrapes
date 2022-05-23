@@ -105,7 +105,9 @@ public class Event<T> extends EventBase<T> {
      * 
      * @return the event pipeline if the event is being processed
      */
-    @SuppressWarnings("PMD.UselessOverridingMethod")
+    @SuppressWarnings({ "PMD.UselessOverridingMethod",
+        "PMD.AvoidDuplicateLiterals" })
+    @Override
     public Optional<EventPipeline> processedBy() {
         return super.processedBy();
     }
@@ -250,6 +252,33 @@ public class Event<T> extends EventBase<T> {
      */
     protected void handled() {
         // Default is to do nothing.
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings("PMD.UselessOverridingMethod")
+    public void suspendHandling() {
+        super.suspendHandling();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings("PMD.UselessOverridingMethod")
+    public void suspendHandling(Runnable whenResumed) {
+        super.suspendHandling(whenResumed);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings("PMD.UselessOverridingMethod")
+    public void resumeHandling() {
+        super.resumeHandling();
     }
 
     /**

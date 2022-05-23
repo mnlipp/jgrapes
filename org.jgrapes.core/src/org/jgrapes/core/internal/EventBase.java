@@ -20,6 +20,7 @@ package org.jgrapes.core.internal;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -66,6 +67,9 @@ public abstract class EventBase<T>
     private boolean requiresResult;
     /** Event is tracked by {@link VerboseHandlerReference}. */
     private boolean tracked = true;
+    /** Event handler to be invoked after resumeHandling. */
+    private Iterator<HandlerReference> suspendedHandlers;
+    private Runnable whenResumed;
 
     /**
      * See {@link Event#channels()}.
@@ -160,6 +164,60 @@ public abstract class EventBase<T>
     public Optional<EventPipeline> processedBy() {
         return Optional.ofNullable(processedBy).map(
             procBy -> procBy.asEventPipeline());
+    }
+
+    /**
+     * Suspend the invocation of the remaining handlers for this event.
+     * May only be called in a handler for the event. Must be balanced
+     * by an invocation of {@link #resumeHandling()}. 
+     */
+    public void suspendHandling() {
+        suspendHandling(null);
+    }
+
+    /**
+     * Suspend the invocation of the remaining handlers for this event.
+     * May only be called in a handler for the event. Must be balanced
+     * by an invocation of {@link #resumeHandling()}.
+     *
+     * @param whenResumed some function to be executed when handling is resumed 
+     */
+    public void suspendHandling(Runnable whenResumed) {
+        if (processedBy == null) {
+            throw new IllegalStateException("May only be called from handler.");
+        }
+        this.whenResumed = whenResumed;
+        processedBy.suspendHandling(this);
+    }
+
+    /* default */ void invokeWhenResumed() {
+        if (whenResumed != null) {
+            whenResumed.run();
+            whenResumed = null;
+        }
+    }
+
+    /**
+     * Resume the invocation of handlers for this event.
+     * 
+     * @see #suspendHandling()
+     */
+    public void resumeHandling() {
+        if (processedBy == null) {
+            throw new IllegalStateException("Lost processor.");
+        }
+        processedBy.resumeHandling(this);
+    }
+
+    /* default */ Iterator<HandlerReference> clearSuspendedHandlers() {
+        var result = suspendedHandlers;
+        suspendedHandlers = null;
+        return result;
+    }
+
+    /* default */ void setSuspendedHandlers(
+            Iterator<HandlerReference> suspendedHandlers) {
+        this.suspendedHandlers = suspendedHandlers;
     }
 
     /**

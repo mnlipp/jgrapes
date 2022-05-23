@@ -214,14 +214,7 @@ class ComponentTree {
      * @param channels the channels the event is sent to
      */
     @SuppressWarnings("PMD.UseVarargs")
-    public void dispatch(EventPipeline pipeline,
-            EventBase<?> event, Channel[] channels) {
-        HandlerList handlers = getEventHandlers(event, channels);
-        handlers.process(pipeline, event);
-    }
-
-    @SuppressWarnings("PMD.UseVarargs")
-    private HandlerList getEventHandlers(
+    /* default */ HandlerList getEventHandlers(
             EventBase<?> event, Channel[] channels) {
         CacheKey key = new CacheKey(event, channels);
         // Several event processors may call dispatch and update the cache

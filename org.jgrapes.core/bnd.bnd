@@ -19,6 +19,9 @@ Require-Capability: \
     osgi.extender; filter:="(osgi.extender=osgi.serviceloader.processor)"; \
         resolution:=optional
 
+-diffignore: OSGI-OPT/src/*, \
+    META-INF/maven/org.jgrapes/org.jgrapes.core/pom.xml
+    
 -fixupmessages: \
     "Found source folder 'resources' that is not on bnd's source path 'src'", \
     "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \

@@ -19,55 +19,10 @@
 package org.jgrapes.core.internal;
 
 import java.util.ArrayList;
-import org.jgrapes.core.EventPipeline;
 
 /**
  * A list of handlers for a given event type and set of channels.
  */
 @SuppressWarnings("serial")
 class HandlerList extends ArrayList<HandlerReference> {
-
-    /**
-     * Invoke all handlers with the given event as parameter.
-     * 
-     * @param eventProcessor
-     * @param event the event
-     */
-    public void process(EventPipeline eventPipeline, EventBase<?> event) {
-        try {
-            for (HandlerReference hdlr : this) {
-                try {
-                    hdlr.invoke(event);
-                    if (event.isStopped()) {
-                        break;
-                    }
-                } catch (AssertionError t) {
-                    // JUnit support
-                    CoreUtils.setAssertionError(t);
-                    event.handlingError(eventPipeline, t);
-                } catch (Error e) { // NOPMD
-                    // Wouldn't have caught it, if it was possible.
-                    throw e;
-                } catch (Throwable t) { // NOPMD
-                    // Errors have been rethrown, so this should work.
-                    event.handlingError(eventPipeline, t);
-                }
-            }
-        } finally { // NOPMD
-            try {
-                event.handled();
-            } catch (AssertionError t) {
-                // JUnit support
-                CoreUtils.setAssertionError(t);
-                event.handlingError(eventPipeline, t);
-            } catch (Error e) { // NOPMD
-                // Wouldn't have caught it, if it was possible.
-                throw e;
-            } catch (Throwable t) { // NOPMD
-                // Errors have been rethrown, so this should work.
-                event.handlingError(eventPipeline, t);
-            }
-        }
-    }
-
 }
