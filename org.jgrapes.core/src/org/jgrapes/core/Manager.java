@@ -202,19 +202,6 @@ public interface Manager extends Iterable<ComponentType> {
     EventPipeline newEventPipeline(ExecutorService executorService);
 
     /**
-     * Return a new {@link EventPipeline} that processes an added event
-     * (and all events caused by it) before returning from the
-     * {@link EventPipeline#fire} method.
-     * <P>
-     * The returned event pipeline is not thread-safe, i.e. no other thread
-     * may call <code>add</code> while an invocation of <code>add</code>
-     * is being processed.
-     * 
-     * @return the pipeline
-     */
-    EventPipeline newSyncEventPipeline();
-
-    /**
      * Register the managed component as a running generator. 
      */
     void registerAsGenerator();

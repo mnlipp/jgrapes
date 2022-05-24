@@ -519,13 +519,14 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
      * and thus in {@link Closed} events on all subchannels.
      * 
      * @param event the event
+     * @throws InterruptedException 
      */
     @Handler(priority = -1000)
-    public void onStop(Stop event) {
+    public void onStop(Stop event) throws InterruptedException {
         if (closing || !serverSocketChannel.isOpen()) {
             return;
         }
-        newSyncEventPipeline().fire(new Close(), this);
+        newEventPipeline().fire(new Close(), this).get();
     }
 
     /**

@@ -20,6 +20,7 @@ package org.jgrapes.core.test.core;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.Self;
 import org.jgrapes.core.annotation.Handler;
@@ -52,7 +53,9 @@ public class SelfTest {
     @Test
     public void testStarted() throws InterruptedException {
         TestComponent app = new TestComponent();
-        Components.manager(app).newSyncEventPipeline().fire(new Start(), app);
+        EventPipeline pipeline = Components.manager(app).newEventPipeline();
+        pipeline.fire(new Start());
+        pipeline.awaitExhaustion();
         assertEquals(1, app.count);
     }
 

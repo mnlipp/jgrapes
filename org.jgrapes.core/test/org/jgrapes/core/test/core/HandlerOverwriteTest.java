@@ -2,6 +2,7 @@ package org.jgrapes.core.test.core;
 
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import static org.junit.Assert.*;
@@ -36,13 +37,15 @@ public class HandlerOverwriteTest {
     }
 
     @Test
-    public void testOverwrite() {
+    public void testOverwrite() throws InterruptedException {
         var base = new BaseComponent();
         var derived = new DerivedComponent();
         base.attach(derived);
         var derivedWithout = new DerivedComponentWithoutHandler();
         base.attach(derivedWithout);
-        Components.manager(base).newSyncEventPipeline().fire(new Start());
+        EventPipeline pipeline = Components.manager(base).newEventPipeline();
+        pipeline.fire(new Start());
+        pipeline.awaitExhaustion();
         assertTrue(base.baseGotEvent);
         assertFalse(derived.baseGotEvent);
         assertTrue(derived.derivedGotEvent);

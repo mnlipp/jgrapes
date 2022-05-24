@@ -68,4 +68,11 @@ interface InternalEventPipeline extends IdInfoProvider {
      * @return the executor service
      */
     ExecutorService executorService();
+
+    /**
+     * Waits until this pipeline is empty. 
+     *
+     * @throws InterruptedException
+     */
+    void awaitExhaustion() throws InterruptedException;
 }

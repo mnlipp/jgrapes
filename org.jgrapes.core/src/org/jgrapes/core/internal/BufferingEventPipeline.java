@@ -92,7 +92,17 @@ public class BufferingEventPipeline implements InternalEventPipeline {
         synchronized (this) {
             Queue<EventChannelsTuple> old = buffered;
             buffered = new ConcurrentLinkedDeque<>();
+            notifyAll();
             return old;
+        }
+    }
+
+    @Override
+    public void awaitExhaustion() throws InterruptedException {
+        synchronized (this) {
+            while (!buffered.isEmpty()) {
+                wait();
+            }
         }
     }
 

@@ -171,6 +171,9 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
                             // Everything is done
                             GeneratorRegistry.instance().remove(this);
                             isExecuting = false;
+                            synchronized (executor) {
+                                executor.notifyAll();
+                            }
                             break;
                         }
                         try {
@@ -275,6 +278,15 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
     @Override
     public ExecutorService executorService() {
         return executorService;
+    }
+
+    @Override
+    public void awaitExhaustion() throws InterruptedException {
+        synchronized (executor) {
+            while (isExecuting) {
+                executor.wait();
+            }
+        }
     }
 
     /*

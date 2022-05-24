@@ -21,6 +21,7 @@ package org.jgrapes.core.test.core;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
 import org.jgrapes.core.Event;
+import org.jgrapes.core.EventPipeline;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.core.events.Started;
@@ -50,7 +51,9 @@ public class AssociatedTest {
     @Test
     public void testComplete() throws InterruptedException {
         TestComponent app = new TestComponent();
-        Components.manager(app).newSyncEventPipeline().fire(new Start());
+        EventPipeline pipeline = Components.manager(app).newEventPipeline();
+        pipeline.fire(new Start());
+        pipeline.awaitExhaustion();
         assertTrue(app.result.equals("Hello!"));
     }
 

@@ -170,6 +170,11 @@ class CheckingPipelineFilter
         return sink.executorService();
     }
 
+    @Override
+    public void awaitExhaustion() throws InterruptedException {
+        sink.awaitExhaustion();
+    }
+
     /*
      * (non-Javadoc)
      * 

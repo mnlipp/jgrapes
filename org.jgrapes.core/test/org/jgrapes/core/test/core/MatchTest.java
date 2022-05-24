@@ -112,9 +112,9 @@ public class MatchTest {
     @Test
     public void testEventCounter() throws InterruptedException {
         EventCounter app = new EventCounter();
-        EventPipeline pipeline = Components.manager(app).newSyncEventPipeline();
+        EventPipeline pipeline = Components.manager(app).newEventPipeline();
         pipeline.fire(new Start());
-        Components.awaitExhaustion();
+        pipeline.awaitExhaustion();
         assertEquals(1, app.startDirectedAtComponent);
         assertEquals(1, app.startDirectedAtComponentChannel);
         assertEquals(1, app.startDirectedAtTest1);
@@ -124,6 +124,7 @@ public class MatchTest {
         assertEquals(2, app.anyDirectedAtAnyChannel); // Start and Started
         app.reset();
         pipeline.fire(new Start(), new NamedChannel("test1"));
+        pipeline.awaitExhaustion();
         assertEquals(0, app.startDirectedAtComponent);
         assertEquals(1, app.startDirectedAtComponentChannel);
         assertEquals(1, app.startDirectedAtTest1);
@@ -133,6 +134,7 @@ public class MatchTest {
         assertEquals(2, app.anyDirectedAtAnyChannel);	// Start and Started
         app.reset();
         pipeline.fire(new NamedEvent<Void>("named1"));
+        pipeline.awaitExhaustion();
         assertEquals(0, app.startDirectedAtComponent);
         assertEquals(0, app.startDirectedAtComponentChannel);
         assertEquals(0, app.startDirectedAtTest1);
@@ -143,6 +145,7 @@ public class MatchTest {
         app.reset();
         pipeline.fire(new NamedEvent<Void>("named1"),
             new NamedChannel("test1"));
+        pipeline.awaitExhaustion();
         assertEquals(0, app.startDirectedAtComponent);
         assertEquals(0, app.startDirectedAtComponentChannel);
         assertEquals(0, app.startDirectedAtTest1);
@@ -152,6 +155,7 @@ public class MatchTest {
         assertEquals(1, app.anyDirectedAtAnyChannel);	// NamedEvent
         app.reset();
         pipeline.fire(new Start(), app);
+        pipeline.awaitExhaustion();
         assertEquals(1, app.startDirectedAtComponent);
         assertEquals(1, app.startDirectedAtComponentChannel);
         assertEquals(1, app.startDirectedAtTest1);
@@ -161,6 +165,7 @@ public class MatchTest {
         assertEquals(2, app.anyDirectedAtAnyChannel);	// Start and Started
         app.reset();
         pipeline.fire(new NamedEvent<Void>("named1"), extraChannel);
+        pipeline.awaitExhaustion();
         assertEquals(0, app.startDirectedAtComponent);
         assertEquals(0, app.startDirectedAtComponentChannel);
         assertEquals(0, app.startDirectedAtTest1);

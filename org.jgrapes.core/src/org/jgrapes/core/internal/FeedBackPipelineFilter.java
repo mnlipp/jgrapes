@@ -71,6 +71,16 @@ class FeedBackPipelineFilter implements InternalEventPipeline {
         pipeline.merge(other);
     }
 
+    @Override
+    public void awaitExhaustion() throws InterruptedException {
+        InternalEventPipeline pipeline = componentTree.dispatchingPipeline();
+        if (pipeline != null) {
+            pipeline.awaitExhaustion();
+            return;
+        }
+        fallback.awaitExhaustion();
+    }
+
     /*
      * (non-Javadoc)
      * 

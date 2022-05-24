@@ -541,17 +541,6 @@ public abstract class ComponentVertex implements Manager, Channel {
     /*
      * (non-Javadoc)
      * 
-     * @see org.jgrapes.core.Manager#newSynchronousPipeline()
-     */
-    @Override
-    public EventPipeline newSyncEventPipeline() {
-        return new CheckingPipelineFilter(tree(),
-            new SynchronousEventProcessor(tree()), channel());
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see org.jgrapes.core.Manager#newEventPipeline()
      */
     @Override
