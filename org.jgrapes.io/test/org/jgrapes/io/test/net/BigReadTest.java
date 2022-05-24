@@ -132,8 +132,13 @@ public class BigReadTest {
                 String line = in.readLine();
                 assertNotEquals(null, line);
                 String[] parts = line.split(":");
-                assertEquals(expected.get(),
-                    Integer.parseInt(parts[0]));
+                try {
+                    int recvd = Integer.parseInt(parts[0]);
+                    assertEquals(expected.get(), recvd);
+                } catch (NumberFormatException e) {
+                    // To get a more informative message.
+                    assertEquals(expected.get(), line);
+                }
                 assertEquals("Hello World!", parts[1]);
                 expected.incrementAndGet();
             }
