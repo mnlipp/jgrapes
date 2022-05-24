@@ -31,108 +31,113 @@
 <span class="source-line-no">018</span><span id="line-18"></span>
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.core.internal;</span>
 <span class="source-line-no">020</span><span id="line-20"></span>
-<span class="source-line-no">021</span><span id="line-21">import java.util.concurrent.ExecutorService;</span>
-<span class="source-line-no">022</span><span id="line-22">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">023</span><span id="line-23">import org.jgrapes.core.Components;</span>
-<span class="source-line-no">024</span><span id="line-24">import org.jgrapes.core.Event;</span>
-<span class="source-line-no">025</span><span id="line-25">import org.jgrapes.core.events.Start;</span>
-<span class="source-line-no">026</span><span id="line-26"></span>
-<span class="source-line-no">027</span><span id="line-27">/**</span>
-<span class="source-line-no">028</span><span id="line-28"> * The buffering event pipeline is used before a tree has been started. </span>
-<span class="source-line-no">029</span><span id="line-29"> * It simply buffers all events until a {@link Start} event is added.</span>
-<span class="source-line-no">030</span><span id="line-30"> */</span>
-<span class="source-line-no">031</span><span id="line-31">public class BufferingEventPipeline implements InternalEventPipeline {</span>
-<span class="source-line-no">032</span><span id="line-32"></span>
-<span class="source-line-no">033</span><span id="line-33">    private final ComponentTree componentTree;</span>
-<span class="source-line-no">034</span><span id="line-34">    /** Buffered events. */</span>
-<span class="source-line-no">035</span><span id="line-35">    private EventQueue buffered = new EventQueue();</span>
-<span class="source-line-no">036</span><span id="line-36">    /** The event pipeline that we delegate to after the start</span>
-<span class="source-line-no">037</span><span id="line-37">     * event has been detected. */</span>
-<span class="source-line-no">038</span><span id="line-38">    private InternalEventPipeline activePipeline;</span>
-<span class="source-line-no">039</span><span id="line-39"></span>
-<span class="source-line-no">040</span><span id="line-40">    /**</span>
-<span class="source-line-no">041</span><span id="line-41">     * Instantiates a new buffering event pipeline.</span>
-<span class="source-line-no">042</span><span id="line-42">     *</span>
-<span class="source-line-no">043</span><span id="line-43">     * @param componentTree the component tree</span>
-<span class="source-line-no">044</span><span id="line-44">     */</span>
-<span class="source-line-no">045</span><span id="line-45">    /* default */ BufferingEventPipeline(ComponentTree componentTree) {</span>
-<span class="source-line-no">046</span><span id="line-46">        super();</span>
-<span class="source-line-no">047</span><span id="line-47">        this.componentTree = componentTree;</span>
-<span class="source-line-no">048</span><span id="line-48">    }</span>
-<span class="source-line-no">049</span><span id="line-49"></span>
-<span class="source-line-no">050</span><span id="line-50">    @Override</span>
-<span class="source-line-no">051</span><span id="line-51">    public void merge(InternalEventPipeline other) {</span>
-<span class="source-line-no">052</span><span id="line-52">        synchronized (this) {</span>
-<span class="source-line-no">053</span><span id="line-53">            if (!(other instanceof BufferingEventPipeline)) {</span>
-<span class="source-line-no">054</span><span id="line-54">                throw new IllegalArgumentException(</span>
-<span class="source-line-no">055</span><span id="line-55">                    "Can only merge events from an BufferingEventPipeline.");</span>
-<span class="source-line-no">056</span><span id="line-56">            }</span>
-<span class="source-line-no">057</span><span id="line-57">            buffered.addAll(((BufferingEventPipeline) other).retrieveEvents());</span>
-<span class="source-line-no">058</span><span id="line-58">        }</span>
-<span class="source-line-no">059</span><span id="line-59">    }</span>
-<span class="source-line-no">060</span><span id="line-60"></span>
-<span class="source-line-no">061</span><span id="line-61">    @Override</span>
-<span class="source-line-no">062</span><span id="line-62">    public &lt;T extends Event&lt;?&gt;&gt; T add(T event, Channel... channels) {</span>
-<span class="source-line-no">063</span><span id="line-63">        synchronized (this) {</span>
-<span class="source-line-no">064</span><span id="line-64">            // If thread1 adds the start event and thread2 gets here before</span>
-<span class="source-line-no">065</span><span id="line-65">            // thread1 has changed the event processor for the tree, send the</span>
-<span class="source-line-no">066</span><span id="line-66">            // event to the event processor that should already have been used.</span>
-<span class="source-line-no">067</span><span id="line-67">            if (activePipeline != null) {</span>
-<span class="source-line-no">068</span><span id="line-68">                activePipeline.add(event, channels);</span>
-<span class="source-line-no">069</span><span id="line-69">                return event;</span>
-<span class="source-line-no">070</span><span id="line-70">            }</span>
-<span class="source-line-no">071</span><span id="line-71">            // Invoke although argument is null!</span>
-<span class="source-line-no">072</span><span id="line-72">            ((EventBase&lt;?&gt;) event).generatedBy(null);</span>
-<span class="source-line-no">073</span><span id="line-73">            buffered.add(event, channels);</span>
-<span class="source-line-no">074</span><span id="line-74">            if (event instanceof Start) {</span>
-<span class="source-line-no">075</span><span id="line-75">                // Merge all events into a "standard" event processor</span>
-<span class="source-line-no">076</span><span id="line-76">                // and set it as default processor for the tree (with</span>
-<span class="source-line-no">077</span><span id="line-77">                // any thread specific pipelines taking precedence).</span>
-<span class="source-line-no">078</span><span id="line-78">                EventProcessor processor = new EventProcessor(componentTree);</span>
-<span class="source-line-no">079</span><span id="line-79">                activePipeline</span>
-<span class="source-line-no">080</span><span id="line-80">                    = new FeedBackPipelineFilter(componentTree, processor);</span>
-<span class="source-line-no">081</span><span id="line-81">                componentTree.setEventPipeline(activePipeline);</span>
-<span class="source-line-no">082</span><span id="line-82">                processor.add(buffered);</span>
-<span class="source-line-no">083</span><span id="line-83">            }</span>
-<span class="source-line-no">084</span><span id="line-84">            return event;</span>
-<span class="source-line-no">085</span><span id="line-85">        }</span>
-<span class="source-line-no">086</span><span id="line-86">    }</span>
-<span class="source-line-no">087</span><span id="line-87"></span>
-<span class="source-line-no">088</span><span id="line-88">    /* default */ EventQueue retrieveEvents() {</span>
-<span class="source-line-no">089</span><span id="line-89">        synchronized (this) {</span>
-<span class="source-line-no">090</span><span id="line-90">            EventQueue old = buffered;</span>
-<span class="source-line-no">091</span><span id="line-91">            buffered = new EventQueue();</span>
-<span class="source-line-no">092</span><span id="line-92">            return old;</span>
-<span class="source-line-no">093</span><span id="line-93">        }</span>
-<span class="source-line-no">094</span><span id="line-94">    }</span>
-<span class="source-line-no">095</span><span id="line-95"></span>
-<span class="source-line-no">096</span><span id="line-96">    /*</span>
-<span class="source-line-no">097</span><span id="line-97">     * (non-Javadoc)</span>
-<span class="source-line-no">098</span><span id="line-98">     * </span>
-<span class="source-line-no">099</span><span id="line-99">     * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()</span>
-<span class="source-line-no">100</span><span id="line-100">     */</span>
-<span class="source-line-no">101</span><span id="line-101">    @Override</span>
-<span class="source-line-no">102</span><span id="line-102">    public ExecutorService executorService() {</span>
-<span class="source-line-no">103</span><span id="line-103">        return Components.defaultExecutorService();</span>
-<span class="source-line-no">104</span><span id="line-104">    }</span>
-<span class="source-line-no">105</span><span id="line-105"></span>
-<span class="source-line-no">106</span><span id="line-106">    /*</span>
-<span class="source-line-no">107</span><span id="line-107">     * (non-Javadoc)</span>
-<span class="source-line-no">108</span><span id="line-108">     * </span>
-<span class="source-line-no">109</span><span id="line-109">     * @see java.lang.Object#toString()</span>
-<span class="source-line-no">110</span><span id="line-110">     */</span>
-<span class="source-line-no">111</span><span id="line-111">    @Override</span>
-<span class="source-line-no">112</span><span id="line-112">    public String toString() {</span>
-<span class="source-line-no">113</span><span id="line-113">        StringBuilder builder = new StringBuilder(50);</span>
-<span class="source-line-no">114</span><span id="line-114">        builder.append("BufferingEventPipeline [");</span>
-<span class="source-line-no">115</span><span id="line-115">        if (buffered != null) {</span>
-<span class="source-line-no">116</span><span id="line-116">            builder.append("buffered=");</span>
-<span class="source-line-no">117</span><span id="line-117">            builder.append(buffered);</span>
-<span class="source-line-no">118</span><span id="line-118">        }</span>
-<span class="source-line-no">119</span><span id="line-119">        builder.append(']');</span>
-<span class="source-line-no">120</span><span id="line-120">        return builder.toString();</span>
-<span class="source-line-no">121</span><span id="line-121">    }</span>
-<span class="source-line-no">122</span><span id="line-122">}</span>
+<span class="source-line-no">021</span><span id="line-21">import java.util.LinkedList;</span>
+<span class="source-line-no">022</span><span id="line-22">import java.util.Queue;</span>
+<span class="source-line-no">023</span><span id="line-23">import java.util.concurrent.ConcurrentLinkedDeque;</span>
+<span class="source-line-no">024</span><span id="line-24">import java.util.concurrent.ExecutorService;</span>
+<span class="source-line-no">025</span><span id="line-25">import org.jgrapes.core.Channel;</span>
+<span class="source-line-no">026</span><span id="line-26">import org.jgrapes.core.Components;</span>
+<span class="source-line-no">027</span><span id="line-27">import org.jgrapes.core.Event;</span>
+<span class="source-line-no">028</span><span id="line-28">import org.jgrapes.core.events.Start;</span>
+<span class="source-line-no">029</span><span id="line-29"></span>
+<span class="source-line-no">030</span><span id="line-30">/**</span>
+<span class="source-line-no">031</span><span id="line-31"> * The buffering event pipeline is used before a tree has been started. </span>
+<span class="source-line-no">032</span><span id="line-32"> * It simply buffers all events until a {@link Start} event is added.</span>
+<span class="source-line-no">033</span><span id="line-33"> */</span>
+<span class="source-line-no">034</span><span id="line-34">public class BufferingEventPipeline implements InternalEventPipeline {</span>
+<span class="source-line-no">035</span><span id="line-35"></span>
+<span class="source-line-no">036</span><span id="line-36">    private final ComponentTree componentTree;</span>
+<span class="source-line-no">037</span><span id="line-37">    /** Buffered events. */</span>
+<span class="source-line-no">038</span><span id="line-38">    private Queue&lt;EventChannelsTuple&gt; buffered = new LinkedList&lt;&gt;();</span>
+<span class="source-line-no">039</span><span id="line-39">    /** The event pipeline that we delegate to after the start</span>
+<span class="source-line-no">040</span><span id="line-40">     * event has been detected. */</span>
+<span class="source-line-no">041</span><span id="line-41">    private InternalEventPipeline activePipeline;</span>
+<span class="source-line-no">042</span><span id="line-42"></span>
+<span class="source-line-no">043</span><span id="line-43">    /**</span>
+<span class="source-line-no">044</span><span id="line-44">     * Instantiates a new buffering event pipeline.</span>
+<span class="source-line-no">045</span><span id="line-45">     *</span>
+<span class="source-line-no">046</span><span id="line-46">     * @param componentTree the component tree</span>
+<span class="source-line-no">047</span><span id="line-47">     */</span>
+<span class="source-line-no">048</span><span id="line-48">    /* default */ BufferingEventPipeline(ComponentTree componentTree) {</span>
+<span class="source-line-no">049</span><span id="line-49">        super();</span>
+<span class="source-line-no">050</span><span id="line-50">        this.componentTree = componentTree;</span>
+<span class="source-line-no">051</span><span id="line-51">    }</span>
+<span class="source-line-no">052</span><span id="line-52"></span>
+<span class="source-line-no">053</span><span id="line-53">    @Override</span>
+<span class="source-line-no">054</span><span id="line-54">    public void merge(InternalEventPipeline other) {</span>
+<span class="source-line-no">055</span><span id="line-55">        synchronized (this) {</span>
+<span class="source-line-no">056</span><span id="line-56">            if (!(other instanceof BufferingEventPipeline)) {</span>
+<span class="source-line-no">057</span><span id="line-57">                throw new IllegalArgumentException(</span>
+<span class="source-line-no">058</span><span id="line-58">                    "Can only merge events from an BufferingEventPipeline.");</span>
+<span class="source-line-no">059</span><span id="line-59">            }</span>
+<span class="source-line-no">060</span><span id="line-60">            buffered.addAll(((BufferingEventPipeline) other).retrieveEvents());</span>
+<span class="source-line-no">061</span><span id="line-61">        }</span>
+<span class="source-line-no">062</span><span id="line-62">    }</span>
+<span class="source-line-no">063</span><span id="line-63"></span>
+<span class="source-line-no">064</span><span id="line-64">    @Override</span>
+<span class="source-line-no">065</span><span id="line-65">    public &lt;T extends Event&lt;?&gt;&gt; T add(T event, Channel... channels) {</span>
+<span class="source-line-no">066</span><span id="line-66">        synchronized (this) {</span>
+<span class="source-line-no">067</span><span id="line-67">            // If thread1 adds the start event and thread2 gets here before</span>
+<span class="source-line-no">068</span><span id="line-68">            // thread1 has changed the event processor for the tree, send the</span>
+<span class="source-line-no">069</span><span id="line-69">            // event to the event processor that should already have been used.</span>
+<span class="source-line-no">070</span><span id="line-70">            if (activePipeline != null) {</span>
+<span class="source-line-no">071</span><span id="line-71">                activePipeline.add(event, channels);</span>
+<span class="source-line-no">072</span><span id="line-72">                return event;</span>
+<span class="source-line-no">073</span><span id="line-73">            }</span>
+<span class="source-line-no">074</span><span id="line-74">            // Invoke although argument is null!</span>
+<span class="source-line-no">075</span><span id="line-75">            ((EventBase&lt;?&gt;) event).generatedBy(null);</span>
+<span class="source-line-no">076</span><span id="line-76">            EventChannelsTuple.addTo(buffered, event, channels);</span>
+<span class="source-line-no">077</span><span id="line-77">            if (event instanceof Start) {</span>
+<span class="source-line-no">078</span><span id="line-78">                // Merge all events into a "standard" event processor</span>
+<span class="source-line-no">079</span><span id="line-79">                // and set it as default processor for the tree (with</span>
+<span class="source-line-no">080</span><span id="line-80">                // any thread specific pipelines taking precedence).</span>
+<span class="source-line-no">081</span><span id="line-81">                EventProcessor processor = new EventProcessor(componentTree);</span>
+<span class="source-line-no">082</span><span id="line-82">                activePipeline</span>
+<span class="source-line-no">083</span><span id="line-83">                    = new FeedBackPipelineFilter(componentTree, processor);</span>
+<span class="source-line-no">084</span><span id="line-84">                componentTree.setEventPipeline(activePipeline);</span>
+<span class="source-line-no">085</span><span id="line-85">                processor.add(buffered);</span>
+<span class="source-line-no">086</span><span id="line-86">            }</span>
+<span class="source-line-no">087</span><span id="line-87">            return event;</span>
+<span class="source-line-no">088</span><span id="line-88">        }</span>
+<span class="source-line-no">089</span><span id="line-89">    }</span>
+<span class="source-line-no">090</span><span id="line-90"></span>
+<span class="source-line-no">091</span><span id="line-91">    /* default */ Queue&lt;EventChannelsTuple&gt; retrieveEvents() {</span>
+<span class="source-line-no">092</span><span id="line-92">        synchronized (this) {</span>
+<span class="source-line-no">093</span><span id="line-93">            Queue&lt;EventChannelsTuple&gt; old = buffered;</span>
+<span class="source-line-no">094</span><span id="line-94">            buffered = new ConcurrentLinkedDeque&lt;&gt;();</span>
+<span class="source-line-no">095</span><span id="line-95">            return old;</span>
+<span class="source-line-no">096</span><span id="line-96">        }</span>
+<span class="source-line-no">097</span><span id="line-97">    }</span>
+<span class="source-line-no">098</span><span id="line-98"></span>
+<span class="source-line-no">099</span><span id="line-99">    /*</span>
+<span class="source-line-no">100</span><span id="line-100">     * (non-Javadoc)</span>
+<span class="source-line-no">101</span><span id="line-101">     * </span>
+<span class="source-line-no">102</span><span id="line-102">     * @see org.jgrapes.core.internal.InternalEventPipeline#executorService()</span>
+<span class="source-line-no">103</span><span id="line-103">     */</span>
+<span class="source-line-no">104</span><span id="line-104">    @Override</span>
+<span class="source-line-no">105</span><span id="line-105">    public ExecutorService executorService() {</span>
+<span class="source-line-no">106</span><span id="line-106">        return Components.defaultExecutorService();</span>
+<span class="source-line-no">107</span><span id="line-107">    }</span>
+<span class="source-line-no">108</span><span id="line-108"></span>
+<span class="source-line-no">109</span><span id="line-109">    /*</span>
+<span class="source-line-no">110</span><span id="line-110">     * (non-Javadoc)</span>
+<span class="source-line-no">111</span><span id="line-111">     * </span>
+<span class="source-line-no">112</span><span id="line-112">     * @see java.lang.Object#toString()</span>
+<span class="source-line-no">113</span><span id="line-113">     */</span>
+<span class="source-line-no">114</span><span id="line-114">    @Override</span>
+<span class="source-line-no">115</span><span id="line-115">    public String toString() {</span>
+<span class="source-line-no">116</span><span id="line-116">        StringBuilder builder = new StringBuilder(50);</span>
+<span class="source-line-no">117</span><span id="line-117">        builder.append("BufferingEventPipeline [");</span>
+<span class="source-line-no">118</span><span id="line-118">        // Avoid problem with concurrency</span>
+<span class="source-line-no">119</span><span id="line-119">        var bufd = buffered;</span>
+<span class="source-line-no">120</span><span id="line-120">        if (bufd != null) {</span>
+<span class="source-line-no">121</span><span id="line-121">            builder.append("buffered=");</span>
+<span class="source-line-no">122</span><span id="line-122">            builder.append(bufd);</span>
+<span class="source-line-no">123</span><span id="line-123">        }</span>
+<span class="source-line-no">124</span><span id="line-124">        builder.append(']');</span>
+<span class="source-line-no">125</span><span id="line-125">        return builder.toString();</span>
+<span class="source-line-no">126</span><span id="line-126">    }</span>
+<span class="source-line-no">127</span><span id="line-127">}</span>
 
 
 
