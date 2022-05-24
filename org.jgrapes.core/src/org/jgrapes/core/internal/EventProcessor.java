@@ -20,6 +20,7 @@ package org.jgrapes.core.internal;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -41,13 +42,14 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
     private final ExecutorService executorService;
     private final ComponentTree componentTree;
     private final EventPipeline asEventPipeline;
-    protected final EventQueue queue = new EventQueue();
+    protected final Queue<EventChannelsTuple> queue = new LinkedList<>();
     private Iterator<HandlerReference> invoking;
-    // Managed by this thread only.
+    // Used by this thread only.
     private Set<EventBase<?>> suspended = new HashSet<>();
     // Only this thread can remove, but others might add.
     private Queue<EventBase<?>> toBeResumed = new ConcurrentLinkedDeque<>();
     private boolean isExecuting;
+    private ThreadLocal<Thread> executor = new ThreadLocal<>();
 
     /**
      * Instantiates a new event processor.
@@ -90,37 +92,35 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
     }
 
     @Override
-    @SuppressWarnings({ "PMD.ConfusingTernary",
-        "PMD.AvoidLiteralsInIfCondition" })
     public <T extends Event<?>> T add(T event, Channel... channels) {
         ((EventBase<?>) event).generatedBy(newEventsParent.get());
         ((EventBase<?>) event).processedBy(this);
         synchronized (this) {
-            queue.add(event, channels);
-            if (!isExecuting) {
+            EventChannelsTuple.addTo(queue, event, channels);
+            if (isExecuting) {
+                // Processor might be suspended, waiting for events to resume
+                notifyAll();
+            } else {
                 // Queue was initially empty, this starts it
                 GeneratorRegistry.instance().add(this);
                 isExecuting = true;
                 executorService.execute(this);
-            } else {
-                // Processor is suspended, waiting for events to resume
-                notifyAll();
             }
         }
         return event;
     }
 
     @SuppressWarnings("PMD.ConfusingTernary")
-    /* default */ void add(EventQueue source) {
-        while (true) {
-            EventChannelsTuple entry = source.poll();
-            if (entry == null) {
-                break;
-            }
-            entry.event.processedBy(this);
-            queue.add(entry);
-        }
+    /* default */ void add(Queue<EventChannelsTuple> source) {
         synchronized (this) {
+            while (true) {
+                EventChannelsTuple entry = source.poll();
+                if (entry == null) {
+                    break;
+                }
+                entry.event.processedBy(this);
+                queue.add(entry);
+            }
             if (!isExecuting) {
                 GeneratorRegistry.instance().add(this);
                 isExecuting = true;
@@ -149,6 +149,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
         try {
             Thread.currentThread().setName(
                 origName + " (P" + Components.objectId(this) + ")");
+            executor.set(Thread.currentThread());
             componentTree.setDispatchingPipeline(this);
             while (true) {
                 // No lock needed, only this thread can remove from resumed
@@ -161,38 +162,34 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
                     continue;
                 }
 
-                // No lock needed if queue is filled (only this thread removes)
-                EventChannelsTuple next = queue.peek();
-                if (next == null) {
-                    synchronized (this) {
-                        // Retry with lock for proper synchronization
-                        next = queue.peek();
-                        // If really empty, make sure there are none suspended
-                        if (next == null) {
-                            if (suspended.isEmpty()) {
-                                // Everything is done
-                                GeneratorRegistry.instance().remove(this);
-                                isExecuting = false;
-                                break;
-                            }
-                            try {
-                                // Wait for something to do
-                                wait();
-                            } catch (InterruptedException e) {
-                                // Ignore
-                            }
-                            continue;
+                EventChannelsTuple next;
+                synchronized (this) {
+                    next = queue.poll();
+                    // If empty, make sure there are none suspended
+                    if (next == null) {
+                        if (suspended.isEmpty()) {
+                            // Everything is done
+                            GeneratorRegistry.instance().remove(this);
+                            isExecuting = false;
+                            break;
                         }
+                        try {
+                            // Wait for something to do
+                            wait();
+                        } catch (InterruptedException e) {
+                            // Ignore
+                        }
+                        continue;
                     }
                 }
                 HandlerList handlers
                     = componentTree.getEventHandlers(next.event, next.channels);
                 invokeHandlers(handlers.iterator(), next.event);
-                queue.remove();
             }
         } finally {
             newEventsParent.set(null);
             componentTree.setDispatchingPipeline(null);
+            executor.set(null);
             Thread.currentThread().setName(origName);
         }
     }
@@ -247,8 +244,9 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
         }
     }
 
+    @SuppressWarnings("PMD.CompareObjectsWithEquals")
     /* default */ void suspendHandling(EventBase<?> event) {
-        if (invoking == null) {
+        if (Thread.currentThread() != executor.get()) {
             throw new IllegalStateException("May only be called from handler.");
         }
         if (!invoking.hasNext()) {

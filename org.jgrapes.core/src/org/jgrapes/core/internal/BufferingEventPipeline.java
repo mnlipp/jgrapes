@@ -18,6 +18,9 @@
 
 package org.jgrapes.core.internal;
 
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Components;
@@ -32,7 +35,7 @@ public class BufferingEventPipeline implements InternalEventPipeline {
 
     private final ComponentTree componentTree;
     /** Buffered events. */
-    private EventQueue buffered = new EventQueue();
+    private Queue<EventChannelsTuple> buffered = new LinkedList<>();
     /** The event pipeline that we delegate to after the start
      * event has been detected. */
     private InternalEventPipeline activePipeline;
@@ -70,7 +73,7 @@ public class BufferingEventPipeline implements InternalEventPipeline {
             }
             // Invoke although argument is null!
             ((EventBase<?>) event).generatedBy(null);
-            buffered.add(event, channels);
+            EventChannelsTuple.addTo(buffered, event, channels);
             if (event instanceof Start) {
                 // Merge all events into a "standard" event processor
                 // and set it as default processor for the tree (with
@@ -85,10 +88,10 @@ public class BufferingEventPipeline implements InternalEventPipeline {
         }
     }
 
-    /* default */ EventQueue retrieveEvents() {
+    /* default */ Queue<EventChannelsTuple> retrieveEvents() {
         synchronized (this) {
-            EventQueue old = buffered;
-            buffered = new EventQueue();
+            Queue<EventChannelsTuple> old = buffered;
+            buffered = new ConcurrentLinkedDeque<>();
             return old;
         }
     }
@@ -112,9 +115,11 @@ public class BufferingEventPipeline implements InternalEventPipeline {
     public String toString() {
         StringBuilder builder = new StringBuilder(50);
         builder.append("BufferingEventPipeline [");
-        if (buffered != null) {
+        // Avoid problem with concurrency
+        var bufd = buffered;
+        if (bufd != null) {
             builder.append("buffered=");
-            builder.append(buffered);
+            builder.append(bufd);
         }
         builder.append(']');
         return builder.toString();

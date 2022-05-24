@@ -19,6 +19,7 @@
 package org.jgrapes.core.internal;
 
 import java.util.Arrays;
+import java.util.Queue;
 import org.jgrapes.core.Channel;
 
 /**
@@ -42,6 +43,18 @@ public class EventChannelsTuple {
         super();
         this.event = event;
         this.channels = Arrays.copyOf(channels, channels.length);
+    }
+
+    /**
+     * Adds a newly created {@link EventChannelsTuple} to the given queue.
+     *
+     * @param queue the queue
+     * @param event the event
+     * @param channels the channels
+     */
+    public static void addTo(Queue<EventChannelsTuple> queue,
+            EventBase<?> event, Channel... channels) {
+        queue.add(new EventChannelsTuple(event, channels));
     }
 
     /*
