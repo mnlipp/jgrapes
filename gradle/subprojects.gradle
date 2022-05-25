@@ -51,6 +51,7 @@ if (project.name.startsWith("org.jgrapes") || project.name == "examples") {
         testImplementation 'net.jodah:concurrentunit:0.4.2'
         testImplementation "org.codehaus.groovy:groovy-all:3.0.9"
         testImplementation "org.spockframework:spock-core:2.0-M5-groovy-3.0"
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
         testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
     }
     

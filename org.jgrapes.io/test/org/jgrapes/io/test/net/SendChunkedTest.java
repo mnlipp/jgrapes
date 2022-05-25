@@ -24,8 +24,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -38,10 +38,12 @@ import org.jgrapes.io.util.ByteBufferOutputStream;
 import org.jgrapes.net.TcpServer;
 import org.jgrapes.net.events.Accepted;
 import org.jgrapes.net.events.Ready;
-import static org.junit.Assert.*;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-public class BigReadTest {
+public class SendChunkedTest {
 
 //	private static boolean localLogging = false;
 //	
@@ -80,20 +82,15 @@ public class BigReadTest {
         /**
          * @throws IOException 
          */
-        public EchoServer() throws IOException {
+        public EchoServer(int bufferSize) throws IOException {
             super();
-            attach(new TcpServer(this));
+            TcpServer server = new TcpServer(this);
+            if (bufferSize > 0) {
+                server.setBufferSize(bufferSize);
+            }
+            attach(server);
         }
 
-        /**
-         * Sends a lot of data to make sure that the data cannot be sent
-         * with a single write. Only then will the selector generate write
-         * the ops that we want to test here. 
-         * 
-         * @param event
-         * @throws IOException
-         * @throws InterruptedException
-         */
         @Handler
         public void onAcctepted(Accepted event)
                 throws IOException, InterruptedException {
@@ -108,45 +105,72 @@ public class BigReadTest {
         }
     }
 
-    @Test(timeout = 10000)
-    public void test() throws IOException, InterruptedException,
-            ExecutionException {
-        EchoServer app = new EchoServer();
+    /**
+     * Sends a lot of data. Use default buffer size to make sure it works
+     * in general. Then use big buffer to make sure that the data cannot 
+     * be sent to the network with a single write. Only then will the selector 
+     * generate write the ops that we want to test here. 
+     * 
+     * @param event
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @ParameterizedTest
+    @ValueSource(ints = { -1, 10 * 1024 * 1024 })
+    @Timeout(5)
+    public void sendTest(int bufferSize)
+            throws IOException, InterruptedException, ExecutionException {
+        EchoServer app = new EchoServer(bufferSize);
         app.attach(new NioDispatcher());
         WaitForTests<Ready> wf = new WaitForTests<>(
             app, Ready.class, app.defaultCriterion());
         Components.start(app);
         Ready readyEvent = (Ready) wf.get();
         if (!(readyEvent.listenAddress() instanceof InetSocketAddress)) {
-            fail();
+            fail("");
         }
         InetSocketAddress serverAddr
             = ((InetSocketAddress) readyEvent.listenAddress());
 
-        AtomicInteger expected = new AtomicInteger(0);
+        // There was a problem on the CI host only, difficult
+        // to analyze. Therefore taking the buffered approach.
+        StringBuilder received = new StringBuilder();
         try (Socket client = new Socket("localhost", serverAddr.getPort())) {
             InputStream fromServer = client.getInputStream();
             BufferedReader in = new BufferedReader(
                 new InputStreamReader(fromServer, "ascii"));
-            while (expected.get() < 1000000) {
+            while (true) {
                 String line = in.readLine();
-                assertNotEquals(null, line);
-                String[] parts = line.split(":");
-                try {
-                    int recvd = Integer.parseInt(parts[0]);
-                    assertEquals(expected.get(), recvd);
-                } catch (NumberFormatException e) {
-                    // To get a more informative message.
-                    assertEquals(expected.get(), line);
+                if (line == null) {
+                    break;
                 }
-                assertEquals("Hello World!", parts[1]);
-                expected.incrementAndGet();
+                received.append(line);
+                received.append('\n');
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        assertEquals(1000000, expected.get());
+        String data = received.toString();
+        String previous = "(No previous line)";
+        StringTokenizer lines = new StringTokenizer(data, "\n");
+        int lineCount = 0;
+        while (lineCount < 1_000_000 && lines.hasMoreElements()) {
+            String line = lines.nextToken();
+            String[] parts = line.split(":");
+            try {
+                int recvd = Integer.parseInt(parts[0]);
+                assertEquals(lineCount, recvd);
+            } catch (NumberFormatException e) {
+                // To get a more informative message.
+                fail("Invalid: \"" + line + "\" after \"" + previous + "\" ");
+            }
+            assertEquals("Hello World!", parts[1]);
+            lineCount += 1;
+            previous = line;
+        }
+        assertEquals(1_000_000, lineCount);
 
+        // Test stop
         Components.manager(app).fire(new Stop(), Channel.BROADCAST);
         long waitEnd = System.currentTimeMillis() + 3000;
         while (true) {
