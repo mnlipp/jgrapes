@@ -18,7 +18,7 @@
 
 package org.jgrapes.core.internal;
 
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
@@ -35,7 +35,7 @@ public class BufferingEventPipeline implements InternalEventPipeline {
 
     private final ComponentTree componentTree;
     /** Buffered events. */
-    private Queue<EventChannelsTuple> buffered = new LinkedList<>();
+    private Queue<EventChannelsTuple> buffered = new ArrayDeque<>();
     /** The event pipeline that we delegate to after the start
      * event has been detected. */
     private InternalEventPipeline activePipeline;

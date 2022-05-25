@@ -18,9 +18,9 @@
 
 package org.jgrapes.core.internal;
 
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -42,7 +42,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
     private final ExecutorService executorService;
     private final ComponentTree componentTree;
     private final EventPipeline asEventPipeline;
-    protected final Queue<EventChannelsTuple> queue = new LinkedList<>();
+    protected final Queue<EventChannelsTuple> queue = new ArrayDeque<>();
     private Iterator<HandlerReference> invoking;
     // Used by this thread only.
     private Set<EventBase<?>> suspended = new HashSet<>();
