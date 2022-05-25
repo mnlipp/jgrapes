@@ -31,9 +31,9 @@
 <span class="source-line-no">018</span><span id="line-18"></span>
 <span class="source-line-no">019</span><span id="line-19">package org.jgrapes.core.internal;</span>
 <span class="source-line-no">020</span><span id="line-20"></span>
-<span class="source-line-no">021</span><span id="line-21">import java.util.HashSet;</span>
-<span class="source-line-no">022</span><span id="line-22">import java.util.Iterator;</span>
-<span class="source-line-no">023</span><span id="line-23">import java.util.LinkedList;</span>
+<span class="source-line-no">021</span><span id="line-21">import java.util.ArrayDeque;</span>
+<span class="source-line-no">022</span><span id="line-22">import java.util.HashSet;</span>
+<span class="source-line-no">023</span><span id="line-23">import java.util.Iterator;</span>
 <span class="source-line-no">024</span><span id="line-24">import java.util.Queue;</span>
 <span class="source-line-no">025</span><span id="line-25">import java.util.Set;</span>
 <span class="source-line-no">026</span><span id="line-26">import java.util.concurrent.ConcurrentLinkedDeque;</span>
@@ -55,7 +55,7 @@
 <span class="source-line-no">042</span><span id="line-42">    private final ExecutorService executorService;</span>
 <span class="source-line-no">043</span><span id="line-43">    private final ComponentTree componentTree;</span>
 <span class="source-line-no">044</span><span id="line-44">    private final EventPipeline asEventPipeline;</span>
-<span class="source-line-no">045</span><span id="line-45">    protected final Queue&lt;EventChannelsTuple&gt; queue = new LinkedList&lt;&gt;();</span>
+<span class="source-line-no">045</span><span id="line-45">    protected final Queue&lt;EventChannelsTuple&gt; queue = new ArrayDeque&lt;&gt;();</span>
 <span class="source-line-no">046</span><span id="line-46">    private Iterator&lt;HandlerReference&gt; invoking;</span>
 <span class="source-line-no">047</span><span id="line-47">    // Used by this thread only.</span>
 <span class="source-line-no">048</span><span id="line-48">    private Set&lt;EventBase&lt;?&gt;&gt; suspended = new HashSet&lt;&gt;();</span>
