@@ -290,6 +290,8 @@ public class Event<T> extends EventBase<T> {
      */
     public Event<T> stop() {
         stopped = true;
+        // Just in case.
+        resumeHandling();
         return this;
     }
 
