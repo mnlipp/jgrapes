@@ -155,10 +155,11 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
                 // No lock needed, only this thread can remove from resumed
                 var resumedEvent = toBeResumed.poll();
                 if (resumedEvent != null) {
-                    suspended.remove(resumedEvent);
-                    resumedEvent.invokeWhenResumed();
-                    invokeHandlers(resumedEvent.clearSuspendedHandlers(),
-                        resumedEvent);
+                    if (suspended.remove(resumedEvent)) {
+                        resumedEvent.invokeWhenResumed();
+                        invokeHandlers(resumedEvent.clearSuspendedHandlers(),
+                            resumedEvent);
+                    }
                     continue;
                 }
 
