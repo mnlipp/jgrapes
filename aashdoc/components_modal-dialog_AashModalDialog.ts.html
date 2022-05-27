@@ -151,27 +151,24 @@ let instanceCounter = 0;
  * @param {Object} props the properties
  * @param {string} props.id the dialog's id
  * @param {string} props.title the dialog's title
- * @param {boolean} props.showCancel wether to show a cancel button
+ * @param {boolean} props.showCancel whether to show a cancel button
  * @param {string} props.content the dialog's content
  * @param {Array.string} props.contentClasses classes to apply to the content
- * @param {string} props.closeLabel the label for the close button
- * @param {Function} props.onClose the function to invoke on close
+ * @param {string} props.applyLabel the label for the apply button
+ * @param {string} props.okayLabel the label for the okay (confirm) button
+ * @param {Function} props.onAction the function to invoke on action
  */
 export default defineComponent({
     props: {
         id: String,
         title: String,
-        showCancel: {
-            type: Boolean,
-            default: true
-        },
+        showCancel: { type: Boolean, default: true },
         content: String,
         contentClasses: Array,
-        closeLabel: {
-            type: String,
-            default: "Okay"
-        },
-        onClose: Function as PropType&lt;(confirmed: boolean) => void>
+        applyLabel: { type: String, default: "" },
+        okayLabel: { type: String, default: "Okay" },
+        onAction: Function as PropType&lt;(apply: boolean, 
+            close: boolean) => void>
     },
   
     setup(props, context) {
@@ -193,15 +190,21 @@ export default defineComponent({
         }
 
         const cancel = () => {
-            if (props.onClose) {
-                props.onClose(false);
+            if (props.onAction) {
+                props.onAction(false, false);
             }
             isOpen.value = false;
         }
 
+        const apply = () => {
+            if (props.onAction) {
+                props.onAction(true, false);
+            }
+        }
+
         const close = () => {
-            if (props.onClose) {
-                props.onClose(true);
+            if (props.onAction) {
+                props.onAction(true, true);
             }
             isOpen.value = false;
         }
@@ -212,10 +215,11 @@ export default defineComponent({
 
         const dialog = ref(null);
 
-        provideApi(dialog, { open, close, cancel, updateTitle,
+        provideApi(dialog, { open, apply, close, cancel, updateTitle,
                 isOpen: () => { return isOpen.value } });
 
-        return { effectiveId, effectiveTitle, isOpen, cancel, close, dialog };
+        return { effectiveId, effectiveTitle, isOpen, apply, 
+            cancel, close, dialog };
     }
 });
 </code></pre>

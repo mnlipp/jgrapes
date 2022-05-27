@@ -1,5 +1,6 @@
 org.jgrapes.webconlet.examples.formtest
 org.jgrapes.webconlet.examples.helloworld
+org.jgrapes.webconlet.examples.login
 org.jgrapes.webconlet.examples.styletest
 org.jgrapes.webconlet.jmxbrowser
 org.jgrapes.webconlet.markdowndisplay
