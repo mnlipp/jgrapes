@@ -213,10 +213,10 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
             while (invoking != null && invoking.hasNext()) {
                 HandlerReference hdlr = invoking.next();
                 try {
-                    hdlr.invoke(event);
                     if (event.isStopped()) {
                         break;
                     }
+                    hdlr.invoke(event);
                 } catch (AssertionError t) {
                     // JUnit support
                     CoreUtils.setAssertionError(t);
