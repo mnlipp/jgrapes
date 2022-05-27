@@ -33,6 +33,7 @@ import org.jgrapes.core.EventPipeline;
 /**
  * This class provides the default implementation of an {@link EventPipeline}.
  */
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class EventProcessor implements InternalEventPipeline, Runnable {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
@@ -97,10 +98,7 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
         ((EventBase<?>) event).processedBy(this);
         synchronized (this) {
             EventChannelsTuple.addTo(queue, event, channels);
-            if (isExecuting) {
-                // Processor might be suspended, waiting for events to resume
-                notifyAll();
-            } else {
+            if (!isExecuting) {
                 // Queue was initially empty, this starts it
                 GeneratorRegistry.instance().add(this);
                 isExecuting = true;
@@ -125,9 +123,6 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
                 GeneratorRegistry.instance().add(this);
                 isExecuting = true;
                 executorService.execute(this);
-            } else {
-                // Processor might be suspended, waiting for events to resume
-                notifyAll();
             }
         }
     }
@@ -166,24 +161,15 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
                 EventChannelsTuple next;
                 synchronized (this) {
                     next = queue.poll();
-                    // If empty, make sure there are none suspended
                     if (next == null) {
-                        if (suspended.isEmpty()) {
-                            // Everything is done
-                            GeneratorRegistry.instance().remove(this);
-                            isExecuting = false;
-                            synchronized (executor) {
-                                executor.notifyAll();
-                            }
-                            break;
+                        // Everything is done, though suspended handlers
+                        // may cause this processor to be reactivated.
+                        GeneratorRegistry.instance().remove(this);
+                        isExecuting = false;
+                        synchronized (executor) {
+                            executor.notifyAll();
                         }
-                        try {
-                            // Wait for something to do
-                            wait();
-                        } catch (InterruptedException e) {
-                            // Ignore
-                        }
-                        continue;
+                        break;
                     }
                 }
                 HandlerList handlers
@@ -191,6 +177,11 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
                 invokeHandlers(handlers.iterator(), next.event);
             }
         } finally {
+            // This processor should now only be (strongly) referenced
+            // from suspended events (if any exist), the
+            // CheckingPipelineFilter (which is only referenced from this)
+            // and some component tree, if this is the tree's default
+            // processor.
             newEventsParent.set(null);
             componentTree.setDispatchingPipeline(null);
             executor.set(null);
@@ -267,7 +258,12 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
     /* default */ void resumeHandling(EventBase<?> event) {
         toBeResumed.add(event);
         synchronized (this) {
-            notifyAll();
+            if (!isExecuting) {
+                // There were no more events, restart
+                GeneratorRegistry.instance().add(this);
+                isExecuting = true;
+                executorService.execute(this);
+            }
         }
     }
 
