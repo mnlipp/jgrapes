@@ -192,76 +192,77 @@
 <span class="source-line-no">179</span><span id="line-179">        if (event.renderAs().contains(RenderMode.Help)) {</span>
 <span class="source-line-no">180</span><span id="line-180">            Template tpl = freemarkerConfig()</span>
 <span class="source-line-no">181</span><span id="line-181">                .getTemplate("HelloWorld-help.ftl.html");</span>
-<span class="source-line-no">182</span><span id="line-182">            channel.respond(new OpenModalDialog(processTemplate(event, tpl,</span>
-<span class="source-line-no">183</span><span id="line-183">                fmModel(event, channel, conletId, conletState)))</span>
-<span class="source-line-no">184</span><span id="line-184">                    .addOption("cancelable", true)</span>
-<span class="source-line-no">185</span><span id="line-185">                    .addOption("closeLabel", ""));</span>
-<span class="source-line-no">186</span><span id="line-186">        }</span>
-<span class="source-line-no">187</span><span id="line-187">        return renderedAs;</span>
-<span class="source-line-no">188</span><span id="line-188">    }</span>
-<span class="source-line-no">189</span><span id="line-189"></span>
-<span class="source-line-no">190</span><span id="line-190">    @Override</span>
-<span class="source-line-no">191</span><span id="line-191">    protected void doConletDeleted(ConletDeleted event,</span>
-<span class="source-line-no">192</span><span id="line-192">            ConsoleSession channel, String conletId,</span>
-<span class="source-line-no">193</span><span id="line-193">            HelloWorldModel conletState) throws Exception {</span>
-<span class="source-line-no">194</span><span id="line-194">        if (event.renderModes().isEmpty()) {</span>
-<span class="source-line-no">195</span><span id="line-195">            channel.respond(new KeyValueStoreUpdate().delete(</span>
-<span class="source-line-no">196</span><span id="line-196">                storagePath(channel.browserSession()) + conletId));</span>
-<span class="source-line-no">197</span><span id="line-197">        }</span>
-<span class="source-line-no">198</span><span id="line-198">    }</span>
-<span class="source-line-no">199</span><span id="line-199"></span>
-<span class="source-line-no">200</span><span id="line-200">    @Override</span>
-<span class="source-line-no">201</span><span id="line-201">    protected void doUpdateConletState(NotifyConletModel event,</span>
-<span class="source-line-no">202</span><span id="line-202">            ConsoleSession channel, HelloWorldModel conletModel)</span>
-<span class="source-line-no">203</span><span id="line-203">            throws Exception {</span>
-<span class="source-line-no">204</span><span id="line-204">        event.stop();</span>
-<span class="source-line-no">205</span><span id="line-205">        conletModel.setWorldVisible(!conletModel.isWorldVisible());</span>
-<span class="source-line-no">206</span><span id="line-206"></span>
-<span class="source-line-no">207</span><span id="line-207">        String jsonState = JsonBeanEncoder.create()</span>
-<span class="source-line-no">208</span><span id="line-208">            .writeObject(conletModel).toJson();</span>
-<span class="source-line-no">209</span><span id="line-209">        channel.respond(new KeyValueStoreUpdate().update(</span>
-<span class="source-line-no">210</span><span id="line-210">            storagePath(channel.browserSession()) + conletModel.getConletId(),</span>
-<span class="source-line-no">211</span><span id="line-211">            jsonState));</span>
-<span class="source-line-no">212</span><span id="line-212">        channel.respond(new NotifyConletView(type(),</span>
-<span class="source-line-no">213</span><span id="line-213">            conletModel.getConletId(), "setWorldVisible",</span>
-<span class="source-line-no">214</span><span id="line-214">            conletModel.isWorldVisible()));</span>
-<span class="source-line-no">215</span><span id="line-215">        channel.respond(new DisplayNotification("&lt;span&gt;"</span>
-<span class="source-line-no">216</span><span id="line-216">            + resourceBundle(channel.locale()).getString("visibilityChange")</span>
-<span class="source-line-no">217</span><span id="line-217">            + "&lt;/span&gt;")</span>
-<span class="source-line-no">218</span><span id="line-218">                .addOption("autoClose", 2000));</span>
-<span class="source-line-no">219</span><span id="line-219">    }</span>
-<span class="source-line-no">220</span><span id="line-220"></span>
-<span class="source-line-no">221</span><span id="line-221">    /**</span>
-<span class="source-line-no">222</span><span id="line-222">     * Model with world's state.</span>
-<span class="source-line-no">223</span><span id="line-223">     */</span>
-<span class="source-line-no">224</span><span id="line-224">    @SuppressWarnings("serial")</span>
-<span class="source-line-no">225</span><span id="line-225">    public static class HelloWorldModel extends ConletBaseModel {</span>
-<span class="source-line-no">226</span><span id="line-226"></span>
-<span class="source-line-no">227</span><span id="line-227">        private boolean worldVisible = true;</span>
-<span class="source-line-no">228</span><span id="line-228"></span>
-<span class="source-line-no">229</span><span id="line-229">        /**</span>
-<span class="source-line-no">230</span><span id="line-230">         * Creates a new model with the given type and id.</span>
-<span class="source-line-no">231</span><span id="line-231">         * </span>
-<span class="source-line-no">232</span><span id="line-232">         * @param conletId the web console component id</span>
-<span class="source-line-no">233</span><span id="line-233">         */</span>
-<span class="source-line-no">234</span><span id="line-234">        @ConstructorProperties({ "conletId" })</span>
-<span class="source-line-no">235</span><span id="line-235">        public HelloWorldModel(String conletId) {</span>
-<span class="source-line-no">236</span><span id="line-236">            super(conletId);</span>
-<span class="source-line-no">237</span><span id="line-237">        }</span>
-<span class="source-line-no">238</span><span id="line-238"></span>
-<span class="source-line-no">239</span><span id="line-239">        /**</span>
-<span class="source-line-no">240</span><span id="line-240">         * @param visible the visible to set</span>
-<span class="source-line-no">241</span><span id="line-241">         */</span>
-<span class="source-line-no">242</span><span id="line-242">        public void setWorldVisible(boolean visible) {</span>
-<span class="source-line-no">243</span><span id="line-243">            this.worldVisible = visible;</span>
-<span class="source-line-no">244</span><span id="line-244">        }</span>
-<span class="source-line-no">245</span><span id="line-245"></span>
-<span class="source-line-no">246</span><span id="line-246">        public boolean isWorldVisible() {</span>
-<span class="source-line-no">247</span><span id="line-247">            return worldVisible;</span>
-<span class="source-line-no">248</span><span id="line-248">        }</span>
-<span class="source-line-no">249</span><span id="line-249">    }</span>
-<span class="source-line-no">250</span><span id="line-250"></span>
-<span class="source-line-no">251</span><span id="line-251">}</span>
+<span class="source-line-no">182</span><span id="line-182">            channel.respond(new OpenModalDialog(type(), conletId,</span>
+<span class="source-line-no">183</span><span id="line-183">                processTemplate(event, tpl,</span>
+<span class="source-line-no">184</span><span id="line-184">                    fmModel(event, channel, conletId, conletState)))</span>
+<span class="source-line-no">185</span><span id="line-185">                        .addOption("cancelable", true)</span>
+<span class="source-line-no">186</span><span id="line-186">                        .addOption("closeLabel", ""));</span>
+<span class="source-line-no">187</span><span id="line-187">        }</span>
+<span class="source-line-no">188</span><span id="line-188">        return renderedAs;</span>
+<span class="source-line-no">189</span><span id="line-189">    }</span>
+<span class="source-line-no">190</span><span id="line-190"></span>
+<span class="source-line-no">191</span><span id="line-191">    @Override</span>
+<span class="source-line-no">192</span><span id="line-192">    protected void doConletDeleted(ConletDeleted event,</span>
+<span class="source-line-no">193</span><span id="line-193">            ConsoleSession channel, String conletId,</span>
+<span class="source-line-no">194</span><span id="line-194">            HelloWorldModel conletState) throws Exception {</span>
+<span class="source-line-no">195</span><span id="line-195">        if (event.renderModes().isEmpty()) {</span>
+<span class="source-line-no">196</span><span id="line-196">            channel.respond(new KeyValueStoreUpdate().delete(</span>
+<span class="source-line-no">197</span><span id="line-197">                storagePath(channel.browserSession()) + conletId));</span>
+<span class="source-line-no">198</span><span id="line-198">        }</span>
+<span class="source-line-no">199</span><span id="line-199">    }</span>
+<span class="source-line-no">200</span><span id="line-200"></span>
+<span class="source-line-no">201</span><span id="line-201">    @Override</span>
+<span class="source-line-no">202</span><span id="line-202">    protected void doUpdateConletState(NotifyConletModel event,</span>
+<span class="source-line-no">203</span><span id="line-203">            ConsoleSession channel, HelloWorldModel conletModel)</span>
+<span class="source-line-no">204</span><span id="line-204">            throws Exception {</span>
+<span class="source-line-no">205</span><span id="line-205">        event.stop();</span>
+<span class="source-line-no">206</span><span id="line-206">        conletModel.setWorldVisible(!conletModel.isWorldVisible());</span>
+<span class="source-line-no">207</span><span id="line-207"></span>
+<span class="source-line-no">208</span><span id="line-208">        String jsonState = JsonBeanEncoder.create()</span>
+<span class="source-line-no">209</span><span id="line-209">            .writeObject(conletModel).toJson();</span>
+<span class="source-line-no">210</span><span id="line-210">        channel.respond(new KeyValueStoreUpdate().update(</span>
+<span class="source-line-no">211</span><span id="line-211">            storagePath(channel.browserSession()) + conletModel.getConletId(),</span>
+<span class="source-line-no">212</span><span id="line-212">            jsonState));</span>
+<span class="source-line-no">213</span><span id="line-213">        channel.respond(new NotifyConletView(type(),</span>
+<span class="source-line-no">214</span><span id="line-214">            conletModel.getConletId(), "setWorldVisible",</span>
+<span class="source-line-no">215</span><span id="line-215">            conletModel.isWorldVisible()));</span>
+<span class="source-line-no">216</span><span id="line-216">        channel.respond(new DisplayNotification("&lt;span&gt;"</span>
+<span class="source-line-no">217</span><span id="line-217">            + resourceBundle(channel.locale()).getString("visibilityChange")</span>
+<span class="source-line-no">218</span><span id="line-218">            + "&lt;/span&gt;")</span>
+<span class="source-line-no">219</span><span id="line-219">                .addOption("autoClose", 2000));</span>
+<span class="source-line-no">220</span><span id="line-220">    }</span>
+<span class="source-line-no">221</span><span id="line-221"></span>
+<span class="source-line-no">222</span><span id="line-222">    /**</span>
+<span class="source-line-no">223</span><span id="line-223">     * Model with world's state.</span>
+<span class="source-line-no">224</span><span id="line-224">     */</span>
+<span class="source-line-no">225</span><span id="line-225">    @SuppressWarnings("serial")</span>
+<span class="source-line-no">226</span><span id="line-226">    public static class HelloWorldModel extends ConletBaseModel {</span>
+<span class="source-line-no">227</span><span id="line-227"></span>
+<span class="source-line-no">228</span><span id="line-228">        private boolean worldVisible = true;</span>
+<span class="source-line-no">229</span><span id="line-229"></span>
+<span class="source-line-no">230</span><span id="line-230">        /**</span>
+<span class="source-line-no">231</span><span id="line-231">         * Creates a new model with the given type and id.</span>
+<span class="source-line-no">232</span><span id="line-232">         * </span>
+<span class="source-line-no">233</span><span id="line-233">         * @param conletId the web console component id</span>
+<span class="source-line-no">234</span><span id="line-234">         */</span>
+<span class="source-line-no">235</span><span id="line-235">        @ConstructorProperties({ "conletId" })</span>
+<span class="source-line-no">236</span><span id="line-236">        public HelloWorldModel(String conletId) {</span>
+<span class="source-line-no">237</span><span id="line-237">            super(conletId);</span>
+<span class="source-line-no">238</span><span id="line-238">        }</span>
+<span class="source-line-no">239</span><span id="line-239"></span>
+<span class="source-line-no">240</span><span id="line-240">        /**</span>
+<span class="source-line-no">241</span><span id="line-241">         * @param visible the visible to set</span>
+<span class="source-line-no">242</span><span id="line-242">         */</span>
+<span class="source-line-no">243</span><span id="line-243">        public void setWorldVisible(boolean visible) {</span>
+<span class="source-line-no">244</span><span id="line-244">            this.worldVisible = visible;</span>
+<span class="source-line-no">245</span><span id="line-245">        }</span>
+<span class="source-line-no">246</span><span id="line-246"></span>
+<span class="source-line-no">247</span><span id="line-247">        public boolean isWorldVisible() {</span>
+<span class="source-line-no">248</span><span id="line-248">            return worldVisible;</span>
+<span class="source-line-no">249</span><span id="line-249">        }</span>
+<span class="source-line-no">250</span><span id="line-250">    }</span>
+<span class="source-line-no">251</span><span id="line-251"></span>
+<span class="source-line-no">252</span><span id="line-252">}</span>
 
 
 
