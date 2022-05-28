@@ -3,4 +3,5 @@ exclude_paths:
   - 'buildSrc/**'
   - '*/test/**'
   - '*/test-resources/**'
+  - 'misc/stylesheet.css'
   
