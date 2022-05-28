@@ -20,7 +20,6 @@ package org.jgrapes.examples.io.consoleinput;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;

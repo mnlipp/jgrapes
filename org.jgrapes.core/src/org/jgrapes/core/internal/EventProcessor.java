@@ -46,11 +46,12 @@ public class EventProcessor implements InternalEventPipeline, Runnable {
     protected final Queue<EventChannelsTuple> queue = new ArrayDeque<>();
     private Iterator<HandlerReference> invoking;
     // Used by this thread only.
-    private Set<EventBase<?>> suspended = new HashSet<>();
+    private final Set<EventBase<?>> suspended = new HashSet<>();
     // Only this thread can remove, but others might add.
-    private Queue<EventBase<?>> toBeResumed = new ConcurrentLinkedDeque<>();
+    private final Queue<EventBase<?>> toBeResumed
+        = new ConcurrentLinkedDeque<>();
     private boolean isExecuting;
-    private ThreadLocal<Thread> executor = new ThreadLocal<>();
+    private final ThreadLocal<Thread> executor = new ThreadLocal<>();
 
     /**
      * Instantiates a new event processor.
