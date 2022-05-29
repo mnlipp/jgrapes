@@ -530,6 +530,7 @@ export default defineComponent({
             if (event.key === "End") {
                 path = [props.roots[props.roots.length - 1].segment];
                 while (ctrl.nextDown(path)) {
+                    // Everything happens when evaluating the condition.
                 }
                 ctrl.setFocus(path);
                 event.preventDefault();
