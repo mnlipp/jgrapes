@@ -94,8 +94,9 @@
         
             <div class="class-description"><p>Generates a modal dialog.</p>
 <p>Example:</p>
-<pre class="prettyprint source lang-html"><code>&lt;div class=&quot;aash-modal-dialog dialog__backdrop&quot; showcancel=&quot;true&quot;>
-  &lt;div id=&quot;sampleDialog&quot; role=&quot;dialog&quot;
+<pre class="prettyprint source lang-html"><code>&lt;div id=&quot;sampleDialog&quot; class=&quot;aash-modal-dialog dialog__backdrop&quot;
+    showcancel=&quot;true&quot;>
+  &lt;div role=&quot;dialog&quot;
       aria-labelledby=&quot;sampleDialog-label&quot; aria-modal=&quot;true&quot;>
     &lt;header id=&quot;sampleDialog-label&quot;>
       &lt;p>Sample Dialog&lt;/p>
@@ -112,10 +113,17 @@
 </code></pre>
 <p>Once created, the component provides the externally invocable methods
 defined by <a href="module-AashModalDialog.Api.html">module:AashModalDialog.Api</a> through an object in
-a property of the DOM element with <code>role=&quot;dialog&quot;</code> (see
-module:AashUtil.getApi). Note that this is not the mounted element
-but the mounted element's child. It is, however, the element with the
-provided <code>id</code>. Thus it makes more sense to use this element.</p></div>
+a property of the mounted element (which also has the provided <code>id</code>).</p>
+<p>By default, the button is generated with type <code>button</code>. If your dialog
+contains a form and you want to make use of the browser's support for
+autocompletion, the button must have type <code>submit</code> (although submitting
+will be prevented). You can force this by setting <code>submitForm</code> to the
+<code>id</code> of the form in the dialog content.</p>
+<p>The dialog is generated with an apply button and an okay (confirm)
+button. The latter closes the form when pushed. The buttons are
+generate when the respective labels aren't empty. If both labels
+are empty, there will be no footer. This can be used for a purely
+informative dialog that has only a &quot;cancel&quot; (close) element.</p></div>
         
     
 </header>
@@ -337,7 +345,8 @@ provided <code>id</code>. Thus it makes more sense to use this element.</p></div
 
   
 
-  <td class="description last"><p>the label for the apply button</p></td>
+  <td class="description last"><p>the label for the apply button; defaults
+to empty</p></td>
 </tr>
 
   
@@ -360,7 +369,8 @@ provided <code>id</code>. Thus it makes more sense to use this element.</p></div
 
   
 
-  <td class="description last"><p>the label for the okay (confirm) button</p></td>
+  <td class="description last"><p>the label for the okay (confirm) button;
+defaults to &quot;OK&quot;</p></td>
 </tr>
 
   
@@ -384,6 +394,29 @@ provided <code>id</code>. Thus it makes more sense to use this element.</p></div
   
 
   <td class="description last"><p>the function to invoke on action</p></td>
+</tr>
+
+  
+    
+<tr class="deep-level-1">
+  
+      <td class="name"><code>submitForm</code></td>
+  
+
+  <td class="type">
+  
+      
+<code class="param-type">string</code>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"><p>the id of a form</p></td>
 </tr>
 
   
