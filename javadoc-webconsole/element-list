@@ -18,6 +18,7 @@ org.jgrapes.webconsole.provider.browserrequire
 org.jgrapes.webconsole.provider.chartjs
 org.jgrapes.webconsole.provider.datatables
 org.jgrapes.webconsole.provider.fontawesome
+org.jgrapes.webconsole.provider.forkawesome
 org.jgrapes.webconsole.provider.gridstack
 org.jgrapes.webconsole.provider.jgwcvuecomponents
 org.jgrapes.webconsole.provider.jquery
