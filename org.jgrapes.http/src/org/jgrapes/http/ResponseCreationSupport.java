@@ -33,8 +33,6 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.jar.JarEntry;
@@ -43,6 +41,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
+import org.jdrupes.httpcodec.types.CacheControlDirectives;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.Directive;
 import org.jdrupes.httpcodec.types.MediaType;
@@ -344,7 +343,7 @@ public abstract class ResponseCreationSupport {
      * @return the value set
      */
     public static long setMaxAge(HttpResponse response, int maxAge) {
-        List<Directive> directives = new ArrayList<>();
+        CacheControlDirectives directives = new CacheControlDirectives();
         directives.add(new Directive("max-age", maxAge));
         response.setField(HttpField.CACHE_CONTROL, directives);
         return maxAge;
