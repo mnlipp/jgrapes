@@ -99,7 +99,7 @@ public class NioDispatcher extends Component implements Runnable {
      */
     @Override
     @SuppressWarnings({ "PMD.EmptySynchronizedBlock", "PMD.EmptyCatchBlock",
-        "PMD.AvoidCatchingThrowable" })
+        "PMD.AvoidCatchingThrowable", "PMD.EmptyControlStatement" })
     public void run() {
         try {
             registerAsGenerator();
