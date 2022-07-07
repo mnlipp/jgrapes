@@ -81,8 +81,8 @@ public abstract class SessionManager extends Component {
     private static SecureRandom secureRandom = new SecureRandom();
 
     private String idName = "id";
-    @SuppressWarnings("PMD.FinalFieldCouldBeStatic")
-    private final String path = "/";
+    @SuppressWarnings("PMD.ImmutableField")
+    private String path = "/";
     private long absoluteTimeout = 9 * 60 * 60 * 1000;
     private long idleTimeout = 30 * 60 * 1000;
     private int maxSessions = 1000;
