@@ -115,7 +115,9 @@
  * A third group of channels is implicitly provided by the
  * {@link org.jgrapes.core.Component}s, which implement the
  * {@link org.jgrapes.core.Channel} interface as well. This means that
- * every component can be used as a channel.
+ * every component can be used as a channel, with the eligibility defined
+ * in such a way that the component's handlers are always invoked 
+ * for events that are explicitly "targeted" at the component.
  * 
  * From a conceptional point of view, components fire events on one or 
  * more channels, and the channels forward the events to all (0 to many) 
