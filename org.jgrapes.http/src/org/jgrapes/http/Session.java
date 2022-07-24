@@ -46,6 +46,11 @@ import org.jgrapes.http.LanguageSelector.Selection;
  * can use the session {@link #id()} as key to manage the data
  * on their own.
  * 
+ * Before removal, the {@link SessionManager} calls the {@link #close}
+ * method. The default implementation iterates through all values
+ * in the transient data map and calls {@link AutoCloseable#close}
+ * for each one that implements the {@link AutoCloseable} interface.
+ * 
  * Implementations should override {@link Object#hashCode()}
  * and {@link Object#equals(Object)} in such a way
  * that the session id is the only relevant attribute (cannot be
@@ -88,7 +93,26 @@ public interface Session extends Map<Serializable, Serializable> {
      * 
      * @return the storage area
      */
-    Map<?, ?> transientData();
+    Map<Object, Object> transientData();
+
+    /** 
+     * Iterates through all values in the transient data map and 
+     * calls {@link AutoCloseable#close} for each that implements 
+     * the {@link AutoCloseable} interface. Any exceptions are ignored.
+     */
+    @SuppressWarnings({ "PMD.AvoidCatchingGenericException",
+        "PMD.EmptyCatchBlock" })
+    default void close() {
+        for (Object item : transientData().values()) {
+            if (item instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable) item).close();
+                } catch (Exception e) {
+                    // Ignored
+                }
+            }
+        }
+    }
 
     /**
      * Convenience method for retrieving the locale 

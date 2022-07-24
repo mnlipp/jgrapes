@@ -20,7 +20,6 @@ package org.jgrapes.http;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -39,7 +38,11 @@ public class InMemorySessionManager extends SessionManager {
 
             @Override
             protected boolean removeEldestEntry(Entry<String, Session> eldest) {
-                return maxSessions() > 0 && size() > maxSessions();
+                if (maxSessions() > 0 && size() > maxSessions()) {
+                    eldest.getValue().close();
+                    return true;
+                }
+                return false;
             }
         };
 
@@ -108,32 +111,33 @@ public class InMemorySessionManager extends SessionManager {
     }
 
     @Override
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+        "PMD.AvoidDeeplyNestedIfStmts" })
     protected Session createSession(String sessionId) {
         Session session = new InMemorySession(sessionId);
         Instant now = Instant.now();
         synchronized (this) {
             if (absoluteTimeout() > 0) {
-                // Quick check for sessions that are too old
-                for (Iterator<Entry<String, Session>> iter = sessionsById
-                    .entrySet().iterator(); iter.hasNext();) {
-                    Entry<String, Session> entry = iter.next();
+                // Check for sessions that are too old
+                sessionsById.entrySet().removeIf(entry -> {
                     if (Duration.between(entry.getValue().createdAt(), now)
                         .getSeconds() > absoluteTimeout()) {
-                        iter.remove();
-                    } else {
-                        break;
+                        entry.getValue().close();
+                        return true;
                     }
-                }
-            }
-            if (sessionsById.size() >= maxSessions() && absoluteTimeout() > 0) {
-                // Thorough search for sessions that are too old
-                sessionsById.entrySet().removeIf(entry -> {
-                    return Duration.between(entry.getValue().createdAt(),
-                        now).getSeconds() > absoluteTimeout()
-                        || Duration.between(entry.getValue().lastUsedAt(),
-                            now).getSeconds() > idleTimeout();
+                    return false;
                 });
+                if (sessionsById.size() >= maxSessions()) {
+                    // Purge unused
+                    sessionsById.entrySet().removeIf(entry -> {
+                        if (Duration.between(entry.getValue().lastUsedAt(),
+                            now).getSeconds() > idleTimeout()) {
+                            entry.getValue().close();
+                            return true;
+                        }
+                        return false;
+                    });
+                }
             }
             sessionsById.put(sessionId, session);
         }
@@ -142,13 +146,16 @@ public class InMemorySessionManager extends SessionManager {
 
     @Override
     protected Optional<Session> lookupSession(String sessionId) {
-        return Optional.ofNullable(sessionsById.get(sessionId));
+        synchronized (this) {
+            return Optional.ofNullable(sessionsById.get(sessionId));
+        }
     }
 
     @Override
     protected void removeSession(String sessionId) {
         synchronized (this) {
-            sessionsById.remove(sessionId);
+            Optional.ofNullable(sessionsById.remove(sessionId))
+                .ifPresent(Session::close);
         }
     }
 
@@ -159,7 +166,9 @@ public class InMemorySessionManager extends SessionManager {
      */
     @Override
     protected int sessionCount() {
-        return sessionsById.size();
+        synchronized (this) {
+            return sessionsById.size();
+        }
     }
 
 }

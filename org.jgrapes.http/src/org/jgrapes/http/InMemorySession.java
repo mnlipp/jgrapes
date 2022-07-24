@@ -35,7 +35,7 @@ public class InMemorySession
     private final String id;
     private final Instant createdAt;
     private Instant lastUsedAt;
-    private final Map<?, ?> transientData = new ConcurrentHashMap<>();
+    private final Map<Object, Object> transientData = new ConcurrentHashMap<>();
 
     /**
      * Create a new session.
@@ -88,7 +88,7 @@ public class InMemorySession
      * @see org.jgrapes.http.Session#transientData()
      */
     @Override
-    public Map<?, ?> transientData() {
+    public Map<Object, Object> transientData() {
         return transientData;
     }
 

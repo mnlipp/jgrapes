@@ -35,12 +35,9 @@ import org.jgrapes.http.Session;
 import org.jgrapes.http.SessionManager;
 import org.jgrapes.http.events.DiscardSession;
 import org.jgrapes.http.events.Request;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SessionTests {
 
@@ -61,6 +58,17 @@ public class SessionTests {
         public void onRequest(Request<?> event) {
             lastRequest = event;
         }
+    }
+
+    public static class TestResource implements AutoCloseable {
+
+        public boolean closed = false;
+
+        @Override
+        public void close() throws Exception {
+            closed = true;
+        }
+
     }
 
     private HttpRequest createRequest() throws Exception {
@@ -93,6 +101,8 @@ public class SessionTests {
         assertNotNull(app.lastRequest);
         Request<?> firstRequest = app.lastRequest;
         assertTrue(firstRequest.associated(Session.class).isPresent());
+        Session firstSession = firstRequest.associated(Session.class).get();
+        firstSession.transientData().put("resource", new TestResource());
 
         // Request with the newly session id from first request
         setSessionId(request, request.response().get());
@@ -102,7 +112,6 @@ public class SessionTests {
 
         // Session must have been found again
         assertNotNull(app.lastRequest);
-        Session firstSession = firstRequest.associated(Session.class).get();
         assertTrue(app.lastRequest.associated(Session.class).isPresent());
         assertEquals(firstSession,
             app.lastRequest.associated(Session.class).get());
@@ -112,6 +121,8 @@ public class SessionTests {
         evt = Request.In.fromHttpRequest(request, false, 0);
         app.lastRequest = null;
         app.fire(evt).get();
+        assertTrue(((TestResource) firstSession.transientData()
+            .get("resource")).closed);
         assertNotNull(app.lastRequest);
         Session newerSession = app.lastRequest.associated(Session.class).get();
         assertTrue(app.lastRequest.associated(Session.class).isPresent());
@@ -130,6 +141,8 @@ public class SessionTests {
         assertNotNull(app.lastRequest);
         Request<?> firstRequest = app.lastRequest;
         assertTrue(firstRequest.associated(Session.class).isPresent());
+        Session firstSession = firstRequest.associated(Session.class).get();
+        firstSession.transientData().put("resource", new TestResource());
 
         // Request with the newly session id from first request
         setSessionId(request, request.response().get());
@@ -139,7 +152,6 @@ public class SessionTests {
 
         // Session must have been found again
         assertNotNull(app.lastRequest);
-        Session firstSession = firstRequest.associated(Session.class).get();
         assertTrue(app.lastRequest.associated(Session.class).isPresent());
         assertEquals(firstSession,
             app.lastRequest.associated(Session.class).get());
@@ -149,6 +161,8 @@ public class SessionTests {
         evt = Request.In.fromHttpRequest(request, false, 0);
         app.lastRequest = null;
         app.fire(evt).get();
+        assertTrue(((TestResource) firstSession.transientData()
+            .get("resource")).closed);
         assertNotNull(app.lastRequest);
         Session newerSession = app.lastRequest.associated(Session.class).get();
         assertTrue(app.lastRequest.associated(Session.class).isPresent());
@@ -166,13 +180,19 @@ public class SessionTests {
         app.fire(evt).get();
 
         // Session must have been created
-        assertNotEquals(null, app.lastRequest);
-        assertTrue(app.lastRequest.associated(Session.class).isPresent());
+        assertNotNull(app.lastRequest);
+        Request<?> firstRequest = app.lastRequest;
+        assertTrue(firstRequest.associated(Session.class).isPresent());
+        Session firstSession = firstRequest.associated(Session.class).get();
+        firstSession.transientData().put("resource", new TestResource());
 
         // Send discard event
-        Session newSession = app.lastRequest.associated(Session.class).get();
         app.lastRequest = null;
-        app.fire(new DiscardSession(newSession)).get();
+        app.fire(new DiscardSession(firstSession)).get();
+
+        // Must be closed
+        assertTrue(((TestResource) firstSession.transientData()
+            .get("resource")).closed);
 
         // Request again
         evt = Request.In.fromHttpRequest(request, false, 0);
@@ -182,6 +202,6 @@ public class SessionTests {
         // New session must have been created
         assertNotEquals(null, app.lastRequest);
         assertTrue(app.lastRequest.associated(Session.class).isPresent());
-        assertFalse(Utils.equals(newSession, newerSession));
+        assertNotEquals(firstSession, newerSession);
     }
 }
