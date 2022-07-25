@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="263px" preserveAspectRatio="none" style="width:785px;height:263px;background:#FFFFFF;" version="1.1" viewBox="0 0 785 263" width="785px" zoomAndPan="magnify"><defs><filter height="300%" id="f1n3oerb1v33u1" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><!--MD5=[5623905afaf9879e491d1bb4a5ab29df]
+cluster Conceptual WebConsole\n(WebConsole Gateway)--><rect fill="#FFFFFF" filter="url(#f1n3oerb1v33u1)" height="101" style="stroke:#000000;stroke-width:1.5;" width="262" x="333" y="7"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="193" x="367.5" y="21.9951">Conceptual WebConsole</text><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="185" x="371.5" y="38.292">(WebConsole Gateway)</text><rect fill="#FEFECE" filter="url(#f1n3oerb1v33u1)" height="33.9688" style="stroke:#A80036;stroke-width:1.5;" width="89" x="490.5" y="58"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="75" x="497.5" y="71.1387">webConsole</text><line style="stroke:#A80036;stroke-width:1.5;" x1="491.5" x2="578.5" y1="75.9688" y2="75.9688"/><rect fill="#FEFECE" filter="url(#f1n3oerb1v33u1)" height="33.9688" style="stroke:#A80036;stroke-width:1.5;" width="106" x="349" y="58"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="92" x="356" y="71.1387">consoleWeblet</text><line style="stroke:#A80036;stroke-width:1.5;" x1="350" x2="454" y1="75.9688" y2="75.9688"/><rect fill="#FEFECE" filter="url(#f1n3oerb1v33u1)" height="33.9688" style="stroke:#A80036;stroke-width:1.5;" width="106" x="121" y="216"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="92" x="128" y="229.1387">webletChannel</text><line style="stroke:#A80036;stroke-width:1.5;" x1="122" x2="226" y1="233.9688" y2="233.9688"/><rect fill="#FEFECE" filter="url(#f1n3oerb1v33u1)" height="33.9688" style="stroke:#A80036;stroke-width:1.5;" width="114" x="604" y="216"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="100" x="611" y="229.1387">consoleChannel</text><line style="stroke:#A80036;stroke-width:1.5;" x1="605" x2="717" y1="233.9688" y2="233.9688"/><rect fill="#FEFECE" filter="url(#f1n3oerb1v33u1)" height="33.9688" style="stroke:#A80036;stroke-width:1.5;" width="80" x="7" y="58"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="66" x="14" y="71.1387">httpServer</text><line style="stroke:#A80036;stroke-width:1.5;" x1="8" x2="86" y1="75.9688" y2="75.9688"/><rect fill="#FEFECE" filter="url(#f1n3oerb1v33u1)" height="33.9688" style="stroke:#A80036;stroke-width:1.5;" width="117" x="122.5" y="58"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="103" x="129.5" y="71.1387">sessionManager</text><line style="stroke:#A80036;stroke-width:1.5;" x1="123.5" x2="238.5" y1="75.9688" y2="75.9688"/><rect fill="#FEFECE" filter="url(#f1n3oerb1v33u1)" height="33.9688" style="stroke:#A80036;stroke-width:1.5;" width="61" x="614.5" y="58"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="47" x="621.5" y="71.1387">conletA</text><line style="stroke:#A80036;stroke-width:1.5;" x1="615.5" x2="674.5" y1="75.9688" y2="75.9688"/><rect fill="#FEFECE" filter="url(#f1n3oerb1v33u1)" height="33.9688" style="stroke:#A80036;stroke-width:1.5;" width="61" x="710.5" y="58"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="47" x="717.5" y="71.1387">conletB</text><line style="stroke:#A80036;stroke-width:1.5;" x1="711.5" x2="770.5" y1="75.9688" y2="75.9688"/><rect fill="#FEFECE" filter="url(#f1n3oerb1v33u1)" height="33.9688" style="stroke:#A80036;stroke-width:1.5;" width="219" x="262.5" y="216"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="205" x="269.5" y="229.1387">consoleSession: ConsoleSession</text><line style="stroke:#A80036;stroke-width:1.5;" x1="263.5" x2="480.5" y1="233.9688" y2="233.9688"/><!--MD5=[27cc0fb298c1191921ef481ff9826301]
+link httpServer to webletChannel--><path codeLine="8" d="M60.11,92.11 C84.45,122 136.34,185.74 160.77,215.75 " fill="none" id="httpServer-webletChannel" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[f538df26445b58e9d5d2793421dc3941]
+link sessionManager to webletChannel--><path codeLine="11" d="M180.28,92.11 C178.94,122 176.08,185.74 174.73,215.75 " fill="none" id="sessionManager-webletChannel" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[24122f48852eb65b29779b84fc954f81]
+reverse link consoleWeblet to webConsole--><path codeLine="17" d="M468.45,75 C475.79,75 483.12,75 490.45,75 " fill="none" id="consoleWeblet-backto-webConsole" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="455.25,75,461.25,79,467.25,75,461.25,71,455.25,75" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="8" x="462.943" y="71.0701">1</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="8" x="474.4089" y="70.8383">1</text><!--MD5=[4eb8804213847fbed8fdbcdf159c6cae]
+link consoleWeblet to webletChannel--><path codeLine="20" d="M353.94,92.1 C333.12,100.14 309,110.96 289,124 C247.93,150.78 208.07,192.91 187.81,215.83 " fill="none" id="consoleWeblet-webletChannel" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="43" x="300" y="137.0669">onGet,</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="52" x="295.5" y="152.1997">onInput,</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="63" x="290" y="167.3325">onClosed,</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="12" x="315.5" y="182.4653">...</text><!--MD5=[d2ff2645bbd67045dedf0a64725949ce]
+link consoleWeblet to consoleChannel--><path codeLine="21" d="M395.08,92.36 C386.32,115.98 374.85,159.66 397,186 C410.19,201.69 530.36,217.58 603.94,225.96 " fill="none" id="consoleWeblet-consoleChannel" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="103" x="415.5" y="144.5669">onConsoleRead,</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="138" x="398" y="159.6997">onConsoleCommand,</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="12" x="461" y="174.8325">...</text><!--MD5=[f2b4cb01752d81d9302166b0d14af00a]
+link webConsole to consoleChannel--><path codeLine="23" d="M537.59,92.38 C542,115.63 552.95,158.42 577,186 C588.15,198.78 603.75,208.68 618.48,215.96 " fill="none" id="webConsole-consoleChannel" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="83" x="578" y="159.5669">(all handlers)</text><!--MD5=[35189976455060016fd633e951a06364]
+link conletA to consoleChannel--><path codeLine="26" d="M655.88,92.1 C661.28,101.07 667.23,112.68 670,124 C677.78,155.8 670.83,194.26 665.57,215.64 " fill="none" id="conletA-consoleChannel" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[486503d52be297b5a82f57e92683bfea]
+link conletB to consoleChannel--><path codeLine="29" d="M736.09,92.32 C729.08,114.4 715.06,154.63 697,186 C690.93,196.55 682.64,207.31 675.55,215.78 " fill="none" id="conletB-consoleChannel" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[748dd980c87d00a8a39dd11b3d3c8ec5]
+link consoleSession to consoleChannel--><path codeLine="32" d="M481.67,233 C521.08,233 564.16,233 598.22,233 " fill="none" id="consoleSession-to-consoleChannel" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="603.61,233,594.61,229,598.61,233,594.61,237,603.61,233" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="86" x="499.75" y="226.0669">main channel</text><!--MD5=[75c40312b05f950a615dd72920ac625b]
+reverse link consoleWeblet to consoleSession--><path codeLine="33" d="M378.53,103.11 C374.2,109.56 370.32,116.7 368,124 C358.04,155.29 363.57,194.27 368.06,215.8 " fill="none" id="consoleWeblet-backto-consoleSession" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="386.56,92.36,379.7637,94.7705,379.3748,101.9711,386.1711,99.5606,386.56,92.36" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[7b8f2aadbd4b5d39e0bde8e079baa9cf]
+link webConsole to conletA--><!--MD5=[2f197bda0e701ce3e16c0518cc56b580]
+link conletA to conletB--><!--MD5=[8171a5ab3eba16ba19f08950fcc63506]
+link webletChannel to consoleSession--><!--MD5=[b95676cba2d6283d10e0b5b381321399]
+@startuml
+skinparam packageStyle rectangle
+ allow_mixing
+ 
+ object webletChannel
+ object consoleChannel
+ 
+ object httpServer
+ httpServer - - webletChannel
+ 
+ object sessionManager
+ sessionManager - - webletChannel
+ 
+ package "Conceptual WebConsole\n(WebConsole Gateway)" {
+    object webConsole
+    object consoleWeblet
+ 
+    webConsole "1" -left-* "1" consoleWeblet
+ }
+  
+ consoleWeblet - - webletChannel : "onGet,\nonInput,\nonClosed,\n..."
+ consoleWeblet - - consoleChannel : "onConsoleRead,\nonConsoleCommand,\n..."
+ 
+ webConsole - - consoleChannel : "(all handlers)"
+ 
+ object conletA
+ conletA - - consoleChannel
+ 
+ object conletB
+ conletB - - consoleChannel
+ 
+ object "consoleSession: ConsoleSession" as consoleSession
+ consoleChannel <-left- consoleSession : "main channel"
+ consoleWeblet *- - consoleSession 
+ 
+ webConsole -right[hidden]- conletA
+ conletA -right[hidden]- conletB
+ webletChannel -right[hidden]- consoleSession
+@enduml
+
+PlantUML version 1.2022.1(Tue Feb 01 18:19:58 UTC 2022)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: 
+--></g></svg>
