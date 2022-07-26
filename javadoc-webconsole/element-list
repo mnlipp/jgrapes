@@ -10,6 +10,7 @@ org.jgrapes.webconsole.base
 org.jgrapes.webconsole.base.events
 org.jgrapes.webconsole.base.freemarker
 org.jgrapes.webconsole.bootstrap4
+org.jgrapes.webconsole.examples.consoleapp
 org.jgrapes.webconsole.jqueryui
 org.jgrapes.webconsole.jqueryui.events
 org.jgrapes.webconsole.jqueryui.themes

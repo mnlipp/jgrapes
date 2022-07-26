@@ -4,7 +4,7 @@ link org.jgrapes.webconsole.base to JGrapes Core Components--><path d="M552,207.
 link org.jgrapes.webconsole.jqueryui to org.jgrapes.webconsole.base--><path d="M260.43,94.11 C320.07,111.57 398.94,134.67 459.61,152.44 " fill="none" id="org.jgrapes.webconsole.jqueryui-to-org.jgrapes.webconsole.base" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="464.69,153.93,457.17,147.57,459.89,152.53,454.93,155.25,464.69,153.93" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[18493eeedb0d65fe0161d9359f5232c5]
 reverse link org.jgrapes.webconsole.jqueryui to org.jgrapes.webconsole.jqueryui.themes.*--><path d="M183.44,98.99 C189.34,116.23 196.63,137.53 202.23,153.89 " fill="none" id="org.jgrapes.webconsole.jqueryui-backto-org.jgrapes.webconsole.jqueryui.themes.*" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="181.81,94.24,180.9322,104.0497,183.4254,98.9719,188.5032,101.465,181.81,94.24" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[930e11d49adac47956ce2fa3b592f9ad]
 link org.jgrapes.webconsole.bootstrap4 to org.jgrapes.webconsole.base--><path d="M512.83,94.24 C520.36,110.64 530.15,131.94 538.06,149.16 " fill="none" id="org.jgrapes.webconsole.bootstrap4-to-org.jgrapes.webconsole.base" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="540.24,153.89,540.12,144.0419,538.1538,149.346,532.8496,147.3798,540.24,153.89" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[ae8b537ffbaec01f4a793084fc7d005d]
-link org.jgrapes.webconsole.vuejs to org.jgrapes.webconsole.base--><path d="M756.64,94.11 C715.27,111.37 660.73,134.13 618.35,151.81 " fill="none" id="org.jgrapes.webconsole.vuejs-to-org.jgrapes.webconsole.base" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="613.51,153.83,623.3564,154.05,618.1233,151.9019,620.2714,146.6687,613.51,153.83" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[905a91be92c9f8f2bd6b6c9d64eb8332]
+link org.jgrapes.webconsole.vuejs to org.jgrapes.webconsole.base--><path d="M756.64,94.11 C715.27,111.37 660.73,134.13 618.35,151.81 " fill="none" id="org.jgrapes.webconsole.vuejs-to-org.jgrapes.webconsole.base" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="613.51,153.83,623.3564,154.05,618.1233,151.9019,620.2714,146.6687,613.51,153.83" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[9cbb684846c41b4768c7b9624774c513]
 @startuml
 skinparam svgLinkTarget _parent
  
@@ -35,11 +35,11 @@ skinparam svgLinkTarget _parent
  "org.jgrapes.webconsole.vuejs" ..> org.jgrapes.webconsole.base
 @enduml
 
-PlantUML version 1.2022.1(Tue Feb 01 18:19:58 UTC 2022)
+PlantUML version 1.2022.1(Tue Feb 01 19:19:58 CET 2022)
 (GPL source distribution)
 Java Runtime: OpenJDK Runtime Environment
 JVM: OpenJDK 64-Bit Server VM
 Default Encoding: UTF-8
-Language: en
-Country: 
+Language: de
+Country: DE
 --></g></svg>
