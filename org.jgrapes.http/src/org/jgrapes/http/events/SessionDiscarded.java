@@ -23,9 +23,9 @@ import org.jgrapes.core.Event;
 import org.jgrapes.http.Session;
 
 /**
- * Causes a session manager to discard the given session.
+ * Fired by the session manager when a session is discarded.
  */
-public class DiscardSession extends Event<Void> {
+public class SessionDiscarded extends Event<Void> {
 
     private final Session session;
 
@@ -35,7 +35,7 @@ public class DiscardSession extends Event<Void> {
      * @param session the session
      * @param channels
      */
-    public DiscardSession(Session session, Channel... channels) {
+    public SessionDiscarded(Session session, Channel... channels) {
         super(channels);
         this.session = session;
     }

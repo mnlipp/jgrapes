@@ -118,11 +118,10 @@ public class InMemorySessionManager extends SessionManager {
         Instant now = Instant.now();
         synchronized (this) {
             if (absoluteTimeout() > 0) {
-                // Check for sessions that are too old
                 sessionsById.entrySet().removeIf(entry -> {
                     if (Duration.between(entry.getValue().createdAt(), now)
                         .getSeconds() > absoluteTimeout()) {
-                        entry.getValue().close();
+                        completeRemoval(entry.getValue());
                         return true;
                     }
                     return false;
@@ -132,7 +131,7 @@ public class InMemorySessionManager extends SessionManager {
                     sessionsById.entrySet().removeIf(entry -> {
                         if (Duration.between(entry.getValue().lastUsedAt(),
                             now).getSeconds() > idleTimeout()) {
-                            entry.getValue().close();
+                            completeRemoval(entry.getValue());
                             return true;
                         }
                         return false;
@@ -154,8 +153,7 @@ public class InMemorySessionManager extends SessionManager {
     @Override
     protected void removeSession(String sessionId) {
         synchronized (this) {
-            Optional.ofNullable(sessionsById.remove(sessionId))
-                .ifPresent(Session::close);
+            sessionsById.remove(sessionId);
         }
     }
 

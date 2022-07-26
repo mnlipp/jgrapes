@@ -28,6 +28,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.CookieList;
 import org.jgrapes.core.Component;
+import org.jgrapes.core.Components;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Start;
 import org.jgrapes.http.InMemorySessionManager;
@@ -35,6 +36,7 @@ import org.jgrapes.http.Session;
 import org.jgrapes.http.SessionManager;
 import org.jgrapes.http.events.DiscardSession;
 import org.jgrapes.http.events.Request;
+import org.jgrapes.http.events.SessionDiscarded;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,6 +47,7 @@ public class SessionTests {
 
         public SessionManager sessionManager;
         public Request<?> lastRequest;
+        public Session discarded;
 
         public App(int absoluteTimeout, int idleTimeout) throws Exception {
             sessionManager = new InMemorySessionManager(channel())
@@ -57,6 +60,11 @@ public class SessionTests {
         @Handler
         public void onRequest(Request<?> event) {
             lastRequest = event;
+        }
+
+        @Handler
+        public void onSessionDiscarded(SessionDiscarded event) {
+            discarded = event.session();
         }
     }
 
@@ -104,29 +112,33 @@ public class SessionTests {
         Session firstSession = firstRequest.associated(Session.class).get();
         firstSession.transientData().put("resource", new TestResource());
 
-        // Request with the newly session id from first request
+        // Request with the new session id from first request
         setSessionId(request, request.response().get());
         evt = Request.In.fromHttpRequest(request, false, 0);
         app.lastRequest = null;
         app.fire(evt).get();
+        Components.awaitExhaustion();
 
         // Session must have been found again
         assertNotNull(app.lastRequest);
         assertTrue(app.lastRequest.associated(Session.class).isPresent());
         assertEquals(firstSession,
             app.lastRequest.associated(Session.class).get());
+        assertNull(app.discarded);
 
         // Request after absolute timeout
         Thread.sleep(1500);
         evt = Request.In.fromHttpRequest(request, false, 0);
         app.lastRequest = null;
         app.fire(evt).get();
+        Components.awaitExhaustion();
         assertTrue(((TestResource) firstSession.transientData()
             .get("resource")).closed);
         assertNotNull(app.lastRequest);
         Session newerSession = app.lastRequest.associated(Session.class).get();
         assertTrue(app.lastRequest.associated(Session.class).isPresent());
         assertNotEquals(firstSession, newerSession);
+        assertEquals(firstSession, app.discarded);
     }
 
     @Test
@@ -149,12 +161,14 @@ public class SessionTests {
         evt = Request.In.fromHttpRequest(request, false, 0);
         app.lastRequest = null;
         app.fire(evt).get();
+        Components.awaitExhaustion();
 
         // Session must have been found again
         assertNotNull(app.lastRequest);
         assertTrue(app.lastRequest.associated(Session.class).isPresent());
         assertEquals(firstSession,
             app.lastRequest.associated(Session.class).get());
+        assertNull(app.discarded);
 
         // Request after idle timeout
         Thread.sleep(1500);
@@ -167,6 +181,7 @@ public class SessionTests {
         Session newerSession = app.lastRequest.associated(Session.class).get();
         assertTrue(app.lastRequest.associated(Session.class).isPresent());
         assertNotEquals(firstSession, newerSession);
+        assertEquals(firstSession, app.discarded);
     }
 
     @Test

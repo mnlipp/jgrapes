@@ -50,6 +50,7 @@ import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.DiscardSession;
 import org.jgrapes.http.events.ProtocolSwitchAccepted;
 import org.jgrapes.http.events.Request;
+import org.jgrapes.http.events.SessionDiscarded;
 import org.jgrapes.io.IOSubchannel;
 
 /**
@@ -281,25 +282,58 @@ public abstract class SessionManager extends Component {
             synchronized (this) {
                 Optional<Session> session = lookupSession(sessionId);
                 if (session.isPresent()) {
-                    Instant now = Instant.now();
-                    if ((absoluteTimeout <= 0
-                        || Duration.between(session.get().createdAt(),
-                            now).toMillis() < absoluteTimeout)
-                        && (idleTimeout <= 0
-                            || Duration.between(session.get().lastUsedAt(),
-                                now).toMillis() < idleTimeout)) {
+                    if (!timedOut(session.get())) {
                         event.setAssociated(Session.class, session.get());
                         session.get().updateLastUsedAt();
                         return;
                     }
                     // Invalidate, too old
-                    removeSession(sessionId);
+                    discardSession(session.get());
                 }
             }
         }
         String sessionId = createSessionId(request.response().get());
         Session session = createSession(sessionId);
         event.setAssociated(Session.class, session);
+    }
+
+    /**
+     * Checks if the absolute or idle timeout has been reached.
+     *
+     * @param session the session
+     * @return true, if successful
+     */
+    protected boolean timedOut(Session session) {
+        Instant now = Instant.now();
+        return absoluteTimeout > 0 && Duration
+            .between(session.createdAt(), now).toMillis() > absoluteTimeout
+            || idleTimeout > 0 && Duration.between(session.lastUsedAt(),
+                now).toMillis() > idleTimeout;
+    }
+
+    /**
+     * Discards the given session. Invokes {@link #removeSession(String)}
+     * and {@link #completeRemoval(Session)}. 
+     * 
+     * @param session
+     */
+    public void discardSession(Session session) {
+        removeSession(session.id());
+        completeRemoval(session);
+    }
+
+    /**
+     * Called by {@link #discardSession(Session)} after calling
+     * {@link #removeSession(String)}. Closes the session and fires a 
+     * {@link SessionDiscarded} event. Can be called by session managers
+     * that want to discard a session but perform the actual removal from
+     * the cache themselves.
+     * 
+     * @param session
+     */
+    protected void completeRemoval(Session session) {
+        session.close();
+        fire(new SessionDiscarded(session));
     }
 
     /**
@@ -319,7 +353,7 @@ public abstract class SessionManager extends Component {
     protected abstract Optional<Session> lookupSession(String sessionId);
 
     /**
-     * Removed the given session.
+     * Removes the given session from the cache.
      * 
      * @param sessionId the session id
      */
@@ -364,8 +398,8 @@ public abstract class SessionManager extends Component {
      * @param event the event
      */
     @Handler(channels = Channel.class)
-    public void discard(DiscardSession event) {
-        removeSession(event.session().id());
+    public void onDiscard(DiscardSession event) {
+        discardSession(event.session());
     }
 
     /**
