@@ -81,8 +81,7 @@ gitPublish {
 	commitMessage = "Updated."
 }
 
-// Until https://github.com/ajoberstar/gradle-git-publish/issues/41 is fixed
-tasks.gitPublishCopy.dependsOn(":org.jgrapes.core:java11doc")
+tasks.gitPublishReset.mustRunAfter ":org.jgrapes.core:java11doc"
 
 task stage {
 	description = 'To be executed by CI, build and update JavaDoc.'
