@@ -282,7 +282,7 @@ public abstract class SessionManager extends Component {
             synchronized (this) {
                 Optional<Session> session = lookupSession(sessionId);
                 if (session.isPresent()) {
-                    if (!timedOut(session.get())) {
+                    if (!hasTimedOut(session.get())) {
                         event.setAssociated(Session.class, session.get());
                         session.get().updateLastUsedAt();
                         return;
@@ -303,7 +303,7 @@ public abstract class SessionManager extends Component {
      * @param session the session
      * @return true, if successful
      */
-    protected boolean timedOut(Session session) {
+    protected boolean hasTimedOut(Session session) {
         Instant now = Instant.now();
         return absoluteTimeout > 0 && Duration
             .between(session.createdAt(), now).toMillis() > absoluteTimeout
