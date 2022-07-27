@@ -43,8 +43,8 @@ allprojects {
     
     group = 'org.jgrapes'
     
-    ext.releaseVersion = "1.10.0"
-    ext.isSnapshot = false
+    ext.releaseVersion = "1.11.0"
+    ext.isSnapshot = true
 
     // Default values, can be overridden in subproject
     version = "${-> releaseVersion + (isSnapshot ? '-SNAPSHOT' : '') }"

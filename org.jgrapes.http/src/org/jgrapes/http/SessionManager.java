@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2017-2018 Michael N. Lipp
+ * Copyright (C) 2017-2022 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -24,9 +24,12 @@ import java.net.HttpCookie;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;
@@ -44,6 +47,7 @@ import org.jdrupes.httpcodec.types.Directive;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.internal.EventBase;
 import org.jgrapes.http.annotation.RequestHandler;
@@ -87,6 +91,8 @@ public abstract class SessionManager extends Component {
     private long absoluteTimeout = 9 * 60 * 60 * 1000;
     private long idleTimeout = 30 * 60 * 1000;
     private int maxSessions = 1000;
+    private final Timer purger = new Timer("Session purger", true);
+    private TimerTask nextPurge;
 
     /**
      * Creates a new session manager with its channel set to
@@ -174,6 +180,47 @@ public abstract class SessionManager extends Component {
         this.path = path;
         RequestHandler.Evaluator.add(this, "onRequest", pattern, priority);
         MBeanView.addManager(this);
+    }
+
+    private Optional<Long> minTimeout() {
+        if (absoluteTimeout > 0 && idleTimeout > 0) {
+            return Optional.of(Math.min(absoluteTimeout, idleTimeout));
+        }
+        if (absoluteTimeout > 0) {
+            return Optional.of(absoluteTimeout);
+        }
+        if (idleTimeout > 0) {
+            return Optional.of(idleTimeout);
+        }
+        return Optional.empty();
+    }
+
+    private void updatePurger(Instant runAt) {
+        synchronized (purger) {
+            if (runAt == null) {
+                if (nextPurge != null) {
+                    nextPurge.cancel();
+                    nextPurge = null;
+                }
+                return;
+            }
+            if (nextPurge != null) {
+                if (Instant.ofEpochMilli(nextPurge.scheduledExecutionTime())
+                    .isBefore(runAt)) {
+                    return;
+                }
+                nextPurge.cancel();
+            }
+            nextPurge = new TimerTask() {
+                @Override
+                public void run() {
+                    nextPurge = null;
+                    updatePurger(purgeSessions(absoluteTimeout, idleTimeout)
+                        .orElse(null));
+                }
+            };
+            purger.schedule(nextPurge, new Date(runAt.toEpochMilli()));
+        }
     }
 
     /**
@@ -294,6 +341,10 @@ public abstract class SessionManager extends Component {
         }
         String sessionId = createSessionId(request.response().get());
         Session session = createSession(sessionId);
+        if (nextPurge == null) {
+            minTimeout().ifPresent(timeout -> updatePurger(Instant.now().plus(
+                Duration.ofMillis(timeout))));
+        }
         event.setAssociated(Session.class, session);
     }
 
@@ -312,6 +363,19 @@ public abstract class SessionManager extends Component {
     }
 
     /**
+     * Purge all sessions that have reached their absolute or idle timeout.
+     * Returns the time when the next timout occurs.
+     * This method is only called if at least one of the timeouts has
+     * been specified.
+     *
+     * @param absoluteTimeout the absolute timeout
+     * @param idleTimeout the idle timeout
+     * @return the next timeout (empty if no sessions left)
+     */
+    protected abstract Optional<Instant> purgeSessions(long absoluteTimeout,
+            long idleTimeout);
+
+    /**
      * Discards the given session. Invokes {@link #removeSession(String)}
      * and {@link #completeRemoval(Session)}. 
      * 
@@ -324,16 +388,17 @@ public abstract class SessionManager extends Component {
 
     /**
      * Called by {@link #discardSession(Session)} after calling
-     * {@link #removeSession(String)}. Closes the session and fires a 
-     * {@link SessionDiscarded} event. Can be called by session managers
-     * that want to discard a session but perform the actual removal from
-     * the cache themselves.
+     * {@link #removeSession(String)}. Fires a {@link SessionDiscarded} 
+     * event and closes the session (see {@link Session#close}) upon 
+     * its completion. Can be called by session managers that want to 
+     * discard a session but perform the removal from the cache themselves.
      * 
      * @param session
      */
     protected void completeRemoval(Session session) {
-        session.close();
-        fire(new SessionDiscarded(session));
+        SessionDiscarded evt = new SessionDiscarded(session);
+        Event.onCompletion(evt, e -> e.session().close());
+        fire(evt);
     }
 
     /**

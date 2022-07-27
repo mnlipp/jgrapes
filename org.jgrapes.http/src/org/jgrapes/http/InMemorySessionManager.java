@@ -30,6 +30,7 @@ import org.jgrapes.http.events.Request;
 /**
  * A in memory session manager. 
  */
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class InMemorySessionManager extends SessionManager {
 
     @SuppressWarnings({ "serial", "PMD.UseConcurrentHashMap" })
@@ -39,7 +40,7 @@ public class InMemorySessionManager extends SessionManager {
             @Override
             protected boolean removeEldestEntry(Entry<String, Session> eldest) {
                 if (maxSessions() > 0 && size() > maxSessions()) {
-                    eldest.getValue().close();
+                    completeRemoval(eldest.getValue());
                     return true;
                 }
                 return false;
@@ -111,33 +112,43 @@ public class InMemorySessionManager extends SessionManager {
     }
 
     @Override
-    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
-        "PMD.AvoidDeeplyNestedIfStmts" })
-    protected Session createSession(String sessionId) {
-        Session session = new InMemorySession(sessionId);
-        Instant now = Instant.now();
+    @SuppressWarnings("PMD.CognitiveComplexity")
+    protected Optional<Instant> purgeSessions(long absoluteTimeout,
+            long idleTimeout) {
         synchronized (this) {
-            if (absoluteTimeout() > 0) {
-                sessionsById.entrySet().removeIf(entry -> {
-                    if (Duration.between(entry.getValue().createdAt(), now)
-                        .getSeconds() > absoluteTimeout()) {
-                        completeRemoval(entry.getValue());
-                        return true;
+            Instant nextTimout = null;
+            for (var itr = sessionsById.entrySet().iterator(); itr.hasNext();) {
+                var session = itr.next().getValue();
+                if (hasTimedOut(session)) {
+                    completeRemoval(session);
+                    itr.remove();
+                    continue;
+                }
+                if (absoluteTimeout > 0) {
+                    Instant timesOutAt = session.createdAt()
+                        .plus(Duration.ofMillis(absoluteTimeout));
+                    if (nextTimout == null
+                        || timesOutAt.isBefore(nextTimout)) {
+                        nextTimout = timesOutAt;
                     }
-                    return false;
-                });
-                if (sessionsById.size() >= maxSessions()) {
-                    // Purge unused
-                    sessionsById.entrySet().removeIf(entry -> {
-                        if (Duration.between(entry.getValue().lastUsedAt(),
-                            now).getSeconds() > idleTimeout()) {
-                            completeRemoval(entry.getValue());
-                            return true;
-                        }
-                        return false;
-                    });
+                }
+                if (idleTimeout > 0) {
+                    Instant timesOutAt = session.lastUsedAt()
+                        .plus(Duration.ofMillis(idleTimeout));
+                    if (nextTimout == null
+                        || timesOutAt.isBefore(nextTimout)) {
+                        nextTimout = timesOutAt;
+                    }
                 }
             }
+            return Optional.ofNullable(nextTimout);
+        }
+    }
+
+    @Override
+    protected Session createSession(String sessionId) {
+        Session session = new InMemorySession(sessionId);
+        synchronized (this) {
             sessionsById.put(sessionId, session);
         }
         return session;

@@ -55,6 +55,12 @@ import org.jgrapes.http.LanguageSelector.Selection;
  * and {@link Object#equals(Object)} in such a way
  * that the session id is the only relevant attribute (cannot be
  * done by default methods of the interface).
+ * 
+ * Note that a browser can issue several requests related to the same
+ * session in parallel. Implementations of this interface must 
+ * therefore ensure the thread safety of all methods provided by {@link Map}.
+ * Operations that require consistency across several operations should
+ * synchronize on the session object.
  */
 public interface Session extends Map<Serializable, Serializable> {
 
