@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpProtocol;
 import org.jdrupes.httpcodec.protocols.http.HttpConstants.HttpStatus;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
@@ -64,6 +65,7 @@ public class SessionTests {
 
         @Handler
         public void onRequest(Request<?> event) {
+            event.setAssociated("frozen", Session.from(event));
             lastRequests.add(0, event);
         }
 
@@ -121,8 +123,9 @@ public class SessionTests {
         Components.awaitExhaustion();
         assertNotNull(app.lastRequest());
         Request<?> firstRequest = app.lastRequest();
-        assertTrue(firstRequest.associated(Session.class).isPresent());
-        Session firstSession = firstRequest.associated(Session.class).get();
+        assertTrue(
+            firstRequest.associated(Session.class, Supplier.class).isPresent());
+        Session firstSession = Session.from(firstRequest);
         assertTrue(Duration.between(Instant.now(), firstSession.createdAt())
             .abs().toMillis() < 250);
         firstSession.transientData().put("resource", new TestResource());
@@ -137,9 +140,9 @@ public class SessionTests {
 
         // Session must have been found again
         assertNotNull(app.lastRequest());
-        assertTrue(app.lastRequest().associated(Session.class).isPresent());
-        assertEquals(firstSession,
-            app.lastRequest().associated(Session.class).get());
+        assertTrue(app.lastRequest().associated(Session.class, Supplier.class)
+            .isPresent());
+        assertEquals(firstSession, Session.from(app.lastRequest()));
         assertTrue(app.discarded.isEmpty());
 
         // Request after absolute timeout
@@ -157,9 +160,9 @@ public class SessionTests {
         assertTrue(((TestResource) firstSession.transientData()
             .get("resource")).closed);
         assertNotNull(app.lastRequest());
-        Session newerSession
-            = app.lastRequest().associated(Session.class).get();
-        assertTrue(app.lastRequest().associated(Session.class).isPresent());
+        assertTrue(app.lastRequest().associated(Session.class, Supplier.class)
+            .isPresent());
+        Session newerSession = Session.from(app.lastRequest());
         assertNotEquals(firstSession, newerSession);
     }
 
@@ -177,8 +180,9 @@ public class SessionTests {
         Components.awaitExhaustion();
         assertNotNull(app.lastRequest());
         Request<?> firstRequest = app.lastRequest();
-        assertTrue(firstRequest.associated(Session.class).isPresent());
-        Session firstSession = firstRequest.associated(Session.class).get();
+        assertTrue(
+            firstRequest.associated(Session.class, Supplier.class).isPresent());
+        Session firstSession = Session.from(firstRequest);
         firstSession.transientData().put("resource", new TestResource());
 
         // Request with the new session id from first request
@@ -191,9 +195,9 @@ public class SessionTests {
 
         // Session must have been found again, last used updated
         assertNotNull(app.lastRequest());
-        assertTrue(app.lastRequest().associated(Session.class).isPresent());
-        assertEquals(firstSession,
-            app.lastRequest().associated(Session.class).get());
+        assertTrue(app.lastRequest().associated(Session.class, Supplier.class)
+            .isPresent());
+        assertEquals(firstSession, Session.from(app.lastRequest()));
         assertTrue(Duration.between(Instant.now(), firstSession.lastUsedAt())
             .abs().toMillis() < 250);
         assertTrue(app.discarded.isEmpty());
@@ -210,9 +214,9 @@ public class SessionTests {
         assertTrue(((TestResource) firstSession.transientData()
             .get("resource")).closed);
         assertNotNull(app.lastRequest());
-        Session newerSession
-            = app.lastRequest().associated(Session.class).get();
-        assertTrue(app.lastRequest().associated(Session.class).isPresent());
+        assertTrue(app.lastRequest().associated(Session.class, Supplier.class)
+            .isPresent());
+        Session newerSession = Session.from(app.lastRequest());
         assertNotEquals(firstSession, newerSession);
     }
 
@@ -235,15 +239,18 @@ public class SessionTests {
         Thread.sleep(2500);
         Components.awaitExhaustion();
 
-        assertEquals(app.lastRequests.get(2).associated(Session.class).get(),
+        assertEquals(
+            app.lastRequests.get(2).associated("frozen", Session.class).get(),
             app.discarded.get(2));
         assertTrue(Math.abs(Duration.between(startTime,
             app.discardedAt.get(2)).toMillis() - 2000) < 250);
-        assertEquals(app.lastRequests.get(1).associated(Session.class).get(),
+        assertEquals(
+            app.lastRequests.get(1).associated("frozen", Session.class).get(),
             app.discarded.get(1));
         assertTrue(Math.abs(Duration.between(startTime,
             app.discardedAt.get(1)).toMillis() - 3000) < 250);
-        assertEquals(app.lastRequests.get(0).associated(Session.class).get(),
+        assertEquals(
+            app.lastRequests.get(0).associated("frozen", Session.class).get(),
             app.discarded.get(0));
         assertTrue(Math.abs(Duration.between(startTime,
             app.discardedAt.get(0)).toMillis() - 4000) < 250);
@@ -262,8 +269,9 @@ public class SessionTests {
         // Session must have been created
         assertNotNull(app.lastRequest());
         Request<?> firstRequest = app.lastRequest();
-        assertTrue(firstRequest.associated(Session.class).isPresent());
-        Session firstSession = firstRequest.associated(Session.class).get();
+        assertTrue(
+            firstRequest.associated(Session.class, Supplier.class).isPresent());
+        Session firstSession = Session.from(firstRequest);
         firstSession.transientData().put("resource", new TestResource());
 
         // Send discard event
@@ -277,12 +285,12 @@ public class SessionTests {
         // Request again
         evt = Request.In.fromHttpRequest(request, false, 0);
         app.fire(evt).get();
-        Session newerSession
-            = app.lastRequests.get(0).associated(Session.class).get();
+        assertTrue(app.lastRequest().associated(Session.class, Supplier.class)
+            .isPresent());
+        Session newerSession = Session.from(app.lastRequest());
 
         // New session must have been created
         assertNotNull(app.lastRequest());
-        assertTrue(app.lastRequest().associated(Session.class).isPresent());
         assertNotEquals(firstSession, newerSession);
     }
 }

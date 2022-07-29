@@ -24,6 +24,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
+import org.jgrapes.core.Associator;
 import org.jgrapes.http.LanguageSelector.Selection;
 
 /**
@@ -63,6 +65,27 @@ import org.jgrapes.http.LanguageSelector.Selection;
  * synchronize on the session object.
  */
 public interface Session extends Map<Serializable, Serializable> {
+
+    /**
+     * Obtains a {@link Session} from an {@link Associator}. The
+     * associator must be a {@link Request} (see 
+     * {@link SessionManager#onRequest}) or a web socket channel (see 
+     * {@link SessionManager#onProtocolSwitchAccepted}). As the existence of
+     * an association can safely be assumed in handlers handling
+     * {@link Request}s or handlers handling events on web socket channels,
+     * the method returns {@link Session} and not `Optional<Session>`.
+     * 
+     * The method should
+     * only be used in contexts where an existing association can be assumed.
+     *
+     * @param associator the associator
+     * @return the session
+     */
+    @SuppressWarnings("unchecked")
+    static Session from(Associator associator) {
+        return ((Supplier<Session>) associator
+            .associated(Session.class, Supplier.class).get()).get();
+    }
 
     /**
      * Returns the session id.

@@ -257,8 +257,7 @@ public class FreeMarkerRequestHandler extends Component {
             channel, channel.responsePipeline());
                 Writer out = new OutputStreamWriter(
                     bbos.suppressClose(), "utf-8")) {
-            Map<String, Object> model = fmSessionModel(
-                event.associated(Session.class));
+            Map<String, Object> model = fmSessionModel(Session.from(event));
             tpl.setLocale((Locale) model.get("locale"));
             tpl.process(model, out);
             return true;
@@ -327,11 +326,10 @@ public class FreeMarkerRequestHandler extends Component {
      *            the session
      * @return the model
      */
-    protected Map<String, Object> fmSessionModel(Optional<Session> session) {
+    protected Map<String, Object> fmSessionModel(Session session) {
         @SuppressWarnings("PMD.UseConcurrentHashMap")
         final Map<String, Object> model = new HashMap<>();
-        Locale locale = session.map(
-            sess -> sess.locale()).orElse(Locale.getDefault());
+        Locale locale = session.locale();
         model.put("locale", locale);
         final ResourceBundle resourceBundle = resourceBundle(locale);
         model.put("resourceBundle", resourceBundle);

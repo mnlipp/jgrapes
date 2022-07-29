@@ -22,7 +22,6 @@ import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.function.Supplier;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.types.Converters;
@@ -61,8 +60,8 @@ public class WsEchoProvider extends Component {
             throws InterruptedException {
         final HttpRequest request = event.httpRequest();
         if (request.queryData().containsKey("store")) {
-            event.associated(Session.class).ifPresent(session -> session
-                .put("stored", request.queryData().get("store").get(0)));
+            Session.from(event).put("stored",
+                request.queryData().get("store").get(0));
         }
         if (!request.findField(
             HttpField.UPGRADE, Converters.STRING_LIST)
@@ -94,12 +93,8 @@ public class WsEchoProvider extends Component {
         out.flip();
         String line = out.backingBuffer().toString();
         if (line.compareToIgnoreCase("/stored") == 0) {
-            channel.associated(Session.class, Supplier.class).ifPresent(
-                supplier -> {
-                    String stored
-                        = (String) ((Session) supplier.get()).get("stored");
-                    channel.respond(Output.from(stored, true));
-                });
+            String stored = (String) Session.from(channel).get("stored");
+            channel.respond(Output.from(stored, true));
             return;
         }
         if (line.compareToIgnoreCase("/quit") == 0) {

@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Supplier;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;
@@ -44,6 +45,7 @@ import org.jdrupes.httpcodec.types.CacheControlDirectives;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jdrupes.httpcodec.types.CookieList;
 import org.jdrupes.httpcodec.types.Directive;
+import org.jgrapes.core.Associator;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
@@ -59,9 +61,10 @@ import org.jgrapes.io.IOSubchannel;
 
 /**
  * A base class for session managers. A session manager associates 
- * {@link Request} events with a {@link Session} object using 
- * `Session.class` as association identifier. The {@link Request}
- * handler has a default priority of 1000.
+ * {@link Request} events with a {@link Supplier {@code Supplier<Session>}}
+ * for a {@link Session} using `Session.class` as association identifier
+ * (see {@link Session#from}). The {@link Request} handler has a default 
+ * priority of 1000.   
  * 
  * Managers track requests using a cookie with a given name and path. The 
  * path is a prefix that has to be matched by the request, often "/".
@@ -72,15 +75,16 @@ import org.jgrapes.io.IOSubchannel;
  * 
  * Session managers provide additional support for web sockets. If a
  * web socket is accepted, the session associated with the request
- * is automatically associated with the {@link IOSubchannel} that
+ * is automatically made available to the {@link IOSubchannel} that
  * is subsequently used for the web socket events. This allows
  * handlers for web socket messages to access the session like
- * {@link Request} handlers.
+ * {@link Request} handlers (see {@link #onProtocolSwitchAccepted}).
  * 
  * @see EventBase#setAssociated(Object, Object)
  * @see "[OWASP Session Management Cheat Sheet](https://www.owasp.org/index.php/Session_Management_Cheat_Sheet)"
  */
-@SuppressWarnings({ "PMD.DataClass", "PMD.AvoidPrintStackTrace" })
+@SuppressWarnings({ "PMD.DataClass", "PMD.AvoidPrintStackTrace",
+    "PMD.DataflowAnomalyAnalysis", "PMD.TooManyMethods" })
 public abstract class SessionManager extends Component {
 
     private static SecureRandom secureRandom = new SecureRandom();
@@ -329,23 +333,97 @@ public abstract class SessionManager extends Component {
             synchronized (this) {
                 Optional<Session> session = lookupSession(sessionId);
                 if (session.isPresent()) {
-                    if (!hasTimedOut(session.get())) {
-                        event.setAssociated(Session.class, session.get());
-                        session.get().updateLastUsedAt();
-                        return;
-                    }
-                    // Invalidate, too old
-                    discardSession(session.get());
+                    setSessionSupplier(event, session.get().id());
+                    session.get().updateLastUsedAt();
+                    return;
                 }
             }
         }
-        String sessionId = createSessionId(request.response().get());
-        Session session = createSession(sessionId);
+        Session session = createSession(
+            addSessionCookie(request.response().get(), createSessionId()));
+        setSessionSupplier(event, session.id());
+        startPurger();
+    }
+
+    /**
+     * Associated the associator with a session supplier for the 
+     * given session id.
+     *
+     * @param holder the channel
+     * @param sessionId the session id
+     */
+    protected void setSessionSupplier(Associator holder, String sessionId) {
+        holder.setAssociated(Session.class,
+            new SessionSupplier(holder, sessionId));
+    }
+
+    /**
+     * Supports obtaining a {@link Session} from an {@link IOSubchannel}. 
+     */
+    private class SessionSupplier implements Supplier<Session> {
+
+        private final Associator holder;
+        private final String sessionId;
+
+        /**
+         * Instantiates a new session supplier.
+         *
+         * @param holder the channel
+         * @param sessionId the session id
+         */
+        public SessionSupplier(Associator holder, String sessionId) {
+            this.holder = holder;
+            this.sessionId = sessionId;
+        }
+
+        @Override
+        public Session get() {
+            Optional<Session> session = lookupSession(sessionId);
+            if (session.isPresent()) {
+                session.get().updateLastUsedAt();
+                return session.get();
+            }
+            Session newSession = createSession(createSessionId());
+            setSessionSupplier(holder, newSession.id());
+            return newSession;
+        }
+
+    }
+
+    /**
+     * Creates a session id and adds the corresponding cookie to the
+     * response.
+     * 
+     * @param response the response
+     * @return the session id
+     */
+    protected String addSessionCookie(HttpResponse response, String sessionId) {
+        HttpCookie sessionCookie = new HttpCookie(idName(), sessionId);
+        sessionCookie.setPath(path);
+        sessionCookie.setHttpOnly(true);
+        response.computeIfAbsent(HttpField.SET_COOKIE, CookieList::new)
+            .value().add(sessionCookie);
+        response.computeIfAbsent(
+            HttpField.CACHE_CONTROL, CacheControlDirectives::new).value()
+            .add(new Directive("no-cache", "SetCookie, Set-Cookie2"));
+        return sessionId;
+    }
+
+    private String createSessionId() {
+        StringBuilder sessionIdBuilder = new StringBuilder();
+        byte[] bytes = new byte[16];
+        secureRandom.nextBytes(bytes);
+        for (byte b : bytes) {
+            sessionIdBuilder.append(Integer.toHexString(b & 0xff));
+        }
+        return sessionIdBuilder.toString();
+    }
+
+    private void startPurger() {
         if (nextPurge == null) {
             minTimeout().ifPresent(timeout -> updatePurger(Instant.now().plus(
                 Duration.ofMillis(timeout))));
         }
-        event.setAssociated(Session.class, session);
     }
 
     /**
@@ -410,7 +488,8 @@ public abstract class SessionManager extends Component {
     protected abstract Session createSession(String sessionId);
 
     /**
-     * Lookup the session with the given id.
+     * Lookup the session with the given id. Lookup will fail if
+     * the session has timed out.
      * 
      * @param sessionId
      * @return the session
@@ -432,32 +511,6 @@ public abstract class SessionManager extends Component {
     protected abstract int sessionCount();
 
     /**
-     * Creates a session id and adds the corresponding cookie to the
-     * response.
-     * 
-     * @param response the response
-     * @return the session id
-     */
-    protected String createSessionId(HttpResponse response) {
-        StringBuilder sessionIdBuilder = new StringBuilder();
-        byte[] bytes = new byte[16];
-        secureRandom.nextBytes(bytes);
-        for (byte b : bytes) {
-            sessionIdBuilder.append(Integer.toHexString(b & 0xff));
-        }
-        String sessionId = sessionIdBuilder.toString();
-        HttpCookie sessionCookie = new HttpCookie(idName(), sessionId);
-        sessionCookie.setPath(path);
-        sessionCookie.setHttpOnly(true);
-        response.computeIfAbsent(HttpField.SET_COOKIE, CookieList::new)
-            .value().add(sessionCookie);
-        response.computeIfAbsent(
-            HttpField.CACHE_CONTROL, CacheControlDirectives::new)
-            .value().add(new Directive("no-cache", "SetCookie, Set-Cookie2"));
-        return sessionId;
-    }
-
-    /**
      * Discards the given session.
      * 
      * @param event the event
@@ -468,7 +521,18 @@ public abstract class SessionManager extends Component {
     }
 
     /**
-     * Associates the channel with the session from the upgrade request.
+     * Associates the channel with a {@link Supplier {@code Supplier<Session>}} 
+     * for the session. Initially, the associated session is the session
+     * associated with the protocol switch event. If this session times out,
+     * a new session is returned as a fallback, thus avoiding the supplier
+     * to be of type `Supplier<Optional<Session>>`. This new session is, 
+     * however, created independently of any new session created by 
+     * {@link #onRequest}.
+     * 
+     * Applications should avoid any ambiguity by executing a proper 
+     * cleanup of the web application in response to a 
+     * {@link SessionDiscarded} event (including reestablishing the web
+     * socket connections from new requests).
      * 
      * @param event the event
      * @param channel the channel
@@ -476,10 +540,7 @@ public abstract class SessionManager extends Component {
     @Handler(priority = 1000)
     public void onProtocolSwitchAccepted(
             ProtocolSwitchAccepted event, IOSubchannel channel) {
-        event.requestEvent().associated(Session.class)
-            .ifPresent(session -> {
-                channel.setAssociated(Session.class, session);
-            });
+        setSessionSupplier(channel, Session.from(event.requestEvent()).id());
     }
 
     /**

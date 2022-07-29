@@ -162,10 +162,9 @@ public class LanguageSelector extends Component {
     @RequestHandler(priority = 990, dynamic = true)
     public void onRequest(Request.In event) {
         @SuppressWarnings("PMD.AccessorClassGeneration")
-        final Selection selection = event.associated(Session.class)
-            .map(session -> (Selection) session.computeIfAbsent(
-                Selection.class, newKey -> new Selection(cookieName, path)))
-            .orElseGet(() -> new Selection(cookieName, path));
+        final Selection selection
+            = (Selection) Session.from(event).computeIfAbsent(Selection.class,
+                newKey -> new Selection(cookieName, path));
         selection.setCurrentEvent(event);
         event.setAssociated(Selection.class, selection);
         if (selection.isExplicitlySet()) {

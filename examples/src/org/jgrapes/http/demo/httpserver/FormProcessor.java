@@ -91,7 +91,7 @@ public class FormProcessor extends Component {
         FormContext ctx = channel
             .associated(this, FormContext::new);
         ctx.request = event.httpRequest();
-        ctx.session = event.associated(Session.class).get();
+        ctx.session = Session.from(event);
         event.setResult(true);
         event.stop();
     }
