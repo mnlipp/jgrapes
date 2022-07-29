@@ -22,12 +22,14 @@ import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Supplier;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.types.Converters;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
+import org.jgrapes.http.Session;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.ProtocolSwitchAccepted;
 import org.jgrapes.http.events.Request;
@@ -58,6 +60,10 @@ public class WsEchoProvider extends Component {
     public void onGet(Request.In.Get event, IOSubchannel channel)
             throws InterruptedException {
         final HttpRequest request = event.httpRequest();
+        if (request.queryData().containsKey("store")) {
+            event.associated(Session.class).ifPresent(session -> session
+                .put("stored", request.queryData().get("store").get(0)));
+        }
         if (!request.findField(
             HttpField.UPGRADE, Converters.STRING_LIST)
             .map(f -> f.value().containsIgnoreCase("websocket"))
@@ -86,7 +92,17 @@ public class WsEchoProvider extends Component {
             CharBuffer.wrap(event.data()));
         out.position(out.limit());
         out.flip();
-        if (out.backingBuffer().toString().compareToIgnoreCase("/quit") == 0) {
+        String line = out.backingBuffer().toString();
+        if (line.compareToIgnoreCase("/stored") == 0) {
+            channel.associated(Session.class, Supplier.class).ifPresent(
+                supplier -> {
+                    String stored
+                        = (String) ((Session) supplier.get()).get("stored");
+                    channel.respond(Output.from(stored, true));
+                });
+            return;
+        }
+        if (line.compareToIgnoreCase("/quit") == 0) {
             channel.respond(new Close());
             return;
         }

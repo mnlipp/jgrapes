@@ -41,6 +41,7 @@ import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Error;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.http.HttpConnector;
+import org.jgrapes.http.InMemorySessionManager;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.HostUnresolved;
 import org.jgrapes.http.events.HttpConnected;
@@ -207,6 +208,7 @@ public class ClientTest {
     public static void startApps() throws IOException, InterruptedException,
             ExecutionException {
         srvApp = new TestServer();
+        srvApp.attach(new InMemorySessionManager(srvApp.channel()));
         srvApp.attach(new TopProvider(srvApp.channel()));
         srvApp.attach(new ReflectProvider(srvApp.channel()));
         srvApp.attach(new WsEchoProvider(srvApp.channel()));
@@ -296,7 +298,8 @@ public class ClientTest {
     @Test(timeout = 1500)
     public void testWsEcho()
             throws IOException, InterruptedException, ExecutionException {
-        URL url = new URL("http", "localhost", srvApp.getPort(), "/ws/echo");
+        URL url = new URL("http", "localhost", srvApp.getPort(),
+            "/ws/echo?store=42");
         Request.Out.Get upgrade = new Request.Out.Get(url);
         upgrade.httpRequest().setField(HttpField.UPGRADE,
             new StringList("websocket"));
@@ -316,6 +319,13 @@ public class ClientTest {
         });
         done.get();
         assertEquals("/Greetings!", clntApp.textResult);
+
+        // Expect value stored in initial request (session has been "forwarded")
+        done = new WaitForTests<>(clntApp,
+            InputReceived.class, clntApp.defaultCriterion());
+        clntApp.fire(new SendToServer("/stored"), clntApp);
+        done.get();
+        assertEquals("42", clntApp.textResult);
 
         // Expect echo
         done = new WaitForTests<>(clntApp,
