@@ -41,7 +41,6 @@ import org.jgrapes.http.Session;
 import org.jgrapes.http.SessionManager;
 import org.jgrapes.http.events.DiscardSession;
 import org.jgrapes.http.events.Request;
-import org.jgrapes.http.events.SessionDiscarded;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -74,7 +73,7 @@ public class SessionTests {
         }
 
         @Handler
-        public void onSessionDiscarded(SessionDiscarded event) {
+        public void onDiscardSession(DiscardSession event) {
             discarded.add(0, event.session());
             discardedAt.add(0, Instant.now());
         }

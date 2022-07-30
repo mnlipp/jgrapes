@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import org.jgrapes.core.Channel;
+import org.jgrapes.http.events.DiscardSession;
 import org.jgrapes.http.events.Request;
 
 /**
@@ -40,8 +41,7 @@ public class InMemorySessionManager extends SessionManager {
             @Override
             protected boolean removeEldestEntry(Entry<String, Session> eldest) {
                 if (maxSessions() > 0 && size() > maxSessions()) {
-                    completeRemoval(eldest.getValue());
-                    return true;
+                    fire(new DiscardSession(eldest.getValue()));
                 }
                 return false;
             }
@@ -112,16 +112,15 @@ public class InMemorySessionManager extends SessionManager {
     }
 
     @Override
-    @SuppressWarnings("PMD.CognitiveComplexity")
+    @SuppressWarnings({ "PMD.CognitiveComplexity",
+        "PMD.AvoidInstantiatingObjectsInLoops" })
     protected Optional<Instant> purgeSessions(long absoluteTimeout,
             long idleTimeout) {
         synchronized (this) {
             Instant nextTimout = null;
-            for (var itr = sessionsById.entrySet().iterator(); itr.hasNext();) {
-                var session = itr.next().getValue();
+            for (Session session : sessionsById.values()) {
                 if (hasTimedOut(session)) {
-                    completeRemoval(session);
-                    itr.remove();
+                    fire(new DiscardSession(session));
                     continue;
                 }
                 if (absoluteTimeout > 0) {

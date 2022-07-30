@@ -49,14 +49,12 @@ import org.jgrapes.core.Associator;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.core.Event;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.internal.EventBase;
 import org.jgrapes.http.annotation.RequestHandler;
 import org.jgrapes.http.events.DiscardSession;
 import org.jgrapes.http.events.ProtocolSwitchAccepted;
 import org.jgrapes.http.events.Request;
-import org.jgrapes.http.events.SessionDiscarded;
 import org.jgrapes.io.IOSubchannel;
 
 /**
@@ -441,10 +439,12 @@ public abstract class SessionManager extends Component {
     }
 
     /**
-     * Purge all sessions that have reached their absolute or idle timeout.
-     * Returns the time when the next timout occurs.
-     * This method is only called if at least one of the timeouts has
-     * been specified.
+     * Purge all sessions (generate {@link DiscardSession} events)
+     * that have reached their absolute or idle timeout. Do not
+     * make the sessions unavailable yet. 
+     * 
+     * Returns the time when the next timout occurs. This method is 
+     * called only if at least one of the timeouts has been specified.
      *
      * @param absoluteTimeout the absolute timeout
      * @param idleTimeout the idle timeout
@@ -452,32 +452,6 @@ public abstract class SessionManager extends Component {
      */
     protected abstract Optional<Instant> purgeSessions(long absoluteTimeout,
             long idleTimeout);
-
-    /**
-     * Discards the given session. Invokes {@link #removeSession(String)}
-     * and {@link #completeRemoval(Session)}. 
-     * 
-     * @param session
-     */
-    public void discardSession(Session session) {
-        removeSession(session.id());
-        completeRemoval(session);
-    }
-
-    /**
-     * Called by {@link #discardSession(Session)} after calling
-     * {@link #removeSession(String)}. Fires a {@link SessionDiscarded} 
-     * event and closes the session (see {@link Session#close}) upon 
-     * its completion. Can be called by session managers that want to 
-     * discard a session but perform the removal from the cache themselves.
-     * 
-     * @param session
-     */
-    protected void completeRemoval(Session session) {
-        SessionDiscarded evt = new SessionDiscarded(session);
-        Event.onCompletion(evt, e -> e.session().close());
-        fire(evt);
-    }
 
     /**
      * Creates a new session with the given id.
@@ -511,13 +485,16 @@ public abstract class SessionManager extends Component {
     protected abstract int sessionCount();
 
     /**
-     * Discards the given session.
+     * Discards the given session. The handler has a priority of -1000,
+     * thus allowing other handler to make use of the session (for a
+     * time) before it becomes unavailable.
      * 
      * @param event the event
      */
-    @Handler(channels = Channel.class)
+    @Handler(channels = Channel.class, priority = -1000)
     public void onDiscard(DiscardSession event) {
-        discardSession(event.session());
+        removeSession(event.session().id());
+        event.session().close();
     }
 
     /**
