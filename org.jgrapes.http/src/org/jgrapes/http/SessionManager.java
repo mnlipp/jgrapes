@@ -358,7 +358,7 @@ public abstract class SessionManager extends Component {
     /**
      * Supports obtaining a {@link Session} from an {@link IOSubchannel}. 
      */
-    private class SessionSupplier implements Supplier<Session> {
+    private class SessionSupplier implements Supplier<Optional<Session>> {
 
         private final Associator holder;
         private final String sessionId;
@@ -375,15 +375,15 @@ public abstract class SessionManager extends Component {
         }
 
         @Override
-        public Session get() {
+        public Optional<Session> get() {
             Optional<Session> session = lookupSession(sessionId);
             if (session.isPresent()) {
                 session.get().updateLastUsedAt();
-                return session.get();
+                return session;
             }
             Session newSession = createSession(createSessionId());
             setSessionSupplier(holder, newSession.id());
-            return newSession;
+            return Optional.of(newSession);
         }
 
     }

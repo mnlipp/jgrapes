@@ -257,7 +257,8 @@ public class FreeMarkerRequestHandler extends Component {
             channel, channel.responsePipeline());
                 Writer out = new OutputStreamWriter(
                     bbos.suppressClose(), "utf-8")) {
-            Map<String, Object> model = fmSessionModel(Session.from(event));
+            Map<String, Object> model
+                = fmSessionModel(event.associatedGet(Session.class));
             tpl.setLocale((Locale) model.get("locale"));
             tpl.process(model, out);
             return true;
@@ -310,14 +311,16 @@ public class FreeMarkerRequestHandler extends Component {
     }
 
     /**
-     * Build a freemarker model holding the information associated with the
-     * session.
+     * Build a freemarker model holding the information usually found in the
+     * session. Provides fallbacks in case no session is available.
      * 
      * This model provides: 
      * 
-     * * The `locale` (of type {@link Locale}). 
+     * * The `locale` (of type {@link Locale}) (falls back to 
+     *   {@link Locale#getDefault()}. 
      * 
-     * * The `resourceBundle` (of type {@link ResourceBundle}). 
+     * * The `resourceBundle` (of type {@link ResourceBundle})
+     *   obtained by calling {@link #resourceBundle(Locale)}. 
      * 
      * * A function "`_`" that looks up the given key in the 
      *   resource bundle.
@@ -326,10 +329,11 @@ public class FreeMarkerRequestHandler extends Component {
      *            the session
      * @return the model
      */
-    protected Map<String, Object> fmSessionModel(Session session) {
+    protected Map<String, Object> fmSessionModel(Optional<Session> session) {
         @SuppressWarnings("PMD.UseConcurrentHashMap")
         final Map<String, Object> model = new HashMap<>();
-        Locale locale = session.locale();
+        Locale locale = session.map(
+            sess -> sess.locale()).orElse(Locale.getDefault());
         model.put("locale", locale);
         final ResourceBundle resourceBundle = resourceBundle(locale);
         model.put("resourceBundle", resourceBundle);

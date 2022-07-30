@@ -24,7 +24,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 import org.jgrapes.core.Associator;
 import org.jgrapes.http.LanguageSelector.Selection;
 
@@ -81,10 +80,8 @@ public interface Session extends Map<Serializable, Serializable> {
      * @param associator the associator
      * @return the session
      */
-    @SuppressWarnings("unchecked")
     static Session from(Associator associator) {
-        return ((Supplier<Session>) associator
-            .associated(Session.class, Supplier.class).get()).get();
+        return associator.associatedGet(Session.class).get();
     }
 
     /**

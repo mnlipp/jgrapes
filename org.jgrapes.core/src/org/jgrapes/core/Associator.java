@@ -101,4 +101,18 @@ public interface Associator {
         return associated(by, by);
     }
 
+    /**
+     * Assumes the associated object to be of type
+     * `Supplier<Optional<V>>`. Invokes the supplier and returns the
+     * result.
+     * 
+     * @param <V> the type of the value
+     * @param by the name
+     * @return the associate, if any
+     */
+    @SuppressWarnings({ "unchecked", "PMD.ShortVariable" })
+    default <V> Optional<V> associatedGet(Class<V> by) {
+        return associated(by, Supplier.class)
+            .flatMap(s -> ((Supplier<Optional<V>>) s).get());
+    }
 }
