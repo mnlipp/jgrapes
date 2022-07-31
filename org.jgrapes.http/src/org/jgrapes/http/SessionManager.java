@@ -24,12 +24,9 @@ import java.net.HttpCookie;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Supplier;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
@@ -49,6 +46,7 @@ import org.jgrapes.core.Associator;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
+import org.jgrapes.core.Components.Timer;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.internal.EventBase;
 import org.jgrapes.http.annotation.RequestHandler;
@@ -93,8 +91,7 @@ public abstract class SessionManager extends Component {
     private long absoluteTimeout = 9 * 60 * 60 * 1000;
     private long idleTimeout = 30 * 60 * 1000;
     private int maxSessions = 1000;
-    private final Timer purger = new Timer("Session purger", true);
-    private TimerTask nextPurge;
+    private Timer nextPurge;
 
     /**
      * Creates a new session manager with its channel set to
@@ -197,32 +194,20 @@ public abstract class SessionManager extends Component {
         return Optional.empty();
     }
 
-    private void updatePurger(Instant runAt) {
-        synchronized (purger) {
-            if (runAt == null) {
-                if (nextPurge != null) {
-                    nextPurge.cancel();
-                    nextPurge = null;
-                }
-                return;
+    private void startPurger() {
+        synchronized (this) {
+            if (nextPurge == null) {
+                minTimeout().ifPresent(timeout -> Components
+                    .schedule(this::purgeAction, Duration.ofMillis(timeout)));
             }
-            if (nextPurge != null) {
-                if (Instant.ofEpochMilli(nextPurge.scheduledExecutionTime())
-                    .isBefore(runAt)) {
-                    return;
-                }
-                nextPurge.cancel();
-            }
-            nextPurge = new TimerTask() {
-                @Override
-                public void run() {
-                    nextPurge = null;
-                    updatePurger(purgeSessions(absoluteTimeout, idleTimeout)
-                        .orElse(null));
-                }
-            };
-            purger.schedule(nextPurge, new Date(runAt.toEpochMilli()));
         }
+    }
+
+    @SuppressWarnings("PMD.UnusedFormalParameter")
+    private void purgeAction(Timer timer) {
+        nextPurge = startDiscarding(absoluteTimeout, idleTimeout)
+            .map(nextAt -> Components.schedule(this::purgeAction, nextAt))
+            .orElse(null);
     }
 
     /**
@@ -417,13 +402,6 @@ public abstract class SessionManager extends Component {
         return sessionIdBuilder.toString();
     }
 
-    private void startPurger() {
-        if (nextPurge == null) {
-            minTimeout().ifPresent(timeout -> updatePurger(Instant.now().plus(
-                Duration.ofMillis(timeout))));
-        }
-    }
-
     /**
      * Checks if the absolute or idle timeout has been reached.
      *
@@ -439,18 +417,22 @@ public abstract class SessionManager extends Component {
     }
 
     /**
-     * Purge all sessions (generate {@link DiscardSession} events)
+     * Start discarding all sessions (generate {@link DiscardSession} events)
      * that have reached their absolute or idle timeout. Do not
      * make the sessions unavailable yet. 
      * 
-     * Returns the time when the next timout occurs. This method is 
+     * Returns the time when the next timeout occurs. This method is 
      * called only if at least one of the timeouts has been specified.
+     * 
+     * Implementations have to take care that sessions are only discarded
+     * once. As they must remain available while the {@link DiscardSession}
+     * event is handled this may require marking them as being discarded. 
      *
      * @param absoluteTimeout the absolute timeout
      * @param idleTimeout the idle timeout
      * @return the next timeout (empty if no sessions left)
      */
-    protected abstract Optional<Instant> purgeSessions(long absoluteTimeout,
+    protected abstract Optional<Instant> startDiscarding(long absoluteTimeout,
             long idleTimeout);
 
     /**

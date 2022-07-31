@@ -36,6 +36,7 @@ public class InMemorySession
     private final Instant createdAt;
     private Instant lastUsedAt;
     private final Map<Object, Object> transientData = new ConcurrentHashMap<>();
+    private boolean beingDiscarded;
 
     /**
      * Create a new session.
@@ -100,6 +101,17 @@ public class InMemorySession
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    /**
+     * Marks the session as to be removed.
+     *
+     * @return false, if called before (session is already being discarded)
+     */
+    public boolean setBeingDiscarded() {
+        boolean result = !beingDiscarded;
+        beingDiscarded = true;
+        return result;
     }
 
     /*

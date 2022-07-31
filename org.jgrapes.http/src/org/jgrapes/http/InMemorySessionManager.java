@@ -35,12 +35,14 @@ import org.jgrapes.http.events.Request;
 public class InMemorySessionManager extends SessionManager {
 
     @SuppressWarnings({ "serial", "PMD.UseConcurrentHashMap" })
-    private final Map<String, Session> sessionsById
-        = new LinkedHashMap<String, Session>(16, 0.75f, true) {
+    private final Map<String, InMemorySession> sessionsById
+        = new LinkedHashMap<>(16, 0.75f, true) {
 
             @Override
-            protected boolean removeEldestEntry(Entry<String, Session> eldest) {
-                if (maxSessions() > 0 && size() > maxSessions()) {
+            protected boolean
+                    removeEldestEntry(Entry<String, InMemorySession> eldest) {
+                if (maxSessions() > 0 && size() > maxSessions()
+                    && eldest.getValue().setBeingDiscarded()) {
                     fire(new DiscardSession(eldest.getValue()));
                 }
                 return false;
@@ -114,13 +116,15 @@ public class InMemorySessionManager extends SessionManager {
     @Override
     @SuppressWarnings({ "PMD.CognitiveComplexity",
         "PMD.AvoidInstantiatingObjectsInLoops" })
-    protected Optional<Instant> purgeSessions(long absoluteTimeout,
+    protected Optional<Instant> startDiscarding(long absoluteTimeout,
             long idleTimeout) {
         synchronized (this) {
             Instant nextTimout = null;
-            for (Session session : sessionsById.values()) {
+            for (InMemorySession session : sessionsById.values()) {
                 if (hasTimedOut(session)) {
-                    fire(new DiscardSession(session));
+                    if (session.setBeingDiscarded()) {
+                        fire(new DiscardSession(session));
+                    }
                     continue;
                 }
                 if (absoluteTimeout > 0) {
@@ -146,7 +150,7 @@ public class InMemorySessionManager extends SessionManager {
 
     @Override
     protected Session createSession(String sessionId) {
-        Session session = new InMemorySession(sessionId);
+        InMemorySession session = new InMemorySession(sessionId);
         synchronized (this) {
             sessionsById.put(sessionId, session);
         }
