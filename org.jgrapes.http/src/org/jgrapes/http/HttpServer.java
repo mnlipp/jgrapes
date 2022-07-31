@@ -510,7 +510,8 @@ public class HttpServer extends Component {
                     bodyData == null ? null : bodyData.backingBuffer(),
                     event.isEndOfRecord());
                 if (result.response().isPresent()) {
-                    // Feedback required, send it
+                    // Feedback required, send it "in sync", even if
+                    // event source is not the regular one.
                     responsePipeline().overrideRestriction().fire(
                         new Response(result.response().get()), this);
                     if (result.isResponseOnly()) {
@@ -542,7 +543,9 @@ public class HttpServer extends Component {
 
         private void maybeCloseConnection(Decoder.Result<?> result) {
             if (result.closeConnection()) {
-                respond(new Close());
+                // Send close "in sync", even if event source is unexpected.
+                responsePipeline().overrideRestriction()
+                    .fire(new Close(), this);
             }
         }
 
