@@ -54,6 +54,7 @@ import org.jgrapes.core.Components;
 import org.jgrapes.core.NamedChannel;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.http.HttpServer;
+import org.jgrapes.http.InMemorySessionManager;
 import org.jgrapes.http.StaticContentDispatcher;
 import org.jgrapes.http.events.Request;
 import org.jgrapes.io.FileStorage;
@@ -118,6 +119,7 @@ public class ServerTest {
                     .setAcceptNoSni(true));
 
             // Build application layer
+            attach(new InMemorySessionManager(channel()));
             attach(new FileStorage(channel(), 65536));
             attach(new StaticContentDispatcher(channel(),
                 "/**", Paths.get("test-resources/static-content").toUri()));
