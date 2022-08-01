@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jgrapes.core.Associator;
 import org.jgrapes.http.LanguageSelector.Selection;
+import org.jgrapes.http.events.Request;
 
 /**
  * Represents a browser session. Session objects are used to store

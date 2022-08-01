@@ -57,10 +57,14 @@ import org.jgrapes.io.IOSubchannel;
 
 /**
  * A base class for session managers. A session manager associates 
- * {@link Request} events with a {@link Supplier {@code Supplier<Session>}}
+ * {@link Request} events with a 
+ * {@link Supplier {@code Supplier<Optional<Session>>}}
  * for a {@link Session} using `Session.class` as association identifier
- * (see {@link Session#from}). The {@link Request} handler has a default 
- * priority of 1000.   
+ * (see {@link Session#from}). Note that the `Optional` will never by
+ * empty. The return type has been chosen to be in accordance with
+ * {@link Associator#associatedGet(Class)}.
+ * 
+ * The {@link Request} handler has a default priority of 1000.
  * 
  * Managers track requests using a cookie with a given name and path. The 
  * path is a prefix that has to be matched by the request, often "/".
@@ -260,7 +264,7 @@ public abstract class SessionManager extends Component {
      * to its creation time). Defaults to 9 hours. Zero or less disables
      * the timeout.
      * 
-     * @param absoluteTimeout the absolute timeout
+     * @param timeout the absolute timeout
      * @return the session manager for easy chaining
      */
     public SessionManager setAbsoluteTimeout(Duration timeout) {
@@ -279,7 +283,7 @@ public abstract class SessionManager extends Component {
      * Sets the idle timeout for a session. Defaults to 30 minutes.
      * Zero or less disables the timeout. 
      * 
-     * @param idleTimeout the absolute timeout
+     * @param timeout the absolute timeout
      * @return the session manager for easy chaining
      */
     public SessionManager setIdleTimeout(Duration timeout) {
@@ -480,17 +484,17 @@ public abstract class SessionManager extends Component {
     }
 
     /**
-     * Associates the channel with a {@link Supplier {@code Supplier<Session>}} 
+     * Associates the channel with a 
+     * {@link Supplier {@code Supplier<Optional<Session>>}} 
      * for the session. Initially, the associated session is the session
      * associated with the protocol switch event. If this session times out,
-     * a new session is returned as a fallback, thus avoiding the supplier
-     * to be of type `Supplier<Optional<Session>>`. This new session is, 
-     * however, created independently of any new session created by 
-     * {@link #onRequest}.
+     * a new session is returned as a fallback, thus making sure that
+     * the `Optional` is never empty. The new session is, however, created 
+     * independently of any new session created by {@link #onRequest}.
      * 
      * Applications should avoid any ambiguity by executing a proper 
      * cleanup of the web application in response to a 
-     * {@link SessionDiscarded} event (including reestablishing the web
+     * {@link DiscardSession} event (including reestablishing the web
      * socket connections from new requests).
      * 
      * @param event the event
