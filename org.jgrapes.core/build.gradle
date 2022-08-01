@@ -7,8 +7,11 @@ test {
   
 }
 
+var docDestinationDir = file("${rootProject.buildDir}/javadoc")
+
 task javadocJar(type: Jar) {
-	from (javadoc)
+    dependsOn 'java11doc'
+	from (docDestinationDir)
 	classifier "javadoc"
 }
 
@@ -30,8 +33,6 @@ dependencies {
     markdownDoclet "org.jdrupes.mdoclet:doclet:3.0.0"
     javadocTaglets "org.jdrupes.taglets:plantuml-taglet:2.0.1"
 }
-
-var docDestinationDir = file("${rootProject.buildDir}/javadoc")
 
 task javadocResources(type: Copy) {
     into file(docDestinationDir)
