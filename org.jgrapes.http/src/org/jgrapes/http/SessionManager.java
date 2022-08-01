@@ -255,7 +255,7 @@ public abstract class SessionManager extends Component {
     }
 
     /**
-     * Sets the absolute timeout for a session in seconds. The absolute
+     * Sets the absolute timeout for a session. The absolute
      * timeout is the time after which a session is invalidated (relative
      * to its creation time). Defaults to 9 hours. Zero or less disables
      * the timeout.
@@ -263,35 +263,35 @@ public abstract class SessionManager extends Component {
      * @param absoluteTimeout the absolute timeout
      * @return the session manager for easy chaining
      */
-    public SessionManager setAbsoluteTimeout(int absoluteTimeout) {
-        this.absoluteTimeout = absoluteTimeout * 1000;
+    public SessionManager setAbsoluteTimeout(Duration timeout) {
+        this.absoluteTimeout = timeout.toMillis();
         return this;
     }
 
     /**
      * @return the absolute session timeout (in seconds)
      */
-    public int absoluteTimeout() {
-        return (int) (absoluteTimeout / 1000);
+    public Duration absoluteTimeout() {
+        return Duration.ofMillis(absoluteTimeout);
     }
 
     /**
-     * Sets the idle timeout for a session in seconds. Defaults to 30 minutes.
+     * Sets the idle timeout for a session. Defaults to 30 minutes.
      * Zero or less disables the timeout. 
      * 
      * @param idleTimeout the absolute timeout
      * @return the session manager for easy chaining
      */
-    public SessionManager setIdleTimeout(int idleTimeout) {
-        this.idleTimeout = idleTimeout * 1000;
+    public SessionManager setIdleTimeout(Duration timeout) {
+        this.idleTimeout = timeout.toMillis();
         return this;
     }
 
     /**
-     * @return the idle timeout (in seconds)
+     * @return the idle timeout
      */
-    public int idleTimeout() {
-        return (int) (idleTimeout / 1000);
+    public Duration idleTimeout() {
+        return Duration.ofMillis(idleTimeout);
     }
 
     /**
@@ -515,9 +515,9 @@ public abstract class SessionManager extends Component {
 
         int getMaxSessions();
 
-        int getAbsoluteTimeout();
+        long getAbsoluteTimeout();
 
-        int getIdleTimeout();
+        long getIdleTimeout();
 
         int getSessionCount();
     }
@@ -600,13 +600,15 @@ public abstract class SessionManager extends Component {
         }
 
         @Override
-        public int getAbsoluteTimeout() {
-            return manager().map(mgr -> mgr.absoluteTimeout()).orElse(0);
+        public long getAbsoluteTimeout() {
+            return manager().map(mgr -> mgr.absoluteTimeout().toMillis())
+                .orElse(0L);
         }
 
         @Override
-        public int getIdleTimeout() {
-            return manager().map(mgr -> mgr.idleTimeout()).orElse(0);
+        public long getIdleTimeout() {
+            return manager().map(mgr -> mgr.idleTimeout().toMillis())
+                .orElse(0L);
         }
 
         @Override

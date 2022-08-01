@@ -53,7 +53,8 @@ public class SessionTests {
         public List<Session> discarded = new ArrayList<>();
         public List<Instant> discardedAt = new ArrayList<>();
 
-        public App(int absoluteTimeout, int idleTimeout) throws Exception {
+        public App(Duration absoluteTimeout, Duration idleTimeout)
+                throws Exception {
             sessionManager = new InMemorySessionManager(channel())
                 .setAbsoluteTimeout(absoluteTimeout)
                 .setIdleTimeout(idleTimeout);
@@ -110,8 +111,8 @@ public class SessionTests {
     @Test
     public void testAbsoluteTimeout() throws Exception {
         // Create app
-        int absoluteTimeout = 1;
-        int idleTimeout = 0;
+        Duration absoluteTimeout = Duration.ofSeconds(1);
+        Duration idleTimeout = Duration.ZERO;
         App app = new App(absoluteTimeout, idleTimeout);
 
         // Send first request
@@ -128,7 +129,7 @@ public class SessionTests {
         firstSession.transientData().put("resource", new TestResource());
 
         // Request with the new session id from first request
-        Thread.sleep(absoluteTimeout * 1000 / 2);
+        Thread.sleep(absoluteTimeout.toMillis() / 2);
         setSessionId(request, request.response().get());
         evt = Request.In.fromHttpRequest(request, false, 0);
         app.lastRequests.clear();
@@ -142,12 +143,12 @@ public class SessionTests {
         assertTrue(app.discarded.isEmpty());
 
         // Request after absolute timeout
-        Thread.sleep(absoluteTimeout * 1000 + 500);
+        Thread.sleep(absoluteTimeout.toMillis() + 500);
         Components.awaitExhaustion();
         assertEquals(firstSession, app.discarded.get(0));
         assertTrue(
             Duration.between(app.discardedAt.get(0), firstSession.createdAt())
-                .abs().toMillis() < (absoluteTimeout * 1000 + 250));
+                .abs().toMillis() < (absoluteTimeout.toMillis() + 250));
 
         evt = Request.In.fromHttpRequest(request, false, 0);
         app.lastRequests.clear();
@@ -164,8 +165,8 @@ public class SessionTests {
     @Test
     public void testIdleTimeout() throws Exception {
         // Create app
-        int absoluteTimeout = 0;
-        int idleTimeout = 1;
+        Duration absoluteTimeout = Duration.ZERO;
+        Duration idleTimeout = Duration.ofSeconds(1);
         App app = new App(absoluteTimeout, idleTimeout);
 
         // Send first request
@@ -180,7 +181,7 @@ public class SessionTests {
         firstSession.transientData().put("resource", new TestResource());
 
         // Request with the new session id from first request
-        Thread.sleep(idleTimeout * 1000 / 2);
+        Thread.sleep(idleTimeout.toMillis() / 2);
         setSessionId(request, request.response().get());
         evt = Request.In.fromHttpRequest(request, false, 0);
         app.lastRequests.clear();
@@ -196,11 +197,12 @@ public class SessionTests {
         assertTrue(app.discarded.isEmpty());
 
         // Request after idle timeout
-        Thread.sleep(idleTimeout * 1000 + 500);
+        Thread.sleep(idleTimeout.toMillis() + 500);
         Components.awaitExhaustion();
         assertEquals(firstSession, app.discarded.get(0));
         assertTrue(Duration.between(firstSession.lastUsedAt(),
-            app.discardedAt.get(0)).toMillis() < (idleTimeout * 1000 + 250));
+            app.discardedAt.get(0))
+            .toMillis() < (idleTimeout.toMillis() + 250));
         evt = Request.In.fromHttpRequest(request, false, 0);
         app.lastRequests.clear();
         app.fire(evt).get();
@@ -214,8 +216,8 @@ public class SessionTests {
 
     @Test
     public void testSeveral() throws Exception {
-        int absoluteTimeout = 2;
-        int idleTimeout = 0;
+        Duration absoluteTimeout = Duration.ofSeconds(2);
+        Duration idleTimeout = Duration.ZERO;
         App app = new App(absoluteTimeout, idleTimeout);
 
         final Instant startTime = Instant.now();
@@ -251,7 +253,7 @@ public class SessionTests {
     @Test
     public void testDiscard() throws Exception {
         // Create app
-        App app = new App(0, 0);
+        App app = new App(Duration.ZERO, Duration.ZERO);
 
         // Send first request
         HttpRequest request = createRequest();
