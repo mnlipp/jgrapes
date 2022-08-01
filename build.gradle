@@ -81,6 +81,10 @@ gitPublish {
 	commitMessage = "Updated."
 }
 
+tasks.gitPublishReset.mustRunAfter ":org.jgrapes.core:test"
+tasks.gitPublishReset.mustRunAfter ":org.jgrapes.http:test"
+tasks.gitPublishReset.mustRunAfter ":org.jgrapes.io:test"
+tasks.gitPublishReset.mustRunAfter ":org.jgrapes.util:test"
 tasks.gitPublishReset.mustRunAfter ":org.jgrapes.core:java11doc"
 
 task stage {
