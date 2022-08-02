@@ -81,10 +81,10 @@ gitPublish {
 	commitMessage = "Updated."
 }
 
-tasks.gitPublishReset.mustRunAfter ":org.jgrapes.core:test"
-tasks.gitPublishReset.mustRunAfter ":org.jgrapes.http:test"
-tasks.gitPublishReset.mustRunAfter ":org.jgrapes.io:test"
-tasks.gitPublishReset.mustRunAfter ":org.jgrapes.util:test"
+tasks.gitPublishReset.mustRunAfter subprojects.tasks
+    .collect { tc -> tc.findByName("build") }.flatten()
+tasks.gitPublishReset.mustRunAfter subprojects.tasks
+    .collect { tc -> tc.findByName("test") }.flatten()
 tasks.gitPublishReset.mustRunAfter ":org.jgrapes.core:java11doc"
 
 task stage {
@@ -92,7 +92,7 @@ task stage {
 	group = 'build'
 
     // Build everything first
-    subprojects.tasks.each { tc -> dependsOn tc.findByName("build") }
+    dependsOn subprojects.tasks.collect { tc -> tc.findByName("build") }.flatten()
 	
     if (!isCiBuild || JavaVersion.current() == JavaVersion.VERSION_17) {
     	// Publish JavaDoc
