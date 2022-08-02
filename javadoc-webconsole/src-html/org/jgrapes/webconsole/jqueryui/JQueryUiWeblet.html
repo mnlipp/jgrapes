@@ -158,14 +158,14 @@
 <span class="source-line-no">145</span><span id="line-145">    private void sendThemeResource(Request.In.Get event, IOSubchannel channel,</span>
 <span class="source-line-no">146</span><span id="line-146">            String resource) {</span>
 <span class="source-line-no">147</span><span id="line-147">        // Get resource</span>
-<span class="source-line-no">148</span><span id="line-148">        ThemeProvider themeProvider = event.associated(Session.class).flatMap(</span>
-<span class="source-line-no">149</span><span id="line-149">            session -&gt; Optional.ofNullable(session.get("themeProvider"))</span>
-<span class="source-line-no">150</span><span id="line-150">                .flatMap(</span>
-<span class="source-line-no">151</span><span id="line-151">                    themeId -&gt; StreamSupport</span>
-<span class="source-line-no">152</span><span id="line-152">                        .stream(themeLoader().spliterator(), false)</span>
-<span class="source-line-no">153</span><span id="line-153">                        .filter(thi -&gt; thi.themeId().equals(themeId))</span>
-<span class="source-line-no">154</span><span id="line-154">                        .findFirst()))</span>
-<span class="source-line-no">155</span><span id="line-155">            .orElse(baseTheme);</span>
+<span class="source-line-no">148</span><span id="line-148">        ThemeProvider themeProvider</span>
+<span class="source-line-no">149</span><span id="line-149">            = Optional.ofNullable(Session.from(event).get("themeProvider"))</span>
+<span class="source-line-no">150</span><span id="line-150">                .flatMap(themeId -&gt; StreamSupport</span>
+<span class="source-line-no">151</span><span id="line-151">                    .stream(themeLoader().spliterator(), false)</span>
+<span class="source-line-no">152</span><span id="line-152">                    .filter(thi -&gt; thi.themeId().equals(themeId))</span>
+<span class="source-line-no">153</span><span id="line-153">                    .findFirst())</span>
+<span class="source-line-no">154</span><span id="line-154">                .orElse(baseTheme);</span>
+<span class="source-line-no">155</span><span id="line-155">        // Get resource</span>
 <span class="source-line-no">156</span><span id="line-156">        URL resourceUrl;</span>
 <span class="source-line-no">157</span><span id="line-157">        try {</span>
 <span class="source-line-no">158</span><span id="line-158">            resourceUrl = themeProvider.getResource(resource);</span>

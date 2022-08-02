@@ -56,107 +56,108 @@
 <span class="source-line-no">043</span><span id="line-43">    /**</span>
 <span class="source-line-no">044</span><span id="line-44">     * Convenience method for retrieving the user from</span>
 <span class="source-line-no">045</span><span id="line-45">     * a {@link Subject} associated with the session.</span>
-<span class="source-line-no">046</span><span id="line-46">     * </span>
-<span class="source-line-no">047</span><span id="line-47">     * @return the user principal</span>
-<span class="source-line-no">048</span><span id="line-48">     */</span>
-<span class="source-line-no">049</span><span id="line-49">    public static Optional&lt;UserPrincipal&gt; userFromSession(Session session) {</span>
-<span class="source-line-no">050</span><span id="line-50">        return Optional.ofNullable((Subject) session.get(Subject.class))</span>
-<span class="source-line-no">051</span><span id="line-51">            .flatMap(subject -&gt; subject.getPrincipals(UserPrincipal.class)</span>
-<span class="source-line-no">052</span><span id="line-52">                .stream().findFirst());</span>
-<span class="source-line-no">053</span><span id="line-53">    }</span>
-<span class="source-line-no">054</span><span id="line-54"></span>
-<span class="source-line-no">055</span><span id="line-55">    /**</span>
-<span class="source-line-no">056</span><span id="line-56">     * Create a {@link URI} from a path. This is similar to calling</span>
-<span class="source-line-no">057</span><span id="line-57">     * `new URI(null, null, path, null)` with the {@link URISyntaxException}</span>
-<span class="source-line-no">058</span><span id="line-58">     * converted to a {@link IllegalArgumentException}.</span>
-<span class="source-line-no">059</span><span id="line-59">     * </span>
-<span class="source-line-no">060</span><span id="line-60">     * @param path the path</span>
-<span class="source-line-no">061</span><span id="line-61">     * @return the uri</span>
-<span class="source-line-no">062</span><span id="line-62">     * @throws IllegalArgumentException if the string violates </span>
-<span class="source-line-no">063</span><span id="line-63">     * RFC 2396</span>
-<span class="source-line-no">064</span><span id="line-64">     */</span>
-<span class="source-line-no">065</span><span id="line-65">    @SuppressWarnings("PMD.AvoidUncheckedExceptionsInSignatures")</span>
-<span class="source-line-no">066</span><span id="line-66">    public static URI uriFromPath(String path) throws IllegalArgumentException {</span>
-<span class="source-line-no">067</span><span id="line-67">        try {</span>
-<span class="source-line-no">068</span><span id="line-68">            return new URI(null, null, path, null);</span>
-<span class="source-line-no">069</span><span id="line-69">        } catch (URISyntaxException e) {</span>
-<span class="source-line-no">070</span><span id="line-70">            throw new IllegalArgumentException(e);</span>
-<span class="source-line-no">071</span><span id="line-71">        }</span>
-<span class="source-line-no">072</span><span id="line-72">    }</span>
-<span class="source-line-no">073</span><span id="line-73"></span>
-<span class="source-line-no">074</span><span id="line-74">    /**</span>
-<span class="source-line-no">075</span><span id="line-75">     * Returns the query part of a URI as map. Note that query parts</span>
-<span class="source-line-no">076</span><span id="line-76">     * can have multiple entries with the same key.</span>
-<span class="source-line-no">077</span><span id="line-77">     *</span>
-<span class="source-line-no">078</span><span id="line-78">     * @param uri the uri</span>
-<span class="source-line-no">079</span><span id="line-79">     * @return the map</span>
-<span class="source-line-no">080</span><span id="line-80">     */</span>
-<span class="source-line-no">081</span><span id="line-81">    public static Map&lt;String, List&lt;String&gt;&gt; queryAsMap(URI uri) {</span>
-<span class="source-line-no">082</span><span id="line-82">        if (uri.getQuery() == null) {</span>
-<span class="source-line-no">083</span><span id="line-83">            return new HashMap&lt;&gt;();</span>
-<span class="source-line-no">084</span><span id="line-84">        }</span>
-<span class="source-line-no">085</span><span id="line-85">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
-<span class="source-line-no">086</span><span id="line-86">        Map&lt;String, List&lt;String&gt;&gt; result = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">087</span><span id="line-87">        Arrays.stream(uri.getQuery().split("&amp;")).forEach(item -&gt; {</span>
-<span class="source-line-no">088</span><span id="line-88">            String[] pair = item.split("=");</span>
-<span class="source-line-no">089</span><span id="line-89">            result.computeIfAbsent(pair[0], key -&gt; new ArrayList&lt;&gt;())</span>
-<span class="source-line-no">090</span><span id="line-90">                .add(pair[1]);</span>
-<span class="source-line-no">091</span><span id="line-91">        });</span>
-<span class="source-line-no">092</span><span id="line-92">        return result;</span>
-<span class="source-line-no">093</span><span id="line-93">    }</span>
-<span class="source-line-no">094</span><span id="line-94"></span>
-<span class="source-line-no">095</span><span id="line-95">    /**</span>
-<span class="source-line-no">096</span><span id="line-96">     * Merge query parameters into an existing URI.</span>
-<span class="source-line-no">097</span><span id="line-97">     *</span>
-<span class="source-line-no">098</span><span id="line-98">     * @param uri the URI</span>
-<span class="source-line-no">099</span><span id="line-99">     * @param parameters the parameters</span>
-<span class="source-line-no">100</span><span id="line-100">     * @return the new URI</span>
-<span class="source-line-no">101</span><span id="line-101">     */</span>
-<span class="source-line-no">102</span><span id="line-102">    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</span>
-<span class="source-line-no">103</span><span id="line-103">        "PMD.UselessParentheses" })</span>
-<span class="source-line-no">104</span><span id="line-104">    public static URI mergeQuery(URI uri, Map&lt;String, String&gt; parameters) {</span>
-<span class="source-line-no">105</span><span id="line-105">        Map&lt;String, List&lt;String&gt;&gt; oldQuery = queryAsMap(uri);</span>
-<span class="source-line-no">106</span><span id="line-106">        for (Map.Entry&lt;String, String&gt; entry : parameters.entrySet()) {</span>
-<span class="source-line-no">107</span><span id="line-107">            oldQuery.computeIfAbsent(entry.getKey(), key -&gt; new ArrayList&lt;&gt;())</span>
-<span class="source-line-no">108</span><span id="line-108">                .add(entry.getValue());</span>
-<span class="source-line-no">109</span><span id="line-109">        }</span>
-<span class="source-line-no">110</span><span id="line-110">        String newQuery = oldQuery.entrySet().stream()</span>
-<span class="source-line-no">111</span><span id="line-111">            .map(entry -&gt; entry.getValue().stream()</span>
-<span class="source-line-no">112</span><span id="line-112">                .map(</span>
-<span class="source-line-no">113</span><span id="line-113">                    value -&gt; WebConsoleUtils.isoEncode(entry.getKey()) + "="</span>
-<span class="source-line-no">114</span><span id="line-114">                        + WebConsoleUtils.isoEncode(value))</span>
-<span class="source-line-no">115</span><span id="line-115">                .collect(Collectors.joining("&amp;")))</span>
-<span class="source-line-no">116</span><span id="line-116">            .collect(Collectors.joining("&amp;"));</span>
-<span class="source-line-no">117</span><span id="line-117">        // When constructing the new URI, we cannot pass the newQuery</span>
-<span class="source-line-no">118</span><span id="line-118">        // to the constructor because it would be encoded once more.</span>
-<span class="source-line-no">119</span><span id="line-119">        // So we build the most basic parseable URI with the newQuery</span>
-<span class="source-line-no">120</span><span id="line-120">        // and resolve it against the remaining information.</span>
-<span class="source-line-no">121</span><span id="line-121">        try {</span>
-<span class="source-line-no">122</span><span id="line-122">            return new URI(uri.getScheme(), uri.getAuthority(), null, null,</span>
-<span class="source-line-no">123</span><span id="line-123">                null).resolve(</span>
-<span class="source-line-no">124</span><span id="line-124">                    uri.getRawPath() + "?" + newQuery</span>
-<span class="source-line-no">125</span><span id="line-125">                        + (uri.getFragment() == null ? ""</span>
-<span class="source-line-no">126</span><span id="line-126">                            : ("#" + uri.getRawFragment())));</span>
-<span class="source-line-no">127</span><span id="line-127">        } catch (URISyntaxException e) {</span>
-<span class="source-line-no">128</span><span id="line-128">            throw new IllegalArgumentException(e);</span>
-<span class="source-line-no">129</span><span id="line-129">        }</span>
-<span class="source-line-no">130</span><span id="line-130">    }</span>
-<span class="source-line-no">131</span><span id="line-131"></span>
-<span class="source-line-no">132</span><span id="line-132">    /**</span>
-<span class="source-line-no">133</span><span id="line-133">     * Returns `URLEncoder.encode(value, "ISO-8859-1")`.</span>
-<span class="source-line-no">134</span><span id="line-134">     *</span>
-<span class="source-line-no">135</span><span id="line-135">     * @param value the value</span>
-<span class="source-line-no">136</span><span id="line-136">     * @return the result</span>
-<span class="source-line-no">137</span><span id="line-137">     */</span>
-<span class="source-line-no">138</span><span id="line-138">    public static String isoEncode(String value) {</span>
-<span class="source-line-no">139</span><span id="line-139">        try {</span>
-<span class="source-line-no">140</span><span id="line-140">            return URLEncoder.encode(value, "ISO-8859-1");</span>
-<span class="source-line-no">141</span><span id="line-141">        } catch (UnsupportedEncodingException e) {</span>
-<span class="source-line-no">142</span><span id="line-142">            // Cannot happen, ISO-8859-1 is specified to be supported</span>
-<span class="source-line-no">143</span><span id="line-143">            throw new IllegalStateException(e);</span>
-<span class="source-line-no">144</span><span id="line-144">        }</span>
-<span class="source-line-no">145</span><span id="line-145">    }</span>
-<span class="source-line-no">146</span><span id="line-146">}</span>
+<span class="source-line-no">046</span><span id="line-46">     *</span>
+<span class="source-line-no">047</span><span id="line-47">     * @param session the session</span>
+<span class="source-line-no">048</span><span id="line-48">     * @return the user principal</span>
+<span class="source-line-no">049</span><span id="line-49">     */</span>
+<span class="source-line-no">050</span><span id="line-50">    public static Optional&lt;UserPrincipal&gt; userFromSession(Session session) {</span>
+<span class="source-line-no">051</span><span id="line-51">        return Optional.ofNullable((Subject) session.get(Subject.class))</span>
+<span class="source-line-no">052</span><span id="line-52">            .flatMap(subject -&gt; subject.getPrincipals(UserPrincipal.class)</span>
+<span class="source-line-no">053</span><span id="line-53">                .stream().findFirst());</span>
+<span class="source-line-no">054</span><span id="line-54">    }</span>
+<span class="source-line-no">055</span><span id="line-55"></span>
+<span class="source-line-no">056</span><span id="line-56">    /**</span>
+<span class="source-line-no">057</span><span id="line-57">     * Create a {@link URI} from a path. This is similar to calling</span>
+<span class="source-line-no">058</span><span id="line-58">     * `new URI(null, null, path, null)` with the {@link URISyntaxException}</span>
+<span class="source-line-no">059</span><span id="line-59">     * converted to a {@link IllegalArgumentException}.</span>
+<span class="source-line-no">060</span><span id="line-60">     * </span>
+<span class="source-line-no">061</span><span id="line-61">     * @param path the path</span>
+<span class="source-line-no">062</span><span id="line-62">     * @return the uri</span>
+<span class="source-line-no">063</span><span id="line-63">     * @throws IllegalArgumentException if the string violates </span>
+<span class="source-line-no">064</span><span id="line-64">     * RFC 2396</span>
+<span class="source-line-no">065</span><span id="line-65">     */</span>
+<span class="source-line-no">066</span><span id="line-66">    @SuppressWarnings("PMD.AvoidUncheckedExceptionsInSignatures")</span>
+<span class="source-line-no">067</span><span id="line-67">    public static URI uriFromPath(String path) throws IllegalArgumentException {</span>
+<span class="source-line-no">068</span><span id="line-68">        try {</span>
+<span class="source-line-no">069</span><span id="line-69">            return new URI(null, null, path, null);</span>
+<span class="source-line-no">070</span><span id="line-70">        } catch (URISyntaxException e) {</span>
+<span class="source-line-no">071</span><span id="line-71">            throw new IllegalArgumentException(e);</span>
+<span class="source-line-no">072</span><span id="line-72">        }</span>
+<span class="source-line-no">073</span><span id="line-73">    }</span>
+<span class="source-line-no">074</span><span id="line-74"></span>
+<span class="source-line-no">075</span><span id="line-75">    /**</span>
+<span class="source-line-no">076</span><span id="line-76">     * Returns the query part of a URI as map. Note that query parts</span>
+<span class="source-line-no">077</span><span id="line-77">     * can have multiple entries with the same key.</span>
+<span class="source-line-no">078</span><span id="line-78">     *</span>
+<span class="source-line-no">079</span><span id="line-79">     * @param uri the uri</span>
+<span class="source-line-no">080</span><span id="line-80">     * @return the map</span>
+<span class="source-line-no">081</span><span id="line-81">     */</span>
+<span class="source-line-no">082</span><span id="line-82">    public static Map&lt;String, List&lt;String&gt;&gt; queryAsMap(URI uri) {</span>
+<span class="source-line-no">083</span><span id="line-83">        if (uri.getQuery() == null) {</span>
+<span class="source-line-no">084</span><span id="line-84">            return new HashMap&lt;&gt;();</span>
+<span class="source-line-no">085</span><span id="line-85">        }</span>
+<span class="source-line-no">086</span><span id="line-86">        @SuppressWarnings("PMD.UseConcurrentHashMap")</span>
+<span class="source-line-no">087</span><span id="line-87">        Map&lt;String, List&lt;String&gt;&gt; result = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">088</span><span id="line-88">        Arrays.stream(uri.getQuery().split("&amp;")).forEach(item -&gt; {</span>
+<span class="source-line-no">089</span><span id="line-89">            String[] pair = item.split("=");</span>
+<span class="source-line-no">090</span><span id="line-90">            result.computeIfAbsent(pair[0], key -&gt; new ArrayList&lt;&gt;())</span>
+<span class="source-line-no">091</span><span id="line-91">                .add(pair[1]);</span>
+<span class="source-line-no">092</span><span id="line-92">        });</span>
+<span class="source-line-no">093</span><span id="line-93">        return result;</span>
+<span class="source-line-no">094</span><span id="line-94">    }</span>
+<span class="source-line-no">095</span><span id="line-95"></span>
+<span class="source-line-no">096</span><span id="line-96">    /**</span>
+<span class="source-line-no">097</span><span id="line-97">     * Merge query parameters into an existing URI.</span>
+<span class="source-line-no">098</span><span id="line-98">     *</span>
+<span class="source-line-no">099</span><span id="line-99">     * @param uri the URI</span>
+<span class="source-line-no">100</span><span id="line-100">     * @param parameters the parameters</span>
+<span class="source-line-no">101</span><span id="line-101">     * @return the new URI</span>
+<span class="source-line-no">102</span><span id="line-102">     */</span>
+<span class="source-line-no">103</span><span id="line-103">    @SuppressWarnings({ "PMD.AvoidInstantiatingObjectsInLoops",</span>
+<span class="source-line-no">104</span><span id="line-104">        "PMD.UselessParentheses" })</span>
+<span class="source-line-no">105</span><span id="line-105">    public static URI mergeQuery(URI uri, Map&lt;String, String&gt; parameters) {</span>
+<span class="source-line-no">106</span><span id="line-106">        Map&lt;String, List&lt;String&gt;&gt; oldQuery = queryAsMap(uri);</span>
+<span class="source-line-no">107</span><span id="line-107">        for (Map.Entry&lt;String, String&gt; entry : parameters.entrySet()) {</span>
+<span class="source-line-no">108</span><span id="line-108">            oldQuery.computeIfAbsent(entry.getKey(), key -&gt; new ArrayList&lt;&gt;())</span>
+<span class="source-line-no">109</span><span id="line-109">                .add(entry.getValue());</span>
+<span class="source-line-no">110</span><span id="line-110">        }</span>
+<span class="source-line-no">111</span><span id="line-111">        String newQuery = oldQuery.entrySet().stream()</span>
+<span class="source-line-no">112</span><span id="line-112">            .map(entry -&gt; entry.getValue().stream()</span>
+<span class="source-line-no">113</span><span id="line-113">                .map(</span>
+<span class="source-line-no">114</span><span id="line-114">                    value -&gt; WebConsoleUtils.isoEncode(entry.getKey()) + "="</span>
+<span class="source-line-no">115</span><span id="line-115">                        + WebConsoleUtils.isoEncode(value))</span>
+<span class="source-line-no">116</span><span id="line-116">                .collect(Collectors.joining("&amp;")))</span>
+<span class="source-line-no">117</span><span id="line-117">            .collect(Collectors.joining("&amp;"));</span>
+<span class="source-line-no">118</span><span id="line-118">        // When constructing the new URI, we cannot pass the newQuery</span>
+<span class="source-line-no">119</span><span id="line-119">        // to the constructor because it would be encoded once more.</span>
+<span class="source-line-no">120</span><span id="line-120">        // So we build the most basic parseable URI with the newQuery</span>
+<span class="source-line-no">121</span><span id="line-121">        // and resolve it against the remaining information.</span>
+<span class="source-line-no">122</span><span id="line-122">        try {</span>
+<span class="source-line-no">123</span><span id="line-123">            return new URI(uri.getScheme(), uri.getAuthority(), null, null,</span>
+<span class="source-line-no">124</span><span id="line-124">                null).resolve(</span>
+<span class="source-line-no">125</span><span id="line-125">                    uri.getRawPath() + "?" + newQuery</span>
+<span class="source-line-no">126</span><span id="line-126">                        + (uri.getFragment() == null ? ""</span>
+<span class="source-line-no">127</span><span id="line-127">                            : ("#" + uri.getRawFragment())));</span>
+<span class="source-line-no">128</span><span id="line-128">        } catch (URISyntaxException e) {</span>
+<span class="source-line-no">129</span><span id="line-129">            throw new IllegalArgumentException(e);</span>
+<span class="source-line-no">130</span><span id="line-130">        }</span>
+<span class="source-line-no">131</span><span id="line-131">    }</span>
+<span class="source-line-no">132</span><span id="line-132"></span>
+<span class="source-line-no">133</span><span id="line-133">    /**</span>
+<span class="source-line-no">134</span><span id="line-134">     * Returns `URLEncoder.encode(value, "ISO-8859-1")`.</span>
+<span class="source-line-no">135</span><span id="line-135">     *</span>
+<span class="source-line-no">136</span><span id="line-136">     * @param value the value</span>
+<span class="source-line-no">137</span><span id="line-137">     * @return the result</span>
+<span class="source-line-no">138</span><span id="line-138">     */</span>
+<span class="source-line-no">139</span><span id="line-139">    public static String isoEncode(String value) {</span>
+<span class="source-line-no">140</span><span id="line-140">        try {</span>
+<span class="source-line-no">141</span><span id="line-141">            return URLEncoder.encode(value, "ISO-8859-1");</span>
+<span class="source-line-no">142</span><span id="line-142">        } catch (UnsupportedEncodingException e) {</span>
+<span class="source-line-no">143</span><span id="line-143">            // Cannot happen, ISO-8859-1 is specified to be supported</span>
+<span class="source-line-no">144</span><span id="line-144">            throw new IllegalStateException(e);</span>
+<span class="source-line-no">145</span><span id="line-145">        }</span>
+<span class="source-line-no">146</span><span id="line-146">    }</span>
+<span class="source-line-no">147</span><span id="line-147">}</span>
 
 
 

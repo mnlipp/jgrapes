@@ -150,8 +150,8 @@
 <span class="source-line-no">137</span><span id="line-137">        WebConsole console = consoleWeblet.console();</span>
 <span class="source-line-no">138</span><span id="line-138">        // consoleWeblet.setConsoleSessionInactivityTimeout(300_000);</span>
 <span class="source-line-no">139</span><span id="line-139">        console.attach(new BrowserLocalBackedKVStore(</span>
-<span class="source-line-no">140</span><span id="line-140">            console, consoleWeblet.prefix().getPath()));</span>
-<span class="source-line-no">141</span><span id="line-141">        console.attach(new KVStoreBasedConsolePolicy(console));</span>
+<span class="source-line-no">140</span><span id="line-140">            console.channel(), consoleWeblet.prefix().getPath()));</span>
+<span class="source-line-no">141</span><span id="line-141">        console.attach(new KVStoreBasedConsolePolicy(console.channel()));</span>
 <span class="source-line-no">142</span><span id="line-142">        // Add all available page resource providers</span>
 <span class="source-line-no">143</span><span id="line-143">        console.attach(new ComponentCollector&lt;&gt;(</span>
 <span class="source-line-no">144</span><span id="line-144">            PageResourceProviderFactory.class, console.channel(), type -&gt; {</span>
