@@ -125,7 +125,7 @@
 <span class="source-line-no">112</span><span id="line-112"></span>
 <span class="source-line-no">113</span><span id="line-113">    private final RenderSupport renderSupport = new RenderSupportImpl();</span>
 <span class="source-line-no">114</span><span id="line-114">    private boolean useMinifiedResources = true;</span>
-<span class="source-line-no">115</span><span id="line-115">    private long psNetworkTimeout = 45_000;</span>
+<span class="source-line-no">115</span><span id="line-115">    private long csNetworkTimeout = 45_000;</span>
 <span class="source-line-no">116</span><span id="line-116">    private long csRefreshInterval = 30_000;</span>
 <span class="source-line-no">117</span><span id="line-117">    private long csInactivityTimeout = -1;</span>
 <span class="source-line-no">118</span><span id="line-118"></span>
@@ -242,14 +242,14 @@
 <span class="source-line-no">229</span><span id="line-229">    /**</span>
 <span class="source-line-no">230</span><span id="line-230">     * Sets the console session network timeout. The console session will be</span>
 <span class="source-line-no">231</span><span id="line-231">     * removed if no messages have been received from the console session</span>
-<span class="source-line-no">232</span><span id="line-232">     * for the given number of milliseconds. The value defaults to 45 seconds.</span>
+<span class="source-line-no">232</span><span id="line-232">     * for the given duration. The value defaults to 45 seconds.</span>
 <span class="source-line-no">233</span><span id="line-233">     * </span>
 <span class="source-line-no">234</span><span id="line-234">     * @param timeout the timeout in milli seconds</span>
 <span class="source-line-no">235</span><span id="line-235">     * @return the console view for easy chaining</span>
 <span class="source-line-no">236</span><span id="line-236">     */</span>
 <span class="source-line-no">237</span><span id="line-237">    @SuppressWarnings("PMD.LinguisticNaming")</span>
-<span class="source-line-no">238</span><span id="line-238">    public ConsoleWeblet setConsoleSessionNetworkTimeout(long timeout) {</span>
-<span class="source-line-no">239</span><span id="line-239">        psNetworkTimeout = timeout;</span>
+<span class="source-line-no">238</span><span id="line-238">    public ConsoleWeblet setConsoleSessionNetworkTimeout(Duration timeout) {</span>
+<span class="source-line-no">239</span><span id="line-239">        csNetworkTimeout = timeout.toMillis();</span>
 <span class="source-line-no">240</span><span id="line-240">        return this;</span>
 <span class="source-line-no">241</span><span id="line-241">    }</span>
 <span class="source-line-no">242</span><span id="line-242"></span>
@@ -258,8 +258,8 @@
 <span class="source-line-no">245</span><span id="line-245">     *</span>
 <span class="source-line-no">246</span><span id="line-246">     * @return the timeout</span>
 <span class="source-line-no">247</span><span id="line-247">     */</span>
-<span class="source-line-no">248</span><span id="line-248">    public long consoleSessionNetworkTimeout() {</span>
-<span class="source-line-no">249</span><span id="line-249">        return psNetworkTimeout;</span>
+<span class="source-line-no">248</span><span id="line-248">    public Duration consoleSessionNetworkTimeout() {</span>
+<span class="source-line-no">249</span><span id="line-249">        return Duration.ofMillis(csNetworkTimeout);</span>
 <span class="source-line-no">250</span><span id="line-250">    }</span>
 <span class="source-line-no">251</span><span id="line-251"></span>
 <span class="source-line-no">252</span><span id="line-252">    /**</span>
@@ -744,7 +744,7 @@
 <span class="source-line-no">731</span><span id="line-731">                .flatMap(opsId -&gt; ConsoleSession.lookup(opsId))</span>
 <span class="source-line-no">732</span><span id="line-732">                .map(session -&gt; session.replaceId(consoleSessionIds[0]))</span>
 <span class="source-line-no">733</span><span id="line-733">                .orElse(ConsoleSession.lookupOrCreate(consoleSessionIds[0],</span>
-<span class="source-line-no">734</span><span id="line-734">                    console, supportedLocales.keySet(), psNetworkTimeout))</span>
+<span class="source-line-no">734</span><span id="line-734">                    console, supportedLocales.keySet(), csNetworkTimeout))</span>
 <span class="source-line-no">735</span><span id="line-735">                .setUpstreamChannel(wsChannel)</span>
 <span class="source-line-no">736</span><span id="line-736">                .setSessionSupplier(sessionSupplier);</span>
 <span class="source-line-no">737</span><span id="line-737">        wsChannel.setAssociated(ConsoleSession.class, consoleSession);</span>
