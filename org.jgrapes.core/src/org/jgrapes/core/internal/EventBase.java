@@ -44,6 +44,7 @@ import org.jgrapes.core.EventPipeline;
  * @param <T> the result type of the event. Use {@link Void} if handling
  * the event does not produce a result
  */
+@SuppressWarnings("PMD.TooManyMethods")
 public abstract class EventBase<T>
         implements Eligible, Future<T>, Associator {
 
