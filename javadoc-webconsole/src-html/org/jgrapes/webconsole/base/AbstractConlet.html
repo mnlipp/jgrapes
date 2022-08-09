@@ -78,11 +78,11 @@
 <span class="source-line-no">065</span><span id="line-65">import org.jgrapes.webconsole.base.events.DeleteConlet;</span>
 <span class="source-line-no">066</span><span id="line-66">import org.jgrapes.webconsole.base.events.NotifyConletModel;</span>
 <span class="source-line-no">067</span><span id="line-67">import org.jgrapes.webconsole.base.events.NotifyConletView;</span>
-<span class="source-line-no">068</span><span id="line-68">import org.jgrapes.webconsole.base.events.RemoveConletType;</span>
-<span class="source-line-no">069</span><span id="line-69">import org.jgrapes.webconsole.base.events.RenderConlet;</span>
-<span class="source-line-no">070</span><span id="line-70">import org.jgrapes.webconsole.base.events.RenderConletRequest;</span>
-<span class="source-line-no">071</span><span id="line-71">import org.jgrapes.webconsole.base.events.RenderConletRequestBase;</span>
-<span class="source-line-no">072</span><span id="line-72">import org.jgrapes.webconsole.base.events.SetLocale;</span>
+<span class="source-line-no">068</span><span id="line-68">import org.jgrapes.webconsole.base.events.RenderConlet;</span>
+<span class="source-line-no">069</span><span id="line-69">import org.jgrapes.webconsole.base.events.RenderConletRequest;</span>
+<span class="source-line-no">070</span><span id="line-70">import org.jgrapes.webconsole.base.events.RenderConletRequestBase;</span>
+<span class="source-line-no">071</span><span id="line-71">import org.jgrapes.webconsole.base.events.SetLocale;</span>
+<span class="source-line-no">072</span><span id="line-72">import org.jgrapes.webconsole.base.events.UpdateConletType;</span>
 <span class="source-line-no">073</span><span id="line-73"></span>
 <span class="source-line-no">074</span><span id="line-74">/**</span>
 <span class="source-line-no">075</span><span id="line-75"> * Provides a base class for implementing web console components.</span>
@@ -1094,8 +1094,8 @@
 <span class="source-line-no">1081</span><span id="line-1081"></span>
 <span class="source-line-no">1082</span><span id="line-1082">    /**</span>
 <span class="source-line-no">1083</span><span id="line-1083">     * Iterates over all sessions and fires {@link DeleteConlet}</span>
-<span class="source-line-no">1084</span><span id="line-1084">     * events for all known conlets and a {@link RemoveConletType} </span>
-<span class="source-line-no">1085</span><span id="line-1085">     * event.</span>
+<span class="source-line-no">1084</span><span id="line-1084">     * events for all known conlets and a {@link UpdateConletType} </span>
+<span class="source-line-no">1085</span><span id="line-1085">     * (with no render modes) event.</span>
 <span class="source-line-no">1086</span><span id="line-1086">     */</span>
 <span class="source-line-no">1087</span><span id="line-1087">    protected void doRemoveConletType() {</span>
 <span class="source-line-no">1088</span><span id="line-1088">        conletIdsByConsoleSession().forEach((session, conletIds) -&gt; {</span>
@@ -1103,7 +1103,7 @@
 <span class="source-line-no">1090</span><span id="line-1090">                session.respond(</span>
 <span class="source-line-no">1091</span><span id="line-1091">                    new DeleteConlet(conletId, RenderMode.basicModes));</span>
 <span class="source-line-no">1092</span><span id="line-1092">            });</span>
-<span class="source-line-no">1093</span><span id="line-1093">            session.respond(new RemoveConletType(type()));</span>
+<span class="source-line-no">1093</span><span id="line-1093">            session.respond(new UpdateConletType(type()));</span>
 <span class="source-line-no">1094</span><span id="line-1094">        });</span>
 <span class="source-line-no">1095</span><span id="line-1095">    }</span>
 <span class="source-line-no">1096</span><span id="line-1096"></span>
