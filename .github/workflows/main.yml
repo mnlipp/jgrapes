@@ -2,6 +2,10 @@ name: Java CI
 
 on: [push]
 
+concurrency:
+  group: doc_generation
+  cancel-in-progress: false
+
 jobs:
   build:
     strategy:
