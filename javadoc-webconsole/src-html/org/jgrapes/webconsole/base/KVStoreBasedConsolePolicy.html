@@ -140,10 +140,10 @@
 <span class="source-line-no">127</span><span id="line-127">     */</span>
 <span class="source-line-no">128</span><span id="line-128">    @Handler</span>
 <span class="source-line-no">129</span><span id="line-129">    public void onConsolePrepared(</span>
-<span class="source-line-no">130</span><span id="line-130">            ConsolePrepared event, ConsoleSession channel) {</span>
-<span class="source-line-no">131</span><span id="line-131">        ((KVStoredLayoutData) channel.browserSession().transientData()</span>
+<span class="source-line-no">130</span><span id="line-130">            ConsolePrepared event, ConsoleConnection channel) {</span>
+<span class="source-line-no">131</span><span id="line-131">        ((KVStoredLayoutData) channel.session().transientData()</span>
 <span class="source-line-no">132</span><span id="line-132">            .computeIfAbsent(KVStoredLayoutData.class,</span>
-<span class="source-line-no">133</span><span id="line-133">                key -&gt; new KVStoredLayoutData(channel.browserSession())))</span>
+<span class="source-line-no">133</span><span id="line-133">                key -&gt; new KVStoredLayoutData(channel.session())))</span>
 <span class="source-line-no">134</span><span id="line-134">                    .onConsolePrepared(event, channel);</span>
 <span class="source-line-no">135</span><span id="line-135">    }</span>
 <span class="source-line-no">136</span><span id="line-136"></span>
@@ -156,9 +156,9 @@
 <span class="source-line-no">143</span><span id="line-143">     */</span>
 <span class="source-line-no">144</span><span id="line-144">    @Handler</span>
 <span class="source-line-no">145</span><span id="line-145">    public void onConsoleLayoutChanged(ConsoleLayoutChanged event,</span>
-<span class="source-line-no">146</span><span id="line-146">            ConsoleSession channel) throws IOException {</span>
+<span class="source-line-no">146</span><span id="line-146">            ConsoleConnection channel) throws IOException {</span>
 <span class="source-line-no">147</span><span id="line-147">        Optional&lt;KVStoredLayoutData&gt; optDs = Optional.ofNullable(</span>
-<span class="source-line-no">148</span><span id="line-148">            (KVStoredLayoutData) channel.browserSession().transientData()</span>
+<span class="source-line-no">148</span><span id="line-148">            (KVStoredLayoutData) channel.session().transientData()</span>
 <span class="source-line-no">149</span><span id="line-149">                .get(KVStoredLayoutData.class));</span>
 <span class="source-line-no">150</span><span id="line-150">        if (optDs.isPresent()) {</span>
 <span class="source-line-no">151</span><span id="line-151">            optDs.get().onConsoleLayoutChanged(event, channel);</span>
@@ -166,7 +166,7 @@
 <span class="source-line-no">153</span><span id="line-153">    }</span>
 <span class="source-line-no">154</span><span id="line-154"></span>
 <span class="source-line-no">155</span><span id="line-155">    /**</span>
-<span class="source-line-no">156</span><span id="line-156">     * Stores the data for the web console session.</span>
+<span class="source-line-no">156</span><span id="line-156">     * Caches the data in the session.</span>
 <span class="source-line-no">157</span><span id="line-157">     */</span>
 <span class="source-line-no">158</span><span id="line-158">    @SuppressWarnings("PMD.CommentRequired")</span>
 <span class="source-line-no">159</span><span id="line-159">    private class KVStoredLayoutData {</span>
@@ -196,63 +196,65 @@
 <span class="source-line-no">183</span><span id="line-183">        public void onQueryCompleted(KeyValueStoreQuery query,</span>
 <span class="source-line-no">184</span><span id="line-184">                IOSubchannel channel, RenderSupport renderSupport) {</span>
 <span class="source-line-no">185</span><span id="line-185">            try {</span>
-<span class="source-line-no">186</span><span id="line-186">                String data = query.get().get(storagePath);</span>
-<span class="source-line-no">187</span><span id="line-187">                if (data == null) {</span>
-<span class="source-line-no">188</span><span id="line-188">                    persisted = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">189</span><span id="line-189">                } else {</span>
-<span class="source-line-no">190</span><span id="line-190">                    JsonBeanDecoder decoder = JsonBeanDecoder.create(data);</span>
-<span class="source-line-no">191</span><span id="line-191">                    @SuppressWarnings({ "unchecked", "PMD.LooseCoupling" })</span>
-<span class="source-line-no">192</span><span id="line-192">                    Class&lt;Map&lt;String, Object&gt;&gt; cls</span>
-<span class="source-line-no">193</span><span id="line-193">                        = (Class&lt;Map&lt;String, Object&gt;&gt;) (Class&lt;?&gt;) HashMap.class;</span>
-<span class="source-line-no">194</span><span id="line-194">                    persisted = decoder.readObject(cls);</span>
-<span class="source-line-no">195</span><span id="line-195">                }</span>
-<span class="source-line-no">196</span><span id="line-196">            } catch (InterruptedException | JsonDecodeException e) {</span>
-<span class="source-line-no">197</span><span id="line-197">                persisted = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">198</span><span id="line-198">            }</span>
-<span class="source-line-no">199</span><span id="line-199"></span>
-<span class="source-line-no">200</span><span id="line-200">            // Make sure data is consistent</span>
-<span class="source-line-no">201</span><span id="line-201">            @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">202</span><span id="line-202">            List&lt;String&gt; previewLayout = (List&lt;String&gt;) persisted</span>
-<span class="source-line-no">203</span><span id="line-203">                .computeIfAbsent("previewLayout",</span>
-<span class="source-line-no">204</span><span id="line-204">                    newKey -&gt; Collections.emptyList());</span>
-<span class="source-line-no">205</span><span id="line-205">            @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">206</span><span id="line-206">            List&lt;String&gt; tabsLayout = (List&lt;String&gt;) persisted.computeIfAbsent(</span>
-<span class="source-line-no">207</span><span id="line-207">                "tabsLayout", newKey -&gt; Collections.emptyList());</span>
-<span class="source-line-no">208</span><span id="line-208">            JsonObject xtraInfo = (JsonObject) persisted.computeIfAbsent(</span>
-<span class="source-line-no">209</span><span id="line-209">                "xtraInfo", newKey -&gt; JsonObject.create());</span>
-<span class="source-line-no">210</span><span id="line-210"></span>
-<span class="source-line-no">211</span><span id="line-211">            // Update (now consistent) layout</span>
-<span class="source-line-no">212</span><span id="line-212">            channel.respond(new LastConsoleLayout(</span>
-<span class="source-line-no">213</span><span id="line-213">                previewLayout, tabsLayout, xtraInfo));</span>
-<span class="source-line-no">214</span><span id="line-214"></span>
-<span class="source-line-no">215</span><span id="line-215">            // Restore conlets</span>
-<span class="source-line-no">216</span><span id="line-216">            for (String conletId : tabsLayout) {</span>
-<span class="source-line-no">217</span><span id="line-217">                fire(new RenderConletRequest(renderSupport, conletId,</span>
-<span class="source-line-no">218</span><span id="line-218">                    RenderMode.asSet(RenderMode.View)), channel);</span>
-<span class="source-line-no">219</span><span id="line-219">            }</span>
-<span class="source-line-no">220</span><span id="line-220">            for (String conletId : previewLayout) {</span>
-<span class="source-line-no">221</span><span id="line-221">                fire(new RenderConletRequest(renderSupport, conletId,</span>
-<span class="source-line-no">222</span><span id="line-222">                    RenderMode.asSet(RenderMode.Preview,</span>
-<span class="source-line-no">223</span><span id="line-223">                        RenderMode.Foreground)),</span>
-<span class="source-line-no">224</span><span id="line-224">                    channel);</span>
-<span class="source-line-no">225</span><span id="line-225">            }</span>
-<span class="source-line-no">226</span><span id="line-226">        }</span>
-<span class="source-line-no">227</span><span id="line-227"></span>
-<span class="source-line-no">228</span><span id="line-228">        public void onConsoleLayoutChanged(ConsoleLayoutChanged event,</span>
-<span class="source-line-no">229</span><span id="line-229">                IOSubchannel channel) throws IOException {</span>
-<span class="source-line-no">230</span><span id="line-230">            persisted.put("previewLayout", event.previewLayout());</span>
-<span class="source-line-no">231</span><span id="line-231">            persisted.put("tabsLayout", event.tabsLayout());</span>
-<span class="source-line-no">232</span><span id="line-232">            persisted.put("xtraInfo", event.xtraInfo());</span>
-<span class="source-line-no">233</span><span id="line-233"></span>
-<span class="source-line-no">234</span><span id="line-234">            // Now store.</span>
-<span class="source-line-no">235</span><span id="line-235">            JsonBeanEncoder encoder = JsonBeanEncoder.create();</span>
-<span class="source-line-no">236</span><span id="line-236">            encoder.writeObject(persisted);</span>
-<span class="source-line-no">237</span><span id="line-237">            fire(new KeyValueStoreUpdate()</span>
-<span class="source-line-no">238</span><span id="line-238">                .update(storagePath, encoder.toJson()), channel);</span>
-<span class="source-line-no">239</span><span id="line-239">        }</span>
-<span class="source-line-no">240</span><span id="line-240"></span>
-<span class="source-line-no">241</span><span id="line-241">    }</span>
-<span class="source-line-no">242</span><span id="line-242">}</span>
+<span class="source-line-no">186</span><span id="line-186">                String data = Optional.ofNullable(query.get())</span>
+<span class="source-line-no">187</span><span id="line-187">                    .flatMap(m -&gt; Optional.ofNullable(m.get(storagePath)))</span>
+<span class="source-line-no">188</span><span id="line-188">                    .orElse(null);</span>
+<span class="source-line-no">189</span><span id="line-189">                if (data == null) {</span>
+<span class="source-line-no">190</span><span id="line-190">                    persisted = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">191</span><span id="line-191">                } else {</span>
+<span class="source-line-no">192</span><span id="line-192">                    JsonBeanDecoder decoder = JsonBeanDecoder.create(data);</span>
+<span class="source-line-no">193</span><span id="line-193">                    @SuppressWarnings({ "unchecked", "PMD.LooseCoupling" })</span>
+<span class="source-line-no">194</span><span id="line-194">                    Class&lt;Map&lt;String, Object&gt;&gt; cls</span>
+<span class="source-line-no">195</span><span id="line-195">                        = (Class&lt;Map&lt;String, Object&gt;&gt;) (Class&lt;?&gt;) HashMap.class;</span>
+<span class="source-line-no">196</span><span id="line-196">                    persisted = decoder.readObject(cls);</span>
+<span class="source-line-no">197</span><span id="line-197">                }</span>
+<span class="source-line-no">198</span><span id="line-198">            } catch (InterruptedException | JsonDecodeException e) {</span>
+<span class="source-line-no">199</span><span id="line-199">                persisted = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">200</span><span id="line-200">            }</span>
+<span class="source-line-no">201</span><span id="line-201"></span>
+<span class="source-line-no">202</span><span id="line-202">            // Make sure data is consistent</span>
+<span class="source-line-no">203</span><span id="line-203">            @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">204</span><span id="line-204">            List&lt;String&gt; previewLayout = (List&lt;String&gt;) persisted</span>
+<span class="source-line-no">205</span><span id="line-205">                .computeIfAbsent("previewLayout",</span>
+<span class="source-line-no">206</span><span id="line-206">                    newKey -&gt; Collections.emptyList());</span>
+<span class="source-line-no">207</span><span id="line-207">            @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">208</span><span id="line-208">            List&lt;String&gt; tabsLayout = (List&lt;String&gt;) persisted.computeIfAbsent(</span>
+<span class="source-line-no">209</span><span id="line-209">                "tabsLayout", newKey -&gt; Collections.emptyList());</span>
+<span class="source-line-no">210</span><span id="line-210">            JsonObject xtraInfo = (JsonObject) persisted.computeIfAbsent(</span>
+<span class="source-line-no">211</span><span id="line-211">                "xtraInfo", newKey -&gt; JsonObject.create());</span>
+<span class="source-line-no">212</span><span id="line-212"></span>
+<span class="source-line-no">213</span><span id="line-213">            // Update (now consistent) layout</span>
+<span class="source-line-no">214</span><span id="line-214">            channel.respond(new LastConsoleLayout(</span>
+<span class="source-line-no">215</span><span id="line-215">                previewLayout, tabsLayout, xtraInfo));</span>
+<span class="source-line-no">216</span><span id="line-216"></span>
+<span class="source-line-no">217</span><span id="line-217">            // Restore conlets</span>
+<span class="source-line-no">218</span><span id="line-218">            for (String conletId : tabsLayout) {</span>
+<span class="source-line-no">219</span><span id="line-219">                fire(new RenderConletRequest(renderSupport, conletId,</span>
+<span class="source-line-no">220</span><span id="line-220">                    RenderMode.asSet(RenderMode.View)), channel);</span>
+<span class="source-line-no">221</span><span id="line-221">            }</span>
+<span class="source-line-no">222</span><span id="line-222">            for (String conletId : previewLayout) {</span>
+<span class="source-line-no">223</span><span id="line-223">                fire(new RenderConletRequest(renderSupport, conletId,</span>
+<span class="source-line-no">224</span><span id="line-224">                    RenderMode.asSet(RenderMode.Preview,</span>
+<span class="source-line-no">225</span><span id="line-225">                        RenderMode.Foreground)),</span>
+<span class="source-line-no">226</span><span id="line-226">                    channel);</span>
+<span class="source-line-no">227</span><span id="line-227">            }</span>
+<span class="source-line-no">228</span><span id="line-228">        }</span>
+<span class="source-line-no">229</span><span id="line-229"></span>
+<span class="source-line-no">230</span><span id="line-230">        public void onConsoleLayoutChanged(ConsoleLayoutChanged event,</span>
+<span class="source-line-no">231</span><span id="line-231">                IOSubchannel channel) throws IOException {</span>
+<span class="source-line-no">232</span><span id="line-232">            persisted.put("previewLayout", event.previewLayout());</span>
+<span class="source-line-no">233</span><span id="line-233">            persisted.put("tabsLayout", event.tabsLayout());</span>
+<span class="source-line-no">234</span><span id="line-234">            persisted.put("xtraInfo", event.xtraInfo());</span>
+<span class="source-line-no">235</span><span id="line-235"></span>
+<span class="source-line-no">236</span><span id="line-236">            // Now store.</span>
+<span class="source-line-no">237</span><span id="line-237">            JsonBeanEncoder encoder = JsonBeanEncoder.create();</span>
+<span class="source-line-no">238</span><span id="line-238">            encoder.writeObject(persisted);</span>
+<span class="source-line-no">239</span><span id="line-239">            fire(new KeyValueStoreUpdate()</span>
+<span class="source-line-no">240</span><span id="line-240">                .update(storagePath, encoder.toJson()), channel);</span>
+<span class="source-line-no">241</span><span id="line-241">        }</span>
+<span class="source-line-no">242</span><span id="line-242"></span>
+<span class="source-line-no">243</span><span id="line-243">    }</span>
+<span class="source-line-no">244</span><span id="line-244">}</span>
 
 
 

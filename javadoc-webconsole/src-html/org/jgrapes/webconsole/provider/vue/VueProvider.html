@@ -39,7 +39,7 @@
 <span class="source-line-no">026</span><span id="line-26">import org.jgrapes.core.Event;</span>
 <span class="source-line-no">027</span><span id="line-27">import org.jgrapes.core.Manager;</span>
 <span class="source-line-no">028</span><span id="line-28">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">029</span><span id="line-29">import org.jgrapes.webconsole.base.ConsoleSession;</span>
+<span class="source-line-no">029</span><span id="line-29">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
 <span class="source-line-no">030</span><span id="line-30">import org.jgrapes.webconsole.base.PageResourceProvider;</span>
 <span class="source-line-no">031</span><span id="line-31">import org.jgrapes.webconsole.base.events.AddPageResources;</span>
 <span class="source-line-no">032</span><span id="line-32">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</span>
@@ -66,22 +66,21 @@
 <span class="source-line-no">053</span><span id="line-53">     * On {@link ConsoleReady}, fire the appropriate {@link AddPageResources}.</span>
 <span class="source-line-no">054</span><span id="line-54">     *</span>
 <span class="source-line-no">055</span><span id="line-55">     * @param event the event</span>
-<span class="source-line-no">056</span><span id="line-56">     * @param consoleSession the web console session</span>
+<span class="source-line-no">056</span><span id="line-56">     * @param connection the web console connection</span>
 <span class="source-line-no">057</span><span id="line-57">     * @throws TemplateNotFoundException the template not found exception</span>
 <span class="source-line-no">058</span><span id="line-58">     * @throws MalformedTemplateNameException the malformed template name exception</span>
 <span class="source-line-no">059</span><span id="line-59">     * @throws ParseException the parse exception</span>
 <span class="source-line-no">060</span><span id="line-60">     * @throws IOException Signals that an I/O exception has occurred.</span>
 <span class="source-line-no">061</span><span id="line-61">     */</span>
 <span class="source-line-no">062</span><span id="line-62">    @Handler(priority = 100)</span>
-<span class="source-line-no">063</span><span id="line-63">    public void onConsoleReady(ConsoleReady event,</span>
-<span class="source-line-no">064</span><span id="line-64">            ConsoleSession consoleSession)</span>
-<span class="source-line-no">065</span><span id="line-65">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
-<span class="source-line-no">066</span><span id="line-66">            ParseException, IOException {</span>
-<span class="source-line-no">067</span><span id="line-67">        consoleSession.respond(new AddPageResources()</span>
-<span class="source-line-no">068</span><span id="line-68">            .addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">069</span><span id="line-69">                .setProvides(new String[] { "vue" })));</span>
-<span class="source-line-no">070</span><span id="line-70">    }</span>
-<span class="source-line-no">071</span><span id="line-71">}</span>
+<span class="source-line-no">063</span><span id="line-63">    public void onConsoleReady(ConsoleReady event, ConsoleConnection connection)</span>
+<span class="source-line-no">064</span><span id="line-64">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
+<span class="source-line-no">065</span><span id="line-65">            ParseException, IOException {</span>
+<span class="source-line-no">066</span><span id="line-66">        connection.respond(new AddPageResources()</span>
+<span class="source-line-no">067</span><span id="line-67">            .addScriptResource(new ScriptResource()</span>
+<span class="source-line-no">068</span><span id="line-68">                .setProvides(new String[] { "vue" })));</span>
+<span class="source-line-no">069</span><span id="line-69">    }</span>
+<span class="source-line-no">070</span><span id="line-70">}</span>
 
 
 

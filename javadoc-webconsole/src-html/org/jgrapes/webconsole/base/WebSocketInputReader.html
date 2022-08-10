@@ -54,7 +54,7 @@
 <span class="source-line-no">041</span><span id="line-41">public class WebSocketInputReader extends Thread {</span>
 <span class="source-line-no">042</span><span id="line-42"></span>
 <span class="source-line-no">043</span><span id="line-43">    private final WeakReference&lt;EventPipeline&gt; pipelineRef;</span>
-<span class="source-line-no">044</span><span id="line-44">    private final WeakReference&lt;ConsoleSession&gt; channelRef;</span>
+<span class="source-line-no">044</span><span id="line-44">    private final WeakReference&lt;ConsoleConnection&gt; channelRef;</span>
 <span class="source-line-no">045</span><span id="line-45">    private PipedWriter decodeIn;</span>
 <span class="source-line-no">046</span><span id="line-46">    private Reader jsonSource;</span>
 <span class="source-line-no">047</span><span id="line-47"></span>
@@ -107,7 +107,7 @@
 <span class="source-line-no">094</span><span id="line-94">     * @param consoleChannel the web console channel</span>
 <span class="source-line-no">095</span><span id="line-95">     */</span>
 <span class="source-line-no">096</span><span id="line-96">    public WebSocketInputReader(EventPipeline wsInPipeline,</span>
-<span class="source-line-no">097</span><span id="line-97">            ConsoleSession consoleChannel) {</span>
+<span class="source-line-no">097</span><span id="line-97">            ConsoleConnection consoleChannel) {</span>
 <span class="source-line-no">098</span><span id="line-98">        pipelineRef</span>
 <span class="source-line-no">099</span><span id="line-99">            = new WebSocketInputReader.RefWithThread&lt;&gt;(wsInPipeline, this);</span>
 <span class="source-line-no">100</span><span id="line-100">        channelRef</span>
@@ -169,24 +169,24 @@
 <span class="source-line-no">156</span><span id="line-156">                break;</span>
 <span class="source-line-no">157</span><span id="line-157">            }</span>
 <span class="source-line-no">158</span><span id="line-158">            // Fully decoded JSON available.</span>
-<span class="source-line-no">159</span><span id="line-159">            ConsoleSession consoleSession = channelRef.get();</span>
+<span class="source-line-no">159</span><span id="line-159">            ConsoleConnection connection = channelRef.get();</span>
 <span class="source-line-no">160</span><span id="line-160">            EventPipeline eventPipeline = pipelineRef.get();</span>
-<span class="source-line-no">161</span><span id="line-161">            if (eventPipeline == null || consoleSession == null) {</span>
+<span class="source-line-no">161</span><span id="line-161">            if (eventPipeline == null || connection == null) {</span>
 <span class="source-line-no">162</span><span id="line-162">                break;</span>
 <span class="source-line-no">163</span><span id="line-163">            }</span>
-<span class="source-line-no">164</span><span id="line-164">            // WebConsole session established, check for special disconnect</span>
+<span class="source-line-no">164</span><span id="line-164">            // WebConsole connection established, check for special disconnect</span>
 <span class="source-line-no">165</span><span id="line-165">            if ("disconnect".equals(rpc.method())</span>
-<span class="source-line-no">166</span><span id="line-166">                &amp;&amp; consoleSession.consoleSessionId().equals(</span>
-<span class="source-line-no">167</span><span id="line-167">                    rpc.params().asString(0))) {</span>
-<span class="source-line-no">168</span><span id="line-168">                consoleSession.discard();</span>
+<span class="source-line-no">166</span><span id="line-166">                &amp;&amp; connection.consoleConnectionId()</span>
+<span class="source-line-no">167</span><span id="line-167">                    .equals(rpc.params().asString(0))) {</span>
+<span class="source-line-no">168</span><span id="line-168">                connection.discard();</span>
 <span class="source-line-no">169</span><span id="line-169">                return;</span>
 <span class="source-line-no">170</span><span id="line-170">            }</span>
 <span class="source-line-no">171</span><span id="line-171">            // Ordinary message from web console (view) to server.</span>
-<span class="source-line-no">172</span><span id="line-172">            consoleSession.refresh();</span>
+<span class="source-line-no">172</span><span id="line-172">            connection.refresh();</span>
 <span class="source-line-no">173</span><span id="line-173">            if ("keepAlive".equals(rpc.method())) {</span>
 <span class="source-line-no">174</span><span id="line-174">                continue;</span>
 <span class="source-line-no">175</span><span id="line-175">            }</span>
-<span class="source-line-no">176</span><span id="line-176">            eventPipeline.fire(new JsonInput(rpc), consoleSession);</span>
+<span class="source-line-no">176</span><span id="line-176">            eventPipeline.fire(new JsonInput(rpc), connection);</span>
 <span class="source-line-no">177</span><span id="line-177">        }</span>
 <span class="source-line-no">178</span><span id="line-178">    }</span>
 <span class="source-line-no">179</span><span id="line-179">}</span>

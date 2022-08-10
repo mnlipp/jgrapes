@@ -44,7 +44,7 @@
 <span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.Manager;</span>
 <span class="source-line-no">032</span><span id="line-32">import org.jgrapes.core.annotation.Handler;</span>
 <span class="source-line-no">033</span><span id="line-33">import org.jgrapes.webconsole.base.Conlet.RenderMode;</span>
-<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.webconsole.base.ConsoleSession;</span>
+<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
 <span class="source-line-no">035</span><span id="line-35">import org.jgrapes.webconsole.base.WebConsoleUtils;</span>
 <span class="source-line-no">036</span><span id="line-36">import org.jgrapes.webconsole.base.events.AddConletType;</span>
 <span class="source-line-no">037</span><span id="line-37">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</span>
@@ -77,7 +77,7 @@
 <span class="source-line-no">064</span><span id="line-64">     * Trigger loading of resources when the console is ready.</span>
 <span class="source-line-no">065</span><span id="line-65">     *</span>
 <span class="source-line-no">066</span><span id="line-66">     * @param event the event</span>
-<span class="source-line-no">067</span><span id="line-67">     * @param consoleSession the console session</span>
+<span class="source-line-no">067</span><span id="line-67">     * @param connection the console connection</span>
 <span class="source-line-no">068</span><span id="line-68">     * @throws TemplateNotFoundException the template not found exception</span>
 <span class="source-line-no">069</span><span id="line-69">     * @throws MalformedTemplateNameException the malformed template name </span>
 <span class="source-line-no">070</span><span id="line-70">     * exception</span>
@@ -85,41 +85,40 @@
 <span class="source-line-no">072</span><span id="line-72">     * @throws IOException Signals that an I/O exception has occurred.</span>
 <span class="source-line-no">073</span><span id="line-73">     */</span>
 <span class="source-line-no">074</span><span id="line-74">    @Handler</span>
-<span class="source-line-no">075</span><span id="line-75">    public void onConsoleReady(ConsoleReady event,</span>
-<span class="source-line-no">076</span><span id="line-76">            ConsoleSession consoleSession)</span>
-<span class="source-line-no">077</span><span id="line-77">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
-<span class="source-line-no">078</span><span id="line-78">            ParseException, IOException {</span>
-<span class="source-line-no">079</span><span id="line-79">        // Add HelloWorldConlet resources to page</span>
-<span class="source-line-no">080</span><span id="line-80">        consoleSession.respond(new AddConletType(type())</span>
-<span class="source-line-no">081</span><span id="line-81">            .setDisplayNames(</span>
-<span class="source-line-no">082</span><span id="line-82">                localizations(consoleSession.supportedLocales(), "conletName"))</span>
-<span class="source-line-no">083</span><span id="line-83">            .addRenderMode(RenderMode.View)</span>
-<span class="source-line-no">084</span><span id="line-84">            .addScript(new ScriptResource().setScriptUri(</span>
-<span class="source-line-no">085</span><span id="line-85">                event.renderSupport().conletResource(type(),</span>
-<span class="source-line-no">086</span><span id="line-86">                    "FormTest-functions.js")))</span>
-<span class="source-line-no">087</span><span id="line-87">            .addCss(event.renderSupport(), WebConsoleUtils.uriFromPath(</span>
-<span class="source-line-no">088</span><span id="line-88">                "FormTest-style.css")));</span>
-<span class="source-line-no">089</span><span id="line-89">    }</span>
-<span class="source-line-no">090</span><span id="line-90"></span>
-<span class="source-line-no">091</span><span id="line-91">    @Override</span>
-<span class="source-line-no">092</span><span id="line-92">    protected Set&lt;RenderMode&gt; doRenderConlet(RenderConletRequestBase&lt;?&gt; event,</span>
-<span class="source-line-no">093</span><span id="line-93">            ConsoleSession channel, String conletId,</span>
-<span class="source-line-no">094</span><span id="line-94">            Serializable conletState) throws Exception {</span>
-<span class="source-line-no">095</span><span id="line-95">        Set&lt;RenderMode&gt; renderedAs = new HashSet&lt;&gt;();</span>
-<span class="source-line-no">096</span><span id="line-96">        if (event.renderAs().contains(RenderMode.View)) {</span>
-<span class="source-line-no">097</span><span id="line-97">            Template tpl</span>
-<span class="source-line-no">098</span><span id="line-98">                = freemarkerConfig().getTemplate("FormTest-view.ftl.html");</span>
-<span class="source-line-no">099</span><span id="line-99">            channel.respond(new RenderConlet(type(), conletId,</span>
-<span class="source-line-no">100</span><span id="line-100">                processTemplate(event, tpl,</span>
-<span class="source-line-no">101</span><span id="line-101">                    fmModel(event, channel, conletId, conletState)))</span>
-<span class="source-line-no">102</span><span id="line-102">                        .setRenderAs(</span>
-<span class="source-line-no">103</span><span id="line-103">                            RenderMode.View.addModifiers(event.renderAs()))</span>
-<span class="source-line-no">104</span><span id="line-104">                        .setSupportedModes(MODES));</span>
-<span class="source-line-no">105</span><span id="line-105">            renderedAs.add(RenderMode.View);</span>
-<span class="source-line-no">106</span><span id="line-106">        }</span>
-<span class="source-line-no">107</span><span id="line-107">        return renderedAs;</span>
-<span class="source-line-no">108</span><span id="line-108">    }</span>
-<span class="source-line-no">109</span><span id="line-109">}</span>
+<span class="source-line-no">075</span><span id="line-75">    public void onConsoleReady(ConsoleReady event, ConsoleConnection connection)</span>
+<span class="source-line-no">076</span><span id="line-76">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
+<span class="source-line-no">077</span><span id="line-77">            ParseException, IOException {</span>
+<span class="source-line-no">078</span><span id="line-78">        // Add HelloWorldConlet resources to page</span>
+<span class="source-line-no">079</span><span id="line-79">        connection.respond(new AddConletType(type())</span>
+<span class="source-line-no">080</span><span id="line-80">            .setDisplayNames(</span>
+<span class="source-line-no">081</span><span id="line-81">                localizations(connection.supportedLocales(), "conletName"))</span>
+<span class="source-line-no">082</span><span id="line-82">            .addRenderMode(RenderMode.View)</span>
+<span class="source-line-no">083</span><span id="line-83">            .addScript(new ScriptResource().setScriptUri(</span>
+<span class="source-line-no">084</span><span id="line-84">                event.renderSupport().conletResource(type(),</span>
+<span class="source-line-no">085</span><span id="line-85">                    "FormTest-functions.js")))</span>
+<span class="source-line-no">086</span><span id="line-86">            .addCss(event.renderSupport(), WebConsoleUtils.uriFromPath(</span>
+<span class="source-line-no">087</span><span id="line-87">                "FormTest-style.css")));</span>
+<span class="source-line-no">088</span><span id="line-88">    }</span>
+<span class="source-line-no">089</span><span id="line-89"></span>
+<span class="source-line-no">090</span><span id="line-90">    @Override</span>
+<span class="source-line-no">091</span><span id="line-91">    protected Set&lt;RenderMode&gt; doRenderConlet(RenderConletRequestBase&lt;?&gt; event,</span>
+<span class="source-line-no">092</span><span id="line-92">            ConsoleConnection channel, String conletId,</span>
+<span class="source-line-no">093</span><span id="line-93">            Serializable conletState) throws Exception {</span>
+<span class="source-line-no">094</span><span id="line-94">        Set&lt;RenderMode&gt; renderedAs = new HashSet&lt;&gt;();</span>
+<span class="source-line-no">095</span><span id="line-95">        if (event.renderAs().contains(RenderMode.View)) {</span>
+<span class="source-line-no">096</span><span id="line-96">            Template tpl</span>
+<span class="source-line-no">097</span><span id="line-97">                = freemarkerConfig().getTemplate("FormTest-view.ftl.html");</span>
+<span class="source-line-no">098</span><span id="line-98">            channel.respond(new RenderConlet(type(), conletId,</span>
+<span class="source-line-no">099</span><span id="line-99">                processTemplate(event, tpl,</span>
+<span class="source-line-no">100</span><span id="line-100">                    fmModel(event, channel, conletId, conletState)))</span>
+<span class="source-line-no">101</span><span id="line-101">                        .setRenderAs(</span>
+<span class="source-line-no">102</span><span id="line-102">                            RenderMode.View.addModifiers(event.renderAs()))</span>
+<span class="source-line-no">103</span><span id="line-103">                        .setSupportedModes(MODES));</span>
+<span class="source-line-no">104</span><span id="line-104">            renderedAs.add(RenderMode.View);</span>
+<span class="source-line-no">105</span><span id="line-105">        }</span>
+<span class="source-line-no">106</span><span id="line-106">        return renderedAs;</span>
+<span class="source-line-no">107</span><span id="line-107">    }</span>
+<span class="source-line-no">108</span><span id="line-108">}</span>
 
 
 

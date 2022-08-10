@@ -89,10 +89,10 @@
 <span class="source-line-no">076</span><span id="line-76">    @Handler(priority = 999)</span>
 <span class="source-line-no">077</span><span id="line-77">    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
 <span class="source-line-no">078</span><span id="line-78">    public void onConsolePrepared(ConsolePrepared event,</span>
-<span class="source-line-no">079</span><span id="line-79">            ConsoleSession channel) {</span>
+<span class="source-line-no">079</span><span id="line-79">            ConsoleConnection channel) {</span>
 <span class="source-line-no">080</span><span id="line-80">        Set&lt;String&gt; toRemove = new HashSet&lt;&gt;(restricted);</span>
 <span class="source-line-no">081</span><span id="line-81">        toRemove.removeAll(</span>
-<span class="source-line-no">082</span><span id="line-82">            WebConsoleUtils.userFromSession(channel.browserSession())</span>
+<span class="source-line-no">082</span><span id="line-82">            WebConsoleUtils.userFromSession(channel.session())</span>
 <span class="source-line-no">083</span><span id="line-83">                .map(ConsoleUser::getName).map(user -&gt; acl.get(user))</span>
 <span class="source-line-no">084</span><span id="line-84">                .orElse(Collections.emptySet()));</span>
 <span class="source-line-no">085</span><span id="line-85">        for (var type : toRemove) {</span>

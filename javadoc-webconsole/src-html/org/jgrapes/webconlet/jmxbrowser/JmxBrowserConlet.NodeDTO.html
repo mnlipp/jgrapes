@@ -66,7 +66,7 @@
 <span class="source-line-no">053</span><span id="line-53">import org.jgrapes.core.Manager;</span>
 <span class="source-line-no">054</span><span id="line-54">import org.jgrapes.core.annotation.Handler;</span>
 <span class="source-line-no">055</span><span id="line-55">import org.jgrapes.webconsole.base.Conlet.RenderMode;</span>
-<span class="source-line-no">056</span><span id="line-56">import org.jgrapes.webconsole.base.ConsoleSession;</span>
+<span class="source-line-no">056</span><span id="line-56">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
 <span class="source-line-no">057</span><span id="line-57">import org.jgrapes.webconsole.base.events.AddConletType;</span>
 <span class="source-line-no">058</span><span id="line-58">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</span>
 <span class="source-line-no">059</span><span id="line-59">import org.jgrapes.webconsole.base.events.ConsoleReady;</span>
@@ -107,7 +107,7 @@
 <span class="source-line-no">094</span><span id="line-94">     * @throws IOException Signals that an I/O exception has occurred.</span>
 <span class="source-line-no">095</span><span id="line-95">     */</span>
 <span class="source-line-no">096</span><span id="line-96">    @Handler</span>
-<span class="source-line-no">097</span><span id="line-97">    public void onConsoleReady(ConsoleReady event, ConsoleSession channel)</span>
+<span class="source-line-no">097</span><span id="line-97">    public void onConsoleReady(ConsoleReady event, ConsoleConnection channel)</span>
 <span class="source-line-no">098</span><span id="line-98">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
 <span class="source-line-no">099</span><span id="line-99">            ParseException, IOException {</span>
 <span class="source-line-no">100</span><span id="line-100">        // Add conlet resources to page</span>
@@ -122,7 +122,7 @@
 <span class="source-line-no">109</span><span id="line-109"></span>
 <span class="source-line-no">110</span><span id="line-110">    @Override</span>
 <span class="source-line-no">111</span><span id="line-111">    protected Set&lt;RenderMode&gt; doRenderConlet(</span>
-<span class="source-line-no">112</span><span id="line-112">            RenderConletRequestBase&lt;?&gt; event, ConsoleSession channel,</span>
+<span class="source-line-no">112</span><span id="line-112">            RenderConletRequestBase&lt;?&gt; event, ConsoleConnection channel,</span>
 <span class="source-line-no">113</span><span id="line-113">            String conletId, Serializable conletState)</span>
 <span class="source-line-no">114</span><span id="line-114">            throws Exception {</span>
 <span class="source-line-no">115</span><span id="line-115">        Set&lt;RenderMode&gt; renderedAs = new HashSet&lt;&gt;();</span>
@@ -159,7 +159,7 @@
 <span class="source-line-no">146</span><span id="line-146"></span>
 <span class="source-line-no">147</span><span id="line-147">    @Override</span>
 <span class="source-line-no">148</span><span id="line-148">    protected void doUpdateConletState(NotifyConletModel event,</span>
-<span class="source-line-no">149</span><span id="line-149">            ConsoleSession channel, Serializable conletModel)</span>
+<span class="source-line-no">149</span><span id="line-149">            ConsoleConnection channel, Serializable conletModel)</span>
 <span class="source-line-no">150</span><span id="line-150">            throws Exception {</span>
 <span class="source-line-no">151</span><span id="line-151">        event.stop();</span>
 <span class="source-line-no">152</span><span id="line-152">        if ("sendMBean".equals(event.method())) {</span>

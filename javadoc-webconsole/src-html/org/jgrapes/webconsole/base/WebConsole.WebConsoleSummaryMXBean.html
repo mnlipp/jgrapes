@@ -116,7 +116,7 @@
 <span class="source-line-no">103</span><span id="line-103">    @Handler</span>
 <span class="source-line-no">104</span><span id="line-104">    @SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
 <span class="source-line-no">105</span><span id="line-105">        "PMD.AvoidInstantiatingObjectsInLoops", "PMD.NcssCount" })</span>
-<span class="source-line-no">106</span><span id="line-106">    public void onJsonInput(JsonInput event, ConsoleSession channel)</span>
+<span class="source-line-no">106</span><span id="line-106">    public void onJsonInput(JsonInput event, ConsoleConnection channel)</span>
 <span class="source-line-no">107</span><span id="line-107">            throws InterruptedException, IOException {</span>
 <span class="source-line-no">108</span><span id="line-108">        // Send events to web console components on console's channel</span>
 <span class="source-line-no">109</span><span id="line-109">        JsonArray params = event.request().params();</span>
@@ -200,7 +200,7 @@
 <span class="source-line-no">187</span><span id="line-187">     */</span>
 <span class="source-line-no">188</span><span id="line-188">    @Handler</span>
 <span class="source-line-no">189</span><span id="line-189">    public void onConsoleConfigured(</span>
-<span class="source-line-no">190</span><span id="line-190">            ConsoleConfigured event, ConsoleSession channel)</span>
+<span class="source-line-no">190</span><span id="line-190">            ConsoleConfigured event, ConsoleConnection channel)</span>
 <span class="source-line-no">191</span><span id="line-191">            throws InterruptedException, IOException {</span>
 <span class="source-line-no">192</span><span id="line-192">        channel.respond(new SimpleConsoleCommand("consoleConfigured"));</span>
 <span class="source-line-no">193</span><span id="line-193">    }</span>
@@ -215,7 +215,7 @@
 <span class="source-line-no">202</span><span id="line-202">     */</span>
 <span class="source-line-no">203</span><span id="line-203">    @Handler(priority = -1_000_000)</span>
 <span class="source-line-no">204</span><span id="line-204">    public void onRenderConlet(</span>
-<span class="source-line-no">205</span><span id="line-205">            RenderConletRequest event, ConsoleSession channel) {</span>
+<span class="source-line-no">205</span><span id="line-205">            RenderConletRequest event, ConsoleConnection channel) {</span>
 <span class="source-line-no">206</span><span id="line-206">        if (!event.hasBeenRendered()) {</span>
 <span class="source-line-no">207</span><span id="line-207">            channel.respond(</span>
 <span class="source-line-no">208</span><span id="line-208">                new DeleteConlet(event.conletId(), Collections.emptySet()));</span>
@@ -223,13 +223,13 @@
 <span class="source-line-no">210</span><span id="line-210">    }</span>
 <span class="source-line-no">211</span><span id="line-211"></span>
 <span class="source-line-no">212</span><span id="line-212">    /**</span>
-<span class="source-line-no">213</span><span id="line-213">     * Discard all console sessions on stop.</span>
+<span class="source-line-no">213</span><span id="line-213">     * Discard all console connections on stop.</span>
 <span class="source-line-no">214</span><span id="line-214">     *</span>
 <span class="source-line-no">215</span><span id="line-215">     * @param event the event</span>
 <span class="source-line-no">216</span><span id="line-216">     */</span>
 <span class="source-line-no">217</span><span id="line-217">    @Handler</span>
 <span class="source-line-no">218</span><span id="line-218">    public void onStop(Stop event) {</span>
-<span class="source-line-no">219</span><span id="line-219">        for (ConsoleSession ps : ConsoleSession.byConsole(this)) {</span>
+<span class="source-line-no">219</span><span id="line-219">        for (ConsoleConnection ps : ConsoleConnection.byConsole(this)) {</span>
 <span class="source-line-no">220</span><span id="line-220">            ps.discard();</span>
 <span class="source-line-no">221</span><span id="line-221">        }</span>
 <span class="source-line-no">222</span><span id="line-222">    }</span>
@@ -243,9 +243,9 @@
 <span class="source-line-no">230</span><span id="line-230">        @SuppressWarnings("PMD.CommentRequired")</span>
 <span class="source-line-no">231</span><span id="line-231">        class ConsoleSessionInfo {</span>
 <span class="source-line-no">232</span><span id="line-232"></span>
-<span class="source-line-no">233</span><span id="line-233">            private final ConsoleSession session;</span>
+<span class="source-line-no">233</span><span id="line-233">            private final ConsoleConnection session;</span>
 <span class="source-line-no">234</span><span id="line-234"></span>
-<span class="source-line-no">235</span><span id="line-235">            public ConsoleSessionInfo(ConsoleSession session) {</span>
+<span class="source-line-no">235</span><span id="line-235">            public ConsoleSessionInfo(ConsoleConnection session) {</span>
 <span class="source-line-no">236</span><span id="line-236">                super();</span>
 <span class="source-line-no">237</span><span id="line-237">                this.session = session;</span>
 <span class="source-line-no">238</span><span id="line-238">            }</span>
@@ -349,75 +349,76 @@
 <span class="source-line-no">336</span><span id="line-336">        public SortedMap&lt;String, ConsoleSessionInfo&gt; getConsoleSessions() {</span>
 <span class="source-line-no">337</span><span id="line-337">            SortedMap&lt;String, ConsoleSessionInfo&gt; result = new TreeMap&lt;&gt;();</span>
 <span class="source-line-no">338</span><span id="line-338">            console().ifPresent(console -&gt; {</span>
-<span class="source-line-no">339</span><span id="line-339">                for (ConsoleSession ps : ConsoleSession.byConsole(console)) {</span>
-<span class="source-line-no">340</span><span id="line-340">                    result.put(Components.simpleObjectName(ps),</span>
-<span class="source-line-no">341</span><span id="line-341">                        new ConsoleSessionInfo(ps));</span>
-<span class="source-line-no">342</span><span id="line-342">                }</span>
-<span class="source-line-no">343</span><span id="line-343">            });</span>
-<span class="source-line-no">344</span><span id="line-344">            return result;</span>
-<span class="source-line-no">345</span><span id="line-345">        }</span>
-<span class="source-line-no">346</span><span id="line-346">    }</span>
-<span class="source-line-no">347</span><span id="line-347"></span>
-<span class="source-line-no">348</span><span id="line-348">    /**</span>
-<span class="source-line-no">349</span><span id="line-349">     * An MBean interface for getting information about all consoles.</span>
-<span class="source-line-no">350</span><span id="line-350">     * </span>
-<span class="source-line-no">351</span><span id="line-351">     * There is currently no summary information. However, the (periodic)</span>
-<span class="source-line-no">352</span><span id="line-352">     * invocation of {@link WebConsoleSummaryMXBean#getConsoles()} ensures</span>
-<span class="source-line-no">353</span><span id="line-353">     * that entries for removed {@link WebConsole}s are unregistered.</span>
-<span class="source-line-no">354</span><span id="line-354">     */</span>
-<span class="source-line-no">355</span><span id="line-355">    @SuppressWarnings("PMD.CommentRequired")</span>
-<span class="source-line-no">356</span><span id="line-356">    public interface WebConsoleSummaryMXBean {</span>
-<span class="source-line-no">357</span><span id="line-357"></span>
-<span class="source-line-no">358</span><span id="line-358">        Set&lt;ConsoleMXBean&gt; getConsoles();</span>
-<span class="source-line-no">359</span><span id="line-359"></span>
-<span class="source-line-no">360</span><span id="line-360">    }</span>
-<span class="source-line-no">361</span><span id="line-361"></span>
-<span class="source-line-no">362</span><span id="line-362">    /**</span>
-<span class="source-line-no">363</span><span id="line-363">     * Provides an MBean view of the console.</span>
-<span class="source-line-no">364</span><span id="line-364">     */</span>
-<span class="source-line-no">365</span><span id="line-365">    @SuppressWarnings("PMD.CommentRequired")</span>
-<span class="source-line-no">366</span><span id="line-366">    private static class MBeanView implements WebConsoleSummaryMXBean {</span>
-<span class="source-line-no">367</span><span id="line-367"></span>
-<span class="source-line-no">368</span><span id="line-368">        private static Set&lt;WebConsoleInfo&gt; consoleInfos = new HashSet&lt;&gt;();</span>
-<span class="source-line-no">369</span><span id="line-369"></span>
-<span class="source-line-no">370</span><span id="line-370">        public static void addConsole(WebConsole console) {</span>
-<span class="source-line-no">371</span><span id="line-371">            synchronized (consoleInfos) {</span>
-<span class="source-line-no">372</span><span id="line-372">                consoleInfos.add(new WebConsoleInfo(console));</span>
-<span class="source-line-no">373</span><span id="line-373">            }</span>
-<span class="source-line-no">374</span><span id="line-374">        }</span>
-<span class="source-line-no">375</span><span id="line-375"></span>
-<span class="source-line-no">376</span><span id="line-376">        @Override</span>
-<span class="source-line-no">377</span><span id="line-377">        public Set&lt;ConsoleMXBean&gt; getConsoles() {</span>
-<span class="source-line-no">378</span><span id="line-378">            Set&lt;WebConsoleInfo&gt; expired = new HashSet&lt;&gt;();</span>
-<span class="source-line-no">379</span><span id="line-379">            synchronized (consoleInfos) {</span>
-<span class="source-line-no">380</span><span id="line-380">                for (WebConsoleInfo consoleInfo : consoleInfos) {</span>
-<span class="source-line-no">381</span><span id="line-381">                    if (!consoleInfo.console().isPresent()) {</span>
-<span class="source-line-no">382</span><span id="line-382">                        expired.add(consoleInfo);</span>
-<span class="source-line-no">383</span><span id="line-383">                    }</span>
-<span class="source-line-no">384</span><span id="line-384">                }</span>
-<span class="source-line-no">385</span><span id="line-385">                consoleInfos.removeAll(expired);</span>
-<span class="source-line-no">386</span><span id="line-386">            }</span>
-<span class="source-line-no">387</span><span id="line-387">            @SuppressWarnings("unchecked")</span>
-<span class="source-line-no">388</span><span id="line-388">            Set&lt;ConsoleMXBean&gt; result</span>
-<span class="source-line-no">389</span><span id="line-389">                = (Set&lt;ConsoleMXBean&gt;) (Object) consoleInfos;</span>
-<span class="source-line-no">390</span><span id="line-390">            return result;</span>
-<span class="source-line-no">391</span><span id="line-391">        }</span>
-<span class="source-line-no">392</span><span id="line-392">    }</span>
-<span class="source-line-no">393</span><span id="line-393"></span>
-<span class="source-line-no">394</span><span id="line-394">    static {</span>
-<span class="source-line-no">395</span><span id="line-395">        try {</span>
-<span class="source-line-no">396</span><span id="line-396">            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();</span>
-<span class="source-line-no">397</span><span id="line-397">            ObjectName mxbeanName</span>
-<span class="source-line-no">398</span><span id="line-398">                = new ObjectName("org.jgrapes.webconsole:type="</span>
-<span class="source-line-no">399</span><span id="line-399">                    + WebConsole.class.getSimpleName() + "s");</span>
-<span class="source-line-no">400</span><span id="line-400">            mbs.registerMBean(new MBeanView(), mxbeanName);</span>
-<span class="source-line-no">401</span><span id="line-401">        } catch (MalformedObjectNameException | InstanceAlreadyExistsException</span>
-<span class="source-line-no">402</span><span id="line-402">                | MBeanRegistrationException | NotCompliantMBeanException e) {</span>
-<span class="source-line-no">403</span><span id="line-403">            // Should not happen</span>
-<span class="source-line-no">404</span><span id="line-404">            logger.log(Level.WARNING, e.getMessage(), e);</span>
-<span class="source-line-no">405</span><span id="line-405">        }</span>
-<span class="source-line-no">406</span><span id="line-406">    }</span>
-<span class="source-line-no">407</span><span id="line-407">}</span>
+<span class="source-line-no">339</span><span id="line-339">                for (ConsoleConnection ps : ConsoleConnection</span>
+<span class="source-line-no">340</span><span id="line-340">                    .byConsole(console)) {</span>
+<span class="source-line-no">341</span><span id="line-341">                    result.put(Components.simpleObjectName(ps),</span>
+<span class="source-line-no">342</span><span id="line-342">                        new ConsoleSessionInfo(ps));</span>
+<span class="source-line-no">343</span><span id="line-343">                }</span>
+<span class="source-line-no">344</span><span id="line-344">            });</span>
+<span class="source-line-no">345</span><span id="line-345">            return result;</span>
+<span class="source-line-no">346</span><span id="line-346">        }</span>
+<span class="source-line-no">347</span><span id="line-347">    }</span>
+<span class="source-line-no">348</span><span id="line-348"></span>
+<span class="source-line-no">349</span><span id="line-349">    /**</span>
+<span class="source-line-no">350</span><span id="line-350">     * An MBean interface for getting information about all consoles.</span>
+<span class="source-line-no">351</span><span id="line-351">     * </span>
+<span class="source-line-no">352</span><span id="line-352">     * There is currently no summary information. However, the (periodic)</span>
+<span class="source-line-no">353</span><span id="line-353">     * invocation of {@link WebConsoleSummaryMXBean#getConsoles()} ensures</span>
+<span class="source-line-no">354</span><span id="line-354">     * that entries for removed {@link WebConsole}s are unregistered.</span>
+<span class="source-line-no">355</span><span id="line-355">     */</span>
+<span class="source-line-no">356</span><span id="line-356">    @SuppressWarnings("PMD.CommentRequired")</span>
+<span class="source-line-no">357</span><span id="line-357">    public interface WebConsoleSummaryMXBean {</span>
+<span class="source-line-no">358</span><span id="line-358"></span>
+<span class="source-line-no">359</span><span id="line-359">        Set&lt;ConsoleMXBean&gt; getConsoles();</span>
+<span class="source-line-no">360</span><span id="line-360"></span>
+<span class="source-line-no">361</span><span id="line-361">    }</span>
+<span class="source-line-no">362</span><span id="line-362"></span>
+<span class="source-line-no">363</span><span id="line-363">    /**</span>
+<span class="source-line-no">364</span><span id="line-364">     * Provides an MBean view of the console.</span>
+<span class="source-line-no">365</span><span id="line-365">     */</span>
+<span class="source-line-no">366</span><span id="line-366">    @SuppressWarnings("PMD.CommentRequired")</span>
+<span class="source-line-no">367</span><span id="line-367">    private static class MBeanView implements WebConsoleSummaryMXBean {</span>
+<span class="source-line-no">368</span><span id="line-368"></span>
+<span class="source-line-no">369</span><span id="line-369">        private static Set&lt;WebConsoleInfo&gt; consoleInfos = new HashSet&lt;&gt;();</span>
+<span class="source-line-no">370</span><span id="line-370"></span>
+<span class="source-line-no">371</span><span id="line-371">        public static void addConsole(WebConsole console) {</span>
+<span class="source-line-no">372</span><span id="line-372">            synchronized (consoleInfos) {</span>
+<span class="source-line-no">373</span><span id="line-373">                consoleInfos.add(new WebConsoleInfo(console));</span>
+<span class="source-line-no">374</span><span id="line-374">            }</span>
+<span class="source-line-no">375</span><span id="line-375">        }</span>
+<span class="source-line-no">376</span><span id="line-376"></span>
+<span class="source-line-no">377</span><span id="line-377">        @Override</span>
+<span class="source-line-no">378</span><span id="line-378">        public Set&lt;ConsoleMXBean&gt; getConsoles() {</span>
+<span class="source-line-no">379</span><span id="line-379">            Set&lt;WebConsoleInfo&gt; expired = new HashSet&lt;&gt;();</span>
+<span class="source-line-no">380</span><span id="line-380">            synchronized (consoleInfos) {</span>
+<span class="source-line-no">381</span><span id="line-381">                for (WebConsoleInfo consoleInfo : consoleInfos) {</span>
+<span class="source-line-no">382</span><span id="line-382">                    if (!consoleInfo.console().isPresent()) {</span>
+<span class="source-line-no">383</span><span id="line-383">                        expired.add(consoleInfo);</span>
+<span class="source-line-no">384</span><span id="line-384">                    }</span>
+<span class="source-line-no">385</span><span id="line-385">                }</span>
+<span class="source-line-no">386</span><span id="line-386">                consoleInfos.removeAll(expired);</span>
+<span class="source-line-no">387</span><span id="line-387">            }</span>
+<span class="source-line-no">388</span><span id="line-388">            @SuppressWarnings("unchecked")</span>
+<span class="source-line-no">389</span><span id="line-389">            Set&lt;ConsoleMXBean&gt; result</span>
+<span class="source-line-no">390</span><span id="line-390">                = (Set&lt;ConsoleMXBean&gt;) (Object) consoleInfos;</span>
+<span class="source-line-no">391</span><span id="line-391">            return result;</span>
+<span class="source-line-no">392</span><span id="line-392">        }</span>
+<span class="source-line-no">393</span><span id="line-393">    }</span>
+<span class="source-line-no">394</span><span id="line-394"></span>
+<span class="source-line-no">395</span><span id="line-395">    static {</span>
+<span class="source-line-no">396</span><span id="line-396">        try {</span>
+<span class="source-line-no">397</span><span id="line-397">            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();</span>
+<span class="source-line-no">398</span><span id="line-398">            ObjectName mxbeanName</span>
+<span class="source-line-no">399</span><span id="line-399">                = new ObjectName("org.jgrapes.webconsole:type="</span>
+<span class="source-line-no">400</span><span id="line-400">                    + WebConsole.class.getSimpleName() + "s");</span>
+<span class="source-line-no">401</span><span id="line-401">            mbs.registerMBean(new MBeanView(), mxbeanName);</span>
+<span class="source-line-no">402</span><span id="line-402">        } catch (MalformedObjectNameException | InstanceAlreadyExistsException</span>
+<span class="source-line-no">403</span><span id="line-403">                | MBeanRegistrationException | NotCompliantMBeanException e) {</span>
+<span class="source-line-no">404</span><span id="line-404">            // Should not happen</span>
+<span class="source-line-no">405</span><span id="line-405">            logger.log(Level.WARNING, e.getMessage(), e);</span>
+<span class="source-line-no">406</span><span id="line-406">        }</span>
+<span class="source-line-no">407</span><span id="line-407">    }</span>
+<span class="source-line-no">408</span><span id="line-408">}</span>
 
 
 

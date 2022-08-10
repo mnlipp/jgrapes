@@ -44,7 +44,7 @@
 <span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.Manager;</span>
 <span class="source-line-no">032</span><span id="line-32">import org.jgrapes.core.annotation.Handler;</span>
 <span class="source-line-no">033</span><span id="line-33">import org.jgrapes.webconsole.base.Conlet.RenderMode;</span>
-<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.webconsole.base.ConsoleSession;</span>
+<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
 <span class="source-line-no">035</span><span id="line-35">import org.jgrapes.webconsole.base.WebConsoleUtils;</span>
 <span class="source-line-no">036</span><span id="line-36">import org.jgrapes.webconsole.base.events.AddConletType;</span>
 <span class="source-line-no">037</span><span id="line-37">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</span>
@@ -78,7 +78,7 @@
 <span class="source-line-no">065</span><span id="line-65">     * Trigger loading of resources when the console is ready.</span>
 <span class="source-line-no">066</span><span id="line-66">     *</span>
 <span class="source-line-no">067</span><span id="line-67">     * @param event the event</span>
-<span class="source-line-no">068</span><span id="line-68">     * @param consoleSession the console session</span>
+<span class="source-line-no">068</span><span id="line-68">     * @param consoleSession the console connection</span>
 <span class="source-line-no">069</span><span id="line-69">     * @throws TemplateNotFoundException the template not found exception</span>
 <span class="source-line-no">070</span><span id="line-70">     * @throws MalformedTemplateNameException the malformed template name exception</span>
 <span class="source-line-no">071</span><span id="line-71">     * @throws ParseException the parse exception</span>
@@ -86,7 +86,7 @@
 <span class="source-line-no">073</span><span id="line-73">     */</span>
 <span class="source-line-no">074</span><span id="line-74">    @Handler</span>
 <span class="source-line-no">075</span><span id="line-75">    public void onConsoleReady(ConsoleReady event,</span>
-<span class="source-line-no">076</span><span id="line-76">            ConsoleSession consoleSession)</span>
+<span class="source-line-no">076</span><span id="line-76">            ConsoleConnection consoleSession)</span>
 <span class="source-line-no">077</span><span id="line-77">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
 <span class="source-line-no">078</span><span id="line-78">            ParseException, IOException {</span>
 <span class="source-line-no">079</span><span id="line-79">        // Add HelloWorldConlet resources to page</span>
@@ -103,7 +103,7 @@
 <span class="source-line-no">090</span><span id="line-90"></span>
 <span class="source-line-no">091</span><span id="line-91">    @Override</span>
 <span class="source-line-no">092</span><span id="line-92">    protected Set&lt;RenderMode&gt; doRenderConlet(RenderConletRequestBase&lt;?&gt; event,</span>
-<span class="source-line-no">093</span><span id="line-93">            ConsoleSession channel, String conletId,</span>
+<span class="source-line-no">093</span><span id="line-93">            ConsoleConnection channel, String conletId,</span>
 <span class="source-line-no">094</span><span id="line-94">            Serializable conletState) throws Exception {</span>
 <span class="source-line-no">095</span><span id="line-95">        Set&lt;RenderMode&gt; renderedAs = new HashSet&lt;&gt;();</span>
 <span class="source-line-no">096</span><span id="line-96">        if (event.renderAs().contains(RenderMode.View)) {</span>
@@ -121,7 +121,7 @@
 <span class="source-line-no">108</span><span id="line-108">    }</span>
 <span class="source-line-no">109</span><span id="line-109"></span>
 <span class="source-line-no">110</span><span id="line-110">    @Override</span>
-<span class="source-line-no">111</span><span id="line-111">    protected boolean doSetLocale(SetLocale event, ConsoleSession channel,</span>
+<span class="source-line-no">111</span><span id="line-111">    protected boolean doSetLocale(SetLocale event, ConsoleConnection channel,</span>
 <span class="source-line-no">112</span><span id="line-112">            String conletId) throws Exception {</span>
 <span class="source-line-no">113</span><span id="line-113">        return true;</span>
 <span class="source-line-no">114</span><span id="line-114">    }</span>

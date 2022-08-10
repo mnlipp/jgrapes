@@ -42,7 +42,7 @@
 <span class="source-line-no">029</span><span id="line-29">import org.jgrapes.core.Event;</span>
 <span class="source-line-no">030</span><span id="line-30">import org.jgrapes.core.Manager;</span>
 <span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.annotation.Handler;</span>
-<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.webconsole.base.ConsoleSession;</span>
+<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.webconsole.base.ConsoleConnection;</span>
 <span class="source-line-no">033</span><span id="line-33">import org.jgrapes.webconsole.base.PageResourceProvider;</span>
 <span class="source-line-no">034</span><span id="line-34">import org.jgrapes.webconsole.base.events.AddPageResources;</span>
 <span class="source-line-no">035</span><span id="line-35">import org.jgrapes.webconsole.base.events.AddPageResources.ScriptResource;</span>
@@ -116,7 +116,7 @@
 <span class="source-line-no">103</span><span id="line-103">     * On {@link ConsoleReady}, fire the appropriate {@link AddPageResources}.</span>
 <span class="source-line-no">104</span><span id="line-104">     *</span>
 <span class="source-line-no">105</span><span id="line-105">     * @param event the event</span>
-<span class="source-line-no">106</span><span id="line-106">     * @param consoleSession the web console session</span>
+<span class="source-line-no">106</span><span id="line-106">     * @param connection the web console connection</span>
 <span class="source-line-no">107</span><span id="line-107">     * @throws TemplateNotFoundException the template not found exception</span>
 <span class="source-line-no">108</span><span id="line-108">     * @throws MalformedTemplateNameException the malformed template name exception</span>
 <span class="source-line-no">109</span><span id="line-109">     * @throws ParseException the parse exception</span>
@@ -124,53 +124,52 @@
 <span class="source-line-no">111</span><span id="line-111">     */</span>
 <span class="source-line-no">112</span><span id="line-112">    @Handler(priority = 100)</span>
 <span class="source-line-no">113</span><span id="line-113">    @SuppressWarnings("PMD.AvoidDuplicateLiterals")</span>
-<span class="source-line-no">114</span><span id="line-114">    public void onConsoleReady(ConsoleReady event,</span>
-<span class="source-line-no">115</span><span id="line-115">            ConsoleSession consoleSession)</span>
-<span class="source-line-no">116</span><span id="line-116">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
-<span class="source-line-no">117</span><span id="line-117">            ParseException, IOException {</span>
-<span class="source-line-no">118</span><span id="line-118">        String minExt = event.renderSupport()</span>
-<span class="source-line-no">119</span><span id="line-119">            .useMinifiedResources() ? ".min" : "";</span>
-<span class="source-line-no">120</span><span id="line-120">        AddPageResources addRequest = new AddPageResources()</span>
-<span class="source-line-no">121</span><span id="line-121">            .addCss(event.renderSupport().pageResource(</span>
-<span class="source-line-no">122</span><span id="line-122">                "gridstack/gridstack" + minExt + ".css"));</span>
-<span class="source-line-no">123</span><span id="line-123">        switch (configuration) {</span>
-<span class="source-line-no">124</span><span id="line-124">        case CoreOnly:</span>
-<span class="source-line-no">125</span><span id="line-125">            addRequest</span>
-<span class="source-line-no">126</span><span id="line-126">                .addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">127</span><span id="line-127">                    .setRequires(requireTouchPunch</span>
-<span class="source-line-no">128</span><span id="line-128">                        ? "jquery-ui.touch-punch"</span>
-<span class="source-line-no">129</span><span id="line-129">                        : "jquery")</span>
-<span class="source-line-no">130</span><span id="line-130">                    .setProvides("gridstack")</span>
-<span class="source-line-no">131</span><span id="line-131">                    .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">132</span><span id="line-132">                        "gridstack/gridstack" + minExt + ".js")));</span>
-<span class="source-line-no">133</span><span id="line-133">            break;</span>
-<span class="source-line-no">134</span><span id="line-134">        case CoreWithJQUiPlugin:</span>
-<span class="source-line-no">135</span><span id="line-135">            addRequest.addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">136</span><span id="line-136">                .setRequires(requireTouchPunch</span>
-<span class="source-line-no">137</span><span id="line-137">                    ? "jquery-ui.touch-punch"</span>
-<span class="source-line-no">138</span><span id="line-138">                    : "jquery")</span>
-<span class="source-line-no">139</span><span id="line-139">                .setProvides("gridstack")</span>
-<span class="source-line-no">140</span><span id="line-140">                .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">141</span><span id="line-141">                    "gridstack/gridstack" + minExt + ".js")));</span>
-<span class="source-line-no">142</span><span id="line-142">            addRequest.addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">143</span><span id="line-143">                .setRequires("gridstack")</span>
-<span class="source-line-no">144</span><span id="line-144">                .setProvides("gridstack.jQueryUI")</span>
-<span class="source-line-no">145</span><span id="line-145">                .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">146</span><span id="line-146">                    "gridstack/gridstack.jQueryUI" + minExt + ".js")));</span>
-<span class="source-line-no">147</span><span id="line-147">            break;</span>
-<span class="source-line-no">148</span><span id="line-148">        case All:</span>
-<span class="source-line-no">149</span><span id="line-149">            addRequest.addScriptResource(new ScriptResource()</span>
-<span class="source-line-no">150</span><span id="line-150">                .setProvides("jquery", "jquery-ui",</span>
-<span class="source-line-no">151</span><span id="line-151">                    "gridstack", "gridstack.all")</span>
-<span class="source-line-no">152</span><span id="line-152">                .setScriptUri(event.renderSupport().pageResource(</span>
-<span class="source-line-no">153</span><span id="line-153">                    "gridstack/gridstack.all.js")));</span>
-<span class="source-line-no">154</span><span id="line-154">            break;</span>
-<span class="source-line-no">155</span><span id="line-155">        default:</span>
-<span class="source-line-no">156</span><span id="line-156">            break;</span>
-<span class="source-line-no">157</span><span id="line-157">        }</span>
-<span class="source-line-no">158</span><span id="line-158">        consoleSession.respond(addRequest);</span>
-<span class="source-line-no">159</span><span id="line-159">    }</span>
-<span class="source-line-no">160</span><span id="line-160">}</span>
+<span class="source-line-no">114</span><span id="line-114">    public void onConsoleReady(ConsoleReady event, ConsoleConnection connection)</span>
+<span class="source-line-no">115</span><span id="line-115">            throws TemplateNotFoundException, MalformedTemplateNameException,</span>
+<span class="source-line-no">116</span><span id="line-116">            ParseException, IOException {</span>
+<span class="source-line-no">117</span><span id="line-117">        String minExt = event.renderSupport()</span>
+<span class="source-line-no">118</span><span id="line-118">            .useMinifiedResources() ? ".min" : "";</span>
+<span class="source-line-no">119</span><span id="line-119">        AddPageResources addRequest = new AddPageResources()</span>
+<span class="source-line-no">120</span><span id="line-120">            .addCss(event.renderSupport().pageResource(</span>
+<span class="source-line-no">121</span><span id="line-121">                "gridstack/gridstack" + minExt + ".css"));</span>
+<span class="source-line-no">122</span><span id="line-122">        switch (configuration) {</span>
+<span class="source-line-no">123</span><span id="line-123">        case CoreOnly:</span>
+<span class="source-line-no">124</span><span id="line-124">            addRequest</span>
+<span class="source-line-no">125</span><span id="line-125">                .addScriptResource(new ScriptResource()</span>
+<span class="source-line-no">126</span><span id="line-126">                    .setRequires(requireTouchPunch</span>
+<span class="source-line-no">127</span><span id="line-127">                        ? "jquery-ui.touch-punch"</span>
+<span class="source-line-no">128</span><span id="line-128">                        : "jquery")</span>
+<span class="source-line-no">129</span><span id="line-129">                    .setProvides("gridstack")</span>
+<span class="source-line-no">130</span><span id="line-130">                    .setScriptUri(event.renderSupport().pageResource(</span>
+<span class="source-line-no">131</span><span id="line-131">                        "gridstack/gridstack" + minExt + ".js")));</span>
+<span class="source-line-no">132</span><span id="line-132">            break;</span>
+<span class="source-line-no">133</span><span id="line-133">        case CoreWithJQUiPlugin:</span>
+<span class="source-line-no">134</span><span id="line-134">            addRequest.addScriptResource(new ScriptResource()</span>
+<span class="source-line-no">135</span><span id="line-135">                .setRequires(requireTouchPunch</span>
+<span class="source-line-no">136</span><span id="line-136">                    ? "jquery-ui.touch-punch"</span>
+<span class="source-line-no">137</span><span id="line-137">                    : "jquery")</span>
+<span class="source-line-no">138</span><span id="line-138">                .setProvides("gridstack")</span>
+<span class="source-line-no">139</span><span id="line-139">                .setScriptUri(event.renderSupport().pageResource(</span>
+<span class="source-line-no">140</span><span id="line-140">                    "gridstack/gridstack" + minExt + ".js")));</span>
+<span class="source-line-no">141</span><span id="line-141">            addRequest.addScriptResource(new ScriptResource()</span>
+<span class="source-line-no">142</span><span id="line-142">                .setRequires("gridstack")</span>
+<span class="source-line-no">143</span><span id="line-143">                .setProvides("gridstack.jQueryUI")</span>
+<span class="source-line-no">144</span><span id="line-144">                .setScriptUri(event.renderSupport().pageResource(</span>
+<span class="source-line-no">145</span><span id="line-145">                    "gridstack/gridstack.jQueryUI" + minExt + ".js")));</span>
+<span class="source-line-no">146</span><span id="line-146">            break;</span>
+<span class="source-line-no">147</span><span id="line-147">        case All:</span>
+<span class="source-line-no">148</span><span id="line-148">            addRequest.addScriptResource(new ScriptResource()</span>
+<span class="source-line-no">149</span><span id="line-149">                .setProvides("jquery", "jquery-ui",</span>
+<span class="source-line-no">150</span><span id="line-150">                    "gridstack", "gridstack.all")</span>
+<span class="source-line-no">151</span><span id="line-151">                .setScriptUri(event.renderSupport().pageResource(</span>
+<span class="source-line-no">152</span><span id="line-152">                    "gridstack/gridstack.all.js")));</span>
+<span class="source-line-no">153</span><span id="line-153">            break;</span>
+<span class="source-line-no">154</span><span id="line-154">        default:</span>
+<span class="source-line-no">155</span><span id="line-155">            break;</span>
+<span class="source-line-no">156</span><span id="line-156">        }</span>
+<span class="source-line-no">157</span><span id="line-157">        connection.respond(addRequest);</span>
+<span class="source-line-no">158</span><span id="line-158">    }</span>
+<span class="source-line-no">159</span><span id="line-159">}</span>
 
 
 
