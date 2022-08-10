@@ -144,6 +144,15 @@ public abstract class SessionManager extends Component {
     }
 
     /**
+     * Returns the path.
+     *
+     * @return the string
+     */
+    public String path() {
+        return path;
+    }
+
+    /**
      * Derives the resource pattern from the path.
      *
      * @param path the path
@@ -320,7 +329,7 @@ public abstract class SessionManager extends Component {
             synchronized (this) {
                 Optional<Session> session = lookupSession(sessionId);
                 if (session.isPresent()) {
-                    setSessionSupplier(event, session.get().id());
+                    setSessionSupplier(event, sessionId);
                     session.get().updateLastUsedAt();
                     return;
                 }
@@ -334,12 +343,13 @@ public abstract class SessionManager extends Component {
 
     /**
      * Associated the associator with a session supplier for the 
-     * given session id.
+     * given session id and note `this` as session manager.
      *
      * @param holder the channel
      * @param sessionId the session id
      */
     protected void setSessionSupplier(Associator holder, String sessionId) {
+        holder.setAssociated(SessionManager.class, this);
         holder.setAssociated(Session.class,
             new SessionSupplier(holder, sessionId));
     }
@@ -503,7 +513,10 @@ public abstract class SessionManager extends Component {
     @Handler(priority = 1000)
     public void onProtocolSwitchAccepted(
             ProtocolSwitchAccepted event, IOSubchannel channel) {
-        setSessionSupplier(channel, Session.from(event.requestEvent()).id());
+        Request.In request = event.requestEvent();
+        request.associated(SessionManager.class).filter(sm -> sm == this)
+            .ifPresent(
+                sm -> setSessionSupplier(channel, Session.from(request).id()));
     }
 
     /**
