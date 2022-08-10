@@ -241,21 +241,21 @@
 <span class="source-line-no">228</span><span id="line-228">    public interface ConsoleMXBean {</span>
 <span class="source-line-no">229</span><span id="line-229"></span>
 <span class="source-line-no">230</span><span id="line-230">        @SuppressWarnings("PMD.CommentRequired")</span>
-<span class="source-line-no">231</span><span id="line-231">        class ConsoleSessionInfo {</span>
+<span class="source-line-no">231</span><span id="line-231">        class ConsoleConnectionInfo {</span>
 <span class="source-line-no">232</span><span id="line-232"></span>
-<span class="source-line-no">233</span><span id="line-233">            private final ConsoleConnection session;</span>
+<span class="source-line-no">233</span><span id="line-233">            private final ConsoleConnection connection;</span>
 <span class="source-line-no">234</span><span id="line-234"></span>
-<span class="source-line-no">235</span><span id="line-235">            public ConsoleSessionInfo(ConsoleConnection session) {</span>
+<span class="source-line-no">235</span><span id="line-235">            public ConsoleConnectionInfo(ConsoleConnection connection) {</span>
 <span class="source-line-no">236</span><span id="line-236">                super();</span>
-<span class="source-line-no">237</span><span id="line-237">                this.session = session;</span>
+<span class="source-line-no">237</span><span id="line-237">                this.connection = connection;</span>
 <span class="source-line-no">238</span><span id="line-238">            }</span>
 <span class="source-line-no">239</span><span id="line-239"></span>
 <span class="source-line-no">240</span><span id="line-240">            public String getChannel() {</span>
-<span class="source-line-no">241</span><span id="line-241">                return session.upstreamChannel().toString();</span>
+<span class="source-line-no">241</span><span id="line-241">                return connection.upstreamChannel().toString();</span>
 <span class="source-line-no">242</span><span id="line-242">            }</span>
 <span class="source-line-no">243</span><span id="line-243"></span>
 <span class="source-line-no">244</span><span id="line-244">            public String getExpiresAt() {</span>
-<span class="source-line-no">245</span><span id="line-245">                return session.expiresAt().atZone(ZoneId.systemDefault())</span>
+<span class="source-line-no">245</span><span id="line-245">                return connection.expiresAt().atZone(ZoneId.systemDefault())</span>
 <span class="source-line-no">246</span><span id="line-246">                    .toString();</span>
 <span class="source-line-no">247</span><span id="line-247">            }</span>
 <span class="source-line-no">248</span><span id="line-248">        }</span>
@@ -268,7 +268,7 @@
 <span class="source-line-no">255</span><span id="line-255"></span>
 <span class="source-line-no">256</span><span id="line-256">        void setUseMinifiedResources(boolean useMinifiedResources);</span>
 <span class="source-line-no">257</span><span id="line-257"></span>
-<span class="source-line-no">258</span><span id="line-258">        SortedMap&lt;String, ConsoleSessionInfo&gt; getConsoleSessions();</span>
+<span class="source-line-no">258</span><span id="line-258">        SortedMap&lt;String, ConsoleConnectionInfo&gt; getConsoleConnections();</span>
 <span class="source-line-no">259</span><span id="line-259">    }</span>
 <span class="source-line-no">260</span><span id="line-260"></span>
 <span class="source-line-no">261</span><span id="line-261">    @SuppressWarnings("PMD.CommentRequired")</span>
@@ -346,13 +346,13 @@
 <span class="source-line-no">333</span><span id="line-333"></span>
 <span class="source-line-no">334</span><span id="line-334">        @Override</span>
 <span class="source-line-no">335</span><span id="line-335">        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
-<span class="source-line-no">336</span><span id="line-336">        public SortedMap&lt;String, ConsoleSessionInfo&gt; getConsoleSessions() {</span>
-<span class="source-line-no">337</span><span id="line-337">            SortedMap&lt;String, ConsoleSessionInfo&gt; result = new TreeMap&lt;&gt;();</span>
+<span class="source-line-no">336</span><span id="line-336">        public SortedMap&lt;String, ConsoleConnectionInfo&gt; getConsoleConnections() {</span>
+<span class="source-line-no">337</span><span id="line-337">            SortedMap&lt;String, ConsoleConnectionInfo&gt; result = new TreeMap&lt;&gt;();</span>
 <span class="source-line-no">338</span><span id="line-338">            console().ifPresent(console -&gt; {</span>
 <span class="source-line-no">339</span><span id="line-339">                for (ConsoleConnection ps : ConsoleConnection</span>
 <span class="source-line-no">340</span><span id="line-340">                    .byConsole(console)) {</span>
 <span class="source-line-no">341</span><span id="line-341">                    result.put(Components.simpleObjectName(ps),</span>
-<span class="source-line-no">342</span><span id="line-342">                        new ConsoleSessionInfo(ps));</span>
+<span class="source-line-no">342</span><span id="line-342">                        new ConsoleConnectionInfo(ps));</span>
 <span class="source-line-no">343</span><span id="line-343">                }</span>
 <span class="source-line-no">344</span><span id="line-344">            });</span>
 <span class="source-line-no">345</span><span id="line-345">            return result;</span>
