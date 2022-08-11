@@ -494,8 +494,9 @@ public class Components {
 
         private void cancel(Timer timer) {
             synchronized (timers) {
-                timers.remove(timer);
-                timers.notifyAll();
+                if (timers.remove(timer)) {
+                    timers.notifyAll();
+                }
                 timer.scheduledFor = null;
             }
         }
