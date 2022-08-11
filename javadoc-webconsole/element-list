@@ -32,4 +32,5 @@ org.jgrapes.webconsole.provider.moment
 org.jgrapes.webconsole.provider.vue
 org.jgrapes.webconsole.provider.vuejs
 org.jgrapes.webconsole.provider.vuex
+org.jgrapes.webconsole.rbac
 org.jgrapes.webconsole.vuejs
