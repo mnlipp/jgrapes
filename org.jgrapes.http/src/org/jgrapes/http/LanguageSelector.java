@@ -1,6 +1,6 @@
 /*
  * JGrapes Event Driven Framework
- * Copyright (C) 2017-2018 Michael N. Lipp
+ * Copyright (C) 2017-2022 Michael N. Lipp
  * 
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU Affero General Public License as published by 
@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.net.HttpCookie;
 import java.text.ParseException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,6 +33,7 @@ import java.util.Optional;
 import org.jdrupes.httpcodec.protocols.http.HttpField;
 import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.types.Converters;
+import org.jdrupes.httpcodec.types.Converters.SameSiteAttribute;
 import org.jdrupes.httpcodec.types.CookieList;
 import org.jdrupes.httpcodec.types.DefaultMultiValueConverter;
 import org.jdrupes.httpcodec.types.ParameterizedValue;
@@ -69,8 +71,12 @@ import org.jgrapes.io.IOSubchannel;
  * 
  * Whenever the language preferences 
  * change (see {@link Selection#prefer(Locale)}), a cookie with the
- * specified name and a path value set to the scope is created or
- * updated accordingly. 
+ * specified name and a path value set to the scope is created and 
+ * added to the request's response. This new cookie is then sent with
+ * the response to the browser.
+ * 
+ * Note that this scheme does not work in a SPA where browser and 
+ * server only communicate over a WebSocket. 
  */
 public class LanguageSelector extends Component {
 
@@ -79,6 +85,8 @@ public class LanguageSelector extends Component {
             Locale> LOCALE_LIST = new DefaultMultiValueConverter<>(
                 ArrayList<Locale>::new, Converters.LANGUAGE);
     private String cookieName = LanguageSelector.class.getName();
+    private long cookieMaxAge = Duration.ofDays(365).toSeconds();
+    private SameSiteAttribute cookieSameSite = SameSiteAttribute.LAX;
 
     /**
      * Creates a new language selector component with its channel set to
@@ -153,6 +161,49 @@ public class LanguageSelector extends Component {
     }
 
     /**
+     * Sets the max age of the cookie used to store the preferences.
+     * Defaults to one year. 
+     *
+     * @param maxAge the max age
+     * @return the language selector
+     * @see HttpCookie#setMaxAge(long)
+     */
+    public LanguageSelector setCookieMaxAge(Duration maxAge) {
+        cookieMaxAge = maxAge.toSeconds();
+        return this;
+    }
+
+    /**
+     * Returns the max age of the cookie used to store the preferences.
+     *
+     * @return the duration
+     */
+    public Duration cookieMaxAge() {
+        return Duration.ofSeconds(cookieMaxAge);
+    }
+
+    /**
+     * Sets the same site attribute for the locale cookie defaults to
+     * `Lax`.
+     *
+     * @param attribute the attribute
+     * @return the language selector
+     */
+    public LanguageSelector setSameSiteAttribute(SameSiteAttribute attribute) {
+        cookieSameSite = attribute;
+        return this;
+    }
+
+    /**
+     * Returns the value of the same site attribute.
+     *
+     * @return the same site attribute
+     */
+    public SameSiteAttribute sameSiteAttribute() {
+        return cookieSameSite;
+    }
+
+    /**
      * Associates the event with a {@link Selection} object
      * using `Selection.class` as association identifier.
      * 
@@ -164,7 +215,8 @@ public class LanguageSelector extends Component {
         @SuppressWarnings("PMD.AccessorClassGeneration")
         final Selection selection
             = (Selection) Session.from(event).computeIfAbsent(Selection.class,
-                newKey -> new Selection(cookieName, path));
+                newKey -> new Selection(cookieName, path, cookieMaxAge,
+                    cookieSameSite));
         selection.setCurrentEvent(event);
         event.setAssociated(Selection.class, selection);
         if (selection.isExplicitlySet()) {
@@ -231,18 +283,24 @@ public class LanguageSelector extends Component {
     /**
      * Represents a locale selection.
      */
-    @SuppressWarnings("serial")
+    @SuppressWarnings({ "serial", "PMD.DataflowAnomalyAnalysis" })
     public static class Selection implements Serializable {
         private transient WeakReference<Request.In> currentEvent;
         private final String cookieName;
         private final String cookiePath;
+        private final long cookieMaxAge;
+        private final SameSiteAttribute cookieSameSite;
         private boolean explicitlySet;
         private Locale[] locales;
 
-        @ConstructorProperties({ "cookieName", "cookiePath" })
-        private Selection(String cookieName, String cookiePath) {
+        @ConstructorProperties({ "cookieName", "cookiePath", "cookieMaxAge",
+            "cookieSameSite" })
+        private Selection(String cookieName, String cookiePath,
+                long cookieMaxAge, SameSiteAttribute cookieSameSite) {
             this.cookieName = cookieName;
             this.cookiePath = cookiePath;
+            this.cookieMaxAge = cookieMaxAge;
+            this.cookieSameSite = cookieSameSite;
             this.currentEvent = new WeakReference<>(null);
             explicitlySet = false;
             locales = new Locale[] { Locale.getDefault() };
@@ -264,6 +322,24 @@ public class LanguageSelector extends Component {
          */
         public String getCookiePath() {
             return cookiePath;
+        }
+
+        /**
+         * Gets the cookie max age.
+         *
+         * @return the cookie max age
+         */
+        public long getCookieMaxAge() {
+            return cookieMaxAge;
+        }
+
+        /**
+         * Gets the cookie same site.
+         *
+         * @return the cookie same site
+         */
+        public SameSiteAttribute getCookieSameSite() {
+            return cookieSameSite;
         }
 
         /**
@@ -316,18 +392,28 @@ public class LanguageSelector extends Component {
             list.remove(locale);
             list.add(0, locale);
             this.locales = list.toArray(new Locale[0]);
-            HttpCookie localesCookie = new HttpCookie(cookieName,
-                LOCALE_LIST.asFieldValue(list));
-            localesCookie.setPath(cookiePath);
             Request.In req = currentEvent.get();
             if (req != null) {
                 req.httpRequest().response().ifPresent(resp -> {
-                    resp.computeIfAbsent(
-                        HttpField.SET_COOKIE, CookieList::new)
-                        .value().add(localesCookie);
+                    resp.computeIfAbsent(HttpField.SET_COOKIE,
+                        () -> new CookieList(cookieSameSite))
+                        .value().add(getCookie());
                 });
             }
             return this;
+        }
+
+        /**
+         * Returns a cookie that reflects the current selection.
+         *
+         * @return the cookie
+         */
+        public HttpCookie getCookie() {
+            HttpCookie localesCookie = new HttpCookie(cookieName,
+                LOCALE_LIST.asFieldValue(Arrays.asList(locales)));
+            localesCookie.setPath(cookiePath);
+            localesCookie.setMaxAge(cookieMaxAge);
+            return localesCookie;
         }
 
         /*
