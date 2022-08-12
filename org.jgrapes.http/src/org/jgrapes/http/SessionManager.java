@@ -40,6 +40,7 @@ import org.jdrupes.httpcodec.protocols.http.HttpRequest;
 import org.jdrupes.httpcodec.protocols.http.HttpResponse;
 import org.jdrupes.httpcodec.types.CacheControlDirectives;
 import org.jdrupes.httpcodec.types.Converters;
+import org.jdrupes.httpcodec.types.Converters.SameSiteAttribute;
 import org.jdrupes.httpcodec.types.CookieList;
 import org.jdrupes.httpcodec.types.Directive;
 import org.jgrapes.core.Associator;
@@ -398,7 +399,8 @@ public abstract class SessionManager extends Component {
         HttpCookie sessionCookie = new HttpCookie(idName(), sessionId);
         sessionCookie.setPath(path);
         sessionCookie.setHttpOnly(true);
-        response.computeIfAbsent(HttpField.SET_COOKIE, CookieList::new)
+        response.computeIfAbsent(HttpField.SET_COOKIE,
+            () -> new CookieList(SameSiteAttribute.STRICT))
             .value().add(sessionCookie);
         response.computeIfAbsent(
             HttpField.CACHE_CONTROL, CacheControlDirectives::new).value()
