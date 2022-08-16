@@ -145,7 +145,7 @@
 <span class="source-line-no">132</span><span id="line-132">                .prependResourceBundleProvider(ConsoleApp.class)</span>
 <span class="source-line-no">133</span><span id="line-133">                .prependConsoleResourceProvider(ConsoleApp.class);</span>
 <span class="source-line-no">134</span><span id="line-134">        WebConsole console = consoleWeblet.console();</span>
-<span class="source-line-no">135</span><span id="line-135">        // consoleWeblet.setConsoleSessionInactivityTimeout(300_000);</span>
+<span class="source-line-no">135</span><span id="line-135">        // consoleWeblet.setConnectionInactivityTimeout(300_000);</span>
 <span class="source-line-no">136</span><span id="line-136">        console.attach(new BrowserLocalBackedKVStore(</span>
 <span class="source-line-no">137</span><span id="line-137">            console.channel(), consoleWeblet.prefix().getPath()));</span>
 <span class="source-line-no">138</span><span id="line-138">        console.attach(new KVStoreBasedConsolePolicy(console.channel()));</span>

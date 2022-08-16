@@ -749,10 +749,10 @@
 <span class="source-line-no">736</span><span id="line-736">                .setSessionSupplier(sessionSupplier);</span>
 <span class="source-line-no">737</span><span id="line-737">        wsChannel.setAssociated(ConsoleConnection.class, connection);</span>
 <span class="source-line-no">738</span><span id="line-738">        // Channel now used as JSON input</span>
-<span class="source-line-no">739</span><span id="line-739">        wsChannel.setAssociated(this, new WebSocketInputReader(</span>
+<span class="source-line-no">739</span><span id="line-739">        wsChannel.setAssociated(this, new WebSocketInputSink(</span>
 <span class="source-line-no">740</span><span id="line-740">            event.processedBy().get(), connection));</span>
-<span class="source-line-no">741</span><span id="line-741">        // From now on, only consoleSession.respond may be used to send on the</span>
-<span class="source-line-no">742</span><span id="line-742">        // upstream channel.</span>
+<span class="source-line-no">741</span><span id="line-741">        // From now on, only consoleConnection.respond may be used to send on</span>
+<span class="source-line-no">742</span><span id="line-742">        // the upstream channel.</span>
 <span class="source-line-no">743</span><span id="line-743">        connection.upstreamChannel().responsePipeline()</span>
 <span class="source-line-no">744</span><span id="line-744">            .restrictEventSource(connection.responsePipeline());</span>
 <span class="source-line-no">745</span><span id="line-745">    }</span>
@@ -782,10 +782,10 @@
 <span class="source-line-no">769</span><span id="line-769">    @Handler</span>
 <span class="source-line-no">770</span><span id="line-770">    public void onInput(Input&lt;CharBuffer&gt; event, IOSubchannel wsChannel)</span>
 <span class="source-line-no">771</span><span id="line-771">            throws IOException {</span>
-<span class="source-line-no">772</span><span id="line-772">        Optional&lt;WebSocketInputReader&gt; optWsInputReader</span>
-<span class="source-line-no">773</span><span id="line-773">            = wsChannel.associated(this, WebSocketInputReader.class);</span>
+<span class="source-line-no">772</span><span id="line-772">        Optional&lt;WebSocketInputSink&gt; optWsInputReader</span>
+<span class="source-line-no">773</span><span id="line-773">            = wsChannel.associated(this, WebSocketInputSink.class);</span>
 <span class="source-line-no">774</span><span id="line-774">        if (optWsInputReader.isPresent()) {</span>
-<span class="source-line-no">775</span><span id="line-775">            optWsInputReader.get().write(event.buffer().backingBuffer());</span>
+<span class="source-line-no">775</span><span id="line-775">            optWsInputReader.get().feed(event.buffer());</span>
 <span class="source-line-no">776</span><span id="line-776">        }</span>
 <span class="source-line-no">777</span><span id="line-777">    }</span>
 <span class="source-line-no">778</span><span id="line-778"></span>
@@ -799,11 +799,11 @@
 <span class="source-line-no">786</span><span id="line-786">    @Handler</span>
 <span class="source-line-no">787</span><span id="line-787">    public void onClosed(</span>
 <span class="source-line-no">788</span><span id="line-788">            Closed event, IOSubchannel wsChannel) throws IOException {</span>
-<span class="source-line-no">789</span><span id="line-789">        Optional&lt;WebSocketInputReader&gt; optWsInputReader</span>
-<span class="source-line-no">790</span><span id="line-790">            = wsChannel.associated(this, WebSocketInputReader.class);</span>
+<span class="source-line-no">789</span><span id="line-789">        Optional&lt;WebSocketInputSink&gt; optWsInputReader</span>
+<span class="source-line-no">790</span><span id="line-790">            = wsChannel.associated(this, WebSocketInputSink.class);</span>
 <span class="source-line-no">791</span><span id="line-791">        if (optWsInputReader.isPresent()) {</span>
 <span class="source-line-no">792</span><span id="line-792">            wsChannel.setAssociated(this, null);</span>
-<span class="source-line-no">793</span><span id="line-793">            optWsInputReader.get().close();</span>
+<span class="source-line-no">793</span><span id="line-793">            optWsInputReader.get().feed(null);</span>
 <span class="source-line-no">794</span><span id="line-794">        }</span>
 <span class="source-line-no">795</span><span id="line-795">        wsChannel.associated(ConsoleConnection.class).ifPresent(connection -&gt; {</span>
 <span class="source-line-no">796</span><span id="line-796">            // Restore channel to normal mode, see onConsoleReady</span>
