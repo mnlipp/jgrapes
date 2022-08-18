@@ -10,7 +10,7 @@ Welcome to JGrapes
 JGrapes is an event driven component framework written in Java.
 It includes support for asynchronous I/O and provides some complex 
 components such as an HTTP server and a web console. It was inspired by the 
-["circuits framework"](http://circuitsframework.com/) written for Python.
+["circuits framework"](https://pypi.org/project/circuits/#description) written for Python.
 
 JGrapes makes full use of the Java 11 SE environment. The core 
 framework has no dependencies on additional libraries. The 
