@@ -21,9 +21,11 @@ but they do not depend in any way on the OSGi framework.
 Short Overview
 --------------
 
-JGrapes is an event driven component framework written in Java. 
-It was inspired by the 
-[“circuits framework”](http://circuitsframework.com/) written for Python.
+JGrapes is an event driven (message driven) component framework written 
+in Java. It includes support for asynchronous I/O and can be used to 
+build reactive systems. It was inspired by the 
+["circuits framework"](https://pypi.org/project/circuits/#description) 
+written for Python.
 
 This repository is used to maintain the library with 
 the interfaces and classes that provide the
