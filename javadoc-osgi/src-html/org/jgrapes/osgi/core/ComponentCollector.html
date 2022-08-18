@@ -41,168 +41,170 @@
 <span class="source-line-no">028</span><span id="line-28">import java.util.stream.Collectors;</span>
 <span class="source-line-no">029</span><span id="line-29">import java.util.stream.Stream;</span>
 <span class="source-line-no">030</span><span id="line-30">import org.jgrapes.core.Channel;</span>
-<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.ComponentFactory;</span>
-<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.core.events.Stop;</span>
-<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.util.ComponentProvider;</span>
-<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.util.events.ConfigurationUpdate;</span>
-<span class="source-line-no">035</span><span id="line-35">import org.osgi.framework.BundleContext;</span>
-<span class="source-line-no">036</span><span id="line-36">import org.osgi.framework.ServiceReference;</span>
-<span class="source-line-no">037</span><span id="line-37">import org.osgi.util.tracker.ServiceTracker;</span>
-<span class="source-line-no">038</span><span id="line-38">import org.osgi.util.tracker.ServiceTrackerCustomizer;</span>
-<span class="source-line-no">039</span><span id="line-39"></span>
-<span class="source-line-no">040</span><span id="line-40">/**</span>
-<span class="source-line-no">041</span><span id="line-41"> * A component that collects all services from the OSGi service registry</span>
-<span class="source-line-no">042</span><span id="line-42"> * which implement the {@link ComponentFactory} interface. It uses each </span>
-<span class="source-line-no">043</span><span id="line-43"> * to create one or more components that are then attached to the </span>
-<span class="source-line-no">044</span><span id="line-44"> * component collector instance.</span>
-<span class="source-line-no">045</span><span id="line-45"> * </span>
-<span class="source-line-no">046</span><span id="line-46"> * Effectively, the component collector leverages OSGi's service layer</span>
-<span class="source-line-no">047</span><span id="line-47"> * to modify the component tree at run-time.</span>
-<span class="source-line-no">048</span><span id="line-48"> * </span>
-<span class="source-line-no">049</span><span id="line-49"> * This class uses {@link ComponentProvider#setFactories(ComponentFactory...)} </span>
-<span class="source-line-no">050</span><span id="line-50"> * and {@link ComponentProvider#setPinned(List)} for its implementation.</span>
-<span class="source-line-no">051</span><span id="line-51"> * As it inherits from {@link ComponentProvider}, it automatically</span>
-<span class="source-line-no">052</span><span id="line-52"> * supports the provisioning of additional components through</span>
-<span class="source-line-no">053</span><span id="line-53"> * {@link ConfigurationUpdate} events. If this is not desired, invoke</span>
-<span class="source-line-no">054</span><span id="line-54"> * {@link ComponentProvider#setComponentsEntry(String)} with `null` as</span>
-<span class="source-line-no">055</span><span id="line-55"> * argument. </span>
-<span class="source-line-no">056</span><span id="line-56"> * </span>
-<span class="source-line-no">057</span><span id="line-57"> * @param &lt;F&gt; the component factory type</span>
-<span class="source-line-no">058</span><span id="line-58"> */</span>
-<span class="source-line-no">059</span><span id="line-59">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
-<span class="source-line-no">060</span><span id="line-60">    "PMD.DataflowAnomalyAnalysis" })</span>
-<span class="source-line-no">061</span><span id="line-61">public class ComponentCollector&lt;F extends ComponentFactory&gt;</span>
-<span class="source-line-no">062</span><span id="line-62">        extends ComponentProvider implements ServiceTrackerCustomizer&lt;F, F&gt; {</span>
-<span class="source-line-no">063</span><span id="line-63"></span>
-<span class="source-line-no">064</span><span id="line-64">    private static final List&lt;Map&lt;Object, Object&gt;&gt; SINGLE_DEFAULT</span>
-<span class="source-line-no">065</span><span id="line-65">        = Arrays.asList(Collections.emptyMap());</span>
-<span class="source-line-no">066</span><span id="line-66"></span>
-<span class="source-line-no">067</span><span id="line-67">    private BundleContext context;</span>
-<span class="source-line-no">068</span><span id="line-68">    @SuppressWarnings("PMD.SingularField")</span>
-<span class="source-line-no">069</span><span id="line-69">    private ServiceTracker&lt;F, F&gt; serviceTracker;</span>
-<span class="source-line-no">070</span><span id="line-70">    private Function&lt;String, List&lt;Map&lt;Object, Object&gt;&gt;&gt; configurator;</span>
-<span class="source-line-no">071</span><span id="line-71"></span>
-<span class="source-line-no">072</span><span id="line-72">    /**</span>
-<span class="source-line-no">073</span><span id="line-73">     * Creates a collector component that uses a {@link ServiceTracker} </span>
-<span class="source-line-no">074</span><span id="line-74">     * to monitor the addition and removal of component factories.</span>
-<span class="source-line-no">075</span><span id="line-75">     * </span>
-<span class="source-line-no">076</span><span id="line-76">     * @see #addingService(ServiceReference)</span>
-<span class="source-line-no">077</span><span id="line-77">     * @see #removedService(ServiceReference, ComponentFactory)</span>
-<span class="source-line-no">078</span><span id="line-78">     *</span>
-<span class="source-line-no">079</span><span id="line-79">     * @param componentChannel this component's channel</span>
-<span class="source-line-no">080</span><span id="line-80">     * @param context the OSGi {@link BundleContext}</span>
-<span class="source-line-no">081</span><span id="line-81">     * @param factoryCls the factory class</span>
-<span class="source-line-no">082</span><span id="line-82">     * @param configurator the function that provides the pinned configurations</span>
-<span class="source-line-no">083</span><span id="line-83">     */</span>
-<span class="source-line-no">084</span><span id="line-84">    public ComponentCollector(</span>
-<span class="source-line-no">085</span><span id="line-85">            Channel componentChannel, BundleContext context,</span>
-<span class="source-line-no">086</span><span id="line-86">            Class&lt;F&gt; factoryCls,</span>
-<span class="source-line-no">087</span><span id="line-87">            Function&lt;String, List&lt;Map&lt;Object, Object&gt;&gt;&gt; configurator) {</span>
-<span class="source-line-no">088</span><span id="line-88">        super(componentChannel);</span>
-<span class="source-line-no">089</span><span id="line-89">        this.context = context;</span>
-<span class="source-line-no">090</span><span id="line-90">        this.configurator = configurator;</span>
-<span class="source-line-no">091</span><span id="line-91">        serviceTracker = new ServiceTracker&lt;&gt;(context, factoryCls, this);</span>
-<span class="source-line-no">092</span><span id="line-92">        serviceTracker.open();</span>
-<span class="source-line-no">093</span><span id="line-93">    }</span>
-<span class="source-line-no">094</span><span id="line-94"></span>
-<span class="source-line-no">095</span><span id="line-95">    /**</span>
-<span class="source-line-no">096</span><span id="line-96">     * Utility constructor that uses each factory to create a single instance,</span>
-<span class="source-line-no">097</span><span id="line-97">     * using an empty map as properties.</span>
-<span class="source-line-no">098</span><span id="line-98">     *</span>
-<span class="source-line-no">099</span><span id="line-99">     * @param componentChannel this component's channel</span>
-<span class="source-line-no">100</span><span id="line-100">     * @param context the bundle context</span>
-<span class="source-line-no">101</span><span id="line-101">     * @param factoryClass the factory class</span>
-<span class="source-line-no">102</span><span id="line-102">     */</span>
-<span class="source-line-no">103</span><span id="line-103">    public ComponentCollector(Channel componentChannel, BundleContext context,</span>
-<span class="source-line-no">104</span><span id="line-104">            Class&lt;F&gt; factoryClass) {</span>
-<span class="source-line-no">105</span><span id="line-105">        this(componentChannel, context, factoryClass, type -&gt; SINGLE_DEFAULT);</span>
-<span class="source-line-no">106</span><span id="line-106">    }</span>
-<span class="source-line-no">107</span><span id="line-107"></span>
-<span class="source-line-no">108</span><span id="line-108">    /**</span>
-<span class="source-line-no">109</span><span id="line-109">     * Whenever a new factory is added, it is used to create component </span>
-<span class="source-line-no">110</span><span id="line-110">     * instances with this component's channel. First, the `configurator`</span>
-<span class="source-line-no">111</span><span id="line-111">     * passed to the constructor is invoked with the name of the class </span>
-<span class="source-line-no">112</span><span id="line-112">     * of the component to be created as argument. The list of maps </span>
-<span class="source-line-no">113</span><span id="line-113">     * returned is then added to the pinned components </span>
-<span class="source-line-no">114</span><span id="line-114">     * (see {@link ComponentProvider#setPinned(List)}). </span>
-<span class="source-line-no">115</span><span id="line-115">     * </span>
-<span class="source-line-no">116</span><span id="line-116">     * The map return from the `configurator` is automatically augmented</span>
-<span class="source-line-no">117</span><span id="line-117">     * with an entry with key {@link BundleContext}.class and the bundle </span>
-<span class="source-line-no">118</span><span id="line-118">     * context passed to the constructor.</span>
-<span class="source-line-no">119</span><span id="line-119">     *</span>
-<span class="source-line-no">120</span><span id="line-120">     * @see ServiceTrackerCustomizer#addingService(ServiceReference)</span>
-<span class="source-line-no">121</span><span id="line-121">     */</span>
-<span class="source-line-no">122</span><span id="line-122">    @Override</span>
-<span class="source-line-no">123</span><span id="line-123">    public F addingService(ServiceReference&lt;F&gt; reference) {</span>
-<span class="source-line-no">124</span><span id="line-124">        F factory = context.getService(reference);</span>
-<span class="source-line-no">125</span><span id="line-125">        if (factories().containsKey(factory.componentType().getName())) {</span>
-<span class="source-line-no">126</span><span id="line-126">            // Factory for the new component type is already known.</span>
-<span class="source-line-no">127</span><span id="line-127">            return factory;</span>
-<span class="source-line-no">128</span><span id="line-128">        }</span>
-<span class="source-line-no">129</span><span id="line-129"></span>
-<span class="source-line-no">130</span><span id="line-130">        // Add configuration to provider before adding new factory</span>
-<span class="source-line-no">131</span><span id="line-131">        List&lt;Map&lt;?, ?&gt;&gt; newConfigs = Stream.concat(</span>
-<span class="source-line-no">132</span><span id="line-132">            // filter existing configs to avoid duplicates</span>
-<span class="source-line-no">133</span><span id="line-133">            pinned().stream().filter(not(c -&gt; factory.componentType().getName()</span>
-<span class="source-line-no">134</span><span id="line-134">                .equals(c.get(COMPONENT_TYPE)))),</span>
-<span class="source-line-no">135</span><span id="line-135">            // add new configs</span>
-<span class="source-line-no">136</span><span id="line-136">            configurator.apply(</span>
-<span class="source-line-no">137</span><span id="line-137">                factory.componentType().getName()).stream().map(c -&gt; {</span>
-<span class="source-line-no">138</span><span id="line-138">                    // Received may be immutable</span>
-<span class="source-line-no">139</span><span id="line-139">                    var newMap = new HashMap&lt;&gt;(c);</span>
-<span class="source-line-no">140</span><span id="line-140">                    newMap.put(BundleContext.class, context);</span>
-<span class="source-line-no">141</span><span id="line-141">                    if (!c.containsKey(COMPONENT_TYPE)) {</span>
-<span class="source-line-no">142</span><span id="line-142">                        newMap.put(COMPONENT_TYPE,</span>
-<span class="source-line-no">143</span><span id="line-143">                            factory.componentType().getName());</span>
-<span class="source-line-no">144</span><span id="line-144">                    }</span>
-<span class="source-line-no">145</span><span id="line-145">                    return newMap;</span>
-<span class="source-line-no">146</span><span id="line-146">                }))</span>
-<span class="source-line-no">147</span><span id="line-147">            .collect(Collectors.toList());</span>
-<span class="source-line-no">148</span><span id="line-148">        setPinned(newConfigs);</span>
-<span class="source-line-no">149</span><span id="line-149"></span>
-<span class="source-line-no">150</span><span id="line-150">        // Now add factory</span>
-<span class="source-line-no">151</span><span id="line-151">        ComponentFactory[] updatedFactories</span>
-<span class="source-line-no">152</span><span id="line-152">            = Stream.concat(factories().values().stream(), Stream.of(factory))</span>
-<span class="source-line-no">153</span><span id="line-153">                .toArray(s -&gt; new ComponentFactory[s]);</span>
-<span class="source-line-no">154</span><span id="line-154">        setFactories(updatedFactories);</span>
-<span class="source-line-no">155</span><span id="line-155">        return factory;</span>
-<span class="source-line-no">156</span><span id="line-156">    }</span>
-<span class="source-line-no">157</span><span id="line-157"></span>
-<span class="source-line-no">158</span><span id="line-158">    /*</span>
-<span class="source-line-no">159</span><span id="line-159">     * (non-Javadoc)</span>
-<span class="source-line-no">160</span><span id="line-160">     * </span>
-<span class="source-line-no">161</span><span id="line-161">     * @see org.osgi.util.tracker.ServiceTrackerCustomizer#modifiedService</span>
-<span class="source-line-no">162</span><span id="line-162">     */</span>
-<span class="source-line-no">163</span><span id="line-163">    @Override</span>
-<span class="source-line-no">164</span><span id="line-164">    public void modifiedService(ServiceReference&lt;F&gt; reference, F service) {</span>
-<span class="source-line-no">165</span><span id="line-165">        // Do nothing.</span>
-<span class="source-line-no">166</span><span id="line-166">    }</span>
-<span class="source-line-no">167</span><span id="line-167"></span>
-<span class="source-line-no">168</span><span id="line-168">    /**</span>
-<span class="source-line-no">169</span><span id="line-169">     * Deletes all child components with the type produced by the factory that </span>
-<span class="source-line-no">170</span><span id="line-170">     * is removed. A (possibly) final {@link Stop} event is send to the</span>
-<span class="source-line-no">171</span><span id="line-171">     * detached subtrees which may be used to deactivate bundles.</span>
-<span class="source-line-no">172</span><span id="line-172">     * </span>
-<span class="source-line-no">173</span><span id="line-173">     * @see ServiceTrackerCustomizer#removedService(ServiceReference, Object)</span>
-<span class="source-line-no">174</span><span id="line-174">     */</span>
-<span class="source-line-no">175</span><span id="line-175">    @Override</span>
-<span class="source-line-no">176</span><span id="line-176">    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
-<span class="source-line-no">177</span><span id="line-177">    public void removedService(ServiceReference&lt;F&gt; reference, F service) {</span>
-<span class="source-line-no">178</span><span id="line-178">        // Remove factory.</span>
-<span class="source-line-no">179</span><span id="line-179">        ComponentFactory[] updatedFactories = factories().values().stream()</span>
-<span class="source-line-no">180</span><span id="line-180">            .filter(f -&gt; !f.componentType().getName()</span>
-<span class="source-line-no">181</span><span id="line-181">                .equals(service.componentType().getName()))</span>
-<span class="source-line-no">182</span><span id="line-182">            .toArray(s -&gt; new ComponentFactory[s]);</span>
-<span class="source-line-no">183</span><span id="line-183">        setFactories(updatedFactories);</span>
-<span class="source-line-no">184</span><span id="line-184"></span>
-<span class="source-line-no">185</span><span id="line-185">        // Remove configuration</span>
-<span class="source-line-no">186</span><span id="line-186">        List&lt;Map&lt;?, ?&gt;&gt; updatedConfigs = pinned().stream()</span>
-<span class="source-line-no">187</span><span id="line-187">            .filter(not(c -&gt; service.componentType().getName()</span>
-<span class="source-line-no">188</span><span id="line-188">                .equals(c.get(COMPONENT_TYPE))))</span>
-<span class="source-line-no">189</span><span id="line-189">            .collect(Collectors.toList());</span>
-<span class="source-line-no">190</span><span id="line-190">        setPinned(updatedConfigs);</span>
-<span class="source-line-no">191</span><span id="line-191">    }</span>
-<span class="source-line-no">192</span><span id="line-192">}</span>
+<span class="source-line-no">031</span><span id="line-31">import org.jgrapes.core.Component;</span>
+<span class="source-line-no">032</span><span id="line-32">import org.jgrapes.core.ComponentFactory;</span>
+<span class="source-line-no">033</span><span id="line-33">import org.jgrapes.core.events.Stop;</span>
+<span class="source-line-no">034</span><span id="line-34">import org.jgrapes.util.ComponentProvider;</span>
+<span class="source-line-no">035</span><span id="line-35">import org.jgrapes.util.events.ConfigurationUpdate;</span>
+<span class="source-line-no">036</span><span id="line-36">import org.osgi.framework.BundleContext;</span>
+<span class="source-line-no">037</span><span id="line-37">import org.osgi.framework.ServiceReference;</span>
+<span class="source-line-no">038</span><span id="line-38">import org.osgi.util.tracker.ServiceTracker;</span>
+<span class="source-line-no">039</span><span id="line-39">import org.osgi.util.tracker.ServiceTrackerCustomizer;</span>
+<span class="source-line-no">040</span><span id="line-40"></span>
+<span class="source-line-no">041</span><span id="line-41">/**</span>
+<span class="source-line-no">042</span><span id="line-42"> * A component that collects all services from the OSGi service registry</span>
+<span class="source-line-no">043</span><span id="line-43"> * which implement the sub-interface of {@link ComponentFactory} </span>
+<span class="source-line-no">044</span><span id="line-44"> * specified when creating the collector. The collector uses each service </span>
+<span class="source-line-no">045</span><span id="line-45"> * found to create one or more {@link Component}s that are then attached </span>
+<span class="source-line-no">046</span><span id="line-46"> * to the component collector instance.</span>
+<span class="source-line-no">047</span><span id="line-47"> * </span>
+<span class="source-line-no">048</span><span id="line-48"> * Effectively, the component collector leverages OSGi's service layer</span>
+<span class="source-line-no">049</span><span id="line-49"> * to modify the component tree at run-time.</span>
+<span class="source-line-no">050</span><span id="line-50"> * </span>
+<span class="source-line-no">051</span><span id="line-51"> * This class uses {@link ComponentProvider#setFactories(ComponentFactory...)} </span>
+<span class="source-line-no">052</span><span id="line-52"> * and {@link ComponentProvider#setPinned(List)} for its implementation.</span>
+<span class="source-line-no">053</span><span id="line-53"> * As it inherits from {@link ComponentProvider}, it automatically</span>
+<span class="source-line-no">054</span><span id="line-54"> * supports the provisioning of additional components through</span>
+<span class="source-line-no">055</span><span id="line-55"> * {@link ConfigurationUpdate} events. If this is not desired, invoke</span>
+<span class="source-line-no">056</span><span id="line-56"> * {@link ComponentProvider#setComponentsEntry(String)} with `null` as</span>
+<span class="source-line-no">057</span><span id="line-57"> * argument. </span>
+<span class="source-line-no">058</span><span id="line-58"> * </span>
+<span class="source-line-no">059</span><span id="line-59"> * @param &lt;F&gt; the component factory type</span>
+<span class="source-line-no">060</span><span id="line-60"> */</span>
+<span class="source-line-no">061</span><span id="line-61">@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",</span>
+<span class="source-line-no">062</span><span id="line-62">    "PMD.DataflowAnomalyAnalysis" })</span>
+<span class="source-line-no">063</span><span id="line-63">public class ComponentCollector&lt;F extends ComponentFactory&gt;</span>
+<span class="source-line-no">064</span><span id="line-64">        extends ComponentProvider implements ServiceTrackerCustomizer&lt;F, F&gt; {</span>
+<span class="source-line-no">065</span><span id="line-65"></span>
+<span class="source-line-no">066</span><span id="line-66">    private static final List&lt;Map&lt;Object, Object&gt;&gt; SINGLE_DEFAULT</span>
+<span class="source-line-no">067</span><span id="line-67">        = Arrays.asList(Collections.emptyMap());</span>
+<span class="source-line-no">068</span><span id="line-68"></span>
+<span class="source-line-no">069</span><span id="line-69">    private BundleContext context;</span>
+<span class="source-line-no">070</span><span id="line-70">    @SuppressWarnings("PMD.SingularField")</span>
+<span class="source-line-no">071</span><span id="line-71">    private ServiceTracker&lt;F, F&gt; serviceTracker;</span>
+<span class="source-line-no">072</span><span id="line-72">    private Function&lt;String, List&lt;Map&lt;Object, Object&gt;&gt;&gt; configurator;</span>
+<span class="source-line-no">073</span><span id="line-73"></span>
+<span class="source-line-no">074</span><span id="line-74">    /**</span>
+<span class="source-line-no">075</span><span id="line-75">     * Creates a collector component that uses a {@link ServiceTracker} </span>
+<span class="source-line-no">076</span><span id="line-76">     * to monitor the addition and removal of component factories.</span>
+<span class="source-line-no">077</span><span id="line-77">     * </span>
+<span class="source-line-no">078</span><span id="line-78">     * @see #addingService(ServiceReference)</span>
+<span class="source-line-no">079</span><span id="line-79">     * @see #removedService(ServiceReference, ComponentFactory)</span>
+<span class="source-line-no">080</span><span id="line-80">     *</span>
+<span class="source-line-no">081</span><span id="line-81">     * @param componentChannel this component's channel</span>
+<span class="source-line-no">082</span><span id="line-82">     * @param context the OSGi {@link BundleContext}</span>
+<span class="source-line-no">083</span><span id="line-83">     * @param factoryCls the factory class</span>
+<span class="source-line-no">084</span><span id="line-84">     * @param configurator the function that provides the pinned configurations</span>
+<span class="source-line-no">085</span><span id="line-85">     */</span>
+<span class="source-line-no">086</span><span id="line-86">    public ComponentCollector(</span>
+<span class="source-line-no">087</span><span id="line-87">            Channel componentChannel, BundleContext context,</span>
+<span class="source-line-no">088</span><span id="line-88">            Class&lt;F&gt; factoryCls,</span>
+<span class="source-line-no">089</span><span id="line-89">            Function&lt;String, List&lt;Map&lt;Object, Object&gt;&gt;&gt; configurator) {</span>
+<span class="source-line-no">090</span><span id="line-90">        super(componentChannel);</span>
+<span class="source-line-no">091</span><span id="line-91">        this.context = context;</span>
+<span class="source-line-no">092</span><span id="line-92">        this.configurator = configurator;</span>
+<span class="source-line-no">093</span><span id="line-93">        serviceTracker = new ServiceTracker&lt;&gt;(context, factoryCls, this);</span>
+<span class="source-line-no">094</span><span id="line-94">        serviceTracker.open();</span>
+<span class="source-line-no">095</span><span id="line-95">    }</span>
+<span class="source-line-no">096</span><span id="line-96"></span>
+<span class="source-line-no">097</span><span id="line-97">    /**</span>
+<span class="source-line-no">098</span><span id="line-98">     * Utility constructor that uses each factory to create a single instance,</span>
+<span class="source-line-no">099</span><span id="line-99">     * using an empty map as properties.</span>
+<span class="source-line-no">100</span><span id="line-100">     *</span>
+<span class="source-line-no">101</span><span id="line-101">     * @param componentChannel this component's channel</span>
+<span class="source-line-no">102</span><span id="line-102">     * @param context the bundle context</span>
+<span class="source-line-no">103</span><span id="line-103">     * @param factoryClass the factory class</span>
+<span class="source-line-no">104</span><span id="line-104">     */</span>
+<span class="source-line-no">105</span><span id="line-105">    public ComponentCollector(Channel componentChannel, BundleContext context,</span>
+<span class="source-line-no">106</span><span id="line-106">            Class&lt;F&gt; factoryClass) {</span>
+<span class="source-line-no">107</span><span id="line-107">        this(componentChannel, context, factoryClass, type -&gt; SINGLE_DEFAULT);</span>
+<span class="source-line-no">108</span><span id="line-108">    }</span>
+<span class="source-line-no">109</span><span id="line-109"></span>
+<span class="source-line-no">110</span><span id="line-110">    /**</span>
+<span class="source-line-no">111</span><span id="line-111">     * Whenever a new factory is added, it is used to create component </span>
+<span class="source-line-no">112</span><span id="line-112">     * instances with this component's channel. First, the `configurator`</span>
+<span class="source-line-no">113</span><span id="line-113">     * passed to the constructor is invoked with the name of the class </span>
+<span class="source-line-no">114</span><span id="line-114">     * of the component to be created as argument. The list of maps </span>
+<span class="source-line-no">115</span><span id="line-115">     * returned is then added to the pinned components </span>
+<span class="source-line-no">116</span><span id="line-116">     * (see {@link ComponentProvider#setPinned(List)}). </span>
+<span class="source-line-no">117</span><span id="line-117">     * </span>
+<span class="source-line-no">118</span><span id="line-118">     * The map return from the `configurator` is automatically augmented</span>
+<span class="source-line-no">119</span><span id="line-119">     * with an entry with key {@link BundleContext}.class and the bundle </span>
+<span class="source-line-no">120</span><span id="line-120">     * context passed to the constructor.</span>
+<span class="source-line-no">121</span><span id="line-121">     *</span>
+<span class="source-line-no">122</span><span id="line-122">     * @see ServiceTrackerCustomizer#addingService(ServiceReference)</span>
+<span class="source-line-no">123</span><span id="line-123">     */</span>
+<span class="source-line-no">124</span><span id="line-124">    @Override</span>
+<span class="source-line-no">125</span><span id="line-125">    public F addingService(ServiceReference&lt;F&gt; reference) {</span>
+<span class="source-line-no">126</span><span id="line-126">        F factory = context.getService(reference);</span>
+<span class="source-line-no">127</span><span id="line-127">        if (factories().containsKey(factory.componentType().getName())) {</span>
+<span class="source-line-no">128</span><span id="line-128">            // Factory for the new component type is already known.</span>
+<span class="source-line-no">129</span><span id="line-129">            return factory;</span>
+<span class="source-line-no">130</span><span id="line-130">        }</span>
+<span class="source-line-no">131</span><span id="line-131"></span>
+<span class="source-line-no">132</span><span id="line-132">        // Add configuration to provider before adding new factory</span>
+<span class="source-line-no">133</span><span id="line-133">        List&lt;Map&lt;?, ?&gt;&gt; newConfigs = Stream.concat(</span>
+<span class="source-line-no">134</span><span id="line-134">            // filter existing configs to avoid duplicates</span>
+<span class="source-line-no">135</span><span id="line-135">            pinned().stream().filter(not(c -&gt; factory.componentType().getName()</span>
+<span class="source-line-no">136</span><span id="line-136">                .equals(c.get(COMPONENT_TYPE)))),</span>
+<span class="source-line-no">137</span><span id="line-137">            // add new configs</span>
+<span class="source-line-no">138</span><span id="line-138">            configurator.apply(</span>
+<span class="source-line-no">139</span><span id="line-139">                factory.componentType().getName()).stream().map(c -&gt; {</span>
+<span class="source-line-no">140</span><span id="line-140">                    // Received may be immutable</span>
+<span class="source-line-no">141</span><span id="line-141">                    var newMap = new HashMap&lt;&gt;(c);</span>
+<span class="source-line-no">142</span><span id="line-142">                    newMap.put(BundleContext.class, context);</span>
+<span class="source-line-no">143</span><span id="line-143">                    if (!c.containsKey(COMPONENT_TYPE)) {</span>
+<span class="source-line-no">144</span><span id="line-144">                        newMap.put(COMPONENT_TYPE,</span>
+<span class="source-line-no">145</span><span id="line-145">                            factory.componentType().getName());</span>
+<span class="source-line-no">146</span><span id="line-146">                    }</span>
+<span class="source-line-no">147</span><span id="line-147">                    return newMap;</span>
+<span class="source-line-no">148</span><span id="line-148">                }))</span>
+<span class="source-line-no">149</span><span id="line-149">            .collect(Collectors.toList());</span>
+<span class="source-line-no">150</span><span id="line-150">        setPinned(newConfigs);</span>
+<span class="source-line-no">151</span><span id="line-151"></span>
+<span class="source-line-no">152</span><span id="line-152">        // Now add factory</span>
+<span class="source-line-no">153</span><span id="line-153">        ComponentFactory[] updatedFactories</span>
+<span class="source-line-no">154</span><span id="line-154">            = Stream.concat(factories().values().stream(), Stream.of(factory))</span>
+<span class="source-line-no">155</span><span id="line-155">                .toArray(s -&gt; new ComponentFactory[s]);</span>
+<span class="source-line-no">156</span><span id="line-156">        setFactories(updatedFactories);</span>
+<span class="source-line-no">157</span><span id="line-157">        return factory;</span>
+<span class="source-line-no">158</span><span id="line-158">    }</span>
+<span class="source-line-no">159</span><span id="line-159"></span>
+<span class="source-line-no">160</span><span id="line-160">    /*</span>
+<span class="source-line-no">161</span><span id="line-161">     * (non-Javadoc)</span>
+<span class="source-line-no">162</span><span id="line-162">     * </span>
+<span class="source-line-no">163</span><span id="line-163">     * @see org.osgi.util.tracker.ServiceTrackerCustomizer#modifiedService</span>
+<span class="source-line-no">164</span><span id="line-164">     */</span>
+<span class="source-line-no">165</span><span id="line-165">    @Override</span>
+<span class="source-line-no">166</span><span id="line-166">    public void modifiedService(ServiceReference&lt;F&gt; reference, F service) {</span>
+<span class="source-line-no">167</span><span id="line-167">        // Do nothing.</span>
+<span class="source-line-no">168</span><span id="line-168">    }</span>
+<span class="source-line-no">169</span><span id="line-169"></span>
+<span class="source-line-no">170</span><span id="line-170">    /**</span>
+<span class="source-line-no">171</span><span id="line-171">     * Deletes all child components with the type produced by the factory that </span>
+<span class="source-line-no">172</span><span id="line-172">     * is removed. A (possibly) final {@link Stop} event is send to the</span>
+<span class="source-line-no">173</span><span id="line-173">     * detached subtrees which may be used to deactivate bundles.</span>
+<span class="source-line-no">174</span><span id="line-174">     * </span>
+<span class="source-line-no">175</span><span id="line-175">     * @see ServiceTrackerCustomizer#removedService(ServiceReference, Object)</span>
+<span class="source-line-no">176</span><span id="line-176">     */</span>
+<span class="source-line-no">177</span><span id="line-177">    @Override</span>
+<span class="source-line-no">178</span><span id="line-178">    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")</span>
+<span class="source-line-no">179</span><span id="line-179">    public void removedService(ServiceReference&lt;F&gt; reference, F service) {</span>
+<span class="source-line-no">180</span><span id="line-180">        // Remove factory.</span>
+<span class="source-line-no">181</span><span id="line-181">        ComponentFactory[] updatedFactories = factories().values().stream()</span>
+<span class="source-line-no">182</span><span id="line-182">            .filter(f -&gt; !f.componentType().getName()</span>
+<span class="source-line-no">183</span><span id="line-183">                .equals(service.componentType().getName()))</span>
+<span class="source-line-no">184</span><span id="line-184">            .toArray(s -&gt; new ComponentFactory[s]);</span>
+<span class="source-line-no">185</span><span id="line-185">        setFactories(updatedFactories);</span>
+<span class="source-line-no">186</span><span id="line-186"></span>
+<span class="source-line-no">187</span><span id="line-187">        // Remove configuration</span>
+<span class="source-line-no">188</span><span id="line-188">        List&lt;Map&lt;?, ?&gt;&gt; updatedConfigs = pinned().stream()</span>
+<span class="source-line-no">189</span><span id="line-189">            .filter(not(c -&gt; service.componentType().getName()</span>
+<span class="source-line-no">190</span><span id="line-190">                .equals(c.get(COMPONENT_TYPE))))</span>
+<span class="source-line-no">191</span><span id="line-191">            .collect(Collectors.toList());</span>
+<span class="source-line-no">192</span><span id="line-192">        setPinned(updatedConfigs);</span>
+<span class="source-line-no">193</span><span id="line-193">    }</span>
+<span class="source-line-no">194</span><span id="line-194">}</span>
 
 
 
