@@ -39,8 +39,8 @@ is maintained as a separate
 [JGrapes Web Console](https://github.com/mnlipp/jgrapes-webconsole)
 project.
 
-The JGrapes OSGi components (that depend on the OSGi framework and 
-provide JGrapes based OSGi services) can also be found in a
+Some extra JGrapes components (that depend on the OSGi framework and 
+provide JGrapes based OSGi services) are maintained in a
 [repository of their own](https://github.com/mnlipp/jgrapes-osgi).
 
 See the [project's home page](https://mnlipp.github.io/jgrapes/) for a
