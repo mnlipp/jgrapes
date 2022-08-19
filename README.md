@@ -15,7 +15,7 @@ detailed description of the framework.
 
 This repository comprises the sources for jars that provide the basic
 packages (org.jgrapes.core, ...util, ...io etc.). The jars have augmented
-manifests that allow them to be used without wrapping as OSGi bundles, 
+manifests that allow them to be used as OSGi bundles without wrapping, 
 but they do not depend in any way on the OSGi framework.
 
 Short Overview
