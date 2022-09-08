@@ -6,6 +6,7 @@ dependencies {
 
     implementation project(':org.jgrapes.http')
     implementation project(':org.jgrapes.util')
+    implementation project(':org.jgrapes.mail')
 	implementation 'org.osgi:osgi.core:6.0.0'
 	
     runtimeOnly 'org.apache.felix:org.apache.felix.framework:6.0.5'
@@ -13,6 +14,11 @@ dependencies {
         transitive = true }
     runtimeOnly (project(':examples')) {
         transitive = true }
+    runtimeOnly 'org.eclipse.angus:angus-mail:[1.0.0,2.0.0)'
+//    jakarta.activation-api;version='[2.1.0,2.1.0]',\
+//    angus-activation;version='[1.0.0,1.0.0]',\
+//    com.fasterxml.jackson.core.jackson-core;version='latest'
+        
 }
 
 // For unknwown reasons required to prevent deadlock

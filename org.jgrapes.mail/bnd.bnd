@@ -1,0 +1,23 @@
+Bundle-Name: JGrapes Mail Components
+Bundle-Copyright: Michael N. Lipp (c) 2022
+Bundle-License: http://www.gnu.org/licenses/agpl-3.0.txt
+
+api_version = 0.0.0.${tstamp}
+
+Export-Package: \
+	org.jgrapes.mail;version="${api_version}"
+
+-sources: true
+
+-dsannotations: 
+
+Require-Capability: \
+    osgi.extender; filter:="(osgi.extender=osgi.serviceloader.processor)"; \
+        resolution:=optional
+
+-fixupmessages: \
+    "Found source folder 'resources' that is not on bnd's source path 'src'", \
+    "Found source folder 'test-resources' that is not on bnd's source path 'src'", \
+    "The .classpath contains an unknown container: GROOVY_DSL_SUPPORT. This could make your build less portable.", \
+    "The .classpath contains an unknown container: org.eclipse.buildship.core.gradleclasspathcontainer."
+        
