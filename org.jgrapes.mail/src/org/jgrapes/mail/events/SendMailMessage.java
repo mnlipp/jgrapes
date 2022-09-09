@@ -50,7 +50,6 @@ public class SendMailMessage extends Event<Void> {
     /**
      * Creates a new event.
      *
-     * @param message the message
      * @param channels the channels
      */
     public SendMailMessage(Channel... channels) {

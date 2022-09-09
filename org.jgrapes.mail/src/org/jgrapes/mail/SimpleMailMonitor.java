@@ -94,7 +94,7 @@ public class SimpleMailMonitor extends Component {
     }
 
     /**
-     * Creates a new component base like {@link #MailMonitor(Channel)}
+     * Creates a new component base like {@link #SimpleMailMonitor(Channel)}
      * but with channel mappings for {@link Handler} annotations.
      *
      * @param componentChannel the channel that the component's

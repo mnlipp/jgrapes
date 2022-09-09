@@ -85,7 +85,7 @@ public class SimpleMailSender extends Component {
     }
 
     /**
-     * Creates a new component base like {@link #MailSender(Channel)}
+     * Creates a new component base like {@link #SimpleMailSender(Channel)}
      * but with channel mappings for {@link Handler} annotations.
      *
      * @param componentChannel the channel that the component's
