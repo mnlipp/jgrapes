@@ -1,6 +1,8 @@
 dependencies {
     api project(':org.jgrapes.http')
-    api 'org.freemarker:freemarker:[2.3.31,2.4)'    
+    api 'org.freemarker:freemarker:[2.3.31,2.4)'
+
+    testRuntimeOnly 'org.eclipse.angus:angus-activation:[1.0.0,2.0.0)'
 }
 
 jar {
