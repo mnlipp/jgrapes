@@ -30,7 +30,7 @@ configurations {
 }
 
 dependencies {
-    markdownDoclet "org.jdrupes.mdoclet:doclet:3.0.0"
+    markdownDoclet "org.jdrupes.mdoclet:doclet:3.1.0"
     javadocTaglets "org.jdrupes.taglets:plantuml-taglet:2.0.1"
 }
 
