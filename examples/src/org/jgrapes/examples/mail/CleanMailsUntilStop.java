@@ -22,7 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.Components;
-import org.jgrapes.mail.MailMonitor;
+import org.jgrapes.mail.SimpleMailMonitor;
 import org.jgrapes.util.JsonConfigurationStore;
 
 /**
@@ -40,7 +40,7 @@ public class CleanMailsUntilStop extends Component {
         var app = new CleanMailsUntilStop();
         app.attach(new JsonConfigurationStore(app,
             new File("mail-examples-config.json")));
-        app.attach(new MailMonitor(app));
+        app.attach(new SimpleMailMonitor(app));
         app.attach(new WaitForStopMail(app));
         Components.start(app);
         Components.awaitExhaustion();
