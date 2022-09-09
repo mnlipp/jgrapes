@@ -291,12 +291,16 @@
  * 
  *     package org.jgrapes.http [[../http/package-summary.html]] {
  *     }
+ *     
+ *     package org.jgrapes.mail [[../mail/package-summary.html]] {
+ *     }
  * }
  * 
  * org.jgrapes.core <.right. org.jgrapes.util
  * org.jgrapes.core <.. org.jgrapes.io
  * org.jgrapes.util <.. org.jgrapes.io
  * org.jgrapes.io <.right. org.jgrapes.http
+ * org.jgrapes.io <.up. org.jgrapes.mail
  * 
  * @enduml
  */
