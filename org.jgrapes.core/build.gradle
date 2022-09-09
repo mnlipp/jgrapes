@@ -92,7 +92,8 @@ task java11doc(type: JavaExec) {
         '--allow-script-in-comments',
         '-Xdoclint:-html',
         '--main-stylesheet', "${rootProject.rootDir}/misc/stylesheet.css",
-        '--add-exports=jdk.javadoc/jdk.javadoc.internal.doclets.formats.html=ALL-UNNAMED'
+        '--add-exports=jdk.javadoc/jdk.javadoc.internal.doclets.formats.html=ALL-UNNAMED',
+        '-quiet'
         ]
     
     ignoreExitValue true
