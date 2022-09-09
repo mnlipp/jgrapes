@@ -99,4 +99,21 @@ task java11doc(type: JavaExec) {
     ignoreExitValue true
 }
 
+gitPublish {
+    repoUri = 'https://github.com/mnlipp/jgrapes.git'
+    branch = 'gh-pages'
+    contents {
+        from("${rootProject.buildDir}/javadoc") {
+            into 'javadoc'
+        }
+        if (!isSnapshot) {
+            from("${buildDir}/javadoc") {
+                into 'latest-release/javadoc'
+            }
+        }
+    }
+    preserve { include '**/*' }
+    commitMessage = "Updated."
+}
+
 	

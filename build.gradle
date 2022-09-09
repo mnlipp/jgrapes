@@ -14,6 +14,7 @@ buildscript {
 
 plugins {
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
+    id 'pl.allegro.tech.build.axion-release' version '1.13.6' apply false
 }
 
 nexusPublishing {
@@ -42,19 +43,17 @@ allprojects {
     }
     
     group = 'org.jgrapes'
-    
-    ext.releaseVersion = "1.15.0"
-    ext.isSnapshot = false
-
-    // Default values, can be overridden in subproject
-    version = "${-> releaseVersion + (isSnapshot ? '-SNAPSHOT' : '') }"
-    
-    apply from: "${project.rootDir}/gradle/eclipse.gradle"
 }
 
 subprojects {
     apply from: "${project.rootDir}/gradle/subprojects.gradle"
+    
+    // Must be applied after configuring the subprojects,
+    // can therefore not be applied in allprojects.
+    apply from: "${project.rootDir}/gradle/eclipse.gradle"
 }
+
+apply from: "${project.rootDir}/gradle/eclipse.gradle"
 
 apply plugin: 'org.ajoberstar.git-publish'
 
@@ -62,23 +61,6 @@ apply plugin: 'org.ajoberstar.git-publish'
 if (System.properties['org.ajoberstar.grgit.auth.username'] == null) {
     System.setProperty('org.ajoberstar.grgit.auth.username',
         System.getenv("GH_TOKEN") ?: project.properties['github.token'] ?: "nouser")
-}
-
-gitPublish {
-	repoUri = 'https://github.com/mnlipp/jgrapes.git'
-	branch = 'gh-pages'
-	contents {
-		from("${buildDir}/javadoc") {
-			into 'javadoc'
-		}
-		if (!isSnapshot) {
-			from("${buildDir}/javadoc") {
-				into 'latest-release/javadoc'
-			}
-		}
-	}
-	preserve { include '**/*' }
-	commitMessage = "Updated."
 }
 
 tasks.gitPublishReset.mustRunAfter subprojects.tasks
@@ -99,4 +81,3 @@ task stage {
     	dependsOn gitPublishPush
     }
 }
-
