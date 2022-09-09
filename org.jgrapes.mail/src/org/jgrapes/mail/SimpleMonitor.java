@@ -56,11 +56,11 @@ import org.jgrapes.util.events.ConfigurationUpdate;
  * to connect to a mail server.
  */
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class MailMonitor extends Component {
+public class SimpleMonitor extends Component {
 
     @SuppressWarnings("PMD.FieldNamingConventions")
     private static final Logger logger
-        = Logger.getLogger(MailMonitor.class.getName());
+        = Logger.getLogger(SimpleMonitor.class.getName());
 
     private final Properties mailProps = new Properties();
     private String password;
@@ -73,7 +73,7 @@ public class MailMonitor extends Component {
     /**
      * Creates a new component with its channel set to itself.
      */
-    public MailMonitor() {
+    public SimpleMonitor() {
         // Nothing to do.
     }
 
@@ -89,7 +89,7 @@ public class MailMonitor extends Component {
      * handlers listen on by default and that 
      * {@link Manager#fire(Event, Channel...)} sends the event to
      */
-    public MailMonitor(Channel componentChannel) {
+    public SimpleMonitor(Channel componentChannel) {
         super(componentChannel);
     }
 
@@ -103,7 +103,7 @@ public class MailMonitor extends Component {
      * @param channelReplacements the channel replacements to apply
      * to the `channels` elements of the {@link Handler} annotations
      */
-    public MailMonitor(Channel componentChannel,
+    public SimpleMonitor(Channel componentChannel,
             ChannelReplacements channelReplacements) {
         super(componentChannel, channelReplacements);
     }
@@ -113,7 +113,7 @@ public class MailMonitor extends Component {
      *
      * @param password the new password
      */
-    public MailMonitor setPassword(String password) {
+    public SimpleMonitor setPassword(String password) {
         this.password = password;
         return this;
     }
@@ -124,7 +124,7 @@ public class MailMonitor extends Component {
      *
      * @param maxIdleTime the new max idle time
      */
-    public MailMonitor setMaxIdleTime(Duration maxIdleTime) {
+    public SimpleMonitor setMaxIdleTime(Duration maxIdleTime) {
         this.maxIdleTime = maxIdleTime;
         return this;
     }
@@ -137,7 +137,7 @@ public class MailMonitor extends Component {
      * @param props the props
      * @return the mail monitor
      */
-    public MailMonitor setMailProperties(Map<String, String> props) {
+    public SimpleMonitor setMailProperties(Map<String, String> props) {
         mailProps.putAll(props);
         return this;
     }
@@ -184,7 +184,7 @@ public class MailMonitor extends Component {
      * ```json
      * {
      *     "/CleanMailsUntilStop": {
-     *         "/MailMonitor": {
+     *         "/SimpleMailMonitor": {
      *             "/mail": {
      *                 "host": "...",
      *                 "store.protocol": "imap",
