@@ -18,17 +18,17 @@
 
 package org.jgrapes.examples.mail;
 
+import jakarta.mail.Flags.Flag;
+import jakarta.mail.Message.RecipientType;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.mail.events.ReceivedMailMessage;
 import org.jgrapes.mail.events.SendMailMessage;
-import jakarta.mail.Flags.Flag;
-import jakarta.mail.Message.RecipientType;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeBodyPart;
 
 /**
  * Wait for mail with subject stop. Delete all other mails.

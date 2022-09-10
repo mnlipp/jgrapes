@@ -18,6 +18,9 @@
 
 package org.jgrapes.examples.mail;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -26,9 +29,6 @@ import org.jgrapes.core.Components;
 import org.jgrapes.mail.SimpleMailSender;
 import org.jgrapes.mail.events.SendMailMessage;
 import org.jgrapes.util.JsonConfigurationStore;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeBodyPart;
 
 /**
  * An application that deletes all received mails.

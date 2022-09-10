@@ -18,14 +18,13 @@
 
 package org.jgrapes.examples.mail;
 
+import jakarta.mail.Flags.Flag;
+import jakarta.mail.MessagingException;
 import org.jgrapes.core.Channel;
 import org.jgrapes.core.Component;
 import org.jgrapes.core.annotation.Handler;
 import org.jgrapes.core.events.Stop;
 import org.jgrapes.mail.events.ReceivedMailMessage;
-
-import jakarta.mail.Flags.Flag;
-import jakarta.mail.MessagingException;
 
 /**
  * Wait for mail with subject stop. Delete all other mails.

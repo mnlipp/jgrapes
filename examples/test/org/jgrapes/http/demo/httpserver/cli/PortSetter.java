@@ -19,7 +19,6 @@
 package org.jgrapes.http.demo.httpserver.cli;
 
 import java.util.prefs.Preferences;
-
 import org.jgrapes.http.demo.httpserver.HttpServerDemo;
 
 /**
@@ -27,15 +26,15 @@ import org.jgrapes.http.demo.httpserver.HttpServerDemo;
  */
 public class PortSetter {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		Preferences preferences = Preferences
-			.userNodeForPackage(HttpServerDemo.class)
-			.node("PreferencesStore")
-			.node("HttpServerDemo")
-			.node("HttpServer");
-		preferences.putInt("port", Integer.parseInt(args[0]));
-	}
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        Preferences preferences = Preferences
+            .userNodeForPackage(HttpServerDemo.class)
+            .node("PreferencesStore")
+            .node("HttpServerDemo")
+            .node("HttpServer");
+        preferences.putInt("port", Integer.parseInt(args[0]));
+    }
 }
