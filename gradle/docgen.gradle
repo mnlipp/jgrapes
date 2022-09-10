@@ -100,7 +100,8 @@ gitPublish {
                 && !findProject(':org.jgrapes.io').isSnapshot
                 && !findProject(':org.jgrapes.http').isSnapshot
                 && !findProject(':org.jgrapes.http.freemarker').isSnapshot }) {
-            from("${buildDir}/javadoc") {
+            println "Is release!"
+            from("${rootProject.buildDir}/javadoc") {
                 into 'latest-release/javadoc'
             }
         }
@@ -113,6 +114,6 @@ tasks.gitPublishReset.mustRunAfter subprojects.tasks
     .collect { tc -> tc.findByName("build") }.flatten()
 tasks.gitPublishReset.mustRunAfter subprojects.tasks
     .collect { tc -> tc.findByName("test") }.flatten()
-tasks.gitPublishReset.mustRunAfter "java11doc"
+tasks.gitPublishCopy.dependsOn java11doc
 
 
