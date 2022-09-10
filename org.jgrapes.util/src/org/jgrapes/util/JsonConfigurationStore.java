@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
 import java.util.prefs.BackingStoreException;
+import java.util.stream.Collectors;
 import org.jdrupes.json.JsonBeanDecoder;
 import org.jdrupes.json.JsonBeanEncoder;
 import org.jdrupes.json.JsonDecodeException;
@@ -70,6 +71,8 @@ import org.jgrapes.util.events.InitialPreferences;
  * the component also listens for {@link ConfigurationUpdate} events
  * on its channel and updates the JSON file (may be suppressed).
  */
+@SuppressWarnings({ "PMD.DataflowAnomalyAnalysis",
+    "PMD.AvoidDuplicateLiterals" })
 public class JsonConfigurationStore extends Component {
 
     private File file;
@@ -111,7 +114,7 @@ public class JsonConfigurationStore extends Component {
         }
         try (Reader in = new InputStreamReader(
             Files.newInputStream(file.toPath()), "utf-8")) {
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings({ "unchecked", "PMD.AvoidDuplicateLiterals" })
             Map<String, Object> confCache
                 = (Map<String, Object>) JsonBeanDecoder.create(in).readObject();
             cache = confCache;
@@ -234,5 +237,36 @@ public class JsonConfigurationStore extends Component {
             }
         }
         return changed;
+    }
+
+    /**
+     * Return the properties for a given path if they exists. This
+     * method should only be used in cases where configuration values
+     * are needed before the {@link InitialConfiguration} event is
+     * fired, e.g. while creating the component tree. 
+     * 
+     * @param path the path
+     * @return the values, if defined for the given path
+     */
+    @SuppressWarnings({ "unchecked",
+        "PMD.AvoidBranchingStatementAsLastInLoop" })
+    public Optional<Map<String, String>> values(String path) {
+        if (!path.startsWith("/")) {
+            throw new IllegalArgumentException("Path must start with \"/\".");
+        }
+        var segs = new StringTokenizer(path, "/");
+        Map<String, Object> cur = cache;
+        while (segs.hasMoreTokens()) {
+            Object next = cur.get("/" + segs.nextToken());
+            if (next instanceof Map) {
+                cur = (Map<String, Object>) next;
+                continue;
+            }
+            return Optional.empty();
+        }
+        return Optional.of(cur.entrySet().stream()
+            .filter(e -> !(e.getValue() instanceof Map))
+            .collect(Collectors.toMap(Map.Entry::getKey,
+                e -> e.getValue().toString())));
     }
 }

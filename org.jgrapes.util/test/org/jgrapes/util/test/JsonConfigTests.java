@@ -89,7 +89,10 @@ public class JsonConfigTests {
             = new OutputStreamWriter(new FileOutputStream(file), "utf-8")) {
             out.write("{\"answer\":42, \"/sub\":{\"/tree\":{\"value\":24}}}");
         }
-        app.attach(new JsonConfigurationStore(app, file));
+        var conf = new JsonConfigurationStore(app, file);
+        assertEquals("42", conf.values("/").get().get("answer"));
+        assertEquals("24", conf.values("/sub/tree").get().get("value"));
+        app.attach(conf);
 
         Components.start(app);
         Components.awaitExhaustion();
