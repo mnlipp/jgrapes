@@ -8,20 +8,14 @@ task sourcesJar(type: Jar) {
     classifier "sources"
 }
     
-if (project.name == "org.jgrapes.core") {
-    javadoc {
-        enabled = false
-    }
-} else {
-    task javadocJar(type: Jar) {
-        from ("${project.rootDir}/misc/javadoc-redirect")
-        classifier "javadoc"
-    }
-    
-    artifacts {
-        archives sourcesJar
-        archives javadocJar
-    }
+task javadocJar(type: Jar) {
+    from ("${project.rootDir}/misc/javadoc-redirect")
+    classifier "javadoc"
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
 }
 
 // MavenPublishing (new)
