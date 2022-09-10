@@ -100,7 +100,6 @@ gitPublish {
                 && !findProject(':org.jgrapes.io').isSnapshot
                 && !findProject(':org.jgrapes.http').isSnapshot
                 && !findProject(':org.jgrapes.http.freemarker').isSnapshot }) {
-            println "Is release!"
             from("${rootProject.buildDir}/javadoc") {
                 into 'latest-release/javadoc'
             }
