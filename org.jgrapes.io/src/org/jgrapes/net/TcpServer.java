@@ -261,6 +261,13 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
      * `bufferSize`
      * : See {@link #setBufferSize(int)}.
      * 
+     * `maxConnections`
+     * : Calls {@link #setConnectionLimiter} with a
+     *   {@link PermitsPool} of the specified size.
+     * 
+     * `minimalPurgeableTime`
+     * : See {@link #setMinimalPurgeableTime(long)}.
+     * 
      * @param event the event
      */
     @Handler
@@ -279,6 +286,11 @@ public class TcpServer extends TcpConnectionManager implements NioHandler {
                 value -> setBacklog(Integer.parseInt(value)));
             Optional.ofNullable(values.get("bufferSize")).ifPresent(
                 value -> setBufferSize(Integer.parseInt(value)));
+            Optional.ofNullable(values.get("maxConnections"))
+                .map(Integer::parseInt).map(PermitsPool::new)
+                .ifPresent(this::setConnectionLimiter);
+            Optional.ofNullable(values.get("minimalPurgeableTime"))
+                .map(Long::parseLong).ifPresent(this::setMinimalPurgeableTime);
         });
     }
 
